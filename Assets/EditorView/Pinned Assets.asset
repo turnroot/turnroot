@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 04feaf57d9bc4db4a9f85d1786cf79f4, type: 3}
+  m_Name: Pinned Assets
+  m_EditorClassIdentifier: 
+  profiles:
+  - name: Default
+    assets: []
+  - name: New Profile 1
+    assets: []
+  display:
+    profile:
+      name: New Profile 1
+      assets: []
+    assets: []
+    filter: 
