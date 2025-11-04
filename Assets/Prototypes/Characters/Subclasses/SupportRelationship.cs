@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using Assets.Prototypes.Characters;
 
 namespace Assets.Prototypes.Characters.Subclasses
 {
