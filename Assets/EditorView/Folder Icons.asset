@@ -18,3 +18,6 @@ MonoBehaviour:
   - folder: {fileID: 102900000, guid: 2682044f3200314429110ae2ce27025d, type: 3}
     folderIcon: {fileID: 2800000, guid: e3c4ce93372247b4bb36ff97ae99888a, type: 3}
     overlayIcon: {fileID: 0}
+  - folder: {fileID: 102900000, guid: 9a431eb0264a1f9489fa2c08d186dc67, type: 3}
+    folderIcon: {fileID: 2800000, guid: e3c4ce93372247b4bb36ff97ae99888a, type: 3}
+    overlayIcon: {fileID: 0}
