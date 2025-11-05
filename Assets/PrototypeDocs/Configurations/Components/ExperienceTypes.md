@@ -61,7 +61,14 @@ The `Id` is automatically generated when the `Name` is set:
 
 Defines a weapon type with its characteristics and combat ranges.
 
-**Location:** `Assets/Prototypes/Gameplay/Combat/Objects/Components/WeaponType.cs`
+**Location:** `Assets/Prototypes/Gameplay/Combat/Objects/Components/WeaponType.cs`  
+**Inherits:** `ScriptableObject`
+
+#### Creation
+
+```csharp
+Assets > Create > Game Settings > Gameplay > Weapon Type
+```
 
 #### Properties
 
@@ -76,27 +83,28 @@ Defines a weapon type with its characteristics and combat ranges.
 #### Usage
 
 ```csharp
-// Create weapon type
-var bow = new WeaponType
-{
-    Name = "Bow",
-    Id = "bow",
-    Icon = bowSprite,
-    Ranges = new int[] { 2, 3 },  // Can attack at range 2 or 3
-    DefaultRange = 2              // Prefers range 2
-};
+// Create asset via Unity menu
+// Assets > Create > Game Settings > Gameplay > Weapon Type
 
-// Check valid ranges
+// Configure in inspector or via code
+WeaponType bow = bowAsset;
+bow.Name = "Bow";
+bow.Id = "bow";
+bow.Ranges = new int[] { 2, 3 };  // Can attack at range 2 or 3
+bow.DefaultRange = 2;             // Prefers range 2
+
+// Check valid ranges at runtime
 bool canAttackAt2 = bow.Ranges.Contains(2); // true
 int preferredRange = bow.DefaultRange;      // 2
 ```
 
 #### Serialization
 
-Both `ExperienceType` and `WeaponType` are marked with `[System.Serializable]` and use Unity serialization:
-- Properties wrap `[SerializeField]` private backing fields
+Both `ExperienceType` and `WeaponType` use Unity serialization:
+- WeaponType is a **ScriptableObject** (create as asset)
+- ExperienceType is **[Serializable]** (embeds in other assets)
+- Both use properties wrapping `[SerializeField]` private backing fields
 - Fully compatible with Unity Inspector
-- Can be serialized in ScriptableObjects and MonoBehaviours
 
 ---
 

@@ -93,7 +93,9 @@ Tracks relationship between two characters with support levels and progression.
 
 **SupportLevels.Level** enum:
 - `None` - No relationship
-- `C` - Initial support level
+- `E` - Initial acquaintance
+- `D` - Casual friends
+- `C` - Close friends
 - `B` - Growing relationship
 - `A` - Strong bond
 - `S` - Special/romantic relationship
@@ -120,32 +122,27 @@ rel.SupportPoints += 10 * rel.SupportSpeed;
 
 ## HereditaryTraits
 
-**Namespace:** `Assets.Prototypes.Characters.Subclasses`  
+**Namespace:** `Assets.Prototypes.Characters.Configuration`  
 **Type:** `[Serializable]`
 
-Traits and characteristics passed from parent to child units.
+Configuration for which traits and characteristics can be inherited from parent to child units.
 
 ### Properties
 
-| Property | Type | Description |
-|----------|------|-------------|
-| `HairColor` | `Color` | Inherited hair color |
-| `EyeColor` | `Color` | Inherited eye color |
-| `SkinTone` | `Color` | Inherited skin tone |
-| `PassedSkills` | `List<string>` | Skills inherited by children |
-| `PassedTraits` | `List<string>` | Character traits inherited |
-| `GrowthRateBonuses` | `Dictionary<string, float>` | Stat growth modifiers |
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| `HairColor` | `bool` | `true` | Whether hair color is inherited |
+| `FaceShape` | `bool` | `false` | Whether face shape is inherited |
+| `EyeColor` | `bool` | `true` | Whether eye color is inherited |
+| `SkinColor` | `bool` | `true` | Whether skin color is inherited |
+| `Height` | `bool` | `true` | Whether height is inherited |
+| `Aptitudes` | `bool` | `false` | Whether aptitudes are inherited |
+| `StatGrowths` | `bool` | `false` | Whether stat growths are inherited |
 
-### Usage
-
-```csharp
-character.PassedDownTraits.HairColor = Color.black;
-character.PassedDownTraits.PassedSkills.Add("Swordfaire");
-
-// When creating child
-Character child = CreateChildUnit(parent1, parent2);
-child.ApplyHereditaryTraits(parent1.PassedDownTraits);
-```
+### Notes
+- These are boolean flags indicating which traits **can** be passed down
+- The actual trait values (colors, growths, etc.) are stored on the Character class
+- Accessed via `Character.PassedDownTraits` property
 
 ---
 
@@ -154,16 +151,16 @@ child.ApplyHereditaryTraits(parent1.PassedDownTraits);
 **Namespace:** `Assets.Prototypes.Characters.Configuration`  
 **Type:** `enum`
 
-Character allegiance/type identifier.
+Character type/allegiance identifier.
 
 ### Values
 
 | Value | Description |
 |-------|-------------|
-| `Player` | Player-controlled unit |
+| `Avatar` | Player avatar/main character |
+| `NPC` | Non-player character |
 | `Enemy` | Enemy/hostile unit |
-| `Ally` | Allied/friendly NPC unit |
-| `Neutral` | Neutral/non-combatant |
+| `Friend` | Friendly/allied unit |
 
 ### Usage
 
@@ -177,9 +174,55 @@ if (character.Which == CharacterWhich.Enemy) {
 
 ## SerializableDictionary<TKey, TValue>
 
-**Type:** `[Serializable]`
+**Namespace:** Global  
+**Type:** `[Serializable]`  
+**Source:** `Assets/AbstractScripts/SerializableDictionary.cs`
 
 Unity-serializable dictionary wrapper for inspector editing.
+
+### Properties
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `Dictionary` | `Dictionary<TKey, TValue>` | Lazy-initialized dictionary from serialized lists |
+| `Count` | `int` | Number of key-value pairs |
+| `Keys` | `IEnumerable<TKey>` | Collection of keys |
+| `Values` | `IEnumerable<TValue>` | Collection of values |
+
+### Indexer
+
+```csharp
+TValue this[TKey key] { get; set; }
+```
+Access values by key (returns default if key not found).
+
+### Methods
+
+```csharp
+void Add(TKey key, TValue value)
+```
+Add key-value pair (does nothing if key exists).
+
+```csharp
+bool Remove(TKey key)
+```
+Remove key-value pair.
+- **Returns:** `true` if removed, `false` if key not found
+
+```csharp
+bool ContainsKey(TKey key)
+```
+Check if key exists.
+
+```csharp
+bool TryGetValue(TKey key, out TValue value)
+```
+Try to get value for key.
+
+```csharp
+void Clear()
+```
+Remove all entries.
 
 ### Usage
 
@@ -187,12 +230,12 @@ Unity-serializable dictionary wrapper for inspector editing.
 [SerializeField]
 private SerializableDictionary<string, int> classExps;
 
-// Access like normal dictionary
-classExps["Fighter"] = 100;
-int exp = classExps["Mage"];
+// Note: Properties are read-only in Character class
+// Access via Character.ClassExps property
 ```
 
 ### Notes
-- Allows dictionaries in Unity inspector
-- Custom property drawer for editing
-- Maintains dictionary semantics
+- Serializes as two parallel lists (`_keys` and `_values`)
+- Dictionary is lazily reconstructed from lists on first access
+- Custom property drawer provides inspector editing
+- Maintains dictionary semantics (unique keys)

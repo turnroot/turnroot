@@ -5,20 +5,21 @@ Complete API reference for Assets/Prototypes systems.
 ## Core Systems
 
 ### Character System
-- **[Character](Character.md)** - Main character configuration asset
-- **[CharacterStats](CharacterStats.md)** - Stat system (bounded and unbounded)
-- **[SupportingClasses](SupportingClasses.md)** - Pronouns, relationships, traits
+- **[Character](Characters/Character.md)** - Main character configuration asset
+- **[CharacterStats](Characters/CharacterStats.md)** - Stat system (bounded and unbounded)
+- **[CharacterComponents](Characters/CharacterComponents.md)** - Pronouns, relationships, traits
 
 ### Portrait System
-- **[Portrait](Portrait.md)** - Compositable character portraits
-- **[ImageStack](ImageStack.md)** - Layer container and ImageStackLayer
-- **[ImageCompositor](ImageCompositor.md)** - Static compositor utility
+- **[Portrait](Characters/Portraits/Portrait.md)** - Compositable character portraits
+- **[ImageStack](Characters/Portraits/ImageStack.md)** - Layer container and ImageStackLayer
+- **[ImageCompositor](Tools/ImageCompositor.md)** - Static compositor utility
 
-### Settings
-- **[Settings](Settings.md)** - CharacterPrototypeSettings, GraphicsPrototypesSettings
+### Configuration
+- **[Settings](Configurations/Settings.md)** - CharacterPrototypeSettings, GraphicsPrototypesSettings
+- **[ExperienceTypes](Configurations/Components/ExperienceTypes.md)** - Combat experience and weapon types
 
 ### Editor Tools
-- **[PortraitEditorWindow](PortraitEditorWindow.md)** - Portrait editing interface
+- **[PortraitEditorWindow](Tools/PortraitEditorWindow.md)** - Portrait editing interface
 
 ---
 
@@ -27,57 +28,30 @@ Complete API reference for Assets/Prototypes systems.
 ### Creating a Character
 
 ```csharp
-// Create asset
+// Create asset via Unity menu
 Assets > Create > Character > Character
 
-// Configure
-character.Name = "Hero";
-character.Which = CharacterWhich.Player;
-character.Level = 1;
-
-// Add stats
-var hp = new BoundedCharacterStat(100, 100, 0, BoundedStatType.Health);
-character.BoundedStats.Add(hp);
-
-var str = new CharacterStat(10, UnboundedStatType.Strength);
-character.UnboundedStats.Add(str);
+// Configure properties in the Unity Inspector
+// All properties are read-only at runtime
 ```
 
 ### Creating a Portrait
 
 ```csharp
-// Via Portrait Editor Window
+// Via Portrait Editor Window (recommended)
 Tools > Portrait Editor
-
-// Or programmatically
-var portrait = new Portrait();
-portrait.SetOwner(character);
-portrait.SetKey("hero_portrait");
-
-// Configure ImageStack
-var stack = CreateInstance<ImageStack>();
-stack.Layers.Add(new ImageStackLayer {
-    Sprite = baseSprite,
-    Order = 0
-});
-
-// Assign and render
-portrait.ImageStack = stack;
-portrait.Render(); // Saves PNG and creates sprite asset
 ```
 
 ### Using Tinting
 
 ```csharp
-// Set character accent colors
-character.AccentColor1 = Color.red;
-character.AccentColor2 = Color.blue;
-character.AccentColor3 = Color.yellow;
+// Note: AccentColor properties are read-only
+// Set them in the Unity Inspector on the Character asset
 
 // In Portrait Editor, click "Update from Character Colors"
-// Or manually set via TintColors property
+// to sync tint colors from character
 
-// Add masked layer
+// Add masked layer in ImageStack
 var layer = new ImageStackLayer {
     Sprite = hairSprite,
     Mask = hairMask, // R=red regions, G=blue regions, B=yellow regions

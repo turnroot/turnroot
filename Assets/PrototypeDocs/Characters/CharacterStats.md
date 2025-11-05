@@ -147,23 +147,11 @@ int hp = healthStat; // Automatically calls Get()
 
 ### UnboundedStatType
 Enum for stats without bounds:
-- `Strength`
-- `Magic`
-- `Dexterity`
-- `Speed`
-- `Luck`
-- `Defense`
-- `Resistance`
-- `Charm`
-- etc.
+- `Strength` - Physical power and melee damage
 
 ### BoundedStatType
 Enum for stats with min/max:
-- `Health` - Hit points
-- `Stamina` - Action points/endurance
-- `Mana` - Magic points
-- `Shield` - Temporary protection
-- etc.
+- `Health` - Character's life force
 
 Each type has extension methods:
 ```csharp
@@ -196,17 +184,17 @@ Character character = GetCharacter();
 BoundedCharacterStat hp = character.GetBoundedStat(BoundedStatType.Health);
 CharacterStat str = character.GetUnboundedStat(UnboundedStatType.Strength);
 
-// Use values
-if (hp.Get() < hp.Max * 0.5f) {
-    // Low health
-}
+// Note: Character properties are read-only
+// Stats list manipulation must be done in Unity Inspector
 ```
 
 ### Progress Bars
 ```csharp
-BoundedCharacterStat stamina = character.GetBoundedStat(BoundedStatType.Stamina);
-float fillAmount = stamina.Ratio; // 0.0 to 1.0
-progressBar.fillAmount = fillAmount;
+BoundedCharacterStat health = character.GetBoundedStat(BoundedStatType.Health);
+if (health != null) {
+    float fillAmount = health.Ratio; // 0.0 to 1.0
+    progressBar.fillAmount = fillAmount;
+}
 ```
 
 ## Notes
