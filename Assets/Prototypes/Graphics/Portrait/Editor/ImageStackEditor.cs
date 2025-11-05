@@ -107,7 +107,6 @@ namespace Assets.Prototypes.Graphics.Portrait.Editor
                 // Initialize new layer with defaults
                 newLayer.FindPropertyRelative("Sprite").objectReferenceValue = null;
                 newLayer.FindPropertyRelative("Offset").vector2Value = Vector2.zero;
-                newLayer.FindPropertyRelative("Tint").colorValue = Color.white;
                 newLayer.FindPropertyRelative("Scale").floatValue = 1f;
                 newLayer.FindPropertyRelative("Rotation").floatValue = 0f;
                 newLayer.FindPropertyRelative("Order").intValue = _layersProp.arraySize - 1;

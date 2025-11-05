@@ -14,8 +14,8 @@ public class ImageStackLayerDrawer : PropertyDrawer
 
         // Get properties
         var spriteProp = property.FindPropertyRelative("Sprite");
+        var maskProp = property.FindPropertyRelative("Mask");
         var offsetProp = property.FindPropertyRelative("Offset");
-        var tintProp = property.FindPropertyRelative("Tint");
         var scaleProp = property.FindPropertyRelative("Scale");
         var rotationProp = property.FindPropertyRelative("Rotation");
         var orderProp = property.FindPropertyRelative("Order");
@@ -46,11 +46,11 @@ public class ImageStackLayerDrawer : PropertyDrawer
             yPos += FieldHeight + Spacing;
 
             fieldRect.y = yPos;
-            EditorGUI.PropertyField(fieldRect, offsetProp, new GUIContent("Offset"));
+            EditorGUI.PropertyField(fieldRect, maskProp, new GUIContent("Mask"));
             yPos += FieldHeight + Spacing;
 
             fieldRect.y = yPos;
-            EditorGUI.PropertyField(fieldRect, tintProp, new GUIContent("Tint"));
+            EditorGUI.PropertyField(fieldRect, offsetProp, new GUIContent("Offset"));
             yPos += FieldHeight + Spacing;
 
             fieldRect.y = yPos;
@@ -80,42 +80,23 @@ public class ImageStackLayerDrawer : PropertyDrawer
                     // Draw background
                     EditorGUI.DrawRect(previewRect, new Color(0.2f, 0.2f, 0.2f, 1f));
 
-                    // Apply tint color to preview background
-                    Color tintColor = tintProp.colorValue;
-                    if (tintColor != Color.white)
-                    {
-                        Color bgTint = new Color(
-                            tintColor.r * 0.3f,
-                            tintColor.g * 0.3f,
-                            tintColor.b * 0.3f,
-                            1f
-                        );
-                        EditorGUI.DrawRect(previewRect, bgTint);
-                    }
-
                     // Draw sprite
                     Texture2D texture = AssetPreview.GetAssetPreview(sprite);
                     if (texture != null)
                     {
-                        Color oldColor = GUI.color;
-                        GUI.color = tintColor;
                         GUI.DrawTexture(previewRect, texture, ScaleMode.ScaleToFit);
-                        GUI.color = oldColor;
                     }
                     else
                     {
                         // Fallback to sprite texture if preview isn't ready
                         if (sprite.texture != null)
                         {
-                            Color oldColor = GUI.color;
-                            GUI.color = tintColor;
                             GUI.DrawTextureWithTexCoords(
                                 previewRect,
                                 sprite.texture,
                                 GetSpriteTextureCoords(sprite),
                                 true
                             );
-                            GUI.color = oldColor;
                         }
                     }
 
@@ -163,7 +144,7 @@ public class ImageStackLayerDrawer : PropertyDrawer
             return FieldHeight;
         }
 
-        // Height includes: foldout + 6 fields with spacing
+        // Height includes: foldout + 6 fields with spacing (Sprite, Mask, Offset, Scale, Rotation, Order)
         float height = FieldHeight + Spacing; // Foldout
         height += (FieldHeight + Spacing) * 6; // 6 fields
 

@@ -4,28 +4,6 @@ using Assets.Prototypes.Characters;
 using Assets.Prototypes.Characters.Subclasses;
 using UnityEngine;
 
-[Serializable]
-public class ImageStackLayer
-{
-    [SerializeField]
-    public Sprite Sprite;
-
-    [SerializeField]
-    public Vector2 Offset;
-
-    [SerializeField]
-    public Color Tint = Color.white;
-
-    [SerializeField]
-    public float Scale = 1f;
-
-    [SerializeField]
-    public float Rotation = 0f;
-
-    [SerializeField]
-    public int Order = 0;
-}
-
 namespace Assets.Prototypes.Graphics.Portrait
 {
     [CreateAssetMenu(fileName = "NewImageStack", menuName = "Graphics/Portrait/ImageStack")]
