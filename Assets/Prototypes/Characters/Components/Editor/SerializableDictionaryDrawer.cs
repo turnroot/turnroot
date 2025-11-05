@@ -11,7 +11,7 @@ namespace Assets.Prototypes.Characters.Configuration.Editor
 
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
-            EditorGUI.BeginProperty(position, label, property);
+            _ = EditorGUI.BeginProperty(position, label, property);
 
             var keysProperty = property.FindPropertyRelative("_keys");
             var valuesProperty = property.FindPropertyRelative("_values");
@@ -69,7 +69,7 @@ namespace Assets.Prototypes.Characters.Configuration.Editor
                     }
                     else
                     {
-                        EditorGUI.PropertyField(keyRect, keyProp, GUIContent.none);
+                        _ = EditorGUI.PropertyField(keyRect, keyProp, GUIContent.none);
                     }
 
                     // Value field (60% width)
@@ -112,7 +112,7 @@ namespace Assets.Prototypes.Characters.Configuration.Editor
                     }
                     else
                     {
-                        EditorGUI.PropertyField(valueRect, valueProp, GUIContent.none);
+                        _ = EditorGUI.PropertyField(valueRect, valueProp, GUIContent.none);
                     }
 
                     // Remove button

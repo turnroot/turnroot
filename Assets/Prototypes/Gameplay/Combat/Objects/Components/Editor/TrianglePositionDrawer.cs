@@ -6,7 +6,7 @@ public class TrianglePositionDrawer : PropertyDrawer
 {
     public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
     {
-        EditorGUI.BeginProperty(position, label, property);
+        _ = EditorGUI.BeginProperty(position, label, property);
 
         // Get the _position field
         SerializedProperty positionProp = property.FindPropertyRelative("_position");
@@ -14,7 +14,7 @@ public class TrianglePositionDrawer : PropertyDrawer
         if (positionProp != null)
         {
             // Draw the enum dropdown
-            EditorGUI.PropertyField(position, positionProp, label);
+            _ = EditorGUI.PropertyField(position, positionProp, label);
         }
         else
         {

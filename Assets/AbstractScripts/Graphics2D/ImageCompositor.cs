@@ -329,7 +329,7 @@ namespace Assets.AbstractScripts.Graphics2D
         {
             try
             {
-                texture.GetPixel(0, 0);
+                _ = texture.GetPixel(0, 0);
                 return true;
             }
             catch

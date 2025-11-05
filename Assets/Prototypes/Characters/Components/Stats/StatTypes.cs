@@ -24,7 +24,7 @@ namespace Assets.Prototypes.Characters.Stats
         Movement,
         Endurance,
         Authority,
-CriticalAvoidance
+        CriticalAvoidance,
     }
 
     public static class BoundedStatTypeExtensions
@@ -69,7 +69,10 @@ CriticalAvoidance
             { UnboundedStatType.Movement, ("Mov", "Number of tiles a character can move") },
             { UnboundedStatType.Endurance, ("End", "Affects stamina and resistance to fatigue") },
             { UnboundedStatType.Authority, ("Ahy", "Influences leadership and command abilities") },
-            { UnboundedStatType.CriticalAvoidance, ("CritAvo", "Reduces chance of receiving critical hits") },
+            {
+                UnboundedStatType.CriticalAvoidance,
+                ("CritAvo", "Reduces chance of receiving critical hits")
+            },
         };
 
         public static string GetDisplayName(this UnboundedStatType type) =>

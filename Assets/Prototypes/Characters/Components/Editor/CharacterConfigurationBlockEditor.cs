@@ -11,7 +11,7 @@ namespace Assets.Prototypes.Characters.Configuration.Editor
             serializedObject.Update();
 
             // Draw all the default fields (BoxGroups will handle layout)
-            DrawDefaultInspector();
+            _ = DrawDefaultInspector();
 
             // Add stats management section at the end
             EditorGUILayout.Space(20);
@@ -19,7 +19,7 @@ namespace Assets.Prototypes.Characters.Configuration.Editor
 
             DrawStatsSection();
 
-            serializedObject.ApplyModifiedProperties();
+            _ = serializedObject.ApplyModifiedProperties();
         }
 
         private void DrawStatsSection()
@@ -36,8 +36,8 @@ namespace Assets.Prototypes.Characters.Configuration.Editor
             {
                 for (int i = 0; i < boundedStatsProperty.arraySize; i++)
                 {
-                    EditorGUILayout.BeginHorizontal();
-                    EditorGUILayout.PropertyField(
+                    _ = EditorGUILayout.BeginHorizontal();
+                    _ = EditorGUILayout.PropertyField(
                         boundedStatsProperty.GetArrayElementAtIndex(i),
                         GUIContent.none
                     );
@@ -45,7 +45,7 @@ namespace Assets.Prototypes.Characters.Configuration.Editor
                     if (GUILayout.Button("-", GUILayout.Width(25)))
                     {
                         boundedStatsProperty.DeleteArrayElementAtIndex(i);
-                        serializedObject.ApplyModifiedProperties();
+                        _ = serializedObject.ApplyModifiedProperties();
                         return;
                     }
                     EditorGUILayout.EndHorizontal();
@@ -56,7 +56,7 @@ namespace Assets.Prototypes.Characters.Configuration.Editor
             if (GUILayout.Button("+ Bounded Stat", GUILayout.Height(25)))
             {
                 boundedStatsProperty.arraySize++;
-                serializedObject.ApplyModifiedProperties();
+                _ = serializedObject.ApplyModifiedProperties();
             }
 
             EditorGUI.indentLevel--;
@@ -70,8 +70,8 @@ namespace Assets.Prototypes.Characters.Configuration.Editor
             {
                 for (int i = 0; i < unboundedStatsProperty.arraySize; i++)
                 {
-                    EditorGUILayout.BeginHorizontal();
-                    EditorGUILayout.PropertyField(
+                    _ = EditorGUILayout.BeginHorizontal();
+                    _ = EditorGUILayout.PropertyField(
                         unboundedStatsProperty.GetArrayElementAtIndex(i),
                         GUIContent.none
                     );
@@ -79,7 +79,7 @@ namespace Assets.Prototypes.Characters.Configuration.Editor
                     if (GUILayout.Button("-", GUILayout.Width(25)))
                     {
                         unboundedStatsProperty.DeleteArrayElementAtIndex(i);
-                        serializedObject.ApplyModifiedProperties();
+                        _ = serializedObject.ApplyModifiedProperties();
                         return;
                     }
                     EditorGUILayout.EndHorizontal();
@@ -90,7 +90,7 @@ namespace Assets.Prototypes.Characters.Configuration.Editor
             if (GUILayout.Button("+ Unbounded Stat", GUILayout.Height(25)))
             {
                 unboundedStatsProperty.arraySize++;
-                serializedObject.ApplyModifiedProperties();
+                _ = serializedObject.ApplyModifiedProperties();
             }
 
             EditorGUI.indentLevel--;

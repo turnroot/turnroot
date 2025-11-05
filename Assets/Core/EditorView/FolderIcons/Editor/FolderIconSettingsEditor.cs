@@ -120,7 +120,7 @@ namespace FolderIcons
             EditorGUI.BeginChangeCheck ();
                 iconList.DoLayoutList ();
             if (EditorGUI.EndChangeCheck ())
-                serializedObject.ApplyModifiedProperties ();
+                _ = serializedObject.ApplyModifiedProperties();
            
             DrawTexturePreview ();
 
@@ -218,7 +218,7 @@ namespace FolderIcons
                 if (SerializedProperty.EqualContents (copy, property.GetEndProperty ()))
                     break;
 
-                EditorGUI.PropertyField (rect, copy, false);
+                _ = EditorGUI.PropertyField(rect, copy, false);
                 rect.y += PROPERTY_HEIGHT + PROPERTY_PADDING;
 
                 enterChildren = false;
@@ -278,13 +278,13 @@ namespace FolderIcons
                 {
 
                 // Headers 
-                EditorGUILayout.BeginHorizontal ();
+                _ = EditorGUILayout.BeginHorizontal();
                     EditorGUILayout.LabelField ("Original Texture");
                     EditorGUILayout.LabelField ("Modified Texture");
                 EditorGUILayout.EndHorizontal ();
 
                 // Texture -- Preview
-                EditorGUILayout.BeginHorizontal ();
+                _ = EditorGUILayout.BeginHorizontal();
                     {
                     selectedTexture = EditorGUILayout.ObjectField ( selectedTexture, typeof (Texture2D),
                         false, GUILayout.ExpandWidth(false),  GUILayout.ExpandHeight(true), GUILayout.Width(64f)) as Texture2D;
@@ -321,7 +321,7 @@ namespace FolderIcons
                 textureName = EditorGUILayout.TextField ("Texture Name", textureName);
 
                 EditorGUI.BeginDisabledGroup (true);
-                    GUILayout.TextField (".png", GUILayout.Width(40f));
+                _ = GUILayout.TextField(".png", GUILayout.Width(40f));
                 EditorGUI.EndDisabledGroup ();
                 }
             GUILayout.EndHorizontal ();

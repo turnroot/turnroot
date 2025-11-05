@@ -28,7 +28,7 @@ namespace Assets.Prototypes.Graphics.Portrait.Editor
                 if (character != null)
                 {
                     _ownerCharacterProp.objectReferenceValue = character;
-                    serializedObject.ApplyModifiedProperties();
+                    _ = serializedObject.ApplyModifiedProperties();
                 }
             }
 
@@ -37,7 +37,7 @@ namespace Assets.Prototypes.Graphics.Portrait.Editor
             EditorGUILayout.Space(5);
 
             // Draw owner field
-            EditorGUILayout.PropertyField(_ownerCharacterProp, new GUIContent("Owner Character"));
+            _ = EditorGUILayout.PropertyField(_ownerCharacterProp, new GUIContent("Owner Character"));
 
             EditorGUILayout.Space(10);
 
@@ -56,18 +56,18 @@ namespace Assets.Prototypes.Graphics.Portrait.Editor
                 // Draw each layer
                 for (int i = 0; i < _layersProp.arraySize; i++)
                 {
-                    EditorGUILayout.BeginVertical(EditorStyles.helpBox);
-                    EditorGUILayout.BeginHorizontal();
+                    _ = EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+                    _ = EditorGUILayout.BeginHorizontal();
 
                     var layerProp = _layersProp.GetArrayElementAtIndex(i);
-                    EditorGUILayout.PropertyField(layerProp, new GUIContent($"Layer {i}"), true);
+                    _ = EditorGUILayout.PropertyField(layerProp, new GUIContent($"Layer {i}"), true);
 
                     // Move up button
                     GUI.enabled = i > 0;
                     if (GUILayout.Button("↑", GUILayout.Width(25)))
                     {
-                        _layersProp.MoveArrayElement(i, i - 1);
-                        serializedObject.ApplyModifiedProperties();
+                        _ = _layersProp.MoveArrayElement(i, i - 1);
+                        _ = serializedObject.ApplyModifiedProperties();
                         return;
                     }
                     GUI.enabled = true;
@@ -76,8 +76,8 @@ namespace Assets.Prototypes.Graphics.Portrait.Editor
                     GUI.enabled = i < _layersProp.arraySize - 1;
                     if (GUILayout.Button("↓", GUILayout.Width(25)))
                     {
-                        _layersProp.MoveArrayElement(i, i + 1);
-                        serializedObject.ApplyModifiedProperties();
+                        _ = _layersProp.MoveArrayElement(i, i + 1);
+                        _ = serializedObject.ApplyModifiedProperties();
                         return;
                     }
                     GUI.enabled = true;
@@ -86,7 +86,7 @@ namespace Assets.Prototypes.Graphics.Portrait.Editor
                     if (GUILayout.Button("✕", GUILayout.Width(25)))
                     {
                         _layersProp.DeleteArrayElementAtIndex(i);
-                        serializedObject.ApplyModifiedProperties();
+                        _ = serializedObject.ApplyModifiedProperties();
                         return;
                     }
 
@@ -111,27 +111,27 @@ namespace Assets.Prototypes.Graphics.Portrait.Editor
                 newLayer.FindPropertyRelative("Rotation").floatValue = 0f;
                 newLayer.FindPropertyRelative("Order").intValue = _layersProp.arraySize - 1;
 
-                serializedObject.ApplyModifiedProperties();
+                _ = serializedObject.ApplyModifiedProperties();
             }
 
             EditorGUILayout.Space(10);
 
             // Render button
-            EditorGUILayout.BeginHorizontal();
+            _ = EditorGUILayout.BeginHorizontal();
             GUILayout.FlexibleSpace();
             if (GUILayout.Button("Render Stack", GUILayout.Width(120), GUILayout.Height(30)))
             {
                 ImageStack stack = target as ImageStack;
                 if (stack != null)
                 {
-                    stack.Render();
+                    _ = stack.Render();
                     EditorUtility.SetDirty(stack);
                 }
             }
             GUILayout.FlexibleSpace();
             EditorGUILayout.EndHorizontal();
 
-            serializedObject.ApplyModifiedProperties();
+            _ = serializedObject.ApplyModifiedProperties();
         }
 
         private Object FindOwnerCharacter()

@@ -11,7 +11,7 @@ namespace Assets.Prototypes.Characters.Subclasses.Editor
 
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
-            EditorGUI.BeginProperty(position, label, property);
+            _ = EditorGUI.BeginProperty(position, label, property);
 
             // Get the current pronoun type by checking which array is selected
             int selectedIndex = GetCurrentPronounIndex(property);
@@ -79,7 +79,7 @@ namespace Assets.Prototypes.Characters.Subclasses.Editor
                 selectedPronounsProperty.GetArrayElementAtIndex(i).stringValue = pronouns[i];
             }
 
-            property.serializedObject.ApplyModifiedProperties();
+            _ = property.serializedObject.ApplyModifiedProperties();
         }
 
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)

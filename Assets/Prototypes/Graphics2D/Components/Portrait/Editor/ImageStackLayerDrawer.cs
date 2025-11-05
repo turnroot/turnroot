@@ -10,7 +10,7 @@ public class ImageStackLayerDrawer : PropertyDrawer
 
     public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
     {
-        EditorGUI.BeginProperty(position, label, property);
+        _ = EditorGUI.BeginProperty(position, label, property);
 
         // Get properties
         var spriteProp = property.FindPropertyRelative("Sprite");
@@ -42,27 +42,27 @@ public class ImageStackLayerDrawer : PropertyDrawer
             // Draw fields on the left
             Rect fieldRect = new Rect(position.x, yPos, fieldWidth, FieldHeight);
 
-            EditorGUI.PropertyField(fieldRect, spriteProp, new GUIContent("Sprite"));
+            _ = EditorGUI.PropertyField(fieldRect, spriteProp, new GUIContent("Sprite"));
             yPos += FieldHeight + Spacing;
 
             fieldRect.y = yPos;
-            EditorGUI.PropertyField(fieldRect, maskProp, new GUIContent("Mask"));
+            _ = EditorGUI.PropertyField(fieldRect, maskProp, new GUIContent("Mask"));
             yPos += FieldHeight + Spacing;
 
             fieldRect.y = yPos;
-            EditorGUI.PropertyField(fieldRect, offsetProp, new GUIContent("Offset"));
+            _ = EditorGUI.PropertyField(fieldRect, offsetProp, new GUIContent("Offset"));
             yPos += FieldHeight + Spacing;
 
             fieldRect.y = yPos;
-            EditorGUI.PropertyField(fieldRect, scaleProp, new GUIContent("Scale"));
+            _ = EditorGUI.PropertyField(fieldRect, scaleProp, new GUIContent("Scale"));
             yPos += FieldHeight + Spacing;
 
             fieldRect.y = yPos;
-            EditorGUI.PropertyField(fieldRect, rotationProp, new GUIContent("Rotation"));
+            _ = EditorGUI.PropertyField(fieldRect, rotationProp, new GUIContent("Rotation"));
             yPos += FieldHeight + Spacing;
 
             fieldRect.y = yPos;
-            EditorGUI.PropertyField(fieldRect, orderProp, new GUIContent("Order"));
+            _ = EditorGUI.PropertyField(fieldRect, orderProp, new GUIContent("Order"));
 
             // Draw sprite preview on the right if available
             if (hasSprite)

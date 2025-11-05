@@ -8,7 +8,7 @@ namespace Assets.Prototypes.Characters.Stats.Editor
     {
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
-            EditorGUI.BeginProperty(position, label, property);
+            _ = EditorGUI.BeginProperty(position, label, property);
 
             // Get the serialized fields
             var statTypeProp = property.FindPropertyRelative("_statType");
@@ -22,7 +22,7 @@ namespace Assets.Prototypes.Characters.Stats.Editor
 
             // Draw stat type dropdown at the top
             Rect statTypeRect = new Rect(position.x, yOffset, position.width, lineHeight);
-            EditorGUI.PropertyField(statTypeRect, statTypeProp, new GUIContent("Stat Type"));
+            _ = EditorGUI.PropertyField(statTypeRect, statTypeProp, new GUIContent("Stat Type"));
             yOffset += lineHeight + 2;
 
             // Calculate values

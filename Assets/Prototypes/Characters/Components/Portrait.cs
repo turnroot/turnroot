@@ -15,14 +15,19 @@ namespace Assets.Prototypes.Characters.Subclasses
 
         [SerializeField]
         private ImageStack _imageStack;
+
         [SerializeField, HideInInspector]
         private string _key;
+
         [NonSerialized]
         private Sprite _runtimeSprite;
+
         [SerializeField, HideInInspector]
         private Sprite _savedSprite;
+
         [SerializeField, HideInInspector]
         private string _idString;
+
         [SerializeField, HideInInspector]
         private Color[] _tintColors = new Color[3] { Color.white, Color.white, Color.white };
 

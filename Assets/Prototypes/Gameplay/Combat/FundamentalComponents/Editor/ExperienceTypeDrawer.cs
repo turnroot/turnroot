@@ -8,7 +8,7 @@ namespace Assets.Prototypes.Gameplay.Combat.FundamentalComponents.Editor
     {
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
-            EditorGUI.BeginProperty(position, label, property);
+            _ = EditorGUI.BeginProperty(position, label, property);
 
             float yOffset = position.y;
 
@@ -24,7 +24,7 @@ namespace Assets.Prototypes.Gameplay.Combat.FundamentalComponents.Editor
             {
                 Rect rect = new Rect(position.x, yOffset, position.width, 16);
                 EditorGUI.BeginChangeCheck();
-                EditorGUI.PropertyField(rect, nameProp, new GUIContent("Name"));
+                _ = EditorGUI.PropertyField(rect, nameProp, new GUIContent("Name"));
                 if (EditorGUI.EndChangeCheck() && idProp != null)
                 {
                     // Auto-generate ID from name
@@ -40,7 +40,7 @@ namespace Assets.Prototypes.Gameplay.Combat.FundamentalComponents.Editor
             if (enabledProp != null)
             {
                 Rect rect = new Rect(position.x, yOffset, position.width, 16);
-                EditorGUI.PropertyField(rect, enabledProp, new GUIContent("Enabled"));
+                _ = EditorGUI.PropertyField(rect, enabledProp, new GUIContent("Enabled"));
                 yOffset += 18;
             }
 
@@ -48,7 +48,7 @@ namespace Assets.Prototypes.Gameplay.Combat.FundamentalComponents.Editor
             if (hasWeaponTypeProp != null)
             {
                 Rect rect = new Rect(position.x, yOffset, position.width, 16);
-                EditorGUI.PropertyField(rect, hasWeaponTypeProp, new GUIContent("Has Weapon Type"));
+                _ = EditorGUI.PropertyField(rect, hasWeaponTypeProp, new GUIContent("Has Weapon Type"));
                 yOffset += 18;
             }
 
@@ -56,7 +56,7 @@ namespace Assets.Prototypes.Gameplay.Combat.FundamentalComponents.Editor
             if (hasWeaponTypeProp != null && hasWeaponTypeProp.boolValue && weaponTypeProp != null)
             {
                 Rect rect = new Rect(position.x, yOffset, position.width, 16);
-                EditorGUI.PropertyField(rect, weaponTypeProp, new GUIContent("Weapon Type"), true);
+                _ = EditorGUI.PropertyField(rect, weaponTypeProp, new GUIContent("Weapon Type"), true);
             }
 
             EditorGUI.EndProperty();

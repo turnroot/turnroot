@@ -262,7 +262,7 @@ namespace Assets.Prototypes.Characters
 
         public void RemoveSupportRelationship(CharacterData character)
         {
-            _supportRelationships.RemoveAll(s => s.Character == character);
+            _ = _supportRelationships.RemoveAll(s => s.Character == character);
         }
     }
 }

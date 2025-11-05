@@ -1,9 +1,12 @@
-using UnityEngine;
 using NaughtyAttributes;
+using UnityEngine;
 
 namespace Assets.Prototypes.GamePackage
 {
-    [CreateAssetMenu(fileName = "GamePackageSettings", menuName = "Game Settings/Game Package Settings")]
+    [CreateAssetMenu(
+        fileName = "GamePackageSettings",
+        menuName = "Game Settings/Game Package Settings"
+    )]
     public class GamePackageSettings : ScriptableObject
     {
         public string gameName;

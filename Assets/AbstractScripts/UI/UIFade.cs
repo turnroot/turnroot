@@ -30,7 +30,7 @@ public class UIFade : MonoBehaviour
 
             StopAllCoroutines();
 
-            StartCoroutine(lerpAlpha(graphic.color.a, targetAlpha));
+            _ = StartCoroutine(lerpAlpha(graphic.color.a, targetAlpha));
         }
     }
 

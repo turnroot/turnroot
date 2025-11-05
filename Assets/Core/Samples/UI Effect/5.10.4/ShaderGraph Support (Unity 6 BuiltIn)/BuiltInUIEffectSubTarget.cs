@@ -20,7 +20,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
         private static void CreateUnlitGraph()
         {
             var target = (BuiltInTarget)Activator.CreateInstance(typeof(BuiltInTarget));
-            target.TrySetActiveSubTarget(typeof(BuiltInUIEffectSubTarget));
+            _ = target.TrySetActiveSubTarget(typeof(BuiltInUIEffectSubTarget));
             target.CreateGraphAsset();
         }
 
@@ -39,7 +39,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
         /// </summary>
         public static PassDescriptor ModifyUIPassDescriptor(PassDescriptor descriptor)
         {
-            descriptor.keywords
+            _ = descriptor.keywords
                 .AddKeywordForUIEffect("TONE", "s_ToneKeywords") // add tone keywords
                 .AddKeywordForUIEffect("COLOR_FILTER") // add color filter keywords
                 .AddKeywordForUIEffect("SAMPLING", "s_SamplingKeywords") // add sampling keywords
@@ -52,7 +52,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                 .AddKeywordForUIEffect("SOFTMASK_EDITOR", KeywordScope.Global) // add softmask editor keywords
                 .AddKeywordForUIEffect("SOFTMASKABLE"); // add softmaskable keywords
 
-            descriptor.requiredFields
+            _ = descriptor.requiredFields
                 .Add(StructFields.Varyings.texCoord2); // add texCoord2 for UIEffect (uvMask)
 
             descriptor.renderStates = descriptor.renderStates
@@ -97,7 +97,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
             var result = new RenderStateCollection();
             foreach (var item in self.Where(x => !predicate(x)))
             {
-                result.Add(item.descriptor, item.fieldConditions);
+                _ = result.Add(item.descriptor, item.fieldConditions);
             }
 
             return result;
@@ -109,7 +109,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
             var result = new PragmaCollection();
             foreach (var item in self.Where(x => !predicate(x)))
             {
-                result.Add(item.descriptor, item.fieldConditions);
+                _ = result.Add(item.descriptor, item.fieldConditions);
             }
 
             return result;

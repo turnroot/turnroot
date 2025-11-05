@@ -30,7 +30,7 @@ public class CharacterInventoryEditor : Editor
         // Capacity setting
         EditorGUILayout.Space();
         EditorGUILayout.LabelField("Inventory Settings", EditorStyles.boldLabel);
-        EditorGUILayout.PropertyField(_capacity, new GUIContent("Capacity"));
+        _ = EditorGUILayout.PropertyField(_capacity, new GUIContent("Capacity"));
 
         // Ensure capacity is at least 0
         if (_capacity.intValue < 0)
@@ -77,15 +77,15 @@ public class CharacterInventoryEditor : Editor
         // Display inventory items
         for (int i = 0; i < _inventoryItems.arraySize; i++)
         {
-            EditorGUILayout.BeginVertical("box");
+            _ = EditorGUILayout.BeginVertical("box");
 
-            EditorGUILayout.BeginHorizontal();
+            _ = EditorGUILayout.BeginHorizontal();
 
             // Item field
             var itemProp = _inventoryItems.GetArrayElementAtIndex(i);
             var item = itemProp.objectReferenceValue as ObjectItem;
 
-            EditorGUILayout.PropertyField(itemProp, new GUIContent($"Slot {i}"));
+            _ = EditorGUILayout.PropertyField(itemProp, new GUIContent($"Slot {i}"));
 
             // Remove button
             if (GUILayout.Button("X", GUILayout.Width(25)))
@@ -135,7 +135,7 @@ public class CharacterInventoryEditor : Editor
                 // Equipment controls
                 if (CanBeEquipped(item.ItemType))
                 {
-                    EditorGUILayout.BeginHorizontal();
+                    _ = EditorGUILayout.BeginHorizontal();
 
                     bool newEquipped = EditorGUILayout.Toggle("Equipped", isEquipped);
                     if (newEquipped != isEquipped)
@@ -182,7 +182,7 @@ public class CharacterInventoryEditor : Editor
         // Equipment summary
         EditorGUILayout.Space();
         EditorGUILayout.LabelField("Equipment Status", EditorStyles.boldLabel);
-        EditorGUILayout.BeginVertical("box");
+        _ = EditorGUILayout.BeginVertical("box");
 
         DrawEquipmentSlot(0, "Weapon", ObjectItemType.Weapon);
         DrawEquipmentSlot(1, "Shield", ObjectItemType.Shield);
@@ -190,14 +190,14 @@ public class CharacterInventoryEditor : Editor
 
         EditorGUILayout.EndVertical();
 
-        serializedObject.ApplyModifiedProperties();
+        _ = serializedObject.ApplyModifiedProperties();
     }
 
     private void DrawEquipmentSlot(int slotIndex, string slotName, ObjectItemType expectedType)
     {
         int equippedIndex = _equippedItemIndices.GetArrayElementAtIndex(slotIndex).intValue;
 
-        EditorGUILayout.BeginHorizontal();
+        _ = EditorGUILayout.BeginHorizontal();
         EditorGUILayout.LabelField(slotName, GUILayout.Width(80));
 
         if (equippedIndex >= 0 && equippedIndex < _inventoryItems.arraySize)

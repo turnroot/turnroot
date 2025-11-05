@@ -13,7 +13,6 @@ namespace Assets.Prototypes.Characters
         public Color AvatarSkinColorDefault;
         public Color AvatarEyeColorDefault;
 
-
 #if UNITY_EDITOR
         private void OnValidate()
         {
@@ -35,7 +34,9 @@ namespace Assets.Prototypes.Characters
             foreach (string guid in guids)
             {
                 string path = UnityEditor.AssetDatabase.GUIDToAssetPath(guid);
-                CharacterData character = UnityEditor.AssetDatabase.LoadAssetAtPath<CharacterData>(path);
+                CharacterData character = UnityEditor.AssetDatabase.LoadAssetAtPath<CharacterData>(
+                    path
+                );
 
                 if (character != null)
                 {

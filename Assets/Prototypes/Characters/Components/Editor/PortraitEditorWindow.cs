@@ -17,7 +17,7 @@ namespace Assets.Prototypes.Characters.Subclasses.Editor
         [MenuItem("Window/Portrait Editor")]
         public static void ShowWindow()
         {
-            GetWindow<PortraitEditorWindow>("Portrait Editor");
+            _ = GetWindow<PortraitEditorWindow>("Portrait Editor");
         }
 
         public static void OpenPortrait(CharacterData character, int portraitIndex = 0)
@@ -134,17 +134,17 @@ namespace Assets.Prototypes.Characters.Subclasses.Editor
             EditorGUILayout.Space(10);
 
             // Split view: Preview on left, controls on right
-            EditorGUILayout.BeginHorizontal();
+            _ = EditorGUILayout.BeginHorizontal();
 
             // Left side - Preview
-            EditorGUILayout.BeginVertical(GUILayout.Width(280));
+            _ = EditorGUILayout.BeginVertical(GUILayout.Width(280));
             DrawPreview();
             EditorGUILayout.EndVertical();
 
             EditorGUILayout.Space(10);
 
             // Right side - Controls
-            EditorGUILayout.BeginVertical();
+            _ = EditorGUILayout.BeginVertical();
             _scrollPosition = EditorGUILayout.BeginScrollView(_scrollPosition);
             DrawControls();
             EditorGUILayout.EndScrollView();
@@ -187,7 +187,7 @@ namespace Assets.Prototypes.Characters.Subclasses.Editor
             // Show saved sprite info
             EditorGUILayout.LabelField("Saved Sprite", EditorStyles.boldLabel);
             EditorGUI.BeginDisabledGroup(true);
-            EditorGUILayout.ObjectField(
+            _ = EditorGUILayout.ObjectField(
                 "Saved Sprite Asset",
                 _currentPortrait.SavedSprite,
                 typeof(Sprite),
@@ -217,13 +217,13 @@ namespace Assets.Prototypes.Characters.Subclasses.Editor
             {
                 if (_currentPortrait == null)
                 {
-                    EditorUtility.DisplayDialog("Error", "No portrait selected.", "OK");
+                    _ = EditorUtility.DisplayDialog("Error", "No portrait selected.", "OK");
                     return;
                 }
 
                 if (_currentPortrait.ImageStack == null)
                 {
-                    EditorUtility.DisplayDialog(
+                    _ = EditorUtility.DisplayDialog(
                         "Error",
                         "Portrait has no ImageStack assigned.",
                         "OK"
@@ -234,7 +234,7 @@ namespace Assets.Prototypes.Characters.Subclasses.Editor
                 var layers = _currentPortrait.ImageStack.Layers;
                 if (layers == null || layers.Count == 0)
                 {
-                    EditorUtility.DisplayDialog("Error", "ImageStack has no layers.", "OK");
+                    _ = EditorUtility.DisplayDialog("Error", "ImageStack has no layers.", "OK");
                     return;
                 }
 
@@ -250,7 +250,7 @@ namespace Assets.Prototypes.Characters.Subclasses.Editor
 
                 if (!hasSprites)
                 {
-                    EditorUtility.DisplayDialog(
+                    _ = EditorUtility.DisplayDialog(
                         "Error",
                         "No layers have sprites assigned. Add sprites to layers before saving.",
                         "OK"
@@ -261,7 +261,7 @@ namespace Assets.Prototypes.Characters.Subclasses.Editor
                 // Validate key
                 if (string.IsNullOrEmpty(_currentPortrait.Key))
                 {
-                    EditorUtility.DisplayDialog(
+                    _ = EditorUtility.DisplayDialog(
                         "Error",
                         "Portrait key is empty! Set a key in the 'Key (filename)' field before saving.",
                         "OK"
@@ -273,7 +273,7 @@ namespace Assets.Prototypes.Characters.Subclasses.Editor
                 {
                     Debug.Log($"Saving portrait with key: '{_currentPortrait.Key}'");
                     _currentPortrait.Render();
-                    EditorUtility.DisplayDialog(
+                    _ = EditorUtility.DisplayDialog(
                         "Portrait Saved",
                         $"Portrait has been rendered and saved to:\nAssets/Resources/GameContent/Graphics/Portraits/{_currentPortrait.Key}.png",
                         "OK"
@@ -281,7 +281,7 @@ namespace Assets.Prototypes.Characters.Subclasses.Editor
                 }
                 catch (System.Exception ex)
                 {
-                    EditorUtility.DisplayDialog(
+                    _ = EditorUtility.DisplayDialog(
                         "Save Failed",
                         $"Failed to save portrait: {ex.Message}\n\nCheck the console for details.",
                         "OK"
@@ -298,7 +298,7 @@ namespace Assets.Prototypes.Characters.Subclasses.Editor
 
             // Debug info
             EditorGUI.BeginDisabledGroup(true);
-            EditorGUILayout.TextField("Portrait ID", _currentPortrait.Id.ToString());
+            _ = EditorGUILayout.TextField("Portrait ID", _currentPortrait.Id.ToString());
             EditorGUI.EndDisabledGroup();
 
             // Key field (for filename)
@@ -310,7 +310,7 @@ namespace Assets.Prototypes.Characters.Subclasses.Editor
                 EditorUtility.SetDirty(_currentCharacter);
             }
 
-            EditorGUILayout.BeginHorizontal();
+            _ = EditorGUILayout.BeginHorizontal();
             if (GUILayout.Button("Generate New Key", GUILayout.Width(150)))
             {
                 _currentPortrait.SetKey(
@@ -382,7 +382,12 @@ namespace Assets.Prototypes.Characters.Subclasses.Editor
 
             // Owner info
             EditorGUI.BeginDisabledGroup(true);
-            EditorGUILayout.ObjectField("Owner", _currentPortrait.Owner, typeof(CharacterData), false);
+            _ = EditorGUILayout.ObjectField(
+                "Owner",
+                _currentPortrait.Owner,
+                typeof(CharacterData),
+                false
+            );
             EditorGUI.EndDisabledGroup();
 
             if (_currentPortrait.Owner == null)
@@ -439,7 +444,7 @@ namespace Assets.Prototypes.Characters.Subclasses.Editor
             {
                 if (_currentPortrait.Owner == null)
                 {
-                    EditorUtility.DisplayDialog(
+                    _ = EditorUtility.DisplayDialog(
                         "No Owner",
                         "This portrait has no owner character assigned. Cannot update colors.",
                         "OK"
@@ -512,9 +517,9 @@ namespace Assets.Prototypes.Characters.Subclasses.Editor
                 style.normal.background = MakeTexture(2, 2, new Color(0.3f, 0.5f, 0.8f, 0.3f));
             }
 
-            EditorGUILayout.BeginVertical(style);
+            _ = EditorGUILayout.BeginVertical(style);
 
-            EditorGUILayout.BeginHorizontal();
+            _ = EditorGUILayout.BeginHorizontal();
             EditorGUILayout.LabelField(
                 $"Layer {index} (Order: {layer.Order})",
                 EditorStyles.boldLabel
@@ -556,7 +561,7 @@ namespace Assets.Prototypes.Characters.Subclasses.Editor
 
             // Offset with draggable sliders
             EditorGUILayout.LabelField("Offset (Drag to move)", EditorStyles.miniBoldLabel);
-            EditorGUILayout.BeginHorizontal();
+            _ = EditorGUILayout.BeginHorizontal();
             layer.Offset.x = EditorGUILayout.Slider("X", layer.Offset.x, -512, 512);
             layer.Offset.y = EditorGUILayout.Slider("Y", layer.Offset.y, -512, 512);
             EditorGUILayout.EndHorizontal();

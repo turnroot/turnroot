@@ -30,7 +30,7 @@ public class DynamicSceneFlow : MonoBehaviour
 
     private void Start()
     {
-        StartCoroutine(RunNextFrame(StartScene));
+        _ = StartCoroutine(RunNextFrame(StartScene));
     }
 
     private void StartScene()

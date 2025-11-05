@@ -15,8 +15,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         private static void CreateUnlitGraph()
         {
             var target = (UniversalTarget)Activator.CreateInstance(typeof(UniversalTarget));
-            target.TrySetActiveSubTarget(typeof(BuiltInUIEffectSubTarget));
-            target.TrySetActiveSubTarget(typeof(UniversalUIEffectSubTarget));
+            _ = target.TrySetActiveSubTarget(typeof(BuiltInUIEffectSubTarget));
+            _ = target.TrySetActiveSubTarget(typeof(UniversalUIEffectSubTarget));
             target.CreateGraphAsset();
         }
 

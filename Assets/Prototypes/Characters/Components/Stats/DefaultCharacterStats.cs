@@ -34,16 +34,15 @@ namespace Assets.Prototypes.Characters
                 StatType = BoundedStatType.Health,
                 Max = 100,
                 Current = 100,
-                Min = 0
-            }
+                Min = 0,
+            },
         };
 
         [SerializeField]
-        private List<DefaultUnboundedStat> _defaultUnboundedStats =
-            new List<DefaultUnboundedStat>
-            {
-                new DefaultUnboundedStat { StatType = UnboundedStatType.Strength, Current = 10 }
-            };
+        private List<DefaultUnboundedStat> _defaultUnboundedStats = new List<DefaultUnboundedStat>
+        {
+            new DefaultUnboundedStat { StatType = UnboundedStatType.Strength, Current = 10 },
+        };
 
         public List<DefaultBoundedStat> DefaultBoundedStats => _defaultBoundedStats;
         public List<DefaultUnboundedStat> DefaultUnboundedStats => _defaultUnboundedStats;
