@@ -15,24 +15,14 @@ namespace Assets.Prototypes.Characters.Subclasses
 
         [SerializeField]
         private ImageStack _imageStack;
-
-        // Key is serialized but not shown in inspector (managed by editor window)
         [SerializeField, HideInInspector]
         private string _key;
-
-        // Runtime sprite for editor preview (not serialized)
         [NonSerialized]
         private Sprite _runtimeSprite;
-
-        // Serializable reference to the saved sprite asset (hidden from inspector)
         [SerializeField, HideInInspector]
         private Sprite _savedSprite;
-
-        // Store Guid as string for serialization (hidden from inspector)
         [SerializeField, HideInInspector]
         private string _idString;
-
-        // Tint colors managed by editor window (hidden from inspector)
         [SerializeField, HideInInspector]
         private Color[] _tintColors = new Color[3] { Color.white, Color.white, Color.white };
 
@@ -158,9 +148,6 @@ namespace Assets.Prototypes.Characters.Subclasses
             }
 
             Debug.Log($"Rendering portrait with key: {_key}");
-
-            // Update tint colors from owner before rendering
-            UpdateTintColorsFromOwner();
 
             // Use compositor to create the final texture
             Texture2D composited = CompositeLayers();

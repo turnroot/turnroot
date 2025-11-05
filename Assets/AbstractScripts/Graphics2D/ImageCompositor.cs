@@ -24,7 +24,6 @@ namespace Assets.AbstractScripts.Graphics2D
             // The mask Red channel uses tints[0]
             // Green channel uses tints[1]
             // Blue channel uses tints[2]
-            // Whichever channel has the highest value determines the tint applied
 
             if (sprite == null || mask == null)
             {
