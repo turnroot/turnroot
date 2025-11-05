@@ -1,7 +1,5 @@
-using System;
 using System.Collections.Generic;
 using Assets.Prototypes.Characters;
-using Assets.Prototypes.Characters.Subclasses;
 using UnityEngine;
 
 namespace Assets.Prototypes.Graphics.Portrait
@@ -20,9 +18,11 @@ namespace Assets.Prototypes.Graphics.Portrait
 
         public Texture2D PreRender()
         {
-            // Default render dimensions
-            int width = 512;
-            int height = 512;
+            GraphicsPrototypesSettings gps;
+            gps = Resources.Load<GraphicsPrototypesSettings>("GraphicsPrototypesSettings");
+
+            int width = gps.portraitRenderWidth;
+            int height = gps.portraitRenderHeight;
 
             // Create a new texture to render into
             Texture2D renderTexture = new Texture2D(width, height, TextureFormat.RGBA32, false);

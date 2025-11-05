@@ -11,6 +11,18 @@ namespace Assets.Prototypes.Characters
     [CreateAssetMenu(fileName = "NewCharacterConfiguration", menuName = "Character/Character")]
     public class Character : ScriptableObject
     {
+        private void OnEnable()
+        {
+            // Load settings from Resources on initialization
+            var settings = Resources.Load<CharacterPrototypeSettings>(
+                "GameSettings/CharacterPrototypeSettings"
+            );
+            if (settings != null)
+            {
+                _useAccentColors = settings.UseAccentColors;
+            }
+        }
+
         [Foldout("Identity"), SerializeField]
         [HorizontalLine(color: EColor.Blue)]
         private CharacterWhich _which = CharacterWhich.Enemy;
@@ -63,7 +75,7 @@ namespace Assets.Prototypes.Characters
         [Foldout("Character Flags"), SerializeField]
         private bool _isUnique = false;
 
-        [Foldout("Visual"), SerializeField]
+        [Foldout("Visual"), HideInInspector]
         [HorizontalLine(color: EColor.Orange)]
         private bool _useAccentColors = false;
 
@@ -148,7 +160,6 @@ namespace Assets.Prototypes.Characters
         public string FullName => _fullName;
         public string Title => _title;
         public string Team => _team;
-
         public int Age => _age;
         public Pronouns CharacterPronouns => _pronouns;
         public float Height => _height;
@@ -162,8 +173,6 @@ namespace Assets.Prototypes.Characters
         public bool CanHaveChildren => _canHaveChildren;
         public bool IsRecruitable => _isRecruitable;
         public bool IsUnique => _isUnique;
-
-        public bool UseAccentColors => _useAccentColors;
         public Color AccentColor1 => _accentColor1;
         public Color AccentColor2 => _accentColor2;
         public Color AccentColor3 => _accentColor3;

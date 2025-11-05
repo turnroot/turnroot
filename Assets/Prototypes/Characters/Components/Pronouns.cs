@@ -71,7 +71,7 @@ namespace Assets.Prototypes.Characters.Subclasses
         /// Replaces pronoun placeholders in text with the appropriate pronouns.
         /// Example: "I saw {them} and {their} friend" -> "I saw him and his friend"
         /// </summary>
-        public string Insert(string text)
+        public string Use(string text)
         {
             if (string.IsNullOrEmpty(text))
                 return text;
