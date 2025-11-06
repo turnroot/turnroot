@@ -4,17 +4,14 @@ using UnityEngine;
 
 namespace Assets.Prototypes.Graphics.Portrait
 {
-    [CreateAssetMenu(
-        fileName = "NewImageStack",
-        menuName = "Turnroot/Graphics/Portrait/ImageStack"
-    )]
+    [CreateAssetMenu(fileName = "NewImageStack", menuName = "Turnroot/Graphics/ImageStack")]
     public class ImageStack : ScriptableObject
     {
         [SerializeField]
         private CharacterData _ownerCharacter;
 
         [SerializeField]
-        private List<ImageStackLayer> _layers = new List<ImageStackLayer>();
+        private List<ImageStackLayer> _layers = new();
 
         public List<ImageStackLayer> Layers => _layers;
         public CharacterData OwnerCharacter => _ownerCharacter;
@@ -28,7 +25,7 @@ namespace Assets.Prototypes.Graphics.Portrait
             int height = gps.portraitRenderHeight;
 
             // Create a new texture to render into
-            Texture2D renderTexture = new Texture2D(width, height, TextureFormat.RGBA32, false);
+            Texture2D renderTexture = new(width, height, TextureFormat.RGBA32, false);
 
             // Clear the texture with transparent pixels
             Color32[] pixels = new Color32[width * height];

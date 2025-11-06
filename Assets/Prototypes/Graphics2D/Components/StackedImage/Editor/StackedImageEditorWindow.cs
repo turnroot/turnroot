@@ -54,7 +54,7 @@ namespace Assets.Prototypes.Graphics2D.Editor
 
             // Image selection dropdown
             var images = GetImagesFromOwner(_currentOwner);
-            if (images != null && images.Length > 0)
+            if (images != null && images.Length > 1)
             {
                 EditorGUI.BeginChangeCheck();
                 string[] imageNames = new string[images.Length];
@@ -73,6 +73,14 @@ namespace Assets.Prototypes.Graphics2D.Editor
                 if (EditorGUI.EndChangeCheck())
                 {
                     UpdateCurrentImage();
+                }
+            }
+            else if (images != null && images.Length == 1)
+            {
+                if (_currentImage == null)
+                {
+                    _currentImage = images[0];
+                    RefreshPreview();
                 }
             }
             else
@@ -96,7 +104,7 @@ namespace Assets.Prototypes.Graphics2D.Editor
             EditorGUILayout.BeginHorizontal();
 
             // Left panel - Controls
-            EditorGUILayout.BeginVertical(GUILayout.Width(350));
+            EditorGUILayout.BeginVertical(GUILayout.Width(400));
             _scrollPosition = EditorGUILayout.BeginScrollView(_scrollPosition);
 
             DrawControlPanel();
@@ -104,8 +112,8 @@ namespace Assets.Prototypes.Graphics2D.Editor
             EditorGUILayout.EndScrollView();
             EditorGUILayout.EndVertical();
 
-            // Right panel - Preview
-            EditorGUILayout.BeginVertical();
+            // Right panel - Preview (constrained width)
+            EditorGUILayout.BeginVertical(GUILayout.MaxWidth(350));
             DrawPreviewPanel();
             EditorGUILayout.EndVertical();
 
@@ -201,6 +209,38 @@ namespace Assets.Prototypes.Graphics2D.Editor
                     "No ImageStack assigned. Assign one to see layers.",
                     MessageType.Warning
                 );
+
+                if (GUILayout.Button("+ Create New Image Stack"))
+                {
+                    // Create new ImageStack asset
+                    var newImageStack = ScriptableObject.CreateInstance<ImageStack>();
+
+                    // Save it to the project
+                    string path = UnityEditor.EditorUtility.SaveFilePanelInProject(
+                        "Create New Image Stack",
+                        "NewImageStack",
+                        "asset",
+                        "Choose where to save the new ImageStack"
+                    );
+
+                    if (!string.IsNullOrEmpty(path))
+                    {
+                        UnityEditor.AssetDatabase.CreateAsset(newImageStack, path);
+                        UnityEditor.AssetDatabase.SaveAssets();
+
+                        // Assign it to the current image
+                        var field = typeof(StackedImage<TOwner>).GetField(
+                            "_imageStack",
+                            System.Reflection.BindingFlags.NonPublic
+                                | System.Reflection.BindingFlags.Instance
+                        );
+                        field?.SetValue(_currentImage, newImageStack);
+
+                        EditorUtility.SetDirty(_currentOwner);
+                        if (_autoRefresh)
+                            RefreshPreview();
+                    }
+                }
             }
 
             EditorGUILayout.Space(10);
@@ -363,10 +403,29 @@ namespace Assets.Prototypes.Graphics2D.Editor
 
             EditorGUILayout.Space(10);
 
-            // Preview area
+            // Preview area - constrained to reasonable size
             if (_previewTexture != null)
             {
-                GUILayout.Label(_previewTexture, GUILayout.Width(512), GUILayout.Height(512));
+                // Calculate aspect-fit size for a max 300x300 display
+                float maxSize = 300f;
+                float aspect = (float)_previewTexture.width / _previewTexture.height;
+                float displayWidth = maxSize;
+                float displayHeight = maxSize;
+
+                if (aspect > 1f)
+                {
+                    displayHeight = maxSize / aspect;
+                }
+                else if (aspect < 1f)
+                {
+                    displayWidth = maxSize * aspect;
+                }
+
+                GUILayout.Label(
+                    _previewTexture,
+                    GUILayout.Width(displayWidth),
+                    GUILayout.Height(displayHeight)
+                );
             }
             else
             {
