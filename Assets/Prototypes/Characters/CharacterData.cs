@@ -149,10 +149,10 @@ namespace Assets.Prototypes.Characters
 
         [Foldout("Skills & Abilities"), SerializeField]
         [HorizontalLine(color: EColor.Green)]
-        private List<string> _skills = new List<string>();
+        private List<Skill> _skills = new List<Skill>();
 
         [Foldout("Skills & Abilities"), SerializeField]
-        private List<string> _specialSkills = new List<string>();
+        private List<Skill> _specialSkills = new List<Skill>();
 
         [Foldout("AI & Behavior"), SerializeField]
         [HorizontalLine(color: EColor.Yellow)]
@@ -174,7 +174,7 @@ namespace Assets.Prototypes.Characters
 
         [Foldout("Attachments"), SerializeField]
         [HorizontalLine(color: EColor.Black)]
-        private CharacterInventory _characterInventory;
+        private CharacterInventoryInstance _characterInventory;
         public CharacterWhich Which => _which;
         public string Name => _name;
         public string FullName => _fullName;
@@ -212,8 +212,8 @@ namespace Assets.Prototypes.Characters
         public UnityEngine.Object Battalion => _battalion;
         public List<string> SpecialUnitClasses => _specialUnitClasses;
 
-        public List<string> Skills => _skills;
-        public List<string> SpecialSkills => _specialSkills;
+        public List<Skill> Skills => _skills;
+        public List<Skill> SpecialSkills => _specialSkills;
 
         public UnityEngine.Object AI => _ai;
         public List<string> Goals => _goals;
@@ -223,7 +223,7 @@ namespace Assets.Prototypes.Characters
         public HereditaryTraits PassedDownTraits => _passedDownTraits;
         public CharacterData ChildUnitId => _childUnitId;
 
-        public CharacterInventory CharacterInventory => _characterInventory;
+        public CharacterInventoryInstance CharacterInventory => _characterInventory;
 
         // Helper methods for class experience
         public int GetClassExp(string classId)

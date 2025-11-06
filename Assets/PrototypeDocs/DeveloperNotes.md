@@ -1,4 +1,12 @@
-# Developer Notes: StackedImage Architecture
+# Developer Notes: Architecture Patterns
+
+## Table of Contents
+1. [StackedImage Inheritance Architecture](#stackedimage-inheritance-architecture)
+2. [ScriptableObject Instance Data Pattern](#scriptableobject-instance-data-pattern)
+
+---
+
+# StackedImage Inheritance Architecture
 
 ## Overview
 This document explains the inheritance and abstraction patterns used in the StackedImage system, a flexible framework for creating composite graphics (like character portraits) from layered image data in Unity.
@@ -590,7 +598,644 @@ This architecture makes it easy to add new types of stacked images (UI icons, ma
 
 ---
 
-**Document Version:** 1.0  
+**Document Version:** 2.0  
+**Last Updated:** November 6, 2025  
+**Author:** GitHub Copilot  
+
+---
+
+# ScriptableObject Instance Data Pattern
+
+## The Critical Problem: Shared State
+
+### Understanding ScriptableObjects at Runtime
+
+ScriptableObjects are **shared, singleton-like assets** that exist as files in your project. When you reference a ScriptableObject in your scene:
+
+- All references point to the **same instance** in memory
+- Changes to that instance affect **every object** referencing it
+- This behavior persists throughout the entire game session
+
+**Example of the Problem:**
+
+```csharp
+// BAD - Don't do this!
+public class Enemy : MonoBehaviour 
+{
+    public CharacterData characterData;  // ScriptableObject reference
+    
+    void TakeDamage(int amount) 
+    {
+        // DANGER: This modifies the SHARED ScriptableObject!
+        characterData.currentHP -= amount;
+        
+        // Now EVERY enemy using this CharacterData has reduced HP!
+        // The template itself has been modified!
+    }
+}
+```
+
+If you have 3 enemies all using "Goblin" CharacterData:
+- Enemy A takes 10 damage → Goblin HP becomes 90
+- Enemy B takes 5 damage → Goblin HP becomes 85  
+- Enemy C spawns → Already has 85 HP instead of 100!
+
+**The HP is stored in the shared template, not per-enemy!**
+
+## The Solution: Instance Data Pattern
+
+Separate **static data** (shared template) from **runtime data** (per-entity state).
+
+### Pattern Structure
+
+```
+ScriptableObject (Asset File)
+├─ Read-only template data
+├─ Configuration values
+└─ References to other templates
+
+Instance Class (Serializable)
+├─ Reference to template
+├─ Per-entity runtime state
+└─ Methods that modify state
+```
+
+### Implementation Rules
+
+#### Rule 1: ScriptableObjects are READ-ONLY at Runtime
+
+```csharp
+[CreateAssetMenu(menuName = "Character/CharacterData")]
+public class CharacterData : ScriptableObject
+{
+    // ✅ GOOD - Static configuration
+    public string characterName;
+    public Sprite portrait;
+    public int baseMaxHP;
+    public int baseStrength;
+    
+    // ❌ BAD - Runtime state (will be shared!)
+    // public int currentHP;  // Don't do this!
+    // public bool isDead;    // Don't do this!
+}
+```
+
+#### Rule 2: Create Instance Classes for Runtime State
+
+```csharp
+[Serializable]
+public class CharacterInstance
+{
+    [SerializeField]
+    private CharacterData _template;  // Reference to template
+    
+    // ✅ GOOD - Per-character runtime state
+    [SerializeField]
+    private int _currentHP;
+    
+    [SerializeField]
+    private bool _isDead;
+    
+    public CharacterData Template => _template;
+    public int CurrentHP => _currentHP;
+    public bool IsDead => _isDead;
+    
+    public CharacterInstance(CharacterData template)
+    {
+        _template = template;
+        _currentHP = template.baseMaxHP;  // Copy from template
+        _isDead = false;
+    }
+    
+    public void TakeDamage(int amount)
+    {
+        _currentHP -= amount;  // Modifies THIS instance only
+        if (_currentHP <= 0)
+        {
+            _currentHP = 0;
+            _isDead = true;
+        }
+    }
+}
+```
+
+#### Rule 3: MonoBehaviours Hold Instance Data
+
+```csharp
+public class Enemy : MonoBehaviour
+{
+    // ✅ GOOD - Each enemy has their own instance
+    [SerializeField]
+    private CharacterInstance _characterInstance;
+    
+    void Start()
+    {
+        // Load template and create instance
+        CharacterData goblinTemplate = Resources.Load<CharacterData>("Characters/Goblin");
+        _characterInstance = new CharacterInstance(goblinTemplate);
+    }
+    
+    void TakeDamage(int amount)
+    {
+        // Modifies THIS enemy's instance only
+        _characterInstance.TakeDamage(amount);
+        
+        if (_characterInstance.IsDead)
+        {
+            Die();
+        }
+    }
+}
+```
+
+## Project Implementation Examples
+
+### Example 1: SkillInstance
+
+**Template (ScriptableObject):**
+```csharp
+[CreateAssetMenu(menuName = "Skills/Skill")]
+public class Skill : ScriptableObject
+{
+    public string skillName;
+    public Sprite icon;
+    public int baseDamage;
+    public SkillBehavior behavior;  // Another template
+}
+```
+
+**Instance (Serializable Class):**
+```csharp
+[Serializable]
+public class SkillInstance
+{
+    [SerializeField]
+    private Skill _skillTemplate;
+    
+    // Per-character runtime state
+    [SerializeField]
+    private float _currentCooldown;
+    
+    [SerializeField]
+    private int _useCount;
+    
+    [SerializeField]
+    private bool _isLearned;
+    
+    public void Use(MonoBehaviour caster)
+    {
+        if (_currentCooldown > 0 || !_isLearned) return;
+        
+        // Execute behavior from template
+        _skillTemplate.behavior.Execute(caster, this);
+        
+        // Update instance state
+        _currentCooldown = 3f;
+        _useCount++;
+    }
+    
+    public void UpdateCooldown(float deltaTime)
+    {
+        if (_currentCooldown > 0)
+            _currentCooldown -= deltaTime;
+    }
+}
+```
+
+**Usage in MonoBehaviour:**
+```csharp
+public class Character : MonoBehaviour
+{
+    [SerializeField]
+    private List<SkillInstance> _skills = new List<SkillInstance>();
+    
+    void Start()
+    {
+        // Create instances from templates
+        Skill fireballTemplate = Resources.Load<Skill>("Skills/Fireball");
+        _skills.Add(new SkillInstance(fireballTemplate));
+    }
+    
+    void Update()
+    {
+        // Each character updates their own skill cooldowns
+        foreach (var skill in _skills)
+        {
+            skill.UpdateCooldown(Time.deltaTime);
+        }
+    }
+}
+```
+
+### Example 2: CharacterInventoryInstance
+
+**Template (ScriptableObject) - Optional:**
+```csharp
+[CreateAssetMenu(menuName = "Character/Inventory")]
+public class CharacterInventory : ScriptableObject
+{
+    // Initial configuration only
+    public int defaultCapacity = 6;
+    public ObjectItem[] startingItems;
+}
+```
+
+**Instance (Serializable Class):**
+```csharp
+[Serializable]
+public class CharacterInventoryInstance
+{
+    [SerializeField]
+    private List<ObjectItem> _items = new List<ObjectItem>();
+    
+    [SerializeField]
+    private int _capacity;
+    
+    public void AddItem(ObjectItem item)
+    {
+        if (_items.Count < _capacity)
+        {
+            _items.Add(item);
+        }
+    }
+    
+    public void RemoveItem(ObjectItem item)
+    {
+        _items.Remove(item);
+    }
+}
+```
+
+### Example 3: CharacterInstance (Complex)
+
+**Template (ScriptableObject):**
+```csharp
+[CreateAssetMenu(menuName = "Character/CharacterData")]
+public class CharacterData : ScriptableObject
+{
+    // Static identity
+    public string characterName;
+    public string fullName;
+    public Portrait[] portraits;
+    
+    // Base stats (templates)
+    public int baseMaxHP;
+    public int baseStrength;
+    public List<BoundedCharacterStat> baseStats;
+    
+    // Initial configuration
+    public int startingLevel = 1;
+    public CharacterInventory startingInventory;
+}
+```
+
+**Instance (Serializable Class):**
+```csharp
+[Serializable]
+public class CharacterInstance
+{
+    [SerializeField]
+    private CharacterData _template;
+    
+    // Runtime stats
+    [SerializeField]
+    private int _currentLevel;
+    
+    [SerializeField]
+    private int _currentExp;
+    
+    [SerializeField]
+    private List<BoundedCharacterStat> _runtimeStats;
+    
+    // Runtime inventory
+    [SerializeField]
+    private CharacterInventoryInstance _inventory;
+    
+    // Runtime skills
+    [SerializeField]
+    private List<SkillInstance> _skills;
+    
+    // Runtime state
+    [SerializeField]
+    private bool _isDead;
+    
+    public CharacterInstance(CharacterData template)
+    {
+        _template = template;
+        
+        // Deep copy stats from template
+        _runtimeStats = new List<BoundedCharacterStat>();
+        foreach (var stat in template.baseStats)
+        {
+            _runtimeStats.Add(new BoundedCharacterStat(stat));
+        }
+        
+        // Initialize inventory from template
+        _inventory = new CharacterInventoryInstance(template.startingInventory);
+        
+        _currentLevel = template.startingLevel;
+        _currentExp = 0;
+        _isDead = false;
+    }
+    
+    public void TakeDamage(int amount)
+    {
+        var hpStat = _runtimeStats.Find(s => s.StatType == BoundedStatType.HP);
+        if (hpStat != null)
+        {
+            hpStat.CurrentValue -= amount;
+            if (hpStat.CurrentValue <= 0)
+            {
+                _isDead = true;
+            }
+        }
+    }
+}
+```
+
+## When to Use Instance Data vs Direct ScriptableObjects
+
+### ✅ Use ScriptableObjects DIRECTLY (No Instance Needed):
+
+1. **Pure Configuration Data**
+   - Game settings (volume, graphics quality)
+   - Constant lookup tables (damage type modifiers)
+   - Static definitions (weapon types, element types)
+
+2. **Shared Reference Data**
+   - Character portraits/sprites (visual assets)
+   - Skill icons
+   - Item definitions (name, description, sprite)
+
+3. **Stateless Logic**
+   - Skill behaviors (pure functions)
+   - Calculation formulas
+   - Strategy pattern implementations
+
+**Example:**
+```csharp
+// These DON'T need instances - they're read-only
+public class WeaponType : ScriptableObject
+{
+    public string weaponName;
+    public Sprite icon;
+    public bool isMagic;
+    // No runtime state to track
+}
+
+public class GameSettings : ScriptableObject  
+{
+    public float masterVolume;
+    public bool showTutorials;
+    // Configuration only, not per-game-session
+}
+```
+
+### ⚠️ Use INSTANCE DATA Pattern When:
+
+1. **Runtime Modification**
+   - Health, mana, stamina (changes during gameplay)
+   - Experience points, level
+   - Inventory contents
+   - Skill cooldowns
+
+2. **Per-Entity State**
+   - Multiple enemies of same type need different HP
+   - Each character has their own inventory
+   - Each player has their own save data
+
+3. **Temporary Runtime Values**
+   - Status effects (poisoned, buffed)
+   - Combat state (attacking, defending)
+   - AI state machine variables
+
+**Example:**
+```csharp
+// These NEED instances - they have per-entity runtime state
+public class CharacterInstance  // Instance for CharacterData
+{
+    private int _currentHP;      // Changes during combat
+    private bool _isDead;        // Runtime state
+    private List<StatusEffect> _activeEffects;  // Temporary
+}
+
+public class SkillInstance  // Instance for Skill
+{
+    private float _currentCooldown;  // Ticks down over time
+    private int _useCount;           // Increments when used
+}
+```
+
+## Common Mistakes to Avoid
+
+### ❌ Mistake 1: Modifying ScriptableObject at Runtime
+
+```csharp
+// BAD!
+public class Character : MonoBehaviour
+{
+    public CharacterData data;
+    
+    void TakeDamage(int amount)
+    {
+        data.currentHP -= amount;  // Modifies the ASSET FILE!
+    }
+}
+```
+
+**Why it's bad:** Changes persist between play sessions in editor, affects all characters using this template.
+
+### ❌ Mistake 2: Not Deep Copying Collections
+
+```csharp
+// BAD!
+public CharacterInstance(CharacterData template)
+{
+    _stats = template.baseStats;  // Shallow copy - still shares the list!
+}
+
+// GOOD!
+public CharacterInstance(CharacterData template)
+{
+    _stats = new List<Stat>();
+    foreach (var stat in template.baseStats)
+    {
+        _stats.Add(new Stat(stat));  // Deep copy each stat
+    }
+}
+```
+
+### ❌ Mistake 3: Storing Instance Data in ScriptableObject
+
+```csharp
+// BAD!
+[CreateAssetMenu]
+public class Skill : ScriptableObject
+{
+    public string skillName;  // ✅ Template data
+    public float cooldownTime;  // ✅ Template data
+    
+    private float _currentCooldown;  // ❌ Runtime state - wrong place!
+}
+```
+
+**Fix:** Move `_currentCooldown` to SkillInstance instead.
+
+## Testing Instance Data Correctly
+
+### Editor Testing Gotcha
+
+In the Unity Editor, changes to ScriptableObjects persist between play sessions. This can mask bugs!
+
+**Test properly:**
+1. Make changes during play mode
+2. Stop play mode
+3. Check if ScriptableObject asset file was modified
+4. If it was, you're modifying the template instead of an instance!
+
+**Example:**
+```csharp
+[CreateAssetMenu]
+public class TestData : ScriptableObject
+{
+    public int value = 100;
+}
+
+// In play mode:
+testData.value = 50;  // Modifies the asset file!
+
+// After stopping play mode:
+// The asset file now shows value = 50 permanently!
+```
+
+## Complete Example: Combat System
+
+```csharp
+// ============ TEMPLATES (ScriptableObjects) ============
+
+[CreateAssetMenu]
+public class CharacterData : ScriptableObject
+{
+    public string characterName;
+    public int baseMaxHP;
+    public int baseAttack;
+}
+
+[CreateAssetMenu]
+public class Skill : ScriptableObject
+{
+    public string skillName;
+    public int damage;
+    public float cooldownTime;
+    public SkillBehavior behavior;
+}
+
+// ============ INSTANCES (Serializable) ============
+
+[Serializable]
+public class CharacterInstance
+{
+    [SerializeField] private CharacterData _template;
+    [SerializeField] private int _currentHP;
+    [SerializeField] private List<SkillInstance> _skills;
+    
+    public CharacterInstance(CharacterData template)
+    {
+        _template = template;
+        _currentHP = template.baseMaxHP;
+        _skills = new List<SkillInstance>();
+    }
+    
+    public void AddSkill(Skill skillTemplate)
+    {
+        _skills.Add(new SkillInstance(skillTemplate));
+    }
+    
+    public void TakeDamage(int amount)
+    {
+        _currentHP -= amount;
+    }
+}
+
+[Serializable]
+public class SkillInstance
+{
+    [SerializeField] private Skill _template;
+    [SerializeField] private float _currentCooldown;
+    
+    public SkillInstance(Skill template)
+    {
+        _template = template;
+        _currentCooldown = 0f;
+    }
+    
+    public bool CanUse() => _currentCooldown <= 0f;
+    
+    public void Use(MonoBehaviour caster)
+    {
+        if (!CanUse()) return;
+        
+        _template.behavior.Execute(caster, this);
+        _currentCooldown = _template.cooldownTime;
+    }
+    
+    public void UpdateCooldown(float deltaTime)
+    {
+        if (_currentCooldown > 0f)
+            _currentCooldown -= deltaTime;
+    }
+}
+
+// ============ RUNTIME USAGE (MonoBehaviour) ============
+
+public class Enemy : MonoBehaviour
+{
+    [SerializeField] private CharacterInstance _character;
+    
+    void Start()
+    {
+        // Load template and create instance
+        var goblinData = Resources.Load<CharacterData>("Characters/Goblin");
+        _character = new CharacterInstance(goblinData);
+        
+        // Add skills
+        var fireballSkill = Resources.Load<Skill>("Skills/Fireball");
+        _character.AddSkill(fireballSkill);
+    }
+    
+    void Update()
+    {
+        // Each enemy updates their own skill cooldowns
+        foreach (var skill in _character.Skills)
+        {
+            skill.UpdateCooldown(Time.deltaTime);
+        }
+    }
+}
+```
+
+## Key Takeaways
+
+1. **ScriptableObjects = Shared Templates**
+   - Read-only at runtime
+   - Configuration and static data
+   - Shared across all instances
+
+2. **Instance Classes = Per-Entity State**
+   - Mutable at runtime
+   - Each entity has their own
+   - Holds temporary/changing data
+
+3. **Pattern Structure:**
+   ```
+   ScriptableObject (Asset) → Instance Class (Runtime) → MonoBehaviour (GameObject)
+   ```
+
+4. **When in doubt:** If the data changes during gameplay and needs to be different per-entity, it belongs in an instance class.
+
+---
+
+**Document Version:** 2.0  
 **Last Updated:** November 6, 2025  
 **Author:** GitHub Copilot  
 **Related Files:**
