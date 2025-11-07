@@ -5,7 +5,7 @@ using XNode;
 
 namespace Assets.Prototypes.Skills.Nodes.Events
 {
-    [CreateNodeMenu("Events/Affect Unit Stat")]
+    [CreateNodeMenu("Events/Defensive/Affect Unit Stat")]
     [NodeLabel("Modifies a stat value on the executing unit")]
     public class AffectUnitStat : SkillNode
     {

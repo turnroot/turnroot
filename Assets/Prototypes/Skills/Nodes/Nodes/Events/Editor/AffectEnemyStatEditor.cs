@@ -6,7 +6,7 @@ using XNodeEditor;
 
 /// <summary>
 /// Custom editor for AffectEnemyStat nodes.
-/// Modifies stats on the target enemy (Targets[0]) or all targets.
+/// Modifies stats on the target enemy (Targets[0]) or all targeted enemies.
 /// </summary>
 [CustomNodeEditor(typeof(AffectEnemyStat))]
 public class AffectEnemyStatEditor : AffectStatNodeEditorBase

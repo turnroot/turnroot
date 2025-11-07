@@ -4,7 +4,7 @@ using XNode;
 
 namespace Assets.Prototypes.Skills.Nodes.Events
 {
-    [CreateNodeMenu("Events/Deal Debuff")]
+    [CreateNodeMenu("Events/Offensive/Deal Debuff")]
     [NodeLabel("Applies a debuff to the target")]
     public class DealDebuff : SkillNode
     {
@@ -12,7 +12,7 @@ namespace Assets.Prototypes.Skills.Nodes.Events
         public ExecutionFlow executionIn;
 
         [Input]
-        [Tooltip("If true, applies debuff to all enemies; if false, only first target")]
+        [Tooltip("If true, applies debuff to all targeted enemies; if false, only first target")]
         public BoolValue affectAllTargets;
 
         [Tooltip("Test value for affectAllTargets in editor mode")]
@@ -49,20 +49,24 @@ namespace Assets.Prototypes.Skills.Nodes.Events
                 }
             }
 
-            // Apply debuff to all targets or just the first one
+            // Apply debuff to all targeted enemies or just the first one
             if (shouldAffectAll)
             {
-                int affectedCount = 0;
                 foreach (var target in context.Targets)
                 {
                     if (target != null)
                     {
-                        ApplyDebuff(target);
-                        affectedCount++;
+                        var debuffData = new
+                        {
+                            DebuffType = debuffTypePlaceholder,
+                            Duration = duration,
+                            Intensity = intensity,
+                        };
+                        context.SetCustomData($"ApplyDebuff_{target.Id}", debuffData);
                     }
                 }
                 Debug.Log(
-                    $"DealDebuff: Applied {debuffTypePlaceholder} debuff to {affectedCount} enemies"
+                    $"DealDebuff: Applied {debuffTypePlaceholder} debuff to {context.Targets.Count} enemies"
                 );
             }
             else
@@ -73,17 +77,17 @@ namespace Assets.Prototypes.Skills.Nodes.Events
                     Debug.LogWarning("DealDebuff: Target is null");
                     return;
                 }
-                ApplyDebuff(target);
+                var debuffData = new
+                {
+                    DebuffType = debuffTypePlaceholder,
+                    Duration = duration,
+                    Intensity = intensity,
+                };
+                context.SetCustomData($"ApplyDebuff_{target.Id}", debuffData);
+                Debug.Log(
+                    $"DealDebuff: Applied {debuffTypePlaceholder} debuff (duration: {duration}, intensity: {intensity})"
+                );
             }
-        }
-
-        private void ApplyDebuff(Assets.Prototypes.Characters.CharacterInstance target)
-        {
-            // TODO: Integrate with actual status effect/debuff system
-            // TODO: Replace debuffTypePlaceholder with actual DebuffType object
-            Debug.Log(
-                $"DealDebuff: Applied {debuffTypePlaceholder} debuff (duration: {duration}, intensity: {intensity})"
-            );
         }
     }
 }

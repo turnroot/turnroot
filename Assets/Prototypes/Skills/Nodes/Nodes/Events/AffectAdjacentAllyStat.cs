@@ -6,7 +6,7 @@ using XNode;
 
 namespace Assets.Prototypes.Skills.Nodes.Events
 {
-    [CreateNodeMenu("Events/Affect Adjacent Ally Stat")]
+    [CreateNodeMenu("Events/Defensive/Affect Adjacent Ally Stat")]
     [NodeLabel("Modifies a stat value on adjacent allied units")]
     public class AffectAdjacentAllyStat : SkillNode
     {
@@ -44,17 +44,84 @@ namespace Assets.Prototypes.Skills.Nodes.Events
                 }
             }
 
-            // TODO: Implement adjacent ally detection and stat changes
-            // This requires integration with grid/positioning system to:
-            // 1. Get adjacent allies: var adjacentAllies = GetAdjacentAllies(context.UnitInstance);
-            // 2. For each ally, apply the stat change:
-            //    - Parse selectedStat to BoundedStatType or UnboundedStatType based on isBoundedStat
-            //    - Get the stat from the ally's CharacterInstance using GetBoundedStat() or GetUnboundedStat()
-            //    - Update the stat's current value: stat.SetCurrent(stat.Current + changeAmount)
-            Debug.Log(
-                $"AffectAdjacentAllyStat: Would change {selectedStat} by {changeAmount} for adjacent allies. "
-                    + $"(Requires integration with grid/positioning system to identify adjacent units)"
-            );
+            // Get adjacent allies from context
+            if (context.AdjacentUnits == null || context.AdjacentUnits.Count == 0)
+            {
+                Debug.LogWarning("AffectAdjacentAllyStat: No adjacent units available in context");
+                return;
+            }
+
+            int affectedCount = 0;
+
+            // Iterate through adjacent units and affect allies
+            foreach (var kvp in context.AdjacentUnits)
+            {
+                var adjacentUnit = kvp.Value;
+                if (adjacentUnit == null)
+                    continue;
+
+                // Skip if not an ally (compare with Allies list)
+                if (
+                    context.Allies == null
+                    || !context.Allies.Exists(ally => ally.Id == adjacentUnit.Id)
+                )
+                {
+                    continue;
+                }
+
+                // Apply the stat change
+                bool success = false;
+                if (isBoundedStat)
+                {
+                    if (System.Enum.TryParse<BoundedStatType>(selectedStat, out var boundedType))
+                    {
+                        var stat = adjacentUnit.GetBoundedStat(boundedType);
+                        if (stat != null)
+                        {
+                            stat.SetCurrent(stat.Current + changeAmount);
+                            success = true;
+                            Debug.Log(
+                                $"AffectAdjacentAllyStat: Changed {selectedStat} by {changeAmount} for ally at {kvp.Key} (new value: {stat.Current})"
+                            );
+                        }
+                    }
+                }
+                else
+                {
+                    if (
+                        System.Enum.TryParse<UnboundedStatType>(selectedStat, out var unboundedType)
+                    )
+                    {
+                        var stat = adjacentUnit.GetUnboundedStat(unboundedType);
+                        if (stat != null)
+                        {
+                            stat.SetCurrent(stat.Current + changeAmount);
+                            success = true;
+                            Debug.Log(
+                                $"AffectAdjacentAllyStat: Changed {selectedStat} by {changeAmount} for ally at {kvp.Key} (new value: {stat.Current})"
+                            );
+                        }
+                    }
+                }
+
+                if (success)
+                {
+                    affectedCount++;
+                }
+            }
+
+            if (affectedCount == 0)
+            {
+                Debug.LogWarning(
+                    "AffectAdjacentAllyStat: No adjacent allies found or stat changes failed"
+                );
+            }
+            else
+            {
+                Debug.Log(
+                    $"AffectAdjacentAllyStat: Successfully affected {affectedCount} adjacent {(affectedCount == 1 ? "ally" : "allies")}"
+                );
+            }
         }
     }
 }

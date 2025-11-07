@@ -5,7 +5,7 @@ using XNode;
 
 namespace Assets.Prototypes.Skills.Nodes.Events
 {
-    [CreateNodeMenu("Events/Affect Enemy Stat")]
+    [CreateNodeMenu("Events/Neutral/Affect Enemy Stat")]
     [NodeLabel("Modifies a stat value on the target enemy")]
     public class AffectEnemyStat : SkillNode
     {
@@ -22,9 +22,9 @@ namespace Assets.Prototypes.Skills.Nodes.Events
 
         [Input]
         [Tooltip(
-            "If true, affects all enemies in Targets list; if false, only affects first target"
+            "If true, affects all targeted enemies in Targets list; if false, only affects first target"
         )]
-        public BoolValue affectAllEnemies;
+        public BoolValue affectAllTargets;
 
         [Tooltip("Test value used in editor mode")]
         public float testChange = -10f;
@@ -64,7 +64,7 @@ namespace Assets.Prototypes.Skills.Nodes.Events
                 }
             }
 
-            // Apply to all targets or just the first one
+            // Apply to all targeted enemies or just the first one
             if (shouldAffectAll)
             {
                 int affectedCount = 0;

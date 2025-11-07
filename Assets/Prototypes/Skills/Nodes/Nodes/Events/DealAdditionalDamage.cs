@@ -4,7 +4,7 @@ using XNode;
 
 namespace Assets.Prototypes.Skills.Nodes.Events
 {
-    [CreateNodeMenu("Events/Deal Additional Damage")]
+    [CreateNodeMenu("Events/Offensive/Deal Additional Damage")]
     [NodeLabel("Deals additional damage to the target")]
     public class DealAdditionalDamage : SkillNode
     {
@@ -17,7 +17,7 @@ namespace Assets.Prototypes.Skills.Nodes.Events
 
         [Input]
         [Tooltip(
-            "If true, deals damage to all enemies in Targets list; if false, only first target"
+            "If true, deals damage to all targeted enemies in Targets list; if false, only first target"
         )]
         public BoolValue affectAllTargets;
 
@@ -59,7 +59,7 @@ namespace Assets.Prototypes.Skills.Nodes.Events
                 }
             }
 
-            // Deal damage to all targets or just the first one
+            // Deal damage to all targeted enemies or just the first one
             if (shouldAffectAll)
             {
                 int affectedCount = 0;

@@ -4,15 +4,15 @@ using XNode;
 
 namespace Assets.Prototypes.Skills.Nodes.Events
 {
-    [CreateNodeMenu("Events/Offensive/Unmount Enemy")]
-    [NodeLabel("Force an enemy to dismount from riding/flying. They can remount on their turn")]
-    public class UnmountEnemy : SkillNode
+    [CreateNodeMenu("Events/Offensive/Break Weapon")]
+    [NodeLabel("Break enemy's equipped weapon")]
+    public class BreakWeapon : SkillNode
     {
         [Input]
         public ExecutionFlow executionIn;
 
         [Input]
-        [Tooltip("If true, unmounts all targeted enemies; if false, only first target")]
+        [Tooltip("If true, breaks all targeted enemies' weapons; if false, only first target")]
         public BoolValue affectAllTargets;
 
         [Tooltip("Test value for affectAllTargets in editor mode")]
@@ -22,7 +22,7 @@ namespace Assets.Prototypes.Skills.Nodes.Events
         {
             if (context?.Targets == null || context.Targets.Count == 0)
             {
-                Debug.LogWarning("UnmountEnemy: No target in context");
+                Debug.LogWarning("BreakWeapon: No target in context");
                 return;
             }
 
@@ -38,28 +38,21 @@ namespace Assets.Prototypes.Skills.Nodes.Events
                 }
             }
 
-            // Unmount all targeted enemies or just the first one
             if (shouldAffectAll)
             {
                 foreach (var target in context.Targets)
                 {
-                    if (target != null)
-                    {
-                        context.SetCustomData($"ForceUnmount_{target.Id}", true);
-                    }
+                    // Store break weapon command in CustomData
+                    context.SetCustomData($"BreakWeapon_{target.Id}", true);
                 }
-                Debug.Log($"UnmountEnemy: Unmounted {context.Targets.Count} enemies");
+                Debug.Log($"BreakWeapon: Would break weapon for {context.Targets.Count} targets");
             }
             else
             {
                 var target = context.Targets[0];
-                if (target == null)
-                {
-                    Debug.LogWarning("UnmountEnemy: Target is null");
-                    return;
-                }
-                context.SetCustomData($"ForceUnmount_{target.Id}", true);
-                Debug.Log("UnmountEnemy: Forced target to dismount");
+                // Store break weapon command in CustomData
+                context.SetCustomData($"BreakWeapon_{target.Id}", true);
+                Debug.Log("BreakWeapon: Would break weapon for first target");
             }
         }
     }

@@ -4,8 +4,8 @@ using XNode;
 
 namespace Assets.Prototypes.Skills.Nodes.Events
 {
-    [CreateNodeMenu("Events/Deal Debuff Area of Effect")]
-    [NodeLabel("Applies a debuff to all enemies in an area")]
+    [CreateNodeMenu("Events/Offensive/Deal Debuff Area Of Effect")]
+    [NodeLabel("Applies a debuff to all targeted enemies in an area")]
     public class DealDebuffAreaOfEffect : SkillNode
     {
         [Input]
@@ -49,28 +49,24 @@ namespace Assets.Prototypes.Skills.Nodes.Events
                 }
             }
 
-            // Apply debuff to all targets in the AoE
-            int affectedCount = 0;
+            // Apply debuff to all targeted enemies in the AoE
             foreach (var target in context.Targets)
             {
                 if (target != null)
                 {
-                    ApplyDebuff(target);
-                    affectedCount++;
+                    var debuffData = new
+                    {
+                        DebuffType = debuffTypePlaceholder,
+                        Duration = duration,
+                        Intensity = intensity,
+                        Radius = radius,
+                    };
+                    context.SetCustomData($"ApplyDebuff_{target.Id}", debuffData);
                 }
             }
 
             Debug.Log(
-                $"DealDebuffAreaOfEffect: Applied {debuffTypePlaceholder} debuff to {affectedCount} enemies in {radius} tile radius"
-            );
-        }
-
-        private void ApplyDebuff(Assets.Prototypes.Characters.CharacterInstance target)
-        {
-            // TODO: Integrate with actual status effect/debuff system
-            // TODO: Replace debuffTypePlaceholder with actual DebuffType object
-            Debug.Log(
-                $"DealDebuffAreaOfEffect: Applied {debuffTypePlaceholder} debuff (duration: {duration}, intensity: {intensity})"
+                $"DealDebuffAreaOfEffect: Applied {debuffTypePlaceholder} debuff to {context.Targets.Count} enemies in {radius} tile radius"
             );
         }
     }

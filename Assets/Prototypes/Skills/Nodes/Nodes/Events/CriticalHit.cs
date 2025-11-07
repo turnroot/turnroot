@@ -4,7 +4,7 @@ using XNode;
 
 namespace Assets.Prototypes.Skills.Nodes.Events
 {
-    [CreateNodeMenu("Events/Critical Hit")]
+    [CreateNodeMenu("Events/Offensive/Critical Hit")]
     [NodeLabel("Triggers a critical hit")]
     public class CriticalHit : SkillNode
     {

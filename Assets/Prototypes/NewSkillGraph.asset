@@ -1,0 +1,59 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 648cb0dddd3bfc949bed2d9ee663da51, type: 3}
+  m_Name: NewSkillGraph
+  m_EditorClassIdentifier: 
+  nodes:
+  - {fileID: 8733847471406561152}
+--- !u!114 &8733847471406561152
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0a6cf30235be96f4b80a57fcb4323cd5, type: 3}
+  m_Name: Damage Reflection
+  m_EditorClassIdentifier: 
+  graph: {fileID: 11400000}
+  position: {x: 8, y: -8}
+  ports:
+    keys:
+    - executionIn
+    - reflectionPercent
+    values:
+    - _fieldName: executionIn
+      _node: {fileID: 8733847471406561152}
+      _typeQualifiedName: Assets.Prototypes.Skills.Nodes.ExecutionFlow, Assembly-CSharp,
+        Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+      connections: []
+      _direction: 0
+      _connectionType: 0
+      _typeConstraint: 0
+      _dynamic: 0
+    - _fieldName: reflectionPercent
+      _node: {fileID: 8733847471406561152}
+      _typeQualifiedName: Assets.Prototypes.Skills.Nodes.FloatValue, Assembly-CSharp,
+        Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+      connections: []
+      _direction: 0
+      _connectionType: 0
+      _typeConstraint: 0
+      _dynamic: 0
+  OnNodeExecute:
+    m_PersistentCalls:
+      m_Calls: []
+  reflectionPercent:
+    value: 0
+  testReflectionPercent: 50

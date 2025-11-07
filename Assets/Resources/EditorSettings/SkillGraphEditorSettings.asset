@@ -16,7 +16,7 @@ MonoBehaviour:
   boolValueColor: {r: 0.54509807, g: 0.36078432, b: 0.9647059, a: 1}
   floatValueColor: {r: 0.05490196, g: 0.64705884, b: 0.9137255, a: 1}
   stringValueColor: {r: 0, g: 1, b: 0.890244, a: 1}
-  flowNodeColor: {r: 0.12848237, g: 0.22487609, b: 0.2627451, a: 1}
+  flowNodeColor: {r: 0.10399608, g: 0.30402276, b: 0.38679248, a: 1}
   mathNodeColor: {r: 0.10012461, g: 0.1745222, b: 0.2830189, a: 1}
-  eventsNodeColor: {r: 0.13830543, g: 0.26415092, b: 0.2616607, a: 1}
+  eventsNodeColor: {r: 0.16298509, g: 0.312, b: 0.312, a: 1}
   conditionsNodeColor: {r: 0.14774774, g: 0.145406, b: 0.218, a: 1}

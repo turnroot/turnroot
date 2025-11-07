@@ -4,7 +4,7 @@ using XNode;
 
 namespace Assets.Prototypes.Skills.Nodes.Events
 {
-    [CreateNodeMenu("Events/Change Battle Order")]
+    [CreateNodeMenu("Events/Neutral/Change Battle Order")]
     [NodeLabel("Modifies attack order or follow-up attack priority in combat")]
     public class ChangeBattleOrder : SkillNode
     {

@@ -4,7 +4,7 @@ using XNode;
 
 namespace Assets.Prototypes.Skills.Nodes.Events
 {
-    [CreateNodeMenu("Events/Swap Unit With Target")]
+    [CreateNodeMenu("Events/Neutral/Swap Unit With Target")]
     [NodeLabel("Swaps the position of the unit with the target")]
     public class SwapUnitWithTarget : SkillNode
     {
@@ -32,8 +32,11 @@ namespace Assets.Prototypes.Skills.Nodes.Events
                 return;
             }
 
-            // TODO: Integrate with actual positioning/grid system
-            Debug.Log($"SwapUnitWithTarget: Swapped positions between unit and target");
+            // Store swap command in CustomData
+            var swapData = new { UnitId = context.UnitInstance.Id, TargetId = target.Id };
+            context.SetCustomData("SwapPositions", swapData);
+
+            Debug.Log("SwapUnitWithTarget: Will swap positions with target");
         }
     }
 }
