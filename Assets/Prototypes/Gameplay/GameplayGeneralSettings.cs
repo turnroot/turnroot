@@ -130,4 +130,46 @@ public class GameplayGeneralSettings : SingletonScriptableObject<GameplayGeneral
         Enabled = false,
         HasWeaponType = false,
     };
+
+    // Public accessors for Extra Unit Stats
+    public bool UseWeight => Weight;
+    public bool UseLuck => Luck;
+    public bool UseSeparateCriticalAvoidance => SeparateCriticalAvoidance;
+    public bool UseAuthority => Authority;
+
+#if UNITY_EDITOR
+    private void OnValidate()
+    {
+        // Auto-refresh DefaultCharacterStats when Extra Unit Stats change
+        UnityEditor.EditorApplication.delayCall += () =>
+        {
+            if (this != null)
+            {
+                RefreshDefaultCharacterStats();
+            }
+        };
+    }
+
+    private void RefreshDefaultCharacterStats()
+    {
+        var defaultStats = Assets.Prototypes.Characters.DefaultCharacterStats.Instance;
+        if (defaultStats != null)
+        {
+            // Use reflection to call the editor-only refresher
+            var refresherType = System.Type.GetType("DefaultCharacterStatsRefresher");
+            if (refresherType != null)
+            {
+                var method = refresherType.GetMethod(
+                    "RefreshStats",
+                    System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static
+                );
+                if (method != null)
+                {
+                    method.Invoke(null, new object[] { defaultStats, this });
+                    UnityEditor.EditorUtility.SetDirty(defaultStats);
+                }
+            }
+        }
+    }
+#endif
 }

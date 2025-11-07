@@ -14,6 +14,11 @@ namespace Assets.Prototypes.Skills.Nodes.Editor
     [CustomNodeEditor(typeof(SkillNode))]
     public class SkillNodeEditor : NodeEditor
     {
+        public override int GetWidth()
+        {
+            return 300;
+        }
+
         public override void OnHeaderGUI()
         {
             // Draw the default header first (node title)
@@ -84,6 +89,64 @@ namespace Assets.Prototypes.Skills.Nodes.Editor
 
             // Fall back to default tint
             return base.GetTint();
+        }
+
+        public override void OnBodyGUI()
+        {
+            serializedObject.Update();
+
+            // Store original label width
+            float originalLabelWidth = EditorGUIUtility.labelWidth;
+
+            // Set label width to 40% of the node width to give more space
+            EditorGUIUtility.labelWidth = GetWidth() * 0.5f;
+
+            // Check if this is a Flow node
+            var script = MonoScript.FromScriptableObject(target);
+            bool isFlowNode = false;
+            if (script != null)
+            {
+                string scriptPath = AssetDatabase.GetAssetPath(script);
+                isFlowNode = scriptPath.Contains("/Flow/");
+            }
+
+            // If not a Flow node, we want to hide OnNodeExecute
+            if (!isFlowNode)
+            {
+                // Draw all ports and properties except OnNodeExecute
+                // Use reflection to get all port fields
+                foreach (var port in target.Ports)
+                {
+                    NodeEditorGUILayout.PortField(port);
+                }
+
+                // Draw all serialized properties except internal ones and OnNodeExecute
+                SerializedProperty iterator = serializedObject.GetIterator();
+                iterator.NextVisible(true); // Skip script property
+                while (iterator.NextVisible(false))
+                {
+                    // Skip xNode internal fields and OnNodeExecute
+                    if (
+                        iterator.name == "graph"
+                        || iterator.name == "position"
+                        || iterator.name == "ports"
+                        || iterator.name == "OnNodeExecute"
+                    )
+                        continue;
+
+                    EditorGUILayout.PropertyField(iterator, true);
+                }
+            }
+            else
+            {
+                // For Flow nodes, draw the default body (includes OnNodeExecute)
+                base.OnBodyGUI();
+            }
+
+            // Restore original label width
+            EditorGUIUtility.labelWidth = originalLabelWidth;
+
+            serializedObject.ApplyModifiedProperties();
         }
     }
 }

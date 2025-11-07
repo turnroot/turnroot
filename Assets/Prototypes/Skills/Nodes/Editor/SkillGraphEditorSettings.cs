@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Assets.Prototypes.Skills.Nodes;
 using UnityEditor;
 using UnityEngine;
@@ -105,7 +106,8 @@ namespace Assets.Prototypes.Skills.Nodes.Editor
                 if (this == null)
                     return; // Asset was deleted
 
-                // Get xNode's settings
+                // Get xNode's settings - but DON'T save them back
+                // We only want to update the typeColors dictionary stored in EditorPrefs
                 var xnodeSettings = XNodeEditor.NodeEditorPreferences.GetSettings();
 
                 // Update type colors in xNode's settings dictionary using simple type names
@@ -134,15 +136,12 @@ namespace Assets.Prototypes.Skills.Nodes.Editor
                 else
                     xnodeSettings.typeColors.Add(stringValueKey, stringValueColor);
 
-                // Use reflection to call private SavePrefs method AND clear type color cache
-                var savePrefsMethod = typeof(XNodeEditor.NodeEditorPreferences).GetMethod(
-                    "SavePrefs",
-                    System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static
+                // Manually save only the typeColors to EditorPrefs
+                // This preserves other settings like selection color, line style, etc.
+                string typeColorsJson = JsonUtility.ToJson(
+                    new SerializableTypeColorDict(xnodeSettings.typeColors)
                 );
-                if (savePrefsMethod != null)
-                {
-                    savePrefsMethod.Invoke(null, new object[] { "xNode.Settings", xnodeSettings });
-                }
+                EditorPrefs.SetString("xNode.Settings.typeColors", typeColorsJson);
 
                 // Clear the typeColors cache in NodeEditorPreferences to force reload
                 var typeColorsField = typeof(XNodeEditor.NodeEditorPreferences).GetField(
@@ -165,6 +164,25 @@ namespace Assets.Prototypes.Skills.Nodes.Editor
                 UnityEditor.EditorUtility.SetDirty(this);
             };
 #endif
+        }
+
+        // Helper class for serializing typeColors dictionary
+        [System.Serializable]
+        private class SerializableTypeColorDict
+        {
+            public List<string> keys = new List<string>();
+            public List<Color> values = new List<Color>();
+
+            public SerializableTypeColorDict(
+                System.Collections.Generic.Dictionary<string, Color> dict
+            )
+            {
+                foreach (var kvp in dict)
+                {
+                    keys.Add(kvp.Key);
+                    values.Add(kvp.Value);
+                }
+            }
         }
 
         /// <summary>
