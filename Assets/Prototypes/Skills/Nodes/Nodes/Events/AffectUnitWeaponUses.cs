@@ -4,7 +4,7 @@ using XNode;
 
 namespace Assets.Prototypes.Skills.Nodes.Events
 {
-    [CreateNodeMenu("Events/Affect Unit Weapon Uses")]
+    [CreateNodeMenu("Events/Neutral/Affect Unit Weapon Uses")]
     [NodeLabel("Modifies the remaining uses of the unit's equipped weapon")]
     public class AffectUnitWeaponUses : SkillNode
     {

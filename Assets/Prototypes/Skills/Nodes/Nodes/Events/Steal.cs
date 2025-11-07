@@ -4,7 +4,7 @@ using XNode;
 
 namespace Assets.Prototypes.Skills.Nodes.Events
 {
-    [CreateNodeMenu("Events/Steal")]
+    [CreateNodeMenu("Events/Offensive/Steal")]
     [NodeLabel("Steal an object from the enemy")]
     public class Steal : SkillNode
     {

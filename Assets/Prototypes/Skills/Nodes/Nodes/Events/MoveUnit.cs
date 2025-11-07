@@ -4,7 +4,7 @@ using XNode;
 
 namespace Assets.Prototypes.Skills.Nodes.Events
 {
-    [CreateNodeMenu("Events/Move Unit")]
+    [CreateNodeMenu("Events/Neutral/Move Unit")]
     [NodeLabel("Moves the unit to a new position on the battlefield")]
     public class MoveUnit : SkillNode
     {

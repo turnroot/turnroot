@@ -87,38 +87,79 @@ Nodes auto-tint based on subfolder:
 
 Event nodes perform actions during skill execution. Located in `Assets/Prototypes/Skills/Nodes/Nodes/Events/`.
 
-### Stat Modification
-- **AffectUnitStat** - Modify caster's stats (BoolValue input, stat dropdown)
-- **AffectEnemyStat** - Modify target stats with optional "all enemies" mode (BoolValue affectAllTargets input)
-- **AffectAdjacentAllyStat** - Modify adjacent ally stats (placeholder)
+**Menu Organization**: Event nodes are organized into three submenus:
+- **Events/Offensive/** - Damage and debuff enemies
+- **Events/Defensive/** - Protect and buff self/allies  
+- **Events/Neutral/** - Positioning, utility, resources
 
-### Combat Actions  
-- **DealAdditionalDamage** - Deal damage to target(s) (multi-target support)
-- **KillTarget** - Instantly kill target(s) by setting Health to 0 (multi-target support)
-- **CriticalHit** - Set `IsCriticalHit` flag in CustomData for current attack
-- **DisableEnemyFollowup** - Prevent enemy from performing follow-up attack
-- **DealDebuff** - Apply status debuff to target(s) (multi-target, uses debuffTypePlaceholder)
-- **DealDebuffAreaOfEffect** - Apply debuff to all targets in radius (uses debuffTypePlaceholder)
-- **AreaOfEffectDamage** - Deal damage to all targets in radius
+### Offensive Events (Attack/Debuff)
+- **Area of Effect Damage** - Deal damage to all targeted enemies in radius
+- **Break Weapon** - Instantly break enemy's equipped weapon (multi-target)
+- **Critical Hit** - Set `IsCriticalHit` flag in CustomData for current attack
+- **Deal Additional Damage** - Deal damage to target(s) (multi-target support)
+- **Deal Debuff** - Apply status debuff to target(s) (multi-target, uses debuffTypePlaceholder)
+- **Deal Debuff Area of Effect** - Apply debuff to all targeted enemies in radius (uses debuffTypePlaceholder)
+- **Disable Enemy Followup** - Prevent enemy from performing follow-up attack (multi-target)
+- **First Strike** - Attack first, prevent counterattack
+- **Kill Target** - Instantly kill target(s) by setting Health to 0 (multi-target support)
+- **Steal** - Attempt to steal item from target (placeholder for RNG integration)
+- **Unmount Enemy** - Force enemy to dismount (cavalry units, multi-target)
 
-### Battle Order & Turn Mechanics
-- **ChangeBattleOrder** - Modify follow-up attack mechanics
+### Defensive Events (Protect/Buff)
+- **Affect Adjacent Ally Stat** - Modify adjacent ally stats (TODO: update to use AdjacentUnits dictionary)
+- **Affect Unit Stat** - Modify caster's stats (BoolValue input, stat dropdown)
+- **Area Of Effect Buff** - Buff adjacent allies within radius (configurable stat/amount/duration)
+- **Cure Debuff** - Remove status effects from allies (AllDebuffs or SpecificDebuff modes)
+- **Damage Reflection** - Reflect percentage of damage back to attacker
+- **Negate Next Attack** - Complete damage negation (Miracle, Pavise, Aegis skills)
+- **Reduce Damage** - Flat or percentage damage reduction
+
+### Neutral Events (Utility/Positioning/Resources)
+- **Adjust Advantage Percents** - Modify weapon triangle advantage/disadvantage values
+- **Affect Enemy Stat** - Modify target stats with optional "all targeted enemies" mode (BoolValue affectAllTargets input)
+- **Affect Unit Weapon Uses** - Modify weapon durability (increase/decrease uses)
+- **Change Battle Order** - Modify follow-up attack mechanics
   - OrderEffectType: GuaranteeFollowup, PreventFollowup, ModifySpeedThreshold, AttackFirst
   - Integrates with speed-based follow-up attack system
-- **TakeAnotherTurn** - Set flag to grant caster an extra turn
+- **Gain Gold** - Add gold to player's resources
+- **Move Unit** - Move caster to target location (placeholder for pathfinding integration)
+- **Reposition** - Move ally to adjacent tile (uses AdjacentUnits dictionary)
+- **Swap Unit With Target** - Swap positions with target (placeholder for tile system)
+- **Take Another Turn** - Set flag to grant caster an extra turn
+- **Warp** - Teleport ally to/from caster position (uses AdjacentUnits dictionary)
 
-### Movement & Positioning
-- **MoveUnit** - Move caster to target location (placeholder for pathfinding integration)
-- **SwapUnitWithTarget** - Swap positions with target (placeholder for tile system)
-- **UnmountEnemy** - Force enemy to dismount (cavalry units)
+### Recent Architectural Updates (Nov 2025)
 
-### Resources & Items
-- **GainGold** - Add gold to player's resources
-- **Steal** - Attempt to steal item from target (placeholder for RNG integration)
-- **AffectUnitWeaponUses** - Modify weapon durability (increase/decrease uses)
+**Character Identification**:
+- ✅ **DONE**: Replaced `GetHashCode()` with proper `.Id` property (GUID-based)
+- All CustomData keys now use `CharacterInstance.Id` instead of hash codes
+- Example: `context.SetCustomData($"FirstStrike_{context.UnitInstance.Id}", true)`
+
+**Spatial Context**:
+- ✅ **DONE**: Added `Direction` enum and `AdjacentUnits` dictionary to `SkillExecutionContext`
+- Direction values: Center, TopLeft, TopCenter, TopRight, CenterLeft, CenterRight, BottomLeft, BottomCenter, BottomRight
+- ✅ **DONE**: Updated Reposition and Warp nodes to use `context.AdjacentUnits[direction]`
+- 🔧 **TODO**: Update AffectAdjacentAllyStat to use AdjacentUnits dictionary instead of placeholder logic
+
+**Multi-Ally Selection**:
+- ⚠️ **NEEDS WORK**: NegateNextAttack, ReduceDamage, and AreaOfEffectBuff currently have "affect adjacent allies" modes but need proper ally iteration
+- 🔧 **TODO**: When "affectAdjacentAllies" is true, these nodes should iterate through `context.Allies` list or use spatial queries
+- 🔧 **TODO**: Consider adding separate radius-based ally selection for AoE effects
+
+**Combat System Integration**:
+- ✅ **DONE**: All Event nodes now use `SetCustomData()` to communicate with combat system
+- CustomData key pattern: `{ActionName}_{characterId}` for per-character flags
+- Complex state stored as anonymous objects (e.g., debuff data, buff data)
+- 🔧 **TODO**: Document CustomData key contracts for combat system developers
+
+**Placeholder Fields**:
+- ⚠️ **NEEDS REPLACEMENT**: Several nodes use placeholder string fields:
+  - `debuffTypePlaceholder` in DealDebuff, DealDebuffAreaOfEffect, CureDebuff
+  - `buffStatPlaceholder` in AreaOfEffectBuff
+- 🔧 **TODO**: Replace with proper enum types when status effect system is implemented
 
 ### Multi-Target Pattern
-Many Event nodes support the "affect all targets" pattern:
+Many Event nodes support the "affect all targeted enemies" pattern:
 ```csharp
 [Input(connectionType: ConnectionType.Override)] 
 public BoolValue affectAllTargets;
@@ -133,7 +174,9 @@ When `affectAllTargets` is true, the node loops through all entries in `context.
 - KillTarget
 - DealAdditionalDamage
 - DealDebuff
-- DealDebuffAreaOfEffect (radius-based instead)
+- DisableEnemyFollowup
+- UnmountEnemy
+- BreakWeapon
 
 ## Creating Custom Nodes
 

@@ -2,7 +2,7 @@ using Assets.Prototypes.Skills.Nodes;
 using UnityEngine;
 using XNode;
 
-[CreateNodeMenu("Events/Adjust Advantage Percents")]
+[CreateNodeMenu("Events/Neutral/Adjust Advantage Percents")]
 [NodeLabel("Adjust Advantage Percents")]
 public class AdjustAdvantagePercents : SkillNode
 {

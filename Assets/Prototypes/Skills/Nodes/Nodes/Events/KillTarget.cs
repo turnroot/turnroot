@@ -4,7 +4,7 @@ using XNode;
 
 namespace Assets.Prototypes.Skills.Nodes.Events
 {
-    [CreateNodeMenu("Events/Kill Target")]
+    [CreateNodeMenu("Events/Offensive/Kill Target")]
     [NodeLabel("Instantly kills the target enemy")]
     public class KillTarget : SkillNode
     {
@@ -12,8 +12,10 @@ namespace Assets.Prototypes.Skills.Nodes.Events
         public ExecutionFlow executionIn;
 
         [Input]
-        [Tooltip("If true, kills all enemies in Targets list; if false, only kills first target")]
-        public BoolValue killAllTargets;
+        [Tooltip(
+            "If true, kills all targeted enemies in Targets list; if false, only kills first target"
+        )]
+        public BoolValue affectAllTargets;
 
         [Tooltip("Test value for killAllTargets in editor mode")]
         public bool testKillAll = false;
@@ -38,7 +40,7 @@ namespace Assets.Prototypes.Skills.Nodes.Events
                 }
             }
 
-            // Kill all targets or just the first one
+            // Kill all targeted enemies or just the first one
             if (shouldKillAll)
             {
                 int killedCount = 0;

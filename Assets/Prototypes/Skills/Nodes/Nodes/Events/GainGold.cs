@@ -4,7 +4,7 @@ using XNode;
 
 namespace Assets.Prototypes.Skills.Nodes.Events
 {
-    [CreateNodeMenu("Events/Gain Gold")]
+    [CreateNodeMenu("Events/Neutral/Gain Gold")]
     [NodeLabel("Grants gold to the player")]
     public class GainGold : SkillNode
     {

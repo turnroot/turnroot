@@ -13,6 +13,9 @@ namespace Assets.Prototypes.Characters
     public class CharacterInstance
     {
         [SerializeField]
+        private string _id;
+
+        [SerializeField]
         private CharacterData _characterTemplate;
 
         // Runtime Stats & Progression
@@ -39,6 +42,7 @@ namespace Assets.Prototypes.Characters
         [SerializeField]
         private List<SkillInstance> _skillInstances = new List<SkillInstance>();
 
+        public string Id => _id;
         public CharacterData CharacterTemplate => _characterTemplate;
         public int CurrentLevel => _currentLevel;
         public int CurrentExp => _currentExp;
@@ -49,6 +53,8 @@ namespace Assets.Prototypes.Characters
 
         public CharacterInstance(CharacterData template)
         {
+            _id = Guid.NewGuid().ToString();
+            // TODO: REPLACE THIS WITH A REAL ID
             _characterTemplate = template;
             Initialize();
         }

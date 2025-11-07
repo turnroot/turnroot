@@ -4,7 +4,7 @@ using XNode;
 
 namespace Assets.Prototypes.Skills.Nodes.Events
 {
-    [CreateNodeMenu("Events/Take Another Turn")]
+    [CreateNodeMenu("Events/Neutral/Take Another Turn")]
     [NodeLabel("Allows the unit to take an additional turn immediately")]
     public class TakeAnotherTurn : SkillNode
     {

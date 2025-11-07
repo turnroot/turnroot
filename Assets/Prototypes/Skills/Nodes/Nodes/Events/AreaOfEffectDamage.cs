@@ -4,8 +4,8 @@ using XNode;
 
 namespace Assets.Prototypes.Skills.Nodes.Events
 {
-    [CreateNodeMenu("Events/Area of Effect Damage")]
-    [NodeLabel("Deals damage to all enemies in an area")]
+    [CreateNodeMenu("Events/Offensive/Area Of Effect Damage")]
+    [NodeLabel("Deals damage to all targeted enemies in an area")]
     public class AreaOfEffectDamage : SkillNode
     {
         [Input]
@@ -57,7 +57,7 @@ namespace Assets.Prototypes.Skills.Nodes.Events
                 }
             }
 
-            // Deal damage to all targets in the AoE
+            // Deal damage to all targeted enemies in the AoE
             int affectedCount = 0;
             foreach (var target in context.Targets)
             {
