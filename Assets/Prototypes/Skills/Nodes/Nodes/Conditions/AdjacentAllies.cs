@@ -7,7 +7,7 @@ using XNode;
 public class AdjacentAllies : SkillNode
 {
     [Output]
-    FloatValue value;
+    public FloatValue value;
 
     [Output]
     BoolValue adjacentAlly;
