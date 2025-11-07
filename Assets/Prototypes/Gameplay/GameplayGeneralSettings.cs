@@ -156,7 +156,7 @@ public class GameplayGeneralSettings : SingletonScriptableObject<GameplayGeneral
         if (defaultStats != null)
         {
             // Use reflection to call the editor-only refresher
-            var refresherType = System.Type.GetType("DefaultCharacterStatsRefresher");
+            var refresherType = typeof(DefaultCharacterStatsRefresher);
             if (refresherType != null)
             {
                 var method = refresherType.GetMethod(
