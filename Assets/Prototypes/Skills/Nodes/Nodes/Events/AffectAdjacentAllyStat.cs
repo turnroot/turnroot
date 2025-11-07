@@ -44,76 +44,17 @@ namespace Assets.Prototypes.Skills.Nodes.Events
                 }
             }
 
-            // TODO: Get actual adjacent allies from game logic
-            // For now, this is a placeholder that logs the action
+            // TODO: Implement adjacent ally detection and stat changes
+            // This requires integration with grid/positioning system to:
+            // 1. Get adjacent allies: var adjacentAllies = GetAdjacentAllies(context.UnitInstance);
+            // 2. For each ally, apply the stat change:
+            //    - Parse selectedStat to BoundedStatType or UnboundedStatType based on isBoundedStat
+            //    - Get the stat from the ally's CharacterInstance using GetBoundedStat() or GetUnboundedStat()
+            //    - Update the stat's current value: stat.SetCurrent(stat.Current + changeAmount)
             Debug.Log(
                 $"AffectAdjacentAllyStat: Would change {selectedStat} by {changeAmount} for adjacent allies. "
                     + $"(Requires integration with grid/positioning system to identify adjacent units)"
             );
-
-            // Example of how this would work with actual adjacent allies:
-            // var adjacentAllies = GetAdjacentAllies(context.UnitInstance);
-            // foreach (var ally in adjacentAllies)
-            // {
-            //     ApplyStatChange(ally, changeAmount);
-            // }
-        }
-
-        private void ApplyStatChange(CharacterInstance character, float changeAmount)
-        {
-            // Apply the stat change
-            if (isBoundedStat)
-            {
-                if (System.Enum.TryParse<BoundedStatType>(selectedStat, out var boundedType))
-                {
-                    var stat = character.GetBoundedStat(boundedType);
-                    if (stat != null)
-                    {
-                        stat.SetCurrent(stat.Current + changeAmount);
-                        Debug.Log(
-                            $"AffectAdjacentAllyStat: Changed {selectedStat} by {changeAmount} (new value: {stat.Current})"
-                        );
-                    }
-                    else
-                    {
-                        Debug.LogWarning(
-                            $"AffectAdjacentAllyStat: Bounded stat {selectedStat} not found on ally"
-                        );
-                    }
-                }
-                else
-                {
-                    Debug.LogWarning(
-                        $"AffectAdjacentAllyStat: Invalid bounded stat type: {selectedStat}"
-                    );
-                }
-            }
-            else
-            {
-                if (System.Enum.TryParse<UnboundedStatType>(selectedStat, out var unboundedType))
-                {
-                    var stat = character.GetUnboundedStat(unboundedType);
-                    if (stat != null)
-                    {
-                        stat.SetCurrent(stat.Current + changeAmount);
-                        Debug.Log(
-                            $"AffectAdjacentAllyStat: Changed {selectedStat} by {changeAmount} (new value: {stat.Current})"
-                        );
-                    }
-                    else
-                    {
-                        Debug.LogWarning(
-                            $"AffectAdjacentAllyStat: Unbounded stat {selectedStat} not found on ally"
-                        );
-                    }
-                }
-                else
-                {
-                    Debug.LogWarning(
-                        $"AffectAdjacentAllyStat: Invalid unbounded stat type: {selectedStat}"
-                    );
-                }
-            }
         }
     }
 }
