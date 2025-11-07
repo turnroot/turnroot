@@ -9,14 +9,27 @@ public class MapDay : SkillNode
     [Output]
     public BoolValue isDay;
 
+    [Tooltip("Test value used in editor mode")]
+    public bool editorTestValue = true;
+
     public override object GetValue(NodePort port)
     {
         if (port.fieldName == "isDay")
         {
             BoolValue dayValue = new();
-            // TODO: Implement actual time of day check logic
-            // For now, returns true as a placeholder
-            dayValue.value = true;
+            
+            // In editor mode, return the test value
+            if (!Application.isPlaying)
+            {
+                dayValue.value = editorTestValue;
+            }
+            else
+            {
+                // At runtime, get actual time of day state
+                // TODO: Implement actual time of day check logic
+                dayValue.value = true;
+            }
+            
             return dayValue;
         }
         return null;

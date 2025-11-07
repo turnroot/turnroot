@@ -9,14 +9,27 @@ public class MapRaining : SkillNode
     [Output]
     public BoolValue isRaining;
 
+    [Tooltip("Test value used in editor mode")]
+    public bool editorTestValue = false;
+
     public override object GetValue(NodePort port)
     {
         if (port.fieldName == "isRaining")
         {
             BoolValue rainingValue = new();
-            // TODO: Implement actual weather check logic
-            // For now, returns false as a placeholder
-            rainingValue.value = false;
+            
+            // In editor mode, return the test value
+            if (!Application.isPlaying)
+            {
+                rainingValue.value = editorTestValue;
+            }
+            else
+            {
+                // At runtime, get actual weather state
+                // TODO: Implement actual weather check logic
+                rainingValue.value = false;
+            }
+            
             return rainingValue;
         }
         return null;
