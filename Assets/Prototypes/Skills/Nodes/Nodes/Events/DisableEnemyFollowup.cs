@@ -1,0 +1,74 @@
+using Assets.Prototypes.Skills.Nodes;
+using UnityEngine;
+using XNode;
+
+namespace Assets.Prototypes.Skills.Nodes.Events
+{
+    [CreateNodeMenu("Events/Disable Enemy Followup")]
+    [NodeLabel("Prevents the enemy from performing a follow-up attack")]
+    public class DisableEnemyFollowup : SkillNode
+    {
+        [Input]
+        public ExecutionFlow executionIn;
+
+        [Input]
+        [Tooltip("If true, disables followup for all enemies; if false, only first target")]
+        public BoolValue affectAllTargets;
+
+        [Tooltip("Test value for affectAllTargets in editor mode")]
+        public bool testAffectAll = false;
+
+        public override void Execute(SkillExecutionContext context)
+        {
+            if (context?.Targets == null || context.Targets.Count == 0)
+            {
+                Debug.LogWarning("DisableEnemyFollowup: No target in context");
+                return;
+            }
+
+            // Get the affectAllTargets value
+            bool shouldAffectAll = testAffectAll;
+            var affectAllPort = GetInputPort("affectAllTargets");
+            if (affectAllPort != null && affectAllPort.IsConnected)
+            {
+                var inputValue = affectAllPort.GetInputValue();
+                if (inputValue is BoolValue boolValue)
+                {
+                    shouldAffectAll = boolValue.value;
+                }
+            }
+
+            // Disable followup for all targets or just the first one
+            if (shouldAffectAll)
+            {
+                int affectedCount = 0;
+                foreach (var target in context.Targets)
+                {
+                    if (target != null)
+                    {
+                        DisableFollowup(target);
+                        affectedCount++;
+                    }
+                }
+                Debug.Log($"DisableEnemyFollowup: Disabled followup for {affectedCount} enemies");
+            }
+            else
+            {
+                var target = context.Targets[0];
+                if (target == null)
+                {
+                    Debug.LogWarning("DisableEnemyFollowup: Target is null");
+                    return;
+                }
+                DisableFollowup(target);
+            }
+        }
+
+        private void DisableFollowup(Assets.Prototypes.Characters.CharacterInstance target)
+        {
+            // TODO: Integrate with actual combat system to disable followup attacks
+            // This would typically set a flag on the character that the combat system checks
+            Debug.Log($"DisableEnemyFollowup: Disabled followup attack for target");
+        }
+    }
+}

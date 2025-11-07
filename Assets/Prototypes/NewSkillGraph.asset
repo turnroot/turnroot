@@ -17,7 +17,6 @@ MonoBehaviour:
   ports:
     keys:
     - In
-    - Out
     values:
     - _fieldName: In
       _node: {fileID: -7782370972440008062}
@@ -25,15 +24,6 @@ MonoBehaviour:
         Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
       connections: []
       _direction: 0
-      _connectionType: 0
-      _typeConstraint: 0
-      _dynamic: 0
-    - _fieldName: Out
-      _node: {fileID: -7782370972440008062}
-      _typeQualifiedName: Assets.Prototypes.Skills.Nodes.ExecutionFlow, Assembly-CSharp,
-        Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-      connections: []
-      _direction: 1
       _connectionType: 0
       _typeConstraint: 0
       _dynamic: 0
@@ -88,7 +78,6 @@ MonoBehaviour:
   ports:
     keys:
     - In
-    - Out
     values:
     - _fieldName: In
       _node: {fileID: -1931299476196874856}
@@ -99,19 +88,40 @@ MonoBehaviour:
       _connectionType: 0
       _typeConstraint: 0
       _dynamic: 0
-    - _fieldName: Out
-      _node: {fileID: -1931299476196874856}
+  OnNodeExecute:
+    m_PersistentCalls:
+      m_Calls: []
+  AddAdvantagePercent: 0
+--- !u!114 &-1910824062027712053
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0d11c9f7d91070e44af9095418fcfcf6, type: 3}
+  m_Name: Kill Target
+  m_EditorClassIdentifier: 
+  graph: {fileID: 11400000}
+  position: {x: -264, y: 24}
+  ports:
+    keys:
+    - In
+    values:
+    - _fieldName: In
+      _node: {fileID: -1910824062027712053}
       _typeQualifiedName: Assets.Prototypes.Skills.Nodes.ExecutionFlow, Assembly-CSharp,
         Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
       connections: []
-      _direction: 1
+      _direction: 0
       _connectionType: 0
       _typeConstraint: 0
       _dynamic: 0
   OnNodeExecute:
     m_PersistentCalls:
       m_Calls: []
-  AddAdvantagePercent: 0
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -128,9 +138,9 @@ MonoBehaviour:
   - {fileID: -7782370972440008062}
   - {fileID: 1265892170791557079}
   - {fileID: -2585129550463997182}
-  - {fileID: -1931299476196874856}
   - {fileID: 4170567674770713393}
   - {fileID: 5568544550570760812}
+  - {fileID: -1910824062027712053}
 --- !u!114 &1265892170791557079
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -294,7 +304,7 @@ MonoBehaviour:
   m_Name: Environmental Conditions
   m_EditorClassIdentifier: 
   graph: {fileID: 11400000}
-  position: {x: -462, y: -189.5}
+  position: {x: -616, y: -248}
   ports:
     keys:
     - Condition

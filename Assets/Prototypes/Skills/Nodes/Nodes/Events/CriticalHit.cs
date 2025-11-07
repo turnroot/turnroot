@@ -2,9 +2,28 @@ using Assets.Prototypes.Skills.Nodes;
 using UnityEngine;
 using XNode;
 
-[CreateNodeMenu("Events/Critical Hit")]
-public class CriticalHit : SkillNode
+namespace Assets.Prototypes.Skills.Nodes.Events
 {
-    [Input]
-    public ExecutionFlow In;
+    [CreateNodeMenu("Events/Critical Hit")]
+    [NodeLabel("Triggers a critical hit")]
+    public class CriticalHit : SkillNode
+    {
+        [Input]
+        public ExecutionFlow executionIn;
+
+        public override void Execute(SkillExecutionContext context)
+        {
+            if (context == null)
+            {
+                Debug.LogWarning("CriticalHit: No context provided");
+                return;
+            }
+
+            // TODO: Integrate with actual combat system to trigger critical hit
+            // The combat system will handle the damage multiplier calculation
+            context.SetCustomData("IsCriticalHit", true);
+
+            Debug.Log($"CriticalHit: Triggered a critical hit");
+        }
+    }
 }

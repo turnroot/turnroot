@@ -2,9 +2,82 @@ using Assets.Prototypes.Skills.Nodes;
 using UnityEngine;
 using XNode;
 
-[CreateNodeMenu("Events/Kill Target")]
-public class KillTarget : SkillNode
+namespace Assets.Prototypes.Skills.Nodes.Events
 {
-    [Input]
-    public ExecutionFlow In;
+    [CreateNodeMenu("Events/Kill Target")]
+    [NodeLabel("Instantly kills the target enemy")]
+    public class KillTarget : SkillNode
+    {
+        [Input]
+        public ExecutionFlow executionIn;
+
+        [Input]
+        [Tooltip("If true, kills all enemies in Targets list; if false, only kills first target")]
+        public BoolValue killAllTargets;
+
+        [Tooltip("Test value for killAllTargets in editor mode")]
+        public bool testKillAll = false;
+
+        public override void Execute(SkillExecutionContext context)
+        {
+            if (context?.Targets == null || context.Targets.Count == 0)
+            {
+                Debug.LogWarning("KillTarget: No target in context");
+                return;
+            }
+
+            // Get the killAllTargets value
+            bool shouldKillAll = testKillAll;
+            var killAllPort = GetInputPort("killAllTargets");
+            if (killAllPort != null && killAllPort.IsConnected)
+            {
+                var inputValue = killAllPort.GetInputValue();
+                if (inputValue is BoolValue boolValue)
+                {
+                    shouldKillAll = boolValue.value;
+                }
+            }
+
+            // Kill all targets or just the first one
+            if (shouldKillAll)
+            {
+                int killedCount = 0;
+                foreach (var target in context.Targets)
+                {
+                    if (target != null)
+                    {
+                        KillCharacter(target);
+                        killedCount++;
+                    }
+                }
+                Debug.Log($"KillTarget: Killed {killedCount} enemies");
+            }
+            else
+            {
+                var target = context.Targets[0];
+                if (target == null)
+                {
+                    Debug.LogWarning("KillTarget: Target is null");
+                    return;
+                }
+                KillCharacter(target);
+            }
+        }
+
+        private void KillCharacter(Assets.Prototypes.Characters.CharacterInstance target)
+        {
+            var healthStat = target.GetBoundedStat(
+                Assets.Prototypes.Characters.Stats.BoundedStatType.Health
+            );
+            if (healthStat != null)
+            {
+                healthStat.SetCurrent(0);
+                Debug.Log($"KillTarget: Set target health to 0");
+            }
+            else
+            {
+                Debug.LogWarning($"KillTarget: Could not find health stat on target");
+            }
+        }
+    }
 }
