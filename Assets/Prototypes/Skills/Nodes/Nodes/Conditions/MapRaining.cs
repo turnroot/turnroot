@@ -26,7 +26,7 @@ public class MapRaining : SkillNode
             else
             {
                 // At runtime, get actual weather state
-                // TODO: Implement actual weather check logic
+                // TODO: User will implement weather system and add logic here
                 rainingValue.value = false;
             }
             

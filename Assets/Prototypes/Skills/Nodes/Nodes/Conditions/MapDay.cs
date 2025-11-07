@@ -26,7 +26,7 @@ public class MapDay : SkillNode
             else
             {
                 // At runtime, get actual time of day state
-                // TODO: Implement actual time of day check logic
+                // TODO: User will implement time of day system and add logic here
                 dayValue.value = true;
             }
             
