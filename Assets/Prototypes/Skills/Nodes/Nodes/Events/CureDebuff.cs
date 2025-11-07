@@ -57,11 +57,13 @@ namespace Assets.Prototypes.Skills.Nodes.Events
                 var cureData = new { Mode = cureMode, DebuffType = debuffTypePlaceholder };
 
                 // Iterate through adjacent units and affect allies
-                var adjacentAllies = context.AdjacentUnits
-                    .Select(kvp => kvp.Value)
-                    .Where(adjacentUnit => adjacentUnit != null && 
-                           context.Allies != null && 
-                           context.Allies.Exists(ally => ally.Id == adjacentUnit.Id));
+                var adjacentAllies = context
+                    .AdjacentUnits.Select(kvp => kvp.Value)
+                    .Where(adjacentUnit =>
+                        adjacentUnit != null
+                        && context.Allies != null
+                        && context.Allies.Exists(ally => ally.Id == adjacentUnit.Id)
+                    );
 
                 int affectedCount = 0;
                 foreach (var adjacentUnit in adjacentAllies)

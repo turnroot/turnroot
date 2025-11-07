@@ -11,7 +11,9 @@ namespace Assets.Prototypes.Skills.Nodes.Events
         [Input]
         public ExecutionFlow executionIn;
 
-        [Tooltip("If true, negates all attacks this combat turn; if false, only next single attack")]
+        [Tooltip(
+            "If true, negates all attacks this combat turn; if false, only next single attack"
+        )]
         public bool allAttacksThisTurn = false;
 
         public override void Execute(SkillExecutionContext context)
@@ -24,7 +26,7 @@ namespace Assets.Prototypes.Skills.Nodes.Events
 
             int attacksToNegate = allAttacksThisTurn ? -1 : 1;
             context.SetCustomData($"NegateAttacks_{context.UnitInstance.Id}", attacksToNegate);
-            
+
             if (allAttacksThisTurn)
             {
                 Debug.Log("NegateNextAttack: All attacks this turn will be negated for unit");
