@@ -56,11 +56,15 @@ namespace Assets.Prototypes.Skills.Nodes
         /// </summary>
         public override void OnCreateConnection(NodePort from, NodePort to)
         {
+            // Validate type compatibility
             if (from.ValueType != to.ValueType)
             {
                 Debug.LogWarning(
                     $"Cannot connect {from.ValueType.Name} ({from.direction}) to {to.ValueType.Name} ({to.direction}). Types must match."
                 );
+
+                // Disconnect the invalid connection that was just created
+                from.Disconnect(to);
                 return;
             }
 
