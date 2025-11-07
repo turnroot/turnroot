@@ -7,7 +7,7 @@ using XNode;
 public class AdjacentEnemies : SkillNode
 {
     [Output]
-    FloatValue value;
+    public FloatValue value;
 
     [Output]
     BoolValue adjacentEnemy;
