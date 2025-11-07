@@ -4,7 +4,7 @@ using Assets.Prototypes.Skills.Nodes;
 using UnityEngine;
 using XNode;
 
-[CreateNodeMenu("Conditions/Unit Stat")]
+[CreateNodeMenu("Conditions/Unit/Unit Stat")]
 [NodeLabel("Gets the current (and if the stat has a max value, the max) stat value of a unit")]
 public class UnitStat : SkillNode
 {

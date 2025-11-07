@@ -2,8 +2,8 @@ using Assets.Prototypes.Skills.Nodes;
 using UnityEngine;
 using XNode;
 
-[CreateNodeMenu("Conditions/Turn Count")]
-[NodeLabel("Gets battle current turn count")]
+[CreateNodeMenu("Conditions/Counters/Turn Count")]
+[NodeLabel("Gets the current turn count")]
 public class TurnCount : SkillNode
 {
     [Output]

@@ -2,7 +2,7 @@ using Assets.Prototypes.Skills.Nodes;
 using UnityEngine;
 using XNode;
 
-[CreateNodeMenu("Conditions/Enemy Distance")]
+[CreateNodeMenu("Conditions/Position/Enemy Distance")]
 [NodeLabel("Gets the distance to the target enemy")]
 public class EnemyDistance : SkillNode
 {

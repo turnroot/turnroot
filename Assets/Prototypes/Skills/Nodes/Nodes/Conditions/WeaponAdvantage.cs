@@ -2,7 +2,7 @@ using Assets.Prototypes.Skills.Nodes;
 using UnityEngine;
 using XNode;
 
-[CreateNodeMenu("Conditions/Weapon Advantage")]
+[CreateNodeMenu("Conditions/Weapon/Weapon Advantage")]
 [NodeLabel("Gets weapon advantage or same type")]
 public class WeaponAdvantage : SkillNode
 {

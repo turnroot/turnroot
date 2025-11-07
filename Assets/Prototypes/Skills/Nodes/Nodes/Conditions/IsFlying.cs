@@ -2,7 +2,7 @@ using Assets.Prototypes.Skills.Nodes;
 using UnityEngine;
 using XNode;
 
-[CreateNodeMenu("Conditions/Is Flying")]
+[CreateNodeMenu("Conditions/Status/Is Flying")]
 [NodeLabel("Checks if the unit is flying")]
 public class IsFlying : SkillNode
 {
@@ -11,6 +11,9 @@ public class IsFlying : SkillNode
 
     [Output]
     BoolValue EnemyFlying;
+
+    [Output]
+    BoolValue AdjacentAllyFlying;
 
     public override object GetValue(NodePort port)
     {
@@ -25,6 +28,12 @@ public class IsFlying : SkillNode
             BoolValue enemyFlying = new();
             // TODO: Implement runtime retrieval of enemy flying status
             return enemyFlying;
+        }
+        else if (port.fieldName == "AdjacentAllyFlying")
+        {
+            BoolValue adjacentAllyFlying = new();
+            // TODO: Implement runtime retrieval of adjacent ally flying status
+            return adjacentAllyFlying;
         }
         return null;
     }

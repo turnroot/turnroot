@@ -2,7 +2,7 @@ using Assets.Prototypes.Skills.Nodes;
 using UnityEngine;
 using XNode;
 
-[CreateNodeMenu("Conditions/Adjacent Allies")]
+[CreateNodeMenu("Conditions/Position/Adjacent Allies")]
 [NodeLabel("Gets the current adjacent allies count")]
 public class AdjacentAllies : SkillNode
 {

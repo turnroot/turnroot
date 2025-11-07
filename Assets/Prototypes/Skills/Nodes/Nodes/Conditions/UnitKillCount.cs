@@ -2,7 +2,7 @@ using Assets.Prototypes.Skills.Nodes;
 using UnityEngine;
 using XNode;
 
-[CreateNodeMenu("Conditions/Unit Kill Count")]
+[CreateNodeMenu("Conditions/Unit/Kill Count")]
 [NodeLabel("Gets the unit's kill count")]
 public class UnitKillCount : SkillNode
 {

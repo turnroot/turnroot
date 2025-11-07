@@ -2,7 +2,7 @@ using Assets.Prototypes.Skills.Nodes;
 using UnityEngine;
 using XNode;
 
-[CreateNodeMenu("Conditions/Is Armored")]
+[CreateNodeMenu("Conditions/Status/Is Armored")]
 [NodeLabel("Checks if the unit is armored")]
 public class IsArmored : SkillNode
 {
@@ -11,6 +11,9 @@ public class IsArmored : SkillNode
 
     [Output]
     BoolValue EnemyArmored;
+
+    [Output]
+    BoolValue AdjacentAllyArmored;
 
     public override object GetValue(NodePort port)
     {
@@ -25,6 +28,12 @@ public class IsArmored : SkillNode
             BoolValue enemyArmored = new();
             // TODO: Implement runtime retrieval of enemy armored status
             return enemyArmored;
+        }
+        else if (port.fieldName == "AdjacentAllyArmored")
+        {
+            BoolValue adjacentAllyArmored = new();
+            // TODO: Implement runtime retrieval of adjacent ally armored status
+            return adjacentAllyArmored;
         }
         return null;
     }

@@ -2,7 +2,7 @@ using Assets.Prototypes.Skills.Nodes;
 using UnityEngine;
 using XNode;
 
-[CreateNodeMenu("Conditions/Adjacent Enemies")]
+[CreateNodeMenu("Conditions/Position/Adjacent Enemies")]
 [NodeLabel("Gets the current adjacent enemies count")]
 public class AdjacentEnemies : SkillNode
 {

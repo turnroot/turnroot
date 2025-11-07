@@ -2,7 +2,7 @@ using Assets.Prototypes.Skills.Nodes;
 using UnityEngine;
 using XNode;
 
-[CreateNodeMenu("Conditions/Enemy Terrain Type")]
+[CreateNodeMenu("Conditions/Position/Enemy Terrain Type")]
 [NodeLabel("Gets the terrain type the enemy is currently on")]
 public class EnemyTerrainType : SkillNode
 {

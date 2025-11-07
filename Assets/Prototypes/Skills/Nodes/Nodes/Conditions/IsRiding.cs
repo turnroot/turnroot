@@ -2,7 +2,7 @@ using Assets.Prototypes.Skills.Nodes;
 using UnityEngine;
 using XNode;
 
-[CreateNodeMenu("Conditions/Is Riding")]
+[CreateNodeMenu("Conditions/Status/Is Riding")]
 [NodeLabel("Checks if the unit is riding")]
 public class IsRiding : SkillNode
 {
@@ -11,6 +11,9 @@ public class IsRiding : SkillNode
 
     [Output]
     BoolValue EnemyRiding;
+
+    [Output]
+    BoolValue AdjacentAllyRiding;
 
     public override object GetValue(NodePort port)
     {
@@ -25,6 +28,12 @@ public class IsRiding : SkillNode
             BoolValue enemyRiding = new();
             // TODO: Implement runtime retrieval of enemy riding status
             return enemyRiding;
+        }
+        else if (port.fieldName == "AdjacentAllyRiding")
+        {
+            BoolValue adjacentAllyRiding = new();
+            // TODO: Implement runtime retrieval of adjacent ally riding status
+            return adjacentAllyRiding;
         }
         return null;
     }

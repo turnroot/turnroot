@@ -3,7 +3,7 @@ using Assets.Prototypes.Skills.Nodes;
 using UnityEngine;
 using XNode;
 
-[CreateNodeMenu("Conditions/Enemy Would Kill Unit")]
+[CreateNodeMenu("Conditions/Combat/Enemy Would Kill Unit")]
 [NodeLabel("Check if incoming damage would be lethal")]
 public class EnemyWouldKillUnit : SkillNode
 {

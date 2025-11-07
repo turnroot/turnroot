@@ -2,7 +2,7 @@ using Assets.Prototypes.Skills.Nodes;
 using UnityEngine;
 using XNode;
 
-[CreateNodeMenu("Conditions/Skill Use Count")]
+[CreateNodeMenu("Conditions/Counters/Skill Use Count")]
 [NodeLabel("Gets the number of times the skill has been used in this battle")]
 public class SkillUseCount : SkillNode
 {

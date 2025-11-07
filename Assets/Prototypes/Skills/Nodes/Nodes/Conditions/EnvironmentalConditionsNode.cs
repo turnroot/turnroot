@@ -13,7 +13,7 @@ public enum EnvironmentalCondition
     IsIndoors,
 }
 
-[CreateNodeMenu("Conditions/Environmental Conditions")]
+[CreateNodeMenu("Conditions/Environment/Environmental Conditions")]
 [NodeLabel("Checks environmental conditions")]
 public class EnvironmentalConditionsNode : SkillNode
 {
