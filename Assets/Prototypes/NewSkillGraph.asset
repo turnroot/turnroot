@@ -1,0 +1,338 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-7782370972440008062
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 69a6e0f8f601aba4d8057bcd117ffd5e, type: 3}
+  m_Name: Adjust Advantage Percents
+  m_EditorClassIdentifier: 
+  graph: {fileID: 11400000}
+  position: {x: -264, y: -184}
+  ports:
+    keys:
+    - In
+    - Out
+    - PercentChange
+    values:
+    - _fieldName: In
+      _node: {fileID: -7782370972440008062}
+      _typeQualifiedName: Assets.Prototypes.Skills.Nodes.ExecutionFlow, Assembly-CSharp,
+        Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+      connections: []
+      _direction: 0
+      _connectionType: 0
+      _typeConstraint: 0
+      _dynamic: 0
+    - _fieldName: Out
+      _node: {fileID: -7782370972440008062}
+      _typeQualifiedName: Assets.Prototypes.Skills.Nodes.ExecutionFlow, Assembly-CSharp,
+        Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+      connections: []
+      _direction: 1
+      _connectionType: 0
+      _typeConstraint: 0
+      _dynamic: 0
+    - _fieldName: PercentChange
+      _node: {fileID: -7782370972440008062}
+      _typeQualifiedName: Assets.Prototypes.Skills.Nodes.FloatValue, Assembly-CSharp,
+        Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+      connections: []
+      _direction: 0
+      _connectionType: 0
+      _typeConstraint: 0
+      _dynamic: 0
+  OnNodeExecute:
+    m_PersistentCalls:
+      m_Calls: []
+  PercentChange:
+    value: 0
+--- !u!114 &-2585129550463997182
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 30d10856ab72f2947a82d99e99260706, type: 3}
+  m_Name: Unmount Enemy
+  m_EditorClassIdentifier: 
+  graph: {fileID: 11400000}
+  position: {x: 104, y: 24}
+  ports:
+    keys:
+    - In
+    values:
+    - _fieldName: In
+      _node: {fileID: -2585129550463997182}
+      _typeQualifiedName: Assets.Prototypes.Skills.Nodes.ExecutionFlow, Assembly-CSharp,
+        Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+      connections: []
+      _direction: 0
+      _connectionType: 0
+      _typeConstraint: 0
+      _dynamic: 0
+  OnNodeExecute:
+    m_PersistentCalls:
+      m_Calls: []
+--- !u!114 &-1931299476196874856
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 69a6e0f8f601aba4d8057bcd117ffd5e, type: 3}
+  m_Name: Adjust Advantage Percents
+  m_EditorClassIdentifier: 
+  graph: {fileID: 11400000}
+  position: {x: -264, y: 56}
+  ports:
+    keys:
+    - In
+    - Out
+    - PercentChange
+    values:
+    - _fieldName: In
+      _node: {fileID: -1931299476196874856}
+      _typeQualifiedName: Assets.Prototypes.Skills.Nodes.ExecutionFlow, Assembly-CSharp,
+        Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+      connections: []
+      _direction: 0
+      _connectionType: 0
+      _typeConstraint: 0
+      _dynamic: 0
+    - _fieldName: Out
+      _node: {fileID: -1931299476196874856}
+      _typeQualifiedName: Assets.Prototypes.Skills.Nodes.ExecutionFlow, Assembly-CSharp,
+        Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+      connections: []
+      _direction: 1
+      _connectionType: 0
+      _typeConstraint: 0
+      _dynamic: 0
+    - _fieldName: PercentChange
+      _node: {fileID: -1931299476196874856}
+      _typeQualifiedName: Assets.Prototypes.Skills.Nodes.FloatValue, Assembly-CSharp,
+        Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+      connections: []
+      _direction: 0
+      _connectionType: 0
+      _typeConstraint: 0
+      _dynamic: 0
+  OnNodeExecute:
+    m_PersistentCalls:
+      m_Calls: []
+  PercentChange:
+    value: 0
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 648cb0dddd3bfc949bed2d9ee663da51, type: 3}
+  m_Name: NewSkillGraph
+  m_EditorClassIdentifier: 
+  nodes:
+  - {fileID: -7782370972440008062}
+  - {fileID: 1265892170791557079}
+  - {fileID: -2585129550463997182}
+  - {fileID: -1931299476196874856}
+  - {fileID: 4170567674770713393}
+  - {fileID: 5568544550570760812}
+--- !u!114 &1265892170791557079
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 42e8525e76c567d4486d017581d4a449, type: 3}
+  m_Name: Critical Hit
+  m_EditorClassIdentifier: 
+  graph: {fileID: 11400000}
+  position: {x: 104, y: -152}
+  ports:
+    keys:
+    - In
+    values:
+    - _fieldName: In
+      _node: {fileID: 1265892170791557079}
+      _typeQualifiedName: Assets.Prototypes.Skills.Nodes.ExecutionFlow, Assembly-CSharp,
+        Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+      connections: []
+      _direction: 0
+      _connectionType: 0
+      _typeConstraint: 0
+      _dynamic: 0
+  OnNodeExecute:
+    m_PersistentCalls:
+      m_Calls: []
+--- !u!114 &4170567674770713393
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 57cf038b744162842b9fee1b8d416c81, type: 3}
+  m_Name: Unit Terrain Type
+  m_EditorClassIdentifier: 
+  graph: {fileID: 11400000}
+  position: {x: -616, y: -104}
+  ports:
+    keys:
+    - Ground
+    - ShallowWater
+    - DeepWater
+    - Sand
+    - Snow
+    - Forest
+    - Bushes
+    - Lava
+    - Bridge
+    - Stairs
+    values:
+    - _fieldName: Ground
+      _node: {fileID: 4170567674770713393}
+      _typeQualifiedName: Assets.Prototypes.Skills.Nodes.BoolValue, Assembly-CSharp,
+        Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+      connections: []
+      _direction: 1
+      _connectionType: 0
+      _typeConstraint: 0
+      _dynamic: 0
+    - _fieldName: ShallowWater
+      _node: {fileID: 4170567674770713393}
+      _typeQualifiedName: Assets.Prototypes.Skills.Nodes.BoolValue, Assembly-CSharp,
+        Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+      connections: []
+      _direction: 1
+      _connectionType: 0
+      _typeConstraint: 0
+      _dynamic: 0
+    - _fieldName: DeepWater
+      _node: {fileID: 4170567674770713393}
+      _typeQualifiedName: Assets.Prototypes.Skills.Nodes.BoolValue, Assembly-CSharp,
+        Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+      connections: []
+      _direction: 1
+      _connectionType: 0
+      _typeConstraint: 0
+      _dynamic: 0
+    - _fieldName: Sand
+      _node: {fileID: 4170567674770713393}
+      _typeQualifiedName: Assets.Prototypes.Skills.Nodes.BoolValue, Assembly-CSharp,
+        Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+      connections: []
+      _direction: 1
+      _connectionType: 0
+      _typeConstraint: 0
+      _dynamic: 0
+    - _fieldName: Snow
+      _node: {fileID: 4170567674770713393}
+      _typeQualifiedName: Assets.Prototypes.Skills.Nodes.BoolValue, Assembly-CSharp,
+        Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+      connections: []
+      _direction: 1
+      _connectionType: 0
+      _typeConstraint: 0
+      _dynamic: 0
+    - _fieldName: Forest
+      _node: {fileID: 4170567674770713393}
+      _typeQualifiedName: Assets.Prototypes.Skills.Nodes.BoolValue, Assembly-CSharp,
+        Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+      connections: []
+      _direction: 1
+      _connectionType: 0
+      _typeConstraint: 0
+      _dynamic: 0
+    - _fieldName: Bushes
+      _node: {fileID: 4170567674770713393}
+      _typeQualifiedName: Assets.Prototypes.Skills.Nodes.BoolValue, Assembly-CSharp,
+        Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+      connections: []
+      _direction: 1
+      _connectionType: 0
+      _typeConstraint: 0
+      _dynamic: 0
+    - _fieldName: Lava
+      _node: {fileID: 4170567674770713393}
+      _typeQualifiedName: Assets.Prototypes.Skills.Nodes.BoolValue, Assembly-CSharp,
+        Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+      connections: []
+      _direction: 1
+      _connectionType: 0
+      _typeConstraint: 0
+      _dynamic: 0
+    - _fieldName: Bridge
+      _node: {fileID: 4170567674770713393}
+      _typeQualifiedName: Assets.Prototypes.Skills.Nodes.BoolValue, Assembly-CSharp,
+        Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+      connections: []
+      _direction: 1
+      _connectionType: 0
+      _typeConstraint: 0
+      _dynamic: 0
+    - _fieldName: Stairs
+      _node: {fileID: 4170567674770713393}
+      _typeQualifiedName: Assets.Prototypes.Skills.Nodes.BoolValue, Assembly-CSharp,
+        Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+      connections: []
+      _direction: 1
+      _connectionType: 0
+      _typeConstraint: 0
+      _dynamic: 0
+  OnNodeExecute:
+    m_PersistentCalls:
+      m_Calls: []
+--- !u!114 &5568544550570760812
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7178f430d860bba4486cd72746f2761a, type: 3}
+  m_Name: Environmental Conditions
+  m_EditorClassIdentifier: 
+  graph: {fileID: 11400000}
+  position: {x: -462, y: -189.5}
+  ports:
+    keys:
+    - Condition
+    values:
+    - _fieldName: Condition
+      _node: {fileID: 5568544550570760812}
+      _typeQualifiedName: Assets.Prototypes.Skills.Nodes.BoolValue, Assembly-CSharp,
+        Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+      connections: []
+      _direction: 1
+      _connectionType: 0
+      _typeConstraint: 0
+      _dynamic: 0
+  OnNodeExecute:
+    m_PersistentCalls:
+      m_Calls: []
+  Condition:
+    value: 0
+  conditionToCheck: 0

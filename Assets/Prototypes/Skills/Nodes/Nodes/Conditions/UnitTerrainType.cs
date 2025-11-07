@@ -2,9 +2,9 @@ using Assets.Prototypes.Skills.Nodes;
 using UnityEngine;
 using XNode;
 
-[CreateNodeMenu("Conditions/Terrain Type")]
+[CreateNodeMenu("Conditions/Unit Terrain Type")]
 [NodeLabel("Gets the terrain type the unit is currently on")]
-public class TerrainType : SkillNode
+public class UnitTerrainType : SkillNode
 {
     [Output]
     BoolValue Ground;
