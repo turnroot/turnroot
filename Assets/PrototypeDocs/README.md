@@ -19,6 +19,11 @@ Complete API reference for Assets/Prototypes systems.
 - **[Skill](Skills/Skill.md)** - Skill container asset with badge graphics
 - **[SkillBadge](Skills/SkillBadge.md)** - Compositable skill badge graphics
 - **[SkillBadgeEditorWindow](Skills/SkillBadgeEditorWindow.md)** - Badge editor tool
+- **[Skill Node System](Skills/Nodes/README.md)** - xNode-based visual skill behavior graphs
+  - SkillGraph execution system
+  - Event nodes (stat modification, damage, combat effects)
+  - Port types and execution flow
+  - Multi-target patterns
 
 ### Graphics2D System
 - **[StackedImage](Graphics2D/StackedImage.md)** - Abstract base for layered compositable images
@@ -54,7 +59,9 @@ PrototypeDocs/
 ├── Skills/                                      # Skills system documentation
 │   ├── Skill.md                                # Skill asset with badge graphics
 │   ├── SkillBadge.md                           # SkillBadge (StackedImage<Skill>)
-│   └── SkillBadgeEditorWindow.md               # Badge editor window
+│   ├── SkillBadgeEditorWindow.md               # Badge editor window
+│   └── Nodes/                                  # xNode skill execution system
+│       └── README.md                           # Node architecture, Event nodes, execution flow
 ├── Graphics2D/                                  # Graphics2D base systems
 │   └── StackedImage.md                         # StackedImage<TOwner> abstract base class
 ├── Configurations/                              # Settings and configuration systems
@@ -147,6 +154,18 @@ PrototypeDocs/
 - **Index Tracking**: Adjusts equipped indices on remove/reorder operations
 - Integration with ObjectItem and ObjectItemType enum
 
+### Skills/Nodes/README.md
+**Sources**:
+- `Assets/Prototypes/Skills/Nodes/Core/*.cs`
+- `Assets/Prototypes/Skills/Nodes/Nodes/Events/*.cs`
+**Documents**:
+- SkillGraph: NodeGraph container, Execute(context), validation
+- SkillNode: Base class with Execute(context), port system
+- SkillExecutionContext: UnitInstance, Targets, CustomData
+- Port types: ExecutionFlow, BoolValue, FloatValue, StringValue
+- Event nodes: 15+ nodes for stat modification, damage, combat effects
+- Multi-target pattern: BoolValue affectAllTargets input
+- Node categories and color coding
 
 ### Configurations/Settings.md
 **Sources**:
