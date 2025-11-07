@@ -170,7 +170,7 @@ namespace Assets.Prototypes.Skills.Nodes.Editor
         [System.Serializable]
         private class SerializableTypeColorDict
         {
-            public List<string> keys = new List<string>();
+            public readonly List<string> keys = new List<string>();
             public readonly List<Color> values = new List<Color>();
 
             public SerializableTypeColorDict(
