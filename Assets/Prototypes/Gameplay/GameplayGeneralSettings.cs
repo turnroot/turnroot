@@ -124,7 +124,7 @@ public class GameplayGeneralSettings : SingletonScriptableObject<GameplayGeneral
     };
 
     [SerializeField, BoxGroup("Extra Experience Types")]
-    private ExperienceType AuthorityExperienceType = new ExperienceType
+    private ExperienceType AuthorityExperienceType = new()
     {
         Name = "Authority",
         Enabled = false,
@@ -136,6 +136,11 @@ public class GameplayGeneralSettings : SingletonScriptableObject<GameplayGeneral
     public bool UseLuck => Luck;
     public bool UseSeparateCriticalAvoidance => SeparateCriticalAvoidance;
     public bool UseAuthority => Authority;
+
+    // Public accessors for Experience Settings
+    public bool GetUseExperienceSublevels() => UseExperienceSublevels;
+
+    public bool GetUseExperienceAptitudes() => UseExperienceAptitudes;
 
 #if UNITY_EDITOR
     private void OnValidate()
@@ -156,7 +161,7 @@ public class GameplayGeneralSettings : SingletonScriptableObject<GameplayGeneral
         if (defaultStats != null)
         {
             // Use reflection to call the editor-only refresher
-            var refresherType = typeof(DefaultCharacterStatsRefresher);
+            var refresherType = System.Type.GetType("DefaultCharacterStatsRefresher");
             if (refresherType != null)
             {
                 var method = refresherType.GetMethod(

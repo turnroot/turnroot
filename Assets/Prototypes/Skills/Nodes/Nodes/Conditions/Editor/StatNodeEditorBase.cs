@@ -97,10 +97,7 @@ public abstract class StatNodeEditorBase : NodeEditor
 
         if (selectedStatProp == null || isBoundedStatProp == null || testProp == null)
         {
-            EditorGUILayout.HelpBox(
-                "Required properties not found on node!",
-                MessageType.Error
-            );
+            EditorGUILayout.HelpBox("Required properties not found on node!", MessageType.Error);
             base.OnBodyGUI();
             return;
         }

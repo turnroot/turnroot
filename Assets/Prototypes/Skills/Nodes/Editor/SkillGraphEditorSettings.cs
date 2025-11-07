@@ -167,6 +167,22 @@ namespace Assets.Prototypes.Skills.Nodes.Editor
         }
 
         // Helper class for serializing typeColors dictionary
+        [System.Serializable]
+        private class SerializableTypeColorDict
+        {
+            public List<string> keys = new List<string>();
+            public List<Color> values = new List<Color>();
+
+            public SerializableTypeColorDict(Dictionary<string, Color> dict)
+            {
+                foreach (var kvp in dict)
+                {
+                    keys.Add(kvp.Key);
+                    values.Add(kvp.Value);
+                }
+            }
+        }
+
         /// <summary>
         /// Get the color for a specific socket type.
         /// </summary>

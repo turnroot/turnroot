@@ -44,19 +44,15 @@ public static class DefaultCharacterStatsRefresher
         var unboundedStatsProperty = serializedObject.FindProperty("_defaultUnboundedStats");
 
         // Core bounded stats that should always exist
-        var coreBoundedStats = new[]
-        {
-            BoundedStatType.Health,
-            BoundedStatType.Level,
-        };
+        var coreBoundedStats = new[] { BoundedStatType.Health, BoundedStatType.Level };
 
         // Build list of bounded stats that should exist
         var requiredBoundedStats = new List<BoundedStatType>(coreBoundedStats);
 
-        if (gameplaySettings.UseExperienceSublevels)
+        if (gameplaySettings.GetUseExperienceSublevels())
             requiredBoundedStats.Add(BoundedStatType.LevelExperience);
 
-        if (gameplaySettings.UseExperienceAptitudes)
+        if (gameplaySettings.GetUseExperienceAptitudes())
             requiredBoundedStats.Add(BoundedStatType.ClassExperience);
 
         // Get existing bounded stats
@@ -64,8 +60,7 @@ public static class DefaultCharacterStatsRefresher
         for (int i = 0; i < boundedStatsProperty.arraySize; i++)
         {
             var element = boundedStatsProperty.GetArrayElementAtIndex(i);
-            var statType = (BoundedStatType)
-                element.FindPropertyRelative("StatType").enumValueIndex;
+            var statType = (BoundedStatType)element.FindPropertyRelative("StatType").enumValueIndex;
             existingBoundedStats.Add(statType);
         }
 
@@ -73,8 +68,7 @@ public static class DefaultCharacterStatsRefresher
         for (int i = boundedStatsProperty.arraySize - 1; i >= 0; i--)
         {
             var element = boundedStatsProperty.GetArrayElementAtIndex(i);
-            var statType = (BoundedStatType)
-                element.FindPropertyRelative("StatType").enumValueIndex;
+            var statType = (BoundedStatType)element.FindPropertyRelative("StatType").enumValueIndex;
 
             if (!requiredBoundedStats.Contains(statType))
             {
