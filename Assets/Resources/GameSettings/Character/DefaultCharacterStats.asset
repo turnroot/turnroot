@@ -50,3 +50,5 @@ MonoBehaviour:
     Current: 10
   - StatType: 9
     Current: 10
+  - StatType: 10
+    Current: 10

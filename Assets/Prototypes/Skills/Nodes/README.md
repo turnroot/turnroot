@@ -24,7 +24,7 @@ ExecutionFlow sockets are purely for visual sequencing. Data sockets actually pa
 
 #### SkillExecutionContext
 - Runtime data bag passed through node execution
-- Contains: Caster, Target(s), DamageValue, HealingValue, etc.
+- Contains: ThisUnit, Target(s), DamageValue, HealingValue, etc.
 - Has CustomData dictionary for any extra values you need
 
 #### SkillGraph
@@ -60,8 +60,8 @@ public class MyCustomNode : SkillNode
     public override void Execute(SkillExecutionContext context)
     {
         // Evaluate runtime data here
-        // Example: Get caster's strength and calculate damage
-        float damage = GetCasterStrength(context.Caster) * damageMultiplier;
+        // Example: Get ThisUnit's strength and calculate damage
+        float damage = GetThisUnitStrength(context.ThisUnit) * damageMultiplier;
         context.DamageValue += damage;
         
         // If node completes immediately:
@@ -102,7 +102,7 @@ The `Skill` ScriptableObject now has a `BehaviorGraph` field:
 // In your game code:
 Skill mySkill = // ... get skill reference
 SkillExecutionContext context = new SkillExecutionContext {
-    Caster = playerCharacter,
+    ThisUnit = playerCharacter,
     Target = enemy
 };
 mySkill.ExecuteSkill(context);

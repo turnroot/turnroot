@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 32c61f78ab34b7e41870dec6d51f364a, type: 3}
+  m_Name: SkillGraphEditorSettings
+  m_EditorClassIdentifier: 
+  executionFlowColor: {r: 0.9764706, g: 0.4509804, b: 0.08627451, a: 1}
+  boolValueColor: {r: 0.54509807, g: 0.36078432, b: 0.9647059, a: 1}
+  floatValueColor: {r: 0.05490196, g: 0.64705884, b: 0.9137255, a: 1}
+  stringValueColor: {r: 0, g: 1, b: 0.890244, a: 1}
+  flowNodeColor: {r: 0.12848237, g: 0.22487609, b: 0.2627451, a: 1}
+  mathNodeColor: {r: 0.10012461, g: 0.1745222, b: 0.2830189, a: 1}
+  eventsNodeColor: {r: 0.13830543, g: 0.26415092, b: 0.2616607, a: 1}
+  conditionsNodeColor: {r: 0.14774774, g: 0.145406, b: 0.218, a: 1}

@@ -21,20 +21,30 @@ namespace Assets.Prototypes.Skills.Nodes
         }
 
         /// <summary>
-        /// Execute this node's logic with the given context.
-        /// Override this in child classes if you need to perform logic on execution.
-        /// Most execution flow nodes can leave this empty and rely on OnNodeExecute UnityEvent.
-        /// After execution, the graph will wait for Proceed() to be called (e.g., from a UnityEvent).
+        /// Retrieves the current execution context from the given SkillGraph instance.
         /// </summary>
-        /// <param name="context">Runtime execution context containing all needed data</param>
-        public virtual void Execute(SkillExecutionContext context)
+        protected SkillExecutionContext GetContextFromGraph(SkillGraph skillGraph)
         {
-            // Default: no-op. Override if you need custom logic.
+            // Use reflection to access the private activeExecutor field
+            var executorField = typeof(SkillGraph).GetField(
+                "activeExecutor",
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance
+            );
+
+            if (executorField != null)
+            {
+                var executor = executorField.GetValue(skillGraph) as SkillGraphExecutor;
+                if (executor != null)
+                {
+                    return executor.GetContext();
+                }
+            }
+
+            return null;
         }
 
-        /// <summary>
-        /// Override to provide port values. By default returns null.
-        /// </summary>
+        public virtual void Execute(SkillExecutionContext context) { }
+
         public override object GetValue(NodePort port)
         {
             return null;
@@ -46,13 +56,12 @@ namespace Assets.Prototypes.Skills.Nodes
         /// </summary>
         public override void OnCreateConnection(NodePort from, NodePort to)
         {
-            // Enforce strict type matching
             if (from.ValueType != to.ValueType)
             {
                 Debug.LogWarning(
                     $"Cannot connect {from.ValueType.Name} ({from.direction}) to {to.ValueType.Name} ({to.direction}). Types must match."
                 );
-                return; // Don't call base, prevents connection
+                return;
             }
 
             // Check if the target port (input) already has a connection

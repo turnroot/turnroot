@@ -34,7 +34,10 @@ namespace Assets.Prototypes.Skills.Nodes
             }
             else
             {
-                Debug.LogWarning("Cannot proceed: No active executor. Call Execute() first.");
+                Debug.LogWarning("Cannot proceed: No active executor. Creating a new executor.");
+                activeExecutor = new SkillGraphExecutor(this);
+                activeExecutor.Execute(new SkillExecutionContext());
+                activeExecutor.Proceed();
             }
         }
     }

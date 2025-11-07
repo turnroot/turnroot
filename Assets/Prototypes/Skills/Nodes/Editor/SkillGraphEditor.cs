@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Assets.Prototypes.Skills.Nodes;
 using UnityEditor;
 using UnityEngine;
@@ -14,34 +15,42 @@ namespace Assets.Prototypes.Skills.Nodes.Editor
     [CustomNodeGraphEditor(typeof(SkillGraph))]
     public class SkillGraphEditor : NodeGraphEditor
     {
+        public override void OnGUI()
+        {
+            base.OnGUI();
+
+            // Handle delete/backspace key for selected nodes
+            Event e = Event.current;
+            if (
+                e.type == EventType.KeyDown
+                && (e.keyCode == KeyCode.Delete || e.keyCode == KeyCode.Backspace)
+            )
+            {
+                // Get all selected nodes
+                foreach (var node in Selection.objects)
+                {
+                    if (node is Node xNode && target.nodes.Contains(xNode))
+                    {
+                        // Remove the node from the graph
+                        target.RemoveNode(xNode);
+                    }
+                }
+
+                // Mark the event as used
+                e.Use();
+
+                // Repaint the window
+                window.Repaint();
+            }
+        }
+
         public override Color GetTypeColor(Type type)
         {
-            // Execution: orange-500 (#f97316)
-            if (type == typeof(ExecutionFlow))
+            // Try to get color from settings asset
+            var settings = SkillGraphEditorSettings.Instance;
+            if (settings != null)
             {
-                ColorUtility.TryParseHtmlString("#F97316", out Color color);
-                return color;
-            }
-
-            // Bool: violet-500 (#8b5cf6)
-            if (type == typeof(BoolValue))
-            {
-                ColorUtility.TryParseHtmlString("#8B5CF6", out Color color);
-                return color;
-            }
-
-            // Float: sky-500 (#0ea5e9)
-            if (type == typeof(FloatValue))
-            {
-                ColorUtility.TryParseHtmlString("#0EA5E9", out Color color);
-                return color;
-            }
-
-            // String: teal-500 (#14b8a6)
-            if (type == typeof(StringValue))
-            {
-                ColorUtility.TryParseHtmlString("#14B8A6", out Color color);
-                return color;
+                return settings.GetColorForType(type);
             }
 
             // Fall back to default for other types

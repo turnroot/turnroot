@@ -782,12 +782,12 @@ public class SkillInstance
     [SerializeField]
     private bool _isLearned;
     
-    public void Use(MonoBehaviour caster)
+    public void Use(MonoBehaviour ThisUnit)
     {
         if (_currentCooldown > 0 || !_isLearned) return;
         
         // Execute behavior from template
-        _skillTemplate.behavior.Execute(caster, this);
+        _skillTemplate.behavior.Execute(ThisUnit, this);
         
         // Update instance state
         _currentCooldown = 3f;
@@ -1171,11 +1171,11 @@ public class SkillInstance
     
     public bool CanUse() => _currentCooldown <= 0f;
     
-    public void Use(MonoBehaviour caster)
+    public void Use(MonoBehaviour ThisUnit)
     {
         if (!CanUse()) return;
         
-        _template.behavior.Execute(caster, this);
+        _template.behavior.Execute(ThisUnit, this);
         _currentCooldown = _template.cooldownTime;
     }
     
