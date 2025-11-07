@@ -23,48 +23,45 @@ public class EnvironmentalConditionsNode : SkillNode
 
     public override object GetValue(NodePort port)
     {
-        if (port.fieldName == "Condition")
+        if (port.fieldName == "Condition" && graph is SkillGraph skillGraph)
         {
-            if (graph is SkillGraph skillGraph)
+            BoolValue result = new BoolValue();
+            var contextFromGraph = GetContextFromGraph(skillGraph);
+            var envConditions = contextFromGraph?.EnvironmentalConditions;
+
+            if (envConditions != null)
             {
-                BoolValue result = new BoolValue();
-                var contextFromGraph = GetContextFromGraph(skillGraph);
-                var envConditions = contextFromGraph?.EnvironmentalConditions;
-
-                if (envConditions != null)
+                switch (conditionToCheck)
                 {
-                    switch (conditionToCheck)
-                    {
-                        case EnvironmentalCondition.IsNight:
-                            result.value = envConditions.IsNight;
-                            break;
-                        case EnvironmentalCondition.IsRaining:
-                            result.value = envConditions.IsRaining;
-                            break;
-                        case EnvironmentalCondition.IsFoggy:
-                            result.value = envConditions.IsFoggy;
-                            break;
-                        case EnvironmentalCondition.IsDesert:
-                            result.value = envConditions.IsDesert;
-                            break;
-                        case EnvironmentalCondition.IsSnowing:
-                            result.value = envConditions.IsSnowing;
-                            break;
-                        case EnvironmentalCondition.IsIndoors:
-                            result.value = envConditions.IsIndoors;
-                            break;
-                        default:
-                            result.value = false;
-                            break;
-                    }
+                    case EnvironmentalCondition.IsNight:
+                        result.value = envConditions.IsNight;
+                        break;
+                    case EnvironmentalCondition.IsRaining:
+                        result.value = envConditions.IsRaining;
+                        break;
+                    case EnvironmentalCondition.IsFoggy:
+                        result.value = envConditions.IsFoggy;
+                        break;
+                    case EnvironmentalCondition.IsDesert:
+                        result.value = envConditions.IsDesert;
+                        break;
+                    case EnvironmentalCondition.IsSnowing:
+                        result.value = envConditions.IsSnowing;
+                        break;
+                    case EnvironmentalCondition.IsIndoors:
+                        result.value = envConditions.IsIndoors;
+                        break;
+                    default:
+                        result.value = false;
+                        break;
                 }
-                else
-                {
-                    result.value = false;
-                }
-
-                return result;
             }
+            else
+            {
+                result.value = false;
+            }
+
+            return result;
         }
         return null;
     }
