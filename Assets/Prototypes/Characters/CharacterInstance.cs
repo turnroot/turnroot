@@ -13,7 +13,7 @@ namespace Assets.Prototypes.Characters
     public class CharacterInstance
     {
         [SerializeField]
-        private string _id;
+        private readonly string _id;
 
         [SerializeField]
         private CharacterData _characterTemplate;

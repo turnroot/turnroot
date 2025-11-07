@@ -31,13 +31,12 @@ namespace Assets.Prototypes.Skills.Nodes.Events
                 RepositionDirection.Behind
             );
 
-            if (context.AdjacentUnits == null || !context.AdjacentUnits.ContainsKey(allyDirection))
+            if (context.AdjacentUnits == null || !context.AdjacentUnits.TryGetValue(allyDirection, out var ally))
             {
                 Debug.LogWarning($"Reposition: No unit at {allyDirection}");
                 return;
             }
 
-            var ally = context.AdjacentUnits[allyDirection];
             if (ally == null)
             {
                 Debug.LogWarning($"Reposition: Ally at {allyDirection} is null");

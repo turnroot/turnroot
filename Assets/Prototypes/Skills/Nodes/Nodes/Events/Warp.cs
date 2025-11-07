@@ -32,13 +32,12 @@ namespace Assets.Prototypes.Skills.Nodes.Events
                 Direction.Center
             );
 
-            if (context.AdjacentUnits == null || !context.AdjacentUnits.ContainsKey(allyDirection))
+            if (context.AdjacentUnits == null || !context.AdjacentUnits.TryGetValue(allyDirection, out var ally))
             {
                 Debug.LogWarning($"Warp: No unit at {allyDirection}");
                 return;
             }
 
-            var ally = context.AdjacentUnits[allyDirection];
             if (ally == null)
             {
                 Debug.LogWarning($"Warp: Ally at {allyDirection} is null");

@@ -1,3 +1,4 @@
+using System.Linq;
 using Assets.Prototypes.Skills.Nodes;
 using UnityEngine;
 using XNode;
@@ -53,25 +54,18 @@ namespace Assets.Prototypes.Skills.Nodes.Events
                     return;
                 }
 
-                int affectedCount = 0;
                 var cureData = new { Mode = cureMode, DebuffType = debuffTypePlaceholder };
 
                 // Iterate through adjacent units and affect allies
-                foreach (var kvp in context.AdjacentUnits)
+                var adjacentAllies = context.AdjacentUnits
+                    .Select(kvp => kvp.Value)
+                    .Where(adjacentUnit => adjacentUnit != null && 
+                           context.Allies != null && 
+                           context.Allies.Exists(ally => ally.Id == adjacentUnit.Id));
+
+                int affectedCount = 0;
+                foreach (var adjacentUnit in adjacentAllies)
                 {
-                    var adjacentUnit = kvp.Value;
-                    if (adjacentUnit == null)
-                        continue;
-
-                    // Skip if not an ally (compare with Allies list)
-                    if (
-                        context.Allies == null
-                        || !context.Allies.Exists(ally => ally.Id == adjacentUnit.Id)
-                    )
-                    {
-                        continue;
-                    }
-
                     // Apply cure to this adjacent ally
                     context.SetCustomData($"CureDebuff_{adjacentUnit.Id}", cureData);
                     affectedCount++;
