@@ -172,6 +172,12 @@ public static class DefaultCharacterStatsRefresher
         serializedObject.ApplyModifiedProperties();
     }
 
+    /// <summary>
+    /// Returns default values (max, current, min) for bounded stat types.
+    /// - Health: Full health at 100/100 HP (typical starting health)
+    /// - Level: Starting at level 1 with max 99 (common RPG level range)
+    /// - Experience stats: Start empty at 0/100 (need to earn experience)
+    /// </summary>
     private static (float max, float current, float min) GetDefaultValuesForBoundedStat(
         BoundedStatType statType
     )
@@ -179,11 +185,11 @@ public static class DefaultCharacterStatsRefresher
         // Return sensible defaults for different bounded stat types
         return statType switch
         {
-            BoundedStatType.Health => (100f, 100f, 0f),
-            BoundedStatType.Level => (99f, 1f, 1f),
-            BoundedStatType.LevelExperience => (100f, 0f, 0f),
-            BoundedStatType.ClassExperience => (100f, 0f, 0f),
-            _ => (100f, 100f, 0f),
+            BoundedStatType.Health => (100f, 100f, 0f), // Full health
+            BoundedStatType.Level => (99f, 1f, 1f), // Start at level 1
+            BoundedStatType.LevelExperience => (100f, 0f, 0f), // Experience starts empty
+            BoundedStatType.ClassExperience => (100f, 0f, 0f), // Class experience starts empty
+            _ => (100f, 100f, 0f), // Unknown stats default to full (like health)
         };
     }
 
