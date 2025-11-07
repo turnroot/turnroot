@@ -1,6 +1,6 @@
-using Assets.Prototypes.Skills.Nodes;
 using Assets.Prototypes.Characters;
 using Assets.Prototypes.Characters.Stats;
+using Assets.Prototypes.Skills.Nodes;
 using UnityEngine;
 using XNode;
 
@@ -11,7 +11,7 @@ public class UnitHealth : SkillNode
     [Output]
     public FloatValue health;
 
-    [Tooltip("Default health value used in editor mode")]
+    [Tooltip("Test health value used in editor mode")]
     public float defaultHealth = 100f;
 
     public override object GetValue(NodePort port)
@@ -19,7 +19,7 @@ public class UnitHealth : SkillNode
         if (port.fieldName == "health")
         {
             FloatValue healthValue = new();
-            
+
             // In editor mode, return the default value
             if (!Application.isPlaying)
             {
@@ -27,10 +27,10 @@ public class UnitHealth : SkillNode
             }
             else
             {
-                // At runtime, get actual health from the caster unit
+                // At runtime, get actual health from the UnitInstance
                 healthValue.value = GetRuntimeHealth();
             }
-            
+
             return healthValue;
         }
         return null;
@@ -38,16 +38,15 @@ public class UnitHealth : SkillNode
 
     private float GetRuntimeHealth()
     {
-        // Try to get the execution context from the graph
         if (graph is SkillGraph skillGraph)
         {
             // Access the context through the graph's active executor
             // The executor stores itself in the context with key "_executor"
             var contextFromGraph = GetContextFromGraph(skillGraph);
-            if (contextFromGraph != null && contextFromGraph.Caster != null)
+            if (contextFromGraph != null && contextFromGraph.UnitInstance != null)
             {
-                // Try to get CharacterInstance component from the caster GameObject
-                var characterInstance = contextFromGraph.Caster.GetComponent<CharacterInstance>();
+                // Try to get CharacterInstance component from the UnitInstance GameObject
+                var characterInstance = contextFromGraph.UnitInstance;
                 if (characterInstance != null)
                 {
                     var healthStat = characterInstance.GetBoundedStat(BoundedStatType.Health);
@@ -60,24 +59,7 @@ public class UnitHealth : SkillNode
         }
 
         // Fallback to default if context or health stat not available
+        Debug.LogWarning("UnitHealth: Unable to retrieve runtime health, returning default value.");
         return defaultHealth;
-    }
-
-    private SkillExecutionContext GetContextFromGraph(SkillGraph skillGraph)
-    {
-        // Use reflection to access the private activeExecutor field
-        var executorField = typeof(SkillGraph).GetField("activeExecutor", 
-            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-        
-        if (executorField != null)
-        {
-            var executor = executorField.GetValue(skillGraph) as SkillGraphExecutor;
-            if (executor != null)
-            {
-                return executor.GetContext();
-            }
-        }
-        
-        return null;
     }
 }

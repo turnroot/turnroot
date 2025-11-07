@@ -17,7 +17,7 @@ public class MapRaining : SkillNode
         if (port.fieldName == "isRaining")
         {
             BoolValue rainingValue = new();
-            
+
             // In editor mode, return the test value
             if (!Application.isPlaying)
             {
@@ -26,10 +26,19 @@ public class MapRaining : SkillNode
             else
             {
                 // At runtime, get actual weather state
-                // TODO: User will implement weather system and add logic here
-                rainingValue.value = false;
+                if (graph is SkillGraph skillGraph)
+                {
+                    var contextFromGraph = GetContextFromGraph(skillGraph);
+                    if (
+                        contextFromGraph != null
+                        && contextFromGraph.EnvironmentalConditions != null
+                    )
+                    {
+                        rainingValue.value = contextFromGraph.EnvironmentalConditions.IsRaining;
+                    }
+                }
             }
-            
+
             return rainingValue;
         }
         return null;

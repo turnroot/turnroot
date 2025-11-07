@@ -44,7 +44,7 @@ Base class for all skill nodes. All custom nodes inherit from this.
 Runtime data passed between nodes during execution.
 
 **Properties**:
-- `Caster` - GameObject that initiated skill
+- `ThisUnit` - GameObject that initiated skill
 - `Target` - GameObject receiving skill effect
 - `DamageValue` / `HealingValue` - Numeric effect values
 - `StatusEffect` - Status effect to apply
