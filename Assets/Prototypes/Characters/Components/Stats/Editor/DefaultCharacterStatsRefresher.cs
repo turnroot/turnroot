@@ -43,6 +43,64 @@ public static class DefaultCharacterStatsRefresher
         var boundedStatsProperty = serializedObject.FindProperty("_defaultBoundedStats");
         var unboundedStatsProperty = serializedObject.FindProperty("_defaultUnboundedStats");
 
+        // Core bounded stats that should always exist
+        var coreBoundedStats = new[]
+        {
+            BoundedStatType.Health,
+            BoundedStatType.Level,
+        };
+
+        // Build list of bounded stats that should exist
+        var requiredBoundedStats = new List<BoundedStatType>(coreBoundedStats);
+
+        if (gameplaySettings.UseExperienceSublevels)
+            requiredBoundedStats.Add(BoundedStatType.LevelExperience);
+
+        if (gameplaySettings.UseExperienceAptitudes)
+            requiredBoundedStats.Add(BoundedStatType.ClassExperience);
+
+        // Get existing bounded stats
+        var existingBoundedStats = new HashSet<BoundedStatType>();
+        for (int i = 0; i < boundedStatsProperty.arraySize; i++)
+        {
+            var element = boundedStatsProperty.GetArrayElementAtIndex(i);
+            var statType = (BoundedStatType)
+                element.FindPropertyRelative("StatType").enumValueIndex;
+            existingBoundedStats.Add(statType);
+        }
+
+        // Remove bounded stats that shouldn't exist
+        for (int i = boundedStatsProperty.arraySize - 1; i >= 0; i--)
+        {
+            var element = boundedStatsProperty.GetArrayElementAtIndex(i);
+            var statType = (BoundedStatType)
+                element.FindPropertyRelative("StatType").enumValueIndex;
+
+            if (!requiredBoundedStats.Contains(statType))
+            {
+                boundedStatsProperty.DeleteArrayElementAtIndex(i);
+                Debug.Log($"Removed bounded stat: {statType}");
+            }
+        }
+
+        // Add missing bounded stats
+        foreach (var requiredStat in requiredBoundedStats)
+        {
+            if (!existingBoundedStats.Contains(requiredStat))
+            {
+                boundedStatsProperty.arraySize++;
+                var newElement = boundedStatsProperty.GetArrayElementAtIndex(
+                    boundedStatsProperty.arraySize - 1
+                );
+                newElement.FindPropertyRelative("StatType").enumValueIndex = (int)requiredStat;
+                var (max, current, min) = GetDefaultValuesForBoundedStat(requiredStat);
+                newElement.FindPropertyRelative("Max").floatValue = max;
+                newElement.FindPropertyRelative("Current").floatValue = current;
+                newElement.FindPropertyRelative("Min").floatValue = min;
+                Debug.Log($"Added bounded stat: {requiredStat}");
+            }
+        }
+
         // Core stats that should always exist
         var coreUnboundedStats = new[]
         {
@@ -71,7 +129,7 @@ public static class DefaultCharacterStatsRefresher
             requiredUnboundedStats.Add(UnboundedStatType.Authority);
 
         // Get existing stats
-        var existingUnboundedStats = new List<UnboundedStatType>();
+        var existingUnboundedStats = new HashSet<UnboundedStatType>();
         for (int i = 0; i < unboundedStatsProperty.arraySize; i++)
         {
             var element = unboundedStatsProperty.GetArrayElementAtIndex(i);
@@ -90,7 +148,7 @@ public static class DefaultCharacterStatsRefresher
             if (!requiredUnboundedStats.Contains(statType))
             {
                 unboundedStatsProperty.DeleteArrayElementAtIndex(i);
-                Debug.Log($"Removed stat: {statType}");
+                Debug.Log($"Removed unbounded stat: {statType}");
             }
         }
 
@@ -107,11 +165,32 @@ public static class DefaultCharacterStatsRefresher
                 newElement.FindPropertyRelative("Current").floatValue = GetDefaultValueForStat(
                     requiredStat
                 );
-                Debug.Log($"Added stat: {requiredStat}");
+                Debug.Log($"Added unbounded stat: {requiredStat}");
             }
         }
 
         serializedObject.ApplyModifiedProperties();
+    }
+
+    /// <summary>
+    /// Returns default values (max, current, min) for bounded stat types.
+    /// - Health: Full health at 100/100 HP (typical starting health)
+    /// - Level: Starting at level 1 with max 99 (common RPG level range)
+    /// - Experience stats: Start empty at 0/100 (need to earn experience)
+    /// </summary>
+    private static (float max, float current, float min) GetDefaultValuesForBoundedStat(
+        BoundedStatType statType
+    )
+    {
+        // Return sensible defaults for different bounded stat types
+        return statType switch
+        {
+            BoundedStatType.Health => (100f, 100f, 0f), // Full health
+            BoundedStatType.Level => (99f, 1f, 1f), // Start at level 1
+            BoundedStatType.LevelExperience => (100f, 0f, 0f), // Experience starts empty
+            BoundedStatType.ClassExperience => (100f, 0f, 0f), // Class experience starts empty
+            _ => (100f, 100f, 0f), // Unknown stats default to full (like health)
+        };
     }
 
     private static float GetDefaultValueForStat(UnboundedStatType statType)
