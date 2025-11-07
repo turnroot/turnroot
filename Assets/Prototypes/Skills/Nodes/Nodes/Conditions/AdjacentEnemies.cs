@@ -10,7 +10,7 @@ public class AdjacentEnemies : SkillNode
     public FloatValue value;
 
     [Output]
-    BoolValue adjacentEnemy;
+    public BoolValue adjacentEnemy;
 
     public override object GetValue(NodePort port)
     {
