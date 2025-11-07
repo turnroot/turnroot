@@ -18,7 +18,6 @@ MonoBehaviour:
     keys:
     - In
     - Out
-    - PercentChange
     values:
     - _fieldName: In
       _node: {fileID: -7782370972440008062}
@@ -38,20 +37,10 @@ MonoBehaviour:
       _connectionType: 0
       _typeConstraint: 0
       _dynamic: 0
-    - _fieldName: PercentChange
-      _node: {fileID: -7782370972440008062}
-      _typeQualifiedName: Assets.Prototypes.Skills.Nodes.FloatValue, Assembly-CSharp,
-        Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-      connections: []
-      _direction: 0
-      _connectionType: 0
-      _typeConstraint: 0
-      _dynamic: 0
   OnNodeExecute:
     m_PersistentCalls:
       m_Calls: []
-  PercentChange:
-    value: 0
+  AddAdvantagePercent: 0
 --- !u!114 &-2585129550463997182
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -100,7 +89,6 @@ MonoBehaviour:
     keys:
     - In
     - Out
-    - PercentChange
     values:
     - _fieldName: In
       _node: {fileID: -1931299476196874856}
@@ -120,20 +108,10 @@ MonoBehaviour:
       _connectionType: 0
       _typeConstraint: 0
       _dynamic: 0
-    - _fieldName: PercentChange
-      _node: {fileID: -1931299476196874856}
-      _typeQualifiedName: Assets.Prototypes.Skills.Nodes.FloatValue, Assembly-CSharp,
-        Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-      connections: []
-      _direction: 0
-      _connectionType: 0
-      _typeConstraint: 0
-      _dynamic: 0
   OnNodeExecute:
     m_PersistentCalls:
       m_Calls: []
-  PercentChange:
-    value: 0
+  AddAdvantagePercent: 0
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
