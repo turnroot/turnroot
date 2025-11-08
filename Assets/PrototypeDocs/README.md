@@ -102,10 +102,11 @@ PrototypeDocs/
 - `Assets/Prototypes/Graphics2D/Components/Portrait/ImageStack.cs`
 - `Assets/Prototypes/Graphics2D/Components/ImageStackLayer.cs`
 **Documents**:
-- ImageStack: Layer container, `PreRender()`, `Render()` (stub)
+- ImageStack: Layer container with `Layers` list and optional `OwnerCharacter` reference
 - ImageStackLayer: Sprite, Mask, Offset, Scale, Rotation, Order
 - Mask-based tinting (RGB channels)
 - Transform application order
+- **Note**: Rendering logic handled by `StackedImage<TOwner>.CompositeLayers()`, not ImageStack methods
 
 ### Tools/ImageCompositor.md
 **Source**: `Assets/AbstractScripts/Graphics2D/ImageCompositor.cs`
@@ -244,8 +245,10 @@ PrototypeDocs/
 - Abstract generic class `StackedImage<TOwner>` where TOwner : UnityEngine.Object
 - Properties: Owner, ImageStack, Key, RuntimeSprite, SavedSprite, Id, TintColors
 - Methods: `SetOwner()`, `SetKey()`, `Render()`, `CompositeLayers()`, `ToString()`, `Identify()`
+- Internal helper: `EnsureKeyInitialized()` - consolidates key generation logic
 - Abstract methods: `UpdateTintColorsFromOwner()`, `GetSaveSubdirectory()`
 - **Rendering Pipeline**: Render() → CompositeLayers() → SaveToFile() → LoadSavedSprite()
+- **CompositeLayers()**: Loads dimensions from `GraphicsPrototypesSettings`, creates base texture, calls ImageCompositor
 - **Lifecycle**: Constructor, OnAfterDeserialize() for GUID persistence
 - Tint color system (3-color RGB mask channels)
 - File path structure and editor-only features

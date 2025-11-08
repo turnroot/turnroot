@@ -36,6 +36,36 @@ Abstract base class for compositable layered images with owner reference and tin
 
 ## Methods
 
+### SetOwner()
+
+```csharp
+public void SetOwner(TOwner owner)
+```
+
+Sets the owner reference and updates tint colors from owner.
+
+**Parameters**:
+- `owner` - Asset to set as owner
+
+**Effects**:
+- Assigns `_owner` field
+- Calls `UpdateTintColorsFromOwner()` to sync colors
+
+### SetKey()
+
+```csharp
+public void SetKey(string key)
+```
+
+Sets the filename key for saving sprite assets.
+
+**Parameters**:
+- `key` - Filename key (without extension), or `null`/empty to auto-generate
+
+**Behavior**:
+- If `key` is not empty: Sets `_key` directly
+- If `key` is null/empty: Calls `EnsureKeyInitialized()` to generate `stackedImage_{Guid}`
+
 ### Render()
 
 ```csharp
@@ -46,11 +76,11 @@ Main rendering pipeline: composites layers, saves to file, loads sprite asset.
 
 **Validation**:
 - Checks `_imageStack` is assigned
-- Ensures `_key` is valid (auto-generates if empty)
+- Ensures `_key` is valid (auto-generates if empty via `EnsureKeyInitialized()`)
 
 **Pipeline**:
 ```
-1. CompositeLayers()   → Creates Texture2D
+1. CompositeLayers()   → Creates Texture2D with proper dimensions
 2. Create RuntimeSprite → Sprite.Create() for preview
 3. SaveToFile()        → Writes PNG to disk
 4. LoadSavedSprite()   → Configures importer, loads sprite
@@ -64,19 +94,23 @@ Main rendering pipeline: composites layers, saves to file, loads sprite asset.
 public Texture2D CompositeLayers()
 ```
 
-Composites ImageStack layers into single texture.
+Composites ImageStack layers into single texture with proper dimensions from settings.
 
 **Returns**: `Texture2D` with all layers composited, or `null` if no layers.
 
 **Process**:
 1. Validates ImageStack and layers exist
-2. Ensures key is set (auto-generates if needed)
-3. Creates 512x512 base texture with transparent background
-4. Extracts layer array and mask array
-5. Calls `ImageCompositor.CompositeImageStackLayers()`
-6. Returns composited texture
+2. Ensures key is set (calls `EnsureKeyInitialized()` if needed)
+3. Loads `GraphicsPrototypesSettings` to get render dimensions (width/height)
+4. Creates base texture with transparent background (size from settings)
+5. Extracts layer array and mask array from ImageStack
+6. Calls `ImageCompositor.CompositeImageStackLayers()` with base texture, layers, masks, tint colors
+7. Returns composited texture
 
-**Note**: Creates new texture each call (not cached).
+**Note**: 
+- Creates new texture each call (not cached)
+- Uses settings-based dimensions instead of hardcoded values
+- Key auto-generated if needed using `EnsureKeyInitialized()` helper
 
 ### ToString()
 
@@ -96,6 +130,25 @@ public string Identify()
 
 **Example**: `"StackedImage(ID: 12345678-..., Owner: Fireball, Key: skillBadge_guid)"`
 
+## Internal Helper
+
+### EnsureKeyInitialized()
+
+```csharp
+private void EnsureKeyInitialized()
+```
+
+Internal helper that ensures `_key` is set to `"stackedImage_{Guid}"`.
+
+**Behavior**:
+- Generates new GUID if `_id` is empty
+- Updates `_idString` for serialization
+- Sets `_key` to `stackedImage_{_id}` format
+
+**Used By**: Constructor, `SetKey()`, `Render()`, `CompositeLayers()`, `OnAfterDeserialize()`
+
+**Note**: Consolidates key initialization logic to avoid duplication.
+
 ## Lifecycle
 
 ### Deserialization
@@ -103,9 +156,16 @@ public string Identify()
 `OnAfterDeserialize()` called by Unity after loading:
 
 1. **Parse GUID**: Converts `_idString` to `_id` (generates new if empty)
-2. **Auto-generate Key**: Sets `_key` if empty using GUID
+2. **Auto-generate Key**: Calls `EnsureKeyInitialized()` if `_key` is empty
 3. **Initialize Tint Colors**: Ensures array has 3 elements (white default)
 4. **Sync Colors**: Calls `UpdateTintColorsFromOwner()`
+
+### Constructor
+
+`StackedImage()` constructor:
+
+1. **Generate GUID**: Creates new `_id` and stores as `_idString`
+2. **Initialize Key**: Calls `EnsureKeyInitialized()` to set default key format
 
 ## Technical Details
 

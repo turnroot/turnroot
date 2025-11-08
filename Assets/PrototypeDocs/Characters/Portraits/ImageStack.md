@@ -17,22 +17,7 @@ Assets > Create > Graphics > Portrait > ImageStack
 | Property | Type | Description |
 |----------|------|-------------|
 | `Layers` | `List<ImageStackLayer>` | Ordered list of compositable layers |
-| `OwnerCharacter` | `Character` | Optional character reference |
-
-## Methods
-
-```csharp
-Texture2D PreRender()
-```
-Creates a blank texture with dimensions from `GraphicsPrototypesSettings`.
-- Loads settings from `Resources/GraphicsPrototypesSettings`
-- **Returns:** Empty RGBA32 texture (transparent black)
-
-```csharp
-Sprite Render()
-```
-Placeholder for full rendering. Currently returns `null`.
-- **Returns:** `null` (not implemented)
+| `OwnerCharacter` | `CharacterData` | Optional character reference for editor auto-assignment |
 
 ## Usage
 
@@ -50,9 +35,10 @@ portrait.CompositeLayers(); // Composites all layers
 ```
 
 ## Notes
-- Actual rendering handled by `Portrait.CompositeLayers()` and `ImageCompositor`
+- Rendering handled by `StackedImage<TOwner>.CompositeLayers()` (Portrait, SkillBadge, etc.)
 - Layers composited in order of `Order` property (low to high)
-- Owner character reference is optional metadata
+- Owner character reference used by editor for auto-assignment
+- Render dimensions determined by `GraphicsPrototypesSettings`
 
 ---
 

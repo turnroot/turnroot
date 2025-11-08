@@ -59,21 +59,26 @@ namespace Assets.Prototypes.Graphics2D
             else
             {
                 // If empty/null key is passed, generate a new one
-                if (_id == Guid.Empty)
-                {
-                    _id = Guid.NewGuid();
-                    _idString = _id.ToString();
-                }
-                _key = $"stackedImage_{Guid.NewGuid()}";
+                EnsureKeyInitialized();
                 Debug.Log($"Generated new stackedImage key: {_key}");
             }
+        }
+
+        private void EnsureKeyInitialized()
+        {
+            if (_id == Guid.Empty)
+            {
+                _id = Guid.NewGuid();
+                _idString = _id.ToString();
+            }
+            _key = $"stackedImage_{_id}";
         }
 
         public StackedImage()
         {
             _id = Guid.NewGuid();
             _idString = _id.ToString();
-            _key = $"stackedImage_{_id}";
+            EnsureKeyInitialized();
         }
 
         // Called by Unity after deserialization
@@ -92,7 +97,7 @@ namespace Assets.Prototypes.Graphics2D
             // Auto-generate key if it's empty
             if (string.IsNullOrEmpty(_key))
             {
-                _key = $"stackedImage_{_id}";
+                EnsureKeyInitialized();
                 Debug.Log($"Generated new stackedImage key: {_key}");
             }
 
@@ -135,12 +140,7 @@ namespace Assets.Prototypes.Graphics2D
             // Ensure key is valid
             if (string.IsNullOrEmpty(_key))
             {
-                if (_id == Guid.Empty)
-                {
-                    _id = Guid.NewGuid();
-                    _idString = _id.ToString();
-                }
-                _key = $"stackedImage_{_id}";
+                EnsureKeyInitialized();
                 Debug.LogWarning($"StackedImage key was empty, generated new key: {_key}");
             }
 
@@ -179,13 +179,19 @@ namespace Assets.Prototypes.Graphics2D
             // Ensure key is set before compositing
             if (string.IsNullOrEmpty(_key))
             {
-                _key = $"stackedImage_{Guid.NewGuid()}";
-                Debug.Log($"Generated stackedImage key during composite: {_key}");
+                EnsureKeyInitialized();
             }
 
-            // Create base texture
-            Texture2D baseTexture = new Texture2D(512, 512, TextureFormat.RGBA32, false);
-            Color[] clearPixels = new Color[512 * 512];
+            // Get render dimensions from settings
+            GraphicsPrototypesSettings settings = Resources.Load<GraphicsPrototypesSettings>(
+                "GraphicsPrototypesSettings"
+            );
+            int width = settings.portraitRenderWidth;
+            int height = settings.portraitRenderHeight;
+
+            // Create base texture with transparent pixels
+            Texture2D baseTexture = new Texture2D(width, height, TextureFormat.RGBA32, false);
+            Color[] clearPixels = new Color[width * height];
             for (int i = 0; i < clearPixels.Length; i++)
             {
                 clearPixels[i] = new Color(0, 0, 0, 0);
