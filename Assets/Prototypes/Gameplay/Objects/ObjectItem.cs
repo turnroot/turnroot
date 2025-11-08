@@ -42,7 +42,7 @@ public class ObjectItem : ScriptableObject
     private string _name = "New Item";
 
     [Foldout("Identity")]
-    private string _id = System.Guid.NewGuid().ToString();
+    private readonly string _id = System.Guid.NewGuid().ToString();
 
     [TextArea, Foldout("Identity"), SerializeField]
     private string _flavorText = "A new item";
