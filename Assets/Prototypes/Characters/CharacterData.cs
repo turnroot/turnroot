@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Assets.Prototypes.Characters.Components;
 using Assets.Prototypes.Characters.Configuration;
 using Assets.Prototypes.Characters.Stats;
 using Assets.Prototypes.Characters.Subclasses;
@@ -41,7 +42,7 @@ namespace Assets.Prototypes.Characters
 
         [Foldout("Identity"), SerializeField]
         [HorizontalLine(color: EColor.Blue)]
-        private CharacterWhich _which = CharacterWhich.Enemy;
+        private CharacterWhich _which = new("Enemy");
 
         [Foldout("Identity"), SerializeField]
         private string _name = "New Unit";

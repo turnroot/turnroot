@@ -1,4 +1,4 @@
-using Assets.Prototypes.Gameplay.Combat.Objects.Components;
+using Assets.Prototypes.Gameplay.Objects.Components;
 using UnityEngine;
 
 namespace Assets.Prototypes.Gameplay.Combat.FundamentalComponents

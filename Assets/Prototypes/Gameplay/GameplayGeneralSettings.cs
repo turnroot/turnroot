@@ -1,5 +1,4 @@
 using Assets.Prototypes.Gameplay.Combat.FundamentalComponents;
-using Assets.Prototypes.Gameplay.Combat.Objects.Components;
 using NaughtyAttributes;
 using UnityEngine;
 
@@ -96,6 +95,12 @@ public class GameplayGeneralSettings : SingletonScriptableObject<GameplayGeneral
     [SerializeField, BoxGroup("Extra Unit Stats")]
     private bool Authority;
 
+    [SerializeField, BoxGroup("Items"), HorizontalLine(color: EColor.Violet)]
+    private int MaxEquippedNonWeaponItems = 2;
+
+    [SerializeField, BoxGroup("Items")]
+    private bool EquippableOutfits;
+
     [SerializeField, BoxGroup("Experience Types"), HorizontalLine(color: EColor.Red)]
     private ExperienceType[] ExperienceWeaponTypes;
 
@@ -136,6 +141,11 @@ public class GameplayGeneralSettings : SingletonScriptableObject<GameplayGeneral
     public bool UseLuck => Luck;
     public bool UseSeparateCriticalAvoidance => SeparateCriticalAvoidance;
     public bool UseAuthority => Authority;
+
+    // Public accessors for Items
+    public int GetMaxEquippedNonWeaponItems() => MaxEquippedNonWeaponItems;
+
+    public bool UseEquippableOutfits() => EquippableOutfits;
 
     // Public accessors for Experience Settings
     public bool GetUseExperienceSublevels() => UseExperienceSublevels;

@@ -33,7 +33,10 @@ namespace Assets.Prototypes.Gameplay.Combat.FundamentalComponents.Battles.Locati
         public CharacterInstance BottomCenter { get; set; }
         public CharacterInstance BottomRight { get; set; }
 
-        public Adjacency() { }
+        public Adjacency(CharacterInstance center)
+        {
+            Center = center;
+        }
 
         // Get unit at specific direction
         public CharacterInstance GetUnit(Direction direction)

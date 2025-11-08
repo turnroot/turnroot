@@ -39,7 +39,7 @@ namespace Assets.Prototypes.Gameplay.Combat.FundamentalComponents.Battles
             CustomData = new Dictionary<string, object>();
             Targets = new List<CharacterInstance>();
             Allies = new List<CharacterInstance>();
-            AdjacentUnits = new Adjacency();
+            AdjacentUnits = new Adjacency(null);
             ActiveSkills = new List<Skill>();
             ActiveSkillGraphs = new List<SkillGraph>();
             SkillUseCount = new Dictionary<Skill, int>();
