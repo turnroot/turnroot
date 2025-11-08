@@ -37,7 +37,10 @@ namespace Assets.Prototypes.Graphics.Portrait.Editor
             EditorGUILayout.Space(5);
 
             // Draw owner field
-            _ = EditorGUILayout.PropertyField(_ownerCharacterProp, new GUIContent("Owner Character"));
+            _ = EditorGUILayout.PropertyField(
+                _ownerCharacterProp,
+                new GUIContent("Owner Character")
+            );
 
             EditorGUILayout.Space(10);
 
@@ -60,7 +63,11 @@ namespace Assets.Prototypes.Graphics.Portrait.Editor
                     _ = EditorGUILayout.BeginHorizontal();
 
                     var layerProp = _layersProp.GetArrayElementAtIndex(i);
-                    _ = EditorGUILayout.PropertyField(layerProp, new GUIContent($"Layer {i}"), true);
+                    _ = EditorGUILayout.PropertyField(
+                        layerProp,
+                        new GUIContent($"Layer {i}"),
+                        true
+                    );
 
                     // Move up button
                     GUI.enabled = i > 0;
@@ -116,20 +123,11 @@ namespace Assets.Prototypes.Graphics.Portrait.Editor
 
             EditorGUILayout.Space(10);
 
-            // Render button
-            _ = EditorGUILayout.BeginHorizontal();
-            GUILayout.FlexibleSpace();
-            if (GUILayout.Button("Render Stack", GUILayout.Width(120), GUILayout.Height(30)))
-            {
-                ImageStack stack = target as ImageStack;
-                if (stack != null)
-                {
-                    _ = stack.Render();
-                    EditorUtility.SetDirty(stack);
-                }
-            }
-            GUILayout.FlexibleSpace();
-            EditorGUILayout.EndHorizontal();
+            // Info about rendering
+            EditorGUILayout.HelpBox(
+                "To render this ImageStack, use the Portrait Editor (for characters) or Skill Badge Editor (for skills).",
+                MessageType.Info
+            );
 
             _ = serializedObject.ApplyModifiedProperties();
         }

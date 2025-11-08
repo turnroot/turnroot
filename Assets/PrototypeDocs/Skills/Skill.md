@@ -67,12 +67,11 @@ Nodes auto-tint based on subfolder location:
 ### Execution Flow
 
 1. Graph starts at entry nodes (nodes with no ExecutionFlow inputs)
-2. Each node executes via `Execute(SkillExecutionContext)` method
-3. Node signals completion via `SignalComplete(context)`
-4. Executor follows ExecutionFlow connections to next nodes
-5. Graph completes when all execution paths finish
+2. Each node executes via `Execute(BattleContext)` method
+3. Node continues execution by calling Execute on connected output nodes
+4. Graph completes when all execution paths finish or `context.IsInterrupted` is set
 
-See **[Node System](Nodes/README.md)** for detailed node architecture.
+See **[Node System](Nodes/README.md)** for detailed node architecture and BattleContext documentation.
 
 ## Notes
 

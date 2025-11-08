@@ -96,45 +96,6 @@ private void OnEnable()
 2. Save it at: `Assets/Resources/GameSettings/DefaultCharacterStats.asset`
 3. Configure default stats in the Inspector
 
-### Example Configuration
-
-```
-DefaultBoundedStats:
-  - StatType: Health
-    Max: 100
-    Current: 100
-    Min: 0
-    
-  - StatType: LevelExperience
-    Max: 100
-    Current: 0
-    Min: 0
-    
-  - StatType: ClassExperience
-    Max: 100
-    Current: 0
-    Min: 0
-
-DefaultUnboundedStats:
-  - StatType: Strength
-    Current: 10
-    
-  - StatType: Magic
-    Current: 5
-    
-  - StatType: Defense
-    Current: 8
-    
-  - StatType: Speed
-    Current: 10
-    
-  - StatType: Skill
-    Current: 8
-    
-  - StatType: Luck
-    Current: 5
-```
-
 ### When Stats Are Initialized
 
 Stats are automatically initialized when:
@@ -156,35 +117,6 @@ Changes to the DefaultCharacterStats asset:
 - The asset must be in `Resources/GameSettings/` to be loaded automatically
 - Each stat type can only appear once in each list
 - Changes to defaults require Unity to reload the asset
-
-## Best Practices
-
-### Organizing Stats
-
-**Core Combat Stats:**
-- Health (bounded)
-- Strength, Defense, Magic, Resistance, Skill, Speed (unbounded)
-
-**Character Progression:**
-- Level (bounded)
-- LevelExperience, ClassExperience (bounded)
-
-**Additional Stats:**
-- Movement, Charm, Luck, etc. (unbounded)
-
-### Initial Values
-
-- Set bounded stats' `Current` equal to `Max` for full health/resources
-- Set experience stats' `Current` to 0
-- Use consistent base values for unbounded stats (e.g., 5-10)
-
-### Testing
-
-To test changes:
-1. Modify DefaultCharacterStats asset
-2. Create a new Character asset
-3. Verify stats are initialized correctly
-4. Adjust defaults as needed
 
 ---
 

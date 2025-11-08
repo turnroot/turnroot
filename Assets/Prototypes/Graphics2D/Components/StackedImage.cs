@@ -184,8 +184,17 @@ namespace Assets.Prototypes.Graphics2D
 
             // Get render dimensions from settings
             GraphicsPrototypesSettings settings = Resources.Load<GraphicsPrototypesSettings>(
-                "GraphicsPrototypesSettings"
+                "GameSettings/GraphicsPrototypesSettings"
             );
+
+            if (settings == null)
+            {
+                Debug.LogError(
+                    "GraphicsPrototypesSettings not found in Resources/GameSettings folder! Using default 512x512."
+                );
+                settings = ScriptableObject.CreateInstance<GraphicsPrototypesSettings>();
+            }
+
             int width = settings.portraitRenderWidth;
             int height = settings.portraitRenderHeight;
 

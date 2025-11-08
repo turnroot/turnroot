@@ -372,8 +372,17 @@ namespace Assets.Prototypes.Graphics2D.Editor
                 {
                     EditorGUI.indentLevel++;
 
-                    EditorGUILayout.LabelField("Sprite", layer.Sprite?.name ?? "(none)");
-                    EditorGUILayout.LabelField("Mask", layer.Mask?.name ?? "(none)");
+                    // Safe access to sprite/mask names (handles destroyed Unity Objects)
+                    string spriteName = "(none)";
+                    if (layer.Sprite != null && layer.Sprite)
+                        spriteName = layer.Sprite.name;
+
+                    string maskName = "(none)";
+                    if (layer.Mask != null && layer.Mask)
+                        maskName = layer.Mask.name;
+
+                    EditorGUILayout.LabelField("Sprite", spriteName);
+                    EditorGUILayout.LabelField("Mask", maskName);
                     EditorGUILayout.LabelField("Order", layer.Order.ToString());
                     EditorGUILayout.LabelField("Offset", $"({layer.Offset.x}, {layer.Offset.y})");
                     EditorGUILayout.LabelField("Scale", layer.Scale.ToString());

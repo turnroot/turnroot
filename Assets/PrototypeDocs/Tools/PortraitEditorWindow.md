@@ -25,19 +25,6 @@ public class PortraitEditorWindow : StackedImageEditorWindow<CharacterData, Port
 }
 ```
 
-## Opening the Window
-
-### Via Menu
-```
-Window > Portrait Editor
-```
-
-### Via Code
-```csharp
-// Open window with specific character and portrait
-PortraitEditorWindow.OpenPortrait(characterData, portraitIndex: 0);
-```
-
 ## Window Layout
 
 ```
@@ -152,24 +139,6 @@ public class MyImageEditorWindow : StackedImageEditorWindow<MyOwnerType, MyImage
 }
 ```
 
-### Performance Optimization
-
-### Performance Optimization
-- Compositing triggered only on changes (if auto-refresh off)
-- Preview resolution lower than save resolution (256px vs 512px)
-- Layer validation before render
-
-### Error Handling
-- Null checks for character/portrait/imagestack
-- Validation dialogs for missing data
-- Console logging for debugging
-- Try-catch on save operation
-
-### Integration Points
-- `StackedImage<T>.CompositeLayers()` - Generates preview texture
-- `StackedImage<T>.Render()` - Saves to disk and creates sprite asset
-- `Portrait.UpdateTintColorsFromOwner()` - Syncs tint colors from `CharacterData`
-
 ---
 
 ## See Also
@@ -187,10 +156,3 @@ public class MyImageEditorWindow : StackedImageEditorWindow<MyOwnerType, MyImage
 - Single undo operation per save
 - Preview quality lower than final render
 - No zoom/pan in preview window
-
-## Notes
-
-- Window state persists across domain reload
-- Multi-portrait characters supported
-- Safe to edit during play mode (editor-only)
-- Changes affect asset files directly

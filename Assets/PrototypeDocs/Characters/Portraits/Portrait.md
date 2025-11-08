@@ -97,19 +97,6 @@ Tint colors map to mask RGB channels:
 
 Higher channel values = stronger tint. Multiple channels blend proportionally.
 
-## Usage
-
-```csharp
-// Editor workflow (via PortraitEditorWindow)
-portrait.SetOwner(character);
-portrait.SetKey("hero_main_portrait");
-// Configure ImageStack and layers in editor
-portrait.Render(); // Generates and saves sprite
-
-// Runtime access
-Sprite displaySprite = portrait.SavedSprite;
-```
-
 ## Notes
 - Only `Owner` and `ImageStack` are editable in inspector
 - Other fields hidden with `[HideInInspector]`

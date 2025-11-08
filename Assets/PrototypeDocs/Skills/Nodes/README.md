@@ -17,7 +17,7 @@ Visual node-based execution system for skill behavior. Supports both execution f
 Container asset for skill behavior nodes. Creates via **Right-click → Create → Skill Graph**.
 
 **Methods**:
-- `Execute(SkillExecutionContext)` - Starts graph execution at entry nodes
+- `Execute(BattleContext)` - Starts graph execution at entry nodes
 - `Validate(out string)` - Validates graph structure
 
 ### SkillNode
@@ -31,23 +31,39 @@ Base class for all skill nodes. All custom nodes inherit from this.
 - Subclasses add custom `execOut` and data ports
 
 **Methods**:
-- `Execute(SkillExecutionContext)` - Override for node logic
-- `SignalComplete(SkillExecutionContext)` - Call when node finishes
+- `Execute(BattleContext)` - Override for node logic (takes BattleContext, not SkillExecutionContext)
+- `GetContextFromGraph(SkillGraph)` - Retrieves BattleContext from graph via reflection
+- `GetInputFloat(string, float)` - Helper to get float input or test value
+- `GetInputBool(string, bool)` - Helper to get bool input or test value
 
 **Events**:
 - `OnNodeExecute` - UnityEvent fired when node executes
 
-### SkillExecutionContext
+### BattleContext
 **Type**: `class`  
-**Source**: `Core/SkillExecutionContext.cs`
+**Source**: `Assets/Prototypes/Gameplay/Combat/FundamentalComponents/Battles/BattleContext.cs`  
+**Namespace**: `Assets.Prototypes.Gameplay.Combat.FundamentalComponents.Battles`
 
-Runtime data passed between nodes during execution.
+Runtime data passed between nodes during battle execution. Replaces the old `SkillExecutionContext`.
 
 **Properties**:
+- `CurrentSkill` - Skill currently being executed
+- `CurrentSkillGraph` - SkillGraph currently being executed
+- `ActiveSkills` - List of all skills available in this battle
+- `ActiveSkillGraphs` - List of all skill graphs available
+- `SkillUseCount` - Dictionary tracking uses per skill
 - `UnitInstance` - CharacterInstance that cast the skill (caster)
 - `Targets` - List<CharacterInstance> receiving skill effects (enemies)
+- `Allies` - List<CharacterInstance> of allied characters
+- `AdjacentUnits` - Adjacency object with direction-based unit lookup
+- `EnvironmentalConditions` - Weather, terrain, and environmental effects
 - `CustomData` - Dictionary<string, object> for shared state between nodes
   - Example keys: `"IsCriticalHit"`, `"FollowUpDisabled"`, `"BattleOrderModified"`
+- `IsInterrupted` - Flag to stop execution early
+
+**Methods**:
+- `GetCustomData<T>(string key, T defaultValue)` - Safely retrieve typed custom data
+- `SetCustomData(string key, object value)` - Store custom data for later nodes
 
 ### SkillGraphExecutor
 **Type**: Static utility  
@@ -56,7 +72,7 @@ Runtime data passed between nodes during execution.
 Executes skill graphs by traversing ExecutionFlow connections.
 
 **Methods**:
-- `Execute(SkillGraph, SkillExecutionContext)` - Starts graph execution
+- `Execute(SkillGraph, BattleContext)` - Starts graph execution
 
 ## Socket Types
 
@@ -106,12 +122,13 @@ Event nodes perform actions during skill execution. Located in `Assets/Prototype
 - **Unmount Enemy** - Force enemy to dismount (cavalry units, multi-target)
 
 ### Defensive Events (Protect/Buff)
-- **Affect Adjacent Ally Stat** - Modify adjacent ally stats (TODO: update to use AdjacentUnits dictionary)
+- **Affect Adjacent Ally Stat** - Modify adjacent ally stats (uses AdjacentUnits from BattleContext)
 - **Affect Unit Stat** - Modify caster's stats (BoolValue input, stat dropdown)
 - **Area Of Effect Buff** - Buff adjacent allies within radius (configurable stat/amount/duration)
 - **Cure Debuff** - Remove status effects from allies (AllDebuffs or SpecificDebuff modes)
 - **Damage Reflection** - Reflect percentage of damage back to attacker
-- **Negate Next Attack** - Complete damage negation (Miracle, Pavise, Aegis skills)
+- **Negate Next Attack** - Complete damage negation on self (Miracle, Pavise, Aegis skills)
+- **Negate Next Attack On Allies** - Complete damage negation on all adjacent allies
 - **Reduce Damage** - Flat or percentage damage reduction
 
 ### Neutral Events (Utility/Positioning/Resources)
@@ -127,36 +144,6 @@ Event nodes perform actions during skill execution. Located in `Assets/Prototype
 - **Swap Unit With Target** - Swap positions with target (placeholder for tile system)
 - **Take Another Turn** - Set flag to grant caster an extra turn
 - **Warp** - Teleport ally to/from caster position (uses AdjacentUnits dictionary)
-
-### Recent Architectural Updates (Nov 2025)
-
-**Character Identification**:
-- ✅ **DONE**: Replaced `GetHashCode()` with proper `.Id` property (GUID-based)
-- All CustomData keys now use `CharacterInstance.Id` instead of hash codes
-- Example: `context.SetCustomData($"FirstStrike_{context.UnitInstance.Id}", true)`
-
-**Spatial Context**:
-- ✅ **DONE**: Added `Direction` enum and `AdjacentUnits` dictionary to `SkillExecutionContext`
-- Direction values: Center, TopLeft, TopCenter, TopRight, CenterLeft, CenterRight, BottomLeft, BottomCenter, BottomRight
-- ✅ **DONE**: Updated Reposition and Warp nodes to use `context.AdjacentUnits[direction]`
-- 🔧 **TODO**: Update AffectAdjacentAllyStat to use AdjacentUnits dictionary instead of placeholder logic
-
-**Multi-Ally Selection**:
-- ⚠️ **NEEDS WORK**: NegateNextAttack, ReduceDamage, and AreaOfEffectBuff currently have "affect adjacent allies" modes but need proper ally iteration
-- 🔧 **TODO**: When "affectAdjacentAllies" is true, these nodes should iterate through `context.Allies` list or use spatial queries
-- 🔧 **TODO**: Consider adding separate radius-based ally selection for AoE effects
-
-**Combat System Integration**:
-- ✅ **DONE**: All Event nodes now use `SetCustomData()` to communicate with combat system
-- CustomData key pattern: `{ActionName}_{characterId}` for per-character flags
-- Complex state stored as anonymous objects (e.g., debuff data, buff data)
-- 🔧 **TODO**: Document CustomData key contracts for combat system developers
-
-**Placeholder Fields**:
-- ⚠️ **NEEDS REPLACEMENT**: Several nodes use placeholder string fields:
-  - `debuffTypePlaceholder` in DealDebuff, DealDebuffAreaOfEffect, CureDebuff
-  - `buffStatPlaceholder` in AreaOfEffectBuff
-- 🔧 **TODO**: Replace with proper enum types when status effect system is implemented
 
 ### Multi-Target Pattern
 Many Event nodes support the "affect all targeted enemies" pattern:
@@ -178,10 +165,55 @@ When `affectAllTargets` is true, the node loops through all entries in `context.
 - UnmountEnemy
 - BreakWeapon
 
+## Condition Nodes Reference
+
+Condition nodes evaluate game state and return boolean results. Located in `Assets/Prototypes/Skills/Nodes/Nodes/Conditions/`.
+
+### Stat Comparison Conditions
+- **Unit Stat** - Compare caster's stat against threshold
+- **Enemy Stat** - Compare target's stat against threshold
+- **Enemy Would Kill Unit** - Check if enemy attack would be lethal
+
+### Unit State Conditions
+- **Has Buff** - Check if unit has specific buff active
+- **Has Debuff** - Check if unit has specific debuff active
+- **Is Armored** - Check if unit has armor class
+- **Is Flying** - Check if unit has flying movement type
+- **Is Riding** - Check if unit is mounted (cavalry)
+- **Unit Kill Count** - Compare number of kills by unit
+
+### Combat State Conditions
+- **Is Initiating Combat** - True if unit started the combat
+- **Is First Combat Of Turn** - True if this is unit's first combat this turn
+- **Skill Use Count** - Compare how many times skill has been used
+
+### Spatial Conditions
+- **Adjacent Allies** - Check/count allies in adjacent tiles
+- **Adjacent Enemies** - Check/count enemies in adjacent tiles  
+- **Enemy Distance** - Compare distance to enemy target
+- **Enemy Terrain Type** - Check terrain type enemy is standing on
+
+### Classification Conditions
+- **Enemy Class** - Check if enemy matches specific class
+- **Environmental Conditions** - Check weather/terrain/time of day
+
+### Turn/Time Conditions
+- **Turn Count** - Compare current turn number
+- **Turns Alive** - Compare how many turns unit has survived
+
+**Pattern**: All condition nodes output `BoolValue` that can be used by **FlowIf** or other logic nodes.
+
+**Usage Example**:
+```
+UnitStat (HP < 50%) → FlowIf → [If True: Desperate Strike]
+                             → [If False: Normal Attack]
+```
+
 ## Creating Custom Nodes
 
 ```csharp
 using Assets.Prototypes.Skills.Nodes;
+using Assets.Prototypes.Gameplay.Combat.FundamentalComponents.Battles;
 using UnityEngine;
 using XNode;
 
@@ -194,13 +226,18 @@ public class AddNumbers : SkillNode
     [Output] public FloatValue result;
     [Output] public ExecutionFlow execOut;
 
-    public override void Execute(SkillExecutionContext context)
+    public override void Execute(BattleContext context)
     {
         float aVal = GetInputValue<FloatValue>("a", new FloatValue()).Value;
         float bVal = GetInputValue<FloatValue>("b", new FloatValue()).Value;
         result = new FloatValue { Value = aVal + bVal };
         
-        SignalComplete(context); // Continue execution
+        // Continue execution through output port
+        var flow = GetOutputValue("execOut", execOut);
+        if (flow != null && flow.node != null)
+        {
+            ((SkillNode)flow.node).Execute(context);
+        }
     }
 
     public override object GetValue(NodePort port)
@@ -210,15 +247,13 @@ public class AddNumbers : SkillNode
 }
 ```
 
-**File Location**: Save in `Assets/Prototypes/Skills/Nodes/Nodes/Math/` for blue tint.
-
 ## Execution Flow
 
 1. **Entry**: Graph executor finds nodes with no `execIn` connections
-2. **Execute**: Calls `node.Execute(context)` 
-3. **Signal**: Node calls `SignalComplete(context)` when done
-4. **Continue**: Executor follows `execOut` connections
-5. **Complete**: All execution paths finish
+2. **Execute**: Calls `node.Execute(context)` with BattleContext
+3. **Continue**: Node retrieves output ExecutionFlow and calls Execute on connected node
+4. **Data Flow**: Output ports provide values via `GetValue(NodePort)` when queried
+5. **Complete**: All execution paths finish or `context.IsInterrupted` is set
 
 ## Integration
 
@@ -226,11 +261,13 @@ Link graph to skill:
 1. Create SkillGraph asset
 2. Add nodes and connect them
 3. Assign graph to `Skill.BehaviorGraph`
-4. Call `skill.BehaviorGraph.Execute(context)` at runtime
+4. Call `skill.BehaviorGraph.Execute(battleContext)` at runtime
 
 ---
 
 ## See Also
 
 - **[Skill](../Skill.md)** - Main skill asset
-- **[SkillExecutionContext API](SkillExecutionContext.md)** - Context properties reference
+- **[BattleContext](BattleContext.md)** - Full context API reference (if detailed doc exists)
+- **Adjacency System** - `Assets/Prototypes/Gameplay/Combat/FundamentalComponents/Battles/Locations/Adjacency.cs`
+- **Direction Enum** - 9-direction grid system for unit positioning

@@ -159,25 +159,3 @@ Each type has extension methods:
 string displayName = statType.GetDisplayName();
 string description = statType.GetDescription();
 ```
-
----
-
-## Usage Examples
-
-### In Character
-```csharp
-Character character = GetCharacter();
-
-// Query by type
-BoundedCharacterStat hp = character.GetBoundedStat(BoundedStatType.Health);
-CharacterStat str = character.GetUnboundedStat(UnboundedStatType.Strength);
-
-// Note: Character properties are read-only
-// Stats list manipulation must be done in Unity Inspector
-```
-
-## Notes
-- All values rounded to nearest integer on access
-- Bounded stats automatically clamp on set
-- Implicit int conversion for convenient arithmetic
-- Bonus modifiers separate from base values

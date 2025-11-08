@@ -159,14 +159,18 @@ PrototypeDocs/
 **Sources**:
 - `Assets/Prototypes/Skills/Nodes/Core/*.cs`
 - `Assets/Prototypes/Skills/Nodes/Nodes/Events/*.cs`
+- `Assets/Prototypes/Skills/Nodes/Nodes/Conditions/*.cs`
+- `Assets/Prototypes/Gameplay/Combat/FundamentalComponents/Battles/BattleContext.cs`
 **Documents**:
-- SkillGraph: NodeGraph container, Execute(context), validation
-- SkillNode: Base class with Execute(context), port system
-- SkillExecutionContext: UnitInstance, Targets, CustomData
+- SkillGraph: NodeGraph container, Execute(BattleContext), validation
+- SkillNode: Base class with Execute(BattleContext), GetInputFloat/GetInputBool helpers
+- BattleContext: UnitInstance, Targets, Allies, AdjacentUnits, CustomData, EnvironmentalConditions, SkillUseCount
 - Port types: ExecutionFlow, BoolValue, FloatValue, StringValue
-- Event nodes: 15+ nodes for stat modification, damage, combat effects
+- **Event nodes**: 30+ nodes for stat modification, damage, combat effects, positioning
+- **Condition nodes**: 20+ nodes for stat comparisons, unit state, combat state, spatial queries
 - Multi-target pattern: BoolValue affectAllTargets input
-- Node categories and color coding
+- Adjacency system: Direction enum with 9-direction grid
+- Helper methods for simplified node development
 
 ### Configurations/Settings.md
 **Sources**:
