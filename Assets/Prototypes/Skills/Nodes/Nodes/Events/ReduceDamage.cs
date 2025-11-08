@@ -1,4 +1,5 @@
 using System.Linq;
+using Assets.Prototypes.Gameplay.Combat.FundamentalComponents.Battles;
 using Assets.Prototypes.Skills.Nodes;
 using UnityEngine;
 using XNode;
@@ -29,7 +30,7 @@ namespace Assets.Prototypes.Skills.Nodes.Events
         [Tooltip("Is reduction a percentage (true) or flat value (false)?")]
         public bool isPercentage = false;
 
-        public override void Execute(SkillExecutionContext context)
+        public override void Execute(BattleContext context)
         {
             if (context == null)
             {

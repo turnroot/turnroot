@@ -1,3 +1,5 @@
+using Assets.Prototypes.Gameplay.Combat.FundamentalComponents.Battles;
+using Assets.Prototypes.Gameplay.Combat.FundamentalComponents.Battles.Locations;
 using Assets.Prototypes.Skills.Nodes;
 using UnityEngine;
 using XNode;
@@ -18,7 +20,7 @@ namespace Assets.Prototypes.Skills.Nodes.Events
         [Range(0, 20)]
         public int maxDistance = 0;
 
-        public override void Execute(SkillExecutionContext context)
+        public override void Execute(BattleContext context)
         {
             if (context == null)
             {

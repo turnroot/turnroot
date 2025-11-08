@@ -1,3 +1,4 @@
+using Assets.Prototypes.Gameplay.Combat.FundamentalComponents.Battles;
 using Assets.Prototypes.Skills.Nodes;
 using UnityEngine;
 using XNode;
@@ -15,7 +16,7 @@ public class FlowIf : SkillNode
     [Output(ShowBackingValue.Never, ConnectionType.Multiple)]
     public ExecutionFlow OutFlow;
 
-    public override void Execute(SkillExecutionContext context)
+    public override void Execute(BattleContext context)
     {
         // Get the condition value from connected node
         BoolValue conditionValue = GetInputValue<BoolValue>("condition", new BoolValue());

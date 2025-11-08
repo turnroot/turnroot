@@ -24,7 +24,9 @@ namespace Assets.Prototypes.Skills.Nodes
         /// <summary>
         /// Retrieves the current execution context from the given SkillGraph instance.
         /// </summary>
-        public SkillExecutionContext GetContextFromGraph(SkillGraph skillGraph)
+        public Assets.Prototypes.Gameplay.Combat.FundamentalComponents.Battles.BattleContext GetContextFromGraph(
+            SkillGraph skillGraph
+        )
         {
             // Use reflection to access the private activeExecutor field
             var executorField = typeof(SkillGraph).GetField(
@@ -37,14 +39,16 @@ namespace Assets.Prototypes.Skills.Nodes
                 var executor = executorField.GetValue(skillGraph) as SkillGraphExecutor;
                 if (executor != null)
                 {
-                    return executor.GetContext();
+                    return executor.GetContext(); // Assuming this method returns BattleContext now
                 }
             }
 
             return null;
         }
 
-        public virtual void Execute(SkillExecutionContext context) { }
+        public virtual void Execute(
+            Assets.Prototypes.Gameplay.Combat.FundamentalComponents.Battles.BattleContext context
+        ) { }
 
         public override object GetValue(NodePort port)
         {

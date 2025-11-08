@@ -1,3 +1,4 @@
+using Assets.Prototypes.Gameplay.Combat.FundamentalComponents.Battles;
 using Assets.Prototypes.Skills.Nodes;
 using UnityEngine;
 using XNode;
@@ -21,7 +22,7 @@ namespace Assets.Prototypes.Skills.Nodes.Events
         [Tooltip("Direction to move (requires integration with grid system)")]
         public string moveDirection = "Forward";
 
-        public override void Execute(SkillExecutionContext context)
+        public override void Execute(BattleContext context)
         {
             if (context?.UnitInstance == null)
             {

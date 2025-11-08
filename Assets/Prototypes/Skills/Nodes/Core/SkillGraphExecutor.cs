@@ -12,7 +12,7 @@ namespace Assets.Prototypes.Skills.Nodes
     public class SkillGraphExecutor
     {
         private SkillGraph graph;
-        private SkillExecutionContext context;
+        private BattleContext context;
         private HashSet<SkillNode> visitedNodes;
         private SkillNode currentNode;
 
@@ -27,33 +27,7 @@ namespace Assets.Prototypes.Skills.Nodes
         /// </summary>
         public void Execute(BattleContext battleContext)
         {
-            // Convert to SkillExecutionContext for compatibility with existing nodes
-            if (battleContext is SkillExecutionContext skillContext)
-            {
-                this.context = skillContext;
-            }
-            else
-            {
-                // Wrap BattleContext in SkillExecutionContext
-                this.context = new SkillExecutionContext
-                {
-                    CurrentSkill = battleContext.CurrentSkill,
-                    SkillUseCount = battleContext.SkillUseCount,
-                    UnitInstance = battleContext.UnitInstance,
-                    Targets = battleContext.Targets,
-                    Allies = battleContext.Allies,
-                    AdjacentUnits = battleContext.AdjacentUnits,
-                    CurrentSkillGraph = battleContext.CurrentSkillGraph,
-                    EnvironmentalConditions = battleContext.EnvironmentalConditions,
-                    IsInterrupted = battleContext.IsInterrupted,
-                };
-                // Copy custom data
-                foreach (var kvp in battleContext.CustomData)
-                {
-                    this.context.SetCustomData(kvp.Key, kvp.Value);
-                }
-            }
-
+            this.context = battleContext;
             this.visitedNodes = new HashSet<SkillNode>();
             this.currentNode = null;
 
@@ -227,7 +201,7 @@ namespace Assets.Prototypes.Skills.Nodes
         /// <summary>
         /// Get the current execution context (useful for debugging).
         /// </summary>
-        public SkillExecutionContext GetContext()
+        public BattleContext GetContext()
         {
             return context;
         }

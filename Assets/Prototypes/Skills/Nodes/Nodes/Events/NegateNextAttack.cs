@@ -1,4 +1,5 @@
-﻿using Assets.Prototypes.Skills.Nodes;
+﻿using Assets.Prototypes.Gameplay.Combat.FundamentalComponents.Battles;
+using Assets.Prototypes.Skills.Nodes;
 using UnityEngine;
 using XNode;
 
@@ -16,7 +17,7 @@ namespace Assets.Prototypes.Skills.Nodes.Events
         )]
         public bool allAttacksThisTurn = false;
 
-        public override void Execute(SkillExecutionContext context)
+        public override void Execute(BattleContext context)
         {
             if (context == null)
             {

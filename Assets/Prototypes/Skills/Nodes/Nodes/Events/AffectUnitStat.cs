@@ -1,4 +1,5 @@
 using Assets.Prototypes.Characters.Stats;
+using Assets.Prototypes.Gameplay.Combat.FundamentalComponents.Battles;
 using Assets.Prototypes.Skills.Nodes;
 using UnityEngine;
 using XNode;
@@ -23,7 +24,7 @@ namespace Assets.Prototypes.Skills.Nodes.Events
         [Tooltip("Test value used in editor mode")]
         public float testChange = 5f;
 
-        public override void Execute(SkillExecutionContext context)
+        public override void Execute(BattleContext context)
         {
             if (context?.UnitInstance == null)
             {

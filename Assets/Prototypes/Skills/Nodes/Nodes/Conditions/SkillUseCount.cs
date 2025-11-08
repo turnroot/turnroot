@@ -16,27 +16,29 @@ public class SkillUseCount : SkillNode
             var contextFromGraph = GetContextFromGraph(skillGraph);
             if (contextFromGraph == null)
             {
-                Debug.LogError("SkillExecutionContext not found in graph!");
+                Debug.LogError("BattleContext not found in graph!");
                 return null;
             }
 
             if (contextFromGraph.CurrentSkill == null)
             {
-                Debug.LogError("CurrentSkill is null in SkillExecutionContext!");
+                Debug.LogError("CurrentSkill is null in BattleContext!");
                 return null;
             }
 
             int count = 0;
-            if (contextFromGraph.SkillUseCount != null && 
-                contextFromGraph.SkillUseCount.TryGetValue(contextFromGraph.CurrentSkill, out count))
+            if (
+                contextFromGraph.SkillUseCount != null
+                && contextFromGraph.SkillUseCount.TryGetValue(
+                    contextFromGraph.CurrentSkill,
+                    out count
+                )
+            )
             {
                 // Found the count
             }
 
-            FloatValue skillCountValue = new()
-            {
-                value = count,
-            };
+            FloatValue skillCountValue = new() { value = count };
             return skillCountValue;
         }
         return null;

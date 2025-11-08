@@ -1,3 +1,4 @@
+using Assets.Prototypes.Gameplay.Combat.FundamentalComponents.Battles;
 using Assets.Prototypes.Skills.Nodes;
 using UnityEngine;
 using XNode;
@@ -14,7 +15,7 @@ namespace Assets.Prototypes.Skills.Nodes.Events
         [Tooltip("Type of item to steal (weapon, item, etc.)")]
         public string itemType = "Item";
 
-        public override void Execute(SkillExecutionContext context)
+        public override void Execute(BattleContext context)
         {
             if (context?.Targets == null || context.Targets.Count == 0)
             {

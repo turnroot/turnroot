@@ -61,23 +61,4 @@ namespace Assets.Prototypes.Gameplay.Combat.FundamentalComponents.Battles
             CustomData[key] = value;
         }
     }
-
-    /// <summary>
-    /// Backwards compatibility alias for BattleContext.
-    /// Use BattleContext for new code.
-    /// </summary>
-    public class SkillExecutionContext : BattleContext
-    {
-        public Skill Skill
-        {
-            get => CurrentSkill;
-            set => CurrentSkill = value;
-        }
-
-        public SkillGraph SkillGraph
-        {
-            get => CurrentSkillGraph;
-            set => CurrentSkillGraph = value;
-        }
-    }
 }

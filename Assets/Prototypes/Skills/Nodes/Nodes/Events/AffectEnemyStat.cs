@@ -1,4 +1,5 @@
 using Assets.Prototypes.Characters.Stats;
+using Assets.Prototypes.Gameplay.Combat.FundamentalComponents.Battles;
 using Assets.Prototypes.Skills.Nodes;
 using UnityEngine;
 using XNode;
@@ -32,7 +33,7 @@ namespace Assets.Prototypes.Skills.Nodes.Events
         [Tooltip("Test value for affectAllEnemies in editor mode")]
         public bool testAffectAll = false;
 
-        public override void Execute(SkillExecutionContext context)
+        public override void Execute(BattleContext context)
         {
             if (context?.Targets == null || context.Targets.Count == 0)
             {

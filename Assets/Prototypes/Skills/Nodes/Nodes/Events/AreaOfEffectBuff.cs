@@ -1,3 +1,4 @@
+using Assets.Prototypes.Gameplay.Combat.FundamentalComponents.Battles;
 using Assets.Prototypes.Skills.Nodes;
 using UnityEngine;
 using XNode;
@@ -29,7 +30,7 @@ namespace Assets.Prototypes.Skills.Nodes.Events
         [Range(0, 10)]
         public int durationTurns = 3;
 
-        public override void Execute(SkillExecutionContext context)
+        public override void Execute(BattleContext context)
         {
             if (context == null)
             {

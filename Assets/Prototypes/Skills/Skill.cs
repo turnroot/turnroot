@@ -83,12 +83,4 @@ public class Skill : ScriptableObject
         SkillTriggered?.Invoke();
         BehaviorGraph.Execute(context);
     }
-
-    /// <summary>
-    /// Backwards compatibility method. Use ExecuteSkill(BattleContext) for new code.
-    /// </summary>
-    public void ExecuteSkill(SkillExecutionContext context)
-    {
-        ExecuteSkill((BattleContext)context);
-    }
 }

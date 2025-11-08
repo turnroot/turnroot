@@ -25,7 +25,7 @@ namespace Assets.Prototypes.Skills.Nodes
         /// Gets a character instance from the context based on the source.
         /// </summary>
         public static CharacterInstance GetCharacterFromContext(
-            SkillExecutionContext context,
+            Assets.Prototypes.Gameplay.Combat.FundamentalComponents.Battles.BattleContext context,
             CharacterSource source
         )
         {
@@ -35,12 +35,12 @@ namespace Assets.Prototypes.Skills.Nodes
             return source switch
             {
                 CharacterSource.Unit => context.UnitInstance,
-                CharacterSource.Enemy =>
-                    context.Targets != null && context.Targets.Count > 0
-                        ? context.Targets[0]
-                        : null,
-                CharacterSource.Ally =>
-                    context.Allies != null && context.Allies.Count > 0 ? context.Allies[0] : null,
+                CharacterSource.Enemy => context.Targets != null && context.Targets.Count > 0
+                    ? context.Targets[0]
+                    : null,
+                CharacterSource.Ally => context.Allies != null && context.Allies.Count > 0
+                    ? context.Allies[0]
+                    : null,
                 _ => null,
             };
         }
@@ -80,10 +80,7 @@ namespace Assets.Prototypes.Skills.Nodes
         /// </summary>
         public static FloatValue CreateFloatOutput(float defaultValue, float runtimeValue)
         {
-            return new FloatValue
-            {
-                value = Application.isPlaying ? runtimeValue : defaultValue
-            };
+            return new FloatValue { value = Application.isPlaying ? runtimeValue : defaultValue };
         }
 
         /// <summary>

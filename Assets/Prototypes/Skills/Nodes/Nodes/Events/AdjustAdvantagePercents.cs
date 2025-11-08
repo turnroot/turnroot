@@ -1,3 +1,4 @@
+using Assets.Prototypes.Gameplay.Combat.FundamentalComponents.Battles;
 using Assets.Prototypes.Skills.Nodes;
 using UnityEngine;
 using XNode;
@@ -13,7 +14,7 @@ public class AdjustAdvantagePercents : SkillNode
     [Range(0, 100)]
     public float AddAdvantagePercent;
 
-    public override void Execute(SkillExecutionContext context)
+    public override void Execute(BattleContext context)
     {
         if (context == null)
         {

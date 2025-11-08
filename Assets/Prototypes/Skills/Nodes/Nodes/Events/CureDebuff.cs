@@ -1,4 +1,5 @@
 using System.Linq;
+using Assets.Prototypes.Gameplay.Combat.FundamentalComponents.Battles;
 using Assets.Prototypes.Skills.Nodes;
 using UnityEngine;
 using XNode;
@@ -25,7 +26,7 @@ namespace Assets.Prototypes.Skills.Nodes.Events
         [Tooltip("If CureMode is SpecificDebuff, which debuff type to cure (placeholder)")]
         public string debuffTypePlaceholder = "Poison";
 
-        public override void Execute(SkillExecutionContext context)
+        public override void Execute(BattleContext context)
         {
             if (context == null)
             {
