@@ -48,7 +48,8 @@ namespace Turnroot.Skills.Nodes
 
         public virtual void Execute(
             Turnroot.Gameplay.Combat.FundamentalComponents.Battles.BattleContext context
-        ) { }
+        )
+        { }
 
         public override object GetValue(NodePort port)
         {

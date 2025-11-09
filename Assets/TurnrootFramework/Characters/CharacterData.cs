@@ -2,9 +2,11 @@ using System;
 using System.Collections.Generic;
 using NaughtyAttributes;
 using Turnroot.Characters.Components;
+using Turnroot.Characters.Components.Support;
 using Turnroot.Characters.Configuration;
 using Turnroot.Characters.Stats;
 using Turnroot.Characters.Subclasses;
+using Turnroot.Gameplay.Objects;
 using UnityEngine;
 
 namespace Turnroot.Characters
@@ -15,6 +17,21 @@ namespace Turnroot.Characters
     )]
     public class CharacterData : ScriptableObject
     {
+        [Serializable]
+        public class InventorySlot
+        {
+            [SerializeField]
+            private ObjectItem _item;
+
+            [SerializeField]
+            private int _quantity = 1;
+
+            public ObjectItem Item => _item;
+            public int Quantity => _quantity;
+        }
+
+        /* ----------------------------- Core Functions ----------------------------- */
+
         private void OnEnable()
         {
             // Load settings from Resources on initialization
@@ -40,6 +57,21 @@ namespace Turnroot.Characters
             }
         }
 
+        private void OnValidate()
+        {
+            // Ensure that the character's name is not empty
+            if (string.IsNullOrWhiteSpace(_name))
+            {
+                _name = "New Unit";
+            }
+
+            // Ensure that the full name is not empty
+            if (string.IsNullOrWhiteSpace(_fullName))
+            {
+                _fullName = _name;
+            }
+        }
+
         [Foldout("Identity"), SerializeField]
         [HorizontalLine(color: EColor.Blue)]
         private readonly CharacterWhich _which = new("Enemy");
@@ -50,26 +82,20 @@ namespace Turnroot.Characters
         [Foldout("Identity"), SerializeField]
         private string _fullName = "Newly Created Unit";
 
-        [Foldout("Identity"), SerializeField]
-        private string _title = "";
-
         [Foldout("Identity")]
         private string _team;
 
         [Foldout("Demographics"), SerializeField]
         [HorizontalLine(color: EColor.Blue)]
-        private int _age = 18;
-
-        [Foldout("Demographics"), SerializeField]
         private Pronouns _pronouns = new();
 
-        [Foldout("Demographics"), SerializeField]
+        [Foldout("Demographics"), SerializeField, Range(100f, 250f)]
         private float _height = 166f;
 
-        [Foldout("Demographics"), SerializeField]
+        [Foldout("Demographics"), SerializeField, Range(1, 31)]
         private int _birthdayDay = 1;
 
-        [Foldout("Demographics"), SerializeField]
+        [Foldout("Demographics"), SerializeField, Range(1, 12)]
         private int _birthdayMonth = 1;
 
         [Foldout("Description"), SerializeField, ResizableTextArea]
@@ -82,6 +108,9 @@ namespace Turnroot.Characters
         [Foldout("Character Flags"), SerializeField]
         [HorizontalLine(color: EColor.Green)]
         private bool _canSSupport = false;
+
+        [Foldout("Character Flags"), SerializeField]
+        private bool _canSSupportAvatar = false;
 
         [Foldout("Character Flags"), SerializeField]
         private bool _canHaveChildren = false;
@@ -124,19 +153,6 @@ namespace Turnroot.Characters
         [Foldout("Stats & Progression"), SerializeField]
         private List<CharacterStat> _unboundedStats = new();
 
-        [Foldout("Experiences"), SerializeField]
-        [HorizontalLine(color: EColor.Green)]
-        private UnityEngine.Object _experiences;
-
-        [Foldout("Experiences"), SerializeField]
-        private UnityEngine.Object _experienceGrowths;
-
-        [Foldout("Experiences"), SerializeField]
-        private UnityEngine.Object _experienceAptitudes;
-
-        [Foldout("Experiences"), SerializeField]
-        private SerializableDictionary<string, int> _classExps = new();
-
         [Foldout("Class & Battalion"), SerializeField]
         [HorizontalLine(color: EColor.Green)]
         private UnityEngine.Object _unitClass;
@@ -154,16 +170,18 @@ namespace Turnroot.Characters
         [Foldout("Skills & Abilities"), SerializeField]
         private List<Skill> _specialSkills = new();
 
+        [Foldout("Inventory"), SerializeField]
+        private List<InventorySlot> _startingInventory = new();
+
+        [Foldout("Relationships"), SerializeField]
+        private List<SupportRelationship> _supportRelationships = new();
+
         [Foldout("AI & Behavior"), SerializeField]
         [HorizontalLine(color: EColor.Yellow)]
         private UnityEngine.Object _ai;
 
         [Foldout("AI & Behavior"), SerializeField]
         private List<string> _goals = new();
-
-        [Foldout("Relationships"), SerializeField, ReorderableList]
-        [HorizontalLine(color: EColor.Pink)]
-        private List<SupportRelationship> _supportRelationships = new();
 
         [Foldout("Heredity"), SerializeField]
         [HorizontalLine(color: EColor.Pink)]
@@ -175,15 +193,10 @@ namespace Turnroot.Characters
         [Foldout("Heredity"), SerializeField, ShowIf(nameof(_hasDesignatedChildUnit))]
         private CharacterData _childUnitId;
 
-        [Foldout("Attachments"), SerializeField]
-        [HorizontalLine(color: EColor.Black)]
-        private CharacterInventoryInstance _characterInventory;
         public CharacterWhich Which => _which;
         public string Name => _name;
         public string FullName => _fullName;
-        public string Title => _title;
         public string Team => _team;
-        public int Age => _age;
         public Pronouns CharacterPronouns => _pronouns;
         public float Height => _height;
         public int BirthdayDay => _birthdayDay;
@@ -193,6 +206,8 @@ namespace Turnroot.Characters
         public string Notes => _notes;
 
         public bool CanSSupport => _canSSupport;
+
+        public bool CanSSupportAvatar => _canSSupportAvatar;
         public bool CanHaveChildren => _canHaveChildren;
         public bool IsRecruitable => _isRecruitable;
         public bool IsUnique => _isUnique;
@@ -207,10 +222,6 @@ namespace Turnroot.Characters
         public List<BoundedCharacterStat> BoundedStats => _boundedStats;
         public List<CharacterStat> UnboundedStats => _unboundedStats;
 
-        public UnityEngine.Object Experiences => _experiences;
-        public UnityEngine.Object ExperienceGrowths => _experienceGrowths;
-        public UnityEngine.Object ExperienceAptitudes => _experienceAptitudes;
-
         public UnityEngine.Object UnitClass => _unitClass;
         public UnityEngine.Object Battalion => _battalion;
         public List<string> SpecialUnitClasses => _specialUnitClasses;
@@ -221,27 +232,13 @@ namespace Turnroot.Characters
         public UnityEngine.Object AI => _ai;
         public List<string> Goals => _goals;
 
+        public List<InventorySlot> StartingInventory => _startingInventory;
         public List<SupportRelationship> SupportRelationships => _supportRelationships;
 
         public HereditaryTraits PassedDownTraits => _passedDownTraits;
 
         public bool HasDesignatedChildUnit => _hasDesignatedChildUnit;
         public CharacterData ChildUnitId => _childUnitId;
-
-        public CharacterInventoryInstance CharacterInventory => _characterInventory;
-
-        // Helper methods for class experience
-        public int GetClassExp(string classId)
-        {
-            return _classExps.TryGetValue(classId, out int value) ? value : 0;
-        }
-
-        public void SetClassExp(string classId, int value)
-        {
-            _classExps[classId] = value;
-        }
-
-        public SerializableDictionary<string, int> ClassExps => _classExps;
 
         // Helper methods to get stats by type
         public BoundedCharacterStat GetBoundedStat(BoundedStatType type)
@@ -252,26 +249,6 @@ namespace Turnroot.Characters
         public CharacterStat GetUnboundedStat(UnboundedStatType type)
         {
             return StatHelpers.GetUnboundedStat(_unboundedStats, type);
-        }
-
-        // Helper methods for support relationships
-        public SupportRelationship GetSupportRelationship(CharacterData character)
-        {
-            return _supportRelationships.Find(s => s.Character == character);
-        }
-
-        public void AddSupportRelationship(CharacterData character)
-        {
-            // Check if relationship already exists
-            if (GetSupportRelationship(character) == null)
-            {
-                _supportRelationships.Add(new SupportRelationship { Character = character });
-            }
-        }
-
-        public void RemoveSupportRelationship(CharacterData character)
-        {
-            _ = _supportRelationships.RemoveAll(s => s.Character == character);
         }
     }
 }

@@ -1,4 +1,5 @@
 using System;
+using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
 using UnityEngine;
 
 [Serializable]
@@ -25,6 +26,37 @@ public class SkillInstance
         _equipped = false;
     }
 
+    /// <summary>
+    /// Execute this skill instance with the given battle context.
+    /// </summary>
+    public void ExecuteSkill(BattleContext context)
+    {
+        if (_skillTemplate == null)
+        {
+            Debug.LogWarning("SkillInstance has no SkillTemplate assigned.");
+            return;
+        }
+
+        if (_skillTemplate.BehaviorGraph == null)
+        {
+            Debug.LogWarning($"Skill {_skillTemplate.SkillName} has no BehaviorGraph assigned.");
+            return;
+        }
+
+        // Set runtime context
+        context.CurrentSkill = _skillTemplate;
+        context.CurrentSkillGraph = _skillTemplate.BehaviorGraph;
+
+        // Trigger template events
+        _skillTemplate.TriggerSkillEvents();
+
+        // Execute the behavior graph
+        _skillTemplate.BehaviorGraph.Execute(context);
+
+        // Reset ready state after execution
+        _readyToFire = false;
+    }
+
     public void SetReadyToFire(bool ready)
     {
         _readyToFire = ready;
@@ -33,5 +65,13 @@ public class SkillInstance
     public void SetEquipped(bool equipped)
     {
         _equipped = equipped;
+        if (equipped)
+        {
+            _skillTemplate.SkillEquipped?.Invoke();
+        }
+        else
+        {
+            _skillTemplate.SkillUnequipped?.Invoke();
+        }
     }
 }

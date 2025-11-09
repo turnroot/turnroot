@@ -7,17 +7,13 @@ using UnityEngine;
 /// <summary>
 /// Inventory system for characters. Each character has their own CharacterInventoryInstance
 /// that tracks their specific inventory state.
-///
-/// NOTE: This does NOT use a ScriptableObject template because:
-/// - Inventory state is always per-character (never shared)
-/// - No benefit to having a "template" inventory
-/// - Simpler to just create new instances directly
 /// </summary>
+
 [Serializable]
 public class CharacterInventoryInstance
 {
     [SerializeField]
-    private List<ObjectItem> _inventoryItems = new List<ObjectItem>();
+    private List<ObjectItemInstance> _inventoryItems = new List<ObjectItemInstance>();
 
     [SerializeField]
     private int _capacity = 6;
@@ -38,7 +34,7 @@ public class CharacterInventoryInstance
     private int _cachedMaxNonWeaponSlots = -1;
     private bool _isInitialized = false;
 
-    public List<ObjectItem> InventoryItems => _inventoryItems;
+    public List<ObjectItemInstance> InventoryItems => _inventoryItems;
     public int Capacity => _capacity;
     public int CurrentItemCount => _inventoryItems.Count;
 
@@ -50,7 +46,7 @@ public class CharacterInventoryInstance
             foreach (var item in _inventoryItems)
             {
                 if (item != null)
-                    weight += item.Weight;
+                    weight += item.Template.Weight;
             }
             return (int)weight;
         }
@@ -151,7 +147,7 @@ public class CharacterInventoryInstance
     public CharacterInventoryInstance(int capacity = 6)
     {
         _capacity = capacity;
-        _inventoryItems = new List<ObjectItem>();
+        _inventoryItems = new List<ObjectItemInstance>();
         EnsureEquipmentArraysInitialized();
     }
 
@@ -161,7 +157,11 @@ public class CharacterInventoryInstance
     public CharacterInventoryInstance(int capacity, List<ObjectItem> startingItems)
     {
         _capacity = capacity;
-        _inventoryItems = new List<ObjectItem>(startingItems);
+        _inventoryItems = new List<ObjectItemInstance>();
+        foreach (var item in startingItems)
+        {
+            _inventoryItems.Add(new ObjectItemInstance(item));
+        }
         EnsureEquipmentArraysInitialized();
     }
 
@@ -222,8 +222,8 @@ public class CharacterInventoryInstance
         for (int i = 0; i < _inventoryItems.Count; i++)
         {
             if (
-                _inventoryItems[i].Subtype == ObjectSubtype.Equipable
-                && _inventoryItems[i].EquipableType == itemType
+                _inventoryItems[i].Template.Subtype == ObjectSubtype.Equipable
+                && _inventoryItems[i].Template.EquipableType == itemType
                 && IsItemEquipped(_inventoryItems[i])
             )
             {
@@ -269,7 +269,7 @@ public class CharacterInventoryInstance
         return -1; // Other subtypes (Consumable, Gift, etc.) cannot be equipped
     }
 
-    public bool IsItemEquipped(ObjectItem item)
+    public bool IsItemEquipped(ObjectItemInstance item)
     {
         int index = _inventoryItems.IndexOf(item);
         if (index < 0)
@@ -278,14 +278,14 @@ public class CharacterInventoryInstance
         return Array.IndexOf(_equippedItemIndices, index) >= 0;
     }
 
-    public bool CanAddItem(ObjectItem item)
+    public bool CanAddItem()
     {
         return _inventoryItems.Count < _capacity;
     }
 
-    public void AddToInventory(ObjectItem item)
+    public void AddToInventory(ObjectItemInstance item)
     {
-        if (!CanAddItem(item))
+        if (!CanAddItem())
         {
             Debug.LogWarning("Inventory is full. Cannot add item.");
             return;
@@ -294,7 +294,7 @@ public class CharacterInventoryInstance
         _inventoryItems.Add(item);
     }
 
-    public void RemoveFromInventory(ObjectItem item)
+    public void RemoveFromInventory(ObjectItemInstance item)
     {
         int index = _inventoryItems.IndexOf(item);
         if (index < 0)
@@ -330,9 +330,9 @@ public class CharacterInventoryInstance
             return;
         }
 
-        ObjectItem itemToEquip = _inventoryItems[index];
+        ObjectItemInstance itemToEquip = _inventoryItems[index];
 
-        int slotIndex = GetSlotIndexForItem(itemToEquip);
+        int slotIndex = GetSlotIndexForItem(itemToEquip.Template);
 
         if (slotIndex == -1)
         {

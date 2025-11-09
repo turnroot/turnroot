@@ -69,6 +69,7 @@ public class Skill : ScriptableObject
 
     /// <summary>
     /// Execute this skill's behavior graph with the given context.
+    /// This is a template method - use SkillInstance.ExecuteSkill for runtime execution.
     /// </summary>
     public void ExecuteSkill(BattleContext context)
     {
@@ -82,5 +83,14 @@ public class Skill : ScriptableObject
         context.CurrentSkillGraph = BehaviorGraph;
         SkillTriggered?.Invoke();
         BehaviorGraph.Execute(context);
+    }
+
+    /// <summary>
+    /// Template method to trigger skill events.
+    /// Called by SkillInstance during runtime execution.
+    /// </summary>
+    public void TriggerSkillEvents()
+    {
+        SkillTriggered?.Invoke();
     }
 }

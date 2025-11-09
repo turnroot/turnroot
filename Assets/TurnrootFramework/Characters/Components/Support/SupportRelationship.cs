@@ -1,8 +1,9 @@
 using System;
 using Turnroot.Characters;
+using Turnroot.Characters.Subclasses;
 using UnityEngine;
 
-namespace Turnroot.Characters.Subclasses
+namespace Turnroot.Characters.Components.Support
 {
     [Serializable]
     public class SupportRelationship
@@ -11,13 +12,10 @@ namespace Turnroot.Characters.Subclasses
         private CharacterData _character;
 
         [SerializeField]
-        private SupportLevels.Level _currentLevel = SupportLevels.Level.None;
+        private SupportLevels _supportLevels = new();
 
         [SerializeField]
-        private SupportLevels.Level _maxLevel = SupportLevels.Level.S;
-
-        [SerializeField]
-        private int _supportPoints = 0;
+        private string _maxLevel;
 
         [SerializeField]
         private int _supportSpeed = 1;
@@ -28,22 +26,12 @@ namespace Turnroot.Characters.Subclasses
             set => _character = value;
         }
 
-        public SupportLevels.Level CurrentLevel
-        {
-            get => _currentLevel;
-            set => _currentLevel = value;
-        }
+        public SupportLevels SupportLevels => _supportLevels;
 
-        public SupportLevels.Level MaxLevel
+        public string MaxLevel
         {
             get => _maxLevel;
             set => _maxLevel = value;
-        }
-
-        public int SupportPoints
-        {
-            get => _supportPoints;
-            set => _supportPoints = value;
         }
 
         public int SupportSpeed

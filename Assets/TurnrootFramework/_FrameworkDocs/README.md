@@ -178,7 +178,7 @@ PrototypeDocs/
 - **Stats**: Weight system
 - **Aptitude**: Minimum aptitude level for usage
 - **Helper Methods**: NaughtyAttributes ShowIf conditions for Inspector organization
-- Integration with CharacterInventoryInstance, ObjectSubtype, WeaponType, AptitudeLevel
+- Integration with CharacterInventoryInstance, ObjectSubtype, WeaponType, Aptitude
 
 ### Gameplay/ObjectSubtype.md
 **Source**: `Assets/TurnrootFramework/Gameplay/Objects/Components/ObjectSubtype.cs`
