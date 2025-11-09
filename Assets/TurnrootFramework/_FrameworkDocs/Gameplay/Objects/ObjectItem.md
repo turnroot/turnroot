@@ -103,7 +103,7 @@ ObjectItem provides a flexible item system with:
 ### Aptitude (Weapon/Magic Only)
 | Property | Type | Access | Description |
 |----------|------|--------|-------------|
-| `_minAptitude` | `AptitudeLevel` | Private | Minimum aptitude to use (default: E) |
+| `_minAptitude` | `Aptitude` | Private | Minimum aptitude to use (default: E) |
 
 ## Helper Methods
 
@@ -111,5 +111,5 @@ ObjectItem provides a flexible item system with:
 ## See Also
 - **[CharacterInventoryInstance](../Characters/CharacterInventory.md)** - Inventory management
 - **[WeaponType](./WeaponType.md)** - Weapon classification
-- **[AptitudeLevel](./AptitudeLevel.md)** - Weapon proficiency requirements
+- **[Aptitude](./Aptitude.md)** - Weapon proficiency requirements
 - **[GameplayGeneralSettings](../Configurations/GameplayGeneralSettings.md)** - Feature toggles

@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
+using Turnroot.Characters.Components.Support;
 using Turnroot.Characters.Stats;
+using Turnroot.Characters.Subclasses;
+using Turnroot.Gameplay.Objects;
 using UnityEngine;
 
 namespace Turnroot.Characters
@@ -31,9 +34,6 @@ namespace Turnroot.Characters
         [SerializeField]
         private List<CharacterStat> _runtimeUnboundedStats = new List<CharacterStat>();
 
-        [SerializeField]
-        private Dictionary<string, int> _classExperiences = new Dictionary<string, int>();
-
         // Runtime Inventory
         [SerializeField]
         private CharacterInventoryInstance _inventoryInstance;
@@ -41,6 +41,11 @@ namespace Turnroot.Characters
         // Runtime Skills
         [SerializeField]
         private List<SkillInstance> _skillInstances = new List<SkillInstance>();
+
+        // Support Relationships (runtime)
+        [SerializeField]
+        private List<SupportRelationshipInstance> _supportRelationships =
+            new List<SupportRelationshipInstance>();
 
         public string Id => _id;
         public CharacterData CharacterTemplate => _characterTemplate;
@@ -78,14 +83,28 @@ namespace Turnroot.Characters
                 _runtimeUnboundedStats.Add(new CharacterStat(stat));
             }
 
-            // Copy class experiences - use the Dictionary property to access data
-            _classExperiences = new Dictionary<string, int>(
-                _characterTemplate.ClassExps.Dictionary
-            );
+            // Deep copy inventory from template
+            _inventoryInstance = new CharacterInventoryInstance();
+            if (_characterTemplate.StartingInventory != null)
+            {
+                foreach (var slot in _characterTemplate.StartingInventory)
+                {
+                    for (int i = 0; i < slot.Quantity; i++)
+                    {
+                        _inventoryInstance.AddToInventory(new ObjectItemInstance(slot.Item));
+                    }
+                }
+            }
 
-            // Initialize inventory - always create a new instance
-            // (no template needed, just start with default capacity)
-            _inventoryInstance = new CharacterInventoryInstance(capacity: 6);
+            // Deep copy support relationships from template
+            _supportRelationships = new List<SupportRelationshipInstance>();
+            if (_characterTemplate.SupportRelationships != null)
+            {
+                foreach (var relTemplate in _characterTemplate.SupportRelationships)
+                {
+                    _supportRelationships.Add(new SupportRelationshipInstance(relTemplate));
+                }
+            }
 
             // Initialize skills from template
             _skillInstances = new List<SkillInstance>();
@@ -125,6 +144,40 @@ namespace Turnroot.Characters
         {
             _currentLevel++;
             // TODO: Apply stat growths
+        }
+
+        public SupportRelationshipInstance GetSupportRelationship(CharacterData character)
+        {
+            return _supportRelationships.Find(s => s.Character == character);
+        }
+
+        public void AddSupportRelationship(SupportRelationship template)
+        {
+            // Check if relationship already exists
+            if (GetSupportRelationship(template.Character) == null)
+            {
+                _supportRelationships.Add(new SupportRelationshipInstance(template));
+            }
+        }
+
+        public void IncreaseSupport(CharacterData character, int amount)
+        {
+            var relationship = GetSupportRelationship(character);
+            if (relationship != null)
+            {
+                relationship.Increase(amount);
+            }
+            else
+            {
+                Debug.LogWarning($"No support relationship found with {character.FullName}");
+                AddSupportRelationship(new SupportRelationship { Character = character });
+                GetSupportRelationship(character)?.Increase(amount);
+            }
+        }
+
+        public void RemoveSupportRelationship(CharacterData character)
+        {
+            _ = _supportRelationships.RemoveAll(s => s.Character == character);
         }
 
         // Skill Management

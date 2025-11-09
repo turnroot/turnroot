@@ -195,7 +195,7 @@ namespace Turnroot.Gameplay.Objects
             HorizontalLine(color: EColor.Violet),
             ShowIf(nameof(IsWeaponOrMagicSubtype))
         ]
-        private AptitudeLevel _minAptitude = new(AptitudeLevel.E);
+        private Aptitude _minAptitude = new(Aptitude.E);
 
         public CharacterData BelongsTo => _belongsTo;
 
