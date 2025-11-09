@@ -23,4 +23,23 @@ namespace Turnroot.Gameplay.Objects.Components
         Boots,
         Cloak,
     }
+
+    public enum ReplenishUseType
+    {
+        None,
+        Quarter,
+        Third,
+        Half,
+        Full,
+        One,
+        Two,
+        Three,
+        Four,
+        Five,
+        Six,
+        Seven,
+        Eight,
+        Nine,
+        Ten,
+    }
 }

@@ -53,7 +53,7 @@ namespace Turnroot.Characters
         [Foldout("Identity"), SerializeField]
         private string _title = "";
 
-        [Foldout("Identity"), SerializeField]
+        [Foldout("Identity")]
         private string _team;
 
         [Foldout("Demographics"), SerializeField]
@@ -61,7 +61,7 @@ namespace Turnroot.Characters
         private int _age = 18;
 
         [Foldout("Demographics"), SerializeField]
-        private Pronouns _pronouns = new Pronouns();
+        private Pronouns _pronouns = new();
 
         [Foldout("Demographics"), SerializeField]
         private float _height = 166f;
@@ -79,17 +79,17 @@ namespace Turnroot.Characters
         [Foldout("Description"), SerializeField, ResizableTextArea]
         private string _notes = "Take private notes (only in the editor) about this unit";
 
-        [Foldout("CharacterData Flags"), SerializeField]
+        [Foldout("Character Flags"), SerializeField]
         [HorizontalLine(color: EColor.Green)]
         private bool _canSSupport = false;
 
-        [Foldout("CharacterData Flags"), SerializeField]
+        [Foldout("Character Flags"), SerializeField]
         private bool _canHaveChildren = false;
 
-        [Foldout("CharacterData Flags"), SerializeField]
+        [Foldout("Character Flags"), SerializeField]
         private bool _isRecruitable = false;
 
-        [Foldout("CharacterData Flags"), SerializeField]
+        [Foldout("Character Flags"), SerializeField]
         private bool _isUnique = false;
 
         [Foldout("Visual"), HideInInspector]
@@ -119,10 +119,10 @@ namespace Turnroot.Characters
         private int _exp = 0;
 
         [Foldout("Stats & Progression"), SerializeField]
-        private List<BoundedCharacterStat> _boundedStats = new List<BoundedCharacterStat>();
+        private List<BoundedCharacterStat> _boundedStats = new();
 
         [Foldout("Stats & Progression"), SerializeField]
-        private List<CharacterStat> _unboundedStats = new List<CharacterStat>();
+        private List<CharacterStat> _unboundedStats = new();
 
         [Foldout("Experiences"), SerializeField]
         [HorizontalLine(color: EColor.Green)]
@@ -135,8 +135,7 @@ namespace Turnroot.Characters
         private UnityEngine.Object _experienceAptitudes;
 
         [Foldout("Experiences"), SerializeField]
-        private SerializableDictionary<string, int> _classExps =
-            new SerializableDictionary<string, int>();
+        private SerializableDictionary<string, int> _classExps = new();
 
         [Foldout("Class & Battalion"), SerializeField]
         [HorizontalLine(color: EColor.Green)]
@@ -146,31 +145,34 @@ namespace Turnroot.Characters
         private UnityEngine.Object _battalion;
 
         [Foldout("Class & Battalion"), SerializeField]
-        private List<string> _specialUnitClasses = new List<string>();
+        private List<string> _specialUnitClasses = new();
 
         [Foldout("Skills & Abilities"), SerializeField]
         [HorizontalLine(color: EColor.Green)]
-        private List<Skill> _skills = new List<Skill>();
+        private List<Skill> _skills = new();
 
         [Foldout("Skills & Abilities"), SerializeField]
-        private List<Skill> _specialSkills = new List<Skill>();
+        private List<Skill> _specialSkills = new();
 
         [Foldout("AI & Behavior"), SerializeField]
         [HorizontalLine(color: EColor.Yellow)]
         private UnityEngine.Object _ai;
 
         [Foldout("AI & Behavior"), SerializeField]
-        private List<string> _goals = new List<string>();
+        private List<string> _goals = new();
 
         [Foldout("Relationships"), SerializeField, ReorderableList]
         [HorizontalLine(color: EColor.Pink)]
-        private List<SupportRelationship> _supportRelationships = new List<SupportRelationship>();
+        private List<SupportRelationship> _supportRelationships = new();
 
         [Foldout("Heredity"), SerializeField]
         [HorizontalLine(color: EColor.Pink)]
-        private HereditaryTraits _passedDownTraits = new HereditaryTraits();
+        private HereditaryTraits _passedDownTraits = new();
 
         [Foldout("Heredity"), SerializeField]
+        private bool _hasDesignatedChildUnit = false;
+
+        [Foldout("Heredity"), SerializeField, ShowIf(nameof(_hasDesignatedChildUnit))]
         private CharacterData _childUnitId;
 
         [Foldout("Attachments"), SerializeField]
@@ -222,6 +224,8 @@ namespace Turnroot.Characters
         public List<SupportRelationship> SupportRelationships => _supportRelationships;
 
         public HereditaryTraits PassedDownTraits => _passedDownTraits;
+
+        public bool HasDesignatedChildUnit => _hasDesignatedChildUnit;
         public CharacterData ChildUnitId => _childUnitId;
 
         public CharacterInventoryInstance CharacterInventory => _characterInventory;
