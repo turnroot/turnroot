@@ -101,6 +101,12 @@ public class GameplayGeneralSettings : SingletonScriptableObject<GameplayGeneral
     [SerializeField, BoxGroup("Items")]
     private bool EquippableOutfits;
 
+    [SerializeField, BoxGroup("Items")]
+    private bool ItemsCanBeLostItems = true;
+
+    [SerializeField, BoxGroup("Items")]
+    private bool ItemsCanBeGifts = true;
+
     [SerializeField, BoxGroup("Experience Types"), HorizontalLine(color: EColor.Red)]
     private ExperienceType[] ExperienceWeaponTypes;
 
@@ -146,6 +152,10 @@ public class GameplayGeneralSettings : SingletonScriptableObject<GameplayGeneral
     public int GetMaxEquippedNonWeaponItems() => MaxEquippedNonWeaponItems;
 
     public bool UseEquippableOutfits() => EquippableOutfits;
+
+    public bool UseItemsCanBeLostItems() => ItemsCanBeLostItems;
+
+    public bool UseItemsCanBeGifts() => ItemsCanBeGifts;
 
     // Public accessors for Experience Settings
     public bool GetUseExperienceSublevels() => UseExperienceSublevels;
