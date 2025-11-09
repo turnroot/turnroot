@@ -10,6 +10,10 @@ Complete API reference for Assets/Prototypes systems.
 - **[CharacterComponents](Characters/CharacterComponents.md)** - Pronouns, relationships, traits
 - **[CharacterInventory](Characters/CharacterInventory.md)** - Multi-slot equipment and inventory
 
+### Gameplay Objects System
+- **[ObjectItem](Gameplay/ObjectItem.md)** - Item assets (weapons, magic, consumables, gifts, etc.)
+- **[ObjectSubtype](Gameplay/ObjectSubtype.md)** - Dynamic item type validation system
+
 ### Portrait System
 - **[Portrait](Characters/Portraits/Portrait.md)** - Compositable character portraits
 - **[ImageStack](Characters/Portraits/ImageStack.md)** - Layer container and ImageStackLayer
@@ -53,9 +57,13 @@ PrototypeDocs/
 │   ├── CharacterStats.md                       # CharacterStat + BoundedCharacterStat
 │   ├── CharacterComponents.md                  # Pronouns, SupportRelationship, HereditaryTraits, CharacterWhich
 │   ├── CharacterInventory.md                   # Multi-slot equipment and inventory system
+│   ├── DefaultCharacterStats.md                # Default stat initialization
 │   └── Portraits/                              # Portrait sub-system
 │       ├── Portrait.md                         # Portrait class (compositable portraits)
 │       └── ImageStack.md                       # ImageStack + ImageStackLayer
+├── Gameplay/                                    # Gameplay objects system
+│   ├── ObjectItem.md                           # ObjectItem ScriptableObject (items, weapons, etc.)
+│   └── ObjectSubtype.md                        # Dynamic item type validation
 ├── Skills/                                      # Skills system documentation
 │   ├── Skill.md                                # Skill asset with badge graphics
 │   ├── SkillBadge.md                           # SkillBadge (StackedImage<Skill>)
@@ -66,7 +74,6 @@ PrototypeDocs/
 │   └── StackedImage.md                         # StackedImage<TOwner> abstract base class
 ├── Configurations/                              # Settings and configuration systems
 │   ├── Settings.md                             # CharacterPrototypeSettings + GraphicsPrototypesSettings
-│   ├── DefaultCharacterStats.md                # Default stat initialization
 │   └── Components/                             # Configuration components
 │       └── ExperienceTypes.md                  # ExperienceType + WeaponType (combat system)
 └── Tools/                                       # Editor tools and utilities
@@ -143,17 +150,48 @@ PrototypeDocs/
 - CharacterWhich enum: Player/Enemy/Ally/Neutral
 
 ### Characters/CharacterInventory.md
-**Source**: `Assets/Prototypes/Characters/Components/Inventory/CharacterInventory.cs`
+**Source**: `Assets/TurnrootFramework/Characters/Components/Inventory/CharacterInventoryInstance.cs`
 **Documents**:
-- ScriptableObject for inventory management
+- Serializable class for per-character inventory management
 - **Equipment System**: 3-slot array (Weapon/Shield/Accessory)
 - Properties: InventoryItems, Capacity, CurrentItemCount, CurrentWeight
 - Equipment state: EquippedItemIndices array, IsWeaponEquipped/Shield/Accessory flags
 - Methods: GetEquippedItemIndex(), IsItemEquipped(), AddToInventory(), RemoveFromInventory(), EquipItem(), UnequipItem(int), UnequipAllItems(), ReorderItem()
-- **Slot Mapping**: ObjectItemType → slot index (Weapon=0, Shield=1, Accessory=2)
+- **Slot Mapping**: Uses ObjectSubtype and EquipableObjectType for slot determination
 - **Auto-Unequip**: Equipping same type replaces previous item in slot
 - **Index Tracking**: Adjusts equipped indices on remove/reorder operations
-- Integration with ObjectItem and ObjectItemType enum
+- Integration with ObjectItem and ObjectSubtype
+
+### Gameplay/ObjectItem.md
+**Source**: `Assets/TurnrootFramework/Gameplay/Objects/ObjectItem.cs`
+**Namespace**: `Turnroot.Gameplay.Objects`
+**Documents**:
+- ScriptableObject for gameplay items (weapons, magic, consumables, gifts, etc.)
+- **Identity**: Name, ID, flavor text, icon, equipable type
+- **Type System**: ObjectSubtype integration, WeaponType reference
+- **Pricing**: Base price, sellable/buyable flags, sell price reduction
+- **Repair System**: Repair costs, item requirements, forge options
+- **Lost Items**: Owner tracking, belongs-to character
+- **Gift System**: Gift rank, character love/hate preferences
+- **Attack Range**: Lower/upper range, stat-based range adjustments
+- **Durability**: Uses tracking, max uses, replenish options
+- **Stats**: Weight system
+- **Aptitude**: Minimum aptitude level for usage
+- **Helper Methods**: NaughtyAttributes ShowIf conditions for Inspector organization
+- Integration with CharacterInventoryInstance, ObjectSubtype, WeaponType, AptitudeLevel
+
+### Gameplay/ObjectSubtype.md
+**Source**: `Assets/TurnrootFramework/Gameplay/Objects/Components/ObjectSubtype.cs`
+**Documents**:
+- Serializable class for dynamic item type validation
+- **Constants**: Weapon, Magic, Consumable, Equipable, Gift, LostItem
+- **Dynamic Validation**: IsValid() checks existence, IsEnabled() checks settings
+- **Settings Integration**: Gift and LostItem types respect GameplayGeneralSettings
+- **Methods**: GetValidValues(), IsValid(), IsEnabled()
+- **Properties**: IsWeapon, IsMagic, IsConsumable, IsEquipable, IsGift, IsLostItem
+- **Operators**: Implicit string conversion, equality operators
+- **Design Pattern**: Class-based constrained string wrapper instead of enum
+- Integration with GameplayGeneralSettings, ObjectItem, CharacterInventoryInstance
 
 ### Skills/Nodes/README.md
 **Sources**:

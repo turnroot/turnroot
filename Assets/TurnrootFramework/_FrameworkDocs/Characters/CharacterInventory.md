@@ -1,25 +1,28 @@
-# CharacterInventory
+# CharacterInventoryInstance
 
-**Inherits:** `ScriptableObject`  
-**Location:** `Assets/Prototypes/Characters/Components/Inventory/CharacterInventory.cs`
+**Type:** `Serializable Class`  
+**Location:** `Assets/TurnrootFramework/Characters/Components/Inventory/CharacterInventoryInstance.cs`
 
-Manages character inventory with support for simultaneous equipment of weapon, shield, and accessory items.
-
-## Creation
-
-```csharp
-Assets > Create > Character > CharacterInventory
-```
+Manages character inventory with support for simultaneous equipment of weapon, shield, and accessory items. Each character has their own instance (not a shared ScriptableObject template).
 
 ## Equipment System
 
 The inventory supports **3 simultaneous equipment slots**:
 
-| Slot Index | Item Type | Flag Property |
-|------------|-----------|---------------|
-| 0 | `ObjectItemType.Weapon` | `IsWeaponEquipped` |
-| 1 | `ObjectItemType.Shield` | `IsShieldEquipped` |
-| 2 | `ObjectItemType.Accessory` | `IsAccessoryEquipped` |
+| Slot Index | Item Subtype | Equipable Types | Flag Property |
+|------------|--------------|-----------------|---------------|
+| 0 | `ObjectSubtype.Weapon` | Weapon, Staff (equipable) | `IsWeaponEquipped` |
+| 1 | `ObjectSubtype.Equipable` (Shield) | Shield | `IsShieldEquipped` |
+| 2 | `ObjectSubtype.Equipable` (Accessory/Ring) | Accessory, Ring | `IsAccessoryEquipped` |
+
+**Slot Determination Logic:**
+- Items with `Subtype == ObjectSubtype.Weapon` → Slot 0
+- Items with `Subtype == ObjectSubtype.Equipable`:
+  - `EquipableType == Shield` → Slot 1
+  - `EquipableType == Accessory` → Slot 2
+  - `EquipableType == Ring` → Slot 2 (shares with Accessory)
+  - `EquipableType == Staff` → Slot 0 (shares with Weapon)
+- Other subtypes (Consumable, Gift, LostItem) → Not equipable
 
 ## Properties
 
@@ -27,43 +30,41 @@ The inventory supports **3 simultaneous equipment slots**:
 
 | Property | Type | Access | Description |
 |----------|------|--------|-------------|
-| `InventoryItems` | `ObjectItem[]` | Read/Write | Array of items in inventory |
-| `Capacity` | `int` | Read/Write | Maximum number of items (default: 6) |
-| `CurrentItemCount` | `int` | Read/Write | Current number of items in inventory |
-| `CurrentWeight` | `int` | Read/Write | Total weight of all items |
+| `_inventoryItems` | `List<ObjectItem>` | Private | List of items in inventory |
+| `_capacity` | `int` | Private | Maximum number of items (default: 6) |
+| `CurrentItemCount` | `int` | Public | Current number of items in inventory |
+| `CurrentWeight` | `float` | Public | Total weight of all items |
 
 ### Equipment State
 
 | Property | Type | Access | Description |
 |----------|------|--------|-------------|
-| `EquippedItemIndices` | `int[]` | Read-only | Array of 3 indices (-1 if slot empty) |
-| `IsWeaponEquipped` | `bool` | Read/Write | Whether weapon slot is occupied |
-| `IsShieldEquipped` | `bool` | Read/Write | Whether shield slot is occupied |
-| `IsAccessoryEquipped` | `bool` | Read/Write | Whether accessory slot is occupied |
+| `_equippedItemIndices` | `int[]` | Private | Array of 3 indices (-1 if slot empty) |
+| `IsWeaponEquipped` | `bool` | Public | Whether weapon slot is occupied |
+| `IsShieldEquipped` | `bool` | Public | Whether shield slot is occupied |
+| `IsAccessoryEquipped` | `bool` | Public | Whether accessory slot is occupied |
 
 ## Methods
 
-### GetEquippedItemIndex
+### GetEquippedItemIndex (by Subtype)
 
 ```csharp
-int GetEquippedItemIndex(ObjectItemType itemType)
+int GetEquippedItemIndex(ObjectSubtype subtype, EquipableObjectType equipableType = default)
 ```
 
-Returns the inventory index of the equipped item of the specified type.
+### GetEquippedItemIndex (by Subtype)
+
+```csharp
+int GetEquippedItemIndex(ObjectSubtype subtype, EquipableObjectType equipableType = default)
+```
+
+Returns the inventory index of the equipped item by subtype and equipable type.
 
 **Parameters:**
-- `itemType` - Type of item to query (Weapon/Shield/Accessory)
+- `subtype` - The ObjectSubtype to query (Weapon, Equipable, etc.)
+- `equipableType` - The EquipableObjectType (only used if subtype is Equipable)
 
 **Returns:** Inventory index (0-based), or -1 if no item of that type is equipped
-
-**Example:**
-```csharp
-int weaponIndex = inventory.GetEquippedItemIndex(ObjectItemType.Weapon);
-if (weaponIndex >= 0)
-{
-    ObjectItem weapon = inventory.InventoryItems[weaponIndex];
-}
-```
 
 ### IsItemEquipped
 
@@ -92,7 +93,17 @@ Adds an item to the inventory.
 **Behavior:**
 - Fails with warning if inventory is at capacity
 - Automatically increments `CurrentItemCount` and `CurrentWeight`
-- Dynamically resizes the `InventoryItems` array
+- Appends to the `_inventoryItems` list
+
+### CanAddItem
+
+```csharp
+bool CanAddItem(ObjectItem item)
+```
+
+Checks if there is room to add an item.
+
+**Returns:** `true` if inventory has space, `false` if at capacity
 
 ### RemoveFromInventory
 
@@ -123,24 +134,15 @@ Equips an item from the inventory into the appropriate slot based on its type.
 - `index` - Inventory index of the item to equip
 
 **Behavior:**
-- Determines slot from item's `ObjectItemType` (Weapon→0, Shield→1, Accessory→2)
+- Determines slot from item's `Subtype` and `EquipableType`:
+  - `Subtype.Weapon` → Slot 0
+  - `Subtype.Equipable` with `EquipableType.Shield` → Slot 1
+  - `Subtype.Equipable` with `EquipableType.Accessory/Ring` → Slot 2
+  - `Subtype.Equipable` with `EquipableType.Staff` → Slot 0
 - Automatically unequips previously equipped item in that slot
 - Sets appropriate equipped flag (`IsWeaponEquipped`, etc.)
 - Fails with warning if index is invalid or item type cannot be equipped
-- Only `Weapon`, `Shield`, and `Accessory` types can be equipped
-
-**Example:**
-```csharp
-// Equip item at index 2
-inventory.EquipItem(2);
-
-// Check what was equipped
-if (inventory.IsWeaponEquipped)
-{
-    int weaponIdx = inventory.GetEquippedItemIndex(ObjectItemType.Weapon);
-    Debug.Log($"Equipped weapon at index {weaponIdx}");
-}
-```
+- Only items with `Weapon` or `Equipable` subtypes can be equipped
 
 ### UnequipItem
 
@@ -158,18 +160,6 @@ Unequips a specific item from its equipment slot.
 - Clears that slot and its corresponding flag
 - Item remains in inventory
 - Fails with warning if index is invalid or item is not equipped
-
-**Example:**
-```csharp
-// Unequip the weapon at inventory index 0
-inventory.UnequipItem(0);
-
-// Check if it was unequipped
-if (!inventory.IsWeaponEquipped)
-{
-    Debug.Log("Weapon successfully unequipped");
-}
-```
 
 ### UnequipAllItems
 
@@ -195,69 +185,11 @@ Moves an item from one inventory position to another.
 **Parameters:**
 - `oldIndex` - Current inventory index
 - `newIndex` - Desired inventory index
-
-**Behavior:**
-- Shifts other items to accommodate the move
-- Updates all equipped indices to track moved items
-- If equipped item is moved, equipment state follows it
-- Fails with warning if either index is invalid
-
-## Equipment Slot Mapping
-
-The system uses a fixed 3-slot array with type-based routing:
-
-```
-_equippedItemIndices[0] → Weapon   → IsWeaponEquipped
-_equippedItemIndices[1] → Shield   → IsShieldEquipped
-_equippedItemIndices[2] → Accessory → IsAccessoryEquipped
-```
-
-Each slot stores the **inventory index** of the equipped item, or -1 if empty.
-
-## Implementation Notes
-
-### Index Tracking
-
-The inventory maintains index integrity across operations:
-- **RemoveFromInventory**: Adjusts equipped indices when items below them are removed
-- **ReorderItem**: Updates equipped indices to track moved items
-- **AddToInventory**: No adjustment needed (appends to end)
-
-### Non-Equippable Types
-
-Only `Weapon`, `Shield`, and `Accessory` can be equipped. Attempting to equip other types (`Consumable`, `Gift`, `Required`) logs a warning and fails.
-
-## Related Types
-
-### ObjectItem
-
-```csharp
-public class ObjectItem : MonoBehaviour
-{
-    public string itemName;
-    public ObjectItemType ItemType;
-    public int Weight;
-    public Sprite icon;
-}
-```
-
-### ObjectItemType
-
-```csharp
-public enum ObjectItemType
-{
-    Weapon,      // Equipment slot 0
-    Shield,      // Equipment slot 1
-    Accessory,   // Equipment slot 2
-    Consumable,  // Not equippable
-    Gift,        // Not equippable
-    Required,    // Not equippable
-}
-```
-
 ---
 
 ## See Also
 
 - **[Character](Character.md)** - Character system
 - **[CharacterComponents](CharacterComponents.md)** - Other character components
+- **[ObjectItem](../Gameplay/ObjectItem.md)** - Item definition
+- **[ObjectSubtype](../Gameplay/ObjectSubtype.md)** - Dynamic item type system
