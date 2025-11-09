@@ -12,10 +12,10 @@ namespace Turnroot.Characters.Components.Support
         private CharacterData _character;
 
         [SerializeField]
-        private SupportLevels _supportLevels = new();
+        private SupportLevels _supportLevels;
 
         [SerializeField]
-        private string _maxLevel = "A";
+        private string _maxLevel;
 
         [SerializeField]
         private int _supportSpeed = 1;
@@ -23,11 +23,17 @@ namespace Turnroot.Characters.Components.Support
         [SerializeField]
         private int _supportPoints = 0;
 
+        public SupportRelationshipInstance()
+        {
+            _supportLevels = new SupportLevels { Value = "E" };
+            _maxLevel = "A";
+            _supportSpeed = 1;
+        }
+
         public SupportRelationshipInstance(SupportRelationship template)
         {
             _character = template.Character;
-            _supportLevels = new SupportLevels();
-            _supportLevels.Value = template.SupportLevels.Value;
+            _supportLevels = new SupportLevels { Value = template.SupportLevel.Value };
             _maxLevel = template.MaxLevel;
             _supportSpeed = template.SupportSpeed;
         }

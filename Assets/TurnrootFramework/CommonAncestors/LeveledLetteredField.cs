@@ -16,7 +16,10 @@ namespace TurnrootFramework.CommonAncestors
         public const string D = "D";
         public const string E = "E";
 
-        public LeveledLetteredField() { }
+        public LeveledLetteredField()
+        {
+            _value = "E"; // Default to E
+        }
 
         public LeveledLetteredField(string value)
         {

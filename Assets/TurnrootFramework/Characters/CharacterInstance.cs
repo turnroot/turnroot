@@ -59,7 +59,6 @@ namespace Turnroot.Characters
         public CharacterInstance(CharacterData template)
         {
             _id = Guid.NewGuid().ToString();
-            // TODO: REPLACE THIS WITH A REAL ID
             _characterTemplate = template;
             Initialize();
         }
@@ -102,7 +101,17 @@ namespace Turnroot.Characters
             {
                 foreach (var relTemplate in _characterTemplate.SupportRelationships)
                 {
-                    _supportRelationships.Add(new SupportRelationshipInstance(relTemplate));
+                    // Skip invalid relationships (same character)
+                    if (relTemplate.Character != _characterTemplate)
+                    {
+                        _supportRelationships.Add(new SupportRelationshipInstance(relTemplate));
+                    }
+                    else
+                    {
+                        Debug.LogWarning(
+                            $"Skipping invalid support relationship in template: character cannot have relationship with themselves ({relTemplate.Character.name})"
+                        );
+                    }
                 }
             }
 
@@ -153,6 +162,15 @@ namespace Turnroot.Characters
 
         public void AddSupportRelationship(SupportRelationship template)
         {
+            // Validate that the support relationship is not with the same character
+            if (template.Character == _characterTemplate)
+            {
+                Debug.LogWarning(
+                    $"Cannot add support relationship with the same character ({template.Character.name})"
+                );
+                return;
+            }
+
             // Check if relationship already exists
             if (GetSupportRelationship(template.Character) == null)
             {

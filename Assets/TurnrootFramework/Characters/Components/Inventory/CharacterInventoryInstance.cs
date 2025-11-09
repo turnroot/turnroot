@@ -8,7 +8,6 @@ using UnityEngine;
 /// Inventory system for characters. Each character has their own CharacterInventoryInstance
 /// that tracks their specific inventory state.
 /// </summary>
-
 [Serializable]
 public class CharacterInventoryInstance
 {

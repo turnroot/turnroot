@@ -21,11 +21,11 @@ namespace Turnroot.Gameplay.Objects
         [Foldout("Identity"), SerializeField]
         private Sprite _icon;
 
-        [Foldout("Identity"), SerializeField, ShowIf(nameof(IsEquipableSubtype))]
-        private EquipableObjectType _equipableType;
-
         [Foldout("Type"), SerializeField, HorizontalLine(color: EColor.Blue)]
         private ObjectSubtype _subtype = new ObjectSubtype(ObjectSubtype.Weapon);
+
+        [Foldout("Type"), SerializeField, ShowIf(nameof(IsEquipableSubtype))]
+        private EquipableObjectType _equipableType;
 
         [ShowIf(nameof(IsWeaponSubtype)), Foldout("Type")]
         private WeaponType _weaponType;
@@ -73,7 +73,7 @@ namespace Turnroot.Gameplay.Objects
         [
             Foldout("Repair"),
             SerializeField,
-            ShowIf(nameof(IsWeaponOrMagicSubtypeAndIsRepairableAndNeedsItems))
+            ShowIf(nameof(IsWeaponOrMagicSubtype))
         ]
         private bool _forgeable = false;
 
@@ -123,30 +123,30 @@ namespace Turnroot.Gameplay.Objects
         private CharacterData[] _unitsHate;
 
         [
-            Foldout("Weapon Range"),
+            Foldout("Range"),
             SerializeField,
             HorizontalLine(color: EColor.Orange),
-            ShowIf(nameof(IsWeaponSubtype))
+            ShowIf(nameof(IsWeaponOrMagicOrStaffSubtype))
         ]
         private int _lowerRange = 0;
 
-        [Foldout("Attack Range"), SerializeField, ShowIf(nameof(IsWeaponOrMagicSubtype))]
+        [Foldout("Range"), SerializeField, ShowIf(nameof(IsWeaponOrMagicOrStaffSubtype))]
         private int _upperRange = 0;
 
-        [Foldout("Attack Range"), SerializeField, ShowIf(nameof(IsWeaponOrMagicSubtype))]
+        [Foldout("Range"), SerializeField, ShowIf(nameof(IsWeaponOrMagicOrStaffSubtype))]
         private bool _rangeAdjustedByStat = false;
 
         [
-            Foldout("Attack Range"),
+            Foldout("Range"),
             SerializeField,
-            ShowIf(nameof(IsWeaponOrMagicSubtypeAndIsRangeAdjusted))
+            ShowIf(nameof(IsWeaponOrMagicOrStaffSubtypeAndIsRangeAdjusted))
         ]
         private UnboundedStatType _rangeAdjustedByStatName = UnboundedStatType.Strength;
 
         [
-            Foldout("Attack Range"),
+            Foldout("Range"),
             SerializeField,
-            ShowIf(nameof(IsWeaponOrMagicSubtypeAndIsRangeAdjusted))
+            ShowIf(nameof(IsWeaponOrMagicOrStaffSubtypeAndIsRangeAdjusted))
         ]
         private int _rangeAdjustedByStatAmount = 0;
 
@@ -157,13 +157,6 @@ namespace Turnroot.Gameplay.Objects
             HorizontalLine(color: EColor.Pink)
         ]
         private bool _durability = true;
-
-        [
-            Foldout("Durability"),
-            SerializeField,
-            ShowIf(nameof(IsWeaponOrMagicSubtypeAndIsDurability))
-        ]
-        private int _uses = 100;
 
         [
             Foldout("Durability"),
@@ -182,7 +175,7 @@ namespace Turnroot.Gameplay.Objects
         [
             Foldout("Durability"),
             SerializeField,
-            ShowIf(nameof(IsWeaponOrMagicSubtypeAndIsDurability))
+            ShowIf(nameof(IsDurabilityAndIsReplenishUsesAfterBattle))
         ]
         private ReplenishUseType _replenishUsesAfterBattleAmount = ReplenishUseType.None;
 
@@ -218,6 +211,9 @@ namespace Turnroot.Gameplay.Objects
         private bool IsWeaponOrMagicSubtype() =>
             _subtype == ObjectSubtype.Weapon || _subtype == ObjectSubtype.Magic;
 
+        private bool IsWeaponOrMagicOrStaffSubtype() =>
+            IsWeaponOrMagicSubtype() || _equipableType == EquipableObjectType.Staff;
+
         private bool IsLostItemSubtype() => _subtype == ObjectSubtype.LostItem;
 
         private bool IsGiftSubtype() => _subtype == ObjectSubtype.Gift;
@@ -225,8 +221,8 @@ namespace Turnroot.Gameplay.Objects
         private bool IsWeaponOrMagicSubtypeAndIsDurability() =>
             IsWeaponOrMagicSubtype() && _durability;
 
-        private bool IsWeaponOrMagicSubtypeAndIsRangeAdjusted() =>
-            IsWeaponOrMagicSubtype() && _rangeAdjustedByStat;
+        private bool IsWeaponOrMagicOrStaffSubtypeAndIsRangeAdjusted() =>
+            IsWeaponOrMagicOrStaffSubtype() && _rangeAdjustedByStat;
 
         private bool IsWeaponOrMagicSubtypeAndIsRepairable() =>
             IsWeaponOrMagicSubtype() && _repairable;
@@ -239,5 +235,8 @@ namespace Turnroot.Gameplay.Objects
 
         private bool IsWeaponOrMagicSubtypeAndIsForgeableAndNeedsItems() =>
             IsWeaponOrMagicSubtypeAndIsForgeable() && _forgeNeedsItems;
+
+        private bool IsDurabilityAndIsReplenishUsesAfterBattle() =>
+            _replenishUsesAfterBattle && _durability;
     }
 }

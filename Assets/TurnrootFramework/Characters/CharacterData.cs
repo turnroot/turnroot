@@ -70,6 +70,28 @@ namespace Turnroot.Characters
             {
                 _fullName = _name;
             }
+
+            // Validate support relationships - remove any that reference this character
+            if (_supportRelationships != null)
+            {
+                _supportRelationships.RemoveAll(rel =>
+                {
+                    if (rel.Character == this)
+                    {
+                        Debug.LogWarning(
+                            $"Removed invalid support relationship: {name} cannot have a support relationship with themselves"
+                        );
+                        return true;
+                    }
+                    return false;
+                });
+
+                // Ensure all support relationships have proper default values
+                foreach (var rel in _supportRelationships)
+                {
+                    rel.InitializeDefaults();
+                }
+            }
         }
 
         [Foldout("Identity"), SerializeField]

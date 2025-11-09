@@ -12,13 +12,20 @@ namespace Turnroot.Characters.Components.Support
         private CharacterData _character;
 
         [SerializeField]
-        private SupportLevels _supportLevels = new();
+        private SupportLevels _supportLevel;
 
         [SerializeField]
-        private string _maxLevel;
+        private SupportLevels _maxLevel;
 
-        [SerializeField]
+        [SerializeField, Range(1, 5)]
         private int _supportSpeed = 1;
+
+        public SupportRelationship()
+        {
+            _supportLevel = new SupportLevels { Value = "E" };
+            _maxLevel = new SupportLevels { Value = "A" };
+            _supportSpeed = 1;
+        }
 
         public CharacterData Character
         {
@@ -26,18 +33,41 @@ namespace Turnroot.Characters.Components.Support
             set => _character = value;
         }
 
-        public SupportLevels SupportLevels => _supportLevels;
+        public SupportLevels SupportLevel
+        {
+            get
+            {
+                if (_supportLevel == null)
+                    _supportLevel = new SupportLevels { Value = "E" };
+                return _supportLevel;
+            }
+        }
 
         public string MaxLevel
         {
-            get => _maxLevel;
-            set => _maxLevel = value;
+            get
+            {
+                if (_maxLevel == null)
+                    _maxLevel = new SupportLevels { Value = "A" };
+                return _maxLevel.Value;
+            }
+            set => _maxLevel = new SupportLevels() { Value = value };
         }
 
         public int SupportSpeed
         {
-            get => _supportSpeed;
-            set => _supportSpeed = value;
+            get => _supportSpeed > 0 ? _supportSpeed : 1;
+            set => _supportSpeed = Mathf.Clamp(value, 1, 5);
+        }
+
+        public void InitializeDefaults()
+        {
+            if (_supportLevel == null)
+                _supportLevel = new SupportLevels { Value = "E" };
+            if (_maxLevel == null)
+                _maxLevel = new SupportLevels { Value = "A" };
+            if (_supportSpeed <= 0)
+                _supportSpeed = 1;
         }
     }
 }
