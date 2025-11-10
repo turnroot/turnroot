@@ -15,10 +15,7 @@ namespace Turnroot.Skills.Nodes
         protected override void Init()
         {
             base.Init();
-            if (OnNodeExecute == null)
-            {
-                OnNodeExecute = new UnityEvent();
-            }
+            OnNodeExecute ??= new UnityEvent();
         }
 
         /// <summary>
@@ -48,8 +45,7 @@ namespace Turnroot.Skills.Nodes
 
         public virtual void Execute(
             Turnroot.Gameplay.Combat.FundamentalComponents.Battles.BattleContext context
-        )
-        { }
+        ) { }
 
         public override object GetValue(NodePort port)
         {

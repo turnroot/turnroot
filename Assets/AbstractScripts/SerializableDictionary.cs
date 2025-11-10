@@ -11,7 +11,7 @@ public class SerializableDictionary<TKey, TValue>
     [SerializeField]
     private List<TKey> _keys = new();
 
-    [SerializeField]
+    [SerializeField, SerializeReference]
     private List<TValue> _values = new();
 
     private Dictionary<TKey, TValue> _dictionary;
