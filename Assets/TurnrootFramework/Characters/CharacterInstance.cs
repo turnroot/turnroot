@@ -29,10 +29,10 @@ namespace Turnroot.Characters
         private int _currentExp = 0;
 
         [SerializeField]
-        private List<BoundedCharacterStat> _runtimeBoundedStats = new List<BoundedCharacterStat>();
+        private List<BoundedCharacterStat> _runtimeBoundedStats = new();
 
         [SerializeField]
-        private List<CharacterStat> _runtimeUnboundedStats = new List<CharacterStat>();
+        private List<CharacterStat> _runtimeUnboundedStats = new();
 
         // Runtime Inventory
         [SerializeField]
@@ -40,12 +40,11 @@ namespace Turnroot.Characters
 
         // Runtime Skills
         [SerializeField]
-        private List<SkillInstance> _skillInstances = new List<SkillInstance>();
+        private List<SkillInstance> _skillInstances = new();
 
         // Support Relationships (runtime)
         [SerializeField]
-        private List<SupportRelationshipInstance> _supportRelationships =
-            new List<SupportRelationshipInstance>();
+        private List<SupportRelationshipInstance> _supportRelationships = new();
 
         public string Id => _id;
         public CharacterData CharacterTemplate => _characterTemplate;
@@ -88,10 +87,7 @@ namespace Turnroot.Characters
             {
                 foreach (var slot in _characterTemplate.StartingInventory)
                 {
-                    for (int i = 0; i < slot.Quantity; i++)
-                    {
-                        _inventoryInstance.AddToInventory(new ObjectItemInstance(slot.Item));
-                    }
+                    _inventoryInstance.AddToInventory(new ObjectItemInstance(slot.Item));
                 }
             }
 

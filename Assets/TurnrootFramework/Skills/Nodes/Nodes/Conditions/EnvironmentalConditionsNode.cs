@@ -25,7 +25,7 @@ public class EnvironmentalConditionsNode : SkillNode
     {
         if (port.fieldName == "Condition" && graph is SkillGraph skillGraph)
         {
-            BoolValue result = new BoolValue();
+            BoolValue result = new();
             var contextFromGraph = GetContextFromGraph(skillGraph);
             var envConditions = contextFromGraph?.EnvironmentalConditions;
 

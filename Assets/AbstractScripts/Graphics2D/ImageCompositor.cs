@@ -112,7 +112,7 @@ namespace Assets.AbstractScripts.Graphics2D
                 return null;
             }
 
-            Texture2D compositedTexture = new Texture2D(
+            Texture2D compositedTexture = new(
                 baseTexture.width,
                 baseTexture.height,
                 TextureFormat.RGBA32,
@@ -249,7 +249,7 @@ namespace Assets.AbstractScripts.Graphics2D
                 return null;
             }
 
-            Texture2D compositedTexture = new Texture2D(
+            Texture2D compositedTexture = new(
                 baseTexture.width,
                 baseTexture.height,
                 TextureFormat.RGBA32,

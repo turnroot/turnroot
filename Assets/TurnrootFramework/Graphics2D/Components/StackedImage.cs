@@ -199,7 +199,7 @@ namespace Turnroot.Graphics2D
             int height = settings.portraitRenderHeight;
 
             // Create base texture with transparent pixels
-            Texture2D baseTexture = new Texture2D(width, height, TextureFormat.RGBA32, false);
+            Texture2D baseTexture = new(width, height, TextureFormat.RGBA32, false);
             Color[] clearPixels = new Color[width * height];
             for (int i = 0; i < clearPixels.Length; i++)
             {

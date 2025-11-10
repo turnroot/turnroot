@@ -22,7 +22,7 @@ namespace Turnroot.Gameplay.Objects
         private Sprite _icon;
 
         [Foldout("Type"), SerializeField, HorizontalLine(color: EColor.Blue)]
-        private ObjectSubtype _subtype = new ObjectSubtype(ObjectSubtype.Weapon);
+        private ObjectSubtype _subtype = new(ObjectSubtype.Weapon);
 
         [Foldout("Type"), SerializeField, ShowIf(nameof(IsEquipableSubtype))]
         private EquipableObjectType _equipableType;
@@ -70,11 +70,7 @@ namespace Turnroot.Gameplay.Objects
         ]
         private int _repairItemAmountPerUse = 1;
 
-        [
-            Foldout("Repair"),
-            SerializeField,
-            ShowIf(nameof(IsWeaponOrMagicSubtype))
-        ]
+        [Foldout("Repair"), SerializeField, ShowIf(nameof(IsWeaponOrMagicSubtype))]
         private bool _forgeable = false;
 
         [Foldout("Repair"), SerializeField, ShowIf(nameof(IsWeaponOrMagicSubtypeAndIsForgeable))]

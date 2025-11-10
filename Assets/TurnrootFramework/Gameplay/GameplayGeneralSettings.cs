@@ -111,7 +111,7 @@ public class GameplayGeneralSettings : SingletonScriptableObject<GameplayGeneral
     private ExperienceType[] ExperienceWeaponTypes;
 
     [SerializeField, BoxGroup("Extra Experience Types"), HorizontalLine(color: EColor.Orange)]
-    private ExperienceType RidingExperienceType = new ExperienceType
+    private ExperienceType RidingExperienceType = new()
     {
         Name = "Riding",
         Enabled = false,
@@ -119,7 +119,7 @@ public class GameplayGeneralSettings : SingletonScriptableObject<GameplayGeneral
     };
 
     [SerializeField, BoxGroup("Extra Experience Types")]
-    private ExperienceType FlyingExperienceType = new ExperienceType
+    private ExperienceType FlyingExperienceType = new()
     {
         Name = "Flying",
         Enabled = false,
@@ -127,7 +127,7 @@ public class GameplayGeneralSettings : SingletonScriptableObject<GameplayGeneral
     };
 
     [SerializeField, BoxGroup("Extra Experience Types")]
-    private ExperienceType ArmorExperienceType = new ExperienceType
+    private ExperienceType ArmorExperienceType = new()
     {
         Name = "Armor",
         Enabled = false,

@@ -27,7 +27,7 @@ namespace Turnroot.Characters
         }
 
         [SerializeField]
-        private List<DefaultBoundedStat> _defaultBoundedStats = new List<DefaultBoundedStat>
+        private List<DefaultBoundedStat> _defaultBoundedStats = new()
         {
             new DefaultBoundedStat
             {
@@ -39,7 +39,7 @@ namespace Turnroot.Characters
         };
 
         [SerializeField]
-        private List<DefaultUnboundedStat> _defaultUnboundedStats = new List<DefaultUnboundedStat>
+        private List<DefaultUnboundedStat> _defaultUnboundedStats = new()
         {
             new DefaultUnboundedStat { StatType = UnboundedStatType.Strength, Current = 10 },
         };

@@ -24,10 +24,10 @@ namespace Turnroot.Characters
             private ObjectItem _item;
 
             [SerializeField]
-            private int _quantity = 1;
+            private int _slotIndex = 1;
 
             public ObjectItem Item => _item;
-            public int Quantity => _quantity;
+            public int SlotIndex => _slotIndex;
         }
 
         /* ----------------------------- Core Functions ----------------------------- */
@@ -60,15 +60,15 @@ namespace Turnroot.Characters
         private void OnValidate()
         {
             // Ensure that the character's name is not empty
-            if (string.IsNullOrWhiteSpace(_name))
+            if (string.IsNullOrWhiteSpace(_displayName))
             {
-                _name = "New Unit";
+                _displayName = "New Unit";
             }
 
             // Ensure that the full name is not empty
             if (string.IsNullOrWhiteSpace(_fullName))
             {
-                _fullName = _name;
+                _fullName = _displayName;
             }
 
             // Validate support relationships - remove any that reference this character
@@ -94,12 +94,22 @@ namespace Turnroot.Characters
             }
         }
 
+#if UNITY_EDITOR
+        [
+            InfoBox(
+                "This is pre-runtime data. Use this editor to define the character's base stats, skills, inventory, and relationships- anything that should be in place before the game starts."
+            ),
+            SerializeField
+        ]
+        private string __;
+#endif
+
         [Foldout("Identity"), SerializeField]
         [HorizontalLine(color: EColor.Blue)]
         private readonly CharacterWhich _which = new("Enemy");
 
         [Foldout("Identity"), SerializeField]
-        private string _name = "New Unit";
+        private string _displayName = "New Unit";
 
         [Foldout("Identity"), SerializeField]
         private string _fullName = "Newly Created Unit";
@@ -202,9 +212,6 @@ namespace Turnroot.Characters
         [HorizontalLine(color: EColor.Yellow)]
         private UnityEngine.Object _ai;
 
-        [Foldout("AI & Behavior"), SerializeField]
-        private List<string> _goals = new();
-
         [Foldout("Heredity"), SerializeField]
         [HorizontalLine(color: EColor.Pink)]
         private HereditaryTraits _passedDownTraits = new();
@@ -216,7 +223,7 @@ namespace Turnroot.Characters
         private CharacterData _childUnitId;
 
         public CharacterWhich Which => _which;
-        public string Name => _name;
+        public string DisplayName => _displayName;
         public string FullName => _fullName;
         public string Team => _team;
         public Pronouns CharacterPronouns => _pronouns;
@@ -252,7 +259,6 @@ namespace Turnroot.Characters
         public List<Skill> SpecialSkills => _specialSkills;
 
         public UnityEngine.Object AI => _ai;
-        public List<string> Goals => _goals;
 
         public List<InventorySlot> StartingInventory => _startingInventory;
         public List<SupportRelationship> SupportRelationships => _supportRelationships;

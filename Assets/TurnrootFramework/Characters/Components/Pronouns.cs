@@ -7,10 +7,7 @@ namespace Turnroot.Characters.Subclasses
     [Serializable]
     public class Pronouns
     {
-        private static readonly Dictionary<string, string[]> PronounSets = new Dictionary<
-            string,
-            string[]
-        >
+        private static readonly Dictionary<string, string[]> PronounSets = new()
         {
             { "they", new[] { "they", "their", "theirs", "them" } },
             { "she", new[] { "she", "her", "hers", "her" } },

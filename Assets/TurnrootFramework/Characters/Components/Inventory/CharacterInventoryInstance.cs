@@ -12,7 +12,7 @@ using UnityEngine;
 public class CharacterInventoryInstance
 {
     [SerializeField]
-    private List<ObjectItemInstance> _inventoryItems = new List<ObjectItemInstance>();
+    private List<ObjectItemInstance> _inventoryItems = new();
 
     [SerializeField]
     private int _capacity = 6;

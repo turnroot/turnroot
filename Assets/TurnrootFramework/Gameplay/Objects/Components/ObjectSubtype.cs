@@ -116,7 +116,7 @@ public class ObjectSubtype
     public static implicit operator string(ObjectSubtype subtype) => subtype._value;
 
     // Explicit conversion from string
-    public static explicit operator ObjectSubtype(string value) => new ObjectSubtype(value);
+    public static explicit operator ObjectSubtype(string value) => new(value);
 
     public override string ToString() => _value;
 

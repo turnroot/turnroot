@@ -9,10 +9,10 @@ using UnityEngine;
 public class SerializableDictionary<TKey, TValue>
 {
     [SerializeField]
-    private List<TKey> _keys = new List<TKey>();
+    private List<TKey> _keys = new();
 
     [SerializeField]
-    private List<TValue> _values = new List<TValue>();
+    private List<TValue> _values = new();
 
     private Dictionary<TKey, TValue> _dictionary;
 
