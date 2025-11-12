@@ -7,14 +7,20 @@ using XNode;
 public class SplitByChoices3Node : Node
 {
     [Input]
-    public ExecutionFlow previous;
+    public ConversationFlow previous;
 
     [Output]
-    public ExecutionFlow ChoiceA;
+    public ConversationFlow ChoiceA;
+
+    public ConversationChoice choiceA;
 
     [Output]
-    public ExecutionFlow ChoiceB;
+    public ConversationFlow ChoiceB;
+
+    public ConversationChoice choiceB;
 
     [Output]
-    public ExecutionFlow ChoiceC;
+    public ConversationFlow ChoiceC;
+
+    public ConversationChoice choiceC;
 }

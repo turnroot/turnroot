@@ -131,39 +131,6 @@ namespace Turnroot.Graphics2D.Editor
 
         protected void DrawImageMetadataSection()
         {
-            EditorGUILayout.LabelField("Image Metadata", EditorStyles.boldLabel);
-
-            EditorGUI.BeginDisabledGroup(true);
-            _ = EditorGUILayout.TextField("Image ID", _currentImage.Id.ToString());
-            EditorGUI.EndDisabledGroup();
-
-            EditorGUILayout.Space(5);
-
-            // Key editing
-            string newKey = EditorGUILayout.TextField("Key (filename)", _currentImage.Key);
-            if (newKey != _currentImage.Key)
-            {
-                _currentImage.SetKey(newKey);
-                EditorUtility.SetDirty(_currentOwner);
-                if (_autoRefresh)
-                    RefreshPreview();
-            }
-
-            EditorGUILayout.BeginHorizontal();
-            if (GUILayout.Button("Generate Short Key"))
-            {
-                _currentImage.SetKey(
-                    $"stackedImage_{System.Guid.NewGuid().ToString().Substring(0, 8)}"
-                );
-                EditorUtility.SetDirty(_currentOwner);
-            }
-            if (GUILayout.Button("Generate Full GUID Key"))
-            {
-                _currentImage.SetKey(null); // This will trigger auto-generation with full GUID
-                EditorUtility.SetDirty(_currentOwner);
-            }
-            EditorGUILayout.EndHorizontal();
-
             if (string.IsNullOrEmpty(_currentImage.Key))
             {
                 EditorGUILayout.HelpBox(
@@ -389,18 +356,31 @@ namespace Turnroot.Graphics2D.Editor
 
         protected void DrawPreviewPanel()
         {
-            EditorGUILayout.LabelField("Preview", EditorStyles.boldLabel);
-
-            // Auto-refresh toggle
-            _autoRefresh = EditorGUILayout.Toggle("Auto Refresh", _autoRefresh);
-
-            // Manual refresh button
-            if (GUILayout.Button("Refresh Preview"))
+            GUILayout.BeginHorizontal();
+            if (GUILayout.Button("Save Character Defaults"))
             {
-                RefreshPreview();
+                _currentOwner.SaveDefaults();
+                EditorUtility.SetDirty(_currentOwner);
+                // Confirmation dialog
+                EditorUtility.DisplayDialog(
+                    "Defaults Saved",
+                    "Character defaults have been saved.",
+                    "OK"
+                );
             }
-
-            EditorGUILayout.Space(10);
+            if (GUILayout.Button("Load Defaults"))
+            {
+                _currentOwner.LoadDefaults();
+                EditorUtility.SetDirty(_currentOwner);
+                RefreshPreview();
+                // Confirmation dialog
+                EditorUtility.DisplayDialog(
+                    "Defaults Loaded",
+                    "Character defaults have been loaded.",
+                    "OK"
+                );
+            }
+            GUILayout.EndHorizontal();
 
             // Preview area - constrained to reasonable size
             if (_previewTexture != null)
@@ -434,26 +414,7 @@ namespace Turnroot.Graphics2D.Editor
                 );
             }
 
-            EditorGUILayout.Space(10);
-
-            // Show saved sprite info
-            EditorGUILayout.LabelField("Saved Sprite", EditorStyles.boldLabel);
-            EditorGUI.BeginDisabledGroup(true);
-            _ = EditorGUILayout.ObjectField(
-                "Sprite Asset",
-                _currentImage.SavedSprite,
-                typeof(Sprite),
-                false
-            );
-            EditorGUI.EndDisabledGroup();
-
-            if (_currentImage.SavedSprite == null)
-            {
-                EditorGUILayout.HelpBox(
-                    "No saved sprite yet. Render and save to create one.",
-                    MessageType.Info
-                );
-            }
+            if (_currentImage.SavedSprite == null) { }
             else
             {
                 string spritePath =
@@ -462,9 +423,6 @@ namespace Turnroot.Graphics2D.Editor
             }
 
             EditorGUILayout.Space(10);
-
-            // Render controls
-            EditorGUILayout.LabelField("Render & Save", EditorStyles.boldLabel);
 
             if (_currentImage.ImageStack == null)
             {
@@ -485,11 +443,6 @@ namespace Turnroot.Graphics2D.Editor
                 }
                 else
                 {
-                    EditorGUILayout.HelpBox(
-                        $"Ready to render {layers.Count} layer(s).",
-                        MessageType.Info
-                    );
-
                     if (string.IsNullOrEmpty(_currentImage.Key))
                     {
                         EditorGUILayout.HelpBox(

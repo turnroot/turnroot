@@ -31,6 +31,16 @@ namespace Turnroot.Characters
             public int SlotIndex => _slotIndex;
         }
 
+        [Serializable, HideInInspector]
+        public class TaggedLayerDefault
+        {
+            public string Tag;
+            public Sprite Sprite;
+            public Vector2 Offset;
+            public float Scale;
+            public Color Tint;
+        }
+
         /* ----------------------------- Core Functions ----------------------------- */
 
         private void OnEnable()
@@ -172,6 +182,9 @@ namespace Turnroot.Characters
         [Foldout("Visual"), SerializeField]
         private SerializableDictionary<string, Portrait> _portraits;
 
+        [Foldout("Visual"), HideInInspector]
+        private SerializableDictionary<string, TaggedLayerDefault> _taggedLayerDefaults = new();
+
         // Cached array view of the portraits dictionary values. Use PortraitArray to access.
         private Portrait[] _portraitArrayCache;
 
@@ -251,6 +264,9 @@ namespace Turnroot.Characters
         public Color AccentColor3 => _accentColor3;
         public SerializableDictionary<string, Portrait> Portraits => _portraits;
 
+        public SerializableDictionary<string, TaggedLayerDefault> TaggedLayerDefaults =>
+            _taggedLayerDefaults;
+
         // Helper: returns the dictionary values as an array (cached). Use when you need indexed access.
         public Portrait[] PortraitArray
         {
@@ -291,6 +307,64 @@ namespace Turnroot.Characters
         public void InvalidatePortraitArrayCache()
         {
             _portraitArrayCache = null;
+        }
+
+        // Editor/API convenience: allow saving/loading character defaults (called from StackedImageEditorWindow)
+        // These perform minimal delegation to contained Portraits so editor UI can invoke them.
+        public void SaveDefaults()
+        {
+            _taggedLayerDefaults.Clear();
+            if (_portraits != null)
+            {
+                foreach (var portrait in _portraits.Values)
+                {
+                    if (portrait.ImageStack?.Layers != null)
+                    {
+                        foreach (var layer in portrait.ImageStack.Layers)
+                        {
+                            if (!string.IsNullOrEmpty(layer.Tag))
+                            {
+                                _taggedLayerDefaults[layer.Tag] = new TaggedLayerDefault
+                                {
+                                    Tag = layer.Tag,
+                                    Sprite = layer.Sprite,
+                                    Offset = layer.Offset,
+                                    Scale = layer.Scale,
+                                    Tint = layer.Tint,
+                                };
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        public void LoadDefaults()
+        {
+            if (_portraits != null)
+            {
+                foreach (var portrait in _portraits.Values)
+                {
+                    if (portrait.ImageStack?.Layers != null)
+                    {
+                        foreach (var layer in portrait.ImageStack.Layers)
+                        {
+                            if (
+                                !string.IsNullOrEmpty(layer.Tag)
+                                && _taggedLayerDefaults.ContainsKey(layer.Tag)
+                            )
+                            {
+                                var def = _taggedLayerDefaults[layer.Tag];
+                                layer.Sprite = def.Sprite;
+                                layer.Offset = def.Offset;
+                                layer.Scale = def.Scale;
+                                layer.Tint = def.Tint;
+                            }
+                        }
+                    }
+                }
+            }
+            InvalidatePortraitArrayCache();
         }
 
         // Helper methods to get stats by type

@@ -69,6 +69,7 @@ namespace Turnroot.Characters.Subclasses.Editor
             var keys = portraitsDict.Keys.ToArray();
             string[] portraitNames = keys.Select(k => k).ToArray();
 
+            GUILayout.BeginHorizontal();
             int newIndex = EditorGUILayout.Popup(
                 "Select Portrait",
                 _selectedImageIndex,
@@ -84,6 +85,28 @@ namespace Turnroot.Characters.Subclasses.Editor
                         : null;
                 RefreshPreview();
             }
+
+            if (GUILayout.Button("New +", EditorStyles.miniButton))
+            {
+                var newKey = $"Portrait{keys.Length + 1}";
+                int suffix = 1;
+                while (portraitsDict.ContainsKey(newKey))
+                {
+                    suffix++;
+                    newKey = $"Portrait{keys.Length + suffix}";
+                }
+
+                var p = new Portrait();
+                p.SetOwner(_currentOwner);
+                p.SetKey(newKey);
+                portraitsDict[newKey] = p;
+                _currentOwner.InvalidatePortraitArrayCache();
+                EditorUtility.SetDirty(_currentOwner);
+                _selectedImageIndex = keys.Length; // select the new portrait
+                UpdateCurrentImage();
+                RefreshPreview();
+            }
+            GUILayout.EndHorizontal();
 
             if (_currentImage == null)
             {

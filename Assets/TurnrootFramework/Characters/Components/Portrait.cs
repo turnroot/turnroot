@@ -27,5 +27,17 @@ namespace Turnroot.Characters.Subclasses
                 _tintColors[2] = _owner.AccentColor3;
             }
         }
+
+        // These are instance helpers for portrait-specific default handling.
+        // They are not overrides because the base class doesn't define them.
+        public void SaveDefaults()
+        {
+            // Intentionally empty - portrait-specific default saving can be implemented here.
+        }
+
+        public void LoadDefaults()
+        {
+            // Intentionally empty - portrait-specific default loading can be implemented here.
+        }
     }
 }

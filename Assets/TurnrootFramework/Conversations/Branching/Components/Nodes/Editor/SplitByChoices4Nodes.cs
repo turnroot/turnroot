@@ -3,8 +3,8 @@ using TurnrootFramework.Conversations;
 using UnityEngine;
 using XNode;
 
-[CreateNodeMenu("Conversation/Split By 2 Choices")]
-public class SplitByChoices2Node : Node
+[CreateNodeMenu("Conversation/Split By 4 Choices")]
+public class SplitByChoices4Node : Node
 {
     [Input]
     public ConversationFlow previous;
@@ -18,4 +18,14 @@ public class SplitByChoices2Node : Node
     public ConversationFlow ChoiceB;
 
     public ConversationChoice choiceB;
+
+    [Output]
+    public ConversationFlow ChoiceC;
+
+    public ConversationChoice choiceC;
+
+    [Output]
+    public ConversationFlow ChoiceD;
+
+    public ConversationChoice choiceD;
 }

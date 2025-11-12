@@ -275,7 +275,7 @@ PrototypeDocs/
 **Source**: `Assets/Prototypes/Skills/Components/Badges/Editor/SkillBadgeEditorWindow.cs`
 **Documents**:
 - Inherits `StackedImageEditorWindow<Skill, SkillBadge>`
-- MenuItem: "Window/Turnroot/Skill Badge Editor"
+- MenuItem: "Turnroot/Editors/Skill Badge Editor"
 - `OpenSkillBadge(Skill, int)` - static method to open with pre-loaded skill
 - `GetImagesFromOwner(Skill)` - returns array with skill's Badge
 - Window properties: WindowTitle, OwnerFieldLabel

@@ -7,10 +7,12 @@ using XNode;
 public class ConversationNode : Node
 {
     [Input(ShowBackingValue.Never, ConnectionType.Override)]
-    public ExecutionFlow previous;
+    public ConversationFlow previous;
 
     [Output(ShowBackingValue.Never, ConnectionType.Override)]
-    public ExecutionFlow next;
-
+    public ConversationFlow next;
     public ConversationLayer conversationLayer;
 }
+
+[System.Serializable]
+public struct ConversationFlow { }

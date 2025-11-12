@@ -8,35 +8,8 @@ using UnityEngine.Events;
 namespace TurnrootFramework.Conversations
 {
     [System.Serializable]
-    public class ConversationLayer
+    public class ConversationLayer : BaseConversation
     {
-        [SerializeField]
-        private string _dialogue;
-        private string _parsedDialogue;
-
-        private bool _hasBeenParsed;
-
-        public bool HasBeenParsed
-        {
-            get => _hasBeenParsed;
-            set => _hasBeenParsed = value;
-        }
-        public string Dialogue
-        {
-            get => _dialogue;
-            set => _dialogue = value;
-        }
-
-        public string ParsedDialogue
-        {
-            get
-            {
-                if (_parsedDialogue == null)
-                    ParseDialogue();
-                return _parsedDialogue;
-            }
-        }
-
         [SerializeField, SerializeReference]
         private CharacterData _speaker;
         public CharacterData Speaker
@@ -57,22 +30,6 @@ namespace TurnrootFramework.Conversations
                     _speakerPortraitKey = null;
                 }
             }
-        }
-
-        [SerializeField]
-        private bool _parseProunouns = true;
-        public bool ParsePronouns
-        {
-            get => _parseProunouns;
-            set => _parseProunouns = value;
-        }
-
-        [SerializeField, ShowIf(nameof(ParsePronouns))]
-        private CharacterData[] _referringTo;
-        public CharacterData[] ReferringTo
-        {
-            get => _referringTo;
-            set => _referringTo = value;
         }
 
         [SerializeField]
@@ -151,69 +108,6 @@ namespace TurnrootFramework.Conversations
         public void CompleteLayer()
         {
             OnLayerComplete?.Invoke();
-        }
-
-        public void ParseDialogue()
-        {
-            Debug.Log("Parsing pronouns");
-            _parsedDialogue = ParsePronounsInDialogue();
-            _hasBeenParsed = true;
-        }
-
-        public string ParsePronounsInDialogue()
-        {
-            string _t = Dialogue;
-            string[] pronouns = { "they", "them", "their", "theirs" };
-
-            if (ParsePronouns && ReferringTo != null)
-            {
-                // find instances of #1{them} or #fred{them}
-                // where 1 is the index of the character in ReferringTo
-                // or fred is the name of the character
-                // and run Pronouns.Use() on the {them} part
-
-                // first the #1 pass
-                for (int i = 0; i < ReferringTo.Length; i++)
-                {
-                    var character = ReferringTo[i];
-                    if (character != null)
-                    {
-                        // Replace each pronoun type for this character
-                        foreach (string pronoun in pronouns)
-                        {
-                            string placeholder = $"#{i + 1}{{{pronoun}}}";
-                            _t = _t.Replace(
-                                placeholder,
-                                character.CharacterPronouns.Use($"{{{pronoun}}}")
-                            );
-                        }
-                    }
-                }
-
-                // then the #fred pass
-                for (int i = 0; i < ReferringTo.Length; i++)
-                {
-                    var character = ReferringTo[i];
-                    if (character != null)
-                    {
-                        string namePlaceholder = $"#{character.DisplayName.ToLower()}";
-                        foreach (string pronoun in pronouns)
-                        {
-                            string placeholder = $"{namePlaceholder}{{{pronoun}}}";
-                            _t = _t.Replace(
-                                placeholder,
-                                character.CharacterPronouns.Use($"{{{pronoun}}}")
-                            );
-                        }
-                    }
-                }
-            }
-            else
-            {
-                Debug.LogWarning("No pronouns to parse were found");
-                _t = Dialogue;
-            }
-            return _t;
         }
 
         private bool HasSpeaker()

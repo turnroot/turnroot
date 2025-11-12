@@ -100,6 +100,7 @@ namespace Turnroot.Conversations.Branching.Nodes
 
         public override void OnGUI()
         {
+            window.titleContent = new GUIContent("Conversation Graph Editor");
             // Top toolbar: Add Conversation dropdown grouped by subtype/folder
             EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
             GUILayout.FlexibleSpace();

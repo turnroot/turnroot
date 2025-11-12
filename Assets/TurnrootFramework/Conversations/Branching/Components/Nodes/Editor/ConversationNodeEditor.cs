@@ -63,4 +63,7 @@ namespace Turnroot.Conversations.Branching.Nodes.Editor
 
     [CustomNodeEditor(typeof(SplitByChoices3Node))]
     public class SplitByChoices3NodeEditor : ConversationBaseNodeEditor { }
+
+    [CustomNodeEditor(typeof(SplitByChoices4Node))]
+    public class SplitByChoices4NodeEditor : ConversationBaseNodeEditor { }
 }

@@ -9,7 +9,8 @@ namespace Turnroot.Characters
             "Hair",
             "Left Eye",
             "Right Eye",
-            "Eyebrows",
+            "Left Eyebrow",
+            "Right Eyebrow",
             "Nose",
             "Mouth",
         };
@@ -17,6 +18,7 @@ namespace Turnroot.Characters
         public static readonly string[] Optional = new[]
         {
             "Freckles",
+            "Blush",
             "Beard",
             "Mustache",
             "Sideburns",
@@ -24,7 +26,7 @@ namespace Turnroot.Characters
             "Necklace",
             "Earrings",
             "Hat",
-            "Hair Accessory",
+            "Hair Accessories",
             "Glasses",
             "Shirt",
             "Collar",
@@ -34,6 +36,9 @@ namespace Turnroot.Characters
             "Tattoos",
             "Piercings",
             "Makeup",
+            "Tears",
+            "Sweat",
+            "Wounds",
         };
 
         public static readonly string[] All;
@@ -44,7 +49,8 @@ namespace Turnroot.Characters
         public static readonly string[] CanonicalFrontToBackMandatory = new[]
         {
             "Hair",
-            "Eyebrows",
+            "Left Eyebrow",
+            "Right Eyebrow",
             "Left Eye",
             "Right Eye",
             "Mouth",
