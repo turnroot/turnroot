@@ -36,7 +36,7 @@ namespace Assets.AbstractScripts.Graphics2D
 
             if (tints == null || tints.Length < 3)
             {
-                Debug.LogError("TintSpritePixels requires at least 3 tint colors.");
+                Debug.LogError("TintSpritePixels requires 3 tint colors.");
                 return null;
             }
 

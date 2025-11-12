@@ -18,4 +18,17 @@ public class SplitByChoices2Node : Node
     public ConversationFlow ChoiceB;
 
     public ConversationChoice choiceB;
+
+    public override object GetValue(NodePort port)
+    {
+        switch (port.fieldName)
+        {
+            case "ChoiceA":
+                return ChoiceA;
+            case "ChoiceB":
+                return ChoiceB;
+            default:
+                return null;
+        }
+    }
 }

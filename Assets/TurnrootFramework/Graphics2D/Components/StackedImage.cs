@@ -295,7 +295,7 @@ namespace Turnroot.Graphics2D
 
             if (correctedScale)
             {
-                UnityEngine.Debug.LogWarning(
+                Debug.LogWarning(
                     $"CompositeLayers: One or more layers in ImageStack '{_imageStack.name}' had non-positive Scale and were temporarily normalized to 1.0 for preview/compositing. Consider fixing the asset in the ImageStack editor."
                 );
             }
@@ -306,20 +306,6 @@ namespace Turnroot.Graphics2D
             {
                 masks[i] = layers[i]?.Mask;
             }
-
-            // Diagnostics: list layers and their order
-#if UNITY_EDITOR
-            for (int i = 0; i < layers.Length; i++)
-            {
-                var l = layers[i];
-                if (l == null)
-                    UnityEngine.Debug.Log($"CompositeLayers: layer[{i}] == null");
-                else
-                    UnityEngine.Debug.Log(
-                        $"CompositeLayers: layer[{i}] Order={l.Order} Sprite={(l.Sprite != null ? l.Sprite.name : "(null)")} Mask={(l.Mask != null ? l.Mask.name : "(null)")}"
-                    );
-            }
-#endif
 
             Texture2D result = ImageCompositor.CompositeImageStackLayers(
                 baseTexture,
@@ -337,7 +323,7 @@ namespace Turnroot.Graphics2D
             // Subclass provides the subdirectory name (e.g., "Portraits", "ItemIcons")
             string subdirectory = GetSaveSubdirectory();
             string directoryPath = System.IO.Path.Combine(
-                UnityEngine.Application.dataPath,
+                Application.dataPath,
                 "Resources",
                 "GameContent",
                 "Graphics",

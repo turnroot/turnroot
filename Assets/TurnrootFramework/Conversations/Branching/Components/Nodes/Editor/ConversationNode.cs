@@ -12,6 +12,13 @@ public class ConversationNode : Node
     [Output(ShowBackingValue.Unconnected, ConnectionType.Override)]
     public ConversationFlow next;
     public ConversationLayer conversationLayer;
+
+    public override object GetValue(NodePort port)
+    {
+        if (port.fieldName == "next")
+            return next;
+        return null;
+    }
 }
 
 [System.Serializable]
