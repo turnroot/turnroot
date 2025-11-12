@@ -14,6 +14,49 @@ namespace Turnroot.Graphics.Portrait.Editor
             _layersProp = serializedObject.FindProperty("_layers");
         }
 
+        private static bool IsGrayscalePNG(Texture2D texture)
+        {
+            if (texture == null)
+                return false;
+            string path = AssetDatabase.GetAssetPath(texture);
+            if (string.IsNullOrEmpty(path) || !path.ToLower().EndsWith(".png"))
+                return false;
+            try
+            {
+                byte[] data = System.IO.File.ReadAllBytes(path);
+                if (
+                    data.Length < 24
+                    || data[0] != 0x89
+                    || data[1] != 0x50
+                    || data[2] != 0x4E
+                    || data[3] != 0x47
+                    || data[4] != 0x0D
+                    || data[5] != 0x0A
+                    || data[6] != 0x1A
+                    || data[7] != 0x0A
+                )
+                    return false;
+                int pos = 8;
+                while (pos + 12 < data.Length)
+                {
+                    int length =
+                        (data[pos] << 24)
+                        | (data[pos + 1] << 16)
+                        | (data[pos + 2] << 8)
+                        | data[pos + 3];
+                    string type = System.Text.Encoding.ASCII.GetString(data, pos + 4, 4);
+                    if (type == "IHDR" && length >= 13)
+                    {
+                        int colorType = data[pos + 17];
+                        return colorType == 0 || colorType == 4; // grayscale or grayscale+alpha
+                    }
+                    pos += length + 12;
+                }
+            }
+            catch { }
+            return false;
+        }
+
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
@@ -41,11 +84,38 @@ namespace Turnroot.Graphics.Portrait.Editor
                     _ = EditorGUILayout.BeginHorizontal();
 
                     var layerProp = _layersProp.GetArrayElementAtIndex(i);
-                    _ = EditorGUILayout.PropertyField(
-                        layerProp,
-                        new GUIContent($"Layer {i}"),
-                        true
-                    );
+                    var imageStack = serializedObject.targetObject as ImageStack;
+                    var layerObj = imageStack.Layers[i];
+
+                    // Draw properties vertically
+                    EditorGUILayout.BeginVertical();
+
+                    var spriteProp = layerProp.FindPropertyRelative("Sprite");
+                    EditorGUILayout.PropertyField(spriteProp, new GUIContent("Sprite"));
+
+                    var offsetProp = layerProp.FindPropertyRelative("Offset");
+                    EditorGUILayout.PropertyField(offsetProp, new GUIContent("Offset"));
+
+                    var scaleProp = layerProp.FindPropertyRelative("Scale");
+                    EditorGUILayout.PropertyField(scaleProp, new GUIContent("Scale"));
+
+                    var rotationProp = layerProp.FindPropertyRelative("Rotation");
+                    EditorGUILayout.PropertyField(rotationProp, new GUIContent("Rotation"));
+
+                    var tagProp = layerProp.FindPropertyRelative("Tag");
+                    if (tagProp != null)
+                        EditorGUILayout.PropertyField(tagProp, new GUIContent("Tag"));
+
+                    if (layerObj is UnmaskedImageStackLayer)
+                    {
+                        var tintProp = layerProp.FindPropertyRelative("Tint");
+                        bool isGrayscale = IsGrayscalePNG(layerObj.Sprite?.texture);
+                        GUI.enabled = isGrayscale;
+                        EditorGUILayout.PropertyField(tintProp, new GUIContent("Tint"));
+                        GUI.enabled = true;
+                    }
+
+                    EditorGUILayout.EndVertical();
 
                     // Move up button
                     GUI.enabled = i > 0;

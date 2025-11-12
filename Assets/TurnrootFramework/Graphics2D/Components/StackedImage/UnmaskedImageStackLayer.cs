@@ -5,6 +5,7 @@ using UnityEngine;
 [Serializable]
 public class UnmaskedImageStackLayer : ImageStackLayer
 {
-    // All the data is actually elsewhere but we still need
-    // two classes to keep things tidy
+    // Unmasked layers apply tinting only if the sprite is grayscale.
+    // If the sprite has color, no tint is applied to preserve the original colors.
+    // The check is performed by examining the PNG file header in the editor.
 }

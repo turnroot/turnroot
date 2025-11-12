@@ -179,20 +179,34 @@ namespace Assets.AbstractScripts.Graphics2D
                 layerTint = layer.Tint;
             }
 
-            // Convert grayscale to colored pixels: use luminance as strength
-            Color[] tintedPixels = new Color[layerPixels.Length];
-            for (int p = 0; p < layerPixels.Length; p++)
+            bool isGrayscale = false;
+#if UNITY_EDITOR
+            isGrayscale = IsGrayscalePNG(sprite.texture);
+#endif
+
+            Color[] tintedPixels;
+            if (isGrayscale)
             {
-                Color src = layerPixels[p];
-                // compute luminance from rgb
-                float lum = 0.299f * src.r + 0.587f * src.g + 0.114f * src.b;
-                Color colored = new Color(
-                    layerTint.r * lum,
-                    layerTint.g * lum,
-                    layerTint.b * lum,
-                    src.a
-                );
-                tintedPixels[p] = colored;
+                // Convert grayscale to colored pixels: use luminance as strength
+                tintedPixels = new Color[layerPixels.Length];
+                for (int p = 0; p < layerPixels.Length; p++)
+                {
+                    Color src = layerPixels[p];
+                    // compute luminance from rgb
+                    float lum = 0.299f * src.r + 0.587f * src.g + 0.114f * src.b;
+                    Color colored = new Color(
+                        layerTint.r * lum,
+                        layerTint.g * lum,
+                        layerTint.b * lum,
+                        src.a
+                    );
+                    tintedPixels[p] = colored;
+                }
+            }
+            else
+            {
+                // Image has color or cannot check, do not apply tint
+                tintedPixels = layerPixels;
             }
             return tintedPixels;
         }
@@ -354,6 +368,51 @@ namespace Assets.AbstractScripts.Graphics2D
                 return false;
             }
         }
+
+#if UNITY_EDITOR
+        private static bool IsGrayscalePNG(Texture2D texture)
+        {
+            if (texture == null)
+                return false;
+            string path = AssetDatabase.GetAssetPath(texture);
+            if (string.IsNullOrEmpty(path) || !path.ToLower().EndsWith(".png"))
+                return false;
+            try
+            {
+                byte[] data = System.IO.File.ReadAllBytes(path);
+                if (
+                    data.Length < 24
+                    || data[0] != 0x89
+                    || data[1] != 0x50
+                    || data[2] != 0x4E
+                    || data[3] != 0x47
+                    || data[4] != 0x0D
+                    || data[5] != 0x0A
+                    || data[6] != 0x1A
+                    || data[7] != 0x0A
+                )
+                    return false;
+                int pos = 8;
+                while (pos + 12 < data.Length)
+                {
+                    int length =
+                        (data[pos] << 24)
+                        | (data[pos + 1] << 16)
+                        | (data[pos + 2] << 8)
+                        | data[pos + 3];
+                    string type = System.Text.Encoding.ASCII.GetString(data, pos + 4, 4);
+                    if (type == "IHDR" && length >= 13)
+                    {
+                        int colorType = data[pos + 17];
+                        return colorType == 0 || colorType == 4; // grayscale or grayscale+alpha
+                    }
+                    pos += length + 12;
+                }
+            }
+            catch { }
+            return false;
+        }
+#endif
 
         // Helper: create the composited texture and initialize final pixel buffer
         private static Texture2D CreateCompositedTexture(
