@@ -14,6 +14,8 @@ namespace Turnroot.Characters.Subclasses.Editor
         private ReorderableList _layersReorderList;
         private Turnroot.Graphics.Portrait.ImageStack _lastListImageStack;
         private SerializedObject _layersSerializedObject;
+        private string _newPortraitName = "";
+        private string _quickPortraitName = "";
 
         [MenuItem("/Turnroot/Editors/Portrait Editor")]
         public static void ShowWindow() => GetWindow<PortraitEditorWindow>("Portrait Editor");
@@ -45,6 +47,9 @@ namespace Turnroot.Characters.Subclasses.Editor
             {
                 _selectedImageIndex = 0;
                 UpdateCurrentImage();
+                _newPortraitName = _currentOwner.FullName + "_Portrait";
+                _quickPortraitName =
+                    $"{_currentOwner.FullName}_Portrait{(_currentOwner.Portraits?.Count ?? 0) + 1}";
             }
 
             if (_currentOwner == null)
@@ -60,9 +65,59 @@ namespace Turnroot.Characters.Subclasses.Editor
             if (portraitsDict == null || portraitsDict.Count == 0)
             {
                 EditorGUILayout.HelpBox(
-                    $"This {OwnerFieldLabel} has no portraits. Add portraits first.",
-                    MessageType.Warning
+                    $"This {OwnerFieldLabel} has no portraits.",
+                    MessageType.Info
                 );
+                // add a button and a text field (with validation) to add a new portrait key
+                GUILayout.BeginHorizontal();
+                _newPortraitName = GUILayout.TextField(_newPortraitName);
+                if (GUILayout.Button("Create"))
+                {
+                    string newKey = _newPortraitName;
+                    if (string.IsNullOrWhiteSpace(newKey))
+                    {
+                        newKey = _currentOwner.FullName + "_Portrait";
+                    }
+                    string baseKey = newKey;
+                    int suffix = 1;
+                    while (portraitsDict.ContainsKey(newKey))
+                    {
+                        newKey = baseKey + "_" + suffix;
+                        suffix++;
+                    }
+
+                    var p = new Portrait();
+                    p.SetOwner(_currentOwner);
+                    p.SetKey(newKey);
+                    portraitsDict[newKey] = p;
+                    _currentOwner.InvalidatePortraitArrayCache();
+                    EditorUtility.SetDirty(_currentOwner);
+                    _selectedImageIndex = portraitsDict.Count - 1; // select the new portrait
+                    UpdateCurrentImage();
+
+                    // Create new ImageStack for the portrait
+                    var newImageStack =
+                        ScriptableObject.CreateInstance<Turnroot.Graphics.Portrait.ImageStack>();
+                    string defaultName = newKey + ".asset";
+                    string path = EditorUtility.SaveFilePanelInProject(
+                        "Create New Image Stack for Portrait",
+                        defaultName,
+                        "asset",
+                        "Choose where to save the new ImageStack"
+                    );
+
+                    if (!string.IsNullOrEmpty(path))
+                    {
+                        AssetDatabase.CreateAsset(newImageStack, path);
+                        AssetDatabase.SaveAssets();
+
+                        // Assign it to the current portrait
+                        _currentImage.SetImageStack(newImageStack);
+                    }
+
+                    RefreshPreview();
+                }
+                GUILayout.EndHorizontal();
                 return;
             }
 
@@ -86,14 +141,20 @@ namespace Turnroot.Characters.Subclasses.Editor
                 RefreshPreview();
             }
 
+            _quickPortraitName = GUILayout.TextField(_quickPortraitName, GUILayout.Width(120));
             if (GUILayout.Button("New +", EditorStyles.miniButton))
             {
-                var newKey = $"Portrait{keys.Length + 1}";
+                string newKey = _quickPortraitName;
+                if (string.IsNullOrWhiteSpace(newKey))
+                {
+                    newKey = _currentOwner.FullName + "_Portrait";
+                }
+                string baseKey = newKey;
                 int suffix = 1;
                 while (portraitsDict.ContainsKey(newKey))
                 {
+                    newKey = baseKey + "_" + suffix;
                     suffix++;
-                    newKey = $"Portrait{keys.Length + suffix}";
                 }
 
                 var p = new Portrait();
@@ -104,6 +165,27 @@ namespace Turnroot.Characters.Subclasses.Editor
                 EditorUtility.SetDirty(_currentOwner);
                 _selectedImageIndex = keys.Length; // select the new portrait
                 UpdateCurrentImage();
+
+                // Create new ImageStack for the portrait
+                var newImageStack =
+                    ScriptableObject.CreateInstance<Turnroot.Graphics.Portrait.ImageStack>();
+                string defaultName = newKey + ".asset";
+                string path = EditorUtility.SaveFilePanelInProject(
+                    "Create New Image Stack for Portrait",
+                    defaultName,
+                    "asset",
+                    "Choose where to save the new ImageStack"
+                );
+
+                if (!string.IsNullOrEmpty(path))
+                {
+                    AssetDatabase.CreateAsset(newImageStack, path);
+                    AssetDatabase.SaveAssets();
+
+                    // Assign it to the current portrait
+                    _currentImage.SetImageStack(newImageStack);
+                }
+
                 RefreshPreview();
             }
             GUILayout.EndHorizontal();

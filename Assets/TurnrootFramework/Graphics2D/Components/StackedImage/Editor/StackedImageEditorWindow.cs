@@ -144,25 +144,26 @@ namespace Turnroot.Graphics2D.Editor
 
         protected void DrawImageStackSection()
         {
-            EditorGUILayout.LabelField("Image Stack", EditorStyles.boldLabel);
-
-            EditorGUI.BeginChangeCheck();
-            var newStack =
-                EditorGUILayout.ObjectField(
-                    "Image Stack",
-                    _currentImage.ImageStack,
-                    typeof(ImageStack),
-                    false
-                ) as ImageStack;
-
-            if (EditorGUI.EndChangeCheck())
+            if (_currentImage.ImageStack == null)
             {
-                // Use public API instead of reflection
-                _currentImage.SetImageStack(newStack);
+                EditorGUI.BeginChangeCheck();
+                var newStack =
+                    EditorGUILayout.ObjectField(
+                        "Image Stack",
+                        _currentImage.ImageStack,
+                        typeof(ImageStack),
+                        false
+                    ) as ImageStack;
 
-                EditorUtility.SetDirty(_currentOwner);
-                if (_autoRefresh)
-                    RefreshPreview();
+                if (EditorGUI.EndChangeCheck())
+                {
+                    // Use public API instead of reflection
+                    _currentImage.SetImageStack(newStack);
+
+                    EditorUtility.SetDirty(_currentOwner);
+                    if (_autoRefresh)
+                        RefreshPreview();
+                }
             }
 
             if (_currentImage.ImageStack == null)

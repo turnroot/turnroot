@@ -8,11 +8,6 @@ namespace Turnroot.Characters
     )]
     public class CharacterPrototypeSettings : SingletonScriptableObject<CharacterPrototypeSettings>
     {
-        public bool UseAccentColors = true;
-        public Color AvatarHairColorDefault;
-        public Color AvatarSkinColorDefault;
-        public Color AvatarEyeColorDefault;
-
 #if UNITY_EDITOR
         private void OnValidate()
         {

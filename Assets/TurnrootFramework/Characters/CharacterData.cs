@@ -47,23 +47,33 @@ namespace Turnroot.Characters
         {
             // Load settings from Resources on initialization
             var settings = Resources.Load<CharacterPrototypeSettings>(
-                "GameSettings/CharacterPrototypeSettings"
+                "GameSettings/Character/CharacterPrototypeSettings"
             );
-            if (settings != null)
+
+            if (settings == null)
             {
-                _useAccentColors = settings.UseAccentColors;
+                Debug.LogError(
+                    "CharacterPrototypeSettings not found in Resources/GameSettings! You must create one!"
+                );
+                return;
             }
 
             // Initialize stats from defaults if stats are empty
             if (_boundedStats.Count == 0 && _unboundedStats.Count == 0)
             {
                 var defaultStats = Resources.Load<DefaultCharacterStats>(
-                    "GameSettings/DefaultCharacterStats"
+                    "GameSettings/Character/DefaultCharacterStats"
                 );
                 if (defaultStats != null)
                 {
                     _boundedStats = defaultStats.CreateBoundedStats();
                     _unboundedStats = defaultStats.CreateUnboundedStats();
+                }
+                else
+                {
+                    Debug.LogError(
+                        "DefaultCharacterStats not found in Resources/GameSettings! You must create one!"
+                    );
                 }
             }
         }
@@ -114,12 +124,12 @@ namespace Turnroot.Characters
             ),
             SerializeField
         ]
-        private string __;
+        private string _;
 #endif
 
         [Foldout("Identity"), SerializeField]
-        [HorizontalLine(color: EColor.Blue)]
-        private readonly CharacterWhich _which = new("Enemy");
+        [HorizontalLine(color: EColor.White)]
+        private CharacterWhich _which = new("Enemy");
 
         [Foldout("Identity"), SerializeField]
         private string _displayName = "New Unit";
@@ -131,7 +141,7 @@ namespace Turnroot.Characters
         private string _team;
 
         [Foldout("Demographics"), SerializeField]
-        [HorizontalLine(color: EColor.Blue)]
+        [HorizontalLine(color: EColor.Black)]
         private Pronouns _pronouns = new();
 
         [Foldout("Demographics"), SerializeField, Range(100f, 250f)]
@@ -144,14 +154,14 @@ namespace Turnroot.Characters
         private int _birthdayMonth = 1;
 
         [Foldout("Description"), SerializeField, ResizableTextArea]
-        [HorizontalLine(color: EColor.Blue)]
+        [HorizontalLine(color: EColor.Gray)]
         private string _shortDescription = "A new unit";
 
         [Foldout("Description"), SerializeField, ResizableTextArea]
         private string _notes = "Take private notes (only in the editor) about this unit";
 
         [Foldout("Character Flags"), SerializeField]
-        [HorizontalLine(color: EColor.Green)]
+        [HorizontalLine(color: EColor.Red)]
         private bool _canSSupport = false;
 
         [Foldout("Character Flags"), SerializeField]
@@ -166,20 +176,17 @@ namespace Turnroot.Characters
         [Foldout("Character Flags"), SerializeField]
         private bool _isUnique = false;
 
-        [Foldout("Visual"), HideInInspector]
-        [HorizontalLine(color: EColor.Orange)]
-        private bool _useAccentColors = false;
-
-        [Foldout("Visual"), SerializeField, ShowIf("_useAccentColors")]
+        [Foldout("Visual"), SerializeField]
+        [HorizontalLine(color: EColor.Pink)]
         private Color _accentColor1 = Color.black;
 
-        [Foldout("Visual"), SerializeField, ShowIf("_useAccentColors")]
+        [Foldout("Visual"), SerializeField]
         private Color _accentColor2 = Color.black;
 
-        [Foldout("Visual"), SerializeField, ShowIf("_useAccentColors")]
+        [Foldout("Visual"), SerializeField]
         private Color _accentColor3 = Color.black;
 
-        [Foldout("Visual"), SerializeField]
+        [Foldout("Visual"), SerializeField, HideInInspector]
         private SerializableDictionary<string, Portrait> _portraits;
 
         [Foldout("Visual"), HideInInspector]
@@ -191,48 +198,12 @@ namespace Turnroot.Characters
         [Foldout("Visual"), SerializeField]
         private Sprite[] _sprites;
 
-        [Foldout("Stats & Progression"), SerializeField]
-        [HorizontalLine(color: EColor.Green)]
-        private int _level = 1;
-
-        [Foldout("Stats & Progression"), SerializeField]
-        private int _exp = 0;
-
-        [Foldout("Stats & Progression"), SerializeField]
-        private List<BoundedCharacterStat> _boundedStats = new();
-
-        [Foldout("Stats & Progression"), SerializeField]
-        private List<CharacterStat> _unboundedStats = new();
-
-        [Foldout("Class & Battalion"), SerializeField]
-        [HorizontalLine(color: EColor.Green)]
-        private UnityEngine.Object _unitClass;
-
-        [Foldout("Class & Battalion"), SerializeField]
-        private UnityEngine.Object _battalion;
-
-        [Foldout("Class & Battalion"), SerializeField]
-        private List<string> _specialUnitClasses = new();
-
-        [Foldout("Skills & Abilities"), SerializeField]
-        [HorizontalLine(color: EColor.Green)]
-        private List<Skill> _skills = new();
-
-        [Foldout("Skills & Abilities"), SerializeField]
-        private List<Skill> _specialSkills = new();
-
-        [Foldout("Inventory"), SerializeField]
-        private List<InventorySlot> _startingInventory = new();
-
-        [Foldout("Relationships"), SerializeField]
-        private List<SupportRelationship> _supportRelationships = new();
-
         [Foldout("AI & Behavior"), SerializeField]
-        [HorizontalLine(color: EColor.Yellow)]
+        [HorizontalLine(color: EColor.Blue)]
         private UnityEngine.Object _ai;
 
         [Foldout("Heredity"), SerializeField]
-        [HorizontalLine(color: EColor.Pink)]
+        [HorizontalLine(color: EColor.Indigo)]
         private HereditaryTraits _passedDownTraits = new();
 
         [Foldout("Heredity"), SerializeField]
@@ -240,6 +211,42 @@ namespace Turnroot.Characters
 
         [Foldout("Heredity"), SerializeField, ShowIf(nameof(_hasDesignatedChildUnit))]
         private CharacterData _childUnitId;
+
+        [SerializeField]
+        private List<InventorySlot> _startingInventory = new();
+
+        [SerializeField]
+        private List<SupportRelationship> _supportRelationships = new();
+
+        [BoxGroup("Stats & Progression"), SerializeField]
+        [HorizontalLine(color: EColor.Orange)]
+        private int _level = 1;
+
+        [SerializeField, BoxGroup("Stats & Progression")]
+        private int _exp = 0;
+
+        [BoxGroup("Stats & Progression"), SerializeField]
+        private List<BoundedCharacterStat> _boundedStats = new();
+
+        [BoxGroup("Stats & Progression"), SerializeField]
+        private List<CharacterStat> _unboundedStats = new();
+
+        [BoxGroup("Class & Battalion"), SerializeField]
+        [HorizontalLine(color: EColor.Yellow)]
+        private UnityEngine.Object _unitClass;
+
+        [BoxGroup("Class & Battalion"), SerializeField]
+        private UnityEngine.Object _battalion;
+
+        [BoxGroup("Class & Battalion"), SerializeField]
+        private List<string> _specialUnitClasses = new();
+
+        [BoxGroup("Skills & Abilities"), SerializeField]
+        [HorizontalLine(color: EColor.Green)]
+        private List<Skill> _skills = new();
+
+        [BoxGroup("Skills & Abilities"), SerializeField]
+        private List<Skill> _specialSkills = new();
 
         public CharacterWhich Which => _which;
         public string DisplayName => _displayName;

@@ -143,6 +143,10 @@
         {
             "path": "fe-prototyping\\Assets\\AbstractScripts\\",
             "color": "foldercustomization.AnsiColor73"
+        },
+        {
+            "path": "fe-prototyping\\Assets\\TurnrootFramework\\AbstractScripts\\",
+            "color": "foldercustomization.AnsiColor51"
         }
     ]
 }
