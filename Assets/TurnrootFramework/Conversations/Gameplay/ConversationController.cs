@@ -1,7 +1,9 @@
 using System.Collections;
 using NaughtyAttributes;
+using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.UI;
 
 namespace TurnrootFramework.Conversations
 {
@@ -12,6 +14,12 @@ namespace TurnrootFramework.Conversations
 
         [SerializeField]
         private SimpleConversation _currentConversation;
+
+        [SerializeField]
+        private TextMeshProUGUI _dialogueText;
+
+        [SerializeField]
+        private TextMeshProUGUI _speakerNameText;
 
         [Button("Start Conversation")]
         public void StartConversation()
@@ -41,14 +49,19 @@ namespace TurnrootFramework.Conversations
 
         public void SetConversation(int index)
         {
-            if (_sceneConversations.Dictionary.TryGetValue(index, out var conversation))
+            if (_sceneConversations?.Dictionary == null)
             {
-                _currentConversation = conversation;
+                Debug.LogError($"{nameof(_sceneConversations)} is null or not initialized.");
+                return;
             }
-            else
+
+            if (!_sceneConversations.Dictionary.TryGetValue(index, out var conversation))
             {
                 Debug.LogError($"No conversation found for scene index {index}");
+                return;
             }
+
+            _currentConversation = conversation;
         }
 
         public void SetAndStartConversation(int index)
@@ -59,53 +72,49 @@ namespace TurnrootFramework.Conversations
 
         private IEnumerator RunConversation(SimpleConversation conversation)
         {
+            if (conversation == null)
+                yield break;
+
+            _currentConversation = conversation;
             Debug.Log($"Starting conversation: {conversation.name}");
-            // Iterate through each layer
+
             for (int i = 0; i < conversation.Layers.Length; i++)
             {
                 conversation.CurrentLayerIndex = i;
-                var currentLayer = conversation.Layers[i];
+                var layer = conversation.Layers[i];
 
-                if (!currentLayer.HasBeenParsed)
+                if (!layer.HasBeenParsed)
                 {
-                    Debug.Log($"Parsing layer {i + 1}/{conversation.Layers.Length} dialogue");
-                    currentLayer.ParseDialogue();
+                    layer.ParseDialogue();
                 }
 
-                Debug.Log(
-                    $"Running layer {i + 1}/{conversation.Layers.Length}: {currentLayer.Dialogue}"
-                );
+                layer.StartLayer();
+                _dialogueText.text = layer.Dialogue;
+                _speakerNameText.text = !string.IsNullOrWhiteSpace(layer.SpeakerDisplayName)
+                    ? layer.SpeakerDisplayName
+                    : (
+                        layer.Speaker != null
+                        && !string.IsNullOrWhiteSpace(layer.Speaker.DisplayName)
+                            ? layer.Speaker.DisplayName
+                            : string.Empty
+                    );
 
-                if (currentLayer != null)
-                {
-                    // Start the layer
-                    currentLayer.StartLayer();
+                bool completed = false;
+                UnityEngine.Events.UnityAction onComplete = () => completed = true;
+                layer.OnLayerComplete.AddListener(onComplete);
 
-                    // Wait for the layer to complete
-                    bool layerCompleted = false;
-                    void completionCallback() => layerCompleted = true;
+                yield return new WaitUntil(() => completed);
 
-                    currentLayer.OnLayerComplete.AddListener(completionCallback);
-
-                    // Wait until the layer signals completion
-                    yield return new WaitUntil(() => layerCompleted);
-
-                    currentLayer.OnLayerComplete.RemoveListener(completionCallback);
-
-                    // Layer cleanup can be done here if needed
-                    // (previously was currentLayer.EndLayer();)
-                }
+                layer.OnLayerComplete.RemoveListener(onComplete);
             }
 
-            // Check if there's a next conversation to auto-advance to
             if (TryGetNextConversation(out var nextConversation))
             {
-                Debug.Log($"Auto-advancing to next conversation: {nextConversation.name}");
                 yield return StartCoroutine(RunConversation(nextConversation));
             }
             else
             {
-                Debug.Log("Conversation sequence completed - no more conversations");
+                Debug.Log("Conversation sequence completed.");
             }
         }
 
@@ -113,23 +122,27 @@ namespace TurnrootFramework.Conversations
         {
             nextConversation = null;
 
-            if (_sceneConversations == null || _currentConversation == null)
-                return false;
-
-            // Find the current conversation's key
-            foreach (var kvp in _sceneConversations.Dictionary)
+            var dict = _sceneConversations?.Dictionary;
+            if (dict == null || _currentConversation == null)
             {
-                if (kvp.Value == _currentConversation)
+                return false;
+            }
+
+            foreach (var kvp in dict)
+            {
+                if (kvp.Value != _currentConversation)
                 {
-                    // Try to get the next conversation (current key + 1)
-                    int nextKey = kvp.Key + 1;
-                    if (_sceneConversations.Dictionary.TryGetValue(nextKey, out nextConversation))
-                    {
-                        _currentConversation = nextConversation;
-                        return true;
-                    }
-                    break;
+                    continue;
                 }
+
+                int nextKey = kvp.Key + 1;
+                if (dict.TryGetValue(nextKey, out nextConversation))
+                {
+                    _currentConversation = nextConversation;
+                    return true;
+                }
+
+                break;
             }
 
             return false;

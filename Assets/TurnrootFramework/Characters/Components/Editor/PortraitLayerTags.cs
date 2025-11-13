@@ -5,7 +5,7 @@ namespace Turnroot.Characters
         public static readonly string[] Mandatory = new[]
         {
             // Note: this list is for identification; use CanonicalFrontToBack for UI/order
-            "Face",
+            "Face and Shoulders",
             "Hair",
             "Left Eye",
             "Right Eye",

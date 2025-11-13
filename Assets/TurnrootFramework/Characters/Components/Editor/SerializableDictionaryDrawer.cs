@@ -92,10 +92,20 @@ namespace Turnroot.Characters.Configuration.Editor
                     }
                     else if (valueProp.propertyType == SerializedPropertyType.ObjectReference)
                     {
+                        // Get the actual type of TValue for proper object filtering
+                        var fieldType = fieldInfo.FieldType;
+                        var valueType = fieldType.GenericTypeArguments[1];
+
+                        // For abstract types like Conversation, use ScriptableObject as base type
+                        // so Unity can show concrete implementations
+                        var pickerType = valueType.IsAbstract
+                            ? typeof(ScriptableObject)
+                            : valueType;
+
                         valueProp.objectReferenceValue = EditorGUI.ObjectField(
                             valueRect,
                             valueProp.objectReferenceValue,
-                            typeof(UnityEngine.Object),
+                            pickerType,
                             false
                         );
                     }

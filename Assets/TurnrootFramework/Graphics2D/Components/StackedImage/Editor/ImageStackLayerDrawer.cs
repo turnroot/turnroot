@@ -94,7 +94,15 @@ public class ImageStackLayerDrawer : PropertyDrawer
                             {
                                 spriteProp.objectReferenceValue = s;
                                 property.serializedObject.ApplyModifiedProperties();
-                                EditorUtility.SetDirty(property.serializedObject.targetObject);
+#if UNITY_EDITOR
+                                if (
+                                    !UnityEditor.EditorApplication.isCompiling
+                                    && !UnityEditor.EditorApplication.isUpdating
+                                )
+                                {
+                                    EditorUtility.SetDirty(property.serializedObject.targetObject);
+                                }
+#endif
                             },
                             currentIndex >= 0 ? sprites[currentIndex] : null
                         );
@@ -290,7 +298,15 @@ public class ImageStackLayerDrawer : PropertyDrawer
                                     converted.Tint = runtimeLayer.Tint;
 
                                     stack.Layers[idx] = converted;
-                                    EditorUtility.SetDirty(stack);
+#if UNITY_EDITOR
+                                    if (
+                                        !UnityEditor.EditorApplication.isCompiling
+                                        && !UnityEditor.EditorApplication.isUpdating
+                                    )
+                                    {
+                                        EditorUtility.SetDirty(stack);
+                                    }
+#endif
                                 }
                             }
                             else
@@ -309,7 +325,15 @@ public class ImageStackLayerDrawer : PropertyDrawer
                                     converted.Tint = runtimeLayer.Tint;
 
                                     stack.Layers[idx] = converted;
-                                    EditorUtility.SetDirty(stack);
+#if UNITY_EDITOR
+                                    if (
+                                        !UnityEditor.EditorApplication.isCompiling
+                                        && !UnityEditor.EditorApplication.isUpdating
+                                    )
+                                    {
+                                        EditorUtility.SetDirty(stack);
+                                    }
+#endif
                                 }
                             }
 
@@ -337,7 +361,15 @@ public class ImageStackLayerDrawer : PropertyDrawer
                                     orderCounter++;
                                 }
                             }
-                            EditorUtility.SetDirty(stack);
+#if UNITY_EDITOR
+                            if (
+                                !UnityEditor.EditorApplication.isCompiling
+                                && !UnityEditor.EditorApplication.isUpdating
+                            )
+                            {
+                                EditorUtility.SetDirty(stack);
+                            }
+#endif
                             property.serializedObject.Update();
                         }
                     }

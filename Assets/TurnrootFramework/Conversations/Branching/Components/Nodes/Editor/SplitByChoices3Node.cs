@@ -3,39 +3,42 @@ using TurnrootFramework.Conversations;
 using UnityEngine;
 using XNode;
 
-[CreateNodeMenu("Conversation/Split By 3 Choices")]
-public class SplitByChoices3Node : Node
+namespace TurnrootFramework.Conversations.Branching
 {
-    [Input]
-    public ConversationFlow previous;
-
-    [Output(ShowBackingValue.Unconnected, ConnectionType.Override)]
-    public ConversationFlow ChoiceA;
-
-    public ConversationChoice choiceA;
-
-    [Output]
-    public ConversationFlow ChoiceB;
-
-    public ConversationChoice choiceB;
-
-    [Output(ShowBackingValue.Unconnected, ConnectionType.Override)]
-    public ConversationFlow ChoiceC;
-
-    public ConversationChoice choiceC;
-
-    public override object GetValue(NodePort port)
+    [CreateNodeMenu("Conversation/Split By 3 Choices")]
+    public class SplitByChoices3Node : Node
     {
-        switch (port.fieldName)
+        [Input]
+        public ConversationFlow previous;
+
+        [Output(ShowBackingValue.Unconnected, ConnectionType.Override)]
+        public ConversationFlow ChoiceA;
+
+        public ConversationChoice choiceA;
+
+        [Output]
+        public ConversationFlow ChoiceB;
+
+        public ConversationChoice choiceB;
+
+        [Output(ShowBackingValue.Unconnected, ConnectionType.Override)]
+        public ConversationFlow ChoiceC;
+
+        public ConversationChoice choicec;
+
+        public override object GetValue(NodePort port)
         {
-            case "ChoiceA":
-                return ChoiceA;
-            case "ChoiceB":
-                return ChoiceB;
-            case "ChoiceC":
-                return ChoiceC;
-            default:
-                return null;
+            switch (port.fieldName)
+            {
+                case "ChoiceA":
+                    return ChoiceA;
+                case "ChoiceB":
+                    return ChoiceB;
+                case "ChoiceC":
+                    return ChoiceC;
+                default:
+                    return null;
+            }
         }
     }
 }

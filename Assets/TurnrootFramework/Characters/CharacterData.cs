@@ -162,18 +162,18 @@ namespace Turnroot.Characters
 
         [Foldout("Character Flags"), SerializeField]
         [HorizontalLine(color: EColor.Red)]
-        private bool _canSSupport = false;
+        private bool _canSSupport = true;
 
-        [Foldout("Character Flags"), SerializeField]
+        [Foldout("Character Flags"), SerializeField, ShowIf(nameof(CanShowSSupportAvatar))]
         private bool _canSSupportAvatar = false;
 
-        [Foldout("Character Flags"), SerializeField]
+        [Foldout("Character Flags"), SerializeField, ShowIf(nameof(IsAllyOrRecruitable))]
         private bool _canHaveChildren = false;
 
-        [Foldout("Character Flags"), SerializeField]
+        [Foldout("Character Flags"), SerializeField, ShowIf(nameof(CanShowRecruitable))]
         private bool _isRecruitable = false;
 
-        [Foldout("Character Flags"), SerializeField]
+        [Foldout("Character Flags"), SerializeField, ShowIf(nameof(CanShowUnique))]
         private bool _isUnique = false;
 
         [Foldout("Visual"), SerializeField]
@@ -270,9 +270,25 @@ namespace Turnroot.Characters
         public Color AccentColor2 => _accentColor2;
         public Color AccentColor3 => _accentColor3;
         public SerializableDictionary<string, Portrait> Portraits => _portraits;
-
         public SerializableDictionary<string, TaggedLayerDefault> TaggedLayerDefaults =>
             _taggedLayerDefaults;
+
+        public bool IsNotAvatar => _which != CharacterWhich.AVATAR;
+        public bool IsEnemyOrNPC => _which == CharacterWhich.ENEMY || _which == CharacterWhich.NPC;
+
+        // NaughtyAttributes ShowIf helper methods
+        private bool CanShowSSupportAvatar() => _which != CharacterWhich.AVATAR;
+
+        private bool CanShowRecruitable() =>
+            _which == CharacterWhich.ENEMY || _which == CharacterWhich.NPC;
+
+        private bool CanShowUnique() =>
+            _which == CharacterWhich.ENEMY || _which == CharacterWhich.NPC;
+
+        private bool IsAllyOrRecruitable()
+        {
+            return _which == CharacterWhich.ALLY || _isRecruitable;
+        }
 
         // Helper: returns the dictionary values as an array (cached). Use when you need indexed access.
         public Portrait[] PortraitArray

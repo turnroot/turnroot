@@ -5,6 +5,7 @@
     "com.dbrizov.naughtyattributes": "https://github.com/dbrizov/NaughtyAttributes.git#upm",
     "com.github.siccity.xnode": "https://github.com/siccity/xNode.git",
     "com.mathewhdyt.audiomanager": "https://github.com/MathewHDYT/Unity-Audio-Manager.git?path=/com.mathewhdyt.audiomanager#package",
+    "com.unity.2d.sprite": "1.0.0",
     "com.unity.cinemachine": "3.1.5",
     "com.unity.formats.fbx": "5.1.5",
     "com.unity.ide.rider": "3.0.36",

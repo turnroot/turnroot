@@ -3,23 +3,26 @@ using TurnrootFramework.Conversations;
 using UnityEngine;
 using XNode;
 
-[CreateNodeMenu("Conversation/Conversation")]
-public class ConversationNode : Node
+namespace TurnrootFramework.Conversations.Branching
 {
-    [Input]
-    public ConversationFlow previous;
-
-    [Output(ShowBackingValue.Unconnected, ConnectionType.Override)]
-    public ConversationFlow next;
-    public ConversationLayer conversationLayer;
-
-    public override object GetValue(NodePort port)
+    [CreateNodeMenu("Conversation/Conversation")]
+    public class ConversationNode : Node
     {
-        if (port.fieldName == "next")
-            return next;
-        return null;
-    }
-}
+        [Input]
+        public ConversationFlow previous;
 
-[System.Serializable]
-public struct ConversationFlow { }
+        [Output(ShowBackingValue.Unconnected, ConnectionType.Override)]
+        public ConversationFlow next;
+        public ConversationLayer conversationLayer;
+
+        public override object GetValue(NodePort port)
+        {
+            if (port.fieldName == "next")
+                return next;
+            return null;
+        }
+    }
+
+    [System.Serializable]
+    public struct ConversationFlow { }
+}
