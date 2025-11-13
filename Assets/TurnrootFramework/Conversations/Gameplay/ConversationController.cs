@@ -21,6 +21,13 @@ namespace TurnrootFramework.Conversations
         [SerializeField]
         private TextMeshProUGUI _speakerNameText;
 
+        [Header("Events")]
+        [SerializeField]
+        private UnityEngine.Events.UnityEvent _onConversationComplete;
+
+        [SerializeField]
+        private UnityEngine.Events.UnityEvent _onConversationStart;
+
         [Button("Start Conversation")]
         public void StartConversation()
         {
@@ -29,7 +36,7 @@ namespace TurnrootFramework.Conversations
                 Debug.LogError("Cannot start a null conversation.");
                 return;
             }
-
+            _onConversationStart?.Invoke();
             StartCoroutine(RunConversation(_currentConversation));
         }
 
@@ -96,11 +103,11 @@ namespace TurnrootFramework.Conversations
                         layer.Speaker != null
                         && !string.IsNullOrWhiteSpace(layer.Speaker.DisplayName)
                             ? layer.Speaker.DisplayName
-                            : string.Empty
+                            : "???"
                     );
 
                 bool completed = false;
-                UnityEngine.Events.UnityAction onComplete = () => completed = true;
+                void onComplete() => completed = true;
                 layer.OnLayerComplete.AddListener(onComplete);
 
                 yield return new WaitUntil(() => completed);
@@ -115,6 +122,7 @@ namespace TurnrootFramework.Conversations
             else
             {
                 Debug.Log("Conversation sequence completed.");
+                _onConversationComplete?.Invoke();
             }
         }
 
