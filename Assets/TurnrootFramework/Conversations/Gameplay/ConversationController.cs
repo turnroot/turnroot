@@ -62,9 +62,7 @@ namespace Turnroot.Conversations
             Debug.Log(
                 $"ConversationController.StartConversation: start runId={_tweenRunId} (conversation='{_currentConversation?.name ?? "null"}')"
             );
-            // reset portrait images to neutral state to avoid flicker from in-flight tweens
-            // Note: avoid toggling `enabled` here — disabling then immediately re-enabling
-            // causes visible flicker. Only reset visuals so images remain stable.
+
             Graphics2DUtils.ResetImage(_speakerPortraitImageActive);
             Graphics2DUtils.ResetImage(_speakerPortraitImageInactive);
 
@@ -85,8 +83,6 @@ namespace Turnroot.Conversations
         {
             NextLayer();
         }
-
-        // Single-conversation controller: assign `_currentConversation` in inspector or via code and call `StartConversation()`
 
         private IEnumerator RunConversation(SimpleConversation conversation)
         {
@@ -138,7 +134,6 @@ namespace Turnroot.Conversations
                 // kill any running tweens on the images to avoid stacking
                 KillImageTweens(_speakerPortraitImageActive, _speakerPortraitImageInactive);
 
-                // Load settings from Graphics2DSettings (Resources). Provide safe fallbacks if missing.
                 var gfxSettings = Graphics2DSettings.Instance;
                 var animatePortraits = gfxSettings?.AnimatePortraitTransitions ?? true;
                 var portraitDuration = animatePortraits
@@ -150,11 +145,9 @@ namespace Turnroot.Conversations
                         ? gfxSettings.SecondaryConversationPortraitInactiveBehavior
                         : SecondaryConversationPortraitInactiveBehavior.Hide;
 
-                // Assign sprites immediately (we'll animate color/alpha if requested)
                 Graphics2DUtils.SetSprite(_speakerPortraitImageActive, activeSprite);
 
                 Graphics2DUtils.SetSprite(_speakerPortraitImageInactive, inactiveSprite);
-                // Decide whether this behavior will swap sprite positions or keep them fixed by slot.
                 var willSwap =
                     secondaryBehavior == SecondaryConversationPortraitInactiveBehavior.Swap
                     || secondaryBehavior
@@ -362,9 +355,6 @@ namespace Turnroot.Conversations
             if (_tweenRunId != 0)
                 DOTween.Kill(_tweenRunId);
         }
-
-        // Tint, swap and hide helpers implemented below are used instead of
-        // the older single-purpose helpers to keep the controller concise.
 
         private Tween CreateTintSequence(
             Image activeImg,
