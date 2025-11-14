@@ -18,7 +18,6 @@ namespace Turnroot.Skills.Nodes.Editor
     )]
     public class SkillGraphEditorSettings : ScriptableObject
     {
-
         [Header("Port Colors")]
         [Tooltip("Color for ExecutionFlow ports")]
         public Color executionFlowColor = new(249f / 255f, 115f / 255f, 22f / 255f); // orange-500

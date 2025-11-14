@@ -85,6 +85,33 @@ namespace Turnroot.Conversations.Branching.Nodes
                                     shortName = shortName.Trim();
                                     created.name = shortName;
                                     UnityEditor.EditorUtility.SetDirty(created);
+                                    // Persist the created node as a subasset of the graph to
+                                    // ensure the graph's `nodes` list is serialized correctly.
+                                    try
+                                    {
+                                        var graphPath = AssetDatabase.GetAssetPath(
+                                            graph as UnityEngine.Object
+                                        );
+                                        var createdPath = AssetDatabase.GetAssetPath(created);
+                                        if (!string.IsNullOrEmpty(graphPath))
+                                        {
+                                            if (
+                                                string.IsNullOrEmpty(createdPath)
+                                                || createdPath != graphPath
+                                            )
+                                                AssetDatabase.AddObjectToAsset(created, graphPath);
+                                            UnityEditor.EditorUtility.SetDirty(
+                                                graph as UnityEngine.Object
+                                            );
+                                            AssetDatabase.SaveAssets();
+                                        }
+                                    }
+                                    catch (System.Exception ex)
+                                    {
+                                        Debug.LogWarning(
+                                            $"ConversationGraphEditor: failed to persist created node as subasset: {ex.Message}"
+                                        );
+                                    }
                                 }
                                 if (NodeEditorWindow.current != null)
                                     NodeEditorWindow.current.Repaint();
@@ -149,6 +176,17 @@ namespace Turnroot.Conversations.Branching.Nodes
                     {
                         // Remove the node from the graph
                         target.RemoveNode(xNode);
+                        try
+                        {
+                            UnityEditor.EditorUtility.SetDirty(target);
+                            AssetDatabase.SaveAssets();
+                        }
+                        catch (System.Exception ex)
+                        {
+                            Debug.LogWarning(
+                                $"ConversationGraphEditor: failed to save graph after node removal: {ex.Message}"
+                            );
+                        }
                     }
                 }
 

@@ -1,10 +1,8 @@
-using NaughtyAttributes;
-using Turnroot.Characters;
-using Turnroot.Characters.Subclasses;
+using System;
 using UnityEngine;
 
 namespace Turnroot.Conversations
 {
-    [System.Serializable]
+    [Serializable]
     public class ConversationChoice : BaseConversation { }
 }

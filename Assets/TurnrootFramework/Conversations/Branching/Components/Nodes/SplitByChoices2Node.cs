@@ -14,12 +14,12 @@ namespace Turnroot.Conversations.Branching
         [Output(ShowBackingValue.Unconnected, ConnectionType.Override)]
         public ConversationFlow ChoiceA;
 
-        public ConversationChoice choiceA;
+        public string choiceA;
 
         [Output(ShowBackingValue.Unconnected, ConnectionType.Override)]
         public ConversationFlow ChoiceB;
 
-        public ConversationChoice choiceB;
+        public string choiceB;
 
         public override object GetValue(NodePort port)
         {

@@ -5,8 +5,8 @@ using XNode;
 
 namespace Turnroot.Conversations.Branching
 {
-    [CreateNodeMenu("Conversation/Split By 4 Choices")]
-    public class SplitByChoices4Node : Node
+    [CreateNodeMenu("Conversation/Split By 3 Choices")]
+    public class SplitByChoices3Node : Node
     {
         [Input]
         public ConversationFlow previous;
@@ -14,22 +14,17 @@ namespace Turnroot.Conversations.Branching
         [Output(ShowBackingValue.Unconnected, ConnectionType.Override)]
         public ConversationFlow ChoiceA;
 
-        public ConversationChoice choiceA;
+        public string choiceA;
 
         [Output]
         public ConversationFlow ChoiceB;
 
-        public ConversationChoice choiceb;
+        public string choiceB;
 
         [Output(ShowBackingValue.Unconnected, ConnectionType.Override)]
         public ConversationFlow ChoiceC;
 
-        public ConversationChoice choicec;
-
-        [Output(ShowBackingValue.Unconnected, ConnectionType.Override)]
-        public ConversationFlow ChoiceD;
-
-        public ConversationChoice choiced;
+        public string choicec;
 
         public override object GetValue(NodePort port)
         {
@@ -41,8 +36,6 @@ namespace Turnroot.Conversations.Branching
                     return ChoiceB;
                 case "ChoiceC":
                     return ChoiceC;
-                case "ChoiceD":
-                    return ChoiceD;
                 default:
                     return null;
             }

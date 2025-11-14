@@ -10,8 +10,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 90a39106bac5ab142ae6ecc30c33cdff, type: 3}
-  m_Name: New Conversation
+  m_Name: IntroConversation
   m_EditorClassIdentifier: 
+  _branchingConversation: 1
   OnConversationStart:
     m_PersistentCalls:
       m_Calls: []
@@ -29,10 +30,8 @@ MonoBehaviour:
     _secondary:
       Speaker: {fileID: 11400000, guid: a53a4ecdb913d9944b06166e1bc35ca6, type: 2}
       DisplayName: 
-      PortraitKey: No portraits available
+      PortraitKey: Felicity
     _activeSpeaker: 0
-    _inactiveTintColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
-    _inactiveTintMix: 0.5
     OnLayerStart:
       m_PersistentCalls:
         m_Calls: []
@@ -49,14 +48,14 @@ MonoBehaviour:
     _secondary:
       Speaker: {fileID: 11400000, guid: a53a4ecdb913d9944b06166e1bc35ca6, type: 2}
       DisplayName: 
-      PortraitKey: No portraits available
+      PortraitKey: Felicity
     _activeSpeaker: 1
-    _inactiveTintColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
-    _inactiveTintMix: 0.5
     OnLayerStart:
       m_PersistentCalls:
         m_Calls: []
     OnLayerComplete:
       m_PersistentCalls:
         m_Calls: []
+  _conversationGraph: {fileID: 11400000, guid: 14965f03592243b4eb28bd4e6c155bdb, type: 2}
+  _debugGraphParsing: 1
   _currentLayerIndex: 1
