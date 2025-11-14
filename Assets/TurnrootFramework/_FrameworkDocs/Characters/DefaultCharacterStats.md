@@ -2,7 +2,7 @@
 
 **Namespace:** `Turnroot.Characters`  
 **Inherits:** `ScriptableObject`  
-**Location:** `Resources/GameSettings/DefaultCharacterStats`
+**Location:** `Resources/GameSettings/*/DefaultCharacterStats`
 
 Defines default stat configurations that are automatically applied to new Character assets.
 
@@ -12,7 +12,7 @@ Defines default stat configurations that are automatically applied to new Charac
 Assets > Create > Game Settings > Default Character Stats
 ```
 
-**Important:** Save the asset at `Assets/Resources/GameSettings/DefaultCharacterStats.asset` for automatic loading.
+**Important:** Save the asset at `Assets/Resources/GameSettings/<subfolder>/DefaultCharacterStats.asset` for automatic loading (the loader searches any subfolder under `Resources/GameSettings`).
 
 ## Properties
 
@@ -76,9 +76,8 @@ private void OnEnable()
     // Initialize stats from defaults if stats are empty
     if (_boundedStats.Count == 0 && _unboundedStats.Count == 0)
     {
-        var defaultStats = Resources.Load<DefaultCharacterStats>(
-            "GameSettings/DefaultCharacterStats"
-        );
+        // Recommended: use the GameSettingsLoader which finds assets under Resources/GameSettings/*
+        var defaultStats = Turnroot.Utilities.GameSettingsLoader.LoadFirst<DefaultCharacterStats>("GameSettings");
         if (defaultStats != null)
         {
             _boundedStats = defaultStats.CreateBoundedStats();
@@ -93,7 +92,7 @@ private void OnEnable()
 ### Setup
 
 1. Create the asset: `Assets > Create > Game Settings > Default Character Stats`
-2. Save it at: `Assets/Resources/GameSettings/DefaultCharacterStats.asset`
+2. Save it under: `Assets/Resources/GameSettings/<subfolder>/DefaultCharacterStats.asset` (any subfolder under `Resources/GameSettings` will be discovered at runtime).
 3. Configure default stats in the Inspector
 
 ### When Stats Are Initialized

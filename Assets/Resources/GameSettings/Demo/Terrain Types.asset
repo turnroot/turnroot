@@ -1,0 +1,111 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f5d962382b78df241bde94385ad11553, type: 3}
+  m_Name: Terrain Types
+  m_EditorClassIdentifier: 
+  _types:
+  - _id: e8a7f118-4d40-4240-8eaa-dc2e0ab48630
+    _name: Ground
+    _costWalk: 1
+    _costFly: 1
+    _costRide: 1
+    _costMagic: 1
+    _costArmor: 1
+    _editorColor: {r: 0.6302591, g: 0.7830189, b: 0.46168566, a: 1}
+  - _id: 88b0e895-b577-4643-89bf-55e3e0678f10
+    _name: Shallow Water
+    _costWalk: 1
+    _costFly: 1
+    _costRide: 1
+    _costMagic: 1
+    _costArmor: 1
+    _editorColor: {r: 0.5438323, g: 0.9528302, b: 0.9528302, a: 1}
+  - _id: 24f8aef3-a17a-4802-8f41-47aa601242a9
+    _name: Deep Water
+    _costWalk: 1
+    _costFly: 1
+    _costRide: 1
+    _costMagic: 1
+    _costArmor: 1
+    _editorColor: {r: 0, g: 0.3603778, b: 1, a: 1}
+  - _id: 98d625bd-9d22-4a01-b704-8ae9a0791d3c
+    _name: Sand
+    _costWalk: 1
+    _costFly: 1
+    _costRide: 1
+    _costMagic: 1
+    _costArmor: 1
+    _editorColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  - _id: 6f984037-09d2-4e53-beff-0b33675edfb5
+    _name: Snow
+    _costWalk: 1
+    _costFly: 1
+    _costRide: 1
+    _costMagic: 1
+    _costArmor: 1
+    _editorColor: {r: 1, g: 1, b: 1, a: 1}
+  - _id: dc66fdaa-4b62-49ff-b6fa-fa811d7eb2e2
+    _name: Forest
+    _costWalk: 1
+    _costFly: 1
+    _costRide: 1
+    _costMagic: 1
+    _costArmor: 1
+    _editorColor: {r: 0.13, g: 0.55, b: 0.13, a: 1}
+  - _id: 1150d330-2f99-49d7-8f08-bf89d8e9d697
+    _name: Bushes
+    _costWalk: 1
+    _costFly: 1
+    _costRide: 1
+    _costMagic: 1
+    _costArmor: 1
+    _editorColor: {r: 0.18, g: 0.31, b: 0.18, a: 1}
+  - _id: e203033a-1a8a-4af9-8d4c-a5289c3b8f44
+    _name: Lava
+    _costWalk: 1
+    _costFly: 1
+    _costRide: 1
+    _costMagic: 1
+    _costArmor: 1
+    _editorColor: {r: 1, g: 0, b: 0, a: 1}
+  - _id: 668bfd67-b8dc-4548-8939-1ad0ab84952a
+    _name: Bridge
+    _costWalk: 1
+    _costFly: 1
+    _costRide: 1
+    _costMagic: 1
+    _costArmor: 1
+    _editorColor: {r: 0.5, g: 0.25, b: 0, a: 1}
+  - _id: 3acc45b0-c3ff-4b06-994f-b5ed03d21a75
+    _name: Stairs
+    _costWalk: 1
+    _costFly: 1
+    _costRide: 1
+    _costMagic: 1
+    _costArmor: 1
+    _editorColor: {r: 0.8490566, g: 0.47266576, b: 0.25231397, a: 1}
+  - _id: d953faba-c20f-4485-9fbf-c583577d8bf8
+    _name: Wall
+    _costWalk: 1
+    _costFly: 1
+    _costRide: 1
+    _costMagic: 1
+    _costArmor: 1
+    _editorColor: {r: 0, g: 0, b: 0, a: 1}
+  - _id: def4dc84-6419-4e27-9cf7-21a6461bcfe8
+    _name: Mountain
+    _costWalk: 1
+    _costFly: 1
+    _costRide: 1
+    _costMagic: 1
+    _costArmor: 1
+    _editorColor: {r: 0.5844607, g: 0.6226415, b: 0.60110235, a: 1}

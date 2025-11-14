@@ -4,7 +4,7 @@
 
 **Namespace:** `Turnroot.Characters`  
 **Inherits:** `ScriptableObject`  
-**Location:** `Resources/GameSettings/CharacterPrototypeSettings`
+**Location:** `Resources/GameSettings/*/CharacterPrototypeSettings`
 
 Global settings for character system.
 

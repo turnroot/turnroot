@@ -57,7 +57,7 @@ public abstract class StatNodeEditorBase : NodeEditor
         if (defaultStats == null)
         {
             EditorGUILayout.HelpBox(
-                "DefaultCharacterStats not found! Please create one in Resources/GameSettings/Character/",
+                "DefaultCharacterStats not found! Please create one in Resources/GameSettings/*/Character/",
                 MessageType.Error
             );
             base.OnBodyGUI();

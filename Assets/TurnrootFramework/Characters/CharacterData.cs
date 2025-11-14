@@ -45,15 +45,15 @@ namespace Turnroot.Characters
 
         private void OnEnable()
         {
-            // Load settings from Resources on initialization
-            var settings = Resources.Load<CharacterPrototypeSettings>(
-                "GameSettings/Character/CharacterPrototypeSettings"
-            );
-
+            // Load settings from Resources on initialization using GameSettingsLoader
+            var settings =
+                Turnroot.Utilities.GameSettingsLoader.LoadFirst<CharacterPrototypeSettings>(
+                    "GameSettings"
+                );
             if (settings == null)
             {
                 Debug.LogError(
-                    "CharacterPrototypeSettings not found in Resources/GameSettings! You must create one!"
+                    "CharacterPrototypeSettings not found in Resources/GameSettings (expected under Resources/GameSettings/*). You must create one!"
                 );
                 return;
             }
@@ -61,9 +61,10 @@ namespace Turnroot.Characters
             // Initialize stats from defaults if stats are empty
             if (_boundedStats.Count == 0 && _unboundedStats.Count == 0)
             {
-                var defaultStats = Resources.Load<DefaultCharacterStats>(
-                    "GameSettings/Character/DefaultCharacterStats"
-                );
+                var defaultStats =
+                    Turnroot.Utilities.GameSettingsLoader.LoadFirst<DefaultCharacterStats>(
+                        "GameSettings"
+                    );
                 if (defaultStats != null)
                 {
                     _boundedStats = defaultStats.CreateBoundedStats();
@@ -72,7 +73,7 @@ namespace Turnroot.Characters
                 else
                 {
                     Debug.LogError(
-                        "DefaultCharacterStats not found in Resources/GameSettings! You must create one!"
+                        "DefaultCharacterStats not found in Resources/GameSettings (expected under Resources/GameSettings/*). You must create one!"
                     );
                 }
             }

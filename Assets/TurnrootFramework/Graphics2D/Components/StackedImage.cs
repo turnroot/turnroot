@@ -203,15 +203,21 @@ namespace Turnroot.Graphics2D
                 EnsureKeyInitialized();
             }
 
-            // Get render dimensions from settings
-            Graphics2DSettings settings = Resources.Load<Graphics2DSettings>(
-                "GameSettings/Graphics2DSettings"
-            );
+            // Load Graphics2DSettings using the central GameSettingsLoader which
+            // searches Resources/GameSettings/* and falls back to editor search.
+            Graphics2DSettings settings = null;
+            try
+            {
+                settings = Turnroot.Utilities.GameSettingsLoader.LoadFirst<Graphics2DSettings>(
+                    "GameSettings"
+                );
+            }
+            catch { }
 
             if (settings == null)
             {
                 Debug.LogError(
-                    "Graphics2DSettings not found in Resources/GameSettings folder! Using default 512x512."
+                    "Graphics2DSettings not found in Resources/GameSettings (expected under Resources/GameSettings/*). Using default 512x512."
                 );
                 settings = ScriptableObject.CreateInstance<Graphics2DSettings>();
             }
