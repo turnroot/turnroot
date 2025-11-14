@@ -43,6 +43,9 @@ namespace Turnroot.Conversations
         private int _activeBranchingNodeId = int.MinValue;
         private ConversationLayer _activeBranchingLayer;
 
+        // Track last active sprite to skip animations when the same speaker speaks consecutively
+        private Sprite _lastActiveSprite;
+
         public void Advance() => NextLayer();
 
         public bool ChooseBranchTarget(int targetNodeId)
@@ -54,7 +57,7 @@ namespace Turnroot.Conversations
             return true;
         }
 
-        public List<Conversation.ChoiceData> GetCurrentChoices()
+        public List<ChoiceData> GetCurrentChoices()
         {
             if (_currentConversation == null || !_currentConversation.BranchingConversation)
                 return null;
@@ -122,6 +125,8 @@ namespace Turnroot.Conversations
 
             Graphics2DUtils.ResetImage(_speakerPortraitImageActive);
             Graphics2DUtils.ResetImage(_speakerPortraitImageInactive);
+            // reset last active sprite when starting a conversation
+            _lastActiveSprite = null;
 
             _onConversationStart?.Invoke();
             _conversationRoutine = StartCoroutine(RunConversation(_currentConversation));
@@ -220,8 +225,13 @@ namespace Turnroot.Conversations
                                     : "???"
                             );
 
-                        // apply portrait transitions
-                        ApplyPortraitForLayer(layer);
+                        // apply portrait transitions, but skip if same active sprite as last time
+                        var currentActiveSprite = layer.ActivePortrait?.SavedSprite;
+                        if (_lastActiveSprite != currentActiveSprite)
+                        {
+                            ApplyPortraitForLayer(layer);
+                            _lastActiveSprite = currentActiveSprite;
+                        }
 
                         // wait for layer completion
                         bool completed = false;
@@ -285,7 +295,13 @@ namespace Turnroot.Conversations
                     );
 
                 // apply portrait transitions
-                ApplyPortraitForLayer(layer);
+                // apply portrait transitions, but skip if same active sprite as last time
+                var currentActiveSprite = layer.ActivePortrait?.SavedSprite;
+                if (_lastActiveSprite != currentActiveSprite)
+                {
+                    ApplyPortraitForLayer(layer);
+                    _lastActiveSprite = currentActiveSprite;
+                }
 
                 // wait for completion
                 bool completed = false;
@@ -546,7 +562,7 @@ namespace Turnroot.Conversations
             _pendingChoiceTarget = targetNodeId;
         }
 
-        private string ResolveChoiceLabel(Conversation.ChoiceData c)
+        private string ResolveChoiceLabel(ChoiceData c)
         {
             if (c == null)
                 return "Choice";
