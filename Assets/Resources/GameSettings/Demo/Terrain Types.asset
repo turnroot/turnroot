@@ -100,7 +100,7 @@ MonoBehaviour:
     _costRide: 1
     _costMagic: 1
     _costArmor: 1
-    _editorColor: {r: 0, g: 0, b: 0, a: 1}
+    _editorColor: {r: 0.16037738, g: 0.12385695, b: 0.09910112, a: 1}
   - _id: def4dc84-6419-4e27-9cf7-21a6461bcfe8
     _name: Mountain
     _costWalk: 1
@@ -109,3 +109,11 @@ MonoBehaviour:
     _costMagic: 1
     _costArmor: 1
     _editorColor: {r: 0.505874, g: 0.5283019, b: 0.51484513, a: 1}
+  - _id: 3e87420d-fd87-4529-9332-89833346ec4c
+    _name: Void
+    _costWalk: 99999
+    _costFly: 99999
+    _costRide: 99999
+    _costMagic: 99999
+    _costArmor: 99999
+    _editorColor: {r: 0, g: 0, b: 0, a: 1}

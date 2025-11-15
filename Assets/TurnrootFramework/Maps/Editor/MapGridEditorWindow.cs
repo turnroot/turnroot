@@ -11,24 +11,19 @@ public class MapGridEditorWindow : EditorWindow
     private int _selectedTerrainIndex = 0;
     private Vector2 _scroll = Vector2.zero;
     private float _zoom = 1f;
-    private int _baseCellSize = 32;
+    private int _baseCellSize = 24;
     private bool _isDragging = false;
     private Vector2Int _dragStart;
     private Vector2Int _dragEnd;
+    private Vector2Int _hoveredCell = new(-1, -1);
 
     private enum Mode
     {
         Paint = 0,
-        AStar = 1,
-        TestMovement = 2,
+        TestMovement = 1,
     }
 
     private Mode _mode = Mode.Paint;
-
-    // A* testing state
-    private MapGridPoint _aStarStartPoint = null;
-    private MapGridPoint _aStarGoalPoint = null;
-    private List<MapGridPoint> _lastPath = null;
 
     // A* options
     private bool _asWalk = true;
@@ -55,6 +50,8 @@ public class MapGridEditorWindow : EditorWindow
     private void OnEnable()
     {
         _terrainAsset = TerrainTypes.LoadDefault();
+        this.minSize = new Vector2(600, 480);
+        this.maxSize = new Vector2(2000, 900);
     }
 
     private void OnGUI()
@@ -73,11 +70,11 @@ public class MapGridEditorWindow : EditorWindow
         if (_grid != null && _grid.GetGridPoint(0, 0) == null)
         {
             _grid.EnsureGridPoints();
-            UnityEditor.EditorUtility.SetDirty(_grid);
-            UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(
+            EditorUtility.SetDirty(_grid);
+            EditorSceneManager.MarkSceneDirty(
                 UnityEngine.SceneManagement.SceneManager.GetActiveScene()
             );
-            UnityEditor.SceneView.RepaintAll();
+            SceneView.RepaintAll();
         }
 
         if (_grid == null)
@@ -97,14 +94,14 @@ public class MapGridEditorWindow : EditorWindow
             if (GUILayout.Button("Ensure Grid Points"))
             {
                 _grid.EnsureGridPoints();
-                UnityEditor.EditorUtility.SetDirty(_grid);
-                UnityEditor.SceneView.RepaintAll();
+                EditorUtility.SetDirty(_grid);
+                SceneView.RepaintAll();
             }
             if (GUILayout.Button("Rebuild Index"))
             {
                 _grid.RebuildGridDictionary();
-                UnityEditor.EditorUtility.SetDirty(_grid);
-                UnityEditor.SceneView.RepaintAll();
+                EditorUtility.SetDirty(_grid);
+                SceneView.RepaintAll();
             }
             EditorGUILayout.EndHorizontal();
         }
@@ -114,9 +111,7 @@ public class MapGridEditorWindow : EditorWindow
             EditorGUILayout.HelpBox("No TerrainTypes asset found.", MessageType.Warning);
         }
 
-        // Mode toolbar
-        _mode = (Mode)
-            GUILayout.Toolbar((int)_mode, new string[] { "Paint", "Test Movement", "A*" });
+        _mode = (Mode)GUILayout.Toolbar((int)_mode, new string[] { "Paint", "Test Movement" });
 
         // Test Movement controls
         if (_mode == Mode.TestMovement)
@@ -161,50 +156,29 @@ public class MapGridEditorWindow : EditorWindow
             DrawTerrainPalette();
         }
 
-        // A* options toolbar
-        if (_mode == Mode.AStar)
-        {
-            EditorGUILayout.BeginHorizontal();
-            _asWalk = GUILayout.Toggle(_asWalk, "Walk", "Button");
-            _asFly = GUILayout.Toggle(_asFly, "Fly", "Button");
-            _asRide = GUILayout.Toggle(_asRide, "Ride", "Button");
-            _asMagic = GUILayout.Toggle(_asMagic, "Magic", "Button");
-            _asArmor = GUILayout.Toggle(_asArmor, "Armor", "Button");
-            GUILayout.Label("Same-dir:", GUILayout.Width(70));
-            _sameDirectionMultiplier = EditorGUILayout.Slider(
-                _sameDirectionMultiplier,
-                0.5f,
-                1.1f,
-                GUILayout.Width(150)
-            );
-            EditorGUILayout.EndHorizontal();
-        }
-
         // Zoom controls
         EditorGUILayout.BeginHorizontal();
         GUILayout.Label("Zoom:", GUILayout.Width(40));
         _zoom = EditorGUILayout.Slider(_zoom, 0.25f, 3f);
         if (GUILayout.Button("Reset Zoom", GUILayout.Width(90)))
+        {
             _zoom = 1f;
+        }
+
         EditorGUILayout.EndHorizontal();
 
-        // Drawing area
-        Rect area = GUILayoutUtility.GetRect(position.width, position.height - 120);
+        float statusBarH = 24f;
+        Rect area = GUILayoutUtility.GetRect(position.width, position.height - 120 - statusBarH);
         DrawGridArea(area);
 
-        // Apply / Reset
-        EditorGUILayout.BeginHorizontal();
-        if (GUILayout.Button("Reset Point Colors"))
-        {
-            _grid.ResetAllPointColors();
-        }
-        if (GUILayout.Button("Clear A* Selection"))
-        {
-            _aStarStartPoint = null;
-            _aStarGoalPoint = null;
-            _lastPath = null;
-            UnityEditor.SceneView.RepaintAll();
-        }
+        // Status bar showing hovered tile (row/col)
+        EditorGUILayout.BeginHorizontal(EditorStyles.helpBox);
+        GUILayout.FlexibleSpace();
+        string hoverText =
+            _hoveredCell.x >= 0
+                ? $"Hovered: Row {_hoveredCell.x}, Col {_hoveredCell.y}"
+                : "Hovered: (none)";
+        GUILayout.Label(hoverText);
         EditorGUILayout.EndHorizontal();
     }
 
@@ -216,7 +190,10 @@ public class MapGridEditorWindow : EditorWindow
         {
             string[] names = new string[_terrainAsset.Types.Length];
             for (int i = 0; i < names.Length; i++)
+            {
                 names[i] = _terrainAsset.Types[i].Name ?? i.ToString();
+            }
+
             _selectedTerrainIndex = EditorGUILayout.Popup(_selectedTerrainIndex, names);
             var col = _terrainAsset.Types[_selectedTerrainIndex].EditorColor;
             Rect cRect = GUILayoutUtility.GetRect(18, 18);
@@ -232,21 +209,31 @@ public class MapGridEditorWindow : EditorWindow
     private void DrawTerrainPalette()
     {
         if (_terrainAsset == null || _terrainAsset.Types == null)
+        {
             return;
+        }
+
         EditorGUILayout.BeginHorizontal();
         GUILayout.Label("Palette:", GUILayout.Width(60));
         foreach (var t in _terrainAsset.Types)
         {
             if (t == null)
+            {
                 continue;
+            }
+
             Texture2D icon = GetTerrainIcon(t);
             GUIContent content;
             if (icon != null)
+            {
                 content = new GUIContent(icon, t.Name);
+            }
             else
+            {
                 content = new GUIContent(t.Name);
+            }
 
-            GUIStyle style = new GUIStyle(GUI.skin.button);
+            GUIStyle style = new(GUI.skin.button);
             style.fixedWidth = 40;
             style.fixedHeight = 24;
 
@@ -262,11 +249,15 @@ public class MapGridEditorWindow : EditorWindow
     private Texture2D GetTerrainIcon(TerrainType t)
     {
         if (t == null)
+        {
             return null;
+        }
         // Use a stable cache key (prefer Id, otherwise Name)
         string key = !string.IsNullOrEmpty(t.Id) ? t.Id : t.Name;
         if (_terrainIcons.TryGetValue(key, out var cached))
+        {
             return cached;
+        }
 
         var NameWithoutSpaces = t.Name.Replace(" ", "").ToLower();
 
@@ -282,10 +273,15 @@ public class MapGridEditorWindow : EditorWindow
         foreach (var p in tryPaths)
         {
             if (string.IsNullOrEmpty(p))
+            {
                 continue;
+            }
+
             tex = Resources.Load<Texture2D>(p);
             if (tex != null)
+            {
                 break;
+            }
         }
 
         _terrainIcons[key] = tex;
@@ -317,9 +313,28 @@ public class MapGridEditorWindow : EditorWindow
         // get content-local coordinates (do not subtract the window `area` position).
         Vector2 localMouse = e.mousePosition + _scroll;
 
-        // (no debug logging)
+        float contentW = width * cellSize;
+        float contentH = height * cellSize;
+        if (
+            localMouse.x >= 0
+            && localMouse.y >= 0
+            && localMouse.x <= contentW
+            && localMouse.y <= contentH
+        )
+        {
+            Vector2Int cell = MouseToCell(localMouse, cellSize);
+            _hoveredCell = ClampCell(cell, width, height);
+        }
+        else
+        {
+            _hoveredCell = new Vector2Int(-1, -1);
+        }
 
-        // Handle mouse for selection or A* depending on mode
+        if (e.type == EventType.MouseMove)
+        {
+            Repaint();
+        }
+
         HandleMouse(e, localMouse, cellSize, width, height);
 
         // Determine farthest reachable cost for TestMovement visualization
@@ -329,10 +344,14 @@ public class MapGridEditorWindow : EditorWindow
             foreach (var kv in _testMovementResults)
             {
                 if (kv.Value > _testMaxCost)
+                {
                     _testMaxCost = kv.Value;
+                }
             }
             if (float.IsNegativeInfinity(_testMaxCost))
+            {
                 _testMaxCost = float.MinValue;
+            }
         }
 
         // Draw cells
@@ -340,7 +359,7 @@ public class MapGridEditorWindow : EditorWindow
         {
             for (int c = 0; c < height; c++)
             {
-                Rect cellRect = new Rect(r * cellSize, c * cellSize, cellSize, cellSize);
+                Rect cellRect = new(r * cellSize, c * cellSize, cellSize, cellSize);
                 // Terrain color
                 var point = _grid.GetGridPoint(r, c);
                 Color fill = Color.white;
@@ -351,28 +370,12 @@ public class MapGridEditorWindow : EditorWindow
                     {
                         tt = _terrainAsset.GetTypeById(point.TerrainTypeId);
                     }
-                    if (tt == null)
-                        tt = point.SelectedTerrainType;
-                    if (tt != null)
-                        fill = tt.EditorColor;
+                    tt ??= point.SelectedTerrainType;
 
-                    // Draw small terrain label for debugging (shows name or id)
-                    string terrainLabel =
-                        tt != null
-                            ? tt.Name
-                            : (
-                                !string.IsNullOrEmpty(point.TerrainTypeId)
-                                    ? point.TerrainTypeId
-                                    : "(none)"
-                            );
-                    var labelStyle = new GUIStyle(EditorStyles.label);
-                    labelStyle.fontSize = Mathf.Max(8, Mathf.FloorToInt(cellSize / 6f));
-                    labelStyle.normal.textColor = Color.black;
-                    EditorGUI.LabelField(
-                        new Rect(cellRect.x + 2, cellRect.y + 2, cellRect.width - 4, 18),
-                        terrainLabel,
-                        labelStyle
-                    );
+                    if (tt != null)
+                    {
+                        fill = tt.EditorColor;
+                    }
                 }
                 EditorGUI.DrawRect(cellRect, fill);
 
@@ -386,38 +389,6 @@ public class MapGridEditorWindow : EditorWindow
                     if (r >= minR && r <= maxR && c >= minC && c <= maxC)
                     {
                         EditorGUI.DrawRect(cellRect, new Color(0, 0, 0, 0.25f));
-                    }
-                }
-
-                // A* overlays: path, start, goal
-                if (_mode == Mode.AStar)
-                {
-                    if (_lastPath != null)
-                    {
-                        foreach (var p in _lastPath)
-                        {
-                            if (p != null && p.Row == r && p.Col == c)
-                            {
-                                EditorGUI.DrawRect(cellRect, Color.magenta);
-                            }
-                        }
-                    }
-                    // A* overlays continue below
-                    if (
-                        _aStarStartPoint != null
-                        && _aStarStartPoint.Row == r
-                        && _aStarStartPoint.Col == c
-                    )
-                    {
-                        EditorGUI.DrawRect(cellRect, Color.cyan);
-                    }
-                    if (
-                        _aStarGoalPoint != null
-                        && _aStarGoalPoint.Row == r
-                        && _aStarGoalPoint.Col == c
-                    )
-                    {
-                        EditorGUI.DrawRect(cellRect, Color.cyan);
                     }
                 }
 
@@ -463,7 +434,9 @@ public class MapGridEditorWindow : EditorWindow
         GUI.EndScrollView();
 
         if (GUI.changed)
+        {
             Repaint();
+        }
     }
 
     private void HandleMouse(Event e, Vector2 localMouse, float cellSize, int width, int height)
@@ -497,50 +470,6 @@ public class MapGridEditorWindow : EditorWindow
             {
                 _isDragging = false;
                 ApplyTerrainToSelection();
-                e.Use();
-            }
-        }
-        else if (_mode == Mode.AStar)
-        {
-            if (e.type == EventType.MouseDown && e.button == 0)
-            {
-                if (!inside)
-                {
-                    e.Use();
-                    return;
-                }
-                Vector2Int cell = MouseToCell(localMouse, cellSize);
-                Vector2Int cellClamped = ClampCell(cell, width, height);
-                var clicked = _grid.GetGridPoint(cellClamped.x, cellClamped.y);
-                if (clicked != null)
-                {
-                    if (_aStarStartPoint == null)
-                    {
-                        _aStarStartPoint = clicked;
-                        _aStarGoalPoint = null;
-                        _lastPath = null;
-                    }
-                    else if (_aStarGoalPoint == null)
-                    {
-                        _aStarGoalPoint = clicked;
-                        RunAStar();
-                    }
-                    else
-                    {
-                        // shift previous goal to start, set new goal and run
-                        _aStarStartPoint = _aStarGoalPoint;
-                        _aStarGoalPoint = clicked;
-                        RunAStar();
-                    }
-                }
-                e.Use();
-            }
-            else if (e.type == EventType.MouseDown && e.button == 1)
-            {
-                // right-click clears A* selection
-                _aStarStartPoint = null;
-                _aStarGoalPoint = null;
-                _lastPath = null;
                 e.Use();
             }
         }
@@ -601,7 +530,10 @@ public class MapGridEditorWindow : EditorWindow
     private void ApplyTerrainToSelection()
     {
         if (_grid == null || _terrainAsset == null || _terrainAsset.Types == null)
+        {
             return;
+        }
+
         int minR = Mathf.Min(_dragStart.x, _dragEnd.x);
         int maxR = Mathf.Max(_dragStart.x, _dragEnd.x);
         int minC = Mathf.Min(_dragStart.y, _dragEnd.y);
@@ -619,26 +551,17 @@ public class MapGridEditorWindow : EditorWindow
                 {
                     Undo.RecordObject(p, "MapGrid Edit");
                     p.SetTerrainTypeId(chosen.Id);
-                    UnityEditor.EditorUtility.SetDirty(p);
+                    EditorUtility.SetDirty(p);
                     painted++;
                 }
             }
         }
-        UnityEditor.EditorUtility.SetDirty(_grid);
+        EditorUtility.SetDirty(_grid);
         // Mark the active scene dirty so changes persist
         var _scene = UnityEngine.SceneManagement.SceneManager.GetActiveScene();
         EditorSceneManager.MarkSceneDirty(_scene);
-        UnityEditor.SceneView.RepaintAll();
+        SceneView.RepaintAll();
 #endif
-    }
-
-    private void RunAStar()
-    {
-        if (_grid == null || _aStarStartPoint == null || _aStarGoalPoint == null)
-            return;
-        var aStar = new AStarModified();
-        _lastPath = aStar.AStarSearch(_grid, _aStarStartPoint, _aStarGoalPoint);
-        Repaint();
     }
 }
 #endif
