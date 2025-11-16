@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -83,19 +84,30 @@ public class MapGridPoint : MonoBehaviour
     [Tooltip("Optional name or label for the feature. Editable from the Map Grid Editor.")]
     private string _featureName = string.Empty;
 
-    [System.Serializable]
-    public class FeatureProperty
-    {
-        public string key = string.Empty;
-        public string value = string.Empty;
-    }
+    // Per-instance typed feature property overrides
+    [SerializeField]
+    private List<MapGridPointFeatureProperties.StringProperty> _stringProperties =
+        new List<MapGridPointFeatureProperties.StringProperty>();
 
     [SerializeField]
-    [Tooltip("Optional key/value properties attached to a feature (persisted).")]
-    private List<FeatureProperty> _featureProperties = new List<FeatureProperty>();
+    private List<MapGridPointFeatureProperties.BoolProperty> _boolProperties =
+        new List<MapGridPointFeatureProperties.BoolProperty>();
+
+    [SerializeField]
+    private List<MapGridPointFeatureProperties.IntProperty> _intProperties =
+        new List<MapGridPointFeatureProperties.IntProperty>();
+
+    [SerializeField]
+    private List<MapGridPointFeatureProperties.FloatProperty> _floatProperties =
+        new List<MapGridPointFeatureProperties.FloatProperty>();
 
     // Expose feature fields for editor tooling
     public string FeatureTypeId => _featureTypeId;
+    public MapGridPointFeature.FeatureType FeatureType
+    {
+        get => MapGridPointFeature.TypeFromId(_featureTypeId);
+        set => _featureTypeId = MapGridPointFeature.IdFromType(value) ?? string.Empty;
+    }
     public string FeatureName
     {
         get => _featureName;
@@ -127,52 +139,234 @@ public class MapGridPoint : MonoBehaviour
 
         _featureTypeId = selId;
         _featureName = name ?? string.Empty;
+
+        // When a feature is applied, populate instance properties from the shared defaults
+        // (scriptable objects under Resources/GameSettings/*/Map). Do not overwrite any
+        // existing per-instance property values.
+        ApplyDefaultsForFeature(selId);
     }
 
     public void ClearFeature()
     {
         _featureTypeId = string.Empty;
         _featureName = string.Empty;
-        _featureProperties.Clear();
+        _stringProperties.Clear();
+        _boolProperties.Clear();
+        _intProperties.Clear();
+        _floatProperties.Clear();
     }
 
-    // Feature property helpers (key/value pairs persisted on the MapGridPoint)
-    public void SetFeatureProperty(string key, string value)
-    {
-        if (string.IsNullOrEmpty(key))
-            return;
-        var existing = _featureProperties.Find(p => p.key == key);
-        if (existing != null)
-        {
-            existing.value = value ?? string.Empty;
-        }
-        else
-        {
-            _featureProperties.Add(
-                new FeatureProperty { key = key, value = value ?? string.Empty }
-            );
-        }
-    }
-
-    public string GetFeatureProperty(string key)
-    {
-        if (string.IsNullOrEmpty(key))
-            return null;
-        var p = _featureProperties.Find(x => x.key == key);
-        return p != null ? p.value : null;
-    }
+    // Feature property helpers (typed key/value pairs persisted on the MapGridPoint)
 
     public void ClearFeatureProperty(string key)
     {
         if (string.IsNullOrEmpty(key))
             return;
-        _featureProperties.RemoveAll(p => p.key == key);
+        _stringProperties.RemoveAll(p => p.key == key);
+        _boolProperties.RemoveAll(p => p.key == key);
+        _intProperties.RemoveAll(p => p.key == key);
+        _floatProperties.RemoveAll(p => p.key == key);
     }
 
-    public List<FeatureProperty> GetAllFeatureProperties()
+    // Typed accessors - string
+    public void SetStringFeatureProperty(string key, string value)
     {
-        // return a shallow copy to avoid callers mutating the serialized list directly
-        return new List<FeatureProperty>(_featureProperties);
+        if (string.IsNullOrEmpty(key))
+            return;
+        var existing = _stringProperties.Find(p => p.key == key);
+        if (existing != null)
+        {
+            existing.value = value ?? string.Empty;
+            return;
+        }
+        _stringProperties.Add(
+            new MapGridPointFeatureProperties.StringProperty
+            {
+                key = key,
+                value = value ?? string.Empty,
+            }
+        );
+    }
+
+    public string GetStringFeatureProperty(string key)
+    {
+        if (string.IsNullOrEmpty(key))
+            return null;
+        var p = _stringProperties.Find(x => x.key == key);
+        return p != null ? p.value : null;
+    }
+
+    public List<MapGridPointFeatureProperties.StringProperty> GetAllStringFeatureProperties()
+    {
+        return new List<MapGridPointFeatureProperties.StringProperty>(_stringProperties);
+    }
+
+    public void SetBoolFeatureProperty(string key, bool value)
+    {
+        if (string.IsNullOrEmpty(key))
+            return;
+        var existing = _boolProperties.Find(p => p.key == key);
+        if (existing != null)
+        {
+            existing.value = value;
+            return;
+        }
+        _boolProperties.Add(
+            new MapGridPointFeatureProperties.BoolProperty { key = key, value = value }
+        );
+    }
+
+    public bool? GetBoolFeatureProperty(string key)
+    {
+        if (string.IsNullOrEmpty(key))
+            return null;
+        var p = _boolProperties.Find(x => x.key == key);
+        return p != null ? (bool?)p.value : null;
+    }
+
+    public List<MapGridPointFeatureProperties.BoolProperty> GetAllBoolFeatureProperties()
+    {
+        return new List<MapGridPointFeatureProperties.BoolProperty>(_boolProperties);
+    }
+
+    public void SetIntFeatureProperty(string key, int value)
+    {
+        if (string.IsNullOrEmpty(key))
+            return;
+        var existing = _intProperties.Find(p => p.key == key);
+        if (existing != null)
+        {
+            existing.value = value;
+            return;
+        }
+        _intProperties.Add(
+            new MapGridPointFeatureProperties.IntProperty { key = key, value = value }
+        );
+    }
+
+    public int? GetIntFeatureProperty(string key)
+    {
+        if (string.IsNullOrEmpty(key))
+            return null;
+        var p = _intProperties.Find(x => x.key == key);
+        return p != null ? (int?)p.value : null;
+    }
+
+    public List<MapGridPointFeatureProperties.IntProperty> GetAllIntFeatureProperties()
+    {
+        return new List<MapGridPointFeatureProperties.IntProperty>(_intProperties);
+    }
+
+    public void SetFloatFeatureProperty(string key, float value)
+    {
+        if (string.IsNullOrEmpty(key))
+            return;
+        var existing = _floatProperties.Find(p => p.key == key);
+        if (existing != null)
+        {
+            existing.value = value;
+            return;
+        }
+        _floatProperties.Add(
+            new MapGridPointFeatureProperties.FloatProperty { key = key, value = value }
+        );
+    }
+
+    public float? GetFloatFeatureProperty(string key)
+    {
+        if (string.IsNullOrEmpty(key))
+            return null;
+        var p = _floatProperties.Find(x => x.key == key);
+        return p != null ? (float?)p.value : null;
+    }
+
+    public List<MapGridPointFeatureProperties.FloatProperty> GetAllFloatFeatureProperties()
+    {
+        return new List<MapGridPointFeatureProperties.FloatProperty>(_floatProperties);
+    }
+
+    // Populate per-instance properties from the shared defaults (ScriptableObject)
+    public void ApplyDefaultsForFeature(string featureId)
+    {
+        if (string.IsNullOrEmpty(featureId))
+            return;
+
+        // Load all defaults under GameSettings (covers GameSettings/*/Map)
+        var all = Resources.LoadAll<MapGridPointFeatureProperties>("GameSettings");
+        if (all == null || all.Length == 0)
+            return;
+
+        MapGridPointFeatureProperties found = null;
+        foreach (var a in all)
+        {
+            if (a == null)
+                continue;
+            if (!string.IsNullOrEmpty(a.featureId) && a.featureId == featureId)
+            {
+                found = a;
+                break;
+            }
+            if (string.Equals(a.name, featureId, StringComparison.OrdinalIgnoreCase))
+            {
+                found = a;
+                break;
+            }
+        }
+
+        if (found == null)
+            return;
+
+        // Apply string defaults
+        if (found.stringProperties != null)
+        {
+            foreach (var sp in found.stringProperties)
+            {
+                if (string.IsNullOrEmpty(sp.key))
+                    continue;
+                var existing = GetStringFeatureProperty(sp.key);
+                if (existing == null)
+                    SetStringFeatureProperty(sp.key, sp.value ?? string.Empty);
+            }
+        }
+
+        // Bool defaults
+        if (found.boolProperties != null)
+        {
+            foreach (var bp in found.boolProperties)
+            {
+                if (string.IsNullOrEmpty(bp.key))
+                    continue;
+                var existing = GetBoolFeatureProperty(bp.key);
+                if (existing == null)
+                    SetBoolFeatureProperty(bp.key, bp.value);
+            }
+        }
+
+        // Int defaults
+        if (found.intProperties != null)
+        {
+            foreach (var ip in found.intProperties)
+            {
+                if (string.IsNullOrEmpty(ip.key))
+                    continue;
+                var existing = GetIntFeatureProperty(ip.key);
+                if (existing == null)
+                    SetIntFeatureProperty(ip.key, ip.value);
+            }
+        }
+
+        // Float defaults
+        if (found.floatProperties != null)
+        {
+            foreach (var fp in found.floatProperties)
+            {
+                if (string.IsNullOrEmpty(fp.key))
+                    continue;
+                var existing = GetFloatFeatureProperty(fp.key);
+                if (existing == null)
+                    SetFloatFeatureProperty(fp.key, fp.value);
+            }
+        }
     }
 
     // Feature letter mapping moved to MapGridPointFeature.GetFeatureLetter(string)

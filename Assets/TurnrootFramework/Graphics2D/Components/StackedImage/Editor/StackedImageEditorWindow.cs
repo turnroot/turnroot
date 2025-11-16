@@ -21,28 +21,14 @@ namespace Turnroot.Graphics2D.Editor
         protected abstract string OwnerFieldLabel { get; }
         protected abstract TStackedImage[] GetImagesFromOwner(TOwner owner);
 
-        protected virtual void SetImagesToOwner(TOwner owner, TStackedImage[] images)
-        {
-            // Optional override - not all implementations need to set images back to owner
-        }
+        protected virtual void SetImagesToOwner(TOwner owner, TStackedImage[] images) { }
 
         protected virtual void OnGUI()
         {
             EditorGUILayout.LabelField($"Live {WindowTitle}", EditorStyles.boldLabel);
             EditorGUILayout.Space(10);
 
-            // Owner selection
-            EditorGUI.BeginChangeCheck();
-            _currentOwner =
-                EditorGUILayout.ObjectField(OwnerFieldLabel, _currentOwner, typeof(TOwner), false)
-                as TOwner;
-
-            if (EditorGUI.EndChangeCheck())
-            {
-                _selectedImageIndex = 0;
-                UpdateCurrentImage();
-            }
-
+            DrawOwnerSelection();
             if (_currentOwner == null)
             {
                 EditorGUILayout.HelpBox(
@@ -52,46 +38,8 @@ namespace Turnroot.Graphics2D.Editor
                 return;
             }
 
-            // Image selection dropdown
-            var images = GetImagesFromOwner(_currentOwner);
-            if (images != null && images.Length > 1)
-            {
-                EditorGUI.BeginChangeCheck();
-                string[] imageNames = new string[images.Length];
-                for (int i = 0; i < images.Length; i++)
-                {
-                    var image = images[i];
-                    imageNames[i] =
-                        image != null ? $"Image {i}: {image.Key}" : $"Image {i}: (null)";
-                }
-                _selectedImageIndex = EditorGUILayout.Popup(
-                    "Select Image",
-                    _selectedImageIndex,
-                    imageNames
-                );
-
-                if (EditorGUI.EndChangeCheck())
-                {
-                    UpdateCurrentImage();
-                }
-            }
-            else if (images != null && images.Length == 1)
-            {
-                if (_currentImage == null)
-                {
-                    _currentImage = images[0];
-                    RefreshPreview();
-                }
-            }
-            else
-            {
-                EditorGUILayout.HelpBox(
-                    $"This {OwnerFieldLabel} has no images. Add images first.",
-                    MessageType.Warning
-                );
+            if (!DrawImageSelection())
                 return;
-            }
-
             if (_currentImage == null)
             {
                 EditorGUILayout.HelpBox("Selected image is null.", MessageType.Error);
@@ -99,20 +47,69 @@ namespace Turnroot.Graphics2D.Editor
             }
 
             EditorGUILayout.Space(10);
+            DrawMainLayout();
+        }
 
-            // Horizontal layout for main content
+        private void DrawOwnerSelection()
+        {
+            EditorGUI.BeginChangeCheck();
+            _currentOwner =
+                EditorGUILayout.ObjectField(OwnerFieldLabel, _currentOwner, typeof(TOwner), false)
+                as TOwner;
+            if (EditorGUI.EndChangeCheck())
+            {
+                _selectedImageIndex = 0;
+                UpdateCurrentImage();
+            }
+        }
+
+        private bool DrawImageSelection()
+        {
+            var images = GetImagesFromOwner(_currentOwner);
+            if (images == null || images.Length == 0)
+            {
+                EditorGUILayout.HelpBox(
+                    $"This {OwnerFieldLabel} has no images. Add images first.",
+                    MessageType.Warning
+                );
+                return false;
+            }
+
+            if (images.Length > 1)
+            {
+                EditorGUI.BeginChangeCheck();
+                string[] imageNames = new string[images.Length];
+                for (int i = 0; i < images.Length; i++)
+                    imageNames[i] =
+                        images[i] != null ? $"Image {i}: {images[i].Key}" : $"Image {i}: (null)";
+
+                _selectedImageIndex = EditorGUILayout.Popup(
+                    "Select Image",
+                    _selectedImageIndex,
+                    imageNames
+                );
+                if (EditorGUI.EndChangeCheck())
+                    UpdateCurrentImage();
+            }
+            else if (_currentImage == null)
+            {
+                _currentImage = images[0];
+                RefreshPreview();
+            }
+
+            return true;
+        }
+
+        private void DrawMainLayout()
+        {
             EditorGUILayout.BeginHorizontal();
 
-            // Left panel - Controls
             EditorGUILayout.BeginVertical(GUILayout.Width(400));
             _scrollPosition = EditorGUILayout.BeginScrollView(_scrollPosition);
-
             DrawControlPanel();
-
             EditorGUILayout.EndScrollView();
             EditorGUILayout.EndVertical();
 
-            // Right panel - Preview (constrained width)
             EditorGUILayout.BeginVertical(GUILayout.MaxWidth(350));
             DrawPreviewPanel();
             EditorGUILayout.EndVertical();
@@ -132,13 +129,10 @@ namespace Turnroot.Graphics2D.Editor
         protected void DrawImageMetadataSection()
         {
             if (string.IsNullOrEmpty(_currentImage.Key))
-            {
                 EditorGUILayout.HelpBox(
                     "Warning: Key is empty. It will be auto-generated when rendering.",
                     MessageType.Warning
                 );
-            }
-
             EditorGUILayout.Space(10);
         }
 
@@ -154,15 +148,10 @@ namespace Turnroot.Graphics2D.Editor
                         typeof(ImageStack),
                         false
                     ) as ImageStack;
-
                 if (EditorGUI.EndChangeCheck())
                 {
-                    // Use public API instead of reflection
                     _currentImage.SetImageStack(newStack);
-
-                    EditorUtility.SetDirty(_currentOwner);
-                    if (_autoRefresh)
-                        RefreshPreview();
+                    MarkDirtyAndRefresh();
                 }
             }
 
@@ -172,44 +161,37 @@ namespace Turnroot.Graphics2D.Editor
                     "No ImageStack assigned. Assign one to see layers.",
                     MessageType.Warning
                 );
-
                 if (GUILayout.Button("+ Create New Image Stack"))
-                {
-                    // Create new ImageStack asset
-                    var newImageStack = ScriptableObject.CreateInstance<ImageStack>();
-
-                    // Save it to the project
-                    string path = UnityEditor.EditorUtility.SaveFilePanelInProject(
-                        "Create New Image Stack",
-                        "NewImageStack",
-                        "asset",
-                        "Choose where to save the new ImageStack"
-                    );
-
-                    if (!string.IsNullOrEmpty(path))
-                    {
-                        UnityEditor.AssetDatabase.CreateAsset(newImageStack, path);
-                        UnityEditor.AssetDatabase.SaveAssets();
-
-                        // Assign it to the current image using public API
-                        _currentImage.SetImageStack(newImageStack);
-
-                        EditorUtility.SetDirty(_currentOwner);
-                        if (_autoRefresh)
-                            RefreshPreview();
-                    }
-                }
+                    CreateNewImageStack();
             }
 
             EditorGUILayout.Space(10);
         }
 
+        private void CreateNewImageStack()
+        {
+            var newImageStack = ScriptableObject.CreateInstance<ImageStack>();
+            string path = EditorUtility.SaveFilePanelInProject(
+                "Create New Image Stack",
+                "NewImageStack",
+                "asset",
+                "Choose where to save the new ImageStack"
+            );
+
+            if (!string.IsNullOrEmpty(path))
+            {
+                AssetDatabase.CreateAsset(newImageStack, path);
+                AssetDatabase.SaveAssets();
+                _currentImage.SetImageStack(newImageStack);
+                MarkDirtyAndRefresh();
+            }
+        }
+
         protected void DrawOwnerSection()
         {
             EditorGUILayout.LabelField("Owner", EditorStyles.boldLabel);
-
             EditorGUI.BeginDisabledGroup(true);
-            _ = EditorGUILayout.ObjectField(
+            EditorGUILayout.ObjectField(
                 "Current Owner",
                 _currentImage.Owner,
                 typeof(TOwner),
@@ -223,13 +205,10 @@ namespace Turnroot.Graphics2D.Editor
                     "Warning: Owner is not set. This may cause issues with tint colors.",
                     MessageType.Warning
                 );
-
                 if (GUILayout.Button($"Set Owner to Current {OwnerFieldLabel}"))
                 {
                     _currentImage.SetOwner(_currentOwner);
-                    EditorUtility.SetDirty(_currentOwner);
-                    if (_autoRefresh)
-                        RefreshPreview();
+                    MarkDirtyAndRefresh();
                 }
             }
 
@@ -247,43 +226,27 @@ namespace Turnroot.Graphics2D.Editor
             }
 
             EditorGUI.BeginChangeCheck();
-
             for (int i = 0; i < 3; i++)
-            {
                 _currentImage.TintColors[i] = EditorGUILayout.ColorField(
                     $"Tint Color {i + 1}",
                     _currentImage.TintColors[i]
                 );
-            }
-
             if (EditorGUI.EndChangeCheck())
-            {
-                EditorUtility.SetDirty(_currentOwner);
-                if (_autoRefresh)
-                    RefreshPreview();
-            }
+                MarkDirtyAndRefresh();
 
             EditorGUILayout.BeginHorizontal();
             if (GUILayout.Button("Reset to White"))
             {
                 for (int i = 0; i < 3; i++)
-                {
                     _currentImage.TintColors[i] = Color.white;
-                }
-                EditorUtility.SetDirty(_currentOwner);
-                if (_autoRefresh)
-                    RefreshPreview();
+                MarkDirtyAndRefresh();
             }
-
             if (GUILayout.Button("Update from Owner"))
             {
                 _currentImage.UpdateTintColorsFromOwner();
-                EditorUtility.SetDirty(_currentOwner);
-                if (_autoRefresh)
-                    RefreshPreview();
+                MarkDirtyAndRefresh();
             }
             EditorGUILayout.EndHorizontal();
-
             EditorGUILayout.Space(10);
         }
 
@@ -313,56 +276,60 @@ namespace Turnroot.Graphics2D.Editor
                     continue;
 
                 EditorGUILayout.BeginVertical("box");
-
-                bool isSelected = _selectedLayerIndex == i;
-                Color originalColor = GUI.backgroundColor;
-                if (isSelected)
-                    GUI.backgroundColor = Color.cyan;
-
-                if (GUILayout.Button($"Layer {i}: Order {layer.Order}"))
-                {
-                    _selectedLayerIndex = i;
-                }
-
-                GUI.backgroundColor = originalColor;
-
-                if (isSelected)
-                {
-                    EditorGUI.indentLevel++;
-
-                    // Safe access to sprite/mask names (handles destroyed Unity Objects)
-                    string spriteName = "(none)";
-                    if (layer.Sprite != null && layer.Sprite)
-                        spriteName = layer.Sprite.name;
-
-                    string maskName = "(none)";
-                    if (layer.Mask != null && layer.Mask)
-                        maskName = layer.Mask.name;
-
-                    EditorGUILayout.LabelField("Sprite", spriteName);
-                    EditorGUILayout.LabelField("Mask", maskName);
-                    EditorGUILayout.LabelField("Order", layer.Order.ToString());
-                    EditorGUILayout.LabelField("Offset", $"({layer.Offset.x}, {layer.Offset.y})");
-                    EditorGUILayout.LabelField("Scale", layer.Scale.ToString());
-                    EditorGUILayout.LabelField("Rotation", layer.Rotation.ToString());
-
-                    EditorGUI.indentLevel--;
-                }
-
+                DrawLayerButton(i, layer);
+                if (_selectedLayerIndex == i)
+                    DrawLayerDetails(layer);
                 EditorGUILayout.EndVertical();
             }
 
             EditorGUILayout.Space(10);
         }
 
+        private void DrawLayerButton(int index, ImageStackLayer layer)
+        {
+            bool isSelected = _selectedLayerIndex == index;
+            Color originalColor = GUI.backgroundColor;
+            if (isSelected)
+                GUI.backgroundColor = Color.cyan;
+
+            if (GUILayout.Button($"Layer {index}: Order {layer.Order}"))
+                _selectedLayerIndex = index;
+
+            GUI.backgroundColor = originalColor;
+        }
+
+        private void DrawLayerDetails(ImageStackLayer layer)
+        {
+            EditorGUI.indentLevel++;
+
+            string spriteName =
+                (layer.Sprite != null && layer.Sprite) ? layer.Sprite.name : "(none)";
+            string maskName = (layer.Mask != null && layer.Mask) ? layer.Mask.name : "(none)";
+
+            EditorGUILayout.LabelField("Sprite", spriteName);
+            EditorGUILayout.LabelField("Mask", maskName);
+            EditorGUILayout.LabelField("Order", layer.Order.ToString());
+            EditorGUILayout.LabelField("Offset", $"({layer.Offset.x}, {layer.Offset.y})");
+            EditorGUILayout.LabelField("Scale", layer.Scale.ToString());
+            EditorGUILayout.LabelField("Rotation", layer.Rotation.ToString());
+
+            EditorGUI.indentLevel--;
+        }
+
         protected void DrawPreviewPanel()
+        {
+            DrawDefaultButtons();
+            DrawPreviewTexture();
+            DrawRenderSection();
+        }
+
+        private void DrawDefaultButtons()
         {
             GUILayout.BeginHorizontal();
             if (GUILayout.Button("Save Character Defaults"))
             {
                 _currentOwner.SaveDefaults();
                 EditorUtility.SetDirty(_currentOwner);
-                // Confirmation dialog
                 EditorUtility.DisplayDialog(
                     "Defaults Saved",
                     "Character defaults have been saved.",
@@ -374,7 +341,6 @@ namespace Turnroot.Graphics2D.Editor
                 _currentOwner.LoadDefaults();
                 EditorUtility.SetDirty(_currentOwner);
                 RefreshPreview();
-                // Confirmation dialog
                 EditorUtility.DisplayDialog(
                     "Defaults Loaded",
                     "Character defaults have been loaded.",
@@ -382,24 +348,16 @@ namespace Turnroot.Graphics2D.Editor
                 );
             }
             GUILayout.EndHorizontal();
+        }
 
-            // Preview area - constrained to reasonable size
+        private void DrawPreviewTexture()
+        {
             if (_previewTexture != null)
             {
-                // Calculate aspect-fit size for a max 300x300 display
                 float maxSize = 300f;
                 float aspect = (float)_previewTexture.width / _previewTexture.height;
-                float displayWidth = maxSize;
-                float displayHeight = maxSize;
-
-                if (aspect > 1f)
-                {
-                    displayHeight = maxSize / aspect;
-                }
-                else if (aspect < 1f)
-                {
-                    displayWidth = maxSize * aspect;
-                }
+                float displayWidth = aspect > 1f ? maxSize : maxSize * aspect;
+                float displayHeight = aspect > 1f ? maxSize / aspect : maxSize;
 
                 GUILayout.Label(
                     _previewTexture,
@@ -415,8 +373,7 @@ namespace Turnroot.Graphics2D.Editor
                 );
             }
 
-            if (_currentImage.SavedSprite == null) { }
-            else
+            if (_currentImage.SavedSprite != null)
             {
                 string spritePath =
                     $"Resources/GameContent/Graphics/Portraits/{_currentImage.Key}.png";
@@ -424,48 +381,47 @@ namespace Turnroot.Graphics2D.Editor
             }
 
             EditorGUILayout.Space(10);
+        }
 
+        private void DrawRenderSection()
+        {
             if (_currentImage.ImageStack == null)
             {
                 EditorGUILayout.HelpBox(
                     "Cannot render: No ImageStack assigned.",
                     MessageType.Warning
                 );
+                return;
             }
-            else
-            {
-                var layers = _currentImage.ImageStack.Layers;
-                if (layers == null || layers.Count == 0)
-                {
-                    EditorGUILayout.HelpBox(
-                        "Cannot render: ImageStack has no layers.",
-                        MessageType.Warning
-                    );
-                }
-                else
-                {
-                    if (string.IsNullOrEmpty(_currentImage.Key))
-                    {
-                        EditorGUILayout.HelpBox(
-                            "Warning: Key is empty. A key will be auto-generated.",
-                            MessageType.Warning
-                        );
-                    }
 
-                    if (GUILayout.Button("Render and Save to File", GUILayout.Height(40)))
-                    {
-                        Debug.Log($"Saving image with key: '{_currentImage.Key}'");
-                        _currentImage.Render();
-                        EditorUtility.DisplayDialog(
-                            "Render Complete",
-                            $"Image has been rendered and saved to:\nAssets/Resources/GameContent/Graphics/Portraits/{_currentImage.Key}.png",
-                            "OK"
-                        );
-                        EditorUtility.SetDirty(_currentOwner);
-                        AssetDatabase.SaveAssets();
-                        RefreshPreview();
-                    }
-                }
+            var layers = _currentImage.ImageStack.Layers;
+            if (layers == null || layers.Count == 0)
+            {
+                EditorGUILayout.HelpBox(
+                    "Cannot render: ImageStack has no layers.",
+                    MessageType.Warning
+                );
+                return;
+            }
+
+            if (string.IsNullOrEmpty(_currentImage.Key))
+                EditorGUILayout.HelpBox(
+                    "Warning: Key is empty. A key will be auto-generated.",
+                    MessageType.Warning
+                );
+
+            if (GUILayout.Button("Render and Save to File", GUILayout.Height(40)))
+            {
+                Debug.Log($"Saving image with key: '{_currentImage.Key}'");
+                _currentImage.Render();
+                EditorUtility.DisplayDialog(
+                    "Render Complete",
+                    $"Image has been rendered and saved to:\nAssets/Resources/GameContent/Graphics/Portraits/{_currentImage.Key}.png",
+                    "OK"
+                );
+                EditorUtility.SetDirty(_currentOwner);
+                AssetDatabase.SaveAssets();
+                RefreshPreview();
             }
         }
 
@@ -500,35 +456,36 @@ namespace Turnroot.Graphics2D.Editor
 
             if (_currentImage.ImageStack == null)
             {
-                Debug.Log(
-                    "RefreshPreview: ImageStack is null for image '" + (_currentImage?.Key) + "'"
-                );
+                Debug.Log($"RefreshPreview: ImageStack is null for image '{_currentImage?.Key}'");
                 _previewTexture = null;
                 return;
             }
 
             Debug.Log(
-                "RefreshPreview: Compositing image '"
-                    + _currentImage.Key
-                    + "' using ImageStack '"
-                    + _currentImage.ImageStack.name
-                    + "'"
+                $"RefreshPreview: Compositing image '{_currentImage.Key}' using ImageStack '{_currentImage.ImageStack.name}'"
             );
             _previewTexture = _currentImage.CompositeLayers();
+
             if (_previewTexture == null)
             {
                 Debug.LogWarning(
-                    "RefreshPreview: CompositeLayers returned null for '" + _currentImage.Key + "'"
+                    $"RefreshPreview: CompositeLayers returned null for '{_currentImage.Key}'"
                 );
-
-                // Fallback: if a saved sprite exists, use its texture for preview
-                if (_currentImage.SavedSprite != null && _currentImage.SavedSprite.texture != null)
+                if (_currentImage.SavedSprite?.texture != null)
                 {
                     Debug.Log("RefreshPreview: using SavedSprite.texture as fallback preview");
                     _previewTexture = _currentImage.SavedSprite.texture;
                 }
             }
+
             Repaint();
+        }
+
+        private void MarkDirtyAndRefresh()
+        {
+            EditorUtility.SetDirty(_currentOwner);
+            if (_autoRefresh)
+                RefreshPreview();
         }
     }
 }

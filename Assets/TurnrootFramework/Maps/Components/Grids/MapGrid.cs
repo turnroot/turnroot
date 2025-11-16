@@ -38,14 +38,38 @@ public class MapGrid : MonoBehaviour
         public string name;
 
         [System.Serializable]
-        public class PropertyRecord
+        public class PropertyString
         {
             public string key;
             public string value;
         }
 
-        // Optional key/value properties attached to the feature
-        public List<PropertyRecord> properties = new List<PropertyRecord>();
+        [System.Serializable]
+        public class PropertyBool
+        {
+            public string key;
+            public bool value;
+        }
+
+        [System.Serializable]
+        public class PropertyInt
+        {
+            public string key;
+            public int value;
+        }
+
+        [System.Serializable]
+        public class PropertyFloat
+        {
+            public string key;
+            public float value;
+        }
+
+        // Typed properties attached to the feature
+        public List<PropertyString> stringProperties = new List<PropertyString>();
+        public List<PropertyBool> boolProperties = new List<PropertyBool>();
+        public List<PropertyInt> intProperties = new List<PropertyInt>();
+        public List<PropertyFloat> floatProperties = new List<PropertyFloat>();
     }
 
     [SerializeField]
@@ -145,14 +169,47 @@ public class MapGrid : MonoBehaviour
                 name = mgp.FeatureName,
             };
 
-            // Copy feature properties
-            var props = mgp.GetAllFeatureProperties();
-            if (props != null && props.Count > 0)
+            // Copy typed feature properties from the MapGridPoint
+            var sprops = mgp.GetAllStringFeatureProperties();
+            if (sprops != null && sprops.Count > 0)
             {
-                foreach (var p in props)
+                foreach (var p in sprops)
                 {
-                    rec.properties.Add(
-                        new FeatureRecord.PropertyRecord { key = p.key, value = p.value }
+                    rec.stringProperties.Add(
+                        new FeatureRecord.PropertyString { key = p.key, value = p.value }
+                    );
+                }
+            }
+
+            var bprops = mgp.GetAllBoolFeatureProperties();
+            if (bprops != null && bprops.Count > 0)
+            {
+                foreach (var p in bprops)
+                {
+                    rec.boolProperties.Add(
+                        new FeatureRecord.PropertyBool { key = p.key, value = p.value }
+                    );
+                }
+            }
+
+            var iprops = mgp.GetAllIntFeatureProperties();
+            if (iprops != null && iprops.Count > 0)
+            {
+                foreach (var p in iprops)
+                {
+                    rec.intProperties.Add(
+                        new FeatureRecord.PropertyInt { key = p.key, value = p.value }
+                    );
+                }
+            }
+
+            var fprops = mgp.GetAllFloatFeatureProperties();
+            if (fprops != null && fprops.Count > 0)
+            {
+                foreach (var p in fprops)
+                {
+                    rec.floatProperties.Add(
+                        new FeatureRecord.PropertyFloat { key = p.key, value = p.value }
                     );
                 }
             }
@@ -175,13 +232,40 @@ public class MapGrid : MonoBehaviour
             {
                 mgp.SetFeatureTypeId(rec.typeId);
                 mgp.FeatureName = rec.name ?? string.Empty;
-                // Restore any serialized properties
-                if (rec.properties != null && rec.properties.Count > 0)
+                // Ensure defaults from ScriptableObject are applied for this feature
+                // so the editor shows default values until the user overrides them.
+                mgp.ApplyDefaultsForFeature(rec.typeId);
+                // Restore any serialized typed properties
+                if (rec.stringProperties != null && rec.stringProperties.Count > 0)
                 {
-                    foreach (var pr in rec.properties)
+                    foreach (var pr in rec.stringProperties)
                     {
                         if (pr != null && !string.IsNullOrEmpty(pr.key))
-                            mgp.SetFeatureProperty(pr.key, pr.value ?? string.Empty);
+                            mgp.SetStringFeatureProperty(pr.key, pr.value ?? string.Empty);
+                    }
+                }
+                if (rec.boolProperties != null && rec.boolProperties.Count > 0)
+                {
+                    foreach (var pr in rec.boolProperties)
+                    {
+                        if (pr != null && !string.IsNullOrEmpty(pr.key))
+                            mgp.SetBoolFeatureProperty(pr.key, pr.value);
+                    }
+                }
+                if (rec.intProperties != null && rec.intProperties.Count > 0)
+                {
+                    foreach (var pr in rec.intProperties)
+                    {
+                        if (pr != null && !string.IsNullOrEmpty(pr.key))
+                            mgp.SetIntFeatureProperty(pr.key, pr.value);
+                    }
+                }
+                if (rec.floatProperties != null && rec.floatProperties.Count > 0)
+                {
+                    foreach (var pr in rec.floatProperties)
+                    {
+                        if (pr != null && !string.IsNullOrEmpty(pr.key))
+                            mgp.SetFloatFeatureProperty(pr.key, pr.value);
                     }
                 }
             }
