@@ -24,6 +24,10 @@ public class MapGridEditorWindow : EditorWindow
         _isPanning = false;
     private Mode _mode = Mode.Paint;
 
+    // Dimension tracking for auto-refresh
+    private int _lastKnownWidth = 0;
+    private int _lastKnownHeight = 0;
+
     // Feature editing
     private MapGridPoint _selectedFeaturePoint = null;
     private int _selectedSecondTool = -1;
@@ -298,6 +302,15 @@ public class MapGridEditorWindow : EditorWindow
 
         if (_grid != null)
         {
+            // Check if dimensions changed and refresh if needed
+            if (_lastKnownWidth != _grid.GridWidth || _lastKnownHeight != _grid.GridHeight)
+            {
+                _lastKnownWidth = _grid.GridWidth;
+                _lastKnownHeight = _grid.GridHeight;
+                _grid.EnsureGridPoints();
+                Repaint();
+            }
+
             GUILayout.Label($"{_grid.GridWidth}x{_grid.GridHeight}", GUILayout.Width(60));
             GUILayout.Label("Map Name:", GUILayout.Width(72));
             string newName = EditorGUILayout.TextField(
@@ -315,6 +328,12 @@ public class MapGridEditorWindow : EditorWindow
         if (GUILayout.Button("Refresh"))
         {
             _terrainAsset = TerrainTypes.LoadDefault();
+            if (_grid != null)
+            {
+                _grid.EnsureGridPoints();
+                _lastKnownWidth = _grid.GridWidth;
+                _lastKnownHeight = _grid.GridHeight;
+            }
             Repaint();
         }
         GUILayout.FlexibleSpace();
@@ -458,14 +477,14 @@ public class MapGridEditorWindow : EditorWindow
             DrawTestMovementControls();
         DrawZoomControls();
 
-        float rightPanelW = 220f;
+        float rightPanelW = 270f; // increased to give right panel +50px
         float leftAreaW = Mathf.Max(200f, position.width - 120f - rightPanelW);
         Rect area = GUILayoutUtility.GetRect(leftAreaW, position.height - 120 - 24);
         DrawGridArea(area);
         EditorGUILayout.EndVertical();
 
         // Right panel
-        EditorGUILayout.BeginVertical(GUILayout.Width(220));
+        EditorGUILayout.BeginVertical(GUILayout.Width(rightPanelW));
         if (_selectedSecondTool >= 0 && _selectedSecondTool < _secondToolNames.Length)
             DrawFeatureDetails(_secondToolIds[_selectedSecondTool]);
         else
@@ -518,7 +537,32 @@ public class MapGridEditorWindow : EditorWindow
     {
         EditorGUILayout.BeginHorizontal();
         GUILayout.Label("Zoom:", GUILayout.Width(40));
-        _zoom = EditorGUILayout.Slider(_zoom, 0.25f, 3f);
+        _zoom = EditorGUILayout.Slider(_zoom, 0.25f, 3f, GUILayout.Width(150));
+
+        // Add Row and Column buttons
+        if (_grid != null)
+        {
+            if (GUILayout.Button("+ Row", GUILayout.Width(60)))
+            {
+                Undo.RecordObject(_grid, "Add Row");
+                _grid.AddRow();
+                _lastKnownWidth = _grid.GridWidth;
+                _lastKnownHeight = _grid.GridHeight;
+                MarkDirty();
+                Repaint();
+            }
+
+            if (GUILayout.Button("+ Column", GUILayout.Width(70)))
+            {
+                Undo.RecordObject(_grid, "Add Column");
+                _grid.AddColumn();
+                _lastKnownWidth = _grid.GridWidth;
+                _lastKnownHeight = _grid.GridHeight;
+                MarkDirty();
+                Repaint();
+            }
+        }
+
         EditorGUILayout.EndHorizontal();
     }
 
@@ -808,14 +852,7 @@ public class MapGridEditorWindow : EditorWindow
             && _testMovementResults?.TryGetValue(point, out var cost) == true
         )
         {
-            EditorGUI.DrawRect(cellRect, new Color(0.4f, 0f, 0.4f, 1f));
-            var txtStyle = new GUIStyle(EditorStyles.boldLabel)
-            {
-                alignment = TextAnchor.MiddleCenter,
-                fontSize = Mathf.Max(10, Mathf.FloorToInt(cellSize / 3f)),
-                normal = { textColor = Color.white },
-            };
-            EditorGUI.LabelField(cellRect, cost.ToString("0"), txtStyle);
+            EditorGUI.DrawRect(cellRect, new Color(.8f, 0f, 0.8f, .65f));
         }
 
         // Feature overlay: icon (preferred) or letter
@@ -1143,27 +1180,27 @@ public class MapGridEditorWindow : EditorWindow
         CapturePropertySnapshot(toolId);
 
         EditorGUILayout.BeginVertical(EditorStyles.helpBox);
-        EditorGUILayout.BeginVertical(GUILayout.Width(196));
+        EditorGUILayout.BeginVertical(GUILayout.Width(240));
 
         if (toolId == "eraser")
         {
-            DrawWrappedLabel(new GUIContent("Feature: Eraser"), safeBold, 196f);
+            DrawWrappedLabel(new GUIContent("Feature: Eraser"), safeBold, 240f);
             DrawWrappedLabel(
                 new GUIContent("Eraser clears the feature layer on painted tiles."),
                 safeWrap,
-                196f
+                240f
             );
             _selectedSecondToolName = string.Empty;
         }
         else if (toolId == "cursor")
         {
-            DrawWrappedLabel(new GUIContent("Feature: Cursor"), safeBold, 196f);
+            DrawWrappedLabel(new GUIContent("Feature: Cursor"), safeBold, 240f);
             DrawWrappedLabel(
                 new GUIContent(
                     "Cursor selects existing features without changing or creating them."
                 ),
                 safeWrap,
-                196f
+                240f
             );
             _selectedSecondToolName = string.Empty;
         }
@@ -1233,7 +1270,7 @@ public class MapGridEditorWindow : EditorWindow
         if (_selectedFeaturePoint?.FeatureTypeId == toolId)
             titleStyle.normal.textColor = Color.magenta;
 
-        DrawWrappedLabel(new GUIContent($"Feature: {friendly}"), titleStyle, 196f);
+        DrawWrappedLabel(new GUIContent($"Feature: {friendly}"), titleStyle, 240f);
         EditorGUILayout.BeginHorizontal();
         EditorGUILayout.LabelField("Name:", GUILayout.Width(50));
         _selectedSecondToolName = EditorGUILayout.TextField(
@@ -1263,7 +1300,7 @@ public class MapGridEditorWindow : EditorWindow
         )
         {
             GUILayout.Space(6);
-            DrawWrappedLabel(new GUIContent("Properties"), safeBold, 196f);
+            DrawWrappedLabel(new GUIContent("Properties"), safeBold, 240f);
             DrawPropertyList();
         }
         else
@@ -1274,7 +1311,7 @@ public class MapGridEditorWindow : EditorWindow
                     "Click a tile with this feature to select it and edit its properties."
                 ),
                 safeWrap,
-                196f
+                240f
             );
         }
     }
@@ -1296,7 +1333,8 @@ public class MapGridEditorWindow : EditorWindow
             string newKey = EditorGUILayout.TextField(p.Key, GUILayout.Width(120));
             string newValStr = DrawPropertyField(p.Value, t);
 
-            if (GUILayout.Button("Remove", GUILayout.Width(60)))
+            // Small remove button (single char) so the value field can expand
+            if (GUILayout.Button("-", GUILayout.Width(24)))
                 removeKeys.Add(p.Key);
             EditorGUILayout.EndHorizontal();
 

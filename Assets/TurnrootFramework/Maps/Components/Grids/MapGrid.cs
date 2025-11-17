@@ -101,6 +101,10 @@ public class MapGrid : MonoBehaviour
                 // add MapGridPoint to the child GameObject (not to the parent)
                 var gridPoint = point.AddComponent<MapGridPoint>();
                 gridPoint.Initialize(x, y);
+
+                // Set default terrain to "Void" if it exists
+                SetDefaultTerrainType(gridPoint);
+
                 point.transform.parent = transform;
                 point.transform.localPosition =
                     new Vector3(x * _gridScale, 0, y * _gridScale) + _gridOffset;
@@ -112,16 +116,136 @@ public class MapGrid : MonoBehaviour
         LoadFeatureLayer();
     }
 
+    private void SetDefaultTerrainType(MapGridPoint gridPoint)
+    {
+        var terrainAsset = TerrainTypes.LoadDefault();
+        if (terrainAsset?.Types != null)
+        {
+            // Look for "Void" terrain type
+            foreach (var terrainType in terrainAsset.Types)
+            {
+                if (
+                    terrainType != null
+                    && terrainType.Name.Equals("Void", System.StringComparison.OrdinalIgnoreCase)
+                )
+                {
+                    gridPoint.SetTerrainTypeId(terrainType.Id);
+                    return;
+                }
+            }
+
+            // If no "Void" type found, use the first terrain type as fallback
+            if (terrainAsset.Types.Length > 0 && terrainAsset.Types[0] != null)
+            {
+                gridPoint.SetTerrainTypeId(terrainAsset.Types[0].Id);
+            }
+        }
+    }
+
+    [Button("Add Row")]
+    public void AddRow()
+    {
+        // Save current state
+        SaveFeatureLayer();
+
+        // Increment height
+        _gridHeight++;
+
+        // Create new points for the new row (last row)
+        int newRow = _gridHeight - 1;
+        for (int col = 0; col < _gridWidth; col++)
+        {
+            // Check if point already exists at this location (shouldn't, but just in case)
+            var existingPoint = GetGridPoint(col, newRow);
+            if (existingPoint != null)
+                continue;
+
+            var point = new GameObject($"Point_R{col}_C{newRow}");
+            _rowLookup[point] = col;
+            _colLookup[point] = newRow;
+
+            var gridPoint = point.AddComponent<MapGridPoint>();
+            gridPoint.Initialize(col, newRow);
+            SetDefaultTerrainType(gridPoint);
+
+            point.transform.parent = transform;
+            point.transform.localPosition =
+                new Vector3(col * _gridScale, 0, newRow * _gridScale) + _gridOffset;
+            _gridPoints[new Vector2Int(col, newRow)] = point;
+
+#if UNITY_EDITOR
+            UnityEditor.EditorUtility.SetDirty(point);
+            UnityEditor.EditorUtility.SetDirty(gridPoint);
+#endif
+        }
+
+        // Restore features to existing points
+        LoadFeatureLayer();
+
+#if UNITY_EDITOR
+        UnityEditor.EditorUtility.SetDirty(this);
+        UnityEditor.SceneView.RepaintAll();
+#endif
+    }
+
+    [Button("Add Column")]
+    public void AddColumn()
+    {
+        // Save current state
+        SaveFeatureLayer();
+
+        // Increment width
+        _gridWidth++;
+
+        // Create new points for the new column (rightmost column)
+        int newCol = _gridWidth - 1;
+        for (int row = 0; row < _gridHeight; row++)
+        {
+            // Check if point already exists at this location (shouldn't, but just in case)
+            var existingPoint = GetGridPoint(newCol, row);
+            if (existingPoint != null)
+                continue;
+
+            var point = new GameObject($"Point_R{newCol}_C{row}");
+            _rowLookup[point] = newCol;
+            _colLookup[point] = row;
+
+            var gridPoint = point.AddComponent<MapGridPoint>();
+            gridPoint.Initialize(newCol, row);
+            SetDefaultTerrainType(gridPoint);
+
+            point.transform.parent = transform;
+            point.transform.localPosition =
+                new Vector3(newCol * _gridScale, 0, row * _gridScale) + _gridOffset;
+            _gridPoints[new Vector2Int(newCol, row)] = point;
+
+#if UNITY_EDITOR
+            UnityEditor.EditorUtility.SetDirty(point);
+            UnityEditor.EditorUtility.SetDirty(gridPoint);
+#endif
+        }
+
+        // Restore features to existing points
+        LoadFeatureLayer();
+
+#if UNITY_EDITOR
+        UnityEditor.EditorUtility.SetDirty(this);
+        UnityEditor.SceneView.RepaintAll();
+#endif
+    }
+
     public void ClearGrid()
     {
         foreach (var point in _gridPoints.Values)
         {
             if (point != null)
             {
-                Destroy(point);
+                DestroyImmediate(point);
             }
         }
         _gridPoints.Clear();
+        _rowLookup.Clear();
+        _colLookup.Clear();
     }
 
     // Rebuild the internal lookup dictionary from existing child GameObjects.
@@ -129,6 +253,9 @@ public class MapGrid : MonoBehaviour
     public void RebuildGridDictionary()
     {
         var newDict = new Dictionary<Vector2Int, GameObject>();
+        _rowLookup.Clear();
+        _colLookup.Clear();
+
         foreach (Transform child in transform)
         {
             if (child == null)
@@ -138,6 +265,8 @@ public class MapGrid : MonoBehaviour
             {
                 var key = new Vector2Int(mgp.Row, mgp.Col);
                 newDict[key] = child.gameObject;
+                _rowLookup[child.gameObject] = mgp.Row;
+                _colLookup[child.gameObject] = mgp.Col;
             }
         }
         _gridPoints = newDict;
@@ -276,7 +405,32 @@ public class MapGrid : MonoBehaviour
     // child points, create them. If there are children but the index is empty, rebuild it.
     public void EnsureGridPoints()
     {
-        if (_gridPoints == null || _gridPoints.Count == 0)
+        // First check if dimensions match child count
+        int expectedCount = _gridWidth * _gridHeight;
+        int actualCount = 0;
+        foreach (Transform child in transform)
+        {
+            if (child != null && child.GetComponent<MapGridPoint>() != null)
+                actualCount++;
+        }
+
+        // If counts don't match, rebuild dictionary
+        if (
+            actualCount != expectedCount
+            || _gridPoints == null
+            || _gridPoints.Count != expectedCount
+        )
+        {
+            if (actualCount > 0)
+            {
+                RebuildGridDictionary();
+            }
+            else
+            {
+                CreateChildrenPoints();
+            }
+        }
+        else if (_gridPoints == null || _gridPoints.Count == 0)
         {
             if (transform.childCount == 0)
             {
@@ -303,34 +457,4 @@ public class MapGrid : MonoBehaviour
     public int GridHeight => _gridHeight;
     public float GridScale => _gridScale;
     public Vector3 GridOffset => _gridOffset;
-
-    /* -------------------------------- A* Tester ------------------------------- */
-
-    [SerializeField]
-    private MapGridPoint _aStarTesterStart;
-
-    [SerializeField]
-    private MapGridPoint _aStarTesterGoal;
-
-    [Button("Test A* Pathfinding")]
-    public void TestAStar()
-    {
-        var aStar = new AStarModified();
-        var path = aStar.AStarSearch(this, _aStarTesterStart, _aStarTesterGoal);
-        // Intentionally silent in editor; use the Test A* button's visual output instead.
-    }
-
-    [Button("Reset Point Colors")]
-    public void ResetPointColorsButton()
-    {
-        ResetAllPointColors();
-    }
-
-    public void ResetAllPointColors()
-    {
-        // No per-point gizmos to reset; repaint scene so editor views refresh.
-#if UNITY_EDITOR
-        UnityEditor.SceneView.RepaintAll();
-#endif
-    }
 }
