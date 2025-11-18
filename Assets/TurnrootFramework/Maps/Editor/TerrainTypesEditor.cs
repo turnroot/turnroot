@@ -22,16 +22,21 @@ public class TerrainTypesEditor : Editor
             EditorGUILayout.BeginVertical(GUI.skin.box);
 
             var nameProp = elem.FindPropertyRelative("_name");
-            var indoorNameProp = elem.FindPropertyRelative("_indoorName");
             var costWalkProp = elem.FindPropertyRelative("_costWalk");
             var costFlyProp = elem.FindPropertyRelative("_costFly");
             var costRideProp = elem.FindPropertyRelative("_costRide");
             var costMagicProp = elem.FindPropertyRelative("_costMagic");
             var costArmorProp = elem.FindPropertyRelative("_costArmor");
             var colorProp = elem.FindPropertyRelative("_editorColor");
-            var healthProp = elem.FindPropertyRelative("_healthChangePerTurn");
-            var defenseProp = elem.FindPropertyRelative("_defenseBonus");
-            var avoidProp = elem.FindPropertyRelative("_avoidBonus");
+            var healthWalkProp = elem.FindPropertyRelative("_healthChangePerTurnWalk");
+            var healthRidingProp = elem.FindPropertyRelative("_healthChangePerTurnRiding");
+            var healthFlyingProp = elem.FindPropertyRelative("_healthChangePerTurnFlying");
+            var defenseWalkProp = elem.FindPropertyRelative("_defenseBonusWalk");
+            var defenseRidingProp = elem.FindPropertyRelative("_defenseBonusRiding");
+            var defenseFlyingProp = elem.FindPropertyRelative("_defenseBonusFlying");
+            var avoidWalkProp = elem.FindPropertyRelative("_avoidBonusWalk");
+            var avoidRidingProp = elem.FindPropertyRelative("_avoidBonusRiding");
+            var avoidFlyingProp = elem.FindPropertyRelative("_avoidBonusFlying");
 
             string header =
                 nameProp != null && !string.IsNullOrEmpty(nameProp.stringValue)
@@ -61,19 +66,116 @@ public class TerrainTypesEditor : Editor
                 EditorGUILayout.PropertyField(costMagicProp, new GUIContent("Cost Magic"));
             EditorGUILayout.EndHorizontal();
 
+            // Costs and per-movement sliders on their own rows
             if (costArmorProp != null)
+            {
                 EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.PropertyField(costArmorProp, new GUIContent("Cost Armor"));
-            if (healthProp != null)
-                EditorGUILayout.PropertyField(healthProp, new GUIContent("Health +/-"));
-            EditorGUILayout.EndHorizontal();
+                EditorGUILayout.PropertyField(costArmorProp, new GUIContent("Cost Armor"));
+                EditorGUILayout.EndHorizontal();
+            }
 
-            if (defenseProp != null)
+            if (healthWalkProp != null)
+            {
                 EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.PropertyField(defenseProp, new GUIContent("Defense +/-"));
-            if (avoidProp != null)
-                EditorGUILayout.PropertyField(avoidProp, new GUIContent("Avoid +/-"));
-            EditorGUILayout.EndHorizontal();
+                EditorGUILayout.IntSlider(
+                    healthWalkProp,
+                    -20,
+                    20,
+                    new GUIContent("Health +/- Walk")
+                );
+                EditorGUILayout.EndHorizontal();
+            }
+
+            if (healthRidingProp != null)
+            {
+                EditorGUILayout.BeginHorizontal();
+                EditorGUILayout.IntSlider(
+                    healthRidingProp,
+                    -20,
+                    20,
+                    new GUIContent("Health +/- Riding")
+                );
+                EditorGUILayout.EndHorizontal();
+            }
+
+            if (healthFlyingProp != null)
+            {
+                EditorGUILayout.BeginHorizontal();
+                EditorGUILayout.IntSlider(
+                    healthFlyingProp,
+                    -20,
+                    20,
+                    new GUIContent("Health +/- Flying")
+                );
+                EditorGUILayout.EndHorizontal();
+            }
+
+            if (defenseWalkProp != null)
+            {
+                EditorGUILayout.BeginHorizontal();
+                EditorGUILayout.IntSlider(
+                    defenseWalkProp,
+                    -40,
+                    40,
+                    new GUIContent("Defense +/- Walk")
+                );
+                EditorGUILayout.EndHorizontal();
+            }
+
+            if (defenseRidingProp != null)
+            {
+                EditorGUILayout.BeginHorizontal();
+                EditorGUILayout.IntSlider(
+                    defenseRidingProp,
+                    -40,
+                    40,
+                    new GUIContent("Defense +/- Riding")
+                );
+                EditorGUILayout.EndHorizontal();
+            }
+
+            if (defenseFlyingProp != null)
+            {
+                EditorGUILayout.BeginHorizontal();
+                EditorGUILayout.IntSlider(
+                    defenseFlyingProp,
+                    -40,
+                    40,
+                    new GUIContent("Defense +/- Flying")
+                );
+                EditorGUILayout.EndHorizontal();
+            }
+
+            if (avoidWalkProp != null)
+            {
+                EditorGUILayout.BeginHorizontal();
+                EditorGUILayout.IntSlider(avoidWalkProp, -40, 40, new GUIContent("Avoid +/- Walk"));
+                EditorGUILayout.EndHorizontal();
+            }
+
+            if (avoidRidingProp != null)
+            {
+                EditorGUILayout.BeginHorizontal();
+                EditorGUILayout.IntSlider(
+                    avoidRidingProp,
+                    -40,
+                    40,
+                    new GUIContent("Avoid +/- Riding")
+                );
+                EditorGUILayout.EndHorizontal();
+            }
+
+            if (avoidFlyingProp != null)
+            {
+                EditorGUILayout.BeginHorizontal();
+                EditorGUILayout.IntSlider(
+                    avoidFlyingProp,
+                    -40,
+                    40,
+                    new GUIContent("Avoid +/- Flying")
+                );
+                EditorGUILayout.EndHorizontal();
+            }
 
             EditorGUILayout.Space();
             EditorGUILayout.BeginHorizontal();
@@ -105,6 +207,15 @@ public class TerrainTypesEditor : Editor
             var nCostMagic = newElem.FindPropertyRelative("_costMagic");
             var nCostArmor = newElem.FindPropertyRelative("_costArmor");
             var nColor = newElem.FindPropertyRelative("_editorColor");
+            var nHealthWalk = newElem.FindPropertyRelative("_healthChangePerTurnWalk");
+            var nHealthRiding = newElem.FindPropertyRelative("_healthChangePerTurnRiding");
+            var nHealthFlying = newElem.FindPropertyRelative("_healthChangePerTurnFlying");
+            var nDefenseWalk = newElem.FindPropertyRelative("_defenseBonusWalk");
+            var nDefenseRiding = newElem.FindPropertyRelative("_defenseBonusRiding");
+            var nDefenseFlying = newElem.FindPropertyRelative("_defenseBonusFlying");
+            var nAvoidWalk = newElem.FindPropertyRelative("_avoidBonusWalk");
+            var nAvoidRiding = newElem.FindPropertyRelative("_avoidBonusRiding");
+            var nAvoidFlying = newElem.FindPropertyRelative("_avoidBonusFlying");
 
             if (nid != null)
                 nid.stringValue = System.Guid.NewGuid().ToString();
@@ -122,6 +233,24 @@ public class TerrainTypesEditor : Editor
                 nCostArmor.floatValue = 1f;
             if (nColor != null)
                 nColor.colorValue = Color.white;
+            if (nHealthWalk != null)
+                nHealthWalk.intValue = 0;
+            if (nHealthRiding != null)
+                nHealthRiding.intValue = 0;
+            if (nHealthFlying != null)
+                nHealthFlying.intValue = 0;
+            if (nDefenseWalk != null)
+                nDefenseWalk.intValue = 0;
+            if (nDefenseRiding != null)
+                nDefenseRiding.intValue = 0;
+            if (nDefenseFlying != null)
+                nDefenseFlying.intValue = 0;
+            if (nAvoidWalk != null)
+                nAvoidWalk.intValue = 0;
+            if (nAvoidRiding != null)
+                nAvoidRiding.intValue = 0;
+            if (nAvoidFlying != null)
+                nAvoidFlying.intValue = 0;
         }
 
         EditorGUILayout.EndHorizontal();

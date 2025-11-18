@@ -54,7 +54,24 @@ public class TerrainTypes : ScriptableObject
 
     public void AddType(string name, Color editorColor)
     {
-        var newType = new TerrainType(name, 1f, 1f, 1f, 1f, 1f, 1, 1, 1, editorColor);
+        var newType = new TerrainType(
+            name,
+            1f,
+            1f,
+            1f,
+            1f,
+            1f,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            editorColor
+        );
         // ensure id
         var idField = typeof(TerrainType).GetField(
             "_id",
