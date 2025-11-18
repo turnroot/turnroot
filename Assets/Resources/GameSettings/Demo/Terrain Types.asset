@@ -27,8 +27,8 @@ MonoBehaviour:
     _costFly: 1
     _costRide: 1
     _costMagic: 1
-    _costArmor: 1
-    _editorColor: {r: 0.5438323, g: 0.9528302, b: 0.9528302, a: 1}
+    _costArmor: 2
+    _editorColor: {r: 0.54509807, g: 0.84731025, b: 0.9529412, a: 1}
   - _id: 24f8aef3-a17a-4802-8f41-47aa601242a9
     _name: Deep Water
     _costWalk: 999
@@ -36,39 +36,39 @@ MonoBehaviour:
     _costRide: 1
     _costMagic: 1
     _costArmor: 1
-    _editorColor: {r: 0, g: 0.3603778, b: 1, a: 1}
+    _editorColor: {r: 0, g: 0.2507449, b: 0.695, a: 1}
   - _id: 98d625bd-9d22-4a01-b704-8ae9a0791d3c
     _name: Sand
-    _costWalk: 3
+    _costWalk: 2.4
     _costFly: 1
-    _costRide: 1
+    _costRide: 3
     _costMagic: 1
-    _costArmor: 1
-    _editorColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+    _costArmor: 4
+    _editorColor: {r: 0.83, g: 0.7920382, b: 0.35358, a: 1}
   - _id: 6f984037-09d2-4e53-beff-0b33675edfb5
     _name: Snow
     _costWalk: 3
     _costFly: 1
-    _costRide: 1
+    _costRide: 4
     _costMagic: 1
-    _costArmor: 1
+    _costArmor: 4
     _editorColor: {r: 1, g: 1, b: 1, a: 1}
   - _id: dc66fdaa-4b62-49ff-b6fa-fa811d7eb2e2
     _name: Forest
     _costWalk: 1.4
-    _costFly: 1
-    _costRide: 1
+    _costFly: 1.2
+    _costRide: 1.4
     _costMagic: 1
-    _costArmor: 1
-    _editorColor: {r: 0.13, g: 0.55, b: 0.13, a: 1}
+    _costArmor: 1.4
+    _editorColor: {r: 0.18039216, g: 0.30980393, b: 0.18039216, a: 1}
   - _id: 1150d330-2f99-49d7-8f08-bf89d8e9d697
     _name: Bushes
     _costWalk: 1.2
     _costFly: 1
     _costRide: 1
     _costMagic: 1
-    _costArmor: 1
-    _editorColor: {r: 0.18, g: 0.31, b: 0.18, a: 1}
+    _costArmor: 1.2
+    _editorColor: {r: 0.26435444, g: 0.45400003, b: 0.26435444, a: 1}
   - _id: e203033a-1a8a-4af9-8d4c-a5289c3b8f44
     _name: Lava
     _costWalk: 1
@@ -84,15 +84,15 @@ MonoBehaviour:
     _costRide: 1
     _costMagic: 1
     _costArmor: 1
-    _editorColor: {r: 0.5, g: 0.25, b: 0, a: 1}
+    _editorColor: {r: 0.546, g: 0.3756881, b: 0.21038534, a: 1}
   - _id: 3acc45b0-c3ff-4b06-994f-b5ed03d21a75
     _name: Stairs
     _costWalk: 1
     _costFly: 1
-    _costRide: 1
+    _costRide: 3
     _costMagic: 1
-    _costArmor: 1
-    _editorColor: {r: 0.8490566, g: 0.47266576, b: 0.25231397, a: 1}
+    _costArmor: 2
+    _editorColor: {r: 0.41799998, g: 0.2854634, b: 0.16312194, a: 1}
   - _id: d953faba-c20f-4485-9fbf-c583577d8bf8
     _name: Wall
     _costWalk: 999
@@ -100,15 +100,15 @@ MonoBehaviour:
     _costRide: 999
     _costMagic: 1
     _costArmor: 1
-    _editorColor: {r: 0.16037738, g: 0.12385695, b: 0.09910112, a: 1}
+    _editorColor: {r: 0.291, g: 0.22795, b: 0.1746, a: 1}
   - _id: def4dc84-6419-4e27-9cf7-21a6461bcfe8
     _name: Mountain
     _costWalk: 3
-    _costFly: 1
-    _costRide: 1
+    _costFly: 1.2
+    _costRide: 4
     _costMagic: 1
-    _costArmor: 1
-    _editorColor: {r: 0.505874, g: 0.5283019, b: 0.51484513, a: 1}
+    _costArmor: 4
+    _editorColor: {r: 0.4616471, g: 0.5294118, b: 0.5251278, a: 1}
   - _id: 3e87420d-fd87-4529-9332-89833346ec4c
     _name: Void
     _costWalk: 99999
@@ -116,4 +116,12 @@ MonoBehaviour:
     _costRide: 99999
     _costMagic: 99999
     _costArmor: 99999
-    _editorColor: {r: 0, g: 0, b: 0, a: 1}
+    _editorColor: {r: 0.1, g: 0.1, b: 0.1, a: 1}
+  - _id: 2f6429c2-4a3c-4ad9-9426-32ae3fe35582
+    _name: Tall Wall
+    _costWalk: 9999
+    _costFly: 9999
+    _costRide: 9999
+    _costMagic: 9999
+    _costArmor: 9999
+    _editorColor: {r: 0.156, g: 0.12168001, b: 0.0936, a: 1}

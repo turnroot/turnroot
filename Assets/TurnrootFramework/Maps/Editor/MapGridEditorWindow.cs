@@ -110,6 +110,7 @@ public class MapGridEditorWindow : EditorWindow
     {
         Paint = 0,
         TestMovement = 1,
+        TroopsAndConditions = 2,
     }
 
     [MenuItem("Turnroot/Editors/Map Grid Editor")]
@@ -184,6 +185,7 @@ public class MapGridEditorWindow : EditorWindow
             { KeyCode.Alpha0, 10 },
             { KeyCode.Minus, 11 },
             { KeyCode.Equals, 12 },
+            { KeyCode.Q, 13 },
             { KeyCode.BackQuote, 0 },
         };
     }
@@ -289,7 +291,10 @@ public class MapGridEditorWindow : EditorWindow
             EditorGUILayout.HelpBox("No TerrainTypes asset found.", MessageType.Warning);
 
         _mode = (Mode)
-            GUILayout.Toolbar((int)_mode, new[] { "Paint Terrain Types", "Test Movement" });
+            GUILayout.Toolbar(
+                (int)_mode,
+                new[] { "Paint Terrain Types", "Test Movement", "Troops and Conditions" }
+            );
 
         DrawMainLayout();
         DrawStatusBar();
@@ -486,12 +491,15 @@ public class MapGridEditorWindow : EditorWindow
         // Right panel
         EditorGUILayout.BeginVertical(GUILayout.Width(rightPanelW));
         if (_selectedSecondTool >= 0 && _selectedSecondTool < _secondToolNames.Length)
-            DrawFeatureDetails(_secondToolIds[_selectedSecondTool]);
-        else
-        {
-            _selectedFeaturePoint = null;
-            GUILayout.Space(4);
-        }
+            if (_mode != Mode.TestMovement)
+            {
+                DrawFeatureDetails(_secondToolIds[_selectedSecondTool]);
+            }
+            else
+            {
+                _selectedFeaturePoint = null;
+                GUILayout.Space(4);
+            }
         EditorGUILayout.EndVertical();
 
         EditorGUILayout.EndHorizontal();
@@ -578,7 +586,7 @@ public class MapGridEditorWindow : EditorWindow
                         : "Left click: Paint"
                 );
         string controls =
-            $"Ctrl +/- : Zoom | Space + Drag : Pan | {leftAction} | Left click + drag: Paint Area | [`, 1-0, -, =] : Terrain | Shift+[`, 1-0, -, =] : Feature";
+            $"Ctrl +/- : Zoom | Space + Drag : Pan | {leftAction} | Left click + drag: Paint Area | [`, 1-0, -, =, Q] : Terrain | Shift+[`, 1-0, -, =] : Feature";
         string hoverText =
             _hoveredCell.x >= 0 ? $"Row {_hoveredCell.x}, Col {_hoveredCell.y}" : "(none)";
 
