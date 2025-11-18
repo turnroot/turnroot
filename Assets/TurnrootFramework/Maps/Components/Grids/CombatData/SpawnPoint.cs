@@ -92,9 +92,7 @@ namespace Turnroot.Maps.Components.Grids
             OnCharacterRemoved?.Invoke(removedCharacter);
         }
 
-        /* ------------------------------ Flags API ------------------------------- */
-        // Centralized flag setter. Enforces mutual-exclusion rules and raises
-        // OnFlagsChanged so listeners can react.
+        /* ------------------------------ Flags Setter ------------------------------- */
         public void SetFlags(bool isAllySpawn, bool isAvatarSpawn, bool isEnemySpawn)
         {
             // Enforce simple mutual exclusions used elsewhere in the codebase.

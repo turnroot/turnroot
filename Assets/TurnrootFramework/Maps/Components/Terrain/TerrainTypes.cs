@@ -52,10 +52,9 @@ public class TerrainTypes : ScriptableObject
         _typeLookup.Clear();
     }
 
-    // Add a new type with default cost values (you can edit costs in the inspector)
     public void AddType(string name, Color editorColor)
     {
-        var newType = new TerrainType(name, 1f, 1f, 1f, 1f, 1f, editorColor);
+        var newType = new TerrainType(name, 1f, 1f, 1f, 1f, 1f, 1, 1, 1, editorColor);
         // ensure id
         var idField = typeof(TerrainType).GetField(
             "_id",
@@ -106,28 +105,5 @@ public class TerrainTypes : ScriptableObject
             return byLoader;
 
         return null;
-    }
-
-    [Button("Add Defaults")]
-    public void AddDefaults()
-    {
-        AddType("Ground", Color.green);
-        AddType("Shallow Water", Color.cyan);
-        AddType("Deep Water", Color.blue);
-        AddType("Sand", Color.yellow);
-        AddType("Snow", Color.white);
-        AddType("Forest", new Color(0.13f, 0.55f, 0.13f));
-        AddType("Bushes", new Color(0.18f, 0.31f, 0.18f));
-        AddType("Lava", Color.red);
-        AddType("Bridge", new Color(0.5f, 0.25f, 0f));
-        AddType("Stairs", new Color(0.5f, 0.5f, 0.5f));
-        AddType("Wall", Color.black);
-    }
-
-    [Button("Clear All")]
-    public void ClearAll()
-    {
-        _types = new TerrainType[0];
-        _typeLookup.Clear();
     }
 }

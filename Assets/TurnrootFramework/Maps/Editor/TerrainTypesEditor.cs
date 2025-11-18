@@ -22,12 +22,16 @@ public class TerrainTypesEditor : Editor
             EditorGUILayout.BeginVertical(GUI.skin.box);
 
             var nameProp = elem.FindPropertyRelative("_name");
+            var indoorNameProp = elem.FindPropertyRelative("_indoorName");
             var costWalkProp = elem.FindPropertyRelative("_costWalk");
             var costFlyProp = elem.FindPropertyRelative("_costFly");
             var costRideProp = elem.FindPropertyRelative("_costRide");
             var costMagicProp = elem.FindPropertyRelative("_costMagic");
             var costArmorProp = elem.FindPropertyRelative("_costArmor");
             var colorProp = elem.FindPropertyRelative("_editorColor");
+            var healthProp = elem.FindPropertyRelative("_healthChangePerTurn");
+            var defenseProp = elem.FindPropertyRelative("_defenseBonus");
+            var avoidProp = elem.FindPropertyRelative("_avoidBonus");
 
             string header =
                 nameProp != null && !string.IsNullOrEmpty(nameProp.stringValue)
@@ -60,6 +64,15 @@ public class TerrainTypesEditor : Editor
             if (costArmorProp != null)
                 EditorGUILayout.BeginHorizontal();
             EditorGUILayout.PropertyField(costArmorProp, new GUIContent("Cost Armor"));
+            if (healthProp != null)
+                EditorGUILayout.PropertyField(healthProp, new GUIContent("Health +/-"));
+            EditorGUILayout.EndHorizontal();
+
+            if (defenseProp != null)
+                EditorGUILayout.BeginHorizontal();
+            EditorGUILayout.PropertyField(defenseProp, new GUIContent("Defense +/-"));
+            if (avoidProp != null)
+                EditorGUILayout.PropertyField(avoidProp, new GUIContent("Avoid +/-"));
             EditorGUILayout.EndHorizontal();
 
             EditorGUILayout.Space();
@@ -117,35 +130,6 @@ public class TerrainTypesEditor : Editor
         EditorGUILayout.Space();
         EditorGUILayout.BeginHorizontal();
         var asset = target as TerrainTypes;
-        if (asset != null)
-        {
-            if (GUILayout.Button("Add Defaults"))
-            {
-                Undo.RecordObject(asset, "Add Defaults");
-                asset.AddDefaults();
-                EditorUtility.SetDirty(asset);
-                // refresh serialized representation
-                serializedObject.Update();
-            }
-
-            if (GUILayout.Button("Clear All"))
-            {
-                if (
-                    EditorUtility.DisplayDialog(
-                        "Clear All Terrain Types",
-                        "Are you sure you want to remove all terrain types?",
-                        "Yes",
-                        "No"
-                    )
-                )
-                {
-                    Undo.RecordObject(asset, "Clear All Terrain Types");
-                    asset.ClearAll();
-                    EditorUtility.SetDirty(asset);
-                    serializedObject.Update();
-                }
-            }
-        }
         EditorGUILayout.EndHorizontal();
 
         serializedObject.ApplyModifiedProperties();

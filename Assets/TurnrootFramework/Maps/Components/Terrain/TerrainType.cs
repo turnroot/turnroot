@@ -25,6 +25,15 @@ public class TerrainType
     [SerializeField]
     private float _costArmor = 1f;
 
+    [SerializeField, Range(-20, 20)]
+    private int _healthChangePerTurn = 0;
+
+    [SerializeField, Range(-40, 40)]
+    private int _defenseBonus = 0;
+
+    [SerializeField, Range(-40, 40)]
+    private int _avoidBonus = 0;
+
     [SerializeField]
     private Color _editorColor = Color.white;
 
@@ -34,6 +43,10 @@ public class TerrainType
     public float CostRide => _costRide;
     public float CostMagic => _costMagic;
     public float CostArmor => _costArmor;
+
+    public int HealthChangePerTurn => _healthChangePerTurn;
+    public int DefenseBonus => _defenseBonus;
+    public int AvoidBonus => _avoidBonus;
     public Color EditorColor => _editorColor;
 
     // Stable identifier used to reference this type from other objects
@@ -48,6 +61,9 @@ public class TerrainType
         float costRide,
         float costMagic,
         float costArmor,
+        int healthChangePerTurn,
+        int defenseBonus,
+        int avoidBonus,
         Color editorColor
     )
     {
@@ -57,6 +73,9 @@ public class TerrainType
         _costRide = costRide;
         _costMagic = costMagic;
         _costArmor = costArmor;
+        _healthChangePerTurn = healthChangePerTurn;
+        _defenseBonus = defenseBonus;
+        _avoidBonus = avoidBonus;
         _editorColor = editorColor;
     }
 }

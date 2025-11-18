@@ -186,6 +186,7 @@ public class MapGridEditorWindow : EditorWindow
             { KeyCode.Minus, 11 },
             { KeyCode.Equals, 12 },
             { KeyCode.Q, 13 },
+            { KeyCode.A, 14 },
             { KeyCode.BackQuote, 0 },
         };
     }
@@ -586,7 +587,7 @@ public class MapGridEditorWindow : EditorWindow
                         : "Left click: Paint"
                 );
         string controls =
-            $"Ctrl +/- : Zoom | Space + Drag : Pan | {leftAction} | Left click + drag: Paint Area | [`, 1-0, -, =, Q] : Terrain | Shift+[`, 1-0, -, =] : Feature";
+            $"Ctrl +/- : Zoom | Space + Drag : Pan | {leftAction} | Left click + drag: Paint Area | [`, 1-0, -, =, Q, A] : Terrain | Shift+[`, 1-0, -, =] : Feature";
         string hoverText =
             _hoveredCell.x >= 0 ? $"Row {_hoveredCell.x}, Col {_hoveredCell.y}" : "(none)";
 
