@@ -6,233 +6,6 @@ using UnityEngine;
 
 public class MapGrid : MonoBehaviour
 {
-    /* -------------------------- Buttons -------------------------- */
-    [Button("Create Grid Points")]
-    public void CreateChildrenPoints()
-    {
-        if (_gridPoints.Count > 0)
-            ClearGrid();
-
-        for (int x = 0; x < _gridWidth; x++)
-        {
-            for (int y = 0; y < _gridHeight; y++)
-            {
-                var point = new GameObject($"Point_R{x}_C{y}");
-                var gridPoint = point.AddComponent<MapGridPoint>();
-                gridPoint.Initialize(x, y);
-
-                SetDefaultTerrainType(gridPoint);
-
-                point.transform.parent = transform;
-                point.transform.localPosition =
-                    new Vector3(x * _gridScale, 0, y * _gridScale) + _gridOffset;
-                _gridPoints[new Vector2Int(x, y)] = point;
-            }
-        }
-
-        LoadFeatureLayer();
-    }
-
-    [Button("Add Row")]
-    public void AddRow()
-    {
-        SaveFeatureLayer();
-        _gridHeight++;
-
-        int newRow = _gridHeight - 1;
-        for (int col = 0; col < _gridWidth; col++)
-        {
-            if (GetGridPoint(col, newRow) != null)
-                continue;
-
-            var point = new GameObject($"Point_R{col}_C{newRow}");
-            var gridPoint = point.AddComponent<MapGridPoint>();
-            gridPoint.Initialize(col, newRow);
-            SetDefaultTerrainType(gridPoint);
-
-            point.transform.parent = transform;
-            point.transform.localPosition =
-                new Vector3(col * _gridScale, 0, newRow * _gridScale) + _gridOffset;
-            _gridPoints[new Vector2Int(col, newRow)] = point;
-
-#if UNITY_EDITOR
-            UnityEditor.EditorUtility.SetDirty(point);
-            UnityEditor.EditorUtility.SetDirty(gridPoint);
-#endif
-        }
-
-        LoadFeatureLayer();
-
-#if UNITY_EDITOR
-        UnityEditor.EditorUtility.SetDirty(this);
-        UnityEditor.SceneView.RepaintAll();
-#endif
-    }
-
-    [Button("Add Column")]
-    public void AddColumn()
-    {
-        SaveFeatureLayer();
-        _gridWidth++;
-
-        int newCol = _gridWidth - 1;
-        for (int row = 0; row < _gridHeight; row++)
-        {
-            if (GetGridPoint(newCol, row) != null)
-                continue;
-
-            var point = new GameObject($"Point_R{newCol}_C{row}");
-            var gridPoint = point.AddComponent<MapGridPoint>();
-            gridPoint.Initialize(newCol, row);
-            SetDefaultTerrainType(gridPoint);
-
-            point.transform.parent = transform;
-            point.transform.localPosition =
-                new Vector3(newCol * _gridScale, 0, row * _gridScale) + _gridOffset;
-            _gridPoints[new Vector2Int(newCol, row)] = point;
-
-#if UNITY_EDITOR
-            UnityEditor.EditorUtility.SetDirty(point);
-            UnityEditor.EditorUtility.SetDirty(gridPoint);
-#endif
-        }
-
-        LoadFeatureLayer();
-
-#if UNITY_EDITOR
-        UnityEditor.EditorUtility.SetDirty(this);
-        UnityEditor.SceneView.RepaintAll();
-#endif
-    }
-
-    [Button("Remove Row")]
-    [Tooltip("Removes the last row from the grid. This doesn't remove the existing data.")]
-    public void RemoveRow()
-    {
-        if (_gridHeight <= 1)
-            return;
-
-        SaveFeatureLayer();
-
-        int removeRow = _gridHeight - 1;
-        for (int col = 0; col < _gridWidth; col++)
-        {
-            var mgp = GetGridPoint(col, removeRow);
-            if (mgp == null)
-                continue;
-
-            _gridPoints.Remove(new Vector2Int(col, removeRow));
-            DestroyImmediate(mgp.gameObject);
-        }
-
-        _gridHeight--;
-        LoadFeatureLayer();
-
-#if UNITY_EDITOR
-        UnityEditor.EditorUtility.SetDirty(this);
-        UnityEditor.SceneView.RepaintAll();
-#endif
-    }
-
-    [Button("Remove Column")]
-    public void RemoveColumn()
-    {
-        if (_gridWidth <= 1)
-            return;
-
-        SaveFeatureLayer();
-
-        int removeCol = _gridWidth - 1;
-        for (int row = 0; row < _gridHeight; row++)
-        {
-            var mgp = GetGridPoint(removeCol, row);
-            if (mgp == null)
-                continue;
-
-            _gridPoints.Remove(new Vector2Int(removeCol, row));
-            DestroyImmediate(mgp.gameObject);
-        }
-
-        _gridWidth--;
-        LoadFeatureLayer();
-
-#if UNITY_EDITOR
-        UnityEditor.EditorUtility.SetDirty(this);
-        UnityEditor.SceneView.RepaintAll();
-#endif
-    }
-
-    [Button("Connect to 3D Map Height")]
-    public void ConnectTo3DMapObject()
-    {
-        if (_single3dHeightMesh == null)
-            return;
-        if (_gridPoints == null)
-            EnsureGridPoints();
-
-        EnsureGridPoints();
-
-        var colliders = _single3dHeightMesh.GetComponentsInChildren<Collider>(true);
-        if (colliders == null || colliders.Length == 0)
-            return;
-
-        var connector = new MapGridHeightConnector();
-        var points = connector.RaycastPointsDownTo3DMap(
-            _single3dHeightMesh,
-            _gridPoints,
-            _raycastLayerMask,
-            _flipRaycastX,
-            _flipRaycastY
-        );
-
-        if (points == null || points.Length == 0)
-            return;
-
-        _single3dHeightMeshRaycastPoints = points;
-        // Build a parallel array of colors matching each computed point, using the
-        // terrain type color from the corresponding MapGridPoint when available.
-        var colors = new Color[points.Length];
-        var indices = new Vector2Int[points.Length];
-        int ci = 0;
-        var ordered = _gridPoints.AsEnumerable();
-        IOrderedEnumerable<System.Collections.Generic.KeyValuePair<
-            Vector2Int,
-            GameObject
-        >> orderedByX;
-        if (_flipRaycastX)
-            orderedByX = ordered.OrderByDescending(kv => kv.Key.x);
-        else
-            orderedByX = ordered.OrderBy(kv => kv.Key.x);
-
-        IOrderedEnumerable<System.Collections.Generic.KeyValuePair<
-            Vector2Int,
-            GameObject
-        >> orderedFinal;
-        if (_flipRaycastY)
-            orderedFinal = orderedByX.ThenByDescending(kv => kv.Key.y);
-        else
-            orderedFinal = orderedByX.ThenBy(kv => kv.Key.y);
-        foreach (var kv in orderedFinal)
-        {
-            if (ci >= colors.Length)
-                break;
-            var mgp = kv.Value?.GetComponent<MapGridPoint>();
-            var tt = mgp?.SelectedTerrainType;
-            colors[ci] = tt != null ? tt.EditorColor : Color.yellow;
-            indices[ci] = kv.Key; // store (row,col) for this raycast point
-            ci++;
-        }
-        // If the dictionary had fewer entries (shouldn't), fill remaining with yellow
-        for (; ci < colors.Length; ci++)
-            colors[ci] = Color.yellow;
-        _single3dHeightMeshRaycastColors = colors;
-        _single3dHeightMeshRaycastIndices = indices;
-#if UNITY_EDITOR
-        UnityEditor.EditorUtility.SetDirty(this);
-        UnityEditor.SceneView.RepaintAll();
-#endif
-    }
-
     [Header("Grid Settings")]
     [HorizontalLine(color: EColor.Green)]
     [SerializeField]
@@ -302,6 +75,155 @@ public class MapGrid : MonoBehaviour
     public float GridScale => _gridScale;
     public Vector3 GridOffset => _gridOffset;
 
+    /* -------------------------- Buttons -------------------------- */
+    [Button("Create Grid Points")]
+    public void CreateChildrenPoints()
+    {
+        if (_gridPoints.Count > 0)
+            ClearGrid();
+
+        for (int x = 0; x < _gridWidth; x++)
+        {
+            for (int y = 0; y < _gridHeight; y++)
+            {
+                var point = new GameObject($"Point_R{x}_C{y}");
+                var gridPoint = point.AddComponent<MapGridPoint>();
+                gridPoint.Initialize(x, y);
+                SetDefaultTerrainType(gridPoint);
+
+                point.transform.parent = transform;
+                point.transform.localPosition =
+                    new Vector3(x * _gridScale, 0, y * _gridScale) + _gridOffset;
+                _gridPoints[new Vector2Int(x, y)] = point;
+            }
+        }
+
+        LoadFeatureLayer();
+    }
+
+    [Button("Add Row")]
+    public void AddRow()
+    {
+        SaveFeatureLayer();
+        _gridHeight++;
+        int newRow = _gridHeight - 1;
+
+        for (int col = 0; col < _gridWidth; col++)
+        {
+            if (GetGridPoint(col, newRow) != null)
+                continue;
+            CreateGridPoint(col, newRow);
+        }
+
+        LoadFeatureLayer();
+        MarkDirty();
+    }
+
+    [Button("Add Column")]
+    public void AddColumn()
+    {
+        SaveFeatureLayer();
+        _gridWidth++;
+        int newCol = _gridWidth - 1;
+
+        for (int row = 0; row < _gridHeight; row++)
+        {
+            if (GetGridPoint(newCol, row) != null)
+                continue;
+            CreateGridPoint(newCol, row);
+        }
+
+        LoadFeatureLayer();
+        MarkDirty();
+    }
+
+    [Button("Remove Row")]
+    [Tooltip("Removes the last row from the grid. This doesn't remove the existing data.")]
+    public void RemoveRow()
+    {
+        if (_gridHeight <= 1)
+            return;
+        SaveFeatureLayer();
+        RemoveGridLine(_gridHeight - 1, true);
+        _gridHeight--;
+        LoadFeatureLayer();
+        MarkDirty();
+    }
+
+    [Button("Remove Column")]
+    public void RemoveColumn()
+    {
+        if (_gridWidth <= 1)
+            return;
+        SaveFeatureLayer();
+        RemoveGridLine(_gridWidth - 1, false);
+        _gridWidth--;
+        LoadFeatureLayer();
+        MarkDirty();
+    }
+
+    [Button("Connect to 3D Map Height")]
+    public void ConnectTo3DMapObject()
+    {
+        if (_single3dHeightMesh == null)
+            return;
+        EnsureGridPoints();
+
+        var colliders = _single3dHeightMesh.GetComponentsInChildren<Collider>(true);
+        if (colliders == null || colliders.Length == 0)
+            return;
+
+        var connector = new MapGridHeightConnector();
+        var points = connector.RaycastPointsDownTo3DMap(
+            _single3dHeightMesh,
+            _gridPoints,
+            _raycastLayerMask,
+            _flipRaycastX,
+            _flipRaycastY
+        );
+
+        if (points == null || points.Length == 0)
+            return;
+
+        _single3dHeightMeshRaycastPoints = points;
+        RebuildRaycastColors();
+        MarkDirty();
+    }
+
+    private void CreateGridPoint(int row, int col)
+    {
+        var point = new GameObject($"Point_R{row}_C{col}");
+        var gridPoint = point.AddComponent<MapGridPoint>();
+        gridPoint.Initialize(row, col);
+        SetDefaultTerrainType(gridPoint);
+
+        point.transform.parent = transform;
+        point.transform.localPosition =
+            new Vector3(row * _gridScale, 0, col * _gridScale) + _gridOffset;
+        _gridPoints[new Vector2Int(row, col)] = point;
+
+#if UNITY_EDITOR
+        UnityEditor.EditorUtility.SetDirty(point);
+        UnityEditor.EditorUtility.SetDirty(gridPoint);
+#endif
+    }
+
+    private void RemoveGridLine(int index, bool isRow)
+    {
+        int outerLimit = isRow ? _gridWidth : _gridHeight;
+
+        for (int i = 0; i < outerLimit; i++)
+        {
+            var key = isRow ? new Vector2Int(i, index) : new Vector2Int(index, i);
+            var mgp = GetGridPoint(key.x, key.y);
+            if (mgp == null)
+                continue;
+
+            _gridPoints.Remove(key);
+            DestroyImmediate(mgp.gameObject);
+        }
+    }
+
     private void SetDefaultTerrainType(MapGridPoint gridPoint)
     {
         var terrainAsset = TerrainTypes.LoadDefault();
@@ -313,21 +235,15 @@ public class MapGrid : MonoBehaviour
         );
 
         if (voidType != null)
-        {
             gridPoint.SetTerrainTypeId(voidType.Id);
-        }
         else if (terrainAsset.Types.Length > 0 && terrainAsset.Types[0] != null)
-        {
             gridPoint.SetTerrainTypeId(terrainAsset.Types[0].Id);
-        }
     }
 
     public void ClearGrid()
     {
         foreach (var point in _gridPoints.Values.Where(p => p != null))
-        {
             DestroyImmediate(point);
-        }
         _gridPoints.Clear();
     }
 
@@ -340,12 +256,9 @@ public class MapGrid : MonoBehaviour
                 continue;
             var mgp = child.GetComponent<MapGridPoint>();
             if (mgp != null)
-            {
                 newDict[new Vector2Int(mgp.Row, mgp.Col)] = child.gameObject;
-            }
         }
         _gridPoints = newDict;
-
         LoadFeatureLayer();
     }
 
@@ -358,27 +271,27 @@ public class MapGrid : MonoBehaviour
             if (mgp == null || string.IsNullOrEmpty(mgp.FeatureTypeId))
                 continue;
 
-            var rec = new FeatureRecord
-            {
-                row = kv.Key.x,
-                col = kv.Key.y,
-                typeId = mgp.FeatureTypeId,
-                name = mgp.FeatureName,
-                stringProperties = mgp.GetAllStringFeatureProperties()
-                    ?.Select(p => new PropertyRecord<string> { key = p.key, value = p.value })
-                    .ToList(),
-                boolProperties = mgp.GetAllBoolFeatureProperties()
-                    ?.Select(p => new PropertyRecord<bool> { key = p.key, value = p.value })
-                    .ToList(),
-                intProperties = mgp.GetAllIntFeatureProperties()
-                    ?.Select(p => new PropertyRecord<int> { key = p.key, value = p.value })
-                    .ToList(),
-                floatProperties = mgp.GetAllFloatFeatureProperties()
-                    ?.Select(p => new PropertyRecord<float> { key = p.key, value = p.value })
-                    .ToList(),
-            };
-
-            _features.Add(rec);
+            _features.Add(
+                new FeatureRecord
+                {
+                    row = kv.Key.x,
+                    col = kv.Key.y,
+                    typeId = mgp.FeatureTypeId,
+                    name = mgp.FeatureName,
+                    stringProperties = mgp.GetAllStringFeatureProperties()
+                        ?.Select(p => new PropertyRecord<string> { key = p.key, value = p.value })
+                        .ToList(),
+                    boolProperties = mgp.GetAllBoolFeatureProperties()
+                        ?.Select(p => new PropertyRecord<bool> { key = p.key, value = p.value })
+                        .ToList(),
+                    intProperties = mgp.GetAllIntFeatureProperties()
+                        ?.Select(p => new PropertyRecord<int> { key = p.key, value = p.value })
+                        .ToList(),
+                    floatProperties = mgp.GetAllFloatFeatureProperties()
+                        ?.Select(p => new PropertyRecord<float> { key = p.key, value = p.value })
+                        .ToList(),
+                }
+            );
         }
 #if UNITY_EDITOR
         UnityEditor.EditorUtility.SetDirty(this);
@@ -400,27 +313,22 @@ public class MapGrid : MonoBehaviour
             mgp.FeatureName = rec.name ?? string.Empty;
             mgp.ApplyDefaultsForFeature(rec.typeId);
 
-            if (rec.stringProperties != null)
-            {
-                foreach (var pr in rec.stringProperties.Where(pr => !string.IsNullOrEmpty(pr.key)))
-                    mgp.SetStringFeatureProperty(pr.key, pr.value ?? string.Empty);
-            }
-            if (rec.boolProperties != null)
-            {
-                foreach (var pr in rec.boolProperties.Where(pr => !string.IsNullOrEmpty(pr.key)))
-                    mgp.SetBoolFeatureProperty(pr.key, pr.value);
-            }
-            if (rec.intProperties != null)
-            {
-                foreach (var pr in rec.intProperties.Where(pr => !string.IsNullOrEmpty(pr.key)))
-                    mgp.SetIntFeatureProperty(pr.key, pr.value);
-            }
-            if (rec.floatProperties != null)
-            {
-                foreach (var pr in rec.floatProperties.Where(pr => !string.IsNullOrEmpty(pr.key)))
-                    mgp.SetFloatFeatureProperty(pr.key, pr.value);
-            }
+            ApplyPropertyList(rec.stringProperties, mgp.SetStringFeatureProperty);
+            ApplyPropertyList(rec.boolProperties, mgp.SetBoolFeatureProperty);
+            ApplyPropertyList(rec.intProperties, mgp.SetIntFeatureProperty);
+            ApplyPropertyList(rec.floatProperties, mgp.SetFloatFeatureProperty);
         }
+    }
+
+    private void ApplyPropertyList<T>(
+        List<PropertyRecord<T>> properties,
+        System.Action<string, T> setter
+    )
+    {
+        if (properties == null)
+            return;
+        foreach (var pr in properties.Where(pr => !string.IsNullOrEmpty(pr.key)))
+            setter(pr.key, pr.value);
     }
 
     public void EnsureGridPoints()
@@ -442,13 +350,9 @@ public class MapGrid : MonoBehaviour
                 CreateChildrenPoints();
         }
         else if (_gridPoints.Count == 0 && transform.childCount > 0)
-        {
             RebuildGridDictionary();
-        }
         else if (_gridPoints.Count == 0 && transform.childCount == 0)
-        {
             CreateChildrenPoints();
-        }
 
         RepositionGridPoints();
     }
@@ -474,32 +378,6 @@ public class MapGrid : MonoBehaviour
             : null;
     }
 
-#if UNITY_EDITOR
-    private void OnValidate()
-    {
-        if (UnityEditor.EditorApplication.isPlayingOrWillChangePlaymode)
-            return;
-
-        if (_gridPoints == null || _gridPoints.Count == 0)
-        {
-            if (transform.childCount > 0)
-                RebuildGridDictionary();
-        }
-
-        RepositionGridPoints();
-
-        // Refresh serialized feature data so the editor view stays in sync
-        if (_features != null && _features.Count > 0)
-            LoadFeatureLayer();
-
-        // If raycast points/colors already exist, refresh the colors and indices when flips change
-        if (_single3dHeightMeshRaycastPoints != null && _single3dHeightMeshRaycastPoints.Length > 0)
-            RebuildRaycastColors();
-        UnityEditor.EditorUtility.SetDirty(this);
-    }
-#endif
-
-    // Recompute the per-raycast colors using the current flip settings.
     private void RebuildRaycastColors()
     {
         if (
@@ -507,28 +385,13 @@ public class MapGrid : MonoBehaviour
             || _single3dHeightMeshRaycastPoints.Length == 0
         )
             return;
+
         var colors = new Color[_single3dHeightMeshRaycastPoints.Length];
         var indices = new Vector2Int[_single3dHeightMeshRaycastPoints.Length];
 
-        var ordered = _gridPoints.AsEnumerable();
-        IOrderedEnumerable<System.Collections.Generic.KeyValuePair<
-            Vector2Int,
-            GameObject
-        >> orderedByX;
-        if (_flipRaycastX)
-            orderedByX = ordered.OrderByDescending(kv => kv.Key.x);
-        else
-            orderedByX = ordered.OrderBy(kv => kv.Key.x);
-
-        IOrderedEnumerable<System.Collections.Generic.KeyValuePair<
-            Vector2Int,
-            GameObject
-        >> orderedFinal;
-        if (_flipRaycastY)
-            orderedFinal = orderedByX.ThenByDescending(kv => kv.Key.y);
-        else
-            orderedFinal = orderedByX.ThenBy(kv => kv.Key.y);
+        var orderedFinal = OrderGridPoints(_gridPoints.AsEnumerable());
         int ci = 0;
+
         foreach (var kv in orderedFinal)
         {
             if (ci >= colors.Length)
@@ -547,7 +410,49 @@ public class MapGrid : MonoBehaviour
         _single3dHeightMeshRaycastIndices = indices;
     }
 
+    private IOrderedEnumerable<KeyValuePair<Vector2Int, GameObject>> OrderGridPoints(
+        IEnumerable<KeyValuePair<Vector2Int, GameObject>> points
+    )
+    {
+        var orderedByX = _flipRaycastX
+            ? points.OrderByDescending(kv => kv.Key.x)
+            : points.OrderBy(kv => kv.Key.x);
+        return _flipRaycastY
+            ? orderedByX.ThenByDescending(kv => kv.Key.y)
+            : orderedByX.ThenBy(kv => kv.Key.y);
+    }
+
+    private void MarkDirty()
+    {
 #if UNITY_EDITOR
+        UnityEditor.EditorUtility.SetDirty(this);
+        UnityEditor.SceneView.RepaintAll();
+#endif
+    }
+
+#if UNITY_EDITOR
+    private void OnValidate()
+    {
+        if (UnityEditor.EditorApplication.isPlayingOrWillChangePlaymode)
+            return;
+
+        if (_gridPoints == null || _gridPoints.Count == 0)
+        {
+            if (transform.childCount > 0)
+                RebuildGridDictionary();
+        }
+
+        RepositionGridPoints();
+
+        if (_features != null && _features.Count > 0)
+            LoadFeatureLayer();
+
+        if (_single3dHeightMeshRaycastPoints != null && _single3dHeightMeshRaycastPoints.Length > 0)
+            RebuildRaycastColors();
+
+        UnityEditor.EditorUtility.SetDirty(this);
+    }
+
     void OnDrawGizmos()
     {
         Vector3 getPos(int x, int y) =>
@@ -566,9 +471,7 @@ public class MapGrid : MonoBehaviour
 
         var corners = new[] { topLeft, topRight, bottomLeft, bottomRight };
         foreach (var corner in corners)
-        {
             Gizmos.DrawSphere(corner, 1f);
-        }
 
         if (
             _showRaycastGizmos
@@ -610,7 +513,6 @@ public class FeatureRecord
     public string typeId;
     public string name;
 
-    // Typed properties attached to the feature
     public List<PropertyRecord<string>> stringProperties = new();
     public List<PropertyRecord<bool>> boolProperties = new();
     public List<PropertyRecord<int>> intProperties = new();

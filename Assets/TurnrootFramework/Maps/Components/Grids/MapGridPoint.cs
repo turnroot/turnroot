@@ -7,17 +7,13 @@ public class MapGridPoint : MonoBehaviour
 {
     [SerializeField]
     private SpawnPoint _spawnPoint = new();
-
     public SpawnPoint SpawnPoint
     {
         get => _spawnPoint;
         set => _spawnPoint = value ?? new SpawnPoint();
     }
 
-    void OnValidate()
-    {
-        SpawnPoint ??= new SpawnPoint();
-    }
+    void OnValidate() => SpawnPoint ??= new SpawnPoint();
 
     /* ---------------------------- Grid point data ---------------------------- */
     private static readonly (string name, int dRow, int dCol)[] Directions = new[]
@@ -100,7 +96,6 @@ public class MapGridPoint : MonoBehaviour
             var asset = TerrainTypes.LoadDefault();
             if (asset == null)
                 return null;
-
             var terrainType = asset.GetTypeById(_terrainTypeId);
             return terrainType ?? (asset.Types?.Length > 0 ? asset.Types[0] : null);
         }
@@ -153,7 +148,6 @@ public class MapGridPoint : MonoBehaviour
     {
         if (string.IsNullOrEmpty(key))
             return;
-
         _stringProperties.RemoveAll(p => p.key == key);
         _objectProperties.RemoveAll(p => p.key == key);
         _boolProperties.RemoveAll(p => p.key == key);
@@ -170,9 +164,7 @@ public class MapGridPoint : MonoBehaviour
 
         var existing = list.Find(p => p.key == key);
         if (existing != null)
-        {
             existing.SetValue(value);
-        }
         else
         {
             var newProp = new T { key = key };
@@ -188,6 +180,16 @@ public class MapGridPoint : MonoBehaviour
             return defaultValue;
         var prop = list.Find(p => p.key == key);
         return prop != null ? (TValue)prop.GetValue() : defaultValue;
+    }
+
+    private T? GetNullableProperty<T, TProp>(List<TProp> list, string key)
+        where T : struct
+        where TProp : MapGridPointFeatureProperties.IProperty
+    {
+        if (string.IsNullOrEmpty(key))
+            return null;
+        var prop = list.Find(p => p.key == key);
+        return prop != null ? (T?)prop.GetValue() : null;
     }
 
     // String properties
@@ -217,13 +219,8 @@ public class MapGridPoint : MonoBehaviour
     public void SetBoolFeatureProperty(string key, bool value) =>
         SetProperty(_boolProperties, key, value);
 
-    public bool? GetBoolFeatureProperty(string key)
-    {
-        if (string.IsNullOrEmpty(key))
-            return null;
-        var prop = _boolProperties.Find(p => p.key == key);
-        return prop != null ? (bool?)prop.value : null;
-    }
+    public bool? GetBoolFeatureProperty(string key) =>
+        GetNullableProperty<bool, MapGridPointFeatureProperties.BoolProperty>(_boolProperties, key);
 
     public List<MapGridPointFeatureProperties.BoolProperty> GetAllBoolFeatureProperties() =>
         new(_boolProperties);
@@ -232,13 +229,8 @@ public class MapGridPoint : MonoBehaviour
     public void SetIntFeatureProperty(string key, int value) =>
         SetProperty(_intProperties, key, value);
 
-    public int? GetIntFeatureProperty(string key)
-    {
-        if (string.IsNullOrEmpty(key))
-            return null;
-        var prop = _intProperties.Find(p => p.key == key);
-        return prop != null ? (int?)prop.value : null;
-    }
+    public int? GetIntFeatureProperty(string key) =>
+        GetNullableProperty<int, MapGridPointFeatureProperties.IntProperty>(_intProperties, key);
 
     public List<MapGridPointFeatureProperties.IntProperty> GetAllIntFeatureProperties() =>
         new(_intProperties);
@@ -247,13 +239,11 @@ public class MapGridPoint : MonoBehaviour
     public void SetFloatFeatureProperty(string key, float value) =>
         SetProperty(_floatProperties, key, value);
 
-    public float? GetFloatFeatureProperty(string key)
-    {
-        if (string.IsNullOrEmpty(key))
-            return null;
-        var prop = _floatProperties.Find(p => p.key == key);
-        return prop != null ? (float?)prop.value : null;
-    }
+    public float? GetFloatFeatureProperty(string key) =>
+        GetNullableProperty<float, MapGridPointFeatureProperties.FloatProperty>(
+            _floatProperties,
+            key
+        );
 
     public List<MapGridPointFeatureProperties.FloatProperty> GetAllFloatFeatureProperties() =>
         new(_floatProperties);
@@ -304,10 +294,9 @@ public class MapGridPoint : MonoBehaviour
             return;
         foreach (var prop in defaults)
         {
-            if (string.IsNullOrEmpty(prop.key))
+            if (string.IsNullOrEmpty(prop.key) || GetStringFeatureProperty(prop.key) != null)
                 continue;
-            if (GetStringFeatureProperty(prop.key) == null)
-                SetStringFeatureProperty(prop.key, prop.value);
+            SetStringFeatureProperty(prop.key, prop.value);
         }
     }
 
@@ -319,11 +308,9 @@ public class MapGridPoint : MonoBehaviour
             return;
         foreach (var prop in defaults)
         {
-            if (string.IsNullOrEmpty(prop.key))
+            if (string.IsNullOrEmpty(prop.key) || GetObjectFeatureProperty(prop.key) != null)
                 continue;
-            var existing = GetObjectFeatureProperty(prop.key);
-            if (existing == null)
-                SetObjectFeatureProperty(prop.key, prop.value);
+            SetObjectFeatureProperty(prop.key, prop.value);
         }
     }
 
@@ -335,10 +322,9 @@ public class MapGridPoint : MonoBehaviour
             return;
         foreach (var prop in defaults)
         {
-            if (string.IsNullOrEmpty(prop.key))
+            if (string.IsNullOrEmpty(prop.key) || GetBoolFeatureProperty(prop.key).HasValue)
                 continue;
-            if (!GetBoolFeatureProperty(prop.key).HasValue)
-                SetBoolFeatureProperty(prop.key, prop.value);
+            SetBoolFeatureProperty(prop.key, prop.value);
         }
     }
 
@@ -348,10 +334,9 @@ public class MapGridPoint : MonoBehaviour
             return;
         foreach (var prop in defaults)
         {
-            if (string.IsNullOrEmpty(prop.key))
+            if (string.IsNullOrEmpty(prop.key) || GetIntFeatureProperty(prop.key).HasValue)
                 continue;
-            if (!GetIntFeatureProperty(prop.key).HasValue)
-                SetIntFeatureProperty(prop.key, prop.value);
+            SetIntFeatureProperty(prop.key, prop.value);
         }
     }
 
@@ -363,10 +348,9 @@ public class MapGridPoint : MonoBehaviour
             return;
         foreach (var prop in defaults)
         {
-            if (string.IsNullOrEmpty(prop.key))
+            if (string.IsNullOrEmpty(prop.key) || GetFloatFeatureProperty(prop.key).HasValue)
                 continue;
-            if (!GetFloatFeatureProperty(prop.key).HasValue)
-                SetFloatFeatureProperty(prop.key, prop.value);
+            SetFloatFeatureProperty(prop.key, prop.value);
         }
     }
 

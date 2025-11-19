@@ -16,24 +16,22 @@ public class MapGridEditorWindow : EditorWindow
     private int _selectedTerrainIndex = 0;
     private Vector2 _scroll = Vector2.zero;
     private float _zoom = 1f;
-    private bool _isDragging = false;
+    private bool _isDragging = false,
+        _spacePan = false,
+        _isPanning = false;
     private Vector2Int _dragStart,
         _dragEnd,
         _hoveredCell = new(-1, -1);
-    private bool _spacePan = false,
-        _isPanning = false;
     private Mode _mode = Mode.Paint;
 
-    // Dimension tracking for auto-refresh
-    private int _lastKnownWidth = 0;
-    private int _lastKnownHeight = 0;
+    // Dimension tracking
+    private int _lastKnownWidth = 0,
+        _lastKnownHeight = 0;
 
     // Feature editing
     private MapGridPoint _selectedFeaturePoint = null;
     private int _selectedSecondTool = -1;
     private string _selectedSecondToolName = string.Empty;
-
-    // Snapshots for stable UI
     private List<KeyValuePair<string, string>> _detailSnapshotProps = null;
     private List<string> _detailSnapshotPropTypes = null;
 
@@ -66,9 +64,6 @@ public class MapGridEditorWindow : EditorWindow
     private Dictionary<KeyCode, string> _featureHotkeys = null;
     private Dictionary<KeyCode, int> _terrainHotkeys = null;
     private Dictionary<KeyCode, string> _shiftHotkeys = null;
-    private static Dictionary<string, MapGridPointFeatureProperties> _featureDefaultsCache = new(
-        StringComparer.OrdinalIgnoreCase
-    );
 
     // Tool definitions
     private readonly string[] _secondToolIds = new[]
@@ -128,6 +123,7 @@ public class MapGridEditorWindow : EditorWindow
             if (!string.IsNullOrEmpty(_editorSettingsPath) && File.Exists(_editorSettingsPath))
                 _editorSettingsLastWriteTimeUtc = File.GetLastWriteTimeUtc(_editorSettingsPath);
         }
+
         minSize = new Vector2(1000, 600);
         maxSize = new Vector2(1920, 1080);
         wantsMouseMove = true;
@@ -135,7 +131,12 @@ public class MapGridEditorWindow : EditorWindow
         _selectedSecondToolName = string.Empty;
         _zoom = 1f;
 
-        _featureHotkeys = new Dictionary<KeyCode, string>()
+        InitializeHotkeys();
+    }
+
+    private void InitializeHotkeys()
+    {
+        _featureHotkeys = new Dictionary<KeyCode, string>
         {
             { KeyCode.T, "treasure" },
             { KeyCode.D, "door" },
@@ -152,8 +153,7 @@ public class MapGridEditorWindow : EditorWindow
             { KeyCode.E, "eraser" },
         };
 
-        // Shift + terrain keys -> feature shortcuts (Shift+BackQuote -> treasure, Shift+1 -> door, ...)
-        _shiftHotkeys = new Dictionary<KeyCode, string>()
+        _shiftHotkeys = new Dictionary<KeyCode, string>
         {
             { KeyCode.Tilde, "treasure" },
             { KeyCode.BackQuote, "treasure" },
@@ -170,9 +170,10 @@ public class MapGridEditorWindow : EditorWindow
             { KeyCode.Minus, "underground" },
         };
 
-        _terrainHotkeys = new Dictionary<KeyCode, int>()
+        _terrainHotkeys = new Dictionary<KeyCode, int>
         {
             { KeyCode.Tilde, 0 },
+            { KeyCode.BackQuote, 0 },
             { KeyCode.Alpha1, 1 },
             { KeyCode.Alpha2, 2 },
             { KeyCode.Alpha3, 3 },
@@ -187,14 +188,10 @@ public class MapGridEditorWindow : EditorWindow
             { KeyCode.Equals, 12 },
             { KeyCode.Q, 13 },
             { KeyCode.A, 14 },
-            { KeyCode.BackQuote, 0 },
         };
     }
 
-    private void OnInspectorUpdate()
-    {
-        ReloadEditorSettingsIfChanged();
-    }
+    private void OnInspectorUpdate() => ReloadEditorSettingsIfChanged();
 
     private void ReloadEditorSettingsIfChanged()
     {
@@ -212,9 +209,10 @@ public class MapGridEditorWindow : EditorWindow
         }
 
         string path = AssetDatabase.GetAssetPath(loaded) ?? string.Empty;
-        DateTime writeTime = DateTime.MinValue;
-        if (!string.IsNullOrEmpty(path) && File.Exists(path))
-            writeTime = File.GetLastWriteTimeUtc(path);
+        DateTime writeTime =
+            !string.IsNullOrEmpty(path) && File.Exists(path)
+                ? File.GetLastWriteTimeUtc(path)
+                : DateTime.MinValue;
 
         if (
             _editorSettings == null
@@ -251,7 +249,6 @@ public class MapGridEditorWindow : EditorWindow
             stretchWidth = true,
             richText = false,
         };
-
         _guiStyleWrap.normal.textColor = EditorStyles.label.normal.textColor;
         _guiStyleBoldWrap.normal.textColor = EditorStyles.boldLabel.normal.textColor;
     }
@@ -263,7 +260,6 @@ public class MapGridEditorWindow : EditorWindow
 
         if (Event.current?.type == EventType.MouseMove)
             Repaint();
-
         HandleKeyboardShortcuts();
         EnsureGridPoints();
 
@@ -308,7 +304,6 @@ public class MapGridEditorWindow : EditorWindow
 
         if (_grid != null)
         {
-            // Check if dimensions changed and refresh if needed
             if (_lastKnownWidth != _grid.GridWidth || _lastKnownHeight != _grid.GridHeight)
             {
                 _lastKnownWidth = _grid.GridWidth;
@@ -349,100 +344,119 @@ public class MapGridEditorWindow : EditorWindow
     private void HandleKeyboardShortcuts()
     {
         Event e = Event.current;
-        if (e?.type == EventType.KeyDown && !EditorGUIUtility.editingTextField)
+        if (e?.type != EventType.KeyDown || EditorGUIUtility.editingTextField)
         {
-            if (e.keyCode == KeyCode.P)
+            if (e?.type == EventType.KeyUp && e.keyCode == KeyCode.Space)
             {
-                _mode = Mode.Paint;
+                _spacePan = false;
+                e.Use();
+            }
+            return;
+        }
+
+        if (e.keyCode == KeyCode.P)
+        {
+            _mode = Mode.Paint;
+            _selectedSecondTool = -1;
+            _selectedSecondToolName = string.Empty;
+            e.Use();
+            return;
+        }
+
+        if (_mode == Mode.Paint)
+        {
+            if (HandleShiftHotkey(e) || HandleFeatureHotkey(e) || HandleTerrainHotkey(e))
+                return;
+        }
+
+        HandleZoomHotkeys(e);
+
+        if (e.keyCode == KeyCode.Space)
+        {
+            _spacePan = true;
+            e.Use();
+        }
+    }
+
+    private bool HandleShiftHotkey(Event e)
+    {
+        if (!e.shift)
+            return false;
+
+        string shiftFeat = null;
+        _shiftHotkeys?.TryGetValue(e.keyCode, out shiftFeat);
+
+        if (string.IsNullOrEmpty(shiftFeat) && (e.character == '`' || e.character == '~'))
+        {
+            _shiftHotkeys?.TryGetValue(KeyCode.Tilde, out shiftFeat);
+            if (string.IsNullOrEmpty(shiftFeat))
+                _shiftHotkeys?.TryGetValue(KeyCode.BackQuote, out shiftFeat);
+        }
+
+        if (!string.IsNullOrEmpty(shiftFeat))
+        {
+            _selectedSecondTool = Array.IndexOf(_secondToolIds, shiftFeat);
+            _mode = Mode.Paint;
+            e.Use();
+            return true;
+        }
+        return false;
+    }
+
+    private bool HandleFeatureHotkey(Event e)
+    {
+        if (_featureHotkeys?.TryGetValue(e.keyCode, out var featId) == true)
+        {
+            _selectedSecondTool = Array.IndexOf(_secondToolIds, featId);
+            _mode = Mode.Paint;
+            e.Use();
+            return true;
+        }
+        return false;
+    }
+
+    private bool HandleTerrainHotkey(Event e)
+    {
+        if (_terrainHotkeys?.TryGetValue(e.keyCode, out var terrainIdx) == true)
+        {
+            if (
+                _terrainAsset?.Types != null
+                && terrainIdx >= 0
+                && terrainIdx < _terrainAsset.Types.Length
+            )
+            {
+                _selectedTerrainIndex = terrainIdx;
                 _selectedSecondTool = -1;
                 _selectedSecondToolName = string.Empty;
                 e.Use();
-            }
-            if (_mode == Mode.Paint)
-            {
-                // Shift + terrain keys -> feature shortcuts (Shift+1 -> door, Shift+` -> treasure, etc.)
-                if (e.shift)
-                {
-                    string shiftFeat = null;
-                    if (_shiftHotkeys != null)
-                        _shiftHotkeys.TryGetValue(e.keyCode, out shiftFeat);
-
-                    if (
-                        string.IsNullOrEmpty(shiftFeat)
-                        && (e.character == '`' || e.character == '~')
-                    )
-                    {
-                        // fallback to tilde/backquote mapping
-                        if (_shiftHotkeys != null)
-                        {
-                            if (!_shiftHotkeys.TryGetValue(KeyCode.Tilde, out shiftFeat))
-                                _shiftHotkeys.TryGetValue(KeyCode.BackQuote, out shiftFeat);
-                        }
-                    }
-
-                    if (!string.IsNullOrEmpty(shiftFeat))
-                    {
-                        _selectedSecondTool = Array.IndexOf(_secondToolIds, shiftFeat);
-                        _mode = Mode.Paint;
-                        e.Use();
-                        return;
-                    }
-                }
-
-                if (_featureHotkeys?.TryGetValue(e.keyCode, out var featId) == true)
-                {
-                    _selectedSecondTool = Array.IndexOf(_secondToolIds, featId);
-                    _mode = Mode.Paint;
-                    e.Use();
-                }
-                else if (_terrainHotkeys?.TryGetValue(e.keyCode, out var terrainIdx) == true)
-                {
-                    if (
-                        _terrainAsset?.Types != null
-                        && terrainIdx >= 0
-                        && terrainIdx < _terrainAsset.Types.Length
-                    )
-                    {
-                        _selectedTerrainIndex = terrainIdx;
-                        _selectedSecondTool = -1;
-                        _selectedSecondToolName = string.Empty;
-                        e.Use();
-                        Repaint();
-                    }
-                }
-            }
-
-            bool ctrl = e.control || e.command;
-            if (
-                ctrl
-                && (
-                    e.keyCode == KeyCode.Equals
-                    || e.keyCode == KeyCode.Plus
-                    || e.keyCode == KeyCode.KeypadPlus
-                )
-            )
-            {
-                _zoom = Mathf.Min(3f, _zoom + 0.1f);
-                e.Use();
                 Repaint();
-            }
-            else if (ctrl && (e.keyCode == KeyCode.Minus || e.keyCode == KeyCode.KeypadMinus))
-            {
-                _zoom = Mathf.Max(0.25f, _zoom - 0.1f);
-                e.Use();
-                Repaint();
-            }
-
-            if (e.keyCode == KeyCode.Space)
-            {
-                _spacePan = true;
-                e.Use();
+                return true;
             }
         }
-        else if (e?.type == EventType.KeyUp && e.keyCode == KeyCode.Space)
+        return false;
+    }
+
+    private void HandleZoomHotkeys(Event e)
+    {
+        bool ctrl = e.control || e.command;
+        if (
+            ctrl
+            && (
+                e.keyCode == KeyCode.Equals
+                || e.keyCode == KeyCode.Plus
+                || e.keyCode == KeyCode.KeypadPlus
+            )
+        )
         {
-            _spacePan = false;
+            _zoom = Mathf.Min(3f, _zoom + 0.1f);
             e.Use();
+            Repaint();
+        }
+        else if (ctrl && (e.keyCode == KeyCode.Minus || e.keyCode == KeyCode.KeypadMinus))
+        {
+            _zoom = Mathf.Max(0.25f, _zoom - 0.1f);
+            e.Use();
+            Repaint();
         }
     }
 
@@ -477,13 +491,13 @@ public class MapGridEditorWindow : EditorWindow
         // Main area
         EditorGUILayout.BeginVertical();
         EditorGUILayout.BeginHorizontal();
-
         EditorGUILayout.BeginVertical(GUILayout.ExpandWidth(true));
+
         if (_mode == Mode.TestMovement)
             DrawTestMovementControls();
         DrawZoomControls();
 
-        float rightPanelW = 270f; // increased to give right panel +50px
+        float rightPanelW = 270f;
         float leftAreaW = Mathf.Max(200f, position.width - 120f - rightPanelW);
         Rect area = GUILayoutUtility.GetRect(leftAreaW, position.height - 120 - 24);
         DrawGridArea(area);
@@ -491,16 +505,17 @@ public class MapGridEditorWindow : EditorWindow
 
         // Right panel
         EditorGUILayout.BeginVertical(GUILayout.Width(rightPanelW));
-        if (_selectedSecondTool >= 0 && _selectedSecondTool < _secondToolNames.Length)
-            if (_mode != Mode.TestMovement)
-            {
-                DrawFeatureDetails(_secondToolIds[_selectedSecondTool]);
-            }
-            else
-            {
-                _selectedFeaturePoint = null;
-                GUILayout.Space(4);
-            }
+        if (
+            _selectedSecondTool >= 0
+            && _selectedSecondTool < _secondToolNames.Length
+            && _mode != Mode.TestMovement
+        )
+            DrawFeatureDetails(_secondToolIds[_selectedSecondTool]);
+        else if (_mode == Mode.TestMovement)
+        {
+            _selectedFeaturePoint = null;
+            GUILayout.Space(4);
+        }
         EditorGUILayout.EndVertical();
 
         EditorGUILayout.EndHorizontal();
@@ -548,7 +563,6 @@ public class MapGridEditorWindow : EditorWindow
         GUILayout.Label("Zoom:", GUILayout.Width(40));
         _zoom = EditorGUILayout.Slider(_zoom, 0.25f, 3f, GUILayout.Width(150));
 
-        // Add Row and Column buttons
         if (_grid != null)
         {
             if (GUILayout.Button("+ Row", GUILayout.Width(60)))
@@ -763,8 +777,8 @@ public class MapGridEditorWindow : EditorWindow
     private void DrawGridArea(Rect area)
     {
         float cellSize = _baseCellSize * _zoom;
-        int width = _grid.GridWidth;
-        int height = _grid.GridHeight;
+        int width = _grid.GridWidth,
+            height = _grid.GridHeight;
 
         _scroll = GUI.BeginScrollView(
             area,
@@ -783,7 +797,6 @@ public class MapGridEditorWindow : EditorWindow
 
         UpdateHoveredCell(localMouse, cellSize, width, height);
         HandleMouse(e, localMouse, cellSize, width, height);
-
         DrawCells(cellSize, width, height);
 
         GUI.EndScrollView();
@@ -799,10 +812,7 @@ public class MapGridEditorWindow : EditorWindow
             && localMouse.x <= width * cellSize
             && localMouse.y <= height * cellSize
         )
-        {
-            Vector2Int cell = MouseToCell(localMouse, cellSize);
-            _hoveredCell = ClampCell(cell, width, height);
-        }
+            _hoveredCell = ClampCell(MouseToCell(localMouse, cellSize), width, height);
         else
             _hoveredCell = new(-1, -1);
     }
@@ -829,7 +839,6 @@ public class MapGridEditorWindow : EditorWindow
     {
         if (point == null)
             return Color.white;
-
         TerrainType tt =
             _terrainAsset?.GetTypeById(point.TerrainTypeId) ?? point.SelectedTerrainType;
         return tt?.EditorColor ?? Color.white;
@@ -860,36 +869,33 @@ public class MapGridEditorWindow : EditorWindow
             _mode == Mode.TestMovement
             && _testMovementResults?.TryGetValue(point, out var cost) == true
         )
-        {
             EditorGUI.DrawRect(cellRect, new Color(.8f, 0f, 0.8f, .65f));
-        }
 
-        // Feature overlay: icon (preferred) or letter
+        // Feature overlay
         if (point != null)
         {
             string featureId = point.FeatureTypeId;
             string letter = MapGridPointFeature.GetFeatureLetter(featureId);
 
             Texture2D icon = null;
-            if (_editorSettings != null && _editorSettings.featureDisplay == FeatureDisplay.Icon)
+            if (_editorSettings?.featureDisplay == FeatureDisplay.Icon)
                 icon = GetSecondToolIcon(featureId);
+
+            float luminance = 0.299f * fill.r + 0.587f * fill.g + 0.114f * fill.b;
+            Color tint =
+                point == _selectedFeaturePoint
+                    ? Color.magenta
+                    : (luminance < 0.5f ? Color.white : Color.black);
 
             if (icon != null)
             {
                 float pad = Mathf.Max(1f, cellSize * 0.08f);
-                Rect iconRect = new Rect(
+                Rect iconRect = new(
                     cellRect.x + pad,
                     cellRect.y + pad,
                     cellRect.width - pad * 2f,
                     cellRect.height - pad * 2f
                 );
-                // Tint icon to white or black depending on underlying tile luminance,
-                // unless the feature is selected (magenta).
-                float luminance = 0.299f * fill.r + 0.587f * fill.g + 0.114f * fill.b;
-                Color tint =
-                    point == _selectedFeaturePoint
-                        ? Color.magenta
-                        : (luminance < 0.5f ? Color.white : Color.black);
                 Color prev = GUI.color;
                 GUI.color = tint;
                 GUI.DrawTexture(iconRect, icon, ScaleMode.ScaleToFit, true);
@@ -897,24 +903,17 @@ public class MapGridEditorWindow : EditorWindow
             }
             else if (!string.IsNullOrEmpty(letter))
             {
-                float luminance = 0.299f * fill.r + 0.587f * fill.g + 0.114f * fill.b;
                 var txtStyle = new GUIStyle(EditorStyles.boldLabel)
                 {
                     alignment = TextAnchor.MiddleCenter,
                     fontSize = Mathf.Max(10, Mathf.FloorToInt(cellSize * 0.8f)),
                     fontStyle = FontStyle.Bold,
-                    normal =
-                    {
-                        textColor =
-                            point == _selectedFeaturePoint
-                                ? Color.magenta
-                                : (luminance < 0.5f ? Color.white : Color.black),
-                    },
+                    normal = { textColor = tint },
                 };
                 EditorGUI.LabelField(cellRect, letter, txtStyle);
             }
 
-            // Selected feature border (unchanged color/behavior)
+            // Selected feature border
             if (point == _selectedFeaturePoint)
             {
                 float t = Mathf.Max(2f, Mathf.Round(cellSize * 0.08f));
@@ -935,8 +934,8 @@ public class MapGridEditorWindow : EditorWindow
 
     private void DrawCellBorders(Rect cellRect)
     {
-        float t = (_editorSettings != null) ? _editorSettings.gridThickness : 1f;
-        Color col = (_editorSettings != null) ? _editorSettings.gridColor : Color.black;
+        float t = _editorSettings?.gridThickness ?? 1f;
+        Color col = _editorSettings?.gridColor ?? Color.black;
         EditorGUI.DrawRect(new Rect(cellRect.x, cellRect.y, cellRect.width, t), col);
         EditorGUI.DrawRect(
             new Rect(cellRect.x, cellRect.y + cellRect.height - t, cellRect.width, t),
@@ -985,67 +984,87 @@ public class MapGridEditorWindow : EditorWindow
         }
 
         if (_mode == Mode.Paint)
+            HandlePaintMode(e, localMouse, cellSize, width, height, inside);
+        else if (_mode == Mode.TestMovement)
+            HandleTestMovementMode(e, localMouse, cellSize, width, height, inside);
+    }
+
+    private void HandlePaintMode(
+        Event e,
+        Vector2 localMouse,
+        float cellSize,
+        int width,
+        int height,
+        bool inside
+    )
+    {
+        if (e.type == EventType.MouseDown && e.button == 1 && inside)
         {
-            if (e.type == EventType.MouseDown && e.button == 1 && inside)
+            HandleRightClick(localMouse, cellSize, width, height);
+            e.Use();
+        }
+        else if (e.type == EventType.MouseDown && e.button == 0 && inside)
+        {
+            HandlePaintStart(localMouse, cellSize, width, height);
+            e.Use();
+        }
+        else if (e.type == EventType.MouseDrag && _isDragging)
+        {
+            _dragEnd = ClampCell(MouseToCell(localMouse, cellSize), width, height);
+            e.Use();
+        }
+        else if (e.type == EventType.MouseUp && e.button == 0 && _isDragging)
+        {
+            _isDragging = false;
+            ApplyTerrainToSelection();
+            e.Use();
+        }
+    }
+
+    private void HandleTestMovementMode(
+        Event e,
+        Vector2 localMouse,
+        float cellSize,
+        int width,
+        int height,
+        bool inside
+    )
+    {
+        if (e.type == EventType.MouseDown && e.button == 0)
+        {
+            if (!inside)
             {
-                HandleRightClick(localMouse, cellSize, width, height);
                 e.Use();
                 return;
             }
-            if (e.type == EventType.MouseDown && e.button == 0 && inside)
+
+            var clicked = _grid.GetGridPoint(
+                ClampCell(MouseToCell(localMouse, cellSize), width, height).x,
+                ClampCell(MouseToCell(localMouse, cellSize), width, height).y
+            );
+            if (clicked != null)
             {
-                HandlePaintStart(localMouse, cellSize, width, height);
-                e.Use();
-            }
-            else if (e.type == EventType.MouseDrag && _isDragging)
-            {
-                _dragEnd = ClampCell(MouseToCell(localMouse, cellSize), width, height);
-                e.Use();
-            }
-            else if (e.type == EventType.MouseUp && e.button == 0 && _isDragging)
-            {
-                _isDragging = false;
-                ApplyTerrainToSelection();
-                e.Use();
-            }
-        }
-        else if (_mode == Mode.TestMovement)
-        {
-            if (e.type == EventType.MouseDown && e.button == 0)
-            {
-                if (!inside)
-                {
-                    e.Use();
-                    return;
-                }
-                var clicked = _grid.GetGridPoint(
-                    ClampCell(MouseToCell(localMouse, cellSize), width, height).x,
-                    ClampCell(MouseToCell(localMouse, cellSize), width, height).y
+                _testMovementStart = clicked;
+                _testMovementResults = new AStarModified().GetReachable(
+                    _grid,
+                    _testMovementStart,
+                    _testMovementValue,
+                    _asWalk,
+                    _asFly,
+                    _asRide,
+                    _asMagic,
+                    _asArmor,
+                    _sameDirectionMultiplier
                 );
-                if (clicked != null)
-                {
-                    _testMovementStart = clicked;
-                    _testMovementResults = new AStarModified().GetReachable(
-                        _grid,
-                        _testMovementStart,
-                        _testMovementValue,
-                        _asWalk,
-                        _asFly,
-                        _asRide,
-                        _asMagic,
-                        _asArmor,
-                        _sameDirectionMultiplier
-                    );
-                    Repaint();
-                }
-                e.Use();
+                Repaint();
             }
-            else if (e.type == EventType.MouseDown && e.button == 1)
-            {
-                _testMovementStart = null;
-                _testMovementResults = null;
-                e.Use();
-            }
+            e.Use();
+        }
+        else if (e.type == EventType.MouseDown && e.button == 1)
+        {
+            _testMovementStart = null;
+            _testMovementResults = null;
+            e.Use();
         }
     }
 
@@ -1294,7 +1313,6 @@ public class MapGridEditorWindow : EditorWindow
             GUILayout.FlexibleSpace();
             if (GUILayout.Button("Apply Defaults", GUILayout.Width(120)))
             {
-                // Apply defaults from Resources/GameSettings for this feature id
                 _selectedFeaturePoint.ApplyDefaultsForFeature(toolId);
                 EditorUtility.SetDirty(_selectedFeaturePoint);
                 Repaint();
@@ -1342,7 +1360,6 @@ public class MapGridEditorWindow : EditorWindow
             string newKey = EditorGUILayout.TextField(p.Key, GUILayout.Width(120));
             string newValStr = DrawPropertyField(p.Value, t);
 
-            // Small remove button (single char) so the value field can expand
             if (GUILayout.Button("-", GUILayout.Width(24)))
                 removeKeys.Add(p.Key);
             EditorGUILayout.EndHorizontal();
@@ -1438,14 +1455,12 @@ public class MapGridEditorWindow : EditorWindow
             {
                 capturedPoint.ClearFeatureProperty(editOldKeys[i]);
                 if (!string.IsNullOrEmpty(editNewKeys[i]))
-                {
                     SetTypedProperty(
                         capturedPoint,
                         editNewKeys[i],
                         editNewVals[i],
                         editNewTypes.Count > i ? editNewTypes[i] : "string"
                     );
-                }
             }
 
             EditorUtility.SetDirty(capturedPoint);

@@ -22,245 +22,207 @@ public class TerrainTypesEditor : Editor
             EditorGUILayout.BeginVertical(GUI.skin.box);
 
             var nameProp = elem.FindPropertyRelative("_name");
-            var costWalkProp = elem.FindPropertyRelative("_costWalk");
-            var costFlyProp = elem.FindPropertyRelative("_costFly");
-            var costRideProp = elem.FindPropertyRelative("_costRide");
-            var costMagicProp = elem.FindPropertyRelative("_costMagic");
-            var costArmorProp = elem.FindPropertyRelative("_costArmor");
-            var colorProp = elem.FindPropertyRelative("_editorColor");
-            var healthWalkProp = elem.FindPropertyRelative("_healthChangePerTurnWalk");
-            var healthRidingProp = elem.FindPropertyRelative("_healthChangePerTurnRiding");
-            var healthFlyingProp = elem.FindPropertyRelative("_healthChangePerTurnFlying");
-            var defenseWalkProp = elem.FindPropertyRelative("_defenseBonusWalk");
-            var defenseRidingProp = elem.FindPropertyRelative("_defenseBonusRiding");
-            var defenseFlyingProp = elem.FindPropertyRelative("_defenseBonusFlying");
-            var avoidWalkProp = elem.FindPropertyRelative("_avoidBonusWalk");
-            var avoidRidingProp = elem.FindPropertyRelative("_avoidBonusRiding");
-            var avoidFlyingProp = elem.FindPropertyRelative("_avoidBonusFlying");
+            string header = !string.IsNullOrEmpty(nameProp?.stringValue)
+                ? nameProp.stringValue
+                : $"Terrain {i}";
 
-            string header =
-                nameProp != null && !string.IsNullOrEmpty(nameProp.stringValue)
-                    ? nameProp.stringValue
-                    : $"Terrain {i}";
             EditorGUILayout.LabelField(header, EditorStyles.boldLabel);
+            EditorGUILayout.PropertyField(nameProp, new GUIContent("Name"));
+            EditorGUILayout.PropertyField(
+                elem.FindPropertyRelative("_editorColor"),
+                new GUIContent("Editor Color")
+            );
 
-            if (nameProp != null)
-                EditorGUILayout.PropertyField(nameProp, new GUIContent("Name"));
+            DrawKnobRow(
+                "Costs",
+                elem,
+                new[]
+                {
+                    ("_costWalk", "Walk", 1f, 5f, 0.1f, new Color(1f, 0.6f, 0f)),
+                    ("_costFly", "Fly", 1f, 5f, 0.1f, new Color(1f, 0.6f, 0f)),
+                    ("_costRide", "Ride", 1f, 5f, 0.1f, new Color(1f, 0.6f, 0f)),
+                    ("_costMagic", "Magic", 1f, 5f, 0.1f, new Color(1f, 0.6f, 0f)),
+                    ("_costArmor", "Armor", 1f, 5f, 0.1f, new Color(1f, 0.6f, 0f)),
+                },
+                true
+            );
 
-            if (colorProp != null)
-                EditorGUILayout.PropertyField(colorProp, new GUIContent("Editor Color"));
+            DrawKnobRow(
+                "Health",
+                elem,
+                new[]
+                {
+                    ("_healthChangePerTurnWalk", "Walk", -20f, 20f, 1f, Color.green),
+                    ("_healthChangePerTurnRiding", "Ride", -20f, 20f, 1f, Color.green),
+                    ("_healthChangePerTurnFlying", "Fly", -20f, 20f, 1f, Color.green),
+                },
+                false
+            );
 
-            if (costWalkProp != null)
-                EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.PropertyField(costWalkProp, new GUIContent("Cost Walk"));
+            DrawKnobRow(
+                "Defense",
+                elem,
+                new[]
+                {
+                    ("_defenseBonusWalk", "Walk", -40f, 40f, 1f, Color.cyan),
+                    ("_defenseBonusRiding", "Ride", -40f, 40f, 1f, Color.cyan),
+                    ("_defenseBonusFlying", "Fly", -40f, 40f, 1f, Color.cyan),
+                },
+                false
+            );
 
-            if (costFlyProp != null)
-                EditorGUILayout.PropertyField(costFlyProp, new GUIContent("Cost Fly"));
-            EditorGUILayout.EndHorizontal();
-
-            if (costRideProp != null)
-                EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.PropertyField(costRideProp, new GUIContent("Cost Ride"));
-
-            if (costMagicProp != null)
-                EditorGUILayout.PropertyField(costMagicProp, new GUIContent("Cost Magic"));
-            EditorGUILayout.EndHorizontal();
-
-            // Costs and per-movement sliders on their own rows
-            if (costArmorProp != null)
-            {
-                EditorGUILayout.BeginHorizontal();
-                EditorGUILayout.PropertyField(costArmorProp, new GUIContent("Cost Armor"));
-                EditorGUILayout.EndHorizontal();
-            }
-
-            if (healthWalkProp != null)
-            {
-                EditorGUILayout.BeginHorizontal();
-                EditorGUILayout.IntSlider(
-                    healthWalkProp,
-                    -20,
-                    20,
-                    new GUIContent("Health +/- Walk")
-                );
-                EditorGUILayout.EndHorizontal();
-            }
-
-            if (healthRidingProp != null)
-            {
-                EditorGUILayout.BeginHorizontal();
-                EditorGUILayout.IntSlider(
-                    healthRidingProp,
-                    -20,
-                    20,
-                    new GUIContent("Health +/- Riding")
-                );
-                EditorGUILayout.EndHorizontal();
-            }
-
-            if (healthFlyingProp != null)
-            {
-                EditorGUILayout.BeginHorizontal();
-                EditorGUILayout.IntSlider(
-                    healthFlyingProp,
-                    -20,
-                    20,
-                    new GUIContent("Health +/- Flying")
-                );
-                EditorGUILayout.EndHorizontal();
-            }
-
-            if (defenseWalkProp != null)
-            {
-                EditorGUILayout.BeginHorizontal();
-                EditorGUILayout.IntSlider(
-                    defenseWalkProp,
-                    -40,
-                    40,
-                    new GUIContent("Defense +/- Walk")
-                );
-                EditorGUILayout.EndHorizontal();
-            }
-
-            if (defenseRidingProp != null)
-            {
-                EditorGUILayout.BeginHorizontal();
-                EditorGUILayout.IntSlider(
-                    defenseRidingProp,
-                    -40,
-                    40,
-                    new GUIContent("Defense +/- Riding")
-                );
-                EditorGUILayout.EndHorizontal();
-            }
-
-            if (defenseFlyingProp != null)
-            {
-                EditorGUILayout.BeginHorizontal();
-                EditorGUILayout.IntSlider(
-                    defenseFlyingProp,
-                    -40,
-                    40,
-                    new GUIContent("Defense +/- Flying")
-                );
-                EditorGUILayout.EndHorizontal();
-            }
-
-            if (avoidWalkProp != null)
-            {
-                EditorGUILayout.BeginHorizontal();
-                EditorGUILayout.IntSlider(avoidWalkProp, -40, 40, new GUIContent("Avoid +/- Walk"));
-                EditorGUILayout.EndHorizontal();
-            }
-
-            if (avoidRidingProp != null)
-            {
-                EditorGUILayout.BeginHorizontal();
-                EditorGUILayout.IntSlider(
-                    avoidRidingProp,
-                    -40,
-                    40,
-                    new GUIContent("Avoid +/- Riding")
-                );
-                EditorGUILayout.EndHorizontal();
-            }
-
-            if (avoidFlyingProp != null)
-            {
-                EditorGUILayout.BeginHorizontal();
-                EditorGUILayout.IntSlider(
-                    avoidFlyingProp,
-                    -40,
-                    40,
-                    new GUIContent("Avoid +/- Flying")
-                );
-                EditorGUILayout.EndHorizontal();
-            }
+            DrawKnobRow(
+                "Avoid",
+                elem,
+                new[]
+                {
+                    ("_avoidBonusWalk", "Walk", -40f, 40f, 1f, Color.yellow),
+                    ("_avoidBonusRiding", "Ride", -40f, 40f, 1f, Color.yellow),
+                    ("_avoidBonusFlying", "Fly", -40f, 40f, 1f, Color.yellow),
+                },
+                false
+            );
 
             EditorGUILayout.Space();
-            EditorGUILayout.BeginHorizontal();
             if (GUILayout.Button("Remove"))
             {
                 typesProp.DeleteArrayElementAtIndex(i);
-                EditorGUILayout.EndHorizontal();
                 EditorGUILayout.EndVertical();
                 break;
             }
-            EditorGUILayout.EndHorizontal();
 
             EditorGUILayout.EndVertical();
         }
 
         EditorGUILayout.Space();
-        EditorGUILayout.BeginHorizontal();
         if (GUILayout.Button("Add New Terrain Type"))
         {
-            int newIndex = typesProp.arraySize;
-            typesProp.InsertArrayElementAtIndex(newIndex);
-            var newElem = typesProp.GetArrayElementAtIndex(newIndex);
-            // initialize fields
-            var nid = newElem.FindPropertyRelative("_id");
-            var nName = newElem.FindPropertyRelative("_name");
-            var nCostWalk = newElem.FindPropertyRelative("_costWalk");
-            var nCostFly = newElem.FindPropertyRelative("_costFly");
-            var nCostRide = newElem.FindPropertyRelative("_costRide");
-            var nCostMagic = newElem.FindPropertyRelative("_costMagic");
-            var nCostArmor = newElem.FindPropertyRelative("_costArmor");
-            var nColor = newElem.FindPropertyRelative("_editorColor");
-            var nHealthWalk = newElem.FindPropertyRelative("_healthChangePerTurnWalk");
-            var nHealthRiding = newElem.FindPropertyRelative("_healthChangePerTurnRiding");
-            var nHealthFlying = newElem.FindPropertyRelative("_healthChangePerTurnFlying");
-            var nDefenseWalk = newElem.FindPropertyRelative("_defenseBonusWalk");
-            var nDefenseRiding = newElem.FindPropertyRelative("_defenseBonusRiding");
-            var nDefenseFlying = newElem.FindPropertyRelative("_defenseBonusFlying");
-            var nAvoidWalk = newElem.FindPropertyRelative("_avoidBonusWalk");
-            var nAvoidRiding = newElem.FindPropertyRelative("_avoidBonusRiding");
-            var nAvoidFlying = newElem.FindPropertyRelative("_avoidBonusFlying");
-
-            if (nid != null)
-                nid.stringValue = System.Guid.NewGuid().ToString();
-            if (nName != null)
-                nName.stringValue = "New Terrain";
-            if (nCostWalk != null)
-                nCostWalk.floatValue = 1f;
-            if (nCostFly != null)
-                nCostFly.floatValue = 1f;
-            if (nCostRide != null)
-                nCostRide.floatValue = 1f;
-            if (nCostMagic != null)
-                nCostMagic.floatValue = 1f;
-            if (nCostArmor != null)
-                nCostArmor.floatValue = 1f;
-            if (nColor != null)
-                nColor.colorValue = Color.white;
-            if (nHealthWalk != null)
-                nHealthWalk.intValue = 0;
-            if (nHealthRiding != null)
-                nHealthRiding.intValue = 0;
-            if (nHealthFlying != null)
-                nHealthFlying.intValue = 0;
-            if (nDefenseWalk != null)
-                nDefenseWalk.intValue = 0;
-            if (nDefenseRiding != null)
-                nDefenseRiding.intValue = 0;
-            if (nDefenseFlying != null)
-                nDefenseFlying.intValue = 0;
-            if (nAvoidWalk != null)
-                nAvoidWalk.intValue = 0;
-            if (nAvoidRiding != null)
-                nAvoidRiding.intValue = 0;
-            if (nAvoidFlying != null)
-                nAvoidFlying.intValue = 0;
+            AddNewTerrainType(typesProp);
         }
 
-        EditorGUILayout.EndHorizontal();
-
-        // Add convenience buttons that call the asset methods directly
-        EditorGUILayout.Space();
-        EditorGUILayout.BeginHorizontal();
-        var asset = target as TerrainTypes;
-        EditorGUILayout.EndHorizontal();
-
         serializedObject.ApplyModifiedProperties();
+    }
+
+    private void DrawKnobRow(
+        string label,
+        SerializedProperty elem,
+        (string prop, string label, float min, float max, float step, Color color)[] knobs,
+        bool isFloat
+    )
+    {
+        EditorGUILayout.LabelField(label, EditorStyles.boldLabel);
+        EditorGUILayout.BeginHorizontal();
+
+        foreach (var (propName, knobLabel, min, max, step, color) in knobs)
+        {
+            var prop = elem.FindPropertyRelative(propName);
+            if (prop == null)
+                continue;
+
+            EditorGUILayout.BeginVertical(GUILayout.Width(64));
+            EditorGUILayout.BeginHorizontal();
+
+            EditorGUILayout.BeginVertical(GUILayout.Width(48));
+            float value = isFloat ? prop.floatValue : prop.intValue;
+            float newValue = KnobGUILayout.Knob(
+                new Vector2(48, 48),
+                value,
+                min,
+                max,
+                "",
+                Color.gray,
+                color,
+                false,
+                isFloat ? "0.0" : "0",
+                step,
+                -90f,
+                180f
+            );
+
+            if (isFloat)
+                prop.floatValue = Mathf.Round(newValue * 10f) / 10f;
+            else
+                prop.intValue = Mathf.RoundToInt(newValue);
+            EditorGUILayout.EndVertical();
+
+            GUILayout.Space(4);
+            EditorGUILayout.BeginVertical();
+            string displayValue = isFloat
+                ? prop.floatValue.ToString("0.0")
+                : prop.intValue.ToString();
+            EditorGUILayout.LabelField(
+                displayValue,
+                EditorStyles.centeredGreyMiniLabel,
+                GUILayout.Width(36)
+            );
+            EditorGUILayout.LabelField(
+                knobLabel,
+                EditorStyles.centeredGreyMiniLabel,
+                GUILayout.Width(36)
+            );
+            EditorGUILayout.EndVertical();
+
+            EditorGUILayout.EndHorizontal();
+            EditorGUILayout.EndVertical();
+            GUILayout.Space(12);
+        }
+
+        GUILayout.FlexibleSpace();
+        EditorGUILayout.EndHorizontal();
+    }
+
+    private void AddNewTerrainType(SerializedProperty typesProp)
+    {
+        int newIndex = typesProp.arraySize;
+        typesProp.InsertArrayElementAtIndex(newIndex);
+        var newElem = typesProp.GetArrayElementAtIndex(newIndex);
+
+        SetPropertyValue(newElem, "_id", System.Guid.NewGuid().ToString());
+        SetPropertyValue(newElem, "_name", "New Terrain");
+        SetPropertyValue(newElem, "_editorColor", Color.white);
+
+        foreach (
+            var prop in new[] { "_costWalk", "_costFly", "_costRide", "_costMagic", "_costArmor" }
+        )
+            SetPropertyValue(newElem, prop, 1f);
+
+        foreach (
+            var prop in new[]
+            {
+                "_healthChangePerTurnWalk",
+                "_healthChangePerTurnRiding",
+                "_healthChangePerTurnFlying",
+                "_defenseBonusWalk",
+                "_defenseBonusRiding",
+                "_defenseBonusFlying",
+                "_avoidBonusWalk",
+                "_avoidBonusRiding",
+                "_avoidBonusFlying",
+            }
+        )
+            SetPropertyValue(newElem, prop, 0);
+    }
+
+    private void SetPropertyValue(SerializedProperty parent, string propName, object value)
+    {
+        var prop = parent.FindPropertyRelative(propName);
+        if (prop == null)
+            return;
+
+        switch (value)
+        {
+            case string s:
+                prop.stringValue = s;
+                break;
+            case float f:
+                prop.floatValue = f;
+                break;
+            case int i:
+                prop.intValue = i;
+                break;
+            case Color c:
+                prop.colorValue = c;
+                break;
+        }
     }
 }

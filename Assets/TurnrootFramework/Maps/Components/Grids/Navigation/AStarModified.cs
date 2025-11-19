@@ -4,13 +4,6 @@ using Utils;
 
 public class AStarModified
 {
-    public float ManhattanDistance(MapGridPoint a, MapGridPoint b)
-    {
-        int dRow = Mathf.Abs(a.Row - b.Row);
-        int dCol = Mathf.Abs(a.Col - b.Col);
-        return dRow + dCol;
-    }
-
     private float Heuristic(MapGridPoint a, MapGridPoint b, bool allowDiagonal)
     {
         int dRow = Mathf.Abs(a.Row - b.Row);
