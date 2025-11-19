@@ -42,14 +42,11 @@ public class MapGrid : MonoBehaviour
     [SerializeField]
     private GameObject _single3dHeightMesh;
 
-    [SerializeField]
+    [SerializeField, HideInInspector]
     private Vector3[] _single3dHeightMeshRaycastPoints;
     private Color[] _single3dHeightMeshRaycastColors;
 
-    [SerializeField]
-    [Tooltip(
-        "Row/Column indices (grid) matching each computed raycast point — useful for manual adjustments"
-    )]
+    [SerializeField, HideInInspector]
     private Vector2Int[] _single3dHeightMeshRaycastIndices;
 
     [SerializeField]
