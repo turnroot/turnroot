@@ -101,16 +101,10 @@ public class MapGridEditorWindow : EditorWindow
         }
     );
 
-    private readonly ToolSet _troopsTools = new(
-        new[] { "startingpoint", "spawner", "objective", "cursor", "eraser" },
-        new[] { "StartingPoint", "Spawner", "Objective", "Cursor", "Eraser" }
-    );
-
     private enum Mode
     {
         Paint = 0,
         TestMovement = 1,
-        TroopsAndConditions = 2,
     }
 
     private class ToolSet
@@ -310,10 +304,7 @@ public class MapGridEditorWindow : EditorWindow
     {
         var prevMode = _mode;
         _mode = (Mode)
-            GUILayout.Toolbar(
-                (int)_mode,
-                new[] { "Paint Terrain Types", "Test Movement", "Troops and Conditions" }
-            );
+            GUILayout.Toolbar((int)_mode, new[] { "Paint Terrain Types", "Test Movement" });
 
         if (prevMode != _mode)
         {
@@ -520,8 +511,6 @@ public class MapGridEditorWindow : EditorWindow
         EditorGUILayout.BeginVertical(GUILayout.Width(52));
         if (_mode == Mode.Paint)
             DrawToolsPalette(_featureTools);
-        else if (_mode == Mode.TroopsAndConditions)
-            DrawToolsPalette(_troopsTools);
         EditorGUILayout.EndVertical();
 
         EditorGUILayout.EndHorizontal();
@@ -560,18 +549,7 @@ public class MapGridEditorWindow : EditorWindow
         if (_selectedFeaturePoint != null)
         {
             if (!string.IsNullOrEmpty(_selectedFeaturePoint.FeatureTypeId))
-                DrawFeatureDetails(_selectedFeaturePoint.FeatureTypeId, false);
-            if (!string.IsNullOrEmpty(_selectedFeaturePoint.TroopsTypeId))
-                DrawFeatureDetails(_selectedFeaturePoint.TroopsTypeId, true);
-        }
-        else
-        {
-            var tools = _mode == Mode.TroopsAndConditions ? _troopsTools : _featureTools;
-            if (_selectedSecondTool >= 0 && _selectedSecondTool < tools.Ids.Length)
-                DrawFeatureDetails(
-                    tools.Ids[_selectedSecondTool],
-                    _mode == Mode.TroopsAndConditions
-                );
+                DrawFeatureDetails(_selectedFeaturePoint.FeatureTypeId);
         }
 
         EditorGUILayout.EndVertical();
@@ -720,8 +698,7 @@ public class MapGridEditorWindow : EditorWindow
         {
             string id = tools.Ids[i];
             string label = tools.Names[i];
-
-            Texture2D icon = GetToolIcon(id, tools == _troopsTools);
+            Texture2D icon = GetToolIcon(id);
             GUIContent content =
                 icon != null ? new GUIContent(icon, label) : new GUIContent(label.Substring(0, 1));
 
@@ -818,16 +795,16 @@ public class MapGridEditorWindow : EditorWindow
         );
     }
 
-    private Texture2D GetToolIcon(string id, bool isTroops)
+    private Texture2D GetToolIcon(string id)
     {
         if (string.IsNullOrEmpty(id))
             return null;
 
-        string cacheKey = (isTroops ? "troops_" : "feature_") + id;
+        string cacheKey = "feature_" + id;
 
         var variants = new List<string>();
 
-        var toolSet = isTroops ? _troopsTools : _featureTools;
+        var toolSet = _featureTools;
         int idx = Array.IndexOf(toolSet.Ids, id);
         string friendlyName = (idx >= 0 && idx < toolSet.Names.Length) ? toolSet.Names[idx] : null;
 
@@ -926,7 +903,7 @@ public class MapGridEditorWindow : EditorWindow
             return;
 
         // Paint selection overlay
-        if ((_mode == Mode.Paint || _mode == Mode.TroopsAndConditions) && _isDragging)
+        if ((_mode == Mode.Paint) && _isDragging)
         {
             int minR = Mathf.Min(_dragStart.x, _dragEnd.x),
                 maxR = Mathf.Max(_dragStart.x, _dragEnd.x);
@@ -942,48 +919,36 @@ public class MapGridEditorWindow : EditorWindow
 
         // Feature overlay
         string featureId = point.FeatureTypeId;
-        string troopsId = point.TroopsTypeId;
 
         bool hasFeature = !string.IsNullOrEmpty(featureId);
-        bool hasTroops = !string.IsNullOrEmpty(troopsId);
 
-        if (!hasFeature && !hasTroops)
+        if (!hasFeature)
             return;
 
         float luminance = 0.299f * fill.r + 0.587f * fill.g + 0.114f * fill.b;
         bool isSelected = point == _selectedFeaturePoint;
         Color tint = isSelected ? Color.magenta : (luminance < 0.5f ? Color.white : Color.black);
 
-        // If both layers exist, draw a '2'
-        if (hasFeature && hasTroops)
+        string id = featureId;
+        Texture2D icon =
+            _editorSettings?.featureDisplay == FeatureDisplay.Icon ? GetToolIcon(id) : null;
+
+        if (icon != null)
         {
-            DrawCellText(cellRect, "2", tint, cellSize);
+            DrawCellIcon(cellRect, icon, tint, cellSize);
         }
         else
         {
-            string id = hasFeature ? featureId : troopsId;
-            Texture2D icon =
-                _editorSettings?.featureDisplay == FeatureDisplay.Icon
-                    ? GetToolIcon(id, hasTroops)
-                    : null;
-
-            if (icon != null)
+            string letter = MapGridPointFeature.GetFeatureLetter(id);
+            if (!string.IsNullOrEmpty(letter))
             {
-                DrawCellIcon(cellRect, icon, tint, cellSize);
+                DrawCellText(cellRect, letter, tint, cellSize);
             }
             else
             {
-                string letter = MapGridPointFeature.GetFeatureLetter(id);
-                if (!string.IsNullOrEmpty(letter))
-                {
-                    DrawCellText(cellRect, letter, tint, cellSize);
-                }
-                else
-                {
-                    // Fallback: show first letter of id
-                    string fallback = id.Length > 0 ? id.Substring(0, 1).ToUpper() : "?";
-                    DrawCellText(cellRect, fallback, tint, cellSize);
-                }
+                // Fallback: show first letter of id
+                string fallback = id.Length > 0 ? id.Substring(0, 1).ToUpper() : "?";
+                DrawCellText(cellRect, fallback, tint, cellSize);
             }
         }
 
@@ -1086,7 +1051,7 @@ public class MapGridEditorWindow : EditorWindow
             }
         }
 
-        if (_mode == Mode.Paint || _mode == Mode.TroopsAndConditions)
+        if (_mode == Mode.Paint)
             HandlePaintMode(e, localMouse, cellSize, width, height, inside);
         else if (_mode == Mode.TestMovement)
             HandleTestMovementMode(e, localMouse, cellSize, width, height, inside);
@@ -1187,19 +1152,6 @@ public class MapGridEditorWindow : EditorWindow
                 _mode = Mode.Paint;
                 _selectedSecondTool = idx;
             }
-            else
-            {
-                int idx2 = Array.IndexOf(_troopsTools.Ids, fid);
-                if (idx2 >= 0)
-                {
-                    _mode = Mode.TroopsAndConditions;
-                    _selectedSecondTool = idx2;
-                }
-                else
-                {
-                    _selectedSecondTool = Array.IndexOf(_featureTools.Ids, "cursor");
-                }
-            }
 
             _selectedSecondToolName = string.Empty;
             SetSelectedFeaturePoint(clickedPoint);
@@ -1227,7 +1179,7 @@ public class MapGridEditorWindow : EditorWindow
         int minC = Mathf.Min(_dragStart.y, _dragEnd.y),
             maxC = Mathf.Max(_dragStart.y, _dragEnd.y);
 
-        var currentTools = _mode == Mode.TroopsAndConditions ? _troopsTools : _featureTools;
+        var currentTools = _featureTools;
         bool isToolSelected =
             _selectedSecondTool >= 0 && _selectedSecondTool < currentTools.Ids.Length;
 
@@ -1266,7 +1218,6 @@ public class MapGridEditorWindow : EditorWindow
 
         EditorUtility.SetDirty(_grid);
         _grid.SaveFeatureLayer();
-        _grid.SaveTroopsLayer();
         MarkDirty();
         SceneView.RepaintAll();
     }
@@ -1276,21 +1227,13 @@ public class MapGridEditorWindow : EditorWindow
         if (p == null || string.IsNullOrEmpty(toolId))
             return;
 
-        bool isTroopsTool = _mode == Mode.TroopsAndConditions;
-
         // Handle cursor tool
         if (string.Equals(toolId, "cursor", StringComparison.OrdinalIgnoreCase))
         {
             if (!singleCell)
                 return;
 
-            if (isTroopsTool && !string.IsNullOrEmpty(p.TroopsTypeId))
-            {
-                int idx = Array.IndexOf(_troopsTools.Ids, p.TroopsTypeId);
-                _selectedSecondTool = idx >= 0 ? idx : Array.IndexOf(_troopsTools.Ids, "cursor");
-                SetSelectedFeaturePoint(p);
-            }
-            else if (!isTroopsTool && !string.IsNullOrEmpty(p.FeatureTypeId))
+            if (!string.IsNullOrEmpty(p.FeatureTypeId))
             {
                 int idx = Array.IndexOf(_featureTools.Ids, p.FeatureTypeId);
                 _selectedSecondTool = idx >= 0 ? idx : Array.IndexOf(_featureTools.Ids, "cursor");
@@ -1310,10 +1253,7 @@ public class MapGridEditorWindow : EditorWindow
         // Handle eraser tool
         if (string.Equals(toolId, "eraser", StringComparison.OrdinalIgnoreCase))
         {
-            if (isTroopsTool)
-                p.ClearTroopsFeature();
-            else
-                p.ClearFeature();
+            p.ClearFeature();
             EditorUtility.SetDirty(p);
             return;
         }
@@ -1321,35 +1261,21 @@ public class MapGridEditorWindow : EditorWindow
         // Multi-cell paint: always apply tool
         if (!singleCell)
         {
-            if (isTroopsTool)
-            {
-                p.ClearTroopsFeature();
-                p.ApplyTroopsFeature(toolId, _selectedSecondToolName ?? string.Empty, false);
-            }
-            else
-            {
-                p.ClearFeature();
-                p.ApplyFeature(toolId, _selectedSecondToolName ?? string.Empty, false);
-            }
+            p.ClearFeature();
+            p.ApplyFeature(toolId, _selectedSecondToolName ?? string.Empty, false);
+
             EditorUtility.SetDirty(p);
             return;
         }
 
         // Single cell: toggle or select
-        string currentId = isTroopsTool ? p.TroopsTypeId : p.FeatureTypeId;
+        string currentId = p.FeatureTypeId;
 
         if (currentId != toolId)
         {
-            if (isTroopsTool)
-            {
-                p.ClearTroopsFeature();
-                p.ApplyTroopsFeature(toolId, _selectedSecondToolName ?? string.Empty, false);
-            }
-            else
-            {
-                p.ClearFeature();
-                p.ApplyFeature(toolId, _selectedSecondToolName ?? string.Empty, false);
-            }
+            p.ClearFeature();
+            p.ApplyFeature(toolId, _selectedSecondToolName ?? string.Empty, false);
+
             SetSelectedFeaturePoint(p);
         }
         else
@@ -1361,26 +1287,24 @@ public class MapGridEditorWindow : EditorWindow
         EditorUtility.SetDirty(p);
     }
 
-    private void DrawFeatureDetails(string toolId, bool isTroops)
+    private void DrawFeatureDetails(string toolId)
     {
         EditorGUILayout.BeginVertical(EditorStyles.helpBox);
         EditorGUILayout.BeginVertical(GUILayout.Width(240));
 
-        var props = GetPropertySnapshot(toolId, isTroops);
+        var props = GetPropertySnapshot(toolId);
 
         if (_selectedFeaturePoint != null && props != null)
         {
             string friendly = GetFriendlyName(toolId);
-            string instanceName = isTroops
-                ? _selectedFeaturePoint.TroopsName
-                : _selectedFeaturePoint.FeatureName;
-            string layerLabel = isTroops ? "Troops Properties" : "Feature Properties";
+            string instanceName = _selectedFeaturePoint.FeatureName;
+            string layerLabel = "Feature Properties";
             string header = string.IsNullOrEmpty(instanceName)
                 ? $"{layerLabel}: {friendly} ({toolId})"
                 : $"{layerLabel}: {friendly} — {instanceName} ({toolId})";
 
             DrawWrappedLabel(new GUIContent(header), _guiStyleBoldWrap, 240f);
-            DrawPropertyList(toolId, isTroops, props);
+            DrawPropertyList(toolId, props);
         }
         else if (toolId == "eraser")
         {
@@ -1406,7 +1330,7 @@ public class MapGridEditorWindow : EditorWindow
         }
         else
         {
-            DrawFeatureEditor(toolId, isTroops);
+            DrawFeatureEditor(toolId);
         }
 
         EditorGUILayout.EndVertical();
@@ -1419,10 +1343,6 @@ public class MapGridEditorWindow : EditorWindow
         if (idx >= 0 && idx < _featureTools.Names.Length)
             return _featureTools.Names[idx];
 
-        int idx2 = Array.IndexOf(_troopsTools.Ids, toolId);
-        if (idx2 >= 0 && idx2 < _troopsTools.Names.Length)
-            return _troopsTools.Names[idx2];
-
         return toolId;
     }
 
@@ -1432,14 +1352,12 @@ public class MapGridEditorWindow : EditorWindow
         Repaint();
     }
 
-    private List<KeyValuePair<string, string>> GetPropertySnapshot(string toolId, bool isTroops)
+    private List<KeyValuePair<string, string>> GetPropertySnapshot(string toolId)
     {
         if (_selectedFeaturePoint == null)
             return null;
 
-        string currentId = isTroops
-            ? _selectedFeaturePoint.TroopsTypeId
-            : _selectedFeaturePoint.FeatureTypeId;
+        string currentId = _selectedFeaturePoint.FeatureTypeId;
         if (
             string.IsNullOrEmpty(currentId)
             || !currentId.Equals(toolId ?? string.Empty, StringComparison.OrdinalIgnoreCase)
@@ -1448,24 +1366,11 @@ public class MapGridEditorWindow : EditorWindow
 
         var props = new List<KeyValuePair<string, string>>();
 
-        if (isTroops)
-        {
-            AddPropsToList(_selectedFeaturePoint.GetAllStringTroopsProperties(), props);
-            AddPropsToList(_selectedFeaturePoint.GetAllObjectTroopsProperties(), props);
-            AddPropsToList(_selectedFeaturePoint.GetAllEventTroopsProperties(), props);
-            AddPropsToList(_selectedFeaturePoint.GetAllBoolTroopsProperties(), props);
-            AddPropsToList(_selectedFeaturePoint.GetAllIntTroopsProperties(), props);
-            AddPropsToList(_selectedFeaturePoint.GetAllFloatTroopsProperties(), props);
-        }
-        else
-        {
-            AddPropsToList(_selectedFeaturePoint.GetAllStringFeatureProperties(), props);
-            AddPropsToList(_selectedFeaturePoint.GetAllObjectFeatureProperties(), props);
-            AddPropsToList(_selectedFeaturePoint.GetAllEventFeatureProperties(), props);
-            AddPropsToList(_selectedFeaturePoint.GetAllBoolFeatureProperties(), props);
-            AddPropsToList(_selectedFeaturePoint.GetAllIntFeatureProperties(), props);
-            AddPropsToList(_selectedFeaturePoint.GetAllFloatFeatureProperties(), props);
-        }
+        AddPropsToList(_selectedFeaturePoint.GetAllStringFeatureProperties(), props);
+        AddPropsToList(_selectedFeaturePoint.GetAllEventFeatureProperties(), props);
+        AddPropsToList(_selectedFeaturePoint.GetAllBoolFeatureProperties(), props);
+        AddPropsToList(_selectedFeaturePoint.GetAllIntFeatureProperties(), props);
+        AddPropsToList(_selectedFeaturePoint.GetAllFloatFeatureProperties(), props);
 
         return props;
     }
@@ -1494,7 +1399,7 @@ public class MapGridEditorWindow : EditorWindow
         }
     }
 
-    private void DrawFeatureEditor(string toolId, bool isTroops)
+    private void DrawFeatureEditor(string toolId)
     {
         string friendly = GetFriendlyName(toolId);
 
@@ -1518,10 +1423,7 @@ public class MapGridEditorWindow : EditorWindow
             GUILayout.FlexibleSpace();
             if (GUILayout.Button("Apply Defaults", GUILayout.Width(120)))
             {
-                if (isTroops)
-                    _selectedFeaturePoint.ApplyDefaultsForTroopsFeature(toolId);
-                else
-                    _selectedFeaturePoint.ApplyDefaultsForFeature(toolId);
+                _selectedFeaturePoint.ApplyDefaultsForFeature(toolId);
                 EditorUtility.SetDirty(_selectedFeaturePoint);
                 Repaint();
             }
@@ -1529,9 +1431,9 @@ public class MapGridEditorWindow : EditorWindow
 
             GUILayout.Space(6);
             DrawWrappedLabel(new GUIContent("Properties"), _guiStyleBoldWrap, 240f);
-            var props = GetPropertySnapshot(toolId, isTroops);
+            var props = GetPropertySnapshot(toolId);
             if (props != null)
-                DrawPropertyList(toolId, isTroops, props);
+                DrawPropertyList(toolId, props);
         }
         else
         {
@@ -1546,11 +1448,7 @@ public class MapGridEditorWindow : EditorWindow
         }
     }
 
-    private void DrawPropertyList(
-        string toolId,
-        bool isTroops,
-        List<KeyValuePair<string, string>> props
-    )
+    private void DrawPropertyList(string toolId, List<KeyValuePair<string, string>> props)
     {
         var removeKeys = new List<string>();
 
@@ -1564,14 +1462,8 @@ public class MapGridEditorWindow : EditorWindow
             EditorGUILayout.EndHorizontal();
         }
 
-        EditorGUILayout.BeginHorizontal();
-        GUILayout.FlexibleSpace();
-        if (GUILayout.Button("Add Property", GUILayout.Width(120)))
-            ShowAddPropertyMenu(isTroops);
-        EditorGUILayout.EndHorizontal();
-
         if (removeKeys.Count > 0)
-            SchedulePropertyRemoval(removeKeys, isTroops);
+            SchedulePropertyRemoval(removeKeys);
     }
 
     private void ShowAddPropertyMenu(bool isTroops)
@@ -1603,7 +1495,7 @@ public class MapGridEditorWindow : EditorWindow
         menu.ShowAsContext();
     }
 
-    private void SchedulePropertyRemoval(List<string> removeKeys, bool isTroops)
+    private void SchedulePropertyRemoval(List<string> removeKeys)
     {
         var capturedPoint = _selectedFeaturePoint;
         var capturedGrid = _grid;
@@ -1616,17 +1508,11 @@ public class MapGridEditorWindow : EditorWindow
 
             foreach (var rk in removeKeys)
             {
-                if (isTroops)
-                    capturedPoint.ClearTroopsProperty(rk);
-                else
-                    capturedPoint.ClearFeatureProperty(rk);
+                capturedPoint.ClearFeatureProperty(rk);
             }
 
             EditorUtility.SetDirty(capturedPoint);
-            if (isTroops)
-                capturedGrid?.SaveTroopsLayer();
-            else
-                capturedGrid?.SaveFeatureLayer();
+            capturedGrid?.SaveFeatureLayer();
             MarkDirty();
         };
     }
@@ -1724,36 +1610,21 @@ public class MapGridEditorWindow : EditorWindow
             switch ((_propType ?? "").ToLowerInvariant())
             {
                 case "bool":
-                    if (_isTroops)
-                        _point.SetBoolTroopsProperty(_key, false);
-                    else
-                        _point.SetBoolFeatureProperty(_key, false);
+                    _point.SetBoolFeatureProperty(_key, false);
                     break;
                 case "int":
-                    if (_isTroops)
-                        _point.SetIntTroopsProperty(_key, 0);
-                    else
-                        _point.SetIntFeatureProperty(_key, 0);
+                    _point.SetIntFeatureProperty(_key, 0);
                     break;
                 case "float":
-                    if (_isTroops)
-                        _point.SetFloatTroopsProperty(_key, 0f);
-                    else
-                        _point.SetFloatFeatureProperty(_key, 0f);
+                    _point.SetFloatFeatureProperty(_key, 0f);
                     break;
                 default:
-                    if (_isTroops)
-                        _point.SetStringTroopsProperty(_key, string.Empty);
-                    else
-                        _point.SetStringFeatureProperty(_key, string.Empty);
+                    _point.SetStringFeatureProperty(_key, string.Empty);
                     break;
             }
 
             EditorUtility.SetDirty(_point);
-            if (_isTroops)
-                _grid?.SaveTroopsLayer();
-            else
-                _grid?.SaveFeatureLayer();
+            _grid?.SaveFeatureLayer();
             EditorSceneManager.MarkSceneDirty(
                 UnityEngine.SceneManagement.SceneManager.GetActiveScene()
             );
