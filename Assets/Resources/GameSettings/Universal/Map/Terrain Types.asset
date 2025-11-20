@@ -13,6 +13,23 @@ MonoBehaviour:
   m_Name: Terrain Types
   m_EditorClassIdentifier: 
   _types:
+  - _id: e8a7f118-4d40-4240-8eaa-dc2e0ab48630
+    _name: Ground
+    _costWalk: 1
+    _costFly: 1
+    _costRide: 1
+    _costMagic: 1
+    _costArmor: 1
+    _healthChangePerTurnWalk: 0
+    _healthChangePerTurnRiding: 0
+    _healthChangePerTurnFlying: 0
+    _defenseBonusWalk: 0
+    _defenseBonusRiding: 0
+    _defenseBonusFlying: 0
+    _avoidBonusWalk: 0
+    _avoidBonusRiding: 0
+    _avoidBonusFlying: 0
+    _editorColor: {r: 0.6302591, g: 0.7830189, b: 0.46168566, a: 1}
   - _id: 88b0e895-b577-4643-89bf-55e3e0678f10
     _name: Shallow Water
     _costWalk: 1.6
