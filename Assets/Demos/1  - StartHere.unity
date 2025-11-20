@@ -47628,13 +47628,21 @@ MonoBehaviour:
   _featureStringProperties: []
   _featureEventProperties: []
   _featureUnitProperties: []
-  _featureObjectItemProperties: []
+  _featureObjectItemProperties:
+  - key: Common Item
+    value:
+      _template: {fileID: 0}
+  - key: Rare Item
+    value:
+      _template: {fileID: 0}
   _featureBoolProperties:
   - key: Is Secret
     value: 0
   _featureIntProperties:
   - key: Common Chance %
     value: 80
+  - key: Rare Chance %
+    value: 20
   _featureFloatProperties: []
 --- !u!4 &926185155
 Transform:
@@ -51525,13 +51533,21 @@ MonoBehaviour:
   _featureStringProperties: []
   _featureEventProperties: []
   _featureUnitProperties: []
-  _featureObjectItemProperties: []
+  _featureObjectItemProperties:
+  - key: Common Item
+    value:
+      _template: {fileID: 0}
+  - key: Rare Item
+    value:
+      _template: {fileID: 0}
   _featureBoolProperties:
   - key: Is Secret
     value: 0
   _featureIntProperties:
   - key: Common Chance %
     value: 80
+  - key: Rare Chance %
+    value: 20
   _featureFloatProperties: []
 --- !u!4 &1013457211
 Transform:
@@ -78421,13 +78437,21 @@ MonoBehaviour:
   _featureStringProperties: []
   _featureEventProperties: []
   _featureUnitProperties: []
-  _featureObjectItemProperties: []
+  _featureObjectItemProperties:
+  - key: Common Item
+    value:
+      _template: {fileID: 0}
+  - key: Rare Item
+    value:
+      _template: {fileID: 0}
   _featureBoolProperties:
   - key: Is Secret
     value: 0
   _featureIntProperties:
   - key: Common Chance %
     value: 80
+  - key: Rare Chance %
+    value: 20
   _featureFloatProperties: []
 --- !u!4 &1563100373
 Transform:
@@ -96181,18 +96205,34 @@ MonoBehaviour:
     typeId: underground
     name: 
     stringProperties: []
-    boolProperties: []
-    intProperties: []
+    boolProperties:
+    - key: Is Secret
+      value: 0
+    intProperties:
+    - key: Common Chance %
+      value: 80
+    - key: Rare Chance %
+      value: 20
     floatProperties: []
     unitProperties: []
-    objectItemProperties: []
+    objectItemProperties:
+    - key: Common Item
+      value:
+        _template: {fileID: 0}
+    - key: Rare Item
+      value:
+        _template: {fileID: 0}
   - row: 19
     col: 4
     typeId: fortress
     name: 
     stringProperties: []
-    boolProperties: []
-    intProperties: []
+    boolProperties:
+    - key: Enemy Here Won't Move
+      value: 1
+    intProperties:
+    - key: Heals Each Turn
+      value: 0
     floatProperties: []
     unitProperties: []
     objectItemProperties: []
@@ -96201,11 +96241,23 @@ MonoBehaviour:
     typeId: underground
     name: 
     stringProperties: []
-    boolProperties: []
-    intProperties: []
+    boolProperties:
+    - key: Is Secret
+      value: 0
+    intProperties:
+    - key: Common Chance %
+      value: 80
+    - key: Rare Chance %
+      value: 20
     floatProperties: []
     unitProperties: []
-    objectItemProperties: []
+    objectItemProperties:
+    - key: Common Item
+      value:
+        _template: {fileID: 0}
+    - key: Rare Item
+      value:
+        _template: {fileID: 0}
   - row: 22
     col: 19
     typeId: door
@@ -96395,6 +96447,8 @@ MonoBehaviour:
     intProperties:
     - key: HP
       value: 20
+    - key: Current HP
+      value: 20
     floatProperties: []
     unitProperties: []
     objectItemProperties: []
@@ -96431,7 +96485,11 @@ MonoBehaviour:
     typeId: treasure
     name: 
     stringProperties: []
-    boolProperties: []
+    boolProperties:
+    - key: Occupied (Friendly)
+      value: 0
+    - key: Occupied (Enemy)
+      value: 0
     intProperties: []
     floatProperties: []
     unitProperties: []
@@ -96455,11 +96513,23 @@ MonoBehaviour:
     typeId: underground
     name: 
     stringProperties: []
-    boolProperties: []
-    intProperties: []
+    boolProperties:
+    - key: Is Secret
+      value: 0
+    intProperties:
+    - key: Common Chance %
+      value: 80
+    - key: Rare Chance %
+      value: 20
     floatProperties: []
     unitProperties: []
-    objectItemProperties: []
+    objectItemProperties:
+    - key: Common Item
+      value:
+        _template: {fileID: 0}
+    - key: Rare Item
+      value:
+        _template: {fileID: 0}
   - row: 28
     col: 15
     typeId: shelter
@@ -96479,7 +96549,11 @@ MonoBehaviour:
     typeId: treasure
     name: 
     stringProperties: []
-    boolProperties: []
+    boolProperties:
+    - key: Occupied (Friendly)
+      value: 0
+    - key: Occupied (Enemy)
+      value: 0
     intProperties: []
     floatProperties: []
     unitProperties: []

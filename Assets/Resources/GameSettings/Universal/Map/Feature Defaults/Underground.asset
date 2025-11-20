@@ -12,21 +12,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 698cbba4ada1f8c4f95ce6cfef3718ee, type: 3}
   m_Name: Underground
   m_EditorClassIdentifier: 
-  featureId: underground
-  featureName: 
   stringProperties: []
-  objectProperties:
-  - key: Common Item
-    value: {fileID: 0}
-  - key: Rare Item
-    value: {fileID: 0}
   eventProperties: []
+  unitProperties: []
+  objectItemProperties:
+  - key: Common Item
+    value:
+      _template: {fileID: 0}
+  - key: Rare Item
+    value:
+      _template: {fileID: 0}
   boolProperties:
   - key: Is Secret
     value: 0
   intProperties:
   - key: Common Chance %
     value: 80
-  - key: Common Chance %
+  - key: Rare Chance %
     value: 20
   floatProperties: []
+  featureId: underground
+  featureName: 
