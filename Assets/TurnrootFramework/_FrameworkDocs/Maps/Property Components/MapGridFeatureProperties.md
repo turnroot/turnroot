@@ -17,5 +17,5 @@ Where to look
 - Source: `Assets/TurnrootFramework/Maps/Components/Grids/Property Components/MapGridFeatureProperties.cs`
 
 See also
-- `Maps/MapGridPoint.md` — `ApplyDefaultsForFeature` and feature property usage
-- `Editor/MapGridFeaturePropertiesEditor.cs` — editor for creating/maintaining feature defaults
+- [MapGridPoint](../MapGridPoint.md) — `ApplyDefaultsForFeature` and feature property usage
+- [MapGridFeaturePropertiesEditor](../Editor/MapGridFeaturePropertiesEditor.md) — editor for creating/maintaining feature defaults

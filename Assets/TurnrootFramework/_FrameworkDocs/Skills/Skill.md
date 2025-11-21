@@ -20,5 +20,5 @@ Public methods
 - `TriggerSkillEvents()` — fire UnityEvent hooks related to skill
 
 See also
-- `Skills/SkillBadge.md` — badge composition
-- `Skills/Nodes/README.md` — node-based skill execution
+- [SkillBadge](./SkillBadge.md) — badge composition
+- [Skill Node System](./Nodes/README.md) — node-based skill execution

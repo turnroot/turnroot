@@ -21,4 +21,4 @@ Public methods (examples)
 - `CharacterStat.SetCurrent(float)` — assign unbounded stat
 
 See also
-- `Characters/Character.md` — how stats are referenced by CharacterData
+- [Character](./Character.md) — how stats are referenced by CharacterData

@@ -47,5 +47,5 @@ Key methods
 - `RefreshPreview()` — recomposite current ImageStack for live preview
 
 See also
-- `Graphics2D/StackedImage.md` — base methods used by rendering
-- `Characters/Portraits/ImageStack.md` — layering format used by portraits
+- [StackedImage](../Graphics2D/StackedImage.md) — base methods used by rendering
+- [ImageStack](../Characters/Portraits/ImageStack.md) — layering format used by portraits

@@ -13,5 +13,5 @@ GraphicsPrototypesSettings
 - Editor hook: `OnValidate()` — updates `ImageStack` assets for new render sizes.
 
 See also
-- `Graphics2D/StackedImage.md` — rendering pipeline for portraits/badges
-- `Characters/DefaultCharacterStats.md` — default stat initialization
+- [StackedImage](../Graphics2D/StackedImage.md) — rendering pipeline for portraits/badges
+- [DefaultCharacterStats](../Characters/DefaultCharacterStats.md) — default stat initialization

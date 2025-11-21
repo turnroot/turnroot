@@ -16,5 +16,5 @@ Look here
 - Source: `Assets/TurnrootFramework/Characters/Components/Inventory/CharacterInventoryInstance.cs`
 
 See also
-- `Gameplay/ObjectItem.md` — items and subtype system
-- `Gameplay/GameplayGeneralSettings.md` — toggles for gift/lost items
+- [ObjectItem](../Gameplay/Objects/ObjectItem.md) — items and subtype system
+- [GameplayGeneralSettings](../Configurations/GameplayGeneralSettings.md) — toggles for gift/lost items

@@ -23,6 +23,6 @@ Where to look
 - Source: `Assets/TurnrootFramework/Maps/Components/Grids/MapGrid.cs`
 
 See also
-- `Maps/MapGridPoint.md` — details for the single tile data model
-- `Maps/MapGridEditorWindow.md` — editor that paints terrain and features
-- `Maps/Property Components/MapGridFeatureProperties.md` — defaults applied to features
+- [MapGridPoint](./MapGridPoint.md) — details for the single tile data model
+- [MapGridEditorWindow](./MapGridEditorWindow.md) — editor that paints terrain and features
+- [MapGridFeatureProperties](./Property Components/MapGridFeatureProperties.md) — defaults applied to features

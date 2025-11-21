@@ -37,6 +37,6 @@ Public methods
 - SerializableDictionary<TKey,TValue>: `ContainsKey`, `TryGetValue`, `Add`, `Remove`, `Clear`, indexer `this[TKey]`, `Dictionary` property
 
 See also
-- `Characters/Character.md` — CharacterData and usage of these components
-- `Characters/Portraits/Portrait.md` — Portrait integration with pronouns/accents
+- [Character](./Character.md) — CharacterData and usage of these components
+- [Portrait](./Portraits/Portrait.md) — Portrait integration with pronouns/accents
 rel.SupportPoints += 10 * rel.SupportSpeed;

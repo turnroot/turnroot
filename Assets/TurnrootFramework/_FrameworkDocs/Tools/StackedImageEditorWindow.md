@@ -112,6 +112,6 @@ Key methods (public/protected)
 - `DrawControlPanel()` / `DrawPreviewPanel()` — layout hooks for derived classes
 
 See also
-- `Characters/Portraits/Portrait.md` — concrete use-case
-- `Graphics2D/StackedImage.md` — base image API
-- `Assets/TurnrootFramework/Characters/Components/Editor/PortraitEditorWindow.cs`
+- [Portrait](../Characters/Portraits/Portrait.md) — concrete use-case
+- [StackedImage](../Graphics2D/StackedImage.md) — base image API
+- [PortraitEditorWindow source](../Tools/PortraitEditorWindow.md)

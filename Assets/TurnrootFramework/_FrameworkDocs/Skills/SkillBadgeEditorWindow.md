@@ -17,5 +17,5 @@ Key methods
 - Uses base editor helpers: `UpdateCurrentImage()`, `RefreshPreview()`, and `SetImageStack()` on the badge
 
 See also
-- `Tools/StackedImageEditorWindow.md` — base window
-- `Skills/SkillBadge.md` — badge implementation
+- [StackedImageEditorWindow](../Tools/StackedImageEditorWindow.md) — base window
+- [SkillBadge](./SkillBadge.md) — badge implementation

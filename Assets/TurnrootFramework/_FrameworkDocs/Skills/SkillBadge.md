@@ -15,5 +15,5 @@ Public methods
 - `Render()` / `CompositeLayers()` (inherited from `StackedImage<T>`) — composite & save
 
 See also
-- `Skills/Skill.md` — Skill asset using a SkillBadge
-- `Tools/StackedImageEditorWindow.md` — base editor for editing stacked images
+- [Skill](./Skill.md) — Skill asset using a SkillBadge
+- [StackedImageEditorWindow](../Tools/StackedImageEditorWindow.md) — base editor for editing stacked images

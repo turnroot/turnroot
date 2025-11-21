@@ -32,6 +32,6 @@ Where to look
 - Feature defaults: `Assets/TurnrootFramework/Maps/Components/Grids/Property Components/MapGridFeatureProperties.cs`
 
 See also
-- `Maps/MapGrid.md` — grid-level helpers and scene utilities
-- `Maps/MapGridEditorWindow.md` — editor that exposes these properties via a UI
-- `Maps/Property Components/MapGridPropertyBase.md` — underlying typed property containers
+- [MapGrid](./MapGrid.md) — grid-level helpers and scene utilities
+- [MapGridEditorWindow](./MapGridEditorWindow.md) — editor that exposes these properties via a UI
+- [MapGridPropertyBase](./Property Components/MapGridPropertyBase.md) — underlying typed property containers

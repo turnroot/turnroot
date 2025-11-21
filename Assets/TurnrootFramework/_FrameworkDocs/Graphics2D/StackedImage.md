@@ -178,9 +178,9 @@ Public methods
 - `Identify()` / `ToString()` — debugging helpers
 
 See also
-- `Tools/ImageCompositor.md` — low-level pixel compositor
-- `Tools/StackedImageEditorWindow.md` — editor window for live preview and rendering
-- `Characters/Portraits/Portrait.md` — portrait implementation (concrete `StackedImage`)
+- [ImageCompositor](../Tools/ImageCompositor.md) — low-level pixel compositor
+- [StackedImageEditorWindow](../Tools/StackedImageEditorWindow.md) — editor window for live preview and rendering
+- [Portrait](../Characters/Portraits/Portrait.md) — portrait implementation (concrete `StackedImage`)
 # StackedImage — short ref
 
 ---

@@ -18,5 +18,5 @@ Where to look
 - Source: `Assets/TurnrootFramework/Maps/Components/Grids/Property Components/MapGridPropertyBase.cs`
 
 See also
-- `Maps/MapGridPoint.md` — how MapGridPoint uses these typed properties
-- `Maps/Property Components/MapGridFeatureProperties.md` — default values for features
+- [MapGridPoint](../MapGridPoint.md) — how MapGridPoint uses these typed properties
+- [MapGridFeatureProperties](./MapGridFeatureProperties.md) — default values for features

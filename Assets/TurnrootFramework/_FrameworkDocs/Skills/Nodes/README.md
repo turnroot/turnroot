@@ -137,6 +137,6 @@ Public methods (quick list)
 - `BattleContext.GetCustomData<T>(string, T)` / `SetCustomData(string, object)` — store ad-hoc data for nodes
 
 See also
-- `Skills/Skill.md` — skill asset and runtime usage
-- `Skills/SkillBadge.md` — badge graphics and composition
-- `Gameplay/Combat/FundamentalComponents/Battles/BattleContext.cs` — full API of BattleContext
+- [Skill](../Skill.md) — skill asset and runtime usage
+- [SkillBadge](../SkillBadge.md) — badge graphics and composition
+- `Assets/TurnrootFramework/Gameplay/Combat/FundamentalComponents/Battles/BattleContext.cs` — full API of BattleContext

@@ -13,8 +13,8 @@ Public methods
 - `CompositeImageStackLayers(Texture2D base, ImageStackLayer[] layers, Sprite[] masks, Color[] tints)` — composite several ImageStackLayer entries into a texture
 
 See also
-- `Graphics2D/StackedImage.md` — high-level use of compositor for rendering
-- `Tools/StackedImageEditorWindow.md` — editor integration and preview
+- [StackedImage](../Graphics2D/StackedImage.md) — high-level use of compositor for rendering
+- [StackedImageEditorWindow](./StackedImageEditorWindow.md) — editor integration and preview
 
 Notes
 - Expect Read/Write enabled textures; masks must match sprite dimensions

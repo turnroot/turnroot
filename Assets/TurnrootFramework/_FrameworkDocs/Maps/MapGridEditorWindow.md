@@ -20,6 +20,6 @@ Where to look
 - Inspector: `Assets/TurnrootFramework/Maps/Editor/MapGridInspector.cs`
 
 See also
-- `Maps/MapGrid.md` — grid operations and save/load
-- `Maps/MapGridPoint.md` — per-tile property access and defaults
-- `Maps/MapGridEditorSettings.md` — editor color and layout settings
+- [MapGrid](./MapGrid.md) — grid operations and save/load
+- [MapGridPoint](./MapGridPoint.md) — per-tile property access and defaults
+- [MapGridEditorSettings](./MapGridEditorSettings.md) — editor color and layout settings

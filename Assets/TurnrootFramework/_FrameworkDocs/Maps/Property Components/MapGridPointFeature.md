@@ -18,5 +18,5 @@ Where to look
 - Source: `Assets/TurnrootFramework/Maps/Components/Grids/Property Components/MapGridPointFeature.cs`
 
 See also
-- `Maps/MapGridEditorWindow.md` — editor overlay and feature palette
-- `Maps/Property Components/MapGridFeatureProperties.md` — feature defaults asset
+- [MapGridEditorWindow](../../MapGridEditorWindow.md) — editor overlay and feature palette
+- [MapGridFeatureProperties](./MapGridFeatureProperties.md) — feature defaults asset

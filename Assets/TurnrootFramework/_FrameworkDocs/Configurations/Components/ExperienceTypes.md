@@ -63,7 +63,6 @@ Create via: Assets → Create → Turnroot → Game Settings → Gameplay → We
 
 ## See Also
 
-- **[GameplayGeneralSettings](GameplayGeneralSettings.md)** - Main gameplay configuration
-- **[Settings](Settings.md)** - Other prototype settings
- - **[Settings](Settings.md)** - Other Turnroot settings (graphics, character defaults)
- - `Assets/TurnrootFramework/Skills/Nodes/Nodes/Conditions/WeaponTypeNode.cs` — example node that queries weapon type in a node graph
+- **[GameplayGeneralSettings](../GameplayGeneralSettings.md)** - Main gameplay configuration
+- **[Settings](../Settings.md)** - Other prototype settings (graphics, character defaults)
+- `Assets/TurnrootFramework/Skills/Nodes/Nodes/Conditions/WeaponTypeNode.cs` — example node that queries weapon type in a node graph

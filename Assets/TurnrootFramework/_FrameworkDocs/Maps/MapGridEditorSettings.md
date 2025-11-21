@@ -16,8 +16,8 @@ Public fields (editor-set values)
 - `headerAccentColor` and per-type header accent colors for different property types
 
 Where to look
-- Source: `Assets/TurnrootFramework/Maps/Editor/MapGridEditorSettings.cs`
+Source: `Assets/TurnrootFramework/Maps/Editor/MapGridEditorSettings.cs`
 
 See also
-- `Maps/MapGridEditorWindow.md` — how settings are consumed
-- `Maps/MapGridPoint.md` — which properties get header accents in the editor
+- [MapGridEditorWindow](./MapGridEditorWindow.md) — how settings are consumed
+- [MapGridPoint](./MapGridPoint.md) — which properties get header accents in the editor
