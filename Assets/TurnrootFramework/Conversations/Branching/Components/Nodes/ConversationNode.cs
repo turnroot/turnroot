@@ -2,6 +2,10 @@ using Turnroot.Conversations;
 using Turnroot.Skills.Nodes;
 using UnityEngine;
 using XNode;
+#if UNITY_EDITOR
+using System;
+using System.IO;
+#endif
 
 namespace Turnroot.Conversations.Branching
 {
@@ -21,6 +25,10 @@ namespace Turnroot.Conversations.Branching
                 return next;
             return null;
         }
+
+#if UNITY_EDITOR
+        // OnEnable diagnostics removed — cleanup after investigation.
+#endif
     }
 
     [System.Serializable]

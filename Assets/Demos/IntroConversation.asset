@@ -32,12 +32,13 @@ MonoBehaviour:
       DisplayName: 
       PortraitKey: Felicity
     _activeSpeaker: 0
-    OnLayerStart:
-      m_PersistentCalls:
-        m_Calls: []
-    OnLayerComplete:
-      m_PersistentCalls:
-        m_Calls: []
+    Events:
+      OnLayerStart:
+        m_PersistentCalls:
+          m_Calls: []
+      OnLayerComplete:
+        m_PersistentCalls:
+          m_Calls: []
   - _dialogue: How are you?
     _parsePronouns: 0
     _referringTo: []
@@ -50,12 +51,12 @@ MonoBehaviour:
       DisplayName: 
       PortraitKey: Felicity
     _activeSpeaker: 1
-    OnLayerStart:
-      m_PersistentCalls:
-        m_Calls: []
-    OnLayerComplete:
-      m_PersistentCalls:
-        m_Calls: []
+    Events:
+      OnLayerStart:
+        m_PersistentCalls:
+          m_Calls: []
+      OnLayerComplete:
+        m_PersistentCalls:
+          m_Calls: []
   _conversationGraph: {fileID: 11400000, guid: 14965f03592243b4eb28bd4e6c155bdb, type: 2}
-  _debugGraphParsing: 1
-  _currentLayerIndex: 1
+  _currentLayerIndex: 0

@@ -151,6 +151,14 @@
         {
             "path": "fe-prototyping\\Assets\\TurnrootFramework\\Maps\\",
             "color": "foldercustomization.AnsiColor140"
+        },
+        {
+            "path": "fe-prototyping\\Assets\\TurnrootFramework\\Tests\\Editor\\",
+            "color": "foldercustomization.AnsiColor108"
+        },
+        {
+            "path": "fe-prototyping\\Assets\\TurnrootFramework\\Utilities\\",
+            "color": "foldercustomization.AnsiColor97"
         }
     ]
 }

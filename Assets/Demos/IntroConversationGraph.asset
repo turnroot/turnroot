@@ -38,13 +38,17 @@ MonoBehaviour:
       _node: {fileID: -7655557201922680662}
       _typeQualifiedName: Turnroot.Conversations.Branching.ConversationFlow, Assembly-CSharp,
         Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-      connections: []
+      connections:
+      - fieldName: previous
+        node: {fileID: 3004053564737822113}
+        reroutePoints: []
       _direction: 1
       _connectionType: 1
       _typeConstraint: 0
       _dynamic: 0
   conversationLayer:
-    _dialogue: Conversations can either be simple or branching.
+    _dialogue: 'I''m Chard. You''ll be mostly in editor, but with some play mode
+      tests. We''ll tell you more about that- '
     _parsePronouns: 1
     _referringTo: []
     _primary:
@@ -55,14 +59,15 @@ MonoBehaviour:
       Speaker: {fileID: 11400000, guid: 0f8b79eeaffbfbc4aab491112cae2ddd, type: 2}
       DisplayName: 
       PortraitKey: Newly Created Unit_Portrait
-    _activeSpeaker: 0
-    OnLayerStart:
-      m_PersistentCalls:
-        m_Calls: []
-    OnLayerComplete:
-      m_PersistentCalls:
-        m_Calls: []
---- !u!114 &-5204795453336540537
+    _activeSpeaker: 1
+    Events:
+      OnLayerStart:
+        m_PersistentCalls:
+          m_Calls: []
+      OnLayerComplete:
+        m_PersistentCalls:
+          m_Calls: []
+--- !u!114 &-6069289621509886086
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -75,49 +80,124 @@ MonoBehaviour:
   m_Name: Conversation
   m_EditorClassIdentifier: 
   graph: {fileID: 11400000}
-  position: {x: -1144, y: 584}
+  position: {x: 1848, y: -216}
   ports:
     keys:
     - previous
     - next
     values:
     - _fieldName: previous
-      _node: {fileID: -5204795453336540537}
+      _node: {fileID: -6069289621509886086}
       _typeQualifiedName: Turnroot.Conversations.Branching.ConversationFlow, Assembly-CSharp,
         Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-      connections: []
+      connections:
+      - fieldName: next
+        node: {fileID: 6507791613330068801}
+        reroutePoints: []
+      - fieldName: next
+        node: {fileID: 4388665437028740560}
+        reroutePoints: []
       _direction: 0
       _connectionType: 0
       _typeConstraint: 0
       _dynamic: 0
     - _fieldName: next
-      _node: {fileID: -5204795453336540537}
+      _node: {fileID: -6069289621509886086}
       _typeQualifiedName: Turnroot.Conversations.Branching.ConversationFlow, Assembly-CSharp,
         Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-      connections: []
+      connections:
+      - fieldName: previous
+        node: {fileID: 7622121770694052062}
+        reroutePoints: []
       _direction: 1
       _connectionType: 1
       _typeConstraint: 0
       _dynamic: 0
   conversationLayer:
-    _dialogue: 
+    _dialogue: 'See, this entire conversation is laid out in node form. Take a moment
+      to explore this conversation. '
     _parsePronouns: 1
     _referringTo: []
     _primary:
-      Speaker: {fileID: 0}
+      Speaker: {fileID: 11400000, guid: a53a4ecdb913d9944b06166e1bc35ca6, type: 2}
       DisplayName: 
-      PortraitKey: No speaker selected
+      PortraitKey: Felicity
     _secondary:
-      Speaker: {fileID: 0}
+      Speaker: {fileID: 11400000, guid: 0f8b79eeaffbfbc4aab491112cae2ddd, type: 2}
       DisplayName: 
-      PortraitKey: No speaker selected
-    _activeSpeaker: 0
-    OnLayerStart:
-      m_PersistentCalls:
-        m_Calls: []
-    OnLayerComplete:
-      m_PersistentCalls:
-        m_Calls: []
+      PortraitKey: Newly Created Unit_Portrait
+    _activeSpeaker: 1
+    Events:
+      OnLayerStart:
+        m_PersistentCalls:
+          m_Calls: []
+      OnLayerComplete:
+        m_PersistentCalls:
+          m_Calls: []
+--- !u!114 &-2387796418015844839
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7815156bdd8bb684999f63fabdc46545, type: 3}
+  m_Name: Conversation
+  m_EditorClassIdentifier: 
+  graph: {fileID: 11400000}
+  position: {x: 2616, y: -216}
+  ports:
+    keys:
+    - previous
+    - next
+    values:
+    - _fieldName: previous
+      _node: {fileID: -2387796418015844839}
+      _typeQualifiedName: Turnroot.Conversations.Branching.ConversationFlow, Assembly-CSharp,
+        Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+      connections:
+      - fieldName: next
+        node: {fileID: 7622121770694052062}
+        reroutePoints: []
+      _direction: 0
+      _connectionType: 0
+      _typeConstraint: 0
+      _dynamic: 0
+    - _fieldName: next
+      _node: {fileID: -2387796418015844839}
+      _typeQualifiedName: Turnroot.Conversations.Branching.ConversationFlow, Assembly-CSharp,
+        Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+      connections:
+      - fieldName: previous
+        node: {fileID: 1394896288287617612}
+        reroutePoints: []
+      _direction: 1
+      _connectionType: 1
+      _typeConstraint: 0
+      _dynamic: 0
+  conversationLayer:
+    _dialogue: 'You can also right click on the graph to add a node, or click Add
+      Conversation on the top right.  '
+    _parsePronouns: 1
+    _referringTo: []
+    _primary:
+      Speaker: {fileID: 11400000, guid: a53a4ecdb913d9944b06166e1bc35ca6, type: 2}
+      DisplayName: 
+      PortraitKey: Felicity
+    _secondary:
+      Speaker: {fileID: 11400000, guid: 0f8b79eeaffbfbc4aab491112cae2ddd, type: 2}
+      DisplayName: 
+      PortraitKey: Newly Created Unit_Portrait
+    _activeSpeaker: 1
+    Events:
+      OnLayerStart:
+        m_PersistentCalls:
+          m_Calls: []
+      OnLayerComplete:
+        m_PersistentCalls:
+          m_Calls: []
 --- !u!114 &-1998078919759154132
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -174,12 +254,76 @@ MonoBehaviour:
       DisplayName: 
       PortraitKey: Newly Created Unit_Portrait
     _activeSpeaker: 0
-    OnLayerStart:
-      m_PersistentCalls:
-        m_Calls: []
-    OnLayerComplete:
-      m_PersistentCalls:
-        m_Calls: []
+    Events:
+      OnLayerStart:
+        m_PersistentCalls:
+          m_Calls: []
+      OnLayerComplete:
+        m_PersistentCalls:
+          m_Calls: []
+--- !u!114 &-1150585972681512448
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7815156bdd8bb684999f63fabdc46545, type: 3}
+  m_Name: Conversation
+  m_EditorClassIdentifier: 
+  graph: {fileID: 11400000}
+  position: {x: 1032, y: -520}
+  ports:
+    keys:
+    - previous
+    - next
+    values:
+    - _fieldName: previous
+      _node: {fileID: -1150585972681512448}
+      _typeQualifiedName: Turnroot.Conversations.Branching.ConversationFlow, Assembly-CSharp,
+        Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+      connections:
+      - fieldName: ChoiceA
+        node: {fileID: 564922282835563684}
+        reroutePoints: []
+      _direction: 0
+      _connectionType: 0
+      _typeConstraint: 0
+      _dynamic: 0
+    - _fieldName: next
+      _node: {fileID: -1150585972681512448}
+      _typeQualifiedName: Turnroot.Conversations.Branching.ConversationFlow, Assembly-CSharp,
+        Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+      connections:
+      - fieldName: previous
+        node: {fileID: 6507791613330068801}
+        reroutePoints: []
+      _direction: 1
+      _connectionType: 1
+      _typeConstraint: 0
+      _dynamic: 0
+  conversationLayer:
+    _dialogue: Where it says Element 0- you may need to scroll up.
+    _parsePronouns: 1
+    _referringTo: []
+    _primary:
+      Speaker: {fileID: 11400000, guid: a53a4ecdb913d9944b06166e1bc35ca6, type: 2}
+      DisplayName: 
+      PortraitKey: Felicity
+    _secondary:
+      Speaker: {fileID: 11400000, guid: 0f8b79eeaffbfbc4aab491112cae2ddd, type: 2}
+      DisplayName: 
+      PortraitKey: Newly Created Unit_Portrait
+    _activeSpeaker: 1
+    Events:
+      OnLayerStart:
+        m_PersistentCalls:
+          m_Calls: []
+      OnLayerComplete:
+        m_PersistentCalls:
+          m_Calls: []
 --- !u!114 &-384992924615475139
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -257,6 +401,135 @@ MonoBehaviour:
   - {fileID: 7451664314261169036}
   - {fileID: 2051481990083266242}
   - {fileID: -384992924615475139}
+  - {fileID: 3004053564737822113}
+  - {fileID: 564922282835563684}
+  - {fileID: -1150585972681512448}
+  - {fileID: 4388665437028740560}
+  - {fileID: 6507791613330068801}
+  - {fileID: -6069289621509886086}
+  - {fileID: 7622121770694052062}
+  - {fileID: -2387796418015844839}
+  - {fileID: 1394896288287617612}
+  - {fileID: 6815963451897644923}
+--- !u!114 &564922282835563684
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9509449691027a24c98279f19569bcd7, type: 3}
+  m_Name: Split By Choices 2
+  m_EditorClassIdentifier: 
+  graph: {fileID: 11400000}
+  position: {x: 648, y: -152}
+  ports:
+    keys:
+    - previous
+    - ChoiceA
+    - ChoiceB
+    values:
+    - _fieldName: previous
+      _node: {fileID: 564922282835563684}
+      _typeQualifiedName: Turnroot.Conversations.Branching.ConversationFlow, Assembly-CSharp,
+        Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+      connections:
+      - fieldName: next
+        node: {fileID: 3004053564737822113}
+        reroutePoints: []
+      _direction: 0
+      _connectionType: 0
+      _typeConstraint: 0
+      _dynamic: 0
+    - _fieldName: ChoiceA
+      _node: {fileID: 564922282835563684}
+      _typeQualifiedName: Turnroot.Conversations.Branching.ConversationFlow, Assembly-CSharp,
+        Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+      connections:
+      - fieldName: previous
+        node: {fileID: -1150585972681512448}
+        reroutePoints: []
+      _direction: 1
+      _connectionType: 1
+      _typeConstraint: 0
+      _dynamic: 0
+    - _fieldName: ChoiceB
+      _node: {fileID: 564922282835563684}
+      _typeQualifiedName: Turnroot.Conversations.Branching.ConversationFlow, Assembly-CSharp,
+        Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+      connections:
+      - fieldName: previous
+        node: {fileID: 4388665437028740560}
+        reroutePoints: []
+      _direction: 1
+      _connectionType: 1
+      _typeConstraint: 0
+      _dynamic: 0
+  choiceA: Where?
+  choiceB: Got it!
+--- !u!114 &1394896288287617612
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7815156bdd8bb684999f63fabdc46545, type: 3}
+  m_Name: Conversation
+  m_EditorClassIdentifier: 
+  graph: {fileID: 11400000}
+  position: {x: 3000, y: -216}
+  ports:
+    keys:
+    - previous
+    - next
+    values:
+    - _fieldName: previous
+      _node: {fileID: 1394896288287617612}
+      _typeQualifiedName: Turnroot.Conversations.Branching.ConversationFlow, Assembly-CSharp,
+        Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+      connections:
+      - fieldName: next
+        node: {fileID: -2387796418015844839}
+        reroutePoints: []
+      _direction: 0
+      _connectionType: 0
+      _typeConstraint: 0
+      _dynamic: 0
+    - _fieldName: next
+      _node: {fileID: 1394896288287617612}
+      _typeQualifiedName: Turnroot.Conversations.Branching.ConversationFlow, Assembly-CSharp,
+        Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+      connections: []
+      _direction: 1
+      _connectionType: 1
+      _typeConstraint: 0
+      _dynamic: 0
+  conversationLayer:
+    _dialogue: Once you're done, exit play mode and change the Current Conversation
+      to SecondConversation, play, and Start Conversation.
+    _parsePronouns: 1
+    _referringTo: []
+    _primary:
+      Speaker: {fileID: 11400000, guid: a53a4ecdb913d9944b06166e1bc35ca6, type: 2}
+      DisplayName: 
+      PortraitKey: Felicity
+    _secondary:
+      Speaker: {fileID: 11400000, guid: 0f8b79eeaffbfbc4aab491112cae2ddd, type: 2}
+      DisplayName: 
+      PortraitKey: Newly Created Unit_Portrait
+    _activeSpeaker: 0
+    Events:
+      OnLayerStart:
+        m_PersistentCalls:
+          m_Calls: []
+      OnLayerComplete:
+        m_PersistentCalls:
+          m_Calls: []
 --- !u!114 &2051481990083266242
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -282,7 +555,7 @@ MonoBehaviour:
         Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
       connections:
       - fieldName: next
-        node: {fileID: 7451664314261169036}
+        node: {fileID: 6815963451897644923}
         reroutePoints: []
       _direction: 0
       _connectionType: 0
@@ -301,7 +574,8 @@ MonoBehaviour:
       _typeConstraint: 0
       _dynamic: 0
   conversationLayer:
-    _dialogue: Call me Felicity! Tell me- are you miliar with node editors?
+    _dialogue: I'm Felicity, see my name update? Tell me- are you familiar with node
+      editors?
     _parsePronouns: 1
     _referringTo: []
     _primary:
@@ -313,12 +587,140 @@ MonoBehaviour:
       DisplayName: 
       PortraitKey: Newly Created Unit_Portrait
     _activeSpeaker: 0
-    OnLayerStart:
-      m_PersistentCalls:
-        m_Calls: []
-    OnLayerComplete:
-      m_PersistentCalls:
-        m_Calls: []
+    Events:
+      OnLayerStart:
+        m_PersistentCalls:
+          m_Calls: []
+      OnLayerComplete:
+        m_PersistentCalls:
+          m_Calls: []
+--- !u!114 &3004053564737822113
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7815156bdd8bb684999f63fabdc46545, type: 3}
+  m_Name: Conversation
+  m_EditorClassIdentifier: 
+  graph: {fileID: 11400000}
+  position: {x: 280, y: -152}
+  ports:
+    keys:
+    - previous
+    - next
+    values:
+    - _fieldName: previous
+      _node: {fileID: 3004053564737822113}
+      _typeQualifiedName: Turnroot.Conversations.Branching.ConversationFlow, Assembly-CSharp,
+        Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+      connections:
+      - fieldName: next
+        node: {fileID: -7655557201922680662}
+        reroutePoints: []
+      _direction: 0
+      _connectionType: 0
+      _typeConstraint: 0
+      _dynamic: 0
+    - _fieldName: next
+      _node: {fileID: 3004053564737822113}
+      _typeQualifiedName: Turnroot.Conversations.Branching.ConversationFlow, Assembly-CSharp,
+        Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+      connections:
+      - fieldName: previous
+        node: {fileID: 564922282835563684}
+        reroutePoints: []
+      _direction: 1
+      _connectionType: 1
+      _typeConstraint: 0
+      _dynamic: 0
+  conversationLayer:
+    _dialogue: 'Later! For now, double click on the Intro Conversation asset in your
+      Conversation Controller. '
+    _parsePronouns: 1
+    _referringTo: []
+    _primary:
+      Speaker: {fileID: 11400000, guid: a53a4ecdb913d9944b06166e1bc35ca6, type: 2}
+      DisplayName: 
+      PortraitKey: Felicity
+    _secondary:
+      Speaker: {fileID: 11400000, guid: 0f8b79eeaffbfbc4aab491112cae2ddd, type: 2}
+      DisplayName: 
+      PortraitKey: Newly Created Unit_Portrait
+    _activeSpeaker: 0
+    Events:
+      OnLayerStart:
+        m_PersistentCalls:
+          m_Calls: []
+      OnLayerComplete:
+        m_PersistentCalls:
+          m_Calls: []
+--- !u!114 &4388665437028740560
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7815156bdd8bb684999f63fabdc46545, type: 3}
+  m_Name: Conversation
+  m_EditorClassIdentifier: 
+  graph: {fileID: 11400000}
+  position: {x: 1032, y: -40}
+  ports:
+    keys:
+    - previous
+    - next
+    values:
+    - _fieldName: previous
+      _node: {fileID: 4388665437028740560}
+      _typeQualifiedName: Turnroot.Conversations.Branching.ConversationFlow, Assembly-CSharp,
+        Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+      connections:
+      - fieldName: ChoiceB
+        node: {fileID: 564922282835563684}
+        reroutePoints: []
+      _direction: 0
+      _connectionType: 0
+      _typeConstraint: 0
+      _dynamic: 0
+    - _fieldName: next
+      _node: {fileID: 4388665437028740560}
+      _typeQualifiedName: Turnroot.Conversations.Branching.ConversationFlow, Assembly-CSharp,
+        Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+      connections:
+      - fieldName: previous
+        node: {fileID: -6069289621509886086}
+        reroutePoints: []
+      _direction: 1
+      _connectionType: 1
+      _typeConstraint: 0
+      _dynamic: 0
+  conversationLayer:
+    _dialogue: 'Great! Now open up the Conversation Graph asset for that conversation. '
+    _parsePronouns: 1
+    _referringTo: []
+    _primary:
+      Speaker: {fileID: 11400000, guid: a53a4ecdb913d9944b06166e1bc35ca6, type: 2}
+      DisplayName: 
+      PortraitKey: Felicity
+    _secondary:
+      Speaker: {fileID: 11400000, guid: 0f8b79eeaffbfbc4aab491112cae2ddd, type: 2}
+      DisplayName: 
+      PortraitKey: Newly Created Unit_Portrait
+    _activeSpeaker: 0
+    Events:
+      OnLayerStart:
+        m_PersistentCalls:
+          m_Calls: []
+      OnLayerComplete:
+        m_PersistentCalls:
+          m_Calls: []
 --- !u!114 &6502378201667639665
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -332,7 +734,7 @@ MonoBehaviour:
   m_Name: Conversation
   m_EditorClassIdentifier: 
   graph: {fileID: 11400000}
-  position: {x: -584, y: 152}
+  position: {x: -584, y: 8}
   ports:
     keys:
     - previous
@@ -375,12 +777,140 @@ MonoBehaviour:
       DisplayName: 
       PortraitKey: Newly Created Unit_Portrait
     _activeSpeaker: 0
-    OnLayerStart:
-      m_PersistentCalls:
-        m_Calls: []
-    OnLayerComplete:
-      m_PersistentCalls:
-        m_Calls: []
+    Events:
+      OnLayerStart:
+        m_PersistentCalls:
+          m_Calls: []
+      OnLayerComplete:
+        m_PersistentCalls:
+          m_Calls: []
+--- !u!114 &6507791613330068801
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7815156bdd8bb684999f63fabdc46545, type: 3}
+  m_Name: Conversation
+  m_EditorClassIdentifier: 
+  graph: {fileID: 11400000}
+  position: {x: 1400, y: -520}
+  ports:
+    keys:
+    - previous
+    - next
+    values:
+    - _fieldName: previous
+      _node: {fileID: 6507791613330068801}
+      _typeQualifiedName: Turnroot.Conversations.Branching.ConversationFlow, Assembly-CSharp,
+        Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+      connections:
+      - fieldName: next
+        node: {fileID: -1150585972681512448}
+        reroutePoints: []
+      _direction: 0
+      _connectionType: 0
+      _typeConstraint: 0
+      _dynamic: 0
+    - _fieldName: next
+      _node: {fileID: 6507791613330068801}
+      _typeQualifiedName: Turnroot.Conversations.Branching.ConversationFlow, Assembly-CSharp,
+        Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+      connections:
+      - fieldName: previous
+        node: {fileID: -6069289621509886086}
+        reroutePoints: []
+      _direction: 1
+      _connectionType: 1
+      _typeConstraint: 0
+      _dynamic: 0
+  conversationLayer:
+    _dialogue: 'Great! Open the Conversation asset, then the Conversation Graph. '
+    _parsePronouns: 1
+    _referringTo: []
+    _primary:
+      Speaker: {fileID: 11400000, guid: a53a4ecdb913d9944b06166e1bc35ca6, type: 2}
+      DisplayName: 
+      PortraitKey: Felicity
+    _secondary:
+      Speaker: {fileID: 11400000, guid: 0f8b79eeaffbfbc4aab491112cae2ddd, type: 2}
+      DisplayName: 
+      PortraitKey: Newly Created Unit_Portrait
+    _activeSpeaker: 0
+    Events:
+      OnLayerStart:
+        m_PersistentCalls:
+          m_Calls: []
+      OnLayerComplete:
+        m_PersistentCalls:
+          m_Calls: []
+--- !u!114 &6815963451897644923
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7815156bdd8bb684999f63fabdc46545, type: 3}
+  m_Name: Conversation
+  m_EditorClassIdentifier: 
+  graph: {fileID: 11400000}
+  position: {x: -1736, y: -248}
+  ports:
+    keys:
+    - previous
+    - next
+    values:
+    - _fieldName: previous
+      _node: {fileID: 6815963451897644923}
+      _typeQualifiedName: Turnroot.Conversations.Branching.ConversationFlow, Assembly-CSharp,
+        Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+      connections:
+      - fieldName: next
+        node: {fileID: 7451664314261169036}
+        reroutePoints: []
+      _direction: 0
+      _connectionType: 0
+      _typeConstraint: 0
+      _dynamic: 0
+    - _fieldName: next
+      _node: {fileID: 6815963451897644923}
+      _typeQualifiedName: Turnroot.Conversations.Branching.ConversationFlow, Assembly-CSharp,
+        Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+      connections:
+      - fieldName: previous
+        node: {fileID: 2051481990083266242}
+        reroutePoints: []
+      _direction: 1
+      _connectionType: 1
+      _typeConstraint: 0
+      _dynamic: 0
+  conversationLayer:
+    _dialogue: Conversations will teach you about some common systems and patterns
+      in this framework.
+    _parsePronouns: 1
+    _referringTo: []
+    _primary:
+      Speaker: {fileID: 11400000, guid: a53a4ecdb913d9944b06166e1bc35ca6, type: 2}
+      DisplayName: ???
+      PortraitKey: Felicity
+    _secondary:
+      Speaker: {fileID: 11400000, guid: 0f8b79eeaffbfbc4aab491112cae2ddd, type: 2}
+      DisplayName: ???
+      PortraitKey: Newly Created Unit_Portrait
+    _activeSpeaker: 1
+    Events:
+      OnLayerStart:
+        m_PersistentCalls:
+          m_Calls: []
+      OnLayerComplete:
+        m_PersistentCalls:
+          m_Calls: []
 --- !u!114 &7451664314261169036
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -394,7 +924,7 @@ MonoBehaviour:
   m_Name: Conversation
   m_EditorClassIdentifier: 
   graph: {fileID: 11400000}
-  position: {x: -1704, y: -312}
+  position: {x: -2120, y: -344}
   ports:
     keys:
     - previous
@@ -415,15 +945,15 @@ MonoBehaviour:
         Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
       connections:
       - fieldName: previous
-        node: {fileID: 2051481990083266242}
+        node: {fileID: 6815963451897644923}
         reroutePoints: []
       _direction: 1
       _connectionType: 1
       _typeConstraint: 0
       _dynamic: 0
   conversationLayer:
-    _dialogue: We're going to look at the conversation system first. It's a good,
-      simple example of systems we'll be using all across the framework.
+    _dialogue: We're going to look at the conversation system first. Click "Next
+      Layer" to advance.
     _parsePronouns: 1
     _referringTo: []
     _primary:
@@ -434,10 +964,75 @@ MonoBehaviour:
       Speaker: {fileID: 11400000, guid: 0f8b79eeaffbfbc4aab491112cae2ddd, type: 2}
       DisplayName: ???
       PortraitKey: Newly Created Unit_Portrait
-    _activeSpeaker: 1
-    OnLayerStart:
-      m_PersistentCalls:
-        m_Calls: []
-    OnLayerComplete:
-      m_PersistentCalls:
-        m_Calls: []
+    _activeSpeaker: 0
+    Events:
+      OnLayerStart:
+        m_PersistentCalls:
+          m_Calls: []
+      OnLayerComplete:
+        m_PersistentCalls:
+          m_Calls: []
+--- !u!114 &7622121770694052062
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7815156bdd8bb684999f63fabdc46545, type: 3}
+  m_Name: Conversation
+  m_EditorClassIdentifier: 
+  graph: {fileID: 11400000}
+  position: {x: 2232, y: -216}
+  ports:
+    keys:
+    - previous
+    - next
+    values:
+    - _fieldName: previous
+      _node: {fileID: 7622121770694052062}
+      _typeQualifiedName: Turnroot.Conversations.Branching.ConversationFlow, Assembly-CSharp,
+        Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+      connections:
+      - fieldName: next
+        node: {fileID: -6069289621509886086}
+        reroutePoints: []
+      _direction: 0
+      _connectionType: 0
+      _typeConstraint: 0
+      _dynamic: 0
+    - _fieldName: next
+      _node: {fileID: 7622121770694052062}
+      _typeQualifiedName: Turnroot.Conversations.Branching.ConversationFlow, Assembly-CSharp,
+        Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+      connections:
+      - fieldName: previous
+        node: {fileID: -2387796418015844839}
+        reroutePoints: []
+      _direction: 1
+      _connectionType: 1
+      _typeConstraint: 0
+      _dynamic: 0
+  conversationLayer:
+    _dialogue: This converation is incomplete. Right click on a node to duplicate
+      it, then connect it to the end!
+    _parsePronouns: 1
+    _referringTo: []
+    _primary:
+      Speaker: {fileID: 11400000, guid: a53a4ecdb913d9944b06166e1bc35ca6, type: 2}
+      DisplayName: 
+      PortraitKey: Felicity
+    _secondary:
+      Speaker: {fileID: 11400000, guid: 0f8b79eeaffbfbc4aab491112cae2ddd, type: 2}
+      DisplayName: 
+      PortraitKey: Newly Created Unit_Portrait
+    _activeSpeaker: 0
+    Events:
+      OnLayerStart:
+        m_PersistentCalls:
+          m_Calls: []
+      OnLayerComplete:
+        m_PersistentCalls:
+          m_Calls: []

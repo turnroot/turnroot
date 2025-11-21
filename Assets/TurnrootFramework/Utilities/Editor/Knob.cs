@@ -320,8 +320,7 @@ namespace UnityEditor
                 if (EditorGUI.EndChangeCheck() && !String.IsNullOrEmpty(newStr))
                 {
                     KnobState().isEditing = false;
-                    float newValue;
-                    if (float.TryParse(newStr, out newValue) && newValue != currentValue)
+                    if (float.TryParse(newStr, out float newValue) && newValue != currentValue)
                     {
                         if (snap > 0f)
                             newValue = Mathf.Round(newValue / snap) * snap;
@@ -367,11 +366,7 @@ namespace UnityEditor
                 float angRad = angDeg * Mathf.Deg2Rad;
                 Vector2 end = center2 + new Vector2(Mathf.Cos(angRad), Mathf.Sin(angRad)) * radius;
                 Handles.color = activeColor * (GUI.enabled ? 1f : 0.5f);
-                Handles.DrawAAPolyLine(
-                    3f,
-                    new Vector3(center2.x, center2.y, 0f),
-                    new Vector3(end.x, end.y, 0f)
-                );
+                Handles.DrawAAPolyLine(3f, (Vector3)center2, (Vector3)end);
 
                 // neutral tick mark (outside the circle) at configured neutral angle
                 float neutralRad = neutralAngle * Mathf.Deg2Rad;

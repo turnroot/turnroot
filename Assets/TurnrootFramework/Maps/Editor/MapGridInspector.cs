@@ -106,7 +106,9 @@ public class MapGridInspector : Editor
                         elem.vector3Value = newVal;
                         serializedObject.ApplyModifiedProperties();
                         if (mg != null)
+                        {
                             EditorUtility.SetDirty(mg);
+                        }
                     }
                 }
                 else

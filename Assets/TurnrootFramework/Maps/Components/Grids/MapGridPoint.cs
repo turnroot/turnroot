@@ -220,12 +220,21 @@ public class MapGridPoint : MonoBehaviour
 
         _featureTypeId = selId;
         _featureName = name ?? string.Empty;
-        ApplyDefaultsForFeature(selId);
 
 #if UNITY_EDITOR
-        UnityEditor.EditorUtility.SetDirty(this);
-        UnityEditor.EditorUtility.SetDirty(this.gameObject);
-        UnityEditor.SceneView.RepaintAll();
+        // Avoid marking the scene dirty if this is triggered by compilation/domain reload
+        // or while the editor is updating (asset reimport / progress UI) or entering/exiting
+        // play mode. Only mark the scene dirty on explicit user-driven edits.
+        if (
+            !UnityEditor.EditorApplication.isCompiling
+            && !UnityEditor.EditorApplication.isPlayingOrWillChangePlaymode
+            && !UnityEditor.EditorApplication.isUpdating
+        )
+        {
+            UnityEditor.EditorUtility.SetDirty(this);
+            UnityEditor.EditorUtility.SetDirty(this.gameObject);
+            UnityEditor.SceneView.RepaintAll();
+        }
 #endif
     }
 
@@ -237,14 +246,27 @@ public class MapGridPoint : MonoBehaviour
         _featureUnitProperties.Clear();
         _featureObjectItemProperties.Clear();
         _featureEventProperties.Clear();
-        _featureBoolProperties.Clear();
-        _featureIntProperties.Clear();
-        _featureFloatProperties.Clear();
+        if (
+            !UnityEditor.EditorApplication.isCompiling
+            && !UnityEditor.EditorApplication.isPlayingOrWillChangePlaymode
+            && !UnityEditor.EditorApplication.isUpdating
+        )
+        {
+            _featureIntProperties.Clear();
+            _featureFloatProperties.Clear();
+        }
 
 #if UNITY_EDITOR
-        UnityEditor.EditorUtility.SetDirty(this);
-        UnityEditor.EditorUtility.SetDirty(this.gameObject);
-        UnityEditor.SceneView.RepaintAll();
+        if (
+            !UnityEditor.EditorApplication.isCompiling
+            && !UnityEditor.EditorApplication.isPlayingOrWillChangePlaymode
+            && !UnityEditor.EditorApplication.isUpdating
+        )
+        {
+            UnityEditor.EditorUtility.SetDirty(this);
+            UnityEditor.EditorUtility.SetDirty(this.gameObject);
+            UnityEditor.SceneView.RepaintAll();
+        }
 #endif
     }
 

@@ -7,7 +7,6 @@ using Turnroot.AbstractScripts.Graphics2D;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
-using XNode;
 
 namespace Turnroot.Conversations
 {
@@ -15,9 +14,18 @@ namespace Turnroot.Conversations
     {
         private Coroutine _conversationRoutine;
         private int _tweenRunId;
+        private Sprite _lastActiveSprite;
+        private int _pendingChoiceTarget = int.MinValue;
+        private int _activeBranchingNodeId = int.MinValue;
+        private ConversationLayer _activeBranchingLayer;
+        private ConversationInstance _runningInstance;
+
+        [Header("Available Conversations")]
+        [SerializeField]
+        private List<ConversationInstance> _conversationInstances = new();
 
         [SerializeField]
-        private Conversation _currentConversation;
+        private int _currentConversation;
 
         [Header("UI References")]
         [SerializeField]
@@ -39,18 +47,27 @@ namespace Turnroot.Conversations
         [SerializeField]
         private Transform _choiceButtonsContainer;
 
-        private int _pendingChoiceTarget = int.MinValue;
-        private int _activeBranchingNodeId = int.MinValue;
-        private ConversationLayer _activeBranchingLayer;
+        [Header("Controller Events")]
+        public UnityEvent OnAnyConversationStart;
+        public UnityEvent OnAnyConversationFinished;
 
-        // Track last active sprite to skip animations when the same speaker speaks consecutively
-        private Sprite _lastActiveSprite;
+        private ConversationInstance SelectedInstance =>
+            _conversationInstances != null
+            && _currentConversation >= 0
+            && _currentConversation < _conversationInstances.Count
+                ? _conversationInstances[_currentConversation]
+                : null;
+
+        private Conversation SelectedConversation => SelectedInstance?.Conversation;
+        private Graphics2DSettings GfxSettings => Graphics2DSettings.Instance;
 
         public void Advance() => NextLayer();
 
+        public void Proceed() => NextLayer();
+
         public bool ChooseBranchTarget(int targetNodeId)
         {
-            if (_currentConversation == null || !_currentConversation.BranchingConversation)
+            if (SelectedConversation?.BranchingConversation != true)
                 return false;
             _pendingChoiceTarget = targetNodeId;
             ClearChoiceButtons();
@@ -59,60 +76,88 @@ namespace Turnroot.Conversations
 
         public List<ChoiceData> GetCurrentChoices()
         {
-            if (_currentConversation == null || !_currentConversation.BranchingConversation)
+            if (
+                SelectedConversation?.BranchingConversation != true
+                || _activeBranchingNodeId == int.MinValue
+            )
                 return null;
-            var nodes = _currentConversation.GetGraphNodes();
-            if (nodes == null)
-                return null;
-            if (_activeBranchingNodeId == int.MinValue)
-                return null;
-            if (!nodes.TryGetValue(_activeBranchingNodeId, out var nd) || nd == null)
-                return null;
-            return nd.choices;
+
+            var nodes = SelectedConversation.GetGraphNodes();
+            return nodes?.TryGetValue(_activeBranchingNodeId, out var node) == true
+                ? node.choices
+                : null;
         }
-
-        [Header("Events")]
-        [SerializeField]
-        private UnityEvent _onConversationFinished;
-
-        [SerializeField]
-        private UnityEvent _onConversationStart;
 
         [Button("Start Conversation")]
         public void StartConversation()
         {
-            if (!Application.isPlaying)
+            if (!ValidateConversationStart())
+                return;
+
+            CleanupPreviousConversation();
+            ResetUI();
+
+            var instance = SelectedInstance;
+            SelectedConversation?.StartConversation();
+            SelectedConversation?.OnConversationStart?.Invoke();
+            instance?.OnConversationStart?.Invoke();
+            OnAnyConversationStart?.Invoke();
+
+            _runningInstance = instance;
+            Debug.Log(
+                $"Starting conversation '{SelectedConversation?.name}' (instance '{instance?.name}')"
+            );
+            _conversationRoutine = StartCoroutine(RunConversation(instance));
+        }
+
+        [Button("Next Layer")]
+        public void NextLayer()
+        {
+            if (_activeBranchingLayer != null)
             {
-                Debug.LogError(
-                    "StartConversation must be run in Play Mode. Aborting to avoid editor-state changes."
-                );
+                _activeBranchingLayer.CompleteLayer();
                 return;
             }
+            SelectedConversation?.CurrentLayer?.CompleteLayer();
+        }
 
-            if (_currentConversation == null)
+        private bool ValidateConversationStart()
+        {
+            if (!Application.isPlaying)
             {
-                Debug.LogError("Cannot start a null conversation.");
-                return;
+                Debug.LogError("StartConversation must be run in Play Mode.");
+                return false;
+            }
+
+            if (SelectedInstance == null)
+            {
+                Debug.LogError($"No ConversationInstance selected at index {_currentConversation}");
+                return false;
+            }
+
+            if (SelectedConversation == null)
+            {
+                Debug.LogError($"Instance '{SelectedInstance.name}' has no Conversation assigned.");
+                return false;
             }
 
             if (
-                _currentConversation.BranchingConversation
-                && _currentConversation.ConversationGraph == null
+                SelectedConversation.BranchingConversation
+                && SelectedConversation.ConversationGraph == null
             )
             {
                 Debug.LogError(
-                    $"Conversation '{_currentConversation.name}' is marked as branching but has no ConversationGraph assigned. Aborting."
+                    $"Conversation '{SelectedConversation.name}' is branching but has no graph."
                 );
-                if (_dialogueText != null)
-                    _dialogueText.text = string.Empty;
-                if (_speakerNameText != null)
-                    _speakerNameText.text = string.Empty;
-                ClearChoiceButtons();
-                Graphics2DUtils.ResetImage(_speakerPortraitImageActive);
-                Graphics2DUtils.ResetImage(_speakerPortraitImageInactive);
-                return;
+                ResetUI();
+                return false;
             }
 
+            return true;
+        }
+
+        private void CleanupPreviousConversation()
+        {
             if (_conversationRoutine != null)
             {
                 StopCoroutine(_conversationRoutine);
@@ -122,200 +167,156 @@ namespace Turnroot.Conversations
             if (_tweenRunId != 0)
                 DOTween.Kill(_tweenRunId);
             _tweenRunId++;
+        }
 
+        private void ResetUI()
+        {
             Graphics2DUtils.ResetImage(_speakerPortraitImageActive);
             Graphics2DUtils.ResetImage(_speakerPortraitImageInactive);
-            // reset last active sprite when starting a conversation
             _lastActiveSprite = null;
-
-            _onConversationStart?.Invoke();
-            _conversationRoutine = StartCoroutine(RunConversation(_currentConversation));
+            if (_dialogueText != null)
+                _dialogueText.text = string.Empty;
+            if (_speakerNameText != null)
+                _speakerNameText.text = string.Empty;
+            ClearChoiceButtons();
         }
 
-        [Button("Next Layer")]
-        public void NextLayer()
+        private IEnumerator RunConversation(ConversationInstance instance)
         {
-            if (_activeBranchingLayer != null)
-            {
-                Debug.Log("ConversationController.NextLayer: completing active branching layer");
-                _activeBranchingLayer.CompleteLayer();
-                return;
-            }
-
-            if (_currentConversation?.CurrentLayer != null)
-            {
-                Debug.Log("ConversationController.NextLayer: completing linear current layer");
-                _currentConversation.CurrentLayer.CompleteLayer();
-            }
-        }
-
-        public void Proceed() => NextLayer();
-
-        private IEnumerator RunConversation(Conversation conversation)
-        {
-            if (conversation == null)
+            if (instance?.Conversation == null)
                 yield break;
-            _currentConversation = conversation;
 
-            // Branching flow
+            var conversation = instance.Conversation;
+
             if (conversation.BranchingConversation)
-            {
-                var nodes = conversation.GetGraphNodes();
-                if (nodes == null || nodes.Count == 0)
-                {
-                    Debug.LogError(
-                        $"Branching conversation '{conversation.name}' has no nodes or graph is empty. Nothing to show."
-                    );
-                    if (_dialogueText != null)
-                        _dialogueText.text = string.Empty;
-                    if (_speakerNameText != null)
-                        _speakerNameText.text = string.Empty;
-                    ClearChoiceButtons();
-                    Graphics2DUtils.ResetImage(_speakerPortraitImageActive);
-                    Graphics2DUtils.ResetImage(_speakerPortraitImageInactive);
-                    yield break;
-                }
+                yield return RunBranchingConversation(conversation);
+            else
+                yield return RunLinearConversation(conversation);
 
-                int currentNodeId = int.MinValue;
-                foreach (var kv in nodes)
-                {
-                    var nd = kv.Value;
-                    if (nd == null || nd.node == null)
-                        continue;
-                    if (nd.incomingCount == 0)
-                    {
-                        currentNodeId = kv.Key;
-                        break;
-                    }
-                }
-
-                if (currentNodeId == int.MinValue)
-                {
-                    foreach (var kv in nodes)
-                    {
-                        currentNodeId = kv.Key;
-                        break;
-                    }
-                }
-
-                while (currentNodeId != int.MinValue)
-                {
-                    if (!nodes.TryGetValue(currentNodeId, out var nodeData) || nodeData == null)
-                        break;
-                    _activeBranchingNodeId = currentNodeId;
-
-                    var layer = nodeData.conversationLayer;
-                    if (layer != null)
-                    {
-                        if (!layer.HasBeenParsed)
-                            layer.ParseDialogue();
-                        layer.StartLayer();
-                        _activeBranchingLayer = layer;
-
-                        // Update UI
-                        if (_dialogueText != null)
-                            _dialogueText.text = layer.Dialogue;
-                        var activeSlot = layer.GetActiveSlot();
-                        _speakerNameText.text = !string.IsNullOrWhiteSpace(activeSlot.DisplayName)
-                            ? activeSlot.DisplayName
-                            : (
-                                activeSlot.Speaker != null
-                                && !string.IsNullOrWhiteSpace(activeSlot.Speaker.DisplayName)
-                                    ? activeSlot.Speaker.DisplayName
-                                    : "???"
-                            );
-
-                        // apply portrait transitions, but skip if same active sprite as last time
-                        var currentActiveSprite = layer.ActivePortrait?.SavedSprite;
-                        if (_lastActiveSprite != currentActiveSprite)
-                        {
-                            ApplyPortraitForLayer(layer);
-                            _lastActiveSprite = currentActiveSprite;
-                        }
-
-                        // wait for layer completion
-                        bool completed = false;
-                        void onComplete() => completed = true;
-                        layer.OnLayerComplete.AddListener(onComplete);
-                        yield return new WaitUntil(() => completed);
-                        layer.OnLayerComplete.RemoveListener(onComplete);
-
-                        _activeBranchingLayer = null;
-                    }
-
-                    // choices
-                    if (nodeData.choices != null && nodeData.choices.Count > 0)
-                    {
-                        _pendingChoiceTarget = int.MinValue;
-                        ShowChoicesForNode(currentNodeId);
-                        yield return new WaitUntil(() => _pendingChoiceTarget != int.MinValue);
-                        currentNodeId = _pendingChoiceTarget;
-                        ClearChoiceButtons();
-                        continue;
-                    }
-
-                    if (nodeData.nextTargetId != int.MinValue)
-                    {
-                        currentNodeId = nodeData.nextTargetId;
-                        continue;
-                    }
-
-                    break;
-                }
-
-                _activeBranchingNodeId = int.MinValue;
-                _activeBranchingLayer = null;
-                _pendingChoiceTarget = int.MinValue;
-                _onConversationFinished?.Invoke();
-                _conversationRoutine = null;
-                yield break;
-            }
-
-            // Linear flow
-            for (int i = 0; i < conversation.Layers.Length; i++)
-            {
-                conversation.CurrentLayerIndex = i;
-                var layer = conversation.Layers[i];
-
-                if (!layer.HasBeenParsed)
-                    layer.ParseDialogue();
-                layer.StartLayer();
-
-                // Update UI
-                if (_dialogueText != null)
-                    _dialogueText.text = layer.Dialogue;
-                var activeSlot = layer.GetActiveSlot();
-                _speakerNameText.text = !string.IsNullOrWhiteSpace(activeSlot.DisplayName)
-                    ? activeSlot.DisplayName
-                    : (
-                        activeSlot.Speaker != null
-                        && !string.IsNullOrWhiteSpace(activeSlot.Speaker.DisplayName)
-                            ? activeSlot.Speaker.DisplayName
-                            : "???"
-                    );
-
-                // apply portrait transitions
-                // apply portrait transitions, but skip if same active sprite as last time
-                var currentActiveSprite = layer.ActivePortrait?.SavedSprite;
-                if (_lastActiveSprite != currentActiveSprite)
-                {
-                    ApplyPortraitForLayer(layer);
-                    _lastActiveSprite = currentActiveSprite;
-                }
-
-                // wait for completion
-                bool completed = false;
-                void onComplete() => completed = true;
-                layer.OnLayerComplete.AddListener(onComplete);
-                yield return new WaitUntil(() => completed);
-                layer.OnLayerComplete.RemoveListener(onComplete);
-            }
-
-            _onConversationFinished?.Invoke();
+            instance?.OnConversationFinished?.Invoke();
+            OnAnyConversationFinished?.Invoke();
             _conversationRoutine = null;
         }
 
-        // --- Portrait animation helpers ---
+        private IEnumerator RunBranchingConversation(Conversation conversation)
+        {
+            var nodes = conversation.GetGraphNodes();
+            if (nodes == null || nodes.Count == 0)
+            {
+                Debug.LogError($"Branching conversation '{conversation.name}' has no nodes.");
+                ResetUI();
+                yield break;
+            }
+
+            int currentNodeId = FindEntryNode(nodes);
+
+            while (currentNodeId != int.MinValue)
+            {
+                if (!nodes.TryGetValue(currentNodeId, out var nodeData) || nodeData == null)
+                    break;
+
+                _activeBranchingNodeId = currentNodeId;
+
+                if (nodeData.conversationLayer != null)
+                    yield return ProcessLayer(nodeData.conversationLayer, conversation);
+
+                if (nodeData.choices?.Count > 0)
+                {
+                    _pendingChoiceTarget = int.MinValue;
+                    ShowChoicesForNode(currentNodeId);
+                    yield return new WaitUntil(() => _pendingChoiceTarget != int.MinValue);
+                    currentNodeId = _pendingChoiceTarget;
+                    ClearChoiceButtons();
+                    continue;
+                }
+
+                currentNodeId = nodeData.nextTargetId;
+            }
+
+            _activeBranchingNodeId = int.MinValue;
+            _activeBranchingLayer = null;
+            _pendingChoiceTarget = int.MinValue;
+        }
+
+        private IEnumerator RunLinearConversation(Conversation conversation)
+        {
+            for (int i = 0; i < conversation.Layers.Length; i++)
+            {
+                conversation.CurrentLayerIndex = i;
+                yield return ProcessLayer(conversation.Layers[i], conversation, i);
+            }
+        }
+
+        private int FindEntryNode(Dictionary<int, Turnroot.Conversations.NodeData> nodes)
+        {
+            foreach (var kv in nodes)
+                if (kv.Value?.node != null && kv.Value.incomingCount == 0)
+                    return kv.Key;
+
+            foreach (var kv in nodes)
+                return kv.Key;
+
+            return int.MinValue;
+        }
+
+        private IEnumerator ProcessLayer(
+            ConversationLayer layer,
+            Conversation conversation,
+            int? layerIndex = null
+        )
+        {
+            if (!layer.HasBeenParsed)
+                layer.ParseDialogue();
+
+            layer.StartLayer();
+            var binding = layerIndex.HasValue
+                ? _runningInstance?.GetEventsForLayer(layerIndex.Value)
+                : null;
+            binding?.OnLayerStart?.Invoke();
+
+            if (conversation.BranchingConversation)
+                _activeBranchingLayer = layer;
+
+            UpdateUIForLayer(layer);
+
+            bool completed = false;
+            void OnComplete() => completed = true;
+            layer.OnLayerComplete.AddListener(OnComplete);
+            yield return new WaitUntil(() => completed);
+            layer.OnLayerComplete.RemoveListener(OnComplete);
+
+            binding?.OnLayerComplete?.Invoke();
+
+            if (conversation.BranchingConversation)
+                _activeBranchingLayer = null;
+        }
+
+        private void UpdateUIForLayer(ConversationLayer layer)
+        {
+            if (_dialogueText != null)
+                _dialogueText.text = layer.Dialogue;
+
+            var activeSlot = layer.GetActiveSlot();
+            if (_speakerNameText != null)
+                _speakerNameText.text = GetSpeakerName(activeSlot);
+
+            var currentActiveSprite = layer.ActivePortrait?.SavedSprite;
+            if (_lastActiveSprite != currentActiveSprite)
+            {
+                ApplyPortraitForLayer(layer);
+                _lastActiveSprite = currentActiveSprite;
+            }
+        }
+
+        private string GetSpeakerName(ConversationLayer.SpeakerSlot slot)
+        {
+            if (!string.IsNullOrWhiteSpace(slot.DisplayName))
+                return slot.DisplayName;
+            if (slot.Speaker != null && !string.IsNullOrWhiteSpace(slot.Speaker.DisplayName))
+                return slot.Speaker.DisplayName;
+            return "???";
+        }
+
         private void ApplyPortraitForLayer(ConversationLayer layer)
         {
             if (layer == null)
@@ -323,32 +324,56 @@ namespace Turnroot.Conversations
 
             var activeIsPrimary =
                 layer.ActiveSpeaker == ConversationLayer.ActiveSpeakerType.Primary;
-            var primarySprite = layer.PortraitSprite;
-            var secondarySprite = layer.SecondaryPortraitSprite;
             var activeSprite = layer.ActivePortrait?.SavedSprite;
-            var inactiveSprite = activeIsPrimary ? secondarySprite : primarySprite;
+            var inactiveSprite = activeIsPrimary
+                ? layer.SecondaryPortraitSprite
+                : layer.PortraitSprite;
 
             if (_tweenRunId != 0)
                 DOTween.Kill(_tweenRunId);
             KillImageTweens(_speakerPortraitImageActive, _speakerPortraitImageInactive);
 
-            var gfxSettings = Graphics2DSettings.Instance;
-            var animatePortraits = gfxSettings?.AnimatePortraitTransitions ?? true;
-            var portraitDuration = animatePortraits
-                ? (gfxSettings?.PortraitTransitionDuration ?? 0.4f)
+            var animatePortraits = GfxSettings?.AnimatePortraitTransitions ?? true;
+            var duration = animatePortraits
+                ? (GfxSettings?.PortraitTransitionDuration ?? 0.4f)
                 : 0f;
-            var secondaryBehavior =
-                gfxSettings != null
-                    ? gfxSettings.SecondaryConversationPortraitInactiveBehavior
-                    : SecondaryConversationPortraitInactiveBehavior.Hide;
+            var behavior =
+                GfxSettings?.SecondaryConversationPortraitInactiveBehavior
+                ?? SecondaryConversationPortraitInactiveBehavior.Hide;
 
-            Graphics2DUtils.SetSprite(_speakerPortraitImageActive, activeSprite);
-            Graphics2DUtils.SetSprite(_speakerPortraitImageInactive, inactiveSprite);
+            SetupPortraitImages(layer, behavior);
+            var (activeImg, inactiveImg) = GetPortraitImages(activeIsPrimary, behavior);
 
+            ResetPortraitColors();
+
+            if (activeSprite != null)
+                ApplyPortraitBehavior(
+                    layer,
+                    activeIsPrimary,
+                    activeImg,
+                    inactiveImg,
+                    behavior,
+                    duration
+                );
+        }
+
+        private void SetupPortraitImages(
+            ConversationLayer layer,
+            SecondaryConversationPortraitInactiveBehavior behavior
+        )
+        {
             var willSwap =
-                secondaryBehavior == SecondaryConversationPortraitInactiveBehavior.Swap
-                || secondaryBehavior == SecondaryConversationPortraitInactiveBehavior.TintAndSwap
-                || secondaryBehavior == SecondaryConversationPortraitInactiveBehavior.SwapAndHide;
+                behavior
+                    is SecondaryConversationPortraitInactiveBehavior.Swap
+                        or SecondaryConversationPortraitInactiveBehavior.TintAndSwap
+                        or SecondaryConversationPortraitInactiveBehavior.SwapAndHide;
+
+            var activeIsPrimary =
+                layer.ActiveSpeaker == ConversationLayer.ActiveSpeakerType.Primary;
+            var activeSprite = layer.ActivePortrait?.SavedSprite;
+            var inactiveSprite = activeIsPrimary
+                ? layer.SecondaryPortraitSprite
+                : layer.PortraitSprite;
 
             if (willSwap)
             {
@@ -357,121 +382,242 @@ namespace Turnroot.Conversations
             }
             else
             {
-                Graphics2DUtils.SetSprite(_speakerPortraitImageActive, primarySprite);
-                Graphics2DUtils.SetSprite(_speakerPortraitImageInactive, secondarySprite);
+                Graphics2DUtils.SetSprite(_speakerPortraitImageActive, layer.PortraitSprite);
+                Graphics2DUtils.SetSprite(
+                    _speakerPortraitImageInactive,
+                    layer.SecondaryPortraitSprite
+                );
             }
+        }
 
-            var imageForActive = willSwap
+        private (Image active, Image inactive) GetPortraitImages(
+            bool activeIsPrimary,
+            SecondaryConversationPortraitInactiveBehavior behavior
+        )
+        {
+            var willSwap =
+                behavior
+                    is SecondaryConversationPortraitInactiveBehavior.Swap
+                        or SecondaryConversationPortraitInactiveBehavior.TintAndSwap
+                        or SecondaryConversationPortraitInactiveBehavior.SwapAndHide;
+
+            var active = willSwap
                 ? _speakerPortraitImageActive
                 : (activeIsPrimary ? _speakerPortraitImageActive : _speakerPortraitImageInactive);
-            var imageForInactive = willSwap
+            var inactive = willSwap
                 ? _speakerPortraitImageInactive
                 : (activeIsPrimary ? _speakerPortraitImageInactive : _speakerPortraitImageActive);
 
+            return (active, inactive);
+        }
+
+        private void ResetPortraitColors()
+        {
             if (_speakerPortraitImageActive.enabled)
                 _speakerPortraitImageActive.color = Color.white;
             if (_speakerPortraitImageInactive.enabled)
                 _speakerPortraitImageInactive.color = Color.white;
+        }
 
-            if (activeSprite != null)
+        private void ApplyPortraitBehavior(
+            ConversationLayer layer,
+            bool activeIsPrimary,
+            Image activeImg,
+            Image inactiveImg,
+            SecondaryConversationPortraitInactiveBehavior behavior,
+            float duration
+        )
+        {
+            var targetActiveColor = activeIsPrimary
+                ? layer.PrimaryPortraitTint
+                : layer.SecondaryPortraitTint;
+            var targetInactiveColor = activeIsPrimary
+                ? layer.SecondaryPortraitTint
+                : layer.PrimaryPortraitTint;
+
+            switch (behavior)
             {
-                var primaryTint = layer.PrimaryPortraitTint;
-                var secondaryTint = layer.SecondaryPortraitTint;
-
-                var targetActiveColor = activeIsPrimary ? primaryTint : secondaryTint;
-                var targetInactiveColor = activeIsPrimary ? secondaryTint : primaryTint;
-
-                switch (secondaryBehavior)
-                {
-                    case SecondaryConversationPortraitInactiveBehavior.Hide:
-                        CreateHideTween(imageForInactive, portraitDuration).Play();
-                        break;
-                    case SecondaryConversationPortraitInactiveBehavior.Tint:
-                        CreateTintSequence(
-                                imageForActive,
-                                imageForInactive,
-                                targetActiveColor,
-                                targetInactiveColor,
-                                portraitDuration
-                            )
-                            .Play();
-                        break;
-                    case SecondaryConversationPortraitInactiveBehavior.Swap:
-                        CreateSwapSequence(
-                                _speakerPortraitImageActive,
-                                _speakerPortraitImageInactive,
-                                portraitDuration
-                            )
-                            .Play();
-                        break;
-                    case SecondaryConversationPortraitInactiveBehavior.TintAndSwap:
-                        {
-                            var runId = _tweenRunId;
-                            DOTween
-                                .Sequence()
-                                .AppendCallback(() =>
-                                {
-                                    if (runId != _tweenRunId)
-                                        return;
-                                    var t = _speakerPortraitImageActive.sprite;
-                                    _speakerPortraitImageActive.sprite =
-                                        _speakerPortraitImageInactive.sprite;
-                                    _speakerPortraitImageInactive.sprite = t;
-                                })
-                                .Append(
-                                    CreateTintSequence(
-                                        imageForActive,
-                                        imageForInactive,
-                                        targetActiveColor,
-                                        targetInactiveColor,
-                                        portraitDuration
-                                    )
-                                )
-                                .SetId(_tweenRunId)
-                                .Play();
-                        }
-                        break;
-                    case SecondaryConversationPortraitInactiveBehavior.SwapAndHide:
-                        {
-                            var runId = _tweenRunId;
-                            DOTween
-                                .Sequence()
-                                .AppendCallback(() =>
-                                {
-                                    if (runId != _tweenRunId)
-                                        return;
-                                    var t = _speakerPortraitImageActive.sprite;
-                                    _speakerPortraitImageActive.sprite =
-                                        _speakerPortraitImageInactive.sprite;
-                                    _speakerPortraitImageInactive.sprite = t;
-                                })
-                                .Append(
-                                    CreateHideTween(_speakerPortraitImageInactive, portraitDuration)
-                                )
-                                .SetId(_tweenRunId)
-                                .Play();
-                        }
-                        break;
-                    case SecondaryConversationPortraitInactiveBehavior.None:
-                        CreateTintSequence(
-                                imageForActive,
-                                imageForInactive,
-                                Color.white,
-                                Color.white,
-                                portraitDuration
-                            )
-                            .Play();
-                        break;
-                }
+                case SecondaryConversationPortraitInactiveBehavior.Hide:
+                    CreateHideTween(inactiveImg, duration).Play();
+                    break;
+                case SecondaryConversationPortraitInactiveBehavior.Tint:
+                    CreateTintSequence(
+                            activeImg,
+                            inactiveImg,
+                            targetActiveColor,
+                            targetInactiveColor,
+                            duration
+                        )
+                        .Play();
+                    break;
+                case SecondaryConversationPortraitInactiveBehavior.Swap:
+                    CreateSwapSequence(
+                            _speakerPortraitImageActive,
+                            _speakerPortraitImageInactive,
+                            duration
+                        )
+                        .Play();
+                    break;
+                case SecondaryConversationPortraitInactiveBehavior.TintAndSwap:
+                    CreateTintAndSwapSequence(
+                        activeImg,
+                        inactiveImg,
+                        targetActiveColor,
+                        targetInactiveColor,
+                        duration
+                    );
+                    break;
+                case SecondaryConversationPortraitInactiveBehavior.SwapAndHide:
+                    CreateSwapAndHideSequence(duration);
+                    break;
+                case SecondaryConversationPortraitInactiveBehavior.None:
+                    CreateTintSequence(activeImg, inactiveImg, Color.white, Color.white, duration)
+                        .Play();
+                    break;
             }
         }
 
+        private void CreateTintAndSwapSequence(
+            Image activeImg,
+            Image inactiveImg,
+            Color activeColor,
+            Color inactiveColor,
+            float duration
+        )
+        {
+            var runId = _tweenRunId;
+            DOTween
+                .Sequence()
+                .AppendCallback(() =>
+                {
+                    if (runId != _tweenRunId)
+                        return;
+                    (_speakerPortraitImageActive.sprite, _speakerPortraitImageInactive.sprite) = (
+                        _speakerPortraitImageInactive.sprite,
+                        _speakerPortraitImageActive.sprite
+                    );
+                })
+                .Append(
+                    CreateTintSequence(activeImg, inactiveImg, activeColor, inactiveColor, duration)
+                )
+                .SetId(_tweenRunId)
+                .Play();
+        }
+
+        private void CreateSwapAndHideSequence(float duration)
+        {
+            var runId = _tweenRunId;
+            DOTween
+                .Sequence()
+                .AppendCallback(() =>
+                {
+                    if (runId != _tweenRunId)
+                        return;
+                    (_speakerPortraitImageActive.sprite, _speakerPortraitImageInactive.sprite) = (
+                        _speakerPortraitImageInactive.sprite,
+                        _speakerPortraitImageActive.sprite
+                    );
+                })
+                .Append(CreateHideTween(_speakerPortraitImageInactive, duration))
+                .SetId(_tweenRunId)
+                .Play();
+        }
+
+        private void ClearChoiceButtons()
+        {
+            if (_choiceButtonsContainer == null)
+                return;
+            for (int i = _choiceButtonsContainer.childCount - 1; i >= 0; i--)
+                Destroy(_choiceButtonsContainer.GetChild(i).gameObject);
+        }
+
+        private void ShowChoicesForNode(int nodeId)
+        {
+            if (_choiceButtonPrefab == null || _choiceButtonsContainer == null)
+                return;
+
+            var nodes = SelectedConversation?.GetGraphNodes();
+            if (nodes?.TryGetValue(nodeId, out var nodeData) != true)
+                return;
+
+            ClearChoiceButtons();
+
+            foreach (var choice in nodeData.choices)
+                CreateChoiceButton(choice);
+        }
+
+        private void CreateChoiceButton(ChoiceData choice)
+        {
+            var go = Instantiate(_choiceButtonPrefab, _choiceButtonsContainer);
+            if (go == null)
+                return;
+
+            go.SetActive(true);
+
+            var btn = go.GetComponent<Button>();
+            var img = go.GetComponent<Image>();
+            var label = go.GetComponentInChildren<TextMeshProUGUI>(true);
+
+            if (label != null)
+            {
+                label.gameObject.SetActive(true);
+                label.text = GetChoiceLabel(choice);
+            }
+
+            if (img != null)
+                img.enabled = true;
+
+            if (btn != null)
+            {
+                btn.gameObject.SetActive(true);
+                btn.interactable = true;
+                int targetId = choice.targetNodeId;
+                btn.onClick.AddListener(() => _pendingChoiceTarget = targetId);
+            }
+        }
+
+        private string GetChoiceLabel(ChoiceData choice) =>
+            !string.IsNullOrEmpty(choice?.label) ? choice.label
+            : !string.IsNullOrEmpty(choice?.choiceText) ? choice.choiceText
+            : "Choice";
+
         private void KillImageTweens(params Image[] images)
         {
-            var animate = Graphics2DSettings.Instance?.AnimatePortraitTransitions ?? true;
-            if (!animate)
-                return;
-            Graphics2DUtils.KillImageTweens(images);
+            if (GfxSettings?.AnimatePortraitTransitions ?? true)
+                Graphics2DUtils.KillImageTweens(images);
+        }
+
+        private Tween CreateTintSequence(
+            Image activeImg,
+            Image inactiveImg,
+            Color activeColor,
+            Color inactiveColor,
+            float duration
+        )
+        {
+            var ease = GfxSettings?.PortraitTransitionEase ?? Ease.OutCubic;
+            return Graphics2DUtils.CreateTintSequence(
+                activeImg,
+                inactiveImg,
+                activeColor,
+                inactiveColor,
+                duration,
+                ease,
+                _tweenRunId
+            );
+        }
+
+        private Tween CreateSwapSequence(Image a, Image b, float duration)
+        {
+            var swapCross = GfxSettings?.SwapCrossfade ?? 0.4f;
+            var ease = GfxSettings?.PortraitTransitionEase ?? Ease.OutCubic;
+            return Graphics2DUtils.CrossfadeSwap(a, b, swapCross, ease, _tweenRunId);
+        }
+
+        private Tween CreateHideTween(Image img, float duration)
+        {
+            var ease = GfxSettings?.PortraitTransitionEase ?? Ease.OutCubic;
+            return Graphics2DUtils.CreateHideTween(img, duration, ease, _tweenRunId);
         }
 
         private void OnDisable()
@@ -489,124 +635,6 @@ namespace Turnroot.Conversations
         {
             if (_tweenRunId != 0)
                 DOTween.Kill(_tweenRunId);
-        }
-
-        private void ClearChoiceButtons()
-        {
-            if (_choiceButtonsContainer == null)
-                return;
-            for (int i = _choiceButtonsContainer.childCount - 1; i >= 0; i--)
-            {
-                var c = _choiceButtonsContainer.GetChild(i);
-                if (c != null)
-                    Destroy(c.gameObject);
-            }
-        }
-
-        private void ShowChoicesForNode(int nodeId)
-        {
-            if (_choiceButtonPrefab == null || _choiceButtonsContainer == null)
-            {
-                Debug.LogWarning("Choice button prefab or container not assigned.");
-                return;
-            }
-
-            var nodes = _currentConversation?.GetGraphNodes();
-            if (nodes == null || !nodes.TryGetValue(nodeId, out var nodeData) || nodeData == null)
-                return;
-
-            ClearChoiceButtons();
-
-            foreach (var c in nodeData.choices)
-            {
-                var go = Instantiate(_choiceButtonPrefab, _choiceButtonsContainer);
-                if (go == null)
-                    continue;
-                if (!go.activeSelf)
-                    go.SetActive(true);
-
-                var btn = go.GetComponent<Button>();
-                var img = go.GetComponent<Image>();
-                var label = go.GetComponentInChildren<TextMeshProUGUI>(true);
-
-                var labelText = ResolveChoiceLabel(c) ?? "Choice";
-                if (label != null)
-                {
-                    if (!label.gameObject.activeSelf)
-                        label.gameObject.SetActive(true);
-                    label.text = labelText;
-                }
-
-                if (img != null)
-                    img.enabled = true;
-                if (btn != null)
-                {
-                    if (!btn.gameObject.activeSelf)
-                        btn.gameObject.SetActive(true);
-                    btn.interactable = true;
-                    int targetId = c.targetNodeId;
-                    btn.onClick.AddListener(() => OnChoiceClicked(targetId));
-                }
-            }
-        }
-
-        private void OnChoiceClicked(int targetNodeId)
-        {
-            var targetName = "(unknown)";
-            var nodes = _currentConversation?.GetGraphNodes();
-            if (nodes != null && nodes.TryGetValue(targetNodeId, out var nd) && nd != null)
-                targetName = nd.name;
-            Debug.Log(
-                $"[ConversationController] Choice selected -> targetId={targetNodeId} name={targetName}"
-            );
-            _pendingChoiceTarget = targetNodeId;
-        }
-
-        private string ResolveChoiceLabel(ChoiceData c)
-        {
-            if (c == null)
-                return "Choice";
-            if (!string.IsNullOrEmpty(c.label))
-                return c.label;
-            if (!string.IsNullOrEmpty(c.choiceText))
-                return c.choiceText;
-            return "Choice";
-        }
-
-        private Tween CreateTintSequence(
-            Image activeImg,
-            Image inactiveImg,
-            Color activeColor,
-            Color inactiveColor,
-            float duration
-        )
-        {
-            var ease =
-                Graphics2DSettings.Instance?.PortraitTransitionEase ?? DG.Tweening.Ease.OutCubic;
-            return Graphics2DUtils.CreateTintSequence(
-                activeImg,
-                inactiveImg,
-                activeColor,
-                inactiveColor,
-                duration,
-                ease,
-                _tweenRunId
-            );
-        }
-
-        private Tween CreateSwapSequence(Image a, Image b, float duration)
-        {
-            var swapCross = Graphics2DSettings.Instance?.SwapCrossfade ?? 0.4f;
-            var ease =
-                Graphics2DSettings.Instance?.PortraitTransitionEase ?? DG.Tweening.Ease.OutCubic;
-            return Graphics2DUtils.CrossfadeSwap(a, b, swapCross, ease, _tweenRunId);
-        }
-
-        private Tween CreateHideTween(Image img, float duration)
-        {
-            var ease =
-                Graphics2DSettings.Instance?.PortraitTransitionEase ?? DG.Tweening.Ease.OutCubic;
-            return Graphics2DUtils.CreateHideTween(img, duration, ease, _tweenRunId);
         }
     }
 }

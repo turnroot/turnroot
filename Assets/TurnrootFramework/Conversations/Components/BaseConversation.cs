@@ -7,7 +7,7 @@ namespace Turnroot.Conversations
     [System.Serializable]
     public class BaseConversation
     {
-        [SerializeField]
+        [SerializeField, TextArea(3, 10)]
         protected string _dialogue;
 
         protected string _parsedDialogue;

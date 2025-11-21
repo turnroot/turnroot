@@ -37,7 +37,13 @@ namespace Turnroot.Conversations
 #if UNITY_EDITOR
                         var sel = UnityEditor.Selection.activeObject as UnityEngine.Object;
                         if (sel != null)
-                            UnityEditor.EditorUtility.SetDirty(sel);
+                        {
+                            var selPath = UnityEditor.AssetDatabase.GetAssetPath(sel);
+                            if (!string.IsNullOrEmpty(selPath))
+                            {
+                                UnityEditor.EditorUtility.SetDirty(sel);
+                            }
+                        }
 #endif
                     }
                     return new string[] { "No speaker selected" };
@@ -50,7 +56,13 @@ namespace Turnroot.Conversations
 #if UNITY_EDITOR
                     var sel = UnityEditor.Selection.activeObject as UnityEngine.Object;
                     if (sel != null)
-                        UnityEditor.EditorUtility.SetDirty(sel);
+                    {
+                        var selPath = UnityEditor.AssetDatabase.GetAssetPath(sel);
+                        if (!string.IsNullOrEmpty(selPath))
+                        {
+                            UnityEditor.EditorUtility.SetDirty(sel);
+                        }
+                    }
 #endif
                 }
                 return keys.Length > 0 ? keys : new string[] { "No portraits available" };
@@ -66,7 +78,13 @@ namespace Turnroot.Conversations
                 // Ensure the change is recorded so the conversation asset is marked dirty and saved.
                 var sel = UnityEditor.Selection.activeObject as UnityEngine.Object;
                 if (sel != null)
-                    UnityEditor.EditorUtility.SetDirty(sel);
+                {
+                    var selPath = UnityEditor.AssetDatabase.GetAssetPath(sel);
+                    if (!string.IsNullOrEmpty(selPath))
+                    {
+                        UnityEditor.EditorUtility.SetDirty(sel);
+                    }
+                }
 #endif
             }
         }
@@ -83,7 +101,7 @@ namespace Turnroot.Conversations
             Secondary = 1,
         }
 
-        [Header("Active Speaker / Tinting")]
+        [Header("Active Speaker")]
         [SerializeField]
         private ActiveSpeakerType _activeSpeaker = ActiveSpeakerType.Primary;
 
@@ -126,8 +144,21 @@ namespace Turnroot.Conversations
         public Portrait SecondarySpeakerPortrait =>
             GetPortrait(_secondary.Speaker, _secondary.PortraitKey);
 
-        public UnityEvent OnLayerStart;
-        public UnityEvent OnLayerComplete;
+        [System.Serializable]
+        public class LayerEvents
+        {
+            public UnityEvent OnLayerStart;
+            public UnityEvent OnLayerComplete;
+        }
+
+        [HideInInspector]
+        public UnityEvent OnLayerStart => Events.OnLayerStart;
+
+        [HideInInspector]
+        public UnityEvent OnLayerComplete => Events.OnLayerComplete;
+
+        [Foldout("Events")]
+        public LayerEvents Events = new();
 
         public Sprite PortraitSprite => GetPortraitSpriteForSlot(_primary);
 

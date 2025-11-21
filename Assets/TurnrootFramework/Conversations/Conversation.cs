@@ -14,7 +14,7 @@ namespace Turnroot.Conversations
             SerializeField,
             InfoBox("If checked, this conversation will branch based on player choices.")
         ]
-        private bool _branchingConversation = false;
+        private bool _branchingConversation = true;
         public bool BranchingConversation => _branchingConversation;
 
         public UnityEvent OnConversationStart;

@@ -622,7 +622,7 @@ public class MapGridEditorWindow : EditorWindow
                         point.SetStartingUnit(null);
                     else
                         point.SetStartingUnit(new Turnroot.Characters.CharacterInstance(chosen));
-                    EditorUtility.SetDirty(point);
+                    SafeSetDirty(point);
                     MarkDirty();
                 }
             }
@@ -920,7 +920,7 @@ public class MapGridEditorWindow : EditorWindow
                             keyProp.stringValue,
                             new Turnroot.Characters.CharacterInstance(chosen)
                         );
-                    EditorUtility.SetDirty(point);
+                    SafeSetDirty(point);
                     MarkDirty();
                 }
             }
@@ -945,7 +945,7 @@ public class MapGridEditorWindow : EditorWindow
                             keyProp.stringValue,
                             new Turnroot.Gameplay.Objects.ObjectItemInstance(chosen)
                         );
-                    EditorUtility.SetDirty(point);
+                    SafeSetDirty(point);
                     MarkDirty();
                 }
             }
@@ -1842,12 +1842,12 @@ public class MapGridEditorWindow : EditorWindow
                         p.SetTerrainTypeId(chosenTerrain.Id);
                     }
 
-                    EditorUtility.SetDirty(p);
+                    SafeSetDirty(p);
                 }
             }
         }
 
-        EditorUtility.SetDirty(_grid);
+        SafeSetDirty(_grid);
         _grid.SaveFeatureLayer();
         MarkDirty();
         SceneView.RepaintAll();
@@ -1884,7 +1884,7 @@ public class MapGridEditorWindow : EditorWindow
         if (string.Equals(toolId, "eraser", StringComparison.OrdinalIgnoreCase))
         {
             p.ClearFeature();
-            EditorUtility.SetDirty(p);
+            SafeSetDirty(p);
             return;
         }
 
@@ -1894,7 +1894,7 @@ public class MapGridEditorWindow : EditorWindow
             p.ClearFeature();
             p.ApplyFeature(toolId, _selectedSecondToolName ?? string.Empty, false);
 
-            EditorUtility.SetDirty(p);
+            SafeSetDirty(p);
             return;
         }
 
@@ -1914,7 +1914,7 @@ public class MapGridEditorWindow : EditorWindow
             Repaint();
         }
 
-        EditorUtility.SetDirty(p);
+        SafeSetDirty(p);
     }
 
     private string GetFriendlyName(string toolId)
@@ -1942,11 +1942,46 @@ public class MapGridEditorWindow : EditorWindow
 
     private void MarkDirty()
     {
-        EditorUtility.SetDirty(_grid);
-        EditorSceneManager.MarkSceneDirty(
-            UnityEngine.SceneManagement.SceneManager.GetActiveScene()
-        );
-        SceneView.RepaintAll();
+        // Avoid marking the scene dirty during compile/domain reload or while
+        // entering/exiting Play Mode. These events can re-run editor UI code and
+        // should not automatically flag the scene as modified.
+        if (!EditorApplication.isCompiling && !EditorApplication.isPlayingOrWillChangePlaymode)
+        {
+            SafeSetDirty(_grid);
+            if (
+                !EditorApplication.isCompiling
+                && !EditorApplication.isPlayingOrWillChangePlaymode
+                && !EditorApplication.isUpdating
+            )
+            {
+                EditorSceneManager.MarkSceneDirty(
+                    UnityEngine.SceneManagement.SceneManager.GetActiveScene()
+                );
+            }
+            SceneView.RepaintAll();
+        }
+    }
+
+    // Avoid marking scene objects dirty during editor update/import windows.
+    // If the object is part of a scene (no asset path) and the editor is
+    // currently updating, skip SetDirty to prevent the scene flag and save prompt.
+    private void SafeSetDirty(UnityEngine.Object obj)
+    {
+        if (obj == null)
+            return;
+
+        try
+        {
+            if (EditorApplication.isUpdating)
+            {
+                var path = AssetDatabase.GetAssetPath(obj);
+                if (string.IsNullOrEmpty(path))
+                    return; // don't mark scene objects during import/update
+            }
+        }
+        catch { }
+
+        EditorUtility.SetDirty(obj);
     }
 
     private class NewPropertyPrompt : EditorWindow
@@ -2059,12 +2094,17 @@ public class MapGridEditorWindow : EditorWindow
                         _point.SetStringPointProperty(_key, string.Empty);
                     break;
             }
-            EditorUtility.SetDirty(_point);
+            // Avoid marking scene objects during non-interactive editor update/import.
+            if (!EditorApplication.isUpdating)
+                EditorUtility.SetDirty(_point);
             if (_forFeature)
                 _grid?.SaveFeatureLayer();
-            EditorSceneManager.MarkSceneDirty(
-                UnityEngine.SceneManagement.SceneManager.GetActiveScene()
-            );
+            if (!EditorApplication.isUpdating)
+            {
+                EditorSceneManager.MarkSceneDirty(
+                    UnityEngine.SceneManagement.SceneManager.GetActiveScene()
+                );
+            }
             SceneView.RepaintAll();
         }
     }

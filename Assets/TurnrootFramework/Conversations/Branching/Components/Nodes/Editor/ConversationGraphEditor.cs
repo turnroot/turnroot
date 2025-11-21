@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using Turnroot.Skills.Nodes;
 using UnityEditor;
 using UnityEngine;
@@ -11,6 +13,49 @@ namespace Turnroot.Conversations.Branching.Nodes
     [CustomNodeGraphEditor(typeof(ConversationGraph))]
     public class ConversationGraphEditor : NodeGraphEditor
     {
+        // OnEnable diagnostics removed.
+
+        private static bool IsSuspicious(XNode.Node node)
+        {
+            if (node is Turnroot.Conversations.Branching.ConversationNode conv)
+            {
+                return conv.conversationLayer == null
+                    && !node.Ports.Any(p =>
+                        p.GetConnections() != null && p.GetConnections().Count > 0
+                    );
+            }
+
+            // generic node: no connections and no meaningful serialized data
+            if (
+                node.Ports != null
+                && node.Ports.Any(p => p.GetConnections() != null && p.GetConnections().Count > 0)
+            )
+                return false;
+
+            var so = new UnityEditor.SerializedObject(node as UnityEngine.Object);
+            var prop = so.GetIterator();
+            var ignore = new HashSet<string> { "m_Script", "position", "xnode.graph", "graph" };
+            while (prop.NextVisible(true))
+            {
+                if (ignore.Contains(prop.name))
+                    continue;
+
+                if (
+                    prop.propertyType == UnityEditor.SerializedPropertyType.ObjectReference
+                    && prop.objectReferenceValue != null
+                )
+                    return false;
+
+                if (
+                    prop.propertyType == UnityEditor.SerializedPropertyType.String
+                    && !string.IsNullOrEmpty(prop.stringValue)
+                )
+                    return false;
+            }
+
+            return true;
+        }
+
         // Helper: build a GenericMenu containing only CreateNodeMenu entries that start with "Conversation/"
         private GenericMenu BuildConversationMenu()
         {
@@ -176,6 +221,19 @@ namespace Turnroot.Conversations.Branching.Nodes
                     {
                         // Remove the node from the graph
                         target.RemoveNode(xNode);
+                        // Also remove the node subasset from the graph asset (if present)
+                        try
+                        {
+                            var nodePath = AssetDatabase.GetAssetPath(xNode as UnityEngine.Object);
+                            if (!string.IsNullOrEmpty(nodePath))
+                                AssetDatabase.RemoveObjectFromAsset(xNode as UnityEngine.Object);
+                        }
+                        catch (System.Exception ex)
+                        {
+                            Debug.LogWarning(
+                                $"ConversationGraphEditor: failed to remove node subasset: {ex.Message}"
+                            );
+                        }
                         try
                         {
                             UnityEditor.EditorUtility.SetDirty(target);

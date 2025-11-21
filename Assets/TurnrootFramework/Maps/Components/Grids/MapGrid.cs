@@ -453,8 +453,15 @@ public class MapGrid : MonoBehaviour
     private void MarkDirty()
     {
 #if UNITY_EDITOR
-        UnityEditor.EditorUtility.SetDirty(this);
-        UnityEditor.SceneView.RepaintAll();
+        if (
+            !UnityEditor.EditorApplication.isCompiling
+            && !UnityEditor.EditorApplication.isPlayingOrWillChangePlaymode
+            && !UnityEditor.EditorApplication.isUpdating
+        )
+        {
+            UnityEditor.EditorUtility.SetDirty(this);
+            UnityEditor.SceneView.RepaintAll();
+        }
 #endif
     }
 
@@ -478,7 +485,14 @@ public class MapGrid : MonoBehaviour
         if (_single3dHeightMeshRaycastPoints != null && _single3dHeightMeshRaycastPoints.Length > 0)
             RebuildRaycastColors();
 
-        UnityEditor.EditorUtility.SetDirty(this);
+        if (
+            !UnityEditor.EditorApplication.isCompiling
+            && !UnityEditor.EditorApplication.isPlayingOrWillChangePlaymode
+            && !UnityEditor.EditorApplication.isUpdating
+        )
+        {
+            UnityEditor.EditorUtility.SetDirty(this);
+        }
     }
 
     void OnDrawGizmos()

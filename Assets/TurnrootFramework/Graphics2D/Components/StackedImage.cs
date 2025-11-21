@@ -406,11 +406,16 @@ namespace Turnroot.Graphics2D
             {
                 Debug.Log($"Successfully loaded saved sprite: {_savedSprite.name}");
 
-                // Mark the character as dirty to save the sprite reference
                 if (_owner != null)
                 {
-                    UnityEditor.EditorUtility.SetDirty(_owner);
-                    UnityEditor.AssetDatabase.SaveAssets();
+                    var ownerPath = UnityEditor.AssetDatabase.GetAssetPath(
+                        _owner as UnityEngine.Object
+                    );
+                    if (!string.IsNullOrEmpty(ownerPath))
+                    {
+                        UnityEditor.EditorUtility.SetDirty(_owner);
+                        UnityEditor.AssetDatabase.SaveAssets();
+                    }
                 }
             }
             else

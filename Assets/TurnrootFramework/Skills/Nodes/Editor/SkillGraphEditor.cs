@@ -71,6 +71,19 @@ namespace Turnroot.Skills.Nodes.Editor
                     {
                         // Remove the node from the graph
                         target.RemoveNode(xNode);
+                        // Ensure any subasset saved for the node is removed as well
+                        try
+                        {
+                            var nodePath = AssetDatabase.GetAssetPath(xNode as UnityEngine.Object);
+                            if (!string.IsNullOrEmpty(nodePath))
+                                AssetDatabase.RemoveObjectFromAsset(xNode as UnityEngine.Object);
+                        }
+                        catch (System.Exception ex)
+                        {
+                            Debug.LogWarning(
+                                $"SkillGraphEditor: failed to remove node subasset: {ex.Message}"
+                            );
+                        }
                     }
                 }
 
