@@ -48,6 +48,7 @@ namespace Turnroot.Conversations
         private Transform _choiceButtonsContainer;
 
         [Header("Controller Events")]
+        public UnityEvent OnAwake;
         public UnityEvent OnAnyConversationStart;
         public UnityEvent OnAnyConversationFinished;
 
@@ -57,6 +58,11 @@ namespace Turnroot.Conversations
             && _currentConversation < _conversationInstances.Count
                 ? _conversationInstances[_currentConversation]
                 : null;
+
+        private void Awake()
+        {
+            OnAwake?.Invoke();
+        }
 
         private Conversation SelectedConversation => SelectedInstance?.Conversation;
         private Graphics2DSettings GfxSettings => Graphics2DSettings.Instance;
