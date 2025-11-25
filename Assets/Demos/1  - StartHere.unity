@@ -116235,50 +116235,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1882290951}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1594883223
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1594883225}
-  - component: {fileID: 1594883224}
-  m_Layer: 0
-  m_Name: '- Turnroot Brain Loader'
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 2147483647
-  m_IsActive: 1
---- !u!114 &1594883224
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1594883223}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 67e9b899f329939479e8f7a9e9025f11, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!4 &1594883225
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1594883223}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1595729261
 GameObject:
   m_ObjectHideFlags: 0
@@ -165312,6 +165268,63 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1882290951}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1001 &143982156611118961
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 3512879346809495329, guid: 9141daf7e0292cc4da962dbafaababd7, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3512879346809495329, guid: 9141daf7e0292cc4da962dbafaababd7, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3512879346809495329, guid: 9141daf7e0292cc4da962dbafaababd7, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3512879346809495329, guid: 9141daf7e0292cc4da962dbafaababd7, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3512879346809495329, guid: 9141daf7e0292cc4da962dbafaababd7, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3512879346809495329, guid: 9141daf7e0292cc4da962dbafaababd7, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3512879346809495329, guid: 9141daf7e0292cc4da962dbafaababd7, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3512879346809495329, guid: 9141daf7e0292cc4da962dbafaababd7, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3512879346809495329, guid: 9141daf7e0292cc4da962dbafaababd7, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3512879346809495329, guid: 9141daf7e0292cc4da962dbafaababd7, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6269035262697412637, guid: 9141daf7e0292cc4da962dbafaababd7, type: 3}
+      propertyPath: m_Name
+      value: '- Turnroot Brain Loader'
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 9141daf7e0292cc4da962dbafaababd7, type: 3}
 --- !u!1 &515832918126316913
 GameObject:
   m_ObjectHideFlags: 0
@@ -166163,4 +166176,4 @@ SceneRoots:
   - {fileID: 3633751634012478304}
   - {fileID: 1000996667}
   - {fileID: 135314992}
-  - {fileID: 1594883225}
+  - {fileID: 143982156611118961}

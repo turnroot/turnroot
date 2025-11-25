@@ -197,6 +197,7 @@ namespace Turnroot.Characters
         [HorizontalLine(color: EColor.Blue)]
         private UnityEngine.Object _ai;
 
+#if TURNROOT_BLOODLINES_MODULE
         [Foldout("Heredity"), SerializeField]
         [HorizontalLine(color: EColor.Indigo)]
         private HereditaryTraits _passedDownTraits = new();
@@ -206,6 +207,7 @@ namespace Turnroot.Characters
 
         [Foldout("Heredity"), SerializeField, ShowIf(nameof(_hasDesignatedChildUnit))]
         private CharacterData _childUnitId;
+#endif
 
         [SerializeField]
         private List<InventorySlot> _startingInventory = new();
@@ -258,7 +260,9 @@ namespace Turnroot.Characters
         public bool CanSSupport => _canSSupport;
 
         public bool CanSSupportAvatar => _canSSupportAvatar;
+#if TURNROOT_BLOODLINES_MODULE
         public bool CanHaveChildren => _canHaveChildren;
+#endif
         public bool IsRecruitable => _isRecruitable;
         public bool IsUnique => _isUnique;
         public Color AccentColor1 => _accentColor1;
@@ -316,10 +320,12 @@ namespace Turnroot.Characters
         public List<InventorySlot> StartingInventory => _startingInventory;
         public List<SupportRelationship> SupportRelationships => _supportRelationships;
 
+#if TURNROOT_BLOODLINES_MODULE
         public HereditaryTraits PassedDownTraits => _passedDownTraits;
 
         public bool HasDesignatedChildUnit => _hasDesignatedChildUnit;
         public CharacterData ChildUnitId => _childUnitId;
+#endif
 
         // Editor helper: invalidate cached PortraitArray so editors can refresh after changes.
         public void InvalidatePortraitArrayCache()

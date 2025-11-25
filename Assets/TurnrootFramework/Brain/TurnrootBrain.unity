@@ -151,7 +151,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9998a39038696534f9f2efb1a180ce18, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  longTermMemory: {fileID: 1357883675}
+  ltm: {fileID: 1357883675}
 --- !u!114 &1357883675
 MonoBehaviour:
   m_ObjectHideFlags: 0

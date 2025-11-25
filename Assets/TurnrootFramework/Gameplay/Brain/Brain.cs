@@ -7,10 +7,14 @@ using UnityEngine;
 /// This is the central pinched part of the farfalle structure of the brain.
 /// </summary>
 /// <remarks>
-/// Subscribe to events in OnEnable() and unsubscribe in OnDestroy() to avoid memory leaks.
-/// Other brains should subscribe to events from this brain to maintain the bowtie structure of the brain system.
-/// For example, there is a OnPaused event in StateBrain. When the game is paused, StateBrain invokes this event,
-/// and other brains that need to respond to the pause event subscribe to it here.
+/// If you want to extend brain functionality, create new scripts that interact with the brain components.
+/// Hook into the brain, don't alter it.
+/// If you're looking for hooks, there are lots of events you can subscribe to,
+/// search for `public event Action`.
+///
+/// Note: if you are going to make changes here, make sure you fork the Turnroot Framework repository
+/// on GitHub and make your changes there. If you go in willy-nily without a git connection,
+/// I can't help you if you mess up your game!
 /// </remarks>
 namespace Assets.Turnroot.Gameplay.Brain
 {
@@ -21,6 +25,15 @@ namespace Assets.Turnroot.Gameplay.Brain
     public class Brain : MonoBehaviour
     {
         public LongTermMemory ltm;
+
+        /* ------------------------------ Module flags ------------------------------ */
+        // These are paid add-on modules, you can find them on the asset store.
+        // The modules will self-install and self-enable these.
+        // Thanks for supporting Turnroot :)
+        private bool campModuleEnabled = false;
+        private bool hubModuleEnabled = false;
+        private bool bloodlinesModuleEnabled = false;
+        private bool retroModuleEnabled = false;
 
         /* ------------------------------ State events ------------------------------ */
         public event Action<BrainState> OnPaused;
@@ -50,6 +63,23 @@ namespace Assets.Turnroot.Gameplay.Brain
             {
                 Debug.Log("Brain initialized LongTermMemory.");
             }
+        }
+
+        /* ------------------------------ Check modules ----------------------------- */
+        public void CheckScriptingSymbols()
+        {
+#if TURNROOT_BLOODLINES_MODULE
+            bloodlinesModuleEnabled = true;
+#endif
+#if TURNROOT_CAMP_MODULE
+            campModuleEnabled = true;
+#endif
+#if TURNROOT_HUB_MODULE
+            hubModuleEnabled = true;
+#endif
+#if TURNROOT_RETRO_MODULE
+            retroModuleEnabled = true;
+#endif
         }
 
         /* ------------------------------ State methods ----------------------------- */

@@ -82,7 +82,7 @@ namespace Assets.Turnroot.Gameplay.Brain
                 new("Combat"),
                 new("WorldMap"),
             };
-#if TURNROOT_HUB_MODULE
+#if TURNROOT_CAMP_MODULE
             list.Add(new BrainState("Hub"));
 #endif
             list.AddRange(
