@@ -186,6 +186,17 @@ public class JsonPlayerPrefs
         }
     }
 
+    public bool GetBool(string key, bool defaultValue = false)
+    {
+        int intValue = GetInt(key, defaultValue ? 1 : 0);
+        return intValue != 0;
+    }
+
+    public void SetBool(string key, bool value)
+    {
+        SetInt(key, value ? 1 : 0);
+    }
+
     bool TryGetPlayerPref(string key, out PlayerPref playerPref)
     {
         playerPref = null;

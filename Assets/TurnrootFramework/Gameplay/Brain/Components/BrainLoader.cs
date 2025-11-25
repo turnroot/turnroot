@@ -5,7 +5,7 @@ namespace TurnrootFramework.Gameplay.Brain
 {
     public class BrainLoader : MonoBehaviour
     {
-        private void Start()
+        private void Awake()
         {
             LoadBrainScene();
         }

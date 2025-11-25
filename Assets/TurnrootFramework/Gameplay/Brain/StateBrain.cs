@@ -27,60 +27,135 @@ namespace TurnrootFramework.Gameplay.Brain
     {
         public static event Action<BrainState> ChangeState;
         public static event Action HighLevelStatesInitialized;
+        public static event Action OnGameOver;
+        public static event Action<BrainState> OnGamePaused;
+        public static event Action<BrainState> OnGameResumed;
         private BrainState[] _highLevelStates;
-        private BrainState _currentState;
+        private BrainState _savedStateBeforePause;
 
-        public void OnEnable()
+        [SerializeField]
+        private BrainState _currentState;
+        public LongTermMemory longTermMemory;
+        public BrainState CurrentState => _currentState;
+
+        public void Awake()
         {
-            SetHighLevelStates();
+            Debug.Log("StateBrain Awake called.");
+            longTermMemory =
+                gameObject.GetComponent<LongTermMemory>()
+                ?? gameObject.AddComponent<LongTermMemory>();
+
+            InitializeHighLevelStates();
+        }
+
+        public void InitializeHighLevelStates()
+        {
+            if (_highLevelStates == null || _highLevelStates.Length == 0)
+            {
+                if (!TryRestoreHighLevelStates())
+                {
+                    SetHighLevelStates();
+                    SaveHighLevelStates();
+                    Debug.Log("High-level states set and saved to long-term memory.");
+                }
+            }
+            else
+            {
+                Debug.Log("High-level states already initialized.");
+            }
         }
 
         public void SetHighLevelStates()
         {
-            var cutscene = new BrainState("Cutscene");
-            var paused = new BrainState("Paused");
-            var combat = new BrainState("Combat");
-            var worldMap = new BrainState("WorldMap");
-#if TURNROOT_HUB_MODULE
-            var hub = new BrainState("Hub");
-#endif
-            var mainMenu = new BrainState("MainMenu");
-            var gameOver = new BrainState("GameOver");
-            var credits = new BrainState("Credits");
-            var nonCombatGameplay = new BrainState("NonCombatGameplay");
-
-            _highLevelStates = new[]
+            var list = new System.Collections.Generic.List<BrainState>
             {
-                cutscene,
-                paused,
-                combat,
-                worldMap,
-#if TURNROOT_HUB_MODULE
-                hub,
-#endif
-                mainMenu,
-                gameOver,
-                credits,
-                nonCombatGameplay,
+                new("Cutscene"),
+                new("Paused"),
+                new("Combat"),
+                new("WorldMap"),
             };
+#if TURNROOT_HUB_MODULE
+            list.Add(new BrainState("Hub"));
+#endif
+            list.AddRange(
+                new[]
+                {
+                    new BrainState("MainMenu"),
+                    new BrainState("GameOver"),
+                    new BrainState("Credits"),
+                    new BrainState("NonCombatGameplay"),
+                }
+            );
+
+            _highLevelStates = list.ToArray();
+            SaveHighLevelStates();
             HighLevelStatesInitialized?.Invoke();
             Debug.Log("High-level states initialized.");
         }
 
+        private bool TryRestoreHighLevelStates()
+        {
+            int storedCount = longTermMemory.RecallInt("StateBrain.HighLevelStates");
+            if (storedCount <= 0)
+                return false;
+
+            for (int i = 0; i < storedCount; i++)
+            {
+                if (string.IsNullOrEmpty(longTermMemory.Recall("StateBrain.HighLevelState." + i)))
+                    return false;
+            }
+
+            _highLevelStates = new BrainState[storedCount];
+            for (int i = 0; i < storedCount; i++)
+            {
+                string name = longTermMemory.Recall("StateBrain.HighLevelState." + i);
+                _highLevelStates[i] = new BrainState(name);
+            }
+
+            return true;
+        }
+
+        private void SaveHighLevelStates()
+        {
+            if (_highLevelStates == null)
+                return;
+            for (int i = 0; i < _highLevelStates.Length; i++)
+                longTermMemory.Remember("StateBrain.HighLevelState." + i, _highLevelStates[i].Name);
+            longTermMemory.RememberInt("StateBrain.HighLevelStates", _highLevelStates.Length);
+        }
+
+        private BrainState FindHighLevelState(string name)
+        {
+            if (string.IsNullOrEmpty(name) || _highLevelStates == null)
+                return null;
+            return Array.Find(_highLevelStates, s => s.Name == name);
+        }
+
+        private void SetCurrentState(BrainState newState)
+        {
+            if (newState == null)
+                return;
+
+            if (_currentState != null)
+                _currentState.IsActive = false;
+
+            _currentState = newState;
+            _currentState.IsActive = true;
+
+            ChangeState?.Invoke(_currentState);
+        }
+
         public BrainState ActivateHighLevelState(string stateName)
         {
-            var newState = Array.Find(_highLevelStates, s => s.Name == stateName);
-            if (newState != null)
-            {
-                _currentState = newState;
-                _currentState.IsActive = true;
-                return _currentState;
-            }
-            else
+            var newState = FindHighLevelState(stateName);
+            if (newState == null)
             {
                 Debug.LogError($"State '{stateName}' not found.");
                 return null;
             }
+
+            SetCurrentState(newState);
+            return _currentState;
         }
 
         public void ActivateChildState(string childStateName)
@@ -91,15 +166,13 @@ namespace TurnrootFramework.Gameplay.Brain
                 return;
             }
 
-            var childState = Array.Find(
-                _currentState.ParentOfStates,
-                s => s.Name == childStateName
-            );
+            var childState =
+                _currentState.ParentOfStates == null
+                    ? null
+                    : Array.Find(_currentState.ParentOfStates, s => s.Name == childStateName);
             if (childState != null)
             {
-                _currentState.IsActive = false;
-                _currentState = childState;
-                _currentState.IsActive = true;
+                SetCurrentState(childState);
             }
             else
             {
@@ -127,50 +200,48 @@ namespace TurnrootFramework.Gameplay.Brain
             }
             return true;
         }
+
+        public bool SetPausedState(bool isPaused)
+        {
+            var pausedState = FindHighLevelState("Paused");
+            var _previousState = _currentState;
+            if (pausedState == null)
+            {
+                Debug.LogError("Paused state not found.");
+                return false;
+            }
+
+            if (isPaused)
+            {
+                _savedStateBeforePause = _previousState;
+                SetCurrentState(pausedState);
+                OnGamePaused?.Invoke(_previousState);
+            }
+            else
+            {
+                if (_savedStateBeforePause != null)
+                {
+                    SetCurrentState(_savedStateBeforePause);
+                    OnGameResumed?.Invoke(_savedStateBeforePause);
+                    _savedStateBeforePause = null;
+                }
+                else
+                {
+                    if (_currentState != null)
+                        _currentState.IsActive = false;
+                }
+            }
+            return true;
+        }
+
+        public void Pause()
+        {
+            SetPausedState(true);
+        }
+
+        public void Resume()
+        {
+            SetPausedState(false);
+        }
     }
 }
-
-/*
-A public state event Action<> is like a UnityEvent, but script-accessible instead.
-I can use it to notify other parts of the game when a state changes, such as when the player takes damage or the game ends.
-I can define events in the Brain, and then other scripts can call them or subscribe to them to respond to state changes.
-
-public static event Action<string> OnGameOver;
-
-public void TakeDamage(float damage)
-{
-    health -= damage;
-    if(health < 0)
-    {
-        Brain.OnGameOver?.Invoke("The game is over");
-    }
-}
-
-public class GameController : MonoBehaviour
-{
-    void RestartGame()
-    {
-        // Restart the game!
-    }
-
-    private void OnEnable()
-    {
-        PlayerHealth.onGameOver += RestartGame;
-    }
-
-    private void OnDisable()
-    {
-        PlayerHealth.onGameOver -= RestartGame;
-    }
-    Publisher (already in StateBrain):
-public static event Action<BrainState> ChangeState;
-// Raise:
-ChangeState?.Invoke(currentState);
-
-Subscriber:
-private void OnEnable() { StateBrain.ChangeState += HandleChange; }
-private void OnDisable() { StateBrain.ChangeState -= HandleChange; }
-private void HandleChange(BrainState s) {
-     Do something with the new state}
-}
-*/
