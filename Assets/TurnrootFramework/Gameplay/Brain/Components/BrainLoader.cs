@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace TurnrootFramework.Gameplay.Brain
+namespace Assets.Turnroot.Gameplay.Brain
 {
     public class BrainLoader : MonoBehaviour
     {
@@ -19,9 +19,20 @@ namespace TurnrootFramework.Gameplay.Brain
         {
             SceneManager.UnloadSceneAsync("TurnrootBrain");
         }
+
         private void LoadBrainScene()
         {
-            SceneManager.LoadScene("TurnrootBrain", LoadSceneMode.Additive);
+            Debug.Log("Loading TurnrootBrain scene.");
+            try
+            {
+                SceneManager.LoadScene("TurnrootBrain", LoadSceneMode.Additive);
+                Debug.Log("TurnrootBrain scene loaded successfully.");
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError("Failed to load TurnrootBrain scene: " + e.Message);
+                Debug.Break();
+            }
         }
     }
 }

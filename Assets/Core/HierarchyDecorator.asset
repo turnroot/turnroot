@@ -109,7 +109,7 @@ MonoBehaviour:
         m_Font: {fileID: 0}
         m_FontSize: 11
         m_FontStyle: 1
-        m_Alignment: 4
+        m_Alignment: 0
         m_WordWrap: 0
         m_RichText: 1
         m_TextClipping: 0
@@ -269,7 +269,7 @@ MonoBehaviour:
         m_Font: {fileID: 0}
         m_FontSize: 10
         m_FontStyle: 1
-        m_Alignment: 4
+        m_Alignment: 0
         m_WordWrap: 0
         m_RichText: 1
         m_TextClipping: 0
@@ -4521,6 +4521,58 @@ MonoBehaviour:
     customGroups: []
     allCustomComponents:
       name: All
-      components: []
+      components:
+      - displayName: ConversationController
+        name: Turnroot.Conversations.ConversationController, Assembly-CSharp, Version=0.0.0.0,
+          Culture=neutral, PublicKeyToken=null
+        content:
+          m_Text: ConversationController
+          m_Image: {fileID: -8204150473280056172, guid: 0000000000000000d000000000000000, type: 0}
+          m_Tooltip: ConversationController
+          m_TextWithWhitespace: "ConversationController\u200B"
+        shown: 0
+        excluded: 0
+        isBuiltIn: 0
+        script: {fileID: 11500000, guid: 06f366e3c5427884fbde44ceeb21a439, type: 3}
+        hasToggle: 1
+      - displayName: BrainLoader
+        name: TurnrootFramework.Gameplay.Brain.BrainLoader, Assembly-CSharp, Version=0.0.0.0,
+          Culture=neutral, PublicKeyToken=null
+        content:
+          m_Text: BrainLoader
+          m_Image: {fileID: -8204150473280056172, guid: 0000000000000000d000000000000000, type: 0}
+          m_Tooltip: BrainLoader
+          m_TextWithWhitespace: "BrainLoader\u200B"
+        shown: 0
+        excluded: 0
+        isBuiltIn: 0
+        script: {fileID: 11500000, guid: 67e9b899f329939479e8f7a9e9025f11, type: 3}
+        hasToggle: 1
+      - displayName: StateBrain
+        name: TurnrootFramework.Gameplay.Brain.StateBrain, Assembly-CSharp, Version=0.0.0.0,
+          Culture=neutral, PublicKeyToken=null
+        content:
+          m_Text: StateBrain
+          m_Image: {fileID: -8204150473280056172, guid: 0000000000000000d000000000000000, type: 0}
+          m_Tooltip: StateBrain
+          m_TextWithWhitespace: "StateBrain\u200B"
+        shown: 0
+        excluded: 0
+        isBuiltIn: 0
+        script: {fileID: 11500000, guid: c10e624373270034ab70adabc9a811fd, type: 3}
+        hasToggle: 1
+      - displayName: LongTermMemory
+        name: LongTermMemory, Assembly-CSharp, Version=0.0.0.0, Culture=neutral,
+          PublicKeyToken=null
+        content:
+          m_Text: LongTermMemory
+          m_Image: {fileID: -8204150473280056172, guid: 0000000000000000d000000000000000, type: 0}
+          m_Tooltip: LongTermMemory
+          m_TextWithWhitespace: "LongTermMemory\u200B"
+        shown: 0
+        excluded: 0
+        isBuiltIn: 0
+        script: {fileID: 11500000, guid: 2b2e9db230ea2f3489b145291b2b7f0e, type: 3}
+        hasToggle: 1
     unityVersion: 6000.0.56f1
     unityCount: 324
