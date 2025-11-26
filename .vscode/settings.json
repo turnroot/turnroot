@@ -1,4 +1,5 @@
 {
+    "editor.acceptSuggestionOnCommitCharacter": false,
     "files.exclude": {
         "**/.DS_Store": true,
         "**/.git": true,

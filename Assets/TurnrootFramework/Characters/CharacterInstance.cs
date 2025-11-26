@@ -13,10 +13,10 @@ namespace Turnroot.Characters
     // Multiple characters can share the same CharacterData template but have different instances
 
     [Serializable]
-    public class CharacterInstance
+    public class CharacterInstance : Turnroot.Serialization.IPostDeserialize
     {
         [SerializeField]
-        private readonly string _id;
+        private string _id;
 
         [SerializeField]
         private CharacterData _characterTemplate;
@@ -60,6 +60,22 @@ namespace Turnroot.Characters
             _id = Guid.NewGuid().ToString();
             _characterTemplate = template;
             Initialize();
+        }
+
+        // Hook to allow custom initialization or repair after deserialization by a custom JSON converter.
+        // The converter will call this to ensure non-null lists/structures are present.
+        public void OnAfterDeserialize()
+        {
+            if (_runtimeBoundedStats == null)
+                _runtimeBoundedStats = new List<BoundedCharacterStat>();
+            if (_runtimeUnboundedStats == null)
+                _runtimeUnboundedStats = new List<CharacterStat>();
+            if (_supportRelationships == null)
+                _supportRelationships = new List<SupportRelationshipInstance>();
+            if (_skillInstances == null)
+                _skillInstances = new List<SkillInstance>();
+            if (_inventoryInstance == null)
+                _inventoryInstance = new CharacterInventoryInstance();
         }
 
         private void Initialize()

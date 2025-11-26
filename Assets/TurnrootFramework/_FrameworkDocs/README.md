@@ -9,6 +9,8 @@ Complete API reference for the Turnroot Framework assets.
 - **[CharacterStats](Characters/CharacterStats.md)** - Stat system (bounded and unbounded)
 - **[CharacterComponents](Characters/CharacterComponents.md)** - Pronouns, relationships, traits
 - **[CharacterInventory](Characters/CharacterInventory.md)** - Multi-slot equipment and inventory
+### Brain System
+- **[GamewideContextBrain](Gameplay/GamewideContextBrain.md)** - Runtime instance factory, serialization and rehydration
 
 ### Gameplay Objects System
 - **[ObjectItem](Gameplay/ObjectItem.md)** - Item assets (weapons, magic, consumables, gifts, etc.)
@@ -89,6 +91,8 @@ TurnrootFramework/_FrameworkDocs/
     ├── PortraitEditorWindow.md                 # Portrait editor window
     ├── StackedImageEditorWindow.md             # Base editor for StackedImage (documented inline)
     └── ImageCompositor.md                      # Static compositor utility
+  ├── Templates/                                   # Useful templates for adding new systems
+  │   └── DataToInstanceChecklist.md               # Checklist & guide for adding Data->Instance pairs
 ```
 
 ## DOCUMENTATION MAPPING TO SOURCE FILES

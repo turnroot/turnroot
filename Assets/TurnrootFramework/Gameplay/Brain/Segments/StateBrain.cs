@@ -27,7 +27,7 @@ namespace Assets.Turnroot.Gameplay.Brain
     /// <summary>
     /// Manages high-level game states and transitions within the brain system.
     /// LongTermMemory persists state information.
-    /// Brains have a farfalle structure.
+    /// Brains have a farfalle structure >< :) 
     /// </summary>
     public class StateBrain : MonoBehaviour
     {

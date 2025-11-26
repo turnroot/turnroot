@@ -1,0 +1,232 @@
+using System;
+using System.Reflection;
+using System.Text;
+using Assets.Turnroot.Gameplay.Brain.Components;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using Turnroot.Characters;
+using Turnroot.Gameplay.Objects;
+using UnityEngine;
+
+namespace Assets.Turnroot.Gameplay.Brain
+{
+    /// <summary>
+    /// Shared helper methods for GamewideContextBrain to keep the main class small.
+    /// </summary>
+    public static class GamewideContextBrainHelpers
+    {
+        public static JsonSerializerSettings GetJsonSerializerSettings()
+        {
+            var settings = new JsonSerializerSettings
+            {
+                TypeNameHandling = TypeNameHandling.Auto,
+                NullValueHandling = NullValueHandling.Include,
+            };
+            settings.Converters.Add(new UnityObjectJsonConverter());
+            settings.Converters.Add(new CharacterInstanceJsonConverter());
+            // Instances backed by a ScriptableObject template (like ObjectItemInstance)
+            // require a read-time converter to ensure the template constructor runs
+            // and the private backing field is set. SampleInstanceJsonConverter<TData,TInstance>
+            // is a reusable converter for these cases.
+            settings.Converters.Add(new ObjectItemInstanceJsonConverter());
+            return settings;
+        }
+
+        [Serializable]
+        public class SerializedWrapper
+        {
+            public string TypeName;
+            public string Payload;
+            public string Hash;
+            public string Version;
+        }
+
+        // Lightweight deterministic FNV-1a 64-bit hash; returns lower-case hex
+        public static string ComputeFNV1a64Hex(string input)
+        {
+            const ulong offsetBasis = 14695981039346656037UL;
+            const ulong prime = 1099511628211UL;
+
+            ulong hash = offsetBasis;
+            if (!string.IsNullOrEmpty(input))
+            {
+                var bytes = Encoding.UTF8.GetBytes(input);
+                foreach (var b in bytes)
+                {
+                    hash ^= b;
+                    hash *= prime;
+                }
+            }
+
+            return hash.ToString("x16");
+        }
+
+        // Create a safe default instance when tampering is detected.
+        // This logic mirrors the original implementation but is now testable in isolation.
+        public static T CreateDefaultInstanceFromWrapper<T>(SerializedWrapper wrapper)
+        {
+            try
+            {
+                var t = typeof(T);
+                // Special case: CharacterInstance -> attempt to find CharacterData referenced in payload
+                if (t == typeof(CharacterInstance))
+                {
+                    try
+                    {
+                        var payloadObj = JObject.Parse(wrapper.Payload);
+                        var templateToken =
+                            payloadObj.SelectToken("_characterTemplate")
+                            ?? payloadObj.SelectToken("CharacterTemplate");
+                        if (templateToken != null && templateToken.Type == JTokenType.Object)
+                        {
+#if UNITY_EDITOR
+                            var guid = templateToken.Value<string>("guid");
+                            var assetPath = templateToken.Value<string>("assetPath");
+                            if (!string.IsNullOrEmpty(guid))
+                            {
+                                var path = UnityEditor.AssetDatabase.GUIDToAssetPath(guid);
+                                if (!string.IsNullOrEmpty(path))
+                                {
+                                    var characterData =
+                                        UnityEditor.AssetDatabase.LoadAssetAtPath<CharacterData>(
+                                            path
+                                        );
+                                    if (characterData != null)
+                                    {
+                                        return (T)(object)new CharacterInstance(characterData);
+                                    }
+                                }
+                            }
+                            if (!string.IsNullOrEmpty(assetPath))
+                            {
+                                var characterData =
+                                    UnityEditor.AssetDatabase.LoadAssetAtPath<CharacterData>(
+                                        assetPath
+                                    );
+                                if (characterData != null)
+                                {
+                                    return (T)(object)new CharacterInstance(characterData);
+                                }
+                            }
+#endif
+                            var name = templateToken.Value<string>("name");
+                            if (!string.IsNullOrEmpty(name))
+                            {
+                                var characterData = Resources.Load<CharacterData>(name);
+                                if (characterData != null)
+                                {
+                                    return (T)(object)new CharacterInstance(characterData);
+                                }
+                            }
+                        }
+                    }
+                    catch { }
+                    // If all else fails, we cannot create a CharacterInstance without a template
+                    return default;
+                }
+
+                // Generic fallback: try parameterless constructor
+                if (t.IsValueType)
+                    return default;
+                var ctor = t.GetConstructor(Type.EmptyTypes);
+                if (ctor != null)
+                {
+                    return (T)Activator.CreateInstance(t);
+                }
+
+                return default;
+            }
+            catch
+            {
+                return default;
+            }
+        }
+
+        // Helper: compute modification-check hash for an instance given an optional version hex
+        public static string GetModificationCheckHash<T>(T instance, string versionHex = null)
+        {
+            try
+            {
+                var settings = GetJsonSerializerSettings();
+                var json = JsonConvert.SerializeObject(instance, settings);
+                var input = json + "|v:" + (string.IsNullOrEmpty(versionHex) ? "0" : versionHex);
+                return ComputeFNV1a64Hex(input);
+            }
+            catch
+            {
+                return string.Empty;
+            }
+        }
+
+        // Helper: compose ledger key for storing an instance hash in LongTermMemory.
+        // Attempts to use an instance Id if available, otherwise falls back to a deterministic
+        // key derived from wrapper hash/version. Keys are obfuscated by hashing the raw key
+        // to make them less-friendly for casual hackers.
+        public static string BuildHashLedgerKey<T>(T instance, SerializedWrapper wrapper)
+        {
+            try
+            {
+                var tname = typeof(T).FullName ?? typeof(T).Name;
+
+                // Try to extract an Id from the live instance first (property or field)
+                string id = null;
+                if (instance != null)
+                {
+                    var instType = instance.GetType();
+                    var prop = instType.GetProperty(
+                        "Id",
+                        BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic
+                    );
+                    if (prop != null && prop.PropertyType == typeof(string))
+                        id = prop.GetValue(instance) as string;
+                    if (string.IsNullOrEmpty(id))
+                    {
+                        var fi = instType.GetField(
+                            "_id",
+                            BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public
+                        );
+                        if (fi != null && fi.FieldType == typeof(string))
+                            id = fi.GetValue(instance) as string;
+                    }
+                }
+
+                // If no id found on instance, try parsing the wrapper payload for an _id/Id token
+                if (
+                    string.IsNullOrEmpty(id)
+                    && wrapper != null
+                    && !string.IsNullOrEmpty(wrapper.Payload)
+                )
+                {
+                    try
+                    {
+                        var obj = JObject.Parse(wrapper.Payload);
+                        id =
+                            obj.SelectToken("_id")?.Value<string>()
+                            ?? obj.SelectToken("Id")?.Value<string>();
+                    }
+                    catch { }
+                }
+
+                string rawKey;
+                if (!string.IsNullOrEmpty(id))
+                {
+                    rawKey = $"GWB.InstanceHash.{tname}.{id}";
+                }
+                else
+                {
+                    var hashPart = wrapper?.Hash ?? string.Empty;
+                    var versionPart = wrapper?.Version ?? string.Empty;
+                    var shortHash = hashPart.Length > 8 ? hashPart.Substring(0, 8) : hashPart;
+                    rawKey = $"GWB.InstanceHash.{tname}.hash_{shortHash}.v_{versionPart}";
+                }
+
+                var keyHash = ComputeFNV1a64Hex(rawKey);
+                return $"GWB.InstanceHash.{tname}.{keyHash}";
+            }
+            catch
+            {
+                return null;
+            }
+        }
+    }
+}

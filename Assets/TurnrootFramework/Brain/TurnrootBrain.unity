@@ -132,6 +132,8 @@ GameObject:
   - component: {fileID: 1357883676}
   - component: {fileID: 1357883675}
   - component: {fileID: 1357883674}
+  - component: {fileID: 1357883680}
+  - component: {fileID: 1357883679}
   m_Layer: 0
   m_Name: = Brain
   m_TagString: DoNotModify
@@ -176,6 +178,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cf6cad0909614554d8c46dd4dfbdd26e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _brain: {fileID: 0}
 --- !u!114 &1357883677
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -204,6 +207,35 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1357883679
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1357883673}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b7736f1a81491e0469b8a027f5169be6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Brain: {fileID: 1357883680}
+  TestPolicy: 2
+  TestCharacter: {fileID: 11400000, guid: 0f8b79eeaffbfbc4aab491112cae2ddd, type: 2}
+  LastEncoded: 
+--- !u!114 &1357883680
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1357883673}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 72d2fb8e623e7104eb6a550e252dbf04, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  tamperPolicy: 2
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

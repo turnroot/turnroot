@@ -1,9 +1,10 @@
 using System;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
+using Turnroot.Serialization;
 using UnityEngine;
 
 [Serializable]
-public class SkillInstance
+public class SkillInstance : IPostDeserialize
 {
     [SerializeField]
     private Skill _skillTemplate;
@@ -24,6 +25,14 @@ public class SkillInstance
         _skillTemplate = skillTemplate;
         _readyToFire = false;
         _equipped = false;
+    }
+
+    // Parameterless constructor for deserialization
+    public SkillInstance() { }
+
+    public void OnAfterDeserialize()
+    {
+        // No special initialization required currently. Provided for future-proofing.
     }
 
     /// <summary>

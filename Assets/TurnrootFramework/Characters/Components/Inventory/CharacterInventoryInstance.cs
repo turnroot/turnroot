@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Turnroot.Gameplay.Objects;
 using Turnroot.Gameplay.Objects.Components;
+using Turnroot.Serialization;
 using UnityEngine;
 
 /// <summary>
@@ -9,7 +10,7 @@ using UnityEngine;
 /// that tracks their specific inventory state.
 /// </summary>
 [Serializable]
-public class CharacterInventoryInstance
+public class CharacterInventoryInstance : IPostDeserialize
 {
     [SerializeField]
     private List<ObjectItemInstance> _inventoryItems = new();
@@ -63,8 +64,26 @@ public class CharacterInventoryInstance
     {
         get
         {
-            // Get current value from settings
-            int currentValue = GameplayGeneralSettings.Instance.GetMaxEquippedNonWeaponItems();
+            // Get current value from settings. Accessing GameplayGeneralSettings.Instance may
+            // call Resources.Load and is disallowed during Unity's serialization phase; guard
+            // against UnityException and fall back to a safe default to avoid editor exceptions.
+            int currentValue;
+            try
+            {
+                currentValue = GameplayGeneralSettings.Instance.GetMaxEquippedNonWeaponItems();
+            }
+            catch (UnityEngine.UnityException)
+            {
+                // Happens during Unity serialization when Resources.Load is forbidden.
+                // Use a sensible default matching the expected framework default (2 non-weapon slots)
+                // so constructors and deserialization can proceed without invoking Resources.
+                currentValue = 2;
+            }
+            catch (System.Exception)
+            {
+                // Any other issues — fallback to default as well.
+                currentValue = 2;
+            }
 
             // If cached value changed, invalidate initialization
             if (_cachedMaxNonWeaponSlots != currentValue)
@@ -147,6 +166,18 @@ public class CharacterInventoryInstance
     {
         _capacity = capacity;
         _inventoryItems = new List<ObjectItemInstance>();
+        EnsureEquipmentArraysInitialized();
+    }
+
+    /// <summary>
+    /// Parameterless constructor for JSON deserialization.
+    /// Calls the capacity constructor with default value.
+    /// </summary>
+    public CharacterInventoryInstance()
+        : this(6) { }
+
+    public void OnAfterDeserialize()
+    {
         EnsureEquipmentArraysInitialized();
     }
 

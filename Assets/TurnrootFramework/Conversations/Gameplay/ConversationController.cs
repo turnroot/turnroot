@@ -65,6 +65,30 @@ namespace Turnroot.Conversations
         }
 
         private Conversation SelectedConversation => SelectedInstance?.Conversation;
+
+        // Backwards-compatible helper used by unit tests via reflection.
+        private ConversationInstance SelectedConversationInstance => SelectedInstance;
+
+        // Backwards-compatible helper used by unit tests via reflection.
+        private string[] GetConversationInstanceNames()
+        {
+            if (_conversationInstances == null)
+                return new string[0];
+
+            var names = new System.Collections.Generic.List<string>();
+            foreach (var inst in _conversationInstances)
+            {
+                if (inst == null)
+                {
+                    names.Add("(null)");
+                    continue;
+                }
+                var c = inst.Conversation;
+                names.Add(c != null ? c.name : "(no conversation)");
+            }
+            return names.ToArray();
+        }
+
         private Graphics2DSettings GfxSettings => Graphics2DSettings.Instance;
 
         public void Advance() => NextLayer();

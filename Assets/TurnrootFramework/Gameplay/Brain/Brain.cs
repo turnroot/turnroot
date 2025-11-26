@@ -13,7 +13,7 @@ namespace Assets.Turnroot.Gameplay.Brain
     /// <summary>
     /// The universal brain for managing and propagating events and data throughout the brain system.
     /// All brain events come from here.
-    /// This is the central pinched part of the farfalle structure of the brain.
+    /// It's like a farfalle, lots of stuff in, one central point, lots of stuff out.
     /// </summary>
     /// <remarks>
     /// If you want to extend brain functionality, create new scripts that interact with the brain components.
@@ -22,12 +22,21 @@ namespace Assets.Turnroot.Gameplay.Brain
     /// search for `public event Action`.
     ///
     /// Note: if you are going to make changes here, make sure you fork the Turnroot Framework repository
-    /// on GitHub and make your changes there. If you go in willy-nily without a git connection,
+    /// on GitHub and make your changes there. If you go in willy-nily without git history,
     /// I can't help you if you mess up your game!
     /// </remarks>
     public class Brain : MonoBehaviour
     {
         public LongTermMemory ltm;
+
+        /* ----------------------------- Memory events ----------------------------- */
+        public event Action<string> OnIllegallyModifiedFileDetected;
+
+        // Internal/engine method to raise the event for illegal modifications
+        public void NotifyIllegalModification(string message)
+        {
+            OnIllegallyModifiedFileDetected?.Invoke(message);
+        }
 
         /* ------------------------------ Module flags ------------------------------ */
         // These are paid add-on modules, you can find them on the asset store.
@@ -37,6 +46,12 @@ namespace Assets.Turnroot.Gameplay.Brain
         private bool hubModuleEnabled = false;
         private bool bloodlinesModuleEnabled = false;
         private bool retroModuleEnabled = false;
+
+        private bool unwindModuleEnabled = false;
+
+        private bool troopsModuleEnabled = false;
+
+        private bool monstersModuleEnabled = false;
 
         /* ------------------------------ State events ------------------------------ */
         public event Action<BrainState> OnPaused;
@@ -114,9 +129,18 @@ namespace Assets.Turnroot.Gameplay.Brain
 #if TURNROOT_RETRO_MODULE
             retroModuleEnabled = true;
 #endif
+#if TURNROOT_UNWIND_MODULE
+            unwindModuleEnabled = true;
+#endif
+#if TURNROOT_TROOPS_MODULE
+            troopsModuleEnabled = true;
+#endif
+#if TURNROOT_MONSTERS_MODULE
+            monstersModuleEnabled = true;
+#endif
         }
 
-        /* ------------------------- Initialize any modules ------------------------- */
+        /* ------------------------- Initialize available modules ------------------------- */
         public void InitializeModules()
         {
             Debug.Log(
@@ -124,6 +148,9 @@ namespace Assets.Turnroot.Gameplay.Brain
                     + (campModuleEnabled ? "Camp, " : "")
                     + (hubModuleEnabled ? "Hub, " : "")
                     + (bloodlinesModuleEnabled ? "Bloodlines, " : "")
+                    + (unwindModuleEnabled ? "Unwind, " : "")
+                    + (troopsModuleEnabled ? "Troops, " : "")
+                    + (monstersModuleEnabled ? "Monsters, " : "")
                     + (retroModuleEnabled ? "Retro " : "")
             );
             Debug.Log(
