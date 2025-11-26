@@ -621,7 +621,7 @@ public class MapGridEditorWindow : EditorWindow
                     if (chosen == null)
                         point.SetStartingUnit(null);
                     else
-                        point.SetStartingUnit(new Turnroot.Characters.CharacterInstance(chosen));
+                        point.SetStartingUnit(Turnroot.Characters.CharacterInstance.Create(chosen));
                     SafeSetDirty(point);
                     MarkDirty();
                 }
@@ -868,7 +868,7 @@ public class MapGridEditorWindow : EditorWindow
                     else
                         point.SetUnitFeatureProperty(
                             keyProp.stringValue,
-                            new Turnroot.Characters.CharacterInstance(chosen)
+                            Turnroot.Characters.CharacterInstance.Create(chosen)
                         );
                     SafeSetDirty(point);
                     MarkDirty();

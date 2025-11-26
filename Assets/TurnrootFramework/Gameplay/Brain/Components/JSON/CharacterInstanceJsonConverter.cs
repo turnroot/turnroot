@@ -107,7 +107,7 @@ namespace Assets.Turnroot.Gameplay.Brain.Components
             CharacterInstance instance = null;
             if (template != null)
             {
-                instance = new CharacterInstance(template);
+                instance = CharacterInstance.Create(template);
             }
             else
             {

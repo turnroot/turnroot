@@ -51,7 +51,7 @@ namespace Turnroot.Tests.Editor
             var gw = go.AddComponent<GamewideContextBrain>();
 
             // Create instance from template and mutate runtime state
-            var instance = new CharacterInstance(template);
+            var instance = CharacterInstance.Create(template);
             instance.LevelUp(); // mutate level
 
             // Ensure mutated value is present
@@ -86,7 +86,7 @@ namespace Turnroot.Tests.Editor
             var ltm = go.AddComponent<LongTermMemory>();
             var gw = go.AddComponent<GamewideContextBrain>();
 
-            var instance = new CharacterInstance(template);
+            var instance = CharacterInstance.Create(template);
             var encoded = gw.EncodeInstanceToString(instance);
             Assert.IsNotNull(encoded);
 

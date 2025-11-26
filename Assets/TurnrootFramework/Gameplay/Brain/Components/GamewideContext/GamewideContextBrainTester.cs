@@ -42,7 +42,7 @@ namespace Assets.Turnroot.Gameplay.Brain.Components
             }
 
             Brain.Policy = TestPolicy;
-            var instance = new CharacterInstance(TestCharacter);
+            var instance = CharacterInstance.Create(TestCharacter);
             var encoded = Brain.EncodeInstanceToString(instance);
             LastEncoded = encoded;
             if (encoded == null)

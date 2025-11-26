@@ -13,7 +13,7 @@ namespace Turnroot.Tests.Editor
             var template = ScriptableObject.CreateInstance<CharacterData>();
             var other = ScriptableObject.CreateInstance<CharacterData>();
 
-            var instance = new CharacterInstance(template);
+            var instance = CharacterInstance.Create(template);
 
             // No relationship exists initially
             Assert.IsNull(instance.GetSupportRelationship(other));
@@ -39,7 +39,7 @@ namespace Turnroot.Tests.Editor
 
             template.SupportRelationships.Add(templ);
 
-            var instance = new CharacterInstance(template);
+            var instance = CharacterInstance.Create(template);
 
             var rel = instance.GetSupportRelationship(other);
             Assert.IsNotNull(rel);

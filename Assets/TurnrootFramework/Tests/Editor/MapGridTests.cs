@@ -49,7 +49,7 @@ public class MapGridTests
 
         // Unit and object item feature properties
         var charTemplate = ScriptableObject.CreateInstance<CharacterData>();
-        var charInstance = new Turnroot.Characters.CharacterInstance(charTemplate);
+        var charInstance = Turnroot.Characters.CharacterInstance.Create(charTemplate);
         p00.SetUnitFeatureProperty("spawn", charInstance);
 
         var item = ScriptableObject.CreateInstance<Turnroot.Gameplay.Objects.ObjectItem>();

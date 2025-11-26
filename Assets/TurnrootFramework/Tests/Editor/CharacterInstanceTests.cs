@@ -1,7 +1,7 @@
 using NUnit.Framework;
-using UnityEngine;
 using Turnroot.Characters;
 using Turnroot.Characters.Stats;
+using UnityEngine;
 
 namespace Turnroot.Tests.Editor
 {
@@ -13,7 +13,9 @@ namespace Turnroot.Tests.Editor
             var template = ScriptableObject.CreateInstance<CharacterData>();
 
             // Add template stats
-            template.BoundedStats.Add(new BoundedCharacterStat(100f, 75f, 0f, BoundedStatType.Health));
+            template.BoundedStats.Add(
+                new BoundedCharacterStat(100f, 75f, 0f, BoundedStatType.Health)
+            );
             template.UnboundedStats.Add(new CharacterStat(12f, UnboundedStatType.Strength));
 
             // Add a simple skill template
@@ -21,7 +23,7 @@ namespace Turnroot.Tests.Editor
             skill.SkillName = "TestSkill";
             template.Skills.Add(skill);
 
-            var instance = new CharacterInstance(template);
+            var instance = CharacterInstance.Create(template);
 
             // Counts should match
             Assert.AreEqual(template.BoundedStats.Count, instance.RuntimeBoundedStats.Count);
@@ -30,11 +32,20 @@ namespace Turnroot.Tests.Editor
 
             // Ensure stats were deep-copied (different instances)
             Assert.AreNotSame(template.BoundedStats[0], instance.RuntimeBoundedStats[0]);
-            Assert.AreEqual(template.BoundedStats[0].StatType, instance.RuntimeBoundedStats[0].StatType);
-            Assert.AreEqual(template.BoundedStats[0].Current, instance.RuntimeBoundedStats[0].Current);
+            Assert.AreEqual(
+                template.BoundedStats[0].StatType,
+                instance.RuntimeBoundedStats[0].StatType
+            );
+            Assert.AreEqual(
+                template.BoundedStats[0].Current,
+                instance.RuntimeBoundedStats[0].Current
+            );
 
             Assert.AreNotSame(template.UnboundedStats[0], instance.RuntimeUnboundedStats[0]);
-            Assert.AreEqual(template.UnboundedStats[0].StatType, instance.RuntimeUnboundedStats[0].StatType);
+            Assert.AreEqual(
+                template.UnboundedStats[0].StatType,
+                instance.RuntimeUnboundedStats[0].StatType
+            );
         }
     }
 }

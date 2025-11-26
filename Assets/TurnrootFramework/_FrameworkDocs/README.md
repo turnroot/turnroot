@@ -1,3 +1,24 @@
+# Turnroot Framework — Operational Docs
+
+This folder contains concise operational documentation for the framework systems related to:
+
+- Serialization, encoding/decoding and anti-tamper guard rails
+- Tamper policies and LongTermMemory ledger behavior
+- Unique instance handling for templates marked `IsUnique`
+- Tests, editor utilities and maintenance checklists
+
+Use these notes while maintaining, debugging, or extending the GamewideContext serialization/anti-tamper systems.
+
+Contents
+- Gameplay/
+  - GamewideContext/Serialization.md — wrappers, payload and hashing details
+  - GamewideContext/TamperPolicy.md — ledger & tamper policy rules and troubleshooting
+  - GamewideContext/Samples.md — copy-paste examples for encode/decode and testing
+- Characters/
+  - UniqueInstances.md — rules & usage for CharacterInstance.Create and UniqueInstanceRegistry
+- Guides/
+  - Testing.md — tests and CI guidance for serialization & uniqueness systems
+  - Checklists.md — operational checklists and migration tips
 # Prototype Systems Documentation
 
 Complete API reference for the Turnroot Framework assets.

@@ -93,7 +93,7 @@ namespace Assets.Turnroot.Gameplay.Brain
                                         );
                                     if (characterData != null)
                                     {
-                                        return (T)(object)new CharacterInstance(characterData);
+                                        return (T)(object)CharacterInstance.Create(characterData);
                                     }
                                 }
                             }
@@ -105,7 +105,7 @@ namespace Assets.Turnroot.Gameplay.Brain
                                     );
                                 if (characterData != null)
                                 {
-                                    return (T)(object)new CharacterInstance(characterData);
+                                    return (T)(object)CharacterInstance.Create(characterData);
                                 }
                             }
 #endif
@@ -115,7 +115,7 @@ namespace Assets.Turnroot.Gameplay.Brain
                                 var characterData = Resources.Load<CharacterData>(name);
                                 if (characterData != null)
                                 {
-                                    return (T)(object)new CharacterInstance(characterData);
+                                    return (T)(object)CharacterInstance.Create(characterData);
                                 }
                             }
                         }

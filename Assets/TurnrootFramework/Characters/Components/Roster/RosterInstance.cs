@@ -29,7 +29,7 @@ namespace Assets.Turnroot.Characters
                 if (characterData == null)
                     continue;
 
-                _instances.Add(new CharacterInstance(characterData));
+                _instances.Add(CharacterInstance.Create(characterData));
             }
         }
 #endif

@@ -19,7 +19,7 @@ namespace Turnroot.Tests.Editor
             var bounded = new BoundedCharacterStat(100f, 50f, 0f, BoundedStatType.Health);
             template.BoundedStats.Add(bounded);
 
-            var instance = new CharacterInstance(template);
+            var instance = CharacterInstance.Create(template);
 
             Assert.AreEqual(50, template.BoundedStats[0].Get());
             Assert.AreEqual(50, instance.RuntimeBoundedStats[0].Get());
@@ -44,7 +44,7 @@ namespace Turnroot.Tests.Editor
             var stat = new CharacterStat(7f, UnboundedStatType.Strength);
             template.UnboundedStats.Add(stat);
 
-            var instance = new CharacterInstance(template);
+            var instance = CharacterInstance.Create(template);
 
             Assert.AreEqual(7, template.UnboundedStats[0].Get());
             Assert.AreEqual(7, instance.RuntimeUnboundedStats[0].Get());
@@ -66,7 +66,7 @@ namespace Turnroot.Tests.Editor
             var skill = ScriptableObject.CreateInstance<Skill>();
             template.Skills.Add(skill);
 
-            var instance = new CharacterInstance(template);
+            var instance = CharacterInstance.Create(template);
 
             Assert.AreEqual(1, template.Skills.Count);
             Assert.AreEqual(1, instance.SkillInstances.Count);
@@ -108,7 +108,7 @@ namespace Turnroot.Tests.Editor
 
             template.StartingInventory.Add(slot);
 
-            var instance = new CharacterInstance(template);
+            var instance = CharacterInstance.Create(template);
 
             Assert.AreEqual(1, template.StartingInventory.Count);
             Assert.AreEqual(1, instance.InventoryInstance.InventoryItems.Count);

@@ -52,7 +52,7 @@ namespace Turnroot.Tests.Editor
                 receivedMessage = msg;
             };
 
-            var instance = new CharacterInstance(template);
+            var instance = CharacterInstance.Create(template);
             var encoded = gw.EncodeInstanceToString(instance);
 
             // Decode wrapper -> change payload
@@ -119,7 +119,7 @@ namespace Turnroot.Tests.Editor
             };
 
             // Start with proper encoded wrapper
-            var instance = new CharacterInstance(template);
+            var instance = CharacterInstance.Create(template);
             var encoded = gw.EncodeInstanceToString(instance);
 
             // Tamper payload and re-compute wrapper.Hash but DO NOT update LTM ledger
@@ -188,7 +188,7 @@ namespace Turnroot.Tests.Editor
 
             gw.Policy = Assets.Turnroot.Gameplay.Brain.GamewideContextBrain.TamperPolicy.Replace;
 
-            var instance = new CharacterInstance(template);
+            var instance = CharacterInstance.Create(template);
             var encoded = gw.EncodeInstanceToString(instance);
 
             // Tamper payload (don't change wrapper.Hash so recomputed != wrapper.Hash) to trigger Replace
@@ -259,7 +259,7 @@ namespace Turnroot.Tests.Editor
 
             gw.Policy = Assets.Turnroot.Gameplay.Brain.GamewideContextBrain.TamperPolicy.NotifyOnly;
 
-            var instance = new CharacterInstance(template);
+            var instance = CharacterInstance.Create(template);
             var encoded = gw.EncodeInstanceToString(instance);
 
             // tamper payload similarly to other test
@@ -314,7 +314,7 @@ namespace Turnroot.Tests.Editor
 
             gw.Policy = Assets.Turnroot.Gameplay.Brain.GamewideContextBrain.TamperPolicy.Reject;
 
-            var instance = new CharacterInstance(template);
+            var instance = CharacterInstance.Create(template);
             var encoded = gw.EncodeInstanceToString(instance);
 
             // tamper payload similarly to other test

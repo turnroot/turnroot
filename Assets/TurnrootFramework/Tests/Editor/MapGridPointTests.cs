@@ -20,7 +20,7 @@ public class MapGridPointTests
         Assert.AreEqual(true, p.GetBoolPointProperty("flag"));
 
         // Unit and object item properties
-        var character = new CharacterInstance(ScriptableObject.CreateInstance<CharacterData>());
+        var character = CharacterInstance.Create(ScriptableObject.CreateInstance<CharacterData>());
         p.SetUnitPointProperty("unit", character);
         Assert.AreEqual(character, p.GetUnitPointProperty("unit"));
 

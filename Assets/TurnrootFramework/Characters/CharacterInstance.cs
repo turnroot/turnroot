@@ -55,11 +55,40 @@ namespace Turnroot.Characters
         public CharacterInventoryInstance InventoryInstance => _inventoryInstance;
         public List<SkillInstance> SkillInstances => _skillInstances;
 
-        public CharacterInstance(CharacterData template)
+        // Make constructor non-public to encourage using CharacterInstance.Create which
+        // enforces uniqueness for templates with IsUnique.
+        internal CharacterInstance(CharacterData template)
         {
             _id = Guid.NewGuid().ToString();
             _characterTemplate = template;
             Initialize();
+        }
+
+        /// <summary>
+        /// Factory that enforces template uniqueness. If the template has IsUnique==true
+        /// this returns the previously registered instance for that template if available.
+        /// Otherwise it constructs, registers (if unique) and returns a new instance.
+        /// </summary>
+        public static CharacterInstance Create(CharacterData template)
+        {
+            if (template == null)
+                return null;
+
+            if (template.IsUnique)
+            {
+                var existing = UniqueInstanceRegistry.Get<CharacterInstance>(template);
+                if (existing != null)
+                    return existing;
+            }
+
+            var instance = new CharacterInstance(template);
+
+            if (template.IsUnique)
+            {
+                UniqueInstanceRegistry.Register(template, instance);
+            }
+
+            return instance;
         }
 
         // Hook to allow custom initialization or repair after deserialization by a custom JSON converter.
