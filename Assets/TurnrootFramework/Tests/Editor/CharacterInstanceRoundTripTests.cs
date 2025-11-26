@@ -1,6 +1,7 @@
 using Assets.Turnroot.Gameplay.Brain;
 using NUnit.Framework;
 using Turnroot.Characters;
+using Turnroot.Tests.Editor.Helpers;
 using UnityEditor;
 using UnityEngine;
 
@@ -8,47 +9,17 @@ namespace Turnroot.Tests.Editor
 {
     public class CharacterInstanceRoundTripTests
     {
-        private const string TestFolder = "Assets/Resources/TestData";
-        private const string TemplatePath = TestFolder + "/test_character_data.asset";
-
-        [SetUp]
-        public void Setup()
-        {
-            // Ensure Resources/TestData folder exists
-            if (!AssetDatabase.IsValidFolder("Assets/Resources"))
-                AssetDatabase.CreateFolder("Assets", "Resources");
-            if (!AssetDatabase.IsValidFolder(TestFolder))
-                AssetDatabase.CreateFolder("Assets/Resources", "TestData");
-        }
-
-        [TearDown]
-        public void TearDown()
-        {
-            // cleanup assets
-            AssetDatabase.DeleteAsset(TemplatePath);
-            AssetDatabase.DeleteAsset(TestFolder);
-            AssetDatabase.Refresh();
-        }
+        // Tests use TestFixtures helpers for creating template assets and brain instances
 
         [Test]
         public void CharacterInstance_EncodeDecode_RoundTripPreservesIdAndRuntimeFields()
         {
-            // Create a CharacterData asset in Resources so the converter can resolve it by path
-            var template = ScriptableObject.CreateInstance<CharacterData>();
-            template.name = "TestCharacterTemplate";
-            AssetDatabase.CreateAsset(template, TemplatePath);
-            AssetDatabase.SaveAssets();
-            // In some environments we see an unrelated package GUID conflict error during
-            // AssetDatabase ops. It's noisy and not relevant to this test — explicitly
-            // expect the error log so the test runner doesn't treat it as an unexpected failure.
-            UnityEngine.TestTools.LogAssert.Expect(UnityEngine.LogType.Error, "GUID");
+            // Previously we had to silence a noisy GUID conflict error; that issue
+            // has been fixed so no test log expectation is required here.
+            var template = TestFixtures.CreateCharacterTemplate();
             AssetDatabase.Refresh();
 
-            // Create a GameObject with Brain + LongTermMemory + GamewideContextBrain
-            var go = new GameObject("test-brain");
-            go.AddComponent<Assets.Turnroot.Gameplay.Brain.Brain>();
-            go.AddComponent<LongTermMemory>();
-            var gw = go.AddComponent<GamewideContextBrain>();
+            var (go, brain, ltm, gw) = TestFixtures.CreateBrainWithLtmAndGw("test-brain");
 
             // Create instance from template and mutate runtime state
             var instance = CharacterInstance.Create(template);
@@ -68,34 +39,26 @@ namespace Turnroot.Tests.Editor
             Assert.AreEqual(instance.Id, decoded.Id);
             Assert.AreEqual(instance.CurrentLevel, decoded.CurrentLevel);
 
-            // cleanup
-            GameObject.DestroyImmediate(go);
+            TestFixtures.DestroyGameObject(go);
+            TestFixtures.CleanupTemplate();
         }
 
         [Test]
         public void Encode_PersistsHashToLongTermMemory()
         {
-            var template = ScriptableObject.CreateInstance<CharacterData>();
-            template.name = "TestCharacterTemplate";
-            AssetDatabase.CreateAsset(template, TemplatePath);
-            AssetDatabase.SaveAssets();
-            AssetDatabase.Refresh();
-
-            var go = new GameObject("test-brain");
-            go.AddComponent<Assets.Turnroot.Gameplay.Brain.Brain>();
-            var ltm = go.AddComponent<LongTermMemory>();
-            var gw = go.AddComponent<GamewideContextBrain>();
+            var template = TestFixtures.CreateCharacterTemplate();
+            var (go, brain, ltm, gw) = TestFixtures.CreateBrainWithLtmAndGw("test-brain");
 
             var instance = CharacterInstance.Create(template);
             var encoded = gw.EncodeInstanceToString(instance);
             Assert.IsNotNull(encoded);
 
             // Ensure LTM contains the stored hash for the instance
-            var wrapperJson = System.Text.Encoding.UTF8.GetString(
-                System.Convert.FromBase64String(encoded)
-            );
-            var wrapperObj = Newtonsoft.Json.Linq.JObject.Parse(wrapperJson);
-            var wrapperHash = (string)wrapperObj["Hash"];
+            var wrapper =
+                Assets.Turnroot.Gameplay.Brain.GamewideContextBrainHelpers.DecodeWrapperFromBase64(
+                    encoded
+                );
+            var wrapperHash = wrapper?.Hash;
 
             var rawKey = $"GWB.InstanceHash.{typeof(CharacterInstance).FullName}.{instance.Id}";
             var keyHash =
@@ -107,7 +70,8 @@ namespace Turnroot.Tests.Editor
             Assert.IsNotNull(stored, "Expected ledger entry in LongTermMemory");
             Assert.AreEqual(wrapperHash, stored, "Stored LTM hash should match wrapper hash");
 
-            GameObject.DestroyImmediate(go);
+            TestFixtures.DestroyGameObject(go);
+            TestFixtures.CleanupTemplate();
         }
     }
 }

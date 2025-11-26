@@ -39,11 +39,33 @@ public class JsonPlayerPrefs
         // try to load existing data
         if (File.Exists(savePath))
         {
-            using (StreamReader reader = new StreamReader(savePath))
+            try
             {
-                string json = reader.ReadToEnd();
-                JsonPlayerPrefs data = JsonUtility.FromJson<JsonPlayerPrefs>(json);
-                this.playerPrefs = data.playerPrefs;
+                using (StreamReader reader = new StreamReader(savePath))
+                {
+                    string json = reader.ReadToEnd();
+                    JsonPlayerPrefs data = JsonUtility.FromJson<JsonPlayerPrefs>(json);
+                    if (data != null && data.playerPrefs != null)
+                    {
+                        this.playerPrefs = data.playerPrefs;
+                    }
+                    else
+                    {
+                        // Malformed or empty JSON — fallback to empty prefs
+                        Debug.LogWarning(
+                            $"JsonPlayerPrefs: invalid or empty JSON at {savePath}, starting fresh."
+                        );
+                        this.playerPrefs = new List<PlayerPref>();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                // If reading/parsing fails, warn and continue with an empty prefs list
+                Debug.LogWarning(
+                    $"JsonPlayerPrefs: failed to load prefs from {savePath}: {ex.Message}"
+                );
+                this.playerPrefs = new List<PlayerPref>();
             }
         }
     }

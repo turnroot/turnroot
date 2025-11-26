@@ -228,5 +228,235 @@ namespace Assets.Turnroot.Gameplay.Brain
                 return null;
             }
         }
+
+        // --- Wrapper / encoding helpers (DRY) ---------------------------------
+        public static SerializedWrapper DecodeWrapperFromBase64(string encoded)
+        {
+            try
+            {
+                var wrapperJson = Encoding.UTF8.GetString(Convert.FromBase64String(encoded));
+                return JsonConvert.DeserializeObject<SerializedWrapper>(wrapperJson);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        public static string EncodeWrapperToBase64(SerializedWrapper wrapper)
+        {
+            try
+            {
+                var json = JsonConvert.SerializeObject(wrapper, Formatting.None);
+                return Convert.ToBase64String(Encoding.UTF8.GetBytes(json));
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        public static Newtonsoft.Json.Linq.JObject DecodeWrapperAsJObject(string encoded)
+        {
+            try
+            {
+                var wrapperJson = Encoding.UTF8.GetString(Convert.FromBase64String(encoded));
+                return Newtonsoft.Json.Linq.JObject.Parse(wrapperJson);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        public static string EncodeJObjectToBase64(Newtonsoft.Json.Linq.JObject wrapper)
+        {
+            try
+            {
+                var json = wrapper.ToString(Formatting.None);
+                return Convert.ToBase64String(Encoding.UTF8.GetBytes(json));
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        public static string RecomputeHashFromWrapperJObject(Newtonsoft.Json.Linq.JObject wrapper)
+        {
+            try
+            {
+                var payload = (string)wrapper["Payload"] ?? string.Empty;
+                var version = (string)wrapper["Version"] ?? "0";
+                return ComputeFNV1a64Hex(payload + "|v:" + version);
+            }
+            catch
+            {
+                return string.Empty;
+            }
+        }
+
+        // Encode an instance to the Base64 wrapper string and persist ledger entry
+        // using the supplied GamewideContextBrain (so storage/ltm behavior is preserved).
+        public static string EncodeInstanceToString<T>(GamewideContextBrain brain, T instance)
+        {
+            try
+            {
+                var settings = GetJsonSerializerSettings();
+                var payload = JsonConvert.SerializeObject(instance, settings);
+                var versionHex = DateTime.UtcNow.Ticks.ToString("x16");
+                var wrapper = new SerializedWrapper
+                {
+                    TypeName = typeof(T).FullName,
+                    Payload = payload,
+                    Hash = ComputeFNV1a64Hex(payload + "|v:" + versionHex),
+                    Version = versionHex,
+                };
+
+                var wrapperJson = JsonConvert.SerializeObject(wrapper, Formatting.None);
+                var bytes = Encoding.UTF8.GetBytes(wrapperJson);
+                var encoded = Convert.ToBase64String(bytes);
+
+                try
+                {
+                    var ltm = brain.GetComponent<LongTermMemory>();
+                    var key = BuildHashLedgerKey(instance, wrapper);
+                    if (!string.IsNullOrEmpty(key) && ltm != null)
+                    {
+                        ltm.Remember(key, wrapper.Hash);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogWarning($"Failed to write hash ledger entry: {ex.Message}");
+                }
+
+                return encoded;
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"Error encoding instance to string: {e.Message}");
+                return null;
+            }
+        }
+
+        // Decode an instance from the wrapper produced by EncodeInstanceToString.
+        // Uses the provided GamewideContextBrain for tamper policy handling and ledger
+        // verification so the behavior remains consistent with previous implementation.
+        public static T DecodeInstanceFromString<T>(
+            GamewideContextBrain brain,
+            string encodedString
+        )
+        {
+            try
+            {
+                var wrapperJson = Encoding.UTF8.GetString(Convert.FromBase64String(encodedString));
+                var wrapper = JsonConvert.DeserializeObject<SerializedWrapper>(wrapperJson);
+                if (wrapper == null)
+                {
+                    Debug.LogError("Decoded wrapper is null or invalid.");
+                    return default;
+                }
+
+                var settings = GetJsonSerializerSettings();
+                var instance = JsonConvert.DeserializeObject<T>(wrapper.Payload, settings);
+
+                // Verify modification hash (payload mismatch)
+                try
+                {
+                    var recomputed = ComputeFNV1a64Hex(
+                        wrapper.Payload + "|v:" + wrapper.Version.ToString()
+                    );
+                    if (
+                        !string.Equals(recomputed, wrapper.Hash, StringComparison.OrdinalIgnoreCase)
+                    )
+                    {
+                        return Assets.Turnroot.Gameplay.Brain.Components.TamperHandler.HandlePayloadMismatch(
+                            brain,
+                            instance,
+                            wrapper
+                        );
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogWarning($"Hash verification failed: {ex.Message}");
+                }
+
+                if (instance is global::Turnroot.Serialization.IPostDeserialize post)
+                    post.OnAfterDeserialize();
+
+                try
+                {
+                    var ltm = brain.GetComponent<LongTermMemory>();
+                    var key = BuildHashLedgerKey(instance, wrapper);
+                    if (!string.IsNullOrEmpty(key) && ltm != null)
+                    {
+                        var stored = ltm.Recall(key);
+                        if (string.IsNullOrEmpty(stored))
+                        {
+                            ltm.Remember(key, wrapper.Hash);
+                        }
+                        else if (
+                            !string.Equals(stored, wrapper.Hash, StringComparison.OrdinalIgnoreCase)
+                        )
+                        {
+                            return Assets.Turnroot.Gameplay.Brain.Components.TamperHandler.HandleLedgerMismatch(
+                                brain,
+                                instance,
+                                wrapper,
+                                stored
+                            );
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogWarning($"Ledger verification failed: {ex.Message}");
+                }
+
+                return instance;
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"Error decoding instance from string: {e.Message}");
+                return default;
+            }
+        }
+
+        public static string DesignateInstanceType<T>()
+        {
+            return typeof(T).FullName;
+        }
+
+        // Encode an instance into the Base64 wrapper string but DO NOT persist any
+        // ledger entries. This is useful for internal operations (e.g. creating a
+        // replacement payload) where we must avoid creating ledger records for the
+        // replacement id.
+        public static string EncodeInstanceToBase64NoLedger<T>(T instance)
+        {
+            try
+            {
+                var settings = GetJsonSerializerSettings();
+                var payload = JsonConvert.SerializeObject(instance, settings);
+                var versionHex = DateTime.UtcNow.Ticks.ToString("x16");
+                var wrapper = new SerializedWrapper
+                {
+                    TypeName = typeof(T).FullName,
+                    Payload = payload,
+                    Hash = ComputeFNV1a64Hex(payload + "|v:" + versionHex),
+                    Version = versionHex,
+                };
+
+                var wrapperJson = JsonConvert.SerializeObject(wrapper, Formatting.None);
+                var bytes = Encoding.UTF8.GetBytes(wrapperJson);
+                return Convert.ToBase64String(bytes);
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarning($"EncodeInstanceToBase64NoLedger failed: {e.Message}");
+                return null;
+            }
+        }
     }
 }

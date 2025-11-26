@@ -120,10 +120,10 @@ namespace Assets.Turnroot.Gameplay.Brain.Components
 
             try
             {
-                var wrapperJson = System.Text.Encoding.UTF8.GetString(
-                    System.Convert.FromBase64String(LastEncoded)
-                );
-                var wrapper = JsonConvert.DeserializeObject<JObject>(wrapperJson);
+                var wrapper =
+                    Assets.Turnroot.Gameplay.Brain.GamewideContextBrainHelpers.DecodeWrapperAsJObject(
+                        LastEncoded
+                    );
                 var payload = JsonConvert.DeserializeObject<JObject>((string)wrapper["Payload"]);
                 var levelToken = payload.SelectToken("_currentLevel");
                 if (levelToken != null && levelToken.Type == JTokenType.Integer)
@@ -162,10 +162,10 @@ namespace Assets.Turnroot.Gameplay.Brain.Components
 
             try
             {
-                var wrapperJson = System.Text.Encoding.UTF8.GetString(
-                    System.Convert.FromBase64String(LastEncoded)
-                );
-                var wrapper = JsonConvert.DeserializeObject<JObject>(wrapperJson);
+                var wrapper =
+                    Assets.Turnroot.Gameplay.Brain.GamewideContextBrainHelpers.DecodeWrapperAsJObject(
+                        LastEncoded
+                    );
                 var payload = JsonConvert.DeserializeObject<JObject>((string)wrapper["Payload"]);
                 var levelToken = payload.SelectToken("_currentLevel");
                 if (levelToken != null && levelToken.Type == JTokenType.Integer)
@@ -177,15 +177,15 @@ namespace Assets.Turnroot.Gameplay.Brain.Components
 
                 // recompute the wrapper hash to match the modified payload (attacker updates hash)
                 var newHash =
-                    Assets.Turnroot.Gameplay.Brain.GamewideContextBrainHelpers.ComputeFNV1a64Hex(
-                        payload.ToString(Formatting.None) + "|v:" + (string)wrapper["Version"]
+                    Assets.Turnroot.Gameplay.Brain.GamewideContextBrainHelpers.RecomputeHashFromWrapperJObject(
+                        wrapper
                     );
                 wrapper["Hash"] = newHash;
 
-                var tampered = JsonConvert.SerializeObject(wrapper);
-                var tamperedBase64 = System.Convert.ToBase64String(
-                    System.Text.Encoding.UTF8.GetBytes(tampered)
-                );
+                var tamperedBase64 =
+                    Assets.Turnroot.Gameplay.Brain.GamewideContextBrainHelpers.EncodeJObjectToBase64(
+                        wrapper
+                    );
 
                 Brain.Policy = TestPolicy;
                 var decoded = Brain.DecodeInstanceFromString<CharacterInstance>(tamperedBase64);

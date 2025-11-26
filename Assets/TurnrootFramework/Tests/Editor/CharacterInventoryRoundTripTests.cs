@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using NUnit.Framework;
 using Turnroot.Gameplay.Objects;
+using Turnroot.Tests.Editor.Helpers;
 using UnityEditor;
 using UnityEngine;
 
@@ -33,23 +34,14 @@ namespace Turnroot.Tests.Editor
         [Test]
         public void CharacterInventory_RoundTrip_PreservesItemsAndCount()
         {
-            var a = ScriptableObject.CreateInstance<ObjectItem>();
-            a.name = "InvA";
-            var b = ScriptableObject.CreateInstance<ObjectItem>();
-            b.name = "InvB";
-            AssetDatabase.CreateAsset(a, TemplateA);
-            AssetDatabase.CreateAsset(b, TemplateB);
-            AssetDatabase.SaveAssets();
-            AssetDatabase.Refresh();
+            var a = TestFixtures.CreateTemplate<ObjectItem>(TemplateA, "InvA");
+            var b = TestFixtures.CreateTemplate<ObjectItem>(TemplateB, "InvB");
 
             var inv = new CharacterInventoryInstance(4);
             inv.AddToInventory(new ObjectItemInstance(a));
             inv.AddToInventory(new ObjectItemInstance(b));
 
-            var go = new GameObject("test-brain");
-            go.AddComponent<Assets.Turnroot.Gameplay.Brain.Brain>();
-            go.AddComponent<LongTermMemory>();
-            var gw = go.AddComponent<Assets.Turnroot.Gameplay.Brain.GamewideContextBrain>();
+            var (go, brain, ltm, gw) = TestFixtures.CreateBrainWithLtmAndGw("test-brain");
 
             var encoded = gw.EncodeInstanceToString(inv);
             Assert.IsNotNull(encoded);
@@ -64,7 +56,9 @@ namespace Turnroot.Tests.Editor
             Assert.IsNotNull(created, "Expected created asset to exist at TemplateA");
             Assert.AreEqual(created.name, decoded.InventoryItems[0].Template.name);
 
-            GameObject.DestroyImmediate(go);
+            TestFixtures.DestroyGameObject(go);
+            TestFixtures.CleanupTemplate(TemplateA);
+            TestFixtures.CleanupTemplate(TemplateB);
         }
     }
 }

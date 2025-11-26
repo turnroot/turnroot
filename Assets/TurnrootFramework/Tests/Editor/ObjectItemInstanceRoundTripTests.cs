@@ -1,5 +1,6 @@
 using NUnit.Framework;
 using Turnroot.Gameplay.Objects;
+using Turnroot.Tests.Editor.Helpers;
 using UnityEditor;
 using UnityEngine;
 
@@ -30,16 +31,8 @@ namespace Turnroot.Tests.Editor
         [Test]
         public void ObjectItemInstance_RoundTrip_PreservesTemplateReference()
         {
-            var template = ScriptableObject.CreateInstance<ObjectItem>();
-            template.name = "TestObjectItem";
-            AssetDatabase.CreateAsset(template, TemplatePath);
-            AssetDatabase.SaveAssets();
-            AssetDatabase.Refresh();
-
-            var go = new GameObject("test-brain");
-            go.AddComponent<Assets.Turnroot.Gameplay.Brain.Brain>();
-            go.AddComponent<LongTermMemory>();
-            var gw = go.AddComponent<Assets.Turnroot.Gameplay.Brain.GamewideContextBrain>();
+            var template = TestFixtures.CreateTemplate<ObjectItem>(TemplatePath, "TestObjectItem");
+            var (go, brain, ltm, gw) = TestFixtures.CreateBrainWithLtmAndGw("test-brain");
 
             var oi = new ObjectItemInstance(template);
             var encoded = gw.EncodeInstanceToString(oi);
@@ -50,7 +43,8 @@ namespace Turnroot.Tests.Editor
             Assert.IsNotNull(decoded.Template);
             Assert.AreEqual(template.name, decoded.Template.name);
 
-            GameObject.DestroyImmediate(go);
+            TestFixtures.DestroyGameObject(go);
+            TestFixtures.CleanupTemplate(TemplatePath);
         }
     }
 }

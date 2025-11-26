@@ -47,56 +47,17 @@ namespace Assets.Turnroot.Gameplay.Brain
         /* ----------------------------- Memory helpers ----------------------------- */
         public string DesignateInstanceType<T>()
         {
-            return typeof(T).FullName;
+            return GamewideContextBrainHelpers.DesignateInstanceType<T>();
         }
 
         /// <summary>
         /// Encodes an instance into a single opaque Base64 string using Newtonsoft.Json.
         /// The wrapper contains type information and a payload; the whole wrapper is
-        /// serialized to JSON and then Base64 encoded so it's a single non-human string.
+        /// serialized to JSON and then Base64 encoded
         /// </summary>
         public string EncodeInstanceToString<T>(T instance)
         {
-            try
-            {
-                var settings = GamewideContextBrainHelpers.GetJsonSerializerSettings();
-                var payload = JsonConvert.SerializeObject(instance, settings);
-                var versionHex = DateTime.UtcNow.Ticks.ToString("x16");
-                var wrapper = new GamewideContextBrainHelpers.SerializedWrapper
-                {
-                    TypeName = typeof(T).FullName,
-                    Payload = payload,
-                    Hash = GamewideContextBrainHelpers.ComputeFNV1a64Hex(
-                        payload + "|v:" + versionHex
-                    ),
-                    Version = versionHex,
-                };
-                var wrapperJson = JsonConvert.SerializeObject(wrapper, Formatting.None);
-                var bytes = Encoding.UTF8.GetBytes(wrapperJson);
-                var encoded = Convert.ToBase64String(bytes);
-
-                // Persist the wrapper hash in LongTermMemory ledger for this instance when possible
-                try
-                {
-                    var ltm = GetComponent<LongTermMemory>();
-                    var key = GamewideContextBrainHelpers.BuildHashLedgerKey(instance, wrapper);
-                    if (!string.IsNullOrEmpty(key) && ltm != null)
-                    {
-                        ltm.Remember(key, wrapper.Hash);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Debug.LogWarning($"Failed to write hash ledger entry: {ex.Message}");
-                }
-
-                return encoded;
-            }
-            catch (Exception e)
-            {
-                Debug.LogError($"Error encoding instance to string: {e.Message}");
-                return null;
-            }
+            return GamewideContextBrainHelpers.EncodeInstanceToString(this, instance);
         }
 
         /// <summary>
@@ -105,135 +66,7 @@ namespace Assets.Turnroot.Gameplay.Brain
         /// </summary>
         public T DecodeInstanceFromString<T>(string encodedString)
         {
-            try
-            {
-                var wrapperJson = Encoding.UTF8.GetString(Convert.FromBase64String(encodedString));
-                var wrapper =
-                    JsonConvert.DeserializeObject<GamewideContextBrainHelpers.SerializedWrapper>(
-                        wrapperJson
-                    );
-                if (wrapper == null)
-                {
-                    Debug.LogError("Decoded wrapper is null or invalid.");
-                    return default;
-                }
-
-                var settings = GamewideContextBrainHelpers.GetJsonSerializerSettings();
-                var instance = JsonConvert.DeserializeObject<T>(wrapper.Payload, settings);
-
-                // Verify the modification hash to detect tampering (payload mismatch)
-                try
-                {
-                    // compute the hash directly from the payload string included in the wrapper
-                    var recomputed = GamewideContextBrainHelpers.ComputeFNV1a64Hex(
-                        wrapper.Payload + "|v:" + wrapper.Version.ToString()
-                    );
-                    if (
-                        !string.Equals(recomputed, wrapper.Hash, StringComparison.OrdinalIgnoreCase)
-                    )
-                    {
-                        // notify brain about illegal modification
-                        var brain = GetComponent<Brain>();
-                        string typeName = typeof(T).Name;
-                        string id = "";
-                        if (instance is CharacterInstance tamperedInstance)
-                            id = tamperedInstance.Id;
-                        string message = $"Tampering detected: type={typeName}, id={id}";
-                        brain?.NotifyIllegalModification(message);
-                        Debug.LogWarning(message);
-
-                        // Decide what to do depending on project policy
-                        switch (tamperPolicy)
-                        {
-                            case TamperPolicy.NotifyOnly:
-                                return instance;
-                            case TamperPolicy.Reject:
-                                return default;
-                            case TamperPolicy.Replace:
-                            default:
-                                T replacement =
-                                    GamewideContextBrainHelpers.CreateDefaultInstanceFromWrapper<T>(
-                                        wrapper
-                                    );
-                                if (replacement != null)
-                                {
-                                    var replacementEncoded = EncodeInstanceToString(replacement);
-                                }
-                                return replacement;
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Debug.LogWarning($"Hash verification failed: {ex.Message}");
-                }
-
-                // allow the instance to perform any necessary post-deserialization initialization
-                if (instance is global::Turnroot.Serialization.IPostDeserialize post)
-                    post.OnAfterDeserialize();
-
-                // Validate against LongTermMemory ledger when present. If there is no ledger
-                // entry for this key, create one (first-save initialization). If the ledger
-                // contains a different hash value, treat as tampering (wrapper was changed
-                // but ledger not updated) and apply the tamper policy.
-                try
-                {
-                    var ltm = GetComponent<LongTermMemory>();
-                    var key = GamewideContextBrainHelpers.BuildHashLedgerKey(instance, wrapper);
-                    if (!string.IsNullOrEmpty(key) && ltm != null)
-                    {
-                        var stored = ltm.Recall(key);
-                        if (string.IsNullOrEmpty(stored))
-                        {
-                            // First time we see this instance — initialize the ledger with current hash
-                            ltm.Remember(key, wrapper.Hash);
-                        }
-                        else if (
-                            !string.Equals(stored, wrapper.Hash, StringComparison.OrdinalIgnoreCase)
-                        )
-                        {
-                            // Ledger mismatch -> tamper detected (wrapper was changed but ledger not updated)
-                            var brain = GetComponent<Brain>();
-                            string message =
-                                $"Tampering detected (ledger mismatch): key={key}, stored={stored}, wrapper={wrapper.Hash}";
-                            brain?.NotifyIllegalModification(message);
-                            Debug.LogWarning(message);
-
-                            switch (tamperPolicy)
-                            {
-                                case TamperPolicy.NotifyOnly:
-                                    return instance;
-                                case TamperPolicy.Reject:
-                                    return default;
-                                case TamperPolicy.Replace:
-                                default:
-                                    T replacement =
-                                        GamewideContextBrainHelpers.CreateDefaultInstanceFromWrapper<T>(
-                                            wrapper
-                                        );
-                                    if (replacement != null)
-                                    {
-                                        var replacementEncoded = EncodeInstanceToString(
-                                            replacement
-                                        );
-                                    }
-                                    return replacement;
-                            }
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Debug.LogWarning($"Ledger verification failed: {ex.Message}");
-                }
-
-                return instance;
-            }
-            catch (Exception e)
-            {
-                Debug.LogError($"Error decoding instance from string: {e.Message}");
-                return default;
-            }
+            return GamewideContextBrainHelpers.DecodeInstanceFromString<T>(this, encodedString);
         }
     }
 }
