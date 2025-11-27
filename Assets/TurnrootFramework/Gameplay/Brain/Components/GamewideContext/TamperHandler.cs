@@ -128,8 +128,7 @@ namespace Assets.Turnroot.Gameplay.Brain.Components
         {
             try
             {
-                var ltm = brain.GetComponent<LongTermMemory>();
-                if (ltm == null)
+                if (!brain.TryGetComponent<LongTermMemory>(out var ltm))
                     return;
 
                 var key = GamewideContextBrainHelpers.BuildHashLedgerKey(

@@ -362,8 +362,7 @@ namespace Assets.Turnroot.Gameplay.Brain
         {
             try
             {
-                var ltm = GetComponent<LongTermMemory>();
-                if (ltm == null)
+                if (!TryGetComponent<LongTermMemory>(out var ltm))
                     return;
 
                 var key = GamewideContextBrainHelpers.BuildRosterLedgerKey(roster.Id);
@@ -491,8 +490,7 @@ namespace Assets.Turnroot.Gameplay.Brain
 
         private bool HasRosterInLTM(Roster roster)
         {
-            var ltm = GetComponent<LongTermMemory>();
-            if (ltm == null)
+            if (!TryGetComponent<LongTermMemory>(out var ltm))
                 return false;
 
             var key = GamewideContextBrainHelpers.BuildRosterLedgerKey(roster.Id);

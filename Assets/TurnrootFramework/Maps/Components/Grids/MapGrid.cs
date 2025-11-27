@@ -259,8 +259,7 @@ public class MapGrid : MonoBehaviour
         {
             if (child == null)
                 continue;
-            var mgp = child.GetComponent<MapGridPoint>();
-            if (mgp != null)
+            if (child.TryGetComponent<MapGridPoint>(out var mgp))
                 newDict[new Vector2Int(mgp.Row, mgp.Col)] = child.gameObject;
         }
         _gridPoints = newDict;
