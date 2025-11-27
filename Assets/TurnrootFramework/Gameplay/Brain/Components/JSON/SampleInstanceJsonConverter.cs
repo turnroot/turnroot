@@ -1,3 +1,4 @@
+using System;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
@@ -5,83 +6,110 @@ using UnityEngine;
 namespace Assets.Turnroot.Gameplay.Brain.Components
 {
     /// <summary>
-    /// Example JsonConverter template for a Data->Instance type that requires a constructor.
-    /// Adapt the type names and field mapping for your specific instance.
+    /// Generic JsonConverter template for Data->Instance types that require a constructor.
+    /// This is a reusable converter pattern for any instance type backed by a ScriptableObject template.
+    ///
+    /// Usage:
+    /// settings.Converters.Add(new SampleInstanceJsonConverter&lt;MyData, MyInstance&gt;());
+    ///
+    /// To customize for a specific type, either:
+    /// 1. Use this generic converter directly, or
+    /// 2. Create a concrete implementation (see ObjectItemInstanceJsonConverter for an example)
     /// </summary>
+    /// <typeparam name="TData">The ScriptableObject data type (template)</typeparam>
+    /// <typeparam name="TInstance">The instance type that wraps the data</typeparam>
     public class SampleInstanceJsonConverter<TData, TInstance> : JsonConverter
         where TInstance : class
         where TData : ScriptableObject
     {
-        public override bool CanConvert(System.Type objectType) =>
-            typeof(TInstance).IsAssignableFrom(objectType);
+        private const string TemplateField = "_template";
+
+        public override bool CanConvert(Type objectType)
+        {
+            return typeof(TInstance).IsAssignableFrom(objectType);
+        }
 
         public override bool CanWrite => false;
 
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
-            // Let default serializer handle writing; override only if necessary
-            throw new System.NotImplementedException(
-                "This sample converter is read-only by default."
+            // Default serialization - override in concrete implementations if needed
+            throw new NotImplementedException(
+                "SampleInstanceJsonConverter is read-only by default. "
+                    + "Override WriteJson in a concrete implementation if write support is needed."
             );
         }
 
         public override object ReadJson(
             JsonReader reader,
-            System.Type objectType,
+            Type objectType,
             object existingValue,
             JsonSerializer serializer
         )
         {
-            var j = JObject.Load(reader);
+            var token = JObject.Load(reader);
+            var template = ResolveTemplate(token, serializer);
+            var instance = CreateInstance(template);
 
-            // Try to resolve the template (this assumes the template was serialized as a Unity object token)
-            var templateToken = j.SelectToken("_template") ?? j.SelectToken("Template");
-            TData template = null;
-            if (templateToken != null && templateToken.Type != JTokenType.Null)
+            // Allow instances to perform post-deserialization cleanup
+            if (instance is global::Turnroot.Serialization.IPostDeserialize post)
             {
-                try
-                {
-                    template = templateToken.ToObject<TData>(serializer);
-                }
-                catch { }
+                post.OnAfterDeserialize();
             }
 
-            TInstance instance = null;
+            return instance;
+        }
+
+        /// <summary>
+        /// Resolves the template (TData) from the JSON token.
+        /// Override this method if your template is stored under a different field name.
+        /// </summary>
+        protected virtual TData ResolveTemplate(JObject token, JsonSerializer serializer)
+        {
+            var templateToken = token.SelectToken(TemplateField) ?? token.SelectToken("Template");
+
+            if (templateToken?.Type == JTokenType.Null || templateToken == null)
+                return null;
+
+            try
+            {
+                return templateToken.ToObject<TData>(serializer);
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning(
+                    $"Failed to deserialize {typeof(TData).Name} template: {ex.Message}"
+                );
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Creates an instance of TInstance given a template.
+        /// Override this method if your instance type uses a different constructor signature.
+        /// </summary>
+        protected virtual TInstance CreateInstance(TData template)
+        {
             if (template != null)
             {
-                // If you have a constructor like MyInstance(MyData template), invoke it reflectively
+                // Try to find a constructor that takes TData
                 var ctor = typeof(TInstance).GetConstructor(new[] { typeof(TData) });
                 if (ctor != null)
                 {
-                    instance = (TInstance)ctor.Invoke(new object[] { template });
+                    return (TInstance)ctor.Invoke(new object[] { template });
                 }
-                else
-                {
-                    // Fall back to uninitialized object if no constructor is found
-                    instance = (TInstance)
-                        System.Runtime.Serialization.FormatterServices.GetUninitializedObject(
-                            typeof(TInstance)
-                        );
-                }
-            }
-            else
-            {
-                instance = (TInstance)
-                    System.Runtime.Serialization.FormatterServices.GetUninitializedObject(
-                        typeof(TInstance)
-                    );
+
+                Debug.LogWarning(
+                    $"No constructor found for {typeof(TInstance).Name} that takes {typeof(TData).Name}. "
+                        + "Falling back to uninitialized object."
+                );
             }
 
-            // Example: populate implementation-specific private fields with reflection
-            // var t = typeof(TInstance);
-            // var fi = t.GetField("_someField", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
-            // if (fi != null) fi.SetValue(instance, j.SelectToken("_someField")?.ToObject(fi.FieldType, serializer));
-
-            // Let instance perform any post-deserialize cleanup if it implements a post-deserialize hook
-            if (instance is global::Turnroot.Serialization.IPostDeserialize post)
-                post.OnAfterDeserialize();
-
-            return instance;
+            // Fall back to uninitialized object
+            return (TInstance)
+                System.Runtime.Serialization.FormatterServices.GetUninitializedObject(
+                    typeof(TInstance)
+                );
         }
     }
 }

@@ -23,77 +23,68 @@ public class BrainState
 
 namespace Assets.Turnroot.Gameplay.Brain
 {
-    [RequireComponent(typeof(Brain))]
     /// <summary>
     /// Manages high-level game states and transitions within the brain system.
     /// LongTermMemory persists state information.
     /// Brains have a farfalle structure >< :)
     /// </summary>
+    [RequireComponent(typeof(Brain))]
     public class StateBrain : MonoBehaviour
     {
-        // track the LTM key cache version so state brain can react if needed
-        private int lastKnownLtmKeyCacheVersion = 0;
-        private BrainState[] _highLevelStates;
-        private BrainState _savedStateBeforePause;
-        private Brain _brain;
+        private static class LtmKeys
+        {
+            public const string HighLevelStatesCount = "StateBrain.HighLevelStates";
+            public const string HighLevelStatePrefix = "StateBrain.HighLevelState.";
+        }
 
         [SerializeField]
         private BrainState _currentState;
         public BrainState CurrentState => _currentState;
 
+        private BrainState[] _highLevelStates;
+        private BrainState _savedStateBeforePause;
+        private Brain _brain;
+
+        #region Initialization
+
         public void Awake()
         {
             Debug.Log("StateBrain Awake called.");
-            if (_brain == null)
-                _brain = GetComponent<Brain>();
-            try
-            {
-                if (_brain != null)
-                {
-                    _brain.OnLtmKeyCacheUpdated += OnLtmKeyCacheUpdated;
-                    try
-                    {
-                        lastKnownLtmKeyCacheVersion =
-                            _brain.ltm?.KeyCacheVersion ?? lastKnownLtmKeyCacheVersion;
-                    }
-                    catch { }
-                }
-            }
-            catch { }
-
+            _brain = GetComponent<Brain>();
             InitializeHighLevelStates();
         }
 
         public void InitializeHighLevelStates()
         {
-            if (_highLevelStates == null || _highLevelStates.Length == 0)
-            {
-                if (!TryRestoreHighLevelStates())
-                {
-                    SetHighLevelStates();
-                    SaveHighLevelStates();
-                    Debug.Log("High-level states set and saved to long-term memory.");
-                }
-            }
-            else
+            if (_highLevelStates != null && _highLevelStates.Length > 0)
             {
                 Debug.Log("High-level states already initialized.");
+                return;
+            }
+
+            if (!TryRestoreHighLevelStates())
+            {
+                SetHighLevelStates();
+                SaveHighLevelStates();
+                Debug.Log("High-level states set and saved to long-term memory.");
             }
         }
 
         public void SetHighLevelStates()
         {
-            var list = new System.Collections.Generic.List<BrainState>
+            var states = new System.Collections.Generic.List<BrainState>
             {
-                new("Cutscene"),
-                new("Paused"),
-                new("Combat"),
-                new("WorldMap"),
+                new BrainState("Cutscene"),
+                new BrainState("Paused"),
+                new BrainState("Combat"),
+                new BrainState("WorldMap"),
             };
+
 #if TURNROOT_CAMP_MODULE
-            list.Add(new BrainState("Hub"));
+            states.Add(new BrainState("Hub"));
 #endif
-            list.AddRange(
+
+            states.AddRange(
                 new[]
                 {
                     new BrainState("MainMenu"),
@@ -103,7 +94,7 @@ namespace Assets.Turnroot.Gameplay.Brain
                 }
             );
 
-            _highLevelStates = list.ToArray();
+            _highLevelStates = states.ToArray();
             SaveHighLevelStates();
             _brain?.PublishHighLevelStatesInitialized();
             Debug.Log("High-level states initialized.");
@@ -111,53 +102,59 @@ namespace Assets.Turnroot.Gameplay.Brain
 
         private bool TryRestoreHighLevelStates()
         {
-            int storedCount = _brain.ltm.RecallInt("StateBrain.HighLevelStates");
+            if (_brain?.ltm == null)
+                return false;
+
+            int storedCount = _brain.ltm.RecallInt(LtmKeys.HighLevelStatesCount);
             if (storedCount <= 0)
                 return false;
 
-            for (int i = 0; i < storedCount; i++)
-            {
-                if (string.IsNullOrEmpty(_brain.ltm.Recall("StateBrain.HighLevelState." + i)))
-                    return false;
-            }
+            if (!ValidateStoredStates(storedCount))
+                return false;
 
             _highLevelStates = new BrainState[storedCount];
             for (int i = 0; i < storedCount; i++)
             {
-                string name = _brain.ltm.Recall("StateBrain.HighLevelState." + i);
+                string name = _brain.ltm.Recall(LtmKeys.HighLevelStatePrefix + i);
                 _highLevelStates[i] = new BrainState(name);
             }
 
             return true;
         }
 
+        private bool ValidateStoredStates(int count)
+        {
+            for (int i = 0; i < count; i++)
+            {
+                string stateName = _brain.ltm.Recall(LtmKeys.HighLevelStatePrefix + i);
+                if (string.IsNullOrEmpty(stateName))
+                    return false;
+            }
+            return true;
+        }
+
         private void SaveHighLevelStates()
         {
-            if (_highLevelStates == null)
+            if (_highLevelStates == null || _brain?.ltm == null)
                 return;
+
             for (int i = 0; i < _highLevelStates.Length; i++)
             {
-                var saved = _brain.ltm.Remember(
-                    "StateBrain.HighLevelState." + i,
-                    _highLevelStates[i].Name
-                );
+                _brain.ltm.Remember(LtmKeys.HighLevelStatePrefix + i, _highLevelStates[i].Name);
             }
-            var savedCount = _brain.ltm.RememberInt(
-                "StateBrain.HighLevelStates",
-                _highLevelStates.Length
-            );
-            try
-            {
-                lastKnownLtmKeyCacheVersion = _brain.ltm.KeyCacheVersion;
-            }
-            catch { }
-            // LongTermMemory will publish keyset changes and Brain will forward them if required.
+
+            _brain.ltm.RememberInt(LtmKeys.HighLevelStatesCount, _highLevelStates.Length);
         }
+
+        #endregion
+
+        #region State Management
 
         private BrainState FindHighLevelState(string name)
         {
             if (string.IsNullOrEmpty(name) || _highLevelStates == null)
                 return null;
+
             return Array.Find(_highLevelStates, s => s.Name == name);
         }
 
@@ -196,10 +193,16 @@ namespace Assets.Turnroot.Gameplay.Brain
                 return;
             }
 
-            var childState =
-                _currentState.ParentOfStates == null
-                    ? null
-                    : Array.Find(_currentState.ParentOfStates, s => s.Name == childStateName);
+            if (_currentState.ParentOfStates == null)
+            {
+                Debug.LogError($"Child state '{childStateName}' not found.");
+                return;
+            }
+
+            var childState = Array.Find(
+                _currentState.ParentOfStates,
+                s => s.Name == childStateName
+            );
             if (childState != null)
             {
                 SetCurrentState(childState);
@@ -231,10 +234,23 @@ namespace Assets.Turnroot.Gameplay.Brain
             return true;
         }
 
+        #endregion
+
+        #region Pause/Resume
+
+        public void Pause()
+        {
+            SetPausedState(true);
+        }
+
+        public void Resume()
+        {
+            SetPausedState(false);
+        }
+
         private bool SetPausedState(bool isPaused)
         {
             var pausedState = FindHighLevelState("Paused");
-            var _previousState = _currentState;
             if (pausedState == null)
             {
                 Debug.LogError("Paused state not found.");
@@ -243,9 +259,9 @@ namespace Assets.Turnroot.Gameplay.Brain
 
             if (isPaused)
             {
-                _savedStateBeforePause = _previousState;
+                _savedStateBeforePause = _currentState;
                 SetCurrentState(pausedState);
-                _brain?.PublishPaused(_previousState);
+                _brain?.PublishPaused(_savedStateBeforePause);
             }
             else
             {
@@ -255,54 +271,20 @@ namespace Assets.Turnroot.Gameplay.Brain
                     _brain?.PublishResumed(_savedStateBeforePause);
                     _savedStateBeforePause = null;
                 }
-                else
+                else if (_currentState != null)
                 {
-                    if (_currentState != null)
-                        _currentState.IsActive = false;
+                    _currentState.IsActive = false;
                 }
             }
+
             return true;
         }
 
-        /// <summary>
-        /// Pauses the game by setting the current state to "Paused", saving the previous state, and invoking the OnGamePaused event.
-        /// </summary>
-        public void Pause()
-        {
-            SetPausedState(true);
-        }
-
-        /// <summary>
-        /// Resumes the game by restoring the previous state before the pause and invoking the OnGameResumed event.
-        /// </summary>
-        public void Resume()
-        {
-            SetPausedState(false);
-        }
-
-        private void OnDestroy()
-        {
-            try
-            {
-                if (_brain != null)
-                    _brain.OnLtmKeyCacheUpdated -= OnLtmKeyCacheUpdated;
-            }
-            catch { }
-        }
-
-        private void OnLtmKeyCacheUpdated(int version)
-        {
-            try
-            {
-                lastKnownLtmKeyCacheVersion = version;
-            }
-            catch { }
-        }
+        #endregion
 
 #if UNITY_EDITOR
         private void OnValidate()
         {
-            // Auto-assign Brain on same GameObject to make inspector setup easier
             if (_brain == null)
                 _brain = GetComponent<Brain>();
         }

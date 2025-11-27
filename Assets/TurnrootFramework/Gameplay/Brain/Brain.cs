@@ -6,10 +6,6 @@ using UnityEngine.SceneManagement;
 
 namespace Assets.Turnroot.Gameplay.Brain
 {
-    /* --------------------------- Required components -------------------------- */
-    [RequireComponent(typeof(StateBrain))]
-    [RequireComponent(typeof(ConversationalBrain))]
-    [RequireComponent(typeof(LongTermMemory))]
     /// <summary>
     /// The universal brain for managing and propagating events and data throughout the brain system.
     /// All brain events come from here.
@@ -25,12 +21,27 @@ namespace Assets.Turnroot.Gameplay.Brain
     /// on GitHub and make your changes there. If you go in willy-nily without git history,
     /// I can't help you if you mess up your game!
     /// </remarks>
+    [RequireComponent(typeof(StateBrain))]
+    [RequireComponent(typeof(ConversationalBrain))]
+    [RequireComponent(typeof(LongTermMemory))]
     public class Brain : MonoBehaviour
     {
         [HideInInspector]
         public LongTermMemory ltm;
 
-        /* ----------------------------- Memory events ----------------------------- */
+        // Scene-level dependencies
+        private ConversationController _sceneConversationController;
+
+        // Module flags - paid add-on modules that self-install
+        private bool hubModuleEnabled = false;
+        private bool bloodlinesModuleEnabled = false;
+        private bool retroModuleEnabled = false;
+        private bool unwindModuleEnabled = false;
+        private bool troopsModuleEnabled = false;
+        private bool monstersModuleEnabled = false;
+
+        #region Memory Events
+
         public event Action<string> OnIllegallyModifiedFileDetected;
         public event Action<int> OnLtmKeyCacheUpdated;
 
@@ -38,44 +49,77 @@ namespace Assets.Turnroot.Gameplay.Brain
         /// Centralized publisher for LTM key cache version changes.
         /// Other systems should call this to notify subscribed brains/components.
         /// </summary>
-        /// <param name="version">The new key cache version from LongTermMemory</param>
         public void PublishLtmKeyCacheUpdated(int version)
         {
             OnLtmKeyCacheUpdated?.Invoke(version);
         }
 
-        // Internal/engine method to raise the event for illegal modifications
         public void NotifyIllegalModification(string message)
         {
             OnIllegallyModifiedFileDetected?.Invoke(message);
         }
 
-        /* ------------------------------ Module flags ------------------------------ */
-        // These are paid add-on modules, you can find them on the asset store.
-        // The modules will self-install and self-enable these.
-        // Thanks for supporting Turnroot :)
-        private bool hubModuleEnabled = false;
-        private bool bloodlinesModuleEnabled = false;
-        private bool retroModuleEnabled = false;
+        #endregion
 
-        private bool unwindModuleEnabled = false;
+        #region State Events
 
-        private bool troopsModuleEnabled = false;
-
-        private bool monstersModuleEnabled = false;
-
-        /* ------------------------------ State events ------------------------------ */
         public event Action<BrainState> OnPaused;
         public event Action<BrainState> OnResumed;
         public event Action<BrainState> OnStateChanged;
         public event Action OnGameOver;
         public event Action HighLevelStatesInitialized;
 
-        /* ------------------------- Roster lifecycle events ------------------------ */
+        public void PublishPaused(BrainState prev)
+        {
+            Debug.Log($"EventsBrain: State paused -> {prev?.Name ?? "(null)"}");
+            OnPaused?.Invoke(prev);
+        }
+
+        public void PublishResumed(BrainState prev)
+        {
+            Debug.Log($"EventsBrain: State resumed -> {prev?.Name ?? "(null)"}");
+            OnResumed?.Invoke(prev);
+        }
+
+        public void PublishStateChanged(BrainState newState)
+        {
+            Debug.Log($"EventsBrain: State changed -> {newState?.Name ?? "(null)"}");
+            OnStateChanged?.Invoke(newState);
+        }
+
+        public void PublishGameOver()
+        {
+            Debug.Log("EventsBrain: GameOver event received");
+            OnGameOver?.Invoke();
+        }
+
+        public void PublishHighLevelStatesInitialized()
+        {
+            Debug.Log("EventsBrain: High-level states initialized");
+            HighLevelStatesInitialized?.Invoke();
+        }
+
+        #endregion
+
+        #region Roster Lifecycle Events
+
         public event Action<Characters.RosterInstance> OnRosterReady;
         public event Action<Characters.Roster, string> OnRosterFailed;
 
-        /* -------------------------- Conversation events --------------------------- */
+        public void PublishRosterReady(Characters.RosterInstance instance)
+        {
+            OnRosterReady?.Invoke(instance);
+        }
+
+        public void PublishRosterFailed(Characters.Roster roster, string reason)
+        {
+            OnRosterFailed?.Invoke(roster, reason);
+        }
+
+        #endregion
+
+        #region Conversation Events
+
         public event Action<SupportRelationshipInstance> OnSupportPointsChanged;
         public event Action<SupportRelationshipInstance> OnSupportConversationAvailable;
         public event Action<SupportRelationshipInstance> SLevelSupportConversationAvailable;
@@ -84,31 +128,18 @@ namespace Assets.Turnroot.Gameplay.Brain
         public event Action<ConversationLayer> OnConversationLayerStarted;
         public event Action<ConversationLayer> OnConversationLayerEnded;
 
-        /* ------------------------ Scene-level dependencies ------------------------ */
-        private ConversationController _sceneConversationController;
+        #endregion
 
-        /* --------------------------------- Wake up -------------------------------- */
+        #region Initialization
+
         public void Awake()
         {
             Debug.Log("EventsBrain Awake called.");
+
             InitializeLongTermMemory();
             CheckScriptingSymbols();
             InitializeModules();
-
-            try
-            {
-                var controllers = FindObjectsByType<ConversationController>(
-                    FindObjectsSortMode.None
-                );
-                if (controllers != null && controllers.Length > 0)
-                {
-                    PopulateSceneConversationController(controllers[0]);
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.LogWarning("Brain failed to auto-link ConversationController: " + ex.Message);
-            }
+            TryLinkConversationController();
 
             SceneManager.sceneLoaded += OnSceneLoaded_LinkControllers;
         }
@@ -118,6 +149,7 @@ namespace Assets.Turnroot.Gameplay.Brain
             ltm =
                 gameObject.GetComponent<LongTermMemory>()
                 ?? gameObject.AddComponent<LongTermMemory>();
+
             if (ltm == null)
             {
                 Debug.LogError("Brain failed to initialize LongTermMemory.");
@@ -129,7 +161,6 @@ namespace Assets.Turnroot.Gameplay.Brain
             }
         }
 
-        /* ------------------------------ Check modules ----------------------------- */
         public void CheckScriptingSymbols()
         {
 #if TURNROOT_BLOODLINES_MODULE
@@ -152,98 +183,65 @@ namespace Assets.Turnroot.Gameplay.Brain
 #endif
         }
 
-        /* ------------------------- Initialize available modules ------------------------- */
         public void InitializeModules()
         {
-            Debug.Log(
-                "Turnroot add-on modules you have access to: "
-                    + (hubModuleEnabled ? "Hub, " : "")
-                    + (bloodlinesModuleEnabled ? "Bloodlines, " : "")
-                    + (unwindModuleEnabled ? "Unwind, " : "")
-                    + (troopsModuleEnabled ? "Troops, " : "")
-                    + (monstersModuleEnabled ? "Monsters, " : "")
-                    + (retroModuleEnabled ? "Retro " : "")
-            );
+            var enabledModules = GetEnabledModulesString();
+
+            Debug.Log($"Turnroot add-on modules you have access to: {enabledModules}");
             Debug.Log(
                 "You can find more info about Turnroot add-on modules on the Unity Asset Store."
             );
             Debug.Log("All available Turnroot modules initialized.");
-            // TODO: Add module brain segments
         }
 
-        /* ---------------------------- Populator methods --------------------------- */
+        private string GetEnabledModulesString()
+        {
+            var modules = new System.Collections.Generic.List<string>();
+
+            if (hubModuleEnabled)
+                modules.Add("Hub");
+            if (bloodlinesModuleEnabled)
+                modules.Add("Bloodlines");
+            if (unwindModuleEnabled)
+                modules.Add("Unwind");
+            if (troopsModuleEnabled)
+                modules.Add("Troops");
+            if (monstersModuleEnabled)
+                modules.Add("Monsters");
+            if (retroModuleEnabled)
+                modules.Add("Retro");
+
+            return modules.Count > 0 ? string.Join(", ", modules) : "None";
+        }
+
+        #endregion
+
+        #region Conversation Controller Management
+
         public void PopulateSceneConversationController(ConversationController controller)
         {
             _sceneConversationController = controller;
             Debug.Log("Brain populated scene ConversationController.");
         }
 
+        private void TryLinkConversationController()
+        {
+            var controllers = FindObjectsByType<ConversationController>(FindObjectsSortMode.None);
+
+            if (controllers != null && controllers.Length > 0)
+            {
+                PopulateSceneConversationController(controllers[0]);
+            }
+        }
+
         private void OnSceneLoaded_LinkControllers(Scene scene, LoadSceneMode mode)
         {
-            try
-            {
-                var controllers = FindObjectsByType<ConversationController>(
-                    FindObjectsSortMode.None
-                );
-                if (controllers != null && controllers.Length > 0)
-                {
-                    PopulateSceneConversationController(controllers[0]);
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.LogWarning(
-                    "Brain failed to auto-link ConversationController on scene load: " + ex.Message
-                );
-            }
+            TryLinkConversationController();
         }
 
-        private void OnDestroy()
-        {
-            SceneManager.sceneLoaded -= OnSceneLoaded_LinkControllers;
-        }
+        #endregion
 
-        /* ------------------------------ State methods ----------------------------- */
-        public void PublishPaused(BrainState prev)
-        {
-            Debug.Log("EventsBrain: State paused -> " + (prev?.Name ?? "(null)"));
-            OnPaused?.Invoke(prev);
-        }
-
-        public void PublishResumed(BrainState prev)
-        {
-            Debug.Log("EventsBrain: State resumed -> " + (prev?.Name ?? "(null)"));
-            OnResumed?.Invoke(prev);
-        }
-
-        public void PublishStateChanged(BrainState newState)
-        {
-            Debug.Log("EventsBrain: State changed -> " + (newState?.Name ?? "(null)"));
-            OnStateChanged?.Invoke(newState);
-        }
-
-        public void PublishGameOver()
-        {
-            Debug.Log("EventsBrain: GameOver event received");
-            OnGameOver?.Invoke();
-        }
-
-        public void PublishHighLevelStatesInitialized()
-        {
-            Debug.Log("EventsBrain: High-level states initialized");
-            HighLevelStatesInitialized?.Invoke();
-        }
-
-        /* --------------------- Publish roster lifecycle events -------------------- */
-        public void PublishRosterReady(Characters.RosterInstance instance)
-        {
-            OnRosterReady?.Invoke(instance);
-        }
-
-        public void PublishRosterFailed(Characters.Roster roster, string reason)
-        {
-            OnRosterFailed?.Invoke(roster, reason);
-        }
+        #region State Control
 
         public void Pause()
         {
@@ -256,5 +254,16 @@ namespace Assets.Turnroot.Gameplay.Brain
             var stateBrain = GetComponent<StateBrain>();
             stateBrain?.Resume();
         }
+
+        #endregion
+
+        #region Cleanup
+
+        private void OnDestroy()
+        {
+            SceneManager.sceneLoaded -= OnSceneLoaded_LinkControllers;
+        }
+
+        #endregion
     }
 }

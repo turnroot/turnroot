@@ -1,3 +1,4 @@
+using System;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Turnroot.Gameplay.Objects;
@@ -10,7 +11,9 @@ namespace Assets.Turnroot.Gameplay.Brain.Components
     /// </summary>
     public class ObjectItemInstanceJsonConverter : JsonConverter
     {
-        public override bool CanConvert(System.Type objectType)
+        private const string TemplateField = "_template";
+
+        public override bool CanConvert(Type objectType)
         {
             return typeof(ObjectItemInstance).IsAssignableFrom(objectType);
         }
@@ -19,62 +22,81 @@ namespace Assets.Turnroot.Gameplay.Brain.Components
 
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
-            var inst = value as ObjectItemInstance;
-            if (inst == null)
+            var instance = value as ObjectItemInstance;
+            if (instance == null)
             {
                 writer.WriteNull();
                 return;
             }
 
-            var j = new JObject();
+            var token = SerializeInstance(instance, serializer);
+            token.WriteTo(writer);
+        }
 
-            // Write template using existing UnityObjectJsonConverter
-            var template = inst.Template;
+        private JObject SerializeInstance(ObjectItemInstance instance, JsonSerializer serializer)
+        {
+            var token = new JObject();
+
+            var template = instance.Template;
             if (template != null)
             {
-                j["_template"] = JToken.FromObject(template, serializer);
+                token[TemplateField] = JToken.FromObject(template, serializer);
             }
 
-            j.WriteTo(writer);
+            return token;
         }
 
         public override object ReadJson(
             JsonReader reader,
-            System.Type objectType,
+            Type objectType,
             object existingValue,
             JsonSerializer serializer
         )
         {
-            var j = JObject.Load(reader);
-
-            var templateToken = j.SelectToken("_template") ?? j.SelectToken("Template");
-            ObjectItem template = null;
-            if (templateToken != null && templateToken.Type != JTokenType.Null)
-            {
-                try
-                {
-                    template = templateToken.ToObject<ObjectItem>(serializer);
-                }
-                catch { }
-            }
-
-            ObjectItemInstance instance = null;
-            if (template != null)
-            {
-                instance = new ObjectItemInstance(template);
-            }
-            else
-            {
-                instance = (ObjectItemInstance)
-                    System.Runtime.Serialization.FormatterServices.GetUninitializedObject(
-                        typeof(ObjectItemInstance)
-                    );
-            }
+            var token = JObject.Load(reader);
+            var template = ResolveTemplate(token, serializer);
+            var instance = CreateInstance(template);
 
             if (instance is global::Turnroot.Serialization.IPostDeserialize post)
+            {
                 post.OnAfterDeserialize();
+            }
 
             return instance;
+        }
+
+        private ObjectItem ResolveTemplate(JObject token, JsonSerializer serializer)
+        {
+            var templateToken = token.SelectToken(TemplateField) ?? token.SelectToken("Template");
+
+            if (templateToken?.Type == JTokenType.Null || templateToken == null)
+                return null;
+
+            try
+            {
+                return templateToken.ToObject<ObjectItem>(serializer);
+            }
+            catch (Exception ex)
+            {
+                UnityEngine.Debug.LogWarning(
+                    $"Failed to deserialize ObjectItem template: {ex.Message}"
+                );
+                return null;
+            }
+        }
+
+        private ObjectItemInstance CreateInstance(ObjectItem template)
+        {
+            if (template != null)
+            {
+                return new ObjectItemInstance(template);
+            }
+
+            // Create uninitialized instance if no template available
+            return (ObjectItemInstance)
+                System.Runtime.Serialization.FormatterServices.GetUninitializedObject(
+                    typeof(ObjectItemInstance)
+                );
         }
     }
 }

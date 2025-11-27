@@ -1,3 +1,5 @@
+using System;
+using System.Reflection;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Turnroot.Characters;
@@ -9,7 +11,25 @@ namespace Assets.Turnroot.Gameplay.Brain.Components
     /// </summary>
     public class CharacterInstanceJsonConverter : JsonConverter
     {
-        public override bool CanConvert(System.Type objectType)
+        private const string UnityMarker = "__unity";
+        private const BindingFlags PrivateInstanceFlags =
+            BindingFlags.Instance | BindingFlags.NonPublic;
+
+        // Field name constants
+        private static class FieldNames
+        {
+            public const string Id = "_id";
+            public const string CharacterTemplate = "_characterTemplate";
+            public const string CurrentLevel = "_currentLevel";
+            public const string CurrentExp = "_currentExp";
+            public const string RuntimeBoundedStats = "_runtimeBoundedStats";
+            public const string RuntimeUnboundedStats = "_runtimeUnboundedStats";
+            public const string InventoryInstance = "_inventoryInstance";
+            public const string SkillInstances = "_skillInstances";
+            public const string SupportRelationships = "_supportRelationships";
+        }
+
+        public override bool CanConvert(Type objectType)
         {
             return typeof(CharacterInstance).IsAssignableFrom(objectType);
         }
@@ -25,143 +45,242 @@ namespace Assets.Turnroot.Gameplay.Brain.Components
                 return;
             }
 
-            var j = new JObject();
+            var token = SerializeCharacterInstance(instance, serializer);
+            token.WriteTo(writer);
+        }
 
-            // id
-            j["_id"] = instance.Id;
-
-            // Character template reference -> write as compact unity token
-            var template = instance.CharacterTemplate;
-            if (template != null)
+        private JObject SerializeCharacterInstance(
+            CharacterInstance instance,
+            JsonSerializer serializer
+        )
+        {
+            var token = new JObject
             {
-                var tkn = new JObject
-                {
-                    ["__unity"] = true,
-                    ["type"] = template.GetType().AssemblyQualifiedName,
-                    ["name"] = template.name,
-                };
-#if UNITY_EDITOR
-                try
-                {
-                    var path = UnityEditor.AssetDatabase.GetAssetPath(template);
-                    if (!string.IsNullOrEmpty(path))
-                    {
-                        tkn["assetPath"] = path;
-                        try
-                        {
-                            tkn["guid"] = UnityEditor.AssetDatabase.AssetPathToGUID(path);
-                        }
-                        catch { }
-                    }
-                }
-                catch { }
-#endif
-                j["_characterTemplate"] = tkn;
+                [FieldNames.Id] = instance.Id,
+                [FieldNames.CharacterTemplate] = CreateTemplateToken(instance.CharacterTemplate),
+                [FieldNames.CurrentLevel] = JToken.FromObject(instance.CurrentLevel, serializer),
+                [FieldNames.CurrentExp] = JToken.FromObject(instance.CurrentExp, serializer),
+                [FieldNames.RuntimeBoundedStats] = JToken.FromObject(
+                    instance.RuntimeBoundedStats,
+                    serializer
+                ),
+                [FieldNames.RuntimeUnboundedStats] = JToken.FromObject(
+                    instance.RuntimeUnboundedStats,
+                    serializer
+                ),
+                [FieldNames.InventoryInstance] = JToken.FromObject(
+                    instance.InventoryInstance,
+                    serializer
+                ),
+                [FieldNames.SkillInstances] = JToken.FromObject(
+                    instance.SkillInstances,
+                    serializer
+                ),
+            };
+
+            var supportRelationships = GetPrivateFieldValue(
+                instance,
+                FieldNames.SupportRelationships
+            );
+            if (supportRelationships != null)
+            {
+                token[FieldNames.SupportRelationships] = JToken.FromObject(
+                    supportRelationships,
+                    serializer
+                );
             }
 
-            // other runtime fields
-            j["_currentLevel"] = JToken.FromObject(instance.CurrentLevel, serializer);
-            j["_currentExp"] = JToken.FromObject(instance.CurrentExp, serializer);
-            j["_runtimeBoundedStats"] = JToken.FromObject(instance.RuntimeBoundedStats, serializer);
-            j["_runtimeUnboundedStats"] = JToken.FromObject(
-                instance.RuntimeUnboundedStats,
-                serializer
-            );
-            j["_inventoryInstance"] = JToken.FromObject(instance.InventoryInstance, serializer);
-            j["_skillInstances"] = JToken.FromObject(instance.SkillInstances, serializer);
-            j["_supportRelationships"] = JToken.FromObject(
-                instance
-                    .GetType()
-                    .GetField(
-                        "_supportRelationships",
-                        System.Reflection.BindingFlags.Instance
-                            | System.Reflection.BindingFlags.NonPublic
-                    )
-                    ?.GetValue(instance),
-                serializer
-            );
-
-            j.WriteTo(writer);
+            return token;
         }
+
+        private JObject CreateTemplateToken(CharacterData template)
+        {
+            if (template == null)
+                return null;
+
+            var token = new JObject
+            {
+                [UnityMarker] = true,
+                ["type"] = template.GetType().AssemblyQualifiedName,
+                ["name"] = template.name,
+            };
+
+#if UNITY_EDITOR
+            AddEditorMetadata(token, template);
+#endif
+
+            return token;
+        }
+
+#if UNITY_EDITOR
+        private void AddEditorMetadata(JObject token, CharacterData template)
+        {
+            try
+            {
+                var path = UnityEditor.AssetDatabase.GetAssetPath(template);
+                if (!string.IsNullOrEmpty(path))
+                {
+                    token["assetPath"] = path;
+
+                    try
+                    {
+                        token["guid"] = UnityEditor.AssetDatabase.AssetPathToGUID(path);
+                    }
+                    catch (Exception ex)
+                    {
+                        UnityEngine.Debug.LogWarning(
+                            $"Failed to get GUID for template: {ex.Message}"
+                        );
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                UnityEngine.Debug.LogWarning($"Failed to get template asset path: {ex.Message}");
+            }
+        }
+#endif
 
         public override object ReadJson(
             JsonReader reader,
-            System.Type objectType,
+            Type objectType,
             object existingValue,
             JsonSerializer serializer
         )
         {
-            var j = JObject.Load(reader);
-            JToken templateToken =
-                j.SelectToken("_characterTemplate") ?? j.SelectToken("CharacterTemplate");
-            CharacterData template = null;
-            if (templateToken != null && templateToken.Type != JTokenType.Null)
-            {
-                try
-                {
-                    template = templateToken.ToObject<CharacterData>(serializer);
-                }
-                catch { }
-            }
+            var token = JObject.Load(reader);
+            var template = ResolveCharacterTemplate(token, serializer);
+            var instance = CreateCharacterInstance(template);
 
-            CharacterInstance instance = null;
+            PopulateInstanceFields(instance, token, serializer);
+            instance?.OnAfterDeserialize();
+
+            return instance;
+        }
+
+        private CharacterData ResolveCharacterTemplate(JObject token, JsonSerializer serializer)
+        {
+            var templateToken =
+                token.SelectToken(FieldNames.CharacterTemplate)
+                ?? token.SelectToken("CharacterTemplate");
+
+            if (templateToken?.Type == JTokenType.Null || templateToken == null)
+                return null;
+
+            try
+            {
+                return templateToken.ToObject<CharacterData>(serializer);
+            }
+            catch (Exception ex)
+            {
+                UnityEngine.Debug.LogWarning(
+                    $"Failed to deserialize CharacterData template: {ex.Message}"
+                );
+                return null;
+            }
+        }
+
+        private CharacterInstance CreateCharacterInstance(CharacterData template)
+        {
             if (template != null)
             {
-                instance = CharacterInstance.Create(template);
-            }
-            else
-            {
-                instance = (CharacterInstance)
-                    System.Runtime.Serialization.FormatterServices.GetUninitializedObject(
-                        typeof(CharacterInstance)
-                    );
+                return CharacterInstance.Create(template);
             }
 
-            var t = typeof(CharacterInstance);
-            void SetField(string fieldName, JToken token)
-            {
-                if (token == null || token.Type == JTokenType.Null)
-                    return;
-                var fi = t.GetField(
-                    fieldName,
-                    System.Reflection.BindingFlags.Instance
-                        | System.Reflection.BindingFlags.NonPublic
+            // Create uninitialized instance if no template available
+            return (CharacterInstance)
+                System.Runtime.Serialization.FormatterServices.GetUninitializedObject(
+                    typeof(CharacterInstance)
                 );
-                if (fi == null)
-                    return;
-                var val = token.ToObject(fi.FieldType, serializer);
-                fi.SetValue(instance, val);
+        }
+
+        private void PopulateInstanceFields(
+            CharacterInstance instance,
+            JObject token,
+            JsonSerializer serializer
+        )
+        {
+            if (instance == null)
+                return;
+
+            SetFieldFromToken(instance, token, FieldNames.Id, "Id", serializer);
+            SetFieldFromToken(instance, token, FieldNames.CurrentLevel, "CurrentLevel", serializer);
+            SetFieldFromToken(instance, token, FieldNames.CurrentExp, "CurrentExp", serializer);
+            SetFieldFromToken(
+                instance,
+                token,
+                FieldNames.RuntimeBoundedStats,
+                "RuntimeBoundedStats",
+                serializer
+            );
+            SetFieldFromToken(
+                instance,
+                token,
+                FieldNames.RuntimeUnboundedStats,
+                "RuntimeUnboundedStats",
+                serializer
+            );
+            SetFieldFromToken(
+                instance,
+                token,
+                FieldNames.InventoryInstance,
+                "InventoryInstance",
+                serializer
+            );
+            SetFieldFromToken(
+                instance,
+                token,
+                FieldNames.SkillInstances,
+                "SkillInstances",
+                serializer
+            );
+            SetFieldFromToken(
+                instance,
+                token,
+                FieldNames.SupportRelationships,
+                "SupportRelationships",
+                serializer
+            );
+        }
+
+        private void SetFieldFromToken(
+            CharacterInstance instance,
+            JObject token,
+            string fieldName,
+            string fallbackName,
+            JsonSerializer serializer
+        )
+        {
+            var fieldToken = token.SelectToken(fieldName) ?? token.SelectToken(fallbackName);
+            if (fieldToken?.Type == JTokenType.Null || fieldToken == null)
+                return;
+
+            var field = typeof(CharacterInstance).GetField(fieldName, PrivateInstanceFlags);
+            if (field == null)
+                return;
+
+            try
+            {
+                var value = fieldToken.ToObject(field.FieldType, serializer);
+                field.SetValue(instance, value);
             }
+            catch (Exception ex)
+            {
+                UnityEngine.Debug.LogWarning($"Failed to set field '{fieldName}': {ex.Message}");
+            }
+        }
 
-            SetField("_id", j.SelectToken("_id") ?? j.SelectToken("Id"));
-            SetField(
-                "_currentLevel",
-                j.SelectToken("_currentLevel") ?? j.SelectToken("CurrentLevel")
-            );
-            SetField("_currentExp", j.SelectToken("_currentExp") ?? j.SelectToken("CurrentExp"));
-            SetField(
-                "_runtimeBoundedStats",
-                j.SelectToken("_runtimeBoundedStats") ?? j.SelectToken("RuntimeBoundedStats")
-            );
-            SetField(
-                "_runtimeUnboundedStats",
-                j.SelectToken("_runtimeUnboundedStats") ?? j.SelectToken("RuntimeUnboundedStats")
-            );
-            SetField(
-                "_inventoryInstance",
-                j.SelectToken("_inventoryInstance") ?? j.SelectToken("InventoryInstance")
-            );
-            SetField(
-                "_skillInstances",
-                j.SelectToken("_skillInstances") ?? j.SelectToken("SkillInstances")
-            );
-            SetField(
-                "_supportRelationships",
-                j.SelectToken("_supportRelationships") ?? j.SelectToken("SupportRelationships")
-            );
-
-            instance?.OnAfterDeserialize();
-            return instance;
+        private object GetPrivateFieldValue(CharacterInstance instance, string fieldName)
+        {
+            try
+            {
+                var field = typeof(CharacterInstance).GetField(fieldName, PrivateInstanceFlags);
+                return field?.GetValue(instance);
+            }
+            catch
+            {
+                return null;
+            }
         }
     }
 }

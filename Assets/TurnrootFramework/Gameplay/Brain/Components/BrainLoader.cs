@@ -3,8 +3,13 @@ using UnityEngine.SceneManagement;
 
 namespace Assets.Turnroot.Gameplay.Brain
 {
+    /// <summary>
+    /// Loads the TurnrootBrain scene additively and manages its lifecycle.
+    /// </summary>
     public class BrainLoader : MonoBehaviour
     {
+        private const string BrainSceneName = "TurnrootBrain";
+
         private void Awake()
         {
             LoadBrainScene();
@@ -12,27 +17,33 @@ namespace Assets.Turnroot.Gameplay.Brain
 
         private void OnDisable()
         {
-            SceneManager.UnloadSceneAsync("TurnrootBrain");
+            UnloadBrainScene();
         }
 
         private void OnDestroy()
         {
-            SceneManager.UnloadSceneAsync("TurnrootBrain");
+            UnloadBrainScene();
         }
 
         private void LoadBrainScene()
         {
-            Debug.Log("Loading TurnrootBrain scene.");
+            Debug.Log($"Loading {BrainSceneName} scene.");
+
             try
             {
-                SceneManager.LoadScene("TurnrootBrain", LoadSceneMode.Additive);
-                Debug.Log("TurnrootBrain scene loaded successfully.");
+                SceneManager.LoadScene(BrainSceneName, LoadSceneMode.Additive);
+                Debug.Log($"{BrainSceneName} scene loaded successfully.");
             }
             catch (System.Exception e)
             {
-                Debug.LogError("Failed to load TurnrootBrain scene: " + e.Message);
+                Debug.LogError($"Failed to load {BrainSceneName} scene: {e.Message}");
                 Debug.Break();
             }
+        }
+
+        private void UnloadBrainScene()
+        {
+            SceneManager.UnloadSceneAsync(BrainSceneName);
         }
     }
 }

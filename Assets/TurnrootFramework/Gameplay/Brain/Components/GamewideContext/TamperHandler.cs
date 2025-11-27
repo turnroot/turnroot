@@ -1,8 +1,6 @@
 using System;
 using Assets.Turnroot.Gameplay.Brain.Components;
-using Newtonsoft.Json.Linq;
 using Turnroot.Characters;
-using Turnroot.Serialization;
 using UnityEngine;
 
 namespace Assets.Turnroot.Gameplay.Brain.Components
@@ -27,10 +25,10 @@ namespace Assets.Turnroot.Gameplay.Brain.Components
             GamewideContextBrain brain,
             T instance,
             GamewideContextBrainHelpers.SerializedWrapper wrapper,
-            string stored
+            string storedHash
         )
         {
-            var reason = $"ledger mismatch: stored={stored}, wrapper={wrapper?.Hash}";
+            var reason = $"ledger mismatch: stored={storedHash}, wrapper={wrapper?.Hash}";
             return OnTamperDetected(brain, instance, wrapper, reason);
         }
 
@@ -41,90 +39,117 @@ namespace Assets.Turnroot.Gameplay.Brain.Components
             string reason
         )
         {
+            LogTamperDetection<T>(brain, instance, reason);
+
+            switch (brain.Policy)
+            {
+                case GamewideContextBrain.TamperPolicy.NotifyOnly:
+                    return instance;
+
+                case GamewideContextBrain.TamperPolicy.Reject:
+                    return default;
+
+                case GamewideContextBrain.TamperPolicy.Replace:
+                default:
+                    return HandleReplace(brain, instance, wrapper);
+            }
+        }
+
+        private static void LogTamperDetection<T>(
+            GamewideContextBrain brain,
+            T instance,
+            string reason
+        )
+        {
+            var typeName = typeof(T).Name;
+            var id = ExtractInstanceId(instance);
+            var message = $"Tampering detected ({reason}): type={typeName}, id={id}";
+
+            var parentBrain = brain.GetComponent<Brain>();
+            parentBrain?.NotifyIllegalModification(message);
+
+            Debug.LogWarning(message);
+        }
+
+        private static string ExtractInstanceId<T>(T instance)
+        {
+            if (instance is CharacterInstance ci)
+                return ci.Id;
+
+            // Could extend to other instance types with Id properties
+            return string.Empty;
+        }
+
+        private static T HandleReplace<T>(
+            GamewideContextBrain brain,
+            T instance,
+            GamewideContextBrainHelpers.SerializedWrapper wrapper
+        )
+        {
+            var replacement = GamewideContextBrainHelpers.CreateDefaultInstanceFromWrapper<T>(
+                wrapper
+            );
+            var replacementWrapper = TryCreateReplacementWrapper(replacement);
+
+            UpdateLedgerForReplacement(brain, instance, wrapper, replacementWrapper);
+
+            return replacement;
+        }
+
+        private static GamewideContextBrainHelpers.SerializedWrapper TryCreateReplacementWrapper<T>(
+            T replacement
+        )
+        {
+            if (replacement == null)
+                return null;
+
             try
             {
-                var b = brain.GetComponent<Brain>();
-                string typeName = typeof(T).Name;
-                string id = string.Empty;
-                if (instance is CharacterInstance ci)
-                    id = ci.Id;
-
-                string message = $"Tampering detected ({reason}): type={typeName}, id={id}";
-                b?.NotifyIllegalModification(message);
-                Debug.LogWarning(message);
-
-                switch (brain.Policy)
-                {
-                    case GamewideContextBrain.TamperPolicy.NotifyOnly:
-                        return instance;
-                    case GamewideContextBrain.TamperPolicy.Reject:
-                        return default;
-                    case GamewideContextBrain.TamperPolicy.Replace:
-                    default:
-                        T replacement =
-                            GamewideContextBrainHelpers.CreateDefaultInstanceFromWrapper<T>(
-                                wrapper
-                            );
-
-                        // Attempt to produce a replacement wrapper for hash content, but do
-                        // not rely on this succeeding — regardless we must update the
-                        // original ledger entry so Replace is observable and deterministic.
-                        Assets.Turnroot.Gameplay.Brain.GamewideContextBrainHelpers.SerializedWrapper replacementWrapper =
-                            null;
-                        try
-                        {
-                            if (replacement != null)
-                            {
-                                var encodedReplacement =
-                                    Assets.Turnroot.Gameplay.Brain.GamewideContextBrainHelpers.EncodeInstanceToBase64NoLedger(
-                                        replacement
-                                    );
-                                replacementWrapper =
-                                    Assets.Turnroot.Gameplay.Brain.GamewideContextBrainHelpers.DecodeWrapperFromBase64(
-                                        encodedReplacement
-                                    );
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            Debug.LogWarning(
-                                $"TamperHandler: failed to encode/parse replacement instance: {ex.Message}"
-                            );
-                            replacementWrapper = null;
-                        }
-
-                        try
-                        {
-                            var ltm = brain.GetComponent<LongTermMemory>();
-                            var originalKey =
-                                Assets.Turnroot.Gameplay.Brain.GamewideContextBrainHelpers.BuildHashLedgerKey(
-                                    instance,
-                                    replacementWrapper ?? wrapper
-                                );
-                            if (!string.IsNullOrEmpty(originalKey) && ltm != null)
-                            {
-                                var baseHash = (
-                                    replacementWrapper?.Hash ?? wrapper?.Hash ?? string.Empty
-                                );
-                                var newVal = baseHash + "|r:" + Guid.NewGuid().ToString("N");
-                                var saved = ltm.Remember(originalKey, newVal);
-                                // LongTermMemory will publish OnKeySetChanged; don't publish here.
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            Debug.LogWarning(
-                                $"TamperHandler: failed to update original ledger entry: {ex.Message}"
-                            );
-                        }
-
-                        return replacement;
-                }
+                var encoded = GamewideContextBrainHelpers.EncodeInstanceToBase64NoLedger(
+                    replacement
+                );
+                return GamewideContextBrainHelpers.DecodeWrapperFromBase64(encoded);
             }
             catch (Exception ex)
             {
-                Debug.LogWarning($"TamperHandler failed: {ex.Message}");
-                return default;
+                Debug.LogWarning(
+                    $"TamperHandler: failed to create replacement wrapper: {ex.Message}"
+                );
+                return null;
+            }
+        }
+
+        private static void UpdateLedgerForReplacement<T>(
+            GamewideContextBrain brain,
+            T instance,
+            GamewideContextBrainHelpers.SerializedWrapper originalWrapper,
+            GamewideContextBrainHelpers.SerializedWrapper replacementWrapper
+        )
+        {
+            try
+            {
+                var ltm = brain.GetComponent<LongTermMemory>();
+                if (ltm == null)
+                    return;
+
+                var key = GamewideContextBrainHelpers.BuildHashLedgerKey(
+                    instance,
+                    replacementWrapper ?? originalWrapper
+                );
+
+                if (string.IsNullOrEmpty(key))
+                    return;
+
+                var baseHash = replacementWrapper?.Hash ?? originalWrapper?.Hash ?? string.Empty;
+                var replacementMarker = baseHash + "|r:" + Guid.NewGuid().ToString("N");
+
+                ltm.Remember(key, replacementMarker);
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning(
+                    $"TamperHandler: failed to update ledger for replacement: {ex.Message}"
+                );
             }
         }
     }

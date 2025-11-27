@@ -8,23 +8,20 @@ using UnityEngine;
 
 namespace Assets.Turnroot.Gameplay.Brain
 {
+    /// <summary>
+    /// Manages gamewide context within the game's brain system.
+    /// Holds all instances and handles Data -> Instance conversions.
+    /// Encodes and decodes instances to/from strings for LongTermMemory storage.
+    /// </summary>
     [RequireComponent(typeof(Brain))]
     [RequireComponent(typeof(LongTermMemory))]
-    /// <summary>
-    /// Manages gamewide context within the game's brain system
-    /// What this actually means is- the GWCB holds all the instances, which need a central place to live,
-    /// and Data -> Instance needs to happen in one local place.
-    /// This Brain can convert, say, CharacterData to CharacterInstance
-    /// and hold those instances for the entire game as needed.
-    /// Since LongTermMemory wants strings, this Brain encodes and decodes instances <-> strings.
-    /// </summary>
     public class GamewideContextBrain : MonoBehaviour
     {
-        [Header("Rosters")]
-        [SerializeField]
-        private List<Roster> rosters = new();
-        public IReadOnlyList<Roster> ConfiguredRosters => rosters;
-        private int lastKnownLtmKeyCacheVersion = 0;
+        private static class LtmKeys
+        {
+            public const string RosterIndex = "GWB.Roster.Index";
+            public const string UniqueCharacterIndex = "GWB.UniqueCharacter.Index";
+        }
 
         public enum TamperPolicy
         {
@@ -33,6 +30,11 @@ namespace Assets.Turnroot.Gameplay.Brain
             Replace = 2,
         }
 
+        [Header("Rosters")]
+        [SerializeField]
+        private List<Roster> rosters = new List<Roster>();
+        public IReadOnlyList<Roster> ConfiguredRosters => rosters;
+
         [Header("Tamper Detection")]
         [Tooltip(
             "Policy that controls what happens when an encoded payload fails the integrity check."
@@ -40,264 +42,408 @@ namespace Assets.Turnroot.Gameplay.Brain
         [SerializeField]
         private TamperPolicy tamperPolicy = TamperPolicy.Replace;
 
-        // runtime accessor so tools / editor helpers can change the active policy
         public TamperPolicy Policy
         {
             get => tamperPolicy;
             set => tamperPolicy = value;
         }
 
-        /* ------------------- Recall from LongTermMemory on Start ------------------ */
+        #region Initialization
+
         public void Start()
         {
-            // Subscribe to Brain-level LTM key-cache notifications so we stay in sync
-            try
-            {
-                var parent = GetComponent<Brain>();
-                if (parent != null)
-                {
-                    parent.OnLtmKeyCacheUpdated += HandleLtmKeyCacheUpdated;
-                    try
-                    {
-                        lastKnownLtmKeyCacheVersion =
-                            parent.ltm?.KeyCacheVersion ?? lastKnownLtmKeyCacheVersion;
-                    }
-                    catch { }
-                }
-            }
-            catch { }
-
             RecallRosters();
         }
 
-        /* --------------------------- Roster instantiation -------------------------- */
+        #endregion
+
+        #region Roster Instantiation
+
         /// <summary>
-        /// Instantiate runtime CharacterInstance objects for the provided Roster
-        /// ScriptableObject using the canonical factory. Returns the created
-        /// instances so callers can register them as needed.
+        /// Instantiate runtime CharacterInstance objects for the provided Roster.
         /// </summary>
         public RosterInstance InstantiateRoster(Roster roster, bool registerGlobally = false)
         {
-            var brain = GetComponent<Brain>();
-
             if (roster == null || roster.characters == null)
             {
                 Debug.LogWarning("InstantiateRoster called with null roster or characters.");
-                brain?.PublishRosterFailed(null, "Invalid roster or empty characters");
+                GetComponent<Brain>()
+                    ?.PublishRosterFailed(null, "Invalid roster or empty characters");
                 return null;
             }
 
-            var existing = FindObjectsByType<RosterInstance>(FindObjectsSortMode.None)
-                .FirstOrDefault(r => r != null && r.roster == roster);
-
+            var existing = FindExistingRosterInstance(roster);
             if (existing != null)
             {
-                bool anyPresent = false;
-                foreach (var cd in roster.characters)
-                {
-                    if (cd == null)
-                        continue;
-                    if (existing.GetInstanceFor(cd) != null)
-                    {
-                        anyPresent = true;
-                        break;
-                    }
-                }
+                return HandleExistingRoster(existing, roster, registerGlobally);
+            }
 
-                if (anyPresent)
-                {
-                    Debug.Log(
-                        $"InstantiateRoster: RosterInstance already exists and contains instances for roster '{roster.name}'. Doing nothing."
-                    );
-                    brain?.PublishRosterFailed(
-                        roster,
-                        "RosterInstance already exists and is populated"
-                    );
-                    return existing;
-                }
+            return CreateNewRosterInstance(roster, registerGlobally);
+        }
 
-                var createdInstances = new List<CharacterInstance>();
-                foreach (var characterData in roster.characters)
-                {
-                    if (characterData == null)
-                        continue;
-                    var inst = CharacterInstance.Create(characterData);
-                    if (inst != null)
-                    {
-                        // Persist instance using our encoder so a ledger entry is created
-                        try
-                        {
-                            EncodeInstanceToString(inst);
-                        }
-                        catch { }
-                        createdInstances.Add(inst);
-                    }
-                }
+        private RosterInstance FindExistingRosterInstance(Roster roster)
+        {
+            return FindObjectsByType<RosterInstance>(FindObjectsSortMode.None)
+                .FirstOrDefault(r => r != null && r.roster == roster);
+        }
 
-                existing.AddInstances(createdInstances);
+        private RosterInstance HandleExistingRoster(
+            RosterInstance existing,
+            Roster roster,
+            bool registerGlobally
+        )
+        {
+            var brain = GetComponent<Brain>();
+
+            if (HasAnyInstancesPopulated(existing, roster))
+            {
                 Debug.Log(
-                    $"InstantiateRoster: Registered {createdInstances.Count} instances into existing RosterInstance '{existing.name}'."
+                    $"InstantiateRoster: RosterInstance already exists and contains instances for roster '{roster.name}'. Doing nothing."
                 );
-                if (registerGlobally)
-                {
-                    try
-                    {
-                        try
-                        {
-                            var encodedRoster = EncodeInstanceToString(roster);
-                            var wrapper = GamewideContextBrainHelpers.DecodeWrapperFromBase64(
-                                encodedRoster
-                            );
-                            var ltm = GetComponent<LongTermMemory>();
-                            var rawKey = $"GWB.Roster.{typeof(Roster).FullName}.{roster.Id}";
-                            var keyHash = GamewideContextBrainHelpers.ComputeFNV1a64Hex(rawKey);
-                            var key = $"GWB.Roster.{typeof(Roster).FullName}.{keyHash}";
-                            if (!string.IsNullOrEmpty(key) && ltm != null)
-                            {
-                                var _saved = ltm.Remember(key, wrapper?.Hash);
-                                try
-                                {
-                                    lastKnownLtmKeyCacheVersion = ltm.KeyCacheVersion;
-                                }
-                                catch { }
-                                // LongTermMemory will publish OnKeySetChanged; don't publish here.
-                                // Update master index for roster registries
-                                var indexKey = "GWB.Roster.Index";
-                                try
-                                {
-                                    var indexJson = ltm.Recall(indexKey);
-                                    var idx = string.IsNullOrEmpty(indexJson)
-                                        ? new List<string>()
-                                        : JsonConvert.DeserializeObject<List<string>>(indexJson);
-                                    if (!idx.Contains(roster.Id))
-                                    {
-                                        idx.Add(roster.Id);
-                                        var _idxSaved = ltm.Remember(
-                                            indexKey,
-                                            JsonConvert.SerializeObject(idx)
-                                        );
-                                        try
-                                        {
-                                            lastKnownLtmKeyCacheVersion = ltm.KeyCacheVersion;
-                                        }
-                                        catch { }
-                                        // LongTermMemory will publish OnKeySetChanged; don't publish here.
-                                    }
-                                }
-                                catch { }
-                            }
-                        }
-                        catch { }
-                    }
-                    catch { }
-                }
-                brain?.PublishRosterReady(existing);
+                brain?.PublishRosterFailed(
+                    roster,
+                    "RosterInstance already exists and is populated"
+                );
                 return existing;
             }
 
+            PopulateRosterInstance(existing, roster);
+
+            if (registerGlobally)
+            {
+                RegisterRosterInLTM(roster);
+            }
+
+            brain?.PublishRosterReady(existing);
+            return existing;
+        }
+
+        private bool HasAnyInstancesPopulated(RosterInstance rosterInstance, Roster roster)
+        {
+            foreach (var cd in roster.characters)
+            {
+                if (cd != null && rosterInstance.GetInstanceFor(cd) != null)
+                    return true;
+            }
+            return false;
+        }
+
+        private void PopulateRosterInstance(RosterInstance rosterInstance, Roster roster)
+        {
+            var createdInstances = new List<CharacterInstance>();
+
+            foreach (var characterData in roster.characters)
+            {
+                if (characterData == null)
+                    continue;
+
+                CharacterInstance inst;
+
+                // For unique characters, try to load from LTM first
+                if (characterData.IsUnique)
+                {
+                    inst = RecallUniqueCharacter(characterData);
+                    if (inst == null)
+                    {
+                        // Create new unique instance and save it
+                        inst = CharacterInstance.Create(characterData);
+                        if (inst != null)
+                        {
+                            SaveUniqueCharacter(inst);
+                        }
+                    }
+                }
+                else
+                {
+                    // Non-unique characters are always created fresh
+                    inst = CharacterInstance.Create(characterData);
+                }
+
+                if (inst != null)
+                {
+                    createdInstances.Add(inst);
+                }
+            }
+
+            rosterInstance.AddInstances(createdInstances);
+            Debug.Log(
+                $"InstantiateRoster: Registered {createdInstances.Count} instances into existing RosterInstance '{rosterInstance.name}'."
+            );
+        }
+
+        private RosterInstance CreateNewRosterInstance(Roster roster, bool registerGlobally)
+        {
             var go = new GameObject($"RosterInstance - {roster.name}");
             var newRi = go.AddComponent<RosterInstance>();
             newRi.roster = roster;
 
 #if UNITY_EDITOR
             newRi.InitializeFromRoster(roster);
-            // Persist ledger entries for instances created by InitializeFromRoster
-            try
-            {
-                foreach (var inst in newRi.Instances)
-                {
-                    try
-                    {
-                        EncodeInstanceToString(inst);
-                    }
-                    catch { }
-                }
-            }
-            catch { }
+            // Save unique characters after roster initialization
+            SaveUniqueCharactersInRoster(newRi);
 #else
-            var createdRuntime = new System.Collections.Generic.List<CharacterInstance>();
-            foreach (var characterData in roster.characters)
-            {
-                if (characterData == null)
-                    continue;
-                var inst = CharacterInstance.Create(characterData);
-                if (inst != null)
-                    createdRuntime.Add(inst);
-            }
-            newRi.AddInstances(createdRuntime);
+            PopulateRosterInstanceAtRuntime(newRi, roster);
 #endif
 
             Debug.Log(
                 $"InstantiateRoster: Created new RosterInstance '{go.name}' with {newRi.Instances.Count} instances."
             );
+
             if (registerGlobally)
             {
-                try
-                {
-                    // Persist roster wrapper/hash in ledger using the canonical encoder
-                    try
-                    {
-                        var encodedRoster = EncodeInstanceToString(roster);
-                        var wrapper = GamewideContextBrainHelpers.DecodeWrapperFromBase64(
-                            encodedRoster
-                        );
-                        var ltm = GetComponent<LongTermMemory>();
-                        var rawKey = $"GWB.Roster.{typeof(Roster).FullName}.{roster.Id}";
-                        var keyHash = GamewideContextBrainHelpers.ComputeFNV1a64Hex(rawKey);
-                        var key = $"GWB.Roster.{typeof(Roster).FullName}.{keyHash}";
-                        if (!string.IsNullOrEmpty(key) && ltm != null)
-                        {
-                            var _saved = ltm.Remember(key, wrapper?.Hash);
-                            try
-                            {
-                                lastKnownLtmKeyCacheVersion = ltm.KeyCacheVersion;
-                            }
-                            catch { }
-                            // update index
-                            var indexKey = "GWB.Roster.Index";
-                            try
-                            {
-                                var idxJson = ltm.Recall(indexKey);
-                                var idx = string.IsNullOrEmpty(idxJson)
-                                    ? new List<string>()
-                                    : JsonConvert.DeserializeObject<List<string>>(idxJson);
-                                if (!idx.Contains(roster.Id))
-                                {
-                                    idx.Add(roster.Id);
-                                    var _idxSaved = ltm.Remember(
-                                        indexKey,
-                                        JsonConvert.SerializeObject(idx)
-                                    );
-                                    try
-                                    {
-                                        lastKnownLtmKeyCacheVersion = ltm.KeyCacheVersion;
-                                    }
-                                    catch { }
-                                }
-                            }
-                            catch { }
-                        }
-                    }
-                    catch { }
-                }
-                catch { }
+                RegisterRosterInLTM(roster);
             }
-            brain?.PublishRosterReady(newRi);
+
+            GetComponent<Brain>()?.PublishRosterReady(newRi);
             return newRi;
         }
 
-        /* ----------------------------- Recall rosters ----------------------------- */
+        private void PopulateRosterInstanceAtRuntime(RosterInstance rosterInstance, Roster roster)
+        {
+            var createdInstances = new List<CharacterInstance>();
+
+            foreach (var characterData in roster.characters)
+            {
+                if (characterData == null)
+                    continue;
+
+                CharacterInstance inst;
+
+                // For unique characters, try to load from LTM first
+                if (characterData.IsUnique)
+                {
+                    inst = RecallUniqueCharacter(characterData);
+                    if (inst == null)
+                    {
+                        inst = CharacterInstance.Create(characterData);
+                        if (inst != null)
+                        {
+                            SaveUniqueCharacter(inst);
+                        }
+                    }
+                }
+                else
+                {
+                    inst = CharacterInstance.Create(characterData);
+                }
+
+                if (inst != null)
+                {
+                    createdInstances.Add(inst);
+                }
+            }
+
+            rosterInstance.AddInstances(createdInstances);
+        }
+
+        private void SaveUniqueCharactersInRoster(RosterInstance rosterInstance)
+        {
+            foreach (var inst in rosterInstance.Instances)
+            {
+                if (inst?.CharacterTemplate?.IsUnique == true)
+                {
+                    SaveUniqueCharacter(inst);
+                }
+            }
+        }
+
+        #endregion
+
+        #region Unique Character Persistence
+
+        /// <summary>
+        /// Saves a unique character instance to LongTermMemory with tamper detection.
+        /// </summary>
+        private void SaveUniqueCharacter(CharacterInstance instance)
+        {
+            if (instance?.CharacterTemplate == null || !instance.CharacterTemplate.IsUnique)
+                return;
+
+            try
+            {
+                var encoded = EncodeInstanceToString(instance);
+                var ltm = GetComponent<LongTermMemory>();
+
+                // Add to unique character index
+                var indexJson = ltm.Recall(LtmKeys.UniqueCharacterIndex);
+                var index = string.IsNullOrEmpty(indexJson)
+                    ? new List<string>()
+                    : JsonConvert.DeserializeObject<List<string>>(indexJson);
+
+                var templateName = instance.CharacterTemplate.name;
+                if (!index.Contains(templateName))
+                {
+                    index.Add(templateName);
+                    ltm.Remember(LtmKeys.UniqueCharacterIndex, JsonConvert.SerializeObject(index));
+                }
+
+                Debug.Log(
+                    $"Saved unique character: {instance.CharacterTemplate.DisplayName} (template: {templateName})"
+                );
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning($"Failed to save unique character: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Recalls a unique character instance from LongTermMemory.
+        /// Returns null if not found or if tamper detection fails.
+        /// </summary>
+        private CharacterInstance RecallUniqueCharacter(CharacterData characterData)
+        {
+            if (characterData == null || !characterData.IsUnique)
+                return null;
+
+            try
+            {
+                var ltm = GetComponent<LongTermMemory>();
+                var key = BuildUniqueCharacterKey(characterData);
+                var encoded = ltm.Recall(key);
+
+                if (string.IsNullOrEmpty(encoded))
+                    return null;
+
+                var instance = DecodeInstanceFromString<CharacterInstance>(encoded);
+
+                if (instance != null)
+                {
+                    Debug.Log(
+                        $"Recalled unique character: {characterData.DisplayName} (template: {characterData.name})"
+                    );
+                }
+
+                return instance;
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning(
+                    $"Failed to recall unique character {characterData.DisplayName}: {ex.Message}"
+                );
+                return null;
+            }
+        }
+
+        private string BuildUniqueCharacterKey(CharacterData characterData)
+        {
+            // Use template asset name as deterministic key
+            return $"GWB.UniqueCharacter.{characterData.name}";
+        }
+
+        /// <summary>
+        /// Public API to save a unique character's current state.
+        /// Call this when you want to persist character progression (level, stats, inventory, etc.)
+        /// </summary>
+        public void SaveUniqueCharacterProgress(CharacterInstance instance)
+        {
+            if (instance?.CharacterTemplate == null)
+            {
+                Debug.LogWarning("Cannot save null character instance.");
+                return;
+            }
+
+            if (!instance.CharacterTemplate.IsUnique)
+            {
+                Debug.LogWarning(
+                    $"Cannot save non-unique character {instance.CharacterTemplate.DisplayName}. Only unique characters are persisted."
+                );
+                return;
+            }
+
+            SaveUniqueCharacter(instance);
+        }
+
+        #endregion
+
+        #region Roster Registration
+
+        private void RegisterRosterInLTM(Roster roster)
+        {
+            try
+            {
+                var ltm = GetComponent<LongTermMemory>();
+                if (ltm == null)
+                    return;
+
+                var key = GamewideContextBrainHelpers.BuildRosterLedgerKey(roster.Id);
+
+                if (string.IsNullOrEmpty(key))
+                    return;
+
+                // Check if already registered
+                var existingHash = ltm.Recall(key);
+                if (!string.IsNullOrEmpty(existingHash))
+                {
+                    Debug.Log($"Roster {roster.name} already registered in LTM, skipping.");
+                    return;
+                }
+
+                var encoded = EncodeRosterToStringNoLedger(roster);
+                var wrapper = GamewideContextBrainHelpers.DecodeWrapperFromBase64(encoded);
+
+                ltm.Remember(key, wrapper?.Hash);
+                UpdateRosterIndex(ltm, roster.Id);
+
+                Debug.Log($"Roster {roster.name} registered in LTM with key: {key}");
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning($"Failed to register roster in LTM: {ex.Message}");
+            }
+        }
+
+        private string EncodeRosterToStringNoLedger(Roster roster)
+        {
+            var settings = GamewideContextBrainHelpers.GetJsonSerializerSettings();
+            var payload = JsonConvert.SerializeObject(roster, settings);
+            var versionHex = DateTime.UtcNow.Ticks.ToString("x16");
+
+            var wrapper = new GamewideContextBrainHelpers.SerializedWrapper
+            {
+                TypeName = typeof(Roster).FullName,
+                Payload = payload,
+                Hash = GamewideContextBrainHelpers.ComputeFNV1a64Hex(payload + "|v:" + versionHex),
+                Version = versionHex,
+            };
+
+            var wrapperJson = JsonConvert.SerializeObject(wrapper, Formatting.None);
+            return Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(wrapperJson));
+        }
+
+        private void UpdateRosterIndex(LongTermMemory ltm, string rosterId)
+        {
+            try
+            {
+                var indexJson = ltm.Recall(LtmKeys.RosterIndex);
+                var index = string.IsNullOrEmpty(indexJson)
+                    ? new List<string>()
+                    : JsonConvert.DeserializeObject<List<string>>(indexJson);
+
+                if (!index.Contains(rosterId))
+                {
+                    index.Add(rosterId);
+                    ltm.Remember(LtmKeys.RosterIndex, JsonConvert.SerializeObject(index));
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning($"Failed to update roster index: {ex.Message}");
+            }
+        }
+
+        #endregion
+
+        #region Roster Recall
+
         private void RecallRosters()
         {
             var brain = GetComponent<Brain>();
             var ltm = GetComponent<LongTermMemory>();
+
             if (ltm == null || brain == null)
                 return;
 
-            var rosterType = typeof(Roster);
-            var prefix = $"GWB.Roster";
-
-            // Use the configured roster list (editable in the inspector). Do NOT scan Resources.
             var allRosters = rosters?.Where(r => r != null).ToArray() ?? new Roster[0];
 
             if (allRosters.Length == 0)
@@ -308,208 +454,82 @@ namespace Assets.Turnroot.Gameplay.Brain
                 return;
             }
 
-            // prefer an index key if present
-            var indexKey = "GWB.Roster.Index";
-            var indexJson = ltm.Recall(indexKey);
+            var indexJson = ltm.Recall(LtmKeys.RosterIndex);
+
             if (!string.IsNullOrEmpty(indexJson))
             {
-                try
-                {
-                    var idList = JsonConvert.DeserializeObject<List<string>>(indexJson);
-                    if (idList != null)
-                    {
-                        foreach (var id in idList)
-                        {
-                            try
-                            {
-                                var candidate = allRosters.FirstOrDefault(r =>
-                                    r != null && r.Id == id
-                                );
-                                if (candidate == null)
-                                    continue;
-
-                                var rawKey = $"GWB.Roster.{rosterType.FullName}.{candidate.Id}";
-                                var keyHash = GamewideContextBrainHelpers.ComputeFNV1a64Hex(rawKey);
-                                var ledgerKey = $"GWB.Roster.{rosterType.FullName}.{keyHash}";
-                                var storedHash = ltm.Recall(ledgerKey);
-                                if (string.IsNullOrEmpty(storedHash))
-                                    continue;
-
-                                InstantiateRoster(candidate, registerGlobally: false);
-                            }
-                            catch (Exception ex)
-                            {
-                                Debug.LogWarning(
-                                    $"RecallRosters: failed to instantiate roster by id '{id}': {ex.Message}"
-                                );
-                            }
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Debug.LogWarning($"RecallRosters: failed to parse roster index: {ex.Message}");
-                }
-
-                return;
+                RecallRostersFromIndex(allRosters, indexJson);
             }
-
-            // fallback: scan keys and map them to roster assets by recomputing hashed keys
-            var rosterEntries = ltm.RecallKeysByPrefix(prefix);
-            if (rosterEntries == null || rosterEntries.Count == 0)
+            else
             {
-                // first-run: register all rosters
-                foreach (var rosterCandidate in allRosters)
+                RegisterAllRosters(allRosters);
+            }
+        }
+
+        private void RecallRostersFromIndex(Roster[] allRosters, string indexJson)
+        {
+            try
+            {
+                var idList = JsonConvert.DeserializeObject<List<string>>(indexJson);
+                if (idList == null)
+                    return;
+
+                foreach (var id in idList)
                 {
-                    try
+                    var roster = Array.Find(allRosters, r => r != null && r.Id == id);
+                    if (roster != null && HasRosterInLTM(roster))
                     {
-                        InstantiateRoster(rosterCandidate, registerGlobally: true);
-                    }
-                    catch (Exception ex)
-                    {
-                        Debug.LogWarning(
-                            $"RecallRosters: failed to register roster '{rosterCandidate?.name}': {ex.Message}"
-                        );
+                        InstantiateRoster(roster, registerGlobally: false);
                     }
                 }
-
-                return;
             }
+            catch (Exception ex)
+            {
+                Debug.LogWarning($"RecallRosters: failed to parse roster index: {ex.Message}");
+            }
+        }
 
-            foreach (var entry in rosterEntries)
+        private bool HasRosterInLTM(Roster roster)
+        {
+            var ltm = GetComponent<LongTermMemory>();
+            if (ltm == null)
+                return false;
+
+            var key = GamewideContextBrainHelpers.BuildRosterLedgerKey(roster.Id);
+            var storedHash = ltm.Recall(key);
+            return !string.IsNullOrEmpty(storedHash);
+        }
+
+        private void RegisterAllRosters(Roster[] allRosters)
+        {
+            foreach (var roster in allRosters)
             {
                 try
                 {
-                    Roster rosterAsset = null;
-                    foreach (var candidate in allRosters)
-                    {
-                        if (candidate == null)
-                            continue;
-                        var rawCandidateKey = $"GWB.Roster.{rosterType.FullName}.{candidate.Id}";
-                        var candidateKeyHash = GamewideContextBrainHelpers.ComputeFNV1a64Hex(
-                            rawCandidateKey
-                        );
-                        var candidateLedgerKey =
-                            $"GWB.Roster.{rosterType.FullName}.{candidateKeyHash}";
-                        if (
-                            string.Equals(
-                                candidateLedgerKey,
-                                entry,
-                                StringComparison.OrdinalIgnoreCase
-                            )
-                        )
-                        {
-                            rosterAsset = candidate;
-                            break;
-                        }
-                    }
-
-                    if (rosterAsset == null)
-                        continue;
-
-                    var storedHash = ltm.Recall(entry);
-                    if (string.IsNullOrEmpty(storedHash))
-                        continue;
-
-                    var rosterInstance = InstantiateRoster(rosterAsset, registerGlobally: false);
-                    if (rosterInstance != null)
-                    {
-                        Debug.Log(
-                            $"RecallRosters: Recalled RosterInstance '{rosterInstance.name}' from LTM."
-                        );
-                    }
+                    InstantiateRoster(roster, registerGlobally: true);
                 }
                 catch (Exception ex)
                 {
                     Debug.LogWarning(
-                        $"RecallRosters: error processing roster key '{entry}': {ex.Message}"
+                        $"RecallRosters: failed to register roster '{roster?.name}': {ex.Message}"
                     );
                 }
             }
         }
 
-        /* ----------------------------- Memory helpers ----------------------------- */
+        #endregion
+
+        #region Public API
+
         /// <summary>
-        /// Persist a Roster entry in LongTermMemory using the same wrapper/hash
-        /// workflow as instances. This writes a hashed key for the roster and
-        /// maintains the master roster index so rosters can be discovered later.
+        /// Persist a Roster entry in LongTermMemory.
         /// </summary>
         public void UpdateRosterInLTM(Roster roster)
         {
             if (roster == null)
                 return;
 
-            try
-            {
-                var ltm = GetComponent<LongTermMemory>();
-                var encodedRoster = EncodeInstanceToString(roster);
-                var wrapper = GamewideContextBrainHelpers.DecodeWrapperFromBase64(encodedRoster);
-                var rawKey = $"GWB.Roster.{typeof(Roster).FullName}.{roster.Id}";
-                var keyHash = GamewideContextBrainHelpers.ComputeFNV1a64Hex(rawKey);
-                var key = $"GWB.Roster.{typeof(Roster).FullName}.{keyHash}";
-                if (!string.IsNullOrEmpty(key) && ltm != null)
-                {
-                    var _saved = ltm.Remember(key, wrapper?.Hash);
-                    try
-                    {
-                        lastKnownLtmKeyCacheVersion = ltm.KeyCacheVersion;
-                    }
-                    catch { }
-                    // LongTermMemory publishes keyset changes; no manual publish here.
-
-                    // update master index
-                    var indexKey = "GWB.Roster.Index";
-                    try
-                    {
-                        var idxJson = ltm.Recall(indexKey);
-                        var idx = string.IsNullOrEmpty(idxJson)
-                            ? new List<string>()
-                            : JsonConvert.DeserializeObject<List<string>>(idxJson);
-                        if (!idx.Contains(roster.Id))
-                        {
-                            idx.Add(roster.Id);
-                            var saved = ltm.Remember(indexKey, JsonConvert.SerializeObject(idx));
-                            try
-                            {
-                                lastKnownLtmKeyCacheVersion = ltm.KeyCacheVersion;
-                            }
-                            catch { }
-                            // LongTermMemory publishes keyset changes; no manual publish here.
-                        }
-                    }
-                    catch { }
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.LogWarning($"UpdateRosterInLTM failed: {ex.Message}");
-            }
-        }
-
-        /// <summary>
-        /// Called by helpers or other systems to let this brain know the LongTermMemory key cache
-        /// version has changed. This keeps an up-to-date local view so the brain can react if needed.
-        /// </summary>
-        void HandleLtmKeyCacheUpdated(int version)
-        {
-            try
-            {
-                lastKnownLtmKeyCacheVersion = version;
-            }
-            catch { }
-        }
-
-        private void OnDestroy()
-        {
-            try
-            {
-                var parent = GetComponent<Brain>();
-                if (parent != null)
-                {
-                    parent.OnLtmKeyCacheUpdated -= HandleLtmKeyCacheUpdated;
-                }
-            }
-            catch { }
+            RegisterRosterInLTM(roster);
         }
 
         public string DesignateInstanceType<T>()
@@ -519,8 +539,6 @@ namespace Assets.Turnroot.Gameplay.Brain
 
         /// <summary>
         /// Encodes an instance into a single opaque Base64 string using Newtonsoft.Json.
-        /// The wrapper contains type information and a payload; the whole wrapper is
-        /// serialized to JSON and then Base64 encoded
         /// </summary>
         public string EncodeInstanceToString<T>(T instance)
         {
@@ -528,12 +546,13 @@ namespace Assets.Turnroot.Gameplay.Brain
         }
 
         /// <summary>
-        /// Decodes an instance from the opaque Base64 wrapper string produced by EncodeInstanceToString.
-        /// Uses Newtonsoft.Json and registered converters to attempt hydration of UnityEngine.Object references.
+        /// Decodes an instance from the opaque Base64 wrapper string.
         /// </summary>
         public T DecodeInstanceFromString<T>(string encodedString)
         {
             return GamewideContextBrainHelpers.DecodeInstanceFromString<T>(this, encodedString);
         }
+
+        #endregion
     }
 }

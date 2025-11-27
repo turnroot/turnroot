@@ -59,9 +59,29 @@ namespace Turnroot.Characters
         // enforces uniqueness for templates with IsUnique.
         internal CharacterInstance(CharacterData template)
         {
-            _id = Guid.NewGuid().ToString();
             _characterTemplate = template;
+            _id = GenerateId(template);
             Initialize();
+        }
+
+        /// <summary>
+        /// Generates a deterministic ID for unique characters based on their template,
+        /// or a random GUID for non-unique characters.
+        /// </summary>
+        private static string GenerateId(CharacterData template)
+        {
+            if (template == null)
+                return Guid.NewGuid().ToString();
+
+            if (template.IsUnique)
+            {
+                // Use template asset name as deterministic ID for unique characters
+                // This ensures the same unique character always gets the same ID
+                return $"unique_{template.name}";
+            }
+
+            // Non-unique characters get random IDs
+            return Guid.NewGuid().ToString();
         }
 
         /// <summary>
@@ -95,16 +115,17 @@ namespace Turnroot.Characters
         // The converter will call this to ensure non-null lists/structures are present.
         public void OnAfterDeserialize()
         {
-            if (_runtimeBoundedStats == null)
-                _runtimeBoundedStats = new List<BoundedCharacterStat>();
-            if (_runtimeUnboundedStats == null)
-                _runtimeUnboundedStats = new List<CharacterStat>();
-            if (_supportRelationships == null)
-                _supportRelationships = new List<SupportRelationshipInstance>();
-            if (_skillInstances == null)
-                _skillInstances = new List<SkillInstance>();
-            if (_inventoryInstance == null)
-                _inventoryInstance = new CharacterInventoryInstance();
+            _runtimeBoundedStats ??= new List<BoundedCharacterStat>();
+            _runtimeUnboundedStats ??= new List<CharacterStat>();
+            _supportRelationships ??= new List<SupportRelationshipInstance>();
+            _skillInstances ??= new List<SkillInstance>();
+            _inventoryInstance ??= new CharacterInventoryInstance();
+
+            // Re-register unique instances after deserialization
+            if (_characterTemplate != null && _characterTemplate.IsUnique)
+            {
+                UniqueInstanceRegistry.Register(_characterTemplate, this);
+            }
         }
 
         private void Initialize()

@@ -1,3 +1,4 @@
+using System;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
@@ -6,10 +7,17 @@ namespace Assets.Turnroot.Gameplay.Brain.Components
 {
     /// <summary>
     /// Serializes UnityEngine.Object references to a small JSON token containing type, name, and asset path.
+    /// Attempts to resolve references via GUID/path in editor, or Resources.Load at runtime.
     /// </summary>
     public class UnityObjectJsonConverter : JsonConverter
     {
-        public override bool CanConvert(System.Type objectType)
+        private const string UnityMarker = "__unity";
+        private const string TypeField = "type";
+        private const string NameField = "name";
+        private const string GuidField = "guid";
+        private const string AssetPathField = "assetPath";
+
+        public override bool CanConvert(Type objectType)
         {
             return typeof(UnityEngine.Object).IsAssignableFrom(objectType);
         }
@@ -23,36 +31,56 @@ namespace Assets.Turnroot.Gameplay.Brain.Components
             }
 
             var obj = (UnityEngine.Object)value;
-            var j = new JObject
+            var token = CreateUnityObjectToken(obj);
+            token.WriteTo(writer);
+        }
+
+        private JObject CreateUnityObjectToken(UnityEngine.Object obj)
+        {
+            var token = new JObject
             {
-                ["__unity"] = true,
-                ["type"] = value.GetType().AssemblyQualifiedName,
-                ["name"] = obj.name,
+                [UnityMarker] = true,
+                [TypeField] = obj.GetType().AssemblyQualifiedName,
+                [NameField] = obj.name,
             };
 
 #if UNITY_EDITOR
+            AddEditorMetadata(token, obj);
+#endif
+
+            return token;
+        }
+
+#if UNITY_EDITOR
+        private void AddEditorMetadata(JObject token, UnityEngine.Object obj)
+        {
             try
             {
                 var path = UnityEditor.AssetDatabase.GetAssetPath(obj);
                 if (!string.IsNullOrEmpty(path))
                 {
-                    j["assetPath"] = path;
+                    token[AssetPathField] = path;
+
                     try
                     {
-                        j["guid"] = UnityEditor.AssetDatabase.AssetPathToGUID(path);
+                        token[GuidField] = UnityEditor.AssetDatabase.AssetPathToGUID(path);
                     }
-                    catch { }
+                    catch (Exception ex)
+                    {
+                        Debug.LogWarning($"Failed to get GUID for asset at {path}: {ex.Message}");
+                    }
                 }
             }
-            catch { }
-#endif
-
-            j.WriteTo(writer);
+            catch (Exception ex)
+            {
+                Debug.LogWarning($"Failed to get asset path: {ex.Message}");
+            }
         }
+#endif
 
         public override object ReadJson(
             JsonReader reader,
-            System.Type objectType,
+            Type objectType,
             object existingValue,
             JsonSerializer serializer
         )
@@ -60,61 +88,112 @@ namespace Assets.Turnroot.Gameplay.Brain.Components
             if (reader.TokenType == JsonToken.Null)
                 return null;
 
-            var j = JObject.Load(reader);
-            if (j == null || j["__unity"] == null)
+            var token = JObject.Load(reader);
+            if (token?[UnityMarker] == null)
                 return null;
 
-            // Try to resolve by GUID/path (editor), or by Resources load (runtime by path/name)
-            try
-            {
-                var typeName = j.Value<string>("type");
-                var name = j.Value<string>("name");
-                var guid = j.Value<string>("guid");
-                var assetPath = j.Value<string>("assetPath");
+            return ResolveUnityObject(token, objectType);
+        }
 
-                System.Type targetType = null;
-                if (!string.IsNullOrEmpty(typeName))
-                {
-                    targetType =
-                        System.Type.GetType(typeName)
-                        ?? System.Type.GetType(typeName.Split(',')[0]);
-                }
+        private object ResolveUnityObject(JObject token, Type objectType)
+        {
+            var typeName = token.Value<string>(TypeField);
+            var name = token.Value<string>(NameField);
+            var guid = token.Value<string>(GuidField);
+            var assetPath = token.Value<string>(AssetPathField);
+
+            var targetType = ResolveType(typeName, objectType);
+            if (targetType == null)
+                return null;
 
 #if UNITY_EDITOR
-                if (!string.IsNullOrEmpty(guid))
-                {
-                    var path = UnityEditor.AssetDatabase.GUIDToAssetPath(guid);
-                    if (!string.IsNullOrEmpty(path) && targetType != null)
-                    {
-                        var asset = UnityEditor.AssetDatabase.LoadAssetAtPath(path, targetType);
-                        if (asset != null)
-                            return asset;
-                    }
-                }
-                if (!string.IsNullOrEmpty(assetPath) && targetType != null)
-                {
-                    var asset = UnityEditor.AssetDatabase.LoadAssetAtPath(assetPath, targetType);
-                    if (asset != null)
-                        return asset;
-                }
+            var editorAsset = TryLoadFromEditor(guid, assetPath, targetType);
+            if (editorAsset != null)
+                return editorAsset;
 #endif
 
-                // Runtime fallback: try Resources.Load by name (assumes asset placed in Resources and name unique)
-                if (!string.IsNullOrEmpty(name) && targetType != null)
-                {
-                    var resource = Resources.Load(name, targetType);
-                    if (resource != null)
-                        return resource;
-                }
-            }
-            catch (System.Exception e)
+            return TryLoadFromResources(name, targetType);
+        }
+
+        private Type ResolveType(string typeName, Type fallbackType)
+        {
+            if (string.IsNullOrEmpty(typeName))
+                return fallbackType;
+
+            try
             {
-                Debug.LogWarning(
-                    $"UnityObjectJsonConverter: failed to resolve object reference: {e.Message}"
-                );
+                return Type.GetType(typeName) ?? Type.GetType(typeName.Split(',')[0]);
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning($"Failed to resolve type '{typeName}': {ex.Message}");
+                return fallbackType;
+            }
+        }
+
+#if UNITY_EDITOR
+        private UnityEngine.Object TryLoadFromEditor(string guid, string assetPath, Type targetType)
+        {
+            if (!string.IsNullOrEmpty(guid))
+            {
+                var asset = LoadAssetByGuid(guid, targetType);
+                if (asset != null)
+                    return asset;
+            }
+
+            if (!string.IsNullOrEmpty(assetPath))
+            {
+                return LoadAssetByPath(assetPath, targetType);
             }
 
             return null;
+        }
+
+        private UnityEngine.Object LoadAssetByGuid(string guid, Type targetType)
+        {
+            try
+            {
+                var path = UnityEditor.AssetDatabase.GUIDToAssetPath(guid);
+                if (!string.IsNullOrEmpty(path))
+                {
+                    return UnityEditor.AssetDatabase.LoadAssetAtPath(path, targetType);
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning($"Failed to load asset by GUID '{guid}': {ex.Message}");
+            }
+            return null;
+        }
+
+        private UnityEngine.Object LoadAssetByPath(string assetPath, Type targetType)
+        {
+            try
+            {
+                return UnityEditor.AssetDatabase.LoadAssetAtPath(assetPath, targetType);
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning($"Failed to load asset at path '{assetPath}': {ex.Message}");
+                return null;
+            }
+        }
+#endif
+
+        private UnityEngine.Object TryLoadFromResources(string name, Type targetType)
+        {
+            if (string.IsNullOrEmpty(name))
+                return null;
+
+            try
+            {
+                return Resources.Load(name, targetType);
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning($"Failed to load resource '{name}': {ex.Message}");
+                return null;
+            }
         }
     }
 }
