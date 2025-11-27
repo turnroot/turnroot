@@ -107,7 +107,8 @@ namespace Assets.Turnroot.Gameplay.Brain.Components
                                     replacementWrapper?.Hash ?? wrapper?.Hash ?? string.Empty
                                 );
                                 var newVal = baseHash + "|r:" + Guid.NewGuid().ToString("N");
-                                ltm.Remember(originalKey, newVal);
+                                var saved = ltm.Remember(originalKey, newVal);
+                                // LongTermMemory will publish OnKeySetChanged; don't publish here.
                             }
                         }
                         catch (Exception ex)

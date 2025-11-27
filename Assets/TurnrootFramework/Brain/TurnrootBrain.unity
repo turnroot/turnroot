@@ -129,10 +129,10 @@ GameObject:
   m_Component:
   - component: {fileID: 1357883678}
   - component: {fileID: 1357883674}
+  - component: {fileID: 1357883680}
   - component: {fileID: 1357883677}
   - component: {fileID: 1357883676}
   - component: {fileID: 1357883675}
-  - component: {fileID: 1357883680}
   m_Layer: 0
   m_Name: = Brain
   m_TagString: DoNotModify
@@ -216,6 +216,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 72d2fb8e623e7104eb6a550e252dbf04, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  rosters:
+  - {fileID: 11400000, guid: c7fd1e681a405fa4c81181ee499c7522, type: 2}
   tamperPolicy: 2
 --- !u!1660057539 &9223372036854775807
 SceneRoots:

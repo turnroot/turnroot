@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using UnityEngine;
 
 /// <summary>
@@ -29,7 +30,22 @@ public class JsonPlayerPrefs
     }
 
     [SerializeField]
-    List<PlayerPref> playerPrefs = new List<PlayerPref>();
+    List<PlayerPref> playerPrefs = new();
+
+    // runtime decoded-keys cache + versioning
+    int keyCacheVersion = 0; // increments when keys change
+    int cachedKeysVersion = -1; // version of cachedDecodedKeys
+    List<string> cachedDecodedKeys = null;
+
+    /// <summary>
+    /// Expose the current key cache version for consumers that want to detect changes.
+    /// </summary>
+    public int KeyCacheVersion => keyCacheVersion;
+
+    /// <summary>
+    /// Fired when the internal keyset changes (keys added/removed). The int is the new keyCacheVersion.
+    /// </summary>
+    public event Action<int> OnKeySetChanged;
     string savePath;
 
     // Constructor
@@ -41,22 +57,20 @@ public class JsonPlayerPrefs
         {
             try
             {
-                using (StreamReader reader = new StreamReader(savePath))
+                using StreamReader reader = new(savePath);
+                string json = reader.ReadToEnd();
+                JsonPlayerPrefs data = JsonUtility.FromJson<JsonPlayerPrefs>(json);
+                if (data != null && data.playerPrefs != null)
                 {
-                    string json = reader.ReadToEnd();
-                    JsonPlayerPrefs data = JsonUtility.FromJson<JsonPlayerPrefs>(json);
-                    if (data != null && data.playerPrefs != null)
-                    {
-                        this.playerPrefs = data.playerPrefs;
-                    }
-                    else
-                    {
-                        // Malformed or empty JSON — fallback to empty prefs
-                        Debug.LogWarning(
-                            $"JsonPlayerPrefs: invalid or empty JSON at {savePath}, starting fresh."
-                        );
-                        this.playerPrefs = new List<PlayerPref>();
-                    }
+                    this.playerPrefs = data.playerPrefs;
+                }
+                else
+                {
+                    // Malformed or empty JSON — fallback to empty prefs
+                    Debug.LogWarning(
+                        $"JsonPlayerPrefs: invalid or empty JSON at {savePath}, starting fresh."
+                    );
+                    this.playerPrefs = new List<PlayerPref>();
                 }
             }
             catch (Exception ex)
@@ -75,7 +89,11 @@ public class JsonPlayerPrefs
     /// </summary>
     public void DeleteAll()
     {
-        playerPrefs.Clear();
+        if (playerPrefs.Count > 0)
+        {
+            playerPrefs.Clear();
+            InvalidateKeyCache();
+        }
     }
 
     /// <summary>
@@ -83,13 +101,18 @@ public class JsonPlayerPrefs
     /// </summary>
     public void DeleteKey(string key)
     {
+        var encoded = EncodeKey(key);
+        bool removed = false;
         for (int i = playerPrefs.Count - 1; i >= 0; i--) // in reverse since we're removing
         {
-            if (playerPrefs[i].key == key)
+            if (playerPrefs[i].key == encoded)
             {
                 playerPrefs.RemoveAt(i);
+                removed = true;
             }
         }
+        if (removed)
+            InvalidateKeyCache();
     }
 
     /// <summary>
@@ -97,16 +120,14 @@ public class JsonPlayerPrefs
     /// </summary>
     public float GetFloat(string key, float defaultValue = 0f)
     {
-        PlayerPref playerPref;
-        if (TryGetPlayerPref(key, out playerPref))
+        if (TryGetPlayerPref(key, out PlayerPref playerPref))
         {
-            float value;
             if (
                 float.TryParse(
                     playerPref.value,
                     System.Globalization.NumberStyles.Any,
                     System.Globalization.CultureInfo.InvariantCulture,
-                    out value
+                    out float value
                 )
             )
             {
@@ -121,11 +142,9 @@ public class JsonPlayerPrefs
     /// </summary>
     public int GetInt(string key, int defaultValue = 0)
     {
-        PlayerPref playerPref;
-        if (TryGetPlayerPref(key, out playerPref))
+        if (TryGetPlayerPref(key, out PlayerPref playerPref))
         {
-            int value;
-            if (int.TryParse(playerPref.value, out value))
+            if (int.TryParse(playerPref.value, out int value))
             {
                 return value;
             }
@@ -150,9 +169,10 @@ public class JsonPlayerPrefs
     /// </summary>
     public bool HasKey(string key)
     {
+        var encoded = EncodeKey(key);
         for (int i = 0; i < playerPrefs.Count; i++)
         {
-            if (playerPrefs[i].key == key)
+            if (playerPrefs[i].key == encoded)
             {
                 return true;
             }
@@ -170,10 +190,8 @@ public class JsonPlayerPrefs
         Directory.CreateDirectory(directory);
         // serialize and save file
         string json = JsonUtility.ToJson(this);
-        using (StreamWriter writer = new StreamWriter(savePath))
-        {
-            writer.WriteLine(json);
-        }
+        using StreamWriter writer = new(savePath);
+        writer.WriteLine(json);
     }
 
     /// <summary>
@@ -197,14 +215,15 @@ public class JsonPlayerPrefs
     /// </summary>
     public void SetString(string key, string value)
     {
-        PlayerPref playerPref;
-        if (TryGetPlayerPref(key, out playerPref))
+        var encoded = EncodeKey(key);
+        if (TryGetPlayerPrefInternal(encoded, out PlayerPref playerPref))
         {
             playerPref.value = value;
         }
         else
         {
-            playerPrefs.Add(new PlayerPref(key, value));
+            playerPrefs.Add(new PlayerPref(encoded, value));
+            InvalidateKeyCache();
         }
     }
 
@@ -221,10 +240,17 @@ public class JsonPlayerPrefs
 
     bool TryGetPlayerPref(string key, out PlayerPref playerPref)
     {
+        var encoded = EncodeKey(key);
+        return TryGetPlayerPrefInternal(encoded, out playerPref);
+    }
+
+    // Internal lookup that expects an already-encoded key
+    bool TryGetPlayerPrefInternal(string encodedKey, out PlayerPref playerPref)
+    {
         playerPref = null;
         for (int i = 0; i < playerPrefs.Count; i++)
         {
-            if (playerPrefs[i].key == key)
+            if (playerPrefs[i].key == encodedKey)
             {
                 playerPref = playerPrefs[i];
                 return true;
@@ -235,9 +261,66 @@ public class JsonPlayerPrefs
 
     internal IEnumerable<string> GetAllKeys()
     {
+        // return cached decoded keys when cache version matches
+        if (cachedDecodedKeys != null && cachedKeysVersion == keyCacheVersion)
+        {
+            foreach (var k in cachedDecodedKeys)
+                yield return k;
+            yield break;
+        }
+
+        // rebuild cache
+        var list = new List<string>(playerPrefs.Count);
         foreach (var pref in playerPrefs)
         {
-            yield return pref.key;
+            list.Add(DecodeKeySafe(pref.key));
+        }
+
+        cachedDecodedKeys = list;
+        cachedKeysVersion = keyCacheVersion;
+
+        foreach (var k in cachedDecodedKeys)
+            yield return k;
+    }
+
+    void InvalidateKeyCache()
+    {
+        keyCacheVersion++;
+        cachedDecodedKeys = null;
+        cachedKeysVersion = -1;
+        try
+        {
+            OnKeySetChanged?.Invoke(keyCacheVersion);
+        }
+        catch { }
+    }
+
+    string EncodeKey(string key)
+    {
+        key ??= string.Empty;
+        try
+        {
+            var bytes = Encoding.UTF8.GetBytes(key);
+            return Convert.ToBase64String(bytes);
+        }
+        catch
+        {
+            return key;
+        }
+    }
+
+    string DecodeKeySafe(string stored)
+    {
+        if (string.IsNullOrEmpty(stored))
+            return stored;
+        try
+        {
+            var bytes = Convert.FromBase64String(stored);
+            return Encoding.UTF8.GetString(bytes);
+        }
+        catch
+        {
+            return stored;
         }
     }
 }

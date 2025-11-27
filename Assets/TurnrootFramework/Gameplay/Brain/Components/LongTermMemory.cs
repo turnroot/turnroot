@@ -8,12 +8,46 @@ public class LongTermMemory : MonoBehaviour
 {
     JsonPlayerPrefs prefs;
 
+    /// <summary>
+    /// Fired when the underlying keyset changes in JsonPlayerPrefs - forwarded by LongTermMemory.
+    /// Subscribers should use this to invalidate caches or react to keyset changes.
+    /// The int value is the keyCacheVersion from JsonPlayerPrefs.
+    /// </summary>
+    public event System.Action<int> OnKeySetChanged;
+
     public void Awake()
     {
         prefs ??= new JsonPlayerPrefs(
-            Application.persistentDataPath + "/TurnrootBrain/LongTermMemory.json"
+            Application.persistentDataPath + "/TurnrootBrain/structured/.turnrootdata"
         );
         Debug.Log("Brain LongTermMemory initialized at: " + Application.persistentDataPath);
+        try
+        {
+            // subscribe to prefs keyset changes and forward
+            prefs.OnKeySetChanged += HandlePrefsKeySetChanged;
+        }
+        catch { }
+    }
+
+    void HandlePrefsKeySetChanged(int version)
+    {
+        try
+        {
+            // notify any LongTermMemory subscribers
+            OnKeySetChanged?.Invoke(version);
+
+            // Also notify the central Brain component on this GameObject so other brains see the change
+            var brain = gameObject.GetComponent<Assets.Turnroot.Gameplay.Brain.Brain>();
+            if (brain != null)
+            {
+                try
+                {
+                    brain.PublishLtmKeyCacheUpdated(version);
+                }
+                catch { }
+            }
+        }
+        catch { }
     }
 
     /// <summary>
@@ -21,10 +55,11 @@ public class LongTermMemory : MonoBehaviour
     /// </summary>
     /// <param name="key"></param>
     /// <param name="value"></param>
-    public void Remember(string key, string value)
+    public string Remember(string key, string value)
     {
         prefs.SetString(key, value);
         prefs.Save();
+        return value;
     }
 
     /// <summary>
@@ -32,10 +67,11 @@ public class LongTermMemory : MonoBehaviour
     /// </summary>
     /// <param name="key"></param>
     /// <param name="value"></param>
-    public void RememberInt(string key, int value)
+    public int RememberInt(string key, int value)
     {
         prefs.SetInt(key, value);
         prefs.Save();
+        return value;
     }
 
     /// <summary>
@@ -43,10 +79,11 @@ public class LongTermMemory : MonoBehaviour
     /// </summary>
     /// <param name="key"></param>
     /// <param name="value"></param>
-    public void RememberBool(string key, bool value)
+    public bool RememberBool(string key, bool value)
     {
         prefs.SetInt(key, value ? 1 : 0);
         prefs.Save();
+        return value;
     }
 
     /// <summary>
@@ -60,6 +97,11 @@ public class LongTermMemory : MonoBehaviour
     {
         return prefs.GetString(key, null);
     }
+
+    /// <summary>
+    /// Expose the runtime key cache version from JsonPlayerPrefs (useful for consumers to detect changes to the key set).
+    /// </summary>
+    public int KeyCacheVersion => prefs == null ? 0 : prefs.KeyCacheVersion;
 
     /// <summary>
     /// Retrieves an integer value from long-term memory.

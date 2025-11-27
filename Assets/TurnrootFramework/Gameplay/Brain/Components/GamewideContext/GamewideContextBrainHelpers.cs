@@ -323,7 +323,8 @@ namespace Assets.Turnroot.Gameplay.Brain
                     var key = BuildHashLedgerKey(instance, wrapper);
                     if (!string.IsNullOrEmpty(key) && ltm != null)
                     {
-                        ltm.Remember(key, wrapper.Hash);
+                        var saved = ltm.Remember(key, wrapper.Hash);
+                        // LongTermMemory publishes keyset changes via OnKeySetChanged - no manual publish here.
                     }
                 }
                 catch (Exception ex)
@@ -395,7 +396,8 @@ namespace Assets.Turnroot.Gameplay.Brain
                         var stored = ltm.Recall(key);
                         if (string.IsNullOrEmpty(stored))
                         {
-                            ltm.Remember(key, wrapper.Hash);
+                            var _saved = ltm.Remember(key, wrapper.Hash);
+                            // LongTermMemory publishes keyset changes via OnKeySetChanged - no manual publish here.
                         }
                         else if (
                             !string.Equals(stored, wrapper.Hash, StringComparison.OrdinalIgnoreCase)

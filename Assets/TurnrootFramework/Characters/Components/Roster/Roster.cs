@@ -1,3 +1,4 @@
+using System;
 using NaughtyAttributes;
 using Turnroot.Characters;
 using UnityEngine;
@@ -12,7 +13,65 @@ namespace Assets.Turnroot.Characters
     [CreateAssetMenu(fileName = "NewRoster", menuName = "Turnroot/Roster")]
     public class Roster : ScriptableObject
     {
+        // Durable identifier for this roster. Prefer asset GUID (populated in editor)
+        // but fall back to a generated GUID if not found.
+        [SerializeField]
+        [Tooltip(
+            "How this roster is identified durably at runtime. Set this with something human readable if you want, or leave it blank to auto-generate"
+        )]
+        private string _id;
+
+        [Tooltip(
+            "How this roster is identified durably at runtime. Set this with something human readable if you want, or leave it blank to auto-generate"
+        )]
+        public string Id
+        {
+            get => _id;
+            private set => _id = value;
+        }
+
         [ReorderableList]
         public CharacterData[] characters;
+
+#if UNITY_EDITOR
+        private void OnValidate()
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(Id))
+                {
+                    var path = UnityEditor.AssetDatabase.GetAssetPath(this);
+                    if (!string.IsNullOrEmpty(path))
+                    {
+                        var guid = UnityEditor.AssetDatabase.AssetPathToGUID(path);
+                        if (!string.IsNullOrEmpty(guid))
+                            Id = guid;
+                    }
+
+                    if (string.IsNullOrEmpty(Id))
+                        Id = Guid.NewGuid().ToString("N");
+
+                    try
+                    {
+                        UnityEditor.EditorUtility.SetDirty(this);
+                    }
+                    catch
+                    {
+                        Debug.LogWarning("Could not mark Roster asset dirty to save generated ID.");
+                    }
+                }
+            }
+            catch
+            {
+                Debug.LogWarning("Could not auto-assign Roster ID.");
+            }
+        }
+#else
+        private void OnEnable()
+        {
+            if (string.IsNullOrEmpty(_id))
+                _id = Guid.NewGuid().ToString("D");
+        }
+#endif
     }
 }

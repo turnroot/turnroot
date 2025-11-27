@@ -32,6 +32,17 @@ namespace Assets.Turnroot.Gameplay.Brain
 
         /* ----------------------------- Memory events ----------------------------- */
         public event Action<string> OnIllegallyModifiedFileDetected;
+        public event Action<int> OnLtmKeyCacheUpdated;
+
+        /// <summary>
+        /// Centralized publisher for LTM key cache version changes.
+        /// Other systems should call this to notify subscribed brains/components.
+        /// </summary>
+        /// <param name="version">The new key cache version from LongTermMemory</param>
+        public void PublishLtmKeyCacheUpdated(int version)
+        {
+            OnLtmKeyCacheUpdated?.Invoke(version);
+        }
 
         // Internal/engine method to raise the event for illegal modifications
         public void NotifyIllegalModification(string message)

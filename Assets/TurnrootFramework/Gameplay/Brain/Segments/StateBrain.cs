@@ -31,6 +31,8 @@ namespace Assets.Turnroot.Gameplay.Brain
     /// </summary>
     public class StateBrain : MonoBehaviour
     {
+        // track the LTM key cache version so state brain can react if needed
+        private int lastKnownLtmKeyCacheVersion = 0;
         private BrainState[] _highLevelStates;
         private BrainState _savedStateBeforePause;
         private Brain _brain;
@@ -42,7 +44,22 @@ namespace Assets.Turnroot.Gameplay.Brain
         public void Awake()
         {
             Debug.Log("StateBrain Awake called.");
-            if (_brain == null) _brain = GetComponent<Brain>();
+            if (_brain == null)
+                _brain = GetComponent<Brain>();
+            try
+            {
+                if (_brain != null)
+                {
+                    _brain.OnLtmKeyCacheUpdated += OnLtmKeyCacheUpdated;
+                    try
+                    {
+                        lastKnownLtmKeyCacheVersion =
+                            _brain.ltm?.KeyCacheVersion ?? lastKnownLtmKeyCacheVersion;
+                    }
+                    catch { }
+                }
+            }
+            catch { }
 
             InitializeHighLevelStates();
         }
@@ -119,8 +136,22 @@ namespace Assets.Turnroot.Gameplay.Brain
             if (_highLevelStates == null)
                 return;
             for (int i = 0; i < _highLevelStates.Length; i++)
-                _brain.ltm.Remember("StateBrain.HighLevelState." + i, _highLevelStates[i].Name);
-            _brain.ltm.RememberInt("StateBrain.HighLevelStates", _highLevelStates.Length);
+            {
+                var saved = _brain.ltm.Remember(
+                    "StateBrain.HighLevelState." + i,
+                    _highLevelStates[i].Name
+                );
+            }
+            var savedCount = _brain.ltm.RememberInt(
+                "StateBrain.HighLevelStates",
+                _highLevelStates.Length
+            );
+            try
+            {
+                lastKnownLtmKeyCacheVersion = _brain.ltm.KeyCacheVersion;
+            }
+            catch { }
+            // LongTermMemory will publish keyset changes and Brain will forward them if required.
         }
 
         private BrainState FindHighLevelState(string name)
@@ -247,6 +278,25 @@ namespace Assets.Turnroot.Gameplay.Brain
         public void Resume()
         {
             SetPausedState(false);
+        }
+
+        private void OnDestroy()
+        {
+            try
+            {
+                if (_brain != null)
+                    _brain.OnLtmKeyCacheUpdated -= OnLtmKeyCacheUpdated;
+            }
+            catch { }
+        }
+
+        private void OnLtmKeyCacheUpdated(int version)
+        {
+            try
+            {
+                lastKnownLtmKeyCacheVersion = version;
+            }
+            catch { }
         }
 
 #if UNITY_EDITOR
