@@ -39,5 +39,26 @@ namespace Assets.Turnroot.Characters
         {
             return _instances.Find(i => i.CharacterTemplate == data);
         }
+
+        // Runtime API to add instances after construction. Used by GamewideContextBrain
+        // to auto-register instances created from a Roster ScriptableObject.
+        public void AddInstance(CharacterInstance instance)
+        {
+            if (instance == null)
+                return;
+            if (_instances.Contains(instance))
+                return;
+            _instances.Add(instance);
+        }
+
+        public void AddInstances(
+            System.Collections.Generic.IEnumerable<CharacterInstance> instances
+        )
+        {
+            if (instances == null)
+                return;
+            foreach (var inst in instances)
+                AddInstance(inst);
+        }
     }
 }

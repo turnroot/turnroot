@@ -1,12 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.Reflection;
-using System.Text;
-using Assets.Turnroot.Gameplay.Brain.Components;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+using System.Linq;
+using Assets.Turnroot.Characters;
 using Turnroot.Characters;
-using Turnroot.Serialization;
 using UnityEngine;
 
 namespace Assets.Turnroot.Gameplay.Brain
@@ -42,6 +38,160 @@ namespace Assets.Turnroot.Gameplay.Brain
         {
             get => tamperPolicy;
             set => tamperPolicy = value;
+        }
+
+        /* --------------------------- Roster instantiation -------------------------- */
+        /// <summary>
+        /// Instantiate runtime CharacterInstance objects for the provided Roster
+        /// ScriptableObject using the canonical factory. Returns the created
+        /// instances so callers can register them as needed.
+        /// </summary>
+        public RosterInstance InstantiateRoster(Roster roster, bool registerGlobally = false)
+        {
+            var brain = GetComponent<Brain>();
+
+            if (roster == null || roster.characters == null)
+            {
+                Debug.LogWarning("InstantiateRoster called with null roster or characters.");
+                brain?.PublishRosterFailed(null, "Invalid roster or empty characters");
+                return null;
+            }
+
+            var existing = FindObjectsByType<RosterInstance>(FindObjectsSortMode.None)
+                .FirstOrDefault(r => r != null && r.roster == roster);
+
+            if (existing != null)
+            {
+                bool anyPresent = false;
+                foreach (var cd in roster.characters)
+                {
+                    if (cd == null)
+                        continue;
+                    if (existing.GetInstanceFor(cd) != null)
+                    {
+                        anyPresent = true;
+                        break;
+                    }
+                }
+
+                if (anyPresent)
+                {
+                    Debug.Log(
+                        $"InstantiateRoster: RosterInstance already exists and contains instances for roster '{roster.name}'. Doing nothing."
+                    );
+                    brain?.PublishRosterFailed(
+                        roster,
+                        "RosterInstance already exists and is populated"
+                    );
+                    return existing;
+                }
+
+                var createdInstances = new List<CharacterInstance>();
+                foreach (var characterData in roster.characters)
+                {
+                    if (characterData == null)
+                        continue;
+                    var inst = CharacterInstance.Create(characterData);
+                    if (inst != null)
+                    {
+                        // Persist instance using our encoder so a ledger entry is created
+                        try
+                        {
+                            EncodeInstanceToString(inst);
+                        }
+                        catch { }
+                        createdInstances.Add(inst);
+                    }
+                }
+
+                existing.AddInstances(createdInstances);
+                Debug.Log(
+                    $"InstantiateRoster: Registered {createdInstances.Count} instances into existing RosterInstance '{existing.name}'."
+                );
+                if (registerGlobally)
+                {
+                    try
+                    {
+                        try
+                        {
+                            var encodedRoster = EncodeInstanceToString(roster);
+                            var wrapper = GamewideContextBrainHelpers.DecodeWrapperFromBase64(
+                                encodedRoster
+                            );
+                            var ltm = GetComponent<LongTermMemory>();
+                            var rawKey = $"GWB.Roster.{typeof(Roster).FullName}.{roster.name}";
+                            var keyHash = GamewideContextBrainHelpers.ComputeFNV1a64Hex(rawKey);
+                            var key = $"GWB.Roster.{typeof(Roster).FullName}.{keyHash}";
+                            if (!string.IsNullOrEmpty(key) && ltm != null)
+                                ltm.Remember(key, wrapper?.Hash);
+                        }
+                        catch { }
+                    }
+                    catch { }
+                }
+                brain?.PublishRosterReady(existing);
+                return existing;
+            }
+
+            var go = new GameObject($"RosterInstance - {roster.name}");
+            var newRi = go.AddComponent<Assets.Turnroot.Characters.RosterInstance>();
+            newRi.roster = roster;
+
+#if UNITY_EDITOR
+            newRi.InitializeFromRoster(roster);
+            // Persist ledger entries for instances created by InitializeFromRoster
+            try
+            {
+                foreach (var inst in newRi.Instances)
+                {
+                    try
+                    {
+                        EncodeInstanceToString(inst);
+                    }
+                    catch { }
+                }
+            }
+            catch { }
+#else
+            var createdRuntime = new System.Collections.Generic.List<CharacterInstance>();
+            foreach (var characterData in roster.characters)
+            {
+                if (characterData == null)
+                    continue;
+                var inst = CharacterInstance.Create(characterData);
+                if (inst != null)
+                    createdRuntime.Add(inst);
+            }
+            newRi.AddInstances(createdRuntime);
+#endif
+
+            Debug.Log(
+                $"InstantiateRoster: Created new RosterInstance '{go.name}' with {newRi.Instances.Count} instances."
+            );
+            if (registerGlobally)
+            {
+                try
+                {
+                    // Persist roster wrapper/hash in ledger using the canonical encoder
+                    try
+                    {
+                        var encodedRoster = EncodeInstanceToString(roster);
+                        var wrapper = GamewideContextBrainHelpers.DecodeWrapperFromBase64(
+                            encodedRoster
+                        );
+                        var ltm = GetComponent<LongTermMemory>();
+                        var rawKey = $"GWB.Roster.{typeof(Roster).FullName}.{roster.name}";
+                        var keyHash = GamewideContextBrainHelpers.ComputeFNV1a64Hex(rawKey);
+                        var key = $"GWB.Roster.{typeof(Roster).FullName}.{keyHash}";
+                        if (!string.IsNullOrEmpty(key) && ltm != null)
+                            ltm.Remember(key, wrapper?.Hash);
+                    }
+                    catch { }
+                }
+                catch { }
+            }
+            brain?.PublishRosterReady(newRi);
+            return newRi;
         }
 
         /* ----------------------------- Memory helpers ----------------------------- */

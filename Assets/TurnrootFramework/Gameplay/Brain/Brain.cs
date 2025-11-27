@@ -60,6 +60,10 @@ namespace Assets.Turnroot.Gameplay.Brain
         public event Action OnGameOver;
         public event Action HighLevelStatesInitialized;
 
+        /* ------------------------- Roster lifecycle events ------------------------ */
+        public event Action<Assets.Turnroot.Characters.RosterInstance> OnRosterReady;
+        public event Action<Assets.Turnroot.Characters.Roster, string> OnRosterFailed;
+
         /* -------------------------- Conversation events --------------------------- */
         public event Action<SupportRelationshipInstance> OnSupportPointsChanged;
         public event Action<SupportRelationshipInstance> OnSupportConversationAvailable;
@@ -221,6 +225,17 @@ namespace Assets.Turnroot.Gameplay.Brain
         {
             Debug.Log("EventsBrain: High-level states initialized");
             HighLevelStatesInitialized?.Invoke();
+        }
+
+        /* --------------------- Publish roster lifecycle events -------------------- */
+        public void PublishRosterReady(Assets.Turnroot.Characters.RosterInstance instance)
+        {
+            OnRosterReady?.Invoke(instance);
+        }
+
+        public void PublishRosterFailed(Assets.Turnroot.Characters.Roster roster, string reason)
+        {
+            OnRosterFailed?.Invoke(roster, reason);
         }
 
         public void Pause()
