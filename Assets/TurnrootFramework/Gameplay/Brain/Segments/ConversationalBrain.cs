@@ -12,20 +12,12 @@ namespace Assets.Turnroot.Gameplay.Brain
     /// </summary>
     public class ConversationalBrain : MonoBehaviour
     {
-        [SerializeField]
         private Brain _brain;
 
         public void Awake()
         {
             Debug.Log("ConversationalBrain Awake called.");
-            if (_brain == null)
-                _brain = GetComponent<Brain>();
-
-            if (_brain == null)
-            {
-                Debug.LogError("ConversationalBrain requires a Brain");
-                Debug.Break();
-            }
+            if (_brain == null) _brain = GetComponent<Brain>();
         }
     }
 }

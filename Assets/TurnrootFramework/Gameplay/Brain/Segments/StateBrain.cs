@@ -33,8 +33,6 @@ namespace Assets.Turnroot.Gameplay.Brain
     {
         private BrainState[] _highLevelStates;
         private BrainState _savedStateBeforePause;
-
-        [SerializeField]
         private Brain _brain;
 
         [SerializeField]
@@ -44,14 +42,7 @@ namespace Assets.Turnroot.Gameplay.Brain
         public void Awake()
         {
             Debug.Log("StateBrain Awake called.");
-            if (_brain == null)
-                _brain = GetComponent<Brain>();
-
-            if (_brain == null)
-            {
-                Debug.LogError("StateBrain requires a Brain");
-                Debug.Break();
-            }
+            if (_brain == null) _brain = GetComponent<Brain>();
 
             InitializeHighLevelStates();
         }
