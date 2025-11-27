@@ -40,6 +40,12 @@ namespace Assets.Turnroot.Gameplay.Brain
             set => tamperPolicy = value;
         }
 
+        /* ------------------- Recall from LongTermMemory on Awake ------------------ */
+        public void Awake()
+        {
+            RecallRosters();
+        }
+
         /* --------------------------- Roster instantiation -------------------------- */
         /// <summary>
         /// Instantiate runtime CharacterInstance objects for the provided Roster
@@ -192,6 +198,75 @@ namespace Assets.Turnroot.Gameplay.Brain
             }
             brain?.PublishRosterReady(newRi);
             return newRi;
+        }
+
+        /* ----------------------------- Recall rosters ----------------------------- */
+        private void RecallRosters()
+        {
+            var brain = GetComponent<Brain>();
+            var ltm = GetComponent<LongTermMemory>();
+            if (ltm == null || brain == null)
+                return;
+
+            var rosterType = typeof(Roster);
+            var prefix = $"GWB.Roster";
+
+            var rosterEntries = ltm.RecallKeysByPrefix(prefix);
+            if (rosterEntries == null || rosterEntries.Count == 0)
+                return;
+
+            var allRosters = Resources.LoadAll<Roster>("Rosters");
+            foreach (var entry in rosterEntries)
+            {
+                try
+                {
+                    // entry is a hashed key such as: GWB.Roster.<FullName>.<hash>
+                    Roster rosterAsset = null;
+                    foreach (var candidate in allRosters)
+                    {
+                        if (candidate == null)
+                            continue;
+                        var rawCandidateKey = $"GWB.Roster.{rosterType.FullName}.{candidate.name}";
+                        var candidateKeyHash = GamewideContextBrainHelpers.ComputeFNV1a64Hex(
+                            rawCandidateKey
+                        );
+                        var candidateLedgerKey =
+                            $"GWB.Roster.{rosterType.FullName}.{candidateKeyHash}";
+                        if (
+                            string.Equals(
+                                candidateLedgerKey,
+                                entry,
+                                StringComparison.OrdinalIgnoreCase
+                            )
+                        )
+                        {
+                            rosterAsset = candidate;
+                            break;
+                        }
+                    }
+
+                    if (rosterAsset == null)
+                        continue;
+
+                    var storedHash = ltm.Recall(entry);
+                    if (string.IsNullOrEmpty(storedHash))
+                        continue;
+
+                    var rosterInstance = InstantiateRoster(rosterAsset, registerGlobally: false);
+                    if (rosterInstance != null)
+                    {
+                        Debug.Log(
+                            $"RecallRosters: Recalled RosterInstance '{rosterInstance.name}' from LTM."
+                        );
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogWarning(
+                        $"RecallRosters: error processing roster key '{entry}': {ex.Message}"
+                    );
+                }
+            }
         }
 
         /* ----------------------------- Memory helpers ----------------------------- */

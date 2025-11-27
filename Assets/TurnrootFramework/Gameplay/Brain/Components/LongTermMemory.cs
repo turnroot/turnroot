@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -127,5 +128,24 @@ public class LongTermMemory : MonoBehaviour
             RememberInt(key + "_deleted", intValue);
         prefs.DeleteKey(key);
         prefs.Save();
+    }
+
+    /// <summary>
+    /// Retrieves all keys from long-term memory that start with the specified prefix.
+    /// </summary>
+    /// <param name="prefix" type="string">The prefix to filter keys by.</param>
+    public List<string> RecallKeysByPrefix(string prefix)
+    {
+        var keys = new List<string>();
+        if (prefs == null)
+            return keys;
+
+        foreach (var key in prefs.GetAllKeys())
+        {
+            if (key != null && key.StartsWith(prefix))
+                keys.Add(key);
+        }
+
+        return keys;
     }
 }

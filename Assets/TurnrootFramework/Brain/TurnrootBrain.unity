@@ -128,10 +128,10 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1357883678}
+  - component: {fileID: 1357883674}
   - component: {fileID: 1357883677}
   - component: {fileID: 1357883676}
   - component: {fileID: 1357883675}
-  - component: {fileID: 1357883674}
   - component: {fileID: 1357883680}
   m_Layer: 0
   m_Name: = Brain
@@ -177,7 +177,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cf6cad0909614554d8c46dd4dfbdd26e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _brain: {fileID: 1357883674}
 --- !u!114 &1357883677
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -190,7 +189,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c10e624373270034ab70adabc9a811fd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _brain: {fileID: 1357883674}
 --- !u!4 &1357883678
 Transform:
   m_ObjectHideFlags: 0

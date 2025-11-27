@@ -232,4 +232,12 @@ public class JsonPlayerPrefs
         }
         return false;
     }
+
+    internal IEnumerable<string> GetAllKeys()
+    {
+        foreach (var pref in playerPrefs)
+        {
+            yield return pref.key;
+        }
+    }
 }

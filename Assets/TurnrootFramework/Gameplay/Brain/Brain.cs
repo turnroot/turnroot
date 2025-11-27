@@ -27,6 +27,7 @@ namespace Assets.Turnroot.Gameplay.Brain
     /// </remarks>
     public class Brain : MonoBehaviour
     {
+        [HideInInspector]
         public LongTermMemory ltm;
 
         /* ----------------------------- Memory events ----------------------------- */
@@ -42,7 +43,6 @@ namespace Assets.Turnroot.Gameplay.Brain
         // These are paid add-on modules, you can find them on the asset store.
         // The modules will self-install and self-enable these.
         // Thanks for supporting Turnroot :)
-        private bool campModuleEnabled = false;
         private bool hubModuleEnabled = false;
         private bool bloodlinesModuleEnabled = false;
         private bool retroModuleEnabled = false;
@@ -61,8 +61,8 @@ namespace Assets.Turnroot.Gameplay.Brain
         public event Action HighLevelStatesInitialized;
 
         /* ------------------------- Roster lifecycle events ------------------------ */
-        public event Action<Assets.Turnroot.Characters.RosterInstance> OnRosterReady;
-        public event Action<Assets.Turnroot.Characters.Roster, string> OnRosterFailed;
+        public event Action<Characters.RosterInstance> OnRosterReady;
+        public event Action<Characters.Roster, string> OnRosterFailed;
 
         /* -------------------------- Conversation events --------------------------- */
         public event Action<SupportRelationshipInstance> OnSupportPointsChanged;
@@ -124,9 +124,6 @@ namespace Assets.Turnroot.Gameplay.Brain
 #if TURNROOT_BLOODLINES_MODULE
             bloodlinesModuleEnabled = true;
 #endif
-#if TURNROOT_CAMP_MODULE
-            campModuleEnabled = true;
-#endif
 #if TURNROOT_HUB_MODULE
             hubModuleEnabled = true;
 #endif
@@ -149,7 +146,6 @@ namespace Assets.Turnroot.Gameplay.Brain
         {
             Debug.Log(
                 "Turnroot add-on modules you have access to: "
-                    + (campModuleEnabled ? "Camp, " : "")
                     + (hubModuleEnabled ? "Hub, " : "")
                     + (bloodlinesModuleEnabled ? "Bloodlines, " : "")
                     + (unwindModuleEnabled ? "Unwind, " : "")
@@ -228,12 +224,12 @@ namespace Assets.Turnroot.Gameplay.Brain
         }
 
         /* --------------------- Publish roster lifecycle events -------------------- */
-        public void PublishRosterReady(Assets.Turnroot.Characters.RosterInstance instance)
+        public void PublishRosterReady(Characters.RosterInstance instance)
         {
             OnRosterReady?.Invoke(instance);
         }
 
-        public void PublishRosterFailed(Assets.Turnroot.Characters.Roster roster, string reason)
+        public void PublishRosterFailed(Characters.Roster roster, string reason)
         {
             OnRosterFailed?.Invoke(roster, reason);
         }
