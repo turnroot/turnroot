@@ -74,10 +74,10 @@ namespace Assets.Turnroot.Gameplay.Brain
         {
             var states = new System.Collections.Generic.List<BrainState>
             {
-                new BrainState("Cutscene"),
-                new BrainState("Paused"),
-                new BrainState("Combat"),
-                new BrainState("WorldMap"),
+                new("Cutscene"),
+                new("Paused"),
+                new("Combat"),
+                new("WorldMap"),
             };
 
 #if TURNROOT_CAMP_MODULE

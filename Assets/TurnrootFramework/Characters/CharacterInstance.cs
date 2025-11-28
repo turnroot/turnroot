@@ -13,8 +13,26 @@ namespace Turnroot.Characters
     // Multiple characters can share the same CharacterData template but have different instances
 
     [Serializable]
-    public class CharacterInstance : Turnroot.Serialization.IPostDeserialize
+    public class CharacterInstance : Serialization.IPostDeserialize
     {
+        /* ---------------------- Instance specific information --------------------- */
+        [SerializeField]
+        private Vector2Int _mapGridPosition;
+
+        public Vector2Int MapGridPosition
+        {
+            get => _mapGridPosition;
+            set => _mapGridPosition = value;
+        }
+
+        [SerializeField]
+        private bool _isDefeatedInCurrentBattle = false;
+        public bool IsDefeatedInCurrentBattle
+        {
+            get => _isDefeatedInCurrentBattle;
+            set => _isDefeatedInCurrentBattle = value;
+        }
+
         [SerializeField]
         private string _id;
 

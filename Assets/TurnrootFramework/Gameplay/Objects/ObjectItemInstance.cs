@@ -8,21 +8,28 @@ namespace Turnroot.Gameplay.Objects
     public class ObjectItemInstance : IPostDeserialize
     {
         [SerializeField]
+        private string _id;
+
+        [SerializeField]
         private ObjectItem _template;
 
         public ObjectItem Template => _template;
 
-        public ObjectItemInstance(ObjectItem template)
+        // Make constructor non-public to encourage using ObjectItemInstance.Create
+        internal ObjectItemInstance(ObjectItem template)
         {
             _template = template;
+            _id = Guid.NewGuid().ToString();
         }
 
-        // Parameterless constructor for JSON deserialization / serialization
-        public ObjectItemInstance() { }
+        public static ObjectItemInstance Create(ObjectItem template)
+        {
+            return new ObjectItemInstance(template);
+        }
 
         public void OnAfterDeserialize()
         {
-            // No special initialization needed currently; placeholder for future needs.
+            // there is nothing here yet
         }
     }
 }

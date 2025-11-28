@@ -1,6 +1,7 @@
 using System;
 using Turnroot.Characters.Components.Support;
 using Turnroot.Conversations;
+using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -127,6 +128,16 @@ namespace Assets.Turnroot.Gameplay.Brain
         public event Action<Conversation> OnConversationEnded;
         public event Action<ConversationLayer> OnConversationLayerStarted;
         public event Action<ConversationLayer> OnConversationLayerEnded;
+
+        #endregion
+
+        #region Battle Events
+        public event Action<BattleContext> OnBattleContextInitialized;
+
+        public void PublishBattleContextInitialized(BattleContext context)
+        {
+            OnBattleContextInitialized?.Invoke(context);
+        }
 
         #endregion
 
