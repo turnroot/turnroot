@@ -15,16 +15,10 @@ namespace Turnroot.Gameplay.Objects
 
         public ObjectItem Template => _template;
 
-        // Make constructor non-public to encourage using ObjectItemInstance.Create
-        internal ObjectItemInstance(ObjectItem template)
+        public ObjectItemInstance(ObjectItem template)
         {
             _template = template;
             _id = Guid.NewGuid().ToString();
-        }
-
-        public static ObjectItemInstance Create(ObjectItem template)
-        {
-            return new ObjectItemInstance(template);
         }
 
         public void OnAfterDeserialize()

@@ -29,7 +29,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         // Currently executing skill graph (if any)
         public SkillGraph CurrentSkillGraph { get; set; }
 
-        public EnvironmentalConditionsInstance EnvironmentalConditions { get; set; }
+        public EnvironmentalConditions EnvironmentalConditions { get; set; }
         public Dictionary<string, object> CustomData { get; private set; }
 
         public bool IsInterrupted { get; set; }

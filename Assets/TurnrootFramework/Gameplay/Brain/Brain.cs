@@ -132,12 +132,8 @@ namespace Assets.Turnroot.Gameplay.Brain
         #endregion
 
         #region Battle Events
-        public event Action<BattleContext> OnBattleContextInitialized;
-
-        public void PublishBattleContextInitialized(BattleContext context)
-        {
-            OnBattleContextInitialized?.Invoke(context);
-        }
+        public event Action OnStartBattle;
+        public event Action OnExitBattle;
 
         #endregion
 

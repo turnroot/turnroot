@@ -1,6 +1,6 @@
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
-using Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Environment;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 /// <summary>
 /// The battle brain manages one battle at a time.
@@ -19,29 +19,35 @@ namespace Assets.Turnroot.Gameplay.Brain
 
         private Brain _brain;
 
-        [Header("Battle Components")]
-        [SerializeField]
-        private BattleContext _battleContext;
-
-        [SerializeField]
-        private BattleCondition[] _battleConditions;
-
-        [SerializeField]
-        private EnvironmentalConditions _battleEnvironment;
-
-        [SerializeField]
-        private MapGrid _mapGrid;
-
         private void Awake()
         {
             _brain = GetComponent<Brain>();
-            InitializeBattleContext();
+            Debug.Log($"{Prefix} BattleBrain Awake - subscribing to OnStartBattle.");
+            _brain.OnStartBattle += FindBattle;
         }
 
-        private void InitializeBattleContext()
+        public void FindBattle()
         {
-            _battleContext = new BattleContext();
-            _brain?.PublishBattleContextInitialized(_battleContext);
+            BattleGameObject battleGameObject = null;
+            for (int i = 0; i < SceneManager.sceneCount; i++)
+            {
+                Scene scene = SceneManager.GetSceneAt(i);
+                if (scene.isLoaded)
+                {
+                    GameObject[] rootObjects = scene.GetRootGameObjects();
+                    foreach (GameObject rootObject in rootObjects)
+                    {
+                        BattleGameObject bgo =
+                            rootObject.GetComponentInChildren<BattleGameObject>();
+                        if (bgo != null)
+                        {
+                            battleGameObject = bgo;
+                            Debug.Log($"{Prefix} Found BattleGameObject in scene '{scene.name}'.");
+                            break;
+                        }
+                    }
+                }
+            }
         }
     }
 }

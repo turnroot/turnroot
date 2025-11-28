@@ -6,13 +6,25 @@ namespace Turnroot.Skills.Nodes.Conditions
 {
     public enum EnvironmentalCondition
     {
+        IsVeryHot,
+        IsVeryCold,
         IsNight,
-
+        IsSunset,
+        IsDawn,
         IsRaining,
         IsFoggy,
-        IsDesert,
+        IsStormy,
+        IsWindy,
+        IsSunny,
+        IsCloudy,
         IsSnowing,
         IsIndoors,
+        IsSmoky,
+        IsUnderground,
+        IsUnderwater,
+        IsRocky,
+        IsSwampy,
+        IsVolcanic,
     }
 
     [CreateNodeMenu("Conditions/Environment/Environmental Conditions")]
@@ -35,8 +47,20 @@ namespace Turnroot.Skills.Nodes.Conditions
                 {
                     switch (conditionToCheck)
                     {
+                        case EnvironmentalCondition.IsVeryHot:
+                            result.value = envConditions.IsVeryHot;
+                            break;
+                        case EnvironmentalCondition.IsVeryCold:
+                            result.value = envConditions.IsVeryCold;
+                            break;
                         case EnvironmentalCondition.IsNight:
                             result.value = envConditions.IsNight;
+                            break;
+                        case EnvironmentalCondition.IsSunset:
+                            result.value = envConditions.IsSunset;
+                            break;
+                        case EnvironmentalCondition.IsDawn:
+                            result.value = envConditions.IsDawn;
                             break;
                         case EnvironmentalCondition.IsRaining:
                             result.value = envConditions.IsRaining;
@@ -44,8 +68,17 @@ namespace Turnroot.Skills.Nodes.Conditions
                         case EnvironmentalCondition.IsFoggy:
                             result.value = envConditions.IsFoggy;
                             break;
-                        case EnvironmentalCondition.IsDesert:
-                            result.value = envConditions.IsDesert;
+                        case EnvironmentalCondition.IsStormy:
+                            result.value = envConditions.IsStormy;
+                            break;
+                        case EnvironmentalCondition.IsWindy:
+                            result.value = envConditions.IsWindy;
+                            break;
+                        case EnvironmentalCondition.IsSunny:
+                            result.value = envConditions.IsSunny;
+                            break;
+                        case EnvironmentalCondition.IsCloudy:
+                            result.value = envConditions.IsCloudy;
                             break;
                         case EnvironmentalCondition.IsSnowing:
                             result.value = envConditions.IsSnowing;
@@ -53,6 +86,25 @@ namespace Turnroot.Skills.Nodes.Conditions
                         case EnvironmentalCondition.IsIndoors:
                             result.value = envConditions.IsIndoors;
                             break;
+                        case EnvironmentalCondition.IsSmoky:
+                            result.value = envConditions.IsSmoky;
+                            break;
+                        case EnvironmentalCondition.IsUnderground:
+                            result.value = envConditions.IsUnderground;
+                            break;
+                        case EnvironmentalCondition.IsUnderwater:
+                            result.value = envConditions.IsUnderwater;
+                            break;
+                        case EnvironmentalCondition.IsRocky:
+                            result.value = envConditions.IsRocky;
+                            break;
+                        case EnvironmentalCondition.IsSwampy:
+                            result.value = envConditions.IsSwampy;
+                            break;
+                        case EnvironmentalCondition.IsVolcanic:
+                            result.value = envConditions.IsVolcanic;
+                            break;
+
                         default:
                             result.value = false;
                             break;

@@ -13,8 +13,13 @@ using UnityEngine.Events;
 /// <param name="description"></param>
 public class BattleCondition
 {
-    public string Name { get; set; }
-    public string Description { get; set; }
+    [HideInInspector]
+    public string Name;
+
+    [SerializeField]
+    public string Description;
+
+    // runtime-only state - don't serialize
     private bool IsActive { get; set; } = false;
 
     public UnityEvent OnConditionMet;
@@ -52,33 +57,58 @@ public class BattleCondition
 }
 
 /// <summary>
+/// Condition to defeat all enemies.
+/// </summary>
+public class DefeatAllEnemiesBattleCondition : BattleCondition
+{
+    public DefeatAllEnemiesBattleCondition()
+        : base("Defeat All Enemies", "Defeat all enemy units on the battlefield") { }
+
+    public void CheckCondition(List<CharacterData> enemies)
+    {
+        // see below, not ready yet
+        ConditionMet();
+    }
+}
+
+/// <summary>
 /// Condition to defeat specific enemies.
 /// </summary>
 /// <param name="name"></param>
 /// <param name="description"></param>
 /// <param name="enemiesToDefeat"></param>
+[Serializable]
 public class DefeatEnemyBattleCondition : BattleCondition
 {
-    public CharacterInstance[] EnemiesToDefeat { get; set; }
+    [SerializeField]
+    public CharacterData[] EnemiesToDefeat;
 
     public DefeatEnemyBattleCondition(
         string name,
         string description,
-        CharacterInstance[] enemiesToDefeat
+        CharacterData[] enemiesToDefeat
     )
         : base(name, description)
     {
-        EnemiesToDefeat = enemiesToDefeat ?? Array.Empty<CharacterInstance>();
+        EnemiesToDefeat = enemiesToDefeat ?? Array.Empty<CharacterData>();
+    }
+
+    // Parameterless constructor required for inspector CreateInstance via reflection
+    public DefeatEnemyBattleCondition()
+        : base("Defeat enemies", "Kill the listed enemies")
+    {
+        EnemiesToDefeat = Array.Empty<CharacterData>();
     }
 
     public void CheckCondition()
     {
         foreach (var enemy in EnemiesToDefeat)
         {
-            if (!enemy.IsDefeatedInCurrentBattle)
-            {
-                return;
-            }
+            // get the instance, check IsDefeatedInCurrentBattle
+            // this can only work in runtime, since instances
+            // are created at runtime
+
+            // TODO: Set up a way to get from CharacterData to CharacterData
         }
         ConditionMet();
     }
@@ -90,15 +120,23 @@ public class DefeatEnemyBattleCondition : BattleCondition
 /// <param name="name"></param>
 /// <param name="description"></param>
 /// <param name="turnsToSurvive"></param>
+[Serializable]
 public class SurviveTurnsBattleCondition : BattleCondition
 {
-    public int TurnsToSurvive { get; set; }
+    [SerializeField]
+    public int TurnsToSurvive;
     private int turnsSurvived = 0;
 
     public SurviveTurnsBattleCondition(string name, string description, int turnsToSurvive)
         : base(name, description)
     {
         TurnsToSurvive = turnsToSurvive;
+    }
+
+    public SurviveTurnsBattleCondition()
+        : base("Survive Turns", "Survive the specified number of turns")
+    {
+        TurnsToSurvive = 1;
     }
 
     public void OnTurnEnd()
@@ -122,29 +160,36 @@ public class SurviveTurnsBattleCondition : BattleCondition
 /// <param name="name"></param>
 /// <param name="description"></param>
 /// <param name="npcsToProtect"></param>
+[Serializable]
 public class ProtectNPCsBattleCondition : BattleCondition
 {
-    public CharacterInstance[] NPCsToProtect { get; set; }
+    [SerializeField]
+    public CharacterData[] NPCsToProtect;
+
+    [SerializeField]
+    public int MustSurviveCount = 0;
 
     public ProtectNPCsBattleCondition(
         string name,
         string description,
-        CharacterInstance[] npcsToProtect
+        int mustSurviveCount,
+        CharacterData[] npcsToProtect
     )
         : base(name, description)
     {
-        NPCsToProtect = npcsToProtect ?? Array.Empty<CharacterInstance>();
+        NPCsToProtect = npcsToProtect ?? Array.Empty<CharacterData>();
+    }
+
+    public ProtectNPCsBattleCondition()
+        : base("Protect NPCs", "Prevent listed NPCs from being defeated")
+    {
+        NPCsToProtect = Array.Empty<CharacterData>();
     }
 
     public void CheckCondition()
     {
-        foreach (var npc in NPCsToProtect)
-        {
-            if (npc.IsDefeatedInCurrentBattle)
-            {
-                ConditionFailed();
-            }
-        }
+        // See above. Can't do it
+        ConditionMet();
     }
 }
 
@@ -155,11 +200,17 @@ public class ProtectNPCsBattleCondition : BattleCondition
 /// <param name="description"></param>
 /// <param name="targetTiles"></param>
 /// <param name="allTiles"></param>
+[Serializable]
 public class ReachTilesBattleCondition : BattleCondition
 {
-    public Vector2Int[] TargetTiles { get; set; }
-    public Vector2Int[] ReachedTiles { get; set; } = Array.Empty<Vector2Int>();
-    private bool allTiles = true;
+    [SerializeField]
+    public Vector2Int[] TargetTiles;
+
+    [SerializeField]
+    public Vector2Int[] ReachedTiles = Array.Empty<Vector2Int>();
+
+    [SerializeField]
+    public bool allTiles = true;
 
     public ReachTilesBattleCondition(
         string name,
@@ -171,6 +222,14 @@ public class ReachTilesBattleCondition : BattleCondition
     {
         TargetTiles = targetTiles ?? Array.Empty<Vector2Int>();
         this.allTiles = allTiles;
+    }
+
+    public ReachTilesBattleCondition()
+        : base("Reach Tiles", "Occupy the listed tiles")
+    {
+        TargetTiles = Array.Empty<Vector2Int>();
+        ReachedTiles = Array.Empty<Vector2Int>();
+        allTiles = true;
     }
 
     public void CheckCondition()
@@ -206,15 +265,23 @@ public class ReachTilesBattleCondition : BattleCondition
 /// <param name="name"></param>
 /// <param name="description"></param>
 /// <param name="turnLimit"></param>
+[Serializable]
 public class TimeLimitBattleCondition : BattleCondition
 {
-    public int TurnLimit { get; set; }
+    [SerializeField]
+    public int TurnLimit;
     private int currentTurn = 0;
 
     public TimeLimitBattleCondition(string name, string description, int turnLimit)
         : base(name, description)
     {
         TurnLimit = turnLimit;
+    }
+
+    public TimeLimitBattleCondition()
+        : base("Time Limit", "Limit the battle duration")
+    {
+        TurnLimit = 1;
     }
 
     public void OnTurnEnd()
@@ -238,14 +305,31 @@ public class TimeLimitBattleCondition : BattleCondition
 /// <param name="name"></param>
 /// <param name="description"></param>
 /// <param name="tilesToProtect"></param>
+[Serializable]
 public class ProtectTilesBattleCondition : BattleCondition
 {
-    public Vector2Int[] TilesToProtect { get; set; }
+    [SerializeField]
+    public Vector2Int[] TilesToProtect;
 
-    public ProtectTilesBattleCondition(string name, string description, Vector2Int[] tilesToProtect)
+    [SerializeField]
+    public int MustProtectCount = 0;
+
+    public ProtectTilesBattleCondition(
+        string name,
+        string description,
+        Vector2Int[] tilesToProtect,
+        int mustProtectCount = 0
+    )
         : base(name, description)
     {
         TilesToProtect = tilesToProtect ?? Array.Empty<Vector2Int>();
+        MustProtectCount = mustProtectCount;
+    }
+
+    public ProtectTilesBattleCondition()
+        : base("Protect Tiles", "Protect the listed tiles")
+    {
+        TilesToProtect = Array.Empty<Vector2Int>();
     }
 
     public void CheckCondition(Dictionary<Vector2Int, bool> tileStatus)
@@ -267,10 +351,14 @@ public class ProtectTilesBattleCondition : BattleCondition
 /// <param name="description"></param>
 /// <param name="rowOrColumnIndex"></param>
 /// <param name="isRow"></param>
+[Serializable]
 public class AllAlliesCrossRowOrColumnBattleCondition : BattleCondition
 {
-    public int RowOrColumnIndex { get; set; }
-    public bool IsRow { get; set; }
+    [SerializeField]
+    public int RowOrColumnIndex;
+
+    [SerializeField]
+    public bool IsRow;
 
     public AllAlliesCrossRowOrColumnBattleCondition(
         string name,
@@ -284,25 +372,18 @@ public class AllAlliesCrossRowOrColumnBattleCondition : BattleCondition
         IsRow = isRow;
     }
 
-    public void CheckCondition(List<CharacterInstance> allies)
+    public AllAlliesCrossRowOrColumnBattleCondition()
+        : base("All Allies Cross Row/Column", "Have all allies cross the specified row or column")
+    {
+        RowOrColumnIndex = 0;
+        IsRow = true;
+    }
+
+    public void CheckCondition(List<CharacterData> allies)
     {
         foreach (var ally in allies)
         {
-            Vector2Int position = ally.MapGridPosition;
-            if (IsRow)
-            {
-                if (position.y <= RowOrColumnIndex)
-                {
-                    return;
-                }
-            }
-            else
-            {
-                if (position.x <= RowOrColumnIndex)
-                {
-                    return;
-                }
-            }
+            // can't do yet!
         }
         ConditionMet();
     }
@@ -315,10 +396,14 @@ public class AllAlliesCrossRowOrColumnBattleCondition : BattleCondition
 /// <param name="description"></param>
 /// <param name="rowOrColumnIndex"></param>
 /// <param name="isRow"></param>
+[Serializable]
 public class NoEnemiesCrossRowOrColumnBattleCondition : BattleCondition
 {
-    public int RowOrColumnIndex { get; set; }
-    public bool IsRow { get; set; }
+    [SerializeField]
+    public int RowOrColumnIndex;
+
+    [SerializeField]
+    public bool IsRow;
 
     public NoEnemiesCrossRowOrColumnBattleCondition(
         string name,
@@ -332,26 +417,131 @@ public class NoEnemiesCrossRowOrColumnBattleCondition : BattleCondition
         IsRow = isRow;
     }
 
-    public void CheckCondition(List<CharacterInstance> enemies)
+    public NoEnemiesCrossRowOrColumnBattleCondition()
+        : base("No Enemies Cross Row/Column", "Ensure no enemies cross the specified row or column")
+    {
+        RowOrColumnIndex = 0;
+        IsRow = true;
+    }
+
+    public void CheckCondition(List<CharacterData> enemies)
     {
         foreach (var enemy in enemies)
         {
-            Vector2Int position = enemy.MapGridPosition;
-            if (IsRow)
-            {
-                if (position.y >= RowOrColumnIndex)
-                {
-                    return;
-                }
-            }
-            else
-            {
-                if (position.x >= RowOrColumnIndex)
-                {
-                    return;
-                }
-            }
+            // can't do yet
         }
         ConditionMet();
     }
 }
+
+/// <summary>
+/// Condition to take less than N damage total
+/// between all allies.
+/// </summary>
+/// <param name="name"></param>
+/// <param name="description"></param>
+/// <param name="maxTotalDamage"></param>
+[Serializable]
+public class LimitTotalAllyDamageBattleCondition : BattleCondition
+{
+    [SerializeField]
+    public int MaxTotalDamage;
+
+    private int currentTotalDamage = 0;
+
+    public LimitTotalAllyDamageBattleCondition(string name, string description, int maxTotalDamage)
+        : base(name, description)
+    {
+        MaxTotalDamage = maxTotalDamage;
+    }
+
+    public LimitTotalAllyDamageBattleCondition()
+        : base(
+            "Limit Total Ally Damage",
+            "Take less than the specified total damage across all allies"
+        )
+    {
+        MaxTotalDamage = 0;
+    }
+
+    public void OnAllyDamaged(int damageAmount)
+    {
+        currentTotalDamage += damageAmount;
+        CheckCondition();
+    }
+
+    public void CheckCondition()
+    {
+        if (currentTotalDamage > MaxTotalDamage)
+        {
+            ConditionFailed();
+        }
+    }
+}
+
+/// <summary>
+/// Condition to deal at least N damage total
+/// between all enemies.
+/// </summary>
+/// <param name="name"></param>
+/// <param name="description"></param>
+/// <param name="minTotalDamage"></param>
+[Serializable]
+public class DealMinimumTotalEnemyDamageBattleCondition : BattleCondition
+{
+    [SerializeField]
+    public int MinTotalDamage;
+
+    private int currentTotalDamage = 0;
+
+    public DealMinimumTotalEnemyDamageBattleCondition(
+        string name,
+        string description,
+        int minTotalDamage
+    )
+        : base(name, description)
+    {
+        MinTotalDamage = minTotalDamage;
+    }
+
+    public DealMinimumTotalEnemyDamageBattleCondition()
+        : base(
+            "Deal Minimum Total Enemy Damage",
+            "Deal at least the specified total damage across all enemies"
+        )
+    {
+        MinTotalDamage = 0;
+    }
+
+    public void OnEnemyDamaged(int damageAmount)
+    {
+        currentTotalDamage += damageAmount;
+        CheckCondition();
+    }
+
+    public void CheckCondition()
+    {
+        if (currentTotalDamage >= MinTotalDamage)
+        {
+            ConditionMet();
+        }
+    }
+}
+
+#if TURNROOT_MONSTERS_MODULE
+/// <summary>
+/// Condition to defeat monsters.
+/// </summary>
+[Serializable]
+public class DefeatAllMonstersBattleCondition : BattleCondition
+{
+    public DefeatAllMonstersBattleCondition()
+        : base("Defeat All Monsters", "Defeat all monsters on the battlefield") { }
+
+    public void CheckCondition(List<CharacterData> monsters)
+    {
+        // not ready yet
+        ConditionMet();
+    }
+}
+#endif

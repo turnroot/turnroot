@@ -1,18 +1,65 @@
+using NaughtyAttributes;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Environment
 {
-    [CreateAssetMenu(
-        fileName = "EnvironmentalConditions",
-        menuName = "Turnroot/Gameplay/Combat/Environmental Conditions"
-    )]
-    public class EnvironmentalConditions : ScriptableObject
+    public class EnvironmentalConditions : MonoBehaviour
     {
+        [Foldout("Temperature")]
+        public bool IsVeryHot;
+
+        [Foldout("Temperature")]
+        public bool IsVeryCold;
+
+        [Foldout("Time")]
         public bool IsNight;
+
+        [Foldout("Time")]
+        public bool IsSunset;
+
+        [Foldout("Time")]
+        public bool IsDawn;
+
+        [Foldout("Weather")]
         public bool IsRaining;
+
+        [Foldout("Weather")]
         public bool IsFoggy;
-        public bool IsDesert;
+
+        [Foldout("Weather")]
+        public bool IsStormy;
+
+        [Foldout("Weather")]
+        public bool IsWindy;
+
+        [Foldout("Weather")]
+        public bool IsSunny = true;
+
+        [Foldout("Weather")]
+        public bool IsCloudy;
+
+        [Foldout("Weather")]
         public bool IsSnowing;
+
+        [Foldout("Environment")]
         public bool IsIndoors;
+
+        [Foldout("Environment")]
+        public bool IsSmoky;
+
+        [Foldout("Environment")]
+        public bool IsUnderground;
+
+        [Foldout("Environment")]
+        public bool IsUnderwater;
+
+        [Foldout("Environment")]
+        public bool IsRocky;
+
+        [Foldout("Environment")]
+        public bool IsSwampy;
+
+        [Foldout("Environment")]
+        public bool IsVolcanic;
     }
 }
