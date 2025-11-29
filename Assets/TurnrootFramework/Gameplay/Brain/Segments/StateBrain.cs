@@ -76,6 +76,29 @@ namespace Assets.Turnroot.Gameplay.Brain
             var battleState = FindHighLevelState("Combat");
             if (battleState == null)
             {
+                Debug.LogError("Combat state not found. Cannot initialize battle child states.");
+                return;
+            }
+
+            if (battleState.ParentOfStates != null && battleState.ParentOfStates.Length > 0)
+            {
+                Debug.Log("Battle child states already initialized.");
+                return;
+            }
+
+            if (!TryRestoreBattleChildStates())
+            {
+                SetBattleChildStates();
+                SaveBattleChildStates();
+                Debug.Log("Battle child states set and saved.");
+            }
+        }
+
+        public void SetBattleChildStates()
+        {
+            var battleState = FindHighLevelState("Combat");
+            if (battleState == null)
+            {
                 Debug.LogError("Combat state not found.");
                 return;
             }
@@ -146,6 +169,38 @@ namespace Assets.Turnroot.Gameplay.Brain
             return true;
         }
 
+        private bool TryRestoreBattleChildStates()
+        {
+            var battleState = FindHighLevelState("Combat");
+            if (battleState == null)
+            {
+                Debug.LogError("Combat state not found.");
+                return false;
+            }
+
+            if (_brain?.ltm == null)
+                return false;
+
+            var childStates = new System.Collections.Generic.List<BrainState>();
+            int index = 0;
+            while (true)
+            {
+                string key = $"{LtmKeys.HighLevelStatePrefix}Combat.Child.{index}";
+                string stateName = _brain.ltm.Recall(key);
+                if (string.IsNullOrEmpty(stateName))
+                    break;
+
+                childStates.Add(new BrainState(stateName, null, new[] { battleState }));
+                index++;
+            }
+
+            if (childStates.Count == 0)
+                return false;
+
+            battleState.ParentOfStates = childStates.ToArray();
+            return true;
+        }
+
         private bool ValidateStoredStates(int count)
         {
             for (int i = 0; i < count; i++)
@@ -168,6 +223,19 @@ namespace Assets.Turnroot.Gameplay.Brain
             }
 
             _brain.ltm.RememberInt(LtmKeys.HighLevelStatesCount, _highLevelStates.Length);
+        }
+
+        private void SaveBattleChildStates()
+        {
+            var battleState = FindHighLevelState("Combat");
+            if (battleState == null || battleState.ParentOfStates == null || _brain?.ltm == null)
+                return;
+
+            for (int i = 0; i < battleState.ParentOfStates.Length; i++)
+            {
+                string key = $"{LtmKeys.HighLevelStatePrefix}Combat.Child.{i}";
+                _brain.ltm.Remember(key, battleState.ParentOfStates[i].Name);
+            }
         }
 
         #endregion
