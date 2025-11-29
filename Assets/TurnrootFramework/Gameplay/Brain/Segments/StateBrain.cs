@@ -52,6 +52,7 @@ namespace Assets.Turnroot.Gameplay.Brain
             Debug.Log("StateBrain Awake called.");
             _brain = GetComponent<Brain>();
             InitializeHighLevelStates();
+            InitializeBattleChildStates();
         }
 
         public void InitializeHighLevelStates()
@@ -68,6 +69,29 @@ namespace Assets.Turnroot.Gameplay.Brain
                 SaveHighLevelStates();
                 Debug.Log("High-level states set and saved to long-term memory.");
             }
+        }
+
+        public void InitializeBattleChildStates()
+        {
+            var battleState = FindHighLevelState("Combat");
+            if (battleState == null)
+            {
+                Debug.LogError("Combat state not found.");
+                return;
+            }
+
+            var childStates = new System.Collections.Generic.List<BrainState>
+            {
+                new("PreBattle", null, new[] { battleState }),
+                new("PlayerTurn", null, new[] { battleState }),
+                new("EnemyTurn", null, new[] { battleState }),
+                new("ThirdPartyTurn", null, new[] { battleState }),
+                new("SpecialCircumstances", null, new[] { battleState }),
+                new("PostBattle", null, new[] { battleState }),
+            };
+
+            battleState.ParentOfStates = childStates.ToArray();
+            Debug.Log("Battle child states initialized.");
         }
 
         public void SetHighLevelStates()

@@ -1,4 +1,4 @@
-using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
+using Assets.Turnroot.Gameplay.Combat;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -23,12 +23,17 @@ namespace Assets.Turnroot.Gameplay.Brain
         {
             _brain = GetComponent<Brain>();
             Debug.Log($"{Prefix} BattleBrain Awake - subscribing to OnStartBattle.");
-            _brain.OnStartBattle += FindBattle;
         }
 
-        public void FindBattle()
+        public void SubscribeToBrainEvents()
         {
-            BattleGameObject battleGameObject = null;
+            _brain.OnStartBattle += HandleStartBattle;
+            _brain.OnExitBattle += HandleExitBattle;
+        }
+
+        private void HandleStartBattle()
+        {
+            Debug.Log($"{Prefix} Handling StartBattle event.");
             for (int i = 0; i < SceneManager.sceneCount; i++)
             {
                 Scene scene = SceneManager.GetSceneAt(i);
@@ -37,16 +42,32 @@ namespace Assets.Turnroot.Gameplay.Brain
                     GameObject[] rootObjects = scene.GetRootGameObjects();
                     foreach (GameObject rootObject in rootObjects)
                     {
-                        BattleGameObject bgo =
+                        BattleGameObject battleGameObject =
                             rootObject.GetComponentInChildren<BattleGameObject>();
-                        if (bgo != null)
+                        if (battleGameObject != null)
                         {
-                            battleGameObject = bgo;
+                            battleGameObject.Brain = _brain;
+                            battleGameObject.ConnectToBrainEvents();
                             Debug.Log($"{Prefix} Found BattleGameObject in scene '{scene.name}'.");
                             break;
                         }
                     }
                 }
+            }
+        }
+
+        private void HandleExitBattle(BattleExitType exitType)
+        {
+            Debug.Log($"{Prefix} Handling ExitBattle event with exit type: {exitType}.");
+        }
+
+        public void OnDestroy()
+        {
+            if (_brain != null)
+            {
+                Debug.Log($"{Prefix} BattleBrain OnDestroy - unsubscribing from OnStartBattle.");
+                _brain.OnStartBattle -= HandleStartBattle;
+                _brain.OnExitBattle -= HandleExitBattle;
             }
         }
     }

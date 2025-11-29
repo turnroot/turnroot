@@ -108,7 +108,7 @@ public class DefeatEnemyBattleCondition : BattleCondition
             // this can only work in runtime, since instances
             // are created at runtime
 
-            // TODO: Set up a way to get from CharacterData to CharacterData
+            // TODO: Set up a way to get from CharacterData to CharacterInstance at runtime
         }
         ConditionMet();
     }

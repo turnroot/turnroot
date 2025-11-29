@@ -1,7 +1,7 @@
 using System;
+using Assets.Turnroot.Gameplay.Combat;
 using Turnroot.Characters.Components.Support;
 using Turnroot.Conversations;
-using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -133,7 +133,85 @@ namespace Assets.Turnroot.Gameplay.Brain
 
         #region Battle Events
         public event Action OnStartBattle;
-        public event Action OnExitBattle;
+        public event Action<BattleExitType> OnExitBattle;
+
+        public event Action OnBattleContextInitialized;
+
+        public event Action OnPreBattleStarted;
+        public event Action OnPreBattleEnded;
+        public event Action OnTurnBegin;
+        public event Action OnPlayerTurnStarted;
+        public event Action OnEnemyTurnStarted;
+        public event Action OnThirdPartyTurnStarted;
+        public event Action OnPlayerTurnEnded;
+        public event Action OnEnemyTurnEnded;
+        public event Action OnThirdPartyTurnEnded;
+        public event Action OnTurnEnded;
+
+        public void InvokeStartBattle()
+        {
+            OnStartBattle?.Invoke();
+        }
+
+        public void InvokePreBattleStarted()
+        {
+            OnPreBattleStarted?.Invoke();
+        }
+
+        public void InvokePreBattleEnded()
+        {
+            OnPreBattleEnded?.Invoke();
+        }
+
+        public void InvokeExitBattle(BattleExitType exitType)
+        {
+            OnExitBattle?.Invoke(exitType);
+        }
+
+        public void InvokeBattleContextInitialized()
+        {
+            OnBattleContextInitialized?.Invoke();
+        }
+
+        public void InvokeTurnBegin()
+        {
+            OnTurnBegin?.Invoke();
+        }
+
+        public void InvokePlayerTurnStarted()
+        {
+            OnPlayerTurnStarted?.Invoke();
+        }
+
+        public void InvokeEnemyTurnStarted()
+        {
+            OnEnemyTurnStarted?.Invoke();
+        }
+
+        public void InvokeThirdPartyTurnStarted()
+        {
+            OnThirdPartyTurnStarted?.Invoke();
+        }
+
+        public void InvokePlayerTurnEnded()
+        {
+            OnPlayerTurnEnded?.Invoke();
+        }
+
+        public void InvokeEnemyTurnEnded()
+        {
+            OnEnemyTurnEnded?.Invoke();
+        }
+
+        public void InvokeThirdPartyTurnEnded()
+        {
+            OnThirdPartyTurnEnded?.Invoke();
+        }
+
+        public void InvokeTurnEnded()
+        {
+            OnTurnEnded?.Invoke();
+        }
 
         #endregion
 
