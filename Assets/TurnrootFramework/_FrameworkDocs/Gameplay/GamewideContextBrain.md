@@ -1,7 +1,5 @@
 # GamewideContextBrain (Brain System)
 
-This document explains GamewideContextBrain, how Data→Instance conversion and instance serialization works, and what to do when you introduce new Data/Instance types.
-
 ## Overview
 GamewideContextBrain is the central place the framework uses to convert Design-time "Data" (ScriptableObject templates stored in Resources) into runtime "Instance" objects, and to serialize/deserialize instances to and from the `LongTermMemory` string storage.
 
@@ -57,8 +55,10 @@ serialization pipeline so it is a safe debugging tool.
 - If you change serialized field names or structure, increment the wrapper `Version` and add migration code to handle older versions.
 
 ## Where to look in the code
-- `Assets/TurnrootFramework/Gameplay/Brain/Segments/GamewideContextBrain.cs` — main Brain encoder/decoder and instantiation entry points.
-- `Assets/TurnrootFramework/Gameplay/Brain/Components/UnityObjectJsonConverter.cs` — Unity object resolution.
-- `Assets/TurnrootFramework/Gameplay/Brain/Components/CharacterInstanceJsonConverter.cs` — example for constructor-based rehydration.
 
-If you'd like I can also add an `AddressablesAssetResolver` sample and an `IAssetResolver` interface to make runtime resolution pluggable.
+## Brain runtime events (quick reference)
+
+See also
+- `Assets/TurnrootFramework/Gameplay/Brain/Brain.cs` — central Brain event hub (turns & battle lifecycle)
+- `Assets/TurnrootFramework/Gameplay/Combat/FundamentalComponents/Battles/BattleGameObject.cs` — runtime BattleGameObject that can subscribe to Brain events
+

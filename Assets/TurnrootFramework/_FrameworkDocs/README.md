@@ -32,10 +32,12 @@ Complete API reference for the Turnroot Framework assets.
 - **[CharacterInventory](Characters/CharacterInventory.md)** - Multi-slot equipment and inventory
 ### Brain System
 - **[GamewideContextBrain](Gameplay/GamewideContextBrain.md)** - Runtime instance factory, serialization and rehydration
+ - **[Brain (event hub)](Gameplay/GamewideContextBrain.md)** - `Assets/TurnrootFramework/Gameplay/Brain/Brain.cs` — scene-level event hub for turns & battle lifecycle
 
 ### Gameplay Objects System
 - **[ObjectItem](Gameplay/ObjectItem.md)** - Item assets (weapons, magic, consumables, gifts, etc.)
 - **[ObjectSubtype](Gameplay/ObjectSubtype.md)** - Dynamic item type validation system
+ - **[Battles/BattleGameObject](Gameplay/Battles/BattleGameObject.md)** - Runtime battle root component; wire up to `Brain` events
 
 ### Portrait System
 - **[Portrait](Characters/Portraits/Portrait.md)** - Compositable character portraits
