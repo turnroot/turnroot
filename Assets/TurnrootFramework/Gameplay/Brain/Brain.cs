@@ -25,9 +25,22 @@ namespace Assets.Turnroot.Gameplay.Brain
     [RequireComponent(typeof(StateBrain))]
     [RequireComponent(typeof(ConversationalBrain))]
     [RequireComponent(typeof(LongTermMemory))]
+    [RequireComponent(typeof(GamewideContextBrain))]
+    [RequireComponent(typeof(BattleBrain))]
     public class Brain : MonoBehaviour
     {
+        // Core components
         [HideInInspector]
+        public StateBrain stateBrain;
+
+        [HideInInspector]
+        public ConversationalBrain conversationalBrain;
+
+        [HideInInspector]
+        public GamewideContextBrain gamewideContextBrain;
+
+        [HideInInspector]
+        public BattleBrain battleBrain;
         public LongTermMemory ltm;
 
         // Scene-level dependencies
@@ -227,6 +240,12 @@ namespace Assets.Turnroot.Gameplay.Brain
             TryLinkConversationController();
 
             SceneManager.sceneLoaded += OnSceneLoaded_LinkControllers;
+
+            // populate remaining core components
+            stateBrain = GetComponent<StateBrain>();
+            conversationalBrain = GetComponent<ConversationalBrain>();
+            gamewideContextBrain = GetComponent<GamewideContextBrain>();
+            battleBrain = GetComponent<BattleBrain>();
         }
 
         public void InitializeLongTermMemory()

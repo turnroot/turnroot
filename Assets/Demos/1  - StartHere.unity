@@ -76375,15 +76375,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 73bb8535840398749ad801d626bb9834, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  HasThirdParty: 0
   _battleConditions:
   - rid: 8948944484321984605
   _mapGrid: {fileID: 1882290950}
+  _currentTurnCount: 0
   references:
     version: 2
     RefIds:
     - rid: 8948944484321984605
       type: {class: DefeatAllEnemiesBattleCondition, ns: , asm: Assembly-CSharp}
       data:
+        gamewideContextBrain: {fileID: 0}
         Name: Defeat All Enemies
         Description: Defeat all enemy units on the battlefield
         OnConditionMet:

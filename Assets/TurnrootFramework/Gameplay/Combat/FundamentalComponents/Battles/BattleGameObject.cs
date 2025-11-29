@@ -51,6 +51,23 @@ namespace Assets.Turnroot.Gameplay.Combat
             }
         }
 
+        public void ConnectBattleConditionsToGamewideContextBrain()
+        {
+            if (_brain == null || _brain.gamewideContextBrain == null)
+            {
+                Debug.LogError(
+                    "BattleGameObject cannot connect BattleConditions: Brain or GamewideContextBrain is null."
+                );
+                Debug.Break();
+                return;
+            }
+
+            foreach (var condition in _battleConditions)
+            {
+                condition.gamewideContextBrain = _brain.gamewideContextBrain;
+            }
+        }
+
         public void Awake()
         {
             ResetTurnCount();

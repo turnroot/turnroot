@@ -1,6 +1,9 @@
+// TODO: Pretty much all the actual data handling here is wrong.
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Assets.Turnroot.Gameplay.Brain;
 using Turnroot.Characters;
 using UnityEngine;
 using UnityEngine.Events;
@@ -13,6 +16,9 @@ using UnityEngine.Events;
 /// <param name="description"></param>
 public class BattleCondition
 {
+    [HideInInspector]
+    public GamewideContextBrain gamewideContextBrain;
+
     [HideInInspector]
     public string Name;
 
@@ -93,7 +99,7 @@ public class DefeatEnemyBattleCondition : BattleCondition
         EnemiesToDefeat = enemiesToDefeat ?? Array.Empty<CharacterData>();
     }
 
-    // Parameterless constructor required for inspector CreateInstance via reflection
+    // TODO: This isn't right, we don't want to create new instances here
     public DefeatEnemyBattleCondition()
         : base("Defeat enemies", "Kill the listed enemies")
     {
@@ -108,7 +114,7 @@ public class DefeatEnemyBattleCondition : BattleCondition
             // this can only work in runtime, since instances
             // are created at runtime
 
-            // TODO: Set up a way to get from CharacterData to CharacterInstance at runtime
+            // TODO: Set up a way to get from CharacterData to CharacterInstance at runtime (use GWCB)
         }
         ConditionMet();
     }
@@ -538,10 +544,158 @@ public class DefeatAllMonstersBattleCondition : BattleCondition
     public DefeatAllMonstersBattleCondition()
         : base("Defeat All Monsters", "Defeat all monsters on the battlefield") { }
 
-    public void CheckCondition(List<CharacterData> monsters)
+    public void CheckCondition(List<Turnroot.Modules.Monsters.MonsterData> monsters)
     {
         // not ready yet
         ConditionMet();
     }
 }
+
+/// <summary>
+/// Condition to defeat specific monsters.
+/// </summary>
+/// <param name="name"></param>
+/// <param name="description"></param>
+/// <param name="monstersToDefeat"></param>
+[Serializable]
+public class DefeatMonsterBattleCondition : BattleCondition
+{
+    [SerializeField]
+    public Turnroot.Modules.Monsters.MonsterData[] MonstersToDefeat;
+
+    public DefeatMonsterBattleCondition(
+        string name,
+        string description,
+        Turnroot.Modules.Monsters.MonsterData[] monstersToDefeat
+    )
+        : base(name, description)
+    {
+        // TODO: This is also wrong
+        MonstersToDefeat = monstersToDefeat ?? Array.Empty<Turnroot.Modules.Monsters.MonsterData>();
+    }
+
+    public DefeatMonsterBattleCondition()
+        : base("Defeat monsters", "Kill the listed monsters")
+    {
+        MonstersToDefeat = Array.Empty<Turnroot.Modules.Monsters.MonsterData>();
+    }
+
+    public void CheckCondition()
+    {
+        foreach (var monster in MonstersToDefeat)
+        {
+            // not ready yet
+        }
+        ConditionMet();
+    }
+}
 #endif
+
+/// <summary>
+/// Condition to survive until a specific ally reaches a target tile.
+/// </summary>
+/// <param name="name"></param>
+/// <param name="description"></param>
+/// <param name="allyToReachTile"></param>
+/// <param name="targetTile"></param>
+[Serializable]
+public class SurviveUntilAllyReachesTileBattleCondition : BattleCondition
+{
+    [SerializeField]
+    public CharacterData AllyToReachTile;
+
+    [SerializeField]
+    public Vector2Int TargetTile;
+
+    public SurviveUntilAllyReachesTileBattleCondition(
+        string name,
+        string description,
+        CharacterData allyToReachTile,
+        Vector2Int targetTile
+    )
+        : base(name, description)
+    {
+        AllyToReachTile = allyToReachTile;
+        TargetTile = targetTile;
+    }
+
+    public SurviveUntilAllyReachesTileBattleCondition()
+        : base(
+            "Survive Until Ally Reaches Tile",
+            "Survive until the specified ally reaches the target tile"
+        )
+    {
+        AllyToReachTile = null;
+        TargetTile = Vector2Int.zero;
+    }
+
+    public void CheckCondition(Vector2Int allyPosition)
+    {
+        if (allyPosition == TargetTile)
+        {
+            ConditionMet();
+        }
+    }
+}
+
+/// <summary>
+/// Condition to interact with some MapGridPointFeatures.
+/// </summary>
+/// <param name="name"></param>
+/// <param name="description"></param>
+/// <param name="featureIDsToInteractWith"></param>
+/// <param name="allFeatures"></param>
+[Serializable]
+public class InteractWithMapGridPointFeaturesBattleCondition : BattleCondition
+{
+    [SerializeField]
+    public string[] FeatureIDsToInteractWith;
+
+    [SerializeField]
+    public bool allFeatures = true;
+
+    public InteractWithMapGridPointFeaturesBattleCondition(
+        string name,
+        string description,
+        string[] featureIDsToInteractWith,
+        bool allFeatures = true
+    )
+        : base(name, description)
+    {
+        FeatureIDsToInteractWith = featureIDsToInteractWith ?? Array.Empty<string>();
+        this.allFeatures = allFeatures;
+    }
+
+    public InteractWithMapGridPointFeaturesBattleCondition()
+        : base("Interact With Features", "Interact with the listed MapGridPoint features")
+    {
+        FeatureIDsToInteractWith = Array.Empty<string>();
+        allFeatures = true;
+    }
+
+    public void CheckCondition(List<string> interactedFeatureIDs)
+    {
+        if (allFeatures)
+        {
+            foreach (var featureID in FeatureIDsToInteractWith)
+            {
+                if (!interactedFeatureIDs.Contains(featureID))
+                {
+                    return;
+                }
+            }
+            ConditionMet();
+        }
+        else
+        {
+            foreach (var featureID in FeatureIDsToInteractWith)
+            {
+                if (interactedFeatureIDs.Contains(featureID))
+                {
+                    ConditionMet();
+                    return;
+                }
+            }
+        }
+    }
+}

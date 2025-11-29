@@ -61,6 +61,7 @@ namespace Assets.Turnroot.Gameplay.Brain
                         {
                             _battleGameObject.Brain = _brain;
                             _battleGameObject.ConnectToBrainEvents();
+                            _battleGameObject.ConnectBattleConditionsToGamewideContextBrain();
                             Debug.Log(
                                 $"BattleBrain Found BattleGameObject in scene '{scene.name}'."
                             );
