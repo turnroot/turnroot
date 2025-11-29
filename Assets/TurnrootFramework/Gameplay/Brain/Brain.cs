@@ -219,7 +219,7 @@ namespace Assets.Turnroot.Gameplay.Brain
 
         public void Awake()
         {
-            Debug.Log("EventsBrain Awake called.");
+            Debug.Log("Brain Awake!");
 
             InitializeLongTermMemory();
             CheckScriptingSymbols();

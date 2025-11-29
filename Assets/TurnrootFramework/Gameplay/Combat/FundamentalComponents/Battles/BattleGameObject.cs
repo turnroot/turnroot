@@ -15,6 +15,8 @@ namespace Assets.Turnroot.Gameplay.Combat
     [RequireComponent(typeof(EnvironmentalConditions))]
     public class BattleGameObject : MonoBehaviour
     {
+        public bool HasThirdParty;
+
         [Header("Battle Components")]
         [SerializeField]
         private BattleContext _battleContext;
@@ -30,7 +32,6 @@ namespace Assets.Turnroot.Gameplay.Combat
 
         [HideInInspector]
         private Brain.Brain _brain;
-
         public Brain.Brain Brain
         {
             get => _brain;
