@@ -4,11 +4,32 @@ using System.Linq;
 using NaughtyAttributes;
 using Turnroot.Characters.Components;
 using Turnroot.Characters.Components.Support;
-using Turnroot.Characters.Configuration;
 using Turnroot.Characters.Stats;
 using Turnroot.Characters.Subclasses;
 using Turnroot.Gameplay.Objects;
 using UnityEngine;
+
+[Serializable]
+public struct CharacterModelBlendshapeSet
+{
+    [Range(0f, 100f)]
+    public float chestSize;
+
+    [Range(0f, 100f)]
+    public float waistSize;
+
+    [Range(0f, 100f)]
+    public float hipSize;
+
+    [Range(0f, 100f)]
+    public float thighThickness;
+
+    [Range(0f, 100f)]
+    public float armThickness;
+
+    [Range(0f, 100f)]
+    public float neckThickness;
+}
 
 namespace Turnroot.Characters
 {
@@ -18,6 +39,280 @@ namespace Turnroot.Characters
     )]
     public class CharacterData : ScriptableObject
     {
+#if UNITY_EDITOR
+        [
+            InfoBox(
+                "This is pre-runtime data. Use this editor to define the character's base stats, skills, inventory, and relationships- anything that should be in place before the game starts."
+            ),
+            SerializeField
+        ]
+        private string _;
+#endif
+
+        [field: Foldout("Identity"), HorizontalLine(color: EColor.White), SerializeField]
+        public CharacterWhich Which { get; private set; } = new("Enemy");
+
+        [field: Foldout("Identity"), SerializeField]
+        public string DisplayName { get; private set; } = "New Unit";
+
+        [field: Foldout("Identity"), SerializeField]
+        public string FullName { get; private set; } = "Newly Created Unit";
+
+        [field: Foldout("Identity")]
+        public string Team { get; private set; }
+
+        [field: Foldout("Demographics"), HorizontalLine(color: EColor.Black), SerializeField]
+        public Pronouns CharacterPronouns { get; private set; } = new();
+
+        [field: Foldout("Demographics"), SerializeField, Range(100f, 250f)]
+        public float Height { get; private set; } = 166f;
+
+        [field: Foldout("Demographics"), SerializeField, Range(1, 31)]
+        public int BirthdayDay { get; private set; } = 1;
+
+        [field: Foldout("Demographics"), SerializeField, Range(1, 12)]
+        public int BirthdayMonth { get; private set; } = 1;
+
+        [field:
+            Foldout("Description"),
+            SerializeField,
+            ResizableTextArea,
+            HorizontalLine(color: EColor.Gray)
+        ]
+        public string ShortDescription { get; private set; } = "A new unit";
+
+        [field: Foldout("Description"), SerializeField]
+        public string[] Likes { get; private set; } = new string[0];
+
+        [field: Foldout("Description"), SerializeField]
+        public string[] Dislikes { get; private set; } = new string[0];
+
+        [field: Foldout("Description"), SerializeField, ResizableTextArea]
+        public string Notes { get; private set; } =
+            "Take private notes (only in the editor) about this unit";
+
+        [field: Foldout("Character Flags"), SerializeField, HorizontalLine(color: EColor.Red)]
+        public bool CanSSupport { get; private set; } = true;
+
+        [field: Foldout("Character Flags"), SerializeField, ShowIf(nameof(CanShowSSupportAvatar))]
+        public bool CanSSupportAvatar { get; private set; } = false;
+
+        [field: Foldout("Character Flags"), SerializeField, ShowIf(nameof(IsAllyOrRecruitable))]
+        public bool CanHaveChildren { get; private set; } = false;
+
+        [field: Foldout("Character Flags"), SerializeField, ShowIf(nameof(CanShowRecruitable))]
+        public bool IsRecruitable { get; private set; } = false;
+
+        [field: Foldout("Character Flags"), SerializeField, ShowIf(nameof(CanShowUnique))]
+        public bool IsUnique { get; private set; } = false;
+
+        [field: Foldout("Visual"), SerializeField, HorizontalLine(color: EColor.Pink)]
+        public string BadgeText { get; private set; }
+
+        [field: Foldout("Visual"), SerializeField]
+        public Sprite BadgeIcon { get; private set; }
+
+        [field: Foldout("Visual"), SerializeField]
+        public CharacterModelBlendshapeSet Blendshapes { get; private set; }
+
+        [field: Foldout("Visual"), SerializeField]
+        public Color SkinColor { get; private set; }
+
+#if TURNROOT_BLOODLINES_MODULE
+        [Foldout("Visual"), SerializeField]
+        private Color _hairColor;
+
+        [Foldout("Visual"), SerializeField]
+        private Color _eyeColor;
+#endif
+
+        [field: Foldout("Visual"), SerializeField]
+        public Color AccentColor1 { get; private set; }
+
+        [field: Foldout("Visual"), SerializeField]
+        public Color AccentColor2 { get; private set; }
+
+        [field: Foldout("Visual"), SerializeField]
+        public Color AccentColor3 { get; private set; }
+
+        [field: Foldout("Visual"), SerializeField, HideInInspector]
+        public SerializableDictionary<string, Portrait> Portraits { get; private set; }
+
+        [field: Foldout("Visual"), HideInInspector]
+        public SerializableDictionary<string, TaggedLayerDefault> TaggedLayerDefaults
+        {
+            get;
+            private set;
+        } = new();
+        private Portrait[] _portraitArrayCache;
+
+        [field: Foldout("Visual"), SerializeField]
+        public Sprite[] Sprites { get; private set; }
+
+        [field: Foldout("AI & Behavior"), SerializeField, HorizontalLine(color: EColor.Blue)]
+        public UnityEngine.Object AI { get; private set; }
+
+#if TURNROOT_BLOODLINES_MODULE
+        [Foldout("Heredity"), SerializeField]
+        [HorizontalLine(color: EColor.Indigo)]
+        private HereditaryTraits _passedDownTraits = new();
+
+        [Foldout("Heredity"), SerializeField]
+        private bool _hasDesignatedChildUnit = false;
+
+        [Foldout("Heredity"), SerializeField, ShowIf(nameof(_hasDesignatedChildUnit))]
+        private CharacterData _childUnitId;
+#endif
+
+        [field: SerializeField]
+        public List<InventorySlot> StartingInventory { get; private set; } = new();
+
+        [field: SerializeField]
+        public List<SupportRelationship> SupportRelationships { get; private set; } = new();
+
+        [field:
+            BoxGroup("Stats & Progression"),
+            SerializeField,
+            HorizontalLine(color: EColor.Orange)
+        ]
+        public int Level { get; private set; } = 1;
+
+        [field: SerializeField, BoxGroup("Stats & Progression")]
+        public int Exp { get; private set; } = 0;
+
+        [field: BoxGroup("Stats & Progression"), SerializeField]
+        public List<BoundedCharacterStat> BoundedStats { get; private set; } = new();
+
+        [field: BoxGroup("Stats & Progression"), SerializeField]
+        public List<CharacterStat> UnboundedStats { get; private set; } = new();
+
+        [field: BoxGroup("Class & Battalion"), SerializeField, HorizontalLine(color: EColor.Yellow)]
+        public UnityEngine.Object UnitClass { get; private set; }
+
+        [field: BoxGroup("Class & Battalion"), SerializeField]
+        public UnityEngine.Object Battalion { get; private set; }
+
+        [field: BoxGroup("Class & Battalion"), SerializeField]
+        public List<string> SpecialUnitClasses { get; private set; } = new();
+
+        [field: BoxGroup("Skills & Abilities"), SerializeField, HorizontalLine(color: EColor.Green)]
+        public List<Skill> Skills { get; private set; } = new();
+
+        [field: BoxGroup("Skills & Abilities"), SerializeField]
+        public List<Skill> SpecialSkills { get; private set; } = new();
+
+        // NOTE: properties are declared inline with field-targeted attributes.
+#if TURNROOT_BLOODLINES_MODULE
+        public Color HairColor => _hairColor;
+        public Color EyeColor => _eyeColor;
+#endif
+        public bool IsNotAvatar => Which != CharacterWhich.AVATAR;
+        public bool IsEnemyOrNPC => Which == CharacterWhich.ENEMY || Which == CharacterWhich.NPC;
+
+        // NaughtyAttributes ShowIf helper methods
+        private bool CanShowSSupportAvatar() => Which != CharacterWhich.AVATAR;
+
+        private bool CanShowRecruitable() =>
+            Which == CharacterWhich.ENEMY || Which == CharacterWhich.NPC;
+
+        private bool CanShowUnique() =>
+            Which == CharacterWhich.ENEMY || Which == CharacterWhich.NPC;
+
+        private bool IsAllyOrRecruitable()
+        {
+            return Which == CharacterWhich.ALLY || IsRecruitable;
+        }
+
+        // Helper: returns the dictionary values as an array (cached). Use when you need indexed access.
+        public Portrait[] PortraitArray
+        {
+            get
+            {
+                if (_portraitArrayCache == null)
+                {
+                    _portraitArrayCache = Portraits?.Values.ToArray();
+                }
+                return _portraitArrayCache;
+            }
+        }
+        // auto-properties declared earlier provide the public surface for these fields
+
+#if TURNROOT_BLOODLINES_MODULE
+        public HereditaryTraits PassedDownTraits => _passedDownTraits;
+
+        public bool HasDesignatedChildUnit => _hasDesignatedChildUnit;
+        public CharacterData ChildUnitId => _childUnitId;
+#endif
+
+        // Editor helper: invalidate cached PortraitArray so editors can refresh after changes.
+        public void InvalidatePortraitArrayCache()
+        {
+            _portraitArrayCache = null;
+        }
+
+        // Editor/API convenience: allow saving/loading character defaults (called from StackedImageEditorWindow)
+        // These perform minimal delegation to contained Portraits so editor UI can invoke them.
+        public void SaveDefaults()
+        {
+            TaggedLayerDefaults.Clear();
+            if (Portraits != null)
+            {
+                Turnroot.Characters.CharacterHelpers.ForEachPortraitLayer(
+                    Portraits,
+                    layer =>
+                    {
+                        if (!string.IsNullOrEmpty(layer.Tag))
+                        {
+                            TaggedLayerDefaults[layer.Tag] = new TaggedLayerDefault
+                            {
+                                Tag = layer.Tag,
+                                Sprite = layer.Sprite,
+                                Offset = layer.Offset,
+                                Scale = layer.Scale,
+                                Tint = layer.Tint,
+                            };
+                        }
+                    }
+                );
+            }
+        }
+
+        public void LoadDefaults()
+        {
+            if (Portraits != null)
+            {
+                Turnroot.Characters.CharacterHelpers.ForEachPortraitLayer(
+                    Portraits,
+                    layer =>
+                    {
+                        if (
+                            !string.IsNullOrEmpty(layer.Tag)
+                            && TaggedLayerDefaults.ContainsKey(layer.Tag)
+                        )
+                        {
+                            var def = TaggedLayerDefaults[layer.Tag];
+                            layer.Sprite = def.Sprite;
+                            layer.Offset = def.Offset;
+                            layer.Scale = def.Scale;
+                            layer.Tint = def.Tint;
+                        }
+                    }
+                );
+            }
+            InvalidatePortraitArrayCache();
+        }
+
+        // Helper methods to get stats by type
+        public BoundedCharacterStat GetBoundedStat(BoundedStatType type)
+        {
+            return StatHelpers.GetBoundedStat(BoundedStats, type);
+        }
+
+        public CharacterStat GetUnboundedStat(UnboundedStatType type)
+        {
+            return StatHelpers.GetUnboundedStat(UnboundedStats, type);
+        }
+
         [Serializable]
         public class InventorySlot
         {
@@ -59,7 +354,7 @@ namespace Turnroot.Characters
             }
 
             // Initialize stats from defaults if stats are empty
-            if (_boundedStats.Count == 0 && _unboundedStats.Count == 0)
+            if (BoundedStats.Count == 0 && UnboundedStats.Count == 0)
             {
                 var defaultStats =
                     Turnroot.Utilities.GameSettingsLoader.LoadFirst<DefaultCharacterStats>(
@@ -67,8 +362,8 @@ namespace Turnroot.Characters
                     );
                 if (defaultStats != null)
                 {
-                    _boundedStats = defaultStats.CreateBoundedStats();
-                    _unboundedStats = defaultStats.CreateUnboundedStats();
+                    BoundedStats = defaultStats.CreateBoundedStats();
+                    UnboundedStats = defaultStats.CreateUnboundedStats();
                 }
                 else
                 {
@@ -84,24 +379,24 @@ namespace Turnroot.Characters
             // Reset cached portrait array so changes in the inspector are reflected
             _portraitArrayCache = null;
             // Ensure that the character's name is not empty
-            if (string.IsNullOrWhiteSpace(_displayName))
+            if (string.IsNullOrWhiteSpace(DisplayName))
             {
-                _displayName = "New Unit";
+                DisplayName = "New Unit";
             }
 
             // Ensure that the full name is not empty
-            if (string.IsNullOrWhiteSpace(_fullName))
+            if (string.IsNullOrWhiteSpace(FullName))
             {
-                _fullName = _displayName;
+                FullName = DisplayName;
             }
 
             // Validate support relationships - remove any that reference this character
-            if (_supportRelationships != null)
+            if (SupportRelationships != null)
             {
                 var removed =
                     Turnroot.Characters.Components.Support.SupportRelationship.SanitizeForCharacter(
                         this,
-                        _supportRelationships
+                        SupportRelationships
                     );
                 foreach (var r in removed)
                 {
@@ -110,290 +405,6 @@ namespace Turnroot.Characters
                     );
                 }
             }
-        }
-
-#if UNITY_EDITOR
-        [
-            InfoBox(
-                "This is pre-runtime data. Use this editor to define the character's base stats, skills, inventory, and relationships- anything that should be in place before the game starts."
-            ),
-            SerializeField
-        ]
-        private string _;
-#endif
-
-        [Foldout("Identity"), SerializeField]
-        [HorizontalLine(color: EColor.White)]
-        private CharacterWhich _which = new("Enemy");
-
-        [Foldout("Identity"), SerializeField]
-        private string _displayName = "New Unit";
-
-        [Foldout("Identity"), SerializeField]
-        private string _fullName = "Newly Created Unit";
-
-        [Foldout("Identity")]
-        private string _team;
-
-        [Foldout("Demographics"), SerializeField]
-        [HorizontalLine(color: EColor.Black)]
-        private Pronouns _pronouns = new();
-
-        [Foldout("Demographics"), SerializeField, Range(100f, 250f)]
-        private float _height = 166f;
-
-        [Foldout("Demographics"), SerializeField, Range(1, 31)]
-        private int _birthdayDay = 1;
-
-        [Foldout("Demographics"), SerializeField, Range(1, 12)]
-        private int _birthdayMonth = 1;
-
-        [Foldout("Description"), SerializeField, ResizableTextArea]
-        [HorizontalLine(color: EColor.Gray)]
-        private string _shortDescription = "A new unit";
-
-        [Foldout("Description"), SerializeField, ResizableTextArea]
-        private string _notes = "Take private notes (only in the editor) about this unit";
-
-        [Foldout("Character Flags"), SerializeField]
-        [HorizontalLine(color: EColor.Red)]
-        private bool _canSSupport = true;
-
-        [Foldout("Character Flags"), SerializeField, ShowIf(nameof(CanShowSSupportAvatar))]
-        private bool _canSSupportAvatar = false;
-
-        [Foldout("Character Flags"), SerializeField, ShowIf(nameof(IsAllyOrRecruitable))]
-        private bool _canHaveChildren = false;
-
-        [Foldout("Character Flags"), SerializeField, ShowIf(nameof(CanShowRecruitable))]
-        private bool _isRecruitable = false;
-
-        [Foldout("Character Flags"), SerializeField, ShowIf(nameof(CanShowUnique))]
-        private bool _isUnique = false;
-
-        [Foldout("Visual"), SerializeField]
-        [HorizontalLine(color: EColor.Pink)]
-        private Color _accentColor1 = Color.black;
-
-        [Foldout("Visual"), SerializeField]
-        private Color _accentColor2 = Color.black;
-
-        [Foldout("Visual"), SerializeField]
-        private Color _accentColor3 = Color.black;
-
-        [Foldout("Visual"), SerializeField, HideInInspector]
-        private SerializableDictionary<string, Portrait> _portraits;
-
-        [Foldout("Visual"), HideInInspector]
-        private SerializableDictionary<string, TaggedLayerDefault> _taggedLayerDefaults = new();
-
-        // Cached array view of the portraits dictionary values. Use PortraitArray to access.
-        private Portrait[] _portraitArrayCache;
-
-        [Foldout("Visual"), SerializeField]
-        private Sprite[] _sprites;
-
-        [Foldout("AI & Behavior"), SerializeField]
-        [HorizontalLine(color: EColor.Blue)]
-        private UnityEngine.Object _ai;
-
-#if TURNROOT_BLOODLINES_MODULE
-        [Foldout("Heredity"), SerializeField]
-        [HorizontalLine(color: EColor.Indigo)]
-        private HereditaryTraits _passedDownTraits = new();
-
-        [Foldout("Heredity"), SerializeField]
-        private bool _hasDesignatedChildUnit = false;
-
-        [Foldout("Heredity"), SerializeField, ShowIf(nameof(_hasDesignatedChildUnit))]
-        private CharacterData _childUnitId;
-#endif
-
-        [SerializeField]
-        private List<InventorySlot> _startingInventory = new();
-
-        [SerializeField]
-        private List<SupportRelationship> _supportRelationships = new();
-
-        [BoxGroup("Stats & Progression"), SerializeField]
-        [HorizontalLine(color: EColor.Orange)]
-        private int _level = 1;
-
-        [SerializeField, BoxGroup("Stats & Progression")]
-        private int _exp = 0;
-
-        [BoxGroup("Stats & Progression"), SerializeField]
-        private List<BoundedCharacterStat> _boundedStats = new();
-
-        [BoxGroup("Stats & Progression"), SerializeField]
-        private List<CharacterStat> _unboundedStats = new();
-
-        [BoxGroup("Class & Battalion"), SerializeField]
-        [HorizontalLine(color: EColor.Yellow)]
-        private UnityEngine.Object _unitClass;
-
-        [BoxGroup("Class & Battalion"), SerializeField]
-        private UnityEngine.Object _battalion;
-
-        [BoxGroup("Class & Battalion"), SerializeField]
-        private List<string> _specialUnitClasses = new();
-
-        [BoxGroup("Skills & Abilities"), SerializeField]
-        [HorizontalLine(color: EColor.Green)]
-        private List<Skill> _skills = new();
-
-        [BoxGroup("Skills & Abilities"), SerializeField]
-        private List<Skill> _specialSkills = new();
-
-        public CharacterWhich Which => _which;
-        public string DisplayName => _displayName;
-        public string FullName => _fullName;
-        public string Team => _team;
-        public Pronouns CharacterPronouns => _pronouns;
-        public float Height => _height;
-        public int BirthdayDay => _birthdayDay;
-        public int BirthdayMonth => _birthdayMonth;
-
-        public string ShortDescription => _shortDescription;
-        public string Notes => _notes;
-
-        public bool CanSSupport => _canSSupport;
-
-        public bool CanSSupportAvatar => _canSSupportAvatar;
-#if TURNROOT_BLOODLINES_MODULE
-        public bool CanHaveChildren => _canHaveChildren;
-#endif
-        public bool IsRecruitable => _isRecruitable;
-        public bool IsUnique => _isUnique;
-        public Color AccentColor1 => _accentColor1;
-        public Color AccentColor2 => _accentColor2;
-        public Color AccentColor3 => _accentColor3;
-        public SerializableDictionary<string, Portrait> Portraits => _portraits;
-        public SerializableDictionary<string, TaggedLayerDefault> TaggedLayerDefaults =>
-            _taggedLayerDefaults;
-
-        public bool IsNotAvatar => _which != CharacterWhich.AVATAR;
-        public bool IsEnemyOrNPC => _which == CharacterWhich.ENEMY || _which == CharacterWhich.NPC;
-
-        // NaughtyAttributes ShowIf helper methods
-        private bool CanShowSSupportAvatar() => _which != CharacterWhich.AVATAR;
-
-        private bool CanShowRecruitable() =>
-            _which == CharacterWhich.ENEMY || _which == CharacterWhich.NPC;
-
-        private bool CanShowUnique() =>
-            _which == CharacterWhich.ENEMY || _which == CharacterWhich.NPC;
-
-        private bool IsAllyOrRecruitable()
-        {
-            return _which == CharacterWhich.ALLY || _isRecruitable;
-        }
-
-        // Helper: returns the dictionary values as an array (cached). Use when you need indexed access.
-        public Portrait[] PortraitArray
-        {
-            get
-            {
-                if (_portraitArrayCache == null)
-                {
-                    _portraitArrayCache = _portraits?.Values.ToArray();
-                }
-                return _portraitArrayCache;
-            }
-        }
-        public Sprite[] Sprites => _sprites;
-
-        public int Level => _level;
-        public int Exp => _exp;
-        public List<BoundedCharacterStat> BoundedStats => _boundedStats;
-        public List<CharacterStat> UnboundedStats => _unboundedStats;
-
-        public UnityEngine.Object UnitClass => _unitClass;
-        public UnityEngine.Object Battalion => _battalion;
-        public List<string> SpecialUnitClasses => _specialUnitClasses;
-
-        public List<Skill> Skills => _skills;
-        public List<Skill> SpecialSkills => _specialSkills;
-
-        public UnityEngine.Object AI => _ai;
-
-        public List<InventorySlot> StartingInventory => _startingInventory;
-        public List<SupportRelationship> SupportRelationships => _supportRelationships;
-
-#if TURNROOT_BLOODLINES_MODULE
-        public HereditaryTraits PassedDownTraits => _passedDownTraits;
-
-        public bool HasDesignatedChildUnit => _hasDesignatedChildUnit;
-        public CharacterData ChildUnitId => _childUnitId;
-#endif
-
-        // Editor helper: invalidate cached PortraitArray so editors can refresh after changes.
-        public void InvalidatePortraitArrayCache()
-        {
-            _portraitArrayCache = null;
-        }
-
-        // Editor/API convenience: allow saving/loading character defaults (called from StackedImageEditorWindow)
-        // These perform minimal delegation to contained Portraits so editor UI can invoke them.
-        public void SaveDefaults()
-        {
-            _taggedLayerDefaults.Clear();
-            if (_portraits != null)
-            {
-                Turnroot.Characters.CharacterHelpers.ForEachPortraitLayer(
-                    _portraits,
-                    layer =>
-                    {
-                        if (!string.IsNullOrEmpty(layer.Tag))
-                        {
-                            _taggedLayerDefaults[layer.Tag] = new TaggedLayerDefault
-                            {
-                                Tag = layer.Tag,
-                                Sprite = layer.Sprite,
-                                Offset = layer.Offset,
-                                Scale = layer.Scale,
-                                Tint = layer.Tint,
-                            };
-                        }
-                    }
-                );
-            }
-        }
-
-        public void LoadDefaults()
-        {
-            if (_portraits != null)
-            {
-                Turnroot.Characters.CharacterHelpers.ForEachPortraitLayer(
-                    _portraits,
-                    layer =>
-                    {
-                        if (
-                            !string.IsNullOrEmpty(layer.Tag)
-                            && _taggedLayerDefaults.ContainsKey(layer.Tag)
-                        )
-                        {
-                            var def = _taggedLayerDefaults[layer.Tag];
-                            layer.Sprite = def.Sprite;
-                            layer.Offset = def.Offset;
-                            layer.Scale = def.Scale;
-                            layer.Tint = def.Tint;
-                        }
-                    }
-                );
-            }
-            InvalidatePortraitArrayCache();
-        }
-
-        // Helper methods to get stats by type
-        public BoundedCharacterStat GetBoundedStat(BoundedStatType type)
-        {
-            return StatHelpers.GetBoundedStat(_boundedStats, type);
-        }
-
-        public CharacterStat GetUnboundedStat(UnboundedStatType type)
-        {
-            return StatHelpers.GetUnboundedStat(_unboundedStats, type);
         }
     }
 }

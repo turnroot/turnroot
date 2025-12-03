@@ -1,7 +1,9 @@
+using System.Collections.Generic;
 using NaughtyAttributes;
 using Turnroot.Characters;
 using Turnroot.Characters.Stats;
 using Turnroot.Gameplay.Objects.Components;
+using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.Objects
@@ -18,8 +20,8 @@ namespace Turnroot.Gameplay.Objects
         [TextArea, Foldout("Identity"), SerializeField]
         private string _flavorText = "A new item";
 
-        [Foldout("Identity"), SerializeField]
-        private Sprite _icon;
+        [Foldout("Identity"), SerializeField, ShowIf(nameof(IsWeaponOrMagicSubtype))]
+        private bool _isUnequippable = true;
 
         [Foldout("Type"), SerializeField, HorizontalLine(color: EColor.Blue)]
         private ObjectSubtype _subtype = new(ObjectSubtype.Weapon);
@@ -27,7 +29,7 @@ namespace Turnroot.Gameplay.Objects
         [Foldout("Type"), SerializeField, ShowIf(nameof(IsEquipableSubtype))]
         private EquipableObjectType _equipableType;
 
-        [ShowIf(nameof(IsWeaponSubtype)), Foldout("Type")]
+        [Foldout("Type"), SerializeField, ShowIf(nameof(IsWeaponSubtype))]
         private WeaponType _weaponType;
 
         [Foldout("Pricing"), SerializeField, HorizontalLine(color: EColor.Gray)]
@@ -149,6 +151,7 @@ namespace Turnroot.Gameplay.Objects
         [
             Foldout("Durability"),
             SerializeField,
+            HideInInspector,
             ShowIf(nameof(IsWeaponOrMagicSubtype)),
             HorizontalLine(color: EColor.Pink)
         ]
@@ -160,6 +163,7 @@ namespace Turnroot.Gameplay.Objects
             ShowIf(nameof(IsWeaponOrMagicSubtypeAndIsDurability))
         ]
         private int _maxUses = 100;
+        public int MaxUses => _maxUses;
 
         [
             Foldout("Durability"),
@@ -175,8 +179,27 @@ namespace Turnroot.Gameplay.Objects
         ]
         private ReplenishUseType _replenishUsesAfterBattleAmount = ReplenishUseType.None;
 
-        [Foldout("Stats"), SerializeField, HorizontalLine(color: EColor.Red)]
+        [
+            Foldout("Combat"),
+            SerializeField,
+            HorizontalLine(color: EColor.Red),
+            ShowIf(nameof(IsWeaponOrMagicSubtype))
+        ]
         private float _weight = 1.0f;
+
+        [Foldout("Combat"), SerializeField, ShowIf(nameof(IsWeaponOrMagicSubtype))]
+        private float _might = 0f;
+
+        [Foldout("Combat"), SerializeField, ShowIf(nameof(IsWeaponOrMagicSubtype))]
+        private float _hit = 0f;
+
+        [Foldout("Combat"), SerializeField, ShowIf(nameof(IsWeaponOrMagicSubtype))]
+        private float _critical = 0f;
+
+        [Foldout("Combat"), SerializeField, ShowIf(nameof(IsWeaponOrMagicSubtype))]
+        private SerializableDictionary<UnboundedStatType, float> _StatBonuses = new();
+
+        public SerializableDictionary<UnboundedStatType, float> StatBonuses => _StatBonuses;
 
         [
             Foldout("Aptitude"),
@@ -184,15 +207,37 @@ namespace Turnroot.Gameplay.Objects
             HorizontalLine(color: EColor.Violet),
             ShowIf(nameof(IsWeaponOrMagicSubtype))
         ]
-        private Aptitude _minAptitude = new(Aptitude.E);
+        private Aptitude _minWeaponTypeAptitude = new(Aptitude.E);
+        private void ApplyGameplayDefaultsFromSettings()
+        {
+            var settings = GameSettingsLoader.LoadFirst<GameplayGeneralSettings>("GameSettings");
+            if (settings == null)
+                return;
+
+            _durability = settings.GetWeaponsHaveDurability();
+            _repairable = settings.GetWeaponsCanBeRepaired();
+            _forgeable = settings.GetWeaponsCanBeForged();
+        }
+
+        private void OnEnable()
+        {
+            ApplyGameplayDefaultsFromSettings();
+        }
+
+        private void OnValidate()
+        {
+            ApplyGameplayDefaultsFromSettings();
+        }
 
         public CharacterData BelongsTo => _belongsTo;
 
         public float Weight => _weight;
 
-        public Sprite Icon => _icon;
-
         public ObjectSubtype Subtype => _subtype;
+
+        public WeaponType WeaponType => _weaponType;
+
+        public bool IsUnequippable => _isUnequippable;
 
         public bool IsEquippable =>
             _subtype == ObjectSubtype.Weapon || _subtype == ObjectSubtype.Equipable;

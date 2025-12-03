@@ -24,8 +24,7 @@ public static class DefaultCharacterStatsRefresher
         // Build list of bounded stats that should exist
         var requiredBoundedStats = new List<BoundedStatType>(coreBoundedStats);
 
-        if (gameplaySettings.GetUseExperienceSublevels())
-            requiredBoundedStats.Add(BoundedStatType.LevelExperience);
+        requiredBoundedStats.Add(BoundedStatType.LevelExperience);
 
         if (gameplaySettings.GetUseExperienceAptitudes())
             requiredBoundedStats.Add(BoundedStatType.ClassExperience);

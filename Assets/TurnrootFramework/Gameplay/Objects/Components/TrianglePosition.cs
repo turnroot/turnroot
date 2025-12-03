@@ -6,6 +6,7 @@ public enum TrianglePositionEnum
     Top,
     Left,
     Right,
+    NotOnTriangle,
 }
 
 [System.Serializable]

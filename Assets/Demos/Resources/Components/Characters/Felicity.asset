@@ -13,53 +13,59 @@ MonoBehaviour:
   m_Name: Felicity
   m_EditorClassIdentifier: 
   _: 
-  _which:
+  <Which>k__BackingField:
     _value: Ally
-  _displayName: Felicity
-  _fullName: Newly Created Unit
-  _pronouns:
+  <DisplayName>k__BackingField: Felicity
+  <FullName>k__BackingField: Felicity
+  <CharacterPronouns>k__BackingField:
     _selectedPronouns:
-    - they
-    - their
-    - theirs
-    - them
-  _height: 166
-  _birthdayDay: 1
-  _birthdayMonth: 1
-  _shortDescription: A new unit
-  _notes: Take private notes (only in the editor) about this unit
-  _canSSupport: 1
-  _canSSupportAvatar: 0
-  _canHaveChildren: 0
-  _isRecruitable: 0
-  _isUnique: 0
-  _accentColor1: {r: 0, g: 0, b: 0, a: 1}
-  _accentColor2: {r: 0, g: 0, b: 0, a: 1}
-  _accentColor3: {r: 0, g: 0, b: 0, a: 1}
-  _portraits:
-    _keys:
-    - Newly Created Unit_Portrait
-    - Felicity
-    _values:
-    - rid: 8948944127503630604
-    - rid: 8948944127503630605
-  _sprites: []
-  _ai: {fileID: 0}
-  _passedDownTraits:
-    _hairColor: 1
-    _faceShape: 0
-    _eyeColor: 1
-    _skinColor: 1
-    _height: 1
-    _aptitudes: 0
-    _statGrowths: 0
-  _hasDesignatedChildUnit: 0
-  _childUnitId: {fileID: 0}
-  _startingInventory: []
-  _supportRelationships: []
-  _level: 1
-  _exp: 0
-  _boundedStats:
+    - she
+    - her
+    - hers
+    - her
+  <Height>k__BackingField: 156
+  <BirthdayDay>k__BackingField: 5
+  <BirthdayMonth>k__BackingField: 12
+  <ShortDescription>k__BackingField: 
+  <Likes>k__BackingField:
+  - Octopi
+  - Seaglass
+  - Staying up late
+  - Gossip
+  <Dislikes>k__BackingField:
+  - Horses
+  - Hot weather
+  <Notes>k__BackingField: Take private notes (only in the editor) about this unit
+  <CanSSupport>k__BackingField: 1
+  <CanSSupportAvatar>k__BackingField: 1
+  <CanHaveChildren>k__BackingField: 0
+  <IsRecruitable>k__BackingField: 0
+  <IsUnique>k__BackingField: 0
+  <BadgeText>k__BackingField: Fishing Guild
+  <BadgeIcon>k__BackingField: {fileID: 21300000, guid: 9f2c2612454aeb040bb1ab262a1e7c5f, type: 3}
+  <Blendshapes>k__BackingField:
+    chestSize: 0
+    waistSize: 0
+    hipSize: 0
+    thighThickness: 0
+    armThickness: 0
+    neckThickness: 0
+  <SkinColor>k__BackingField: {r: 0.8745098, g: 0.8235294, b: 0.7411765, a: 0}
+  <AccentColor1>k__BackingField: {r: 0.2, g: 0.28235295, b: 0.39215687, a: 0}
+  <AccentColor2>k__BackingField: {r: 0.34901962, g: 0.4, b: 0.2627451, a: 0}
+  <AccentColor3>k__BackingField: {r: 0.7607843, g: 0.65882355, b: 0.47058824, a: 0}
+  <Portraits>k__BackingField:
+    _keys: []
+    _values: []
+  <Sprites>k__BackingField: []
+  <AI>k__BackingField: {fileID: 0}
+  <StartingInventory>k__BackingField:
+  - _item: {fileID: 11400000, guid: 18c28f887826b0d4389fb021663c5146, type: 2}
+    _slotIndex: 0
+  <SupportRelationships>k__BackingField: []
+  <Level>k__BackingField: 1
+  <Exp>k__BackingField: 0
+  <BoundedStats>k__BackingField:
   - _current: 100
     _bonus: 0
     _statType: 0
@@ -80,7 +86,7 @@ MonoBehaviour:
     _statType: 3
     _max: 100
     _min: 0
-  _unboundedStats:
+  <UnboundedStats>k__BackingField:
   - _current: 10
     _bonus: 0
     _statType: 0
@@ -114,35 +120,11 @@ MonoBehaviour:
   - _current: 10
     _bonus: 0
     _statType: 10
-  _unitClass: {fileID: 0}
-  _battalion: {fileID: 0}
-  _specialUnitClasses: []
-  _skills: []
-  _specialSkills: []
+  <UnitClass>k__BackingField: {fileID: 0}
+  <Battalion>k__BackingField: {fileID: 0}
+  <SpecialUnitClasses>k__BackingField: []
+  <Skills>k__BackingField: []
+  <SpecialSkills>k__BackingField: []
   references:
     version: 2
-    RefIds:
-    - rid: 8948944127503630604
-      type: {class: Portrait, ns: Turnroot.Characters.Subclasses, asm: Assembly-CSharp}
-      data:
-        _owner: {fileID: 11400000}
-        _imageStack: {fileID: 11400000, guid: e56be0355d587cf4ea5e81494f1a0f74, type: 2}
-        _key: Newly Created Unit_Portrait
-        _savedSprite: {fileID: 21300000, guid: 070d831b42a19fe4d820fcb0abc5a65a, type: 3}
-        _idString: e14ba85b-bb9b-492a-91c0-2eb3ec4d3222
-        _tintColors:
-        - {r: 0, g: 0, b: 0, a: 1}
-        - {r: 0, g: 0, b: 0, a: 1}
-        - {r: 0, g: 0, b: 0, a: 1}
-    - rid: 8948944127503630605
-      type: {class: Portrait, ns: Turnroot.Characters.Subclasses, asm: Assembly-CSharp}
-      data:
-        _owner: {fileID: 11400000}
-        _imageStack: {fileID: 11400000, guid: fa7e76d07df125943bb4d60d55be9cb4, type: 2}
-        _key: Felicity
-        _savedSprite: {fileID: 21300000, guid: b6805113d49a89b47a54bf8fa91f500c, type: 3}
-        _idString: c1632ee5-5eab-46e7-97f3-f47b1d712e2f
-        _tintColors:
-        - {r: 0, g: 0, b: 0, a: 1}
-        - {r: 0, g: 0, b: 0, a: 1}
-        - {r: 0, g: 0, b: 0, a: 1}
+    RefIds: []

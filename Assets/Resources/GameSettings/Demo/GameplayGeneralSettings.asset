@@ -12,12 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 03a896db8f43bba419fac15576b362f2, type: 3}
   m_Name: GameplayGeneralSettings
   m_EditorClassIdentifier: 
-  UseWeatherOnLevels: 0
-  UnitsCanHaveChildren: 0
-  WeaponsCanBeForged: 0
-  WeaponsCanBeRepaired: 0
-  UseExperienceSublevels: 0
-  UseExperienceAptitudes: 0
+  WeaponsCanBeForged: 1
+  WeaponsCanBeRepaired: 1
+  WeaponsHaveDurability: 1
+  UseExperienceAptitudes: 1
   CombatArts: 0
   CombatArtLimit: 3
   WeaponTriangle: 0
@@ -41,17 +39,20 @@ MonoBehaviour:
   Luck: 1
   SeparateCriticalAvoidance: 0
   Authority: 0
+  EquippableOutfits: 0
+  ItemsCanBeLostItems: 1
+  ItemsCanBeGifts: 1
   ExperienceWeaponTypes: []
   RidingExperienceType:
     _name: Riding
     _id: riding
-    _enabled: 0
+    _enabled: 1
     _associatedWeaponType: {fileID: 0}
     _hasWeaponType: 0
   FlyingExperienceType:
     _name: Flying
     _id: flying
-    _enabled: 0
+    _enabled: 1
     _associatedWeaponType: {fileID: 0}
     _hasWeaponType: 0
   ArmorExperienceType:

@@ -9,26 +9,24 @@ using UnityEngine;
 public class GameplayGeneralSettings : SingletonScriptableObject<GameplayGeneralSettings>
 {
     [SerializeField, BoxGroup("General Gameplay"), HorizontalLine(color: EColor.Blue)]
-    private bool UseWeatherOnLevels;
-
-    [SerializeField, BoxGroup("General Gameplay")]
-    private bool UnitsCanHaveChildren;
-
-    [SerializeField, BoxGroup("General Gameplay")]
     private bool WeaponsCanBeForged;
 
     [SerializeField, BoxGroup("General Gameplay")]
     private bool WeaponsCanBeRepaired;
 
     [SerializeField, BoxGroup("General Gameplay")]
-    private bool UseExperienceSublevels;
+    private bool WeaponsHaveDurability;
+
+    // Expose important per-project gameplay flags as read-only properties so other systems
+    // can read the configured project defaults via GameSettingsLoader.
+    public bool GetWeaponsCanBeForged() => WeaponsCanBeForged;
+
+    public bool GetWeaponsCanBeRepaired() => WeaponsCanBeRepaired;
+
+    public bool GetWeaponsHaveDurability() => WeaponsHaveDurability;
 
     [SerializeField, BoxGroup("General Gameplay")]
     private bool UseExperienceAptitudes;
-
-    [SerializeField, BoxGroup("Movement")]
-    [Tooltip("Allow diagonal movement (NE, NW, SE, SW) for pathfinding and unit movement.")]
-    private bool _allowDiagonalMovement = false;
 
     [SerializeField, BoxGroup("Combat Mechanics"), HorizontalLine(color: EColor.Yellow)]
     private bool CombatArts;
@@ -161,13 +159,7 @@ public class GameplayGeneralSettings : SingletonScriptableObject<GameplayGeneral
 
     public bool UseItemsCanBeGifts() => ItemsCanBeGifts;
 
-    // Public accessors for Experience Settings
-    public bool GetUseExperienceSublevels() => UseExperienceSublevels;
-
     public bool GetUseExperienceAptitudes() => UseExperienceAptitudes;
-
-    // Movement settings
-    public bool GetAllowDiagonalMovement() => _allowDiagonalMovement;
 
 #if UNITY_EDITOR
     private void OnValidate()
@@ -178,6 +170,28 @@ public class GameplayGeneralSettings : SingletonScriptableObject<GameplayGeneral
             if (this != null)
             {
                 RefreshDefaultCharacterStats();
+                // When gameplay toggles change, refresh related assets so their
+                // OnValidate/OnEnable handlers can re-apply defaults (ObjectItem, etc.)
+                UnityEditor.EditorApplication.delayCall += () =>
+                {
+                    try
+                    {
+                        var guids = UnityEditor.AssetDatabase.FindAssets("t:ObjectItem");
+                        foreach (var g in guids)
+                        {
+                            var path = UnityEditor.AssetDatabase.GUIDToAssetPath(g);
+                            if (string.IsNullOrEmpty(path))
+                                continue;
+
+                            // Force update so ScriptableObject OnValidate/OnEnable re-run
+                            UnityEditor.AssetDatabase.ImportAsset(
+                                path,
+                                UnityEditor.ImportAssetOptions.ForceUpdate
+                            );
+                        }
+                    }
+                    catch { }
+                };
             }
         };
     }

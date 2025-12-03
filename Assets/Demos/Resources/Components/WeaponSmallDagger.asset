@@ -1,0 +1,61 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 61eeff3113f83684e8e6d3c5224a0ac2, type: 3}
+  m_Name: WeaponSmallDagger
+  m_EditorClassIdentifier: 
+  _name: Small Dagger
+  _flavorText: Easily concealed for those with questionable motives, but razor-sharp
+    and lightning fast
+  _isUnequippable: 1
+  _subtype:
+    _value: Weapon
+  _equipableType: 0
+  _weaponType: {fileID: 11400000, guid: 030efab55c186fa4ead5d556dc84fdd5, type: 2}
+  _basePrice: 80
+  _sellable: 1
+  _buyable: 1
+  _sellPriceDeductedPerUse: 2
+  _repairable: 1
+  _repairPricePerUse: 2
+  _repairNeedsItems: 1
+  _repairItem: {fileID: 11400000, guid: 87e2f8cd4f716cb4989c491ddc545243, type: 2}
+  _repairItemAmountPerUse: 1
+  _forgeable: 1
+  _forgeInto: []
+  _forgePrices: 
+  _forgeNeedsItems: 0
+  _forgeItems: []
+  _forgeItemAmountPerUse: 1
+  _belongsTo: {fileID: 0}
+  _giftRank: 1
+  _unitsLove: []
+  _unitsHate: []
+  _lowerRange: 1
+  _upperRange: 1
+  _rangeAdjustedByStat: 0
+  _rangeAdjustedByStatName: 0
+  _rangeAdjustedByStatAmount: 0
+  _durability: 1
+  _maxUses: 40
+  _replenishUsesAfterBattle: 0
+  _replenishUsesAfterBattleAmount: 0
+  _weight: 1
+  _might: 3
+  _hit: 65
+  _critical: 15
+  _StatBonuses:
+    _keys: 0700000005000000
+    _values:
+    - 1
+    - 1
+  _minWeaponTypeAptitude:
+    _value: D

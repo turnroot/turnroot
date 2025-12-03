@@ -24,8 +24,12 @@ namespace Turnroot.Characters.Configuration.Editor
 
         private void DrawStatsSection()
         {
-            var boundedStatsProperty = serializedObject.FindProperty("_boundedStats");
-            var unboundedStatsProperty = serializedObject.FindProperty("_unboundedStats");
+            var boundedStatsProperty =
+                serializedObject.FindProperty("_boundedStats")
+                ?? serializedObject.FindProperty("BoundedStats");
+            var unboundedStatsProperty =
+                serializedObject.FindProperty("_unboundedStats")
+                ?? serializedObject.FindProperty("UnboundedStats");
 
             // Bounded Stats
             EditorGUILayout.Space(10);

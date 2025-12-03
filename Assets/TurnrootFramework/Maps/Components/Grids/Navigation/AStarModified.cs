@@ -4,16 +4,10 @@ using Utils;
 
 public class AStarModified
 {
-    private float Heuristic(MapGridPoint a, MapGridPoint b, bool allowDiagonal)
+    private float Heuristic(MapGridPoint a, MapGridPoint b)
     {
         int dRow = Mathf.Abs(a.Row - b.Row);
         int dCol = Mathf.Abs(a.Col - b.Col);
-        if (allowDiagonal)
-        {
-            // Use Chebyshev distance for 8-way movement
-            return Mathf.Max(dRow, dCol);
-        }
-        // Manhattan for 4-way
         return dRow + dCol;
     }
 
@@ -67,13 +61,7 @@ public class AStarModified
                 continue;
             closed.Add(current);
 
-            // Decide neighbor set based on gameplay settings (allow diagonal or not)
-            bool allowDiagonal = false;
-            var settings = GameplayGeneralSettings.Instance;
-            if (settings != null)
-                allowDiagonal = settings.GetAllowDiagonalMovement();
-
-            var neighborSet = allowDiagonal ? current.GetNeighbors() : current.GetNeighbors(true);
+            var neighborSet = current.GetNeighbors();
             foreach (var neighborPair in neighborSet)
             {
                 var neighbor = neighborPair.Value;
@@ -101,7 +89,7 @@ public class AStarModified
                 if (!costSoFar.ContainsKey(neighbor) || newCost < costSoFar[neighbor])
                 {
                     costSoFar[neighbor] = newCost;
-                    float priority = newCost + Heuristic(neighbor, canonicalGoal, allowDiagonal);
+                    float priority = newCost + Heuristic(neighbor, canonicalGoal);
                     frontier.Enqueue(neighbor, priority);
                     cameFrom[neighbor] = current;
                     directionFromParent[neighbor] = neighborPair.Key;
@@ -133,11 +121,6 @@ public class AStarModified
 
         MapGridPoint canonicalStart = graph.GetGridPoint(start.Row, start.Col) ?? start;
 
-        bool allowDiagonal = false;
-        var settings = GameplayGeneralSettings.Instance;
-        if (settings != null)
-            allowDiagonal = settings.GetAllowDiagonalMovement();
-
         PriorityQueue<MapGridPoint, float> frontier = new();
         frontier.Enqueue(canonicalStart, 0f);
         var costSoFar = new Dictionary<MapGridPoint, float>();
@@ -156,7 +139,7 @@ public class AStarModified
 
             result[current] = currentCost;
 
-            var neighbors = allowDiagonal ? current.GetNeighbors() : current.GetNeighbors(true);
+            var neighbors = current.GetNeighbors();
             foreach (var kv in neighbors)
             {
                 var dir = kv.Key;
