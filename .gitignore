@@ -79,3 +79,6 @@ Packages/UnityMarkdownViewer/
 /.github/instructions
 /_FrameworkDocs/copilot-instructions.md
 /Assets/Resources/GraphicPacks
+.vscode/settings.json
+.editorconfig
+.config/dotnet-tools.json

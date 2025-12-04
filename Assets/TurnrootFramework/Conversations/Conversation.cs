@@ -38,6 +38,7 @@ namespace Turnroot.Conversations
 
         // runtime cache built from the graph
         private Dictionary<int, NodeData> _graphNodes;
+
         public Dictionary<int, NodeData> GetGraphNodes()
         {
             // Always rebuild runtime node data to avoid holding references to destroyed editor nodes.

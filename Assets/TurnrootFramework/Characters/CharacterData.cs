@@ -149,6 +149,57 @@ namespace Turnroot.Characters
         [field: Foldout("Visual"), SerializeField]
         public Sprite[] Sprites { get; private set; }
 
+        [field: Foldout("Visual"), SerializeField]
+        [Tooltip("Complete base model of the character without class-specific parts")]
+        public SkinnedMeshRenderer CharacterDefaultModel { get; private set; }
+
+        [field: Foldout("Visual"), SerializeField]
+        [Tooltip("Parts of the character that are combined with a class model")]
+        public SkinnedMeshRenderer CharacterHeadHandsAndHair { get; private set; }
+
+        [field:
+            Foldout("Rigging"),
+            SerializeField,
+            Tooltip("Enable if this character has an additional bone layer (+X)")
+        ]
+        public bool HasExtraBoneLayer { get; private set; } = false;
+
+        [field:
+            Foldout("Rigging"),
+            SerializeField,
+            Tooltip(
+                "Optionally assign a custom Avatar (skeleton) for characters whose skeleton differs from the default base Avatar."
+            )
+        ]
+        public Avatar CustomAvatar { get; private set; }
+
+        [field:
+            Foldout("Rigging"),
+            SerializeField,
+            Tooltip(
+                "AvatarMask that marks bones belonging to the +X layer. Use this mask to animate only extra bones on a separate Animator layer."
+            )
+        ]
+        public AvatarMask AdditionalBonesMask { get; private set; }
+
+        [field:
+            Foldout("Rigging"),
+            SerializeField,
+            Tooltip(
+                "A list of extra bone names for tooling and runtime validation. This helps identify which bones belong to the +X layer."
+            )
+        ]
+        public string[] AdditionalBoneNames { get; private set; } = new string[0];
+
+        [field:
+            Foldout("Rigging"),
+            SerializeField,
+            Tooltip(
+                "Optional per-character animator controller (or override) that contains animations specifically for the +X layer. Can be applied on a separate Animator layer."
+            )
+        ]
+        public RuntimeAnimatorController ExtraLayerController { get; private set; }
+
         [field: Foldout("AI & Behavior"), SerializeField, HorizontalLine(color: EColor.Blue)]
         public UnityEngine.Object AI { get; private set; }
 
@@ -402,6 +453,27 @@ namespace Turnroot.Characters
                 {
                     Debug.LogWarning(
                         $"Removed invalid support relationship: {name} cannot have a support relationship with themselves ({r.Character?.name})"
+                    );
+                }
+            }
+
+            // Editor-time validation for rigging properties
+            if (HasExtraBoneLayer)
+            {
+                if (AdditionalBonesMask == null)
+                {
+                    Debug.LogWarning(
+                        $"{name}: 'HasExtraBoneLayer' is true but 'AdditionalBonesMask' is not set. This may cause Animator layering misconfiguration."
+                    );
+                }
+
+                if (
+                    (AdditionalBoneNames == null || AdditionalBoneNames.Length == 0)
+                    && AdditionalBonesMask == null
+                )
+                {
+                    Debug.LogWarning(
+                        $"{name}: No additional bone names or AvatarMask were provided for the extra bone layer. Add names or an AvatarMask for tooling/runtime mapping."
                     );
                 }
             }

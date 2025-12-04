@@ -208,6 +208,7 @@ namespace Turnroot.Gameplay.Objects
             ShowIf(nameof(IsWeaponOrMagicSubtype))
         ]
         private Aptitude _minWeaponTypeAptitude = new(Aptitude.E);
+
         private void ApplyGameplayDefaultsFromSettings()
         {
             var settings = GameSettingsLoader.LoadFirst<GameplayGeneralSettings>("GameSettings");
