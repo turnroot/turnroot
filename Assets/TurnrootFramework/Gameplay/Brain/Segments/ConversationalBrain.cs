@@ -17,7 +17,10 @@ namespace Assets.Turnroot.Gameplay.Brain
         public void Awake()
         {
             Debug.Log("ConversationalBrain Awake called.");
-            if (_brain == null) _brain = GetComponent<Brain>();
+            if (_brain == null)
+            {
+                _brain = GetComponent<Brain>();
+            }
         }
     }
 }

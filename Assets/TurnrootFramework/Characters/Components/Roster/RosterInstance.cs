@@ -60,5 +60,13 @@ namespace Assets.Turnroot.Characters
             foreach (var inst in instances)
                 AddInstance(inst);
         }
+
+        /// <summary>
+        /// Clears all instances from this roster. Used for temporary battle rosters.
+        /// </summary>
+        public void Clear()
+        {
+            _instances.Clear();
+        }
     }
 }

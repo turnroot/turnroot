@@ -34,9 +34,8 @@ namespace Turnroot.Skills.Nodes.Conditions
                 return new FloatValue { value = 0f };
             }
 
-            // TODO: Implement actual kill count retrieval when tracking system is added
-            // Future implementation: return new FloatValue { value = character.KillCount };
-            return new FloatValue { value = 0f };
+            // Return actual kill count from character instance
+            return new FloatValue { value = character.TotalKills };
         }
     }
 }

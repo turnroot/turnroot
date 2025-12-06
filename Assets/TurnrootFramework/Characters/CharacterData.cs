@@ -244,11 +244,31 @@ namespace Turnroot.Characters
         [field: BoxGroup("Stats & Progression"), SerializeField]
         public List<CharacterStat> UnboundedStats { get; private set; } = new();
 
+        [field: BoxGroup("Stats & Progression"), SerializeField]
+        [Tooltip(
+            "Personal growth rates (percentage 0-100) for stat increases on level up. If empty, uses class growth rates only."
+        )]
+        public List<CharacterClass.UnboundedStatModifier> PersonalGrowthRates
+        {
+            get;
+            private set;
+        } = new();
+
         [field: BoxGroup("Skills & Abilities"), SerializeField, HorizontalLine(color: EColor.Green)]
         public List<Skill> Skills { get; private set; } = new();
 
         [field: BoxGroup("Skills & Abilities"), SerializeField]
         public List<Skill> SpecialSkills { get; private set; } = new();
+
+        [field:
+            BoxGroup("Experience & Aptitudes"),
+            SerializeField,
+            HorizontalLine(color: EColor.Indigo)
+        ]
+        [Tooltip(
+            "Experience/aptitude ranks for weapon types and other trainable skills (e.g., Riding, Flying)"
+        )]
+        public List<ExperienceRank> ExperienceRanks { get; private set; } = new();
 
         // NOTE: properties are declared inline with field-targeted attributes.
 #if TURNROOT_BLOODLINES_MODULE
@@ -362,6 +382,11 @@ namespace Turnroot.Characters
             return StatHelpers.GetUnboundedStat(UnboundedStats, type);
         }
 
+        public ExperienceRank GetExperienceRank(string experienceTypeId)
+        {
+            return ExperienceRanks?.Find(e => e.ExperienceTypeId == experienceTypeId);
+        }
+
         [Serializable]
         public class InventorySlot
         {
@@ -383,6 +408,40 @@ namespace Turnroot.Characters
             public Vector2 Offset;
             public float Scale;
             public Color Tint;
+        }
+
+        [Serializable]
+        public class ExperienceRank
+        {
+            [Tooltip("ID of the experience type (e.g., 'sword', 'riding', 'flying')")]
+            [SerializeField]
+            private string _experienceTypeId;
+
+            [Tooltip("Current rank/level (E=0, D=1, C=2, B=3, A=4, S=5)")]
+            [SerializeField]
+            private Turnroot.CommonAncestors.LeveledLetteredField _rank = new(
+                Turnroot.CommonAncestors.LeveledLetteredField.E
+            );
+
+            public string ExperienceTypeId
+            {
+                get => _experienceTypeId;
+                set => _experienceTypeId = value;
+            }
+
+            public Turnroot.CommonAncestors.LeveledLetteredField Rank
+            {
+                get => _rank;
+                set => _rank = value;
+            }
+
+            public ExperienceRank() { }
+
+            public ExperienceRank(string experienceTypeId, string rankValue)
+            {
+                _experienceTypeId = experienceTypeId;
+                _rank = new Turnroot.CommonAncestors.LeveledLetteredField(rankValue);
+            }
         }
 
         /* ----------------------------- Core Functions ----------------------------- */

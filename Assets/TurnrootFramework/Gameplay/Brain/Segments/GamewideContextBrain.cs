@@ -517,6 +517,79 @@ namespace Assets.Turnroot.Gameplay.Brain
 
         #endregion
 
+        #region Character Instance Lookup
+
+        /// <summary>
+        /// Find a CharacterInstance by its template CharacterData.
+        /// Searches all active RosterInstances in the scene.
+        /// </summary>
+        /// <param name="template">The CharacterData template to search for</param>
+        /// <returns>The CharacterInstance if found, null otherwise</returns>
+        public CharacterInstance FindInstanceByTemplate(CharacterData template)
+        {
+            if (template == null)
+                return null;
+
+            var rosters = FindObjectsByType<RosterInstance>(FindObjectsSortMode.None);
+
+            foreach (var roster in rosters)
+            {
+                if (roster == null)
+                    continue;
+
+                var instance = roster.GetInstanceFor(template);
+                if (instance != null)
+                    return instance;
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Find all CharacterInstances matching the given templates.
+        /// Useful for battle conditions that need to check specific characters.
+        /// </summary>
+        /// <param name="templates">Array of CharacterData templates to search for</param>
+        /// <returns>List of CharacterInstances (may be smaller than templates array if some not found)</returns>
+        public List<CharacterInstance> FindInstancesByTemplates(CharacterData[] templates)
+        {
+            var results = new List<CharacterInstance>();
+
+            if (templates == null)
+                return results;
+
+            foreach (var template in templates)
+            {
+                var instance = FindInstanceByTemplate(template);
+                if (instance != null)
+                    results.Add(instance);
+            }
+
+            return results;
+        }
+
+        /// <summary>
+        /// Get all CharacterInstances currently active in all rosters.
+        /// </summary>
+        /// <returns>List of all active CharacterInstances</returns>
+        public List<CharacterInstance> GetAllActiveInstances()
+        {
+            var results = new List<CharacterInstance>();
+            var rosters = FindObjectsByType<RosterInstance>(FindObjectsSortMode.None);
+
+            foreach (var roster in rosters)
+            {
+                if (roster?.Instances != null)
+                {
+                    results.AddRange(roster.Instances);
+                }
+            }
+
+            return results;
+        }
+
+        #endregion
+
         #region Public API
 
         /// <summary>

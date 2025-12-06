@@ -1,5 +1,6 @@
 using System;
 using Assets.Turnroot.Gameplay.Combat;
+using Turnroot.Characters;
 using Turnroot.Characters.Components.Support;
 using Turnroot.Conversations;
 using UnityEngine;
@@ -26,6 +27,7 @@ namespace Assets.Turnroot.Gameplay.Brain
     [RequireComponent(typeof(ConversationalBrain))]
     [RequireComponent(typeof(LongTermMemory))]
     [RequireComponent(typeof(GamewideContextBrain))]
+    [RequireComponent(typeof(CharactersBrain))]
     [RequireComponent(typeof(BattleBrain))]
     public class Brain : MonoBehaviour
     {
@@ -38,6 +40,9 @@ namespace Assets.Turnroot.Gameplay.Brain
 
         [HideInInspector]
         public GamewideContextBrain gamewideContextBrain;
+
+        [HideInInspector]
+        public CharactersBrain charactersBrain;
 
         [HideInInspector]
         public BattleBrain battleBrain;
@@ -128,6 +133,35 @@ namespace Assets.Turnroot.Gameplay.Brain
         public void PublishRosterFailed(Characters.Roster roster, string reason)
         {
             OnRosterFailed?.Invoke(roster, reason);
+        }
+
+        #endregion
+
+        #region Character Progression Events
+
+        public event Action<CharacterInstance> OnCharacterLevelUp;
+        public event Action<CharacterInstance> OnCharacterKill;
+        public event Action<CharacterInstance, Skill> OnCharacterLearnedSkill;
+        public event Action<CharacterInstance> OnCharacterClassChanged;
+
+        public void PublishCharacterLevelUp(CharacterInstance character)
+        {
+            OnCharacterLevelUp?.Invoke(character);
+        }
+
+        public void PublishCharacterKill(CharacterInstance character)
+        {
+            OnCharacterKill?.Invoke(character);
+        }
+
+        public void PublishCharacterLearnedSkill(CharacterInstance character, Skill skill)
+        {
+            OnCharacterLearnedSkill?.Invoke(character, skill);
+        }
+
+        public void PublishCharacterClassChanged(CharacterInstance character)
+        {
+            OnCharacterClassChanged?.Invoke(character);
         }
 
         #endregion

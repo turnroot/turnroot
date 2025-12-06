@@ -246,6 +246,32 @@ public class GameplayGeneralSettings : SingletonScriptableObject<GameplayGeneral
 
     public bool GetUseExperienceAptitudes() => UseExperienceAptitudes;
 
+    /// <summary>
+    /// Returns all configured experience types (weapon types + extra types that are enabled)
+    /// </summary>
+    public ExperienceType[] GetAllExperienceTypes()
+    {
+        var list = new System.Collections.Generic.List<ExperienceType>();
+
+        // Add weapon-based experience types
+        if (ExperienceWeaponTypes != null)
+        {
+            list.AddRange(ExperienceWeaponTypes);
+        }
+
+        // Add extra experience types if enabled
+        if (RidingExperienceType.Enabled)
+            list.Add(RidingExperienceType);
+        if (FlyingExperienceType.Enabled)
+            list.Add(FlyingExperienceType);
+        if (ArmorExperienceType.Enabled)
+            list.Add(ArmorExperienceType);
+        if (AuthorityExperienceType.Enabled)
+            list.Add(AuthorityExperienceType);
+
+        return list.ToArray();
+    }
+
 #if UNITY_EDITOR
     private void OnValidate()
     {

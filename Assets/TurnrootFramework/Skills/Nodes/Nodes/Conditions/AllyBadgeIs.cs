@@ -25,7 +25,6 @@ namespace Turnroot.Skills.Nodes.Conditions
             var context = GetContextFromGraph(skillGraph);
             if (context?.AdjacentUnits == null)
             {
-                Debug.LogWarning("AllyBadgeIs: No adjacent units in context");
                 return new FloatValue();
             }
 
