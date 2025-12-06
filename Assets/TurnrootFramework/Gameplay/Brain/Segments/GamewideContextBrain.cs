@@ -35,6 +35,10 @@ namespace Assets.Turnroot.Gameplay.Brain
         private List<Roster> rosters = new List<Roster>();
         public IReadOnlyList<Roster> ConfiguredRosters => rosters;
 
+        // Cache of active RosterInstance references to avoid expensive FindObjectsByType calls
+        private List<RosterInstance> _cachedRosterInstances = new List<RosterInstance>();
+        private bool _rosterCacheDirty = true;
+
         [Header("Tamper Detection")]
         [Tooltip(
             "Policy that controls what happens when an encoded payload fails the integrity check."
@@ -53,6 +57,42 @@ namespace Assets.Turnroot.Gameplay.Brain
         public void Start()
         {
             RecallRosters();
+        }
+
+        #endregion
+
+        #region Roster Cache Management
+
+        /// <summary>
+        /// Refresh the cached list of RosterInstance references.
+        /// Call this when rosters may have been created or destroyed.
+        /// </summary>
+        private void RefreshRosterCache()
+        {
+            _cachedRosterInstances.Clear();
+            var rosters = FindObjectsByType<RosterInstance>(FindObjectsSortMode.None);
+            _cachedRosterInstances.AddRange(rosters.Where(r => r != null));
+            _rosterCacheDirty = false;
+        }
+
+        /// <summary>
+        /// Get all cached RosterInstance references. Refreshes cache if dirty.
+        /// </summary>
+        private List<RosterInstance> GetCachedRosterInstances()
+        {
+            if (_rosterCacheDirty || _cachedRosterInstances == null)
+            {
+                RefreshRosterCache();
+            }
+            return _cachedRosterInstances;
+        }
+
+        /// <summary>
+        /// Mark the roster cache as dirty so it will be refreshed on next access.
+        /// </summary>
+        private void InvalidateRosterCache()
+        {
+            _rosterCacheDirty = true;
         }
 
         #endregion
@@ -83,7 +123,7 @@ namespace Assets.Turnroot.Gameplay.Brain
 
         private RosterInstance FindExistingRosterInstance(Roster roster)
         {
-            return FindObjectsByType<RosterInstance>(FindObjectsSortMode.None)
+            return GetCachedRosterInstances()
                 .FirstOrDefault(r => r != null && r.roster == roster);
         }
 
@@ -193,6 +233,9 @@ namespace Assets.Turnroot.Gameplay.Brain
             {
                 RegisterRosterInLTM(roster);
             }
+
+            // Invalidate cache since we created a new roster
+            InvalidateRosterCache();
 
             GetComponent<Brain>()?.PublishRosterReady(newRi);
             return newRi;
@@ -530,7 +573,7 @@ namespace Assets.Turnroot.Gameplay.Brain
             if (template == null)
                 return null;
 
-            var rosters = FindObjectsByType<RosterInstance>(FindObjectsSortMode.None);
+            var rosters = GetCachedRosterInstances();
 
             foreach (var roster in rosters)
             {
@@ -548,6 +591,7 @@ namespace Assets.Turnroot.Gameplay.Brain
         /// <summary>
         /// Find all CharacterInstances matching the given templates.
         /// Useful for battle conditions that need to check specific characters.
+        /// Optimized to avoid O(n*m) complexity by collecting all instances first.
         /// </summary>
         /// <param name="templates">Array of CharacterData templates to search for</param>
         /// <returns>List of CharacterInstances (may be smaller than templates array if some not found)</returns>
@@ -555,14 +599,35 @@ namespace Assets.Turnroot.Gameplay.Brain
         {
             var results = new List<CharacterInstance>();
 
-            if (templates == null)
+            if (templates == null || templates.Length == 0)
                 return results;
 
+            // Get all instances once and build a lookup dictionary for O(1) access
+            var rosters = GetCachedRosterInstances();
+            var instanceLookup = new Dictionary<CharacterData, CharacterInstance>();
+
+            foreach (var roster in rosters)
+            {
+                if (roster?.Instances == null)
+                    continue;
+
+                foreach (var instance in roster.Instances)
+                {
+                    if (instance?.CharacterTemplate != null)
+                    {
+                        // Use indexer instead of Add to avoid exception if duplicate
+                        instanceLookup[instance.CharacterTemplate] = instance;
+                    }
+                }
+            }
+
+            // Now look up each template in O(1) time
             foreach (var template in templates)
             {
-                var instance = FindInstanceByTemplate(template);
-                if (instance != null)
+                if (template != null && instanceLookup.TryGetValue(template, out var instance))
+                {
                     results.Add(instance);
+                }
             }
 
             return results;
@@ -575,7 +640,7 @@ namespace Assets.Turnroot.Gameplay.Brain
         public List<CharacterInstance> GetAllActiveInstances()
         {
             var results = new List<CharacterInstance>();
-            var rosters = FindObjectsByType<RosterInstance>(FindObjectsSortMode.None);
+            var rosters = GetCachedRosterInstances();
 
             foreach (var roster in rosters)
             {
