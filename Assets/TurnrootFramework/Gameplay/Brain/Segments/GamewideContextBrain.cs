@@ -80,7 +80,7 @@ namespace Assets.Turnroot.Gameplay.Brain
         /// </summary>
         private List<RosterInstance> GetCachedRosterInstances()
         {
-            if (_rosterCacheDirty || _cachedRosterInstances == null)
+            if (_rosterCacheDirty)
             {
                 RefreshRosterCache();
             }
