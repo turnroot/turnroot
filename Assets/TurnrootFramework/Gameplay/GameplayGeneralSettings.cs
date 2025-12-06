@@ -6,6 +6,7 @@ using UnityEngine;
 
 public enum ProgressionLevel
 {
+    Starter = -1,
     Base = 0,
     Advanced = 1,
     Master = 2,
@@ -260,6 +261,7 @@ public class GameplayGeneralSettings : SingletonScriptableObject<GameplayGeneral
                 {
                     try
                     {
+                        // Refresh ObjectItems
                         var guids = UnityEditor.AssetDatabase.FindAssets("t:ObjectItem");
                         foreach (var g in guids)
                         {
@@ -268,6 +270,23 @@ public class GameplayGeneralSettings : SingletonScriptableObject<GameplayGeneral
                                 continue;
 
                             // Force update so ScriptableObject OnValidate/OnEnable re-run
+                            UnityEditor.AssetDatabase.ImportAsset(
+                                path,
+                                UnityEditor.ImportAssetOptions.ForceUpdate
+                            );
+                        }
+
+                        // Refresh CharacterClassData to update ShowIf conditions
+                        var classGuids = UnityEditor.AssetDatabase.FindAssets(
+                            "t:CharacterClassData"
+                        );
+                        foreach (var g in classGuids)
+                        {
+                            var path = UnityEditor.AssetDatabase.GUIDToAssetPath(g);
+                            if (string.IsNullOrEmpty(path))
+                                continue;
+
+                            // Force reimport to trigger OnEnable and update cached mode
                             UnityEditor.AssetDatabase.ImportAsset(
                                 path,
                                 UnityEditor.ImportAssetOptions.ForceUpdate

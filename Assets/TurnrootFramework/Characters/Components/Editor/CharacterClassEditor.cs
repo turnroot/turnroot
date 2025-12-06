@@ -11,19 +11,41 @@ public class CharacterClassEditor : UnityEditor.Editor
 {
     private SerializedProperty weaponProficienciesProp;
     private SerializedProperty allowedPronounKeysProp;
+    private SerializedProperty cachedClassSelectionModeProp;
 
     private void OnEnable()
     {
         weaponProficienciesProp = serializedObject.FindProperty("weaponProficiencies");
         allowedPronounKeysProp = serializedObject.FindProperty("allowedPronounKeys");
+        cachedClassSelectionModeProp = serializedObject.FindProperty("_cachedClassSelectionMode");
     }
 
     public override void OnInspectorGUI()
     {
         serializedObject.Update();
 
-        // Draw everything except weaponProficiencies and allowedPronounKeys so we can handle them with curated UIs
-        DrawPropertiesExcluding(serializedObject, "weaponProficiencies", "allowedPronounKeys");
+        // Determine which fields to exclude based on class selection mode
+        var excludedProps = new List<string> { "weaponProficiencies", "allowedPronounKeys" };
+
+        // Get the cached mode to determine which fields to show
+        var mode = (GameplayGeneralSettings.ClassSelectionMode)
+            cachedClassSelectionModeProp.enumValueIndex;
+
+        if (mode == GameplayGeneralSettings.ClassSelectionMode.PromotionBased)
+        {
+            // Hide requirement-based fields
+            excludedProps.Add("experienceRequirements");
+            excludedProps.Add("selectionMinimumLevel");
+        }
+        else // RequirementBased
+        {
+            // Hide promotion-based fields
+            excludedProps.Add("promotionPaths");
+            excludedProps.Add("requiredLevelToChange");
+        }
+
+        // Draw everything except excluded properties
+        DrawPropertiesExcluding(serializedObject, excludedProps.ToArray());
 
         // Pronouns multi-select
         EditorGUILayout.Space();

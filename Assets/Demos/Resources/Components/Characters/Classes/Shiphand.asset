@@ -10,13 +10,18 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: db6d61028ed4880459dd1b4e943e6f66, type: 3}
-  m_Name: New Character Class
+  m_Name: Shiphand
   m_EditorClassIdentifier: 
-  className: 
+  _cachedClassSelectionMode: 1
+  ClassOutfit: {fileID: 0}
+  ShaderGraph: {fileID: -6465566751694194690, guid: 093e7ff1692846d4aba2a1553c45044b, type: 3}
+  Base: {fileID: 0}
+  MSE: {fileID: 0}
+  TintMask: {fileID: 0}
+  className: Shiphand
   description: 
   icon: {fileID: 0}
-  classTier: 0
-  isPromoted: 0
+  classTier: -1
   promotionPaths: []
   requiredLevelToChange: 0
   allowedPronounKeys:
@@ -27,7 +32,7 @@ MonoBehaviour:
   experienceRequirements: []
   selectionMinimumLevel: 0
   movementType: 0
-  movement: 5
+  movement: 4
   defaultStatsSource: {fileID: 0}
   boundedStatModifiers: []
   unboundedStatModifiers: []

@@ -14,11 +14,12 @@ namespace Turnroot.Characters.CharacterClass
     [CreateAssetMenu(fileName = "New Character Class", menuName = "Turnroot/Character/Class Data")]
     public class CharacterClassData : ScriptableObject
     {
-        [Foldout("Visuals")]
-        public MeshRenderer meshRenderer;
+        // Hidden field to cache the ClassSelectionMode for ShowIf evaluation
+        [HideInInspector, SerializeField]
+        private GameplayGeneralSettings.ClassSelectionMode _cachedClassSelectionMode;
 
         [Foldout("Visuals")]
-        private Material materialInstance;
+        public Mesh ClassOutfit;
 
         [Foldout("Visuals")]
         public Shader ShaderGraph;
@@ -45,9 +46,6 @@ namespace Turnroot.Characters.CharacterClass
 
         [Foldout("Identity")]
         public ProgressionLevel classTier = ProgressionLevel.Base;
-
-        [Tooltip("If true, this class is a promoted form for other classes")]
-        public bool isPromoted = false;
 
         [ShowIf(nameof(ShowPromotionFields))]
         [Tooltip("List of classes this class can promote to (or from)")]
@@ -114,11 +112,6 @@ namespace Turnroot.Characters.CharacterClass
         )]
         public List<Skill> innateSkills = new();
 
-        [Tooltip(
-            "Additional abilities or passive effects implemented by this class (free-form strings for now; can be hooked up to ability assets later)"
-        )]
-        public List<Skill> classAbilities = new();
-
         [Foldout("Combat & Weapon Proficiencies")]
         [Tooltip(
             "Skills learned by mastering this class (e.g., after X battles or reaching certain level)"
@@ -142,6 +135,13 @@ namespace Turnroot.Characters.CharacterClass
 
         private void OnEnable()
         {
+            // Initialize cached mode when asset loads
+            var mode = GetProjectClassSelectionMode();
+            Debug.Log(
+                $"[{name}] OnEnable: Setting cached mode to {mode} (was {_cachedClassSelectionMode})"
+            );
+            _cachedClassSelectionMode = mode;
+
             // Ensure allowedPronounKeys defaults to all available keys when empty
             if (allowedPronounKeys == null || allowedPronounKeys.Count == 0)
             {
@@ -152,6 +152,28 @@ namespace Turnroot.Characters.CharacterClass
                 }
             }
         }
+
+#if UNITY_EDITOR
+        private void OnValidate()
+        {
+            // Update cached mode so ShowIf can see changes
+            var mode = GetProjectClassSelectionMode();
+            Debug.Log(
+                $"[{name}] OnValidate: Setting cached mode to {mode} (was {_cachedClassSelectionMode})"
+            );
+            _cachedClassSelectionMode = mode;
+
+            // Force inspector refresh when validating to update ShowIf conditions
+            // This ensures promotion/requirement fields show/hide correctly based on GameplayGeneralSettings
+            UnityEditor.EditorApplication.delayCall += () =>
+            {
+                if (this != null)
+                {
+                    UnityEditor.EditorUtility.SetDirty(this);
+                }
+            };
+        }
+#endif
 
         public bool IsPronounAllowed(string pronounKey)
         {
@@ -172,13 +194,13 @@ namespace Turnroot.Characters.CharacterClass
 
         private bool ShowPromotionFields()
         {
-            return GetProjectClassSelectionMode()
+            return _cachedClassSelectionMode
                 == GameplayGeneralSettings.ClassSelectionMode.PromotionBased;
         }
 
         private bool ShowRequirementFields()
         {
-            return GetProjectClassSelectionMode()
+            return _cachedClassSelectionMode
                 == GameplayGeneralSettings.ClassSelectionMode.RequirementBased;
         }
 
