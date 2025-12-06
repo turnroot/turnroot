@@ -239,11 +239,46 @@ namespace Assets.Turnroot.Gameplay.Combat
         /// </summary>
         public void ClearBattleRosters()
         {
-            _playerTeamRoster?.Clear();
-            _enemyTeamRoster?.Clear();
-            _thirdPartyTeamRoster?.Clear();
+            // Destroy GameObjects in player team roster
+            if (_playerTeamRoster != null)
+            {
+                foreach (var character in _playerTeamRoster.GetAllInstances())
+                {
+                    if (character != null && character.gameObject != null)
+                    {
+                        Destroy(character.gameObject);
+                    }
+                }
+                _playerTeamRoster.Clear();
+            }
 
-            Debug.Log("BattleGameObject: Cleared all temporary battle rosters.");
+            // Destroy GameObjects in enemy team roster
+            if (_enemyTeamRoster != null)
+            {
+                foreach (var character in _enemyTeamRoster.GetAllInstances())
+                {
+                    if (character != null && character.gameObject != null)
+                    {
+                        Destroy(character.gameObject);
+                    }
+                }
+                _enemyTeamRoster.Clear();
+            }
+
+            // Destroy GameObjects in third party team roster
+            if (_thirdPartyTeamRoster != null)
+            {
+                foreach (var character in _thirdPartyTeamRoster.GetAllInstances())
+                {
+                    if (character != null && character.gameObject != null)
+                    {
+                        Destroy(character.gameObject);
+                    }
+                }
+                _thirdPartyTeamRoster.Clear();
+            }
+
+            Debug.Log("BattleGameObject: Cleared all temporary battle rosters and destroyed their GameObjects.");
         }
 
         #endregion
