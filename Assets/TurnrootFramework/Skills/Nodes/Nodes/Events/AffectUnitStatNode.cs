@@ -6,7 +6,7 @@ using XNode;
 
 namespace Turnroot.Skills.Nodes.Events
 {
-    [CreateNodeMenu("Events/Defensive/Affect Unit Stat")]
+    [CreateNodeMenu("Events/Neutral/Affect Unit Stat")]
     [NodeLabel("Modifies a stat value on the executing unit")]
     public class AffectUnitStatNode : SkillNode
     {

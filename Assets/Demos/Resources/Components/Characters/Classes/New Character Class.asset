@@ -1,0 +1,41 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: db6d61028ed4880459dd1b4e943e6f66, type: 3}
+  m_Name: New Character Class
+  m_EditorClassIdentifier: 
+  className: 
+  description: 
+  icon: {fileID: 0}
+  classTier: 0
+  isPromoted: 0
+  promotionPaths: []
+  requiredLevelToChange: 0
+  allowedPronounKeys:
+  - they
+  - she
+  - he
+  isUnique: 0
+  experienceRequirements: []
+  selectionMinimumLevel: 0
+  movementType: 0
+  movement: 5
+  defaultStatsSource: {fileID: 0}
+  boundedStatModifiers: []
+  unboundedStatModifiers: []
+  statCaps: []
+  weaponProficiencies: []
+  innateSkills: []
+  classAbilities: []
+  masterySkills: []
+  certificationItem: {fileID: 0}
+  speciesRestrictions: []
+  classChangeBonuses: []

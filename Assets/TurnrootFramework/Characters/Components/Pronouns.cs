@@ -64,6 +64,13 @@ namespace Turnroot.Characters.Subclasses
             }
         }
 
+        public static string[] GetAvailablePronounKeys()
+        {
+            var keys = new string[PronounSets.Count];
+            PronounSets.Keys.CopyTo(keys, 0);
+            return keys;
+        }
+
         /// <summary>
         /// Replaces pronoun placeholders in text with the appropriate pronouns.
         /// Example: "I saw {them} and {their} friend" -> "I saw him and his friend"

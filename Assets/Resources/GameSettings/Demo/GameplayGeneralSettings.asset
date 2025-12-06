@@ -12,12 +12,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 03a896db8f43bba419fac15576b362f2, type: 3}
   m_Name: GameplayGeneralSettings
   m_EditorClassIdentifier: 
+  ClassSelection: 1
+  WeaponTypes:
+  - {fileID: 11400000, guid: 030efab55c186fa4ead5d556dc84fdd5, type: 2}
+  SpeciesTypes:
+  - {fileID: 0}
   WeaponsCanBeForged: 1
   WeaponsCanBeRepaired: 1
   WeaponsHaveDurability: 1
   UseExperienceAptitudes: 1
   CombatArts: 0
   CombatArtLimit: 3
+  MaxEquippedSkills: 0
   WeaponTriangle: 0
   ExpandedWeaponTriangle: 0
   WeaponTriangleAdvantage: 20

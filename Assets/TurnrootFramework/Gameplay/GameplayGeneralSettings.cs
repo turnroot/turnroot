@@ -1,6 +1,70 @@
 using NaughtyAttributes;
+using Turnroot.Characters;
 using Turnroot.Gameplay.Combat.FundamentalComponents;
+using Turnroot.Gameplay.Objects.Components;
 using UnityEngine;
+
+public enum ProgressionLevel
+{
+    Base = 0,
+    Advanced = 1,
+    Master = 2,
+    Expert = 4,
+}
+
+public enum MovementType
+{
+    Infantry,
+    Cavalry,
+    Flying,
+    Armored,
+    None,
+}
+
+// TrianglePositionEnum defined in TrianglePosition.cs
+
+public enum EquipableObjectType
+{
+    Accessory,
+    Shield,
+    Staff,
+    Ring,
+}
+
+public enum EquipableOutfitType
+{
+    Helmet,
+    Hat,
+    Shirt,
+    Pants,
+    Dress,
+    Skirt,
+    Robe,
+    Gloves,
+    Coat,
+    Armor,
+    Boots,
+    Cloak,
+}
+
+public enum ReplenishUseType
+{
+    None,
+    Quarter,
+    Third,
+    Half,
+    Full,
+    One,
+    Two,
+    Three,
+    Four,
+    Five,
+    Six,
+    Seven,
+    Eight,
+    Nine,
+    Ten,
+}
 
 [CreateAssetMenu(
     fileName = "GameplayGeneralSettings",
@@ -8,7 +72,24 @@ using UnityEngine;
 )]
 public class GameplayGeneralSettings : SingletonScriptableObject<GameplayGeneralSettings>
 {
+    public enum ClassSelectionMode
+    {
+        PromotionBased,
+        RequirementBased,
+    }
+
     [SerializeField, BoxGroup("General Gameplay"), HorizontalLine(color: EColor.Blue)]
+    private ClassSelectionMode ClassSelection = ClassSelectionMode.PromotionBased;
+
+    public ClassSelectionMode GetClassSelectionMode() => ClassSelection;
+
+    [SerializeField, BoxGroup("General Gameplay")]
+    public WeaponType[] WeaponTypes;
+
+    [SerializeField, BoxGroup("General Gameplay")]
+    public SpeciesType[] SpeciesTypes;
+
+    [SerializeField, BoxGroup("General Gameplay")]
     private bool WeaponsCanBeForged;
 
     [SerializeField, BoxGroup("General Gameplay")]
@@ -33,6 +114,9 @@ public class GameplayGeneralSettings : SingletonScriptableObject<GameplayGeneral
 
     [SerializeField, BoxGroup("Combat Mechanics")]
     private int CombatArtLimit = 3;
+
+    [SerializeField, BoxGroup("Combat Mechanics")]
+    private int MaxEquippedSkills = 0;
 
     [SerializeField, BoxGroup("Combat Mechanics")]
     private bool WeaponTriangle;

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using NaughtyAttributes;
+using Turnroot.Characters.CharacterClass;
 using Turnroot.Characters.Components;
 using Turnroot.Characters.Components.Support;
 using Turnroot.Characters.Stats;
@@ -105,6 +106,12 @@ namespace Turnroot.Characters
 
         [field: Foldout("Character Flags"), SerializeField, ShowIf(nameof(CanShowUnique))]
         public bool IsUnique { get; private set; } = false;
+
+        [field: Foldout("Class and Skills"), HorizontalLine(color: EColor.Yellow), SerializeField]
+        public CharacterClassData StartingClass { get; private set; }
+
+        [field: Foldout("Class and Skills"), SerializeField]
+        public Skill[] StartingSkills { get; private set; } = new Skill[0];
 
         [field: Foldout("Visual"), SerializeField, HorizontalLine(color: EColor.Pink)]
         public string BadgeText { get; private set; }
@@ -236,15 +243,6 @@ namespace Turnroot.Characters
 
         [field: BoxGroup("Stats & Progression"), SerializeField]
         public List<CharacterStat> UnboundedStats { get; private set; } = new();
-
-        [field: BoxGroup("Class & Battalion"), SerializeField, HorizontalLine(color: EColor.Yellow)]
-        public UnityEngine.Object UnitClass { get; private set; }
-
-        [field: BoxGroup("Class & Battalion"), SerializeField]
-        public UnityEngine.Object Battalion { get; private set; }
-
-        [field: BoxGroup("Class & Battalion"), SerializeField]
-        public List<string> SpecialUnitClasses { get; private set; } = new();
 
         [field: BoxGroup("Skills & Abilities"), SerializeField, HorizontalLine(color: EColor.Green)]
         public List<Skill> Skills { get; private set; } = new();

@@ -9,7 +9,7 @@ namespace Turnroot.Skills.Nodes.Conditions
     public class AdjacentAlliesNode : SkillNode
     {
         [Output]
-        public FloatValue value;
+        public FloatValue count;
 
         [Output]
         BoolValue adjacentAlly;
@@ -21,17 +21,17 @@ namespace Turnroot.Skills.Nodes.Conditions
             if (skillGraph == null)
             {
                 Debug.LogWarning("AdjacentAllies: Could not get SkillGraph");
-                return port.fieldName == "value" ? new FloatValue() : (object)new BoolValue();
+                return port.fieldName == "count" ? new FloatValue() : (object)new BoolValue();
             }
 
             var context = GetContextFromGraph(skillGraph);
             if (context?.AdjacentUnits == null)
             {
                 Debug.LogWarning("AdjacentAllies: No adjacent units in context");
-                return port.fieldName == "value" ? new FloatValue() : (object)new BoolValue();
+                return port.fieldName == "count" ? new FloatValue() : (object)new BoolValue();
             }
 
-            if (port.fieldName == "value")
+            if (port.fieldName == "count")
             {
                 int count = context.AdjacentUnits.GetAdjacentAllyCount(context);
                 return new FloatValue { value = count };

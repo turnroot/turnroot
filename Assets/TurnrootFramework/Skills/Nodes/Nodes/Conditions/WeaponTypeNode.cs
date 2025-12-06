@@ -43,11 +43,14 @@ namespace Turnroot.Skills.Nodes.Conditions
             var skillGraph = graph as SkillGraph;
             if (skillGraph == null || !Application.isPlaying)
             {
-                // Return defaults in editor mode
+                // In editor / preview mode there is no runtime context to query —
+                // return neutral defaults. When an item/weapon system exists the
+                // runtime branch should fetch the equipped weapon and compare its
+                // WeaponType (ScriptableObject) using WeaponTypeHelpers.Equals.
                 return port.fieldName switch
                 {
-                    "TypeName" => new StringValue { value = "Sword" },
-                    "IsSword" => new BoolValue { value = true },
+                    "TypeName" => new StringValue { value = string.Empty },
+                    "IsSword" => new BoolValue { value = false },
                     "IsLance" => new BoolValue { value = false },
                     "IsAxe" => new BoolValue { value = false },
                     "IsBow" => new BoolValue { value = false },
@@ -71,10 +74,11 @@ namespace Turnroot.Skills.Nodes.Conditions
                 };
             }
 
-            // TODO: Implement weapon type retrieval from equipped weapon when item system is added
-            // Future implementation: var weapon = context.UnitInstance.GetEquippedWeapon();
-            // Then check weapon.WeaponType property against WeaponType enum values
-            // Example: return new BoolValue { value = weapon.WeaponType == WeaponType.Sword };
+            // TODO: Implement weapon type retrieval from equipped weapon when the
+            // item/weapon system is added. Example implementation would obtain the
+            // equipped weapon and compare its WeaponType ScriptableObject to a
+            // chosen WeaponType via WeaponTypeHelpers.Equals(...) or by comparing
+            // IDs.
 
             return port.fieldName switch
             {
