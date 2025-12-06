@@ -326,7 +326,6 @@ namespace Turnroot.Characters
         {
             _currentLevel++;
 
-            // Apply stat growths (Fire Emblem style random rolls)
             if (_currentClass != null && _currentClass.ClassData != null)
             {
                 var growthRates = GetEffectiveGrowthRates();
