@@ -360,7 +360,11 @@ namespace Turnroot.Characters.CharacterClass
                     var classModifier = classGrowthModifiers.Find(m =>
                         m.unboundedStatType == baseGrowth.unboundedStatType
                     );
-                    totalGrowth += classModifier.value;
+                    if (!classModifier.Equals(default(StatGrowthModifier)))
+                    {
+                        totalGrowth += classModifier.value;
+                    }
+                    // If no matching modifier is found, add nothing (explicitly 0)
                 }
 
                 // Clamp growth rate to 0-100 range
