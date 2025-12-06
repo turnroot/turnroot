@@ -13,7 +13,7 @@ namespace Turnroot.Characters
     // Multiple characters can share the same CharacterData template but have different instances
 
     [Serializable]
-    public class CharacterInstance : Serialization.IPostDeserialize
+    public class CharacterInstance : Serialization.IPostDeserialize, Stats.IHasStats
     {
         #region Instance State
 
@@ -139,6 +139,10 @@ namespace Turnroot.Characters
         public List<SkillInstance> SkillInstances => _skillInstances;
         public List<ExperienceRankInstance> ExperienceRanks => _experienceRanks;
         public CharacterClass.CharacterClassDataInstance CurrentClass => _currentClass;
+
+        // IHasStats implementation - expose runtime stats
+        public List<BoundedCharacterStat> BoundedStats => _runtimeBoundedStats;
+        public List<CharacterStat> UnboundedStats => _runtimeUnboundedStats;
 
         #endregion
 

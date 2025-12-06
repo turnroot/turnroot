@@ -26,10 +26,18 @@ Complete API reference for the Turnroot Framework assets.
 ## Core Systems
 
 ### Character System
-- **[CharacterData](Characters/Character.md)** - Main character configuration asset
+- **[CharacterData](Characters/Character.md)** - Character template (ScriptableObject)
+- **[CharacterInstance](Characters/CharacterInstance.md)** - Runtime character state
 - **[CharacterStats](Characters/CharacterStats.md)** - Stat system (bounded and unbounded)
 - **[CharacterComponents](Characters/CharacterComponents.md)** - Pronouns, relationships, traits
 - **[CharacterInventory](Characters/CharacterInventory.md)** - Multi-slot equipment and inventory
+- **[CharacterClassData](Characters/CharacterClassData.md)** - Class definition (job/vocation)
+- **[CharacterClassDataInstance](Characters/CharacterClassInstance.md)** - Runtime class state
+- **[IHasStats](Characters/IHasStats.md)** - Stat interface and unified access
+- **[StatExtensions](Characters/StatExtensions.md)** - Stat batch operations
+- **[CharacterSettings](Characters/CharacterSettings.md)** - Centralized settings cache
+- **[DefaultCharacterStats](Characters/DefaultCharacterStats.md)** - Default stat initialization
+- **[UniqueInstances](Characters/UniqueInstances.md)** - Unique instance handling
 ### Brain System
 - **[GamewideContextBrain](Gameplay/GamewideContextBrain.md)** - Runtime instance factory, serialization and rehydration
  - **[Brain (event hub)](Gameplay/GamewideContextBrain.md)** - `Assets/TurnrootFramework/Gameplay/Brain/Brain.cs` — scene-level event hub for turns & battle lifecycle
@@ -87,11 +95,18 @@ Complete API reference for the Turnroot Framework assets.
 TurnrootFramework/_FrameworkDocs/
 ├── README.md                                    # Index, quick ref, architecture, troubleshooting
 ├── Characters/                                  # Character system documentation
-│   ├── Character.md                            # Character class (main asset)
+│   ├── Character.md                            # CharacterData (template asset)
+│   ├── CharacterInstance.md                    # CharacterInstance (runtime state)
 │   ├── CharacterStats.md                       # CharacterStat + BoundedCharacterStat
+│   ├── CharacterClassData.md                   # CharacterClassData (class definition)
+│   ├── CharacterClassInstance.md               # CharacterClassDataInstance (runtime class)
+│   ├── IHasStats.md                            # IHasStats interface
+│   ├── StatExtensions.md                       # Stat extension methods
+│   ├── CharacterSettings.md                    # Centralized settings cache
 │   ├── CharacterComponents.md                  # Pronouns, SupportRelationship, HereditaryTraits, CharacterWhich
 │   ├── CharacterInventory.md                   # Multi-slot equipment and inventory system
 │   ├── DefaultCharacterStats.md                # Default stat initialization
+│   ├── UniqueInstances.md                      # Unique instance handling
 │   └── Portraits/                              # Portrait sub-system
 │       ├── Portrait.md                         # Portrait class (compositable portraits)
 │       └── ImageStack.md                       # ImageStack + ImageStackLayer
@@ -122,7 +137,35 @@ TurnrootFramework/_FrameworkDocs/
 
 ### Characters/Character.md
 **Source**: `Assets/TurnrootFramework/Characters/CharacterData.cs`
-Summary: main ScriptableObject for character templates (stats, portraits, skills). See `CharacterData` API in the doc.
+Summary: ScriptableObject for character templates (stats, portraits, skills). Implements IHasStats.
+
+### Characters/CharacterInstance.md
+**Source**: `Assets/TurnrootFramework/Characters/CharacterInstance.cs`
+Summary: Runtime character state container. Holds current HP, level, exp, equipped items, skills. Implements IHasStats and IPostDeserialize.
+
+### Characters/CharacterClassData.md
+**Source**: `Assets/TurnrootFramework/Characters/CharacterClass/CharacterClassData.cs`
+Summary: ScriptableObject defining character classes (jobs/vocations) with stat modifiers, visuals, restrictions, and mastery skills.
+
+### Characters/CharacterClassInstance.md
+**Source**: `Assets/TurnrootFramework/Characters/CharacterClass/CharacterClassDataInstance.cs`
+Summary: Runtime class instance. Applies stat modifiers, tracks mastery progress, manages class outfit rendering.
+
+### Characters/IHasStats.md
+**Source**: `Assets/TurnrootFramework/Characters/Components/Stats/IHasStats.cs`
+Summary: Unified interface for stat access. Implemented by CharacterData and CharacterInstance.
+
+### Characters/StatExtensions.md
+**Source**: `Assets/TurnrootFramework/Characters/Components/Stats/StatExtensions.cs`
+Summary: Extension methods for IHasStats. Batch operations, bonus application, iteration helpers.
+
+### Characters/CharacterSettings.md
+**Source**: `Assets/TurnrootFramework/Characters/CharacterSettings.cs`
+Summary: Centralized settings cache with safe defaults. Eliminates singleton access boilerplate.
+
+### Characters/UniqueInstances.md
+**Source**: `Assets/TurnrootFramework/Characters/UniqueInstanceRegistry.cs`
+Summary: Registry ensuring single runtime instance for templates marked IsUnique.
 
 ### Characters/Portraits/Portrait.md
 **Source**: `Assets/TurnrootFramework/Characters/Components/Portrait.cs`

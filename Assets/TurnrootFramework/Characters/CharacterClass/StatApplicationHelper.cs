@@ -7,7 +7,7 @@ namespace Turnroot.Characters.CharacterClass
 {
     /// <summary>
     /// Helper utility for applying stat modifiers to characters.
-    /// Eliminates code duplication in class stat application logic.
+    /// Provides high-level operations that delegate to StatExtensions for the actual work.
     /// </summary>
     public static class StatApplicationHelper
     {
@@ -15,114 +15,54 @@ namespace Turnroot.Characters.CharacterClass
 
         /// <summary>
         /// Apply bounded stat modifiers to a character's bonus values.
+        /// Delegates to StatExtensions.ApplyBoundedBonuses.
         /// </summary>
-        /// <param name="modifiers">List of stat modifiers to apply</param>
-        /// <param name="character">Target character instance</param>
-        /// <param name="context">Optional context for logging</param>
         public static void ApplyBoundedBonuses(
             List<StatModifier> modifiers,
             CharacterInstance character,
             string context = ""
         )
         {
-            if (character == null || modifiers == null)
-                return;
-
-            foreach (var modifier in modifiers)
-            {
-                if (modifier.value != 0)
-                {
-                    var stat = character.GetBoundedStat(modifier.boundedStatType);
-                    if (stat != null)
-                    {
-                        stat.SetBonus(stat.Bonus + modifier.value);
-                    }
-                }
-            }
+            character?.ApplyBoundedBonuses(modifiers);
         }
 
         /// <summary>
         /// Apply unbounded stat modifiers to a character's bonus values.
+        /// Delegates to StatExtensions.ApplyUnboundedBonuses.
         /// </summary>
-        /// <param name="modifiers">List of stat modifiers to apply</param>
-        /// <param name="character">Target character instance</param>
-        /// <param name="context">Optional context for logging</param>
         public static void ApplyUnboundedBonuses(
             List<UnboundedStatModifier> modifiers,
             CharacterInstance character,
             string context = ""
         )
         {
-            if (character == null || modifiers == null)
-                return;
-
-            foreach (var modifier in modifiers)
-            {
-                if (modifier.value != 0)
-                {
-                    var stat = character.GetUnboundedStat(modifier.unboundedStatType);
-                    if (stat != null)
-                    {
-                        stat.SetBonus(stat.Bonus + modifier.value);
-                    }
-                }
-            }
+            character?.ApplyUnboundedBonuses(modifiers);
         }
 
         /// <summary>
         /// Remove bounded stat modifiers from a character's bonus values.
+        /// Delegates to StatExtensions.RemoveBoundedBonuses.
         /// </summary>
-        /// <param name="modifiers">List of stat modifiers to remove</param>
-        /// <param name="character">Target character instance</param>
-        /// <param name="context">Optional context for logging</param>
         public static void RemoveBoundedBonuses(
             List<StatModifier> modifiers,
             CharacterInstance character,
             string context = ""
         )
         {
-            if (character == null || modifiers == null)
-                return;
-
-            foreach (var modifier in modifiers)
-            {
-                if (modifier.value != 0)
-                {
-                    var stat = character.GetBoundedStat(modifier.boundedStatType);
-                    if (stat != null)
-                    {
-                        stat.SetBonus(stat.Bonus - modifier.value);
-                    }
-                }
-            }
+            character?.RemoveBoundedBonuses(modifiers);
         }
 
         /// <summary>
         /// Remove unbounded stat modifiers from a character's bonus values.
+        /// Delegates to StatExtensions.RemoveUnboundedBonuses.
         /// </summary>
-        /// <param name="modifiers">List of stat modifiers to remove</param>
-        /// <param name="character">Target character instance</param>
-        /// <param name="context">Optional context for logging</param>
         public static void RemoveUnboundedBonuses(
             List<UnboundedStatModifier> modifiers,
             CharacterInstance character,
             string context = ""
         )
         {
-            if (character == null || modifiers == null)
-                return;
-
-            foreach (var modifier in modifiers)
-            {
-                if (modifier.value != 0)
-                {
-                    var stat = character.GetUnboundedStat(modifier.unboundedStatType);
-                    if (stat != null)
-                    {
-                        stat.SetBonus(stat.Bonus - modifier.value);
-                    }
-                }
-            }
+            character?.RemoveUnboundedBonuses(modifiers);
         }
 
         #endregion

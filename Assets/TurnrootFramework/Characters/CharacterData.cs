@@ -38,7 +38,7 @@ namespace Turnroot.Characters
         fileName = "NewCharacterConfiguration",
         menuName = "Turnroot/Character/CharacterData"
     )]
-    public class CharacterData : ScriptableObject
+    public class CharacterData : ScriptableObject, Stats.IHasStats
     {
 #if UNITY_EDITOR
         [
@@ -448,36 +448,21 @@ namespace Turnroot.Characters
 
         private void OnEnable()
         {
-            // Load settings from Resources on initialization using GameSettingsLoader
-            var settings =
-                Turnroot.Utilities.GameSettingsLoader.LoadFirst<CharacterPrototypeSettings>(
-                    "GameSettings"
-                );
+            // Load settings from centralized cache
+            var settings = CharacterSettings.PrototypeSettings;
             if (settings == null)
             {
-                Debug.LogError(
-                    "CharacterPrototypeSettings not found in Resources/GameSettings (expected under Resources/GameSettings/*). You must create one!"
-                );
                 return;
             }
 
             // Initialize stats from defaults if stats are empty
             if (BoundedStats.Count == 0 && UnboundedStats.Count == 0)
             {
-                var defaultStats =
-                    Turnroot.Utilities.GameSettingsLoader.LoadFirst<DefaultCharacterStats>(
-                        "GameSettings"
-                    );
+                var defaultStats = CharacterSettings.DefaultStats;
                 if (defaultStats != null)
                 {
                     BoundedStats = defaultStats.CreateBoundedStats();
                     UnboundedStats = defaultStats.CreateUnboundedStats();
-                }
-                else
-                {
-                    Debug.LogError(
-                        "DefaultCharacterStats not found in Resources/GameSettings (expected under Resources/GameSettings/*). You must create one!"
-                    );
                 }
             }
         }

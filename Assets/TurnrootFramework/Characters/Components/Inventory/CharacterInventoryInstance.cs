@@ -30,8 +30,7 @@ public class CharacterInventoryInstance : IPostDeserialize
     [SerializeField]
     private bool[] _nonWeaponEquippedFlags;
 
-    // Cached settings value to avoid repeated singleton lookups
-    private int _cachedMaxNonWeaponSlots = -1;
+    // Track initialization state to avoid redundant array resizing
     private bool _isInitialized = false;
 
     public List<ObjectItemInstance> InventoryItems => _inventoryItems;
@@ -57,44 +56,9 @@ public class CharacterInventoryInstance : IPostDeserialize
     public bool IsWeaponEquipped => _isWeaponEquipped;
 
     /// <summary>
-    /// Gets the maximum number of non-weapon items that can be equipped from settings.
-    /// Cached to avoid repeated singleton lookups.
+    /// Gets the maximum number of non-weapon items that can be equipped from centralized settings cache.
     /// </summary>
-    private int MaxNonWeaponSlots
-    {
-        get
-        {
-            // Get current value from settings. Accessing GameplayGeneralSettings.Instance may
-            // call Resources.Load and is disallowed during Unity's serialization phase; guard
-            // against UnityException and fall back to a safe default to avoid editor exceptions.
-            int currentValue;
-            try
-            {
-                currentValue = GameplayGeneralSettings.Instance.GetMaxEquippedNonWeaponItems();
-            }
-            catch (UnityEngine.UnityException)
-            {
-                // Happens during Unity serialization when Resources.Load is forbidden.
-                // Use a sensible default matching the expected framework default (2 non-weapon slots)
-                // so constructors and deserialization can proceed without invoking Resources.
-                currentValue = 2;
-            }
-            catch (System.Exception)
-            {
-                // Any other issues — fallback to default as well.
-                currentValue = 2;
-            }
-
-            // If cached value changed, invalidate initialization
-            if (_cachedMaxNonWeaponSlots != currentValue)
-            {
-                _cachedMaxNonWeaponSlots = currentValue;
-                _isInitialized = false;
-            }
-
-            return _cachedMaxNonWeaponSlots;
-        }
-    }
+    private int MaxNonWeaponSlots => Turnroot.Characters.CharacterSettings.MaxNonWeaponSlots;
 
     /// <summary>
     /// Ensures equipment arrays are properly sized based on current settings.
@@ -102,7 +66,7 @@ public class CharacterInventoryInstance : IPostDeserialize
     /// </summary>
     private void EnsureEquipmentArraysInitialized()
     {
-        int maxNonWeapon = MaxNonWeaponSlots; // Cache the value for this method call
+        int maxNonWeapon = MaxNonWeaponSlots;
         int totalSlots = 1 + maxNonWeapon; // 1 weapon slot + N non-weapon slots
 
         // Check if we need to initialize/resize
