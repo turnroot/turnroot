@@ -147,13 +147,9 @@ namespace Turnroot.Characters
         /// Called when entering play mode.
         /// </summary>
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-        private static void OnEnterPlayMode()
-        {
-            ClearCache();
-        }
+        private static void OnEnterPlayMode() => ClearCache();
 #endif
 
         #endregion
     }
 }
-

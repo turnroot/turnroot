@@ -45,118 +45,177 @@ namespace Turnroot.Gameplay.Objects
         }
 
         /// <summary>
-        /// Transfer this item to another inventory.
+        /// Validates whether this item can be transferred to a target inventory.
+        /// Use for UI binding (e.g., enabling/disabling transfer buttons).
         /// </summary>
-        /// <param name="targetInventory">The inventory to transfer the item to.</param>
-        /// <returns>True if the transfer was successful, false otherwise.</returns>
-        public bool Transfer(CharacterInventoryInstance targetInventory)
+        public bool CanTransfer(CharacterInventoryInstance targetInventory)
         {
             if (_template.IsUnequippable)
-            {
-                Debug.LogWarning("Cannot transfer an unequippable item.");
                 return false;
-            }
             if (targetInventory.IsFull)
-            {
-                Debug.LogWarning("Target inventory is full. Cannot transfer item.");
                 return false;
-            }
+            return true;
+        }
+
+        /// <summary>
+        /// Transfers this item to a target inventory.
+        /// </summary>
+        public OperationResult Transfer(CharacterInventoryInstance targetInventory)
+        {
+            if (_template.IsUnequippable)
+                return OperationResult.Failure("Cannot transfer an unequippable item.");
+
+            if (targetInventory.IsFull)
+                return OperationResult.Failure("Target inventory is full. Cannot transfer item.");
+
             _ownerInventory.RemoveFromInventory(this);
             targetInventory.AddToInventory(this);
             _ownerInventory = targetInventory;
-            return true;
+            return OperationResult.SuccessResult();
         }
 
         /// <summary>
-        /// Discard this item from its owner's inventory.
+        /// Validates whether this item can be discarded.
+        /// Use for UI binding (e.g., enabling/disabling discard buttons).
         /// </summary>
-        /// <returns>
-        /// True if the item was successfully discarded, false otherwise.
-        /// </returns>
-        public bool Discard()
+        public bool CanDiscard()
         {
             if (_template.IsUnequippable)
-            {
-                Debug.LogWarning("Cannot discard an unequippable item.");
                 return false;
-            }
-            _ownerInventory.RemoveFromInventory(this);
             return true;
         }
 
         /// <summary>
-        /// Sell this item from its owner's inventory.
+        /// Discards this item from the owner's inventory.
         /// </summary>
-        /// <returns>
-        /// True if the item was successfully sold, false otherwise.
-        /// </returns>
-        public bool Sell()
+        public OperationResult Discard()
         {
-            if (_template.IsUnequippable || _template.Sellable)
-            {
-                Debug.LogWarning("Cannot sell an unequippable item.");
+            if (_template.IsUnequippable)
+                return OperationResult.Failure("Cannot discard an unequippable item.");
+
+            _ownerInventory.RemoveFromInventory(this);
+            return OperationResult.SuccessResult();
+        }
+
+        /// <summary>
+        /// Validates whether this item can be sold.
+        /// Use for UI binding (e.g., enabling/disabling sell buttons).
+        /// </summary>
+        public bool CanSell()
+        {
+            if (_template.IsUnequippable || !_template.Sellable)
                 return false;
-            }
+            return true;
+        }
+
+        /// <summary>
+        /// Sells this item and removes it from inventory.
+        /// </summary>
+        public OperationResult Sell()
+        {
+            if (_template.IsUnequippable || !_template.Sellable)
+                return OperationResult.Failure("Cannot sell this item.");
+
             int deduction = _template.SellPriceDeductedPerUse * currentUses;
             int finalPrice = Math.Max(0, _template.BasePrice - deduction);
             _ownerInventory.RemoveFromInventory(this);
             // TODO: Add gold to player (brains)
+            return OperationResult.SuccessResult();
+        }
+
+        /// <summary>
+        /// Validates whether this item can be bought for a buyer's inventory.
+        /// Use for UI binding (e.g., enabling/disabling buy buttons).
+        /// </summary>
+        public bool CanBuy(CharacterInventoryInstance buyerInventory)
+        {
+            if (_template.IsUnequippable || !_template.Buyable)
+                return false;
+            if (buyerInventory.IsFull)
+                return false;
             return true;
         }
 
         /// <summary>
-        /// Buy this item into the specified inventory.
+        /// Buys this item and adds it to the buyer's inventory.
         /// </summary>
-        /// <param name="buyerInventory">The inventory to buy the item into.</param>
-        /// <returns>True if the item was successfully bought, false otherwise.</returns>
-        public bool Buy(CharacterInventoryInstance buyerInventory)
+        public OperationResult Buy(CharacterInventoryInstance buyerInventory)
         {
             if (_template.IsUnequippable || !_template.Buyable)
-            {
-                Debug.LogWarning("Cannot buy an unequippable item.");
-                return false;
-            }
+                return OperationResult.Failure("Cannot buy this item.");
+
             if (buyerInventory.IsFull)
-            {
-                Debug.LogWarning("Buyer inventory is full. Cannot buy item.");
-                return false;
-            }
+                return OperationResult.Failure("Buyer inventory is full. Cannot buy item.");
+
             buyerInventory.AddToInventory(this);
             _ownerInventory = buyerInventory;
             // TODO: Deduct gold from player (brains)
-            return true;
+            return OperationResult.SuccessResult();
         }
 
         /// <summary>
-        /// Repair this item, restoring its durability.
+        /// Validates whether this item can be repaired.
+        /// Use for UI binding (e.g., enabling/disabling repair buttons).
         /// </summary>
-        /// <param name="repairUses">The number of uses to repair.</param>
-        /// <returns>True if the item was successfully repaired, false otherwise.</returns>
-        public bool Repair(int repairUses)
+        public bool CanRepair(int repairUses)
         {
             if (!_template.Repairable || !_template.Durability)
-            {
-                Debug.LogWarning("Cannot repair a non-repairable item.");
                 return false;
-            }
             if (_template.RepairNeedsItems)
             {
                 // TODO: Get items from storehouse
                 return true;
             }
             if (repairUses <= 0 || currentUses - repairUses < 0)
-            {
-                Debug.LogWarning("Invalid repair uses specified.");
                 return false;
-            }
-            var repairCost = _template.RepairItemAmountPerUse * repairUses;
             // TODO: Check if player can pay the cost
             return true;
         }
 
+        /// <summary>
+        /// Repairs this item by restoring the specified number of uses.
+        /// </summary>
+        public OperationResult Repair(int repairUses)
+        {
+            if (!_template.Repairable || !_template.Durability)
+                return OperationResult.Failure("Cannot repair a non-repairable item.");
+
+            if (_template.RepairNeedsItems)
+            {
+                // TODO: Get items from storehouse
+                currentUses -= repairUses;
+                if (currentUses < 0)
+                    currentUses = 0;
+                return OperationResult.SuccessResult();
+            }
+
+            if (repairUses <= 0 || currentUses - repairUses < 0)
+                return OperationResult.Failure("Invalid repair uses specified.");
+
+            var repairCost = _template.RepairItemAmountPerUse * repairUses;
+            // TODO: Check if player can pay the cost
+
+            currentUses -= repairUses;
+            if (currentUses < 0)
+                currentUses = 0;
+
+            return OperationResult.SuccessResult();
+        }
+
         public void OnAfterDeserialize()
         {
-            // there is nothing here yet
+            // Ensure _ownerInventory reference is maintained after deserialization
+            // If this item was deserialized without an owner, it will remain null
+            // which is valid for items in shops or as loot
+
+            // Clamp currentUses to valid range based on template
+            if (_template != null && _template.Durability)
+            {
+                if (currentUses < 0)
+                    currentUses = 0;
+                if (currentUses > _template.MaxUses)
+                    currentUses = _template.MaxUses;
+            }
         }
     }
 }
