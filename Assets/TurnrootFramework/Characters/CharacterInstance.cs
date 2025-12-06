@@ -123,7 +123,7 @@ namespace Turnroot.Characters
 
         // Classes this character has previously equipped (for tracking one-time bonuses)
         [SerializeField]
-        private List<string> _equippedClassHistory = new();
+        private List<CharacterClass.CharacterClassData> _equippedClassHistory = new();
 
         #endregion
 
@@ -214,7 +214,7 @@ namespace Turnroot.Characters
             _skillInstances ??= new List<SkillInstance>();
             _inventoryInstance ??= new CharacterInventoryInstance();
             _experienceRanks ??= new List<ExperienceRankInstance>();
-            _equippedClassHistory ??= new List<string>();
+            _equippedClassHistory ??= new List<CharacterClass.CharacterClassData>();
 
             // Re-register unique instances after deserialization
             if (_characterTemplate != null && _characterTemplate.IsUnique)
@@ -326,7 +326,6 @@ namespace Turnroot.Characters
         {
             _currentLevel++;
 
-            // Apply stat growths (Fire Emblem style random rolls)
             if (_currentClass != null && _currentClass.ClassData != null)
             {
                 var growthRates = GetEffectiveGrowthRates();
@@ -584,8 +583,8 @@ namespace Turnroot.Characters
                 _currentClass.Dispose();
             }
 
-            // Check if this class has been equipped before
-            bool isFirstTime = !_equippedClassHistory.Contains(newClassData.name);
+            // Check if this class has been equipped before (compare by reference, not name)
+            bool isFirstTime = !_equippedClassHistory.Contains(newClassData);
 
             // Create new class instance
             _currentClass = new CharacterClass.CharacterClassDataInstance(
@@ -607,7 +606,7 @@ namespace Turnroot.Characters
             if (isFirstTime)
             {
                 _currentClass.ApplyClassChangeBonuses(this);
-                _equippedClassHistory.Add(newClassData.name);
+                _equippedClassHistory.Add(newClassData);
             }
 
             // Enforce stat minimums and caps
@@ -748,7 +747,7 @@ namespace Turnroot.Characters
         {
             if (classData == null)
                 return false;
-            return _equippedClassHistory.Contains(classData.name);
+            return _equippedClassHistory.Contains(classData);
         }
 
         #endregion

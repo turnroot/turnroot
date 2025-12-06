@@ -36,7 +36,7 @@ namespace Turnroot.Characters.CharacterClass
         private int _levelWhenEquipped = 1;
 
         [SerializeField]
-        private List<string> _masteredSkillIds = new();
+        private List<Skill> _masteredSkills = new();
 
         private Material _materialInstance;
 
@@ -70,7 +70,7 @@ namespace Turnroot.Characters.CharacterClass
             _isFirstTimeEquipped = true;
             _battlesCompleted = 0;
             _levelWhenEquipped = characterData?.Level ?? 1;
-            _masteredSkillIds = new List<string>();
+            _masteredSkills = new List<Skill>();
         }
 
         // Parameterless constructor for serialization
@@ -326,8 +326,8 @@ namespace Turnroot.Characters.CharacterClass
                 if (mastery.skill == null)
                     continue;
 
-                // Skip if already mastered
-                if (_masteredSkillIds.Contains(mastery.skill.name))
+                // Skip if already mastered (compare by reference, not name)
+                if (_masteredSkills.Contains(mastery.skill))
                     continue;
 
                 bool conditionMet = mastery.criteria switch
@@ -342,7 +342,7 @@ namespace Turnroot.Characters.CharacterClass
                 if (conditionMet)
                 {
                     character.AddSkill(mastery.skill);
-                    _masteredSkillIds.Add(mastery.skill.name);
+                    _masteredSkills.Add(mastery.skill);
                     learnedNewSkill = true;
 
                     Debug.Log(
