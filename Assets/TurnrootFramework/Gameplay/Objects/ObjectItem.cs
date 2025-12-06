@@ -35,14 +35,22 @@ namespace Turnroot.Gameplay.Objects
         [Foldout("Pricing"), SerializeField, HorizontalLine(color: EColor.Gray)]
         private int _basePrice = 100;
 
+        public int BasePrice => _basePrice;
+
         [Foldout("Pricing"), SerializeField]
         private bool _sellable = true;
+
+        public bool Sellable => _sellable;
 
         [Foldout("Pricing"), SerializeField]
         private bool _buyable = true;
 
+        public bool Buyable => _buyable;
+
         [Foldout("Pricing"), SerializeField]
         private int _sellPriceDeductedPerUse = 2;
+
+        public int SellPriceDeductedPerUse => _sellPriceDeductedPerUse;
 
         [
             Foldout("Repair"),
@@ -52,11 +60,15 @@ namespace Turnroot.Gameplay.Objects
         ]
         private bool _repairable = true;
 
+        public bool Repairable => _repairable;
+
         [Foldout("Repair"), SerializeField, ShowIf(nameof(IsWeaponOrMagicSubtypeAndIsRepairable))]
         private int _repairPricePerUse = 10;
 
         [Foldout("Repair"), SerializeField, ShowIf(nameof(IsWeaponOrMagicSubtypeAndIsRepairable))]
         private bool _repairNeedsItems = true;
+
+        public bool RepairNeedsItems => _repairNeedsItems;
 
         [
             Foldout("Repair"),
@@ -65,12 +77,16 @@ namespace Turnroot.Gameplay.Objects
         ]
         private ObjectItem _repairItem;
 
+        public ObjectItem RepairItem => _repairItem;
+
         [
             Foldout("Repair"),
             SerializeField,
             ShowIf(nameof(IsWeaponOrMagicSubtypeAndIsRepairableAndNeedsItems))
         ]
         private int _repairItemAmountPerUse = 1;
+
+        public int RepairItemAmountPerUse => _repairItemAmountPerUse;
 
         [Foldout("Repair"), SerializeField, ShowIf(nameof(IsWeaponOrMagicSubtype))]
         private bool _forgeable = false;
@@ -150,12 +166,14 @@ namespace Turnroot.Gameplay.Objects
 
         [
             Foldout("Durability"),
-            SerializeField,
             HideInInspector,
             ShowIf(nameof(IsWeaponOrMagicSubtype)),
             HorizontalLine(color: EColor.Pink)
         ]
         private bool _durability = true;
+
+        [HideInInspector]
+        public bool Durability => _durability;
 
         [
             Foldout("Durability"),

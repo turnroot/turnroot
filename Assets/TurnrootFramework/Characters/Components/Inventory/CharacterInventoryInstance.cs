@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Turnroot.Characters;
 using Turnroot.Gameplay.Objects;
 using Turnroot.Gameplay.Objects.Components;
 using Turnroot.Serialization;
@@ -14,6 +15,11 @@ public class CharacterInventoryInstance : IPostDeserialize
 {
     [SerializeField]
     private List<ObjectItemInstance> _inventoryItems = new();
+
+    [SerializeField]
+    private CharacterInstance _ownerCharacterInstance;
+
+    public CharacterInstance OwnerCharacterInstance => _ownerCharacterInstance;
 
     [SerializeField]
     private int _capacity = 6;
@@ -36,6 +42,8 @@ public class CharacterInventoryInstance : IPostDeserialize
     public List<ObjectItemInstance> InventoryItems => _inventoryItems;
     public int Capacity => _capacity;
     public int CurrentItemCount => _inventoryItems.Count;
+
+    public bool IsFull => _inventoryItems.Count >= _capacity;
 
     public int CurrentWeight
     {
