@@ -406,15 +406,13 @@ namespace Turnroot.Characters
             {
                 foreach (var classMod in _currentClass.ClassData.growthRateModifiers)
                 {
-                    var existing = effectiveRates.Find(e =>
+                    int index = effectiveRates.FindIndex(e =>
                         e.unboundedStatType == classMod.unboundedStatType
                     );
-                    if (existing.unboundedStatType != default)
+                    if (index != -1)
                     {
                         // Combine with existing personal rate
-                        int index = effectiveRates.FindIndex(e =>
-                            e.unboundedStatType == classMod.unboundedStatType
-                        );
+                        var existing = effectiveRates[index];
                         effectiveRates[index] = new CharacterClass.UnboundedStatModifier(
                             classMod.unboundedStatType,
                             existing.value + classMod.value
