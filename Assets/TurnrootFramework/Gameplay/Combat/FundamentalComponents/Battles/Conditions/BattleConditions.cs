@@ -108,15 +108,32 @@ public class DefeatEnemyBattleCondition : BattleCondition
 
     public void CheckCondition()
     {
-        foreach (var enemy in EnemiesToDefeat)
-        {
-            // get the instance, check IsDefeatedInCurrentBattle
-            // this can only work in runtime, since instances
-            // are created at runtime
+        // Check if all target enemies are defeated
+        // Note: BattleConditions should be connected to GamewideContextBrain via
+        // BattleGameObject.ConnectBattleConditionsToGamewideContextBrain()
 
-            // TODO: Set up a way to get from CharacterData to CharacterInstance at runtime (use GWCB)
+        if (gamewideContextBrain == null)
+        {
+            Debug.LogWarning(
+                "DefeatEnemyBattleCondition: GamewideContextBrain not connected. Call ConnectToGamewideContextBrain first."
+            );
+            return;
         }
-        ConditionMet();
+
+        var instances = gamewideContextBrain.FindInstancesByTemplates(EnemiesToDefeat);
+
+        if (instances.Count == 0)
+        {
+            Debug.LogWarning("DefeatEnemyBattleCondition: No instances found for target enemies.");
+            return;
+        }
+
+        bool allDefeated = instances.All(instance => instance.IsDefeatedInCurrentBattle);
+
+        if (allDefeated)
+        {
+            ConditionMet();
+        }
     }
 }
 

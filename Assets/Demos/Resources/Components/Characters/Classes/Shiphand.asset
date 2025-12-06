@@ -29,18 +29,163 @@ MonoBehaviour:
   - she
   - he
   isUnique: 0
-  experienceRequirements: []
-  selectionMinimumLevel: 0
   movementType: 0
-  movement: 4
-  defaultStatsSource: {fileID: 0}
-  boundedStatModifiers: []
-  unboundedStatModifiers: []
-  statCaps: []
-  weaponProficiencies: []
-  innateSkills: []
-  classAbilities: []
-  masterySkills: []
+  _: 
+  statMinimums:
+  - boundedStatType: 0
+    value: 0
+  - boundedStatType: 1
+    value: 0
+  - boundedStatType: 2
+    value: 0
+  - boundedStatType: 3
+    value: 0
+  unboundedStatMinimums:
+  - unboundedStatType: 0
+    value: 0
+  - unboundedStatType: 1
+    value: 0
+  - unboundedStatType: 2
+    value: 0
+  - unboundedStatType: 3
+    value: 0
+  - unboundedStatType: 4
+    value: 0
+  - unboundedStatType: 5
+    value: 0
+  - unboundedStatType: 6
+    value: 0
+  - unboundedStatType: 7
+    value: 0
+  - unboundedStatType: 8
+    value: 0
+  - unboundedStatType: 9
+    value: 0
+  - unboundedStatType: 10
+    value: 0
+  statCaps:
+  - boundedStatType: 0
+    value: 0
+  - boundedStatType: 1
+    value: 0
+  - boundedStatType: 2
+    value: 0
+  - boundedStatType: 3
+    value: 0
+  unboundedStatCaps:
+  - unboundedStatType: 0
+    value: 0
+  - unboundedStatType: 1
+    value: 0
+  - unboundedStatType: 2
+    value: 0
+  - unboundedStatType: 3
+    value: 0
+  - unboundedStatType: 4
+    value: 0
+  - unboundedStatType: 5
+    value: 0
+  - unboundedStatType: 6
+    value: 0
+  - unboundedStatType: 7
+    value: 0
+  - unboundedStatType: 8
+    value: 0
+  - unboundedStatType: 9
+    value: 0
+  - unboundedStatType: 10
+    value: 0
+  statBonuses:
+  - boundedStatType: 0
+    value: 0
+  - boundedStatType: 1
+    value: 0
+  - boundedStatType: 2
+    value: 0
+  - boundedStatType: 3
+    value: 0
+  unboundedStatBonuses:
+  - unboundedStatType: 0
+    value: 0
+  - unboundedStatType: 1
+    value: 0
+  - unboundedStatType: 2
+    value: 0
+  - unboundedStatType: 3
+    value: 0
+  - unboundedStatType: 4
+    value: 0
+  - unboundedStatType: 5
+    value: 0
+  - unboundedStatType: 6
+    value: 0
+  - unboundedStatType: 7
+    value: 0
+  - unboundedStatType: 8
+    value: 0
+  - unboundedStatType: 9
+    value: 0
+  - unboundedStatType: 10
+    value: 0
+  growthRateModifiers:
+  - unboundedStatType: 0
+    value: 0
+  - unboundedStatType: 1
+    value: 0
+  - unboundedStatType: 2
+    value: 0
+  - unboundedStatType: 3
+    value: 0
+  - unboundedStatType: 4
+    value: 0
+  - unboundedStatType: 5
+    value: 0
+  - unboundedStatType: 6
+    value: 0
+  - unboundedStatType: 7
+    value: 0
+  - unboundedStatType: 8
+    value: 0
+  - unboundedStatType: 9
+    value: 0
+  - unboundedStatType: 10
+    value: 0
+  innateSkills:
+  - {fileID: 11400000, guid: c69ab2335e5db6c4487e1b1369ea383c, type: 2}
+  masteries: []
   certificationItem: {fileID: 0}
+  allowedWeaponTypes: []
+  experienceRequirements: []
   speciesRestrictions: []
-  classChangeBonuses: []
+  classChangeBonuses:
+  - boundedStatType: 0
+    value: 0
+  - boundedStatType: 1
+    value: 0
+  - boundedStatType: 2
+    value: 0
+  - boundedStatType: 3
+    value: 0
+  unboundedClassChangeBonuses:
+  - unboundedStatType: 0
+    value: 0
+  - unboundedStatType: 1
+    value: 0
+  - unboundedStatType: 2
+    value: 0
+  - unboundedStatType: 3
+    value: 0
+  - unboundedStatType: 4
+    value: 0
+  - unboundedStatType: 5
+    value: 0
+  - unboundedStatType: 6
+    value: 0
+  - unboundedStatType: 7
+    value: 0
+  - unboundedStatType: 8
+    value: 0
+  - unboundedStatType: 9
+    value: 0
+  - unboundedStatType: 10
+    value: 0

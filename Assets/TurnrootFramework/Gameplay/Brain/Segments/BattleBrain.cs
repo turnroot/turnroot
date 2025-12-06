@@ -1,4 +1,7 @@
+using Assets.Turnroot.Characters;
 using Assets.Turnroot.Gameplay.Combat;
+using Turnroot.Characters;
+using Turnroot.Characters.Components;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -19,6 +22,11 @@ namespace Assets.Turnroot.Gameplay.Brain
         private BattleGameObject _battleGameObject;
 
         private TurnRotisserie _turnRotisserie;
+
+        // Accessor for current battle's rosters through BattleGameObject
+        public RosterInstance PlayerTeamRoster => _battleGameObject?.PlayerTeamRoster;
+        public RosterInstance EnemyTeamRoster => _battleGameObject?.EnemyTeamRoster;
+        public RosterInstance ThirdPartyTeamRoster => _battleGameObject?.ThirdPartyTeamRoster;
 
         private void Awake()
         {
@@ -48,6 +56,7 @@ namespace Assets.Turnroot.Gameplay.Brain
         private void HandleStartBattle()
         {
             Debug.Log($"BattleBrain Handling StartBattle event.");
+
             for (int i = 0; i < SceneManager.sceneCount; i++)
             {
                 Scene scene = SceneManager.GetSceneAt(i);
@@ -66,6 +75,12 @@ namespace Assets.Turnroot.Gameplay.Brain
                                 $"BattleBrain Found BattleGameObject in scene '{scene.name}'."
                             );
                             _turnRotisserie.HasThirdParty = _battleGameObject.HasThirdParty;
+
+                            // Initialize and populate battle rosters on BattleGameObject
+                            _battleGameObject.InitializeBattleRosters();
+                            _battleGameObject.PopulateBattleRostersFromGamewideContext(
+                                _brain.gamewideContextBrain
+                            );
                             break;
                         }
                     }
@@ -76,13 +91,16 @@ namespace Assets.Turnroot.Gameplay.Brain
         private void HandleExitBattle(BattleExitType exitType)
         {
             Debug.Log($"BattleBrain Handling ExitBattle event with exit type: {exitType}.");
+
+            // Clear temporary battle rosters
+            _battleGameObject?.ClearBattleRosters();
         }
 
         public void OnDestroy()
         {
             if (_brain != null)
             {
-                Debug.Log($"BattleBrain OnDestroy - unsubscribing from OnStartBattle.");
+                Debug.Log($"BattleBrain OnDestroy - unsubscribing from brain events.");
                 _brain.OnStartBattle -= HandleStartBattle;
                 _brain.OnExitBattle -= HandleExitBattle;
             }
