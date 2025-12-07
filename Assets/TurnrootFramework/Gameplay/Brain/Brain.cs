@@ -56,6 +56,7 @@ namespace Assets.Turnroot.Gameplay.Brain
         [HideInInspector]
         public StorehouseBrain storehouseBrain;
 
+        [HideInInspector]
         public LongTermMemory ltm;
 
         // Scene-level dependencies
