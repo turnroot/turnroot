@@ -3,6 +3,7 @@ using Assets.Turnroot.Gameplay.Combat;
 using Turnroot.Characters;
 using Turnroot.Characters.Components.Support;
 using Turnroot.Conversations;
+using Turnroot.Gameplay.Objects;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -29,6 +30,8 @@ namespace Assets.Turnroot.Gameplay.Brain
     [RequireComponent(typeof(GamewideContextBrain))]
     [RequireComponent(typeof(CharactersBrain))]
     [RequireComponent(typeof(BattleBrain))]
+    [RequireComponent(typeof(InventoryBrain))]
+    [RequireComponent(typeof(StorehouseBrain))]
     public class Brain : MonoBehaviour
     {
         // Core components
@@ -46,6 +49,13 @@ namespace Assets.Turnroot.Gameplay.Brain
 
         [HideInInspector]
         public BattleBrain battleBrain;
+
+        [HideInInspector]
+        public InventoryBrain inventoryBrain;
+
+        [HideInInspector]
+        public StorehouseBrain storehouseBrain;
+
         public LongTermMemory ltm;
 
         // Scene-level dependencies
@@ -184,6 +194,80 @@ namespace Assets.Turnroot.Gameplay.Brain
         )
         {
             OnSupportIncreased?.Invoke(character, targetCharacter, amount);
+        }
+
+        #endregion
+
+        #region Item Events
+
+        public event Action<ObjectItemInstance, int> OnItemUsed;
+        public event Action<ObjectItemInstance> OnItemBroken;
+        public event Action<ObjectItemInstance, CharacterInventoryInstance> OnItemTransferred;
+        public event Action<ObjectItemInstance> OnItemDiscarded;
+        public event Action<ObjectItemInstance> OnItemSold;
+        public event Action<ObjectItemInstance, CharacterInventoryInstance> OnItemBought;
+        public event Action<ObjectItemInstance, int> OnItemRepaired;
+        public event Action<ObjectItemInstance, ObjectItem> OnItemForged;
+        public event Action<ObjectItemInstance> OnItemDeposited;
+        public event Action<ObjectItemInstance, CharacterInventoryInstance> OnItemWithdrawn;
+
+        public void PublishItemUsed(ObjectItemInstance item, int remainingUses)
+        {
+            OnItemUsed?.Invoke(item, remainingUses);
+        }
+
+        public void PublishItemBroken(ObjectItemInstance item)
+        {
+            OnItemBroken?.Invoke(item);
+        }
+
+        public void PublishItemTransferred(
+            ObjectItemInstance item,
+            CharacterInventoryInstance targetInventory
+        )
+        {
+            OnItemTransferred?.Invoke(item, targetInventory);
+        }
+
+        public void PublishItemDiscarded(ObjectItemInstance item)
+        {
+            OnItemDiscarded?.Invoke(item);
+        }
+
+        public void PublishItemSold(ObjectItemInstance item)
+        {
+            OnItemSold?.Invoke(item);
+        }
+
+        public void PublishItemBought(
+            ObjectItemInstance item,
+            CharacterInventoryInstance buyerInventory
+        )
+        {
+            OnItemBought?.Invoke(item, buyerInventory);
+        }
+
+        public void PublishItemRepaired(ObjectItemInstance item, int repairUses)
+        {
+            OnItemRepaired?.Invoke(item, repairUses);
+        }
+
+        public void PublishItemForged(ObjectItemInstance item, ObjectItem targetItem)
+        {
+            OnItemForged?.Invoke(item, targetItem);
+        }
+
+        public void PublishItemDeposited(ObjectItemInstance item)
+        {
+            OnItemDeposited?.Invoke(item);
+        }
+
+        public void PublishItemWithdrawn(
+            ObjectItemInstance item,
+            CharacterInventoryInstance targetInventory
+        )
+        {
+            OnItemWithdrawn?.Invoke(item, targetInventory);
         }
 
         #endregion

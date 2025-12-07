@@ -182,12 +182,29 @@ This pattern eliminates exception handling for expected failure cases. When a tr
 
 You can extend this pattern throughout your game. Any operation that can fail in expected ways should return an OperationResult. Combat actions, conversation choices, quest objectives—all can use this pattern for consistent error handling and user feedback.
 
+# TODO: Integrate OperationResult into more stuff
+
 ## Integration with the Brain System
 
-While the current files show item operations happening directly on ObjectItemInstance, a complete integration with the Brain system would publish events for item-related actions. You might have events like `OnItemUsed`, `OnItemTransferred`, `OnItemBroken`, `OnItemRepaired`, or `OnItemForged`. These would follow the same pattern as character events—a specialized ItemBrain or InventoryBrain component would publish events through the main Brain, and other systems could subscribe to react.
+The item system is fully integrated with the Brain architecture through two specialized components: **InventoryBrain** and **StorehouseBrain**.
 
-// TODO: This!!!! ^
+**InventoryBrain** manages all item operations and publishes events through the main Brain. Instead of calling methods directly on ObjectItemInstance (which are now internal), you call methods on InventoryBrain:
 
-This would let you layer behavior without modifying item code. Maybe your achievement system subscribes to `OnItemForged` to track forged weapons. Your audio system subscribes to `OnItemBroken` to play a breaking sound. Your UI system subscribes to `OnItemTransferred` to update inventory displays. The farfalle architecture applies equally well to items as to characters.
+- `UseItem(item)` - Uses an item, publishes `OnItemUsed`, and publishes `OnItemBroken` if durability reaches zero
+- `TransferItem(item, targetInventory)` - Transfers between inventories, publishes `OnItemTransferred`
+- `DiscardItem(item)` - Removes from inventory, publishes `OnItemDiscarded`
+- `SellItem(item)` - Sells item, publishes `OnItemSold`
+- `BuyItem(item, buyerInventory)` - Purchases item, publishes `OnItemBought`
+- `RepairItem(item, repairUses)` - Restores durability, publishes `OnItemRepaired`
+- `ForgeItem(item, targetItem)` - Upgrades item, publishes `OnItemForged`
 
-The TODO comments in the ObjectItemInstance code highlight integration points. Gold economy operations need connection to an EconomyBrain or CurrencySystem. Storehouse/convoy operations need connection to a shared storage system. These integrations would follow the established patterns—reference the Brain, call methods on specialized components, publish events when state changes, and let subscribers react appropriately.
+**StorehouseBrain** manages shared storage (convoy/warehouse) for items and materials. It provides:
+
+- `DepositItem(item)` - Adds item to storehouse, publishes `OnItemDeposited`
+- `WithdrawItem(item, targetInventory)` - Removes from storehouse, publishes `OnItemWithdrawn`
+- `HasMaterials(material, amount)` - Checks if sufficient materials are available
+- `ConsumeMaterials(material, amount)` - Uses materials for repairs/forging
+- `AddMaterials(material, amount)` - Adds materials to storage
+- `GetMaterialCount(material)` - Queries material quantities
+
+This architecture lets you layer behavior without modifying item code. Your achievement system can subscribe to `OnItemForged` to track forged weapons. Your audio system subscribes to `OnItemBroken` to play breaking sounds. Your UI system subscribes to `OnItemTransferred` to update displays. The farfalle pattern ensures all game systems react to item state changes through a central event hub.

@@ -27,11 +27,12 @@ namespace Turnroot.Gameplay.Objects
 
         /// <summary>
         /// Use the item once, reducing its durability if applicable.
+        /// Internal - use InventoryBrain.UseItem() to publish events.
         /// </summary>
         /// <returns>
         /// Remaining uses left. -1 if the item is not durable.
         /// </returns>
-        public int Use()
+        internal int Use()
         {
             if (!_template.Durability)
             {
@@ -59,8 +60,9 @@ namespace Turnroot.Gameplay.Objects
 
         /// <summary>
         /// Transfers this item to a target inventory.
+        /// Internal - use InventoryBrain.TransferItem() to publish events.
         /// </summary>
-        public OperationResult Transfer(CharacterInventoryInstance targetInventory)
+        internal OperationResult Transfer(CharacterInventoryInstance targetInventory)
         {
             if (_template.IsUnequippable)
                 return OperationResult.Failure("Cannot transfer an unequippable item.");
@@ -87,8 +89,9 @@ namespace Turnroot.Gameplay.Objects
 
         /// <summary>
         /// Discards this item from the owner's inventory.
+        /// Internal - use InventoryBrain.DiscardItem() to publish events.
         /// </summary>
-        public OperationResult Discard()
+        internal OperationResult Discard()
         {
             if (_template.IsUnequippable)
                 return OperationResult.Failure("Cannot discard an unequippable item.");
@@ -110,8 +113,9 @@ namespace Turnroot.Gameplay.Objects
 
         /// <summary>
         /// Sells this item and removes it from inventory.
+        /// Internal - use InventoryBrain.SellItem() to publish events.
         /// </summary>
-        public OperationResult Sell()
+        internal OperationResult Sell()
         {
             if (_template.IsUnequippable || !_template.Sellable)
                 return OperationResult.Failure("Cannot sell this item.");
@@ -138,8 +142,9 @@ namespace Turnroot.Gameplay.Objects
 
         /// <summary>
         /// Buys this item and adds it to the buyer's inventory.
+        /// Internal - use InventoryBrain.BuyItem() to publish events.
         /// </summary>
-        public OperationResult Buy(CharacterInventoryInstance buyerInventory)
+        internal OperationResult Buy(CharacterInventoryInstance buyerInventory)
         {
             if (_template.IsUnequippable || !_template.Buyable)
                 return OperationResult.Failure("Cannot buy this item.");
@@ -174,8 +179,9 @@ namespace Turnroot.Gameplay.Objects
 
         /// <summary>
         /// Repairs this item by restoring the specified number of uses.
+        /// Internal - use InventoryBrain.RepairItem() to publish events.
         /// </summary>
-        public OperationResult Repair(int repairUses)
+        internal OperationResult Repair(int repairUses)
         {
             if (!_template.Repairable || !_template.Durability)
                 return OperationResult.Failure("Cannot repair a non-repairable item.");
