@@ -12,32 +12,34 @@ namespace Assets.Turnroot.Gameplay.Brain
     /// In keeping with the farfalle architecture, events are propagated upwards to Brain,
     /// which then sends them out as needed.
     /// </summary>
-    [RequireComponent(typeof(Brain))]
-    [RequireComponent(typeof(GamewideContextBrain))]
-    [RequireComponent(typeof(BattleBrain))]
-    public class CharactersBrain : MonoBehaviour
+    public class CharactersBrain : BrainComponent
     {
-        private Brain _brain;
         private GamewideContextBrain _gamewideContextBrain;
         private BattleBrain _battleBrain;
 
-        private void Awake()
+        protected override void Awake()
         {
-            _brain = GetComponent<Brain>();
+            base.Awake(); // Calls parent Awake which gets Brain and subscribes
             _gamewideContextBrain = GetComponent<GamewideContextBrain>();
             _battleBrain = GetComponent<BattleBrain>();
-
-            Debug.Log("CharactersBrain Awake - subscribing to brain events.");
-            SubscribeToBrainEvents();
         }
 
-        public void SubscribeToBrainEvents()
+        protected override void SubscribeToBrainEvents()
         {
             _brain.OnStartBattle += HandleStartBattle;
             _brain.OnExitBattle += HandleExitBattle;
             _brain.OnPlayerTurnStarted += HandlePlayerTurnStarted;
             _brain.OnEnemyTurnStarted += HandleEnemyTurnStarted;
             _brain.OnThirdPartyTurnStarted += HandleThirdPartyTurnStarted;
+        }
+
+        protected override void UnsubscribeFromBrainEvents()
+        {
+            _brain.OnStartBattle -= HandleStartBattle;
+            _brain.OnExitBattle -= HandleExitBattle;
+            _brain.OnPlayerTurnStarted -= HandlePlayerTurnStarted;
+            _brain.OnEnemyTurnStarted -= HandleEnemyTurnStarted;
+            _brain.OnThirdPartyTurnStarted -= HandleThirdPartyTurnStarted;
         }
 
         #region Battle Lifecycle Handlers
@@ -52,7 +54,6 @@ namespace Assets.Turnroot.Gameplay.Brain
         {
             Debug.Log($"CharactersBrain: Handling battle exit with type: {exitType}");
 
-            // Save character progression after battle (except on defeat)
             if (
                 exitType == Combat.BattleExitType.Victory
                 || exitType == Combat.BattleExitType.Bookmark
@@ -61,7 +62,6 @@ namespace Assets.Turnroot.Gameplay.Brain
                 SaveBattleParticipantsProgress();
             }
 
-            // Reset per-battle statistics
             ResetBattleStatistics();
         }
 
@@ -89,7 +89,6 @@ namespace Assets.Turnroot.Gameplay.Brain
             if (_battleBrain == null)
                 return;
 
-            // Get characters from appropriate battle rosters based on faction
             var characters = new List<CharacterInstance>();
 
             foreach (var factionType in factionTypes)
@@ -125,9 +124,6 @@ namespace Assets.Turnroot.Gameplay.Brain
 
         #region Battle Statistics Management
 
-        /// <summary>
-        /// Initialize battle statistics for all characters at battle start.
-        /// </summary>
         private void InitializeBattleStatistics()
         {
             if (_battleBrain == null)
@@ -152,9 +148,6 @@ namespace Assets.Turnroot.Gameplay.Brain
             );
         }
 
-        /// <summary>
-        /// Reset per-battle statistics for all characters.
-        /// </summary>
         private void ResetBattleStatistics()
         {
             if (_battleBrain == null)
@@ -172,10 +165,6 @@ namespace Assets.Turnroot.Gameplay.Brain
             Debug.Log("CharactersBrain: Reset battle statistics for all characters.");
         }
 
-        /// <summary>
-        /// Save character progression after battle completion.
-        /// Persists unique characters to LongTermMemory and checks mastery conditions.
-        /// </summary>
         private void SaveBattleParticipantsProgress()
         {
             if (_gamewideContextBrain == null || _battleBrain == null)
@@ -195,16 +184,13 @@ namespace Assets.Turnroot.Gameplay.Brain
                 if (character == null)
                     continue;
 
-                // Increment battle count for current class
                 character.CurrentClass?.IncrementBattleCount();
 
-                // Check mastery conditions and learn skills
                 if (character.CurrentClass?.CheckMasteryConditions(character) == true)
                 {
                     masteryCount++;
                 }
 
-                // Save unique characters to LongTermMemory
                 if (character.CharacterTemplate?.IsUnique == true)
                 {
                     _gamewideContextBrain.SaveUniqueCharacterProgress(character);
@@ -217,9 +203,6 @@ namespace Assets.Turnroot.Gameplay.Brain
             );
         }
 
-        /// <summary>
-        /// Get all characters currently in battle rosters.
-        /// </summary>
         private List<CharacterInstance> GetAllBattleCharacters()
         {
             var characters = new List<CharacterInstance>();
@@ -313,6 +296,22 @@ namespace Assets.Turnroot.Gameplay.Brain
         }
 
         /// <summary>
+        /// Remove a skill from a character and publish the removed skill event.
+        /// </summary>
+        public void RemoveSkill(CharacterInstance character, SkillInstance skill)
+        {
+            if (character == null || skill == null)
+                return;
+
+            character.RemoveSkill(skill);
+            _brain?.PublishCharacterRemovedSkill(character, skill.SkillTemplate);
+
+            Debug.Log(
+                $"{character.CharacterTemplate?.DisplayName} removed skill: {skill.SkillTemplate?.SkillName}"
+            );
+        }
+
+        /// <summary>
         /// Change character's class and publish the class changed event.
         /// </summary>
         public bool ChangeCharacterClass(
@@ -334,6 +333,42 @@ namespace Assets.Turnroot.Gameplay.Brain
         }
 
         /// <summary>
+        /// Add experience to a character's experience rank and publish event.
+        /// </summary>
+        public void AddExperience(CharacterInstance character, string experienceTypeId, int amount)
+        {
+            if (character == null || string.IsNullOrEmpty(experienceTypeId))
+                return;
+
+            character.AddExperience(experienceTypeId, amount);
+            _brain?.PublishExperienceGained(character, experienceTypeId, amount);
+
+            Debug.Log(
+                $"{character.CharacterTemplate?.DisplayName} gained {amount} {experienceTypeId} experience"
+            );
+        }
+
+        /// <summary>
+        /// Increase support level between two characters and publish event.
+        /// </summary>
+        public void IncreaseSupport(
+            CharacterInstance character,
+            CharacterData targetCharacter,
+            int amount
+        )
+        {
+            if (character == null || targetCharacter == null)
+                return;
+
+            character.IncreaseSupport(targetCharacter, amount);
+            _brain?.PublishSupportIncreased(character, targetCharacter, amount);
+
+            Debug.Log(
+                $"Support increased between {character.CharacterTemplate?.DisplayName} and {targetCharacter.DisplayName}"
+            );
+        }
+
+        /// <summary>
         /// Get all currently active character instances.
         /// </summary>
         public List<CharacterInstance> GetAllActiveCharacters()
@@ -350,18 +385,5 @@ namespace Assets.Turnroot.Gameplay.Brain
         }
 
         #endregion
-
-        private void OnDestroy()
-        {
-            if (_brain != null)
-            {
-                Debug.Log("CharactersBrain OnDestroy - unsubscribing from brain events.");
-                _brain.OnStartBattle -= HandleStartBattle;
-                _brain.OnExitBattle -= HandleExitBattle;
-                _brain.OnPlayerTurnStarted -= HandlePlayerTurnStarted;
-                _brain.OnEnemyTurnStarted -= HandleEnemyTurnStarted;
-                _brain.OnThirdPartyTurnStarted -= HandleThirdPartyTurnStarted;
-            }
-        }
     }
 }

@@ -8,12 +8,6 @@ using UnityEngine;
 /// A replacement for Unity's PlayerPrefs that stores data in a JSON file.
 /// Supports key encoding for obfuscation and change tracking via events.
 /// </summary>
-/// <example>
-/// JsonPlayerPrefs prefs = new JsonPlayerPrefs(Application.persistentDataPath + "/Preferences.json");
-/// prefs.SetInt("testKey", 18);
-/// prefs.Save();
-/// int i = prefs.GetInt("testKey");
-/// </example>
 [Serializable]
 public class JsonPlayerPrefs
 {
@@ -40,14 +34,8 @@ public class JsonPlayerPrefs
     private int cachedKeysVersion = -1;
     private List<string> cachedDecodedKeys = null;
 
-    /// <summary>
-    /// Expose the current key cache version for consumers that want to detect changes.
-    /// </summary>
     public int KeyCacheVersion => keyCacheVersion;
 
-    /// <summary>
-    /// Fired when the internal keyset changes (keys added/removed). The int is the new keyCacheVersion.
-    /// </summary>
     public event Action<int> OnKeySetChanged;
 
     #region Initialization
@@ -94,46 +82,79 @@ public class JsonPlayerPrefs
 
     #endregion
 
+    #region Generic Get/Set Implementation
+
+    private T GetValue<T>(string key, T defaultValue, Func<string, (bool success, T value)> parser)
+    {
+        if (TryGetPlayerPref(key, out PlayerPref playerPref))
+        {
+            var (success, value) = parser(playerPref.value);
+            if (success)
+            {
+                return value;
+            }
+        }
+        return defaultValue;
+    }
+
+    private void SetValue<T>(string key, T value)
+    {
+        var stringValue = value switch
+        {
+            float f => f.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            _ => value?.ToString() ?? string.Empty,
+        };
+
+        var encoded = EncodeKey(key);
+        if (TryGetPlayerPrefInternal(encoded, out PlayerPref playerPref))
+        {
+            playerPref.value = stringValue;
+        }
+        else
+        {
+            playerPrefs.Add(new PlayerPref(encoded, stringValue));
+            InvalidateKeyCache();
+        }
+    }
+
+    #endregion
+
     #region Public API - Get
 
     public float GetFloat(string key, float defaultValue = 0f)
     {
-        if (TryGetPlayerPref(key, out PlayerPref playerPref))
-        {
-            if (
-                float.TryParse(
-                    playerPref.value,
+        return GetValue(
+            key,
+            defaultValue,
+            value =>
+            {
+                bool success = float.TryParse(
+                    value,
                     System.Globalization.NumberStyles.Any,
                     System.Globalization.CultureInfo.InvariantCulture,
-                    out float value
-                )
-            )
-            {
-                return value;
+                    out float result
+                );
+                return (success, result);
             }
-        }
-        return defaultValue;
+        );
     }
 
     public int GetInt(string key, int defaultValue = 0)
     {
-        if (TryGetPlayerPref(key, out PlayerPref playerPref))
-        {
-            if (int.TryParse(playerPref.value, out int value))
+        return GetValue(
+            key,
+            defaultValue,
+            value =>
             {
-                return value;
+                bool success = int.TryParse(value, out int result);
+                return (success, result);
             }
-        }
-        return defaultValue;
+        );
     }
 
     public string GetString(string key, string defaultValue = "")
     {
-        if (TryGetPlayerPref(key, out PlayerPref playerPref))
-        {
-            return playerPref.value;
-        }
-        return defaultValue;
+        return GetValue(key, defaultValue, value => (true, value));
     }
 
     public bool GetBool(string key, bool defaultValue = false)
@@ -152,43 +173,18 @@ public class JsonPlayerPrefs
 
     #region Public API - Set
 
-    public void SetFloat(string key, float value)
-    {
-        SetString(key, value.ToString(System.Globalization.CultureInfo.InvariantCulture));
-    }
+    public void SetFloat(string key, float value) => SetValue(key, value);
 
-    public void SetInt(string key, int value)
-    {
-        SetString(key, value.ToString());
-    }
+    public void SetInt(string key, int value) => SetValue(key, value);
 
-    public void SetString(string key, string value)
-    {
-        var encoded = EncodeKey(key);
+    public void SetString(string key, string value) => SetValue(key, value);
 
-        if (TryGetPlayerPrefInternal(encoded, out PlayerPref playerPref))
-        {
-            playerPref.value = value;
-        }
-        else
-        {
-            playerPrefs.Add(new PlayerPref(encoded, value));
-            InvalidateKeyCache();
-        }
-    }
-
-    public void SetBool(string key, bool value)
-    {
-        SetInt(key, value ? 1 : 0);
-    }
+    public void SetBool(string key, bool value) => SetValue(key, value ? 1 : 0);
 
     #endregion
 
     #region Public API - Delete
 
-    /// <summary>
-    /// Removes all keys and values from the preferences. Use with caution.
-    /// </summary>
     public void DeleteAll()
     {
         if (playerPrefs.Count > 0)
@@ -198,9 +194,6 @@ public class JsonPlayerPrefs
         }
     }
 
-    /// <summary>
-    /// Removes key and its corresponding value from the preferences.
-    /// </summary>
     public void DeleteKey(string key)
     {
         var encoded = EncodeKey(key);
@@ -216,9 +209,6 @@ public class JsonPlayerPrefs
 
     #region Public API - Save
 
-    /// <summary>
-    /// Writes all modified preferences to disk.
-    /// </summary>
     public void Save()
     {
         string directory = Path.GetDirectoryName(savePath);

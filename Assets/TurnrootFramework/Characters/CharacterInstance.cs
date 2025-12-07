@@ -467,7 +467,7 @@ namespace Turnroot.Characters
         /// <summary>
         /// Increase support level with another character.
         /// </summary>
-        public void IncreaseSupport(CharacterData character, int amount)
+        internal void IncreaseSupport(CharacterData character, int amount)
         {
             var relationship = GetSupportRelationship(character);
             if (relationship != null)
@@ -497,7 +497,7 @@ namespace Turnroot.Characters
         /// <summary>
         /// Add a skill from a template.
         /// </summary>
-        public void AddSkill(Skill skillTemplate)
+        internal void AddSkill(Skill skillTemplate)
         {
             var skillInstance = new SkillInstance(skillTemplate);
             _skillInstances.Add(skillInstance);
@@ -506,7 +506,7 @@ namespace Turnroot.Characters
         /// <summary>
         /// Remove a skill instance.
         /// </summary>
-        public void RemoveSkill(SkillInstance skillInstance)
+        internal void RemoveSkill(SkillInstance skillInstance)
         {
             _skillInstances.Remove(skillInstance);
         }
@@ -526,7 +526,7 @@ namespace Turnroot.Characters
         /// <summary>
         /// Add experience to a specific experience type.
         /// </summary>
-        public void AddExperience(string experienceTypeId, int amount)
+        internal void AddExperience(string experienceTypeId, int amount)
         {
             var rank = GetExperienceRank(experienceTypeId);
             if (rank != null)

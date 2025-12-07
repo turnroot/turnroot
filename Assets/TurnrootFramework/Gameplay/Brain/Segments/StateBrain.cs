@@ -21,15 +21,37 @@ public class BrainState
     }
 }
 
+/// <summary>
+/// Constant state names for type safety and refactoring ease.
+/// </summary>
+public static class BrainStateNames
+{
+    // High-level states
+    public const string Combat = "Combat";
+    public const string Paused = "Paused";
+    public const string Cutscene = "Cutscene";
+    public const string WorldMap = "WorldMap";
+    public const string MainMenu = "MainMenu";
+    public const string GameOver = "GameOver";
+    public const string Credits = "Credits";
+    public const string NonCombatGameplay = "NonCombatGameplay";
+    public const string Hub = "Hub";
+
+    // Battle child states
+    public const string PreBattle = "PreBattle";
+    public const string PlayerTurn = "PlayerTurn";
+    public const string EnemyTurn = "EnemyTurn";
+    public const string ThirdPartyTurn = "ThirdPartyTurn";
+    public const string SpecialCircumstances = "SpecialCircumstances";
+    public const string PostBattle = "PostBattle";
+}
+
 namespace Assets.Turnroot.Gameplay.Brain
 {
     /// <summary>
     /// Manages high-level game states and transitions within the brain system.
-    /// LongTermMemory persists state information.
-    /// Brains have a farfalle structure >< :)
     /// </summary>
-    [RequireComponent(typeof(Brain))]
-    public class StateBrain : MonoBehaviour
+    public class StateBrain : BrainComponent
     {
         private static class LtmKeys
         {
@@ -43,17 +65,26 @@ namespace Assets.Turnroot.Gameplay.Brain
 
         private BrainState[] _highLevelStates;
         private BrainState _savedStateBeforePause;
-        private Brain _brain;
 
-        #region Initialization
-
-        public void Awake()
+        protected override void Awake()
         {
+            base.Awake(); // Calls parent Awake
             Debug.Log("StateBrain Awake called.");
-            _brain = GetComponent<Brain>();
             InitializeHighLevelStates();
             InitializeBattleChildStates();
         }
+
+        protected override void SubscribeToBrainEvents()
+        {
+            // StateBrain doesn't subscribe to events, it publishes them
+        }
+
+        protected override void UnsubscribeFromBrainEvents()
+        {
+            // No subscriptions to clean up
+        }
+
+        #region Initialization
 
         public void InitializeHighLevelStates()
         {
@@ -73,7 +104,7 @@ namespace Assets.Turnroot.Gameplay.Brain
 
         public void InitializeBattleChildStates()
         {
-            var battleState = FindHighLevelState("Combat");
+            var battleState = FindHighLevelState(BrainStateNames.Combat);
             if (battleState == null)
             {
                 Debug.LogError("Combat state not found. Cannot initialize battle child states.");
@@ -96,7 +127,7 @@ namespace Assets.Turnroot.Gameplay.Brain
 
         public void SetBattleChildStates()
         {
-            var battleState = FindHighLevelState("Combat");
+            var battleState = FindHighLevelState(BrainStateNames.Combat);
             if (battleState == null)
             {
                 Debug.LogError("Combat state not found.");
@@ -105,12 +136,12 @@ namespace Assets.Turnroot.Gameplay.Brain
 
             var childStates = new System.Collections.Generic.List<BrainState>
             {
-                new("PreBattle", null, new[] { battleState }),
-                new("PlayerTurn", null, new[] { battleState }),
-                new("EnemyTurn", null, new[] { battleState }),
-                new("ThirdPartyTurn", null, new[] { battleState }),
-                new("SpecialCircumstances", null, new[] { battleState }),
-                new("PostBattle", null, new[] { battleState }),
+                new(BrainStateNames.PreBattle, null, new[] { battleState }),
+                new(BrainStateNames.PlayerTurn, null, new[] { battleState }),
+                new(BrainStateNames.EnemyTurn, null, new[] { battleState }),
+                new(BrainStateNames.ThirdPartyTurn, null, new[] { battleState }),
+                new(BrainStateNames.SpecialCircumstances, null, new[] { battleState }),
+                new(BrainStateNames.PostBattle, null, new[] { battleState }),
             };
 
             battleState.ParentOfStates = childStates.ToArray();
@@ -121,23 +152,23 @@ namespace Assets.Turnroot.Gameplay.Brain
         {
             var states = new System.Collections.Generic.List<BrainState>
             {
-                new("Cutscene"),
-                new("Paused"),
-                new("Combat"),
-                new("WorldMap"),
+                new(BrainStateNames.Cutscene),
+                new(BrainStateNames.Paused),
+                new(BrainStateNames.Combat),
+                new(BrainStateNames.WorldMap),
             };
 
 #if TURNROOT_CAMP_MODULE
-            states.Add(new BrainState("Hub"));
+            states.Add(new BrainState(BrainStateNames.Hub));
 #endif
 
             states.AddRange(
                 new[]
                 {
-                    new BrainState("MainMenu"),
-                    new BrainState("GameOver"),
-                    new BrainState("Credits"),
-                    new BrainState("NonCombatGameplay"),
+                    new BrainState(BrainStateNames.MainMenu),
+                    new BrainState(BrainStateNames.GameOver),
+                    new BrainState(BrainStateNames.Credits),
+                    new BrainState(BrainStateNames.NonCombatGameplay),
                 }
             );
 
@@ -171,7 +202,7 @@ namespace Assets.Turnroot.Gameplay.Brain
 
         private bool TryRestoreBattleChildStates()
         {
-            var battleState = FindHighLevelState("Combat");
+            var battleState = FindHighLevelState(BrainStateNames.Combat);
             if (battleState == null)
             {
                 Debug.LogError("Combat state not found.");
@@ -227,7 +258,7 @@ namespace Assets.Turnroot.Gameplay.Brain
 
         private void SaveBattleChildStates()
         {
-            var battleState = FindHighLevelState("Combat");
+            var battleState = FindHighLevelState(BrainStateNames.Combat);
             if (battleState == null || battleState.ParentOfStates == null || _brain?.ltm == null)
                 return;
 
@@ -342,7 +373,7 @@ namespace Assets.Turnroot.Gameplay.Brain
 
         private bool SetPausedState(bool isPaused)
         {
-            var pausedState = FindHighLevelState("Paused");
+            var pausedState = FindHighLevelState(BrainStateNames.Paused);
             if (pausedState == null)
             {
                 Debug.LogError("Paused state not found.");
@@ -373,13 +404,5 @@ namespace Assets.Turnroot.Gameplay.Brain
         }
 
         #endregion
-
-#if UNITY_EDITOR
-        private void OnValidate()
-        {
-            if (_brain == null)
-                _brain = GetComponent<Brain>();
-        }
-#endif
     }
 }

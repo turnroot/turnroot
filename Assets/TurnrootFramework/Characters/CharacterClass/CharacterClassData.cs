@@ -262,63 +262,46 @@ namespace Turnroot.Characters.CharacterClass
             if (defaultStats == null)
                 return;
 
-            // Bounded stat lists
-            ValidateBoundedStatList(
-                statMinimums,
-                defaultStats.DefaultBoundedStats,
-                nameof(statMinimums),
-                (stat) => new StatModifier(stat.StatType, 0)
-            );
-            ValidateBoundedStatList(
-                statCaps,
-                defaultStats.DefaultBoundedStats,
-                nameof(statCaps),
-                (stat) => new StatModifier(stat.StatType, 0)
-            );
-            ValidateBoundedStatList(
-                statBonuses,
-                defaultStats.DefaultBoundedStats,
-                nameof(statBonuses),
-                (stat) => new StatModifier(stat.StatType, 0)
-            );
-            ValidateBoundedStatList(
-                classChangeBonuses,
-                defaultStats.DefaultBoundedStats,
-                nameof(classChangeBonuses),
-                (stat) => new StatModifier(stat.StatType, 0)
-            );
+            // Define all bounded stat lists to validate in one place
+            var boundedStatLists = new[]
+            {
+                (list: statMinimums, name: nameof(statMinimums)),
+                (list: statCaps, name: nameof(statCaps)),
+                (list: statBonuses, name: nameof(statBonuses)),
+                (list: classChangeBonuses, name: nameof(classChangeBonuses)),
+            };
 
-            // Unbounded stat lists
-            ValidateUnboundedStatList(
-                unboundedStatMinimums,
-                defaultStats.DefaultUnboundedStats,
-                nameof(unboundedStatMinimums),
-                (stat) => new UnboundedStatModifier(stat.StatType, 0)
-            );
-            ValidateUnboundedStatList(
-                unboundedStatCaps,
-                defaultStats.DefaultUnboundedStats,
-                nameof(unboundedStatCaps),
-                (stat) => new UnboundedStatModifier(stat.StatType, 0)
-            );
-            ValidateUnboundedStatList(
-                unboundedStatBonuses,
-                defaultStats.DefaultUnboundedStats,
-                nameof(unboundedStatBonuses),
-                (stat) => new UnboundedStatModifier(stat.StatType, 0)
-            );
-            ValidateUnboundedStatList(
-                growthRateModifiers,
-                defaultStats.DefaultUnboundedStats,
-                nameof(growthRateModifiers),
-                (stat) => new UnboundedStatModifier(stat.StatType, 0)
-            );
-            ValidateUnboundedStatList(
-                unboundedClassChangeBonuses,
-                defaultStats.DefaultUnboundedStats,
-                nameof(unboundedClassChangeBonuses),
-                (stat) => new UnboundedStatModifier(stat.StatType, 0)
-            );
+            // Validate all bounded lists with single loop
+            foreach (var (list, name) in boundedStatLists)
+            {
+                ValidateBoundedStatList(
+                    list,
+                    defaultStats.DefaultBoundedStats,
+                    name,
+                    (stat) => new StatModifier(stat.StatType, 0)
+                );
+            }
+
+            // Define all unbounded stat lists
+            var unboundedStatLists = new[]
+            {
+                (list: unboundedStatMinimums, name: nameof(unboundedStatMinimums)),
+                (list: unboundedStatCaps, name: nameof(unboundedStatCaps)),
+                (list: unboundedStatBonuses, name: nameof(unboundedStatBonuses)),
+                (list: growthRateModifiers, name: nameof(growthRateModifiers)),
+                (list: unboundedClassChangeBonuses, name: nameof(unboundedClassChangeBonuses)),
+            };
+
+            // Validate all unbounded lists
+            foreach (var (list, name) in unboundedStatLists)
+            {
+                ValidateUnboundedStatList(
+                    list,
+                    defaultStats.DefaultUnboundedStats,
+                    name,
+                    (stat) => new UnboundedStatModifier(stat.StatType, 0)
+                );
+            }
         }
 
         private void ValidateBoundedStatList(

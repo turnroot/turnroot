@@ -11,11 +11,8 @@ namespace Assets.Turnroot.Gameplay.Brain
     /// <summary>
     /// Manages gamewide context within the game's brain system.
     /// Holds all instances and handles Data -> Instance conversions.
-    /// Encodes and decodes instances to/from strings for LongTermMemory storage.
     /// </summary>
-    [RequireComponent(typeof(Brain))]
-    [RequireComponent(typeof(LongTermMemory))]
-    public class GamewideContextBrain : MonoBehaviour
+    public class GamewideContextBrain : BrainComponent
     {
         private static class LtmKeys
         {
@@ -35,9 +32,9 @@ namespace Assets.Turnroot.Gameplay.Brain
         private List<Roster> rosters = new List<Roster>();
         public IReadOnlyList<Roster> ConfiguredRosters => rosters;
 
-        // Cache of active RosterInstance references to avoid expensive FindObjectsByType calls
-        private List<RosterInstance> _cachedRosterInstances = new List<RosterInstance>();
-        private bool _rosterCacheDirty = true;
+        // Lazy-loading roster cache with automatic invalidation
+        private List<RosterInstance> _cachedRosterInstances;
+        private int _lastRosterCount = -1;
 
         [Header("Tamper Detection")]
         [Tooltip(
@@ -52,47 +49,56 @@ namespace Assets.Turnroot.Gameplay.Brain
             set => tamperPolicy = value;
         }
 
-        #region Initialization
+        protected override void Awake()
+        {
+            base.Awake(); // Calls parent Awake
+        }
+
+        protected override void SubscribeToBrainEvents()
+        {
+            _brain.OnRosterReady += HandleRosterReady;
+        }
+
+        protected override void UnsubscribeFromBrainEvents()
+        {
+            _brain.OnRosterReady -= HandleRosterReady;
+        }
 
         public void Start()
         {
             RecallRosters();
         }
 
-        #endregion
+        private void HandleRosterReady(RosterInstance instance)
+        {
+            // Automatically invalidate cache when new roster is created
+            _lastRosterCount = -1;
+        }
 
         #region Roster Cache Management
 
         /// <summary>
-        /// Refresh the cached list of RosterInstance references.
-        /// Call this when rosters may have been created or destroyed.
-        /// </summary>
-        private void RefreshRosterCache()
-        {
-            _cachedRosterInstances.Clear();
-            var rosters = FindObjectsByType<RosterInstance>(FindObjectsSortMode.None);
-            _cachedRosterInstances.AddRange(rosters.Where(r => r != null));
-            _rosterCacheDirty = false;
-        }
-
-        /// <summary>
-        /// Get all cached RosterInstance references. Refreshes cache if dirty.
+        /// Get all RosterInstance references. Automatically refreshes if roster count changed.
         /// </summary>
         private List<RosterInstance> GetCachedRosterInstances()
         {
-            if (_rosterCacheDirty)
+            var currentCount = FindObjectsByType<RosterInstance>(FindObjectsSortMode.None).Length;
+
+            if (_cachedRosterInstances == null || _lastRosterCount != currentCount)
             {
                 RefreshRosterCache();
+                _lastRosterCount = currentCount;
             }
+
             return _cachedRosterInstances;
         }
 
-        /// <summary>
-        /// Mark the roster cache as dirty so it will be refreshed on next access.
-        /// </summary>
-        private void InvalidateRosterCache()
+        private void RefreshRosterCache()
         {
-            _rosterCacheDirty = true;
+            _cachedRosterInstances = new List<RosterInstance>();
+            var rosters = FindObjectsByType<RosterInstance>(FindObjectsSortMode.None);
+            _cachedRosterInstances.AddRange(rosters.Where(r => r != null));
+            Debug.Log($"Roster cache refreshed: {_cachedRosterInstances.Count} active rosters");
         }
 
         #endregion
@@ -107,8 +113,7 @@ namespace Assets.Turnroot.Gameplay.Brain
             if (roster == null || roster.characters == null)
             {
                 Debug.LogWarning("InstantiateRoster called with null roster or characters.");
-                GetComponent<Brain>()
-                    ?.PublishRosterFailed(null, "Invalid roster or empty characters");
+                _brain?.PublishRosterFailed(null, "Invalid roster or empty characters");
                 return null;
             }
 
@@ -123,8 +128,7 @@ namespace Assets.Turnroot.Gameplay.Brain
 
         private RosterInstance FindExistingRosterInstance(Roster roster)
         {
-            return GetCachedRosterInstances()
-                .FirstOrDefault(r => r != null && r.roster == roster);
+            return GetCachedRosterInstances().FirstOrDefault(r => r != null && r.roster == roster);
         }
 
         private RosterInstance HandleExistingRoster(
@@ -133,14 +137,12 @@ namespace Assets.Turnroot.Gameplay.Brain
             bool registerGlobally
         )
         {
-            var brain = GetComponent<Brain>();
-
             if (HasAnyInstancesPopulated(existing, roster))
             {
                 Debug.Log(
                     $"InstantiateRoster: RosterInstance already exists and contains instances for roster '{roster.name}'. Doing nothing."
                 );
-                brain?.PublishRosterFailed(
+                _brain?.PublishRosterFailed(
                     roster,
                     "RosterInstance already exists and is populated"
                 );
@@ -154,7 +156,7 @@ namespace Assets.Turnroot.Gameplay.Brain
                 RegisterRosterInLTM(roster);
             }
 
-            brain?.PublishRosterReady(existing);
+            _brain?.PublishRosterReady(existing);
             return existing;
         }
 
@@ -168,8 +170,14 @@ namespace Assets.Turnroot.Gameplay.Brain
             return false;
         }
 
+        /// <summary>
+        /// Consolidated roster population logic. Single source of truth for creating/recalling characters.
+        /// </summary>
         private void PopulateRosterInstance(RosterInstance rosterInstance, Roster roster)
         {
+            if (rosterInstance == null || roster?.characters == null)
+                return;
+
             var createdInstances = new List<CharacterInstance>();
 
             foreach (var characterData in roster.characters)
@@ -177,27 +185,7 @@ namespace Assets.Turnroot.Gameplay.Brain
                 if (characterData == null)
                     continue;
 
-                CharacterInstance inst;
-
-                // For unique characters, try to load from LTM first
-                if (characterData.IsUnique)
-                {
-                    inst = RecallUniqueCharacter(characterData);
-                    if (inst == null)
-                    {
-                        // Create new unique instance and save it
-                        inst = CharacterInstance.Create(characterData);
-                        if (inst != null)
-                        {
-                            SaveUniqueCharacter(inst);
-                        }
-                    }
-                }
-                else
-                {
-                    // Non-unique characters are always created fresh
-                    inst = CharacterInstance.Create(characterData);
-                }
+                CharacterInstance inst = CreateOrRecallCharacterInstance(characterData);
 
                 if (inst != null)
                 {
@@ -207,8 +195,33 @@ namespace Assets.Turnroot.Gameplay.Brain
 
             rosterInstance.AddInstances(createdInstances);
             Debug.Log(
-                $"InstantiateRoster: Registered {createdInstances.Count} instances into existing RosterInstance '{rosterInstance.name}'."
+                $"Populated RosterInstance '{rosterInstance.name}' with {createdInstances.Count} instances."
             );
+        }
+
+        /// <summary>
+        /// Create or recall a character instance. Handles unique character persistence.
+        /// </summary>
+        private CharacterInstance CreateOrRecallCharacterInstance(CharacterData characterData)
+        {
+            if (characterData.IsUnique)
+            {
+                // Try to load existing unique character
+                var inst = RecallUniqueCharacter(characterData);
+                if (inst == null)
+                {
+                    // Create new unique instance and save it
+                    inst = CharacterInstance.Create(characterData);
+                    if (inst != null)
+                    {
+                        SaveUniqueCharacterInternal(inst, updateIndex: true);
+                    }
+                }
+                return inst;
+            }
+
+            // Non-unique characters are always created fresh
+            return CharacterInstance.Create(characterData);
         }
 
         private RosterInstance CreateNewRosterInstance(Roster roster, bool registerGlobally)
@@ -217,13 +230,7 @@ namespace Assets.Turnroot.Gameplay.Brain
             var newRi = go.AddComponent<RosterInstance>();
             newRi.roster = roster;
 
-#if UNITY_EDITOR
-            newRi.InitializeFromRoster(roster);
-            // Save unique characters after roster initialization
-            SaveUniqueCharactersInRoster(newRi);
-#else
-            PopulateRosterInstanceAtRuntime(newRi, roster);
-#endif
+            PopulateRosterInstance(newRi, roster);
 
             Debug.Log(
                 $"InstantiateRoster: Created new RosterInstance '{go.name}' with {newRi.Instances.Count} instances."
@@ -234,60 +241,8 @@ namespace Assets.Turnroot.Gameplay.Brain
                 RegisterRosterInLTM(roster);
             }
 
-            // Invalidate cache since we created a new roster
-            InvalidateRosterCache();
-
-            GetComponent<Brain>()?.PublishRosterReady(newRi);
+            _brain?.PublishRosterReady(newRi);
             return newRi;
-        }
-
-        private void PopulateRosterInstanceAtRuntime(RosterInstance rosterInstance, Roster roster)
-        {
-            var createdInstances = new List<CharacterInstance>();
-
-            foreach (var characterData in roster.characters)
-            {
-                if (characterData == null)
-                    continue;
-
-                CharacterInstance inst;
-
-                // For unique characters, try to load from LTM first
-                if (characterData.IsUnique)
-                {
-                    inst = RecallUniqueCharacter(characterData);
-                    if (inst == null)
-                    {
-                        inst = CharacterInstance.Create(characterData);
-                        if (inst != null)
-                        {
-                            SaveUniqueCharacter(inst);
-                        }
-                    }
-                }
-                else
-                {
-                    inst = CharacterInstance.Create(characterData);
-                }
-
-                if (inst != null)
-                {
-                    createdInstances.Add(inst);
-                }
-            }
-
-            rosterInstance.AddInstances(createdInstances);
-        }
-
-        private void SaveUniqueCharactersInRoster(RosterInstance rosterInstance)
-        {
-            foreach (var inst in rosterInstance.Instances)
-            {
-                if (inst?.CharacterTemplate?.IsUnique == true)
-                {
-                    SaveUniqueCharacter(inst);
-                }
-            }
         }
 
         #endregion
@@ -295,29 +250,40 @@ namespace Assets.Turnroot.Gameplay.Brain
         #region Unique Character Persistence
 
         /// <summary>
-        /// Saves a unique character instance to LongTermMemory with tamper detection.
+        /// Internal unified method for saving unique characters with optional index updating.
         /// </summary>
-        private void SaveUniqueCharacter(CharacterInstance instance)
+        private void SaveUniqueCharacterInternal(CharacterInstance instance, bool updateIndex)
         {
             if (instance?.CharacterTemplate == null || !instance.CharacterTemplate.IsUnique)
+            {
+                Debug.LogWarning("Cannot save: instance is null or not unique");
                 return;
+            }
 
             try
             {
                 var encoded = EncodeInstanceToString(instance);
                 var ltm = GetComponent<LongTermMemory>();
-
-                // Add to unique character index
-                var indexJson = ltm.Recall(LtmKeys.UniqueCharacterIndex);
-                var index = string.IsNullOrEmpty(indexJson)
-                    ? new List<string>()
-                    : JsonConvert.DeserializeObject<List<string>>(indexJson);
-
                 var templateName = instance.CharacterTemplate.name;
-                if (!index.Contains(templateName))
+                var key = BuildUniqueCharacterKey(instance.CharacterTemplate);
+
+                ltm.Remember(key, encoded);
+
+                if (updateIndex)
                 {
-                    index.Add(templateName);
-                    ltm.Remember(LtmKeys.UniqueCharacterIndex, JsonConvert.SerializeObject(index));
+                    var indexJson = ltm.Recall(LtmKeys.UniqueCharacterIndex);
+                    var index = string.IsNullOrEmpty(indexJson)
+                        ? new List<string>()
+                        : JsonConvert.DeserializeObject<List<string>>(indexJson);
+
+                    if (!index.Contains(templateName))
+                    {
+                        index.Add(templateName);
+                        ltm.Remember(
+                            LtmKeys.UniqueCharacterIndex,
+                            JsonConvert.SerializeObject(index)
+                        );
+                    }
                 }
 
                 Debug.Log(
@@ -331,9 +297,27 @@ namespace Assets.Turnroot.Gameplay.Brain
         }
 
         /// <summary>
-        /// Recalls a unique character instance from LongTermMemory.
-        /// Returns null if not found or if tamper detection fails.
+        /// Save unique character progress (preserves existing index).
         /// </summary>
+        public void SaveUniqueCharacterProgress(CharacterInstance instance)
+        {
+            if (instance?.CharacterTemplate == null)
+            {
+                Debug.LogWarning("Cannot save null character instance.");
+                return;
+            }
+
+            if (!instance.CharacterTemplate.IsUnique)
+            {
+                Debug.LogWarning(
+                    $"Cannot save non-unique character {instance.CharacterTemplate.DisplayName}. Only unique characters are persisted."
+                );
+                return;
+            }
+
+            SaveUniqueCharacterInternal(instance, updateIndex: false);
+        }
+
         private CharacterInstance RecallUniqueCharacter(CharacterData characterData)
         {
             if (characterData == null || !characterData.IsUnique)
@@ -370,31 +354,7 @@ namespace Assets.Turnroot.Gameplay.Brain
 
         private string BuildUniqueCharacterKey(CharacterData characterData)
         {
-            // Use template asset name as deterministic key
             return $"GWB.UniqueCharacter.{characterData.name}";
-        }
-
-        /// <summary>
-        /// Public API to save a unique character's current state.
-        /// Call this when you want to persist character progression (level, stats, inventory, etc.)
-        /// </summary>
-        public void SaveUniqueCharacterProgress(CharacterInstance instance)
-        {
-            if (instance?.CharacterTemplate == null)
-            {
-                Debug.LogWarning("Cannot save null character instance.");
-                return;
-            }
-
-            if (!instance.CharacterTemplate.IsUnique)
-            {
-                Debug.LogWarning(
-                    $"Cannot save non-unique character {instance.CharacterTemplate.DisplayName}. Only unique characters are persisted."
-                );
-                return;
-            }
-
-            SaveUniqueCharacter(instance);
         }
 
         #endregion
@@ -413,7 +373,6 @@ namespace Assets.Turnroot.Gameplay.Brain
                 if (string.IsNullOrEmpty(key))
                     return;
 
-                // Check if already registered
                 var existingHash = ltm.Recall(key);
                 if (!string.IsNullOrEmpty(existingHash))
                 {
@@ -445,7 +404,7 @@ namespace Assets.Turnroot.Gameplay.Brain
             {
                 TypeName = typeof(Roster).FullName,
                 Payload = payload,
-                Hash = GamewideContextBrainHelpers.ComputeFNV1a64Hex(payload + "|v:" + versionHex),
+                Hash = GamewideContextBrainHelpers.ComputeFNV1a64Hex($"{payload}|v:{versionHex}"),
                 Version = versionHex,
             };
 
@@ -480,10 +439,9 @@ namespace Assets.Turnroot.Gameplay.Brain
 
         private void RecallRosters()
         {
-            var brain = GetComponent<Brain>();
             var ltm = GetComponent<LongTermMemory>();
 
-            if (ltm == null || brain == null)
+            if (ltm == null || _brain == null)
                 return;
 
             var allRosters = rosters?.Where(r => r != null).ToArray() ?? new Roster[0];
@@ -562,12 +520,6 @@ namespace Assets.Turnroot.Gameplay.Brain
 
         #region Character Instance Lookup
 
-        /// <summary>
-        /// Find a CharacterInstance by its template CharacterData.
-        /// Searches all active RosterInstances in the scene.
-        /// </summary>
-        /// <param name="template">The CharacterData template to search for</param>
-        /// <returns>The CharacterInstance if found, null otherwise</returns>
         public CharacterInstance FindInstanceByTemplate(CharacterData template)
         {
             if (template == null)
@@ -588,13 +540,6 @@ namespace Assets.Turnroot.Gameplay.Brain
             return null;
         }
 
-        /// <summary>
-        /// Find all CharacterInstances matching the given templates.
-        /// Useful for battle conditions that need to check specific characters.
-        /// Optimized to avoid O(n*m) complexity by collecting all instances first.
-        /// </summary>
-        /// <param name="templates">Array of CharacterData templates to search for</param>
-        /// <returns>List of CharacterInstances (may be smaller than templates array if some not found)</returns>
         public List<CharacterInstance> FindInstancesByTemplates(CharacterData[] templates)
         {
             var results = new List<CharacterInstance>();
@@ -602,7 +547,6 @@ namespace Assets.Turnroot.Gameplay.Brain
             if (templates == null || templates.Length == 0)
                 return results;
 
-            // Get all instances once and build a lookup dictionary for O(1) access
             var rosters = GetCachedRosterInstances();
             var instanceLookup = new Dictionary<CharacterData, CharacterInstance>();
 
@@ -615,13 +559,11 @@ namespace Assets.Turnroot.Gameplay.Brain
                 {
                     if (instance?.CharacterTemplate != null)
                     {
-                        // Use indexer instead of Add to avoid exception if duplicate
                         instanceLookup[instance.CharacterTemplate] = instance;
                     }
                 }
             }
 
-            // Now look up each template in O(1) time
             foreach (var template in templates)
             {
                 if (template != null && instanceLookup.TryGetValue(template, out var instance))
@@ -633,10 +575,6 @@ namespace Assets.Turnroot.Gameplay.Brain
             return results;
         }
 
-        /// <summary>
-        /// Get all CharacterInstances currently active in all rosters.
-        /// </summary>
-        /// <returns>List of all active CharacterInstances</returns>
         public List<CharacterInstance> GetAllActiveInstances()
         {
             var results = new List<CharacterInstance>();
@@ -657,9 +595,6 @@ namespace Assets.Turnroot.Gameplay.Brain
 
         #region Public API
 
-        /// <summary>
-        /// Persist a Roster entry in LongTermMemory.
-        /// </summary>
         public void UpdateRosterInLTM(Roster roster)
         {
             if (roster == null)
@@ -673,17 +608,11 @@ namespace Assets.Turnroot.Gameplay.Brain
             return GamewideContextBrainHelpers.DesignateInstanceType<T>();
         }
 
-        /// <summary>
-        /// Encodes an instance into a single opaque Base64 string using Newtonsoft.Json.
-        /// </summary>
         public string EncodeInstanceToString<T>(T instance)
         {
             return GamewideContextBrainHelpers.EncodeInstanceToString(this, instance);
         }
 
-        /// <summary>
-        /// Decodes an instance from the opaque Base64 wrapper string.
-        /// </summary>
         public T DecodeInstanceFromString<T>(string encodedString)
         {
             return GamewideContextBrainHelpers.DecodeInstanceFromString<T>(this, encodedString);

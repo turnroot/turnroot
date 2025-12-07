@@ -64,10 +64,6 @@ namespace Assets.Turnroot.Gameplay.Brain
         public event Action<string> OnIllegallyModifiedFileDetected;
         public event Action<int> OnLtmKeyCacheUpdated;
 
-        /// <summary>
-        /// Centralized publisher for LTM key cache version changes.
-        /// Other systems should call this to notify subscribed brains/components.
-        /// </summary>
         public void PublishLtmKeyCacheUpdated(int version)
         {
             OnLtmKeyCacheUpdated?.Invoke(version);
@@ -142,7 +138,10 @@ namespace Assets.Turnroot.Gameplay.Brain
         public event Action<CharacterInstance> OnCharacterLevelUp;
         public event Action<CharacterInstance> OnCharacterKill;
         public event Action<CharacterInstance, Skill> OnCharacterLearnedSkill;
+        public event Action<CharacterInstance, Skill> OnCharacterRemovedSkill;
         public event Action<CharacterInstance> OnCharacterClassChanged;
+        public event Action<CharacterInstance, string, int> OnExperienceGained;
+        public event Action<CharacterInstance, CharacterData, int> OnSupportIncreased;
 
         public void PublishCharacterLevelUp(CharacterInstance character)
         {
@@ -159,9 +158,32 @@ namespace Assets.Turnroot.Gameplay.Brain
             OnCharacterLearnedSkill?.Invoke(character, skill);
         }
 
+        public void PublishCharacterRemovedSkill(CharacterInstance character, Skill skill)
+        {
+            OnCharacterRemovedSkill?.Invoke(character, skill);
+        }
+
         public void PublishCharacterClassChanged(CharacterInstance character)
         {
             OnCharacterClassChanged?.Invoke(character);
+        }
+
+        public void PublishExperienceGained(
+            CharacterInstance character,
+            string experienceTypeId,
+            int amount
+        )
+        {
+            OnExperienceGained?.Invoke(character, experienceTypeId, amount);
+        }
+
+        public void PublishSupportIncreased(
+            CharacterInstance character,
+            CharacterData targetCharacter,
+            int amount
+        )
+        {
+            OnSupportIncreased?.Invoke(character, targetCharacter, amount);
         }
 
         #endregion
@@ -181,9 +203,7 @@ namespace Assets.Turnroot.Gameplay.Brain
         #region Battle Events
         public event Action OnStartBattle;
         public event Action<BattleExitType> OnExitBattle;
-
         public event Action OnBattleContextInitialized;
-
         public event Action OnPreBattleStarted;
         public event Action OnPreBattleEnded;
         public event Action OnTurnBegin;
@@ -280,6 +300,7 @@ namespace Assets.Turnroot.Gameplay.Brain
             conversationalBrain = GetComponent<ConversationalBrain>();
             gamewideContextBrain = GetComponent<GamewideContextBrain>();
             battleBrain = GetComponent<BattleBrain>();
+            charactersBrain = GetComponent<CharactersBrain>();
         }
 
         public void InitializeLongTermMemory()
