@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Turnroot.Characters;
+using Turnroot.Characters.CharacterClass;
 using Turnroot.Characters.Components;
 using UnityEngine;
 
@@ -281,6 +282,55 @@ namespace Assets.Turnroot.Gameplay.Brain
                     $"CharactersBrain: Manually saved {character.CharacterTemplate.DisplayName}"
                 );
             }
+        }
+
+        /// <summary>
+        /// Level up a character and publish the level up event.
+        /// </summary>
+        public void LevelUpCharacter(CharacterInstance character)
+        {
+            if (character == null)
+                return;
+
+            character.LevelUp();
+            _brain?.PublishCharacterLevelUp(character);
+        }
+
+        /// <summary>
+        /// Add a skill to a character and publish the learned skill event.
+        /// </summary>
+        public void LearnSkill(CharacterInstance character, Skill skill)
+        {
+            if (character == null || skill == null)
+                return;
+
+            character.AddSkill(skill);
+            _brain?.PublishCharacterLearnedSkill(character, skill);
+
+            Debug.Log(
+                $"{character.CharacterTemplate?.DisplayName} learned skill: {skill.SkillName}"
+            );
+        }
+
+        /// <summary>
+        /// Change character's class and publish the class changed event.
+        /// </summary>
+        public bool ChangeCharacterClass(
+            CharacterInstance character,
+            CharacterClassData newClassData,
+            MeshRenderer meshRenderer = null
+        )
+        {
+            if (character == null || newClassData == null)
+                return false;
+
+            bool success = character.ChangeClass(newClassData, meshRenderer);
+            if (success)
+            {
+                _brain?.PublishCharacterClassChanged(character);
+            }
+
+            return success;
         }
 
         /// <summary>

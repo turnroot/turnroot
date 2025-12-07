@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
+using Turnroot.Characters.CharacterClass;
 using Turnroot.Characters.Components.Support;
 using Turnroot.Characters.Stats;
 using Turnroot.Characters.Subclasses;
 using Turnroot.Gameplay.Objects;
 using UnityEngine;
+using UnityEngine.TextCore.Text;
 
 namespace Turnroot.Characters
 {
@@ -64,7 +66,7 @@ namespace Turnroot.Characters
         public int TurnsAliveThisBattle => _turnsAliveThisBattle;
         public int CombatsThisTurn => _combatsThisTurn;
 
-        public void RecordKill() => _totalKills++;
+        internal void RecordKill() => _totalKills++;
 
         public void RecordBattleStart()
         {
@@ -325,10 +327,14 @@ namespace Turnroot.Characters
 
         /// <summary>
         /// Level up the character and apply random stat growth rolls.
+        /// Internal method - use CharactersBrain.LevelUpCharacter() to publish events.
         /// </summary>
-        public void LevelUp()
+        internal void LevelUp()
         {
             _currentLevel++;
+            // HP always increases by 1 on level up
+            var hpStat = GetBoundedStat(BoundedStatType.Health);
+            hpStat.SetCurrent(hpStat.GetCurrent() + 1f);
 
             if (_currentClass != null && _currentClass.ClassData != null)
             {
@@ -341,16 +347,9 @@ namespace Turnroot.Characters
                     _currentClass.ClassData.unboundedStatCaps
                 );
 
-                // Log level up results
-                if (increasedStats.Count > 0)
+                if (increasedStats.Count == UnboundedStats.Count)
                 {
-                    Debug.Log(
-                        $"{_characterTemplate.DisplayName} leveled up to {_currentLevel}! Stats increased: {string.Join(", ", increasedStats)}"
-                    );
-                }
-                else
-                {
-                    Debug.Log($"{_characterTemplate.DisplayName} leveled up to {_currentLevel}!");
+                    hpStat.SetCurrent(hpStat.GetCurrent() + 1f);
                 }
             }
             else

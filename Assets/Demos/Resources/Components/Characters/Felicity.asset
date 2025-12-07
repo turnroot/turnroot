@@ -38,11 +38,9 @@ MonoBehaviour:
   <Notes>k__BackingField: Take private notes (only in the editor) about this unit
   <CanSSupport>k__BackingField: 1
   <CanSSupportAvatar>k__BackingField: 1
-  <CanHaveChildren>k__BackingField: 0
   <IsRecruitable>k__BackingField: 0
   <IsUnique>k__BackingField: 0
-  <StartingClass>k__BackingField: {fileID: 0}
-  <StartingSkills>k__BackingField: []
+  <StartingClass>k__BackingField: {fileID: 11400000, guid: 5f3f502cbf2ca204a9eeed42737fdcf0, type: 2}
   <BadgeText>k__BackingField: Fishing Guild
   <BadgeIcon>k__BackingField: {fileID: 21300000, guid: 9f2c2612454aeb040bb1ab262a1e7c5f, type: 3}
   <Blendshapes>k__BackingField:
@@ -129,9 +127,32 @@ MonoBehaviour:
   - _current: 10
     _bonus: 0
     _statType: 10
+  <PersonalGrowthRates>k__BackingField:
+  - unboundedStatType: 0
+    value: 0
+  - unboundedStatType: 1
+    value: 0
+  - unboundedStatType: 2
+    value: 0
+  - unboundedStatType: 3
+    value: 0
+  - unboundedStatType: 4
+    value: 0
+  - unboundedStatType: 5
+    value: 0
+  - unboundedStatType: 6
+    value: 0
+  - unboundedStatType: 7
+    value: 0
+  - unboundedStatType: 8
+    value: 0
+  - unboundedStatType: 9
+    value: 0
+  - unboundedStatType: 10
+    value: 0
   <Skills>k__BackingField: []
-  <SpecialSkills>k__BackingField:
-  - {fileID: 11400000, guid: c69ab2335e5db6c4487e1b1369ea383c, type: 2}
+  <SpecialSkills>k__BackingField: []
+  <ExperienceRanks>k__BackingField: []
   references:
     version: 2
     RefIds: []

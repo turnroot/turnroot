@@ -97,9 +97,11 @@ namespace Turnroot.Characters
 
         [field: Foldout("Character Flags"), SerializeField, ShowIf(nameof(CanShowSSupportAvatar))]
         public bool CanSSupportAvatar { get; private set; } = false;
+#if TURNROOT_BLOODLINES_MODULE
 
         [field: Foldout("Character Flags"), SerializeField, ShowIf(nameof(IsAllyOrRecruitable))]
         public bool CanHaveChildren { get; private set; } = false;
+#endif
 
         [field: Foldout("Character Flags"), SerializeField, ShowIf(nameof(CanShowRecruitable))]
         public bool IsRecruitable { get; private set; } = false;
@@ -109,9 +111,6 @@ namespace Turnroot.Characters
 
         [field: Foldout("Class and Skills"), HorizontalLine(color: EColor.Yellow), SerializeField]
         public CharacterClassData StartingClass { get; private set; }
-
-        [field: Foldout("Class and Skills"), SerializeField]
-        public Skill[] StartingSkills { get; private set; } = new Skill[0];
 
         [field: Foldout("Visual"), SerializeField, HorizontalLine(color: EColor.Pink)]
         public string BadgeText { get; private set; }
@@ -463,6 +462,17 @@ namespace Turnroot.Characters
                 {
                     BoundedStats = defaultStats.CreateBoundedStats();
                     UnboundedStats = defaultStats.CreateUnboundedStats();
+                }
+            }
+
+            // Initialize personal growth rates if empty (set all unbounded stats to 0% growth)
+            if (PersonalGrowthRates.Count == 0 && UnboundedStats.Count > 0)
+            {
+                foreach (var stat in UnboundedStats)
+                {
+                    PersonalGrowthRates.Add(
+                        new CharacterClass.UnboundedStatModifier(stat.StatType, 0f)
+                    );
                 }
             }
         }

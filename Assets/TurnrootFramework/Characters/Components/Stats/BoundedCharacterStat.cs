@@ -69,6 +69,8 @@ namespace Turnroot.Characters.Stats
         // Returns current + bonus as int (clamped)
         public override int Get() => Mathf.RoundToInt(Mathf.Clamp(_current, _min, _max) + _bonus);
 
+        public int GetCurrent() => Mathf.RoundToInt(Mathf.Clamp(_current, _min, _max));
+
         public void SetMax(float value)
         {
             _max = value;
