@@ -13,7 +13,7 @@ namespace Turnroot.Gameplay.Objects
         [SerializeField]
         private ObjectItem _template;
 
-        [SerializeField]
+        [NonSerialized]
         private CharacterInventoryInstance _ownerInventory;
         private int currentUses;
         public ObjectItem Template => _template;

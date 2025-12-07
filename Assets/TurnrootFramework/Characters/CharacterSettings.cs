@@ -115,10 +115,8 @@ namespace Turnroot.Characters
             }
             catch (UnityEngine.UnityException)
             {
-                // Resources.Load forbidden during Unity serialization
-                Debug.LogWarning(
-                    $"Cannot load {settingName} during Unity serialization. Using default: {defaultValue}"
-                );
+                // Resources.Load forbidden during Unity serialization - this is expected during
+                // deserialization/constructor calls. Silently use default without logging.
                 return defaultValue;
             }
             catch (Exception ex)

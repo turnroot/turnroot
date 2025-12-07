@@ -17,11 +17,6 @@ public class CharacterInventoryInstance : IPostDeserialize
     private List<ObjectItemInstance> _inventoryItems = new();
 
     [SerializeField]
-    private CharacterInstance _ownerCharacterInstance;
-
-    public CharacterInstance OwnerCharacterInstance => _ownerCharacterInstance;
-
-    [SerializeField]
     private int _capacity = 6;
 
     // Equipment slots: [0] = Weapon, [1+] = Non-weapon equipables (shields, accessories, etc.)
