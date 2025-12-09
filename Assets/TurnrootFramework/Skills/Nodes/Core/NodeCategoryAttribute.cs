@@ -17,10 +17,7 @@ namespace Turnroot.Skills.Nodes
             Category = category;
         }
 
-        public Color GetTintColor()
-        {
-            return GetCategoryColor(Category);
-        }
+        public Color GetTintColor() => GetCategoryColor(Category);
 
         /// <summary>
         /// Get the tint color for a specific category without requiring an attribute instance.

@@ -207,9 +207,6 @@ namespace Turnroot.Skills.Nodes
         /// <summary>
         /// Get the current execution context (useful for debugging).
         /// </summary>
-        public BattleContext GetContext()
-        {
-            return context;
-        }
+        public BattleContext GetContext() => context;
     }
 }

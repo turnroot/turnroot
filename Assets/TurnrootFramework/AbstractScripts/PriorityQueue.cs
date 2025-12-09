@@ -377,10 +377,10 @@ namespace Utils
         /// </summary>
         /// <exception cref="InvalidOperationException">The <see cref="PriorityQueue{TElement, TPriority}" /> is empty.</exception>
         /// <returns>The minimal element of the <see cref="PriorityQueue{TElement, TPriority}" />.</returns>
-        public TElement Peek()
-        {
-            return _size == 0 ? throw new InvalidOperationException(SR.InvalidOperation_EmptyQueue) : _nodes[0].Element;
-        }
+        public TElement Peek() =>
+            _size == 0
+                ? throw new InvalidOperationException(SR.InvalidOperation_EmptyQueue)
+                : _nodes[0].Element;
 
         /// <summary>
         ///     Removes and returns the minimal element from the <see cref="PriorityQueue{TElement, TPriority}" />.

@@ -286,12 +286,11 @@ namespace Turnroot.Characters.CharacterClass
         /// </summary>
         public bool IsAboveCaps(CharacterInstance character)
         {
-            return !StatApplicationHelper.ValidateReferences(character, _classData, "")
-                ? false
-                : StatApplicationHelper.IsAboveUnboundedCaps(
-                _classData.unboundedStatCaps,
-                character
-            );
+            return StatApplicationHelper.ValidateReferences(character, _classData, "")
+                && StatApplicationHelper.IsAboveUnboundedCaps(
+                    _classData.unboundedStatCaps,
+                    character
+                );
         }
 
         #endregion
@@ -302,10 +301,7 @@ namespace Turnroot.Characters.CharacterClass
         /// Increment battle count for mastery tracking.
         /// Call this after each battle where the character uses this class.
         /// </summary>
-        public void IncrementBattleCount()
-        {
-            _battlesCompleted++;
-        }
+        public void IncrementBattleCount() => _battlesCompleted++;
 
         /// <summary>
         /// Check if mastery conditions are met and learn skills if so.
@@ -387,10 +383,7 @@ namespace Turnroot.Characters.CharacterClass
         /// Call this when the instance is being destroyed or no longer needed.
         /// Ensures proper cleanup of resources.
         /// </summary>
-        public void Dispose()
-        {
-            CleanupMaterial();
-        }
+        public void Dispose() => CleanupMaterial();
 
         #endregion
     }

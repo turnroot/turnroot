@@ -59,10 +59,7 @@ namespace Turnroot.Conversations
                 ? _conversationInstances[_currentConversation]
                 : null;
 
-        private void Awake()
-        {
-            OnAwake?.Invoke();
-        }
+        private void Awake() => OnAwake?.Invoke();
 
         private Conversation SelectedConversation => SelectedInstance?.Conversation;
 

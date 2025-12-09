@@ -4,7 +4,7 @@ using Turnroot.Conversations;
 using UnityEngine;
 using UnityEngine.TextCore.Text;
 
-namespace Assets.Turnroot.Gameplay.Brain
+namespace Turnroot.Gameplay.Brain
 {
     [RequireComponent(typeof(Brain))]
     /// <summary>

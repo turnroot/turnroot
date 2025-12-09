@@ -17,8 +17,10 @@ namespace Turnroot.Skills.Nodes.Math
         {
             if (port.fieldName == "Number")
             {
-                FloatValue numberValue = new();
-                numberValue.value = defaultValue;
+                FloatValue numberValue = new()
+                {
+                    value = defaultValue
+                };
                 return numberValue;
             }
             return null;

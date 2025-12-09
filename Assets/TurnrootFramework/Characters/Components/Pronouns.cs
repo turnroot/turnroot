@@ -115,9 +115,6 @@ namespace Turnroot.Characters.Subclasses
                     .Replace("{Theirs}", Capitalize(PossessivePronoun));
         }
 
-        private string Capitalize(string str)
-        {
-            return string.IsNullOrEmpty(str) ? str : char.ToUpper(str[0]) + str.Substring(1);
-        }
+        private string Capitalize(string str) => string.IsNullOrEmpty(str) ? str : char.ToUpper(str[0]) + str.Substring(1);
     }
 }

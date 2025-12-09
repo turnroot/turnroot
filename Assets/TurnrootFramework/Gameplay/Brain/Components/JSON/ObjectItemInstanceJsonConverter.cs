@@ -3,7 +3,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Turnroot.Gameplay.Objects;
 
-namespace Assets.Turnroot.Gameplay.Brain.Components
+namespace Turnroot.Gameplay.Brain.Components
 {
     /// <summary>
     /// Ensures ObjectItemInstance is reconstructed via its constructor so the
@@ -13,10 +13,8 @@ namespace Assets.Turnroot.Gameplay.Brain.Components
     {
         private const string TemplateField = "_template";
 
-        public override bool CanConvert(Type objectType)
-        {
-            return typeof(ObjectItemInstance).IsAssignableFrom(objectType);
-        }
+        public override bool CanConvert(Type objectType) =>
+            typeof(ObjectItemInstance).IsAssignableFrom(objectType);
 
         public override bool CanWrite => true;
 
@@ -57,7 +55,7 @@ namespace Assets.Turnroot.Gameplay.Brain.Components
             var template = ResolveTemplate(token, serializer);
             var instance = CreateInstance(template);
 
-            if (instance is global::Turnroot.Serialization.IPostDeserialize post)
+            if (instance is Turnroot.Serialization.IPostDeserialize post)
             {
                 post.OnAfterDeserialize();
             }

@@ -142,10 +142,7 @@ namespace Turnroot.Characters
         /// Ensures caches are cleared to pick up changes.
         /// </summary>
         [UnityEditor.InitializeOnLoadMethod]
-        private static void OnScriptsReloaded()
-        {
-            ClearCache();
-        }
+        private static void OnScriptsReloaded() => ClearCache();
 
         /// <summary>
         /// Called when entering play mode.

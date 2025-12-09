@@ -1,4 +1,4 @@
-using Assets.Turnroot.Gameplay.Brain;
+using Turnroot.Gameplay.Brain;
 using UnityEngine.SceneManagement;
 
 namespace Turnroot.Utilities

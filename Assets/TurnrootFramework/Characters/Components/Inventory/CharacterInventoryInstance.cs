@@ -147,10 +147,7 @@ public class CharacterInventoryInstance : IPostDeserialize
     public CharacterInventoryInstance()
         : this(6) { }
 
-    public void OnAfterDeserialize()
-    {
-        EnsureEquipmentArraysInitialized();
-    }
+    public void OnAfterDeserialize() => EnsureEquipmentArraysInitialized();
 
     /// <summary>
     /// Create inventory with starting items
@@ -238,10 +235,7 @@ public class CharacterInventoryInstance : IPostDeserialize
     /// Gets the inventory index of an equipped weapon.
     /// </summary>
     /// <returns>The inventory index of the equipped weapon, or -1 if no weapon is equipped.</returns>
-    public int GetEquippedWeaponIndex()
-    {
-        return !_isWeaponEquipped || _equippedItemIndices == null || _equippedItemIndices.Length == 0 ? -1 : _equippedItemIndices[0];
-    }
+    public int GetEquippedWeaponIndex() => !_isWeaponEquipped || _equippedItemIndices == null || _equippedItemIndices.Length == 0 ? -1 : _equippedItemIndices[0];
 
     /// <summary>
     /// Gets the inventory index of an equipped item by subtype (weapon, equipable, etc).
@@ -273,10 +267,7 @@ public class CharacterInventoryInstance : IPostDeserialize
         return index < 0 ? false : Array.IndexOf(_equippedItemIndices, index) >= 0;
     }
 
-    public bool CanAddItem()
-    {
-        return _inventoryItems.Count < _capacity;
-    }
+    public bool CanAddItem() => _inventoryItems.Count < _capacity;
 
     public void AddToInventory(ObjectItemInstance item)
     {
@@ -397,10 +388,8 @@ public class CharacterInventoryInstance : IPostDeserialize
     /// Called when the object is validated in the Unity Editor.
     /// Ensures equipment arrays are resized when settings change.
     /// </summary>
-    public void OnValidate()
-    {
+    public void OnValidate() =>
         // Ensure arrays are properly sized based on current settings
         EnsureEquipmentArraysInitialized();
-    }
 #endif
 }

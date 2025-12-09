@@ -124,16 +124,13 @@ public class ObjectSubtype
 
     public override string ToString() => _value;
 
-    public override bool Equals(object obj)
-    {
-        return obj is ObjectSubtype other ? _value == other._value : obj is string str ? _value == str : false;
-    }
+    public override bool Equals(object obj) => obj is ObjectSubtype other ? _value == other._value : obj is string str ? _value == str : false;
 
     public override int GetHashCode() => _value.GetHashCode();
 
     public static bool operator ==(ObjectSubtype a, ObjectSubtype b)
     {
-        return ReferenceEquals(a, b) ? true : a is null || b is null ? false : a._value == b._value;
+        return ReferenceEquals(a, b) || a is not null && b is not null && a._value == b._value;
     }
 
     public static bool operator !=(ObjectSubtype a, ObjectSubtype b) => !(a == b);

@@ -316,18 +316,12 @@ namespace Turnroot.Characters
         /// <summary>
         /// Get a bounded stat by type (HP, Shields, etc).
         /// </summary>
-        public BoundedCharacterStat GetBoundedStat(BoundedStatType type)
-        {
-            return StatHelpers.GetBoundedStat(_runtimeBoundedStats, type);
-        }
+        public BoundedCharacterStat GetBoundedStat(BoundedStatType type) => StatHelpers.GetBoundedStat(_runtimeBoundedStats, type);
 
         /// <summary>
         /// Get an unbounded stat by type (Strength, Speed, etc).
         /// </summary>
-        public CharacterStat GetUnboundedStat(UnboundedStatType type)
-        {
-            return StatHelpers.GetUnboundedStat(_runtimeUnboundedStats, type);
-        }
+        public CharacterStat GetUnboundedStat(UnboundedStatType type) => StatHelpers.GetUnboundedStat(_runtimeUnboundedStats, type);
 
         #endregion
 
@@ -446,10 +440,7 @@ namespace Turnroot.Characters
         /// <summary>
         /// Get support relationship with a specific character.
         /// </summary>
-        public SupportRelationshipInstance GetSupportRelationship(CharacterData character)
-        {
-            return _supportRelationships.Find(s => s.Character == character);
-        }
+        public SupportRelationshipInstance GetSupportRelationship(CharacterData character) => _supportRelationships.Find(s => s.Character == character);
 
         /// <summary>
         /// Add a new support relationship from a template.
@@ -493,10 +484,7 @@ namespace Turnroot.Characters
         /// <summary>
         /// Remove support relationship with a character.
         /// </summary>
-        public void RemoveSupportRelationship(CharacterData character)
-        {
-            _ = _supportRelationships.RemoveAll(s => s.Character == character);
-        }
+        public void RemoveSupportRelationship(CharacterData character) => _ = _supportRelationships.RemoveAll(s => s.Character == character);
 
         #endregion
 
@@ -514,10 +502,7 @@ namespace Turnroot.Characters
         /// <summary>
         /// Remove a skill instance.
         /// </summary>
-        internal void RemoveSkill(SkillInstance skillInstance)
-        {
-            _skillInstances.Remove(skillInstance);
-        }
+        internal void RemoveSkill(SkillInstance skillInstance) => _skillInstances.Remove(skillInstance);
 
         #endregion
 
@@ -526,10 +511,7 @@ namespace Turnroot.Characters
         /// <summary>
         /// Get experience rank by type ID (e.g., "Swords", "Magic").
         /// </summary>
-        public ExperienceRankInstance GetExperienceRank(string experienceTypeId)
-        {
-            return _experienceRanks.Find(e => e.ExperienceTypeId == experienceTypeId);
-        }
+        public ExperienceRankInstance GetExperienceRank(string experienceTypeId) => _experienceRanks.Find(e => e.ExperienceTypeId == experienceTypeId);
 
         /// <summary>
         /// Add experience to a specific experience type.
@@ -559,7 +541,7 @@ namespace Turnroot.Characters
         public bool MeetsExperienceRequirement(string experienceTypeId, string minRankLetter)
         {
             var rank = GetExperienceRank(experienceTypeId);
-            return rank == null ? false : rank.Rank.CompareTo(minRankLetter) >= 0;
+            return rank != null && rank.Rank.CompareTo(minRankLetter) >= 0;
         }
 
         #endregion
@@ -717,7 +699,9 @@ namespace Turnroot.Characters
             var allowedTypes = _currentClass.ClassData.allowedWeaponTypes;
 
             // Empty list means no restrictions (can equip anything)
-            return allowedTypes == null || allowedTypes.Count == 0 ? true : allowedTypes.Contains(weaponType);
+            return allowedTypes == null
+                || allowedTypes.Count == 0
+                || allowedTypes.Contains(weaponType);
         }
 
         /// <summary>
@@ -752,10 +736,7 @@ namespace Turnroot.Characters
         /// <summary>
         /// Check if character has previously equipped a specific class.
         /// </summary>
-        public bool HasEquippedClass(CharacterClass.CharacterClassData classData)
-        {
-            return classData == null ? false : _equippedClassHistory.Contains(classData);
-        }
+        public bool HasEquippedClass(CharacterClass.CharacterClassData classData) => classData != null && _equippedClassHistory.Contains(classData);
 
         #endregion
     }
@@ -802,18 +783,11 @@ namespace Turnroot.Characters
         /// <summary>
         /// Add experience points to this rank.
         /// </summary>
-        public void AddExperience(int amount)
-        {
-            _experiencePoints += amount;
-            // TODO: Implement rank progression based on experience thresholds
-        }
+        public void AddExperience(int amount) => _experiencePoints += amount;// TODO: Implement rank progression based on experience thresholds
 
         /// <summary>
         /// Set the rank to a specific letter grade.
         /// </summary>
-        public void SetRank(string rankLetter)
-        {
-            _rank = new Turnroot.CommonAncestors.LeveledLetteredField(rankLetter);
-        }
+        public void SetRank(string rankLetter) => _rank = new Turnroot.CommonAncestors.LeveledLetteredField(rankLetter);
     }
 }

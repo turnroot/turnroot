@@ -28,25 +28,13 @@ public class DynamicSceneFlow : MonoBehaviour
         }
     }
 
-    private void Start()
-    {
-        _ = StartCoroutine(RunNextFrame(StartScene));
-    }
+    private void Start() => _ = StartCoroutine(RunNextFrame(StartScene));
 
-    private void StartScene()
-    {
-        Index = 0;
-    }
+    private void StartScene() => Index = 0;
 
-    public void ProgressState()
-    {
-        Index++;
-    }
+    public void ProgressState() => Index++;
 
-    public void SetState(int state)
-    {
-        Index = state;
-    }
+    public void SetState(int state) => Index = state;
 
     private void OnStateChange(int state)
     {

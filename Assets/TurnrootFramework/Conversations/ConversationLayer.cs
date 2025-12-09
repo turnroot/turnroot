@@ -176,15 +176,9 @@ namespace Turnroot.Conversations
             }
         }
 
-        public void StartLayer()
-        {
-            OnLayerStart?.Invoke();
-        }
+        public void StartLayer() => OnLayerStart?.Invoke();
 
-        public void CompleteLayer()
-        {
-            OnLayerComplete?.Invoke();
-        }
+        public void CompleteLayer() => OnLayerComplete?.Invoke();
 
         private void ValidatePortraitKeyOnSpeakerChange(
             ref string portraitKey,
@@ -220,10 +214,7 @@ namespace Turnroot.Conversations
             set => _activeSpeaker = value;
         }
 
-        public SpeakerSlot GetActiveSlot()
-        {
-            return _activeSpeaker == ActiveSpeakerType.Primary ? _primary : _secondary;
-        }
+        public SpeakerSlot GetActiveSlot() => _activeSpeaker == ActiveSpeakerType.Primary ? _primary : _secondary;
 
         public Portrait ActivePortrait =>
             GetPortrait(GetActiveSlot().Speaker, GetActiveSlot().PortraitKey);

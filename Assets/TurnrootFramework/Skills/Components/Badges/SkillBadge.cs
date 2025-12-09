@@ -7,10 +7,7 @@ namespace Turnroot.Skills.Components.Badges
     [Serializable]
     public class SkillBadge : StackedImage<Skill>
     {
-        protected override string GetSaveSubdirectory()
-        {
-            return "SkillBadges";
-        }
+        protected override string GetSaveSubdirectory() => "SkillBadges";
 
         public override void UpdateTintColorsFromOwner()
         {

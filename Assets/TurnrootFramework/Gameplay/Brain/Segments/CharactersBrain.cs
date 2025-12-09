@@ -4,7 +4,7 @@ using Turnroot.Characters.CharacterClass;
 using Turnroot.Characters.Components;
 using UnityEngine;
 
-namespace Assets.Turnroot.Gameplay.Brain
+namespace Turnroot.Gameplay.Brain
 {
     /// <summary>
     /// Manages character lifecycle, progression, and statistics within the brain system.
@@ -69,20 +69,11 @@ namespace Assets.Turnroot.Gameplay.Brain
 
         #region Turn Phase Handlers
 
-        private void HandlePlayerTurnStarted()
-        {
-            IncrementTurnsAliveForFaction(CharacterWhich.ALLY, CharacterWhich.AVATAR);
-        }
+        private void HandlePlayerTurnStarted() => IncrementTurnsAliveForFaction(CharacterWhich.ALLY, CharacterWhich.AVATAR);
 
-        private void HandleEnemyTurnStarted()
-        {
-            IncrementTurnsAliveForFaction(CharacterWhich.ENEMY);
-        }
+        private void HandleEnemyTurnStarted() => IncrementTurnsAliveForFaction(CharacterWhich.ENEMY);
 
-        private void HandleThirdPartyTurnStarted()
-        {
-            IncrementTurnsAliveForFaction(CharacterWhich.NPC);
-        }
+        private void HandleThirdPartyTurnStarted() => IncrementTurnsAliveForFaction(CharacterWhich.NPC);
 
         private void IncrementTurnsAliveForFaction(params string[] factionTypes)
         {
@@ -407,18 +398,12 @@ namespace Assets.Turnroot.Gameplay.Brain
         /// <summary>
         /// Get all currently active character instances.
         /// </summary>
-        public List<CharacterInstance> GetAllActiveCharacters()
-        {
-            return _gamewideContextBrain?.GetAllActiveInstances() ?? new List<CharacterInstance>();
-        }
+        public List<CharacterInstance> GetAllActiveCharacters() => _gamewideContextBrain?.GetAllActiveInstances() ?? new List<CharacterInstance>();
 
         /// <summary>
         /// Find a character instance by template.
         /// </summary>
-        public CharacterInstance FindCharacterByTemplate(CharacterData template)
-        {
-            return _gamewideContextBrain?.FindInstanceByTemplate(template);
-        }
+        public CharacterInstance FindCharacterByTemplate(CharacterData template) => _gamewideContextBrain?.FindInstanceByTemplate(template);
 
         #endregion
     }

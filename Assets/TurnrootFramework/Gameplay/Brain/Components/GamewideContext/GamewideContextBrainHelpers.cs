@@ -1,14 +1,14 @@
 using System;
 using System.Reflection;
 using System.Text;
-using Assets.Turnroot.Gameplay.Brain.Components;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Turnroot.Characters;
+using Turnroot.Gameplay.Brain.Components;
 using Turnroot.Gameplay.Objects;
 using UnityEngine;
 
-namespace Assets.Turnroot.Gameplay.Brain
+namespace Turnroot.Gameplay.Brain
 {
     /// <summary>
     /// Shared helper methods for GamewideContextBrain to keep the main class small.
@@ -78,7 +78,9 @@ namespace Assets.Turnroot.Gameplay.Brain
             if (t == typeof(CharacterInstance))
             {
                 var characterData = TryExtractCharacterDataFromWrapper(wrapper);
-                return characterData != null ? (T)(object)CharacterInstance.Create(characterData) : default;
+                return characterData != null
+                    ? (T)(object)CharacterInstance.Create(characterData)
+                    : default;
             }
 
             // Generic fallback: try parameterless constructor
@@ -152,7 +154,9 @@ namespace Assets.Turnroot.Gameplay.Brain
             }
 
             var assetPath = templateToken.Value<string>("assetPath");
-            return !string.IsNullOrEmpty(assetPath) ? UnityEditor.AssetDatabase.LoadAssetAtPath<CharacterData>(assetPath) : null;
+            return !string.IsNullOrEmpty(assetPath)
+                ? UnityEditor.AssetDatabase.LoadAssetAtPath<CharacterData>(assetPath)
+                : null;
         }
 #endif
 
@@ -213,7 +217,9 @@ namespace Assets.Turnroot.Gameplay.Brain
             }
 
             // Try parsing wrapper payload
-            return wrapper != null && !string.IsNullOrEmpty(wrapper.Payload) ? TryGetIdFromPayload(wrapper.Payload) : null;
+            return wrapper != null && !string.IsNullOrEmpty(wrapper.Payload)
+                ? TryGetIdFromPayload(wrapper.Payload)
+                : null;
         }
 
         private static string TryGetIdFromInstance<T>(T instance)
@@ -456,7 +462,7 @@ namespace Assets.Turnroot.Gameplay.Brain
                 }
 
                 // Post-deserialization hook
-                if (instance is global::Turnroot.Serialization.IPostDeserialize post)
+                if (instance is Turnroot.Serialization.IPostDeserialize post)
                 {
                     post.OnAfterDeserialize();
                 }
@@ -527,10 +533,7 @@ namespace Assets.Turnroot.Gameplay.Brain
             }
         }
 
-        public static string DesignateInstanceType<T>()
-        {
-            return typeof(T).FullName;
-        }
+        public static string DesignateInstanceType<T>() => typeof(T).FullName;
 
         /// <summary>
         /// Encodes an instance to Base64 without persisting ledger entries.

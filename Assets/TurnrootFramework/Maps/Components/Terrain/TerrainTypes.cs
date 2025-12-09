@@ -45,16 +45,11 @@ public class TerrainTypes : ScriptableObject
         }
     }
 
-    private void OnValidate()
-    {
+    private void OnValidate() =>
         // Ensure the lookup is updated when the asset is modified
         OnEnable();
-    }
 
-    private void OnDisable()
-    {
-        _typeLookup.Clear();
-    }
+    private void OnDisable() => _typeLookup.Clear();
 
     public void AddType(string name, Color editorColor)
     {

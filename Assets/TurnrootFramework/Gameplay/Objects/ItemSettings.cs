@@ -110,16 +110,10 @@ namespace Turnroot.Gameplay.Objects
 
 #if UNITY_EDITOR
         [UnityEditor.InitializeOnLoadMethod]
-        private static void InvalidateCacheOnRecompile()
-        {
-            InvalidateCache();
-        }
+        private static void InvalidateCacheOnRecompile() => InvalidateCache();
 #endif
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-        private static void InvalidateCacheOnPlayMode()
-        {
-            InvalidateCache();
-        }
+        private static void InvalidateCacheOnPlayMode() => InvalidateCache();
     }
 }

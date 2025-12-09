@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Assets.Turnroot.Characters;
 using Newtonsoft.Json;
+using Turnroot.Characters;
 using Turnroot.Characters;
 using UnityEngine;
 
-namespace Assets.Turnroot.Gameplay.Brain
+namespace Turnroot.Gameplay.Brain
 {
     /// <summary>
     /// Manages gamewide context within the game's brain system.
@@ -49,31 +49,17 @@ namespace Assets.Turnroot.Gameplay.Brain
             set => tamperPolicy = value;
         }
 
-        protected override void Awake()
-        {
-            base.Awake(); // Calls parent Awake
-        }
+        protected override void Awake() => base.Awake(); // Calls parent Awake
 
-        protected override void SubscribeToBrainEvents()
-        {
-            _brain.OnRosterReady += HandleRosterReady;
-        }
+        protected override void SubscribeToBrainEvents() => _brain.OnRosterReady += HandleRosterReady;
 
-        protected override void UnsubscribeFromBrainEvents()
-        {
-            _brain.OnRosterReady -= HandleRosterReady;
-        }
+        protected override void UnsubscribeFromBrainEvents() => _brain.OnRosterReady -= HandleRosterReady;
 
-        public void Start()
-        {
-            RecallRosters();
-        }
+        public void Start() => RecallRosters();
 
-        private void HandleRosterReady(RosterInstance instance)
-        {
+        private void HandleRosterReady(RosterInstance instance) =>
             // Automatically invalidate cache when new roster is created
             _lastRosterCount = -1;
-        }
 
         #region Roster Cache Management
 
@@ -123,10 +109,7 @@ namespace Assets.Turnroot.Gameplay.Brain
                 : CreateNewRosterInstance(roster, registerGlobally);
         }
 
-        private RosterInstance FindExistingRosterInstance(Roster roster)
-        {
-            return GetCachedRosterInstances().FirstOrDefault(r => r != null && r.roster == roster);
-        }
+        private RosterInstance FindExistingRosterInstance(Roster roster) => GetCachedRosterInstances().FirstOrDefault(r => r != null && r.roster == roster);
 
         private RosterInstance HandleExistingRoster(
             RosterInstance existing,
@@ -359,10 +342,7 @@ namespace Assets.Turnroot.Gameplay.Brain
             }
         }
 
-        private string BuildUniqueCharacterKey(CharacterData characterData)
-        {
-            return $"GWB.UniqueCharacter.{characterData.name}";
-        }
+        private string BuildUniqueCharacterKey(CharacterData characterData) => $"GWB.UniqueCharacter.{characterData.name}";
 
         #endregion
 
@@ -632,20 +612,11 @@ namespace Assets.Turnroot.Gameplay.Brain
             RegisterRosterInLTM(roster);
         }
 
-        public string DesignateInstanceType<T>()
-        {
-            return GamewideContextBrainHelpers.DesignateInstanceType<T>();
-        }
+        public string DesignateInstanceType<T>() => GamewideContextBrainHelpers.DesignateInstanceType<T>();
 
-        public string EncodeInstanceToString<T>(T instance)
-        {
-            return GamewideContextBrainHelpers.EncodeInstanceToString(this, instance);
-        }
+        public string EncodeInstanceToString<T>(T instance) => GamewideContextBrainHelpers.EncodeInstanceToString(this, instance);
 
-        public T DecodeInstanceFromString<T>(string encodedString)
-        {
-            return GamewideContextBrainHelpers.DecodeInstanceFromString<T>(this, encodedString);
-        }
+        public T DecodeInstanceFromString<T>(string encodedString) => GamewideContextBrainHelpers.DecodeInstanceFromString<T>(this, encodedString);
 
         #endregion
     }

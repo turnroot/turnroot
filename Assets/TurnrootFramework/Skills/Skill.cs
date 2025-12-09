@@ -89,8 +89,5 @@ public class Skill : ScriptableObject
     /// Template method to trigger skill events.
     /// Called by SkillInstance during runtime execution.
     /// </summary>
-    public void TriggerSkillEvents()
-    {
-        SkillTriggered?.Invoke();
-    }
+    public void TriggerSkillEvents() => SkillTriggered?.Invoke();
 }

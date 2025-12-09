@@ -7,10 +7,7 @@ namespace Turnroot.Characters.Subclasses
     [Serializable]
     public class Portrait : StackedImage<CharacterData>
     {
-        protected override string GetSaveSubdirectory()
-        {
-            return "Portraits";
-        }
+        protected override string GetSaveSubdirectory() => "Portraits";
 
         public override void UpdateTintColorsFromOwner()
         {

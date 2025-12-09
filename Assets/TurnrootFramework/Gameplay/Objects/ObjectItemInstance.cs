@@ -1,5 +1,6 @@
 using System;
-using Assets.Turnroot.Gameplay.Brain;
+using Turnroot.Gameplay.Brain;
+using Turnroot.Gameplay.Objects.Components;
 using Turnroot.Serialization;
 using UnityEngine;
 
@@ -24,9 +25,17 @@ namespace Turnroot.Gameplay.Objects
 
         private InventoryBrain InventoryBrain => Utilities.GetBrain.Get()?.inventoryBrain;
 
+        private readonly ObjectForgerHelper ForgerHelper;
+
+        public ObjectForgerHelper Forger => ForgerHelper;
+
         public ObjectItemInstance(ObjectItem template)
         {
             _template = template;
+            if (_template.Forgeable)
+            {
+                ForgerHelper = new ObjectForgerHelper { ThisItem = template };
+            }
             _id = Guid.NewGuid().ToString();
             currentUses = 0;
         }

@@ -13,10 +13,7 @@ namespace Turnroot.Characters.Stats
         public static BoundedCharacterStat GetBoundedStat(
             List<BoundedCharacterStat> stats,
             BoundedStatType type
-        )
-        {
-            return stats?.Find(s => s.StatType == type);
-        }
+        ) => stats?.Find(s => s.StatType == type);
 
         /// <summary>
         /// Finds an unbounded stat by type in a list.
@@ -24,9 +21,6 @@ namespace Turnroot.Characters.Stats
         public static CharacterStat GetUnboundedStat(
             List<CharacterStat> stats,
             UnboundedStatType type
-        )
-        {
-            return stats?.Find(s => s.StatType == type);
-        }
+        ) => stats?.Find(s => s.StatType == type);
     }
 }

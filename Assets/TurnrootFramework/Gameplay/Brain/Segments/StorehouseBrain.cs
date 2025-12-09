@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using Turnroot.Gameplay.Objects;
 using UnityEngine;
 
-namespace Assets.Turnroot.Gameplay.Brain
+namespace Turnroot.Gameplay.Brain
 {
     /// <summary>
     /// Manages shared storage (convoy/storehouse) for items and materials.
@@ -18,7 +18,7 @@ namespace Assets.Turnroot.Gameplay.Brain
         {
             _ltm = GetComponent<LongTermMemory>();
             _gameplaySettings =
-                global::Turnroot.Utilities.GameSettingsLoader.LoadFirst<GameplayGeneralSettings>();
+                Turnroot.Utilities.GameSettingsLoader.LoadFirst<GameplayGeneralSettings>();
             _brain = GetComponent<Brain>();
             _materials = new Dictionary<ObjectItem, int>();
             GoldDisplayNames =

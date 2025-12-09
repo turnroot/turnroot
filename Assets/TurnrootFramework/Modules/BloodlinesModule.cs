@@ -50,26 +50,24 @@ namespace Turnroot.Characters.Modules
         /// <summary>
         /// Get hair color from Bloodlines data, or default if module disabled.
         /// </summary>
-        public static Color GetHairColor(BloodlinesData data)
-        {
+        public static Color GetHairColor(BloodlinesData data) =>
 #if TURNROOT_BLOODLINES_MODULE
             return data?.HairColor ?? Color.black;
 #else
-            return Color.black;
+            Color.black;
 #endif
-        }
+
 
         /// <summary>
         /// Get eye color from Bloodlines data, or default if module disabled.
         /// </summary>
-        public static Color GetEyeColor(BloodlinesData data)
-        {
+        public static Color GetEyeColor(BloodlinesData data) =>
 #if TURNROOT_BLOODLINES_MODULE
             return data?.EyeColor ?? Color.blue;
 #else
-            return Color.blue;
+            Color.blue;
 #endif
-        }
+
 
         /// <summary>
         /// Set hair color in Bloodlines data (no-op if module disabled).

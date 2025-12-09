@@ -1,11 +1,11 @@
-using Assets.Turnroot.Characters;
+using Turnroot.Characters;
 using Turnroot.Characters;
 using Turnroot.Characters.Components;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Environment;
 using UnityEngine;
 
-namespace Assets.Turnroot.Gameplay.Combat
+namespace Turnroot.Gameplay.Combat
 {
     public enum BattleExitType
     {
@@ -97,20 +97,11 @@ namespace Assets.Turnroot.Gameplay.Combat
             }
         }
 
-        public void IncrementTurnCount()
-        {
-            _currentTurnCount++;
-        }
+        public void IncrementTurnCount() => _currentTurnCount++;
 
-        public void ResetTurnCount()
-        {
-            _currentTurnCount = 0;
-        }
+        public void ResetTurnCount() => _currentTurnCount = 0;
 
-        public int Turns()
-        {
-            return _currentTurnCount;
-        }
+        public int Turns() => _currentTurnCount;
 
         #region Battle Roster Management
 

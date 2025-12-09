@@ -11,9 +11,6 @@ namespace Turnroot.Skills.Nodes.Flow
         [Output(ShowBackingValue.Never, ConnectionType.Multiple)]
         public ExecutionFlow execOut;
 
-        public override object GetValue(NodePort port)
-        {
-            return null;
-        }
+        public override object GetValue(NodePort port) => null;
     }
 }

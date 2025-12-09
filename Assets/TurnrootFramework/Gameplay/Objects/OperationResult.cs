@@ -24,7 +24,6 @@ namespace Turnroot.Gameplay.Objects
         /// Creates a failed operation result with an error message.
         /// </summary>
         public static OperationResult Failure(string errorMessage) =>
-            new()
-            { Success = false, ErrorMessage = errorMessage };
+            new() { Success = false, ErrorMessage = errorMessage };
     }
 }

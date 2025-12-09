@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using NaughtyAttributes;
 using Turnroot.Characters;
 using Turnroot.Characters.Stats;
@@ -8,6 +7,22 @@ using UnityEngine;
 
 namespace Turnroot.Gameplay.Objects
 {
+    [System.Serializable]
+    public struct ForgeOption
+    {
+        [SerializeField]
+        public ObjectItem ForgeInto;
+
+        [SerializeField]
+        public int Price;
+
+        [SerializeField]
+        public ObjectItem Item;
+
+        [SerializeField]
+        public int ItemAmount;
+    }
+
     [CreateAssetMenu(fileName = "ObjectItem", menuName = "Turnroot/Objects/Gameplay Item")]
     public class ObjectItem : ScriptableObject
     {
@@ -91,28 +106,12 @@ namespace Turnroot.Gameplay.Objects
         [Foldout("Repair"), SerializeField, ShowIf(nameof(IsWeaponOrMagicSubtype))]
         private bool _forgeable = false;
 
-        [Foldout("Repair"), SerializeField, ShowIf(nameof(IsWeaponOrMagicSubtypeAndIsForgeable))]
-        private ObjectItem[] _forgeInto;
+        public bool Forgeable => _forgeable;
 
         [Foldout("Repair"), SerializeField, ShowIf(nameof(IsWeaponOrMagicSubtypeAndIsForgeable))]
-        private int[] _forgePrices;
+        private ForgeOption[] _forgeOptions;
 
-        [Foldout("Repair"), SerializeField, ShowIf(nameof(IsWeaponOrMagicSubtypeAndIsForgeable))]
-        private bool _forgeNeedsItems = false;
-
-        [
-            Foldout("Repair"),
-            SerializeField,
-            ShowIf(nameof(IsWeaponOrMagicSubtypeAndIsForgeableAndNeedsItems))
-        ]
-        private ObjectItem[] _forgeItems;
-
-        [
-            Foldout("Repair"),
-            SerializeField,
-            ShowIf(nameof(IsWeaponOrMagicSubtypeAndIsForgeableAndNeedsItems))
-        ]
-        private int _forgeItemAmountPerUse = 1;
+        public ForgeOption[] ForgeOptions => _forgeOptions;
 
         [
             Foldout("Lost Items"),
@@ -240,15 +239,9 @@ namespace Turnroot.Gameplay.Objects
             _forgeable = settings.GetWeaponsCanBeForged();
         }
 
-        private void OnEnable()
-        {
-            ApplyGameplayDefaultsFromSettings();
-        }
+        private void OnEnable() => ApplyGameplayDefaultsFromSettings();
 
-        private void OnValidate()
-        {
-            ApplyGameplayDefaultsFromSettings();
-        }
+        private void OnValidate() => ApplyGameplayDefaultsFromSettings();
 
         public CharacterData BelongsTo => _belongsTo;
 
@@ -294,9 +287,6 @@ namespace Turnroot.Gameplay.Objects
 
         private bool IsWeaponOrMagicSubtypeAndIsForgeable() =>
             IsWeaponOrMagicSubtype() && _forgeable;
-
-        private bool IsWeaponOrMagicSubtypeAndIsForgeableAndNeedsItems() =>
-            IsWeaponOrMagicSubtypeAndIsForgeable() && _forgeNeedsItems;
 
         private bool IsDurabilityAndIsReplenishUsesAfterBattle() =>
             _replenishUsesAfterBattle && _durability;

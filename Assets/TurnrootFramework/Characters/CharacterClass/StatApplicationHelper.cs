@@ -21,10 +21,7 @@ namespace Turnroot.Characters.CharacterClass
             List<StatModifier> modifiers,
             CharacterInstance character,
             string context = ""
-        )
-        {
-            character?.ApplyBoundedBonuses(modifiers);
-        }
+        ) => character?.ApplyBoundedBonuses(modifiers);
 
         /// <summary>
         /// Apply unbounded stat modifiers to a character's bonus values.
@@ -34,10 +31,7 @@ namespace Turnroot.Characters.CharacterClass
             List<UnboundedStatModifier> modifiers,
             CharacterInstance character,
             string context = ""
-        )
-        {
-            character?.ApplyUnboundedBonuses(modifiers);
-        }
+        ) => character?.ApplyUnboundedBonuses(modifiers);
 
         /// <summary>
         /// Remove bounded stat modifiers from a character's bonus values.
@@ -47,10 +41,7 @@ namespace Turnroot.Characters.CharacterClass
             List<StatModifier> modifiers,
             CharacterInstance character,
             string context = ""
-        )
-        {
-            character?.RemoveBoundedBonuses(modifiers);
-        }
+        ) => character?.RemoveBoundedBonuses(modifiers);
 
         /// <summary>
         /// Remove unbounded stat modifiers from a character's bonus values.
@@ -60,10 +51,7 @@ namespace Turnroot.Characters.CharacterClass
             List<UnboundedStatModifier> modifiers,
             CharacterInstance character,
             string context = ""
-        )
-        {
-            character?.RemoveUnboundedBonuses(modifiers);
-        }
+        ) => character?.RemoveUnboundedBonuses(modifiers);
 
         #endregion
 

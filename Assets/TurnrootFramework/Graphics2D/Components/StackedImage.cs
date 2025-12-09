@@ -57,10 +57,7 @@ namespace Turnroot.Graphics2D
 
         // Editor helper: assign an ImageStack to this StackedImage instance.
         // Prefer calling this instead of using reflection from editor code.
-        public void SetImageStack(Turnroot.Graphics.Portrait.ImageStack stack)
-        {
-            _imageStack = stack;
-        }
+        public void SetImageStack(Turnroot.Graphics.Portrait.ImageStack stack) => _imageStack = stack;
 
         public void SetKey(string key)
         {
@@ -130,10 +127,7 @@ namespace Turnroot.Graphics2D
         // e.g., "Portraits" for Portrait class, "ItemIcons" for ItemIcon class
         protected abstract string GetSaveSubdirectory();
 
-        public override string ToString()
-        {
-            return $"p{_id}";
-        }
+        public override string ToString() => $"p{_id}";
 
         public string Identify()
         {
@@ -254,13 +248,15 @@ namespace Turnroot.Graphics2D
                 }
 
                 // Create a shallow copy for safe editing (do not change asset)
-                var copy = new ImageStackLayer();
-                copy.Sprite = src.Sprite;
-                copy.Mask = src.Mask;
-                copy.Offset = src.Offset;
-                copy.Scale = src.Scale;
-                copy.Rotation = src.Rotation;
-                copy.Order = src.Order;
+                var copy = new ImageStackLayer
+                {
+                    Sprite = src.Sprite,
+                    Mask = src.Mask,
+                    Offset = src.Offset,
+                    Scale = src.Scale,
+                    Rotation = src.Rotation,
+                    Order = src.Order
+                };
                 // Preserve Tag if present on source
                 try
                 {

@@ -3,7 +3,7 @@ using Turnroot.Characters;
 using Turnroot.Gameplay.Objects;
 using UnityEngine;
 
-namespace Assets.Turnroot.Gameplay.Brain
+namespace Turnroot.Gameplay.Brain
 {
     /// <summary>
     /// Manages inventory operations and publishes item-related events.
@@ -14,10 +14,7 @@ namespace Assets.Turnroot.Gameplay.Brain
     {
         private Brain _brain;
 
-        private void Awake()
-        {
-            _brain = GetComponent<Brain>();
-        }
+        private void Awake() => _brain = GetComponent<Brain>();
 
         #region Item Operations
 
@@ -154,10 +151,54 @@ namespace Assets.Turnroot.Gameplay.Brain
                 return OperationResult.Failure("Invalid item or forge target.");
             }
 
-            // TODO: Implement forging logic
-            _brain?.PublishItemForged(item, targetItem);
+            if (item.Forger == null)
+            {
+                return OperationResult.Failure("Item cannot be forged.");
+            }
 
-            return OperationResult.SuccessResult();
+            // Get forge options
+            var getOptionsResult = item.Forger.GetForgeOptions();
+            if (!getOptionsResult.Success)
+            {
+                return getOptionsResult;
+            }
+
+            // Find the matching forge option
+            if (item.Forger.forgeOptions == null || item.Forger.forgeOptions.Length == 0)
+            {
+                return OperationResult.Failure("No forge options available.");
+            }
+
+            ForgeOption? targetOption = null;
+            foreach (var option in item.Forger.forgeOptions)
+            {
+                if (option.ForgeInto == targetItem)
+                {
+                    targetOption = option;
+                    break;
+                }
+            }
+
+            if (!targetOption.HasValue)
+            {
+                return OperationResult.Failure($"Cannot forge into {targetItem.name}.");
+            }
+
+            // Get storehouse brain to consume resources
+            var storehouseBrain = _brain?.storehouseBrain;
+            if (storehouseBrain == null)
+            {
+                return OperationResult.Failure("Storehouse brain not available.");
+            }
+
+            // Perform the forge
+            var result = item.Forger.ForgeItem(storehouseBrain, targetOption.Value);
+            if (result.Success)
+            {
+                _brain?.PublishItemForged(item, targetItem);
+            }
+
+            return result;
         }
 
         #endregion

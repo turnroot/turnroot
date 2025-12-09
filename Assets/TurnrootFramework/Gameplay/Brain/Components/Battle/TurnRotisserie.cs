@@ -23,10 +23,10 @@ public class TurnRotisserie : MonoBehaviour
     }
 
     [SerializeField, HideInInspector]
-    private Assets.Turnroot.Gameplay.Brain.Brain _brain;
+    private Turnroot.Gameplay.Brain.Brain _brain;
 
     [HideInInspector]
-    public Assets.Turnroot.Gameplay.Brain.Brain Brain
+    public Turnroot.Gameplay.Brain.Brain Brain
     {
         get => _brain;
         set => _brain = value;

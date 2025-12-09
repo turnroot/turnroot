@@ -79,18 +79,12 @@ namespace Turnroot.Skills.Nodes
         /// <summary>
         /// Creates a FloatValue output with a runtime value or default.
         /// </summary>
-        public static FloatValue CreateFloatOutput(float defaultValue, float runtimeValue)
-        {
-            return new FloatValue { value = Application.isPlaying ? runtimeValue : defaultValue };
-        }
+        public static FloatValue CreateFloatOutput(float defaultValue, float runtimeValue) => new FloatValue { value = Application.isPlaying ? runtimeValue : defaultValue };
 
         /// <summary>
         /// Creates a BoolValue output with a runtime value or default.
         /// </summary>
-        public static BoolValue CreateBoolOutput(bool defaultValue, bool runtimeValue)
-        {
-            return new BoolValue { value = Application.isPlaying ? runtimeValue : defaultValue };
-        }
+        public static BoolValue CreateBoolOutput(bool defaultValue, bool runtimeValue) => new BoolValue { value = Application.isPlaying ? runtimeValue : defaultValue };
 
         /// <summary>
         /// Gets stat current value with fallback handling.

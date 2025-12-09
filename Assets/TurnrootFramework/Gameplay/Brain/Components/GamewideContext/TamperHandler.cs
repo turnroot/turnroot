@@ -1,9 +1,9 @@
 using System;
-using Assets.Turnroot.Gameplay.Brain.Components;
 using Turnroot.Characters;
+using Turnroot.Gameplay.Brain.Components;
 using UnityEngine;
 
-namespace Assets.Turnroot.Gameplay.Brain.Components
+namespace Turnroot.Gameplay.Brain.Components
 {
     /// <summary>
     /// Central handler for tamper detection policy decisions.
@@ -16,10 +16,7 @@ namespace Assets.Turnroot.Gameplay.Brain.Components
             GamewideContextBrain brain,
             T instance,
             GamewideContextBrainHelpers.SerializedWrapper wrapper
-        )
-        {
-            return OnTamperDetected(brain, instance, wrapper, "payload mismatch");
-        }
+        ) => OnTamperDetected(brain, instance, wrapper, "payload mismatch");
 
         public static T HandleLedgerMismatch<T>(
             GamewideContextBrain brain,

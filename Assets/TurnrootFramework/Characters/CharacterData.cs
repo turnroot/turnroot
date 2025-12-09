@@ -286,10 +286,7 @@ namespace Turnroot.Characters
         private bool CanShowUnique() =>
             Which == CharacterWhich.ENEMY || Which == CharacterWhich.NPC;
 
-        private bool IsAllyOrRecruitable()
-        {
-            return Which == CharacterWhich.ALLY || IsRecruitable;
-        }
+        private bool IsAllyOrRecruitable() => Which == CharacterWhich.ALLY || IsRecruitable;
 
         // Helper: returns the dictionary values as an array (cached). Use when you need indexed access.
         public Portrait[] PortraitArray
@@ -313,10 +310,7 @@ namespace Turnroot.Characters
 #endif
 
         // Editor helper: invalidate cached PortraitArray so editors can refresh after changes.
-        public void InvalidatePortraitArrayCache()
-        {
-            _portraitArrayCache = null;
-        }
+        public void InvalidatePortraitArrayCache() => _portraitArrayCache = null;
 
         // Editor/API convenience: allow saving/loading character defaults (called from StackedImageEditorWindow)
         // These perform minimal delegation to contained Portraits so editor UI can invoke them.
@@ -371,20 +365,11 @@ namespace Turnroot.Characters
         }
 
         // Helper methods to get stats by type
-        public BoundedCharacterStat GetBoundedStat(BoundedStatType type)
-        {
-            return StatHelpers.GetBoundedStat(BoundedStats, type);
-        }
+        public BoundedCharacterStat GetBoundedStat(BoundedStatType type) => StatHelpers.GetBoundedStat(BoundedStats, type);
 
-        public CharacterStat GetUnboundedStat(UnboundedStatType type)
-        {
-            return StatHelpers.GetUnboundedStat(UnboundedStats, type);
-        }
+        public CharacterStat GetUnboundedStat(UnboundedStatType type) => StatHelpers.GetUnboundedStat(UnboundedStats, type);
 
-        public ExperienceRank GetExperienceRank(string experienceTypeId)
-        {
-            return ExperienceRanks?.Find(e => e.ExperienceTypeId == experienceTypeId);
-        }
+        public ExperienceRank GetExperienceRank(string experienceTypeId) => ExperienceRanks?.Find(e => e.ExperienceTypeId == experienceTypeId);
 
         [Serializable]
         public class InventorySlot

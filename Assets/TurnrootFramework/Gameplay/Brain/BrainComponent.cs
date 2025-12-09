@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Assets.Turnroot.Gameplay.Brain
+namespace Turnroot.Gameplay.Brain
 {
     /// <summary>
     /// Base class for all brain components that need to subscribe to Brain events.

@@ -3,7 +3,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
 
-namespace Assets.Turnroot.Gameplay.Brain.Components
+namespace Turnroot.Gameplay.Brain.Components
 {
     /// <summary>
     /// Serializes UnityEngine.Object references to a small JSON token containing type, name, and asset path.
@@ -17,10 +17,7 @@ namespace Assets.Turnroot.Gameplay.Brain.Components
         private const string GuidField = "guid";
         private const string AssetPathField = "assetPath";
 
-        public override bool CanConvert(Type objectType)
-        {
-            return typeof(UnityEngine.Object).IsAssignableFrom(objectType);
-        }
+        public override bool CanConvert(Type objectType) => typeof(UnityEngine.Object).IsAssignableFrom(objectType);
 
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {

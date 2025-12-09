@@ -66,10 +66,7 @@ public class SkillInstance : IPostDeserialize
         _readyToFire = false;
     }
 
-    public void SetReadyToFire(bool ready)
-    {
-        _readyToFire = ready;
-    }
+    public void SetReadyToFire(bool ready) => _readyToFire = ready;
 
     public void SetEquipped(bool equipped)
     {

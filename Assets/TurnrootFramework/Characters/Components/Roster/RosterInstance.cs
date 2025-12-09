@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using Turnroot.Characters;
 using UnityEngine;
 
-namespace Assets.Turnroot.Characters
+namespace Turnroot.Characters
 {
     /// <summary>
     /// Runtime component that holds the runtime instances for a `Roster` ScriptableObject.
@@ -39,10 +39,7 @@ namespace Assets.Turnroot.Characters
 #endif
 
         // Lookup helper
-        public CharacterInstance GetInstanceFor(CharacterData data)
-        {
-            return _instances.Find(i => i.CharacterTemplate == data);
-        }
+        public CharacterInstance GetInstanceFor(CharacterData data) => _instances.Find(i => i.CharacterTemplate == data);
 
         // Runtime API to add instances after construction. Used by GamewideContextBrain
         // to auto-register instances created from a Roster ScriptableObject.
@@ -79,9 +76,6 @@ namespace Assets.Turnroot.Characters
         /// <summary>
         /// Clears all instances from this roster. Used for temporary battle rosters.
         /// </summary>
-        public void Clear()
-        {
-            _instances.Clear();
-        }
+        public void Clear() => _instances.Clear();
     }
 }

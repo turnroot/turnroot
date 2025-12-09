@@ -13,10 +13,7 @@ namespace Turnroot.Characters
         private static readonly Dictionary<ScriptableObject, object> _map = new();
 
         public static T Get<T>(ScriptableObject template)
-            where T : class
-        {
-            return template == null ? null : _map.TryGetValue(template, out var obj) ? obj as T : null;
-        }
+            where T : class => template == null ? null : _map.TryGetValue(template, out var obj) ? obj as T : null;
 
         public static void Register(ScriptableObject template, object instance)
         {

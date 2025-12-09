@@ -48,10 +48,7 @@ namespace Turnroot.Skills.Nodes
         )
         { }
 
-        public override object GetValue(NodePort port)
-        {
-            return null;
-        }
+        public override object GetValue(NodePort port) => null;
 
         #region Helper Methods
 

@@ -46,7 +46,7 @@ public static class BrainStateNames
     public const string PostBattle = "PostBattle";
 }
 
-namespace Assets.Turnroot.Gameplay.Brain
+namespace Turnroot.Gameplay.Brain
 {
     /// <summary>
     /// Manages high-level game states and transitions within the brain system.
@@ -293,7 +293,9 @@ namespace Assets.Turnroot.Gameplay.Brain
 
         private BrainState FindHighLevelState(string name)
         {
-            return string.IsNullOrEmpty(name) || _highLevelStates == null ? null : Array.Find(_highLevelStates, s => s.Name == name);
+            return string.IsNullOrEmpty(name) || _highLevelStates == null
+                ? null
+                : Array.Find(_highLevelStates, s => s.Name == name);
         }
 
         private void SetCurrentState(BrainState newState)
@@ -380,15 +382,9 @@ namespace Assets.Turnroot.Gameplay.Brain
 
         #region Pause/Resume
 
-        public void Pause()
-        {
-            SetPausedState(true);
-        }
+        public void Pause() => SetPausedState(true);
 
-        public void Resume()
-        {
-            SetPausedState(false);
-        }
+        public void Resume() => SetPausedState(false);
 
         private bool SetPausedState(bool isPaused)
         {

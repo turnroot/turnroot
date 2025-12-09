@@ -1,11 +1,11 @@
-using Assets.Turnroot.Characters;
-using Assets.Turnroot.Gameplay.Combat;
+using Turnroot.Characters;
 using Turnroot.Characters;
 using Turnroot.Characters.Components;
+using Turnroot.Gameplay.Combat;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace Assets.Turnroot.Gameplay.Brain
+namespace Turnroot.Gameplay.Brain
 {
     /// <summary>
     /// The battle brain manages one battle at a time.

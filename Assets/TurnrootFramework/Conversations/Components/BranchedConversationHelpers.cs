@@ -135,9 +135,8 @@ namespace Turnroot.Conversations
                                 portName = portName,
                                 targetNodeId = targetNode.GetInstanceID(),
                                 targetNodeName = targetNode.name,
+                                label = ResolveLabelForPort(node, portName, targetNode)
                             };
-
-                            choice.label = ResolveLabelForPort(node, portName, targetNode);
                             choice.choiceText = choice.label;
                             nd.choices.Add(choice);
                         }

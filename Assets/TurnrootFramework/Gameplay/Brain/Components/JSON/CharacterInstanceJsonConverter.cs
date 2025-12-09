@@ -4,7 +4,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Turnroot.Characters;
 
-namespace Assets.Turnroot.Gameplay.Brain.Components
+namespace Turnroot.Gameplay.Brain.Components
 {
     /// <summary>
     /// Custom converter that reconstructs CharacterInstance using its constructor and populates runtime/private fields reflectively.
@@ -29,10 +29,7 @@ namespace Assets.Turnroot.Gameplay.Brain.Components
             public const string SupportRelationships = "_supportRelationships";
         }
 
-        public override bool CanConvert(Type objectType)
-        {
-            return typeof(CharacterInstance).IsAssignableFrom(objectType);
-        }
+        public override bool CanConvert(Type objectType) => typeof(CharacterInstance).IsAssignableFrom(objectType);
 
         public override bool CanWrite => true;
 

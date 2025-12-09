@@ -1,13 +1,13 @@
 using System;
-using Assets.Turnroot.Gameplay.Combat;
 using Turnroot.Characters;
 using Turnroot.Characters.Components.Support;
 using Turnroot.Conversations;
+using Turnroot.Gameplay.Combat;
 using Turnroot.Gameplay.Objects;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace Assets.Turnroot.Gameplay.Brain
+namespace Turnroot.Gameplay.Brain
 {
     /// <summary>
     /// The universal brain for managing and propagating events and data throughout the brain system.

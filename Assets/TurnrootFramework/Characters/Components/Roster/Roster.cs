@@ -3,7 +3,7 @@ using NaughtyAttributes;
 using Turnroot.Characters;
 using UnityEngine;
 
-namespace Assets.Turnroot.Characters
+namespace Turnroot.Characters
 {
     /// <summary>
     /// The roster ScriptableObject holds a list of characters in a roster.

@@ -5,7 +5,7 @@ using Newtonsoft.Json.Linq;
 using UnityEngine;
 using Turnroot.Characters;
 
-namespace Assets.Turnroot.Gameplay.Brain.Components
+namespace Turnroot.Gameplay.Brain.Components
 {
     /// <summary>
     /// Editor helper component with NaughtyAttributes buttons to exercise GamewideContextBrain serialization.
@@ -18,7 +18,7 @@ namespace Assets.Turnroot.Gameplay.Brain.Components
         [Required]
         public GamewideContextBrain Brain;
 
-        public Assets.Turnroot.Gameplay.Brain.GamewideContextBrain.TamperPolicy TestPolicy = Assets
+        public Turnroot.Gameplay.Brain.GamewideContextBrain.TamperPolicy TestPolicy = Assets
             .Turnroot
             .Gameplay
             .Brain
@@ -74,10 +74,9 @@ namespace Assets.Turnroot.Gameplay.Brain.Components
             {
                 var ltm = Brain.GetComponent<LongTermMemory>();
                 var rawKey = $"GWB.InstanceHash.{typeof(CharacterInstance).FullName}.{instance.Id}";
-                var keyHash =
-                    Assets.Turnroot.Gameplay.Brain.GamewideContextBrainHelpers.ComputeFNV1a64Hex(
-                        rawKey
-                    );
+                var keyHash = Turnroot.Gameplay.Brain.GamewideContextBrainHelpers.ComputeFNV1a64Hex(
+                    rawKey
+                );
                 var key = $"GWB.InstanceHash.{typeof(CharacterInstance).FullName}.{keyHash}";
                 var stored = ltm?.Recall(key);
                 Debug.Log($"Ledger key: {key} => {stored}");
@@ -125,7 +124,7 @@ namespace Assets.Turnroot.Gameplay.Brain.Components
             try
             {
                 var wrapper =
-                    Assets.Turnroot.Gameplay.Brain.GamewideContextBrainHelpers.DecodeWrapperAsJObject(
+                    Turnroot.Gameplay.Brain.GamewideContextBrainHelpers.DecodeWrapperAsJObject(
                         LastEncoded
                     );
                 var payload = JsonConvert.DeserializeObject<JObject>((string)wrapper["Payload"]);
@@ -167,7 +166,7 @@ namespace Assets.Turnroot.Gameplay.Brain.Components
             try
             {
                 var wrapper =
-                    Assets.Turnroot.Gameplay.Brain.GamewideContextBrainHelpers.DecodeWrapperAsJObject(
+                    Turnroot.Gameplay.Brain.GamewideContextBrainHelpers.DecodeWrapperAsJObject(
                         LastEncoded
                     );
                 var payload = JsonConvert.DeserializeObject<JObject>((string)wrapper["Payload"]);
@@ -181,13 +180,13 @@ namespace Assets.Turnroot.Gameplay.Brain.Components
 
                 // recompute the wrapper hash to match the modified payload (attacker updates hash)
                 var newHash =
-                    Assets.Turnroot.Gameplay.Brain.GamewideContextBrainHelpers.RecomputeHashFromWrapperJObject(
+                    Turnroot.Gameplay.Brain.GamewideContextBrainHelpers.RecomputeHashFromWrapperJObject(
                         wrapper
                     );
                 wrapper["Hash"] = newHash;
 
                 var tamperedBase64 =
-                    Assets.Turnroot.Gameplay.Brain.GamewideContextBrainHelpers.EncodeJObjectToBase64(
+                    Turnroot.Gameplay.Brain.GamewideContextBrainHelpers.EncodeJObjectToBase64(
                         wrapper
                     );
 

@@ -170,25 +170,13 @@ public class MapGridPoint : MonoBehaviour
 
     /* ---------------------------- Grid Point Property Accessors ---------------------------- */
 
-    public CharacterInstance GetStartingUnit()
-    {
-        return _startingUnit;
-    }
+    public CharacterInstance GetStartingUnit() => _startingUnit;
 
-    public void SetStartingUnit(CharacterInstance unit)
-    {
-        _startingUnit = unit;
-    }
+    public void SetStartingUnit(CharacterInstance unit) => _startingUnit = unit;
 
-    public UnityEvent GetFriendlyEntersEvent()
-    {
-        return _friendlyEntersEvent;
-    }
+    public UnityEvent GetFriendlyEntersEvent() => _friendlyEntersEvent;
 
-    public UnityEvent GetEnemyEntersEvent()
-    {
-        return _enemyEntersEvent;
-    }
+    public UnityEvent GetEnemyEntersEvent() => _enemyEntersEvent;
 
     public void SetTerrainTypeId(string id) => _terrainTypeId = id ?? string.Empty;
 
@@ -356,10 +344,7 @@ public class MapGridPoint : MonoBehaviour
         new(_featureUnitProperties);
 
     // ----- Point-level unit properties -----
-    public void SetUnitPointProperty(string key, CharacterInstance value)
-    {
-        SetProperty(_pointUnitProperties, key, value);
-    }
+    public void SetUnitPointProperty(string key, CharacterInstance value) => SetProperty(_pointUnitProperties, key, value);
 
     public CharacterInstance GetUnitPointProperty(string key)
     {
@@ -459,11 +444,9 @@ public class MapGridPoint : MonoBehaviour
         new(_featureEventProperties);
 
     // ----- Point-level event properties -----
-    public void SetEventPointProperty(string key, UnityEvent value)
-    {
+    public void SetEventPointProperty(string key, UnityEvent value) =>
         // Write events into the generic property list.
         SetProperty(_pointEventProperties, key, value);
-    }
 
     public UnityEvent GetEventPointProperty(string key)
     {

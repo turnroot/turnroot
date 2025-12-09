@@ -3,7 +3,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
 
-namespace Assets.Turnroot.Gameplay.Brain.Components
+namespace Turnroot.Gameplay.Brain.Components
 {
     /// <summary>
     /// Generic JsonConverter template for Data->Instance types that require a constructor.
@@ -24,10 +24,8 @@ namespace Assets.Turnroot.Gameplay.Brain.Components
     {
         private const string TemplateField = "_template";
 
-        public override bool CanConvert(Type objectType)
-        {
-            return typeof(TInstance).IsAssignableFrom(objectType);
-        }
+        public override bool CanConvert(Type objectType) =>
+            typeof(TInstance).IsAssignableFrom(objectType);
 
         public override bool CanWrite => false;
 
@@ -52,7 +50,7 @@ namespace Assets.Turnroot.Gameplay.Brain.Components
             var instance = CreateInstance(template);
 
             // Allow instances to perform post-deserialization cleanup
-            if (instance is global::Turnroot.Serialization.IPostDeserialize post)
+            if (instance is Turnroot.Serialization.IPostDeserialize post)
             {
                 post.OnAfterDeserialize();
             }

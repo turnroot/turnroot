@@ -31,10 +31,7 @@ public class TrianglePosition
         _position = TrianglePositionEnum.Top;
     }
 
-    public override string ToString()
-    {
-        return Position.ToString();
-    }
+    public override string ToString() => Position.ToString();
 
     public bool WinsAgainst(TrianglePosition other)
     {
@@ -60,8 +57,5 @@ public class TrianglePosition
             : Position == TrianglePositionEnum.Right && other.Position == TrianglePositionEnum.Left;
     }
 
-    public bool Equals(TrianglePosition other)
-    {
-        return Position == other.Position;
-    }
+    public bool Equals(TrianglePosition other) => Position == other.Position;
 }

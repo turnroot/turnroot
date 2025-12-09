@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace Assets.Turnroot.Gameplay.Brain
+namespace Turnroot.Gameplay.Brain
 {
     /// <summary>
     /// Loads the TurnrootBrain scene additively and manages its lifecycle.
@@ -10,20 +10,11 @@ namespace Assets.Turnroot.Gameplay.Brain
     {
         private const string BrainSceneName = "TurnrootBrain";
 
-        private void Awake()
-        {
-            LoadBrainScene();
-        }
+        private void Awake() => LoadBrainScene();
 
-        private void OnDisable()
-        {
-            UnloadBrainScene();
-        }
+        private void OnDisable() => UnloadBrainScene();
 
-        private void OnDestroy()
-        {
-            UnloadBrainScene();
-        }
+        private void OnDestroy() => UnloadBrainScene();
 
         private void LoadBrainScene()
         {
@@ -41,9 +32,6 @@ namespace Assets.Turnroot.Gameplay.Brain
             }
         }
 
-        private void UnloadBrainScene()
-        {
-            SceneManager.UnloadSceneAsync(BrainSceneName);
-        }
+        private void UnloadBrainScene() => SceneManager.UnloadSceneAsync(BrainSceneName);
     }
 }

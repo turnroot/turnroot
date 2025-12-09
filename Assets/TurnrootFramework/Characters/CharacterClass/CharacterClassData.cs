@@ -443,28 +443,29 @@ namespace Turnroot.Characters.CharacterClass
         /// <summary>
         /// Check if a pronoun key is allowed for this class.
         /// </summary>
-        public bool IsPronounAllowed(string pronounKey)
-        {
-            return string.IsNullOrEmpty(pronounKey)
-                ? true
-                : allowedPronounKeys == null || allowedPronounKeys.Count == 0 ? true : allowedPronounKeys.Contains(pronounKey);
-        }
+        public bool IsPronounAllowed(string pronounKey) =>
+            string.IsNullOrEmpty(pronounKey)
+            || allowedPronounKeys == null
+            || allowedPronounKeys.Count == 0
+            || allowedPronounKeys.Contains(pronounKey);
 
         /// <summary>
         /// Check if this class allows a specific weapon type.
         /// </summary>
-        public bool AllowsWeaponType(WeaponType weaponType)
-        {
+        public bool AllowsWeaponType(WeaponType weaponType) =>
             // Empty list means no restrictions (can use any weapon)
-            return allowedWeaponTypes == null || allowedWeaponTypes.Count == 0 ? true : allowedWeaponTypes.Contains(weaponType);
-        }
+            allowedWeaponTypes == null
+            || allowedWeaponTypes.Count == 0
+            || allowedWeaponTypes.Contains(weaponType);
 
         /// <summary>
         /// Get a list of weapon type names this class can use (for UI display).
         /// </summary>
         public string GetAllowedWeaponTypesString()
         {
-            return allowedWeaponTypes == null || allowedWeaponTypes.Count == 0 ? "Any" : string.Join(", ", allowedWeaponTypes);
+            return allowedWeaponTypes == null || allowedWeaponTypes.Count == 0
+                ? "Any"
+                : string.Join(", ", allowedWeaponTypes);
         }
 
         /// <summary>

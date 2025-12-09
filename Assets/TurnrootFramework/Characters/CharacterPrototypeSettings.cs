@@ -9,11 +9,9 @@ namespace Turnroot.Characters
     public class CharacterPrototypeSettings : SingletonScriptableObject<CharacterPrototypeSettings>
     {
 #if UNITY_EDITOR
-        private void OnValidate()
-        {
+        private void OnValidate() =>
             // Defer the update to avoid issues during asset import
             UnityEditor.EditorApplication.delayCall += UpdateAllCharacters;
-        }
 
         private void UpdateAllCharacters()
         {

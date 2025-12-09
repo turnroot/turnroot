@@ -60,11 +60,9 @@ namespace Turnroot.AbstractScripts.Graphics2D
         public int portraitRenderHeight = 512;
 
 #if UNITY_EDITOR
-        private void OnValidate()
-        {
+        private void OnValidate() =>
             // Defer the update to avoid issues during asset import
             UnityEditor.EditorApplication.delayCall += UpdateAllImageStacks;
-        }
 
         private void UpdateAllImageStacks()
         {

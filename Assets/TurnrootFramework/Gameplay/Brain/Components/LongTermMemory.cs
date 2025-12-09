@@ -23,10 +23,7 @@ public class LongTermMemory : MonoBehaviour
     /// </summary>
     public int KeyCacheVersion => prefs?.KeyCacheVersion ?? 0;
 
-    public void Awake()
-    {
-        InitializePrefs();
-    }
+    public void Awake() => InitializePrefs();
 
     private void InitializePrefs()
     {
@@ -42,7 +39,7 @@ public class LongTermMemory : MonoBehaviour
     {
         OnKeySetChanged?.Invoke(version);
 
-        var brain = gameObject.GetComponent<Assets.Turnroot.Gameplay.Brain.Brain>();
+        var brain = gameObject.GetComponent<Turnroot.Gameplay.Brain.Brain>();
         brain?.PublishLtmKeyCacheUpdated(version);
     }
 
@@ -81,28 +78,19 @@ public class LongTermMemory : MonoBehaviour
     /// Retrieves a string value from long-term memory.
     /// </summary>
     /// <returns>The string value, or null if the key does not exist.</returns>
-    public string Recall(string key)
-    {
-        return prefs.GetString(key, null);
-    }
+    public string Recall(string key) => prefs.GetString(key, null);
 
     /// <summary>
     /// Retrieves an integer value from long-term memory.
     /// </summary>
     /// <returns>The integer value, or -1 if the key does not exist.</returns>
-    public int RecallInt(string key)
-    {
-        return prefs.GetInt(key, -1);
-    }
+    public int RecallInt(string key) => prefs.GetInt(key, -1);
 
     /// <summary>
     /// Retrieves a boolean value from long-term memory.
     /// </summary>
     /// <returns>The boolean value, or false if the key does not exist.</returns>
-    public bool RecallBool(string key)
-    {
-        return prefs.GetBool(key, false);
-    }
+    public bool RecallBool(string key) => prefs.GetBool(key, false);
 
     /// <summary>
     /// Removes a value from long-term memory.
@@ -185,10 +173,7 @@ public class LongTermMemory : MonoBehaviour
     /// <summary>
     /// Writes all pending changes to disk immediately.
     /// </summary>
-    private void SaveImmediate()
-    {
-        prefs.Save();
-    }
+    private void SaveImmediate() => prefs.Save();
 
     private void OnDestroy()
     {

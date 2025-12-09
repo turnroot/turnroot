@@ -3,8 +3,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Assets.Turnroot.Gameplay.Brain;
 using Turnroot.Characters;
+using Turnroot.Gameplay.Brain;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -51,15 +51,9 @@ public class BattleCondition
         OnConditionInactive?.Invoke();
     }
 
-    public void ConditionMet()
-    {
-        OnConditionMet?.Invoke();
-    }
+    public void ConditionMet() => OnConditionMet?.Invoke();
 
-    public void ConditionFailed()
-    {
-        OnConditionFailed?.Invoke();
-    }
+    public void ConditionFailed() => OnConditionFailed?.Invoke();
 }
 
 /// <summary>
@@ -70,11 +64,9 @@ public class DefeatAllEnemiesBattleCondition : BattleCondition
     public DefeatAllEnemiesBattleCondition()
         : base("Defeat All Enemies", "Defeat all enemy units on the battlefield") { }
 
-    public void CheckCondition(List<CharacterData> enemies)
-    {
+    public void CheckCondition(List<CharacterData> enemies) =>
         // see below, not ready yet
         ConditionMet();
-    }
 }
 
 /// <summary>
@@ -209,11 +201,9 @@ public class ProtectNPCsBattleCondition : BattleCondition
         NPCsToProtect = Array.Empty<CharacterData>();
     }
 
-    public void CheckCondition()
-    {
+    public void CheckCondition() =>
         // See above. Can't do it
         ConditionMet();
-    }
 }
 
 /// <summary>
