@@ -95,21 +95,44 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Locations
         public IEnumerable<CharacterInstance> GetAllAdjacent()
         {
             if (TopLeft != null)
+            {
                 yield return TopLeft;
+            }
+
             if (TopCenter != null)
+            {
                 yield return TopCenter;
+            }
+
             if (TopRight != null)
+            {
                 yield return TopRight;
+            }
+
             if (CenterLeft != null)
+            {
                 yield return CenterLeft;
+            }
+
             if (CenterRight != null)
+            {
                 yield return CenterRight;
+            }
+
             if (BottomLeft != null)
+            {
                 yield return BottomLeft;
+            }
+
             if (BottomCenter != null)
+            {
                 yield return BottomCenter;
+            }
+
             if (BottomRight != null)
+            {
                 yield return BottomRight;
+            }
         }
 
         // get adjacent allies

@@ -73,7 +73,9 @@ namespace Turnroot.Conversations
         private string[] GetConversationInstanceNames()
         {
             if (_conversationInstances == null)
+            {
                 return new string[0];
+            }
 
             var names = new System.Collections.Generic.List<string>();
             foreach (var inst in _conversationInstances)
@@ -98,7 +100,10 @@ namespace Turnroot.Conversations
         public bool ChooseBranchTarget(int targetNodeId)
         {
             if (SelectedConversation?.BranchingConversation != true)
+            {
                 return false;
+            }
+
             _pendingChoiceTarget = targetNodeId;
             ClearChoiceButtons();
             return true;
@@ -110,7 +115,9 @@ namespace Turnroot.Conversations
                 SelectedConversation?.BranchingConversation != true
                 || _activeBranchingNodeId == int.MinValue
             )
+            {
                 return null;
+            }
 
             var nodes = SelectedConversation.GetGraphNodes();
             return nodes?.TryGetValue(_activeBranchingNodeId, out var node) == true
@@ -122,7 +129,9 @@ namespace Turnroot.Conversations
         public void StartConversation()
         {
             if (!ValidateConversationStart())
+            {
                 return;
+            }
 
             CleanupPreviousConversation();
             ResetUI();
@@ -195,7 +204,10 @@ namespace Turnroot.Conversations
             }
 
             if (_tweenRunId != 0)
+            {
                 DOTween.Kill(_tweenRunId);
+            }
+
             _tweenRunId++;
         }
 
@@ -205,23 +217,28 @@ namespace Turnroot.Conversations
             Graphics2DUtils.ResetImage(_speakerPortraitImageInactive);
             _lastActiveSprite = null;
             if (_dialogueText != null)
+            {
                 _dialogueText.text = string.Empty;
+            }
+
             if (_speakerNameText != null)
+            {
                 _speakerNameText.text = string.Empty;
+            }
+
             ClearChoiceButtons();
         }
 
         private IEnumerator RunConversation(ConversationInstance instance)
         {
             if (instance?.Conversation == null)
+            {
                 yield break;
+            }
 
             var conversation = instance.Conversation;
 
-            if (conversation.BranchingConversation)
-                yield return RunBranchingConversation(conversation);
-            else
-                yield return RunLinearConversation(conversation);
+            yield return conversation.BranchingConversation ? RunBranchingConversation(conversation) : RunLinearConversation(conversation);
 
             instance?.OnConversationFinished?.Invoke();
             OnAnyConversationFinished?.Invoke();
@@ -243,12 +260,16 @@ namespace Turnroot.Conversations
             while (currentNodeId != int.MinValue)
             {
                 if (!nodes.TryGetValue(currentNodeId, out var nodeData) || nodeData == null)
+                {
                     break;
+                }
 
                 _activeBranchingNodeId = currentNodeId;
 
                 if (nodeData.conversationLayer != null)
+                {
                     yield return ProcessLayer(nodeData.conversationLayer, conversation);
+                }
 
                 if (nodeData.choices?.Count > 0)
                 {
@@ -280,11 +301,17 @@ namespace Turnroot.Conversations
         private int FindEntryNode(Dictionary<int, Turnroot.Conversations.NodeData> nodes)
         {
             foreach (var kv in nodes)
+            {
                 if (kv.Value?.node != null && kv.Value.incomingCount == 0)
+                {
                     return kv.Key;
+                }
+            }
 
             foreach (var kv in nodes)
+            {
                 return kv.Key;
+            }
 
             return int.MinValue;
         }
@@ -296,7 +323,9 @@ namespace Turnroot.Conversations
         )
         {
             if (!layer.HasBeenParsed)
+            {
                 layer.ParseDialogue();
+            }
 
             layer.StartLayer();
             var binding = layerIndex.HasValue
@@ -305,7 +334,9 @@ namespace Turnroot.Conversations
             binding?.OnLayerStart?.Invoke();
 
             if (conversation.BranchingConversation)
+            {
                 _activeBranchingLayer = layer;
+            }
 
             UpdateUIForLayer(layer);
 
@@ -318,17 +349,23 @@ namespace Turnroot.Conversations
             binding?.OnLayerComplete?.Invoke();
 
             if (conversation.BranchingConversation)
+            {
                 _activeBranchingLayer = null;
+            }
         }
 
         private void UpdateUIForLayer(ConversationLayer layer)
         {
             if (_dialogueText != null)
+            {
                 _dialogueText.text = layer.Dialogue;
+            }
 
             var activeSlot = layer.GetActiveSlot();
             if (_speakerNameText != null)
+            {
                 _speakerNameText.text = GetSpeakerName(activeSlot);
+            }
 
             var currentActiveSprite = layer.ActivePortrait?.SavedSprite;
             if (_lastActiveSprite != currentActiveSprite)
@@ -341,16 +378,19 @@ namespace Turnroot.Conversations
         private string GetSpeakerName(ConversationLayer.SpeakerSlot slot)
         {
             if (!string.IsNullOrWhiteSpace(slot.DisplayName))
+            {
                 return slot.DisplayName;
-            if (slot.Speaker != null && !string.IsNullOrWhiteSpace(slot.Speaker.DisplayName))
-                return slot.Speaker.DisplayName;
-            return "???";
+            }
+
+            return slot.Speaker != null && !string.IsNullOrWhiteSpace(slot.Speaker.DisplayName) ? slot.Speaker.DisplayName : "???";
         }
 
         private void ApplyPortraitForLayer(ConversationLayer layer)
         {
             if (layer == null)
+            {
                 return;
+            }
 
             var activeIsPrimary =
                 layer.ActiveSpeaker == ConversationLayer.ActiveSpeakerType.Primary;
@@ -360,7 +400,10 @@ namespace Turnroot.Conversations
                 : layer.PortraitSprite;
 
             if (_tweenRunId != 0)
+            {
                 DOTween.Kill(_tweenRunId);
+            }
+
             KillImageTweens(_speakerPortraitImageActive, _speakerPortraitImageInactive);
 
             var animatePortraits = GfxSettings?.AnimatePortraitTransitions ?? true;
@@ -377,6 +420,7 @@ namespace Turnroot.Conversations
             ResetPortraitColors();
 
             if (activeSprite != null)
+            {
                 ApplyPortraitBehavior(
                     layer,
                     activeIsPrimary,
@@ -385,6 +429,7 @@ namespace Turnroot.Conversations
                     behavior,
                     duration
                 );
+            }
         }
 
         private void SetupPortraitImages(
@@ -444,9 +489,14 @@ namespace Turnroot.Conversations
         private void ResetPortraitColors()
         {
             if (_speakerPortraitImageActive.enabled)
+            {
                 _speakerPortraitImageActive.color = Color.white;
+            }
+
             if (_speakerPortraitImageInactive.enabled)
+            {
                 _speakerPortraitImageInactive.color = Color.white;
+            }
         }
 
         private void ApplyPortraitBehavior(
@@ -521,7 +571,10 @@ namespace Turnroot.Conversations
                 .AppendCallback(() =>
                 {
                     if (runId != _tweenRunId)
+                    {
                         return;
+                    }
+
                     (_speakerPortraitImageActive.sprite, _speakerPortraitImageInactive.sprite) = (
                         _speakerPortraitImageInactive.sprite,
                         _speakerPortraitImageActive.sprite
@@ -542,7 +595,10 @@ namespace Turnroot.Conversations
                 .AppendCallback(() =>
                 {
                     if (runId != _tweenRunId)
+                    {
                         return;
+                    }
+
                     (_speakerPortraitImageActive.sprite, _speakerPortraitImageInactive.sprite) = (
                         _speakerPortraitImageInactive.sprite,
                         _speakerPortraitImageActive.sprite
@@ -556,31 +612,44 @@ namespace Turnroot.Conversations
         private void ClearChoiceButtons()
         {
             if (_choiceButtonsContainer == null)
+            {
                 return;
+            }
+
             for (int i = _choiceButtonsContainer.childCount - 1; i >= 0; i--)
+            {
                 Destroy(_choiceButtonsContainer.GetChild(i).gameObject);
+            }
         }
 
         private void ShowChoicesForNode(int nodeId)
         {
             if (_choiceButtonPrefab == null || _choiceButtonsContainer == null)
+            {
                 return;
+            }
 
             var nodes = SelectedConversation?.GetGraphNodes();
             if (nodes?.TryGetValue(nodeId, out var nodeData) != true)
+            {
                 return;
+            }
 
             ClearChoiceButtons();
 
             foreach (var choice in nodeData.choices)
+            {
                 CreateChoiceButton(choice);
+            }
         }
 
         private void CreateChoiceButton(ChoiceData choice)
         {
             var go = Instantiate(_choiceButtonPrefab, _choiceButtonsContainer);
             if (go == null)
+            {
                 return;
+            }
 
             go.SetActive(true);
 
@@ -595,7 +664,9 @@ namespace Turnroot.Conversations
             }
 
             if (img != null)
+            {
                 img.enabled = true;
+            }
 
             if (btn != null)
             {
@@ -614,7 +685,9 @@ namespace Turnroot.Conversations
         private void KillImageTweens(params Image[] images)
         {
             if (GfxSettings?.AnimatePortraitTransitions ?? true)
+            {
                 Graphics2DUtils.KillImageTweens(images);
+            }
         }
 
         private Tween CreateTintSequence(
@@ -653,7 +726,10 @@ namespace Turnroot.Conversations
         private void OnDisable()
         {
             if (_tweenRunId != 0)
+            {
                 DOTween.Kill(_tweenRunId);
+            }
+
             if (_conversationRoutine != null)
             {
                 StopCoroutine(_conversationRoutine);
@@ -664,7 +740,9 @@ namespace Turnroot.Conversations
         private void OnDestroy()
         {
             if (_tweenRunId != 0)
+            {
                 DOTween.Kill(_tweenRunId);
+            }
         }
     }
 }

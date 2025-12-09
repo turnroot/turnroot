@@ -167,7 +167,9 @@ public class LongTermMemory : MonoBehaviour
     {
         var keys = new List<string>();
         if (prefs == null)
+        {
             return keys;
+        }
 
         foreach (var key in prefs.GetAllKeys())
         {

@@ -170,7 +170,9 @@ namespace Turnroot.Characters
         private static string GenerateId(CharacterData template)
         {
             if (template == null)
+            {
                 return Guid.NewGuid().ToString();
+            }
 
             if (template.IsUnique)
             {
@@ -191,13 +193,17 @@ namespace Turnroot.Characters
         public static CharacterInstance Create(CharacterData template)
         {
             if (template == null)
+            {
                 return null;
+            }
 
             if (template.IsUnique)
             {
                 var existing = UniqueInstanceRegistry.Get<CharacterInstance>(template);
                 if (existing != null)
+                {
                     return existing;
+                }
             }
 
             var instance = new CharacterInstance(template);
@@ -290,7 +296,9 @@ namespace Turnroot.Characters
         private void InitializeSkillsFromTemplates(List<Skill> skillTemplates)
         {
             if (skillTemplates == null)
+            {
                 return;
+            }
 
             foreach (var skillTemplate in skillTemplates)
             {
@@ -551,10 +559,7 @@ namespace Turnroot.Characters
         public bool MeetsExperienceRequirement(string experienceTypeId, string minRankLetter)
         {
             var rank = GetExperienceRank(experienceTypeId);
-            if (rank == null)
-                return false;
-
-            return rank.Rank.CompareTo(minRankLetter) >= 0;
+            return rank == null ? false : rank.Rank.CompareTo(minRankLetter) >= 0;
         }
 
         #endregion
@@ -628,7 +633,9 @@ namespace Turnroot.Characters
         public bool MeetsClassRequirements(CharacterClass.CharacterClassData classData)
         {
             if (classData == null)
+            {
                 return false;
+            }
 
             // Check level requirement
             if (_currentLevel < classData.requiredLevelToChange)
@@ -658,13 +665,13 @@ namespace Turnroot.Characters
             // TODO: Add species check when species system is implemented
 
             // Check pronoun restrictions
-            // Note: Pronoun checking requires matching against current pronoun set
-            // This is a simplified check - full implementation would need to determine
-            // current pronoun type from the Pronouns object
             if (classData.allowedPronounKeys != null && classData.allowedPronounKeys.Count > 0)
             {
-                // TODO: Implement proper pronoun matching when Pronouns stores key
-                // For now, we allow all (empty allowedPronounKeys = allow all)
+                string currentPronounKey = _characterTemplate.CharacterPronouns.GetPronounKey();
+                if (!classData.allowedPronounKeys.Contains(currentPronounKey))
+                {
+                    return false;
+                }
             }
 
             return true;
@@ -726,11 +733,15 @@ namespace Turnroot.Characters
             var available = new List<CharacterClass.CharacterClassData>();
 
             if (_currentClass == null || _currentClass.ClassData == null)
+            {
                 return available;
+            }
 
             var promotionPaths = _currentClass.ClassData.promotionPaths;
             if (promotionPaths == null || promotionPaths.Count == 0)
+            {
                 return available;
+            }
 
             foreach (var promotionClass in promotionPaths)
             {
@@ -748,9 +759,7 @@ namespace Turnroot.Characters
         /// </summary>
         public bool HasEquippedClass(CharacterClass.CharacterClassData classData)
         {
-            if (classData == null)
-                return false;
-            return _equippedClassHistory.Contains(classData);
+            return classData == null ? false : _equippedClassHistory.Contains(classData);
         }
 
         #endregion

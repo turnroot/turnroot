@@ -234,7 +234,9 @@ namespace Assets.AbstractScripts.Graphics2D
             {
                 ImageStackLayer layer = sortedLayers[layerIndex];
                 if (layer == null || layer.Sprite == null)
+                {
                     continue;
+                }
 
                 Sprite sprite = layer.Sprite;
                 Sprite mask =
@@ -257,7 +259,9 @@ namespace Assets.AbstractScripts.Graphics2D
                 );
 
                 if (layerPixels == null)
+                {
                     continue;
+                }
 
                 CompositeLayerOntoFinal(
                     layerPixels,
@@ -301,7 +305,9 @@ namespace Assets.AbstractScripts.Graphics2D
             {
                 Sprite layer = layers[layerIndex];
                 if (layer == null)
+                {
                     continue;
+                }
 
                 Sprite mask =
                     (masks != null && masks.Length > layerIndex) ? masks[layerIndex] : null;
@@ -373,10 +379,16 @@ namespace Assets.AbstractScripts.Graphics2D
         private static bool IsGrayscalePNG(Texture2D texture)
         {
             if (texture == null)
+            {
                 return false;
+            }
+
             string path = AssetDatabase.GetAssetPath(texture);
             if (string.IsNullOrEmpty(path) || !path.ToLower().EndsWith(".png"))
+            {
                 return false;
+            }
+
             try
             {
                 byte[] data = System.IO.File.ReadAllBytes(path);
@@ -391,7 +403,10 @@ namespace Assets.AbstractScripts.Graphics2D
                     || data[6] != 0x1A
                     || data[7] != 0x0A
                 )
+                {
                     return false;
+                }
+
                 int pos = 8;
                 while (pos + 12 < data.Length)
                 {
@@ -445,10 +460,11 @@ namespace Assets.AbstractScripts.Graphics2D
         private static Color[] GetSpritePixelsIfReadable(Sprite sprite)
         {
             if (sprite == null)
+            {
                 return null;
-            if (!IsTextureReadable(sprite.texture))
-                return null;
-            return sprite.texture.GetPixels();
+            }
+
+            return !IsTextureReadable(sprite.texture) ? null : sprite.texture.GetPixels();
         }
 
         // Helper: show an editor popup for a non-readable texture and offer to open the
@@ -457,7 +473,9 @@ namespace Assets.AbstractScripts.Graphics2D
         private static void NotifyTextureNotReadable(Texture2D texture, int layerIndex)
         {
             if (texture == null)
+            {
                 return;
+            }
 
             string message =
                 $"Layer {layerIndex} texture '{texture.name}' is not readable. Enable Read/Write in the texture import settings and reimport the asset.";
@@ -496,7 +514,9 @@ namespace Assets.AbstractScripts.Graphics2D
         )
         {
             if (layerPixels == null || sprite == null || layer == null)
+            {
                 return;
+            }
 
             int layerWidth = sprite.texture.width;
             int layerHeight = sprite.texture.height;
@@ -514,7 +534,9 @@ namespace Assets.AbstractScripts.Graphics2D
                     int finalY = destY + Mathf.RoundToInt(offset.y);
 
                     if (finalX < 0 || finalX >= finalWidth || finalY < 0 || finalY >= finalHeight)
+                    {
                         continue;
+                    }
 
                     int sourceX = Mathf.FloorToInt(destX / scale);
                     int sourceY = Mathf.FloorToInt(destY / scale);
@@ -524,13 +546,17 @@ namespace Assets.AbstractScripts.Graphics2D
 
                     int layerPixelIndex = sourceY * layerWidth + sourceX;
                     if (layerPixelIndex >= layerPixels.Length)
+                    {
                         continue;
+                    }
 
                     Color src = layerPixels[layerPixelIndex];
 
                     int finalPixelIndex = finalY * finalWidth + finalX;
                     if (finalPixelIndex >= finalPixels.Length)
+                    {
                         continue;
+                    }
 
                     Color dst = finalPixels[finalPixelIndex];
 
@@ -555,7 +581,10 @@ namespace Assets.AbstractScripts.Graphics2D
         private static void CompositePixelsElementwise(Color[] finalPixels, Color[] layerPixels)
         {
             if (finalPixels == null || layerPixels == null)
+            {
                 return;
+            }
+
             int len = Mathf.Min(finalPixels.Length, layerPixels.Length);
             for (int i = 0; i < len; i++)
             {

@@ -48,11 +48,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         // Get a custom data value, or default if not found
         public T GetCustomData<T>(string key, T defaultValue = default)
         {
-            if (CustomData.TryGetValue(key, out object value) && value is T typedValue)
-            {
-                return typedValue;
-            }
-            return defaultValue;
+            return CustomData.TryGetValue(key, out object value) && value is T typedValue ? typedValue : defaultValue;
         }
 
         // Set a custom data value

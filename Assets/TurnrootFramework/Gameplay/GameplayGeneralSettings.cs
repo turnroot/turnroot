@@ -269,13 +269,24 @@ public class GameplayGeneralSettings : SingletonScriptableObject<GameplayGeneral
 
         // Add extra experience types if enabled
         if (RidingExperienceType.Enabled)
+        {
             list.Add(RidingExperienceType);
+        }
+
         if (FlyingExperienceType.Enabled)
+        {
             list.Add(FlyingExperienceType);
+        }
+
         if (ArmorExperienceType.Enabled)
+        {
             list.Add(ArmorExperienceType);
+        }
+
         if (AuthorityExperienceType.Enabled)
+        {
             list.Add(AuthorityExperienceType);
+        }
 
         return list.ToArray();
     }
@@ -301,7 +312,9 @@ public class GameplayGeneralSettings : SingletonScriptableObject<GameplayGeneral
                         {
                             var path = UnityEditor.AssetDatabase.GUIDToAssetPath(g);
                             if (string.IsNullOrEmpty(path))
+                            {
                                 continue;
+                            }
 
                             // Force update so ScriptableObject OnValidate/OnEnable re-run
                             UnityEditor.AssetDatabase.ImportAsset(
@@ -318,7 +331,9 @@ public class GameplayGeneralSettings : SingletonScriptableObject<GameplayGeneral
                         {
                             var path = UnityEditor.AssetDatabase.GUIDToAssetPath(g);
                             if (string.IsNullOrEmpty(path))
+                            {
                                 continue;
+                            }
 
                             // Force reimport to trigger OnEnable and update cached mode
                             UnityEditor.AssetDatabase.ImportAsset(

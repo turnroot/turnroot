@@ -65,7 +65,9 @@ namespace Turnroot.Characters.Components.Support
         {
             _supportPoints += points * _supportSpeed;
             if (_supportPoints >= 100)
+            {
                 _supportLevels.Increase();
+            }
         }
 
         public void Decrease(int points)
@@ -73,7 +75,9 @@ namespace Turnroot.Characters.Components.Support
             _supportPoints -= points;
 
             if (_supportPoints < 0)
+            {
                 _supportPoints = 0;
+            }
         }
     }
 }

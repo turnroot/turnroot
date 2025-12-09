@@ -37,12 +37,17 @@ namespace Turnroot.Conversations
         public LayerEvents GetEventsForLayer(int layerIndex)
         {
             if (PerLayerEvents == null)
+            {
                 return null;
+            }
+
             for (int i = 0; i < PerLayerEvents.Count; i++)
             {
                 var e = PerLayerEvents[i];
                 if (e != null && e.LayerIndex == layerIndex)
+                {
                     return e;
+                }
             }
             return null;
         }

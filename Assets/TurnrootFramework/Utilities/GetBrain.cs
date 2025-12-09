@@ -18,10 +18,7 @@ namespace Turnroot.Utilities
                     foreach (var rootObj in scene.GetRootGameObjects())
                     {
                         var brain = rootObj.GetComponentInChildren<Brain>();
-                        if (brain != null)
-                        {
-                            return brain;
-                        }
+                        return brain != null ? brain : null;
                     }
                 }
             }

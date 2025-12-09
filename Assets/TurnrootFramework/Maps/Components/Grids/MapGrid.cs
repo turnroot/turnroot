@@ -85,7 +85,9 @@ public class MapGrid : MonoBehaviour
     public void CreateChildrenPoints()
     {
         if (_gridPoints.Count > 0)
+        {
             ClearGrid();
+        }
 
         for (int x = 0; x < _gridWidth; x++)
         {
@@ -116,7 +118,10 @@ public class MapGrid : MonoBehaviour
         for (int col = 0; col < _gridWidth; col++)
         {
             if (GetGridPoint(col, newRow) != null)
+            {
                 continue;
+            }
+
             CreateGridPoint(col, newRow);
         }
 
@@ -134,7 +139,10 @@ public class MapGrid : MonoBehaviour
         for (int row = 0; row < _gridHeight; row++)
         {
             if (GetGridPoint(newCol, row) != null)
+            {
                 continue;
+            }
+
             CreateGridPoint(newCol, row);
         }
 
@@ -147,7 +155,10 @@ public class MapGrid : MonoBehaviour
     public void RemoveRow()
     {
         if (_gridHeight <= 1)
+        {
             return;
+        }
+
         SaveFeatureLayer();
         RemoveGridLine(_gridHeight - 1, true);
         _gridHeight--;
@@ -159,7 +170,10 @@ public class MapGrid : MonoBehaviour
     public void RemoveColumn()
     {
         if (_gridWidth <= 1)
+        {
             return;
+        }
+
         SaveFeatureLayer();
         RemoveGridLine(_gridWidth - 1, false);
         _gridWidth--;
@@ -171,12 +185,17 @@ public class MapGrid : MonoBehaviour
     public void ConnectTo3DMapObject()
     {
         if (_single3dHeightMesh == null)
+        {
             return;
+        }
+
         EnsureGridPoints();
 
         var colliders = _single3dHeightMesh.GetComponentsInChildren<Collider>(true);
         if (colliders == null || colliders.Length == 0)
+        {
             return;
+        }
 
         var connector = new MapGridHeightConnector();
         var points = connector.RaycastPointsDownTo3DMap(
@@ -188,7 +207,9 @@ public class MapGrid : MonoBehaviour
         );
 
         if (points == null || points.Length == 0)
+        {
             return;
+        }
 
         _single3dHeightMeshRaycastPoints = points;
         RebuildRaycastColors();
@@ -222,7 +243,9 @@ public class MapGrid : MonoBehaviour
             var key = isRow ? new Vector2Int(i, index) : new Vector2Int(index, i);
             var mgp = GetGridPoint(key.x, key.y);
             if (mgp == null)
+            {
                 continue;
+            }
 
             _gridPoints.Remove(key);
             DestroyImmediate(mgp.gameObject);
@@ -233,22 +256,31 @@ public class MapGrid : MonoBehaviour
     {
         var terrainAsset = TerrainTypes.LoadDefault();
         if (terrainAsset?.Types == null)
+        {
             return;
+        }
 
         var voidType = terrainAsset.Types.FirstOrDefault(t =>
             t != null && t.Name.Equals("Void", System.StringComparison.OrdinalIgnoreCase)
         );
 
         if (voidType != null)
+        {
             gridPoint.SetTerrainTypeId(voidType.Id);
+        }
         else if (terrainAsset.Types.Length > 0 && terrainAsset.Types[0] != null)
+        {
             gridPoint.SetTerrainTypeId(terrainAsset.Types[0].Id);
+        }
     }
 
     public void ClearGrid()
     {
         foreach (var point in _gridPoints.Values.Where(p => p != null))
+        {
             DestroyImmediate(point);
+        }
+
         _gridPoints.Clear();
     }
 
@@ -258,9 +290,14 @@ public class MapGrid : MonoBehaviour
         foreach (Transform child in transform)
         {
             if (child == null)
+            {
                 continue;
+            }
+
             if (child.TryGetComponent<MapGridPoint>(out var mgp))
+            {
                 newDict[new Vector2Int(mgp.Row, mgp.Col)] = child.gameObject;
+            }
         }
         _gridPoints = newDict;
 
@@ -271,7 +308,10 @@ public class MapGrid : MonoBehaviour
         {
             var mgp = kv.Value?.GetComponent<MapGridPoint>();
             if (mgp == null)
+            {
                 continue;
+            }
+
             mgp.Initialize(mgp.Row, mgp.Col);
         }
 
@@ -285,7 +325,9 @@ public class MapGrid : MonoBehaviour
         {
             var mgp = kv.Value?.GetComponent<MapGridPoint>();
             if (mgp == null || string.IsNullOrEmpty(mgp.FeatureTypeId))
+            {
                 continue;
+            }
 
             _features.Add(
                 new FeatureRecord
@@ -334,13 +376,17 @@ public class MapGrid : MonoBehaviour
     public void LoadFeatureLayer()
     {
         if (_features == null || _features.Count == 0)
+        {
             return;
+        }
 
         foreach (var rec in _features)
         {
             var mgp = GetGridPoint(rec.row, rec.col);
             if (mgp == null)
+            {
                 continue;
+            }
 
             mgp.SetFeatureTypeId(rec.typeId);
             mgp.FeatureName = rec.name ?? string.Empty;
@@ -362,9 +408,14 @@ public class MapGrid : MonoBehaviour
     )
     {
         if (properties == null)
+        {
             return;
+        }
+
         foreach (var pr in properties.Where(pr => !string.IsNullOrEmpty(pr.key)))
+        {
             setter(pr.key, pr.value);
+        }
     }
 
     public void EnsureGridPoints()
@@ -381,14 +432,22 @@ public class MapGrid : MonoBehaviour
         )
         {
             if (actualCount > 0)
+            {
                 RebuildGridDictionary();
+            }
             else
+            {
                 CreateChildrenPoints();
+            }
         }
         else if (_gridPoints.Count == 0 && transform.childCount > 0)
+        {
             RebuildGridDictionary();
+        }
         else if (_gridPoints.Count == 0 && transform.childCount == 0)
+        {
             CreateChildrenPoints();
+        }
 
         RepositionGridPoints();
     }
@@ -396,12 +455,17 @@ public class MapGrid : MonoBehaviour
     private void RepositionGridPoints()
     {
         if (_gridPoints == null || _gridPoints.Count == 0)
+        {
             return;
+        }
 
         foreach (var kv in _gridPoints)
         {
             if (kv.Value == null)
+            {
                 continue;
+            }
+
             kv.Value.transform.localPosition =
                 new Vector3(kv.Key.x * _gridScale, 0, kv.Key.y * _gridScale) + _gridOffset;
         }
@@ -420,7 +484,9 @@ public class MapGrid : MonoBehaviour
             _single3dHeightMeshRaycastPoints == null
             || _single3dHeightMeshRaycastPoints.Length == 0
         )
+        {
             return;
+        }
 
         var colors = new Color[_single3dHeightMeshRaycastPoints.Length];
         var indices = new Vector2Int[_single3dHeightMeshRaycastPoints.Length];
@@ -431,7 +497,10 @@ public class MapGrid : MonoBehaviour
         foreach (var kv in orderedFinal)
         {
             if (ci >= colors.Length)
+            {
                 break;
+            }
+
             var mgp = kv.Value?.GetComponent<MapGridPoint>();
             var tt = mgp?.SelectedTerrainType;
             colors[ci] = tt != null ? tt.EditorColor : Color.yellow;
@@ -440,7 +509,9 @@ public class MapGrid : MonoBehaviour
         }
 
         for (; ci < colors.Length; ci++)
+        {
             colors[ci] = Color.yellow;
+        }
 
         _single3dHeightMeshRaycastColors = colors;
         _single3dHeightMeshRaycastIndices = indices;
@@ -477,21 +548,29 @@ public class MapGrid : MonoBehaviour
     private void OnValidate()
     {
         if (UnityEditor.EditorApplication.isPlayingOrWillChangePlaymode)
+        {
             return;
+        }
 
         if (_gridPoints == null || _gridPoints.Count == 0)
         {
             if (transform.childCount > 0)
+            {
                 RebuildGridDictionary();
+            }
         }
 
         RepositionGridPoints();
 
         if (_features != null && _features.Count > 0)
+        {
             LoadFeatureLayer();
+        }
 
         if (_single3dHeightMeshRaycastPoints != null && _single3dHeightMeshRaycastPoints.Length > 0)
+        {
             RebuildRaycastColors();
+        }
 
         if (
             !UnityEditor.EditorApplication.isCompiling
@@ -521,7 +600,9 @@ public class MapGrid : MonoBehaviour
 
         var corners = new[] { topLeft, topRight, bottomLeft, bottomRight };
         foreach (var corner in corners)
+        {
             Gizmos.DrawSphere(corner, 1f);
+        }
 
         if (
             _showRaycastGizmos

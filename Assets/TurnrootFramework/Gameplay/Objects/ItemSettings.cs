@@ -21,7 +21,9 @@ namespace Turnroot.Gameplay.Objects
             get
             {
                 if (_cachedCanBeForged.HasValue)
+                {
                     return _cachedCanBeForged.Value;
+                }
 
                 try
                 {
@@ -47,7 +49,9 @@ namespace Turnroot.Gameplay.Objects
             get
             {
                 if (_cachedCanBeRepaired.HasValue)
+                {
                     return _cachedCanBeRepaired.Value;
+                }
 
                 try
                 {
@@ -73,7 +77,9 @@ namespace Turnroot.Gameplay.Objects
             get
             {
                 if (_cachedHaveDurability.HasValue)
+                {
                     return _cachedHaveDurability.Value;
+                }
 
                 try
                 {

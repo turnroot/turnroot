@@ -31,35 +31,72 @@ public class MapGridPointFeature
     public static FeatureType TypeFromId(string id)
     {
         if (string.IsNullOrEmpty(id))
+        {
             return FeatureType.None;
+        }
+
         string fid = id.ToLower();
         if (fid.StartsWith("treasure"))
+        {
             return FeatureType.Treasure;
+        }
+
         if (fid.StartsWith("door"))
+        {
             return FeatureType.Door;
+        }
+
         if (fid.StartsWith("warp"))
+        {
             return FeatureType.Warp;
+        }
+
         if (fid.StartsWith("healing"))
+        {
             return FeatureType.Healing;
+        }
+
         if (fid.StartsWith("ranged"))
+        {
             return FeatureType.Ranged;
+        }
+
         if (fid.StartsWith("mechanism"))
+        {
             return FeatureType.Mechanism;
+        }
+
         if (fid.StartsWith("control"))
+        {
             return FeatureType.Control;
+        }
+
         if (fid.StartsWith("breakable"))
+        {
             return FeatureType.Breakable;
+        }
+
         if (fid.StartsWith("shelter"))
+        {
             return FeatureType.Shelter;
+        }
+
         if (fid.StartsWith("village"))
+        {
             return FeatureType.Village;
+        }
+
         if (fid.StartsWith("fortress"))
+        {
             return FeatureType.Fortress;
+        }
+
         if (fid.StartsWith("underground"))
+        {
             return FeatureType.Underground;
-        if (fid.StartsWith("eraser"))
-            return FeatureType.Eraser;
-        return FeatureType.None;
+        }
+
+        return fid.StartsWith("eraser") ? FeatureType.Eraser : FeatureType.None;
     }
 
     public static string IdFromType(FeatureType t)
@@ -101,32 +138,66 @@ public class MapGridPointFeature
     public static string GetFeatureLetter(string typeId)
     {
         if (string.IsNullOrEmpty(typeId))
+        {
             return null;
+        }
+
         string fid = typeId.ToLower();
         if (fid.StartsWith("treasure"))
+        {
             return "T";
+        }
+
         if (fid.StartsWith("door"))
+        {
             return "D";
+        }
+
         if (fid.StartsWith("warp"))
+        {
             return "W";
+        }
+
         if (fid.StartsWith("healing"))
+        {
             return "H";
+        }
+
         if (fid.StartsWith("ranged"))
+        {
             return "R";
+        }
+
         if (fid.StartsWith("mechanism"))
+        {
             return "M";
+        }
+
         if (fid.StartsWith("control"))
+        {
             return "C";
+        }
+
         if (fid.StartsWith("breakable"))
+        {
             return "B";
+        }
+
         if (fid.StartsWith("shelter"))
+        {
             return "S";
+        }
+
         if (fid.StartsWith("underground"))
+        {
             return "U";
+        }
+
         if (fid.StartsWith("village"))
+        {
             return "V";
-        if (fid.StartsWith("fortress"))
-            return "F";
-        return "?";
+        }
+
+        return fid.StartsWith("fortress") ? "F" : "?";
     }
 }

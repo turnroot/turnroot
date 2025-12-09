@@ -13,7 +13,10 @@ namespace Turnroot.AbstractScripts.Graphics2D
             foreach (var img in images)
             {
                 if (img == null)
+                {
                     continue;
+                }
+
                 img.DOKill();
                 var c = img.color;
                 c.a = 1f;
@@ -25,7 +28,10 @@ namespace Turnroot.AbstractScripts.Graphics2D
         public static void SetSprite(Image img, Sprite sprite)
         {
             if (img == null)
+            {
                 return;
+            }
+
             img.sprite = sprite;
             img.enabled = sprite != null;
             var c = img.color;
@@ -37,7 +43,10 @@ namespace Turnroot.AbstractScripts.Graphics2D
         public static void ResetImage(Image img)
         {
             if (img == null)
+            {
                 return;
+            }
+
             img.color = Color.white;
             var c = img.color;
             c.a = 1f;
@@ -55,7 +64,9 @@ namespace Turnroot.AbstractScripts.Graphics2D
         )
         {
             if (a == null || b == null)
+            {
                 return DOVirtual.DelayedCall(0f, () => { }).SetId(runId);
+            }
 
             // create overlays
             GameObject overlayA = new GameObject("swap_overlay_a");
@@ -124,7 +135,9 @@ namespace Turnroot.AbstractScripts.Graphics2D
         )
         {
             if (activeImg == null && inactiveImg == null)
+            {
                 return DOVirtual.DelayedCall(0f, () => { }).SetId(runId);
+            }
 
             if (duration <= 0f)
             {
@@ -134,9 +147,14 @@ namespace Turnroot.AbstractScripts.Graphics2D
                         () =>
                         {
                             if (activeImg != null)
+                            {
                                 activeImg.color = activeColor;
+                            }
+
                             if (inactiveImg != null)
+                            {
                                 inactiveImg.color = inactiveColor;
+                            }
                         }
                     )
                     .SetId(runId);
@@ -160,9 +178,14 @@ namespace Turnroot.AbstractScripts.Graphics2D
             });
 
             if (activeImg != null)
+            {
                 seq.Append(activeImg.DOColor(activeColor, duration).SetEase(ease));
+            }
+
             if (inactiveImg != null && inactiveImg.enabled)
+            {
                 seq.Join(inactiveImg.DOColor(inactiveColor, duration).SetEase(ease));
+            }
 
             return seq.SetId(runId);
         }
@@ -170,11 +193,12 @@ namespace Turnroot.AbstractScripts.Graphics2D
         public static Tween CreateHideTween(Image img, float duration, Ease ease, int runId)
         {
             if (img == null)
-                return DOVirtual.DelayedCall(0f, () => { }).SetId(runId);
-
-            if (duration <= 0f)
             {
-                return DOVirtual
+                return DOVirtual.DelayedCall(0f, () => { }).SetId(runId);
+            }
+
+            return duration <= 0f
+                ? DOVirtual
                     .DelayedCall(
                         0f,
                         () =>
@@ -182,10 +206,8 @@ namespace Turnroot.AbstractScripts.Graphics2D
                             img.enabled = false;
                         }
                     )
-                    .SetId(runId);
-            }
-
-            return img.DOFade(0f, duration)
+                    .SetId(runId)
+                : img.DOFade(0f, duration)
                 .SetEase(ease)
                 .OnComplete(() => img.enabled = false)
                 .SetId(runId);

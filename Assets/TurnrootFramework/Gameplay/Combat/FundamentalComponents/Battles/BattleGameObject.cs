@@ -179,7 +179,9 @@ namespace Assets.Turnroot.Gameplay.Combat
             foreach (var character in allCharacters)
             {
                 if (character?.CharacterTemplate?.Which == null)
+                {
                     continue;
+                }
 
                 string faction = character.CharacterTemplate.Which.Value;
 

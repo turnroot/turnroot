@@ -12,7 +12,9 @@ namespace Turnroot.Conversations
         )
         {
             if (conversationGraph == null)
+            {
                 return null;
+            }
 
             try
             {
@@ -23,25 +25,44 @@ namespace Turnroot.Conversations
                 foreach (var node in conversationGraph.nodes)
                 {
                     if (node == null)
+                    {
                         continue;
+                    }
+
                     foreach (var port in node.Ports)
                     {
                         if (port.direction != XNode.NodePort.IO.Output)
+                        {
                             continue;
+                        }
+
                         if (port.ValueType != typeof(Branching.ConversationFlow))
+                        {
                             continue;
+                        }
+
                         var conns = port.GetConnections();
                         if (conns == null)
+                        {
                             continue;
+                        }
+
                         foreach (var c in conns)
                         {
                             if (c.node == null)
+                            {
                                 continue;
+                            }
+
                             var tid = c.node.GetInstanceID();
                             if (!incomingCounts.TryGetValue(tid, out var cnt))
+                            {
                                 incomingCounts[tid] = 1;
+                            }
                             else
+                            {
                                 incomingCounts[tid] = cnt + 1;
+                            }
                         }
                     }
                 }
@@ -50,7 +71,9 @@ namespace Turnroot.Conversations
                 foreach (var node in conversationGraph.nodes)
                 {
                     if (node == null)
+                    {
                         continue;
+                    }
 
                     var nd = new NodeData
                     {
@@ -64,23 +87,37 @@ namespace Turnroot.Conversations
                     };
 
                     if (node is Branching.ConversationNode conv)
+                    {
                         nd.conversationLayer = conv.conversationLayer;
+                    }
 
                     // gather outgoing ConversationFlow connections
                     var outgoing = new List<(string portName, XNode.Node target)>();
                     foreach (var port in node.Ports)
                     {
                         if (port.direction != XNode.NodePort.IO.Output)
+                        {
                             continue;
+                        }
+
                         if (port.ValueType != typeof(Branching.ConversationFlow))
+                        {
                             continue;
+                        }
+
                         var conns = port.GetConnections();
                         if (conns == null)
+                        {
                             continue;
+                        }
+
                         foreach (var c in conns)
                         {
                             if (c.node == null)
+                            {
                                 continue;
+                            }
+
                             outgoing.Add((port.fieldName ?? string.Empty, c.node));
                         }
                     }
@@ -128,12 +165,16 @@ namespace Turnroot.Conversations
         )
         {
             if (node == null)
+            {
                 return targetNode?.name ?? (string.IsNullOrEmpty(portName) ? "Choice" : portName);
+            }
 
             var t = node.GetType();
 
             if (string.IsNullOrEmpty(portName))
+            {
                 return targetNode?.name ?? "Choice";
+            }
 
             // Try exact name, then lower-first variant
             var candidates = new List<string>
@@ -152,7 +193,9 @@ namespace Turnroot.Conversations
                 {
                     var v = fi.GetValue(node) as string;
                     if (!string.IsNullOrEmpty(v))
+                    {
                         return v;
+                    }
                 }
 
                 var pi = t.GetProperty(
@@ -163,7 +206,9 @@ namespace Turnroot.Conversations
                 {
                     var v = pi.GetValue(node) as string;
                     if (!string.IsNullOrEmpty(v))
+                    {
                         return v;
+                    }
                 }
             }
 
@@ -181,7 +226,9 @@ namespace Turnroot.Conversations
                 {
                     var v = f.GetValue(node) as string;
                     if (!string.IsNullOrEmpty(v))
+                    {
                         return v;
+                    }
                 }
             }
             foreach (
@@ -197,7 +244,9 @@ namespace Turnroot.Conversations
                 {
                     var v = p.GetValue(node) as string;
                     if (!string.IsNullOrEmpty(v))
+                    {
                         return v;
+                    }
                 }
             }
 

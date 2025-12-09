@@ -231,7 +231,9 @@ namespace Turnroot.Gameplay.Objects
         {
             var settings = GameSettingsLoader.LoadFirst<GameplayGeneralSettings>("GameSettings");
             if (settings == null)
+            {
                 return;
+            }
 
             _durability = settings.GetWeaponsHaveDurability();
             _repairable = settings.GetWeaponsCanBeRepaired();

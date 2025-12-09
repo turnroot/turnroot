@@ -281,7 +281,9 @@ namespace Turnroot.Graphics2D
                             var copyType = copy.GetType();
                             var copyTintField = copyType.GetField("Tint");
                             if (copyTintField != null)
+                            {
                                 copyTintField.SetValue(copy, c);
+                            }
                         }
                     }
                 }

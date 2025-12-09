@@ -45,11 +45,15 @@ namespace Assets.Turnroot.Characters
                     {
                         var guid = UnityEditor.AssetDatabase.AssetPathToGUID(path);
                         if (!string.IsNullOrEmpty(guid))
+                        {
                             Id = guid;
+                        }
                     }
 
                     if (string.IsNullOrEmpty(Id))
+                    {
                         Id = Guid.NewGuid().ToString("N");
+                    }
 
                     try
                     {

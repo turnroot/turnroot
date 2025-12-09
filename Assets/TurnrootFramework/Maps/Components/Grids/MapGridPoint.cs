@@ -143,7 +143,10 @@ public class MapGridPoint : MonoBehaviour
         {
             var asset = TerrainTypes.LoadDefault();
             if (asset == null)
+            {
                 return null;
+            }
+
             var terrainType = asset.GetTypeById(_terrainTypeId);
             return terrainType ?? (asset.Types?.Length > 0 ? asset.Types[0] : null);
         }
@@ -194,7 +197,9 @@ public class MapGridPoint : MonoBehaviour
     public void ApplyFeature(string selId, string name, bool singleClickToggle)
     {
         if (string.IsNullOrEmpty(selId))
+        {
             return;
+        }
 
         if (selId == "eraser")
         {
@@ -273,7 +278,9 @@ public class MapGridPoint : MonoBehaviour
     public void ClearFeatureProperty(string key)
     {
         if (string.IsNullOrEmpty(key))
+        {
             return;
+        }
         // string properties removed
         _featureUnitProperties.RemoveAll(p => p.key == key);
         _featureObjectItemProperties.RemoveAll(p => p.key == key);
@@ -287,11 +294,15 @@ public class MapGridPoint : MonoBehaviour
         where T : MapGridPropertyBase.IProperty, new()
     {
         if (string.IsNullOrEmpty(key))
+        {
             return;
+        }
 
         var existing = list.Find(p => p.key == key);
         if (existing != null)
+        {
             existing.SetValue(value);
+        }
         else
         {
             var newProp = new T { key = key };
@@ -304,7 +315,10 @@ public class MapGridPoint : MonoBehaviour
         where T : MapGridPropertyBase.IProperty
     {
         if (string.IsNullOrEmpty(key))
+        {
             return defaultValue;
+        }
+
         var prop = list.Find(p => p.key == key);
         return prop != null ? (TValue)prop.GetValue() : defaultValue;
     }
@@ -314,7 +328,10 @@ public class MapGridPoint : MonoBehaviour
         where TProp : MapGridPropertyBase.IProperty
     {
         if (string.IsNullOrEmpty(key))
+        {
             return null;
+        }
+
         var prop = list.Find(p => p.key == key);
         return prop != null ? (T?)prop.GetValue() : null;
     }
@@ -462,15 +479,21 @@ public class MapGridPoint : MonoBehaviour
     public void ApplyDefaultsForFeature(string featureId)
     {
         if (string.IsNullOrEmpty(featureId))
+        {
             return;
+        }
 
         var allDefaults = Resources.LoadAll<MapGridFeatureProperties>("GameSettings");
         if (allDefaults == null || allDefaults.Length == 0)
+        {
             return;
+        }
 
         var defaultProps = FindFeatureProperties(allDefaults, featureId);
         if (defaultProps == null)
+        {
             return;
+        }
 
         ApplyDefaultUnitProperties(defaultProps.unitProperties);
         ApplyDefaultObjectItemProperties(defaultProps.objectItemProperties);
@@ -490,12 +513,17 @@ public class MapGridPoint : MonoBehaviour
         foreach (var props in allDefaults)
         {
             if (props == null)
+            {
                 continue;
+            }
+
             if (
                 props.featureId == featureId
                 || string.Equals(props.name, featureId, StringComparison.OrdinalIgnoreCase)
             )
+            {
                 return props;
+            }
         }
         return null;
     }
@@ -503,11 +531,17 @@ public class MapGridPoint : MonoBehaviour
     private void ApplyDefaultUnitProperties(List<MapGridPropertyBase.UnitProperty> defaults)
     {
         if (defaults == null)
+        {
             return;
+        }
+
         foreach (var prop in defaults)
         {
             if (string.IsNullOrEmpty(prop.key) || GetUnitFeatureProperty(prop.key) != null)
+            {
                 continue;
+            }
+
             SetUnitFeatureProperty(prop.key, prop.value);
         }
     }
@@ -517,11 +551,17 @@ public class MapGridPoint : MonoBehaviour
     )
     {
         if (defaults == null)
+        {
             return;
+        }
+
         foreach (var prop in defaults)
         {
             if (string.IsNullOrEmpty(prop.key) || GetObjectItemFeatureProperty(prop.key) != null)
+            {
                 continue;
+            }
+
             SetObjectItemFeatureProperty(prop.key, prop.value);
         }
     }
@@ -529,11 +569,17 @@ public class MapGridPoint : MonoBehaviour
     private void ApplyDefaultBoolProperties(List<MapGridPropertyBase.BoolProperty> defaults)
     {
         if (defaults == null)
+        {
             return;
+        }
+
         foreach (var prop in defaults)
         {
             if (string.IsNullOrEmpty(prop.key) || GetBoolFeatureProperty(prop.key).HasValue)
+            {
                 continue;
+            }
+
             SetBoolFeatureProperty(prop.key, prop.value);
         }
     }
@@ -541,11 +587,17 @@ public class MapGridPoint : MonoBehaviour
     private void ApplyDefaultEventProperties(List<MapGridPropertyBase.EventProperty> defaults)
     {
         if (defaults == null)
+        {
             return;
+        }
+
         foreach (var prop in defaults)
         {
             if (string.IsNullOrEmpty(prop.key) || GetEventFeatureProperty(prop.key) != null)
+            {
                 continue;
+            }
+
             SetEventFeatureProperty(prop.key, prop.value);
         }
     }
@@ -555,11 +607,17 @@ public class MapGridPoint : MonoBehaviour
     private void ApplyDefaultFloatProperties(List<MapGridPropertyBase.FloatProperty> defaults)
     {
         if (defaults == null)
+        {
             return;
+        }
+
         foreach (var prop in defaults)
         {
             if (string.IsNullOrEmpty(prop.key) || GetFloatFeatureProperty(prop.key).HasValue)
+            {
                 continue;
+            }
+
             SetFloatFeatureProperty(prop.key, prop.value);
         }
     }
@@ -574,20 +632,31 @@ public class MapGridPoint : MonoBehaviour
     {
         var terrainType = SelectedTerrainType;
         if (terrainType == null)
+        {
             return 1f;
+        }
 
         if (isWalking)
+        {
             return terrainType.CostWalk;
-        if (isFlying)
-            return terrainType.CostFly;
-        if (isRiding)
-            return terrainType.CostRide;
-        if (isMagic)
-            return terrainType.CostMagic;
-        if (isArmored)
-            return terrainType.CostArmor;
+        }
 
-        return 1f;
+        if (isFlying)
+        {
+            return terrainType.CostFly;
+        }
+
+        if (isRiding)
+        {
+            return terrainType.CostRide;
+        }
+
+        if (isMagic)
+        {
+            return terrainType.CostMagic;
+        }
+
+        return isArmored ? terrainType.CostArmor : 1f;
     }
 
     public Vector2 Coordinates() => new(_row, _col);
@@ -597,14 +666,18 @@ public class MapGridPoint : MonoBehaviour
         var neighbors = new Dictionary<string, MapGridPoint>();
         var grid = GetComponentInParent<MapGrid>();
         if (grid == null)
+        {
             return neighbors;
+        }
 
         var dirs = cardinal ? CardinalDirections : Directions;
         foreach (var (name, dRow, dCol) in dirs)
         {
             var neighbor = grid.GetGridPoint(_row + dRow, _col + dCol);
             if (neighbor != null)
+            {
                 neighbors[name] = neighbor;
+            }
         }
 
         return neighbors;

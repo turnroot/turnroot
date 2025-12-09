@@ -86,13 +86,12 @@ namespace Assets.Turnroot.Gameplay.Brain.Components
         )
         {
             if (reader.TokenType == JsonToken.Null)
+            {
                 return null;
+            }
 
             var token = JObject.Load(reader);
-            if (token?[UnityMarker] == null)
-                return null;
-
-            return ResolveUnityObject(token, objectType);
+            return token?[UnityMarker] == null ? null : ResolveUnityObject(token, objectType);
         }
 
         private object ResolveUnityObject(JObject token, Type objectType)
@@ -104,12 +103,16 @@ namespace Assets.Turnroot.Gameplay.Brain.Components
 
             var targetType = ResolveType(typeName, objectType);
             if (targetType == null)
+            {
                 return null;
+            }
 
 #if UNITY_EDITOR
             var editorAsset = TryLoadFromEditor(guid, assetPath, targetType);
             if (editorAsset != null)
+            {
                 return editorAsset;
+            }
 #endif
 
             return TryLoadFromResources(name, targetType);
@@ -118,7 +121,9 @@ namespace Assets.Turnroot.Gameplay.Brain.Components
         private Type ResolveType(string typeName, Type fallbackType)
         {
             if (string.IsNullOrEmpty(typeName))
+            {
                 return fallbackType;
+            }
 
             try
             {
@@ -138,15 +143,12 @@ namespace Assets.Turnroot.Gameplay.Brain.Components
             {
                 var asset = LoadAssetByGuid(guid, targetType);
                 if (asset != null)
+                {
                     return asset;
+                }
             }
 
-            if (!string.IsNullOrEmpty(assetPath))
-            {
-                return LoadAssetByPath(assetPath, targetType);
-            }
-
-            return null;
+            return !string.IsNullOrEmpty(assetPath) ? LoadAssetByPath(assetPath, targetType) : null;
         }
 
         private UnityEngine.Object LoadAssetByGuid(string guid, Type targetType)
@@ -183,7 +185,9 @@ namespace Assets.Turnroot.Gameplay.Brain.Components
         private UnityEngine.Object TryLoadFromResources(string name, Type targetType)
         {
             if (string.IsNullOrEmpty(name))
+            {
                 return null;
+            }
 
             try
             {

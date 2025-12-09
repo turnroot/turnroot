@@ -16,9 +16,15 @@ namespace Turnroot.Characters
         {
             var list = new List<BoundedCharacterStat>();
             if (src == null)
+            {
                 return list;
+            }
+
             foreach (var s in src)
+            {
                 list.Add(new BoundedCharacterStat(s.Max, s.Current, s.Min, s.StatType));
+            }
+
             return list;
         }
 
@@ -26,10 +32,15 @@ namespace Turnroot.Characters
         {
             var list = new List<CharacterStat>();
             if (src == null)
+            {
                 return list;
+            }
             // Note: new CharacterStat(stat) uses the same constructor pattern used by the template
             foreach (var s in src)
+            {
                 list.Add(new CharacterStat(s.Current, s.StatType));
+            }
+
             return list;
         }
 
@@ -40,12 +51,18 @@ namespace Turnroot.Characters
         {
             var list = new List<SupportRelationshipInstance>();
             if (templates == null)
+            {
                 return list;
+            }
+
             foreach (var rel in templates)
             {
                 // Skip invalid relationships (same character)
                 if (rel.Character == owner)
+                {
                     continue;
+                }
+
                 list.Add(new SupportRelationshipInstance(rel));
             }
             return list;
@@ -57,12 +74,18 @@ namespace Turnroot.Characters
         )
         {
             if (portraits == null || action == null)
+            {
                 return;
+            }
+
             foreach (var p in portraits.Values)
             {
                 var layers = p.ImageStack?.Layers;
                 if (layers == null)
+                {
                     continue;
+                }
+
                 foreach (var layer in layers)
                 {
                     action(layer);

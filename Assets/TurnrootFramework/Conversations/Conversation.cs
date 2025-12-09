@@ -51,19 +51,30 @@ namespace Turnroot.Conversations
         {
             var entries = new List<string>();
             if (_conversationGraph == null)
+            {
                 return entries;
+            }
+
             var gnodes = GetGraphNodes();
             if (gnodes == null)
+            {
                 return entries;
+            }
+
             foreach (var kv in gnodes)
             {
                 var nd = kv.Value;
                 if (nd == null || nd.node == null)
+                {
                     continue;
+                }
+
                 if (nd.node is Branching.ConversationNode conv)
                 {
                     if (nd.incomingCount == 0)
+                    {
                         entries.Add(conv.name);
+                    }
                 }
             }
             return entries;
@@ -81,9 +92,7 @@ namespace Turnroot.Conversations
         {
             get
             {
-                if (_currentLayerIndex < 0 || _currentLayerIndex >= _layers.Length)
-                    return null;
-                return _layers[_currentLayerIndex];
+                return _currentLayerIndex < 0 || _currentLayerIndex >= _layers.Length ? null : _layers[_currentLayerIndex];
             }
         }
 

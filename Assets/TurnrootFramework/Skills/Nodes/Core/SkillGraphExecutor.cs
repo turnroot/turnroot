@@ -76,7 +76,9 @@ namespace Turnroot.Skills.Nodes
         private void ExecuteNode(SkillNode node)
         {
             if (node == null)
+            {
                 return;
+            }
 
             // Prevent infinite loops from circular connections
             if (visitedNodes.Contains(node))
@@ -122,7 +124,9 @@ namespace Turnroot.Skills.Nodes
         public void ContinueFromNode(SkillNode node)
         {
             if (node == null)
+            {
                 return;
+            }
 
             // Get execution output ports
             var outputs = GetExecutionOutputPorts(node);
@@ -130,7 +134,9 @@ namespace Turnroot.Skills.Nodes
             foreach (var port in outputs)
             {
                 if (!port.IsConnected)
+                {
                     continue;
+                }
 
                 var connections = port.GetConnections();
                 foreach (var connection in connections)

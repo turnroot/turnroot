@@ -87,7 +87,9 @@ namespace Assets.Turnroot.Gameplay.Brain
         private void IncrementTurnsAliveForFaction(params string[] factionTypes)
         {
             if (_battleBrain == null)
+            {
                 return;
+            }
 
             var characters = new List<CharacterInstance>();
 
@@ -96,17 +98,23 @@ namespace Assets.Turnroot.Gameplay.Brain
                 if (factionType == CharacterWhich.ALLY || factionType == CharacterWhich.AVATAR)
                 {
                     if (_battleBrain.PlayerTeamRoster?.Instances != null)
+                    {
                         characters.AddRange(_battleBrain.PlayerTeamRoster.Instances);
+                    }
                 }
                 else if (factionType == CharacterWhich.ENEMY)
                 {
                     if (_battleBrain.EnemyTeamRoster?.Instances != null)
+                    {
                         characters.AddRange(_battleBrain.EnemyTeamRoster.Instances);
+                    }
                 }
                 else if (factionType == CharacterWhich.NPC)
                 {
                     if (_battleBrain.ThirdPartyTeamRoster?.Instances != null)
+                    {
                         characters.AddRange(_battleBrain.ThirdPartyTeamRoster.Instances);
+                    }
                 }
             }
 
@@ -151,7 +159,9 @@ namespace Assets.Turnroot.Gameplay.Brain
         private void ResetBattleStatistics()
         {
             if (_battleBrain == null)
+            {
                 return;
+            }
 
             var allCharacters = GetAllBattleCharacters();
             foreach (var instance in allCharacters)
@@ -182,7 +192,9 @@ namespace Assets.Turnroot.Gameplay.Brain
             foreach (var character in allCharacters)
             {
                 if (character == null)
+                {
                     continue;
+                }
 
                 character.CurrentClass?.IncrementBattleCount();
 
@@ -208,16 +220,24 @@ namespace Assets.Turnroot.Gameplay.Brain
             var characters = new List<CharacterInstance>();
 
             if (_battleBrain == null)
+            {
                 return characters;
+            }
 
             if (_battleBrain.PlayerTeamRoster?.Instances != null)
+            {
                 characters.AddRange(_battleBrain.PlayerTeamRoster.Instances);
+            }
 
             if (_battleBrain.EnemyTeamRoster?.Instances != null)
+            {
                 characters.AddRange(_battleBrain.EnemyTeamRoster.Instances);
+            }
 
             if (_battleBrain.ThirdPartyTeamRoster?.Instances != null)
+            {
                 characters.AddRange(_battleBrain.ThirdPartyTeamRoster.Instances);
+            }
 
             return characters;
         }
@@ -232,7 +252,9 @@ namespace Assets.Turnroot.Gameplay.Brain
         public void RecordKill(CharacterInstance character)
         {
             if (character == null)
+            {
                 return;
+            }
 
             character.RecordKill();
             _brain?.PublishCharacterKill(character);
@@ -248,7 +270,9 @@ namespace Assets.Turnroot.Gameplay.Brain
         public void IncrementCombatCount(CharacterInstance character)
         {
             if (character == null)
+            {
                 return;
+            }
 
             character.IncrementCombatCount();
         }
@@ -273,7 +297,9 @@ namespace Assets.Turnroot.Gameplay.Brain
         public void LevelUpCharacter(CharacterInstance character)
         {
             if (character == null)
+            {
                 return;
+            }
 
             character.LevelUp();
             _brain?.PublishCharacterLevelUp(character);
@@ -285,7 +311,9 @@ namespace Assets.Turnroot.Gameplay.Brain
         public void LearnSkill(CharacterInstance character, Skill skill)
         {
             if (character == null || skill == null)
+            {
                 return;
+            }
 
             character.AddSkill(skill);
             _brain?.PublishCharacterLearnedSkill(character, skill);
@@ -301,7 +329,9 @@ namespace Assets.Turnroot.Gameplay.Brain
         public void RemoveSkill(CharacterInstance character, SkillInstance skill)
         {
             if (character == null || skill == null)
+            {
                 return;
+            }
 
             character.RemoveSkill(skill);
             _brain?.PublishCharacterRemovedSkill(character, skill.SkillTemplate);
@@ -321,7 +351,9 @@ namespace Assets.Turnroot.Gameplay.Brain
         )
         {
             if (character == null || newClassData == null)
+            {
                 return false;
+            }
 
             bool success = character.ChangeClass(newClassData, meshRenderer);
             if (success)
@@ -338,7 +370,9 @@ namespace Assets.Turnroot.Gameplay.Brain
         public void AddExperience(CharacterInstance character, string experienceTypeId, int amount)
         {
             if (character == null || string.IsNullOrEmpty(experienceTypeId))
+            {
                 return;
+            }
 
             character.AddExperience(experienceTypeId, amount);
             _brain?.PublishExperienceGained(character, experienceTypeId, amount);
@@ -358,7 +392,9 @@ namespace Assets.Turnroot.Gameplay.Brain
         )
         {
             if (character == null || targetCharacter == null)
+            {
                 return;
+            }
 
             character.IncreaseSupport(targetCharacter, amount);
             _brain?.PublishSupportIncreased(character, targetCharacter, amount);

@@ -14,12 +14,7 @@ namespace Turnroot.Characters
         public static SpeciesType[] GetConfiguredSpeciesTypes()
         {
             var settings = GameSettingsLoader.LoadFirst<GameplayGeneralSettings>("GameSettings");
-            if (settings != null && settings.SpeciesTypes != null)
-            {
-                return settings.SpeciesTypes;
-            }
-
-            return System.Array.Empty<SpeciesType>();
+            return settings != null && settings.SpeciesTypes != null ? settings.SpeciesTypes : System.Array.Empty<SpeciesType>();
         }
 
         /// <summary>
@@ -38,12 +33,7 @@ namespace Turnroot.Characters
                 return false;
             }
 
-            if (!string.IsNullOrEmpty(a.Id) && !string.IsNullOrEmpty(b.Id))
-            {
-                return a.Id == b.Id;
-            }
-
-            return a.name == b.name;
+            return !string.IsNullOrEmpty(a.Id) && !string.IsNullOrEmpty(b.Id) ? a.Id == b.Id : a.name == b.name;
         }
     }
 }
