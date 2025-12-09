@@ -30,12 +30,13 @@ namespace Assets.Turnroot.Gameplay.Brain
         private Brain _brain;
         private LongTermMemory _ltm;
 
-        [SerializeField]
+        [SerializeField, HideInInspector]
         private List<ObjectItemInstance> _storedItems = new();
 
         private Dictionary<ObjectItem, int> _materials = new();
 
-        public int PlayerGold { get; set; } = 0;
+        [SerializeField, HideInInspector]
+        private int PlayerGold { get; set; } = 0;
 
         public GoldDisplay GoldDisplayNames;
 

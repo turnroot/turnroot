@@ -26,12 +26,7 @@ namespace Turnroot.Gameplay.Objects.Components
                 return true;
             }
 
-            if (a == null || b == null)
-            {
-                return false;
-            }
-
-            return !string.IsNullOrEmpty(a.Id) && !string.IsNullOrEmpty(b.Id) ? a.Id == b.Id : a.name == b.name;
+            return a == null || b == null ? false : !string.IsNullOrEmpty(a.Id) && !string.IsNullOrEmpty(b.Id) ? a.Id == b.Id : a.name == b.name;
         }
     }
 }

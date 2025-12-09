@@ -445,12 +445,9 @@ namespace Turnroot.Characters.CharacterClass
         /// </summary>
         public bool IsPronounAllowed(string pronounKey)
         {
-            if (string.IsNullOrEmpty(pronounKey))
-            {
-                return true;
-            }
-
-            return allowedPronounKeys == null || allowedPronounKeys.Count == 0 ? true : allowedPronounKeys.Contains(pronounKey);
+            return string.IsNullOrEmpty(pronounKey)
+                ? true
+                : allowedPronounKeys == null || allowedPronounKeys.Count == 0 ? true : allowedPronounKeys.Contains(pronounKey);
         }
 
         /// <summary>

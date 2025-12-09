@@ -192,12 +192,9 @@ namespace Turnroot.AbstractScripts.Graphics2D
 
         public static Tween CreateHideTween(Image img, float duration, Ease ease, int runId)
         {
-            if (img == null)
-            {
-                return DOVirtual.DelayedCall(0f, () => { }).SetId(runId);
-            }
-
-            return duration <= 0f
+            return img == null
+                ? DOVirtual.DelayedCall(0f, () => { }).SetId(runId)
+                : duration <= 0f
                 ? DOVirtual
                     .DelayedCall(
                         0f,

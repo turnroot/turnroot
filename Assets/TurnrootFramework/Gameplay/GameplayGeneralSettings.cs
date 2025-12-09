@@ -23,7 +23,7 @@ public enum ProgressionLevel
 public enum MovementType
 {
     Infantry,
-    Cavalry,
+    Riding,
     Flying,
     Armored,
     None,

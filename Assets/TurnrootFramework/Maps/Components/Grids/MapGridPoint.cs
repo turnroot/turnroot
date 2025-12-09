@@ -651,12 +651,7 @@ public class MapGridPoint : MonoBehaviour
             return terrainType.CostRide;
         }
 
-        if (isMagic)
-        {
-            return terrainType.CostMagic;
-        }
-
-        return isArmored ? terrainType.CostArmor : 1f;
+        return isMagic ? terrainType.CostMagic : isArmored ? terrainType.CostArmor : 1f;
     }
 
     public Vector2 Coordinates() => new(_row, _col);

@@ -377,12 +377,9 @@ namespace Turnroot.Conversations
 
         private string GetSpeakerName(ConversationLayer.SpeakerSlot slot)
         {
-            if (!string.IsNullOrWhiteSpace(slot.DisplayName))
-            {
-                return slot.DisplayName;
-            }
-
-            return slot.Speaker != null && !string.IsNullOrWhiteSpace(slot.Speaker.DisplayName) ? slot.Speaker.DisplayName : "???";
+            return !string.IsNullOrWhiteSpace(slot.DisplayName)
+                ? slot.DisplayName
+                : slot.Speaker != null && !string.IsNullOrWhiteSpace(slot.Speaker.DisplayName) ? slot.Speaker.DisplayName : "???";
         }
 
         private void ApplyPortraitForLayer(ConversationLayer layer)

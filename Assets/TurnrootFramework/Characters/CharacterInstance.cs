@@ -717,12 +717,7 @@ namespace Turnroot.Characters
             var allowedTypes = _currentClass.ClassData.allowedWeaponTypes;
 
             // Empty list means no restrictions (can equip anything)
-            if (allowedTypes == null || allowedTypes.Count == 0)
-            {
-                return true;
-            }
-
-            return allowedTypes.Contains(weaponType);
+            return allowedTypes == null || allowedTypes.Count == 0 ? true : allowedTypes.Contains(weaponType);
         }
 
         /// <summary>

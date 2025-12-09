@@ -51,15 +51,12 @@ namespace Turnroot.Skills.Nodes.Conditions
                 _ => null,
             };
 
-            if (character == null)
-            {
-                return new BoolValue { value = false };
-            }
-
-            // TODO: Implement actual riding status check when movement type system is added
-            // For now, return false as placeholder
-            // Future implementation: return new BoolValue { value = character.IsRiding };
-            return new BoolValue { value = false };
+            return character == null ? new BoolValue { value = false }
+                : character == null ? new BoolValue { value = false }
+                : new BoolValue
+                {
+                    value = character.CurrentClass.ClassData.movementType == MovementType.Riding,
+                };
         }
     }
 }

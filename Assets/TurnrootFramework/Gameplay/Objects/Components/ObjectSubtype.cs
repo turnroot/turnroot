@@ -113,12 +113,7 @@ public class ObjectSubtype
             return true; // If no settings, allow all
         }
 
-        if (value == Gift)
-        {
-            return settings.UseItemsCanBeGifts();
-        }
-
-        return value == LostItem ? settings.UseItemsCanBeLostItems() : false;
+        return value == Gift ? settings.UseItemsCanBeGifts() : value == LostItem ? settings.UseItemsCanBeLostItems() : false;
     }
 
     // Implicit conversion to string
@@ -131,24 +126,14 @@ public class ObjectSubtype
 
     public override bool Equals(object obj)
     {
-        if (obj is ObjectSubtype other)
-        {
-            return _value == other._value;
-        }
-
-        return obj is string str ? _value == str : false;
+        return obj is ObjectSubtype other ? _value == other._value : obj is string str ? _value == str : false;
     }
 
     public override int GetHashCode() => _value.GetHashCode();
 
     public static bool operator ==(ObjectSubtype a, ObjectSubtype b)
     {
-        if (ReferenceEquals(a, b))
-        {
-            return true;
-        }
-
-        return a is null || b is null ? false : a._value == b._value;
+        return ReferenceEquals(a, b) ? true : a is null || b is null ? false : a._value == b._value;
     }
 
     public static bool operator !=(ObjectSubtype a, ObjectSubtype b) => !(a == b);

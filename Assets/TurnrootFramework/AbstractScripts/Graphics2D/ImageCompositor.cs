@@ -459,12 +459,7 @@ namespace Assets.AbstractScripts.Graphics2D
         // Helper: get pixels from a sprite if readable, otherwise null
         private static Color[] GetSpritePixelsIfReadable(Sprite sprite)
         {
-            if (sprite == null)
-            {
-                return null;
-            }
-
-            return !IsTextureReadable(sprite.texture) ? null : sprite.texture.GetPixels();
+            return sprite == null ? null : !IsTextureReadable(sprite.texture) ? null : sprite.texture.GetPixels();
         }
 
         // Helper: show an editor popup for a non-readable texture and offer to open the

@@ -56,10 +56,12 @@ namespace Turnroot.Skills.Nodes.Conditions
                 return new BoolValue { value = false };
             }
 
-            // TODO: Implement actual armored status check when movement type system is added
-            // For now, return false as placeholder
-            // Future implementation: return new BoolValue { value = character.IsArmored };
-            return new BoolValue { value = false };
+            return character == null ? new BoolValue { value = false }
+                : character == null ? new BoolValue { value = false }
+                : new BoolValue
+                {
+                    value = character.CurrentClass.ClassData.movementType == MovementType.Armored,
+                };
         }
     }
 }

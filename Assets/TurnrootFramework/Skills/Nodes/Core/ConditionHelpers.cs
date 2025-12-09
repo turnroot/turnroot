@@ -32,16 +32,16 @@ namespace Turnroot.Skills.Nodes
             return context == null
                 ? null
                 : source switch
-            {
-                CharacterSource.Unit => context.UnitInstance,
-                CharacterSource.Enemy => context.Targets != null && context.Targets.Count > 0
-                    ? context.Targets[0]
-                    : null,
-                CharacterSource.Ally => context.Allies != null && context.Allies.Count > 0
-                    ? context.Allies[0]
-                    : null,
-                _ => null,
-            };
+                {
+                    CharacterSource.Unit => context.UnitInstance,
+                    CharacterSource.Enemy => context.Targets != null && context.Targets.Count > 0
+                        ? context.Targets[0]
+                        : null,
+                    CharacterSource.Ally => context.Allies != null && context.Allies.Count > 0
+                        ? context.Allies[0]
+                        : null,
+                    _ => null,
+                };
         }
 
         /// <summary>

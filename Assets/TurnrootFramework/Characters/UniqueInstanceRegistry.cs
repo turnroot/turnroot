@@ -15,12 +15,7 @@ namespace Turnroot.Characters
         public static T Get<T>(ScriptableObject template)
             where T : class
         {
-            if (template == null)
-            {
-                return null;
-            }
-
-            return _map.TryGetValue(template, out var obj) ? obj as T : null;
+            return template == null ? null : _map.TryGetValue(template, out var obj) ? obj as T : null;
         }
 
         public static void Register(ScriptableObject template, object instance)

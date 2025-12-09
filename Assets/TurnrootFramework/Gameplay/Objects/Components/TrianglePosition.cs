@@ -43,12 +43,9 @@ public class TrianglePosition
             return true;
         }
 
-        if (Position == TrianglePositionEnum.Left && other.Position == TrianglePositionEnum.Right)
-        {
-            return true;
-        }
-
-        return Position == TrianglePositionEnum.Right && other.Position == TrianglePositionEnum.Top;
+        return Position == TrianglePositionEnum.Left && other.Position == TrianglePositionEnum.Right
+            ? true
+            : Position == TrianglePositionEnum.Right && other.Position == TrianglePositionEnum.Top;
     }
 
     public bool LosesTo(TrianglePosition other)
@@ -58,12 +55,9 @@ public class TrianglePosition
             return true;
         }
 
-        if (Position == TrianglePositionEnum.Left && other.Position == TrianglePositionEnum.Top)
-        {
-            return true;
-        }
-
-        return Position == TrianglePositionEnum.Right && other.Position == TrianglePositionEnum.Left;
+        return Position == TrianglePositionEnum.Left && other.Position == TrianglePositionEnum.Top
+            ? true
+            : Position == TrianglePositionEnum.Right && other.Position == TrianglePositionEnum.Left;
     }
 
     public bool Equals(TrianglePosition other)

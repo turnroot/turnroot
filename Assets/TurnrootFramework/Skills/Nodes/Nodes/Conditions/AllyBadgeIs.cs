@@ -31,7 +31,11 @@ namespace Turnroot.Skills.Nodes.Conditions
             var matchCount = 0;
             foreach (var unit in context.AdjacentUnits.GetAdjacentAllies(context))
             {
-                // TODO: Get from CharacterInstance
+                string badgeText = unit.CharacterTemplate.BadgeText ?? "";
+                if (badgeText.Equals(BadgeText))
+                {
+                    matchCount++;
+                }
             }
 
             return new FloatValue { value = matchCount };
