@@ -16,6 +16,7 @@ namespace Assets.Turnroot.Gameplay.Brain
 
         private void Awake()
         {
+            _ltm = GetComponent<LongTermMemory>();
             _gameplaySettings =
                 global::Turnroot.Utilities.GameSettingsLoader.LoadFirst<GameplayGeneralSettings>();
             _brain = GetComponent<Brain>();
