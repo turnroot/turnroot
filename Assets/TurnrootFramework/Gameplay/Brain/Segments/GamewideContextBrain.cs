@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
 using Turnroot.Characters;
-using Turnroot.Characters;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain

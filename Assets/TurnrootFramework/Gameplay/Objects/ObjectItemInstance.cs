@@ -12,6 +12,8 @@ namespace Turnroot.Gameplay.Objects
         [SerializeField]
         private string _id;
 
+        public string InstanceID => _id;
+
         [SerializeField]
         private ObjectItem _template;
 

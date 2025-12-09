@@ -270,6 +270,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _storedItems: []
+  GoldDisplayNames:
+    OneLetter: 
+    FullName: 
 --- !u!114 &1357883684
 MonoBehaviour:
   m_ObjectHideFlags: 0
