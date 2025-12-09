@@ -98,10 +98,10 @@ public class MapGridPoint : MonoBehaviour
     private CharacterInstance _startingUnit = null;
 
     [SerializeField]
-    private UnityEvent _friendlyEntersEvent = new UnityEvent();
+    private UnityEvent _friendlyEntersEvent = new();
 
     [SerializeField]
-    private UnityEvent _enemyEntersEvent = new UnityEvent();
+    private UnityEvent _enemyEntersEvent = new();
 
     /* ---------------------------- Feature Properties ---------------------------- */
     [Header("Feature Properties")]

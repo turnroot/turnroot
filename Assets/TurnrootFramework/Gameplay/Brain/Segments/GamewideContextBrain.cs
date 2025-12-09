@@ -29,7 +29,7 @@ namespace Assets.Turnroot.Gameplay.Brain
 
         [Header("Rosters")]
         [SerializeField]
-        private List<Roster> rosters = new List<Roster>();
+        private List<Roster> rosters = new();
         public IReadOnlyList<Roster> ConfiguredRosters => rosters;
 
         // Lazy-loading roster cache with automatic invalidation

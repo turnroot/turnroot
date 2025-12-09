@@ -29,7 +29,7 @@ namespace Turnroot.Conversations
         }
 
         [Header("Per-layer events (scene-level)")]
-        public List<LayerEvents> PerLayerEvents = new List<LayerEvents>();
+        public List<LayerEvents> PerLayerEvents = new();
 
         /// <summary>
         /// Try to find the per-layer events for the given zero-based layer index.

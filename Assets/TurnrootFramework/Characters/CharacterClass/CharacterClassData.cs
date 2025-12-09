@@ -105,7 +105,7 @@ namespace Turnroot.Characters.CharacterClass
             "Which pronoun sets are allowed for characters of this class (multi-select). Empty = allow all."
         )]
         [HideInInspector]
-        public List<string> allowedPronounKeys = new List<string>();
+        public List<string> allowedPronounKeys = new();
 
         [Foldout("Identity")]
         [Tooltip("If true, only a unique character can hold this class at a time")]

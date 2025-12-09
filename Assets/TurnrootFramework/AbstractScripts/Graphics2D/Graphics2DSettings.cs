@@ -35,7 +35,7 @@ namespace Turnroot.AbstractScripts.Graphics2D
         private float _swapCrossfade = 0.4f;
 
         [SerializeField, BoxGroup("Conversations")]
-        private Color _inactiveTintColor = new Color(0.5f, 0.5f, 0.5f, 1f);
+        private Color _inactiveTintColor = new(0.5f, 0.5f, 0.5f, 1f);
 
         [SerializeField, BoxGroup("Conversations"), Range(0f, 1f)]
         private float _inactiveTintMix = 0.5f;

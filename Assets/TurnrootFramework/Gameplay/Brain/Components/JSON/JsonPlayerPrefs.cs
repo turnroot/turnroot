@@ -25,7 +25,7 @@ public class JsonPlayerPrefs
     }
 
     [SerializeField]
-    private List<PlayerPref> playerPrefs = new List<PlayerPref>();
+    private List<PlayerPref> playerPrefs = new();
 
     private readonly string savePath;
 

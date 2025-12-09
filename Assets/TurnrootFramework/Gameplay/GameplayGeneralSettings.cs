@@ -4,6 +4,13 @@ using Turnroot.Gameplay.Combat.FundamentalComponents;
 using Turnroot.Gameplay.Objects.Components;
 using UnityEngine;
 
+[System.Serializable]
+public struct GoldDisplay
+{
+    public string OneLetter;
+    public string FullName;
+}
+
 public enum ProgressionLevel
 {
     Starter = -1,
@@ -99,8 +106,6 @@ public class GameplayGeneralSettings : SingletonScriptableObject<GameplayGeneral
     [SerializeField, BoxGroup("General Gameplay")]
     private bool WeaponsHaveDurability;
 
-    // Expose important per-project gameplay flags as read-only properties so other systems
-    // can read the configured project defaults via GameSettingsLoader.
     public bool GetWeaponsCanBeForged() => WeaponsCanBeForged;
 
     public bool GetWeaponsCanBeRepaired() => WeaponsCanBeRepaired;
@@ -109,6 +114,9 @@ public class GameplayGeneralSettings : SingletonScriptableObject<GameplayGeneral
 
     [SerializeField, BoxGroup("General Gameplay")]
     private bool UseExperienceAptitudes;
+
+    [SerializeField, BoxGroup("UI"), HorizontalLine(color: EColor.Green)]
+    public GoldDisplay GoldDisplayNames = new() { OneLetter = "G", FullName = "gold" };
 
     [SerializeField, BoxGroup("Combat Mechanics"), HorizontalLine(color: EColor.Yellow)]
     private bool CombatArts;
