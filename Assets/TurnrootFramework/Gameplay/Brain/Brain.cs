@@ -63,12 +63,12 @@ namespace Turnroot.Gameplay.Brain
         private ConversationController _sceneConversationController;
 
         // Module flags - paid add-on modules that self-install
-        private bool hubModuleEnabled = false;
-        private bool bloodlinesModuleEnabled = false;
-        private bool retroModuleEnabled = false;
-        private bool unwindModuleEnabled = false;
-        private bool troopsModuleEnabled = false;
-        private bool monstersModuleEnabled = false;
+        private readonly bool hubModuleEnabled = false;
+        private readonly bool bloodlinesModuleEnabled = false;
+        private readonly bool retroModuleEnabled = false;
+        private readonly bool unwindModuleEnabled = false;
+        private readonly bool troopsModuleEnabled = false;
+        private readonly bool monstersModuleEnabled = false;
 
         #region Memory Events
 
@@ -79,6 +79,28 @@ namespace Turnroot.Gameplay.Brain
 
         public void NotifyIllegalModification(string message) =>
             OnIllegallyModifiedFileDetected?.Invoke(message);
+
+        #endregion
+
+        #region Memory Coders
+
+        public string EncodeInstanceToString<T>(T instance)
+            where T : class => gamewideContextBrain.EncodeInstanceToString<T>(instance);
+
+        public T DecodeInstanceFromString<T>(string encodedString)
+            where T : class => gamewideContextBrain.DecodeInstanceFromString<T>(encodedString);
+
+        public string EncodeString(string value)
+        {
+            var bytes = System.Text.Encoding.UTF8.GetBytes(value);
+            return Convert.ToBase64String(bytes);
+        }
+
+        public string DecodeString(string encodedString)
+        {
+            var bytes = Convert.FromBase64String(encodedString);
+            return System.Text.Encoding.UTF8.GetString(bytes);
+        }
 
         #endregion
 

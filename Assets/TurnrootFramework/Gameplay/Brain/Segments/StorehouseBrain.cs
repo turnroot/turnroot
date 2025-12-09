@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Turnroot.Gameplay.Objects;
+using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain
@@ -14,17 +15,31 @@ namespace Turnroot.Gameplay.Brain
     {
         GameplayGeneralSettings _gameplaySettings;
 
-        private void Awake()
+        private void Start()
         {
             _ltm = GetComponent<LongTermMemory>();
-            _gameplaySettings =
-                Turnroot.Utilities.GameSettingsLoader.LoadFirst<GameplayGeneralSettings>();
+            _gameplaySettings = GameSettingsLoader.LoadFirst<GameplayGeneralSettings>();
             _brain = GetComponent<Brain>();
             _materials = new Dictionary<ObjectItem, int>();
             GoldDisplayNames =
                 _gameplaySettings != null
                     ? _gameplaySettings.GoldDisplayNames
                     : new GoldDisplay { OneLetter = "G", FullName = "gold" };
+            Debug.Log("StorehouseBrain is ready.");
+
+            // Load saved gold amount
+            int tryLoadGold = GetGoldFromLTM();
+            if (tryLoadGold <= 0)
+            {
+                Debug.Log("No saved gold found, initializing to 0.");
+                PlayerGold = 0;
+                SaveGoldToLTM();
+                SaveCurrentStorehouse();
+            }
+            else
+            {
+                PlayerGold = tryLoadGold;
+            }
         }
 
         private Brain _brain;
@@ -62,11 +77,67 @@ namespace Turnroot.Gameplay.Brain
             return OperationResult.SuccessResult();
         }
 
-        public void SaveGoldToLTM() => _ltm.RememberInt("Storehouse_Gold", PlayerGold);
+        public void SaveGoldToLTM()
+        {
+            var encoded = _brain.EncodeString(PlayerGold.ToString());
+            _ltm.Remember("Storehouse_Purchasing_Power", encoded.ToString());
+        }
 
+        public int GetGoldFromLTM()
+        {
+            var recalled = _ltm.Recall("Storehouse_Purchasing_Power");
+            if (recalled == null)
+            {
+                return 0;
+            }
+
+            var decoded = _brain.DecodeString(recalled);
+            return int.Parse(decoded);
+        }
         #endregion
 
         #region Storehouse Operations
+
+
+        /// <summary>
+        /// Save the current state of the storehouse to long-term memory.
+        /// </summary>
+        public void SaveCurrentStorehouse()
+        {
+            // loop through _materials and save each material count
+            foreach (var material in _materials)
+            {
+                _ = _ltm.RememberInt($"Storehouse_Material_{material.Key.name}", material.Value);
+            }
+            // save a single string with all stored item IDs, separated by commas
+            var itemIds = string.Join(",", _storedItems.ConvertAll(i => i.InstanceID.ToString()));
+            _ltm.Remember("Storehouse_StoredItems", itemIds);
+        }
+
+        public void LoadStorehouse()
+        {
+            // Load gold amount
+            PlayerGold =
+                int.TryParse(_ltm.Recall("Storehouse_Purchasing_Power"), out int recalledGold)
+                && recalledGold >= 0
+                    ? recalledGold
+                    : 0;
+            // loop through all known materials and load their counts
+            _materials.Clear();
+            var allMaterialKeys = _ltm.RecallKeysByPrefix("Storehouse_Material_")
+                .FindAll(k => k.StartsWith("Storehouse_Material_"));
+            foreach (var key in allMaterialKeys)
+            {
+                var materialName = key.Replace("Storehouse_Material_", "");
+                var materialCount = _ltm.RecallInt(key);
+                var materialItem = Resources.Load<ObjectItem>($"Items/{materialName}");
+                if (materialItem != null && materialCount > 0)
+                {
+                    _materials[materialItem] = materialCount;
+                }
+            }
+            // TODO: Load stored items by their IDs (requires access to all item instances)
+        }
 
         /// <summary>
         /// Deposit an item into the storehouse.
@@ -80,6 +151,7 @@ namespace Turnroot.Gameplay.Brain
             }
 
             _storedItems.Add(item);
+            SaveCurrentStorehouse();
             _brain?.PublishItemDeposited(item);
 
             Debug.Log($"Deposited {item.Template.name} into storehouse.");
@@ -109,9 +181,10 @@ namespace Turnroot.Gameplay.Brain
                 return OperationResult.Failure("Target inventory is full.");
             }
 
-            _storedItems.Remove(item);
+            _ = _storedItems.Remove(item);
 
             targetInventory?.AddToInventory(item);
+            SaveCurrentStorehouse();
 
             _brain?.PublishItemWithdrawn(item, targetInventory);
 
@@ -142,9 +215,9 @@ namespace Turnroot.Gameplay.Brain
 
             if (_materials[material] <= 0)
             {
-                _materials.Remove(material);
+                _ = _materials.Remove(material);
             }
-
+            SaveCurrentStorehouse();
             Debug.Log($"Consumed {amount}x {material.name} from storehouse.");
             return OperationResult.SuccessResult();
         }
@@ -165,6 +238,7 @@ namespace Turnroot.Gameplay.Brain
             }
 
             _materials[material] += amount;
+            SaveCurrentStorehouse();
             Debug.Log($"Added {amount}x {material.name} to storehouse.");
         }
 

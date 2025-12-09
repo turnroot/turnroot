@@ -14,7 +14,11 @@ namespace Turnroot.Gameplay.Brain
     {
         private Brain _brain;
 
-        private void Awake() => _brain = GetComponent<Brain>();
+        private void Awake()
+        {
+            _brain = GetComponent<Brain>();
+            Debug.Log("InventoryBrain is ready.");
+        }
 
         #region Item Operations
 

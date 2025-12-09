@@ -5,7 +5,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Turnroot.Characters;
 using Turnroot.Gameplay.Brain.Components;
-using Turnroot.Gameplay.Objects;
+using Turnroot.Serialization;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain
@@ -462,7 +462,7 @@ namespace Turnroot.Gameplay.Brain
                 }
 
                 // Post-deserialization hook
-                if (instance is Turnroot.Serialization.IPostDeserialize post)
+                if (instance is Serialization.IPostDeserialize post)
                 {
                     post.OnAfterDeserialize();
                 }

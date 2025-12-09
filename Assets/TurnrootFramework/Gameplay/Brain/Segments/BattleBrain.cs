@@ -1,5 +1,4 @@
 using Turnroot.Characters;
-using Turnroot.Characters;
 using Turnroot.Characters.Components;
 using Turnroot.Gameplay.Combat;
 using UnityEngine;
