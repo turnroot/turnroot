@@ -8,12 +8,6 @@ namespace Turnroot.Gameplay.Objects
     [Serializable]
     public class ObjectItemInstance : IPostDeserialize
     {
-        [NaughtyAttributes.ReadOnly]
-        public StorehouseBrain sb;
-
-        [NaughtyAttributes.ReadOnly]
-        public InventoryBrain ib;
-
         [SerializeField]
         private string _id;
 
@@ -25,17 +19,16 @@ namespace Turnroot.Gameplay.Objects
         private int currentUses;
         public ObjectItem Template => _template;
 
+        // Lazy-initialized brain references
+        private StorehouseBrain StorehouseBrain => Utilities.GetBrain.Get()?.storehouseBrain;
+
+        private InventoryBrain InventoryBrain => Utilities.GetBrain.Get()?.inventoryBrain;
+
         public ObjectItemInstance(ObjectItem template)
         {
             _template = template;
             _id = Guid.NewGuid().ToString();
             currentUses = 0;
-        }
-
-        private void Start()
-        {
-            sb = Utilities.GetBrain.Get()?.storehouseBrain;
-            ib = Utilities.GetBrain.Get()?.inventoryBrain;
         }
 
         /// <summary>
@@ -53,7 +46,7 @@ namespace Turnroot.Gameplay.Objects
             else
             {
                 currentUses++;
-                ib.UseItem(this);
+                InventoryBrain?.UseItem(this);
                 return _template.MaxUses - currentUses > 0 ? _template.MaxUses - currentUses : 0;
             }
         }
@@ -83,7 +76,7 @@ namespace Turnroot.Gameplay.Objects
             _ownerInventory.RemoveFromInventory(this);
             targetInventory.AddToInventory(this);
             _ownerInventory = targetInventory;
-            ib.TransferItem(this, targetInventory);
+            InventoryBrain?.TransferItem(this, targetInventory);
             return OperationResult.SuccessResult();
         }
 
@@ -97,7 +90,7 @@ namespace Turnroot.Gameplay.Objects
             }
 
             _ownerInventory.RemoveFromInventory(this);
-            ib.DiscardItem(this);
+            InventoryBrain?.DiscardItem(this);
             return OperationResult.SuccessResult();
         }
 
@@ -113,8 +106,8 @@ namespace Turnroot.Gameplay.Objects
             int deduction = _template.SellPriceDeductedPerUse * currentUses;
             int finalPrice = Math.Max(0, _template.BasePrice - deduction);
             _ownerInventory.RemoveFromInventory(this);
-            sb.AddGold(finalPrice);
-            ib.SellItem(this);
+            StorehouseBrain?.AddGold(finalPrice);
+            InventoryBrain?.SellItem(this);
             return OperationResult.SuccessResult();
         }
 
@@ -122,7 +115,7 @@ namespace Turnroot.Gameplay.Objects
             !_template.IsUnequippable
             && _template.Buyable
             && !buyerInventory.IsFull
-            && sb.CanAfford(_template.BasePrice);
+            && (StorehouseBrain?.CanAfford(_template.BasePrice) ?? false);
 
         internal OperationResult Buy(CharacterInventoryInstance buyerInventory)
         {
@@ -136,15 +129,15 @@ namespace Turnroot.Gameplay.Objects
                 return OperationResult.Failure("Buyer inventory is full. Cannot buy item.");
             }
 
-            if (!sb.CanAfford(_template.BasePrice))
+            if (!(StorehouseBrain?.CanAfford(_template.BasePrice) ?? false))
             {
                 return OperationResult.Failure("Insufficient gold to buy item.");
             }
 
             buyerInventory.AddToInventory(this);
             _ownerInventory = buyerInventory;
-            sb.SpendGold(_template.BasePrice);
-            ib.BuyItem(this, buyerInventory);
+            StorehouseBrain?.SpendGold(_template.BasePrice);
+            InventoryBrain?.BuyItem(this, buyerInventory);
             return OperationResult.SuccessResult();
         }
 
@@ -157,17 +150,17 @@ namespace Turnroot.Gameplay.Objects
 
             if (_template.RepairNeedsItems)
             {
-                return sb.HasMaterials(
-                    _template.RepairItem,
-                    _template.RepairItemAmountPerUse * repairUses
-                );
+                return StorehouseBrain?.HasMaterials(
+                        _template.RepairItem,
+                        _template.RepairItemAmountPerUse * repairUses
+                    ) ?? false;
             }
             if (repairUses <= 0 || currentUses - repairUses < 0)
             {
                 return false;
             }
             var repairCost = _template.RepairItemAmountPerUse * repairUses;
-            return sb.CanAfford(repairCost);
+            return StorehouseBrain?.CanAfford(repairCost) ?? false;
         }
 
         /// <summary>
@@ -197,17 +190,17 @@ namespace Turnroot.Gameplay.Objects
             }
 
             var repairCost = _template.RepairItemAmountPerUse * repairUses;
-            if (!sb.CanAfford(repairCost))
+            if (!(StorehouseBrain?.CanAfford(repairCost) ?? false))
             {
                 return OperationResult.Failure("Insufficient gold to repair item.");
             }
-            if (!sb.HasMaterials(_template.RepairItem, repairCost))
+            if (!(StorehouseBrain?.HasMaterials(_template.RepairItem, repairCost) ?? false))
             {
                 return OperationResult.Failure("Insufficient materials to repair item.");
             }
-            ib.RepairItem(this, repairUses);
-            sb.SpendGold(repairCost);
-            sb.ConsumeMaterials(_template.RepairItem, repairCost);
+            InventoryBrain?.RepairItem(this, repairUses);
+            StorehouseBrain?.SpendGold(repairCost);
+            StorehouseBrain?.ConsumeMaterials(_template.RepairItem, repairCost);
 
             currentUses -= repairUses;
             if (currentUses < 0)
