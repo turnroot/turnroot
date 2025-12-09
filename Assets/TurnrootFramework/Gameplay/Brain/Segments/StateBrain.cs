@@ -181,14 +181,20 @@ namespace Assets.Turnroot.Gameplay.Brain
         private bool TryRestoreHighLevelStates()
         {
             if (_brain?.ltm == null)
+            {
                 return false;
+            }
 
             int storedCount = _brain.ltm.RecallInt(LtmKeys.HighLevelStatesCount);
             if (storedCount <= 0)
+            {
                 return false;
+            }
 
             if (!ValidateStoredStates(storedCount))
+            {
                 return false;
+            }
 
             _highLevelStates = new BrainState[storedCount];
             for (int i = 0; i < storedCount; i++)
@@ -210,7 +216,9 @@ namespace Assets.Turnroot.Gameplay.Brain
             }
 
             if (_brain?.ltm == null)
+            {
                 return false;
+            }
 
             var childStates = new System.Collections.Generic.List<BrainState>();
             int index = 0;
@@ -219,14 +227,18 @@ namespace Assets.Turnroot.Gameplay.Brain
                 string key = $"{LtmKeys.HighLevelStatePrefix}Combat.Child.{index}";
                 string stateName = _brain.ltm.Recall(key);
                 if (string.IsNullOrEmpty(stateName))
+                {
                     break;
+                }
 
                 childStates.Add(new BrainState(stateName, null, new[] { battleState }));
                 index++;
             }
 
             if (childStates.Count == 0)
+            {
                 return false;
+            }
 
             battleState.ParentOfStates = childStates.ToArray();
             return true;
@@ -238,7 +250,9 @@ namespace Assets.Turnroot.Gameplay.Brain
             {
                 string stateName = _brain.ltm.Recall(LtmKeys.HighLevelStatePrefix + i);
                 if (string.IsNullOrEmpty(stateName))
+                {
                     return false;
+                }
             }
             return true;
         }
@@ -246,7 +260,9 @@ namespace Assets.Turnroot.Gameplay.Brain
         private void SaveHighLevelStates()
         {
             if (_highLevelStates == null || _brain?.ltm == null)
+            {
                 return;
+            }
 
             for (int i = 0; i < _highLevelStates.Length; i++)
             {
@@ -260,7 +276,9 @@ namespace Assets.Turnroot.Gameplay.Brain
         {
             var battleState = FindHighLevelState(BrainStateNames.Combat);
             if (battleState == null || battleState.ParentOfStates == null || _brain?.ltm == null)
+            {
                 return;
+            }
 
             for (int i = 0; i < battleState.ParentOfStates.Length; i++)
             {
@@ -275,19 +293,20 @@ namespace Assets.Turnroot.Gameplay.Brain
 
         private BrainState FindHighLevelState(string name)
         {
-            if (string.IsNullOrEmpty(name) || _highLevelStates == null)
-                return null;
-
-            return Array.Find(_highLevelStates, s => s.Name == name);
+            return string.IsNullOrEmpty(name) || _highLevelStates == null ? null : Array.Find(_highLevelStates, s => s.Name == name);
         }
 
         private void SetCurrentState(BrainState newState)
         {
             if (newState == null)
+            {
                 return;
+            }
 
             if (_currentState != null)
+            {
                 _currentState.IsActive = false;
+            }
 
             _currentState = newState;
             _currentState.IsActive = true;

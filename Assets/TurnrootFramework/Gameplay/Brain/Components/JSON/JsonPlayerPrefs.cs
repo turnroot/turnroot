@@ -25,7 +25,7 @@ public class JsonPlayerPrefs
     }
 
     [SerializeField]
-    private List<PlayerPref> playerPrefs = new List<PlayerPref>();
+    private List<PlayerPref> playerPrefs = new();
 
     private readonly string savePath;
 
@@ -49,7 +49,9 @@ public class JsonPlayerPrefs
     private void LoadFromDisk()
     {
         if (!File.Exists(savePath))
+        {
             return;
+        }
 
         try
         {
@@ -231,7 +233,10 @@ public class JsonPlayerPrefs
         if (cachedDecodedKeys != null && cachedKeysVersion == keyCacheVersion)
         {
             foreach (var k in cachedDecodedKeys)
+            {
                 yield return k;
+            }
+
             yield break;
         }
 
@@ -246,7 +251,9 @@ public class JsonPlayerPrefs
         cachedKeysVersion = keyCacheVersion;
 
         foreach (var k in cachedDecodedKeys)
+        {
             yield return k;
+        }
     }
 
     #endregion
@@ -276,7 +283,9 @@ public class JsonPlayerPrefs
     private string EncodeKey(string key)
     {
         if (string.IsNullOrEmpty(key))
+        {
             return string.Empty;
+        }
 
         try
         {
@@ -293,7 +302,9 @@ public class JsonPlayerPrefs
     private string DecodeKey(string encoded)
     {
         if (string.IsNullOrEmpty(encoded))
+        {
             return encoded;
+        }
 
         try
         {

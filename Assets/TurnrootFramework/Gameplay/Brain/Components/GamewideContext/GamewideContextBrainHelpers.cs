@@ -78,30 +78,25 @@ namespace Assets.Turnroot.Gameplay.Brain
             if (t == typeof(CharacterInstance))
             {
                 var characterData = TryExtractCharacterDataFromWrapper(wrapper);
-                if (characterData != null)
-                {
-                    return (T)(object)CharacterInstance.Create(characterData);
-                }
-                return default;
+                return characterData != null ? (T)(object)CharacterInstance.Create(characterData) : default;
             }
 
             // Generic fallback: try parameterless constructor
             if (t.IsValueType)
-                return default;
-
-            var ctor = t.GetConstructor(Type.EmptyTypes);
-            if (ctor != null)
             {
-                return (T)Activator.CreateInstance(t);
+                return default;
             }
 
-            return default;
+            var ctor = t.GetConstructor(Type.EmptyTypes);
+            return ctor != null ? (T)Activator.CreateInstance(t) : default;
         }
 
         private static CharacterData TryExtractCharacterDataFromWrapper(SerializedWrapper wrapper)
         {
             if (wrapper == null || string.IsNullOrEmpty(wrapper.Payload))
+            {
                 return null;
+            }
 
             try
             {
@@ -111,12 +106,16 @@ namespace Assets.Turnroot.Gameplay.Brain
                     ?? payloadObj.SelectToken("CharacterTemplate");
 
                 if (templateToken?.Type != JTokenType.Object)
+                {
                     return null;
+                }
 
 #if UNITY_EDITOR
                 var characterData = TryLoadCharacterDataInEditor(templateToken);
                 if (characterData != null)
+                {
                     return characterData;
+                }
 #endif
 
                 var name = templateToken.Value<string>("name");
@@ -146,17 +145,14 @@ namespace Assets.Turnroot.Gameplay.Brain
                         path
                     );
                     if (characterData != null)
+                    {
                         return characterData;
+                    }
                 }
             }
 
             var assetPath = templateToken.Value<string>("assetPath");
-            if (!string.IsNullOrEmpty(assetPath))
-            {
-                return UnityEditor.AssetDatabase.LoadAssetAtPath<CharacterData>(assetPath);
-            }
-
-            return null;
+            return !string.IsNullOrEmpty(assetPath) ? UnityEditor.AssetDatabase.LoadAssetAtPath<CharacterData>(assetPath) : null;
         }
 #endif
 
@@ -211,16 +207,13 @@ namespace Assets.Turnroot.Gameplay.Brain
             {
                 var id = TryGetIdFromInstance(instance);
                 if (!string.IsNullOrEmpty(id))
+                {
                     return id;
+                }
             }
 
             // Try parsing wrapper payload
-            if (wrapper != null && !string.IsNullOrEmpty(wrapper.Payload))
-            {
-                return TryGetIdFromPayload(wrapper.Payload);
-            }
-
-            return null;
+            return wrapper != null && !string.IsNullOrEmpty(wrapper.Payload) ? TryGetIdFromPayload(wrapper.Payload) : null;
         }
 
         private static string TryGetIdFromInstance<T>(T instance)
@@ -242,12 +235,7 @@ namespace Assets.Turnroot.Gameplay.Brain
                 "_id",
                 BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public
             );
-            if (field?.FieldType == typeof(string))
-            {
-                return field.GetValue(instance) as string;
-            }
-
-            return null;
+            return field?.FieldType == typeof(string) ? field.GetValue(instance) as string : null;
         }
 
         private static string TryGetIdFromPayload(string payload)
@@ -286,7 +274,9 @@ namespace Assets.Turnroot.Gameplay.Brain
         public static SerializedWrapper DecodeWrapperFromBase64(string encoded)
         {
             if (string.IsNullOrEmpty(encoded))
+            {
                 return null;
+            }
 
             try
             {
@@ -303,7 +293,9 @@ namespace Assets.Turnroot.Gameplay.Brain
         public static string EncodeWrapperToBase64(SerializedWrapper wrapper)
         {
             if (wrapper == null)
+            {
                 return null;
+            }
 
             try
             {
@@ -320,7 +312,9 @@ namespace Assets.Turnroot.Gameplay.Brain
         public static JObject DecodeWrapperAsJObject(string encoded)
         {
             if (string.IsNullOrEmpty(encoded))
+            {
                 return null;
+            }
 
             try
             {
@@ -337,7 +331,9 @@ namespace Assets.Turnroot.Gameplay.Brain
         public static string EncodeJObjectToBase64(JObject wrapper)
         {
             if (wrapper == null)
+            {
                 return null;
+            }
 
             try
             {
@@ -354,7 +350,9 @@ namespace Assets.Turnroot.Gameplay.Brain
         public static string RecomputeHashFromWrapperJObject(JObject wrapper)
         {
             if (wrapper == null)
+            {
                 return string.Empty;
+            }
 
             try
             {
@@ -507,7 +505,9 @@ namespace Assets.Turnroot.Gameplay.Brain
                 var key = BuildHashLedgerKey(instance, wrapper);
 
                 if (string.IsNullOrEmpty(key) || ltm == null)
+                {
                     return true; // Can't verify, assume valid
+                }
 
                 var stored = ltm.Recall(key);
 

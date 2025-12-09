@@ -16,27 +16,40 @@ namespace Turnroot.Characters
             where T : class
         {
             if (template == null)
+            {
                 return null;
-            if (_map.TryGetValue(template, out var obj))
-                return obj as T;
-            return null;
+            }
+
+            return _map.TryGetValue(template, out var obj) ? obj as T : null;
         }
 
         public static void Register(ScriptableObject template, object instance)
         {
             if (template == null || instance == null)
+            {
                 return;
+            }
+
             _map[template] = instance;
         }
 
         public static bool TryUnregister(ScriptableObject template, object instance)
         {
             if (template == null)
+            {
                 return false;
+            }
+
             if (!_map.TryGetValue(template, out var existing))
+            {
                 return false;
+            }
+
             if (!ReferenceEquals(existing, instance))
+            {
                 return false;
+            }
+
             _map.Remove(template);
             return true;
         }

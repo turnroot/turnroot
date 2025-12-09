@@ -20,7 +20,9 @@ public class TerrainTypes : ScriptableObject
             foreach (var type in _types)
             {
                 if (type == null)
+                {
                     continue;
+                }
                 // ensure each type has an id
                 var idField = typeof(TerrainType).GetField(
                     "_id",
@@ -31,7 +33,9 @@ public class TerrainTypes : ScriptableObject
                 {
                     var val = idField.GetValue(type) as string;
                     if (string.IsNullOrEmpty(val))
+                    {
                         idField.SetValue(type, System.Guid.NewGuid().ToString());
+                    }
                 }
                 if (!string.IsNullOrEmpty(type.Id))
                 {
@@ -78,27 +82,39 @@ public class TerrainTypes : ScriptableObject
             System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance
         );
         if (idField != null)
+        {
             idField.SetValue(newType, System.Guid.NewGuid().ToString());
+        }
+
         var newList = new List<TerrainType>(_types ?? new TerrainType[0]) { newType };
         _types = newList.ToArray();
         // update lookup
         if (!string.IsNullOrEmpty(newType.Id))
+        {
             _typeLookup[newType.Id] = newType;
+        }
     }
 
     public TerrainType GetTypeById(string id)
     {
         if (string.IsNullOrEmpty(id))
+        {
             return null;
+        }
+
         if (_typeLookup != null && _typeLookup.TryGetValue(id, out var t))
+        {
             return t;
+        }
         // fallback: search array
         if (_types != null)
         {
             foreach (var tt in _types)
             {
                 if (tt != null && tt.Id == id)
+                {
                     return tt;
+                }
             }
         }
         return null;
@@ -112,15 +128,14 @@ public class TerrainTypes : ScriptableObject
         // First try a direct Resources.Load for the given resource name (preserve existing behaviour)
         var fromResources = Resources.Load<TerrainTypes>(resourcesName);
         if (fromResources != null)
+        {
             return fromResources;
+        }
 
         // Use centralized loader which searches Resources/GameSettings/* and falls back to editor search
         var byLoader = Turnroot.Utilities.GameSettingsLoader.LoadFirst<TerrainTypes>(
             "GameSettings"
         );
-        if (byLoader != null)
-            return byLoader;
-
-        return null;
+        return byLoader != null ? byLoader : null;
     }
 }

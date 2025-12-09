@@ -96,7 +96,9 @@ namespace Assets.Turnroot.Gameplay.Brain.Components
         private JObject CreateTemplateToken(CharacterData template)
         {
             if (template == null)
+            {
                 return null;
+            }
 
             var token = new JObject
             {
@@ -165,7 +167,9 @@ namespace Assets.Turnroot.Gameplay.Brain.Components
                 ?? token.SelectToken("CharacterTemplate");
 
             if (templateToken?.Type == JTokenType.Null || templateToken == null)
+            {
                 return null;
+            }
 
             try
             {
@@ -201,7 +205,9 @@ namespace Assets.Turnroot.Gameplay.Brain.Components
         )
         {
             if (instance == null)
+            {
                 return;
+            }
 
             SetFieldFromToken(instance, token, FieldNames.Id, "Id", serializer);
             SetFieldFromToken(instance, token, FieldNames.CurrentLevel, "CurrentLevel", serializer);
@@ -253,11 +259,15 @@ namespace Assets.Turnroot.Gameplay.Brain.Components
         {
             var fieldToken = token.SelectToken(fieldName) ?? token.SelectToken(fallbackName);
             if (fieldToken?.Type == JTokenType.Null || fieldToken == null)
+            {
                 return;
+            }
 
             var field = typeof(CharacterInstance).GetField(fieldName, PrivateInstanceFlags);
             if (field == null)
+            {
                 return;
+            }
 
             try
             {

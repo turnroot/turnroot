@@ -82,7 +82,9 @@ namespace Turnroot.Characters.CharacterClass
         )
         {
             if (character == null || modifiers == null)
+            {
                 return;
+            }
 
             foreach (var modifier in modifiers)
             {
@@ -116,7 +118,9 @@ namespace Turnroot.Characters.CharacterClass
         )
         {
             if (character == null || modifiers == null)
+            {
                 return;
+            }
 
             foreach (var modifier in modifiers)
             {
@@ -154,7 +158,9 @@ namespace Turnroot.Characters.CharacterClass
         )
         {
             if (character == null || minimums == null)
+            {
                 return;
+            }
 
             foreach (var minimum in minimums)
             {
@@ -188,7 +194,9 @@ namespace Turnroot.Characters.CharacterClass
         )
         {
             if (character == null || minimums == null)
+            {
                 return;
+            }
 
             foreach (var minimum in minimums)
             {
@@ -217,7 +225,9 @@ namespace Turnroot.Characters.CharacterClass
         public static void ApplyBoundedCaps(List<StatModifier> caps, CharacterInstance character)
         {
             if (character == null || caps == null)
+            {
                 return;
+            }
 
             foreach (var cap in caps)
             {
@@ -244,7 +254,9 @@ namespace Turnroot.Characters.CharacterClass
         )
         {
             if (character == null || caps == null)
+            {
                 return false;
+            }
 
             foreach (var cap in caps)
             {
@@ -284,13 +296,17 @@ namespace Turnroot.Characters.CharacterClass
             var increasedStats = new List<UnboundedStatType>();
 
             if (character == null || baseGrowths == null)
+            {
                 return increasedStats;
+            }
 
             foreach (var baseGrowth in baseGrowths)
             {
                 var stat = character.GetUnboundedStat(baseGrowth.unboundedStatType);
                 if (stat == null)
+                {
                     continue;
+                }
 
                 // Calculate total growth rate (base + class modifier)
                 float totalGrowth = baseGrowth.value;

@@ -48,7 +48,9 @@ public class CharacterInventoryInstance : IPostDeserialize
             foreach (var item in _inventoryItems)
             {
                 if (item != null)
+                {
                     weight += item.Template.Weight;
+                }
             }
             return (int)weight;
         }
@@ -81,7 +83,9 @@ public class CharacterInventoryInstance : IPostDeserialize
             || _nonWeaponEquippedFlags.Length != maxNonWeapon;
 
         if (!needsResize)
+        {
             return;
+        }
 
         // Resize equipped item indices
         if (_equippedItemIndices == null || _equippedItemIndices.Length != totalSlots)
@@ -236,10 +240,7 @@ public class CharacterInventoryInstance : IPostDeserialize
     /// <returns>The inventory index of the equipped weapon, or -1 if no weapon is equipped.</returns>
     public int GetEquippedWeaponIndex()
     {
-        if (!_isWeaponEquipped || _equippedItemIndices == null || _equippedItemIndices.Length == 0)
-            return -1;
-
-        return _equippedItemIndices[0];
+        return !_isWeaponEquipped || _equippedItemIndices == null || _equippedItemIndices.Length == 0 ? -1 : _equippedItemIndices[0];
     }
 
     /// <summary>
@@ -269,10 +270,7 @@ public class CharacterInventoryInstance : IPostDeserialize
     public bool IsItemEquipped(ObjectItemInstance item)
     {
         int index = _inventoryItems.IndexOf(item);
-        if (index < 0)
-            return false;
-
-        return Array.IndexOf(_equippedItemIndices, index) >= 0;
+        return index < 0 ? false : Array.IndexOf(_equippedItemIndices, index) >= 0;
     }
 
     public bool CanAddItem()
@@ -370,7 +368,9 @@ public class CharacterInventoryInstance : IPostDeserialize
     private void UnequipItemFromSlot(int slotIndex)
     {
         if (slotIndex < 0 || slotIndex >= _equippedItemIndices.Length)
+        {
             return;
+        }
 
         _equippedItemIndices[slotIndex] = -1;
         SetEquippedFlag(slotIndex, false);

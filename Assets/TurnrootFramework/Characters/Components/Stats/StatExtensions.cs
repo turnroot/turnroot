@@ -18,7 +18,9 @@ namespace Turnroot.Characters.Stats
         )
         {
             if (stats?.BoundedStats == null || action == null)
+            {
                 return;
+            }
 
             foreach (var stat in stats.BoundedStats)
             {
@@ -35,7 +37,9 @@ namespace Turnroot.Characters.Stats
         public static void ForEachUnboundedStat(this IHasStats stats, Action<CharacterStat> action)
         {
             if (stats?.UnboundedStats == null || action == null)
+            {
                 return;
+            }
 
             foreach (var stat in stats.UnboundedStats)
             {
@@ -53,7 +57,9 @@ namespace Turnroot.Characters.Stats
         public static void ForEachStat(this IHasStats stats, Action<BaseCharacterStat> action)
         {
             if (stats == null || action == null)
+            {
                 return;
+            }
 
             stats.ForEachBoundedStat(action);
             stats.ForEachUnboundedStat(action);
@@ -69,7 +75,9 @@ namespace Turnroot.Characters.Stats
         )
         {
             if (stats == null || modifiers == null || modifier == null)
+            {
                 return;
+            }
 
             foreach (var mod in modifiers)
             {
@@ -95,7 +103,9 @@ namespace Turnroot.Characters.Stats
         )
         {
             if (stats == null || modifiers == null || modifier == null)
+            {
                 return;
+            }
 
             foreach (var mod in modifiers)
             {
@@ -120,7 +130,9 @@ namespace Turnroot.Characters.Stats
         )
         {
             if (stats == null || modifiers == null)
+            {
                 return;
+            }
 
             foreach (var mod in modifiers)
             {
@@ -144,7 +156,9 @@ namespace Turnroot.Characters.Stats
         )
         {
             if (stats == null || modifiers == null)
+            {
                 return;
+            }
 
             foreach (var mod in modifiers)
             {
@@ -168,7 +182,9 @@ namespace Turnroot.Characters.Stats
         )
         {
             if (stats == null || modifiers == null)
+            {
                 return;
+            }
 
             foreach (var mod in modifiers)
             {
@@ -192,7 +208,9 @@ namespace Turnroot.Characters.Stats
         )
         {
             if (stats == null || modifiers == null)
+            {
                 return;
+            }
 
             foreach (var mod in modifiers)
             {

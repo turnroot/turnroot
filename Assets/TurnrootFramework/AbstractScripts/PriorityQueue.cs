@@ -379,12 +379,7 @@ namespace Utils
         /// <returns>The minimal element of the <see cref="PriorityQueue{TElement, TPriority}" />.</returns>
         public TElement Peek()
         {
-            if (_size == 0)
-            {
-                throw new InvalidOperationException(SR.InvalidOperation_EmptyQueue);
-            }
-
-            return _nodes[0].Element;
+            return _size == 0 ? throw new InvalidOperationException(SR.InvalidOperation_EmptyQueue) : _nodes[0].Element;
         }
 
         /// <summary>

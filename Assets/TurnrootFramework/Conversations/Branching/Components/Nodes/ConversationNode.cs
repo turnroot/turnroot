@@ -21,9 +21,7 @@ namespace Turnroot.Conversations.Branching
 
         public override object GetValue(NodePort port)
         {
-            if (port.fieldName == "next")
-                return next;
-            return null;
+            return port.fieldName == "next" ? next : null;
         }
 
 #if UNITY_EDITOR

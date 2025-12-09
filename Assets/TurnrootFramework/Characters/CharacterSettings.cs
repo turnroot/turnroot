@@ -24,7 +24,9 @@ namespace Turnroot.Characters
             get
             {
                 if (_cachedMaxNonWeaponSlots.HasValue)
+                {
                     return _cachedMaxNonWeaponSlots.Value;
+                }
 
                 _cachedMaxNonWeaponSlots = GetOrDefault(
                     () => GameplayGeneralSettings.Instance.GetMaxEquippedNonWeaponItems(),
@@ -45,7 +47,9 @@ namespace Turnroot.Characters
             get
             {
                 if (_cachedPrototypeSettings != null)
+                {
                     return _cachedPrototypeSettings;
+                }
 
                 _cachedPrototypeSettings = GameSettingsLoader.LoadFirst<CharacterPrototypeSettings>(
                     "GameSettings"
@@ -71,7 +75,9 @@ namespace Turnroot.Characters
             get
             {
                 if (_cachedDefaultStats != null)
+                {
                     return _cachedDefaultStats;
+                }
 
                 _cachedDefaultStats = GameSettingsLoader.LoadFirst<DefaultCharacterStats>(
                     "GameSettings"

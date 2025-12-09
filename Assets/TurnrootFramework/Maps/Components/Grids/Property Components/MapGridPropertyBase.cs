@@ -124,7 +124,9 @@ public abstract class MapGridPropertyBase : ScriptableObject
     {
         var list = GetPropertyList<T>();
         if (list == null)
+        {
             return;
+        }
 
         var prop = list.Find(p => p.key == key);
         if (prop != null)

@@ -9,30 +9,74 @@ namespace Assets.Turnroot.Gameplay.Brain
     /// Handles item deposits, withdrawals, and material management for repairs/forging.
     /// </summary>
     [RequireComponent(typeof(Brain))]
+    [RequireComponent(typeof(LongTermMemory))]
     public class StorehouseBrain : MonoBehaviour
     {
+        GameplayGeneralSettings _gameplaySettings;
+
+        private void Awake()
+        {
+            _ltm = GetComponent<LongTermMemory>();
+            _gameplaySettings =
+                global::Turnroot.Utilities.GameSettingsLoader.LoadFirst<GameplayGeneralSettings>();
+            _brain = GetComponent<Brain>();
+            _materials = new Dictionary<ObjectItem, int>();
+            GoldDisplayNames =
+                _gameplaySettings != null
+                    ? _gameplaySettings.GoldDisplayNames
+                    : new GoldDisplay { OneLetter = "G", FullName = "gold" };
+        }
+
         private Brain _brain;
+        private LongTermMemory _ltm;
 
         [SerializeField]
         private List<ObjectItemInstance> _storedItems = new();
 
         private Dictionary<ObjectItem, int> _materials = new();
 
-        private void Awake()
+        public int PlayerGold { get; set; } = 0;
+
+        public GoldDisplay GoldDisplayNames;
+
+        #region Gold Operations
+
+        public void AddGold(int amount)
         {
-            _brain = GetComponent<Brain>();
-            _materials = new Dictionary<ObjectItem, int>();
+            PlayerGold += amount;
+            SaveGoldToLTM();
         }
+
+        public bool CanAfford(int amount) => PlayerGold >= amount;
+
+        public OperationResult SpendGold(int amount)
+        {
+            if (!CanAfford(amount))
+            {
+                return OperationResult.Failure("Insufficient gold.");
+            }
+
+            PlayerGold -= amount;
+            SaveGoldToLTM();
+            return OperationResult.SuccessResult();
+        }
+
+        public void SaveGoldToLTM() => _ltm.RememberInt("Storehouse_Gold", PlayerGold);
+
+        #endregion
 
         #region Storehouse Operations
 
         /// <summary>
         /// Deposit an item into the storehouse.
         /// </summary>
+        ///
         public OperationResult DepositItem(ObjectItemInstance item)
         {
             if (item == null)
+            {
                 return OperationResult.Failure("Invalid item.");
+            }
 
             _storedItems.Add(item);
             _brain?.PublishItemDeposited(item);
@@ -50,20 +94,23 @@ namespace Assets.Turnroot.Gameplay.Brain
         )
         {
             if (item == null)
+            {
                 return OperationResult.Failure("Invalid item.");
+            }
 
             if (!_storedItems.Contains(item))
+            {
                 return OperationResult.Failure("Item not in storehouse.");
+            }
 
             if (targetInventory != null && targetInventory.IsFull)
+            {
                 return OperationResult.Failure("Target inventory is full.");
+            }
 
             _storedItems.Remove(item);
 
-            if (targetInventory != null)
-            {
-                targetInventory.AddToInventory(item);
-            }
+            targetInventory?.AddToInventory(item);
 
             _brain?.PublishItemWithdrawn(item, targetInventory);
 
@@ -74,13 +121,11 @@ namespace Assets.Turnroot.Gameplay.Brain
         /// <summary>
         /// Check if the storehouse has sufficient materials for an operation.
         /// </summary>
-        public bool HasMaterials(ObjectItem material, int amount)
-        {
-            if (material == null || amount <= 0)
-                return false;
-
-            return _materials.ContainsKey(material) && _materials[material] >= amount;
-        }
+        public bool HasMaterials(ObjectItem material, int amount) =>
+            material != null
+            && amount > 0
+            && _materials.ContainsKey(material)
+            && _materials[material] >= amount;
 
         /// <summary>
         /// Consume materials from the storehouse.
@@ -88,7 +133,9 @@ namespace Assets.Turnroot.Gameplay.Brain
         public OperationResult ConsumeMaterials(ObjectItem material, int amount)
         {
             if (!HasMaterials(material, amount))
+            {
                 return OperationResult.Failure("Insufficient materials.");
+            }
 
             _materials[material] -= amount;
 
@@ -107,7 +154,9 @@ namespace Assets.Turnroot.Gameplay.Brain
         public void AddMaterials(ObjectItem material, int amount)
         {
             if (material == null || amount <= 0)
+            {
                 return;
+            }
 
             if (!_materials.ContainsKey(material))
             {
@@ -121,13 +170,10 @@ namespace Assets.Turnroot.Gameplay.Brain
         /// <summary>
         /// Get the count of a specific material.
         /// </summary>
-        public int GetMaterialCount(ObjectItem material)
-        {
-            if (material == null)
-                return 0;
-
-            return _materials.ContainsKey(material) ? _materials[material] : 0;
-        }
+        public int GetMaterialCount(ObjectItem material) =>
+            material == null ? 0
+            : _materials.ContainsKey(material) ? _materials[material]
+            : 0;
 
         #endregion
 
@@ -136,18 +182,12 @@ namespace Assets.Turnroot.Gameplay.Brain
         /// <summary>
         /// Get all items currently in the storehouse.
         /// </summary>
-        public List<ObjectItemInstance> GetStoredItems()
-        {
-            return new List<ObjectItemInstance>(_storedItems);
-        }
+        public List<ObjectItemInstance> GetStoredItems() => new(_storedItems);
 
         /// <summary>
         /// Get all available materials and their counts.
         /// </summary>
-        public Dictionary<ObjectItem, int> GetAllMaterials()
-        {
-            return new Dictionary<ObjectItem, int>(_materials);
-        }
+        public Dictionary<ObjectItem, int> GetAllMaterials() => new(_materials);
 
         #endregion
     }

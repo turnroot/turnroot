@@ -39,23 +39,31 @@ public class TrianglePosition
     public bool WinsAgainst(TrianglePosition other)
     {
         if (Position == TrianglePositionEnum.Top && other.Position == TrianglePositionEnum.Left)
+        {
             return true;
+        }
+
         if (Position == TrianglePositionEnum.Left && other.Position == TrianglePositionEnum.Right)
+        {
             return true;
-        if (Position == TrianglePositionEnum.Right && other.Position == TrianglePositionEnum.Top)
-            return true;
-        return false;
+        }
+
+        return Position == TrianglePositionEnum.Right && other.Position == TrianglePositionEnum.Top;
     }
 
     public bool LosesTo(TrianglePosition other)
     {
         if (Position == TrianglePositionEnum.Top && other.Position == TrianglePositionEnum.Right)
+        {
             return true;
+        }
+
         if (Position == TrianglePositionEnum.Left && other.Position == TrianglePositionEnum.Top)
+        {
             return true;
-        if (Position == TrianglePositionEnum.Right && other.Position == TrianglePositionEnum.Left)
-            return true;
-        return false;
+        }
+
+        return Position == TrianglePositionEnum.Right && other.Position == TrianglePositionEnum.Left;
     }
 
     public bool Equals(TrianglePosition other)

@@ -42,7 +42,10 @@ namespace Turnroot.Conversations
             get
             {
                 if (_parsedDialogue == null)
+                {
                     ParseDialogue();
+                }
+
                 return _parsedDialogue;
             }
         }

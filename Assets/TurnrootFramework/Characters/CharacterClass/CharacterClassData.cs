@@ -105,7 +105,7 @@ namespace Turnroot.Characters.CharacterClass
             "Which pronoun sets are allowed for characters of this class (multi-select). Empty = allow all."
         )]
         [HideInInspector]
-        public List<string> allowedPronounKeys = new List<string>();
+        public List<string> allowedPronounKeys = new();
 
         [Foldout("Identity")]
         [Tooltip("If true, only a unique character can hold this class at a time")]
@@ -260,7 +260,9 @@ namespace Turnroot.Characters.CharacterClass
                     "GameSettings"
                 );
             if (defaultStats == null)
+            {
                 return;
+            }
 
             // Define all bounded stat lists to validate in one place
             var boundedStatLists = new[]
@@ -351,7 +353,9 @@ namespace Turnroot.Characters.CharacterClass
         private void ValidateExperienceRequirements()
         {
             if (experienceRequirements == null || experienceRequirements.Count == 0)
+            {
                 return;
+            }
 
             var validRanks = new[]
             {
@@ -387,7 +391,9 @@ namespace Turnroot.Characters.CharacterClass
         private void ValidatePromotionPaths()
         {
             if (promotionPaths == null || promotionPaths.Count == 0)
+            {
                 return;
+            }
 
             if (promotionPaths.Contains(this))
             {
@@ -440,10 +446,11 @@ namespace Turnroot.Characters.CharacterClass
         public bool IsPronounAllowed(string pronounKey)
         {
             if (string.IsNullOrEmpty(pronounKey))
+            {
                 return true;
-            if (allowedPronounKeys == null || allowedPronounKeys.Count == 0)
-                return true;
-            return allowedPronounKeys.Contains(pronounKey);
+            }
+
+            return allowedPronounKeys == null || allowedPronounKeys.Count == 0 ? true : allowedPronounKeys.Contains(pronounKey);
         }
 
         /// <summary>
@@ -452,10 +459,7 @@ namespace Turnroot.Characters.CharacterClass
         public bool AllowsWeaponType(WeaponType weaponType)
         {
             // Empty list means no restrictions (can use any weapon)
-            if (allowedWeaponTypes == null || allowedWeaponTypes.Count == 0)
-                return true;
-
-            return allowedWeaponTypes.Contains(weaponType);
+            return allowedWeaponTypes == null || allowedWeaponTypes.Count == 0 ? true : allowedWeaponTypes.Contains(weaponType);
         }
 
         /// <summary>
@@ -463,10 +467,7 @@ namespace Turnroot.Characters.CharacterClass
         /// </summary>
         public string GetAllowedWeaponTypesString()
         {
-            if (allowedWeaponTypes == null || allowedWeaponTypes.Count == 0)
-                return "Any";
-
-            return string.Join(", ", allowedWeaponTypes);
+            return allowedWeaponTypes == null || allowedWeaponTypes.Count == 0 ? "Any" : string.Join(", ", allowedWeaponTypes);
         }
 
         /// <summary>

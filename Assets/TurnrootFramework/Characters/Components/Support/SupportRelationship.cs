@@ -39,7 +39,10 @@ namespace Turnroot.Characters.Components.Support
             get
             {
                 if (_supportLevel == null)
+                {
                     _supportLevel = new SupportLevels { Value = "E" };
+                }
+
                 return _supportLevel;
             }
         }
@@ -49,7 +52,10 @@ namespace Turnroot.Characters.Components.Support
             get
             {
                 if (_maxLevel == null)
+                {
                     _maxLevel = new SupportLevels { Value = "A" };
+                }
+
                 return _maxLevel.Value;
             }
             set => _maxLevel = new SupportLevels() { Value = value };
@@ -64,11 +70,19 @@ namespace Turnroot.Characters.Components.Support
         public void InitializeDefaults()
         {
             if (_supportLevel == null)
+            {
                 _supportLevel = new SupportLevels { Value = "E" };
+            }
+
             if (_maxLevel == null)
+            {
                 _maxLevel = new SupportLevels { Value = "A" };
+            }
+
             if (_supportSpeed <= 0)
+            {
                 _supportSpeed = 1;
+            }
         }
 
         /// <summary>
@@ -83,13 +97,18 @@ namespace Turnroot.Characters.Components.Support
         {
             var removed = new List<SupportRelationship>();
             if (relationships == null)
+            {
                 return removed;
+            }
 
             for (int i = relationships.Count - 1; i >= 0; i--)
             {
                 var rel = relationships[i];
                 if (rel == null)
+                {
                     continue;
+                }
+
                 if (rel.Character == owner)
                 {
                     removed.Add(rel);

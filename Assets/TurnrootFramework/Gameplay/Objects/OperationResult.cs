@@ -18,12 +18,13 @@ namespace Turnroot.Gameplay.Objects
         /// <summary>
         /// Creates a successful operation result.
         /// </summary>
-        public static OperationResult SuccessResult() => new OperationResult { Success = true };
+        public static OperationResult SuccessResult() => new() { Success = true };
 
         /// <summary>
         /// Creates a failed operation result with an error message.
         /// </summary>
         public static OperationResult Failure(string errorMessage) =>
-            new OperationResult { Success = false, ErrorMessage = errorMessage };
+            new()
+            { Success = false, ErrorMessage = errorMessage };
     }
 }

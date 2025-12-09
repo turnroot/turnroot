@@ -27,7 +27,9 @@ namespace Assets.Turnroot.Gameplay.Brain
         public int UseItem(ObjectItemInstance item)
         {
             if (item == null)
+            {
                 return -1;
+            }
 
             int remainingUses = item.Use();
             _brain?.PublishItemUsed(item, remainingUses);
@@ -50,7 +52,9 @@ namespace Assets.Turnroot.Gameplay.Brain
         )
         {
             if (item == null || targetInventory == null)
+            {
                 return OperationResult.Failure("Invalid item or target inventory.");
+            }
 
             var result = item.Transfer(targetInventory);
             if (result.Success)
@@ -67,7 +71,9 @@ namespace Assets.Turnroot.Gameplay.Brain
         public OperationResult DiscardItem(ObjectItemInstance item)
         {
             if (item == null)
+            {
                 return OperationResult.Failure("Invalid item.");
+            }
 
             var result = item.Discard();
             if (result.Success)
@@ -84,7 +90,9 @@ namespace Assets.Turnroot.Gameplay.Brain
         public OperationResult SellItem(ObjectItemInstance item)
         {
             if (item == null)
+            {
                 return OperationResult.Failure("Invalid item.");
+            }
 
             var result = item.Sell();
             if (result.Success)
@@ -104,7 +112,9 @@ namespace Assets.Turnroot.Gameplay.Brain
         )
         {
             if (item == null || buyerInventory == null)
+            {
                 return OperationResult.Failure("Invalid item or buyer inventory.");
+            }
 
             var result = item.Buy(buyerInventory);
             if (result.Success)
@@ -121,7 +131,9 @@ namespace Assets.Turnroot.Gameplay.Brain
         public OperationResult RepairItem(ObjectItemInstance item, int repairUses)
         {
             if (item == null)
+            {
                 return OperationResult.Failure("Invalid item.");
+            }
 
             var result = item.Repair(repairUses);
             if (result.Success)
@@ -138,7 +150,9 @@ namespace Assets.Turnroot.Gameplay.Brain
         public OperationResult ForgeItem(ObjectItemInstance item, ObjectItem targetItem)
         {
             if (item == null || targetItem == null)
+            {
                 return OperationResult.Failure("Invalid item or forge target.");
+            }
 
             // TODO: Implement forging logic
             _brain?.PublishItemForged(item, targetItem);

@@ -11,7 +11,9 @@ namespace Turnroot.Characters.Subclasses
         public string Decrease(int amount)
         {
             if (amount < 0)
+            {
                 throw new ArgumentException("Decrease amount must be non-negative.");
+            }
 
             for (int i = 0; i < amount; i++)
             {

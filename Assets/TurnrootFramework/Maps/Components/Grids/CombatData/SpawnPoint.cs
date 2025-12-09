@@ -74,7 +74,9 @@ namespace Turnroot.Maps.Components.Grids
         public void SpawnCharacter(CharacterInstance character)
         {
             if (character == null)
+            {
                 return;
+            }
 
             SpawnedCharacter = character;
             IsOccupied = true;
@@ -84,7 +86,9 @@ namespace Turnroot.Maps.Components.Grids
         public void RemoveCharacter()
         {
             if (SpawnedCharacter == null)
+            {
                 return;
+            }
 
             var removedCharacter = SpawnedCharacter;
             SpawnedCharacter = null;
@@ -128,11 +132,13 @@ namespace Turnroot.Maps.Components.Grids
             _isPossibleEnemySpawnPoint = isEnemySpawn;
 
             if (changed)
+            {
                 OnFlagsChanged?.Invoke(
                     _isPossibleAllySpawnPoint,
                     _isPossibleAvatarSpawnPoint,
                     _isPossibleEnemySpawnPoint
                 );
+            }
         }
     }
 }

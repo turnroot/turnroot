@@ -45,14 +45,7 @@ public class TurnRotisserie : MonoBehaviour
             case TurnOrder.EnemyStart:
                 return TurnOrder.EnemyEnd;
             case TurnOrder.EnemyEnd:
-                if (_hasThirdParty)
-                {
-                    return TurnOrder.ThirdPartyStart;
-                }
-                else
-                {
-                    return TurnOrder.PlayerStart;
-                }
+                return _hasThirdParty ? TurnOrder.ThirdPartyStart : TurnOrder.PlayerStart;
             case TurnOrder.ThirdPartyStart:
                 return TurnOrder.ThirdPartyEnd;
             case TurnOrder.ThirdPartyEnd:

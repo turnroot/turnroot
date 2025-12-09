@@ -74,7 +74,9 @@ namespace Assets.Turnroot.Gameplay.Brain.Components
         private static string ExtractInstanceId<T>(T instance)
         {
             if (instance is CharacterInstance ci)
+            {
                 return ci.Id;
+            }
 
             // Could extend to other instance types with Id properties
             return string.Empty;
@@ -101,7 +103,9 @@ namespace Assets.Turnroot.Gameplay.Brain.Components
         )
         {
             if (replacement == null)
+            {
                 return null;
+            }
 
             try
             {
@@ -129,7 +133,9 @@ namespace Assets.Turnroot.Gameplay.Brain.Components
             try
             {
                 if (!brain.TryGetComponent<LongTermMemory>(out var ltm))
+                {
                     return;
+                }
 
                 var key = GamewideContextBrainHelpers.BuildHashLedgerKey(
                     instance,
@@ -137,7 +143,9 @@ namespace Assets.Turnroot.Gameplay.Brain.Components
                 );
 
                 if (string.IsNullOrEmpty(key))
+                {
                     return;
+                }
 
                 var baseHash = replacementWrapper?.Hash ?? originalWrapper?.Hash ?? string.Empty;
                 var replacementMarker = baseHash + "|r:" + Guid.NewGuid().ToString("N");

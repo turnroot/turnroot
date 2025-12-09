@@ -31,7 +31,9 @@ public abstract class SingletonScriptableObject<T> : ScriptableObject
                         }
                         // Otherwise just take the first one found
                         if (_instance == null)
+                        {
                             _instance = all[0];
+                        }
 
                         Debug.LogWarning(
                             $"SingletonScriptableObject: Loaded {typeof(T).Name} from Resources via fallback (found {all.Length} candidates). Consider placing the asset at 'Assets/Resources/{typeof(T).Name}.asset' for deterministic loading."

@@ -59,11 +59,15 @@ namespace Assets.Turnroot.Gameplay.Brain.Components
             }
 
             if (decoded.Id == instance.Id && decoded.CurrentLevel == instance.CurrentLevel)
+            {
                 Debug.Log($"Round-trip OK for {TestCharacter.name} (id={decoded.Id}).");
+            }
             else
+            {
                 Debug.LogError(
                     $"Round-trip mismatch for {TestCharacter.name}: id {instance.Id} / {decoded?.Id}"
                 );
+            }
 
             // Read ledger entry if available
             try

@@ -286,12 +286,9 @@ namespace Turnroot.Characters.CharacterClass
         /// </summary>
         public bool IsAboveCaps(CharacterInstance character)
         {
-            if (!StatApplicationHelper.ValidateReferences(character, _classData, ""))
-            {
-                return false;
-            }
-
-            return StatApplicationHelper.IsAboveUnboundedCaps(
+            return !StatApplicationHelper.ValidateReferences(character, _classData, "")
+                ? false
+                : StatApplicationHelper.IsAboveUnboundedCaps(
                 _classData.unboundedStatCaps,
                 character
             );
@@ -317,18 +314,24 @@ namespace Turnroot.Characters.CharacterClass
         public bool CheckMasteryConditions(CharacterInstance character)
         {
             if (character == null || _classData == null || _classData.masteries == null)
+            {
                 return false;
+            }
 
             bool learnedNewSkill = false;
 
             foreach (var mastery in _classData.masteries)
             {
                 if (mastery.skill == null)
+                {
                     continue;
+                }
 
                 // Skip if already mastered (compare by reference, not name)
                 if (_masteredSkills.Contains(mastery.skill))
+                {
                     continue;
+                }
 
                 bool conditionMet = mastery.criteria switch
                 {

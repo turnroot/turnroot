@@ -1,4 +1,5 @@
 using System;
+using Assets.Turnroot.Gameplay.Brain;
 using Turnroot.Serialization;
 using UnityEngine;
 
@@ -18,6 +19,11 @@ namespace Turnroot.Gameplay.Objects
         private int currentUses;
         public ObjectItem Template => _template;
 
+        // Lazy-initialized brain references
+        private StorehouseBrain StorehouseBrain => Utilities.GetBrain.Get()?.storehouseBrain;
+
+        private InventoryBrain InventoryBrain => Utilities.GetBrain.Get()?.inventoryBrain;
+
         public ObjectItemInstance(ObjectItem template)
         {
             _template = template;
@@ -27,7 +33,6 @@ namespace Turnroot.Gameplay.Objects
 
         /// <summary>
         /// Use the item once, reducing its durability if applicable.
-        /// Internal - use InventoryBrain.UseItem() to publish events.
         /// </summary>
         /// <returns>
         /// Remaining uses left. -1 if the item is not durable.
@@ -41,6 +46,7 @@ namespace Turnroot.Gameplay.Objects
             else
             {
                 currentUses++;
+                InventoryBrain?.UseItem(this);
                 return _template.MaxUses - currentUses > 0 ? _template.MaxUses - currentUses : 0;
             }
         }
@@ -49,161 +55,158 @@ namespace Turnroot.Gameplay.Objects
         /// Validates whether this item can be transferred to a target inventory.
         /// Use for UI binding (e.g., enabling/disabling transfer buttons).
         /// </summary>
-        public bool CanTransfer(CharacterInventoryInstance targetInventory)
-        {
-            if (_template.IsUnequippable)
-                return false;
-            if (targetInventory.IsFull)
-                return false;
-            return true;
-        }
+        public bool CanTransfer(CharacterInventoryInstance targetInventory) =>
+            !_template.IsUnequippable && !targetInventory.IsFull;
 
         /// <summary>
         /// Transfers this item to a target inventory.
-        /// Internal - use InventoryBrain.TransferItem() to publish events.
         /// </summary>
         internal OperationResult Transfer(CharacterInventoryInstance targetInventory)
         {
             if (_template.IsUnequippable)
+            {
                 return OperationResult.Failure("Cannot transfer an unequippable item.");
+            }
 
             if (targetInventory.IsFull)
+            {
                 return OperationResult.Failure("Target inventory is full. Cannot transfer item.");
+            }
 
             _ownerInventory.RemoveFromInventory(this);
             targetInventory.AddToInventory(this);
             _ownerInventory = targetInventory;
+            InventoryBrain?.TransferItem(this, targetInventory);
             return OperationResult.SuccessResult();
         }
 
-        /// <summary>
-        /// Validates whether this item can be discarded.
-        /// Use for UI binding (e.g., enabling/disabling discard buttons).
-        /// </summary>
-        public bool CanDiscard()
-        {
-            if (_template.IsUnequippable)
-                return false;
-            return true;
-        }
+        public bool CanDiscard() => !_template.IsUnequippable;
 
-        /// <summary>
-        /// Discards this item from the owner's inventory.
-        /// Internal - use InventoryBrain.DiscardItem() to publish events.
-        /// </summary>
         internal OperationResult Discard()
         {
             if (_template.IsUnequippable)
+            {
                 return OperationResult.Failure("Cannot discard an unequippable item.");
+            }
 
             _ownerInventory.RemoveFromInventory(this);
+            InventoryBrain?.DiscardItem(this);
             return OperationResult.SuccessResult();
         }
 
-        /// <summary>
-        /// Validates whether this item can be sold.
-        /// Use for UI binding (e.g., enabling/disabling sell buttons).
-        /// </summary>
-        public bool CanSell()
-        {
-            if (_template.IsUnequippable || !_template.Sellable)
-                return false;
-            return true;
-        }
+        public bool CanSell() => !_template.IsUnequippable && _template.Sellable;
 
-        /// <summary>
-        /// Sells this item and removes it from inventory.
-        /// Internal - use InventoryBrain.SellItem() to publish events.
-        /// </summary>
         internal OperationResult Sell()
         {
             if (_template.IsUnequippable || !_template.Sellable)
+            {
                 return OperationResult.Failure("Cannot sell this item.");
+            }
 
             int deduction = _template.SellPriceDeductedPerUse * currentUses;
             int finalPrice = Math.Max(0, _template.BasePrice - deduction);
             _ownerInventory.RemoveFromInventory(this);
-            // TODO: Add gold to player (brains)
+            StorehouseBrain?.AddGold(finalPrice);
+            InventoryBrain?.SellItem(this);
             return OperationResult.SuccessResult();
         }
 
-        /// <summary>
-        /// Validates whether this item can be bought for a buyer's inventory.
-        /// Use for UI binding (e.g., enabling/disabling buy buttons).
-        /// </summary>
-        public bool CanBuy(CharacterInventoryInstance buyerInventory)
-        {
-            if (_template.IsUnequippable || !_template.Buyable)
-                return false;
-            if (buyerInventory.IsFull)
-                return false;
-            return true;
-        }
+        public bool CanBuy(CharacterInventoryInstance buyerInventory) =>
+            !_template.IsUnequippable
+            && _template.Buyable
+            && !buyerInventory.IsFull
+            && (StorehouseBrain?.CanAfford(_template.BasePrice) ?? false);
 
-        /// <summary>
-        /// Buys this item and adds it to the buyer's inventory.
-        /// Internal - use InventoryBrain.BuyItem() to publish events.
-        /// </summary>
         internal OperationResult Buy(CharacterInventoryInstance buyerInventory)
         {
             if (_template.IsUnequippable || !_template.Buyable)
+            {
                 return OperationResult.Failure("Cannot buy this item.");
+            }
 
             if (buyerInventory.IsFull)
+            {
                 return OperationResult.Failure("Buyer inventory is full. Cannot buy item.");
+            }
+
+            if (!(StorehouseBrain?.CanAfford(_template.BasePrice) ?? false))
+            {
+                return OperationResult.Failure("Insufficient gold to buy item.");
+            }
 
             buyerInventory.AddToInventory(this);
             _ownerInventory = buyerInventory;
-            // TODO: Deduct gold from player (brains)
+            StorehouseBrain?.SpendGold(_template.BasePrice);
+            InventoryBrain?.BuyItem(this, buyerInventory);
             return OperationResult.SuccessResult();
         }
 
-        /// <summary>
-        /// Validates whether this item can be repaired.
-        /// Use for UI binding (e.g., enabling/disabling repair buttons).
-        /// </summary>
         public bool CanRepair(int repairUses)
         {
             if (!_template.Repairable || !_template.Durability)
+            {
                 return false;
+            }
+
             if (_template.RepairNeedsItems)
             {
-                // TODO: Get items from storehouse
-                return true;
+                return StorehouseBrain?.HasMaterials(
+                        _template.RepairItem,
+                        _template.RepairItemAmountPerUse * repairUses
+                    ) ?? false;
             }
             if (repairUses <= 0 || currentUses - repairUses < 0)
+            {
                 return false;
-            // TODO: Check if player can pay the cost
-            return true;
+            }
+            var repairCost = _template.RepairItemAmountPerUse * repairUses;
+            return StorehouseBrain?.CanAfford(repairCost) ?? false;
         }
 
         /// <summary>
         /// Repairs this item by restoring the specified number of uses.
-        /// Internal - use InventoryBrain.RepairItem() to publish events.
         /// </summary>
         internal OperationResult Repair(int repairUses)
         {
             if (!_template.Repairable || !_template.Durability)
+            {
                 return OperationResult.Failure("Cannot repair a non-repairable item.");
+            }
 
             if (_template.RepairNeedsItems)
             {
-                // TODO: Get items from storehouse
                 currentUses -= repairUses;
                 if (currentUses < 0)
+                {
                     currentUses = 0;
+                }
+
                 return OperationResult.SuccessResult();
             }
 
             if (repairUses <= 0 || currentUses - repairUses < 0)
+            {
                 return OperationResult.Failure("Invalid repair uses specified.");
+            }
 
             var repairCost = _template.RepairItemAmountPerUse * repairUses;
-            // TODO: Check if player can pay the cost
+            if (!(StorehouseBrain?.CanAfford(repairCost) ?? false))
+            {
+                return OperationResult.Failure("Insufficient gold to repair item.");
+            }
+            if (!(StorehouseBrain?.HasMaterials(_template.RepairItem, repairCost) ?? false))
+            {
+                return OperationResult.Failure("Insufficient materials to repair item.");
+            }
+            InventoryBrain?.RepairItem(this, repairUses);
+            StorehouseBrain?.SpendGold(repairCost);
+            StorehouseBrain?.ConsumeMaterials(_template.RepairItem, repairCost);
 
             currentUses -= repairUses;
             if (currentUses < 0)
+            {
                 currentUses = 0;
+            }
 
             return OperationResult.SuccessResult();
         }
@@ -218,9 +221,14 @@ namespace Turnroot.Gameplay.Objects
             if (_template != null && _template.Durability)
             {
                 if (currentUses < 0)
+                {
                     currentUses = 0;
+                }
+
                 if (currentUses > _template.MaxUses)
+                {
                     currentUses = _template.MaxUses;
+                }
             }
         }
     }

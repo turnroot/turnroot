@@ -58,7 +58,10 @@ public class AStarModified
             }
 
             if (closed.Contains(current))
+            {
                 continue;
+            }
+
             closed.Add(current);
 
             var neighborSet = current.GetNeighbors();
@@ -66,7 +69,9 @@ public class AStarModified
             {
                 var neighbor = neighborPair.Value;
                 if (closed.Contains(neighbor))
+                {
                     continue;
+                }
 
                 float stepCost = neighbor.GetTerrainTypeCost(
                     isWalking,
@@ -117,7 +122,9 @@ public class AStarModified
     {
         var result = new Dictionary<MapGridPoint, float>();
         if (graph == null || start == null)
+        {
             return result;
+        }
 
         MapGridPoint canonicalStart = graph.GetGridPoint(start.Row, start.Col) ?? start;
 
@@ -135,7 +142,9 @@ public class AStarModified
 
             // Don't expand nodes that already exceed budget
             if (currentCost > movementBudget)
+            {
                 continue;
+            }
 
             result[current] = currentCost;
 
@@ -158,7 +167,9 @@ public class AStarModified
 
                 float newCost = currentCost + stepCost;
                 if (newCost > movementBudget)
+                {
                     continue;
+                }
 
                 if (!costSoFar.ContainsKey(neighbor) || newCost < costSoFar[neighbor])
                 {

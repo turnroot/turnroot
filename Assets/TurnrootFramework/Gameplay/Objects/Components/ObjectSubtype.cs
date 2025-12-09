@@ -65,9 +65,14 @@ public class ObjectSubtype
         if (settings != null)
         {
             if (settings.UseItemsCanBeGifts())
+            {
                 values.Add(Gift);
+            }
+
             if (settings.UseItemsCanBeLostItems())
+            {
                 values.Add(LostItem);
+            }
         }
         else
         {
@@ -98,18 +103,22 @@ public class ObjectSubtype
     public static bool IsEnabled(string value)
     {
         if (value == Weapon || value == Magic || value == Consumable || value == Equipable)
+        {
             return true;
+        }
 
         var settings = GameplayGeneralSettings.Instance;
         if (settings == null)
+        {
             return true; // If no settings, allow all
+        }
 
         if (value == Gift)
+        {
             return settings.UseItemsCanBeGifts();
-        if (value == LostItem)
-            return settings.UseItemsCanBeLostItems();
+        }
 
-        return false;
+        return value == LostItem ? settings.UseItemsCanBeLostItems() : false;
     }
 
     // Implicit conversion to string
@@ -123,10 +132,11 @@ public class ObjectSubtype
     public override bool Equals(object obj)
     {
         if (obj is ObjectSubtype other)
+        {
             return _value == other._value;
-        if (obj is string str)
-            return _value == str;
-        return false;
+        }
+
+        return obj is string str ? _value == str : false;
     }
 
     public override int GetHashCode() => _value.GetHashCode();
@@ -134,10 +144,11 @@ public class ObjectSubtype
     public static bool operator ==(ObjectSubtype a, ObjectSubtype b)
     {
         if (ReferenceEquals(a, b))
+        {
             return true;
-        if (a is null || b is null)
-            return false;
-        return a._value == b._value;
+        }
+
+        return a is null || b is null ? false : a._value == b._value;
     }
 
     public static bool operator !=(ObjectSubtype a, ObjectSubtype b) => !(a == b);

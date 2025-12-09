@@ -22,7 +22,9 @@ public class UIFade : MonoBehaviour
         set
         {
             if (_visible == value)
+            {
                 return;
+            }
 
             _visible = value;
 

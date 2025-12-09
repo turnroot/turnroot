@@ -205,16 +205,12 @@ namespace Turnroot.Conversations
 
         private Portrait GetPortrait(CharacterData speaker, string portraitKey)
         {
-            if (
-                speaker != null
+            return speaker != null
                 && portraitKey != null
                 && speaker.Portraits != null
                 && speaker.Portraits.ContainsKey(portraitKey)
-            )
-            {
-                return speaker.Portraits[portraitKey];
-            }
-            return null;
+                ? speaker.Portraits[portraitKey]
+                : null;
         }
 
         // Active speaker helpers
@@ -236,9 +232,15 @@ namespace Turnroot.Conversations
         public Color GetPortraitTint(SpeakerSlot slot)
         {
             if (slot == null)
+            {
                 return Color.white;
+            }
+
             if (slot == GetActiveSlot())
+            {
                 return Color.white;
+            }
+
             var settings = Graphics2DSettings.Instance;
             var tintColor = settings?.InactiveTintColor ?? new Color(0.5f, 0.5f, 0.5f, 1f);
             var tintMix = settings?.InactiveTintMix ?? 0.5f;
@@ -251,7 +253,10 @@ namespace Turnroot.Conversations
         private Sprite GetPortraitSpriteForSlot(SpeakerSlot slot)
         {
             if (slot == null)
+            {
                 return null;
+            }
+
             if (slot.CachedSprite == null)
             {
                 // If a portrait key is set, use it. Otherwise, try to pick the first available portrait

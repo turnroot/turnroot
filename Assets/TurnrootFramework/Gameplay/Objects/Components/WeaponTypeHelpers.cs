@@ -12,12 +12,7 @@ namespace Turnroot.Gameplay.Objects.Components
         public static WeaponType[] GetConfiguredWeaponTypes()
         {
             var settings = GameSettingsLoader.LoadFirst<GameplayGeneralSettings>("GameSettings");
-            if (settings != null && settings.WeaponTypes != null)
-            {
-                return settings.WeaponTypes;
-            }
-
-            return System.Array.Empty<WeaponType>();
+            return settings != null && settings.WeaponTypes != null ? settings.WeaponTypes : System.Array.Empty<WeaponType>();
         }
 
         /// <summary>
@@ -36,12 +31,7 @@ namespace Turnroot.Gameplay.Objects.Components
                 return false;
             }
 
-            if (!string.IsNullOrEmpty(a.Id) && !string.IsNullOrEmpty(b.Id))
-            {
-                return a.Id == b.Id;
-            }
-
-            return a.name == b.name;
+            return !string.IsNullOrEmpty(a.Id) && !string.IsNullOrEmpty(b.Id) ? a.Id == b.Id : a.name == b.name;
         }
     }
 }

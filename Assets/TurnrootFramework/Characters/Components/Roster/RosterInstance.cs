@@ -11,7 +11,7 @@ namespace Assets.Turnroot.Characters
     {
         [SerializeField]
         public Roster roster;
-        private readonly List<CharacterInstance> _instances = new List<CharacterInstance>();
+        private readonly List<CharacterInstance> _instances = new();
         public IReadOnlyList<CharacterInstance> Instances => _instances;
 
 #if UNITY_EDITOR
@@ -22,12 +22,16 @@ namespace Assets.Turnroot.Characters
             _instances.Clear();
 
             if (roster?.characters == null)
+            {
                 return;
+            }
 
             foreach (var characterData in roster.characters)
             {
                 if (characterData == null)
+                {
                     continue;
+                }
 
                 _instances.Add(CharacterInstance.Create(characterData));
             }
@@ -45,9 +49,15 @@ namespace Assets.Turnroot.Characters
         public void AddInstance(CharacterInstance instance)
         {
             if (instance == null)
+            {
                 return;
+            }
+
             if (_instances.Contains(instance))
+            {
                 return;
+            }
+
             _instances.Add(instance);
         }
 
@@ -56,9 +66,14 @@ namespace Assets.Turnroot.Characters
         )
         {
             if (instances == null)
+            {
                 return;
+            }
+
             foreach (var inst in instances)
+            {
                 AddInstance(inst);
+            }
         }
 
         /// <summary>

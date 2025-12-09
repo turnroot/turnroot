@@ -42,26 +42,16 @@ namespace Turnroot.Characters.Subclasses
 
         public string Get(string pronounCase)
         {
-            if (string.IsNullOrEmpty(pronounCase))
-                return Singular;
-
-            switch (pronounCase.ToLower())
-            {
-                case "singular":
-                case "they":
-                    return Singular;
-                case "possessiveadjective":
-                case "their":
-                    return PossessiveAdjective;
-                case "possessivepronoun":
-                case "theirs":
-                    return PossessivePronoun;
-                case "objective":
-                case "them":
-                    return Objective;
-                default:
-                    return Singular;
-            }
+            return string.IsNullOrEmpty(pronounCase)
+                ? Singular
+                : pronounCase.ToLower() switch
+                {
+                    "singular" or "they" => Singular,
+                    "possessiveadjective" or "their" => PossessiveAdjective,
+                    "possessivepronoun" or "theirs" => PossessivePronoun,
+                    "objective" or "them" => Objective,
+                    _ => Singular,
+                };
         }
 
         public static string[] GetAvailablePronounKeys()
@@ -72,30 +62,62 @@ namespace Turnroot.Characters.Subclasses
         }
 
         /// <summary>
+        /// Gets the current pronoun key ("they", "she", "he") based on the selected pronouns.
+        /// </summary>
+        public string GetPronounKey()
+        {
+            if (_selectedPronouns == null)
+            {
+                return "they";
+            }
+
+            // Find matching key by comparing pronoun arrays
+            foreach (var kvp in PronounSets)
+            {
+                if (kvp.Value.Length == _selectedPronouns.Length)
+                {
+                    bool matches = true;
+                    for (int i = 0; i < kvp.Value.Length; i++)
+                    {
+                        if (kvp.Value[i] != _selectedPronouns[i])
+                        {
+                            matches = false;
+                            break;
+                        }
+                    }
+
+                    if (matches)
+                    {
+                        return kvp.Key;
+                    }
+                }
+            }
+
+            return "they"; // Default if no match found
+        }
+
+        /// <summary>
         /// Replaces pronoun placeholders in text with the appropriate pronouns.
         /// Example: "I saw {them} and {their} friend" -> "I saw him and his friend"
         /// </summary>
         public string Use(string text)
         {
-            if (string.IsNullOrEmpty(text))
-                return text;
-
-            return text.Replace("{they}", Singular)
-                .Replace("{them}", Objective)
-                .Replace("{their}", PossessiveAdjective)
-                .Replace("{theirs}", PossessivePronoun)
-                // Capitalized versions
-                .Replace("{They}", Capitalize(Singular))
-                .Replace("{Them}", Capitalize(Objective))
-                .Replace("{Their}", Capitalize(PossessiveAdjective))
-                .Replace("{Theirs}", Capitalize(PossessivePronoun));
+            return string.IsNullOrEmpty(text)
+                ? text
+                : text.Replace("{they}", Singular)
+                    .Replace("{them}", Objective)
+                    .Replace("{their}", PossessiveAdjective)
+                    .Replace("{theirs}", PossessivePronoun)
+                    // Capitalized versions
+                    .Replace("{They}", Capitalize(Singular))
+                    .Replace("{Them}", Capitalize(Objective))
+                    .Replace("{Their}", Capitalize(PossessiveAdjective))
+                    .Replace("{Theirs}", Capitalize(PossessivePronoun));
         }
 
         private string Capitalize(string str)
         {
-            if (string.IsNullOrEmpty(str))
-                return str;
-            return char.ToUpper(str[0]) + str.Substring(1);
+            return string.IsNullOrEmpty(str) ? str : char.ToUpper(str[0]) + str.Substring(1);
         }
     }
 }

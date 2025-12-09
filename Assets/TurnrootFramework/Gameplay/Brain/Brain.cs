@@ -75,15 +75,10 @@ namespace Assets.Turnroot.Gameplay.Brain
         public event Action<string> OnIllegallyModifiedFileDetected;
         public event Action<int> OnLtmKeyCacheUpdated;
 
-        public void PublishLtmKeyCacheUpdated(int version)
-        {
-            OnLtmKeyCacheUpdated?.Invoke(version);
-        }
+        public void PublishLtmKeyCacheUpdated(int version) => OnLtmKeyCacheUpdated?.Invoke(version);
 
-        public void NotifyIllegalModification(string message)
-        {
+        public void NotifyIllegalModification(string message) =>
             OnIllegallyModifiedFileDetected?.Invoke(message);
-        }
 
         #endregion
 
@@ -132,15 +127,11 @@ namespace Assets.Turnroot.Gameplay.Brain
         public event Action<Characters.RosterInstance> OnRosterReady;
         public event Action<Characters.Roster, string> OnRosterFailed;
 
-        public void PublishRosterReady(Characters.RosterInstance instance)
-        {
+        public void PublishRosterReady(Characters.RosterInstance instance) =>
             OnRosterReady?.Invoke(instance);
-        }
 
-        public void PublishRosterFailed(Characters.Roster roster, string reason)
-        {
+        public void PublishRosterFailed(Characters.Roster roster, string reason) =>
             OnRosterFailed?.Invoke(roster, reason);
-        }
 
         #endregion
 
@@ -154,48 +145,32 @@ namespace Assets.Turnroot.Gameplay.Brain
         public event Action<CharacterInstance, string, int> OnExperienceGained;
         public event Action<CharacterInstance, CharacterData, int> OnSupportIncreased;
 
-        public void PublishCharacterLevelUp(CharacterInstance character)
-        {
+        public void PublishCharacterLevelUp(CharacterInstance character) =>
             OnCharacterLevelUp?.Invoke(character);
-        }
 
-        public void PublishCharacterKill(CharacterInstance character)
-        {
+        public void PublishCharacterKill(CharacterInstance character) =>
             OnCharacterKill?.Invoke(character);
-        }
 
-        public void PublishCharacterLearnedSkill(CharacterInstance character, Skill skill)
-        {
+        public void PublishCharacterLearnedSkill(CharacterInstance character, Skill skill) =>
             OnCharacterLearnedSkill?.Invoke(character, skill);
-        }
 
-        public void PublishCharacterRemovedSkill(CharacterInstance character, Skill skill)
-        {
+        public void PublishCharacterRemovedSkill(CharacterInstance character, Skill skill) =>
             OnCharacterRemovedSkill?.Invoke(character, skill);
-        }
 
-        public void PublishCharacterClassChanged(CharacterInstance character)
-        {
+        public void PublishCharacterClassChanged(CharacterInstance character) =>
             OnCharacterClassChanged?.Invoke(character);
-        }
 
         public void PublishExperienceGained(
             CharacterInstance character,
             string experienceTypeId,
             int amount
-        )
-        {
-            OnExperienceGained?.Invoke(character, experienceTypeId, amount);
-        }
+        ) => OnExperienceGained?.Invoke(character, experienceTypeId, amount);
 
         public void PublishSupportIncreased(
             CharacterInstance character,
             CharacterData targetCharacter,
             int amount
-        )
-        {
-            OnSupportIncreased?.Invoke(character, targetCharacter, amount);
-        }
+        ) => OnSupportIncreased?.Invoke(character, targetCharacter, amount);
 
         #endregion
 
@@ -212,64 +187,37 @@ namespace Assets.Turnroot.Gameplay.Brain
         public event Action<ObjectItemInstance> OnItemDeposited;
         public event Action<ObjectItemInstance, CharacterInventoryInstance> OnItemWithdrawn;
 
-        public void PublishItemUsed(ObjectItemInstance item, int remainingUses)
-        {
+        public void PublishItemUsed(ObjectItemInstance item, int remainingUses) =>
             OnItemUsed?.Invoke(item, remainingUses);
-        }
 
-        public void PublishItemBroken(ObjectItemInstance item)
-        {
-            OnItemBroken?.Invoke(item);
-        }
+        public void PublishItemBroken(ObjectItemInstance item) => OnItemBroken?.Invoke(item);
 
         public void PublishItemTransferred(
             ObjectItemInstance item,
             CharacterInventoryInstance targetInventory
-        )
-        {
-            OnItemTransferred?.Invoke(item, targetInventory);
-        }
+        ) => OnItemTransferred?.Invoke(item, targetInventory);
 
-        public void PublishItemDiscarded(ObjectItemInstance item)
-        {
-            OnItemDiscarded?.Invoke(item);
-        }
+        public void PublishItemDiscarded(ObjectItemInstance item) => OnItemDiscarded?.Invoke(item);
 
-        public void PublishItemSold(ObjectItemInstance item)
-        {
-            OnItemSold?.Invoke(item);
-        }
+        public void PublishItemSold(ObjectItemInstance item) => OnItemSold?.Invoke(item);
 
         public void PublishItemBought(
             ObjectItemInstance item,
             CharacterInventoryInstance buyerInventory
-        )
-        {
-            OnItemBought?.Invoke(item, buyerInventory);
-        }
+        ) => OnItemBought?.Invoke(item, buyerInventory);
 
-        public void PublishItemRepaired(ObjectItemInstance item, int repairUses)
-        {
+        public void PublishItemRepaired(ObjectItemInstance item, int repairUses) =>
             OnItemRepaired?.Invoke(item, repairUses);
-        }
 
-        public void PublishItemForged(ObjectItemInstance item, ObjectItem targetItem)
-        {
+        public void PublishItemForged(ObjectItemInstance item, ObjectItem targetItem) =>
             OnItemForged?.Invoke(item, targetItem);
-        }
 
-        public void PublishItemDeposited(ObjectItemInstance item)
-        {
-            OnItemDeposited?.Invoke(item);
-        }
+        public void PublishItemDeposited(ObjectItemInstance item) => OnItemDeposited?.Invoke(item);
 
         public void PublishItemWithdrawn(
             ObjectItemInstance item,
             CharacterInventoryInstance targetInventory
-        )
-        {
-            OnItemWithdrawn?.Invoke(item, targetInventory);
-        }
+        ) => OnItemWithdrawn?.Invoke(item, targetInventory);
 
         #endregion
 
@@ -300,70 +248,31 @@ namespace Assets.Turnroot.Gameplay.Brain
         public event Action OnThirdPartyTurnEnded;
         public event Action OnTurnEnded;
 
-        public void InvokeStartBattle()
-        {
-            OnStartBattle?.Invoke();
-        }
+        public void InvokeStartBattle() => OnStartBattle?.Invoke();
 
-        public void InvokePreBattleStarted()
-        {
-            OnPreBattleStarted?.Invoke();
-        }
+        public void InvokePreBattleStarted() => OnPreBattleStarted?.Invoke();
 
-        public void InvokePreBattleEnded()
-        {
-            OnPreBattleEnded?.Invoke();
-        }
+        public void InvokePreBattleEnded() => OnPreBattleEnded?.Invoke();
 
-        public void InvokeExitBattle(BattleExitType exitType)
-        {
-            OnExitBattle?.Invoke(exitType);
-        }
+        public void InvokeExitBattle(BattleExitType exitType) => OnExitBattle?.Invoke(exitType);
 
-        public void InvokeBattleContextInitialized()
-        {
-            OnBattleContextInitialized?.Invoke();
-        }
+        public void InvokeBattleContextInitialized() => OnBattleContextInitialized?.Invoke();
 
-        public void InvokeTurnBegin()
-        {
-            OnTurnBegin?.Invoke();
-        }
+        public void InvokeTurnBegin() => OnTurnBegin?.Invoke();
 
-        public void InvokePlayerTurnStarted()
-        {
-            OnPlayerTurnStarted?.Invoke();
-        }
+        public void InvokePlayerTurnStarted() => OnPlayerTurnStarted?.Invoke();
 
-        public void InvokeEnemyTurnStarted()
-        {
-            OnEnemyTurnStarted?.Invoke();
-        }
+        public void InvokeEnemyTurnStarted() => OnEnemyTurnStarted?.Invoke();
 
-        public void InvokeThirdPartyTurnStarted()
-        {
-            OnThirdPartyTurnStarted?.Invoke();
-        }
+        public void InvokeThirdPartyTurnStarted() => OnThirdPartyTurnStarted?.Invoke();
 
-        public void InvokePlayerTurnEnded()
-        {
-            OnPlayerTurnEnded?.Invoke();
-        }
+        public void InvokePlayerTurnEnded() => OnPlayerTurnEnded?.Invoke();
 
-        public void InvokeEnemyTurnEnded()
-        {
-            OnEnemyTurnEnded?.Invoke();
-        }
+        public void InvokeEnemyTurnEnded() => OnEnemyTurnEnded?.Invoke();
 
-        public void InvokeThirdPartyTurnEnded()
-        {
-            OnThirdPartyTurnEnded?.Invoke();
-        }
+        public void InvokeThirdPartyTurnEnded() => OnThirdPartyTurnEnded?.Invoke();
 
-        public void InvokeTurnEnded()
-        {
-            OnTurnEnded?.Invoke();
-        }
+        public void InvokeTurnEnded() => OnTurnEnded?.Invoke();
 
         #endregion
 
@@ -443,17 +352,34 @@ namespace Assets.Turnroot.Gameplay.Brain
             var modules = new System.Collections.Generic.List<string>();
 
             if (hubModuleEnabled)
+            {
                 modules.Add("Hub");
+            }
+
             if (bloodlinesModuleEnabled)
+            {
                 modules.Add("Bloodlines");
+            }
+
             if (unwindModuleEnabled)
+            {
                 modules.Add("Unwind");
+            }
+
             if (troopsModuleEnabled)
+            {
                 modules.Add("Troops");
+            }
+
             if (monstersModuleEnabled)
+            {
                 modules.Add("Monsters");
+            }
+
             if (retroModuleEnabled)
+            {
                 modules.Add("Retro");
+            }
 
             return modules.Count > 0 ? string.Join(", ", modules) : "None";
         }
@@ -478,10 +404,8 @@ namespace Assets.Turnroot.Gameplay.Brain
             }
         }
 
-        private void OnSceneLoaded_LinkControllers(Scene scene, LoadSceneMode mode)
-        {
+        private void OnSceneLoaded_LinkControllers(Scene scene, LoadSceneMode mode) =>
             TryLinkConversationController();
-        }
 
         #endregion
 
@@ -503,10 +427,7 @@ namespace Assets.Turnroot.Gameplay.Brain
 
         #region Cleanup
 
-        private void OnDestroy()
-        {
-            SceneManager.sceneLoaded -= OnSceneLoaded_LinkControllers;
-        }
+        private void OnDestroy() => SceneManager.sceneLoaded -= OnSceneLoaded_LinkControllers;
 
         #endregion
     }

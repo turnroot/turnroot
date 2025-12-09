@@ -24,7 +24,10 @@ namespace Turnroot.CommonAncestors
         public LeveledLetteredField(string value)
         {
             if (!IsValid(value))
+            {
                 throw new System.ArgumentException($"Invalid level: {value}");
+            }
+
             _value = value;
         }
 
@@ -61,7 +64,10 @@ namespace Turnroot.CommonAncestors
             set
             {
                 if (!IsValid(value))
+                {
                     throw new System.ArgumentException($"Invalid level: {value}");
+                }
+
                 _value = value;
             }
         }

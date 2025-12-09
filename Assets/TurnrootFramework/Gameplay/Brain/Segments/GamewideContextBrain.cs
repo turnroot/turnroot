@@ -29,7 +29,7 @@ namespace Assets.Turnroot.Gameplay.Brain
 
         [Header("Rosters")]
         [SerializeField]
-        private List<Roster> rosters = new List<Roster>();
+        private List<Roster> rosters = new();
         public IReadOnlyList<Roster> ConfiguredRosters => rosters;
 
         // Lazy-loading roster cache with automatic invalidation
@@ -118,12 +118,9 @@ namespace Assets.Turnroot.Gameplay.Brain
             }
 
             var existing = FindExistingRosterInstance(roster);
-            if (existing != null)
-            {
-                return HandleExistingRoster(existing, roster, registerGlobally);
-            }
-
-            return CreateNewRosterInstance(roster, registerGlobally);
+            return existing != null
+                ? HandleExistingRoster(existing, roster, registerGlobally)
+                : CreateNewRosterInstance(roster, registerGlobally);
         }
 
         private RosterInstance FindExistingRosterInstance(Roster roster)
@@ -165,7 +162,9 @@ namespace Assets.Turnroot.Gameplay.Brain
             foreach (var cd in roster.characters)
             {
                 if (cd != null && rosterInstance.GetInstanceFor(cd) != null)
+                {
                     return true;
+                }
             }
             return false;
         }
@@ -176,14 +175,18 @@ namespace Assets.Turnroot.Gameplay.Brain
         private void PopulateRosterInstance(RosterInstance rosterInstance, Roster roster)
         {
             if (rosterInstance == null || roster?.characters == null)
+            {
                 return;
+            }
 
             var createdInstances = new List<CharacterInstance>();
 
             foreach (var characterData in roster.characters)
             {
                 if (characterData == null)
+                {
                     continue;
+                }
 
                 CharacterInstance inst = CreateOrRecallCharacterInstance(characterData);
 
@@ -321,7 +324,9 @@ namespace Assets.Turnroot.Gameplay.Brain
         private CharacterInstance RecallUniqueCharacter(CharacterData characterData)
         {
             if (characterData == null || !characterData.IsUnique)
+            {
                 return null;
+            }
 
             try
             {
@@ -330,7 +335,9 @@ namespace Assets.Turnroot.Gameplay.Brain
                 var encoded = ltm.Recall(key);
 
                 if (string.IsNullOrEmpty(encoded))
+                {
                     return null;
+                }
 
                 var instance = DecodeInstanceFromString<CharacterInstance>(encoded);
 
@@ -366,12 +373,16 @@ namespace Assets.Turnroot.Gameplay.Brain
             try
             {
                 if (!TryGetComponent<LongTermMemory>(out var ltm))
+                {
                     return;
+                }
 
                 var key = GamewideContextBrainHelpers.BuildRosterLedgerKey(roster.Id);
 
                 if (string.IsNullOrEmpty(key))
+                {
                     return;
+                }
 
                 var existingHash = ltm.Recall(key);
                 if (!string.IsNullOrEmpty(existingHash))
@@ -442,7 +453,9 @@ namespace Assets.Turnroot.Gameplay.Brain
             var ltm = GetComponent<LongTermMemory>();
 
             if (ltm == null || _brain == null)
+            {
                 return;
+            }
 
             var allRosters = rosters?.Where(r => r != null).ToArray() ?? new Roster[0];
 
@@ -472,7 +485,9 @@ namespace Assets.Turnroot.Gameplay.Brain
             {
                 var idList = JsonConvert.DeserializeObject<List<string>>(indexJson);
                 if (idList == null)
+                {
                     return;
+                }
 
                 foreach (var id in idList)
                 {
@@ -492,7 +507,9 @@ namespace Assets.Turnroot.Gameplay.Brain
         private bool HasRosterInLTM(Roster roster)
         {
             if (!TryGetComponent<LongTermMemory>(out var ltm))
+            {
                 return false;
+            }
 
             var key = GamewideContextBrainHelpers.BuildRosterLedgerKey(roster.Id);
             var storedHash = ltm.Recall(key);
@@ -523,18 +540,24 @@ namespace Assets.Turnroot.Gameplay.Brain
         public CharacterInstance FindInstanceByTemplate(CharacterData template)
         {
             if (template == null)
+            {
                 return null;
+            }
 
             var rosters = GetCachedRosterInstances();
 
             foreach (var roster in rosters)
             {
                 if (roster == null)
+                {
                     continue;
+                }
 
                 var instance = roster.GetInstanceFor(template);
                 if (instance != null)
+                {
                     return instance;
+                }
             }
 
             return null;
@@ -545,7 +568,9 @@ namespace Assets.Turnroot.Gameplay.Brain
             var results = new List<CharacterInstance>();
 
             if (templates == null || templates.Length == 0)
+            {
                 return results;
+            }
 
             var rosters = GetCachedRosterInstances();
             var instanceLookup = new Dictionary<CharacterData, CharacterInstance>();
@@ -553,7 +578,9 @@ namespace Assets.Turnroot.Gameplay.Brain
             foreach (var roster in rosters)
             {
                 if (roster?.Instances == null)
+                {
                     continue;
+                }
 
                 foreach (var instance in roster.Instances)
                 {
@@ -598,7 +625,9 @@ namespace Assets.Turnroot.Gameplay.Brain
         public void UpdateRosterInLTM(Roster roster)
         {
             if (roster == null)
+            {
                 return;
+            }
 
             RegisterRosterInLTM(roster);
         }

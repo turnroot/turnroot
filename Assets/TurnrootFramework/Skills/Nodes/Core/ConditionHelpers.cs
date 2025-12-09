@@ -29,10 +29,9 @@ namespace Turnroot.Skills.Nodes
             CharacterSource source
         )
         {
-            if (context == null)
-                return null;
-
-            return source switch
+            return context == null
+                ? null
+                : source switch
             {
                 CharacterSource.Unit => context.UnitInstance,
                 CharacterSource.Enemy => context.Targets != null && context.Targets.Count > 0
@@ -55,7 +54,9 @@ namespace Turnroot.Skills.Nodes
         )
         {
             if (character == null || string.IsNullOrEmpty(statName))
+            {
                 return null;
+            }
 
             if (isBoundedStat)
             {

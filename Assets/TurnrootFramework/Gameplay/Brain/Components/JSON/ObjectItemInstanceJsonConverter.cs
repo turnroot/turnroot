@@ -70,7 +70,9 @@ namespace Assets.Turnroot.Gameplay.Brain.Components
             var templateToken = token.SelectToken(TemplateField) ?? token.SelectToken("Template");
 
             if (templateToken?.Type == JTokenType.Null || templateToken == null)
+            {
                 return null;
+            }
 
             try
             {

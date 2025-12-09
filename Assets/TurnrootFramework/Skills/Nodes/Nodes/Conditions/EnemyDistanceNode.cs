@@ -14,7 +14,9 @@ namespace Turnroot.Skills.Nodes.Conditions
         public override object GetValue(NodePort port)
         {
             if (port.fieldName != "value")
+            {
                 return null;
+            }
 
             var skillGraph = graph as SkillGraph;
             if (skillGraph == null || !Application.isPlaying)

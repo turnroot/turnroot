@@ -19,12 +19,16 @@ namespace Turnroot.Utilities
             string typeName = typeof(T).Name;
             T found = Resources.Load<T>($"{subfolder}/{typeName}");
             if (found != null)
+            {
                 return found;
+            }
 
             // Fallback: load any asset of this type under the subfolder
             var foundAll = Resources.LoadAll<T>(subfolder);
             if (foundAll != null && foundAll.Length > 0)
+            {
                 return foundAll[0];
+            }
 
 #if UNITY_EDITOR
             // Editor-only fallback: search AssetDatabase for an asset under Resources/<subfolder>/
@@ -42,7 +46,9 @@ namespace Turnroot.Utilities
                         {
                             var asset = AssetDatabase.LoadAssetAtPath<T>(path);
                             if (asset != null)
+                            {
                                 return asset;
+                            }
                         }
                     }
 
