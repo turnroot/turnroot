@@ -50,9 +50,11 @@ namespace Turnroot.Gameplay.Brain
 
         protected override void Awake() => base.Awake(); // Calls parent Awake
 
-        protected override void SubscribeToBrainEvents() => _brain.OnRosterReady += HandleRosterReady;
+        protected override void SubscribeToBrainEvents() =>
+            _brain.OnRosterReady += HandleRosterReady;
 
-        protected override void UnsubscribeFromBrainEvents() => _brain.OnRosterReady -= HandleRosterReady;
+        protected override void UnsubscribeFromBrainEvents() =>
+            _brain.OnRosterReady -= HandleRosterReady;
 
         public void Start() => RecallRosters();
 
@@ -108,7 +110,8 @@ namespace Turnroot.Gameplay.Brain
                 : CreateNewRosterInstance(roster, registerGlobally);
         }
 
-        private RosterInstance FindExistingRosterInstance(Roster roster) => GetCachedRosterInstances().FirstOrDefault(r => r != null && r.roster == roster);
+        private RosterInstance FindExistingRosterInstance(Roster roster) =>
+            GetCachedRosterInstances().FirstOrDefault(r => r != null && r.roster == roster);
 
         private RosterInstance HandleExistingRoster(
             RosterInstance existing,
@@ -341,7 +344,8 @@ namespace Turnroot.Gameplay.Brain
             }
         }
 
-        private string BuildUniqueCharacterKey(CharacterData characterData) => $"GWB.UniqueCharacter.{characterData.name}";
+        private string BuildUniqueCharacterKey(CharacterData characterData) =>
+            $"GWB.UniqueCharacter.{characterData.name}";
 
         #endregion
 
@@ -611,11 +615,14 @@ namespace Turnroot.Gameplay.Brain
             RegisterRosterInLTM(roster);
         }
 
-        public string DesignateInstanceType<T>() => GamewideContextBrainHelpers.DesignateInstanceType<T>();
+        public string DesignateInstanceType<T>() =>
+            GamewideContextBrainHelpers.DesignateInstanceType<T>();
 
-        public string EncodeInstanceToString<T>(T instance) => GamewideContextBrainHelpers.EncodeInstanceToString(this, instance);
+        public string EncodeInstanceToString<T>(T instance) =>
+            GamewideContextBrainHelpers.EncodeInstanceToString(this, instance);
 
-        public T DecodeInstanceFromString<T>(string encodedString) => GamewideContextBrainHelpers.DecodeInstanceFromString<T>(this, encodedString);
+        public T DecodeInstanceFromString<T>(string encodedString) =>
+            GamewideContextBrainHelpers.DecodeInstanceFromString<T>(this, encodedString);
 
         #endregion
     }

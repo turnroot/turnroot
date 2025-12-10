@@ -4,6 +4,7 @@ using System.Linq;
 using NaughtyAttributes;
 using Turnroot.Characters.CharacterClass;
 using Turnroot.Characters.Components;
+using Turnroot.Characters.Components.Behavior;
 using Turnroot.Characters.Components.Support;
 using Turnroot.Characters.Stats;
 using Turnroot.Characters.Subclasses;
@@ -206,8 +207,8 @@ namespace Turnroot.Characters
         ]
         public RuntimeAnimatorController ExtraLayerController { get; private set; }
 
-        [field: Foldout("AI & Behavior"), SerializeField, HorizontalLine(color: EColor.Blue)]
-        public UnityEngine.Object AI { get; private set; }
+        [field: SerializeField, HorizontalLine(color: EColor.Blue)]
+        public CharacterBehavior BehaviorSettings { get; private set; }
 
 #if TURNROOT_BLOODLINES_MODULE
         [Foldout("Heredity"), SerializeField]
@@ -365,11 +366,14 @@ namespace Turnroot.Characters
         }
 
         // Helper methods to get stats by type
-        public BoundedCharacterStat GetBoundedStat(BoundedStatType type) => StatHelpers.GetBoundedStat(BoundedStats, type);
+        public BoundedCharacterStat GetBoundedStat(BoundedStatType type) =>
+            StatHelpers.GetBoundedStat(BoundedStats, type);
 
-        public CharacterStat GetUnboundedStat(UnboundedStatType type) => StatHelpers.GetUnboundedStat(UnboundedStats, type);
+        public CharacterStat GetUnboundedStat(UnboundedStatType type) =>
+            StatHelpers.GetUnboundedStat(UnboundedStats, type);
 
-        public ExperienceRank GetExperienceRank(string experienceTypeId) => ExperienceRanks?.Find(e => e.ExperienceTypeId == experienceTypeId);
+        public ExperienceRank GetExperienceRank(string experienceTypeId) =>
+            ExperienceRanks?.Find(e => e.ExperienceTypeId == experienceTypeId);
 
         [Serializable]
         public class InventorySlot

@@ -69,11 +69,14 @@ namespace Turnroot.Gameplay.Brain
 
         #region Turn Phase Handlers
 
-        private void HandlePlayerTurnStarted() => IncrementTurnsAliveForFaction(CharacterWhich.ALLY, CharacterWhich.AVATAR);
+        private void HandlePlayerTurnStarted() =>
+            IncrementTurnsAliveForFaction(CharacterWhich.ALLY, CharacterWhich.AVATAR);
 
-        private void HandleEnemyTurnStarted() => IncrementTurnsAliveForFaction(CharacterWhich.ENEMY);
+        private void HandleEnemyTurnStarted() =>
+            IncrementTurnsAliveForFaction(CharacterWhich.ENEMY);
 
-        private void HandleThirdPartyTurnStarted() => IncrementTurnsAliveForFaction(CharacterWhich.NPC);
+        private void HandleThirdPartyTurnStarted() =>
+            IncrementTurnsAliveForFaction(CharacterWhich.NPC);
 
         private void IncrementTurnsAliveForFaction(params string[] factionTypes)
         {
@@ -136,10 +139,7 @@ namespace Turnroot.Gameplay.Brain
             var allCharacters = GetAllBattleCharacters();
             foreach (var instance in allCharacters)
             {
-                if (instance != null)
-                {
-                    instance.RecordBattleStart();
-                }
+                instance?.RecordBattleStart();
             }
 
             Debug.Log(
@@ -157,10 +157,7 @@ namespace Turnroot.Gameplay.Brain
             var allCharacters = GetAllBattleCharacters();
             foreach (var instance in allCharacters)
             {
-                if (instance != null)
-                {
-                    instance.ResetBattleStats();
-                }
+                instance?.ResetBattleStats();
             }
 
             Debug.Log("CharactersBrain: Reset battle statistics for all characters.");
@@ -398,12 +395,14 @@ namespace Turnroot.Gameplay.Brain
         /// <summary>
         /// Get all currently active character instances.
         /// </summary>
-        public List<CharacterInstance> GetAllActiveCharacters() => _gamewideContextBrain?.GetAllActiveInstances() ?? new List<CharacterInstance>();
+        public List<CharacterInstance> GetAllActiveCharacters() =>
+            _gamewideContextBrain?.GetAllActiveInstances() ?? new List<CharacterInstance>();
 
         /// <summary>
         /// Find a character instance by template.
         /// </summary>
-        public CharacterInstance FindCharacterByTemplate(CharacterData template) => _gamewideContextBrain?.FindInstanceByTemplate(template);
+        public CharacterInstance FindCharacterByTemplate(CharacterData template) =>
+            _gamewideContextBrain?.FindInstanceByTemplate(template);
 
         #endregion
     }

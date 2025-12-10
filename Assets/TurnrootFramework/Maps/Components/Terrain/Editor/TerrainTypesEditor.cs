@@ -115,7 +115,9 @@ public class TerrainTypesEditor : Editor
         {
             var prop = elem.FindPropertyRelative(propName);
             if (prop == null)
+            {
                 continue;
+            }
 
             EditorGUILayout.BeginVertical(GUILayout.Width(70));
             EditorGUILayout.BeginHorizontal();
@@ -138,9 +140,14 @@ public class TerrainTypesEditor : Editor
             );
 
             if (isFloat)
+            {
                 prop.floatValue = Mathf.Round(newValue * 10f) / 10f;
+            }
             else
+            {
                 prop.intValue = Mathf.RoundToInt(newValue);
+            }
+
             EditorGUILayout.EndVertical();
 
             EditorGUILayout.BeginVertical();
@@ -169,7 +176,9 @@ public class TerrainTypesEditor : Editor
         foreach (
             var prop in new[] { "_costWalk", "_costFly", "_costRide", "_costMagic", "_costArmor" }
         )
+        {
             SetPropertyValue(newElem, prop, 1f);
+        }
 
         foreach (
             var prop in new[]
@@ -185,14 +194,18 @@ public class TerrainTypesEditor : Editor
                 "_avoidBonusFlying",
             }
         )
+        {
             SetPropertyValue(newElem, prop, 0);
+        }
     }
 
     private void SetPropertyValue(SerializedProperty parent, string propName, object value)
     {
         var prop = parent.FindPropertyRelative(propName);
         if (prop == null)
+        {
             return;
+        }
 
         switch (value)
         {

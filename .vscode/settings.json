@@ -117,7 +117,7 @@
         },
         {
             "path": "fe-prototyping\\Assets\\TurnrootFramework\\Gameplay\\Objects\\",
-            "color": "foldercustomization.AnsiColor193",
+            "color": "foldercustomization.AnsiColor193"
         },
         {
             "path": "fe-prototyping\\Assets\\TurnrootFramework\\Graphics2D\\Components\\StackedImage\\",
@@ -172,6 +172,10 @@
             "path": "fe-prototyping\\Assets\\TurnrootFramework\\Gameplay\\Combat\\",
             "color": "foldercustomization.AnsiColor118",
             "badge": "⚔️"
+        },
+        {
+            "path": "fe-prototyping\\Assets\\TurnrootFramework\\Characters\\Components\\Behavior\\",
+            "color": "foldercustomization.AnsiColor104"
         }
     ]
 }
