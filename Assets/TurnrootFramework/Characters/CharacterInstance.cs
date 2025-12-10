@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Turnroot.Characters.CharacterClass;
 using Turnroot.Characters.Components.Support;
 using Turnroot.Characters.Stats;
@@ -15,7 +16,7 @@ namespace Turnroot.Characters
     // Multiple characters can share the same CharacterData template but have different instances
 
     [Serializable]
-    public class CharacterInstance : Serialization.IPostDeserialize, Stats.IHasStats
+    public class CharacterInstance : Serialization.IPostDeserialize, IHasStats
     {
         #region Instance State
 
@@ -28,6 +29,9 @@ namespace Turnroot.Characters
             get => _mapGridPosition;
             set => _mapGridPosition = value;
         }
+
+        public MapGridPoint UnitPositionToMapGridPoint(Vector2Int unitPosition, MapGrid mapGrid) =>
+            mapGrid.GetGridPoint(unitPosition.x, unitPosition.y);
 
         [SerializeField]
         private bool _isDefeatedInCurrentBattle = false;
@@ -55,10 +59,10 @@ namespace Turnroot.Characters
         private int _totalBattles = 0;
 
         // Transient stats (reset each battle, not serialized)
-        [System.NonSerialized]
+        [NonSerialized]
         private int _turnsAliveThisBattle = 0;
 
-        [System.NonSerialized]
+        [NonSerialized]
         private int _combatsThisTurn = 0;
 
         public int TotalKills => _totalKills;
@@ -121,11 +125,11 @@ namespace Turnroot.Characters
 
         // Current Class (runtime)
         [SerializeField]
-        private CharacterClass.CharacterClassDataInstance _currentClass;
+        private CharacterClassDataInstance _currentClass;
 
         // Classes this character has previously equipped (for tracking one-time bonuses)
         [SerializeField]
-        private List<CharacterClass.CharacterClassData> _equippedClassHistory = new();
+        private List<CharacterClassData> _equippedClassHistory = new();
 
         #endregion
 
@@ -140,7 +144,7 @@ namespace Turnroot.Characters
         public CharacterInventoryInstance InventoryInstance => _inventoryInstance;
         public List<SkillInstance> SkillInstances => _skillInstances;
         public List<ExperienceRankInstance> ExperienceRanks => _experienceRanks;
-        public CharacterClass.CharacterClassDataInstance CurrentClass => _currentClass;
+        public CharacterClassDataInstance CurrentClass => _currentClass;
 
         // IHasStats implementation - expose runtime stats
         public List<BoundedCharacterStat> BoundedStats => _runtimeBoundedStats;
@@ -226,7 +230,7 @@ namespace Turnroot.Characters
             _skillInstances ??= new List<SkillInstance>();
             _inventoryInstance ??= new CharacterInventoryInstance();
             _experienceRanks ??= new List<ExperienceRankInstance>();
-            _equippedClassHistory ??= new List<CharacterClass.CharacterClassData>();
+            _equippedClassHistory ??= new List<CharacterClassData>();
 
             // Re-register unique instances after deserialization
             if (_characterTemplate != null && _characterTemplate.IsUnique)
@@ -316,12 +320,14 @@ namespace Turnroot.Characters
         /// <summary>
         /// Get a bounded stat by type (HP, Shields, etc).
         /// </summary>
-        public BoundedCharacterStat GetBoundedStat(BoundedStatType type) => StatHelpers.GetBoundedStat(_runtimeBoundedStats, type);
+        public BoundedCharacterStat GetBoundedStat(BoundedStatType type) =>
+            StatHelpers.GetBoundedStat(_runtimeBoundedStats, type);
 
         /// <summary>
         /// Get an unbounded stat by type (Strength, Speed, etc).
         /// </summary>
-        public CharacterStat GetUnboundedStat(UnboundedStatType type) => StatHelpers.GetUnboundedStat(_runtimeUnboundedStats, type);
+        public CharacterStat GetUnboundedStat(UnboundedStatType type) =>
+            StatHelpers.GetUnboundedStat(_runtimeUnboundedStats, type);
 
         #endregion
 
@@ -344,7 +350,7 @@ namespace Turnroot.Characters
 
                 var increasedStats = CharacterClass.StatApplicationHelper.ApplyStatGrowths(
                     growthRates,
-                    new List<CharacterClass.UnboundedStatModifier>(), // Already combined in GetEffectiveGrowthRates
+                    new List<UnboundedStatModifier>(), // Already combined in GetEffectiveGrowthRates
                     this,
                     _currentClass.ClassData.unboundedStatCaps
                 );
@@ -358,15 +364,14 @@ namespace Turnroot.Characters
             {
                 // No class equipped - use personal growth rates only
                 var personalRates =
-                    _characterTemplate?.PersonalGrowthRates
-                    ?? new List<CharacterClass.UnboundedStatModifier>();
+                    _characterTemplate?.PersonalGrowthRates ?? new List<UnboundedStatModifier>();
                 if (personalRates.Count > 0)
                 {
                     var increasedStats = CharacterClass.StatApplicationHelper.ApplyStatGrowths(
                         personalRates,
-                        new List<CharacterClass.UnboundedStatModifier>(),
+                        new List<UnboundedStatModifier>(),
                         this,
-                        new List<CharacterClass.UnboundedStatModifier>() // No caps when classless
+                        new List<UnboundedStatModifier>() // No caps when classless
                     );
 
                     if (increasedStats.Count > 0)
@@ -395,9 +400,9 @@ namespace Turnroot.Characters
         /// Get effective growth rates combining personal and class growth rates.
         /// Personal growth rates from CharacterData are added to class growth rate modifiers.
         /// </summary>
-        private List<CharacterClass.UnboundedStatModifier> GetEffectiveGrowthRates()
+        private List<UnboundedStatModifier> GetEffectiveGrowthRates()
         {
-            var effectiveRates = new List<CharacterClass.UnboundedStatModifier>();
+            var effectiveRates = new List<UnboundedStatModifier>();
 
             // Start with personal growth rates from CharacterData
             if (_characterTemplate?.PersonalGrowthRates != null)
@@ -417,7 +422,7 @@ namespace Turnroot.Characters
                     {
                         // Combine with existing personal rate
                         var existing = effectiveRates[index];
-                        effectiveRates[index] = new CharacterClass.UnboundedStatModifier(
+                        effectiveRates[index] = new UnboundedStatModifier(
                             classMod.unboundedStatType,
                             existing.value + classMod.value
                         );
@@ -440,7 +445,8 @@ namespace Turnroot.Characters
         /// <summary>
         /// Get support relationship with a specific character.
         /// </summary>
-        public SupportRelationshipInstance GetSupportRelationship(CharacterData character) => _supportRelationships.Find(s => s.Character == character);
+        public SupportRelationshipInstance GetSupportRelationship(CharacterData character) =>
+            _supportRelationships.Find(s => s.Character == character);
 
         /// <summary>
         /// Add a new support relationship from a template.
@@ -484,7 +490,8 @@ namespace Turnroot.Characters
         /// <summary>
         /// Remove support relationship with a character.
         /// </summary>
-        public void RemoveSupportRelationship(CharacterData character) => _ = _supportRelationships.RemoveAll(s => s.Character == character);
+        public void RemoveSupportRelationship(CharacterData character) =>
+            _ = _supportRelationships.RemoveAll(s => s.Character == character);
 
         #endregion
 
@@ -502,7 +509,8 @@ namespace Turnroot.Characters
         /// <summary>
         /// Remove a skill instance.
         /// </summary>
-        internal void RemoveSkill(SkillInstance skillInstance) => _skillInstances.Remove(skillInstance);
+        internal void RemoveSkill(SkillInstance skillInstance) =>
+            _skillInstances.Remove(skillInstance);
 
         #endregion
 
@@ -511,7 +519,8 @@ namespace Turnroot.Characters
         /// <summary>
         /// Get experience rank by type ID (e.g., "Swords", "Magic").
         /// </summary>
-        public ExperienceRankInstance GetExperienceRank(string experienceTypeId) => _experienceRanks.Find(e => e.ExperienceTypeId == experienceTypeId);
+        public ExperienceRankInstance GetExperienceRank(string experienceTypeId) =>
+            _experienceRanks.Find(e => e.ExperienceTypeId == experienceTypeId);
 
         /// <summary>
         /// Add experience to a specific experience type.
@@ -546,16 +555,37 @@ namespace Turnroot.Characters
 
         #endregion
 
+        #region Battle Helpers
+        public int GetMaxRange()
+        {
+            if (_currentClass == null || _currentClass.ClassData == null)
+            {
+                return 0;
+            }
+
+            var allowedWeapons = _currentClass.ClassData.allowedWeaponTypes;
+            var inventory = _inventoryInstance.Items();
+            int maxRange = 0;
+
+            foreach (var weapon in inventory)
+            {
+                if (weapon.Template != null && allowedWeapons.Contains(weapon.Template.WeaponType))
+                {
+                    maxRange = Mathf.Max(maxRange, weapon.Template.UpperRange);
+                }
+            }
+
+            return maxRange;
+        }
+        #endregion
+
         #region Class Management
 
         /// <summary>
         /// Change to a new class. Applies all class bonuses, enforces minimums/caps.
         /// Removes bonuses from old class if present.
         /// </summary>
-        public bool ChangeClass(
-            CharacterClass.CharacterClassData newClassData,
-            MeshRenderer meshRenderer = null
-        )
+        public bool ChangeClass(CharacterClassData newClassData, MeshRenderer meshRenderer = null)
         {
             if (newClassData == null)
             {
@@ -577,7 +607,7 @@ namespace Turnroot.Characters
             bool isFirstTime = !_equippedClassHistory.Contains(newClassData);
 
             // Create new class instance
-            _currentClass = new CharacterClass.CharacterClassDataInstance(
+            _currentClass = new CharacterClassDataInstance(
                 _characterTemplate,
                 newClassData,
                 meshRenderer
@@ -612,7 +642,7 @@ namespace Turnroot.Characters
         /// <summary>
         /// Check if character meets requirements to change to a specific class.
         /// </summary>
-        public bool MeetsClassRequirements(CharacterClass.CharacterClassData classData)
+        public bool MeetsClassRequirements(CharacterClassData classData)
         {
             if (classData == null)
             {
@@ -662,7 +692,7 @@ namespace Turnroot.Characters
         /// <summary>
         /// Validate that the target class follows proper tier progression.
         /// </summary>
-        private bool ValidateClassTierProgression(CharacterClass.CharacterClassData targetClass)
+        private bool ValidateClassTierProgression(CharacterClassData targetClass)
         {
             // If no current class, any tier is allowed (starting class)
             if (_currentClass == null || _currentClass.ClassData == null)
@@ -689,7 +719,7 @@ namespace Turnroot.Characters
         /// <summary>
         /// Check if character's current class allows a specific weapon type.
         /// </summary>
-        public bool CanEquipWeaponType(Turnroot.Gameplay.Objects.Components.WeaponType weaponType)
+        public bool CanEquipWeaponType(Gameplay.Objects.Components.WeaponType weaponType)
         {
             if (_currentClass == null || _currentClass.ClassData == null)
             {
@@ -707,9 +737,9 @@ namespace Turnroot.Characters
         /// <summary>
         /// Get available promotion paths based on current class.
         /// </summary>
-        public List<CharacterClass.CharacterClassData> GetAvailablePromotions()
+        public List<CharacterClassData> GetAvailablePromotions()
         {
-            var available = new List<CharacterClass.CharacterClassData>();
+            var available = new List<CharacterClassData>();
 
             if (_currentClass == null || _currentClass.ClassData == null)
             {
@@ -736,7 +766,8 @@ namespace Turnroot.Characters
         /// <summary>
         /// Check if character has previously equipped a specific class.
         /// </summary>
-        public bool HasEquippedClass(CharacterClass.CharacterClassData classData) => classData != null && _equippedClassHistory.Contains(classData);
+        public bool HasEquippedClass(CharacterClassData classData) =>
+            classData != null && _equippedClassHistory.Contains(classData);
 
         #endregion
     }
@@ -751,13 +782,13 @@ namespace Turnroot.Characters
         private string _experienceTypeId;
 
         [SerializeField]
-        private Turnroot.CommonAncestors.LeveledLetteredField _rank;
+        private CommonAncestors.LeveledLetteredField _rank;
 
         [SerializeField]
         private int _experiencePoints = 0;
 
         public string ExperienceTypeId => _experienceTypeId;
-        public Turnroot.CommonAncestors.LeveledLetteredField Rank => _rank;
+        public CommonAncestors.LeveledLetteredField Rank => _rank;
         public int ExperiencePoints => _experiencePoints;
 
         /// <summary>
@@ -766,7 +797,7 @@ namespace Turnroot.Characters
         public ExperienceRankInstance(string experienceTypeId, string rankLetter)
         {
             _experienceTypeId = experienceTypeId;
-            _rank = new Turnroot.CommonAncestors.LeveledLetteredField(rankLetter);
+            _rank = new CommonAncestors.LeveledLetteredField(rankLetter);
             _experiencePoints = 0;
         }
 
@@ -776,18 +807,19 @@ namespace Turnroot.Characters
         public ExperienceRankInstance(CharacterData.ExperienceRank template)
         {
             _experienceTypeId = template.ExperienceTypeId;
-            _rank = new Turnroot.CommonAncestors.LeveledLetteredField(template.Rank.Value);
+            _rank = new CommonAncestors.LeveledLetteredField(template.Rank.Value);
             _experiencePoints = 0;
         }
 
         /// <summary>
         /// Add experience points to this rank.
         /// </summary>
-        public void AddExperience(int amount) => _experiencePoints += amount;// TODO: Implement rank progression based on experience thresholds
+        public void AddExperience(int amount) => _experiencePoints += amount; // TODO: Implement rank progression based on experience thresholds
 
         /// <summary>
         /// Set the rank to a specific letter grade.
         /// </summary>
-        public void SetRank(string rankLetter) => _rank = new Turnroot.CommonAncestors.LeveledLetteredField(rankLetter);
+        public void SetRank(string rankLetter) =>
+            _rank = new CommonAncestors.LeveledLetteredField(rankLetter);
     }
 }

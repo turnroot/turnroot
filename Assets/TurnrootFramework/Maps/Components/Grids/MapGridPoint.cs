@@ -97,6 +97,10 @@ public class MapGridPoint : MonoBehaviour
     private List<MapGridPropertyBase.FloatProperty> _pointFloatProperties = new();
     private CharacterInstance _startingUnit = null;
 
+    [HideInInspector]
+    public CharacterInstance CurrentInstance;
+    public bool IsOccupied => CurrentInstance != null;
+
     [SerializeField]
     private UnityEvent _friendlyEntersEvent = new();
 
@@ -344,7 +348,8 @@ public class MapGridPoint : MonoBehaviour
         new(_featureUnitProperties);
 
     // ----- Point-level unit properties -----
-    public void SetUnitPointProperty(string key, CharacterInstance value) => SetProperty(_pointUnitProperties, key, value);
+    public void SetUnitPointProperty(string key, CharacterInstance value) =>
+        SetProperty(_pointUnitProperties, key, value);
 
     public CharacterInstance GetUnitPointProperty(string key)
     {
@@ -634,7 +639,9 @@ public class MapGridPoint : MonoBehaviour
             return terrainType.CostRide;
         }
 
-        return isMagic ? terrainType.CostMagic : isArmored ? terrainType.CostArmor : 1f;
+        return isMagic ? terrainType.CostMagic
+            : isArmored ? terrainType.CostArmor
+            : 1f;
     }
 
     public Vector2 Coordinates() => new(_row, _col);

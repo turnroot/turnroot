@@ -22,6 +22,7 @@ MonoBehaviour:
   description: 
   icon: {fileID: 0}
   classTier: -1
+  IsMagic: 0
   promotionPaths: []
   requiredLevelToChange: 0
   allowedPronounKeys:

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UnityEditor.Formats.Fbx.Exporter;
 using UnityEngine;
 using Utils;
 
@@ -117,7 +118,9 @@ public class AStarModified
         bool isRiding = false,
         bool isMagic = false,
         bool isArmored = false,
-        float sameDirectionMultiplier = 0.95f
+        float sameDirectionMultiplier = 0.95f,
+        bool includeRange = false,
+        int maxRange = 0
     )
     {
         var result = new Dictionary<MapGridPoint, float>();
@@ -153,6 +156,10 @@ public class AStarModified
             {
                 var dir = kv.Key;
                 var neighbor = kv.Value;
+                if (neighbor.IsOccupied)
+                {
+                    continue;
+                }
                 float stepCost = neighbor.GetTerrainTypeCost(
                     isWalking,
                     isFlying,
@@ -176,6 +183,33 @@ public class AStarModified
                     costSoFar[neighbor] = newCost;
                     directionFromParent[neighbor] = dir;
                     frontier.Enqueue(neighbor, newCost);
+                }
+            }
+        }
+        if (includeRange)
+        {
+            foreach (var kv in result)
+            {
+                // add Range to boundary tiles- so take all the highest cost tiles and
+                // expand them by maxRange steps in all directions
+                // get the highest cost tiles
+                // it's not as simple as == budget because they are floats, so we need to
+                // round them up to the next integer and then check if they are equal to the budget
+                if (Mathf.RoundToInt(kv.Value) == movementBudget)
+                {
+                    // expand them by maxRange steps in all directions
+                    for (int i = 0; i < maxRange; i++)
+                    {
+                        var neighbors = kv.Key.GetNeighbors();
+                        foreach (var n in neighbors)
+                        {
+                            var neighbor = n.Value;
+                            if (!result.ContainsKey(neighbor))
+                            {
+                                result[neighbor] = kv.Value + 1;
+                            }
+                        }
+                    }
                 }
             }
         }
