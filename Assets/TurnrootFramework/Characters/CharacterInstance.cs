@@ -30,6 +30,10 @@ namespace Turnroot.Characters
             set => _mapGridPosition = value;
         }
 
+        /// <summary>
+        /// Converts a <see cref="Vector2Int"/> position to a <see cref="MapGridPoint"/> using the provided <see cref="MapGrid"/>.
+        /// Returns <c>null</c> if the position is out of bounds, as per the <see cref="MapGrid.GetGridPoint"/> signature.
+        /// </summary>
         public MapGridPoint UnitPositionToMapGridPoint(Vector2Int unitPosition, MapGrid mapGrid) =>
             mapGrid.GetGridPoint(unitPosition.x, unitPosition.y);
 
