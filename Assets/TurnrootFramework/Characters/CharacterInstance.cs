@@ -556,6 +556,9 @@ namespace Turnroot.Characters
         #endregion
 
         #region Battle Helpers
+        /// <summary>
+        /// Returns the maximum attack range across all equippable weapons in the character's inventory, or 0 if no valid weapons are available.
+        /// </summary>
         public int GetMaxRange()
         {
             if (_currentClass == null || _currentClass.ClassData == null)
