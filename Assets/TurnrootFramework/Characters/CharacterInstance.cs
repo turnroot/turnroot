@@ -37,6 +37,25 @@ namespace Turnroot.Characters
         public MapGridPoint UnitPositionToMapGridPoint(Vector2Int unitPosition, MapGrid mapGrid) =>
             mapGrid.GetGridPoint(unitPosition.x, unitPosition.y);
 
+        /// <summary>
+        /// Moves the character to a new position on the map grid.
+        /// Returns <see cref="OperationResult.SuccessResult"/> if the move is successful.
+        /// Returns <see cref="OperationResult.Failure"/> with a message if the new position is out of bounds.
+        /// </summary>
+        /// <param name="newPosition">New position on the map grid</param>
+        /// <param name="mapGrid">The map grid to validate the position against</param>
+        public OperationResult MoveToPosition(Vector2Int newPosition, MapGrid mapGrid)
+        {
+            var gridPoint = UnitPositionToMapGridPoint(newPosition, mapGrid);
+            if (gridPoint == null)
+            {
+                return OperationResult.Failure("New position is out of bounds");
+            }
+
+            _mapGridPosition = newPosition;
+            return OperationResult.SuccessResult();
+        }
+
         [SerializeField]
         private bool _isDefeatedInCurrentBattle = false;
         public bool IsDefeatedInCurrentBattle
@@ -574,7 +593,11 @@ namespace Turnroot.Characters
             var inventory = _inventoryInstance.Items();
             int maxRange = 0;
 
-            foreach (var weapon in inventory.Where(w => w.Template != null && allowedWeapons.Contains(w.Template.WeaponType)))
+            foreach (
+                var weapon in inventory.Where(w =>
+                    w.Template != null && allowedWeapons.Contains(w.Template.WeaponType)
+                )
+            )
             {
                 maxRange = Mathf.Max(maxRange, weapon.Template.UpperRange);
             }

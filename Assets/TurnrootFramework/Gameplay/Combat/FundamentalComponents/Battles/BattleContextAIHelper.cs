@@ -1,10 +1,17 @@
 using System.Collections.Generic;
 using Turnroot.Characters;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Locations;
+using Turnroot.Gameplay.Objects;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 {
+    public struct AITileData
+    {
+        public Dictionary<MapGridPoint, float> MoveTiles;
+        public Dictionary<MapGridPoint, float> AttackTiles;
+    }
+
     /// <summary>
     /// Helper class for AI decision-making and pathfinding in battle contexts.
     /// Handles movement tile calculation, target/ally filtering, and behavioral AI logic.
@@ -91,12 +98,6 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             return points ?? new Dictionary<MapGridPoint, float>();
         }
 
-        public struct AITileData
-        {
-            public Dictionary<MapGridPoint, float> MoveTiles;
-            public Dictionary<MapGridPoint, float> AttackTiles;
-        }
-
         /// <summary>
         /// Computes both movement and attack-only tiles for AI decision making.
         /// Attack tiles are those reachable by weapon range but not by movement.
@@ -149,11 +150,164 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         }
 
         /// <summary>
+        /// Moves the unit to the closest feature of a specified type (e.g., treasure chest).
+        /// </summary>
+        /// <param name="featureType"></param>
+        /// <returns>
+        /// True if the unit moved to a feature, false otherwise.
+        /// </returns>
+        private bool MoveToClosestFeatureType(MapGridPointFeature.FeatureType featureType)
+        {
+            var features = _context.mapGrid.GetAllGridPointsByFeatureType(featureType);
+            // move towards the closest treasure chest
+            if (features.Count > 0)
+            {
+                var closestFeature = FindClosestFromListOfPoints(
+                    features,
+                    _context.UnitInstance.UnitPositionToMapGridPoint(
+                        _context.UnitInstance.MapGridPosition,
+                        _context.mapGrid
+                    )
+                );
+                _ = _context.UnitInstance.MoveToPosition(
+                    closestFeature.CoordinatesInt(),
+                    _context.mapGrid
+                );
+                return true;
+            }
+            return false;
+        }
+
+        /// <summary>
         /// Handles AI behavior when unit prioritizes loot over combat.
+        /// Move towards the closest treasure chest or, if none are found, towards the closest ally.
         /// </summary>
         private void HandleGreedyBehavior(AITileData tileData)
         {
-            // TODO: Find treasure chests and move towards them
+            if (!MoveToClosestFeatureType(MapGridPointFeature.FeatureType.Treasure))
+            {
+                // if no treasure chests, move towards the closest ally
+                var tryMove = MoveNextToClosestAlly(
+                    tileData,
+                    _context.UnitInstance.UnitPositionToMapGridPoint(
+                        _context.UnitInstance.MapGridPosition,
+                        _context.mapGrid
+                    )
+                );
+                if (!tryMove.Success)
+                {
+                    // If no moveable neighbors are found, try to retreat to a safe position
+                    if (!TryToRetreatToSafeTile(tileData))
+                    {
+                        // If there's no treasure chests, no allies, and no enemies in range...
+                        // faff around until the next turn I guess
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Attempts to move the unit to a safe tile that increases distance from enemies.
+        /// </summary>
+        /// <param name="tileData"></param>
+        /// <returns></returns>
+        private bool TryToRetreatToSafeTile(AITileData tileData)
+        {
+            if (_context.Targets == null || _context.Targets.Count == 0)
+            {
+                return false;
+            }
+
+            var (closestEnemyPos, furthestEnemyPos, closestDistance, furthestDistance) =
+                FindClosestAndFurthestEnemies(_context.Targets);
+            var safeTiles = FilterSafeTiles(
+                tileData,
+                closestEnemyPos,
+                furthestEnemyPos,
+                closestDistance,
+                furthestDistance
+            );
+
+            if (safeTiles.Count > 0)
+            {
+                var chosenTile = safeTiles[Random.Range(0, safeTiles.Count)];
+                _ = _context.UnitInstance.MoveToPosition(
+                    chosenTile.CoordinatesInt(),
+                    _context.mapGrid
+                );
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Moves the unit next to the closest ally in its movement range.
+        /// If no moveable neighbors are found, returns a failure result.
+        /// </summary>
+        /// <param name="tileData"></param>
+        /// <param name="start"></param>
+        /// <returns></returns>
+        private OperationResult MoveNextToClosestAlly(AITileData tileData, MapGridPoint start)
+        {
+            var AlliesInMoveRange = GetAlliesInMovementRange(tileData);
+            if (AlliesInMoveRange == null || AlliesInMoveRange.Count == 0)
+            {
+                return OperationResult.Failure("No allies found in movement range.");
+            }
+
+            var closestAlly = GetClosestAllyPosition(AlliesInMoveRange);
+            // filter movable tiles to get the neighbors of the ally
+            Dictionary<string, MapGridPoint> neighbors = closestAlly.GetNeighbors();
+            var moveableNeighbors = new List<MapGridPoint>();
+            foreach (var neighbor in neighbors)
+            {
+                if (tileData.MoveTiles.ContainsKey(neighbor.Value))
+                {
+                    moveableNeighbors.Add(neighbor.Value);
+                }
+            }
+            // pick a random neighbor to move to
+            if (moveableNeighbors.Count > 0)
+            {
+                var chosenTile = moveableNeighbors[Random.Range(0, moveableNeighbors.Count)];
+                _ = _context.UnitInstance.MoveToPosition(
+                    chosenTile.CoordinatesInt(),
+                    _context.mapGrid
+                );
+                return OperationResult.SuccessResult();
+            }
+            else
+            {
+                return OperationResult.Failure("No moveable neighbors found for the closest ally.");
+            }
+        }
+
+        /// <summary>
+        /// Finds the closest point from a list of points relative to a starting point.
+        /// </summary>
+        /// <param name="points">List of points to search.</param>
+        /// <param name="start">Starting point for distance comparison.</param>
+        /// <returns>The closest point from the list.</returns>
+        public MapGridPoint FindClosestFromListOfPoints(
+            List<MapGridPoint> points,
+            MapGridPoint start
+        )
+        {
+            var currentDistance = float.MaxValue;
+            var closestPoint = new MapGridPoint();
+            foreach (var point in points)
+            {
+                var distance = Vector2.Distance(start.Coordinates(), point.Coordinates());
+                if (distance < currentDistance)
+                {
+                    currentDistance = distance;
+                    closestPoint = point;
+                }
+            }
+            return closestPoint;
         }
 
         /// <summary>
@@ -230,6 +384,34 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         }
 
         /// <summary>
+        /// Finds the closest ally's position to the unit.
+        /// </summary>
+        private MapGridPoint GetClosestAllyPosition(List<CharacterInstance> allies)
+        {
+            var closestAllyPos = new Vector2Int();
+            var closestDistance = float.MaxValue;
+
+            foreach (var ally in allies)
+            {
+                var distance = Vector2.Distance(
+                    _context.UnitInstance.MapGridPosition,
+                    ally.MapGridPosition
+                );
+
+                if (distance < closestDistance)
+                {
+                    closestDistance = distance;
+                    closestAllyPos = ally.MapGridPosition;
+                }
+            }
+
+            return _context.UnitInstance.UnitPositionToMapGridPoint(
+                closestAllyPos,
+                _context.mapGrid
+            );
+        }
+
+        /// <summary>
         /// Handles defensive AI behavior, finding tiles that increase distance from threats.
         /// Uses SoldierLoneWolf behavior to determine if unit should avoid allies.
         /// </summary>
@@ -259,7 +441,11 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             if (safeTiles.Count > 0)
             {
                 var chosenTile = safeTiles[Random.Range(0, safeTiles.Count)];
-                // TODO: UnitInstance.MoveTo(chosenTile);
+                _ = _context.UnitInstance.MoveToPosition(
+                    chosenTile.CoordinatesInt(),
+                    _context.mapGrid
+                );
+                // TODO: Make sure whatever brain is calling all this fires the needed events
             }
         }
 
@@ -334,7 +520,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         }
 
         /// <summary>
-        /// Excludes tiles within 1 tile of any ally (for lone wolf behavior).
+        /// Excludes tiles within 2 tile of any ally (for lone wolf behavior).
         /// </summary>
         private List<MapGridPoint> ExcludeTilesNearAllies(
             List<MapGridPoint> tiles,
@@ -349,7 +535,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
                 foreach (var ally in allies)
                 {
-                    if (Vector2.Distance(tile.Coordinates(), ally.MapGridPosition) <= 1)
+                    if (Vector2.Distance(tile.Coordinates(), ally.MapGridPosition) <= 2)
                     {
                         isTooCloseToAlly = true;
                         break;

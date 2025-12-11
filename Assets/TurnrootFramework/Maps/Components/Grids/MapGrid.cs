@@ -478,6 +478,42 @@ public class MapGrid : MonoBehaviour
             : null;
     }
 
+    public List<MapGridPoint> GetAllGridPoints()
+    {
+        List<MapGridPoint> points = new List<MapGridPoint>();
+        foreach (var gameObject in _gridPoints.Values)
+        {
+            if (gameObject != null)
+            {
+                var point = gameObject.GetComponent<MapGridPoint>();
+                if (point != null)
+                {
+                    points.Add(point);
+                }
+            }
+        }
+        return points;
+    }
+
+    public List<MapGridPoint> GetAllGridPointsByFeatureType(
+        MapGridPointFeature.FeatureType featureType
+    )
+    {
+        List<MapGridPoint> points = new List<MapGridPoint>();
+        foreach (var gameObject in _gridPoints.Values)
+        {
+            if (gameObject != null)
+            {
+                var point = gameObject.GetComponent<MapGridPoint>();
+                if (point != null && point.FeatureType == featureType)
+                {
+                    points.Add(point);
+                }
+            }
+        }
+        return points;
+    }
+
     private void RebuildRaycastColors()
     {
         if (

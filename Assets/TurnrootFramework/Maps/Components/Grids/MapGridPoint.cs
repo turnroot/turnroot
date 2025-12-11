@@ -104,11 +104,13 @@ public class MapGridPoint : MonoBehaviour
     /// Used to track which character, if any, is present at this location.
     /// </summary>
     public CharacterInstance CurrentInstance;
+
     /// <summary>
     /// Indicates whether a character is currently occupying this grid point.
     /// Returns true if <see cref="CurrentInstance"/> is not null.
     /// </summary>
     public bool IsOccupied => CurrentInstance != null;
+
     [SerializeField]
     private UnityEvent _friendlyEntersEvent = new();
 
@@ -653,6 +655,8 @@ public class MapGridPoint : MonoBehaviour
     }
 
     public Vector2 Coordinates() => new(_row, _col);
+
+    public Vector2Int CoordinatesInt() => new(_row, _col);
 
     public Dictionary<string, MapGridPoint> GetNeighbors(bool cardinal = false)
     {
