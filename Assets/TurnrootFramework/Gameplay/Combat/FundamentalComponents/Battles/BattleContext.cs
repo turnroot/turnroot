@@ -13,7 +13,9 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
     /// </summary>
     public class BattleContext
     {
-        // Active map graph for this battle
+        /// <summary>
+        /// Active map graph for this battle.
+        /// </summary>
         public MapGrid mapGrid { get; set; }
 
         // Currently executing skill (if any)
