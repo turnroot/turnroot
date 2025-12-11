@@ -48,16 +48,23 @@ namespace Turnroot.Characters.Components.Behavior
         ]
         public float BloodthirstGreed;
 
-        public readonly Dictionary<string, float> GetBehaviorDictionary()
-        {
-            return new Dictionary<string, float>
+        private static readonly Dictionary<string, Func<CharacterBehavior, float>> BehaviorGetters =
+            new Dictionary<string, Func<CharacterBehavior, float>>
             {
-                { "SoldierLoneWolf", SoldierLoneWolf },
-                { "MindlessCunning", MindlessCunning },
-                { "SelfishSelfless", SelfishSelfless },
-                { "BrashWary", BrashWary },
-                { "BloodthirstGreed", BloodthirstGreed },
+                { "SoldierLoneWolf", cb => cb.SoldierLoneWolf },
+                { "MindlessCunning", cb => cb.MindlessCunning },
+                { "SelfishSelfless", cb => cb.SelfishSelfless },
+                { "BrashWary", cb => cb.BrashWary },
+                { "BloodthirstGreed", cb => cb.BloodthirstGreed },
             };
+
+        public float GetBehaviorValue(string key)
+        {
+            if (BehaviorGetters.TryGetValue(key, out var getter))
+            {
+                return getter(this);
+            }
+            throw new ArgumentException($"Invalid behavior key: {key}");
         }
     }
 }
