@@ -574,12 +574,9 @@ namespace Turnroot.Characters
             var inventory = _inventoryInstance.Items();
             int maxRange = 0;
 
-            foreach (var weapon in inventory)
+            foreach (var weapon in inventory.Where(w => w.Template != null && allowedWeapons.Contains(w.Template.WeaponType)))
             {
-                if (weapon.Template != null && allowedWeapons.Contains(weapon.Template.WeaponType))
-                {
-                    maxRange = Mathf.Max(maxRange, weapon.Template.UpperRange);
-                }
+                maxRange = Mathf.Max(maxRange, weapon.Template.UpperRange);
             }
 
             return maxRange;
