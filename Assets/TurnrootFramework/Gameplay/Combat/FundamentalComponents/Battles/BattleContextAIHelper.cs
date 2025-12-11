@@ -120,9 +120,9 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         }
 
         /// <summary>
-        // Now that we have all the tiles, we freak it sensitive style with the unit's behavior data
-        // and any battle objectives
-        // This is a custom algorithm that I created, so it may be optimized in future by me or others
+        /// Now that we have all the tiles, we freak it sensitive style with the unit's behavior data
+        /// and any battle objectives
+        /// This is a custom algorithm that I created, so it may be optimized in future by me or others
         /// </summary>
         public void PickTileAndAction()
         {
