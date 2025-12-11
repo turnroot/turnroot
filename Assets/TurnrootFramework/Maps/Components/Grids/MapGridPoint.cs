@@ -98,9 +98,17 @@ public class MapGridPoint : MonoBehaviour
     private CharacterInstance _startingUnit = null;
 
     [HideInInspector]
+    /// <summary>
+    /// The character instance currently occupying this grid point.
+    /// This should be set when a character enters the grid point and cleared when the character leaves.
+    /// Used to track which character, if any, is present at this location.
+    /// </summary>
     public CharacterInstance CurrentInstance;
+    /// <summary>
+    /// Indicates whether a character is currently occupying this grid point.
+    /// Returns true if <see cref="CurrentInstance"/> is not null.
+    /// </summary>
     public bool IsOccupied => CurrentInstance != null;
-
     [SerializeField]
     private UnityEvent _friendlyEntersEvent = new();
 
