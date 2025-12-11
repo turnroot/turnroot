@@ -177,11 +177,11 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             // The first check is against BrashWary- the higher BrashWary, the more likely the unit is to run away
             // from danger and move as far from enemy units as possible
             // If BrashWary <= .8, we divide it by 3. Otherwise, we leave it alone.
-            var BrashWary =
+            var brashWary =
                 behaviorDict["BrashWary"] <= 0.8f
                     ? behaviorDict["BrashWary"] / 3
                     : behaviorDict["BrashWary"];
-            var RunAway = Random.value < BrashWary;
+            var RunAway = Random.value < brashWary;
 
             if (RunAway)
             {
