@@ -201,6 +201,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                     {
                         // If there's no treasure chests, no allies, and no enemies in range...
                         // faff around until the next turn I guess
+                        // TODO: End turn without moving
                     }
                 }
             }
@@ -341,6 +342,11 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             {
                 HandleRetreatBehavior(tileData, TargetsInTileData, AlliesInMoveRange, behaviorDict);
             }
+            else
+            {
+                // TODO: Implement attack behavior
+                // For now, do nothing until attack logic is implemented
+            }
         }
 
         /// <summary>
@@ -422,6 +428,11 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             Dictionary<string, float> behaviorDict
         )
         {
+            if (targetsInRange == null || targetsInRange.Count == 0)
+            {
+                return;
+            }
+
             var (closestEnemyPos, furthestEnemyPos, closestDistance, furthestDistance) =
                 FindClosestAndFurthestEnemies(targetsInRange);
 
@@ -446,6 +457,10 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                     _context.mapGrid
                 );
                 // TODO: Make sure whatever brain is calling all this fires the needed events
+            }
+            else
+            {
+                // TODO: End turn without moving (or pick a random tile?)
             }
         }
 
