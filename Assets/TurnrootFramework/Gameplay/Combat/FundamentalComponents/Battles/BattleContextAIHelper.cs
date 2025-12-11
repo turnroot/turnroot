@@ -138,7 +138,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
             // Look at Greedy / Bloodthirsty first, if we are going to go for loot, we don't need to worry
             // about targets or allies
-            if (!(Random.value < behaviorDict["BloodthirstGreed"]))
+            if (Random.value >= behaviorDict["BloodthirstGreed"])
             {
                 HandleCombatBehavior(tileData, behaviorDict);
             }
