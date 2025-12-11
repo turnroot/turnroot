@@ -13,6 +13,11 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
     /// </summary>
     public class BattleContext
     {
+        /// <summary>
+        /// Active map graph for this battle.
+        /// </summary>
+        public MapGrid mapGrid { get; set; }
+
         // Currently executing skill (if any)
         public Skill CurrentSkill { get; set; }
 
@@ -46,7 +51,10 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         }
 
         // Get a custom data value, or default if not found
-        public T GetCustomData<T>(string key, T defaultValue = default) => CustomData.TryGetValue(key, out object value) && value is T typedValue ? typedValue : defaultValue;
+        public T GetCustomData<T>(string key, T defaultValue = default) =>
+            CustomData.TryGetValue(key, out object value) && value is T typedValue
+                ? typedValue
+                : defaultValue;
 
         // Set a custom data value
         public void SetCustomData(string key, object value) => CustomData[key] = value;

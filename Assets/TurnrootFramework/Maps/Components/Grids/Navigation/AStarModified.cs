@@ -117,7 +117,9 @@ public class AStarModified
         bool isRiding = false,
         bool isMagic = false,
         bool isArmored = false,
-        float sameDirectionMultiplier = 0.95f
+        float sameDirectionMultiplier = 0.95f,
+        bool includeRange = false,
+        int maxRange = 0
     )
     {
         var result = new Dictionary<MapGridPoint, float>();
@@ -153,6 +155,10 @@ public class AStarModified
             {
                 var dir = kv.Key;
                 var neighbor = kv.Value;
+                if (neighbor.IsOccupied)
+                {
+                    continue;
+                }
                 float stepCost = neighbor.GetTerrainTypeCost(
                     isWalking,
                     isFlying,
@@ -176,6 +182,45 @@ public class AStarModified
                     costSoFar[neighbor] = newCost;
                     directionFromParent[neighbor] = dir;
                     frontier.Enqueue(neighbor, newCost);
+                }
+            }
+        }
+        if (includeRange)
+        {
+            // Find all boundary tiles (tiles at movementBudget)
+            var boundaryTiles = new List<MapGridPoint>();
+            foreach (var kv in result)
+            {
+                if (Mathf.RoundToInt(kv.Value) == movementBudget)
+                {
+                    boundaryTiles.Add(kv.Key);
+                }
+            }
+
+            // Expand from boundary tiles by maxRange steps
+            var expanded = new HashSet<MapGridPoint>(boundaryTiles);
+            var currentFrontier = new HashSet<MapGridPoint>(boundaryTiles);
+            for (int step = 1; step <= maxRange; step++)
+            {
+                var nextFrontier = new HashSet<MapGridPoint>();
+                foreach (var tile in currentFrontier)
+                {
+                    var neighbors = tile.GetNeighbors();
+                    foreach (var n in neighbors)
+                    {
+                        var neighbor = n.Value;
+                        if (!result.ContainsKey(neighbor) && !expanded.Contains(neighbor))
+                        {
+                            result[neighbor] = movementBudget + step;
+                            nextFrontier.Add(neighbor);
+                            expanded.Add(neighbor);
+                        }
+                    }
+                }
+                currentFrontier = nextFrontier;
+                if (currentFrontier.Count == 0)
+                {
+                    break;
                 }
             }
         }

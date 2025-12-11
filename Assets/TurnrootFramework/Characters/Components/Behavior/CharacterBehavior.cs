@@ -1,49 +1,22 @@
 using System;
+using System.Collections.Generic;
 using NaughtyAttributes;
 using UnityEngine;
 
 namespace Turnroot.Characters.Components.Behavior
 {
     [Serializable]
-    public struct GoalTile
-    {
-        public MapGridPoint[] Tiles;
-
-        [HideInInspector]
-        public int CurrentTileIndex;
-
-        [InfoBox("Turn on to activate this goal for the AI")]
-        public bool GoalActive;
-
-        [InfoBox("Turn on to make this goal the highest priority for the AI")]
-        public bool MaxPriority;
-    }
-
-    [Serializable]
-    public struct GoalEnemy
-    {
-        public CharacterData[] Targets;
-        public int CurrentTargetIndex;
-
-        [InfoBox("Turn on to activate this goal for the AI")]
-        public bool GoalActive;
-
-        [InfoBox("Turn on to make this goal the highest priority for the AI")]
-        public bool MaxPriority;
-    }
-
-    [Serializable]
     public struct CharacterBehavior
     {
         [InfoBox("Turn on to lock this character to their starting tile")]
-        public bool _movementDisabled;
+        public bool MovementDisabled;
 
         [
             SerializeField,
             Range(0f, 1f),
-            InfoBox("Lone Wolf units avoid allies. Soldier units want to stay close to allies.")
+            InfoBox("Soldier units stay close to allies. Lone Wolf units avoid allies. ")
         ]
-        private float _SoldierLoneWolf;
+        public float SoldierLoneWolf;
 
         [
             SerializeField,
@@ -52,33 +25,39 @@ namespace Turnroot.Characters.Components.Behavior
                 "Mindless units target the closest enemy. Cunning units prioritize strategic targets."
             )
         ]
-        private float _mindlessCunning;
+        public float MindlessCunning;
 
         [
             SerializeField,
             Range(0f, 1f),
-            InfoBox("Selfless units protect allies. Selfish units prioritize their own safety.")
+            InfoBox("Selfish units prioritize their own safety. Selfless units protect allies. ")
         ]
-        private float _SelfishSelfless;
+        public float SelfishSelfless;
 
         [
             SerializeField,
             Range(0f, 1f),
-            InfoBox("Wary units avoid combat and risks. Brash units take bold actions.")
+            InfoBox("Brash units take bold actions. Wary units avoid combat.")
         ]
-        private float _brashWary;
+        public float BrashWary;
 
         [
             SerializeField,
             Range(0f, 1f),
-            InfoBox("Greedy units prioritize loot. Bloodthirsty units prioritize combat.")
+            InfoBox("Bloodthirsty units prioritize combat. Greedy units prioritize loot.")
         ]
-        private float _BloodthirstGreed;
+        public float BloodthirstGreed;
 
-        [SerializeField, InfoBox("Current goal tile for the AI to move towards.")]
-        public GoalTile CurrentGoalTile;
-
-        [SerializeField, InfoBox("Specific goal enemy for the AI to target.")]
-        public GoalEnemy CurrentGoalEnemy;
+        public readonly Dictionary<string, float> GetBehaviorDictionary()
+        {
+            return new Dictionary<string, float>
+            {
+                { "SoldierLoneWolf", SoldierLoneWolf },
+                { "MindlessCunning", MindlessCunning },
+                { "SelfishSelfless", SelfishSelfless },
+                { "BrashWary", BrashWary },
+                { "BloodthirstGreed", BloodthirstGreed },
+            };
+        }
     }
 }

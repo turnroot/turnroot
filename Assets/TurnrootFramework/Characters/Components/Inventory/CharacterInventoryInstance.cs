@@ -40,6 +40,11 @@ public class CharacterInventoryInstance : IPostDeserialize
 
     public bool IsFull => _inventoryItems.Count >= _capacity;
 
+    public ObjectItemInstance[] Items()
+    {
+        return _inventoryItems.ToArray();
+    }
+
     public int CurrentWeight
     {
         get
@@ -235,7 +240,10 @@ public class CharacterInventoryInstance : IPostDeserialize
     /// Gets the inventory index of an equipped weapon.
     /// </summary>
     /// <returns>The inventory index of the equipped weapon, or -1 if no weapon is equipped.</returns>
-    public int GetEquippedWeaponIndex() => !_isWeaponEquipped || _equippedItemIndices == null || _equippedItemIndices.Length == 0 ? -1 : _equippedItemIndices[0];
+    public int GetEquippedWeaponIndex() =>
+        !_isWeaponEquipped || _equippedItemIndices == null || _equippedItemIndices.Length == 0
+            ? -1
+            : _equippedItemIndices[0];
 
     /// <summary>
     /// Gets the inventory index of an equipped item by subtype (weapon, equipable, etc).

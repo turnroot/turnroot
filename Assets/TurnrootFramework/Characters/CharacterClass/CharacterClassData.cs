@@ -91,6 +91,9 @@ namespace Turnroot.Characters.CharacterClass
         public ProgressionLevel classTier = ProgressionLevel.Base;
 
         [Foldout("Identity")]
+        public bool IsMagic;
+
+        [Foldout("Identity")]
         [ShowIf(nameof(ShowPromotionFields))]
         [Tooltip("List of classes this class can promote to (or from)")]
         public List<CharacterClassData> promotionPaths = new();
