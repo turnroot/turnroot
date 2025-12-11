@@ -188,28 +188,40 @@ public class AStarModified
         }
         if (includeRange)
         {
+            // Find all boundary tiles (tiles at movementBudget)
+            var boundaryTiles = new List<MapGridPoint>();
             foreach (var kv in result)
             {
-                // add Range to boundary tiles- so take all the highest cost tiles and
-                // expand them by maxRange steps in all directions
-                // get the highest cost tiles
-                // it's not as simple as == budget because they are floats, so we need to
-                // round them up to the next integer and then check if they are equal to the budget
                 if (Mathf.RoundToInt(kv.Value) == movementBudget)
                 {
-                    // expand them by maxRange steps in all directions
-                    for (int i = 0; i < maxRange; i++)
+                    boundaryTiles.Add(kv.Key);
+                }
+            }
+
+            // Expand from boundary tiles by maxRange steps
+            var expanded = new HashSet<MapGridPoint>(boundaryTiles);
+            var currentFrontier = new HashSet<MapGridPoint>(boundaryTiles);
+            for (int step = 1; step <= maxRange; step++)
+            {
+                var nextFrontier = new HashSet<MapGridPoint>();
+                foreach (var tile in currentFrontier)
+                {
+                    var neighbors = tile.GetNeighbors();
+                    foreach (var n in neighbors)
                     {
-                        var neighbors = kv.Key.GetNeighbors();
-                        foreach (var n in neighbors)
+                        var neighbor = n.Value;
+                        if (!result.ContainsKey(neighbor) && !expanded.Contains(neighbor))
                         {
-                            var neighbor = n.Value;
-                            if (!result.ContainsKey(neighbor))
-                            {
-                                result[neighbor] = kv.Value + 1;
-                            }
+                            result[neighbor] = movementBudget + step;
+                            nextFrontier.Add(neighbor);
+                            expanded.Add(neighbor);
                         }
                     }
+                }
+                currentFrontier = nextFrontier;
+                if (currentFrontier.Count == 0)
+                {
+                    break;
                 }
             }
         }
