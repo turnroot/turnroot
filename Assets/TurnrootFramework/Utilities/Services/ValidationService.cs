@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Turnroot.Characters;
 using Turnroot.Characters.CharacterClass;
 using UnityEngine;
@@ -137,12 +138,9 @@ namespace Turnroot.Services
         /// </summary>
         public ValidationResult ValidateAll(params ValidationResult[] results)
         {
-            foreach (var result in results)
+            foreach (var result in results.Where(r => !r.IsValid))
             {
-                if (!result.IsValid)
-                {
-                    return result;
-                }
+                return result;
             }
 
             return ValidationResult.Success();

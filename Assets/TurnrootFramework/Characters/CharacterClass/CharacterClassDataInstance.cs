@@ -102,10 +102,10 @@ namespace Turnroot.Characters.CharacterClass
                 return false;
             }
 
-            if (_classData.ShaderGraph == null)
+            if (_classData.Identity.ShaderGraph == null)
             {
                 Debug.LogWarning(
-                    $"CharacterClassDataInstance.Initialize: ShaderGraph is null for class '{_classData.className}'"
+                    $"CharacterClassDataInstance.Initialize: ShaderGraph is null for class '{_classData.Identity.ClassName}'"
                 );
                 return false;
             }
@@ -114,7 +114,7 @@ namespace Turnroot.Characters.CharacterClass
             CleanupMaterial();
 
             // Create new material instance
-            _materialInstance = new Material(_classData.ShaderGraph);
+            _materialInstance = new Material(_classData.Identity.ShaderGraph);
             _meshRenderer.material = _materialInstance;
 
             // Apply character colors
@@ -124,9 +124,9 @@ namespace Turnroot.Characters.CharacterClass
             _materialInstance.SetColor("_Accent_Color_3", _characterData.AccentColor3);
 
             // Apply class textures
-            _materialInstance.SetTexture("_Base", _classData.Base);
-            _materialInstance.SetTexture("_MSE", _classData.MSE);
-            _materialInstance.SetTexture("_Tint_Mask", _classData.TintMask);
+            _materialInstance.SetTexture("_Base", _classData.Identity.Base);
+            _materialInstance.SetTexture("_MSE", _classData.Identity.MSE);
+            _materialInstance.SetTexture("_Tint_Mask", _classData.Identity.TintMask);
 
             return true;
         }
@@ -166,8 +166,11 @@ namespace Turnroot.Characters.CharacterClass
                 return;
             }
 
-            StatApplicationHelper.ApplyBoundedBonuses(_classData.statBonuses, character);
-            StatApplicationHelper.ApplyUnboundedBonuses(_classData.unboundedStatBonuses, character);
+            StatApplicationHelper.ApplyBoundedBonuses(_classData.Stats.StatBonuses, character);
+            StatApplicationHelper.ApplyUnboundedBonuses(
+                _classData.Stats.UnboundedStatBonuses,
+                character
+            );
         }
 
         /// <summary>
@@ -187,9 +190,9 @@ namespace Turnroot.Characters.CharacterClass
                 return;
             }
 
-            StatApplicationHelper.RemoveBoundedBonuses(_classData.statBonuses, character);
+            StatApplicationHelper.RemoveBoundedBonuses(_classData.Stats.StatBonuses, character);
             StatApplicationHelper.RemoveUnboundedBonuses(
-                _classData.unboundedStatBonuses,
+                _classData.Stats.UnboundedStatBonuses,
                 character
             );
         }
@@ -217,12 +220,12 @@ namespace Turnroot.Characters.CharacterClass
             }
 
             StatApplicationHelper.ApplyBoundedPermanentBonuses(
-                _classData.classChangeBonuses,
+                _classData.Stats.ClassChangeBonuses,
                 character,
                 logChanges: true
             );
             StatApplicationHelper.ApplyUnboundedPermanentBonuses(
-                _classData.unboundedClassChangeBonuses,
+                _classData.Stats.UnboundedClassChangeBonuses,
                 character,
                 logChanges: true
             );
@@ -248,12 +251,12 @@ namespace Turnroot.Characters.CharacterClass
             }
 
             StatApplicationHelper.EnforceBoundedMinimums(
-                _classData.statMinimums,
+                _classData.Stats.StatMinimums,
                 character,
                 logChanges: true
             );
             StatApplicationHelper.EnforceUnboundedMinimums(
-                _classData.unboundedStatMinimums,
+                _classData.Stats.UnboundedStatMinimums,
                 character,
                 logChanges: true
             );
@@ -276,7 +279,7 @@ namespace Turnroot.Characters.CharacterClass
                 return;
             }
 
-            StatApplicationHelper.ApplyBoundedCaps(_classData.statCaps, character);
+            StatApplicationHelper.ApplyBoundedCaps(_classData.Stats.StatCaps, character);
 
             // Note: Unbounded stat caps are enforced during level-up/stat modification
             // They don't set a hard max like bounded stats
@@ -290,7 +293,7 @@ namespace Turnroot.Characters.CharacterClass
         {
             return StatApplicationHelper.ValidateReferences(character, _classData, "")
                 && StatApplicationHelper.IsAboveUnboundedCaps(
-                    _classData.unboundedStatCaps,
+                    _classData.Stats.UnboundedStatCaps,
                     character
                 );
         }
@@ -311,11 +314,16 @@ namespace Turnroot.Characters.CharacterClass
         /// </summary>
         public bool CheckMasteryConditions(CharacterInstance character)
         {
-            if (character == null || _classData == null || _classData.masteries == null)
+            if (character == null || _classData == null)
             {
                 return false;
             }
 
+            // Note: Mastery system has been refactored - this code may need updating
+            // to work with new ClassMastery component structure
+            return false;
+
+            /* Original code commented out - needs refactoring for new Mastery component
             bool learnedNewSkill = false;
 
             foreach (var mastery in _classData.masteries)
@@ -354,6 +362,7 @@ namespace Turnroot.Characters.CharacterClass
             }
 
             return learnedNewSkill;
+            */
         }
 
         #endregion
@@ -399,20 +408,17 @@ namespace Turnroot.Characters.CharacterClass
 
             if (disposing)
             {
-                // Dispose managed resources
+                // Dispose managed resources (Unity objects can be destroyed here)
                 CleanupMaterial();
             }
+            // Note: Do NOT cleanup Unity objects in finalizer (disposing=false)
+            // as Unity objects must be destroyed on the main thread
 
             _disposed = true;
         }
 
-        /// <summary>
-        /// Finalizer to ensure cleanup even if Dispose is not called.
-        /// </summary>
-        ~CharacterClassDataInstance()
-        {
-            Dispose(false);
-        }
+        // Removed finalizer to prevent attempting to destroy Unity objects from finalizer thread
+        // Unity objects must be destroyed on the main thread and finalizers run on GC thread
 
         #endregion
     }

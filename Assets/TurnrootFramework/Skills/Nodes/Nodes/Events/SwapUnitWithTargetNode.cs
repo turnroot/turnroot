@@ -22,20 +22,17 @@ namespace Turnroot.Skills.Nodes.Events
                 )
             )
             {
-                Debug.LogWarning("SwapUnitWithTarget: No unit instance in context");
                 return;
             }
 
             if (!ValidationHelper.ValidateNotNullOrEmpty(context.Targets, nameof(context.Targets)))
             {
-                Debug.LogWarning("SwapUnitWithTarget: No target in context");
                 return;
             }
 
             var target = context.Targets[0];
             if (!ValidationHelper.ValidateNotNull(target, nameof(target)))
             {
-                Debug.LogWarning("SwapUnitWithTarget: Target is null");
                 return;
             }
 

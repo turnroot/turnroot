@@ -43,6 +43,24 @@ namespace Turnroot.Utilities
         }
 
         /// <summary>
+        /// Gets a value from the cache or creates it using the provided factory if not present.
+        /// </summary>
+        /// <param name="key">The key to look up.</param>
+        /// <param name="factory">Function to create the value if not in cache.</param>
+        /// <returns>The cached or newly created value.</returns>
+        public TValue GetOrAdd(TKey key, Func<TValue> factory)
+        {
+            if (_cache.TryGetValue(key, out var value))
+            {
+                return value;
+            }
+
+            value = factory();
+            _cache[key] = value;
+            return value;
+        }
+
+        /// <summary>
         /// Invalidates the entire cache, forcing regeneration on next access.
         /// </summary>
         public void Invalidate()

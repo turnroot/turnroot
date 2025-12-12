@@ -22,7 +22,6 @@ namespace Turnroot.Skills.Nodes.Events
                 )
             )
             {
-                Debug.LogWarning("TakeAnotherTurn: No unit instance in context");
                 return;
             }
 

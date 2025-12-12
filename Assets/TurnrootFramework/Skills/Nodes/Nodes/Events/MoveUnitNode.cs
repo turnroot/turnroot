@@ -29,13 +29,11 @@ namespace Turnroot.Skills.Nodes.Events
                 )
             )
             {
-                Debug.LogWarning("MoveUnit: No unit instance in context");
                 return;
             }
 
             if (!ValidationHelper.ValidateNotNull(context.mapGrid, nameof(context.mapGrid)))
             {
-                Debug.LogWarning("MoveUnit: No map grid in context");
                 return;
             }
 

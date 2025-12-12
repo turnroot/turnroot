@@ -15,23 +15,33 @@ public class DefeatEnemyBattleCondition : BattleCondition
     [SerializeField]
     public CharacterData[] EnemiesToDefeat;
 
-    private readonly CacheManager<string, List<CharacterInstance>> _enemiesCache = new();
+    private CacheManager<string, List<CharacterInstance>> _enemiesCache;
     private const string CACHE_KEY = "TargetEnemies";
 
     public DefeatEnemyBattleCondition(string name, string description)
-        : base(name, description) { }
+        : base(name, description)
+    {
+        InitializeCache();
+    }
 
     public DefeatEnemyBattleCondition()
-        : base("Defeat enemies", "Kill the listed enemies") { }
+        : base("Defeat enemies", "Kill the listed enemies")
+    {
+        InitializeCache();
+    }
+
+    private void InitializeCache()
+    {
+        _enemiesCache = new CacheManager<string, List<CharacterInstance>>(
+            key => GetMatchingUnits(battleContext.Targets, EnemiesToDefeat)
+        );
+    }
 
     public override void InvalidateCache() => _enemiesCache.Invalidate(CACHE_KEY);
 
     private List<CharacterInstance> GetTargetEnemies()
     {
-        return _enemiesCache.GetOrAdd(
-            CACHE_KEY,
-            () => GetMatchingUnits(battleContext.Targets, EnemiesToDefeat)
-        );
+        return _enemiesCache.Get(CACHE_KEY);
     }
 
     public void CheckCondition()
@@ -43,7 +53,6 @@ public class DefeatEnemyBattleCondition : BattleCondition
 
         if (!ValidationHelper.ValidateNotNullOrEmpty(EnemiesToDefeat, nameof(EnemiesToDefeat)))
         {
-            Debug.LogWarning("DefeatEnemyBattleCondition: No enemies specified.");
             return;
         }
 
@@ -51,7 +60,6 @@ public class DefeatEnemyBattleCondition : BattleCondition
 
         if (!ValidationHelper.ValidateNotNullOrEmpty(targetEnemies, nameof(targetEnemies)))
         {
-            Debug.LogWarning("DefeatEnemyBattleCondition: No matching enemies found in battle.");
             return;
         }
 

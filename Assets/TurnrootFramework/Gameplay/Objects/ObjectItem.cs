@@ -146,6 +146,7 @@ namespace Turnroot.Gameplay.Objects
         [Foldout("Range"), SerializeField, ShowIf(nameof(IsWeaponOrMagicOrStaffSubtype))]
         private int _upperRange = 0;
 
+        public int LowerRange => _lowerRange;
         public int UpperRange => _upperRange;
 
         [Foldout("Range"), SerializeField, ShowIf(nameof(IsWeaponOrMagicOrStaffSubtype))]

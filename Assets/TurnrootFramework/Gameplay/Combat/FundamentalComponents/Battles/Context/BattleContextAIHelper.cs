@@ -58,12 +58,12 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
             if (parameters == null || !parameters.IsValid())
             {
-                return DictionaryPool<MapGridPoint, float>.Get();
+                return new Dictionary<MapGridPoint, float>();
             }
 
             // Apply movement bonuses
             var classData = _context.UnitInstance.CurrentClass.ClassData;
-            var movementBonusMod = classData.unboundedStatBonuses?.Find(b =>
+            var movementBonusMod = classData.Stats.UnboundedStatBonuses?.Find(b =>
                 b.unboundedStatType == Characters.Stats.UnboundedStatType.Movement
             );
             if (movementBonusMod.HasValue)
@@ -110,7 +110,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
             if (parameters == null || !parameters.IsValid())
             {
-                return DictionaryPool<MapGridPoint, float>.Get();
+                return new Dictionary<MapGridPoint, float>();
             }
 
             var points = _aStarModified.GetReachable(
@@ -136,7 +136,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             var moveTiles = GetPossibleMoveTiles(start);
             var allTiles = GetPossibleTilesIncludingRange(start);
 
-            var attackTiles = DictionaryPool<MapGridPoint, float>.Get();
+            var attackTiles = new Dictionary<MapGridPoint, float>();
 
             foreach (var tile in allTiles)
             {

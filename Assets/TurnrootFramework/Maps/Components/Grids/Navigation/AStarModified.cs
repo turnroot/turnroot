@@ -123,7 +123,8 @@ public class AStarModified
         int maxRange = 0
     )
     {
-        var result = DictionaryPool<MapGridPoint, float>.Get();
+        // Don't use pool for returned dictionary as caller owns it
+        var result = new Dictionary<MapGridPoint, float>();
         if (graph == null || start == null)
         {
             return result;

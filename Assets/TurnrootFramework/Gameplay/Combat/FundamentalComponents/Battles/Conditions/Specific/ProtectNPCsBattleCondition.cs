@@ -53,7 +53,6 @@ public class ProtectNPCsBattleCondition : BattleCondition
 
         if (!ValidationHelper.ValidateNotNullOrEmpty(NPCsToProtect, nameof(NPCsToProtect)))
         {
-            Debug.LogWarning("ProtectNPCsBattleCondition: No NPCs specified to protect.");
             return;
         }
 
@@ -61,7 +60,6 @@ public class ProtectNPCsBattleCondition : BattleCondition
 
         if (!ValidationHelper.ValidateNotNullOrEmpty(allPotentialNPCs, nameof(allPotentialNPCs)))
         {
-            Debug.LogWarning("ProtectNPCsBattleCondition: No matching NPCs found in battle.");
             return;
         }
 

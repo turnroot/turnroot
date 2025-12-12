@@ -83,139 +83,7 @@ namespace Turnroot.Characters.CharacterClass
 
         #endregion
 
-        #region Legacy Property Accessors (For Backward Compatibility)
-
-        // Identity accessors
-        [Obsolete("Use Identity.ClassName instead")]
-        public string className => Identity.ClassName;
-
-        [Obsolete("Use Identity.Description instead")]
-        public string description => Identity.Description;
-
-        [Obsolete("Use Identity.Icon instead")]
-        public Sprite icon => Identity.Icon;
-
-        [Obsolete("Use Identity.ClassTier instead")]
-        public ProgressionLevel classTier => Identity.ClassTier;
-
-        [Obsolete("Use Identity.IsMagic instead")]
-        public bool IsMagic => Identity.IsMagic;
-
-        [Obsolete("Use Identity.IsUnique instead")]
-        public bool isUnique => Identity.IsUnique;
-
-        [Obsolete("Use Identity.MovementType instead")]
-        public MovementType movementType => Identity.MovementType;
-
-        [Obsolete("Use Identity.ClassOutfit instead")]
-        public Mesh ClassOutfit => Identity.ClassOutfit;
-
-        [Obsolete("Use Identity.ShaderGraph instead")]
-        public Shader ShaderGraph => Identity.ShaderGraph;
-
-        [Obsolete("Use Identity.Base instead")]
-        public Texture2D Base => Identity.Base;
-
-        [Obsolete("Use Identity.MSE instead")]
-        public Texture2D MSE => Identity.MSE;
-
-        [Obsolete("Use Identity.TintMask instead")]
-        public Texture2D TintMask => Identity.TintMask;
-
-        // Stats accessors
-        [Obsolete("Use Stats.StatMinimums instead")]
-        public List<StatModifier> statMinimums => Stats.StatMinimums;
-
-        [Obsolete("Use Stats.UnboundedStatMinimums instead")]
-        public List<UnboundedStatModifier> unboundedStatMinimums => Stats.UnboundedStatMinimums;
-
-        [Obsolete("Use Stats.StatCaps instead")]
-        public List<StatModifier> statCaps => Stats.StatCaps;
-
-        [Obsolete("Use Stats.UnboundedStatCaps instead")]
-        public List<UnboundedStatModifier> unboundedStatCaps => Stats.UnboundedStatCaps;
-
-        [Obsolete("Use Stats.StatBonuses instead")]
-        public List<StatModifier> statBonuses => Stats.StatBonuses;
-
-        [Obsolete("Use Stats.UnboundedStatBonuses instead")]
-        public List<UnboundedStatModifier> unboundedStatBonuses => Stats.UnboundedStatBonuses;
-
-        [Obsolete("Use Stats.GrowthRateModifiers instead")]
-        public List<UnboundedStatModifier> growthRateModifiers => Stats.GrowthRateModifiers;
-
-        [Obsolete("Use Stats.ClassChangeBonuses instead")]
-        public List<StatModifier> classChangeBonuses => Stats.ClassChangeBonuses;
-
-        [Obsolete("Use Stats.UnboundedClassChangeBonuses instead")]
-        public List<UnboundedStatModifier> unboundedClassChangeBonuses =>
-            Stats.UnboundedClassChangeBonuses;
-
-        // Requirements accessors
-        [Obsolete("Use Requirements.CertificationItem instead")]
-        public ObjectItem certificationItem => Requirements.CertificationItem as ObjectItem;
-
-        [Obsolete("Use Requirements.AllowedWeaponTypes instead")]
-        public List<WeaponType> allowedWeaponTypes => Requirements.AllowedWeaponTypes;
-
-        [Obsolete("Use Requirements.MinimumLevelRequirement instead")]
-        public int requiredLevelToChange => Requirements.MinimumLevelRequirement;
-
-        [Obsolete("Use Requirements.PromotionPaths instead")]
-        public List<CharacterClassData> promotionPaths => Requirements.PromotionPaths;
-
-        // Mastery accessors
-        [Obsolete("Use Mastery.InnateSkills instead")]
-        public List<Skill> innateSkills => Mastery.InnateSkills;
-
-        #endregion
-
         #region Inspector Helpers
-
-        [Foldout("Identity")]
-        [ShowIf(nameof(ShowPromotionFields))]
-        [Tooltip("List of classes this class can promote to (or from)")]
-        public List<CharacterClassData> _legacyPromotionPaths
-        {
-            get => Requirements.PromotionPaths;
-            set => Requirements.PromotionPaths = value;
-        }
-
-        [Foldout("Identity")]
-        [ShowIf(nameof(ShowPromotionFields))]
-        [Tooltip("Minimum level to change into this class")]
-        public int _legacyRequiredLevelToChange
-        {
-            get => Requirements.MinimumLevelRequirement;
-            set => Requirements.MinimumLevelRequirement = value;
-        }
-
-        [Foldout("Identity")]
-        [Tooltip(
-            "Which pronoun sets are allowed for characters of this class (multi-select). Empty = allow all."
-        )]
-        [HideInInspector]
-        public List<string> allowedPronounKeys = new();
-
-        [Foldout("Identity")]
-        [Tooltip("Optional icon for UI / inspector")]
-        public Sprite icon;
-
-        [Foldout("Identity")]
-        public ProgressionLevel classTier = ProgressionLevel.Base;
-
-        [Foldout("Identity")]
-        public bool IsMagic;
-
-        [Foldout("Identity")]
-        [ShowIf(nameof(ShowPromotionFields))]
-        [Tooltip("List of classes this class can promote to (or from)")]
-        public List<CharacterClassData> promotionPaths = new();
-
-        [Foldout("Identity")]
-        [ShowIf(nameof(ShowPromotionFields))]
-        [Tooltip("Minimum level to change into this class")]
-        public int requiredLevelToChange = 0;
 
         [Foldout("Identity")]
         [Tooltip(
@@ -288,10 +156,10 @@ namespace Turnroot.Characters.CharacterClass
             // Define all bounded stat lists to validate in one place
             var boundedStatLists = new[]
             {
-                (list: statMinimums, name: nameof(statMinimums)),
-                (list: statCaps, name: nameof(statCaps)),
-                (list: statBonuses, name: nameof(statBonuses)),
-                (list: classChangeBonuses, name: nameof(classChangeBonuses)),
+                (list: Stats.StatMinimums, name: nameof(Stats.StatMinimums)),
+                (list: Stats.StatCaps, name: nameof(Stats.StatCaps)),
+                (list: Stats.StatBonuses, name: nameof(Stats.StatBonuses)),
+                (list: Stats.ClassChangeBonuses, name: nameof(Stats.ClassChangeBonuses)),
             };
 
             // Validate all bounded lists with single loop
@@ -308,11 +176,14 @@ namespace Turnroot.Characters.CharacterClass
             // Define all unbounded stat lists
             var unboundedStatLists = new[]
             {
-                (list: unboundedStatMinimums, name: nameof(unboundedStatMinimums)),
-                (list: unboundedStatCaps, name: nameof(unboundedStatCaps)),
-                (list: unboundedStatBonuses, name: nameof(unboundedStatBonuses)),
-                (list: growthRateModifiers, name: nameof(growthRateModifiers)),
-                (list: unboundedClassChangeBonuses, name: nameof(unboundedClassChangeBonuses)),
+                (list: Stats.UnboundedStatMinimums, name: nameof(Stats.UnboundedStatMinimums)),
+                (list: Stats.UnboundedStatCaps, name: nameof(Stats.UnboundedStatCaps)),
+                (list: Stats.UnboundedStatBonuses, name: nameof(Stats.UnboundedStatBonuses)),
+                (list: Stats.GrowthRateModifiers, name: nameof(Stats.GrowthRateModifiers)),
+                (
+                    list: Stats.UnboundedClassChangeBonuses,
+                    name: nameof(Stats.UnboundedClassChangeBonuses)
+                ),
             };
 
             // Validate all unbounded lists
@@ -373,50 +244,19 @@ namespace Turnroot.Characters.CharacterClass
 
         private void ValidateExperienceRequirements()
         {
-            if (experienceRequirements == null || experienceRequirements.Count == 0)
-            {
-                return;
-            }
-
-            var validRanks = new[]
-            {
-                Turnroot.CommonAncestors.LeveledLetteredField.E,
-                Turnroot.CommonAncestors.LeveledLetteredField.D,
-                Turnroot.CommonAncestors.LeveledLetteredField.C,
-                Turnroot.CommonAncestors.LeveledLetteredField.B,
-                Turnroot.CommonAncestors.LeveledLetteredField.A,
-                Turnroot.CommonAncestors.LeveledLetteredField.S,
-            };
-
-            foreach (var req in experienceRequirements)
-            {
-                if (string.IsNullOrEmpty(req.experienceTypeId))
-                {
-                    Debug.LogWarning(
-                        $"{name}: ExperienceRequirement has empty experienceTypeId. This will not work at runtime."
-                    );
-                }
-
-                if (
-                    req.minimumRank != null
-                    && !System.Array.Exists(validRanks, r => r == req.minimumRank.Value)
-                )
-                {
-                    Debug.LogWarning(
-                        $"{name}: ExperienceRequirement '{req.experienceTypeId}' has invalid rank '{req.minimumRank.Value}'. Valid ranks: E, D, C, B, A, S."
-                    );
-                }
-            }
+            // experienceRequirements has been removed from the new design
+            // Experience requirements are now handled via Requirements.MinimumLevelRequirement
+            // This method is kept for compatibility but does nothing
         }
 
         private void ValidatePromotionPaths()
         {
-            if (promotionPaths == null || promotionPaths.Count == 0)
+            if (Requirements.PromotionPaths == null || Requirements.PromotionPaths.Count == 0)
             {
                 return;
             }
 
-            if (promotionPaths.Contains(this))
+            if (Requirements.PromotionPaths.Contains(this))
             {
                 Debug.LogError(
                     $"{name}: Class cannot have itself in its promotion paths. This creates a cycle."
@@ -424,16 +264,16 @@ namespace Turnroot.Characters.CharacterClass
             }
 
             // Check for simple 2-step cycles (A -> B -> A)
-            foreach (var promotion in promotionPaths)
+            foreach (var promotion in Requirements.PromotionPaths)
             {
                 if (
                     promotion != null
-                    && promotion.promotionPaths != null
-                    && promotion.promotionPaths.Contains(this)
+                    && promotion.Requirements.PromotionPaths != null
+                    && promotion.Requirements.PromotionPaths.Contains(this)
                 )
                 {
                     Debug.LogWarning(
-                        $"{name}: Detected circular promotion path with {promotion.className}. This may cause issues."
+                        $"{name}: Detected circular promotion path with {promotion.Identity.ClassName}. This may cause issues."
                     );
                 }
             }
@@ -475,18 +315,20 @@ namespace Turnroot.Characters.CharacterClass
         /// </summary>
         public bool AllowsWeaponType(WeaponType weaponType) =>
             // Empty list means no restrictions (can use any weapon)
-            allowedWeaponTypes == null
-            || allowedWeaponTypes.Count == 0
-            || allowedWeaponTypes.Contains(weaponType);
+            Requirements.AllowedWeaponTypes == null
+            || Requirements.AllowedWeaponTypes.Count == 0
+            || Requirements.AllowedWeaponTypes.Contains(weaponType);
 
         /// <summary>
         /// Get a list of weapon type names this class can use (for UI display).
         /// </summary>
         public string GetAllowedWeaponTypesString()
         {
-            return allowedWeaponTypes == null || allowedWeaponTypes.Count == 0
+            return
+                Requirements.AllowedWeaponTypes == null
+                || Requirements.AllowedWeaponTypes.Count == 0
                 ? "Any"
-                : string.Join(", ", allowedWeaponTypes);
+                : string.Join(", ", Requirements.AllowedWeaponTypes);
         }
 
         /// <summary>
