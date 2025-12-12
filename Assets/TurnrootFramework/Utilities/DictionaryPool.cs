@@ -93,7 +93,7 @@ namespace Turnroot.Utilities
             return new PooledDictionary<TKey, TValue>
             {
                 _dictionary = DictionaryPool<TKey, TValue>.Get(),
-                _disposed = false
+                _disposed = false,
             };
         }
 

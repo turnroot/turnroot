@@ -134,8 +134,8 @@ public class AStarModified
         PriorityQueue<MapGridPoint, float> frontier = new();
         frontier.Enqueue(canonicalStart, 0f);
 
-        using var costSoFarPooled = DictionaryPool<MapGridPoint, float>.GetPooled();
-        using var directionFromParentPooled = DictionaryPool<MapGridPoint, string>.GetPooled();
+        using var costSoFarPooled = PooledDictionary<MapGridPoint, float>.Get();
+        using var directionFromParentPooled = PooledDictionary<MapGridPoint, string>.Get();
         var costSoFar = costSoFarPooled.Dictionary;
         var directionFromParent = directionFromParentPooled.Dictionary;
 
