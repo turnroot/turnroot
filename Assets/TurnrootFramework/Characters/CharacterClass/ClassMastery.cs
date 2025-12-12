@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace Turnroot.Characters.CharacterClass
@@ -36,12 +37,9 @@ namespace Turnroot.Characters.CharacterClass
         {
             var allSkills = new List<Skill>(InnateSkills);
 
-            foreach (var bonus in WeaponLevelBonuses)
+            foreach (var bonus in WeaponLevelBonuses.Where(b => b.GrantedSkill != null && !allSkills.Contains(b.GrantedSkill)))
             {
-                if (bonus.GrantedSkill != null && !allSkills.Contains(bonus.GrantedSkill))
-                {
-                    allSkills.Add(bonus.GrantedSkill);
-                }
+                allSkills.Add(bonus.GrantedSkill);
             }
 
             return allSkills;
@@ -52,12 +50,9 @@ namespace Turnroot.Characters.CharacterClass
         /// </summary>
         public Skill GetSkillAtWeaponLevel(WeaponType weaponType, int weaponLevel)
         {
-            foreach (var bonus in WeaponLevelBonuses)
+            foreach (var bonus in WeaponLevelBonuses.Where(b => b.WeaponType == weaponType && b.RequiredWeaponLevel == weaponLevel))
             {
-                if (bonus.WeaponType == weaponType && bonus.RequiredWeaponLevel == weaponLevel)
-                {
-                    return bonus.GrantedSkill;
-                }
+                return bonus.GrantedSkill;
             }
 
             return null;
