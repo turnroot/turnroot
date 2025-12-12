@@ -14,8 +14,24 @@ public class DefeatAllMonstersBattleCondition : BattleCondition
 
     public void CheckCondition(List<Turnroot.Modules.Monsters.MonsterData> monsters)
     {
-        // TODO: use battle context to check if all monsters are defeated
-        ConditionMet();
+        // Only call ConditionMet if all monsters are defeated
+        if (monsters != null && monsters.Count > 0)
+        {
+            bool allDefeated = true;
+            foreach (var monster in monsters)
+            {
+                // Assuming MonsterData has a property 'IsDefeated' or similar
+                if (monster != null && !(monster.IsDefeated))
+                {
+                    allDefeated = false;
+                    break;
+                }
+            }
+            if (allDefeated)
+            {
+                ConditionMet();
+            }
+        }
     }
 }
 #endif
