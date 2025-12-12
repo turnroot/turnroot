@@ -11,15 +11,36 @@ namespace Turnroot.Gameplay.Brain
     /// </summary>
     [RequireComponent(typeof(Brain))]
     [RequireComponent(typeof(LongTermMemory))]
-    public class StorehouseBrain : MonoBehaviour
+    public class StorehouseBrain : BrainComponent
     {
         GameplayGeneralSettings _gameplaySettings;
+
+        protected override void SubscribeToBrainEvents()
+        {
+            _brain.OnGoldGained += HandleGoldGained;
+            _brain.OnGoldSpent += HandleGoldSpent;
+        }
+
+        protected override void UnsubscribeFromBrainEvents()
+        {
+            _brain.OnGoldGained -= HandleGoldGained;
+            _brain.OnGoldSpent -= HandleGoldSpent;
+        }
+
+        private void HandleGoldGained(int amount)
+        {
+            AddGold(amount);
+        }
+
+        private void HandleGoldSpent(int amount)
+        {
+            SpendGold(amount);
+        }
 
         private void Start()
         {
             _ltm = GetComponent<LongTermMemory>();
             _gameplaySettings = GameSettingsLoader.LoadFirst<GameplayGeneralSettings>();
-            _brain = GetComponent<Brain>();
             _materials = new Dictionary<ObjectItem, int>();
             GoldDisplayNames =
                 _gameplaySettings != null
@@ -42,7 +63,6 @@ namespace Turnroot.Gameplay.Brain
             }
         }
 
-        private Brain _brain;
         private LongTermMemory _ltm;
 
         [SerializeField, HideInInspector]

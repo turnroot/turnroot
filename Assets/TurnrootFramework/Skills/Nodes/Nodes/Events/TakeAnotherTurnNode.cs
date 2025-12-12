@@ -1,5 +1,6 @@
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
 using Turnroot.Skills.Nodes;
+using Turnroot.Utilities;
 using UnityEngine;
 using XNode;
 
@@ -20,9 +21,18 @@ namespace Turnroot.Skills.Nodes.Events
                 return;
             }
 
-            // TODO: Integrate with actual turn order system
-            context.SetCustomData("TakeAnotherTurn", true);
-            Debug.Log($"TakeAnotherTurn: Unit will take another turn");
+            var brain = GetBrain.Get();
+            if (brain != null)
+            {
+                brain.InvokeUnitTakesAnotherTurn(context.UnitInstance);
+                Debug.Log(
+                    $"TakeAnotherTurn: {context.UnitInstance.CharacterTemplate.DisplayName} will take another turn"
+                );
+            }
+            else
+            {
+                Debug.LogWarning("TakeAnotherTurn: Could not find Brain to invoke event");
+            }
         }
     }
 }

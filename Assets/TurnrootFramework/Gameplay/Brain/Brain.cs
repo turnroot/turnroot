@@ -243,6 +243,17 @@ namespace Turnroot.Gameplay.Brain
 
         #endregion
 
+        #region Gold Events
+
+        public event Action<int> OnGoldGained;
+        public event Action<int> OnGoldSpent;
+
+        public void InvokeGoldGained(int amount) => OnGoldGained?.Invoke(amount);
+
+        public void InvokeGoldSpent(int amount) => OnGoldSpent?.Invoke(amount);
+
+        #endregion
+
         #region Conversation Events
 
         public event Action<SupportRelationshipInstance> OnSupportPointsChanged;
@@ -269,6 +280,10 @@ namespace Turnroot.Gameplay.Brain
         public event Action OnEnemyTurnEnded;
         public event Action OnThirdPartyTurnEnded;
         public event Action OnTurnEnded;
+        public event Action<CharacterInstance, int> OnAllyDamaged;
+        public event Action<CharacterInstance, int> OnEnemyDamaged;
+        public event Action<CharacterInstance> OnUnitDefeated;
+        public event Action<CharacterInstance, Vector2Int> OnUnitMoved;
 
         public void InvokeStartBattle() => OnStartBattle?.Invoke();
 
@@ -295,6 +310,33 @@ namespace Turnroot.Gameplay.Brain
         public void InvokeThirdPartyTurnEnded() => OnThirdPartyTurnEnded?.Invoke();
 
         public void InvokeTurnEnded() => OnTurnEnded?.Invoke();
+
+        public void InvokeAllyDamaged(CharacterInstance unit, int damageAmount) =>
+            OnAllyDamaged?.Invoke(unit, damageAmount);
+
+        public void InvokeEnemyDamaged(CharacterInstance unit, int damageAmount) =>
+            OnEnemyDamaged?.Invoke(unit, damageAmount);
+
+        public void InvokeUnitDefeated(CharacterInstance unit) => OnUnitDefeated?.Invoke(unit);
+
+        public void InvokeUnitMoved(CharacterInstance unit, Vector2Int newPosition) =>
+            OnUnitMoved?.Invoke(unit, newPosition);
+
+        public event Action<CharacterInstance> OnUnitTakesAnotherTurn;
+        public event Action<CharacterInstance> OnCriticalHit;
+        public event Action<CharacterInstance, int> OnWeaponUsesChanged;
+        public event Action<CharacterInstance, CharacterInstance> OnItemStolen;
+
+        public void InvokeUnitTakesAnotherTurn(CharacterInstance unit) =>
+            OnUnitTakesAnotherTurn?.Invoke(unit);
+
+        public void InvokeCriticalHit(CharacterInstance unit) => OnCriticalHit?.Invoke(unit);
+
+        public void InvokeWeaponUsesChanged(CharacterInstance unit, int usesChange) =>
+            OnWeaponUsesChanged?.Invoke(unit, usesChange);
+
+        public void InvokeItemStolen(CharacterInstance thief, CharacterInstance target) =>
+            OnItemStolen?.Invoke(thief, target);
 
         #endregion
 

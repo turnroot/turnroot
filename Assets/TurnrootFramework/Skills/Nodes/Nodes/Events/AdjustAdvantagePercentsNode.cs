@@ -24,9 +24,10 @@ namespace Turnroot.Skills.Nodes.Events
                 return;
             }
 
-            // TODO: Implement logic to adjust advantage percents based on context
+            // Store in CustomData for combat system to use during advantage calculation
+            context.SetCustomData("AdvantagePercentModifier", AddAdvantagePercent);
             Debug.Log(
-                $"AdjustAdvantagePercents: Would adjust advantage percents by {AddAdvantagePercent}% based on context"
+                $"AdjustAdvantagePercents: Adjusted advantage percents by {AddAdvantagePercent}%"
             );
         }
     }

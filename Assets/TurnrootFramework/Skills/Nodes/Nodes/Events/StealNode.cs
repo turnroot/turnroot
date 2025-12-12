@@ -1,5 +1,6 @@
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
 using Turnroot.Skills.Nodes;
+using Turnroot.Utilities;
 using UnityEngine;
 using XNode;
 
@@ -17,7 +18,13 @@ namespace Turnroot.Skills.Nodes.Events
 
         public override void Execute(BattleContext context)
         {
-            if (context?.Targets == null || context.Targets.Count == 0)
+            if (context?.UnitInstance == null)
+            {
+                Debug.LogWarning("Steal: No unit instance in context");
+                return;
+            }
+
+            if (context.Targets == null || context.Targets.Count == 0)
             {
                 Debug.LogWarning("Steal: No target in context");
                 return;
@@ -30,9 +37,18 @@ namespace Turnroot.Skills.Nodes.Events
                 return;
             }
 
-            // TODO: Integrate with actual inventory system
-            context.SetCustomData("StolenItemType", itemType);
-            Debug.Log($"Steal: Attempted to steal {itemType} from target");
+            var brain = GetBrain.Get();
+            if (brain != null)
+            {
+                brain.InvokeItemStolen(context.UnitInstance, target);
+                Debug.Log(
+                    $"Steal: {context.UnitInstance.CharacterTemplate.DisplayName} attempted to steal {itemType} from {target.CharacterTemplate.DisplayName}"
+                );
+            }
+            else
+            {
+                Debug.LogWarning("Steal: Could not find Brain to invoke event");
+            }
         }
     }
 }

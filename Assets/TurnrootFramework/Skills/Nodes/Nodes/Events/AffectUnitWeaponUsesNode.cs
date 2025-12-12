@@ -42,14 +42,21 @@ namespace Turnroot.Skills.Nodes.Events
                 return;
             }
 
-            float change = GetInputFloat("usesChange", testChange);
+            int change = (int)GetInputFloat("usesChange", testChange);
 
-            // TODO: Integrate with actual weapon/inventory system
-            context.SetCustomData("WeaponUsesChange", change);
-            context.SetCustomData("WeaponUsesApplyToUnit", applyToUnit);
-
-            string target = applyToUnit ? "unit" : "target";
-            Debug.Log($"AffectUnitWeaponUses: Changed {target} weapon uses by {change}");
+            var brain = Turnroot.Utilities.GetBrain.Get();
+            if (brain != null)
+            {
+                brain.InvokeWeaponUsesChanged(targetCharacter, change);
+                string target = applyToUnit ? "unit" : "target";
+                Debug.Log(
+                    $"AffectUnitWeaponUses: Changed {target} ({targetCharacter.CharacterTemplate.DisplayName}) weapon uses by {change}"
+                );
+            }
+            else
+            {
+                Debug.LogWarning("AffectUnitWeaponUses: Could not find Brain to invoke event");
+            }
         }
     }
 }

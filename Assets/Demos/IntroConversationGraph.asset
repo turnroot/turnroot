@@ -54,11 +54,11 @@ MonoBehaviour:
     _primary:
       Speaker: {fileID: 11400000, guid: a53a4ecdb913d9944b06166e1bc35ca6, type: 2}
       DisplayName: 
-      PortraitKey: Felicity
+      PortraitKey: No portraits available
     _secondary:
       Speaker: {fileID: 11400000, guid: 0f8b79eeaffbfbc4aab491112cae2ddd, type: 2}
       DisplayName: 
-      PortraitKey: Newly Created Unit_Portrait
+      PortraitKey: No portraits available
     _activeSpeaker: 1
     Events:
       OnLayerStart:
@@ -121,11 +121,11 @@ MonoBehaviour:
     _primary:
       Speaker: {fileID: 11400000, guid: a53a4ecdb913d9944b06166e1bc35ca6, type: 2}
       DisplayName: 
-      PortraitKey: Felicity
+      PortraitKey: No portraits available
     _secondary:
       Speaker: {fileID: 11400000, guid: 0f8b79eeaffbfbc4aab491112cae2ddd, type: 2}
       DisplayName: 
-      PortraitKey: Newly Created Unit_Portrait
+      PortraitKey: No portraits available
     _activeSpeaker: 1
     Events:
       OnLayerStart:
@@ -185,11 +185,11 @@ MonoBehaviour:
     _primary:
       Speaker: {fileID: 11400000, guid: a53a4ecdb913d9944b06166e1bc35ca6, type: 2}
       DisplayName: 
-      PortraitKey: Felicity
+      PortraitKey: No portraits available
     _secondary:
       Speaker: {fileID: 11400000, guid: 0f8b79eeaffbfbc4aab491112cae2ddd, type: 2}
       DisplayName: 
-      PortraitKey: Newly Created Unit_Portrait
+      PortraitKey: No portraits available
     _activeSpeaker: 1
     Events:
       OnLayerStart:
@@ -248,11 +248,11 @@ MonoBehaviour:
     _primary:
       Speaker: {fileID: 11400000, guid: a53a4ecdb913d9944b06166e1bc35ca6, type: 2}
       DisplayName: 
-      PortraitKey: Felicity
+      PortraitKey: No portraits available
     _secondary:
       Speaker: {fileID: 11400000, guid: 0f8b79eeaffbfbc4aab491112cae2ddd, type: 2}
       DisplayName: 
-      PortraitKey: Newly Created Unit_Portrait
+      PortraitKey: No portraits available
     _activeSpeaker: 0
     Events:
       OnLayerStart:
@@ -311,11 +311,11 @@ MonoBehaviour:
     _primary:
       Speaker: {fileID: 11400000, guid: a53a4ecdb913d9944b06166e1bc35ca6, type: 2}
       DisplayName: 
-      PortraitKey: Felicity
+      PortraitKey: No portraits available
     _secondary:
       Speaker: {fileID: 11400000, guid: 0f8b79eeaffbfbc4aab491112cae2ddd, type: 2}
       DisplayName: 
-      PortraitKey: Newly Created Unit_Portrait
+      PortraitKey: No portraits available
     _activeSpeaker: 1
     Events:
       OnLayerStart:
@@ -517,11 +517,11 @@ MonoBehaviour:
     _primary:
       Speaker: {fileID: 11400000, guid: a53a4ecdb913d9944b06166e1bc35ca6, type: 2}
       DisplayName: 
-      PortraitKey: Felicity
+      PortraitKey: No portraits available
     _secondary:
       Speaker: {fileID: 11400000, guid: 0f8b79eeaffbfbc4aab491112cae2ddd, type: 2}
       DisplayName: 
-      PortraitKey: Newly Created Unit_Portrait
+      PortraitKey: No portraits available
     _activeSpeaker: 0
     Events:
       OnLayerStart:
@@ -581,11 +581,11 @@ MonoBehaviour:
     _primary:
       Speaker: {fileID: 11400000, guid: a53a4ecdb913d9944b06166e1bc35ca6, type: 2}
       DisplayName: 
-      PortraitKey: Felicity
+      PortraitKey: No portraits available
     _secondary:
       Speaker: {fileID: 11400000, guid: 0f8b79eeaffbfbc4aab491112cae2ddd, type: 2}
       DisplayName: 
-      PortraitKey: Newly Created Unit_Portrait
+      PortraitKey: No portraits available
     _activeSpeaker: 0
     Events:
       OnLayerStart:
@@ -645,11 +645,11 @@ MonoBehaviour:
     _primary:
       Speaker: {fileID: 11400000, guid: a53a4ecdb913d9944b06166e1bc35ca6, type: 2}
       DisplayName: 
-      PortraitKey: Felicity
+      PortraitKey: No portraits available
     _secondary:
       Speaker: {fileID: 11400000, guid: 0f8b79eeaffbfbc4aab491112cae2ddd, type: 2}
       DisplayName: 
-      PortraitKey: Newly Created Unit_Portrait
+      PortraitKey: No portraits available
     _activeSpeaker: 0
     Events:
       OnLayerStart:
@@ -708,11 +708,11 @@ MonoBehaviour:
     _primary:
       Speaker: {fileID: 11400000, guid: a53a4ecdb913d9944b06166e1bc35ca6, type: 2}
       DisplayName: 
-      PortraitKey: Felicity
+      PortraitKey: No portraits available
     _secondary:
       Speaker: {fileID: 11400000, guid: 0f8b79eeaffbfbc4aab491112cae2ddd, type: 2}
       DisplayName: 
-      PortraitKey: Newly Created Unit_Portrait
+      PortraitKey: No portraits available
     _activeSpeaker: 0
     Events:
       OnLayerStart:
@@ -771,11 +771,11 @@ MonoBehaviour:
     _primary:
       Speaker: {fileID: 11400000, guid: a53a4ecdb913d9944b06166e1bc35ca6, type: 2}
       DisplayName: 
-      PortraitKey: Felicity
+      PortraitKey: No portraits available
     _secondary:
       Speaker: {fileID: 11400000, guid: 0f8b79eeaffbfbc4aab491112cae2ddd, type: 2}
       DisplayName: 
-      PortraitKey: Newly Created Unit_Portrait
+      PortraitKey: No portraits available
     _activeSpeaker: 0
     Events:
       OnLayerStart:
@@ -834,11 +834,11 @@ MonoBehaviour:
     _primary:
       Speaker: {fileID: 11400000, guid: a53a4ecdb913d9944b06166e1bc35ca6, type: 2}
       DisplayName: 
-      PortraitKey: Felicity
+      PortraitKey: No portraits available
     _secondary:
       Speaker: {fileID: 11400000, guid: 0f8b79eeaffbfbc4aab491112cae2ddd, type: 2}
       DisplayName: 
-      PortraitKey: Newly Created Unit_Portrait
+      PortraitKey: No portraits available
     _activeSpeaker: 0
     Events:
       OnLayerStart:
@@ -898,11 +898,11 @@ MonoBehaviour:
     _primary:
       Speaker: {fileID: 11400000, guid: a53a4ecdb913d9944b06166e1bc35ca6, type: 2}
       DisplayName: ???
-      PortraitKey: Felicity
+      PortraitKey: No portraits available
     _secondary:
       Speaker: {fileID: 11400000, guid: 0f8b79eeaffbfbc4aab491112cae2ddd, type: 2}
       DisplayName: ???
-      PortraitKey: Newly Created Unit_Portrait
+      PortraitKey: No portraits available
     _activeSpeaker: 1
     Events:
       OnLayerStart:
@@ -959,11 +959,11 @@ MonoBehaviour:
     _primary:
       Speaker: {fileID: 11400000, guid: a53a4ecdb913d9944b06166e1bc35ca6, type: 2}
       DisplayName: ???
-      PortraitKey: Felicity
+      PortraitKey: No portraits available
     _secondary:
       Speaker: {fileID: 11400000, guid: 0f8b79eeaffbfbc4aab491112cae2ddd, type: 2}
       DisplayName: ???
-      PortraitKey: Newly Created Unit_Portrait
+      PortraitKey: No portraits available
     _activeSpeaker: 0
     Events:
       OnLayerStart:
@@ -1023,11 +1023,11 @@ MonoBehaviour:
     _primary:
       Speaker: {fileID: 11400000, guid: a53a4ecdb913d9944b06166e1bc35ca6, type: 2}
       DisplayName: 
-      PortraitKey: Felicity
+      PortraitKey: No portraits available
     _secondary:
       Speaker: {fileID: 11400000, guid: 0f8b79eeaffbfbc4aab491112cae2ddd, type: 2}
       DisplayName: 
-      PortraitKey: Newly Created Unit_Portrait
+      PortraitKey: No portraits available
     _activeSpeaker: 0
     Events:
       OnLayerStart:

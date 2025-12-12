@@ -29,6 +29,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         public CharacterInstance UnitInstance { get; set; }
         public List<CharacterInstance> Targets { get; set; }
         public List<CharacterInstance> Allies { get; set; }
+        public List<CharacterInstance> ThirdParty { get; set; }
         public Adjacency AdjacentUnits { get; set; }
 
         // Currently executing skill graph (if any)
@@ -39,11 +40,18 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
         public bool IsInterrupted { get; set; }
 
+        // Combat state flags
+        public bool IsCriticalHit { get; set; }
+        public CharacterInstance CriticalHitUnit { get; set; }
+        public bool AnotherTurnGranted { get; set; }
+        public CharacterInstance UnitTakingAnotherTurn { get; set; }
+
         public BattleContext()
         {
             CustomData = new Dictionary<string, object>();
             Targets = new List<CharacterInstance>();
             Allies = new List<CharacterInstance>();
+            ThirdParty = new List<CharacterInstance>();
             AdjacentUnits = new Adjacency(null);
             ActiveSkills = new List<Skill>();
             ActiveSkillGraphs = new List<SkillGraph>();

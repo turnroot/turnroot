@@ -21,6 +21,9 @@ MonoBehaviour:
   WeaponsCanBeRepaired: 1
   WeaponsHaveDurability: 1
   UseExperienceAptitudes: 1
+  GoldDisplayNames:
+    OneLetter: G
+    FullName: gold
   CombatArts: 0
   CombatArtLimit: 3
   MaxEquippedSkills: 0

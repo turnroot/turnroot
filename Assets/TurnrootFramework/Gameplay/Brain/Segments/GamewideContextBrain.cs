@@ -13,6 +13,8 @@ namespace Turnroot.Gameplay.Brain
     /// </summary>
     public class GamewideContextBrain : BrainComponent
     {
+        public Brain CentralBrain => _brain;
+
         private static class LtmKeys
         {
             public const string RosterIndex = "GWB.Roster.Index";

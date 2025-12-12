@@ -35,7 +35,7 @@ namespace Turnroot.Skills.Nodes.Events
 
             float speedMod = GetInputFloat("speedModifier", testSpeedMod);
 
-            // TODO: Integrate with actual combat system
+            // Store in CustomData for combat system to use during attack resolution
             context.SetCustomData("AttackOrderSpeedModifier", speedMod);
             context.SetCustomData("AttackOrderApplyToUnit", applyToUnit);
             context.SetCustomData("AttackOrderEffectType", effectType);
