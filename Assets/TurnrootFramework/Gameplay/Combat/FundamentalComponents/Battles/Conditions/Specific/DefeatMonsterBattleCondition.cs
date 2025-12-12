@@ -34,7 +34,8 @@ public class DefeatMonsterBattleCondition : BattleCondition
         {
             // TODO: use battle context to check if the monster is defeated
         }
-        ConditionMet();
+        // Implementation pending: Only call ConditionMet() if all monsters are defeated.
+        // ConditionMet();
     }
 }
 #endif
