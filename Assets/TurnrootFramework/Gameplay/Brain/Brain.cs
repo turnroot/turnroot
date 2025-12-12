@@ -243,6 +243,17 @@ namespace Turnroot.Gameplay.Brain
 
         #endregion
 
+        #region Gold Events
+
+        public event Action<int> OnGoldGained;
+        public event Action<int> OnGoldSpent;
+
+        public void InvokeGoldGained(int amount) => OnGoldGained?.Invoke(amount);
+
+        public void InvokeGoldSpent(int amount) => OnGoldSpent?.Invoke(amount);
+
+        #endregion
+
         #region Conversation Events
 
         public event Action<SupportRelationshipInstance> OnSupportPointsChanged;
@@ -310,6 +321,22 @@ namespace Turnroot.Gameplay.Brain
 
         public void InvokeUnitMoved(CharacterInstance unit, Vector2Int newPosition) =>
             OnUnitMoved?.Invoke(unit, newPosition);
+
+        public event Action<CharacterInstance> OnUnitTakesAnotherTurn;
+        public event Action<CharacterInstance> OnCriticalHit;
+        public event Action<CharacterInstance, int> OnWeaponUsesChanged;
+        public event Action<CharacterInstance, CharacterInstance> OnItemStolen;
+
+        public void InvokeUnitTakesAnotherTurn(CharacterInstance unit) =>
+            OnUnitTakesAnotherTurn?.Invoke(unit);
+
+        public void InvokeCriticalHit(CharacterInstance unit) => OnCriticalHit?.Invoke(unit);
+
+        public void InvokeWeaponUsesChanged(CharacterInstance unit, int usesChange) =>
+            OnWeaponUsesChanged?.Invoke(unit, usesChange);
+
+        public void InvokeItemStolen(CharacterInstance thief, CharacterInstance target) =>
+            OnItemStolen?.Invoke(thief, target);
 
         #endregion
 

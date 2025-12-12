@@ -1,3 +1,5 @@
+using UnityEngine;
+
 namespace Turnroot.Gameplay.Objects
 {
     /// <summary>

@@ -40,6 +40,12 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
         public bool IsInterrupted { get; set; }
 
+        // Combat state flags
+        public bool IsCriticalHit { get; set; }
+        public CharacterInstance CriticalHitUnit { get; set; }
+        public bool AnotherTurnGranted { get; set; }
+        public CharacterInstance UnitTakingAnotherTurn { get; set; }
+
         public BattleContext()
         {
             CustomData = new Dictionary<string, object>();

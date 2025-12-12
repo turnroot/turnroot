@@ -1,5 +1,6 @@
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
 using Turnroot.Skills.Nodes;
+using Turnroot.Utilities;
 using UnityEngine;
 using XNode;
 
@@ -27,11 +28,18 @@ namespace Turnroot.Skills.Nodes.Events
                 return;
             }
 
-            float gold = GetInputFloat("goldAmount", testGold);
+            int gold = (int)GetInputFloat("goldAmount", testGold);
 
-            // TODO: Integrate with actual gold/currency system
-            context.SetCustomData("GoldGained", gold);
-            Debug.Log($"GainGold: Player gained {gold} gold");
+            var brain = GetBrain.Get();
+            if (brain != null)
+            {
+                brain.InvokeGoldGained(gold);
+                Debug.Log($"GainGold: Player gained {gold} gold");
+            }
+            else
+            {
+                Debug.LogWarning("GainGold: Could not find Brain to invoke event");
+            }
         }
     }
 }

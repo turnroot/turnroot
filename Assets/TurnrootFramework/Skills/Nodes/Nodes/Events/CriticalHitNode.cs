@@ -1,5 +1,6 @@
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
 using Turnroot.Skills.Nodes;
+using Turnroot.Utilities;
 using UnityEngine;
 using XNode;
 
@@ -14,17 +15,24 @@ namespace Turnroot.Skills.Nodes.Events
 
         public override void Execute(BattleContext context)
         {
-            if (context == null)
+            if (context?.UnitInstance == null)
             {
-                Debug.LogWarning("CriticalHit: No context provided");
+                Debug.LogWarning("CriticalHit: No unit instance in context");
                 return;
             }
 
-            // TODO: Integrate with actual combat system to trigger critical hit
-            // The combat system will handle the damage multiplier calculation
-            context.SetCustomData("IsCriticalHit", true);
-
-            Debug.Log($"CriticalHit: Triggered a critical hit");
+            var brain = GetBrain.Get();
+            if (brain != null)
+            {
+                brain.InvokeCriticalHit(context.UnitInstance);
+                Debug.Log(
+                    $"CriticalHit: {context.UnitInstance.CharacterTemplate.DisplayName} triggered a critical hit"
+                );
+            }
+            else
+            {
+                Debug.LogWarning("CriticalHit: Could not find Brain to invoke event");
+            }
         }
     }
 }
