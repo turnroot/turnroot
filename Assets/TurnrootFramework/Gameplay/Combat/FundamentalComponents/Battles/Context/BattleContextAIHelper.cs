@@ -47,7 +47,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             );
             if (!validation.IsValid)
             {
-                return DictionaryPool<MapGridPoint, float>.Get();
+                return new Dictionary<MapGridPoint, float>();
             }
 
             var parameters = PathfindingParameters.FromCharacterWithRange(
@@ -58,7 +58,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
             if (parameters == null || !parameters.IsValid())
             {
-                return DictionaryPool<MapGridPoint, float>.Get();
+                return new Dictionary<MapGridPoint, float>();
             }
 
             // Apply movement bonuses
@@ -85,7 +85,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 parameters.MaxRange
             );
 
-            return points ?? DictionaryPool<MapGridPoint, float>.Get();
+            return points ?? new Dictionary<MapGridPoint, float>();
         }
 
         /// <summary>
@@ -99,7 +99,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             );
             if (!validation.IsValid)
             {
-                return DictionaryPool<MapGridPoint, float>.Get();
+                return new Dictionary<MapGridPoint, float>();
             }
 
             var parameters = PathfindingParameters.FromCharacter(
@@ -110,7 +110,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
             if (parameters == null || !parameters.IsValid())
             {
-                return DictionaryPool<MapGridPoint, float>.Get();
+                return new Dictionary<MapGridPoint, float>();
             }
 
             var points = _aStarModified.GetReachable(
@@ -124,7 +124,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 parameters.IsArmored
             );
 
-            return points ?? DictionaryPool<MapGridPoint, float>.Get();
+            return points ?? new Dictionary<MapGridPoint, float>();
         }
 
         /// <summary>
@@ -136,7 +136,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             var moveTiles = GetPossibleMoveTiles(start);
             var allTiles = GetPossibleTilesIncludingRange(start);
 
-            var attackTiles = DictionaryPool<MapGridPoint, float>.Get();
+            var attackTiles = new Dictionary<MapGridPoint, float>();
 
             foreach (var tile in allTiles)
             {

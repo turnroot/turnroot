@@ -35,7 +35,6 @@ namespace Turnroot.Skills.Nodes.Events
                 )
             )
             {
-                Debug.LogWarning("AffectUnitHitAvoid: No unit instance in context");
                 return;
             }
 

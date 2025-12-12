@@ -36,7 +36,6 @@ namespace Turnroot.Skills.Nodes.Events
                 )
             )
             {
-                Debug.LogWarning("AffectAdjacentAllyStat: No unit instance in context");
                 return;
             }
 
@@ -47,7 +46,6 @@ namespace Turnroot.Skills.Nodes.Events
                 )
             )
             {
-                Debug.LogWarning("AffectAdjacentAllyStat: No adjacent units available in context");
                 return;
             }
 

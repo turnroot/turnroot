@@ -399,20 +399,17 @@ namespace Turnroot.Characters.CharacterClass
 
             if (disposing)
             {
-                // Dispose managed resources
+                // Dispose managed resources (Unity objects can be destroyed here)
                 CleanupMaterial();
             }
+            // Note: Do NOT cleanup Unity objects in finalizer (disposing=false)
+            // as Unity objects must be destroyed on the main thread
 
             _disposed = true;
         }
 
-        /// <summary>
-        /// Finalizer to ensure cleanup even if Dispose is not called.
-        /// </summary>
-        ~CharacterClassDataInstance()
-        {
-            Dispose(false);
-        }
+        // Removed finalizer to prevent attempting to destroy Unity objects from finalizer thread
+        // Unity objects must be destroyed on the main thread and finalizers run on GC thread
 
         #endregion
     }

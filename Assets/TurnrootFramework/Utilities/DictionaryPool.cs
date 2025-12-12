@@ -23,12 +23,14 @@ namespace Turnroot.Utilities
                 if (_pool.Count > 0)
                 {
                     var dict = _pool.Pop();
+                    // Clear inside lock to avoid race condition
                     dict.Clear();
                     return dict;
                 }
-            }
 
-            return new Dictionary<TKey, TValue>();
+                // Create new dictionary inside lock for consistency
+                return new Dictionary<TKey, TValue>();
+            }
         }
 
         /// <summary>

@@ -22,7 +22,6 @@ namespace Turnroot.Skills.Nodes.Events
                 )
             )
             {
-                Debug.LogWarning("CriticalHit: No unit instance in context");
                 return;
             }
 
