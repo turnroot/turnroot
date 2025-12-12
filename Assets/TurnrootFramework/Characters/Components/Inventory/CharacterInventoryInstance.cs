@@ -40,10 +40,7 @@ public class CharacterInventoryInstance : IPostDeserialize
 
     public bool IsFull => _inventoryItems.Count >= _capacity;
 
-    public ObjectItemInstance[] Items()
-    {
-        return _inventoryItems.ToArray();
-    }
+    public ObjectItemInstance[] Items() => _inventoryItems.ToArray();
 
     public int CurrentWeight
     {

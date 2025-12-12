@@ -22,13 +22,18 @@ namespace Turnroot.Skills.Nodes.Events
 
         public override void Execute(BattleContext context)
         {
-            if (context?.UnitInstance == null)
+            if (
+                !ValidationHelper.ValidateNotNull(
+                    context?.UnitInstance,
+                    nameof(context.UnitInstance)
+                )
+            )
             {
                 Debug.LogWarning("MoveUnit: No unit instance in context");
                 return;
             }
 
-            if (context.mapGrid == null)
+            if (!ValidationHelper.ValidateNotNull(context.mapGrid, nameof(context.mapGrid)))
             {
                 Debug.LogWarning("MoveUnit: No map grid in context");
                 return;

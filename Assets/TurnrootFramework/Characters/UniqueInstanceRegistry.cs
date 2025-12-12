@@ -11,9 +11,19 @@ namespace Turnroot.Characters
     public static class UniqueInstanceRegistry
     {
         private static readonly Dictionary<ScriptableObject, object> _map = new();
+        private static readonly object _lock = new();
 
         public static T Get<T>(ScriptableObject template)
-            where T : class => template == null ? null : _map.TryGetValue(template, out var obj) ? obj as T : null;
+            where T : class
+        {
+            if (template == null)
+                return null;
+
+            lock (_lock)
+            {
+                return _map.TryGetValue(template, out var obj) ? obj as T : null;
+            }
+        }
 
         public static void Register(ScriptableObject template, object instance)
         {
@@ -22,7 +32,10 @@ namespace Turnroot.Characters
                 return;
             }
 
-            _map[template] = instance;
+            lock (_lock)
+            {
+                _map[template] = instance;
+            }
         }
 
         public static bool TryUnregister(ScriptableObject template, object instance)
@@ -32,20 +45,29 @@ namespace Turnroot.Characters
                 return false;
             }
 
-            if (!_map.TryGetValue(template, out var existing))
+            lock (_lock)
             {
-                return false;
-            }
+                if (!_map.TryGetValue(template, out var existing))
+                {
+                    return false;
+                }
 
-            if (!ReferenceEquals(existing, instance))
-            {
-                return false;
-            }
+                if (!ReferenceEquals(existing, instance))
+                {
+                    return false;
+                }
 
-            _map.Remove(template);
-            return true;
+                _map.Remove(template);
+                return true;
+            }
         }
 
-        public static void ClearAll() => _map.Clear();
+        public static void ClearAll()
+        {
+            lock (_lock)
+            {
+                _map.Clear();
+            }
+        }
     }
 }

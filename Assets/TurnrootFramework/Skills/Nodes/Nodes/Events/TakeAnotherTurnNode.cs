@@ -15,7 +15,12 @@ namespace Turnroot.Skills.Nodes.Events
 
         public override void Execute(BattleContext context)
         {
-            if (context?.UnitInstance == null)
+            if (
+                !ValidationHelper.ValidateNotNull(
+                    context?.UnitInstance,
+                    nameof(context.UnitInstance)
+                )
+            )
             {
                 Debug.LogWarning("TakeAnotherTurn: No unit instance in context");
                 return;

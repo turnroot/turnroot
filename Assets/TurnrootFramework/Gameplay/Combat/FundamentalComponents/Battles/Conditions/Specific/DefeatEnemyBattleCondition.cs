@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Turnroot.Characters;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
+using Turnroot.Utilities;
 using UnityEngine;
 
 /// <summary>
@@ -14,8 +15,8 @@ public class DefeatEnemyBattleCondition : BattleCondition
     [SerializeField]
     public CharacterData[] EnemiesToDefeat;
 
-    private List<CharacterInstance> _cachedEnemies;
-    private bool _cacheIsDirty = true;
+    private readonly CacheManager<string, List<CharacterInstance>> _enemiesCache = new();
+    private const string CACHE_KEY = "TargetEnemies";
 
     public DefeatEnemyBattleCondition(string name, string description)
         : base(name, description) { }
@@ -23,19 +24,14 @@ public class DefeatEnemyBattleCondition : BattleCondition
     public DefeatEnemyBattleCondition()
         : base("Defeat enemies", "Kill the listed enemies") { }
 
-    public override void InvalidateCache()
-    {
-        _cacheIsDirty = true;
-    }
+    public override void InvalidateCache() => _enemiesCache.Invalidate(CACHE_KEY);
 
     private List<CharacterInstance> GetTargetEnemies()
     {
-        if (_cacheIsDirty || _cachedEnemies == null)
-        {
-            _cachedEnemies = GetMatchingUnits(battleContext.Targets, EnemiesToDefeat);
-            _cacheIsDirty = false;
-        }
-        return _cachedEnemies;
+        return _enemiesCache.GetOrAdd(
+            CACHE_KEY,
+            () => GetMatchingUnits(battleContext.Targets, EnemiesToDefeat)
+        );
     }
 
     public void CheckCondition()
@@ -45,7 +41,7 @@ public class DefeatEnemyBattleCondition : BattleCondition
             return;
         }
 
-        if (EnemiesToDefeat == null || EnemiesToDefeat.Length == 0)
+        if (!ValidationHelper.ValidateNotNullOrEmpty(EnemiesToDefeat, nameof(EnemiesToDefeat)))
         {
             Debug.LogWarning("DefeatEnemyBattleCondition: No enemies specified.");
             return;
@@ -53,7 +49,7 @@ public class DefeatEnemyBattleCondition : BattleCondition
 
         var targetEnemies = GetTargetEnemies();
 
-        if (targetEnemies.Count == 0)
+        if (!ValidationHelper.ValidateNotNullOrEmpty(targetEnemies, nameof(targetEnemies)))
         {
             Debug.LogWarning("DefeatEnemyBattleCondition: No matching enemies found in battle.");
             return;

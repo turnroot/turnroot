@@ -633,11 +633,13 @@ namespace Turnroot.Characters
             // Check if this class has been equipped before (compare by reference, not name)
             bool isFirstTime = !_equippedClassHistory.Contains(newClassData);
 
-            // Create new class instance
+            // Create new class instance, passing the isFirstTime flag to maintain consistency
+            // between mechanical state (bonuses) and visual state (materials)
             _currentClass = new CharacterClassDataInstance(
                 _characterTemplate,
                 newClassData,
-                meshRenderer
+                meshRenderer,
+                isFirstTime
             );
 
             // Initialize visual representation if mesh renderer provided

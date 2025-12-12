@@ -110,7 +110,7 @@ namespace Turnroot.Characters
         /// Catches UnityException (Resources.Load during serialization) and general exceptions.
         /// </summary>
         private static T GetOrDefault<T>(
-            Func<T> getter,
+            System.Func<T> getter,
             T defaultValue,
             string settingName = "Setting"
         )

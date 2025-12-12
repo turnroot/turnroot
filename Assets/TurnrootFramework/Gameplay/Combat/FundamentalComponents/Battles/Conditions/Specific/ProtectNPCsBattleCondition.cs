@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Turnroot.Characters;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
+using Turnroot.Utilities;
 using UnityEngine;
 
 /// <summary>
@@ -17,8 +18,7 @@ public class ProtectNPCsBattleCondition : BattleCondition
     [SerializeField]
     public int MustSurviveCount = 0;
 
-    private List<CharacterInstance> _cachedNPCs;
-    private bool _cacheIsDirty = true;
+    private readonly SingleValueCache<List<CharacterInstance>> _npcsCache = new();
 
     public ProtectNPCsBattleCondition(
         string name,
@@ -37,19 +37,11 @@ public class ProtectNPCsBattleCondition : BattleCondition
         NPCsToProtect = Array.Empty<CharacterData>();
     }
 
-    public override void InvalidateCache()
-    {
-        _cacheIsDirty = true;
-    }
+    public override void InvalidateCache() => _npcsCache.Invalidate();
 
     private List<CharacterInstance> GetTrackedNPCs()
     {
-        if (_cacheIsDirty || _cachedNPCs == null)
-        {
-            _cachedNPCs = GetMatchingAlliesAndThirdParty(NPCsToProtect);
-            _cacheIsDirty = false;
-        }
-        return _cachedNPCs;
+        return _npcsCache.GetOrCompute(() => GetMatchingAlliesAndThirdParty(NPCsToProtect));
     }
 
     public void CheckCondition()
@@ -59,7 +51,7 @@ public class ProtectNPCsBattleCondition : BattleCondition
             return;
         }
 
-        if (NPCsToProtect == null || NPCsToProtect.Length == 0)
+        if (!ValidationHelper.ValidateNotNullOrEmpty(NPCsToProtect, nameof(NPCsToProtect)))
         {
             Debug.LogWarning("ProtectNPCsBattleCondition: No NPCs specified to protect.");
             return;
@@ -67,7 +59,7 @@ public class ProtectNPCsBattleCondition : BattleCondition
 
         var allPotentialNPCs = GetTrackedNPCs();
 
-        if (allPotentialNPCs.Count == 0)
+        if (!ValidationHelper.ValidateNotNullOrEmpty(allPotentialNPCs, nameof(allPotentialNPCs)))
         {
             Debug.LogWarning("ProtectNPCsBattleCondition: No matching NPCs found in battle.");
             return;

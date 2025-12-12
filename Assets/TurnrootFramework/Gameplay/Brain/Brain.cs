@@ -4,6 +4,7 @@ using Turnroot.Characters.Components.Support;
 using Turnroot.Conversations;
 using Turnroot.Gameplay.Combat;
 using Turnroot.Gameplay.Objects;
+using Turnroot.Utilities;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -452,19 +453,29 @@ namespace Turnroot.Gameplay.Brain
 
         #region Conversation Controller Management
 
+        private readonly SingleValueCache<ConversationController> _conversationControllerCache =
+            new();
+
         public void PopulateSceneConversationController(ConversationController controller)
         {
             _sceneConversationController = controller;
+            _conversationControllerCache.Invalidate(); // Invalidate cache when manually set
             Debug.Log("Brain populated scene ConversationController.");
         }
 
         private void TryLinkConversationController()
         {
-            var controllers = FindObjectsByType<ConversationController>(FindObjectsSortMode.None);
-
-            if (controllers != null && controllers.Length > 0)
+            var controller = _conversationControllerCache.GetOrCompute(() =>
             {
-                PopulateSceneConversationController(controllers[0]);
+                var controllers = FindObjectsByType<ConversationController>(
+                    FindObjectsSortMode.None
+                );
+                return (controllers != null && controllers.Length > 0) ? controllers[0] : null;
+            });
+
+            if (controller != null)
+            {
+                _sceneConversationController = controller;
             }
         }
 

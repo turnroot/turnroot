@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Turnroot.Utilities;
 using UnityEngine;
 using Utils;
 
@@ -122,7 +123,7 @@ public class AStarModified
         int maxRange = 0
     )
     {
-        var result = new Dictionary<MapGridPoint, float>();
+        var result = DictionaryPool<MapGridPoint, float>.Get();
         if (graph == null || start == null)
         {
             return result;
@@ -132,8 +133,12 @@ public class AStarModified
 
         PriorityQueue<MapGridPoint, float> frontier = new();
         frontier.Enqueue(canonicalStart, 0f);
-        var costSoFar = new Dictionary<MapGridPoint, float>();
-        var directionFromParent = new Dictionary<MapGridPoint, string>();
+
+        using var costSoFarPooled = PooledDictionary<MapGridPoint, float>.Get();
+        using var directionFromParentPooled = PooledDictionary<MapGridPoint, string>.Get();
+        var costSoFar = costSoFarPooled.Dictionary;
+        var directionFromParent = directionFromParentPooled.Dictionary;
+
         costSoFar[canonicalStart] = 0f;
         directionFromParent[canonicalStart] = null;
 

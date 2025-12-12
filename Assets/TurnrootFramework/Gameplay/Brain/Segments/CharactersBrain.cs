@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Turnroot.Characters;
 using Turnroot.Characters.CharacterClass;
 using Turnroot.Characters.Components;
+using Turnroot.Services;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain
@@ -17,11 +18,22 @@ namespace Turnroot.Gameplay.Brain
         private GamewideContextBrain _gamewideContextBrain;
         private BattleBrain _battleBrain;
 
+        /// <summary>
+        /// Constructor for dependency injection (used in tests).
+        /// </summary>
+        public void Initialize(GamewideContextBrain gamewideContextBrain, BattleBrain battleBrain)
+        {
+            _gamewideContextBrain = gamewideContextBrain;
+            _battleBrain = battleBrain;
+        }
+
         protected override void Awake()
         {
             base.Awake(); // Calls parent Awake which gets Brain and subscribes
-            _gamewideContextBrain = GetComponent<GamewideContextBrain>();
-            _battleBrain = GetComponent<BattleBrain>();
+
+            // Use injected dependencies if available, otherwise get from components (Unity default)
+            _gamewideContextBrain ??= GetComponent<GamewideContextBrain>();
+            _battleBrain ??= GetComponent<BattleBrain>();
         }
 
         protected override void SubscribeToBrainEvents()
@@ -290,6 +302,8 @@ namespace Turnroot.Gameplay.Brain
             }
 
             character.LevelUp();
+
+            // Publish through Brain (centralized event system)
             _brain?.PublishCharacterLevelUp(character);
         }
 
@@ -304,6 +318,8 @@ namespace Turnroot.Gameplay.Brain
             }
 
             character.AddSkill(skill);
+
+            // Publish through Brain (centralized event system)
             _brain?.PublishCharacterLearnedSkill(character, skill);
 
             Debug.Log(
@@ -346,6 +362,7 @@ namespace Turnroot.Gameplay.Brain
             bool success = character.ChangeClass(newClassData, meshRenderer);
             if (success)
             {
+                // Publish through Brain (centralized event system)
                 _brain?.PublishCharacterClassChanged(character);
             }
 

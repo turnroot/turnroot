@@ -1,3 +1,4 @@
+using System.Linq;
 using Turnroot.Characters;
 using Turnroot.Characters.Components;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
@@ -98,7 +99,9 @@ namespace Turnroot.Gameplay.Combat
         private void HandleAllyDamaged(CharacterInstance unit, int damageAmount)
         {
             // Propagate to conditions that track ally damage
-            foreach (var allyDamageCondition in _battleConditions.OfType<LimitTotalAllyDamageBattleCondition>())
+            foreach (
+                var allyDamageCondition in _battleConditions.OfType<LimitTotalAllyDamageBattleCondition>()
+            )
             {
                 allyDamageCondition.OnAllyDamaged(damageAmount);
             }
@@ -107,7 +110,9 @@ namespace Turnroot.Gameplay.Combat
         private void HandleEnemyDamaged(CharacterInstance unit, int damageAmount)
         {
             // Propagate to conditions that track enemy damage
-            foreach (var enemyDamageCondition in _battleConditions.OfType<DealMinimumTotalEnemyDamageBattleCondition>())
+            foreach (
+                var enemyDamageCondition in _battleConditions.OfType<DealMinimumTotalEnemyDamageBattleCondition>()
+            )
             {
                 enemyDamageCondition.OnEnemyDamaged(damageAmount);
             }
@@ -129,16 +134,17 @@ namespace Turnroot.Gameplay.Combat
                 protectNPCs.CheckCondition();
             }
 #if TURNROOT_MONSTERS_MODULE
-                else if (condition is DefeatAllMonstersBattleCondition defeatAllMonsters)
-                {
-                    //TODO: defeatAllMonsters.CheckCondition();
-                }
-                else if (condition is DefeatMonsterBattleCondition defeatMonster)
-                {
-                    defeatMonster.CheckCondition();
-                }
-#endif
+            foreach (
+                var defeatAllMonsters in _battleConditions.OfType<DefeatAllMonstersBattleCondition>()
+            )
+            {
+                //TODO: defeatAllMonsters.CheckCondition();
             }
+            foreach (var defeatMonster in _battleConditions.OfType<DefeatMonsterBattleCondition>())
+            {
+                defeatMonster.CheckCondition();
+            }
+#endif
         }
 
         private void HandleUnitMoved(CharacterInstance unit, Vector2Int newPosition)
@@ -154,15 +160,9 @@ namespace Turnroot.Gameplay.Combat
             }
         }
 
-        private void HandleExitBattle(BattleExitType exitType)
-        {
-            DisconnectFromBrainEvents();
-        }
+        private void HandleExitBattle(BattleExitType exitType) => DisconnectFromBrainEvents();
 
-        private void OnDestroy()
-        {
-            DisconnectFromBrainEvents();
-        }
+        private void OnDestroy() => DisconnectFromBrainEvents();
 
         public void ConnectBattleConditionsToGamewideContextBrain()
         {
