@@ -24,7 +24,7 @@ public class DefeatEnemyBattleCondition : BattleCondition
     public DefeatEnemyBattleCondition()
         : base("Defeat enemies", "Kill the listed enemies") { }
 
-    public override void InvalidateCache() => _enemiesCache.Clear();
+    public override void InvalidateCache() => _enemiesCache.Invalidate(CACHE_KEY);
 
     private List<CharacterInstance> GetTargetEnemies()
     {
