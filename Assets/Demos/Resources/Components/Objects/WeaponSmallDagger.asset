@@ -15,7 +15,7 @@ MonoBehaviour:
   _name: Small Dagger
   _flavorText: Easily concealed for those with questionable motives, but razor-sharp
     and lightning fast
-  _isUnequippable: 1
+  _isUnequippable: 0
   _subtype:
     _value: Weapon
   _equipableType: 0
@@ -30,11 +30,7 @@ MonoBehaviour:
   _repairItem: {fileID: 11400000, guid: 87e2f8cd4f716cb4989c491ddc545243, type: 2}
   _repairItemAmountPerUse: 1
   _forgeable: 1
-  _forgeInto: []
-  _forgePrices: 
-  _forgeNeedsItems: 0
-  _forgeItems: []
-  _forgeItemAmountPerUse: 1
+  _forgeOptions: []
   _belongsTo: {fileID: 0}
   _giftRank: 1
   _unitsLove: []
@@ -44,7 +40,6 @@ MonoBehaviour:
   _rangeAdjustedByStat: 0
   _rangeAdjustedByStatName: 0
   _rangeAdjustedByStatAmount: 0
-  _durability: 1
   _maxUses: 40
   _replenishUsesAfterBattle: 0
   _replenishUsesAfterBattleAmount: 0

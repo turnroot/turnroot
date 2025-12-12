@@ -13,6 +13,8 @@ namespace Turnroot.Gameplay.Brain
     public class BattleBrain : BrainComponent
     {
         private BattleGameObject _battleGameObject;
+
+        public BattleGameObject BattleObject => _battleGameObject;
         private TurnRotisserie _turnRotisserie;
 
         // Accessor for current battle's rosters through BattleGameObject

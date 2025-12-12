@@ -29,6 +29,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         public CharacterInstance UnitInstance { get; set; }
         public List<CharacterInstance> Targets { get; set; }
         public List<CharacterInstance> Allies { get; set; }
+        public List<CharacterInstance> ThirdParty { get; set; }
         public Adjacency AdjacentUnits { get; set; }
 
         // Currently executing skill graph (if any)
@@ -44,6 +45,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             CustomData = new Dictionary<string, object>();
             Targets = new List<CharacterInstance>();
             Allies = new List<CharacterInstance>();
+            ThirdParty = new List<CharacterInstance>();
             AdjacentUnits = new Adjacency(null);
             ActiveSkills = new List<Skill>();
             ActiveSkillGraphs = new List<SkillGraph>();

@@ -1,5 +1,4 @@
 using Turnroot.Characters;
-using Turnroot.Characters;
 using Turnroot.Characters.Components;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Environment;
@@ -20,9 +19,9 @@ namespace Turnroot.Gameplay.Combat
     {
         public bool HasThirdParty;
 
-        [Header("Battle Components")]
-        [SerializeField]
-        private BattleContext _battleContext;
+        [field: Header("Battle Components")]
+        [field: SerializeField]
+        public BattleContext Context { get; private set; }
 
         [SerializeField, SerializeReference]
         private BattleCondition[] _battleConditions;
@@ -33,29 +32,34 @@ namespace Turnroot.Gameplay.Combat
         [SerializeField, NaughtyAttributes.ReadOnly]
         private int _currentTurnCount;
 
-        [HideInInspector]
-        private Brain.Brain _brain;
-        public Brain.Brain Brain
-        {
-            get => _brain;
-            set => _brain = value;
-        }
+        [field: HideInInspector]
+        public Brain.Brain Brain { get; set; }
 
         // Battle rosters - temporary for this battle only
-        private RosterInstance _playerTeamRoster;
-        private RosterInstance _enemyTeamRoster;
-        private RosterInstance _thirdPartyTeamRoster;
 
-        public RosterInstance PlayerTeamRoster => _playerTeamRoster;
-        public RosterInstance EnemyTeamRoster => _enemyTeamRoster;
-        public RosterInstance ThirdPartyTeamRoster => _thirdPartyTeamRoster;
+        public RosterInstance PlayerTeamRoster { get; private set; }
+        public RosterInstance EnemyTeamRoster { get; private set; }
+        public RosterInstance ThirdPartyTeamRoster { get; private set; }
 
         public void ConnectToBrainEvents()
         {
-            if (_brain != null)
+            if (Brain != null)
             {
                 Debug.Log("BattleGameObject connecting to Brain events.");
-                // TODO: Subscribe to relevant Brain events here
+
+                // Subscribe to turn end event
+                Brain.OnTurnEnded += HandleTurnEnded;
+
+                // Subscribe to damage events
+                Brain.OnAllyDamaged += HandleAllyDamaged;
+                Brain.OnEnemyDamaged += HandleEnemyDamaged;
+
+                // Subscribe to defeat and movement events
+                Brain.OnUnitDefeated += HandleUnitDefeated;
+                Brain.OnUnitMoved += HandleUnitMoved;
+
+                // Subscribe to battle lifecycle events
+                Brain.OnExitBattle += HandleExitBattle;
             }
             else
             {
@@ -63,9 +67,117 @@ namespace Turnroot.Gameplay.Combat
             }
         }
 
+        public void DisconnectFromBrainEvents()
+        {
+            if (Brain != null)
+            {
+                Brain.OnTurnEnded -= HandleTurnEnded;
+                Brain.OnAllyDamaged -= HandleAllyDamaged;
+                Brain.OnEnemyDamaged -= HandleEnemyDamaged;
+                Brain.OnUnitDefeated -= HandleUnitDefeated;
+                Brain.OnUnitMoved -= HandleUnitMoved;
+                Brain.OnExitBattle -= HandleExitBattle;
+            }
+        }
+
+        private void HandleTurnEnded()
+        {
+            IncrementTurnCount();
+
+            // Propagate to conditions that need turn end notifications
+            foreach (var condition in _battleConditions)
+            {
+                if (condition is SurviveTurnsBattleCondition surviveTurns)
+                {
+                    surviveTurns.OnTurnEnd();
+                }
+                else if (condition is TimeLimitBattleCondition timeLimit)
+                {
+                    timeLimit.OnTurnEnd();
+                }
+            }
+        }
+
+        private void HandleAllyDamaged(CharacterInstance unit, int damageAmount)
+        {
+            // Propagate to conditions that track ally damage
+            foreach (var condition in _battleConditions)
+            {
+                if (condition is LimitTotalAllyDamageBattleCondition allyDamageCondition)
+                {
+                    allyDamageCondition.OnAllyDamaged(damageAmount);
+                }
+            }
+        }
+
+        private void HandleEnemyDamaged(CharacterInstance unit, int damageAmount)
+        {
+            // Propagate to conditions that track enemy damage
+            foreach (var condition in _battleConditions)
+            {
+                if (condition is DealMinimumTotalEnemyDamageBattleCondition enemyDamageCondition)
+                {
+                    enemyDamageCondition.OnEnemyDamaged(damageAmount);
+                }
+            }
+        }
+
+        private void HandleUnitDefeated(CharacterInstance unit)
+        {
+            // Check defeat-related conditions
+            foreach (var condition in _battleConditions)
+            {
+                if (condition is DefeatAllEnemiesBattleCondition defeatAll)
+                {
+                    defeatAll.CheckCondition();
+                }
+                else if (condition is DefeatEnemyBattleCondition defeatSpecific)
+                {
+                    defeatSpecific.CheckCondition();
+                }
+                else if (condition is ProtectNPCsBattleCondition protectNPCs)
+                {
+                    protectNPCs.CheckCondition();
+                }
+#if TURNROOT_MONSTERS_MODULE
+                else if (condition is DefeatAllMonstersBattleCondition defeatAllMonsters)
+                {
+                    //TODO: defeatAllMonsters.CheckCondition();
+                }
+                else if (condition is DefeatMonsterBattleCondition defeatMonster)
+                {
+                    defeatMonster.CheckCondition();
+                }
+#endif
+            }
+        }
+
+        private void HandleUnitMoved(CharacterInstance unit, Vector2Int newPosition)
+        {
+            // Check movement-related conditions
+            foreach (var condition in _battleConditions)
+            {
+                if (condition is SurviveUntilAllyReachesTileBattleCondition reachTile)
+                {
+                    reachTile.CheckCondition();
+                }
+                // TODO: ReachTilesBattleCondition needs manual tracking of reached tiles
+            }
+        }
+
+        private void HandleExitBattle(BattleExitType exitType)
+        {
+            DisconnectFromBrainEvents();
+        }
+
+        private void OnDestroy()
+        {
+            DisconnectFromBrainEvents();
+        }
+
         public void ConnectBattleConditionsToGamewideContextBrain()
         {
-            if (_brain == null || _brain.gamewideContextBrain == null)
+            if (Brain == null || Brain.gamewideContextBrain == null)
             {
                 Debug.LogError(
                     "BattleGameObject cannot connect BattleConditions: Brain or GamewideContextBrain is null."
@@ -76,14 +188,14 @@ namespace Turnroot.Gameplay.Combat
 
             foreach (var condition in _battleConditions)
             {
-                condition.gamewideContextBrain = _brain.gamewideContextBrain;
+                condition.gamewideContextBrain = Brain.gamewideContextBrain;
             }
         }
 
         public void Awake()
         {
             ResetTurnCount();
-            _battleContext ??= new BattleContext();
+            Context ??= new BattleContext();
             _mapGrid = _mapGrid != null ? _mapGrid : GetComponentInChildren<MapGrid>();
             if (_mapGrid == null)
             {
@@ -111,39 +223,39 @@ namespace Turnroot.Gameplay.Combat
         public void InitializeBattleRosters()
         {
             // Create or clear player roster
-            if (_playerTeamRoster == null)
+            if (PlayerTeamRoster == null)
             {
                 var go = new GameObject("BattleRoster - Player Team");
                 go.transform.SetParent(transform);
-                _playerTeamRoster = go.AddComponent<RosterInstance>();
+                PlayerTeamRoster = go.AddComponent<RosterInstance>();
             }
             else
             {
-                _playerTeamRoster.Clear();
+                PlayerTeamRoster.Clear();
             }
 
             // Create or clear enemy roster
-            if (_enemyTeamRoster == null)
+            if (EnemyTeamRoster == null)
             {
                 var go = new GameObject("BattleRoster - Enemy Team");
                 go.transform.SetParent(transform);
-                _enemyTeamRoster = go.AddComponent<RosterInstance>();
+                EnemyTeamRoster = go.AddComponent<RosterInstance>();
             }
             else
             {
-                _enemyTeamRoster.Clear();
+                EnemyTeamRoster.Clear();
             }
 
             // Create or clear third party roster
-            if (_thirdPartyTeamRoster == null)
+            if (ThirdPartyTeamRoster == null)
             {
                 var go = new GameObject("BattleRoster - Third Party Team");
                 go.transform.SetParent(transform);
-                _thirdPartyTeamRoster = go.AddComponent<RosterInstance>();
+                ThirdPartyTeamRoster = go.AddComponent<RosterInstance>();
             }
             else
             {
-                _thirdPartyTeamRoster.Clear();
+                ThirdPartyTeamRoster.Clear();
             }
 
             Debug.Log("BattleGameObject: Initialized three temporary battle rosters.");
@@ -176,19 +288,19 @@ namespace Turnroot.Gameplay.Combat
 
                 string faction = character.CharacterTemplate.Which.Value;
 
-                if (faction == CharacterWhich.ALLY || faction == CharacterWhich.AVATAR)
+                if (faction is CharacterWhich.ALLY or CharacterWhich.AVATAR)
                 {
-                    _playerTeamRoster.AddInstance(character);
+                    PlayerTeamRoster.AddInstance(character);
                     playerCount++;
                 }
                 else if (faction == CharacterWhich.ENEMY)
                 {
-                    _enemyTeamRoster.AddInstance(character);
+                    EnemyTeamRoster.AddInstance(character);
                     enemyCount++;
                 }
                 else if (faction == CharacterWhich.NPC)
                 {
-                    _thirdPartyTeamRoster.AddInstance(character);
+                    ThirdPartyTeamRoster.AddInstance(character);
                     thirdPartyCount++;
                 }
             }
@@ -213,17 +325,17 @@ namespace Turnroot.Gameplay.Combat
 
             string faction = character.CharacterTemplate.Which.Value;
 
-            if (faction == CharacterWhich.ALLY || faction == CharacterWhich.AVATAR)
+            if (faction is CharacterWhich.ALLY or CharacterWhich.AVATAR)
             {
-                _playerTeamRoster?.AddInstance(character);
+                PlayerTeamRoster?.AddInstance(character);
             }
             else if (faction == CharacterWhich.ENEMY)
             {
-                _enemyTeamRoster?.AddInstance(character);
+                EnemyTeamRoster?.AddInstance(character);
             }
             else if (faction == CharacterWhich.NPC)
             {
-                _thirdPartyTeamRoster?.AddInstance(character);
+                ThirdPartyTeamRoster?.AddInstance(character);
             }
         }
 
@@ -232,9 +344,9 @@ namespace Turnroot.Gameplay.Combat
         /// </summary>
         public void ClearBattleRosters()
         {
-            _playerTeamRoster?.Clear();
-            _enemyTeamRoster?.Clear();
-            _thirdPartyTeamRoster?.Clear();
+            PlayerTeamRoster?.Clear();
+            EnemyTeamRoster?.Clear();
+            ThirdPartyTeamRoster?.Clear();
 
             Debug.Log("BattleGameObject: Cleared all temporary battle rosters.");
         }

@@ -269,6 +269,10 @@ namespace Turnroot.Gameplay.Brain
         public event Action OnEnemyTurnEnded;
         public event Action OnThirdPartyTurnEnded;
         public event Action OnTurnEnded;
+        public event Action<CharacterInstance, int> OnAllyDamaged;
+        public event Action<CharacterInstance, int> OnEnemyDamaged;
+        public event Action<CharacterInstance> OnUnitDefeated;
+        public event Action<CharacterInstance, Vector2Int> OnUnitMoved;
 
         public void InvokeStartBattle() => OnStartBattle?.Invoke();
 
@@ -295,6 +299,17 @@ namespace Turnroot.Gameplay.Brain
         public void InvokeThirdPartyTurnEnded() => OnThirdPartyTurnEnded?.Invoke();
 
         public void InvokeTurnEnded() => OnTurnEnded?.Invoke();
+
+        public void InvokeAllyDamaged(CharacterInstance unit, int damageAmount) =>
+            OnAllyDamaged?.Invoke(unit, damageAmount);
+
+        public void InvokeEnemyDamaged(CharacterInstance unit, int damageAmount) =>
+            OnEnemyDamaged?.Invoke(unit, damageAmount);
+
+        public void InvokeUnitDefeated(CharacterInstance unit) => OnUnitDefeated?.Invoke(unit);
+
+        public void InvokeUnitMoved(CharacterInstance unit, Vector2Int newPosition) =>
+            OnUnitMoved?.Invoke(unit, newPosition);
 
         #endregion
 
