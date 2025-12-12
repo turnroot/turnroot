@@ -60,7 +60,9 @@ namespace Turnroot.Skills.Nodes.Conditions
                 : character == null ? new BoolValue { value = false }
                 : new BoolValue
                 {
-                    value = character.CurrentClass.ClassData.movementType == MovementType.Armored,
+                    value =
+                        character.CurrentClass.ClassData.Identity.MovementType
+                        == MovementType.Armored,
                 };
         }
     }

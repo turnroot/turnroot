@@ -1,7 +1,8 @@
 using System;
 using System.Collections.Generic;
 using Turnroot.Characters;
-using Turnroot.ItemTool;
+using Turnroot.Gameplay.Objects;
+using Turnroot.Gameplay.Objects.Components;
 using UnityEngine;
 
 namespace Turnroot.Characters.CharacterClass
@@ -15,7 +16,7 @@ namespace Turnroot.Characters.CharacterClass
     {
         [Header("Certification")]
         [Tooltip("Optional certification item required to access this class")]
-        public ItemData CertificationItem;
+        public ObjectItem CertificationItem;
 
         [Header("Weapon Types")]
         [Tooltip("List of all weapon types allowed for this class")]
@@ -84,7 +85,7 @@ namespace Turnroot.Characters.CharacterClass
 
             if (CertificationItem != null)
             {
-                parts.Add($"Requires {CertificationItem.ItemName}");
+                parts.Add($"Requires {CertificationItem.name}");
             }
 
             if (AllowedSpecies.Count > 0)

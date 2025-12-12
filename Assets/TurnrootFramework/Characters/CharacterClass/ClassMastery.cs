@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Turnroot.Gameplay.Objects.Components;
 using UnityEngine;
 
 namespace Turnroot.Characters.CharacterClass
@@ -37,7 +38,11 @@ namespace Turnroot.Characters.CharacterClass
         {
             var allSkills = new List<Skill>(InnateSkills);
 
-            foreach (var bonus in WeaponLevelBonuses.Where(b => b.GrantedSkill != null && !allSkills.Contains(b.GrantedSkill)))
+            foreach (
+                var bonus in WeaponLevelBonuses.Where(b =>
+                    b.GrantedSkill != null && !allSkills.Contains(b.GrantedSkill)
+                )
+            )
             {
                 allSkills.Add(bonus.GrantedSkill);
             }
@@ -50,7 +55,11 @@ namespace Turnroot.Characters.CharacterClass
         /// </summary>
         public Skill GetSkillAtWeaponLevel(WeaponType weaponType, int weaponLevel)
         {
-            foreach (var bonus in WeaponLevelBonuses.Where(b => b.WeaponType == weaponType && b.RequiredWeaponLevel == weaponLevel))
+            foreach (
+                var bonus in WeaponLevelBonuses.Where(b =>
+                    b.WeaponType == weaponType && b.RequiredWeaponLevel == weaponLevel
+                )
+            )
             {
                 return bonus.GrantedSkill;
             }
@@ -106,20 +115,6 @@ namespace Turnroot.Characters.CharacterClass
 
         [Tooltip("Skill granted upon reaching the required weapon level")]
         public Skill GrantedSkill;
-    }
-
-    /// <summary>
-    /// Criteria for achieving mastery in a class.
-    /// </summary>
-    public enum MasteryCriteria
-    {
-        None,
-        LevelBased,
-        BattleBased,
-        WeaponLevel,
-        SkillUsage,
-        CombatVictories,
-        SpecialCondition,
     }
 
     /// <summary>

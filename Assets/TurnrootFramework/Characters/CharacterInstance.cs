@@ -375,7 +375,7 @@ namespace Turnroot.Characters
                     growthRates,
                     new List<UnboundedStatModifier>(), // Already combined in GetEffectiveGrowthRates
                     this,
-                    _currentClass.ClassData.unboundedStatCaps
+                    _currentClass.ClassData.Stats.UnboundedStatCaps
                 );
 
                 if (increasedStats.Count == UnboundedStats.Count)
@@ -434,9 +434,9 @@ namespace Turnroot.Characters
             }
 
             // Add class growth rate modifiers if we have a class
-            if (_currentClass?.ClassData?.growthRateModifiers != null)
+            if (_currentClass?.ClassData?.Stats?.GrowthRateModifiers != null)
             {
-                foreach (var classMod in _currentClass.ClassData.growthRateModifiers)
+                foreach (var classMod in _currentClass.ClassData.Stats.GrowthRateModifiers)
                 {
                     int index = effectiveRates.FindIndex(e =>
                         e.unboundedStatType == classMod.unboundedStatType
@@ -580,6 +580,34 @@ namespace Turnroot.Characters
 
         #region Battle Helpers
         /// <summary>
+        /// Returns the minimum attack range across all equippable weapons in the character's inventory, or 0 if no valid weapons are available.
+        /// </summary>
+        public int GetMinRange()
+        {
+            if (_currentClass == null || _currentClass.ClassData == null)
+            {
+                return 0;
+            }
+
+            var allowedWeapons = _currentClass.ClassData.Requirements.AllowedWeaponTypes;
+            var inventory = _inventoryInstance.Items();
+            int minRange = int.MaxValue;
+            bool hasWeapon = false;
+
+            foreach (
+                var weapon in inventory.Where(w =>
+                    w.Template != null && allowedWeapons.Contains(w.Template.WeaponType)
+                )
+            )
+            {
+                hasWeapon = true;
+                minRange = Mathf.Min(minRange, weapon.Template.LowerRange);
+            }
+
+            return hasWeapon ? minRange : 0;
+        }
+
+        /// <summary>
         /// Returns the maximum attack range across all equippable weapons in the character's inventory, or 0 if no valid weapons are available.
         /// </summary>
         public int GetMaxRange()
@@ -589,7 +617,7 @@ namespace Turnroot.Characters
                 return 0;
             }
 
-            var allowedWeapons = _currentClass.ClassData.allowedWeaponTypes;
+            var allowedWeapons = _currentClass.ClassData.Requirements.AllowedWeaponTypes;
             var inventory = _inventoryInstance.Items();
             int maxRange = 0;
 
@@ -663,7 +691,7 @@ namespace Turnroot.Characters
             _currentClass.ApplyStatCaps(this);
 
             Debug.Log(
-                $"{_characterTemplate.DisplayName} changed to class: {newClassData.className}"
+                $"{_characterTemplate.DisplayName} changed to class: {newClassData.Identity.ClassName}"
             );
             return true;
         }
@@ -679,7 +707,7 @@ namespace Turnroot.Characters
             }
 
             // Check level requirement
-            if (_currentLevel < classData.requiredLevelToChange)
+            if (_currentLevel < classData.Requirements.MinimumLevelRequirement)
             {
                 return false;
             }
@@ -691,16 +719,17 @@ namespace Turnroot.Characters
             }
 
             // Check experience requirements (for requirement-based class system)
-            if (classData.experienceRequirements != null)
-            {
-                foreach (var req in classData.experienceRequirements)
-                {
-                    if (!MeetsExperienceRequirement(req.experienceTypeId, req.minimumRank.Value))
-                    {
-                        return false;
-                    }
-                }
-            }
+            // Note: experienceRequirements has been deprecated - now using Requirements.MinimumLevelRequirement
+            // if (classData.experienceRequirements != null)
+            // {
+            //     foreach (var req in classData.experienceRequirements)
+            //     {
+            //         if (!MeetsExperienceRequirement(req.experienceTypeId, req.minimumRank.Value))
+            //         {
+            //             return false;
+            //         }
+            //     }
+            // }
 
             // Check species restrictions
             // TODO: Add species check when species system is implemented
@@ -729,8 +758,8 @@ namespace Turnroot.Characters
                 return true;
             }
 
-            var currentTier = _currentClass.ClassData.classTier;
-            var targetTier = targetClass.classTier;
+            var currentTier = _currentClass.ClassData.Identity.ClassTier;
+            var targetTier = targetClass.Identity.ClassTier;
 
             // Can only advance one tier at a time (Base -> Advanced not allowed)
             // Tier regression is allowed (Advanced -> Intermediate is valid)
@@ -755,7 +784,7 @@ namespace Turnroot.Characters
                 return true; // No class restrictions
             }
 
-            var allowedTypes = _currentClass.ClassData.allowedWeaponTypes;
+            var allowedTypes = _currentClass.ClassData.Requirements.AllowedWeaponTypes;
 
             // Empty list means no restrictions (can equip anything)
             return allowedTypes == null
@@ -775,7 +804,7 @@ namespace Turnroot.Characters
                 return available;
             }
 
-            var promotionPaths = _currentClass.ClassData.promotionPaths;
+            var promotionPaths = _currentClass.ClassData.Requirements.PromotionPaths;
             if (promotionPaths == null || promotionPaths.Count == 0)
             {
                 return available;

@@ -55,7 +55,9 @@ namespace Turnroot.Skills.Nodes.Conditions
                 ? new BoolValue { value = false }
                 : new BoolValue
                 {
-                    value = character.CurrentClass.ClassData.movementType == MovementType.Flying,
+                    value =
+                        character.CurrentClass.ClassData.Identity.MovementType
+                        == MovementType.Flying,
                 };
         }
     }

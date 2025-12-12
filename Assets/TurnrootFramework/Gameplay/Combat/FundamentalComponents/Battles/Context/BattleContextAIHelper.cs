@@ -63,7 +63,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
             // Apply movement bonuses
             var classData = _context.UnitInstance.CurrentClass.ClassData;
-            var movementBonusMod = classData.unboundedStatBonuses?.Find(b =>
+            var movementBonusMod = classData.Stats.UnboundedStatBonuses?.Find(b =>
                 b.unboundedStatType == Characters.Stats.UnboundedStatType.Movement
             );
             if (movementBonusMod.HasValue)

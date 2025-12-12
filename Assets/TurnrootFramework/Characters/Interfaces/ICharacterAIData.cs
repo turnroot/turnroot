@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Turnroot.Characters.Stats;
+using Turnroot.Gameplay.Objects.Components;
 
 namespace Turnroot.Characters
 {
@@ -73,12 +74,12 @@ namespace Turnroot.Characters
             }
 
             public MovementType MovementType =>
-                _character.CurrentClass?.ClassData?.movementType ?? MovementType.Infantry;
+                _character.CurrentClass?.ClassData?.Identity.MovementType ?? MovementType.Infantry;
 
             public int Movement =>
                 _character.GetUnboundedStat(UnboundedStatType.Movement)?.Get() ?? 0;
 
-            public bool IsMagic => _character.CurrentClass?.ClassData?.IsMagic ?? false;
+            public bool IsMagic => _character.CurrentClass?.ClassData?.Identity.IsMagic ?? false;
 
             public (int min, int max) AttackRange
             {
@@ -90,13 +91,15 @@ namespace Turnroot.Characters
                 }
             }
 
-            public int GetStat(UnboundedStatType statType) => _character.GetUnboundedStat(statType)?.Get() ?? 0;
+            public int GetStat(UnboundedStatType statType) =>
+                _character.GetUnboundedStat(statType)?.Get() ?? 0;
 
             public Dictionary<string, float> BehaviorSettings =>
-                _character.CharacterTemplate?.BehaviorSettings?.GetBehaviorDictionary()
-                    ?? new Dictionary<string, float>();
+                _character.CharacterTemplate?.BehaviorSettings.GetBehaviorDictionary()
+                ?? new Dictionary<string, float>();
 
-            public bool CanUseWeaponType(WeaponType weaponType) => _character.CanEquipWeaponType(weaponType);
+            public bool CanUseWeaponType(WeaponType weaponType) =>
+                _character.CanEquipWeaponType(weaponType);
         }
     }
 }
