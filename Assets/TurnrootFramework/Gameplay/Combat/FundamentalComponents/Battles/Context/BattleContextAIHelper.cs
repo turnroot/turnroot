@@ -47,7 +47,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             );
             if (!validation.IsValid)
             {
-                return new Dictionary<MapGridPoint, float>();
+                return DictionaryPool<MapGridPoint, float>.Get();
             }
 
             var parameters = PathfindingParameters.FromCharacterWithRange(
@@ -85,7 +85,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 parameters.MaxRange
             );
 
-            return points ?? new Dictionary<MapGridPoint, float>();
+            return points ?? DictionaryPool<MapGridPoint, float>.Get();
         }
 
         /// <summary>
@@ -99,7 +99,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             );
             if (!validation.IsValid)
             {
-                return new Dictionary<MapGridPoint, float>();
+                return DictionaryPool<MapGridPoint, float>.Get();
             }
 
             var parameters = PathfindingParameters.FromCharacter(
@@ -124,7 +124,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 parameters.IsArmored
             );
 
-            return points ?? new Dictionary<MapGridPoint, float>();
+            return points ?? DictionaryPool<MapGridPoint, float>.Get();
         }
 
         /// <summary>
