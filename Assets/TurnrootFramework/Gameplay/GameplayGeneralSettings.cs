@@ -178,7 +178,7 @@ public class GameplayGeneralSettings : SingletonScriptableObject<GameplayGeneral
     [SerializeField, BoxGroup("Combat Mechanics")]
     private int MaxWarpDistance = 20;
 
-    [SerializeField, BoxGroup("Default Stat Values"), HorizontalLine(color: EColor.Cyan)]
+    [SerializeField, BoxGroup("Default Stat Values"), HorizontalLine(color: EColor.Blue)]
     private float DefaultMaxHealth = 100f;
 
     [SerializeField, BoxGroup("Default Stat Values")]
