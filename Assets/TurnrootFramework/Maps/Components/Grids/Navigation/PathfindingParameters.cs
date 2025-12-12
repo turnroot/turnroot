@@ -35,7 +35,7 @@ namespace Turnroot.Maps
             }
 
             var classData = character.CurrentClass.ClassData;
-            var movementType = classData.movementType;
+            var movementType = classData.Identity.MovementType;
             var movementStat = character.GetUnboundedStat(
                 Characters.Stats.UnboundedStatType.Movement
             );
@@ -48,7 +48,7 @@ namespace Turnroot.Maps
                 IsWalking = movementType == MovementType.Infantry,
                 IsFlying = movementType == MovementType.Flying,
                 IsRiding = movementType == MovementType.Riding,
-                IsMagic = classData.IsMagic,
+                IsMagic = classData.Identity.IsMagic,
                 IsArmored = movementType == MovementType.Armored,
                 SameDirectionMultiplier = 0.95f,
                 IncludeRange = false,

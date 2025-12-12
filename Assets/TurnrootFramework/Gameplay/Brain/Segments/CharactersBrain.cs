@@ -303,15 +303,8 @@ namespace Turnroot.Gameplay.Brain
 
             character.LevelUp();
 
-            // Publish through both Brain (for legacy) and EventAggregator (for new pattern)
+            // Publish through Brain (centralized event system)
             _brain?.PublishCharacterLevelUp(character);
-            EventAggregator.Instance.Publish(
-                new CharacterLevelUpEvent
-                {
-                    Character = character,
-                    NewLevel = character.CurrentLevel,
-                }
-            );
         }
 
         /// <summary>
@@ -326,11 +319,8 @@ namespace Turnroot.Gameplay.Brain
 
             character.AddSkill(skill);
 
-            // Publish through both Brain (for legacy) and EventAggregator (for new pattern)
+            // Publish through Brain (centralized event system)
             _brain?.PublishCharacterLearnedSkill(character, skill);
-            EventAggregator.Instance.Publish(
-                new CharacterSkillLearnedEvent { Character = character, Skill = skill }
-            );
 
             Debug.Log(
                 $"{character.CharacterTemplate?.DisplayName} learned skill: {skill.SkillName}"
@@ -372,15 +362,8 @@ namespace Turnroot.Gameplay.Brain
             bool success = character.ChangeClass(newClassData, meshRenderer);
             if (success)
             {
-                // Publish through both Brain (for legacy) and EventAggregator (for new pattern)
+                // Publish through Brain (centralized event system)
                 _brain?.PublishCharacterClassChanged(character);
-                EventAggregator.Instance.Publish(
-                    new CharacterClassChangedEvent
-                    {
-                        Character = character,
-                        NewClass = newClassData,
-                    }
-                );
             }
 
             return success;

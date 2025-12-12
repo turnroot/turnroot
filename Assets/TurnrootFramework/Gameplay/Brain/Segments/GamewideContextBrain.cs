@@ -52,16 +52,42 @@ namespace Turnroot.Gameplay.Brain
 
         protected override void Awake() => base.Awake(); // Calls parent Awake
 
-        protected override void SubscribeToBrainEvents() =>
+        protected override void SubscribeToBrainEvents()
+        {
             _brain.OnRosterReady += HandleRosterReady;
 
-        protected override void UnsubscribeFromBrainEvents() =>
+            // Subscribe to Brain for automatic cache invalidation
+            _brain.OnCharacterLevelUp += OnCharacterLevelUpHandler;
+            _brain.OnCharacterClassChanged += OnCharacterClassChangedHandler;
+            _brain.OnCharacterLearnedSkill += OnCharacterSkillLearnedHandler;
+        }
+
+        protected override void UnsubscribeFromBrainEvents()
+        {
             _brain.OnRosterReady -= HandleRosterReady;
+
+            // Unsubscribe from Brain
+            _brain.OnCharacterLevelUp -= OnCharacterLevelUpHandler;
+            _brain.OnCharacterClassChanged -= OnCharacterClassChangedHandler;
+            _brain.OnCharacterLearnedSkill -= OnCharacterSkillLearnedHandler;
+        }
 
         public void Start() => RecallRosters();
 
         private void HandleRosterReady(RosterInstance instance) =>
             // Automatically invalidate cache when new roster is created
+            _rosterInstancesCache.Invalidate();
+
+        private void OnCharacterLevelUpHandler(CharacterInstance character) =>
+            // Auto-invalidate cache when character levels up
+            _rosterInstancesCache.Invalidate();
+
+        private void OnCharacterClassChangedHandler(CharacterInstance character) =>
+            // Auto-invalidate cache when character class changes
+            _rosterInstancesCache.Invalidate();
+
+        private void OnCharacterSkillLearnedHandler(CharacterInstance character, Skill skill) =>
+            // Auto-invalidate cache when character learns skill
             _rosterInstancesCache.Invalidate();
 
         #region Roster Cache Management

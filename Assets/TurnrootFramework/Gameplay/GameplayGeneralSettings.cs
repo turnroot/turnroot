@@ -175,6 +175,57 @@ public class GameplayGeneralSettings : SingletonScriptableObject<GameplayGeneral
     [SerializeField, BoxGroup("Combat Mechanics")]
     private float CriticalHitMultiplier = 3f;
 
+    [SerializeField, BoxGroup("Combat Mechanics")]
+    private int MaxWarpDistance = 20;
+
+    [SerializeField, BoxGroup("Default Stat Values"), HorizontalLine(color: EColor.Cyan)]
+    private float DefaultMaxHealth = 100f;
+
+    [SerializeField, BoxGroup("Default Stat Values")]
+    private float DefaultCurrentHealth = 100f;
+
+    [SerializeField, BoxGroup("Default Stat Values")]
+    private float DefaultMinHealth = 0f;
+
+    [SerializeField, BoxGroup("Default Stat Values")]
+    private float DefaultMaxLevel = 99f;
+
+    [SerializeField, BoxGroup("Default Stat Values")]
+    private float DefaultStartingLevel = 1f;
+
+    [SerializeField, BoxGroup("Default Stat Values")]
+    private float DefaultMinLevel = 1f;
+
+    [SerializeField, BoxGroup("Default Stat Values")]
+    private float DefaultMaxExperience = 100f;
+
+    [SerializeField, BoxGroup("Default Stat Values")]
+    private float DefaultStartingExperience = 0f;
+
+    [SerializeField, BoxGroup("Default Stat Values")]
+    private float DefaultMinExperience = 0f;
+
+    [SerializeField, BoxGroup("Default Stat Values")]
+    private float DefaultCoreStatValue = 10f;
+
+    [SerializeField, BoxGroup("Default Stat Values")]
+    private float DefaultLuckValue = 5f;
+
+    [SerializeField, BoxGroup("Default Stat Values")]
+    private float DefaultAuthorityValue = 5f;
+
+    [SerializeField, BoxGroup("Default Stat Values")]
+    private float DefaultCriticalAvoidanceValue = 0f;
+
+    [SerializeField, BoxGroup("Range Constants"), HorizontalLine(color: EColor.Pink)]
+    private int UnlimitedRange = 0;
+
+    [SerializeField, BoxGroup("Range Constants")]
+    private int DefaultMinRange = 0;
+
+    [SerializeField, BoxGroup("Range Constants")]
+    private int DefaultMaxRange = 0;
+
     [SerializeField, BoxGroup("Extra Unit Stats"), HorizontalLine(color: EColor.Green)]
     private bool Weight;
 
@@ -236,6 +287,59 @@ public class GameplayGeneralSettings : SingletonScriptableObject<GameplayGeneral
         Enabled = false,
         HasWeaponType = false,
     };
+
+    // Public accessors for Combat Mechanics
+    public float GetCriticalHitMultiplier() => CriticalHitMultiplier;
+
+    public int GetWeaponTriangleAdvantage() => WeaponTriangleAdvantage;
+
+    public int GetWeaponTriangleDisadvantage() => WeaponTriangleDisadvantage;
+
+    public int GetMagicTriangleAdvantage() => MagicTriangleAdvantage;
+
+    public int GetMagicTriangleDisadvantage() => MagicTriangleDisadvantage;
+
+    public int GetCombatArtLimit() => CombatArtLimit;
+
+    public int GetMaxEquippedSkills() => MaxEquippedSkills;
+
+    public int GetBattalionLimit() => BattalionLimit;
+
+    public int GetMaxWarpDistance() => MaxWarpDistance;
+
+    // Public accessors for Default Stat Values
+    public float GetDefaultMaxHealth() => DefaultMaxHealth;
+
+    public float GetDefaultCurrentHealth() => DefaultCurrentHealth;
+
+    public float GetDefaultMinHealth() => DefaultMinHealth;
+
+    public float GetDefaultMaxLevel() => DefaultMaxLevel;
+
+    public float GetDefaultStartingLevel() => DefaultStartingLevel;
+
+    public float GetDefaultMinLevel() => DefaultMinLevel;
+
+    public float GetDefaultMaxExperience() => DefaultMaxExperience;
+
+    public float GetDefaultStartingExperience() => DefaultStartingExperience;
+
+    public float GetDefaultMinExperience() => DefaultMinExperience;
+
+    public float GetDefaultCoreStatValue() => DefaultCoreStatValue;
+
+    public float GetDefaultLuckValue() => DefaultLuckValue;
+
+    public float GetDefaultAuthorityValue() => DefaultAuthorityValue;
+
+    public float GetDefaultCriticalAvoidanceValue() => DefaultCriticalAvoidanceValue;
+
+    // Public accessors for Range Constants
+    public int GetUnlimitedRange() => UnlimitedRange;
+
+    public int GetDefaultMinRange() => DefaultMinRange;
+
+    public int GetDefaultMaxRange() => DefaultMaxRange;
 
     // Public accessors for Extra Unit Stats
     public bool UseWeight => Weight;

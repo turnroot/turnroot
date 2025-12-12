@@ -52,6 +52,10 @@ namespace Turnroot.Characters.CharacterClass
         }
     }
 
+    /// <summary>
+    /// Character class definition - now acts as a facade over focused sub-components.
+    /// Decomposed from 568-line monolith into Identity, Stats, Requirements, and Mastery classes.
+    /// </summary>
     [CreateAssetMenu(fileName = "New Character Class", menuName = "Turnroot/Character/Class Data")]
     public class CharacterClassData : ScriptableObject
     {
@@ -59,29 +63,139 @@ namespace Turnroot.Characters.CharacterClass
         [HideInInspector, SerializeField]
         private GameplayGeneralSettings.ClassSelectionMode _cachedClassSelectionMode;
 
-        [Foldout("Visuals"), HorizontalLine(color: EColor.Blue)]
-        public Mesh ClassOutfit;
-
-        [Foldout("Visuals")]
-        public Shader ShaderGraph;
-
-        [Foldout("Visuals")]
-        public Texture2D Base;
-
-        [Foldout("Visuals")]
-        public Texture2D MSE;
-
-        [Foldout("Visuals")]
-        public Texture2D TintMask;
+        #region Facade Components
 
         [Foldout("Identity"), HorizontalLine(color: EColor.Yellow)]
-        [Tooltip("Display name for this class")]
-        public string className;
+        [Tooltip("Visual and identity properties for this class")]
+        public ClassIdentity Identity = new();
+
+        [Foldout("Stats"), HorizontalLine(color: EColor.Orange)]
+        [Tooltip("Stat minimums, caps, bonuses, and growth rates")]
+        public ClassStats Stats = new();
+
+        [Foldout("Requirements"), HorizontalLine(color: EColor.Violet)]
+        [Tooltip("Requirements and restrictions for equipping this class")]
+        public ClassRequirements Requirements = new();
+
+        [Foldout("Skills & Mastery"), HorizontalLine(color: EColor.Green)]
+        [Tooltip("Innate skills and mastery progression")]
+        public ClassMastery Mastery = new();
+
+        #endregion
+
+        #region Legacy Property Accessors (For Backward Compatibility)
+
+        // Identity accessors
+        [Obsolete("Use Identity.ClassName instead")]
+        public string className => Identity.ClassName;
+
+        [Obsolete("Use Identity.Description instead")]
+        public string description => Identity.Description;
+
+        [Obsolete("Use Identity.Icon instead")]
+        public Sprite icon => Identity.Icon;
+
+        [Obsolete("Use Identity.ClassTier instead")]
+        public ProgressionLevel classTier => Identity.ClassTier;
+
+        [Obsolete("Use Identity.IsMagic instead")]
+        public bool IsMagic => Identity.IsMagic;
+
+        [Obsolete("Use Identity.IsUnique instead")]
+        public bool isUnique => Identity.IsUnique;
+
+        [Obsolete("Use Identity.MovementType instead")]
+        public MovementType movementType => Identity.MovementType;
+
+        [Obsolete("Use Identity.ClassOutfit instead")]
+        public Mesh ClassOutfit => Identity.ClassOutfit;
+
+        [Obsolete("Use Identity.ShaderGraph instead")]
+        public Shader ShaderGraph => Identity.ShaderGraph;
+
+        [Obsolete("Use Identity.Base instead")]
+        public Texture2D Base => Identity.Base;
+
+        [Obsolete("Use Identity.MSE instead")]
+        public Texture2D MSE => Identity.MSE;
+
+        [Obsolete("Use Identity.TintMask instead")]
+        public Texture2D TintMask => Identity.TintMask;
+
+        // Stats accessors
+        [Obsolete("Use Stats.StatMinimums instead")]
+        public List<StatModifier> statMinimums => Stats.StatMinimums;
+
+        [Obsolete("Use Stats.UnboundedStatMinimums instead")]
+        public List<UnboundedStatModifier> unboundedStatMinimums => Stats.UnboundedStatMinimums;
+
+        [Obsolete("Use Stats.StatCaps instead")]
+        public List<StatModifier> statCaps => Stats.StatCaps;
+
+        [Obsolete("Use Stats.UnboundedStatCaps instead")]
+        public List<UnboundedStatModifier> unboundedStatCaps => Stats.UnboundedStatCaps;
+
+        [Obsolete("Use Stats.StatBonuses instead")]
+        public List<StatModifier> statBonuses => Stats.StatBonuses;
+
+        [Obsolete("Use Stats.UnboundedStatBonuses instead")]
+        public List<UnboundedStatModifier> unboundedStatBonuses => Stats.UnboundedStatBonuses;
+
+        [Obsolete("Use Stats.GrowthRateModifiers instead")]
+        public List<UnboundedStatModifier> growthRateModifiers => Stats.GrowthRateModifiers;
+
+        [Obsolete("Use Stats.ClassChangeBonuses instead")]
+        public List<StatModifier> classChangeBonuses => Stats.ClassChangeBonuses;
+
+        [Obsolete("Use Stats.UnboundedClassChangeBonuses instead")]
+        public List<UnboundedStatModifier> unboundedClassChangeBonuses =>
+            Stats.UnboundedClassChangeBonuses;
+
+        // Requirements accessors
+        [Obsolete("Use Requirements.CertificationItem instead")]
+        public ObjectItem certificationItem => Requirements.CertificationItem as ObjectItem;
+
+        [Obsolete("Use Requirements.AllowedWeaponTypes instead")]
+        public List<WeaponType> allowedWeaponTypes => Requirements.AllowedWeaponTypes;
+
+        [Obsolete("Use Requirements.MinimumLevelRequirement instead")]
+        public int requiredLevelToChange => Requirements.MinimumLevelRequirement;
+
+        [Obsolete("Use Requirements.PromotionPaths instead")]
+        public List<CharacterClassData> promotionPaths => Requirements.PromotionPaths;
+
+        // Mastery accessors
+        [Obsolete("Use Mastery.InnateSkills instead")]
+        public List<Skill> innateSkills => Mastery.InnateSkills;
+
+        #endregion
+
+        #region Inspector Helpers
 
         [Foldout("Identity")]
-        [Tooltip("Short description or flavour text for the class")]
-        [TextArea(2, 6)]
-        public string description;
+        [ShowIf(nameof(ShowPromotionFields))]
+        [Tooltip("List of classes this class can promote to (or from)")]
+        public List<CharacterClassData> _legacyPromotionPaths
+        {
+            get => Requirements.PromotionPaths;
+            set => Requirements.PromotionPaths = value;
+        }
+
+        [Foldout("Identity")]
+        [ShowIf(nameof(ShowPromotionFields))]
+        [Tooltip("Minimum level to change into this class")]
+        public int _legacyRequiredLevelToChange
+        {
+            get => Requirements.MinimumLevelRequirement;
+            set => Requirements.MinimumLevelRequirement = value;
+        }
+
+        [Foldout("Identity")]
+        [Tooltip(
+            "Which pronoun sets are allowed for characters of this class (multi-select). Empty = allow all."
+        )]
+        [HideInInspector]
+        public List<string> allowedPronounKeys = new();
 
         [Foldout("Identity")]
         [Tooltip("Optional icon for UI / inspector")]
@@ -110,103 +224,7 @@ namespace Turnroot.Characters.CharacterClass
         [HideInInspector]
         public List<string> allowedPronounKeys = new();
 
-        [Foldout("Identity")]
-        [Tooltip("If true, only a unique character can hold this class at a time")]
-        public bool isUnique = false;
-
-        [Foldout("Mobility"), HorizontalLine(color: EColor.Blue)]
-        [Tooltip("Movement type for this class")]
-        public MovementType movementType = MovementType.Infantry;
-
-        [Foldout("Stats"), HorizontalLine(color: EColor.Orange)]
-        [InfoBox("Leave any of these at zero and they will be ignored")]
-        public string _;
-
-        [Foldout("Stats")]
-        [Tooltip("Minimum bounded stat values this class enforces (0 = no minimum)")]
-        [ReorderableList]
-        public List<StatModifier> statMinimums = new();
-
-        [Foldout("Stats")]
-        [Tooltip("Minimum unbounded stat values this class enforces (0 = no minimum)")]
-        [ReorderableList]
-        public List<UnboundedStatModifier> unboundedStatMinimums = new();
-
-        [Foldout("Stats")]
-        [Tooltip("Maximum bounded stat caps this class imposes (0 = no cap)")]
-        [ReorderableList]
-        public List<StatModifier> statCaps = new();
-
-        [Foldout("Stats")]
-        [Tooltip("Maximum unbounded stat caps this class imposes (0 = no cap)")]
-        [ReorderableList]
-        public List<UnboundedStatModifier> unboundedStatCaps = new();
-
-        [Foldout("Stats")]
-        [Tooltip("Flat bounded stat bonuses applied when equipping/occupying this class")]
-        [ReorderableList]
-        public List<StatModifier> statBonuses = new();
-
-        [Foldout("Stats")]
-        [Tooltip("Flat unbounded stat bonuses applied when equipping/occupying this class")]
-        [ReorderableList]
-        public List<UnboundedStatModifier> unboundedStatBonuses = new();
-
-        [Foldout("Stats")]
-        [Tooltip("Growth rate modifiers (percentage 0-100) for stat increases on level up")]
-        [ReorderableList]
-        public List<UnboundedStatModifier> growthRateModifiers = new();
-
-        [Foldout("Skills & Abilities"), HorizontalLine(color: EColor.Green)]
-        [Tooltip(
-            "Built-in class skills/abilities that characters get simply from being this class"
-        )]
-        public List<Skill> innateSkills = new();
-
-        [Foldout("Skills & Abilities")]
-        [Tooltip(
-            "Skills learned by mastering this class (e.g., after X battles or reaching certain level)"
-        )]
-        public Mastery[] masteries = new Mastery[0];
-
-        [Foldout("Requirements & Certification"), HorizontalLine(color: EColor.Violet)]
-        [Tooltip(
-            "Item required to unlock/certify into this class (e.g., Intermediate Seal, Master Seal)"
-        )]
-        public ObjectItem certificationItem;
-
-        [Foldout("Requirements & Certification")]
-        [Tooltip(
-            "Weapon types this class can equip. Empty = no restrictions (can equip any weapon)"
-        )]
-        public List<WeaponType> allowedWeaponTypes = new();
-
-        [Foldout("Requirements & Certification")]
-        [Tooltip(
-            "Requirement-based: list of required experience types and minimum ranks needed to take this class"
-        )]
-        [ShowIf(nameof(ShowRequirementFields))]
-        public List<ExperienceRequirement> experienceRequirements = new();
-
-        [Foldout("Requirements & Certification")]
-        [Tooltip(
-            "Species restrictions - only characters of these species can enter this class. Empty = no restrictions."
-        )]
-        public List<SpeciesType> speciesRestrictions = new();
-
-        [Foldout("Requirements & Certification")]
-        [Tooltip(
-            "One-time bounded stat bonuses applied when a character first changes into this class"
-        )]
-        [ReorderableList]
-        public List<StatModifier> classChangeBonuses = new();
-
-        [Foldout("Requirements & Certification")]
-        [Tooltip(
-            "One-time unbounded stat bonuses applied when a character first changes into this class"
-        )]
-        [ReorderableList]
-        public List<UnboundedStatModifier> unboundedClassChangeBonuses = new();
+        #endregion
 
         #region Unity Lifecycle
 
