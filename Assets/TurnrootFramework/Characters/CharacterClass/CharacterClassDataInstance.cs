@@ -13,7 +13,7 @@ namespace Turnroot.Characters.CharacterClass
     /// Manages material rendering and provides methods for applying class bonuses/modifiers to characters.
     /// </summary>
     [Serializable]
-    public class CharacterClassDataInstance : IPostDeserialize
+    public class CharacterClassDataInstance : IPostDeserialize, IDisposable
     {
         #region Fields
 
@@ -39,6 +39,7 @@ namespace Turnroot.Characters.CharacterClass
         private List<Skill> _masteredSkills = new();
 
         private Material _materialInstance;
+        private bool _disposed = false;
 
         #endregion
 
@@ -61,13 +62,14 @@ namespace Turnroot.Characters.CharacterClass
         public CharacterClassDataInstance(
             CharacterData characterData,
             CharacterClassData classData,
-            MeshRenderer meshRenderer = null
+            MeshRenderer meshRenderer = null,
+            bool isFirstTimeEquipped = true
         )
         {
             _characterData = characterData;
             _classData = classData;
             _meshRenderer = meshRenderer;
-            _isFirstTimeEquipped = true;
+            _isFirstTimeEquipped = isFirstTimeEquipped;
             _battlesCompleted = 0;
             _levelWhenEquipped = characterData?.Level ?? 1;
             _masteredSkills = new List<Skill>();
@@ -380,10 +382,37 @@ namespace Turnroot.Characters.CharacterClass
         }
 
         /// <summary>
-        /// Call this when the instance is being destroyed or no longer needed.
-        /// Ensures proper cleanup of resources.
+        /// Dispose of resources properly.
         /// </summary>
-        public void Dispose() => CleanupMaterial();
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            if (disposing)
+            {
+                // Dispose managed resources
+                CleanupMaterial();
+            }
+
+            _disposed = true;
+        }
+
+        /// <summary>
+        /// Finalizer to ensure cleanup even if Dispose is not called.
+        /// </summary>
+        ~CharacterClassDataInstance()
+        {
+            Dispose(false);
+        }
 
         #endregion
     }

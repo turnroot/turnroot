@@ -1,5 +1,6 @@
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
 using Turnroot.Skills.Nodes;
+using Turnroot.Utilities;
 using UnityEngine;
 using XNode;
 
@@ -14,20 +15,25 @@ namespace Turnroot.Skills.Nodes.Events
 
         public override void Execute(BattleContext context)
         {
-            if (context?.UnitInstance == null)
+            if (
+                !ValidationHelper.ValidateNotNull(
+                    context?.UnitInstance,
+                    nameof(context.UnitInstance)
+                )
+            )
             {
                 Debug.LogWarning("SwapUnitWithTarget: No unit instance in context");
                 return;
             }
 
-            if (context.Targets == null || context.Targets.Count == 0)
+            if (!ValidationHelper.ValidateNotNullOrEmpty(context.Targets, nameof(context.Targets)))
             {
                 Debug.LogWarning("SwapUnitWithTarget: No target in context");
                 return;
             }
 
             var target = context.Targets[0];
-            if (target == null)
+            if (!ValidationHelper.ValidateNotNull(target, nameof(target)))
             {
                 Debug.LogWarning("SwapUnitWithTarget: Target is null");
                 return;

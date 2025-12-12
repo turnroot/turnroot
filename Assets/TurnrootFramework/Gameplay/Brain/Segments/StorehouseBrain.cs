@@ -27,15 +27,9 @@ namespace Turnroot.Gameplay.Brain
             _brain.OnGoldSpent -= HandleGoldSpent;
         }
 
-        private void HandleGoldGained(int amount)
-        {
-            AddGold(amount);
-        }
+        private void HandleGoldGained(int amount) => AddGold(amount);
 
-        private void HandleGoldSpent(int amount)
-        {
-            SpendGold(amount);
-        }
+        private void HandleGoldSpent(int amount) => SpendGold(amount);
 
         private void Start()
         {

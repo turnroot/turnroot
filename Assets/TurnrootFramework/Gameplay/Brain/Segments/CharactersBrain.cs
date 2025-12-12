@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Turnroot.Characters;
 using Turnroot.Characters.CharacterClass;
 using Turnroot.Characters.Components;
+using Turnroot.Services;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain
@@ -17,11 +18,22 @@ namespace Turnroot.Gameplay.Brain
         private GamewideContextBrain _gamewideContextBrain;
         private BattleBrain _battleBrain;
 
+        /// <summary>
+        /// Constructor for dependency injection (used in tests).
+        /// </summary>
+        public void Initialize(GamewideContextBrain gamewideContextBrain, BattleBrain battleBrain)
+        {
+            _gamewideContextBrain = gamewideContextBrain;
+            _battleBrain = battleBrain;
+        }
+
         protected override void Awake()
         {
             base.Awake(); // Calls parent Awake which gets Brain and subscribes
-            _gamewideContextBrain = GetComponent<GamewideContextBrain>();
-            _battleBrain = GetComponent<BattleBrain>();
+
+            // Use injected dependencies if available, otherwise get from components (Unity default)
+            _gamewideContextBrain ??= GetComponent<GamewideContextBrain>();
+            _battleBrain ??= GetComponent<BattleBrain>();
         }
 
         protected override void SubscribeToBrainEvents()
@@ -290,7 +302,16 @@ namespace Turnroot.Gameplay.Brain
             }
 
             character.LevelUp();
+
+            // Publish through both Brain (for legacy) and EventAggregator (for new pattern)
             _brain?.PublishCharacterLevelUp(character);
+            EventAggregator.Instance.Publish(
+                new CharacterLevelUpEvent
+                {
+                    Character = character,
+                    NewLevel = character.CurrentLevel,
+                }
+            );
         }
 
         /// <summary>
@@ -304,7 +325,12 @@ namespace Turnroot.Gameplay.Brain
             }
 
             character.AddSkill(skill);
+
+            // Publish through both Brain (for legacy) and EventAggregator (for new pattern)
             _brain?.PublishCharacterLearnedSkill(character, skill);
+            EventAggregator.Instance.Publish(
+                new CharacterSkillLearnedEvent { Character = character, Skill = skill }
+            );
 
             Debug.Log(
                 $"{character.CharacterTemplate?.DisplayName} learned skill: {skill.SkillName}"
@@ -346,7 +372,15 @@ namespace Turnroot.Gameplay.Brain
             bool success = character.ChangeClass(newClassData, meshRenderer);
             if (success)
             {
+                // Publish through both Brain (for legacy) and EventAggregator (for new pattern)
                 _brain?.PublishCharacterClassChanged(character);
+                EventAggregator.Instance.Publish(
+                    new CharacterClassChangedEvent
+                    {
+                        Character = character,
+                        NewClass = newClassData,
+                    }
+                );
             }
 
             return success;

@@ -2,6 +2,9 @@ using System.Collections.Generic;
 using Turnroot.Characters;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Locations;
 using Turnroot.Gameplay.Objects;
+using Turnroot.Maps;
+using Turnroot.Services;
+using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
@@ -38,37 +41,51 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         /// </summary>
         public Dictionary<MapGridPoint, float> GetPossibleTilesIncludingRange(MapGridPoint start)
         {
-            if (_context.UnitInstance?.CurrentClass?.ClassData == null)
+            var validation = ValidationService.Instance.ValidateCharacter(
+                _context.UnitInstance,
+                "GetPossibleTilesIncludingRange"
+            );
+            if (!validation.IsValid)
             {
-                return new Dictionary<MapGridPoint, float>();
+                return DictionaryPool<MapGridPoint, float>.Get();
             }
 
-            var classData = _context.UnitInstance.CurrentClass.ClassData;
-            var movementType = classData.movementType;
-
-            var movementStat = _context.UnitInstance.GetUnboundedStat(
-                Characters.Stats.UnboundedStatType.Movement
+            var parameters = PathfindingParameters.FromCharacterWithRange(
+                _context.UnitInstance,
+                _context.mapGrid,
+                start
             );
+
+            if (parameters == null || !parameters.IsValid())
+            {
+                return DictionaryPool<MapGridPoint, float>.Get();
+            }
+
+            // Apply movement bonuses
+            var classData = _context.UnitInstance.CurrentClass.ClassData;
             var movementBonusMod = classData.unboundedStatBonuses?.Find(b =>
                 b.unboundedStatType == Characters.Stats.UnboundedStatType.Movement
             );
-            var movementBonus = movementBonusMod.HasValue ? movementBonusMod.Value.value : 0f;
+            if (movementBonusMod.HasValue)
+            {
+                parameters.MovementBudget += (int)movementBonusMod.Value.value;
+            }
 
             var points = _aStarModified.GetReachable(
-                _context.mapGrid,
-                start,
-                (int)(movementStat + movementBonus),
-                movementType == MovementType.Infantry,
-                movementType == MovementType.Flying,
-                movementType == MovementType.Riding,
-                classData.IsMagic,
-                movementType == MovementType.Armored,
-                0.95f,
-                true,
-                _context.UnitInstance.GetMaxRange()
+                parameters.Graph,
+                parameters.Start,
+                parameters.MovementBudget,
+                parameters.IsWalking,
+                parameters.IsFlying,
+                parameters.IsRiding,
+                parameters.IsMagic,
+                parameters.IsArmored,
+                parameters.SameDirectionMultiplier,
+                parameters.IncludeRange,
+                parameters.MaxRange
             );
 
-            return points ?? new Dictionary<MapGridPoint, float>();
+            return points ?? DictionaryPool<MapGridPoint, float>.Get();
         }
 
         /// <summary>
@@ -76,26 +93,38 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         /// </summary>
         public Dictionary<MapGridPoint, float> GetPossibleMoveTiles(MapGridPoint start)
         {
-            if (_context.UnitInstance?.CurrentClass?.ClassData == null)
+            var validation = ValidationService.Instance.ValidateCharacter(
+                _context.UnitInstance,
+                "GetPossibleMoveTiles"
+            );
+            if (!validation.IsValid)
             {
-                return new Dictionary<MapGridPoint, float>();
+                return DictionaryPool<MapGridPoint, float>.Get();
             }
 
-            var classData = _context.UnitInstance.CurrentClass.ClassData;
-            var movementType = classData.movementType;
-
-            var points = _aStarModified.GetReachable(
+            var parameters = PathfindingParameters.FromCharacter(
+                _context.UnitInstance,
                 _context.mapGrid,
-                start,
-                _context.UnitInstance.GetUnboundedStat(Characters.Stats.UnboundedStatType.Movement),
-                movementType == MovementType.Infantry,
-                movementType == MovementType.Flying,
-                movementType == MovementType.Riding,
-                classData.IsMagic,
-                movementType == MovementType.Armored
+                start
             );
 
-            return points ?? new Dictionary<MapGridPoint, float>();
+            if (parameters == null || !parameters.IsValid())
+            {
+                return DictionaryPool<MapGridPoint, float>.Get();
+            }
+
+            var points = _aStarModified.GetReachable(
+                parameters.Graph,
+                parameters.Start,
+                parameters.MovementBudget,
+                parameters.IsWalking,
+                parameters.IsFlying,
+                parameters.IsRiding,
+                parameters.IsMagic,
+                parameters.IsArmored
+            );
+
+            return points ?? DictionaryPool<MapGridPoint, float>.Get();
         }
 
         /// <summary>
@@ -107,7 +136,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             var moveTiles = GetPossibleMoveTiles(start);
             var allTiles = GetPossibleTilesIncludingRange(start);
 
-            var attackTiles = new Dictionary<MapGridPoint, float>(allTiles.Count - moveTiles.Count);
+            var attackTiles = DictionaryPool<MapGridPoint, float>.Get();
 
             foreach (var tile in allTiles)
             {

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
 using Turnroot.Characters;
+using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain
@@ -33,9 +34,8 @@ namespace Turnroot.Gameplay.Brain
         private List<Roster> rosters = new();
         public IReadOnlyList<Roster> ConfiguredRosters => rosters;
 
-        // Lazy-loading roster cache with automatic invalidation
-        private List<RosterInstance> _cachedRosterInstances;
-        private int _lastRosterCount = -1;
+        // Using SingleValueCache for roster instances
+        private readonly SingleValueCache<List<RosterInstance>> _rosterInstancesCache = new();
 
         [Header("Tamper Detection")]
         [Tooltip(
@@ -62,7 +62,7 @@ namespace Turnroot.Gameplay.Brain
 
         private void HandleRosterReady(RosterInstance instance) =>
             // Automatically invalidate cache when new roster is created
-            _lastRosterCount = -1;
+            _rosterInstancesCache.Invalidate();
 
         #region Roster Cache Management
 
@@ -71,24 +71,19 @@ namespace Turnroot.Gameplay.Brain
         /// </summary>
         private List<RosterInstance> GetCachedRosterInstances()
         {
-            var currentCount = FindObjectsByType<RosterInstance>(FindObjectsSortMode.None).Length;
-
-            if (_cachedRosterInstances == null || _lastRosterCount != currentCount)
+            return _rosterInstancesCache.GetOrCompute(() =>
             {
-                RefreshRosterCache();
-                _lastRosterCount = currentCount;
-            }
-
-            return _cachedRosterInstances;
+                var rosters = FindObjectsByType<RosterInstance>(FindObjectsSortMode.None);
+                var instances = rosters.Where(r => r != null).ToList();
+                Debug.Log($"Roster cache refreshed: {instances.Count} active rosters");
+                return instances;
+            });
         }
 
-        private void RefreshRosterCache()
-        {
-            _cachedRosterInstances = new List<RosterInstance>();
-            var rosters = FindObjectsByType<RosterInstance>(FindObjectsSortMode.None);
-            _cachedRosterInstances.AddRange(rosters.Where(r => r != null));
-            Debug.Log($"Roster cache refreshed: {_cachedRosterInstances.Count} active rosters");
-        }
+        /// <summary>
+        /// Manually invalidate the roster cache when rosters are added or removed.
+        /// </summary>
+        public void InvalidateRosterCache() => _rosterInstancesCache.Invalidate();
 
         #endregion
 

@@ -84,10 +84,7 @@ public class BattleCondition
     protected List<CharacterInstance> GetMatchingUnits(
         IEnumerable<CharacterInstance> units,
         CharacterData[] templates
-    )
-    {
-        return units.Where(u => templates.Contains(u.CharacterTemplate)).ToList();
-    }
+    ) => units.Where(u => templates.Contains(u.CharacterTemplate)).ToList();
 
     /// <summary>
     /// Get units matching specified templates from Allies and ThirdParty.

@@ -1,3 +1,4 @@
+using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.Objects
@@ -8,10 +9,10 @@ namespace Turnroot.Gameplay.Objects
     /// </summary>
     public static class ItemSettings
     {
-        private static bool? _cachedCanBeForged;
-        private static bool? _cachedCanBeRepaired;
-        private static bool? _cachedHaveDurability;
-        private static bool? _cachedUseExperienceAptitudes;
+        private static readonly SingleValueCache<bool> _canBeForgedCache = new();
+        private static readonly SingleValueCache<bool> _canBeRepairedCache = new();
+        private static readonly SingleValueCache<bool> _haveDurabilityCache = new();
+        private static readonly SingleValueCache<bool> _useExperienceAptitudesCache = new();
 
         /// <summary>
         /// Gets whether weapons can be forged. Safe default: false.
@@ -20,24 +21,20 @@ namespace Turnroot.Gameplay.Objects
         {
             get
             {
-                if (_cachedCanBeForged.HasValue)
+                return _canBeForgedCache.GetOrCompute(() =>
                 {
-                    return _cachedCanBeForged.Value;
-                }
-
-                try
-                {
-                    _cachedCanBeForged = GameplayGeneralSettings.Instance.GetWeaponsCanBeForged();
-                }
-                catch (System.Exception ex)
-                {
-                    Debug.LogWarning(
-                        $"ItemSettings: Failed to load CanBeForged setting: {ex.Message}. Using default: false"
-                    );
-                    _cachedCanBeForged = false;
-                }
-
-                return _cachedCanBeForged.Value;
+                    try
+                    {
+                        return GameplayGeneralSettings.Instance.GetWeaponsCanBeForged();
+                    }
+                    catch (System.Exception ex)
+                    {
+                        Debug.LogWarning(
+                            $"ItemSettings: Failed to load CanBeForged setting: {ex.Message}. Using default: false"
+                        );
+                        return false;
+                    }
+                });
             }
         }
 
@@ -48,24 +45,20 @@ namespace Turnroot.Gameplay.Objects
         {
             get
             {
-                if (_cachedCanBeRepaired.HasValue)
+                return _canBeRepairedCache.GetOrCompute(() =>
                 {
-                    return _cachedCanBeRepaired.Value;
-                }
-
-                try
-                {
-                    _cachedCanBeRepaired = GameplayGeneralSettings.Instance.GetWeaponsCanBeRepaired();
-                }
-                catch (System.Exception ex)
-                {
-                    Debug.LogWarning(
-                        $"ItemSettings: Failed to load CanBeRepaired setting: {ex.Message}. Using default: false"
-                    );
-                    _cachedCanBeRepaired = false;
-                }
-
-                return _cachedCanBeRepaired.Value;
+                    try
+                    {
+                        return GameplayGeneralSettings.Instance.GetWeaponsCanBeRepaired();
+                    }
+                    catch (System.Exception ex)
+                    {
+                        Debug.LogWarning(
+                            $"ItemSettings: Failed to load CanBeRepaired setting: {ex.Message}. Using default: false"
+                        );
+                        return false;
+                    }
+                });
             }
         }
 
@@ -76,24 +69,20 @@ namespace Turnroot.Gameplay.Objects
         {
             get
             {
-                if (_cachedHaveDurability.HasValue)
+                return _haveDurabilityCache.GetOrCompute(() =>
                 {
-                    return _cachedHaveDurability.Value;
-                }
-
-                try
-                {
-                    _cachedHaveDurability = GameplayGeneralSettings.Instance.GetWeaponsHaveDurability();
-                }
-                catch (System.Exception ex)
-                {
-                    Debug.LogWarning(
-                        $"ItemSettings: Failed to load HaveDurability setting: {ex.Message}. Using default: true"
-                    );
-                    _cachedHaveDurability = true;
-                }
-
-                return _cachedHaveDurability.Value;
+                    try
+                    {
+                        return GameplayGeneralSettings.Instance.GetWeaponsHaveDurability();
+                    }
+                    catch (System.Exception ex)
+                    {
+                        Debug.LogWarning(
+                            $"ItemSettings: Failed to load HaveDurability setting: {ex.Message}. Using default: true"
+                        );
+                        return true;
+                    }
+                });
             }
         }
 
@@ -102,10 +91,10 @@ namespace Turnroot.Gameplay.Objects
         /// </summary>
         public static void InvalidateCache()
         {
-            _cachedCanBeForged = null;
-            _cachedCanBeRepaired = null;
-            _cachedHaveDurability = null;
-            _cachedUseExperienceAptitudes = null;
+            _canBeForgedCache.Invalidate();
+            _canBeRepairedCache.Invalidate();
+            _haveDurabilityCache.Invalidate();
+            _useExperienceAptitudesCache.Invalidate();
         }
 
 #if UNITY_EDITOR

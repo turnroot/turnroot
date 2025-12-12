@@ -1,6 +1,7 @@
 using Turnroot.Characters.Stats;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
 using Turnroot.Skills.Nodes;
+using Turnroot.Utilities;
 using UnityEngine;
 using XNode;
 
@@ -26,7 +27,12 @@ namespace Turnroot.Skills.Nodes.Events
 
         public override void Execute(BattleContext context)
         {
-            if (context?.UnitInstance == null)
+            if (
+                !ValidationHelper.ValidateNotNull(
+                    context?.UnitInstance,
+                    nameof(context.UnitInstance)
+                )
+            )
             {
                 Debug.LogWarning("AffectUnitStat: No unit instance in context");
                 return;

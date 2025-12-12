@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using Turnroot.Characters;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
+using Turnroot.Utilities;
 using UnityEngine;
 
 /// <summary>
@@ -16,8 +17,7 @@ public class SurviveUntilAllyReachesTileBattleCondition : BattleCondition
     [SerializeField]
     public Vector2Int TargetTile;
 
-    private CharacterInstance _cachedAlly;
-    private bool _cacheIsDirty = true;
+    private readonly SingleValueCache<CharacterInstance> _allyCache = new();
 
     public SurviveUntilAllyReachesTileBattleCondition(
         string name,
@@ -41,21 +41,13 @@ public class SurviveUntilAllyReachesTileBattleCondition : BattleCondition
         TargetTile = Vector2Int.zero;
     }
 
-    public override void InvalidateCache()
-    {
-        _cacheIsDirty = true;
-    }
+    public override void InvalidateCache() => _allyCache.Invalidate();
 
     private CharacterInstance GetTargetAlly()
     {
-        if (_cacheIsDirty || _cachedAlly == null)
-        {
-            _cachedAlly = battleContext.Allies.FirstOrDefault(a =>
-                a.CharacterTemplate == AllyToReachTile
-            );
-            _cacheIsDirty = false;
-        }
-        return _cachedAlly;
+        return _allyCache.GetOrCompute(() =>
+            battleContext.Allies.FirstOrDefault(a => a.CharacterTemplate == AllyToReachTile)
+        );
     }
 
     public void CheckCondition()

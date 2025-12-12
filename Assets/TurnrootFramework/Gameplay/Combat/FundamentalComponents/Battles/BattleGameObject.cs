@@ -154,15 +154,9 @@ namespace Turnroot.Gameplay.Combat
             }
         }
 
-        private void HandleExitBattle(BattleExitType exitType)
-        {
-            DisconnectFromBrainEvents();
-        }
+        private void HandleExitBattle(BattleExitType exitType) => DisconnectFromBrainEvents();
 
-        private void OnDestroy()
-        {
-            DisconnectFromBrainEvents();
-        }
+        private void OnDestroy() => DisconnectFromBrainEvents();
 
         public void ConnectBattleConditionsToGamewideContextBrain()
         {
