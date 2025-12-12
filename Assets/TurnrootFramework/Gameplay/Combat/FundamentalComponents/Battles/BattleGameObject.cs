@@ -85,60 +85,49 @@ namespace Turnroot.Gameplay.Combat
             IncrementTurnCount();
 
             // Propagate to conditions that need turn end notifications
-            foreach (var condition in _battleConditions)
+            foreach (var surviveTurns in _battleConditions.OfType<SurviveTurnsBattleCondition>())
             {
-                if (condition is SurviveTurnsBattleCondition surviveTurns)
-                {
-                    surviveTurns.OnTurnEnd();
-                }
-                else if (condition is TimeLimitBattleCondition timeLimit)
-                {
-                    timeLimit.OnTurnEnd();
-                }
+                surviveTurns.OnTurnEnd();
+            }
+            foreach (var timeLimit in _battleConditions.OfType<TimeLimitBattleCondition>())
+            {
+                timeLimit.OnTurnEnd();
             }
         }
 
         private void HandleAllyDamaged(CharacterInstance unit, int damageAmount)
         {
             // Propagate to conditions that track ally damage
-            foreach (var condition in _battleConditions)
+            foreach (var allyDamageCondition in _battleConditions.OfType<LimitTotalAllyDamageBattleCondition>())
             {
-                if (condition is LimitTotalAllyDamageBattleCondition allyDamageCondition)
-                {
-                    allyDamageCondition.OnAllyDamaged(damageAmount);
-                }
+                allyDamageCondition.OnAllyDamaged(damageAmount);
             }
         }
 
         private void HandleEnemyDamaged(CharacterInstance unit, int damageAmount)
         {
             // Propagate to conditions that track enemy damage
-            foreach (var condition in _battleConditions)
+            foreach (var enemyDamageCondition in _battleConditions.OfType<DealMinimumTotalEnemyDamageBattleCondition>())
             {
-                if (condition is DealMinimumTotalEnemyDamageBattleCondition enemyDamageCondition)
-                {
-                    enemyDamageCondition.OnEnemyDamaged(damageAmount);
-                }
+                enemyDamageCondition.OnEnemyDamaged(damageAmount);
             }
         }
 
         private void HandleUnitDefeated(CharacterInstance unit)
         {
             // Check defeat-related conditions
-            foreach (var condition in _battleConditions)
+            foreach (var defeatAll in _battleConditions.OfType<DefeatAllEnemiesBattleCondition>())
             {
-                if (condition is DefeatAllEnemiesBattleCondition defeatAll)
-                {
-                    defeatAll.CheckCondition();
-                }
-                else if (condition is DefeatEnemyBattleCondition defeatSpecific)
-                {
-                    defeatSpecific.CheckCondition();
-                }
-                else if (condition is ProtectNPCsBattleCondition protectNPCs)
-                {
-                    protectNPCs.CheckCondition();
-                }
+                defeatAll.CheckCondition();
+            }
+            foreach (var defeatSpecific in _battleConditions.OfType<DefeatEnemyBattleCondition>())
+            {
+                defeatSpecific.CheckCondition();
+            }
+            foreach (var protectNPCs in _battleConditions.OfType<ProtectNPCsBattleCondition>())
+            {
+                protectNPCs.CheckCondition();
+            }
 #if TURNROOT_MONSTERS_MODULE
                 else if (condition is DefeatAllMonstersBattleCondition defeatAllMonsters)
                 {
