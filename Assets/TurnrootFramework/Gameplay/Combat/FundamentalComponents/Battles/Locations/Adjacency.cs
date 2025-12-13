@@ -20,10 +20,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Locations
 
     public class Adjacency
     {
-        // Center position (the unit itself)
         public CharacterInstance Center { get; set; }
-
-        // Eight adjacent positions
         public CharacterInstance TopLeft { get; set; }
         public CharacterInstance TopCenter { get; set; }
         public CharacterInstance TopRight { get; set; }
@@ -166,20 +163,6 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Locations
             }
         }
 
-        // get adjacent allies - allocating version for backwards compatibility
-        public IEnumerable<CharacterInstance> GetAdjacentAllies(
-            Turnroot.Gameplay.Combat.FundamentalComponents.Battles.BattleContext context
-        )
-        {
-            using var result = PooledList<CharacterInstance>.Get();
-            GetAdjacentAlliesNonAlloc(context, result.List);
-            // Must copy since pooled list will be returned
-            foreach (var ally in result.List)
-            {
-                yield return ally;
-            }
-        }
-
         // get adjacent enemies - non-allocating version that fills provided list
         public void GetAdjacentEnemiesNonAlloc(
             Turnroot.Gameplay.Combat.FundamentalComponents.Battles.BattleContext context,
@@ -208,20 +191,6 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Locations
                 {
                     result.Add(adjacent);
                 }
-            }
-        }
-
-        // get adjacent enemies - allocating version for backwards compatibility
-        public IEnumerable<CharacterInstance> GetAdjacentEnemies(
-            Turnroot.Gameplay.Combat.FundamentalComponents.Battles.BattleContext context
-        )
-        {
-            using var result = PooledList<CharacterInstance>.Get();
-            GetAdjacentEnemiesNonAlloc(context, result.List);
-            // Must copy since pooled list will be returned
-            foreach (var enemy in result.List)
-            {
-                yield return enemy;
             }
         }
 

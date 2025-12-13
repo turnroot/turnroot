@@ -1,129 +1,167 @@
-## 🗺️ Turnroot Map System
+# 🗺️ Building Battlefields with Maps
 
-The Turnroot Map System is the core tool for building the battlefields in your game. Think of it less like a spreadsheet and more like a **digital diorama** where every piece is functional.
-
-### The **MapGrid**: Your Game Board
-
-The **MapGrid** is the foundation of your battlefield, similar to a chess board or the grid in a tactical RPG.
-
-* **It's the Battle Area:** It defines the size and structure of your map (e.g., 15 rows by 20 columns).
-* **It's Data-Rich:** Unlike a simple picture, the grid holds data that directly affects gameplay, such as movement costs, defensive bonuses, and where characters can spawn.
-* **It Lives in the Scene:** The map is a real object in your Unity scene, which means you can see it and edit it using standard Unity tools, making map creation visual and immediate.
-
-
-### **Grid Points**: The Building Blocks of the Map
-
-Every square on your map is a **MapGridPoint**, the fundamental unit of the tactical space.
-
-* **Coordinates and Terrain:** Each point knows exactly where it is (row and column) and what kind of **Terrain Type** it is (e.g., Forest, Mountain, Plain).
-* **Occupancy Check:** It tracks who is standing on it. Pathfinding and targeting systems can quickly check the **IsOccupied** flag.
-* **Endless Customization (The Property System):** This is the system's power. You can attach any custom gameplay data to a tile, even if the core system doesn't know about it.
-    * **Examples:** Add a `FloatProperty` named "DangerLevel," or a `BoolProperty` named "IsSafeZone," or an `EventProperty` that triggers dialogue when a character steps there.
-
-### **Terrain Types**: Defining the Rules of Movement and Combat
-
-**Terrain Types** are the heart of tactical design, defining how the environment interacts with your units.
-
-| Terrain Statistic | What It Does for the Player | Example |
-| :--- | :--- | :--- |
-| **Movement Cost** | Specifies how many movement points it costs a unit to enter the tile, based on its unit type. | A **Forest** tile might cost **2.0** for infantry (slowing them down) but **1.0** for flying units (no penalty). |
-| **Combat Bonuses** | Provides stat buffs to a unit standing on the tile. | A unit in a **Forest** might get **+20 Defense** and **+30 Avoid**, making them harder to hit and hurt. |
-| **Health Change** | Affects unit HP at the start or end of a turn. | A **Healing Temple** tile might grant **+10 HP per turn**, while a **Poison Swamp** deals **-5 HP**. |
-
-You define all these rules once in a central **TerrainTypes** asset, and they apply across all your maps.
-
-### **The Map Grid Editor**: Painting Your Battlefield
-
-To build your maps, you use a custom visual tool: the **Map Grid Editor**.
-
-1.  **Create the Grid:** You start by setting the `gridWidth` and `gridHeight` on the **MapGrid** component and clicking **"Create Grid Points"**—this instantly generates the blank canvas.
-2.  **Paint the Terrain:** The editor acts like a paint program. You select a terrain type (e.g., Mountain) from a palette and click or drag on the grid to instantly "paint" the tile with that terrain type and its associated rules.
-3.  **Place Features:** Use the feature tools (**Treasure, Door, Warp**) to place special interactive elements on tiles.
-    * **Template-Instance Pattern for Features:** You define the *default* properties for a "treasure" in a separate asset. When you place one, it inherits those defaults (e.g., *Contents: Iron Sword*), but you can customize *this specific* chest (e.g., change its *Contents: Rare Gem*).
-
-### **Pathfinding** and Movement Range
-
-The system uses a modified **A\*** search algorithm to calculate movement and targeting.
-
-* **Smart Routes:** When a unit moves, the system uses the **Movement Cost** of each tile to find the most efficient route within the unit's **Move** stat budget.
-* **Movement & Attack Range:** The **GetReachable** method calculates all the tiles a unit can move to. It can also expand this calculation to show the unit's **attack range** *after* moving, creating the standard tactical overlay.
-* **Directional Continuity:** The system slightly favors straighter paths, making unit movement look more natural and less like they're pointlessly zigzagging.
+Welcome! This guide will walk you through creating tactical maps in Turnroot. By the end, you'll be designing your own battlefields with interesting terrain, strategic chokepoints, and interactive features.
 
 ---
 
-## 🎨 Map Grid Editor Tutorial Flow
+## What You're Building
 
-The Map Grid Editor provides a visual, paint-style interface for building and configuring your battlefields.
+Think of your map as a game board where every square matters. Each tile can have different terrain that affects movement, provides cover, or triggers special events. The Map Grid Editor lets you paint these tiles visually, like coloring in a grid.
 
-### **Phase 1: Setup and Initialization**
+Your map is made of two main pieces:
 
-#### **1. Scene Setup**
-Start in your Unity scene and create a new, empty GameObject. Name it something descriptive, like "Map\_Forest\_Ambush."
-* Add the **MapGrid** component to this GameObject.
+**The MapGrid** is the container—it defines the size and holds all your tiles together. When you create one, you're essentially saying "I want a battlefield that's 20 tiles wide and 15 tiles tall."
 
-#### **2. Define Dimensions**
-In the MapGrid component's Inspector window:
-* Set the **Grid Width** and **Grid Height** (e.g., $15 \times 20$). This defines the size of your battlefield.
-* Set the **Grid Scale** (typically $1.0$ for tile-based games) to control the physical spacing between tiles.
+**MapGridPoints** are the individual tiles. Each one knows what kind of terrain it is, whether there's a treasure chest on it, and where units can spawn.
 
-#### **3. Generate the Canvas**
-* Click the **"Create Grid Points"** button. The system will instantly generate $15 \times 20$ child GameObjects, each representing a blank **MapGridPoint**.
-* The Scene View now displays a grid structure, ready for painting.
+---
 
-### **Phase 2: Painting the Terrain**
+## Creating Your First Map
 
-This is where you sculpt the landscape using the **Map Grid Editor** window (accessible via **Turnroot → Editors → Map Grid Editor**).
+Let's build a simple map together.
 
-#### **1. Select Your Brush**
-The left side of the Editor window shows two palettes:
-* **Terrain Palette:** Lists all the available **Terrain Types** (Plain, Forest, Mountain, etc.) as colored swatches.
-* **Action:** Click a terrain type to select it as your active brush.
+### Step 1: Set Up the Grid
 
-#### **2. Paint the Terrain**
-* In the main grid canvas, click tiles to apply the selected terrain type, or click and drag to quickly fill large areas.
-* **Visual Feedback:** The tiles immediately change color based on the `EditorColor` of the terrain type, giving you an instant visual map of movement costs and bonuses.
-* **Pro Tip (Hotkeys):** The editor assigns hotkeys to your terrain types, allowing you to switch brushes instantly without moving the mouse to the palette.
+Create a new empty GameObject in your scene and give it a descriptive name like `Map_Forest_Ambush`. Add the **MapGrid** component to it.
 
-### **Phase 3: Placing Features and Spawn Points**
+In the Inspector, you'll see settings for width, height, and scale. Start small—a 12×12 map is plenty while you're learning. You can always resize later.
 
-Once the landscape is set, you add interactive elements and define character starting positions.
+Hit the **"Create Grid Points"** button. You'll see child objects appear in your hierarchy, one for each tile.
 
-#### **1. Placing Interactive Features**
-* Switch to the **Tools Palette** in the Editor.
-* **Action:** Select a feature tool (e.g., **Treasure**, **Door**, **Warp**).
-* **Action:** Click the specific grid point where you want to place the feature.
-* **Visual Feedback:** The tile will gain a letter overlay (e.g., 'T' for Treasure) or an icon, marking the interactive element.
+### Step 2: Open the Editor
 
-#### **2. Defining Spawn Points**
-Spawn points are special properties on the grid point that guide unit deployment.
-* In the Map Grid Editor, click on a tile where you want a unit to start (or use the **Cursor Tool**).
-* The right panel will populate with the tile's specific properties.
-* **Action:** Find the **SpawnPoint** settings section.
-* **Action:** Check the appropriate flags: **IsPossibleAllySpawnPoint**, **IsPossibleEnemySpawnPoint**, or **IsPossibleAvatarSpawnPoint**.
+Go to **Turnroot → Editors → Map Grid Editor**. A new window opens showing your grid as a colored canvas. This is where the fun begins.
 
-### **Phase 4: Configuring Tile-Specific Data**
+### Step 3: Paint Some Terrain
 
-The right-hand panel of the Map Grid Editor lets you fine-tune the properties of the currently selected tile or feature.
+On the left side, you'll see terrain swatches—different colors representing plains, forests, mountains, water, and so on. Click one to select it as your "brush."
 
-#### **1. Customizing Feature Properties (The Template-Instance Pattern)**
-If you select a tile with a **Treasure** feature:
-* The panel loads the default properties from the **MapGridFeatureProperties** asset (the "template").
-* **Action:** Find the **ObjectItemProperty** section. You can now override the default treasure (e.g., changing the contents from "Iron Sword" to "Elixir").
-* **Action:** Add a custom `BoolProperty` named **"RequiresKey"** and set it to **True** to make this specific chest locked.
+Now click and drag on the grid. You're painting terrain! Try creating:
+- A grassy clearing in the center
+- Forest along the edges for cover
+- A river cutting through with a bridge
+- Maybe some mountains blocking off a corner
 
-#### **2. Setting Tile Events**
-* **Action:** Navigate to the **Event Properties** section.
-* **Action:** Use the **FriendlyEnters** or **EnemyEnters** event properties to drag and drop Unity methods.
-    * *Example:* Wire the **EnemyEnters** event to a method that triggers a sudden attack or dialogue if an enemy steps on a specific tile.
+### Step 4: Test Movement
 
-#### **3. Resizing the Map**
-If you need to change the map size during the design phase:
-* Use the **"Add Row," "Add Column," "Remove Row,"** and **"Remove Column"** buttons in the MapGrid Inspector. The system automatically preserves your existing features and terrain when resizing.
+Switch to **Test Movement** mode using the tabs at the top. Click any tile and you'll see a purple overlay showing everywhere a unit could reach from that spot.
 
-### **Phase 5: Advanced (Connecting to 3D Terrain)**
+Try clicking in the forest versus the open plain. Notice how terrain affects movement range. This is how you'll discover whether your map creates interesting tactical decisions.
 
-If you are using a detailed 3D mesh for your level art (e.g., a bumpy hillside or a multi-tiered fortress) but need a 2D tactical grid:
+---
 
-* **Action:** Assign your 3D mesh to the `_single3dHeightMesh` field on the **MapGrid** component.
-* **Action:** Click the **"Connect to 3D Map Height"** button.
-* **Result:** The system raycasts down from each grid point to the 3D surface, snapping the 2D grid's world positions to the terrain's slopes. This ensures your tactical grid accurately matches the visual environment.
+## Understanding Terrain
+
+Terrain does three things: it costs movement points to enter, it provides combat bonuses, and sometimes it affects HP each turn.
+
+### Movement Costs
+
+Every terrain type has different costs for different movement styles:
+
+- **Walking** is your standard infantry. Forests slow them down, mountains are exhausting, and water might be impassable.
+- **Flying** units usually ignore terrain entirely—everything costs 1 to enter. That's what makes them special.
+- **Riding** (cavalry) loves open ground but struggles in forests and can't climb mountains at all.
+- **Armored** units are similar to infantry but extra slow in difficult terrain.
+
+When you're designing, think about how these differences create choices. Put forests between the player's starting position and the objective—now they have to decide: take the slow, safe route through cover, or risk the fast open path?
+
+### Combat Bonuses
+
+Tiles can give defense and avoid bonuses. Forests might give +1 defense and +20 avoid. Forts give even more. Thrones are typically the strongest defensive positions.
+
+Place these strategically. A fort overlooking a chokepoint becomes a meaningful objective—do you rush to claim it, or let the enemy have it and work around?
+
+### Health Effects
+
+Some terrain heals or damages units each turn. A healing spring restores HP. Poison swamps drain it. Lava... well, don't stand in lava.
+
+---
+
+## Adding Features
+
+Features are special objects you place on tiles: treasure chests, doors, warp points, villages to visit, and more.
+
+### Placing Features
+
+In the Map Grid Editor, look for the feature tools (icons showing a chest, door, etc.). Select one, then click a tile. A letter appears showing what's there—T for treasure, D for door, and so on.
+
+### Configuring Features
+
+Click a tile with a feature to see its properties in the right panel. For a treasure chest, you can:
+- Assign which item it contains
+- Mark it as locked (requiring a specific key)
+- Add custom events that trigger when opened
+
+Every feature type has its own options. Doors need keys. Warp points need destinations. Villages might have NPCs or shops.
+
+### The Template System
+
+Here's a useful concept: features use templates. You can set defaults (like "all treasure chests contain gold unless specified otherwise"), then override individual chests when needed.
+
+This saves time—set up sensible defaults once, then only configure the special cases.
+
+---
+
+## Setting Up Spawn Points
+
+Before a battle starts, you need to tell the game where units can appear.
+
+Select tiles where you want allies to deploy and mark them as spawn points in the right panel. Do the same for enemy positions. You can also mark special spots for the player's main character or for mid-battle reinforcements.
+
+**A design tip:** Give players a cluster of allied spawn points so they can choose their formation. Don't just give them one forced position. The deployment phase is part of the strategy.
+
+---
+
+## Testing Your Design
+
+The Test Movement mode is your best friend during design. Use it constantly.
+
+Select different movement types and click around your map. Ask yourself:
+- Can cavalry actually use those open lanes I created?
+- Do flying units have too much freedom, or is there interesting counterplay?
+- Are there multiple routes to the objective, or is everyone funneled the same way?
+- Is there cover where players will need it?
+
+Watch for dead ends that serve no purpose, chokepoints that are too narrow (creates tedious one-on-one fights), or spawn points that put enemies right on top of the player.
+
+---
+
+## Connecting to 3D Terrain
+
+If you're using a 3D terrain mesh, Turnroot can snap your grid points to match the surface height.
+
+Assign your mesh to the MapGrid's 3D height field, then click **"Connect to 3D Map Height."** The system shoots raycasts downward and adjusts each tile's position to sit on the terrain.
+
+This is optional—plenty of games work great with flat 2D grids. But if you want that 3D look, it's there.
+
+---
+
+## Common Questions
+
+**My grid isn't showing in the editor.**  
+Make sure you have a MapGrid selected in your scene hierarchy, and that you've clicked "Create Grid Points."
+
+**Movement testing only shows the tile I clicked.**  
+This was a bug where tiles appeared occupied even when empty. Make sure you're on the latest version.
+
+**How big should my maps be?**  
+Start with 15×20 for a typical battle. Tutorial maps can be smaller (10×10). Epic finale maps might go up to 30×40, but bigger isn't always better—large maps can feel empty and slow.
+
+**Can I resize an existing map?**  
+Yes! Use the "+Row" and "+Column" buttons to expand. Shrinking is trickier—you'll lose the edge tiles and their data.
+
+---
+
+## Design Philosophy
+
+The best tactical maps tell a story through terrain. They create interesting decisions, not just obstacles.
+
+Ask yourself: what's the *point* of this battle? If it's a desperate defense, create a position worth defending. If it's an ambush, give the enemy natural cover to spring from. If it's a chase, make the escape route winding and dangerous.
+
+Don't just scatter terrain randomly. Every forest, every river, every mountain should make the player think "how do I use this?" or "how do I deal with this?"
+
+And playtest constantly. What looks great on paper might feel terrible in practice. The Test Movement tool is fast—use it.
+
+Happy mapping! 🗺️
+
+

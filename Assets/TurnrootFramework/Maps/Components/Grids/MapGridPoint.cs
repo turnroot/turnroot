@@ -6,20 +6,6 @@ using Turnroot.Maps.Components.Grids;
 using UnityEngine;
 using UnityEngine.Events;
 
-/// <summary>
-/// Represents a single tile on the map grid. Each point contains a collection
-/// of typed properties (strings, bools, ints, floats, units, object-items and
-/// events). The property system is backed by typed containers derived from
-/// `MapGridPropertyBase` so the editor and runtime can treat properties
-/// generically while still providing typed accessors.
-///
-/// The defaults for every newly created grid point are defined here in
-/// `InitializePresetGridPointProperties()` (starting unit and default events).
-/// This keeps defaults local and avoids needing a ScriptableObject preset
-/// for the common case of one global set of defaults. If you want a
-/// configurable preset, consider the (deprecated) `MapGridPointProperties` SO
-/// or create a new editor setting to point to a global preset.
-/// </summary>
 public class MapGridPoint : MonoBehaviour
 {
     // Cached parent grid reference to avoid repeated GetComponentInParent calls
@@ -143,7 +129,7 @@ public class MapGridPoint : MonoBehaviour
     private List<MapGridPropertyBase.FloatProperty> _pointFloatProperties = new();
     private CharacterInstance _startingUnit = null;
 
-    [HideInInspector]
+    [HideInInspector, NonSerialized]
     /// <summary>
     /// The character instance currently occupying this grid point.
     /// This should be set when a character enters the grid point and cleared when the character leaves.
@@ -420,11 +406,6 @@ public class MapGridPoint : MonoBehaviour
 
     /* ---------------------------- Feature Property Accessors ---------------------------- */
 
-    // String properties removed (deliberate).
-
-    // Point-level string properties have been removed.
-
-    // Unit properties (NEW)
     public void SetUnitFeatureProperty(string key, CharacterInstance value) =>
         SetProperty(_featureUnitProperties, key, value);
 
@@ -437,7 +418,6 @@ public class MapGridPoint : MonoBehaviour
     public List<MapGridPropertyBase.UnitProperty> GetAllUnitFeatureProperties() =>
         new(_featureUnitProperties);
 
-    // ----- Point-level unit properties -----
     public void SetUnitPointProperty(string key, CharacterInstance value) =>
         SetProperty(_pointUnitProperties, key, value);
 
@@ -452,7 +432,6 @@ public class MapGridPoint : MonoBehaviour
     public List<MapGridPropertyBase.UnitProperty> GetAllUnitPointProperties() =>
         new(_pointUnitProperties);
 
-    // ObjectItem properties (NEW)
     public void SetObjectItemFeatureProperty(string key, ObjectItemInstance value) =>
         SetProperty(_featureObjectItemProperties, key, value);
 
@@ -465,7 +444,6 @@ public class MapGridPoint : MonoBehaviour
     public List<MapGridPropertyBase.ObjectItemProperty> GetAllObjectItemFeatureProperties() =>
         new(_featureObjectItemProperties);
 
-    // ----- Point-level object item properties -----
     public void SetObjectItemPointProperty(string key, ObjectItemInstance value) =>
         SetProperty(_pointObjectItemProperties, key, value);
 
@@ -488,7 +466,6 @@ public class MapGridPoint : MonoBehaviour
     public List<MapGridPropertyBase.BoolProperty> GetAllBoolFeatureProperties() =>
         new(_featureBoolProperties);
 
-    // ----- Point-level bool properties -----
     public void SetBoolPointProperty(string key, bool value) =>
         SetProperty(_pointBoolProperties, key, value);
 
@@ -498,12 +475,6 @@ public class MapGridPoint : MonoBehaviour
     public List<MapGridPropertyBase.BoolProperty> GetAllBoolPointProperties() =>
         new(_pointBoolProperties);
 
-    // Int properties
-    // Int feature properties removed.
-
-    // Point-level int properties removed.
-
-    // Float properties
     public void SetFloatFeatureProperty(string key, float value) =>
         SetProperty(_featureFloatProperties, key, value);
 
@@ -513,7 +484,6 @@ public class MapGridPoint : MonoBehaviour
     public List<MapGridPropertyBase.FloatProperty> GetAllFloatFeatureProperties() =>
         new(_featureFloatProperties);
 
-    // ----- Point-level float properties -----
     public void SetFloatPointProperty(string key, float value) =>
         SetProperty(_pointFloatProperties, key, value);
 
@@ -523,7 +493,6 @@ public class MapGridPoint : MonoBehaviour
     public List<MapGridPropertyBase.FloatProperty> GetAllFloatPointProperties() =>
         new(_pointFloatProperties);
 
-    // Event properties
     public void SetEventFeatureProperty(string key, UnityEvent value) =>
         SetProperty(_featureEventProperties, key, value);
 
@@ -538,9 +507,7 @@ public class MapGridPoint : MonoBehaviour
     public List<MapGridPropertyBase.EventProperty> GetAllEventFeatureProperties() =>
         new(_featureEventProperties);
 
-    // ----- Point-level event properties -----
     public void SetEventPointProperty(string key, UnityEvent value) =>
-        // Write events into the generic property list.
         SetProperty(_pointEventProperties, key, value);
 
     public UnityEvent GetEventPointProperty(string key)
@@ -680,8 +647,6 @@ public class MapGridPoint : MonoBehaviour
         }
     }
 
-    // String and Int default appliers removed — these types were deprecated.
-
     private void ApplyDefaultFloatProperties(List<MapGridPropertyBase.FloatProperty> defaults)
     {
         if (defaults == null)
@@ -774,11 +739,10 @@ public class MapGridPoint : MonoBehaviour
     /// Use this in performance-critical paths like pathfinding.
     /// </summary>
     /// <param name="neighbors">Dictionary to fill with neighbors. Will be cleared first.</param>
-    /// <param name="cardinal">If true, only return cardinal (N,E,S,W) neighbors.</param>
     /// <returns>Number of neighbors found.</returns>
     public int GetNeighborsNonAlloc(
         Dictionary<string, MapGridPoint> neighbors,
-        bool cardinal = false
+        bool cardinal = true
     )
     {
         neighbors.Clear();

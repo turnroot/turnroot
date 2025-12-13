@@ -1086,9 +1086,13 @@ public class MapGridEditorWindow : EditorWindow
             1.1f,
             GUILayout.Width(150)
         );
-        
+
         // Recalculate if multiplier changed
-        if (Mathf.Abs(prevMultiplier - _sameDirectionMultiplier) > 0.001f && _testMovementStart != null && _grid != null)
+        if (
+            Mathf.Abs(prevMultiplier - _sameDirectionMultiplier) > 0.001f
+            && _testMovementStart != null
+            && _grid != null
+        )
         {
             _testMovementResults = new AStarModified().GetReachable(
                 _grid,
@@ -1102,7 +1106,7 @@ public class MapGridEditorWindow : EditorWindow
                 _sameDirectionMultiplier
             );
         }
-        
+
         EditorGUILayout.EndHorizontal();
     }
 
