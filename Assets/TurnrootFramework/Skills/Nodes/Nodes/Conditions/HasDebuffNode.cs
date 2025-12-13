@@ -1,3 +1,4 @@
+using Turnroot.Characters.StatusEffects;
 using Turnroot.Skills.Nodes;
 using UnityEngine;
 using XNode;
@@ -18,7 +19,10 @@ namespace Turnroot.Skills.Nodes.Conditions
         public BoolValue AllyHasDebuff;
 
         [Tooltip("Specific debuff type to check (leave empty to check for any debuff)")]
-        public string debuffType = "";
+        public StatusEffectType debuffType;
+
+        [Tooltip("Alternative: Check by debuff name string (used if debuffType is not set)")]
+        public string debuffName = "";
 
         public override object GetValue(NodePort port)
         {
@@ -59,15 +63,25 @@ namespace Turnroot.Skills.Nodes.Conditions
                 return new BoolValue { value = false };
             }
 
-            // TODO: Implement actual debuff check when buff/debuff system is added
-            // Check context.CustomData or character.ActiveDebuffs for debuff presence
-            // If debuffType is specified, check for that specific debuff, otherwise check for any debuff
-            // Future implementation:
-            // if (string.IsNullOrEmpty(debuffType))
-            //     return new BoolValue { value = character.HasAnyDebuff() };
-            // else
-            //     return new BoolValue { value = character.HasDebuff(debuffType) };
-            return new BoolValue { value = false };
+            // Check for debuffs using the typed StatusEffect system
+            bool hasDebuff;
+            if (debuffType != null)
+            {
+                // Check for specific debuff type using the StatusEffectType reference
+                hasDebuff = character.HasStatusEffect(debuffType);
+            }
+            else if (!string.IsNullOrEmpty(debuffName))
+            {
+                // Fallback: Check by name string
+                hasDebuff = character.HasStatusEffectByName(debuffName);
+            }
+            else
+            {
+                // Check for any debuff
+                hasDebuff = character.HasAnyDebuff();
+            }
+
+            return new BoolValue { value = hasDebuff };
         }
     }
 }

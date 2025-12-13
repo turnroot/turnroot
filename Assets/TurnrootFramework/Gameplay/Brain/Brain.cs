@@ -407,7 +407,76 @@ namespace Turnroot.Gameplay.Brain
 
         #endregion
 
-        #region Initialization
+        #region Status Effect Events
+
+        public event Action<
+            CharacterInstance,
+            Characters.StatusEffects.StatusEffectInstance
+        > OnStatusEffectApplied;
+        public event Action<
+            CharacterInstance,
+            Characters.StatusEffects.StatusEffectInstance
+        > OnStatusEffectRemoved;
+        public event Action<
+            CharacterInstance,
+            Characters.StatusEffects.StatusEffectInstance
+        > OnStatusEffectStacked;
+        public event Action<
+            CharacterInstance,
+            Characters.StatusEffects.StatusEffectInstance
+        > OnStatusEffectExpired;
+
+        public void PublishStatusEffectApplied(
+            CharacterInstance character,
+            Characters.StatusEffects.StatusEffectInstance effect
+        ) => OnStatusEffectApplied?.Invoke(character, effect);
+
+        public void PublishStatusEffectRemoved(
+            CharacterInstance character,
+            Characters.StatusEffects.StatusEffectInstance effect
+        ) => OnStatusEffectRemoved?.Invoke(character, effect);
+
+        public void PublishStatusEffectStacked(
+            CharacterInstance character,
+            Characters.StatusEffects.StatusEffectInstance effect
+        ) => OnStatusEffectStacked?.Invoke(character, effect);
+
+        public void PublishStatusEffectExpired(
+            CharacterInstance character,
+            Characters.StatusEffects.StatusEffectInstance effect
+        ) => OnStatusEffectExpired?.Invoke(character, effect);
+
+        #endregion
+
+        #region Battle Condition Events
+
+        public event Action<BattleCondition> OnBattleConditionMet;
+        public event Action<BattleCondition> OnBattleConditionFailed;
+
+        public void PublishBattleConditionMet(BattleCondition condition) =>
+            OnBattleConditionMet?.Invoke(condition);
+
+        public void PublishBattleConditionFailed(BattleCondition condition) =>
+            OnBattleConditionFailed?.Invoke(condition);
+
+        #endregion
+
+        #region Skill Events
+
+        public event Action<CharacterInstance, Skill> OnSkillTriggered;
+        public event Action<CharacterInstance, Skill> OnSkillEquipped;
+        public event Action<CharacterInstance, Skill> OnSkillUnequipped;
+
+        public void PublishSkillTriggered(CharacterInstance character, Skill skill) =>
+            OnSkillTriggered?.Invoke(character, skill);
+
+        public void PublishSkillEquipped(CharacterInstance character, Skill skill) =>
+            OnSkillEquipped?.Invoke(character, skill);
+
+        public void PublishSkillUnequipped(CharacterInstance character, Skill skill) =>
+            OnSkillUnequipped?.Invoke(character, skill);
+
+        #endregion
 
         public void Awake()
         {
@@ -491,8 +560,6 @@ namespace Turnroot.Gameplay.Brain
 
             return modules.Count > 0 ? string.Join(", ", modules) : "None";
         }
-
-        #endregion
 
         #region Conversation Controller Management
 

@@ -54,10 +54,7 @@ namespace Turnroot.Characters.CharacterClass
         /// <summary>
         /// Validates that required visual assets are assigned.
         /// </summary>
-        public bool HasRequiredVisuals()
-        {
-            return ClassOutfit != null && !string.IsNullOrEmpty(ClassName);
-        }
+        public bool HasRequiredVisuals() => ClassOutfit != null && !string.IsNullOrEmpty(ClassName);
 
         /// <summary>
         /// Gets display text for the class tier.

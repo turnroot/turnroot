@@ -63,4 +63,35 @@ public class ReachTilesBattleCondition : BattleCondition
             }
         }
     }
+
+    /// <summary>
+    /// Called when a unit moves to a tile. Tracks if the tile is a target tile.
+    /// </summary>
+    public void OnUnitReachedTile(Vector2Int position)
+    {
+        // Check if this is a target tile that hasn't been reached yet
+        if (TargetTiles.Contains(position) && !ReachedTiles.Contains(position))
+        {
+            // Add to reached tiles array
+            var newReachedTiles = new Vector2Int[ReachedTiles.Length + 1];
+            Array.Copy(ReachedTiles, newReachedTiles, ReachedTiles.Length);
+            newReachedTiles[ReachedTiles.Length] = position;
+            ReachedTiles = newReachedTiles;
+
+            UnityEngine.Debug.Log(
+                $"ReachTilesBattleCondition: Tile {position} reached ({ReachedTiles.Length}/{TargetTiles.Length})"
+            );
+
+            // Check if condition is now met
+            CheckCondition();
+        }
+    }
+
+    /// <summary>
+    /// Resets the reached tiles tracking.
+    /// </summary>
+    public void ResetReachedTiles()
+    {
+        ReachedTiles = Array.Empty<Vector2Int>();
+    }
 }

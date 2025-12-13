@@ -75,6 +75,10 @@ namespace Turnroot.Characters
         [field: Foldout("Demographics"), SerializeField, Range(1, 12)]
         public int BirthdayMonth { get; private set; } = 1;
 
+        [field: Foldout("Demographics"), SerializeField]
+        [Tooltip("The species/race of this character (e.g., Human, Beast, Dragon, Manakete)")]
+        public SpeciesType Species { get; private set; }
+
         [field:
             Foldout("Description"),
             SerializeField,

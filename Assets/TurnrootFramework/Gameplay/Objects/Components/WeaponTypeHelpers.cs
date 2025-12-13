@@ -19,14 +19,6 @@ namespace Turnroot.Gameplay.Objects.Components
         /// Compares two WeaponType instances for equivalence. Prefers reference equality
         /// but falls back to matching on Id if both are present.
         /// </summary>
-        public static bool Equals(WeaponType a, WeaponType b)
-        {
-            if (ReferenceEquals(a, b))
-            {
-                return true;
-            }
-
-            return a == null || b == null ? false : !string.IsNullOrEmpty(a.Id) && !string.IsNullOrEmpty(b.Id) ? a.Id == b.Id : a.name == b.name;
-        }
+        public static bool Equals(WeaponType a, WeaponType b) => ReferenceEquals(a, b) || (a != null && b != null && (!string.IsNullOrEmpty(a.Id) && !string.IsNullOrEmpty(b.Id) ? a.Id == b.Id : a.name == b.name));
     }
 }

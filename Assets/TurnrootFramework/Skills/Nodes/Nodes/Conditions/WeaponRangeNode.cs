@@ -51,15 +51,59 @@ namespace Turnroot.Skills.Nodes.Conditions
                 };
             }
 
-            // TODO: Implement weapon range retrieval from equipped weapon when item system is added
-            // Future implementation: var weapon = context.UnitInstance.GetEquippedWeapon();
-            // Then return weapon.MinRange, weapon.MaxRange properties
-            // Calculate IsMelee (maxRange == 1), IsRanged (maxRange >= 2)
-            // CanCounterattack should check if weapon range covers combat distance
+            // Get equipped weapon from character inventory
+            var inventory = context.UnitInstance.InventoryInstance;
+            var weaponIndex = inventory?.GetEquippedWeaponIndex() ?? -1;
+            if (
+                weaponIndex < 0
+                || inventory.InventoryItems == null
+                || weaponIndex >= inventory.InventoryItems.Count
+            )
+            {
+                Debug.LogWarning("WeaponRange: No weapon equipped");
+                return port.fieldName switch
+                {
+                    "MinRange" or "MaxRange" => new FloatValue { value = 0f },
+                    _ => new BoolValue { value = false },
+                };
+            }
+
+            var equippedWeapon = inventory.InventoryItems[weaponIndex];
+            var template = equippedWeapon?.Template;
+            if (template == null)
+            {
+                return port.fieldName switch
+                {
+                    "MinRange" or "MaxRange" => new FloatValue { value = 0f },
+                    _ => new BoolValue { value = false },
+                };
+            }
+
+            int minRange = template.LowerRange;
+            int maxRange = template.UpperRange;
+            bool isMelee = maxRange <= 1;
+            bool isRanged = maxRange >= 2;
+
+            // Get combat distance to determine counterattack capability
+            var enemy =
+                context.Targets != null && context.Targets.Count > 0 ? context.Targets[0] : null;
+            int combatDistance = 1;
+            if (enemy != null)
+            {
+                var unitPos = context.UnitInstance.MapGridPosition;
+                var enemyPos = enemy.MapGridPosition;
+                combatDistance =
+                    Mathf.Abs(unitPos.x - enemyPos.x) + Mathf.Abs(unitPos.y - enemyPos.y);
+            }
+            bool canCounterattack = combatDistance >= minRange && combatDistance <= maxRange;
 
             return port.fieldName switch
             {
-                "MinRange" or "MaxRange" => new FloatValue { value = 0f },
+                "MinRange" => new FloatValue { value = minRange },
+                "MaxRange" => new FloatValue { value = maxRange },
+                "IsMelee" => new BoolValue { value = isMelee },
+                "IsRanged" => new BoolValue { value = isRanged },
+                "CanCounterattack" => new BoolValue { value = canCounterattack },
                 _ => new BoolValue { value = false },
             };
         }

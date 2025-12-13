@@ -1,3 +1,4 @@
+using Turnroot.Gameplay.Objects.Components;
 using Turnroot.Skills.Nodes;
 using UnityEngine;
 using XNode;
@@ -8,57 +9,38 @@ namespace Turnroot.Skills.Nodes.Conditions
     [NodeLabel("Gets the weapon type information")]
     public class WeaponTypeNode : SkillNode
     {
+        [Tooltip(
+            "The weapon type to compare against (optional - leave empty to just get current weapon type info)"
+        )]
+        public WeaponType targetWeaponType;
+
         [Output]
         public StringValue TypeName;
 
         [Output]
-        public BoolValue IsSword;
+        public BoolValue MatchesTarget;
 
         [Output]
-        public BoolValue IsLance;
+        public BoolValue IsMagic;
 
         [Output]
-        public BoolValue IsAxe;
+        public BoolValue IsPhysical;
 
         [Output]
-        public BoolValue IsBow;
-
-        [Output]
-        public BoolValue IsTome;
-
-        [Output]
-        public BoolValue IsStaff;
-
-        [Output]
-        public BoolValue IsDagger;
-
-        [Output]
-        public BoolValue IsDragonstone;
-
-        [Output]
-        public BoolValue IsBeaststone;
+        public BoolValue IsOnTriangle;
 
         public override object GetValue(NodePort port)
         {
             var skillGraph = graph as SkillGraph;
             if (skillGraph == null || !Application.isPlaying)
             {
-                // In editor / preview mode there is no runtime context to query —
-                // return neutral defaults. When an item/weapon system exists the
-                // runtime branch should fetch the equipped weapon and compare its
-                // WeaponType (ScriptableObject) using WeaponTypeHelpers.Equals.
                 return port.fieldName switch
                 {
                     "TypeName" => new StringValue { value = string.Empty },
-                    "IsSword" => new BoolValue { value = false },
-                    "IsLance" => new BoolValue { value = false },
-                    "IsAxe" => new BoolValue { value = false },
-                    "IsBow" => new BoolValue { value = false },
-                    "IsTome" => new BoolValue { value = false },
-                    "IsStaff" => new BoolValue { value = false },
-                    "IsDagger" => new BoolValue { value = false },
-                    "IsDragonstone" => new BoolValue { value = false },
-                    "IsBeaststone" => new BoolValue { value = false },
+                    "MatchesTarget" => new BoolValue { value = false },
+                    "IsMagic" => new BoolValue { value = false },
+                    "IsPhysical" => new BoolValue { value = true },
+                    "IsOnTriangle" => new BoolValue { value = true },
                     _ => null,
                 };
             }
@@ -74,15 +56,42 @@ namespace Turnroot.Skills.Nodes.Conditions
                 };
             }
 
-            // TODO: Implement weapon type retrieval from equipped weapon when the
-            // item/weapon system is added. Example implementation would obtain the
-            // equipped weapon and compare its WeaponType ScriptableObject to a
-            // chosen WeaponType via WeaponTypeHelpers.Equals(...) or by comparing
-            // IDs.
+            // Get equipped weapon from character inventory
+            var inventory = context.UnitInstance.InventoryInstance;
+            var weaponIndex = inventory?.GetEquippedWeaponIndex() ?? -1;
+            if (
+                weaponIndex < 0
+                || inventory.InventoryItems == null
+                || weaponIndex >= inventory.InventoryItems.Count
+            )
+            {
+                Debug.LogWarning("WeaponType: No weapon equipped");
+                return port.fieldName switch
+                {
+                    "TypeName" => new StringValue { value = "" },
+                    _ => new BoolValue { value = false },
+                };
+            }
+
+            var equippedWeapon = inventory.InventoryItems[weaponIndex];
+            var weaponType = equippedWeapon?.Template?.WeaponType;
+            var weaponTypeName = weaponType?.Name ?? "";
+            var trianglePosition = weaponType?.TrianglePosition;
+
+            bool matchesTarget =
+                targetWeaponType != null
+                && weaponType != null
+                && WeaponTypeHelpers.Equals(weaponType, targetWeaponType);
+            bool isMagic = weaponType?.IsMagic ?? false;
+            bool isOnTriangle = trianglePosition?.Position != TrianglePositionEnum.NotOnTriangle;
 
             return port.fieldName switch
             {
-                "TypeName" => new StringValue { value = "" },
+                "TypeName" => new StringValue { value = weaponTypeName },
+                "MatchesTarget" => new BoolValue { value = matchesTarget },
+                "IsMagic" => new BoolValue { value = isMagic },
+                "IsPhysical" => new BoolValue { value = !isMagic },
+                "IsOnTriangle" => new BoolValue { value = isOnTriangle },
                 _ => new BoolValue { value = false },
             };
         }

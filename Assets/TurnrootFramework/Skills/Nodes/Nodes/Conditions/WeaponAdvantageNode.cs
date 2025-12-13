@@ -1,3 +1,4 @@
+using Turnroot.Gameplay.Objects.Components;
 using Turnroot.Skills.Nodes;
 using UnityEngine;
 using XNode;
@@ -9,10 +10,16 @@ namespace Turnroot.Skills.Nodes.Conditions
     public class WeaponAdvantageNode : SkillNode
     {
         [Output]
-        BoolValue UnitAdvantage;
+        public BoolValue UnitAdvantage;
 
         [Output]
-        BoolValue SameType;
+        public BoolValue EnemyAdvantage;
+
+        [Output]
+        public BoolValue SameType;
+
+        [Output]
+        public BoolValue NeitherOnTriangle;
 
         public override object GetValue(NodePort port)
         {
@@ -23,7 +30,9 @@ namespace Turnroot.Skills.Nodes.Conditions
                 return port.fieldName switch
                 {
                     "UnitAdvantage" => new BoolValue { value = false },
+                    "EnemyAdvantage" => new BoolValue { value = false },
                     "SameType" => new BoolValue { value = true },
+                    "NeitherOnTriangle" => new BoolValue { value = false },
                     _ => null,
                 };
             }
@@ -35,14 +44,66 @@ namespace Turnroot.Skills.Nodes.Conditions
                 return new BoolValue { value = false };
             }
 
-            // TODO: Implement weapon advantage calculation when weapon triangle system is added
-            // Future implementation:
-            // var unitWeapon = context.UnitInstance.GetEquippedWeapon();
-            // var enemyWeapon = context.TargetInstance?.GetEquippedWeapon();
-            // UnitAdvantage: check weapon triangle (Sword > Axe > Lance > Sword)
-            // SameType: unitWeapon.WeaponType == enemyWeapon.WeaponType
+            // Get unit's equipped weapon type
+            var unitWeaponType = GetEquippedWeaponType(context.UnitInstance);
+            var unitTrianglePos = unitWeaponType?.TrianglePosition;
 
-            return new BoolValue { value = false };
+            // Get enemy's equipped weapon type
+            var enemy =
+                context.Targets != null && context.Targets.Count > 0 ? context.Targets[0] : null;
+            var enemyWeaponType = enemy != null ? GetEquippedWeaponType(enemy) : null;
+            var enemyTrianglePos = enemyWeaponType?.TrianglePosition;
+
+            // Determine advantage using TrianglePosition
+            bool unitHasAdvantage = false;
+            bool enemyHasAdvantage = false;
+            bool sameType = false;
+            bool neitherOnTriangle = false;
+
+            if (unitTrianglePos != null && enemyTrianglePos != null)
+            {
+                // Check if either is not on triangle
+                if (
+                    unitTrianglePos.Position == TrianglePositionEnum.NotOnTriangle
+                    || enemyTrianglePos.Position == TrianglePositionEnum.NotOnTriangle
+                )
+                {
+                    neitherOnTriangle = true;
+                }
+                else
+                {
+                    // Use TrianglePosition's WinsAgainst/LosesTo methods
+                    unitHasAdvantage = unitTrianglePos.WinsAgainst(enemyTrianglePos);
+                    enemyHasAdvantage = unitTrianglePos.LosesTo(enemyTrianglePos);
+                    sameType = unitTrianglePos.Equals(enemyTrianglePos);
+                }
+            }
+            else
+            {
+                neitherOnTriangle = true;
+            }
+
+            return port.fieldName switch
+            {
+                "UnitAdvantage" => new BoolValue { value = unitHasAdvantage },
+                "EnemyAdvantage" => new BoolValue { value = enemyHasAdvantage },
+                "SameType" => new BoolValue { value = sameType },
+                "NeitherOnTriangle" => new BoolValue { value = neitherOnTriangle },
+                _ => new BoolValue { value = false },
+            };
+        }
+
+        private static WeaponType GetEquippedWeaponType(
+            Turnroot.Characters.CharacterInstance character
+        )
+        {
+            var inventory = character?.InventoryInstance;
+            var weaponIndex = inventory?.GetEquippedWeaponIndex() ?? -1;
+            return weaponIndex >= 0
+                && inventory.InventoryItems != null
+                && weaponIndex < inventory.InventoryItems.Count
+                ? (inventory.InventoryItems[weaponIndex]?.Template?.WeaponType)
+                : null;
         }
     }
 }

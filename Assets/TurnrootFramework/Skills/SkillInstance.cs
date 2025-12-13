@@ -1,6 +1,9 @@
 using System;
+using Turnroot.Characters;
+using Turnroot.Gameplay.Brain;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
 using Turnroot.Serialization;
+using Turnroot.Utilities;
 using UnityEngine;
 
 [Serializable]
@@ -59,6 +62,10 @@ public class SkillInstance : IPostDeserialize
         // Trigger template events
         _skillTemplate.TriggerSkillEvents();
 
+        // Publish to Brain for centralized tracking
+        var brain = GetBrain.Get();
+        brain?.PublishSkillTriggered(context.UnitInstance, _skillTemplate);
+
         // Execute the behavior graph
         _skillTemplate.BehaviorGraph.Execute(context);
 
@@ -68,16 +75,20 @@ public class SkillInstance : IPostDeserialize
 
     public void SetReadyToFire(bool ready) => _readyToFire = ready;
 
-    public void SetEquipped(bool equipped)
+    public void SetEquipped(bool equipped, CharacterInstance owner = null, Brain brain = null)
     {
         _equipped = equipped;
         if (equipped)
         {
             _skillTemplate.SkillEquipped?.Invoke();
+            // Publish to Brain for centralized tracking
+            brain?.PublishSkillEquipped(owner, _skillTemplate);
         }
         else
         {
             _skillTemplate.SkillUnequipped?.Invoke();
+            // Publish to Brain for centralized tracking
+            brain?.PublishSkillUnequipped(owner, _skillTemplate);
         }
     }
 }

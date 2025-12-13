@@ -54,15 +54,7 @@ namespace Turnroot.Characters
         /// <summary>
         /// Creates an AI data wrapper for a character instance.
         /// </summary>
-        public static ICharacterAIData ToAIData(this CharacterInstance character)
-        {
-            if (character == null)
-            {
-                return null;
-            }
-
-            return new CharacterInstanceAIDataAdapter(character);
-        }
+        public static ICharacterAIData ToAIData(this CharacterInstance character) => character == null ? null : (ICharacterAIData)new CharacterInstanceAIDataAdapter(character);
 
         private class CharacterInstanceAIDataAdapter : ICharacterAIData
         {

@@ -31,13 +31,22 @@ namespace Turnroot.Skills.Nodes.Conditions
                 return new FloatValue { value = 0f };
             }
 
-            // TODO: Implement distance calculation when positioning system is added
-            // Future implementation:
-            // Get unit and enemy positions from context
-            // Calculate Manhattan distance or Euclidean distance
-            // Example: return new FloatValue { value = Vector2Int.Distance(unitPos, enemyPos) };
+            // Get enemy from context (first target)
+            var enemy =
+                context.Targets != null && context.Targets.Count > 0 ? context.Targets[0] : null;
 
-            return new FloatValue { value = 0f };
+            if (enemy == null)
+            {
+                Debug.LogWarning("EnemyDistance: No enemy target in context");
+                return new FloatValue { value = 0f };
+            }
+
+            // Calculate Manhattan distance between unit and enemy positions
+            var unitPos = context.UnitInstance.MapGridPosition;
+            var enemyPos = enemy.MapGridPosition;
+            int distance = Mathf.Abs(unitPos.x - enemyPos.x) + Mathf.Abs(unitPos.y - enemyPos.y);
+
+            return new FloatValue { value = distance };
         }
     }
 }

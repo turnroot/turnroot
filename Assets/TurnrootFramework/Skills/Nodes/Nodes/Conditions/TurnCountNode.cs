@@ -31,9 +31,10 @@ namespace Turnroot.Skills.Nodes.Conditions
                 return new FloatValue { value = 1f };
             }
 
-            // TODO: Implement actual turn count retrieval from battle system
-            // Future implementation: return new FloatValue { value = context.CurrentTurnNumber };
-            return new FloatValue { value = 1f };
+            // Get turn count from CustomData (set by battle system)
+            // Default to 1 if not set
+            int turnNumber = context.GetCustomData<int>("CurrentTurnNumber", 1);
+            return new FloatValue { value = turnNumber };
         }
     }
 }

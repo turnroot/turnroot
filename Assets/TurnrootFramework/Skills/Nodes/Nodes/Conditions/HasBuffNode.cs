@@ -1,3 +1,4 @@
+using Turnroot.Characters.StatusEffects;
 using Turnroot.Skills.Nodes;
 using UnityEngine;
 using XNode;
@@ -18,7 +19,10 @@ namespace Turnroot.Skills.Nodes.Conditions
         public BoolValue AllyHasBuff;
 
         [Tooltip("Specific buff type to check (leave empty to check for any buff)")]
-        public string buffType = "";
+        public StatusEffectType buffType;
+
+        [Tooltip("Alternative: Check by buff name string (used if buffType is not set)")]
+        public string buffName = "";
 
         public override object GetValue(NodePort port)
         {
@@ -59,15 +63,25 @@ namespace Turnroot.Skills.Nodes.Conditions
                 return new BoolValue { value = false };
             }
 
-            // TODO: Implement actual buff check when buff/debuff system is added
-            // Check context.CustomData or character.ActiveBuffs for buff presence
-            // If buffType is specified, check for that specific buff, otherwise check for any buff
-            // Future implementation:
-            // if (string.IsNullOrEmpty(buffType))
-            //     return new BoolValue { value = character.HasAnyBuff() };
-            // else
-            //     return new BoolValue { value = character.HasBuff(buffType) };
-            return new BoolValue { value = false };
+            // Check for buffs using the typed StatusEffect system
+            bool hasBuff;
+            if (buffType != null)
+            {
+                // Check for specific buff type using the StatusEffectType reference
+                hasBuff = character.HasStatusEffect(buffType);
+            }
+            else if (!string.IsNullOrEmpty(buffName))
+            {
+                // Fallback: Check by name string
+                hasBuff = character.HasStatusEffectByName(buffName);
+            }
+            else
+            {
+                // Check for any buff
+                hasBuff = character.HasAnyBuff();
+            }
+
+            return new BoolValue { value = hasBuff };
         }
     }
 }

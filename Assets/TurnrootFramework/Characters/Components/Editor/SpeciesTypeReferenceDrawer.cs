@@ -51,7 +51,17 @@ namespace Turnroot.Editor.PropertyDrawers
             names[0] = "<None>";
             for (int i = 0; i < options.Length; i++)
             {
-                names[i + 1] = options[i] == null ? "(null)" : options[i].name;
+                if (options[i] == null)
+                {
+                    names[i + 1] = "(null)";
+                }
+                else
+                {
+                    // Prefer the Name property if set, otherwise fall back to asset name
+                    names[i + 1] = !string.IsNullOrEmpty(options[i].Name)
+                        ? options[i].Name
+                        : options[i].name;
+                }
             }
 
             // Find current selection

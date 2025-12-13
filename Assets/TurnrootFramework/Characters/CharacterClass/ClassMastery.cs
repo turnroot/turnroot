@@ -70,15 +70,7 @@ namespace Turnroot.Characters.CharacterClass
         /// <summary>
         /// Checks whether a character has met the mastery criteria.
         /// </summary>
-        public bool HasMetMasteryCriteria(int achievedMasteryCount)
-        {
-            if (!UsesMasterySystem || MasteryCriteria == null)
-            {
-                return false;
-            }
-
-            return achievedMasteryCount >= MasteryTargets.Count;
-        }
+        public bool HasMetMasteryCriteria(int achievedMasteryCount) => UsesMasterySystem && MasteryCriteria != null && achievedMasteryCount >= MasteryTargets.Count;
 
         /// <summary>
         /// Validates that mastery configuration is complete.

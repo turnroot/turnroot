@@ -150,7 +150,35 @@ namespace Turnroot.Gameplay.Brain
                     _materials[materialItem] = materialCount;
                 }
             }
-            // TODO: Load stored items by their IDs (requires access to all item instances)
+
+            // Load stored items by their IDs
+            _storedItems.Clear();
+            var storedItemIdsString = _ltm.Recall("Storehouse_StoredItems");
+            if (!string.IsNullOrEmpty(storedItemIdsString))
+            {
+                var itemIds = storedItemIdsString.Split(',');
+                var allItems =
+                    _brain?.inventoryBrain?.GetAllItems() ?? new List<ObjectItemInstance>();
+                foreach (var id in itemIds)
+                {
+                    if (string.IsNullOrEmpty(id))
+                    {
+                        continue;
+                    }
+
+                    var item = allItems.Find(i => i.InstanceID == id);
+                    if (item != null)
+                    {
+                        _storedItems.Add(item);
+                    }
+                    else
+                    {
+                        Debug.LogWarning(
+                            $"StorehouseBrain.LoadStorehouse: Could not find item with ID '{id}'"
+                        );
+                    }
+                }
+            }
         }
 
         /// <summary>

@@ -31,10 +31,16 @@ namespace Turnroot.Skills.Nodes.Conditions
                 return new BoolValue { value = true };
             }
 
-            // TODO: Implement actual first combat check when turn tracking system is added
-            // This should check context.CombatCount or similar turn tracking
-            // Future implementation: return new BoolValue { value = context.CombatCountThisTurn == 1 };
-            return new BoolValue { value = true };
+            // Check if this is the unit's first combat this turn
+            var unit = context.UnitInstance;
+            if (unit == null)
+            {
+                return new BoolValue { value = true };
+            }
+
+            // CombatsThisTurn tracks combats completed, so 0 means this is the first combat
+            bool isFirstCombat = unit.CombatsThisTurn == 0;
+            return new BoolValue { value = isFirstCombat };
         }
     }
 }

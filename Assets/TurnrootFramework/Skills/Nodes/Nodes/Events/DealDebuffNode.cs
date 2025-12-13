@@ -1,5 +1,7 @@
+using Turnroot.Characters.StatusEffects;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
 using Turnroot.Skills.Nodes;
+using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Skills.Nodes.Events
@@ -18,33 +20,46 @@ namespace Turnroot.Skills.Nodes.Events
         [Tooltip("Test value for affectAllTargets in editor mode")]
         public bool testAffectAll = false;
 
-        [Tooltip(
-            "Placeholder: The type of debuff to apply (will be replaced with DebuffType object)"
-        )]
-        public string debuffTypePlaceholder = "Poisoned";
+        [Tooltip("The type of debuff to apply")]
+        public StatusEffectType debuffType;
 
-        [Tooltip("Duration of the debuff in turns")]
-        public int duration = 3;
+        [Tooltip("Duration of the debuff in turns (overrides debuffType default if set)")]
+        public int durationOverride = -1;
 
         [Tooltip("Intensity/strength of the debuff")]
         public float intensity = 1f;
 
         public override void Execute(BattleContext context)
         {
+            if (debuffType == null)
+            {
+                Debug.LogWarning("DealDebuffNode: No debuff type assigned!");
+                return;
+            }
+
             bool shouldAffectAll = GetInputBool("affectAllTargets", testAffectAll);
+            int duration = durationOverride > 0 ? durationOverride : debuffType.DefaultDuration;
 
             int affected = ExecuteOnTargets(
                 context,
                 shouldAffectAll,
                 target =>
                 {
-                    var debuffData = new
+                    // Apply the debuff using the typed StatusEffect system
+                    var effect = target.ApplyStatusEffect(
+                        debuffType,
+                        sourceCharacterId: context.UnitInstance?.Id,
+                        sourceSkillId: context.CurrentSkill?.name,
+                        duration: duration,
+                        intensity: intensity
+                    );
+
+                    if (effect != null)
                     {
-                        DebuffType = debuffTypePlaceholder,
-                        Duration = duration,
-                        Intensity = intensity,
-                    };
-                    context.SetCustomData($"ApplyDebuff_{target.Id}", debuffData);
+                        // Publish event through Brain
+                        var brain = GetBrain.Get();
+                        brain?.PublishStatusEffectApplied(target, effect);
+                    }
                 },
                 "DealDebuff"
             );
@@ -52,7 +67,7 @@ namespace Turnroot.Skills.Nodes.Events
             if (affected > 0)
             {
                 Debug.Log(
-                    $"DealDebuff: Applied {debuffTypePlaceholder} debuff to {affected} target(s)"
+                    $"DealDebuff: Applied {debuffType.DisplayName} debuff to {affected} target(s)"
                 );
             }
         }

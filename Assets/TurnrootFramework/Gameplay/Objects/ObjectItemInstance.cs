@@ -22,6 +22,18 @@ namespace Turnroot.Gameplay.Objects
         private int currentUses;
         public ObjectItem Template => _template;
 
+        /// <summary>
+        /// The number of times this item has been used.
+        /// </summary>
+        public int CurrentUses => currentUses;
+
+        /// <summary>
+        /// The remaining uses before the item breaks.
+        /// Returns -1 if the item has no durability (infinite uses).
+        /// </summary>
+        public int RemainingUses =>
+            _template?.Durability == true ? _template.MaxUses - currentUses : -1;
+
         // Lazy-initialized brain references
         private StorehouseBrain StorehouseBrain => Utilities.GetBrain.Get()?.storehouseBrain;
 

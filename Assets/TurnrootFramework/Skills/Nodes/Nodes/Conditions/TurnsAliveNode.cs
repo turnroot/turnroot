@@ -45,20 +45,16 @@ namespace Turnroot.Skills.Nodes.Conditions
                 };
             }
 
-            // TODO: Implement actual turns alive tracking when battle system is added
-            // Future implementation:
-            // int turnsAlive = character.TurnsAliveCount;
-            // return port.fieldName switch
-            // {
-            //     "TurnCount" => new FloatValue { value = turnsAlive },
-            //     "FirstTurn" => new BoolValue { value = turnsAlive == 1 },
-            //     _ => null,
-            // };
+            // Get turns alive from character instance
+            int turnsAlive = character.TurnsAliveThisBattle;
+            // If TurnsAliveThisBattle is 0, treat as first turn (turn 1)
+            if (turnsAlive == 0)
+                turnsAlive = 1;
 
             return port.fieldName switch
             {
-                "TurnCount" => new FloatValue { value = 1f },
-                "FirstTurn" => new BoolValue { value = true },
+                "TurnCount" => new FloatValue { value = turnsAlive },
+                "FirstTurn" => new BoolValue { value = turnsAlive == 1 },
                 _ => null,
             };
         }

@@ -86,12 +86,9 @@ public class MapGridPointFeature
             return FeatureType.Village;
         }
 
-        if (fid.StartsWith("fortress"))
-        {
-            return FeatureType.Fortress;
-        }
-
-        return fid.StartsWith("underground") ? FeatureType.Underground : fid.StartsWith("eraser") ? FeatureType.Eraser : FeatureType.None;
+        return fid.StartsWith("fortress")
+            ? FeatureType.Fortress
+            : fid.StartsWith("underground") ? FeatureType.Underground : fid.StartsWith("eraser") ? FeatureType.Eraser : FeatureType.None;
     }
 
     public static string IdFromType(FeatureType t)
@@ -183,11 +180,6 @@ public class MapGridPointFeature
             return "S";
         }
 
-        if (fid.StartsWith("underground"))
-        {
-            return "U";
-        }
-
-        return fid.StartsWith("village") ? "V" : fid.StartsWith("fortress") ? "F" : "?";
+        return fid.StartsWith("underground") ? "U" : fid.StartsWith("village") ? "V" : fid.StartsWith("fortress") ? "F" : "?";
     }
 }

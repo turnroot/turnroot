@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Turnroot.Characters;
+using Turnroot.Characters.StatusEffects;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
 using Turnroot.Skills.Nodes;
 using Turnroot.Utilities;
@@ -24,8 +25,11 @@ namespace Turnroot.Skills.Nodes.Events
         [Tooltip("Cure all debuffs or specific type?")]
         public CureMode cureMode = CureMode.AllDebuffs;
 
-        [Tooltip("If CureMode is SpecificDebuff, which debuff type to cure (placeholder)")]
-        public string debuffTypePlaceholder = "Poison";
+        [Tooltip("If CureMode is SpecificDebuff, which debuff type to cure")]
+        public StatusEffectType specificDebuffType;
+
+        [Tooltip("Alternative: Cure by name string (used if specificDebuffType is not set)")]
+        public string debuffName = "";
 
         public override void Execute(BattleContext context)
         {
@@ -45,8 +49,6 @@ namespace Turnroot.Skills.Nodes.Events
                     return;
                 }
 
-                var cureData = new { Mode = cureMode, DebuffType = debuffTypePlaceholder };
-
                 // Get all adjacent allies using non-allocating method
                 var adjacentAllies = ListPool<CharacterInstance>.Get();
                 context.AdjacentUnits.GetAdjacentAlliesNonAlloc(context, adjacentAllies);
@@ -54,13 +56,14 @@ namespace Turnroot.Skills.Nodes.Events
                 int affectedCount = 0;
                 foreach (var adjacentUnit in adjacentAllies)
                 {
-                    // Apply cure to this adjacent ally
-                    context.SetCustomData($"CureDebuff_{adjacentUnit.Id}", cureData);
-                    affectedCount++;
+                    int removed = CureDebuffsFromCharacter(adjacentUnit);
+                    if (removed > 0)
+                    {
+                        affectedCount++;
+                    }
                 }
 
-                string cureText =
-                    cureMode == CureMode.AllDebuffs ? "all debuffs" : debuffTypePlaceholder;
+                string cureText = GetCureDescription();
                 if (affectedCount > 0)
                 {
                     Debug.Log(
@@ -82,12 +85,63 @@ namespace Turnroot.Skills.Nodes.Events
                         ? context.Targets[0]
                         : context.UnitInstance;
 
-                var cureData = new { Mode = cureMode, DebuffType = debuffTypePlaceholder };
-                context.SetCustomData($"CureDebuff_{target.Id}", cureData);
+                int removed = CureDebuffsFromCharacter(target);
+                string cureText = GetCureDescription();
+                Debug.Log($"CureDebuff: Cured {cureText} from target ({removed} effects removed)");
+            }
+        }
 
-                string cureText =
-                    cureMode == CureMode.AllDebuffs ? "all debuffs" : debuffTypePlaceholder;
-                Debug.Log($"CureDebuff: Would cure {cureText} from target");
+        private int CureDebuffsFromCharacter(CharacterInstance character)
+        {
+            if (character == null)
+            {
+                return 0;
+            }
+
+            int removed;
+            if (cureMode == CureMode.AllDebuffs)
+            {
+                removed = character.RemoveAllDebuffs();
+            }
+            else if (specificDebuffType != null)
+            {
+                removed = character.RemoveStatusEffectsByType(specificDebuffType);
+            }
+            else if (!string.IsNullOrEmpty(debuffName))
+            {
+                // Try to remove by name
+                var effect = character.GetStatusEffectByName(debuffName);
+                if (effect != null)
+                {
+                    character.RemoveStatusEffect(effect);
+                    removed = 1;
+                }
+                else
+                {
+                    removed = 0;
+                }
+            }
+            else
+            {
+                removed = 0;
+            }
+
+            return removed;
+        }
+
+        private string GetCureDescription()
+        {
+            if (cureMode == CureMode.AllDebuffs)
+            {
+                return "all debuffs";
+            }
+            else if (specificDebuffType != null)
+            {
+                return specificDebuffType.DisplayName;
+            }
+            else
+            {
+                return !string.IsNullOrEmpty(debuffName) ? debuffName : "specific debuff";
             }
         }
     }

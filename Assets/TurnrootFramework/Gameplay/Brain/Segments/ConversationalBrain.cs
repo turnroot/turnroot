@@ -7,25 +7,174 @@ namespace Turnroot.Gameplay.Brain
 {
     /// <summary>
     /// Manages conversations and conversation progressions within the game's brain system.
+    /// Tracks which conversations have been seen and handles support conversation logic.
     /// </summary>
+    [RequireComponent(typeof(LongTermMemory))]
     public class ConversationalBrain : BrainComponent
     {
+        private static class LtmKeys
+        {
+            public const string ConversationCompletedPrefix = "Conversation.Completed.";
+            public const string ConversationSeenPrefix = "Conversation.Seen.";
+            public const string SupportConversationPrefix = "Support.Conversation.";
+        }
+
+        private LongTermMemory _ltm;
+
         protected override void Awake()
         {
             base.Awake();
+            _ltm = GetComponent<LongTermMemory>();
             Debug.Log("ConversationalBrain is ready.");
         }
 
         protected override void SubscribeToBrainEvents()
         {
-            // Subscribe to conversation-related events if needed
-            // Currently this brain primarily orchestrates conversations
+            // Subscribe to conversation end to track completion
+            _brain.OnConversationEnded += HandleConversationEnded;
         }
 
         protected override void UnsubscribeFromBrainEvents()
         {
-            // No subscriptions to clean up
+            _brain.OnConversationEnded -= HandleConversationEnded;
         }
+
+        private void HandleConversationEnded(Conversation conversation)
+        {
+            if (conversation != null)
+            {
+                MarkConversationCompleted(conversation);
+            }
+        }
+
+        #region Conversation Persistence
+
+        /// <summary>
+        /// Mark a conversation as completed (fully watched through).
+        /// </summary>
+        public void MarkConversationCompleted(Conversation conversation)
+        {
+            if (conversation == null || _ltm == null)
+            {
+                return;
+            }
+
+            var key = $"{LtmKeys.ConversationCompletedPrefix}{conversation.name}";
+            _ltm.RememberBool(key, true);
+            Debug.Log(
+                $"ConversationalBrain: Marked conversation '{conversation.name}' as completed."
+            );
+        }
+
+        /// <summary>
+        /// Check if a conversation has been completed.
+        /// </summary>
+        public bool HasCompletedConversation(Conversation conversation)
+        {
+            if (conversation == null || _ltm == null)
+            {
+                return false;
+            }
+
+            var key = $"{LtmKeys.ConversationCompletedPrefix}{conversation.name}";
+            return _ltm.RecallBool(key);
+        }
+
+        /// <summary>
+        /// Check if a conversation has been completed by name.
+        /// </summary>
+        public bool HasCompletedConversation(string conversationName)
+        {
+            if (string.IsNullOrEmpty(conversationName) || _ltm == null)
+            {
+                return false;
+            }
+
+            var key = $"{LtmKeys.ConversationCompletedPrefix}{conversationName}";
+            return _ltm.RecallBool(key);
+        }
+
+        /// <summary>
+        /// Mark a conversation as seen (started but not necessarily completed).
+        /// </summary>
+        public void MarkConversationSeen(Conversation conversation)
+        {
+            if (conversation == null || _ltm == null)
+            {
+                return;
+            }
+
+            var key = $"{LtmKeys.ConversationSeenPrefix}{conversation.name}";
+            _ltm.RememberBool(key, true);
+        }
+
+        /// <summary>
+        /// Check if a conversation has been seen.
+        /// </summary>
+        public bool HasSeenConversation(Conversation conversation)
+        {
+            if (conversation == null || _ltm == null)
+            {
+                return false;
+            }
+
+            var key = $"{LtmKeys.ConversationSeenPrefix}{conversation.name}";
+            return _ltm.RecallBool(key);
+        }
+
+        /// <summary>
+        /// Mark a support conversation between two characters as completed.
+        /// </summary>
+        public void MarkSupportConversationCompleted(
+            CharacterData character1,
+            CharacterData character2,
+            string supportLevel
+        )
+        {
+            if (character1 == null || character2 == null || _ltm == null)
+            {
+                return;
+            }
+
+            // Use alphabetical order to ensure consistent key regardless of parameter order
+            var name1 = character1.name;
+            var name2 = character2.name;
+            var key =
+                string.Compare(name1, name2) < 0
+                    ? $"{LtmKeys.SupportConversationPrefix}{name1}_{name2}_{supportLevel}"
+                    : $"{LtmKeys.SupportConversationPrefix}{name2}_{name1}_{supportLevel}";
+
+            _ltm.RememberBool(key, true);
+            Debug.Log(
+                $"ConversationalBrain: Support conversation {name1}/{name2} rank {supportLevel} completed."
+            );
+        }
+
+        /// <summary>
+        /// Check if a support conversation has been completed.
+        /// </summary>
+        public bool HasCompletedSupportConversation(
+            CharacterData character1,
+            CharacterData character2,
+            string supportLevel
+        )
+        {
+            if (character1 == null || character2 == null || _ltm == null)
+            {
+                return false;
+            }
+
+            var name1 = character1.name;
+            var name2 = character2.name;
+            var key =
+                string.Compare(name1, name2) < 0
+                    ? $"{LtmKeys.SupportConversationPrefix}{name1}_{name2}_{supportLevel}"
+                    : $"{LtmKeys.SupportConversationPrefix}{name2}_{name1}_{supportLevel}";
+
+            return _ltm.RecallBool(key);
+        }
+
+        #endregion
 
         #region Conversation Management
 

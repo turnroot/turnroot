@@ -31,10 +31,10 @@ namespace Turnroot.Skills.Nodes.Conditions
                 return new BoolValue { value = true };
             }
 
-            // TODO: Implement actual combat initiation check when combat system is added
-            // This should check if the unit is the attacker (initiating) vs defender
-            // Future implementation: return new BoolValue { value = context.IsInitiatingCombat };
-            return new BoolValue { value = true };
+            // Check if unit is initiating combat (stored in CustomData by battle system)
+            // Default to true if not set (assume unit is attacking)
+            bool isInitiating = context.GetCustomData<bool>("IsInitiatingCombat", true);
+            return new BoolValue { value = isInitiating };
         }
     }
 }

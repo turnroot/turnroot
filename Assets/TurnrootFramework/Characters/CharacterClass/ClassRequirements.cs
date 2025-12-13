@@ -47,29 +47,18 @@ namespace Turnroot.Characters.CharacterClass
             }
 
             // Check species restriction (if any)
-            if (AllowedSpecies.Count > 0 && !AllowedSpecies.Contains(characterSpecies))
-            {
-                return false;
-            }
-
-            return true;
+            return AllowedSpecies.Count <= 0 || AllowedSpecies.Contains(characterSpecies);
         }
 
         /// <summary>
         /// Checks whether the given weapon type is allowed by this class.
         /// </summary>
-        public bool IsWeaponTypeAllowed(WeaponType weaponType)
-        {
-            return AllowedWeaponTypes.Contains(weaponType);
-        }
+        public bool IsWeaponTypeAllowed(WeaponType weaponType) => AllowedWeaponTypes.Contains(weaponType);
 
         /// <summary>
         /// Checks whether this class has any promotion paths available.
         /// </summary>
-        public bool HasPromotionPaths()
-        {
-            return PromotionPaths != null && PromotionPaths.Count > 0;
-        }
+        public bool HasPromotionPaths() => PromotionPaths != null && PromotionPaths.Count > 0;
 
         /// <summary>
         /// Gets human-readable description of requirements.

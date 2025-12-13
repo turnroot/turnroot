@@ -173,10 +173,7 @@ namespace Turnroot.Skills.Nodes
             BattleContext context,
             Action<CharacterInstance> action,
             string nodeName = null
-        )
-        {
-            return ExecuteOnTargets(context, true, action, nodeName);
-        }
+        ) => ExecuteOnTargets(context, true, action, nodeName);
 
         /// <summary>
         /// Executes an action on the first target in the context.
@@ -185,10 +182,7 @@ namespace Turnroot.Skills.Nodes
             BattleContext context,
             Action<CharacterInstance> action,
             string nodeName = null
-        )
-        {
-            return ExecuteOnTargets(context, false, action, nodeName) == 1;
-        }
+        ) => ExecuteOnTargets(context, false, action, nodeName) == 1;
 
         #endregion
 

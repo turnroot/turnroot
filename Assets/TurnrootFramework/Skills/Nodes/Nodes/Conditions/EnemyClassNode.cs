@@ -1,3 +1,4 @@
+using Turnroot.Characters.CharacterClass;
 using Turnroot.Skills.Nodes;
 using UnityEngine;
 using XNode;
@@ -23,12 +24,6 @@ namespace Turnroot.Skills.Nodes.Conditions
         [Output]
         public BoolValue IsArmored;
 
-        [Output]
-        public BoolValue IsDragon;
-
-        [Output]
-        public BoolValue IsBeast;
-
         public override object GetValue(NodePort port)
         {
             var skillGraph = graph as SkillGraph;
@@ -42,8 +37,6 @@ namespace Turnroot.Skills.Nodes.Conditions
                     "IsCavalry" => new BoolValue { value = false },
                     "IsFlying" => new BoolValue { value = false },
                     "IsArmored" => new BoolValue { value = false },
-                    "IsDragon" => new BoolValue { value = false },
-                    "IsBeast" => new BoolValue { value = false },
                     _ => null,
                 };
             }
@@ -64,14 +57,28 @@ namespace Turnroot.Skills.Nodes.Conditions
                 };
             }
 
-            // TODO: Implement class type retrieval when character class system is added
-            // Future implementation: var classData = enemy.GetClass();
-            // Then return classData.ClassName and check classData.ClassType enum
-            // Example: return new BoolValue { value = classData.ClassType == ClassType.Infantry };
+            // Get class data from the character's current class
+            var classData = enemy.CurrentClass?.ClassData;
+            if (classData == null)
+            {
+                Debug.LogWarning("EnemyClass: Enemy has no class data assigned");
+                return port.fieldName switch
+                {
+                    "ClassName" => new StringValue { value = "" },
+                    _ => new BoolValue { value = false },
+                };
+            }
+
+            var identity = classData.Identity;
+            var movementType = identity.MovementType;
 
             return port.fieldName switch
             {
-                "ClassName" => new StringValue { value = "" },
+                "ClassName" => new StringValue { value = identity.ClassName ?? "" },
+                "IsInfantry" => new BoolValue { value = movementType == MovementType.Infantry },
+                "IsCavalry" => new BoolValue { value = movementType == MovementType.Riding },
+                "IsFlying" => new BoolValue { value = movementType == MovementType.Flying },
+                "IsArmored" => new BoolValue { value = movementType == MovementType.Armored },
                 _ => new BoolValue { value = false },
             };
         }

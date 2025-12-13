@@ -184,16 +184,79 @@ namespace Turnroot.Gameplay.Brain
 
         private void HandleItemStolen(CharacterInstance thief, CharacterInstance target)
         {
-            // TODO: Implement stealing logic - select random item from target and transfer to thief
-            // This would need to interact with InventoryBrain to handle the actual transfer
             Debug.Log(
                 $"BattleBrain: {thief.CharacterTemplate.DisplayName} attempts to steal from {target.CharacterTemplate.DisplayName}"
             );
 
-            // For now, just log the attempt. Full implementation would:
-            // 1. Check target's inventory for stealable items
-            // 2. Roll for steal success based on stats
-            // 3. Transfer item if successful via InventoryBrain
+            // Get target's inventory
+            var targetInventory = target.InventoryInstance;
+            if (
+                targetInventory == null
+                || targetInventory.InventoryItems == null
+                || targetInventory.InventoryItems.Count == 0
+            )
+            {
+                Debug.Log("BattleBrain: Target has no items to steal.");
+                return;
+            }
+
+            // Get thief's inventory
+            var thiefInventory = thief.InventoryInstance;
+            if (thiefInventory == null || thiefInventory.IsFull)
+            {
+                Debug.Log("BattleBrain: Thief's inventory is full or unavailable.");
+                return;
+            }
+
+            // Find the most valuable stealable item
+            // Items must be: transferable (not unequippable) and not currently equipped
+            Turnroot.Gameplay.Objects.ObjectItemInstance bestItem = null;
+            int bestValue = -1;
+
+            foreach (var item in targetInventory.InventoryItems)
+            {
+                if (item == null || item.Template == null)
+                {
+                    continue;
+                }
+
+                // Check if item can be transferred (not unequippable)
+                if (item.Template.IsUnequippable)
+                {
+                    continue;
+                }
+
+                // Check if item is currently equipped
+                if (targetInventory.IsItemEquipped(item))
+                {
+                    continue;
+                }
+
+                // Prefer higher value items (use BasePrice as value indicator)
+                int itemValue = item.Template.BasePrice;
+                if (itemValue > bestValue)
+                {
+                    bestValue = itemValue;
+                    bestItem = item;
+                }
+            }
+
+            if (bestItem == null)
+            {
+                Debug.Log("BattleBrain: No stealable items found on target.");
+                return;
+            }
+
+            // Perform the steal - remove from target, add to thief
+            targetInventory.RemoveFromInventory(bestItem);
+            thiefInventory.AddToInventory(bestItem);
+
+            Debug.Log(
+                $"BattleBrain: {thief.CharacterTemplate.DisplayName} stole {bestItem.Template.name} from {target.CharacterTemplate.DisplayName}!"
+            );
+
+            // Publish transfer event through InventoryBrain
+            _brain?.inventoryBrain?.TransferItem(bestItem, thiefInventory);
         }
     }
 }

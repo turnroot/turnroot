@@ -28,28 +28,17 @@ namespace Turnroot.Services
                 return ValidationResult.Failure($"{context ?? "Validation"}: Character is null");
             }
 
-            if (character.CharacterTemplate == null)
-            {
-                return ValidationResult.Failure(
+            return character.CharacterTemplate == null
+                ? ValidationResult.Failure(
                     $"{context ?? "Validation"}: Character template is null"
-                );
-            }
-
-            return ValidationResult.Success();
+                )
+                : ValidationResult.Success();
         }
 
         /// <summary>
         /// Validates a class data instance.
         /// </summary>
-        public ValidationResult ValidateClass(CharacterClassData classData, string context = null)
-        {
-            if (classData == null)
-            {
-                return ValidationResult.Failure($"{context ?? "Validation"}: Class data is null");
-            }
-
-            return ValidationResult.Success();
-        }
+        public ValidationResult ValidateClass(CharacterClassData classData, string context = null) => classData == null ? ValidationResult.Failure($"{context ?? "Validation"}: Class data is null") : ValidationResult.Success();
 
         /// <summary>
         /// Validates character and class together.
@@ -67,12 +56,7 @@ namespace Turnroot.Services
             }
 
             var classResult = ValidateClass(classData, context);
-            if (!classResult.IsValid)
-            {
-                return classResult;
-            }
-
-            return ValidationResult.Success();
+            return !classResult.IsValid ? classResult : ValidationResult.Success();
         }
 
         /// <summary>
@@ -91,14 +75,11 @@ namespace Turnroot.Services
                 );
             }
 
-            if (collection.Count == 0)
-            {
-                return ValidationResult.Failure(
+            return collection.Count == 0
+                ? ValidationResult.Failure(
                     $"{context ?? "Validation"}: {collectionName} is empty"
-                );
-            }
-
-            return ValidationResult.Success();
+                )
+                : ValidationResult.Success();
         }
 
         /// <summary>
@@ -108,29 +89,18 @@ namespace Turnroot.Services
             object obj,
             string objectName,
             string context = null
-        )
-        {
-            if (obj == null)
-            {
-                return ValidationResult.Failure($"{context ?? "Validation"}: {objectName} is null");
-            }
-
-            return ValidationResult.Success();
-        }
+        ) => obj == null ? ValidationResult.Failure($"{context ?? "Validation"}: {objectName} is null") : ValidationResult.Success();
 
         /// <summary>
         /// Validates that a string is not null or empty.
         /// </summary>
         public ValidationResult ValidateString(string str, string stringName, string context = null)
         {
-            if (string.IsNullOrEmpty(str))
-            {
-                return ValidationResult.Failure(
+            return string.IsNullOrEmpty(str)
+                ? ValidationResult.Failure(
                     $"{context ?? "Validation"}: {stringName} is null or empty"
-                );
-            }
-
-            return ValidationResult.Success();
+                )
+                : ValidationResult.Success();
         }
 
         /// <summary>

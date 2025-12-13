@@ -39,10 +39,7 @@ public class DefeatEnemyBattleCondition : BattleCondition
 
     public override void InvalidateCache() => _enemiesCache.Invalidate(CACHE_KEY);
 
-    private List<CharacterInstance> GetTargetEnemies()
-    {
-        return _enemiesCache.Get(CACHE_KEY);
-    }
+    private List<CharacterInstance> GetTargetEnemies() => _enemiesCache.Get(CACHE_KEY);
 
     public void CheckCondition()
     {

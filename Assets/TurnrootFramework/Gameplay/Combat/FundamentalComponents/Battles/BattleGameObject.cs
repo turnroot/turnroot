@@ -156,7 +156,17 @@ namespace Turnroot.Gameplay.Combat
                 {
                     reachTile.CheckCondition();
                 }
-                // TODO: ReachTilesBattleCondition needs manual tracking of reached tiles
+
+                // Track reached tiles for ReachTilesBattleCondition
+                if (condition is ReachTilesBattleCondition reachTilesCondition)
+                {
+                    // Check if this unit is on the player team (typically only player units can fulfill reach conditions)
+                    bool isPlayerUnit = PlayerTeamRoster?.Instances?.Contains(unit) ?? false;
+                    if (isPlayerUnit)
+                    {
+                        reachTilesCondition.OnUnitReachedTile(newPosition);
+                    }
+                }
             }
         }
 

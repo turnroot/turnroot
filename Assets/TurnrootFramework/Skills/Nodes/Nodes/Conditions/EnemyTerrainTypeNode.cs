@@ -59,14 +59,45 @@ namespace Turnroot.Skills.Nodes.Conditions
                 return new BoolValue { value = false };
             }
 
-            // TODO: Implement terrain type retrieval when positioning/map system is added
-            // Future implementation:
-            // var position = context.GetEnemyPosition();
-            // var terrainType = context.Map.GetTerrainAt(position);
-            // Then return new BoolValue { value = terrainType == TerrainType.Ground/Forest/etc };
-            // For now, return false for all terrain types
+            // Get terrain type from map grid at enemy's position
+            var terrainTypeName = GetTerrainTypeNameAtPosition(context, enemy.MapGridPosition);
+            if (string.IsNullOrEmpty(terrainTypeName))
+            {
+                return new BoolValue { value = port.fieldName == "Ground" }; // Default to ground
+            }
 
-            return new BoolValue { value = false };
+            // Compare terrain type name with the requested port
+            return new BoolValue
+            {
+                value = terrainTypeName.Equals(
+                    port.fieldName,
+                    System.StringComparison.OrdinalIgnoreCase
+                ),
+            };
+        }
+
+        /// <summary>
+        /// Gets the terrain type name at the specified grid position.
+        /// </summary>
+        private static string GetTerrainTypeNameAtPosition(
+            Turnroot.Gameplay.Combat.FundamentalComponents.Battles.BattleContext context,
+            UnityEngine.Vector2Int position
+        )
+        {
+            var mapGrid = context?.mapGrid;
+            if (mapGrid == null)
+            {
+                return null;
+            }
+
+            var gridPoint = mapGrid.GetGridPoint(position.x, position.y);
+            if (gridPoint == null)
+            {
+                return null;
+            }
+
+            var terrainType = gridPoint.GetCachedTerrainType();
+            return terrainType?.Name;
         }
     }
 }

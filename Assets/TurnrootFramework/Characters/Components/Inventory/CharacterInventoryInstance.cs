@@ -269,7 +269,7 @@ public class CharacterInventoryInstance : IPostDeserialize
     public bool IsItemEquipped(ObjectItemInstance item)
     {
         int index = _inventoryItems.IndexOf(item);
-        return index < 0 ? false : Array.IndexOf(_equippedItemIndices, index) >= 0;
+        return index >= 0 && Array.IndexOf(_equippedItemIndices, index) >= 0;
     }
 
     public bool CanAddItem() => _inventoryItems.Count < _capacity;

@@ -13,10 +13,45 @@ namespace Turnroot.Gameplay.Brain
     /// In keeping with the farfalle architecture, events are propagated upwards to Brain,
     /// which then sends them out as needed.
     /// </summary>
+    [RequireComponent(typeof(LongTermMemory))]
     public class CharactersBrain : BrainComponent
     {
+        private static class LtmKeys
+        {
+            public const string BattlesWon = "CharactersBrain.BattlesWon";
+            public const string BattlesLost = "CharactersBrain.BattlesLost";
+            public const string BattlesRetreated = "CharactersBrain.BattlesRetreated";
+            public const string TotalBattles = "CharactersBrain.TotalBattles";
+        }
+
         private GamewideContextBrain _gamewideContextBrain;
         private BattleBrain _battleBrain;
+        private LongTermMemory _ltm;
+
+        // Runtime battle statistics
+        private int _battlesWon;
+        private int _battlesLost;
+        private int _battlesRetreated;
+
+        /// <summary>
+        /// Total battles won this playthrough.
+        /// </summary>
+        public int BattlesWon => _battlesWon;
+
+        /// <summary>
+        /// Total battles lost this playthrough.
+        /// </summary>
+        public int BattlesLost => _battlesLost;
+
+        /// <summary>
+        /// Total battles retreated from this playthrough.
+        /// </summary>
+        public int BattlesRetreated => _battlesRetreated;
+
+        /// <summary>
+        /// Total battles fought this playthrough.
+        /// </summary>
+        public int TotalBattles => _battlesWon + _battlesLost + _battlesRetreated;
 
         /// <summary>
         /// Constructor for dependency injection (used in tests).
@@ -34,6 +69,10 @@ namespace Turnroot.Gameplay.Brain
             // Use injected dependencies if available, otherwise get from components (Unity default)
             _gamewideContextBrain ??= GetComponent<GamewideContextBrain>();
             _battleBrain ??= GetComponent<BattleBrain>();
+            _ltm = GetComponent<LongTermMemory>();
+
+            // Load battle statistics from LTM
+            LoadBattleOutcomeStatistics();
         }
 
         protected override void SubscribeToBrainEvents()
@@ -54,6 +93,69 @@ namespace Turnroot.Gameplay.Brain
             _brain.OnThirdPartyTurnStarted -= HandleThirdPartyTurnStarted;
         }
 
+        #region Battle Outcome Statistics
+
+        private void LoadBattleOutcomeStatistics()
+        {
+            if (_ltm == null)
+            {
+                return;
+            }
+
+            _battlesWon = _ltm.RecallInt(LtmKeys.BattlesWon);
+            if (_battlesWon < 0)
+                _battlesWon = 0;
+
+            _battlesLost = _ltm.RecallInt(LtmKeys.BattlesLost);
+            if (_battlesLost < 0)
+                _battlesLost = 0;
+
+            _battlesRetreated = _ltm.RecallInt(LtmKeys.BattlesRetreated);
+            if (_battlesRetreated < 0)
+                _battlesRetreated = 0;
+
+            Debug.Log(
+                $"CharactersBrain: Loaded battle statistics - Won: {_battlesWon}, Lost: {_battlesLost}, Retreated: {_battlesRetreated}"
+            );
+        }
+
+        private void SaveBattleOutcomeStatistics()
+        {
+            if (_ltm == null)
+            {
+                return;
+            }
+
+            _ltm.RememberInt(LtmKeys.BattlesWon, _battlesWon);
+            _ltm.RememberInt(LtmKeys.BattlesLost, _battlesLost);
+            _ltm.RememberInt(LtmKeys.BattlesRetreated, _battlesRetreated);
+            _ltm.RememberInt(LtmKeys.TotalBattles, TotalBattles);
+        }
+
+        private void RecordBattleOutcome(Combat.BattleExitType exitType)
+        {
+            switch (exitType)
+            {
+                case Combat.BattleExitType.Victory:
+                    _battlesWon++;
+                    break;
+                case Combat.BattleExitType.Defeat:
+                    _battlesLost++;
+                    break;
+                case Combat.BattleExitType.Retreat:
+                    _battlesRetreated++;
+                    break;
+                // Bookmark doesn't count as a completed battle outcome
+            }
+
+            SaveBattleOutcomeStatistics();
+            Debug.Log(
+                $"CharactersBrain: Recorded battle outcome {exitType}. Total: W{_battlesWon}/L{_battlesLost}/R{_battlesRetreated}"
+            );
+        }
+
+        #endregion
+
         #region Battle Lifecycle Handlers
 
         private void HandleStartBattle()
@@ -65,6 +167,9 @@ namespace Turnroot.Gameplay.Brain
         private void HandleExitBattle(Combat.BattleExitType exitType)
         {
             Debug.Log($"CharactersBrain: Handling battle exit with type: {exitType}");
+
+            // Record the battle outcome
+            RecordBattleOutcome(exitType);
 
             if (
                 exitType == Combat.BattleExitType.Victory

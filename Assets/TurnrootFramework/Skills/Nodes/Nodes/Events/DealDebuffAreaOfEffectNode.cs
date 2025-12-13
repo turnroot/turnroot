@@ -1,5 +1,7 @@
+using Turnroot.Characters.StatusEffects;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
 using Turnroot.Skills.Nodes;
+using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Skills.Nodes.Events
@@ -18,13 +20,11 @@ namespace Turnroot.Skills.Nodes.Events
         [Tooltip("Test value for AoE radius in editor mode")]
         public float testRadius = 2f;
 
-        [Tooltip(
-            "Placeholder: The type of debuff to apply (will be replaced with DebuffType object)"
-        )]
-        public string debuffTypePlaceholder = "Slowed";
+        [Tooltip("The type of debuff to apply")]
+        public StatusEffectType debuffType;
 
-        [Tooltip("Duration of the debuff in turns")]
-        public int duration = 2;
+        [Tooltip("Duration of the debuff in turns (overrides debuffType default if set)")]
+        public int durationOverride = -1;
 
         [Tooltip("Intensity/strength of the debuff")]
         public float intensity = 1f;
@@ -36,26 +36,40 @@ namespace Turnroot.Skills.Nodes.Events
                 return;
             }
 
+            if (debuffType == null)
+            {
+                Debug.LogWarning("DealDebuffAreaOfEffectNode: No debuff type assigned!");
+                return;
+            }
+
             float radius = GetInputFloat("aoeRadius", testRadius);
+            int duration = durationOverride > 0 ? durationOverride : debuffType.DefaultDuration;
 
             // Apply debuff to all targeted enemies in the AoE
             int affectedCount = ExecuteOnAllTargets(
                 context,
                 target =>
                 {
-                    var debuffData = new
+                    // Apply the debuff using the typed StatusEffect system
+                    var effect = target.ApplyStatusEffect(
+                        debuffType,
+                        sourceCharacterId: context.UnitInstance?.Id,
+                        sourceSkillId: context.CurrentSkill?.name,
+                        duration: duration,
+                        intensity: intensity
+                    );
+
+                    if (effect != null)
                     {
-                        DebuffType = debuffTypePlaceholder,
-                        Duration = duration,
-                        Intensity = intensity,
-                        Radius = radius,
-                    };
-                    context.SetCustomData($"ApplyDebuff_{target.Id}", debuffData);
+                        // Publish event through Brain
+                        var brain = GetBrain.Get();
+                        brain?.PublishStatusEffectApplied(target, effect);
+                    }
                 }
             );
 
             Debug.Log(
-                $"DealDebuffAreaOfEffect: Applied {debuffTypePlaceholder} debuff to {affectedCount} enemies in {radius} tile radius"
+                $"DealDebuffAreaOfEffect: Applied {debuffType.DisplayName} debuff to {affectedCount} enemies in {radius} tile radius"
             );
         }
     }

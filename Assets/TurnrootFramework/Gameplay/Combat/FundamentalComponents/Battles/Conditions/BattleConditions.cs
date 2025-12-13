@@ -52,9 +52,19 @@ public class BattleCondition
         OnConditionInactive?.Invoke();
     }
 
-    public void ConditionMet() => OnConditionMet?.Invoke();
+    public void ConditionMet()
+    {
+        OnConditionMet?.Invoke();
+        // Publish to Brain for centralized event handling
+        gamewideContextBrain?.CentralBrain?.PublishBattleConditionMet(this);
+    }
 
-    public void ConditionFailed() => OnConditionFailed?.Invoke();
+    public void ConditionFailed()
+    {
+        OnConditionFailed?.Invoke();
+        // Publish to Brain for centralized event handling
+        gamewideContextBrain?.CentralBrain?.PublishBattleConditionFailed(this);
+    }
 
     /// <summary>
     /// Invalidate all caches. Override in derived classes that use caching.

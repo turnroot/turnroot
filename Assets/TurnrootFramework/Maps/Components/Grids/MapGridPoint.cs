@@ -693,12 +693,9 @@ public class MapGridPoint : MonoBehaviour
             return terrainType.CostFly;
         }
 
-        if (isRiding)
-        {
-            return terrainType.CostRide;
-        }
-
-        return isMagic ? terrainType.CostMagic
+        return isRiding
+            ? terrainType.CostRide
+            : isMagic ? terrainType.CostMagic
             : isArmored ? terrainType.CostArmor
             : 1f;
     }

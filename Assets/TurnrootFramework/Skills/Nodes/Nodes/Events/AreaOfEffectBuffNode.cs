@@ -1,5 +1,7 @@
+using Turnroot.Characters.StatusEffects;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
 using Turnroot.Skills.Nodes;
+using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Skills.Nodes.Events
@@ -12,27 +14,33 @@ namespace Turnroot.Skills.Nodes.Events
         public ExecutionFlow executionIn;
 
         [Input]
-        [Tooltip("The stat change amount (positive for buff, negative for debuff)")]
-        public FloatValue changeAmount;
+        [Tooltip("The intensity multiplier for the buff (1.0 = normal strength)")]
+        public FloatValue intensity;
 
-        [Tooltip("Test value for change in editor mode")]
-        public float testChange = 5f;
+        [Tooltip("Test value for intensity in editor mode")]
+        public float testIntensity = 1f;
 
         [Tooltip("Effect radius in tiles")]
         [Range(1, 10)]
         public float radius = 2f;
 
-        [Tooltip("Which stat to buff")]
-        public string buffStatPlaceholder = "Strength";
+        [Tooltip("The buff type to apply")]
+        public StatusEffectType buffType;
 
-        [Tooltip("Buff duration in turns (0 = permanent)")]
-        [Range(0, 10)]
-        public int durationTurns = 3;
+        [Tooltip("Duration override in turns (-1 = use buff default, 0 = permanent)")]
+        [Range(-1, 10)]
+        public int durationOverride = -1;
 
         public override void Execute(BattleContext context)
         {
             if (!ValidateContext(context))
             {
+                return;
+            }
+
+            if (buffType == null)
+            {
+                Debug.LogWarning("AreaOfEffectBuffNode: No buff type assigned!");
                 return;
             }
 
@@ -42,28 +50,47 @@ namespace Turnroot.Skills.Nodes.Events
                 return;
             }
 
-            float change = GetInputFloat("changeAmount", testChange);
+            float intensityValue = GetInputFloat("intensity", testIntensity);
+            int duration = durationOverride >= 0 ? durationOverride : buffType.DefaultDuration;
 
-            // Store buff command in CustomData
-            // Combat system will need to:
-            // 1. Check distance of each ally from caster
-            // 2. Apply buff to allies within radius
-            // 3. Track buff duration
-            var buffData = new
+            // Apply buff to allies within radius
+            int affectedCount = 0;
+            var brain = GetBrain.Get();
+            foreach (var ally in context.Allies)
             {
-                CasterId = context.UnitInstance.Id,
-                Radius = radius,
-                StatName = buffStatPlaceholder,
-                ChangeAmount = change,
-                Duration = durationTurns,
-                AffectedAllies = new System.Collections.Generic.List<string>(), // Will be populated by combat system with ally Ids
-            };
+                // Check if ally is within radius (using Manhattan distance for grid-based)
+                var casterPos = context.UnitInstance?.MapGridPosition;
+                var allyPos = ally?.MapGridPosition;
 
-            context.SetCustomData("AreaOfEffectBuff", buffData);
+                if (casterPos == null || allyPos == null)
+                {
+                    continue;
+                }
 
-            string durationType = durationTurns > 0 ? $"{durationTurns} turns" : "permanent";
+                int distance =
+                    Mathf.Abs(casterPos.Value.x - allyPos.Value.x)
+                    + Mathf.Abs(casterPos.Value.y - allyPos.Value.y);
+                if (distance <= radius)
+                {
+                    var effect = ally.ApplyStatusEffect(
+                        buffType,
+                        sourceCharacterId: context.UnitInstance?.Id,
+                        sourceSkillId: context.CurrentSkill?.name,
+                        duration: duration,
+                        intensity: intensityValue
+                    );
+
+                    if (effect != null)
+                    {
+                        brain?.PublishStatusEffectApplied(ally, effect);
+                        affectedCount++;
+                    }
+                }
+            }
+
+            string durationType = duration > 0 ? $"{duration} turns" : "permanent";
             Debug.Log(
-                $"AreaOfEffectBuff: Will buff {buffStatPlaceholder} by {change} for allies within {radius} tiles ({durationType})"
+                $"AreaOfEffectBuff: Applied {buffType.DisplayName} to {affectedCount} allies within {radius} tiles ({durationType})"
             );
         }
     }

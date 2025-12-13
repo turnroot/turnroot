@@ -39,10 +39,7 @@ public class ProtectNPCsBattleCondition : BattleCondition
 
     public override void InvalidateCache() => _npcsCache.Invalidate();
 
-    private List<CharacterInstance> GetTrackedNPCs()
-    {
-        return _npcsCache.GetOrCompute(() => GetMatchingAlliesAndThirdParty(NPCsToProtect));
-    }
+    private List<CharacterInstance> GetTrackedNPCs() => _npcsCache.GetOrCompute(() => GetMatchingAlliesAndThirdParty(NPCsToProtect));
 
     public void CheckCondition()
     {

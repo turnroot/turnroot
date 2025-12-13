@@ -33,29 +33,15 @@ public class TrianglePosition
 
     public override string ToString() => Position.ToString();
 
-    public bool WinsAgainst(TrianglePosition other)
-    {
-        if (Position == TrianglePositionEnum.Top && other.Position == TrianglePositionEnum.Left)
-        {
-            return true;
-        }
+    public bool WinsAgainst(TrianglePosition other) =>
+        (Position == TrianglePositionEnum.Top && other.Position == TrianglePositionEnum.Left)
+        || (Position == TrianglePositionEnum.Left && other.Position == TrianglePositionEnum.Right)
+        || (Position == TrianglePositionEnum.Right && other.Position == TrianglePositionEnum.Top);
 
-        return Position == TrianglePositionEnum.Left && other.Position == TrianglePositionEnum.Right
-            ? true
-            : Position == TrianglePositionEnum.Right && other.Position == TrianglePositionEnum.Top;
-    }
-
-    public bool LosesTo(TrianglePosition other)
-    {
-        if (Position == TrianglePositionEnum.Top && other.Position == TrianglePositionEnum.Right)
-        {
-            return true;
-        }
-
-        return Position == TrianglePositionEnum.Left && other.Position == TrianglePositionEnum.Top
-            ? true
-            : Position == TrianglePositionEnum.Right && other.Position == TrianglePositionEnum.Left;
-    }
+    public bool LosesTo(TrianglePosition other) =>
+        (Position == TrianglePositionEnum.Top && other.Position == TrianglePositionEnum.Right)
+        || (Position == TrianglePositionEnum.Left && other.Position == TrianglePositionEnum.Top)
+        || (Position == TrianglePositionEnum.Right && other.Position == TrianglePositionEnum.Left);
 
     public bool Equals(TrianglePosition other) => Position == other.Position;
 }
