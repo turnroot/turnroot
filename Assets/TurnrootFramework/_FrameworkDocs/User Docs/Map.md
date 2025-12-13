@@ -56,12 +56,7 @@ Terrain does three things: it costs movement points to enter, it provides combat
 
 ### Movement Costs
 
-Every terrain type has different costs for different movement styles:
-
-- **Walking** is your standard infantry. Forests slow them down, mountains are exhausting, and water might be impassable.
-- **Flying** units usually ignore terrain entirely—everything costs 1 to enter. That's what makes them special.
-- **Riding** (cavalry) loves open ground but struggles in forests and can't climb mountains at all.
-- **Armored** units are similar to infantry but extra slow in difficult terrain.
+Every terrain type has different costs for different movement styles.
 
 When you're designing, think about how these differences create choices. Put forests between the player's starting position and the objective—now they have to decide: take the slow, safe route through cover, or risk the fast open path?
 
@@ -73,7 +68,7 @@ Place these strategically. A fort overlooking a chokepoint becomes a meaningful 
 
 ### Health Effects
 
-Some terrain heals or damages units each turn. A healing spring restores HP. Poison swamps drain it. Lava... well, don't stand in lava.
+Some terrain heals or damages units each turn. A healing spring might restore HP. Poison swamps might drain it.
 
 ---
 
@@ -136,21 +131,6 @@ This is optional—plenty of games work great with flat 2D grids. But if you wan
 
 ---
 
-## Common Questions
-
-**My grid isn't showing in the editor.**  
-Make sure you have a MapGrid selected in your scene hierarchy, and that you've clicked "Create Grid Points."
-
-**Movement testing only shows the tile I clicked.**  
-This was a bug where tiles appeared occupied even when empty. Make sure you're on the latest version.
-
-**How big should my maps be?**  
-Start with 15×20 for a typical battle. Tutorial maps can be smaller (10×10). Epic finale maps might go up to 30×40, but bigger isn't always better—large maps can feel empty and slow.
-
-**Can I resize an existing map?**  
-Yes! Use the "+Row" and "+Column" buttons to expand. Shrinking is trickier—you'll lose the edge tiles and their data.
-
----
 
 ## Design Philosophy
 

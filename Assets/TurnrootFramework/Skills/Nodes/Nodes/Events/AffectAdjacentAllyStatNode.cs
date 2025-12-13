@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using Turnroot.Characters;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
 using Turnroot.Skills.Nodes;
 using Turnroot.Utilities;
@@ -46,7 +48,8 @@ namespace Turnroot.Skills.Nodes.Events
             }
 
             float changeAmount = GetInputFloat("change", testChange);
-            var adjacentAllies = context.AdjacentUnits.GetAdjacentAllies(context);
+            var adjacentAllies = ListPool<CharacterInstance>.Get();
+            context.AdjacentUnits.GetAdjacentAlliesNonAlloc(context, adjacentAllies);
 
             int affectedCount = 0;
             foreach (var adjacentUnit in adjacentAllies)
@@ -64,6 +67,8 @@ namespace Turnroot.Skills.Nodes.Events
                     affectedCount++;
                 }
             }
+
+            ListPool<CharacterInstance>.Return(adjacentAllies);
 
             if (affectedCount == 0)
             {

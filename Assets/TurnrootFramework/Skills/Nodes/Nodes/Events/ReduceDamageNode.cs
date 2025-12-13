@@ -1,6 +1,8 @@
-using System.Linq;
+using System.Collections.Generic;
+using Turnroot.Characters;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
 using Turnroot.Skills.Nodes;
+using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Skills.Nodes.Events
@@ -52,8 +54,9 @@ namespace Turnroot.Skills.Nodes.Events
                     return;
                 }
 
-                // Get all adjacent allies using helper method
-                var adjacentAllies = context.AdjacentUnits.GetAdjacentAllies(context);
+                // Get all adjacent allies using non-allocating method
+                var adjacentAllies = ListPool<CharacterInstance>.Get();
+                context.AdjacentUnits.GetAdjacentAlliesNonAlloc(context, adjacentAllies);
 
                 int affectedCount = 0;
                 foreach (var adjacentUnit in adjacentAllies)
@@ -76,6 +79,8 @@ namespace Turnroot.Skills.Nodes.Events
                         "ReduceDamage: No adjacent allies found to apply reduction to"
                     );
                 }
+
+                ListPool<CharacterInstance>.Return(adjacentAllies);
             }
             else
             {

@@ -1,4 +1,7 @@
+using System.Collections.Generic;
+using Turnroot.Characters;
 using Turnroot.Skills.Nodes;
+using Turnroot.Utilities;
 using UnityEngine;
 using XNode;
 
@@ -29,7 +32,10 @@ namespace Turnroot.Skills.Nodes.Conditions
             }
 
             var matchCount = 0;
-            foreach (var unit in context.AdjacentUnits.GetAdjacentAllies(context))
+            var adjacentAllies = ListPool<CharacterInstance>.Get();
+            context.AdjacentUnits.GetAdjacentAlliesNonAlloc(context, adjacentAllies);
+
+            foreach (var unit in adjacentAllies)
             {
                 string badgeText = unit.CharacterTemplate.BadgeText ?? "";
                 if (badgeText.Equals(BadgeText))
@@ -38,6 +44,7 @@ namespace Turnroot.Skills.Nodes.Conditions
                 }
             }
 
+            ListPool<CharacterInstance>.Return(adjacentAllies);
             return new FloatValue { value = matchCount };
         }
     }
