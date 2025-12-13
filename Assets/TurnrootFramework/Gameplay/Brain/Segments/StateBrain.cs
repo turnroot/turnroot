@@ -53,11 +53,7 @@ namespace Turnroot.Gameplay.Brain
     /// </summary>
     public class StateBrain : BrainComponent
     {
-        private static class LtmKeys
-        {
-            public const string HighLevelStatesCount = "StateBrain.HighLevelStates";
-            public const string HighLevelStatePrefix = "StateBrain.HighLevelState.";
-        }
+        // LtmKeys are now centralized in LtmKeys.cs
 
         [SerializeField]
         private BrainState _currentState;

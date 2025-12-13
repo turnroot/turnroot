@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using Turnroot.Characters;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
 using Turnroot.Utilities;
@@ -10,7 +9,24 @@ using XNode;
 namespace Turnroot.Skills.Nodes
 {
     /// <summary>
+    /// Validation result for skill node execution.
+    /// </summary>
+    public struct SkillNodeValidationResult
+    {
+        public bool IsValid;
+        public string ErrorMessage;
+
+        public static SkillNodeValidationResult Success() =>
+            new() { IsValid = true, ErrorMessage = null };
+
+        public static SkillNodeValidationResult Failure(string error) =>
+            new() { IsValid = false, ErrorMessage = error };
+    }
+
+    /// <summary>
     /// Base class for all skill nodes. Provides execution flow and data evaluation.
+    /// Uses template method pattern: Execute() validates, then calls ExecuteImpl().
+    /// Subclasses should override ExecuteImpl() and optionally ValidateRequirements().
     /// </summary>
     public abstract class SkillNode : Node
     {
@@ -25,7 +41,7 @@ namespace Turnroot.Skills.Nodes
         /// <summary>
         /// Retrieves the current execution context from the given SkillGraph instance.
         /// </summary>
-        public Turnroot.Gameplay.Combat.FundamentalComponents.Battles.BattleContext GetContextFromGraph(
+        public BattleContext GetContextFromGraph(
             SkillGraph skillGraph
         )
         {
@@ -47,11 +63,126 @@ namespace Turnroot.Skills.Nodes
             return null;
         }
 
+        /// <summary>
+        /// Template method for node execution. Performs validation then calls ExecuteImpl().
+        /// Override this only if you need custom pre/post execution behavior.
+        /// Most nodes should override ExecuteImpl() instead.
+        /// </summary>
         public virtual void Execute(
-            Turnroot.Gameplay.Combat.FundamentalComponents.Battles.BattleContext context
-        ) { }
+            BattleContext context
+        )
+        {
+            // Base validation - context must exist
+            if (!ValidateContext(context))
+            {
+                return;
+            }
+
+            // Node-specific validation via template method
+            var validationResult = ValidateRequirements(context);
+            if (!validationResult.IsValid)
+            {
+                Debug.LogWarning(
+                    $"{GetType().Name}: Validation failed - {validationResult.ErrorMessage}"
+                );
+                return;
+            }
+
+            // Execute the node's actual logic
+            ExecuteImpl(context);
+
+            // Fire execution event
+            OnNodeExecute?.Invoke();
+        }
+
+        /// <summary>
+        /// Override this method to add node-specific validation requirements.
+        /// Called before ExecuteImpl(). Return Success() to proceed, or Failure() to abort.
+        /// Common validations (context null check) are already handled in Execute().
+        /// </summary>
+        /// <param name="context">The battle context (guaranteed non-null when called).</param>
+        /// <returns>Validation result indicating whether execution should proceed.</returns>
+        protected virtual SkillNodeValidationResult ValidateRequirements(BattleContext context)
+        {
+            return SkillNodeValidationResult.Success();
+        }
+
+        /// <summary>
+        /// Override this method to implement the node's execution logic.
+        /// Called after ValidateRequirements() passes. Context is guaranteed non-null.
+        /// </summary>
+        /// <param name="context">The validated battle context.</param>
+        protected virtual void ExecuteImpl(BattleContext context)
+        {
+            // Default implementation does nothing.
+            // Subclasses override this to provide actual functionality.
+        }
 
         public override object GetValue(NodePort port) => null;
+
+        #region Validation Result Helpers
+
+        /// <summary>
+        /// Creates a successful validation result.
+        /// </summary>
+        protected static SkillNodeValidationResult ValidationSuccess() =>
+            SkillNodeValidationResult.Success();
+
+        /// <summary>
+        /// Creates a failed validation result with an error message.
+        /// </summary>
+        protected static SkillNodeValidationResult ValidationFailure(string error) =>
+            SkillNodeValidationResult.Failure(error);
+
+        /// <summary>
+        /// Returns a validation result requiring a unit in the context.
+        /// </summary>
+        protected SkillNodeValidationResult RequireUnit(BattleContext context)
+        {
+            if (context.UnitInstance == null)
+            {
+                return ValidationFailure("UnitInstance is required but was null");
+            }
+            return ValidationSuccess();
+        }
+
+        /// <summary>
+        /// Returns a validation result requiring at least one target in the context.
+        /// </summary>
+        protected SkillNodeValidationResult RequireTargets(BattleContext context)
+        {
+            if (context.Targets == null || context.Targets.Count == 0)
+            {
+                return ValidationFailure("At least one target is required");
+            }
+            return ValidationSuccess();
+        }
+
+        /// <summary>
+        /// Returns a validation result requiring both a unit and at least one target.
+        /// </summary>
+        protected SkillNodeValidationResult RequireUnitAndTargets(BattleContext context)
+        {
+            var unitResult = RequireUnit(context);
+            if (!unitResult.IsValid)
+                return unitResult;
+
+            return RequireTargets(context);
+        }
+
+        /// <summary>
+        /// Returns a validation result requiring at least one ally in the context.
+        /// </summary>
+        protected SkillNodeValidationResult RequireAllies(BattleContext context)
+        {
+            if (context.Allies == null || context.Allies.Count == 0)
+            {
+                return ValidationFailure("At least one ally is required");
+            }
+            return ValidationSuccess();
+        }
+
+        #endregion
 
         #region Context Validation Helpers
 
@@ -227,7 +358,7 @@ namespace Turnroot.Skills.Nodes
         /// </summary>
         /// <returns>True if the stat change was successful, false otherwise.</returns>
         protected bool ApplyStatChange(
-            Turnroot.Characters.CharacterInstance character,
+            CharacterInstance character,
             string statName,
             bool isBoundedStat,
             float changeAmount,
@@ -240,12 +371,12 @@ namespace Turnroot.Skills.Nodes
                 return false;
             }
 
-            Turnroot.Characters.Stats.BaseCharacterStat stat = null;
+            Characters.Stats.BaseCharacterStat stat = null;
 
             if (isBoundedStat)
             {
                 if (
-                    System.Enum.TryParse<Turnroot.Characters.Stats.BoundedStatType>(
+                    System.Enum.TryParse<Characters.Stats.BoundedStatType>(
                         statName,
                         out var boundedType
                     )
@@ -262,7 +393,7 @@ namespace Turnroot.Skills.Nodes
             else
             {
                 if (
-                    System.Enum.TryParse<Turnroot.Characters.Stats.UnboundedStatType>(
+                    System.Enum.TryParse<Characters.Stats.UnboundedStatType>(
                         statName,
                         out var unboundedType
                     )
@@ -306,7 +437,7 @@ namespace Turnroot.Skills.Nodes
         /// <param name="nodeName">Name of the node for logging purposes.</param>
         /// <returns>True if damage was successfully applied, false otherwise.</returns>
         protected bool DealDamage(
-            Turnroot.Characters.CharacterInstance target,
+            CharacterInstance target,
             float damage,
             string nodeName = null
         )
@@ -343,7 +474,7 @@ namespace Turnroot.Skills.Nodes
         /// <param name="nodeName">Name of the node for logging purposes.</param>
         /// <returns>True if the kill was successful, false otherwise.</returns>
         protected bool KillCharacter(
-            Turnroot.Characters.CharacterInstance target,
+            CharacterInstance target,
             string nodeName = null
         )
         {
@@ -408,22 +539,22 @@ namespace Turnroot.Skills.Nodes
         }
     }
 
-    [System.Serializable]
+    [Serializable]
     public struct ExecutionFlow { }
 
-    [System.Serializable]
+    [Serializable]
     public struct BoolValue
     {
         public bool value;
     }
 
-    [System.Serializable]
+    [Serializable]
     public struct FloatValue
     {
         public float value;
     }
 
-    [System.Serializable]
+    [Serializable]
     public struct StringValue
     {
         public string value;

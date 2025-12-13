@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using Turnroot.Characters;
+using Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Context;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Environment;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Locations;
 using Turnroot.Skills.Nodes;
-using UnityEngine;
 
 namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 {
@@ -13,6 +13,12 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
     /// </summary>
     public class BattleContext
     {
+        /// <summary>
+        /// Reference to the Brain for publishing events.
+        /// Set this when creating the BattleContext.
+        /// </summary>
+        public Brain.Brain Brain { get; set; }
+
         /// <summary>
         /// Active map graph for this battle.
         /// </summary>
@@ -66,5 +72,27 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
         // Set a custom data value
         public void SetCustomData(string key, object value) => CustomData[key] = value;
+
+        #region Focused Context Factories
+
+        /// <summary>
+        /// Creates a focused context for skill execution.
+        /// Use this in skill nodes instead of the full BattleContext.
+        /// </summary>
+        public SkillExecutionContext AsSkillContext() => new SkillExecutionContext(this);
+
+        /// <summary>
+        /// Creates a focused context for combat resolution.
+        /// Use this in combat calculation systems.
+        /// </summary>
+        public CombatContext AsCombatContext() => new CombatContext(this);
+
+        /// <summary>
+        /// Creates a focused context for AI decision-making.
+        /// Use this in AI systems instead of the full BattleContext.
+        /// </summary>
+        public AIDecisionContext AsAIContext() => new AIDecisionContext(this);
+
+        #endregion
     }
 }

@@ -1,7 +1,5 @@
 using System;
-using System.Collections.Generic;
 using Assets.AbstractScripts.Graphics2D;
-using NaughtyAttributes;
 using Turnroot.AbstractScripts.Graphics2D;
 using Turnroot.Graphics.Portrait;
 using UnityEngine;
@@ -57,7 +55,7 @@ namespace Turnroot.Graphics2D
 
         // Editor helper: assign an ImageStack to this StackedImage instance.
         // Prefer calling this instead of using reflection from editor code.
-        public void SetImageStack(Turnroot.Graphics.Portrait.ImageStack stack) => _imageStack = stack;
+        public void SetImageStack(ImageStack stack) => _imageStack = stack;
 
         public void SetKey(string key)
         {

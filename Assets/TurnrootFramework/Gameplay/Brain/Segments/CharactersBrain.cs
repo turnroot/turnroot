@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using Turnroot.Characters;
 using Turnroot.Characters.CharacterClass;
 using Turnroot.Characters.Components;
-using Turnroot.Services;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain
@@ -16,14 +15,6 @@ namespace Turnroot.Gameplay.Brain
     [RequireComponent(typeof(LongTermMemory))]
     public class CharactersBrain : BrainComponent
     {
-        private static class LtmKeys
-        {
-            public const string BattlesWon = "CharactersBrain.BattlesWon";
-            public const string BattlesLost = "CharactersBrain.BattlesLost";
-            public const string BattlesRetreated = "CharactersBrain.BattlesRetreated";
-            public const string TotalBattles = "CharactersBrain.TotalBattles";
-        }
-
         private GamewideContextBrain _gamewideContextBrain;
         private BattleBrain _battleBrain;
         private LongTermMemory _ltm;
@@ -172,8 +163,8 @@ namespace Turnroot.Gameplay.Brain
             RecordBattleOutcome(exitType);
 
             if (
-                exitType == Combat.BattleExitType.Victory
-                || exitType == Combat.BattleExitType.Bookmark
+                exitType is Combat.BattleExitType.Victory
+                or Combat.BattleExitType.Bookmark
             )
             {
                 SaveBattleParticipantsProgress();
@@ -206,7 +197,7 @@ namespace Turnroot.Gameplay.Brain
 
             foreach (var factionType in factionTypes)
             {
-                if (factionType == CharacterWhich.ALLY || factionType == CharacterWhich.AVATAR)
+                if (factionType is CharacterWhich.ALLY or CharacterWhich.AVATAR)
                 {
                     if (_battleBrain.PlayerTeamRoster?.Instances != null)
                     {
@@ -302,11 +293,6 @@ namespace Turnroot.Gameplay.Brain
                 }
 
                 character.CurrentClass?.IncrementBattleCount();
-
-                if (character.CurrentClass?.CheckMasteryConditions(character) == true)
-                {
-                    masteryCount++;
-                }
 
                 if (character.CharacterTemplate?.IsUnique == true)
                 {

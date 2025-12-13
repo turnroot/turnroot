@@ -7,7 +7,6 @@ namespace Turnroot.Characters.CharacterClass
 {
     /// <summary>
     /// Stat minimums, caps, bonuses, and growth rates for a character class.
-    /// Extracted from CharacterClassData for cleaner organization.
     /// </summary>
     [Serializable]
     public class ClassStats

@@ -50,9 +50,9 @@ namespace Turnroot.Characters.Components
         /// <summary>
         /// Check if a string is a valid character type.
         /// </summary>
-        public static bool IsValid(string value) => value == AVATAR || value == ENEMY || value == ALLY || value == NPC;
+        public static bool IsValid(string value) => value is AVATAR or ENEMY or ALLY or NPC;
 
-        // Implicit conversion to string
+        // Implicit conversion to string nn n/
         public static implicit operator string(CharacterWhich which) => which?._value;
 
         public override string ToString() => _value;

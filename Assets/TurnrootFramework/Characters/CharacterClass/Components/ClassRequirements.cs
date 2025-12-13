@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Turnroot.Characters;
 using Turnroot.Gameplay.Objects;
 using Turnroot.Gameplay.Objects.Components;
 using UnityEngine;
@@ -9,7 +8,6 @@ namespace Turnroot.Characters.CharacterClass
 {
     /// <summary>
     /// Requirements for equipping or qualifying for a character class.
-    /// Extracted from CharacterClassData for cleaner organization.
     /// </summary>
     [Serializable]
     public class ClassRequirements

@@ -1,5 +1,4 @@
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
-using Turnroot.Skills.Nodes;
 using UnityEngine;
 
 namespace Turnroot.Skills.Nodes.Flow
@@ -20,7 +19,7 @@ namespace Turnroot.Skills.Nodes.Flow
         public override void Execute(BattleContext context)
         {
             // Get the condition value from connected node
-            BoolValue conditionValue = GetInputValue<BoolValue>("condition", new BoolValue());
+            BoolValue conditionValue = GetInputValue("condition", new BoolValue());
 
             // If condition is false, interrupt execution (don't proceed)
             if (!conditionValue.value)

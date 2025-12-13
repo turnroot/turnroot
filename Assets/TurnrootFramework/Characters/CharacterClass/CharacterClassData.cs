@@ -4,7 +4,6 @@ using NaughtyAttributes;
 using Turnroot.Characters.Stats;
 using Turnroot.Characters.Subclasses;
 using Turnroot.CommonAncestors;
-using Turnroot.Gameplay.Objects;
 using Turnroot.Gameplay.Objects.Components;
 using Turnroot.Utilities;
 using UnityEngine;
@@ -52,10 +51,6 @@ namespace Turnroot.Characters.CharacterClass
         }
     }
 
-    /// <summary>
-    /// Character class definition - now acts as a facade over focused sub-components.
-    /// Decomposed from 568-line monolith into Identity, Stats, Requirements, and Mastery classes.
-    /// </summary>
     [CreateAssetMenu(fileName = "New Character Class", menuName = "Turnroot/Character/Class Data")]
     public class CharacterClassData : ScriptableObject
     {
@@ -129,16 +124,8 @@ namespace Turnroot.Characters.CharacterClass
             // Update cached mode so ShowIf can see changes
             _cachedClassSelectionMode = GetProjectClassSelectionMode();
 
-            // Auto-populate and validate stat lists
             ValidateStatLists();
-
-            // Validate experience requirements
-            ValidateExperienceRequirements();
-
-            // Validate promotion paths
             ValidatePromotionPaths();
-
-            // Force inspector refresh
             ForceInspectorRefresh();
         }
 
@@ -202,7 +189,7 @@ namespace Turnroot.Characters.CharacterClass
             List<StatModifier> list,
             List<DefaultCharacterStats.DefaultBoundedStat> defaults,
             string listName,
-            System.Func<DefaultCharacterStats.DefaultBoundedStat, StatModifier> creator
+            Func<DefaultCharacterStats.DefaultBoundedStat, StatModifier> creator
         )
         {
             if (list.Count == 0)
@@ -224,7 +211,7 @@ namespace Turnroot.Characters.CharacterClass
             List<UnboundedStatModifier> list,
             List<DefaultCharacterStats.DefaultUnboundedStat> defaults,
             string listName,
-            System.Func<DefaultCharacterStats.DefaultUnboundedStat, UnboundedStatModifier> creator
+            Func<DefaultCharacterStats.DefaultUnboundedStat, UnboundedStatModifier> creator
         )
         {
             if (list.Count == 0)
@@ -240,13 +227,6 @@ namespace Turnroot.Characters.CharacterClass
                     $"{name}: {listName} count ({list.Count}) doesn't match DefaultCharacterStats count ({defaults.Count}). This may cause issues."
                 );
             }
-        }
-
-        private void ValidateExperienceRequirements()
-        {
-            // experienceRequirements has been removed from the new design
-            // Experience requirements are now handled via Requirements.MinimumLevelRequirement
-            // This method is kept for compatibility but does nothing
         }
 
         private void ValidatePromotionPaths()
@@ -413,12 +393,12 @@ namespace Turnroot.Characters.CharacterClass
             public string experienceTypeId;
 
             [Tooltip("Minimum rank required (E, D, C, B, A, S)")]
-            public Turnroot.CommonAncestors.LeveledLetteredField minimumRank;
+            public LeveledLetteredField minimumRank;
 
             public ExperienceRequirement(string typeId, string rank)
             {
                 experienceTypeId = typeId;
-                minimumRank = new Turnroot.CommonAncestors.LeveledLetteredField(rank);
+                minimumRank = new LeveledLetteredField(rank);
             }
         }
 

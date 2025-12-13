@@ -1,4 +1,3 @@
-using Turnroot.Skills.Nodes;
 using UnityEngine;
 using XNode;
 
@@ -31,8 +30,8 @@ namespace Turnroot.Skills.Nodes.Math
 
         public override object GetValue(NodePort port)
         {
-            FloatValue aValue = GetInputValue<FloatValue>("a", a);
-            FloatValue bValue = GetInputValue<FloatValue>("b", b);
+            FloatValue aValue = GetInputValue("a", a);
+            FloatValue bValue = GetInputValue("b", b);
             BoolValue resultValue = new();
 
             switch (operationType)

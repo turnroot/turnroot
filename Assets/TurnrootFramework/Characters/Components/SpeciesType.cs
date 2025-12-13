@@ -4,7 +4,6 @@ namespace Turnroot.Characters
 {
     /// <summary>
     /// Defines a species/race type (e.g., Human, Beast, Dragon, Manakete).
-    /// Used for class restrictions and gameplay mechanics.
     /// </summary>
     [CreateAssetMenu(
         fileName = "SpeciesType",

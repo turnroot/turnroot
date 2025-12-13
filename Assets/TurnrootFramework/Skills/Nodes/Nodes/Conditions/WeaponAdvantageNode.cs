@@ -1,14 +1,54 @@
 using Turnroot.Gameplay.Objects.Components;
-using Turnroot.Skills.Nodes;
 using UnityEngine;
 using XNode;
 
 namespace Turnroot.Skills.Nodes.Conditions
 {
+    /// <summary>
+    /// Represents the weapon matchup result between unit and enemy.
+    /// This is mutually exclusive - only one state can be true at a time.
+    /// </summary>
+    public enum WeaponMatchup
+    {
+        /// <summary>Unit has weapon triangle advantage over enemy.</summary>
+        Advantage = 0,
+
+        /// <summary>Unit has weapon triangle disadvantage against enemy.</summary>
+        Disadvantage = 1,
+
+        /// <summary>Unit and enemy have the same weapon type.</summary>
+        Neutral = 2,
+
+        /// <summary>One or both weapons are not on the weapon triangle.</summary>
+        NotOnTriangle = 3,
+    }
+
+    /// <summary>
+    /// Struct to hold weapon matchup result for node output.
+    /// </summary>
+    [System.Serializable]
+    public struct WeaponMatchupValue
+    {
+        public WeaponMatchup matchup;
+
+        public bool IsAdvantage => matchup == WeaponMatchup.Advantage;
+        public bool IsDisadvantage => matchup == WeaponMatchup.Disadvantage;
+        public bool IsNeutral => matchup == WeaponMatchup.Neutral;
+        public bool IsNotOnTriangle => matchup == WeaponMatchup.NotOnTriangle;
+    }
+
     [CreateNodeMenu("Conditions/Weapon/Weapon Advantage")]
     [NodeLabel("Gets weapon advantage or same type")]
     public class WeaponAdvantageNode : SkillNode
     {
+        /// <summary>
+        /// The single, mutually exclusive matchup result.
+        /// Use this output for new skill graphs instead of the individual bool outputs.
+        /// </summary>
+        [Output]
+        public WeaponMatchupValue Matchup;
+
+        // Legacy bool outputs maintained for backwards compatibility
         [Output]
         public BoolValue UnitAdvantage;
 
@@ -29,6 +69,7 @@ namespace Turnroot.Skills.Nodes.Conditions
                 // Return defaults in editor mode
                 return port.fieldName switch
                 {
+                    "Matchup" => new WeaponMatchupValue { matchup = WeaponMatchup.Neutral },
                     "UnitAdvantage" => new BoolValue { value = false },
                     "EnemyAdvantage" => new BoolValue { value = false },
                     "SameType" => new BoolValue { value = true },
@@ -41,9 +82,36 @@ namespace Turnroot.Skills.Nodes.Conditions
             if (context == null || context.UnitInstance == null)
             {
                 Debug.LogWarning("WeaponAdvantage: Could not retrieve context or unit from graph");
-                return new BoolValue { value = false };
+                return port.fieldName == "Matchup"
+                    ? new WeaponMatchupValue { matchup = WeaponMatchup.NotOnTriangle }
+                    : new BoolValue { value = false };
             }
 
+            // Calculate the matchup once
+            var matchup = CalculateWeaponMatchup(context);
+
+            return port.fieldName switch
+            {
+                "Matchup" => new WeaponMatchupValue { matchup = matchup },
+                "UnitAdvantage" => new BoolValue { value = matchup == WeaponMatchup.Advantage },
+                "EnemyAdvantage" => new BoolValue { value = matchup == WeaponMatchup.Disadvantage },
+                "SameType" => new BoolValue { value = matchup == WeaponMatchup.Neutral },
+                "NeitherOnTriangle" => new BoolValue
+                {
+                    value = matchup == WeaponMatchup.NotOnTriangle,
+                },
+                _ => new BoolValue { value = false },
+            };
+        }
+
+        /// <summary>
+        /// Calculates the weapon matchup between unit and enemy.
+        /// Returns a single mutually exclusive result.
+        /// </summary>
+        private WeaponMatchup CalculateWeaponMatchup(
+            Gameplay.Combat.FundamentalComponents.Battles.BattleContext context
+        )
+        {
             // Get unit's equipped weapon type
             var unitWeaponType = GetEquippedWeaponType(context.UnitInstance);
             var unitTrianglePos = unitWeaponType?.TrianglePosition;
@@ -54,52 +122,49 @@ namespace Turnroot.Skills.Nodes.Conditions
             var enemyWeaponType = enemy != null ? GetEquippedWeaponType(enemy) : null;
             var enemyTrianglePos = enemyWeaponType?.TrianglePosition;
 
-            // Determine advantage using TrianglePosition
-            bool unitHasAdvantage = false;
-            bool enemyHasAdvantage = false;
-            bool sameType = false;
-            bool neitherOnTriangle = false;
-
-            if (unitTrianglePos != null && enemyTrianglePos != null)
+            // Check if either weapon is missing or not on triangle
+            if (unitTrianglePos == null || enemyTrianglePos == null)
             {
-                // Check if either is not on triangle
-                if (
-                    unitTrianglePos.Position == TrianglePositionEnum.NotOnTriangle
-                    || enemyTrianglePos.Position == TrianglePositionEnum.NotOnTriangle
-                )
-                {
-                    neitherOnTriangle = true;
-                }
-                else
-                {
-                    // Use TrianglePosition's WinsAgainst/LosesTo methods
-                    unitHasAdvantage = unitTrianglePos.WinsAgainst(enemyTrianglePos);
-                    enemyHasAdvantage = unitTrianglePos.LosesTo(enemyTrianglePos);
-                    sameType = unitTrianglePos.Equals(enemyTrianglePos);
-                }
-            }
-            else
-            {
-                neitherOnTriangle = true;
+                return WeaponMatchup.NotOnTriangle;
             }
 
-            return port.fieldName switch
+            if (
+                unitTrianglePos.Position == TrianglePositionEnum.NotOnTriangle
+                || enemyTrianglePos.Position == TrianglePositionEnum.NotOnTriangle
+            )
             {
-                "UnitAdvantage" => new BoolValue { value = unitHasAdvantage },
-                "EnemyAdvantage" => new BoolValue { value = enemyHasAdvantage },
-                "SameType" => new BoolValue { value = sameType },
-                "NeitherOnTriangle" => new BoolValue { value = neitherOnTriangle },
-                _ => new BoolValue { value = false },
-            };
+                return WeaponMatchup.NotOnTriangle;
+            }
+
+            // Check for same type first
+            if (unitTrianglePos.Equals(enemyTrianglePos))
+            {
+                return WeaponMatchup.Neutral;
+            }
+
+            // Check advantage/disadvantage
+            if (unitTrianglePos.WinsAgainst(enemyTrianglePos))
+            {
+                return WeaponMatchup.Advantage;
+            }
+
+            if (unitTrianglePos.LosesTo(enemyTrianglePos))
+            {
+                return WeaponMatchup.Disadvantage;
+            }
+
+            // Fallback - shouldn't normally reach here
+            return WeaponMatchup.Neutral;
         }
 
         private static WeaponType GetEquippedWeaponType(
-            Turnroot.Characters.CharacterInstance character
+            Characters.CharacterInstance character
         )
         {
             var inventory = character?.InventoryInstance;
             var weaponIndex = inventory?.GetEquippedWeaponIndex() ?? -1;
-            return weaponIndex >= 0
+            return
+                weaponIndex >= 0
                 && inventory.InventoryItems != null
                 && weaponIndex < inventory.InventoryItems.Count
                 ? (inventory.InventoryItems[weaponIndex]?.Template?.WeaponType)

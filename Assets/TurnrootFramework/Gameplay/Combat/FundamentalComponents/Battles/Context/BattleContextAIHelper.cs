@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using Turnroot.Characters;
-using Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Locations;
 using Turnroot.Gameplay.Objects;
 using Turnroot.Maps;
 using Turnroot.Services;
@@ -9,20 +8,19 @@ using UnityEngine;
 
 namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 {
-    public struct AITileData
-    {
-        public Dictionary<MapGridPoint, float> MoveTiles;
-        public Dictionary<MapGridPoint, float> AttackTiles;
-    }
-
     /// <summary>
     /// Helper class for AI decision-making and pathfinding in battle contexts.
     /// Handles movement tile calculation, target/ally filtering, and behavioral AI logic.
+    /// Uses non-allocating patterns with reusable dictionaries to avoid GC allocations.
     /// </summary>
     public class BattleContextAIHelper
     {
         private readonly BattleContext _context;
         private AStarModified _aStarModified;
+
+        // Reusable dictionaries to avoid allocations during AI decision-making
+        private readonly Dictionary<MapGridPoint, float> _reusableMoveTiles = new();
+        private readonly Dictionary<MapGridPoint, float> _reusableAttackTiles = new();
 
         public BattleContextAIHelper(BattleContext context)
         {
@@ -36,18 +34,38 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         }
 
         /// <summary>
-        /// Returns a dictionary of possible tiles that the unit can move to, including the range of its attacks.
+        /// Gets references to the reusable tile dictionaries for callers that need them.
+        /// WARNING: These dictionaries are reused between calls. Copy values if you need to persist them.
+        /// </summary>
+        public (
+            Dictionary<MapGridPoint, float> MoveTiles,
+            Dictionary<MapGridPoint, float> AttackTiles
+        ) GetReusableTileDictionaries()
+        {
+            return (_reusableMoveTiles, _reusableAttackTiles);
+        }
+
+        /// <summary>
+        /// Populates the provided dictionary with possible tiles that the unit can move to, including the range of its attacks.
         /// The function uses the A* algorithm to find all reachable tiles within the unit's movement range and attack range.
         /// </summary>
-        public Dictionary<MapGridPoint, float> GetPossibleTilesIncludingRange(MapGridPoint start)
+        /// <param name="start">The starting position for pathfinding.</param>
+        /// <param name="result">The dictionary to populate with reachable tiles. Will be cleared before use.</param>
+        /// <returns>True if the operation succeeded; false if validation failed.</returns>
+        public bool GetPossibleTilesIncludingRangeNonAlloc(
+            MapGridPoint start,
+            Dictionary<MapGridPoint, float> result
+        )
         {
+            result.Clear();
+
             var validation = ValidationService.Instance.ValidateCharacter(
                 _context.UnitInstance,
-                "GetPossibleTilesIncludingRange"
+                "GetPossibleTilesIncludingRangeNonAlloc"
             );
             if (!validation.IsValid)
             {
-                return DictionaryPool<MapGridPoint, float>.Get();
+                return false;
             }
 
             var parameters = PathfindingParameters.FromCharacterWithRange(
@@ -58,7 +76,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
             if (parameters == null || !parameters.IsValid())
             {
-                return new Dictionary<MapGridPoint, float>();
+                return false;
             }
 
             // Apply movement bonuses
@@ -85,21 +103,37 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 parameters.MaxRange
             );
 
-            return points ?? DictionaryPool<MapGridPoint, float>.Get();
+            if (points != null)
+            {
+                foreach (var kvp in points)
+                {
+                    result[kvp.Key] = kvp.Value;
+                }
+            }
+
+            return true;
         }
 
         /// <summary>
-        /// Returns all tiles the unit can move to (excluding attack-only range).
+        /// Populates the provided dictionary with all tiles the unit can move to (excluding attack-only range).
         /// </summary>
-        public Dictionary<MapGridPoint, float> GetPossibleMoveTiles(MapGridPoint start)
+        /// <param name="start">The starting position for pathfinding.</param>
+        /// <param name="result">The dictionary to populate with reachable tiles. Will be cleared before use.</param>
+        /// <returns>True if the operation succeeded; false if validation failed.</returns>
+        public bool GetPossibleMoveTilesNonAlloc(
+            MapGridPoint start,
+            Dictionary<MapGridPoint, float> result
+        )
         {
+            result.Clear();
+
             var validation = ValidationService.Instance.ValidateCharacter(
                 _context.UnitInstance,
-                "GetPossibleMoveTiles"
+                "GetPossibleMoveTilesNonAlloc"
             );
             if (!validation.IsValid)
             {
-                return DictionaryPool<MapGridPoint, float>.Get();
+                return false;
             }
 
             var parameters = PathfindingParameters.FromCharacter(
@@ -110,7 +144,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
             if (parameters == null || !parameters.IsValid())
             {
-                return new Dictionary<MapGridPoint, float>();
+                return false;
             }
 
             var points = _aStarModified.GetReachable(
@@ -124,30 +158,58 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 parameters.IsArmored
             );
 
-            return points ?? DictionaryPool<MapGridPoint, float>.Get();
+            if (points != null)
+            {
+                foreach (var kvp in points)
+                {
+                    result[kvp.Key] = kvp.Value;
+                }
+            }
+
+            return true;
         }
 
         /// <summary>
         /// Computes both movement and attack-only tiles for AI decision making.
         /// Attack tiles are those reachable by weapon range but not by movement.
         /// </summary>
-        public AITileData GetTilesForAI(MapGridPoint start)
+        /// <param name="start">The starting position for pathfinding.</param>
+        /// <param name="moveTilesResult">Dictionary to populate with movement tiles. Will be cleared before use.</param>
+        /// <param name="attackTilesResult">Dictionary to populate with attack-only tiles. Will be cleared before use.</param>
+        /// <returns>True if both calculations succeeded; false otherwise.</returns>
+        public bool GetTilesForAINonAlloc(
+            MapGridPoint start,
+            Dictionary<MapGridPoint, float> moveTilesResult,
+            Dictionary<MapGridPoint, float> attackTilesResult
+        )
         {
-            var moveTiles = GetPossibleMoveTiles(start);
-            var allTiles = GetPossibleTilesIncludingRange(start);
+            attackTilesResult.Clear();
 
-            var attackTiles = new Dictionary<MapGridPoint, float>();
+            if (!GetPossibleMoveTilesNonAlloc(start, moveTilesResult))
+            {
+                return false;
+            }
 
-            // Use TryGetValue to avoid double lookup
+            // We need a temporary dictionary for all tiles including range
+            // Use pooled dictionary for the intermediate calculation
+            using var allTilesPooled = PooledDictionary<MapGridPoint, float>.Get();
+            var allTiles = allTilesPooled.Dictionary;
+
+            if (!GetPossibleTilesIncludingRangeNonAlloc(start, allTiles))
+            {
+                return false;
+            }
+
+            // Attack tiles are those reachable by weapon range but not by movement
             foreach (var tile in allTiles)
             {
-                if (!moveTiles.TryGetValue(tile.Key, out _))
+                if (!moveTilesResult.TryGetValue(tile.Key, out _))
                 {
-                    attackTiles[tile.Key] = tile.Value;
+                    attackTilesResult[tile.Key] = tile.Value;
                 }
             }
 
-            return new AITileData { MoveTiles = moveTiles, AttackTiles = attackTiles };
+            return true;
         }
 
         /// <summary>
@@ -158,12 +220,16 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         public void PickTileAndAction()
         {
             /* ----------------------------- Assemble datas ----------------------------- */
-            AITileData tileData = GetTilesForAI(
+            // Use reusable dictionaries to avoid allocations
+            GetTilesForAINonAlloc(
                 _context.UnitInstance.UnitPositionToMapGridPoint(
                     _context.UnitInstance.MapGridPosition,
                     _context.mapGrid
-                )
+                ),
+                _reusableMoveTiles,
+                _reusableAttackTiles
             );
+
             Dictionary<string, float> behaviorDict =
                 _context.UnitInstance.CharacterTemplate.BehaviorSettings.GetBehaviorDictionary();
 
@@ -171,11 +237,11 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             // about targets or allies
             if (Random.value >= behaviorDict["BloodthirstGreed"])
             {
-                HandleCombatBehavior(tileData, behaviorDict);
+                HandleCombatBehavior(_reusableMoveTiles, _reusableAttackTiles, behaviorDict);
             }
             else
             {
-                HandleGreedyBehavior(tileData);
+                HandleGreedyBehavior(_reusableMoveTiles, _reusableAttackTiles);
             }
         }
 
@@ -212,13 +278,16 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         /// Handles AI behavior when unit prioritizes loot over combat.
         /// Move towards the closest treasure chest or, if none are found, towards the closest ally.
         /// </summary>
-        private void HandleGreedyBehavior(AITileData tileData)
+        private void HandleGreedyBehavior(
+            Dictionary<MapGridPoint, float> moveTiles,
+            Dictionary<MapGridPoint, float> attackTiles
+        )
         {
             if (!MoveToClosestFeatureType(MapGridPointFeature.FeatureType.Treasure))
             {
                 // if no treasure chests, move towards the closest ally
                 var tryMove = MoveNextToClosestAlly(
-                    tileData,
+                    moveTiles,
                     _context.UnitInstance.UnitPositionToMapGridPoint(
                         _context.UnitInstance.MapGridPosition,
                         _context.mapGrid
@@ -227,7 +296,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 if (!tryMove.Success)
                 {
                     // If no moveable neighbors are found, try to retreat to a safe position
-                    if (!TryToRetreatToSafeTile(tileData))
+                    if (!TryToRetreatToSafeTile(moveTiles))
                     {
                         // If there's no treasure chests, no allies, and no enemies in range...
                         // faff around until the next turn I guess
@@ -240,9 +309,9 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         /// <summary>
         /// Attempts to move the unit to a safe tile that increases distance from enemies.
         /// </summary>
-        /// <param name="tileData"></param>
-        /// <returns></returns>
-        private bool TryToRetreatToSafeTile(AITileData tileData)
+        /// <param name="moveTiles">Dictionary of tiles the unit can move to.</param>
+        /// <returns>True if the unit moved to a safe tile, false otherwise.</returns>
+        private bool TryToRetreatToSafeTile(Dictionary<MapGridPoint, float> moveTiles)
         {
             if (_context.Targets == null || _context.Targets.Count == 0)
             {
@@ -251,12 +320,17 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
             var (closestEnemyPos, furthestEnemyPos, closestDistance, furthestDistance) =
                 FindClosestAndFurthestEnemies(_context.Targets);
-            var safeTiles = FilterSafeTiles(
-                tileData,
+
+            using var safeTilesPooled = PooledList<MapGridPoint>.Get();
+            var safeTiles = safeTilesPooled.List;
+
+            FilterSafeTilesNonAlloc(
+                moveTiles,
                 closestEnemyPos,
                 furthestEnemyPos,
                 closestDistance,
-                furthestDistance
+                furthestDistance,
+                safeTiles
             );
 
             if (safeTiles.Count > 0)
@@ -278,18 +352,24 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         /// Moves the unit next to the closest ally in its movement range.
         /// If no moveable neighbors are found, returns a failure result.
         /// </summary>
-        /// <param name="tileData"></param>
-        /// <param name="start"></param>
-        /// <returns></returns>
-        private OperationResult MoveNextToClosestAlly(AITileData tileData, MapGridPoint start)
+        /// <param name="moveTiles">Dictionary of tiles the unit can move to.</param>
+        /// <param name="start">The starting position.</param>
+        /// <returns>OperationResult indicating success or failure.</returns>
+        private OperationResult MoveNextToClosestAlly(
+            Dictionary<MapGridPoint, float> moveTiles,
+            MapGridPoint start
+        )
         {
-            var AlliesInMoveRange = GetAlliesInMovementRange(tileData);
-            if (AlliesInMoveRange == null || AlliesInMoveRange.Count == 0)
+            using var alliesPooled = PooledList<CharacterInstance>.Get();
+            var alliesInMoveRange = alliesPooled.List;
+            GetAlliesInMovementRangeNonAlloc(moveTiles, alliesInMoveRange);
+
+            if (alliesInMoveRange.Count == 0)
             {
                 return OperationResult.Failure("No allies found in movement range.");
             }
 
-            var closestAlly = GetClosestAllyPosition(AlliesInMoveRange);
+            var closestAlly = GetClosestAllyPosition(alliesInMoveRange);
             // filter movable tiles to get the neighbors of the ally
             Dictionary<string, MapGridPoint> neighbors = closestAlly.GetNeighbors();
 
@@ -300,7 +380,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             foreach (var neighbor in neighbors)
             {
                 // Use TryGetValue to avoid double lookup
-                if (tileData.MoveTiles.TryGetValue(neighbor.Value, out _))
+                if (moveTiles.TryGetValue(neighbor.Value, out _))
                 {
                     moveableNeighbors.Add(neighbor.Value);
                 }
@@ -351,7 +431,8 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         /// Determines whether to engage or retreat based on BrashWary behavior.
         /// </summary>
         private void HandleCombatBehavior(
-            AITileData tileData,
+            Dictionary<MapGridPoint, float> moveTiles,
+            Dictionary<MapGridPoint, float> attackTiles,
             Dictionary<string, float> behaviorDict
         )
         {
@@ -363,10 +444,10 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
             // Not greedy- combat proceeds
             // First, we get the available targets
-            GetTargetsInAttackRangeNonAlloc(tileData, TargetsInTileData);
+            GetTargetsInAttackRangeNonAlloc(attackTiles, TargetsInTileData);
 
             // Then we get the allies in movement range (not attack range)
-            GetAlliesInMovementRangeNonAlloc(tileData, AlliesInMoveRange);
+            GetAlliesInMovementRangeNonAlloc(moveTiles, AlliesInMoveRange);
 
             // TODO: Integrate third party team
             // Now we have the tiles, targets, and allies, we can start making decisions
@@ -381,7 +462,12 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
             if (RunAway)
             {
-                HandleRetreatBehavior(tileData, TargetsInTileData, AlliesInMoveRange, behaviorDict);
+                HandleRetreatBehavior(
+                    moveTiles,
+                    TargetsInTileData,
+                    AlliesInMoveRange,
+                    behaviorDict
+                );
             }
             else
             {
@@ -393,10 +479,12 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         /// <summary>
         /// Filters the available targets to only those within attack range.
         /// </summary>
-        private List<CharacterInstance> GetTargetsInAttackRange(AITileData tileData)
+        private List<CharacterInstance> GetTargetsInAttackRange(
+            Dictionary<MapGridPoint, float> attackTiles
+        )
         {
             var targetsInRange = new List<CharacterInstance>();
-            GetTargetsInAttackRangeNonAlloc(tileData, targetsInRange);
+            GetTargetsInAttackRangeNonAlloc(attackTiles, targetsInRange);
             return targetsInRange;
         }
 
@@ -404,7 +492,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         /// Non-allocating version: fills the provided list with targets in attack range.
         /// </summary>
         private void GetTargetsInAttackRangeNonAlloc(
-            AITileData tileData,
+            Dictionary<MapGridPoint, float> attackTiles,
             List<CharacterInstance> targetsInRange
         )
         {
@@ -416,7 +504,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                     _context.mapGrid
                 );
                 // Use TryGetValue to avoid double lookup
-                if (tileData.AttackTiles.TryGetValue(targetGridPoint, out _))
+                if (attackTiles.TryGetValue(targetGridPoint, out _))
                 {
                     targetsInRange.Add(target);
                 }
@@ -426,10 +514,12 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         /// <summary>
         /// Filters allies to only those within movement range (not attack range).
         /// </summary>
-        private List<CharacterInstance> GetAlliesInMovementRange(AITileData tileData)
+        private List<CharacterInstance> GetAlliesInMovementRange(
+            Dictionary<MapGridPoint, float> moveTiles
+        )
         {
             var alliesInRange = new List<CharacterInstance>();
-            GetAlliesInMovementRangeNonAlloc(tileData, alliesInRange);
+            GetAlliesInMovementRangeNonAlloc(moveTiles, alliesInRange);
             return alliesInRange;
         }
 
@@ -437,7 +527,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         /// Non-allocating version: fills the provided list with allies in movement range.
         /// </summary>
         private void GetAlliesInMovementRangeNonAlloc(
-            AITileData tileData,
+            Dictionary<MapGridPoint, float> moveTiles,
             List<CharacterInstance> alliesInRange
         )
         {
@@ -449,7 +539,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                     _context.mapGrid
                 );
                 // Use TryGetValue to avoid double lookup
-                if (tileData.MoveTiles.TryGetValue(allyGridPoint, out _))
+                if (moveTiles.TryGetValue(allyGridPoint, out _))
                 {
                     alliesInRange.Add(ally);
                 }
@@ -489,7 +579,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         /// Uses SoldierLoneWolf behavior to determine if unit should avoid allies.
         /// </summary>
         private void HandleRetreatBehavior(
-            AITileData tileData,
+            Dictionary<MapGridPoint, float> moveTiles,
             List<CharacterInstance> targetsInRange,
             List<CharacterInstance> alliesInMoveRange,
             Dictionary<string, float> behaviorDict
@@ -508,7 +598,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             var safeTiles = safeTilesPooled.List;
 
             FilterSafeTilesNonAlloc(
-                tileData,
+                moveTiles,
                 closestEnemyPos,
                 furthestEnemyPos,
                 closestDistance,
@@ -581,7 +671,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         /// while maintaining or increasing distance from the furthest enemy.
         /// </summary>
         private List<MapGridPoint> FilterSafeTiles(
-            AITileData tileData,
+            Dictionary<MapGridPoint, float> moveTiles,
             Vector2 closestEnemyPos,
             Vector2 furthestEnemyPos,
             float closestDistance,
@@ -590,7 +680,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         {
             var safeTiles = new List<MapGridPoint>();
             FilterSafeTilesNonAlloc(
-                tileData,
+                moveTiles,
                 closestEnemyPos,
                 furthestEnemyPos,
                 closestDistance,
@@ -604,7 +694,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         /// Non-allocating version: fills the provided list with safe tiles.
         /// </summary>
         private void FilterSafeTilesNonAlloc(
-            AITileData tileData,
+            Dictionary<MapGridPoint, float> moveTiles,
             Vector2 closestEnemyPos,
             Vector2 furthestEnemyPos,
             float closestDistance,
@@ -614,7 +704,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         {
             safeTiles.Clear();
 
-            foreach (var tile in tileData.MoveTiles)
+            foreach (var tile in moveTiles)
             {
                 var tilePosition = tile.Key;
                 var tileCoords = tilePosition.Coordinates();

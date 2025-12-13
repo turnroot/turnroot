@@ -1,7 +1,5 @@
 using Turnroot.Characters.StatusEffects;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
-using Turnroot.Skills.Nodes;
-using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Skills.Nodes.Events
@@ -55,7 +53,6 @@ namespace Turnroot.Skills.Nodes.Events
 
             // Apply buff to allies within radius
             int affectedCount = 0;
-            var brain = GetBrain.Get();
             foreach (var ally in context.Allies)
             {
                 // Check if ally is within radius (using Manhattan distance for grid-based)
@@ -82,7 +79,7 @@ namespace Turnroot.Skills.Nodes.Events
 
                     if (effect != null)
                     {
-                        brain?.PublishStatusEffectApplied(ally, effect);
+                        context.Brain?.PublishStatusEffectApplied(ally, effect);
                         affectedCount++;
                     }
                 }

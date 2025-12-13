@@ -271,7 +271,7 @@ namespace Turnroot.Gameplay.Brain
         /// </summary>
         public static string BuildRosterLedgerKey(string rosterId)
         {
-            var rosterType = typeof(Turnroot.Characters.Roster);
+            var rosterType = typeof(Roster);
             var rawKey = $"{LedgerKeyPrefixes.Roster}.{rosterType.FullName}.{rosterId}";
             var keyHash = ComputeFNV1a64Hex(rawKey);
             return $"{LedgerKeyPrefixes.Roster}.{rosterType.FullName}.{keyHash}";
@@ -462,7 +462,7 @@ namespace Turnroot.Gameplay.Brain
                 }
 
                 // Post-deserialization hook
-                if (instance is Serialization.IPostDeserialize post)
+                if (instance is IPostDeserialize post)
                 {
                     post.OnAfterDeserialize();
                 }

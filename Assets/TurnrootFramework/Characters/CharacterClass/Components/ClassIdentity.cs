@@ -1,12 +1,10 @@
 using System;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace Turnroot.Characters.CharacterClass
 {
     /// <summary>
     /// Visual and identity information for a character class.
-    /// Separated from stats and requirements for cleaner organization.
     /// </summary>
     [Serializable]
     public class ClassIdentity
@@ -51,14 +49,8 @@ namespace Turnroot.Characters.CharacterClass
         [Tooltip("Movement type for this class")]
         public MovementType MovementType = MovementType.Infantry;
 
-        /// <summary>
-        /// Validates that required visual assets are assigned.
-        /// </summary>
         public bool HasRequiredVisuals() => ClassOutfit != null && !string.IsNullOrEmpty(ClassName);
 
-        /// <summary>
-        /// Gets display text for the class tier.
-        /// </summary>
         public string GetTierDisplayName()
         {
             return ClassTier switch

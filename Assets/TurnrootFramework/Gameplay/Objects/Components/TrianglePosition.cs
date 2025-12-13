@@ -1,4 +1,3 @@
-using Turnroot.Gameplay.Objects.Components;
 using UnityEngine;
 
 public enum TrianglePositionEnum

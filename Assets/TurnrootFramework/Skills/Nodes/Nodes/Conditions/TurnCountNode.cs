@@ -1,4 +1,3 @@
-using Turnroot.Skills.Nodes;
 using UnityEngine;
 using XNode;
 
@@ -33,7 +32,7 @@ namespace Turnroot.Skills.Nodes.Conditions
 
             // Get turn count from CustomData (set by battle system)
             // Default to 1 if not set
-            int turnNumber = context.GetCustomData<int>("CurrentTurnNumber", 1);
+            int turnNumber = context.GetCustomData("CurrentTurnNumber", 1);
             return new FloatValue { value = turnNumber };
         }
     }

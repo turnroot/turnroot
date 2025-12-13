@@ -5,7 +5,6 @@ namespace Turnroot.Characters.Stats
 {
     /// <summary>
     /// Extension methods for working with stats to eliminate repetitive iteration patterns.
-    /// Consolidates "do X for bounded stats, then do X for unbounded stats" into single operations.
     /// </summary>
     public static class StatExtensions
     {

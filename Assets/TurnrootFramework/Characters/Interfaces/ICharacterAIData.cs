@@ -10,39 +10,17 @@ namespace Turnroot.Characters
     /// </summary>
     public interface ICharacterAIData
     {
-        /// <summary>
-        /// Movement type for pathfinding calculations.
-        /// </summary>
         MovementType MovementType { get; }
 
-        /// <summary>
-        /// Base movement range in tiles.
-        /// </summary>
         int Movement { get; }
 
-        /// <summary>
-        /// Whether the character uses magic.
-        /// </summary>
         bool IsMagic { get; }
 
-        /// <summary>
-        /// Character's attack range (min-max).
-        /// </summary>
         (int min, int max) AttackRange { get; }
 
-        /// <summary>
-        /// Get a specific stat value by type.
-        /// </summary>
         int GetStat(UnboundedStatType statType);
 
-        /// <summary>
-        /// Character's behavioral tendencies for AI decision-making.
-        /// </summary>
         Dictionary<string, float> BehaviorSettings { get; }
-
-        /// <summary>
-        /// Whether the character can use a specific weapon type.
-        /// </summary>
         bool CanUseWeaponType(WeaponType weaponType);
     }
 
@@ -51,10 +29,10 @@ namespace Turnroot.Characters
     /// </summary>
     public static class CharacterAIDataExtensions
     {
-        /// <summary>
-        /// Creates an AI data wrapper for a character instance.
-        /// </summary>
-        public static ICharacterAIData ToAIData(this CharacterInstance character) => character == null ? null : (ICharacterAIData)new CharacterInstanceAIDataAdapter(character);
+        public static ICharacterAIData ToAIData(this CharacterInstance character) =>
+            character == null
+                ? null
+                : (ICharacterAIData)new CharacterInstanceAIDataAdapter(character);
 
         private class CharacterInstanceAIDataAdapter : ICharacterAIData
         {

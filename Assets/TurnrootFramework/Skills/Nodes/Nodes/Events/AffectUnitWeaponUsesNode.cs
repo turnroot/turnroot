@@ -1,5 +1,4 @@
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
-using Turnroot.Skills.Nodes;
 using UnityEngine;
 
 namespace Turnroot.Skills.Nodes.Events
@@ -42,19 +41,11 @@ namespace Turnroot.Skills.Nodes.Events
 
             int change = (int)GetInputFloat("usesChange", testChange);
 
-            var brain = Turnroot.Utilities.GetBrain.Get();
-            if (brain != null)
-            {
-                brain.PublishWeaponUsesChanged(targetCharacter, change);
-                string target = applyToUnit ? "unit" : "target";
-                Debug.Log(
-                    $"AffectUnitWeaponUses: Changed {target} ({targetCharacter.CharacterTemplate.DisplayName}) weapon uses by {change}"
-                );
-            }
-            else
-            {
-                Debug.LogWarning("AffectUnitWeaponUses: Could not find Brain to invoke event");
-            }
+            context.Brain?.PublishWeaponUsesChanged(targetCharacter, change);
+            string target = applyToUnit ? "unit" : "target";
+            Debug.Log(
+                $"AffectUnitWeaponUses: Changed {target} ({targetCharacter.CharacterTemplate.DisplayName}) weapon uses by {change}"
+            );
         }
     }
 }

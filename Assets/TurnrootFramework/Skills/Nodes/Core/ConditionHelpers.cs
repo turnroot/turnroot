@@ -25,7 +25,7 @@ namespace Turnroot.Skills.Nodes
         /// Gets a character instance from the context based on the source.
         /// </summary>
         public static CharacterInstance GetCharacterFromContext(
-            Turnroot.Gameplay.Combat.FundamentalComponents.Battles.BattleContext context,
+            BattleContext context,
             CharacterSource source
         )
         {

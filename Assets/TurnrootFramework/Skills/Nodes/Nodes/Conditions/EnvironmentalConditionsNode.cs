@@ -1,5 +1,3 @@
-using Turnroot.Skills.Nodes;
-using UnityEngine;
 using XNode;
 
 namespace Turnroot.Skills.Nodes.Conditions

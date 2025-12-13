@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 /// <summary>
@@ -89,12 +88,12 @@ public class ObjectSubtype
     /// </summary>
     public static bool IsValid(string value)
     {
-        return value == Weapon
-            || value == Magic
-            || value == Consumable
-            || value == Equipable
-            || value == Gift
-            || value == LostItem;
+        return value is Weapon
+            or Magic
+            or Consumable
+            or Equipable
+            or Gift
+            or LostItem;
     }
 
     /// <summary>
@@ -102,7 +101,7 @@ public class ObjectSubtype
     /// </summary>
     public static bool IsEnabled(string value)
     {
-        if (value == Weapon || value == Magic || value == Consumable || value == Equipable)
+        if (value is Weapon or Magic or Consumable or Equipable)
         {
             return true;
         }

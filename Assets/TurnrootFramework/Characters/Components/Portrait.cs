@@ -11,7 +11,6 @@ namespace Turnroot.Characters.Subclasses
 
         public override void UpdateTintColorsFromOwner()
         {
-            // Ensure array is initialized
             if (_tintColors == null || _tintColors.Length < 3)
             {
                 _tintColors = new Color[3] { Color.white, Color.white, Color.white };

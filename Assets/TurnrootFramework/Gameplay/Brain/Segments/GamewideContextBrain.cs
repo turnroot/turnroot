@@ -16,12 +16,6 @@ namespace Turnroot.Gameplay.Brain
     {
         public Brain CentralBrain => _brain;
 
-        private static class LtmKeys
-        {
-            public const string RosterIndex = "GWB.Roster.Index";
-            public const string UniqueCharacterIndex = "GWB.UniqueCharacter.Index";
-        }
-
         public enum TamperPolicy
         {
             NotifyOnly = 0,

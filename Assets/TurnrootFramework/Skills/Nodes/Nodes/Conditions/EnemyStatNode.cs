@@ -1,5 +1,3 @@
-using UnityEngine;
-
 namespace Turnroot.Skills.Nodes.Conditions
 {
     [CreateNodeMenu("Conditions/Enemy/Enemy Stat")]

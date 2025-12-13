@@ -3,7 +3,6 @@ using Turnroot.Characters;
 using Turnroot.Gameplay.Brain;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
 using Turnroot.Serialization;
-using Turnroot.Utilities;
 using UnityEngine;
 
 [Serializable]
@@ -63,8 +62,7 @@ public class SkillInstance : IPostDeserialize
         _skillTemplate.TriggerSkillEvents();
 
         // Publish to Brain for centralized tracking
-        var brain = GetBrain.Get();
-        brain?.PublishSkillTriggered(context.UnitInstance, _skillTemplate);
+        context.Brain?.PublishSkillTriggered(context.UnitInstance, _skillTemplate);
 
         // Execute the behavior graph
         _skillTemplate.BehaviorGraph.Execute(context);

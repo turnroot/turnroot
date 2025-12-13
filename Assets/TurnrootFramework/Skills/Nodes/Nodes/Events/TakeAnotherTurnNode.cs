@@ -1,5 +1,4 @@
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
-using Turnroot.Skills.Nodes;
 using Turnroot.Utilities;
 using UnityEngine;
 
@@ -24,18 +23,10 @@ namespace Turnroot.Skills.Nodes.Events
                 return;
             }
 
-            var brain = GetBrain.Get();
-            if (brain != null)
-            {
-                brain.PublishUnitTakesAnotherTurn(context.UnitInstance);
-                Debug.Log(
-                    $"TakeAnotherTurn: {context.UnitInstance.CharacterTemplate.DisplayName} will take another turn"
-                );
-            }
-            else
-            {
-                Debug.LogWarning("TakeAnotherTurn: Could not find Brain to invoke event");
-            }
+            context.Brain?.PublishUnitTakesAnotherTurn(context.UnitInstance);
+            Debug.Log(
+                $"TakeAnotherTurn: {context.UnitInstance.CharacterTemplate.DisplayName} will take another turn"
+            );
         }
     }
 }

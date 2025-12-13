@@ -50,7 +50,7 @@ namespace Turnroot.Gameplay.Brain.Components
             var instance = CreateInstance(template);
 
             // Allow instances to perform post-deserialization cleanup
-            if (instance is Turnroot.Serialization.IPostDeserialize post)
+            if (instance is Serialization.IPostDeserialize post)
             {
                 post.OnAfterDeserialize();
             }

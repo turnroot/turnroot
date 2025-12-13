@@ -55,7 +55,7 @@ namespace Turnroot.Gameplay.Brain.Components
             var template = ResolveTemplate(token, serializer);
             var instance = CreateInstance(template);
 
-            if (instance is Turnroot.Serialization.IPostDeserialize post)
+            if (instance is Serialization.IPostDeserialize post)
             {
                 post.OnAfterDeserialize();
             }
