@@ -1,5 +1,4 @@
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
-using Turnroot.Skills.Nodes;
 using Turnroot.Utilities;
 using UnityEngine;
 
@@ -38,18 +37,10 @@ namespace Turnroot.Skills.Nodes.Events
                 return;
             }
 
-            var brain = GetBrain.Get();
-            if (brain != null)
-            {
-                brain.PublishItemStolen(context.UnitInstance, target);
-                Debug.Log(
-                    $"Steal: {context.UnitInstance.CharacterTemplate.DisplayName} attempted to steal {itemType} from {target.CharacterTemplate.DisplayName}"
-                );
-            }
-            else
-            {
-                Debug.LogWarning("Steal: Could not find Brain to invoke event");
-            }
+            context.Brain?.PublishItemStolen(context.UnitInstance, target);
+            Debug.Log(
+                $"Steal: {context.UnitInstance.CharacterTemplate.DisplayName} attempted to steal {itemType} from {target.CharacterTemplate.DisplayName}"
+            );
         }
     }
 }

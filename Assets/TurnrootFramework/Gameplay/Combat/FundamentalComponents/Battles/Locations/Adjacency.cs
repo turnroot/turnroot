@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using Turnroot.Characters;
 using Turnroot.Utilities;
-using UnityEngine;
 
 namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Locations
 {
@@ -134,7 +133,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Locations
 
         // get adjacent allies - non-allocating version that fills provided list
         public void GetAdjacentAlliesNonAlloc(
-            Turnroot.Gameplay.Combat.FundamentalComponents.Battles.BattleContext context,
+            BattleContext context,
             List<CharacterInstance> result
         )
         {
@@ -165,7 +164,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Locations
 
         // get adjacent enemies - non-allocating version that fills provided list
         public void GetAdjacentEnemiesNonAlloc(
-            Turnroot.Gameplay.Combat.FundamentalComponents.Battles.BattleContext context,
+            BattleContext context,
             List<CharacterInstance> result
         )
         {
@@ -196,7 +195,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Locations
 
         // get adjacent ally count - optimized O(n) instead of O(n²)
         public int GetAdjacentAllyCount(
-            Turnroot.Gameplay.Combat.FundamentalComponents.Battles.BattleContext context
+            BattleContext context
         )
         {
             if (context?.Allies == null || context.Allies.Count == 0)
@@ -226,7 +225,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Locations
 
         // get adjacent enemy count - optimized O(n) instead of O(n²)
         public int GetAdjacentEnemyCount(
-            Turnroot.Gameplay.Combat.FundamentalComponents.Battles.BattleContext context
+            BattleContext context
         )
         {
             if (context?.Targets == null || context.Targets.Count == 0)

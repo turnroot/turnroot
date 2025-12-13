@@ -1,19 +1,24 @@
 using System;
-using System.Linq;
-using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
 /// Condition to occupy specific tiles on the battlefield.
+/// Uses List instead of arrays for efficient dynamic collection management.
 /// </summary>
 [Serializable]
 public class ReachTilesBattleCondition : BattleCondition
 {
     [SerializeField]
-    public Vector2Int[] TargetTiles;
+    public List<Vector2Int> TargetTiles = new();
 
     [SerializeField]
-    public Vector2Int[] ReachedTiles = Array.Empty<Vector2Int>();
+    private HashSet<Vector2Int> _reachedTilesSet = new();
+
+    /// <summary>
+    /// Read-only access to reached tiles for serialization and debugging.
+    /// </summary>
+    public IReadOnlyCollection<Vector2Int> ReachedTiles => _reachedTilesSet;
 
     [SerializeField]
     public bool allTiles = true;
@@ -21,20 +26,20 @@ public class ReachTilesBattleCondition : BattleCondition
     public ReachTilesBattleCondition(
         string name,
         string description,
-        Vector2Int[] targetTiles,
+        List<Vector2Int> targetTiles,
         bool allTiles = true
     )
         : base(name, description)
     {
-        TargetTiles = targetTiles ?? Array.Empty<Vector2Int>();
+        TargetTiles = targetTiles ?? new List<Vector2Int>();
         this.allTiles = allTiles;
     }
 
     public ReachTilesBattleCondition()
         : base("Reach Tiles", "Occupy the listed tiles")
     {
-        TargetTiles = Array.Empty<Vector2Int>();
-        ReachedTiles = Array.Empty<Vector2Int>();
+        TargetTiles = new List<Vector2Int>();
+        _reachedTilesSet = new HashSet<Vector2Int>();
         allTiles = true;
     }
 
@@ -42,9 +47,10 @@ public class ReachTilesBattleCondition : BattleCondition
     {
         if (allTiles)
         {
+            // All target tiles must be reached
             foreach (var tile in TargetTiles)
             {
-                if (!ReachedTiles.Contains(tile))
+                if (!_reachedTilesSet.Contains(tile))
                 {
                     return;
                 }
@@ -53,9 +59,10 @@ public class ReachTilesBattleCondition : BattleCondition
         }
         else
         {
+            // Any target tile reached is sufficient
             foreach (var tile in TargetTiles)
             {
-                if (ReachedTiles.Contains(tile))
+                if (_reachedTilesSet.Contains(tile))
                 {
                     ConditionMet();
                     return;
@@ -66,20 +73,22 @@ public class ReachTilesBattleCondition : BattleCondition
 
     /// <summary>
     /// Called when a unit moves to a tile. Tracks if the tile is a target tile.
+    /// Uses HashSet for O(1) lookups instead of O(n) array Contains.
     /// </summary>
     public void OnUnitReachedTile(Vector2Int position)
     {
-        // Check if this is a target tile that hasn't been reached yet
-        if (TargetTiles.Contains(position) && !ReachedTiles.Contains(position))
+        // Validate that this position is actually a target tile before adding
+        // This prevents unlimited accumulation of non-target positions
+        if (!TargetTiles.Contains(position))
         {
-            // Add to reached tiles array
-            var newReachedTiles = new Vector2Int[ReachedTiles.Length + 1];
-            Array.Copy(ReachedTiles, newReachedTiles, ReachedTiles.Length);
-            newReachedTiles[ReachedTiles.Length] = position;
-            ReachedTiles = newReachedTiles;
+            return;
+        }
 
+        // HashSet.Add returns false if already present, so this is idempotent
+        if (_reachedTilesSet.Add(position))
+        {
             UnityEngine.Debug.Log(
-                $"ReachTilesBattleCondition: Tile {position} reached ({ReachedTiles.Length}/{TargetTiles.Length})"
+                $"ReachTilesBattleCondition: Tile {position} reached ({_reachedTilesSet.Count}/{TargetTiles.Count})"
             );
 
             // Check if condition is now met
@@ -92,6 +101,6 @@ public class ReachTilesBattleCondition : BattleCondition
     /// </summary>
     public void ResetReachedTiles()
     {
-        ReachedTiles = Array.Empty<Vector2Int>();
+        _reachedTilesSet.Clear();
     }
 }

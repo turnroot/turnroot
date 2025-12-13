@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Turnroot.Characters;
 using Turnroot.Characters.Subclasses;
 using UnityEngine;
 
@@ -38,10 +37,7 @@ namespace Turnroot.Characters.Components.Support
         {
             get
             {
-                if (_supportLevel == null)
-                {
-                    _supportLevel = new SupportLevels { Value = "E" };
-                }
+                _supportLevel ??= new SupportLevels { Value = "E" };
 
                 return _supportLevel;
             }
@@ -51,10 +47,7 @@ namespace Turnroot.Characters.Components.Support
         {
             get
             {
-                if (_maxLevel == null)
-                {
-                    _maxLevel = new SupportLevels { Value = "A" };
-                }
+                _maxLevel ??= new SupportLevels { Value = "A" };
 
                 return _maxLevel.Value;
             }
@@ -69,15 +62,9 @@ namespace Turnroot.Characters.Components.Support
 
         public void InitializeDefaults()
         {
-            if (_supportLevel == null)
-            {
-                _supportLevel = new SupportLevels { Value = "E" };
-            }
+            _supportLevel ??= new SupportLevels { Value = "E" };
 
-            if (_maxLevel == null)
-            {
-                _maxLevel = new SupportLevels { Value = "A" };
-            }
+            _maxLevel ??= new SupportLevels { Value = "A" };
 
             if (_supportSpeed <= 0)
             {

@@ -1,8 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Turnroot.Characters;
-using Turnroot.Characters.CharacterClass;
-using Turnroot.Characters.Stats;
 using Turnroot.Serialization;
 using UnityEngine;
 
@@ -75,7 +72,6 @@ namespace Turnroot.Characters.CharacterClass
             _masteredSkills = new List<Skill>();
         }
 
-        // Parameterless constructor for serialization
         public CharacterClassDataInstance() { }
 
         /// <summary>
@@ -205,7 +201,7 @@ namespace Turnroot.Characters.CharacterClass
         {
             if (!_isFirstTimeEquipped)
             {
-                return; // Already applied
+                return;
             }
 
             if (
@@ -280,9 +276,6 @@ namespace Turnroot.Characters.CharacterClass
             }
 
             StatApplicationHelper.ApplyBoundedCaps(_classData.Stats.StatCaps, character);
-
-            // Note: Unbounded stat caps are enforced during level-up/stat modification
-            // They don't set a hard max like bounded stats
         }
 
         /// <summary>
@@ -307,63 +300,6 @@ namespace Turnroot.Characters.CharacterClass
         /// Call this after each battle where the character uses this class.
         /// </summary>
         public void IncrementBattleCount() => _battlesCompleted++;
-
-        /// <summary>
-        /// Check if mastery conditions are met and learn skills if so.
-        /// Returns true if any new skills were learned.
-        /// </summary>
-        public bool CheckMasteryConditions(CharacterInstance character)
-        {
-            if (character == null || _classData == null)
-            {
-                return false;
-            }
-
-            // Note: Mastery system has been refactored - this code may need updating
-            // to work with new ClassMastery component structure
-            return false;
-
-            /* Original code commented out - needs refactoring for new Mastery component
-            bool learnedNewSkill = false;
-
-            foreach (var mastery in _classData.masteries)
-            {
-                if (mastery.skill == null)
-                {
-                    continue;
-                }
-
-                // Skip if already mastered (compare by reference, not name)
-                if (_masteredSkills.Contains(mastery.skill))
-                {
-                    continue;
-                }
-
-                bool conditionMet = mastery.criteria switch
-                {
-                    CharacterClass.MasteryCriteria.LevelBased => character.CurrentLevel
-                        >= _levelWhenEquipped + mastery.target,
-                    CharacterClass.MasteryCriteria.BattleBased => _battlesCompleted
-                        >= mastery.target,
-                    _ => false,
-                };
-
-                if (conditionMet)
-                {
-                    character.AddSkill(mastery.skill);
-                    _masteredSkills.Add(mastery.skill);
-                    learnedNewSkill = true;
-
-                    Debug.Log(
-                        $"{character.CharacterTemplate?.DisplayName} mastered {mastery.skill.SkillName} "
-                            + $"from class {_classData.className}!"
-                    );
-                }
-            }
-
-            return learnedNewSkill;
-            */
-        }
 
         #endregion
 
@@ -408,17 +344,11 @@ namespace Turnroot.Characters.CharacterClass
 
             if (disposing)
             {
-                // Dispose managed resources (Unity objects can be destroyed here)
                 CleanupMaterial();
             }
-            // Note: Do NOT cleanup Unity objects in finalizer (disposing=false)
-            // as Unity objects must be destroyed on the main thread
 
             _disposed = true;
         }
-
-        // Removed finalizer to prevent attempting to destroy Unity objects from finalizer thread
-        // Unity objects must be destroyed on the main thread and finalizers run on GC thread
 
         #endregion
     }

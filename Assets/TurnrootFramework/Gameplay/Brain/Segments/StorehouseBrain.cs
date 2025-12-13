@@ -94,12 +94,12 @@ namespace Turnroot.Gameplay.Brain
         public void SaveGoldToLTM()
         {
             var encoded = _brain.EncodeString(PlayerGold.ToString());
-            _ltm.Remember("Storehouse_Purchasing_Power", encoded.ToString());
+            _ltm.Remember(LtmKeys.StorehousePurchasingPower, encoded.ToString());
         }
 
         public int GetGoldFromLTM()
         {
-            var recalled = _ltm.Recall("Storehouse_Purchasing_Power");
+            var recalled = _ltm.Recall(LtmKeys.StorehousePurchasingPower);
             if (recalled == null)
             {
                 return 0;
@@ -125,14 +125,14 @@ namespace Turnroot.Gameplay.Brain
             }
             // save a single string with all stored item IDs, separated by commas
             var itemIds = string.Join(",", _storedItems.ConvertAll(i => i.InstanceID.ToString()));
-            _ltm.Remember("Storehouse_StoredItems", itemIds);
+            _ltm.Remember(LtmKeys.StorehouseStoredItems, itemIds);
         }
 
         public void LoadStorehouse()
         {
             // Load gold amount
             PlayerGold =
-                int.TryParse(_ltm.Recall("Storehouse_Purchasing_Power"), out int recalledGold)
+                int.TryParse(_ltm.Recall(LtmKeys.StorehousePurchasingPower), out int recalledGold)
                 && recalledGold >= 0
                     ? recalledGold
                     : 0;
@@ -153,7 +153,7 @@ namespace Turnroot.Gameplay.Brain
 
             // Load stored items by their IDs
             _storedItems.Clear();
-            var storedItemIdsString = _ltm.Recall("Storehouse_StoredItems");
+            var storedItemIdsString = _ltm.Recall(LtmKeys.StorehouseStoredItems);
             if (!string.IsNullOrEmpty(storedItemIdsString))
             {
                 var itemIds = storedItemIdsString.Split(',');

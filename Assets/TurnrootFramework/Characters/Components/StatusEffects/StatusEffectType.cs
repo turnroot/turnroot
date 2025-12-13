@@ -119,17 +119,12 @@ namespace Turnroot.Characters.StatusEffects
         public bool PreventsMovement => _preventsMovement;
         public bool PreventsAttack => _preventsAttack;
         public bool PreventsItemUse => _preventsItemUse;
-
-        // Behavior modifiers
         public float SoldierLoneWolfModifier => _soldierLoneWolfModifier;
         public float MindlessCunningModifier => _mindlessCunningModifier;
         public float SelfishSelflessModifier => _selfishSelflessModifier;
         public float BrashWaryModifier => _brashWaryModifier;
         public float BloodthirstGreedModifier => _bloodthirstGreedModifier;
 
-        /// <summary>
-        /// Returns true if this status effect modifies any behavior sliders.
-        /// </summary>
         public bool HasBehaviorModifiers =>
             _soldierLoneWolfModifier != 0f
             || _mindlessCunningModifier != 0f

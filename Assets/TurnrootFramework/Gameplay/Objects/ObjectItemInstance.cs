@@ -34,10 +34,20 @@ namespace Turnroot.Gameplay.Objects
         public int RemainingUses =>
             _template?.Durability == true ? _template.MaxUses - currentUses : -1;
 
-        // Lazy-initialized brain references
-        private StorehouseBrain StorehouseBrain => Utilities.GetBrain.Get()?.storehouseBrain;
+        /// <summary>
+        /// Reference to the Brain for accessing brain segments.
+        /// Must be set via SetBrain() after deserialization or creation.
+        /// </summary>
+        [NonSerialized]
+        private Brain.Brain _brain;
 
-        private InventoryBrain InventoryBrain => Utilities.GetBrain.Get()?.inventoryBrain;
+        /// <summary>
+        /// Sets the Brain reference. Call this after creating or deserializing the item.
+        /// </summary>
+        public void SetBrain(Brain.Brain brain) => _brain = brain;
+
+        private StorehouseBrain StorehouseBrain => _brain?.storehouseBrain;
+        private InventoryBrain InventoryBrain => _brain?.inventoryBrain;
 
         private readonly ObjectForgerHelper ForgerHelper;
 

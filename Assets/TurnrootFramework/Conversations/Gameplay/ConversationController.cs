@@ -74,7 +74,7 @@ namespace Turnroot.Conversations
                 return new string[0];
             }
 
-            var names = new System.Collections.Generic.List<string>();
+            var names = new List<string>();
             foreach (var inst in _conversationInstances)
             {
                 if (inst == null)
@@ -295,7 +295,7 @@ namespace Turnroot.Conversations
             }
         }
 
-        private int FindEntryNode(Dictionary<int, Turnroot.Conversations.NodeData> nodes)
+        private int FindEntryNode(Dictionary<int, NodeData> nodes)
         {
             foreach (var kv in nodes)
             {

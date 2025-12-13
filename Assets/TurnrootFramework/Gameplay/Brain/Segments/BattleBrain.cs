@@ -1,5 +1,4 @@
 using Turnroot.Characters;
-using Turnroot.Characters.Components;
 using Turnroot.Gameplay.Combat;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -210,7 +209,7 @@ namespace Turnroot.Gameplay.Brain
 
             // Find the most valuable stealable item
             // Items must be: transferable (not unequippable) and not currently equipped
-            Turnroot.Gameplay.Objects.ObjectItemInstance bestItem = null;
+            Objects.ObjectItemInstance bestItem = null;
             int bestValue = -1;
 
             foreach (var item in targetInventory.InventoryItems)

@@ -12,13 +12,6 @@ namespace Turnroot.Gameplay.Brain
     [RequireComponent(typeof(LongTermMemory))]
     public class ConversationalBrain : BrainComponent
     {
-        private static class LtmKeys
-        {
-            public const string ConversationCompletedPrefix = "Conversation.Completed.";
-            public const string ConversationSeenPrefix = "Conversation.Seen.";
-            public const string SupportConversationPrefix = "Support.Conversation.";
-        }
-
         private LongTermMemory _ltm;
 
         protected override void Awake()

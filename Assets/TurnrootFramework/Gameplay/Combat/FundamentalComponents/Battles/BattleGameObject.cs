@@ -36,6 +36,9 @@ namespace Turnroot.Gameplay.Combat
         [field: HideInInspector]
         public Brain.Brain Brain { get; set; }
 
+        // Track connection state to prevent duplicate subscriptions
+        private bool _isConnectedToBrain;
+
         // Battle rosters - temporary for this battle only
 
         public RosterInstance PlayerTeamRoster { get; private set; }
@@ -44,41 +47,55 @@ namespace Turnroot.Gameplay.Combat
 
         public void ConnectToBrainEvents()
         {
-            if (Brain != null)
-            {
-                Debug.Log("BattleGameObject connecting to Brain events.");
-
-                // Subscribe to turn end event
-                Brain.OnTurnEnded += HandleTurnEnded;
-
-                // Subscribe to damage events
-                Brain.OnAllyDamaged += HandleAllyDamaged;
-                Brain.OnEnemyDamaged += HandleEnemyDamaged;
-
-                // Subscribe to defeat and movement events
-                Brain.OnUnitDefeated += HandleUnitDefeated;
-                Brain.OnUnitMoved += HandleUnitMoved;
-
-                // Subscribe to battle lifecycle events
-                Brain.OnExitBattle += HandleExitBattle;
-            }
-            else
+            if (Brain == null)
             {
                 Debug.LogWarning("BattleGameObject has no Brain to connect to.");
+                return;
             }
+
+            // Guard against duplicate subscriptions
+            if (_isConnectedToBrain)
+            {
+                Debug.LogWarning(
+                    "BattleGameObject is already connected to Brain events. Skipping duplicate subscription."
+                );
+                return;
+            }
+
+            Debug.Log("BattleGameObject connecting to Brain events.");
+
+            // Subscribe to turn end event
+            Brain.OnTurnEnded += HandleTurnEnded;
+
+            // Subscribe to damage events
+            Brain.OnAllyDamaged += HandleAllyDamaged;
+            Brain.OnEnemyDamaged += HandleEnemyDamaged;
+
+            // Subscribe to defeat and movement events
+            Brain.OnUnitDefeated += HandleUnitDefeated;
+            Brain.OnUnitMoved += HandleUnitMoved;
+
+            // Subscribe to battle lifecycle events
+            Brain.OnExitBattle += HandleExitBattle;
+
+            _isConnectedToBrain = true;
         }
 
         public void DisconnectFromBrainEvents()
         {
-            if (Brain != null)
+            if (Brain == null || !_isConnectedToBrain)
             {
-                Brain.OnTurnEnded -= HandleTurnEnded;
-                Brain.OnAllyDamaged -= HandleAllyDamaged;
-                Brain.OnEnemyDamaged -= HandleEnemyDamaged;
-                Brain.OnUnitDefeated -= HandleUnitDefeated;
-                Brain.OnUnitMoved -= HandleUnitMoved;
-                Brain.OnExitBattle -= HandleExitBattle;
+                return;
             }
+
+            Brain.OnTurnEnded -= HandleTurnEnded;
+            Brain.OnAllyDamaged -= HandleAllyDamaged;
+            Brain.OnEnemyDamaged -= HandleEnemyDamaged;
+            Brain.OnUnitDefeated -= HandleUnitDefeated;
+            Brain.OnUnitMoved -= HandleUnitMoved;
+            Brain.OnExitBattle -= HandleExitBattle;
+
+            _isConnectedToBrain = false;
         }
 
         private void HandleTurnEnded()

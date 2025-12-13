@@ -1,4 +1,3 @@
-using Turnroot.Skills.Nodes;
 using UnityEngine;
 using XNode;
 
@@ -20,7 +19,7 @@ namespace Turnroot.Skills.Nodes.Conditions
         /// Gets the count of adjacent units from the context.
         /// </summary>
         protected abstract int GetAdjacentCount(
-            Turnroot.Gameplay.Combat.FundamentalComponents.Battles.BattleContext context
+            Gameplay.Combat.FundamentalComponents.Battles.BattleContext context
         );
 
         /// <summary>

@@ -2,7 +2,6 @@ using UnityEngine;
 using XNode;
 #if UNITY_EDITOR
 using System;
-using System.IO;
 #endif
 
 namespace Turnroot.Conversations.Branching
@@ -24,6 +23,6 @@ namespace Turnroot.Conversations.Branching
 #endif
     }
 
-    [System.Serializable]
+    [Serializable]
     public struct ConversationFlow { }
 }

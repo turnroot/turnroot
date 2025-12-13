@@ -2,8 +2,6 @@ using UnityEngine;
 using XNode;
 #if UNITY_EDITOR
 using UnityEditor;
-using System;
-using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 #endif
@@ -21,9 +19,9 @@ namespace Turnroot.Conversations.Branching.Nodes
     {
         // Diagnostics removed — OnValidate no longer writes audit/tracing info.
 
-        private static bool HasConnections(XNode.Node node) => node != null && node.Ports != null && node.Ports.Any(p => p.GetConnections() != null && p.GetConnections().Count > 0);
+        private static bool HasConnections(Node node) => node != null && node.Ports != null && node.Ports.Any(p => p.GetConnections() != null && p.GetConnections().Count > 0);
 
-        private static bool IsEmptyNodeEditor(XNode.Node node)
+        private static bool IsEmptyNodeEditor(Node node)
         {
             if (node == null)
             {

@@ -25,7 +25,7 @@ namespace Turnroot.CommonAncestors
         {
             if (!IsValid(value))
             {
-                throw new System.ArgumentException($"Invalid level: {value}");
+                throw new ArgumentException($"Invalid level: {value}");
             }
 
             _value = value;
@@ -53,7 +53,7 @@ namespace Turnroot.CommonAncestors
             };
         }
 
-        public static bool IsValid(string value) => value == S || value == A || value == B || value == C || value == D || value == E;
+        public static bool IsValid(string value) => value is S or A or B or C or D or E;
 
         public string Value
         {
@@ -62,7 +62,7 @@ namespace Turnroot.CommonAncestors
             {
                 if (!IsValid(value))
                 {
-                    throw new System.ArgumentException($"Invalid level: {value}");
+                    throw new ArgumentException($"Invalid level: {value}");
                 }
 
                 _value = value;

@@ -1,6 +1,5 @@
 using System;
 using Turnroot.Characters;
-using Turnroot.Gameplay.Brain.Components;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain.Components
@@ -36,7 +35,7 @@ namespace Turnroot.Gameplay.Brain.Components
             string reason
         )
         {
-            LogTamperDetection<T>(brain, instance, reason);
+            LogTamperDetection(brain, instance, reason);
 
             switch (brain.Policy)
             {

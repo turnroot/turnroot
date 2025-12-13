@@ -1,4 +1,3 @@
-using Turnroot.Skills.Nodes;
 using UnityEngine;
 using XNode;
 
@@ -33,7 +32,7 @@ namespace Turnroot.Skills.Nodes.Conditions
 
             // Check if unit is initiating combat (stored in CustomData by battle system)
             // Default to true if not set (assume unit is attacking)
-            bool isInitiating = context.GetCustomData<bool>("IsInitiatingCombat", true);
+            bool isInitiating = context.GetCustomData("IsInitiatingCombat", true);
             return new BoolValue { value = isInitiating };
         }
     }

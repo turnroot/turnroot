@@ -39,7 +39,7 @@ namespace Turnroot.Characters
         fileName = "NewCharacterConfiguration",
         menuName = "Turnroot/Character/CharacterData"
     )]
-    public class CharacterData : ScriptableObject, Stats.IHasStats
+    public class CharacterData : ScriptableObject, IHasStats
     {
 #if UNITY_EDITOR
         [
@@ -252,11 +252,7 @@ namespace Turnroot.Characters
         [Tooltip(
             "Personal growth rates (percentage 0-100) for stat increases on level up. If empty, uses class growth rates only."
         )]
-        public List<CharacterClass.UnboundedStatModifier> PersonalGrowthRates
-        {
-            get;
-            private set;
-        } = new();
+        public List<UnboundedStatModifier> PersonalGrowthRates { get; private set; } = new();
 
         [field: BoxGroup("Skills & Abilities"), SerializeField, HorizontalLine(color: EColor.Green)]
         public List<Skill> Skills { get; private set; } = new();
@@ -298,10 +294,7 @@ namespace Turnroot.Characters
         {
             get
             {
-                if (_portraitArrayCache == null)
-                {
-                    _portraitArrayCache = Portraits?.Values.ToArray();
-                }
+                _portraitArrayCache ??= Portraits?.Values.ToArray();
                 return _portraitArrayCache;
             }
         }
@@ -410,7 +403,7 @@ namespace Turnroot.Characters
 
             [Tooltip("Current rank/level (E=0, D=1, C=2, B=3, A=4, S=5)")]
             [SerializeField]
-            private Turnroot.CommonAncestors.LeveledLetteredField _rank = new(
+            private CommonAncestors.LeveledLetteredField _rank = new(
                 Turnroot.CommonAncestors.LeveledLetteredField.E
             );
 
@@ -420,7 +413,7 @@ namespace Turnroot.Characters
                 set => _experienceTypeId = value;
             }
 
-            public Turnroot.CommonAncestors.LeveledLetteredField Rank
+            public CommonAncestors.LeveledLetteredField Rank
             {
                 get => _rank;
                 set => _rank = value;
@@ -431,7 +424,7 @@ namespace Turnroot.Characters
             public ExperienceRank(string experienceTypeId, string rankValue)
             {
                 _experienceTypeId = experienceTypeId;
-                _rank = new Turnroot.CommonAncestors.LeveledLetteredField(rankValue);
+                _rank = new CommonAncestors.LeveledLetteredField(rankValue);
             }
         }
 
@@ -462,9 +455,7 @@ namespace Turnroot.Characters
             {
                 foreach (var stat in UnboundedStats)
                 {
-                    PersonalGrowthRates.Add(
-                        new CharacterClass.UnboundedStatModifier(stat.StatType, 0f)
-                    );
+                    PersonalGrowthRates.Add(new UnboundedStatModifier(stat.StatType, 0f));
                 }
             }
         }

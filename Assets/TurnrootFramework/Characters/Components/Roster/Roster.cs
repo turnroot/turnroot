@@ -1,6 +1,5 @@
 using System;
 using NaughtyAttributes;
-using Turnroot.Characters;
 using UnityEngine;
 
 namespace Turnroot.Characters
@@ -13,8 +12,6 @@ namespace Turnroot.Characters
     [CreateAssetMenu(fileName = "NewRoster", menuName = "Turnroot/Roster")]
     public class Roster : ScriptableObject
     {
-        // Durable identifier for this roster. Prefer asset GUID (populated in editor)
-        // but fall back to a generated GUID if not found.
         [SerializeField]
         [Tooltip(
             "How this roster is identified durably at runtime. Set this with something human readable if you want, or leave it blank to auto-generate"

@@ -35,7 +35,7 @@ namespace Turnroot.Conversations
                     {
                         PortraitKey = null;
 #if UNITY_EDITOR
-                        var sel = UnityEditor.Selection.activeObject as UnityEngine.Object;
+                        var sel = UnityEditor.Selection.activeObject as Object;
                         if (sel != null)
                         {
                             var selPath = UnityEditor.AssetDatabase.GetAssetPath(sel);
@@ -54,7 +54,7 @@ namespace Turnroot.Conversations
                 {
                     PortraitKey = null;
 #if UNITY_EDITOR
-                    var sel = UnityEditor.Selection.activeObject as UnityEngine.Object;
+                    var sel = UnityEditor.Selection.activeObject as Object;
                     if (sel != null)
                     {
                         var selPath = UnityEditor.AssetDatabase.GetAssetPath(sel);
@@ -76,7 +76,7 @@ namespace Turnroot.Conversations
                 CachedSprite = null;
 #if UNITY_EDITOR
                 // Ensure the change is recorded so the conversation asset is marked dirty and saved.
-                var sel = UnityEditor.Selection.activeObject as UnityEngine.Object;
+                var sel = UnityEditor.Selection.activeObject as Object;
                 if (sel != null)
                 {
                     var selPath = UnityEditor.AssetDatabase.GetAssetPath(sel);

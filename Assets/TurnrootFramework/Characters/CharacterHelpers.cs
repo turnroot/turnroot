@@ -8,7 +8,6 @@ namespace Turnroot.Characters
 {
     /// <summary>
     /// Small helpers used across CharacterData/CharacterInstance to reduce duplication.
-    /// These contain pure utility functions that do not change runtime semantics.
     /// </summary>
     public static class CharacterHelpers
     {

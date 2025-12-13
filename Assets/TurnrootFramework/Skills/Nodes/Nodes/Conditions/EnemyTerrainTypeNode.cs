@@ -1,4 +1,3 @@
-using Turnroot.Skills.Nodes;
 using UnityEngine;
 using XNode;
 
@@ -80,8 +79,8 @@ namespace Turnroot.Skills.Nodes.Conditions
         /// Gets the terrain type name at the specified grid position.
         /// </summary>
         private static string GetTerrainTypeNameAtPosition(
-            Turnroot.Gameplay.Combat.FundamentalComponents.Battles.BattleContext context,
-            UnityEngine.Vector2Int position
+            Gameplay.Combat.FundamentalComponents.Battles.BattleContext context,
+            Vector2Int position
         )
         {
             var mapGrid = context?.mapGrid;

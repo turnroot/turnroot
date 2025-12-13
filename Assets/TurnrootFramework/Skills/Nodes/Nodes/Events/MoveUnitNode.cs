@@ -1,5 +1,4 @@
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
-using Turnroot.Skills.Nodes;
 using Turnroot.Utilities;
 using UnityEngine;
 
@@ -55,18 +54,10 @@ namespace Turnroot.Skills.Nodes.Events
             if (result.Success)
             {
                 // Invoke the Brain event to notify listeners
-                var brain = GetBrain.Get();
-                if (brain != null)
-                {
-                    brain.PublishUnitMoved(context.UnitInstance, newPosition);
-                    Debug.Log(
-                        $"MoveUnit: Moved {context.UnitInstance.CharacterTemplate.DisplayName} to {newPosition}"
-                    );
-                }
-                else
-                {
-                    Debug.LogWarning("MoveUnit: Could not find Brain to invoke event");
-                }
+                context.Brain?.PublishUnitMoved(context.UnitInstance, newPosition);
+                Debug.Log(
+                    $"MoveUnit: Moved {context.UnitInstance.CharacterTemplate.DisplayName} to {newPosition}"
+                );
             }
             else
             {

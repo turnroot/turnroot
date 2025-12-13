@@ -9,7 +9,7 @@ using UnityEngine.Events;
 /// Base class for properties that can be attached to map grid points and features.
 /// Provides a flexible property system with strongly-typed property containers.
 /// </summary>
-[System.Serializable]
+[Serializable]
 public abstract class MapGridPropertyBase : ScriptableObject
 {
     public interface IProperty
@@ -19,7 +19,7 @@ public abstract class MapGridPropertyBase : ScriptableObject
         void SetValue(object value);
     }
 
-    [System.Serializable]
+    [Serializable]
     public class EventProperty : IProperty
     {
         public string key = string.Empty;
@@ -36,7 +36,7 @@ public abstract class MapGridPropertyBase : ScriptableObject
         public void SetValue(object val) => value = val as UnityEvent ?? new UnityEvent();
     }
 
-    [System.Serializable]
+    [Serializable]
     public class UnitProperty : IProperty
     {
         public string key = string.Empty;
@@ -53,7 +53,7 @@ public abstract class MapGridPropertyBase : ScriptableObject
         public void SetValue(object val) => value = val as CharacterInstance;
     }
 
-    [System.Serializable]
+    [Serializable]
     public class ObjectItemProperty : IProperty
     {
         public string key = string.Empty;
@@ -70,7 +70,7 @@ public abstract class MapGridPropertyBase : ScriptableObject
         public void SetValue(object val) => value = val as ObjectItemInstance;
     }
 
-    [System.Serializable]
+    [Serializable]
     public class BoolProperty : IProperty
     {
         public string key = string.Empty;
@@ -87,7 +87,7 @@ public abstract class MapGridPropertyBase : ScriptableObject
         public void SetValue(object val) => value = val is bool b && b;
     }
 
-    [System.Serializable]
+    [Serializable]
     public class FloatProperty : IProperty
     {
         public string key = string.Empty;

@@ -1,6 +1,5 @@
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Locations;
-using Turnroot.Skills.Nodes;
 using UnityEngine;
 
 namespace Turnroot.Skills.Nodes.Events
@@ -27,7 +26,7 @@ namespace Turnroot.Skills.Nodes.Events
             }
 
             // Get the direction from custom data (set by player during gameplay)
-            Direction allyDirection = context.GetCustomData<Direction>(
+            Direction allyDirection = context.GetCustomData(
                 "SelectedDirection",
                 Direction.Center
             );

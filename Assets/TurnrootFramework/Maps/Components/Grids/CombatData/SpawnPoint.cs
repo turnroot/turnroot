@@ -1,13 +1,20 @@
 using System;
 using Turnroot.Characters;
-using Turnroot.Utilities;
+using Turnroot.Gameplay.Brain;
 using UnityEngine;
 
 namespace Turnroot.Maps.Components.Grids
 {
-    [System.Serializable]
+    [Serializable]
     public class SpawnPoint
     {
+        /// <summary>
+        /// Reference to the Brain for publishing events.
+        /// Must be set by the owning component (e.g., MapGrid) before spawning.
+        /// </summary>
+        [NonSerialized]
+        public Brain Brain;
+
         /* ---------------------------- Spawn point data ---------------------------- */
         [SerializeField, HideInInspector]
         private bool _isPossibleAllySpawnPoint = false;
@@ -106,8 +113,7 @@ namespace Turnroot.Maps.Components.Grids
             OnCharacterSpawnedLocal?.Invoke(character);
 
             // Bubble up to Brain for centralized event handling
-            var brain = GetBrain.Get();
-            brain?.PublishCharacterSpawned(character, _gridPosition);
+            Brain?.PublishCharacterSpawned(character, _gridPosition);
         }
 
         public void RemoveCharacter()
@@ -125,8 +131,7 @@ namespace Turnroot.Maps.Components.Grids
             OnCharacterRemovedLocal?.Invoke(removedCharacter);
 
             // Bubble up to Brain for centralized event handling
-            var brain = GetBrain.Get();
-            brain?.PublishCharacterRemovedFromSpawn(removedCharacter, _gridPosition);
+            Brain?.PublishCharacterRemovedFromSpawn(removedCharacter, _gridPosition);
         }
 
         /* ------------------------------ Flags Setter ------------------------------- */

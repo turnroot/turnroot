@@ -115,7 +115,7 @@ namespace Turnroot.Gameplay.Brain
         #region Memory Coders
 
         public string EncodeInstanceToString<T>(T instance)
-            where T : class => gamewideContextBrain.EncodeInstanceToString<T>(instance);
+            where T : class => gamewideContextBrain.EncodeInstanceToString(instance);
 
         public T DecodeInstanceFromString<T>(string encodedString)
             where T : class => gamewideContextBrain.DecodeInstanceFromString<T>(encodedString);
@@ -176,13 +176,13 @@ namespace Turnroot.Gameplay.Brain
 
         #region Roster Lifecycle Events
 
-        public event Action<Characters.RosterInstance> OnRosterReady;
-        public event Action<Characters.Roster, string> OnRosterFailed;
+        public event Action<RosterInstance> OnRosterReady;
+        public event Action<Roster, string> OnRosterFailed;
 
-        public void PublishRosterReady(Characters.RosterInstance instance) =>
+        public void PublishRosterReady(RosterInstance instance) =>
             OnRosterReady?.Invoke(instance);
 
-        public void PublishRosterFailed(Characters.Roster roster, string reason) =>
+        public void PublishRosterFailed(Roster roster, string reason) =>
             OnRosterFailed?.Invoke(roster, reason);
 
         #endregion
@@ -334,19 +334,88 @@ namespace Turnroot.Gameplay.Brain
         #endregion
 
         #region Battle Events
+
+        // NAMING CONVENTION: Events should follow the pattern OnXStarted/OnXCompleted
+        // For backwards compatibility, legacy event names are preserved as aliases.
+        // New code should use the standardized names.
+
+        // Legacy: OnStartBattle -> Standardized: OnBattleStarted
         public event Action OnStartBattle;
+
+        /// <summary>Alias for OnStartBattle. Use this for new code.</summary>
+        public event Action OnBattleStarted
+        {
+            add => OnStartBattle += value;
+            remove => OnStartBattle -= value;
+        }
+
+        // Legacy: OnExitBattle -> Standardized: OnBattleCompleted
         public event Action<BattleExitType> OnExitBattle;
+
+        /// <summary>Alias for OnExitBattle. Use this for new code.</summary>
+        public event Action<BattleExitType> OnBattleCompleted
+        {
+            add => OnExitBattle += value;
+            remove => OnExitBattle -= value;
+        }
+
         public event Action OnBattleContextInitialized;
         public event Action OnPreBattleStarted;
         public event Action OnPreBattleEnded;
+
+        /// <summary>Alias for OnPreBattleEnded. Use this for new code.</summary>
+        public event Action OnPreBattleCompleted
+        {
+            add => OnPreBattleEnded += value;
+            remove => OnPreBattleEnded -= value;
+        }
+
+        // Legacy: OnTurnBegin -> Standardized: OnTurnStarted
         public event Action OnTurnBegin;
+
+        /// <summary>Alias for OnTurnBegin. Use this for new code.</summary>
+        public event Action OnTurnStarted
+        {
+            add => OnTurnBegin += value;
+            remove => OnTurnBegin -= value;
+        }
+
         public event Action OnPlayerTurnStarted;
         public event Action OnEnemyTurnStarted;
         public event Action OnThirdPartyTurnStarted;
         public event Action OnPlayerTurnEnded;
+
+        /// <summary>Alias for OnPlayerTurnEnded. Use this for new code.</summary>
+        public event Action OnPlayerTurnCompleted
+        {
+            add => OnPlayerTurnEnded += value;
+            remove => OnPlayerTurnEnded -= value;
+        }
         public event Action OnEnemyTurnEnded;
+
+        /// <summary>Alias for OnEnemyTurnEnded. Use this for new code.</summary>
+        public event Action OnEnemyTurnCompleted
+        {
+            add => OnEnemyTurnEnded += value;
+            remove => OnEnemyTurnEnded -= value;
+        }
         public event Action OnThirdPartyTurnEnded;
+
+        /// <summary>Alias for OnThirdPartyTurnEnded. Use this for new code.</summary>
+        public event Action OnThirdPartyTurnCompleted
+        {
+            add => OnThirdPartyTurnEnded += value;
+            remove => OnThirdPartyTurnEnded -= value;
+        }
         public event Action OnTurnEnded;
+
+        /// <summary>Alias for OnTurnEnded. Use this for new code.</summary>
+        public event Action OnTurnCompleted
+        {
+            add => OnTurnEnded += value;
+            remove => OnTurnEnded -= value;
+        }
+
         public event Action<CharacterInstance, int> OnAllyDamaged;
         public event Action<CharacterInstance, int> OnEnemyDamaged;
         public event Action<CharacterInstance> OnUnitDefeated;
@@ -354,15 +423,27 @@ namespace Turnroot.Gameplay.Brain
 
         public void PublishStartBattle() => OnStartBattle?.Invoke();
 
+        /// <summary>Standardized alias for PublishStartBattle.</summary>
+        public void PublishBattleStarted() => PublishStartBattle();
+
         public void PublishPreBattleStarted() => OnPreBattleStarted?.Invoke();
 
         public void PublishPreBattleEnded() => OnPreBattleEnded?.Invoke();
 
+        /// <summary>Standardized alias for PublishPreBattleEnded.</summary>
+        public void PublishPreBattleCompleted() => PublishPreBattleEnded();
+
         public void PublishExitBattle(BattleExitType exitType) => OnExitBattle?.Invoke(exitType);
+
+        /// <summary>Standardized alias for PublishExitBattle.</summary>
+        public void PublishBattleCompleted(BattleExitType exitType) => PublishExitBattle(exitType);
 
         public void PublishBattleContextInitialized() => OnBattleContextInitialized?.Invoke();
 
         public void PublishTurnBegin() => OnTurnBegin?.Invoke();
+
+        /// <summary>Standardized alias for PublishTurnBegin.</summary>
+        public void PublishTurnStarted() => PublishTurnBegin();
 
         public void PublishPlayerTurnStarted() => OnPlayerTurnStarted?.Invoke();
 
@@ -372,11 +453,23 @@ namespace Turnroot.Gameplay.Brain
 
         public void PublishPlayerTurnEnded() => OnPlayerTurnEnded?.Invoke();
 
+        /// <summary>Standardized alias for PublishPlayerTurnEnded.</summary>
+        public void PublishPlayerTurnCompleted() => PublishPlayerTurnEnded();
+
         public void PublishEnemyTurnEnded() => OnEnemyTurnEnded?.Invoke();
+
+        /// <summary>Standardized alias for PublishEnemyTurnEnded.</summary>
+        public void PublishEnemyTurnCompleted() => PublishEnemyTurnEnded();
 
         public void PublishThirdPartyTurnEnded() => OnThirdPartyTurnEnded?.Invoke();
 
+        /// <summary>Standardized alias for PublishThirdPartyTurnEnded.</summary>
+        public void PublishThirdPartyTurnCompleted() => PublishThirdPartyTurnEnded();
+
         public void PublishTurnEnded() => OnTurnEnded?.Invoke();
+
+        /// <summary>Standardized alias for PublishTurnEnded.</summary>
+        public void PublishTurnCompleted() => PublishTurnEnded();
 
         public void PublishAllyDamaged(CharacterInstance unit, int damageAmount) =>
             OnAllyDamaged?.Invoke(unit, damageAmount);
@@ -486,6 +579,9 @@ namespace Turnroot.Gameplay.Brain
             InitializeModules();
             TryLinkConversationController();
 
+            // Unsubscribe before subscribing to prevent duplicate subscriptions
+            // This is important if Brain survives scene loads (DontDestroyOnLoad)
+            SceneManager.sceneLoaded -= OnSceneLoaded_LinkControllers;
             SceneManager.sceneLoaded += OnSceneLoaded_LinkControllers;
 
             // populate remaining core components

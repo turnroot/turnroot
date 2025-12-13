@@ -1,5 +1,4 @@
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
-using Turnroot.Skills.Nodes;
 using Turnroot.Utilities;
 using UnityEngine;
 
@@ -24,18 +23,10 @@ namespace Turnroot.Skills.Nodes.Events
                 return;
             }
 
-            var brain = GetBrain.Get();
-            if (brain != null)
-            {
-                brain.PublishCriticalHit(context.UnitInstance);
-                Debug.Log(
-                    $"CriticalHit: {context.UnitInstance.CharacterTemplate.DisplayName} triggered a critical hit"
-                );
-            }
-            else
-            {
-                Debug.LogWarning("CriticalHit: Could not find Brain to invoke event");
-            }
+            context.Brain?.PublishCriticalHit(context.UnitInstance);
+            Debug.Log(
+                $"CriticalHit: {context.UnitInstance.CharacterTemplate.DisplayName} triggered a critical hit"
+            );
         }
     }
 }
