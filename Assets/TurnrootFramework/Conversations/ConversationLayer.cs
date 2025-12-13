@@ -199,12 +199,16 @@ namespace Turnroot.Conversations
 
         private Portrait GetPortrait(CharacterData speaker, string portraitKey)
         {
-            return speaker != null
+            if (
+                speaker != null
                 && portraitKey != null
                 && speaker.Portraits != null
-                && speaker.Portraits.ContainsKey(portraitKey)
-                ? speaker.Portraits[portraitKey]
-                : null;
+                && speaker.Portraits.TryGetValue(portraitKey, out var portrait)
+            )
+            {
+                return portrait;
+            }
+            return null;
         }
 
         // Active speaker helpers
@@ -214,7 +218,8 @@ namespace Turnroot.Conversations
             set => _activeSpeaker = value;
         }
 
-        public SpeakerSlot GetActiveSlot() => _activeSpeaker == ActiveSpeakerType.Primary ? _primary : _secondary;
+        public SpeakerSlot GetActiveSlot() =>
+            _activeSpeaker == ActiveSpeakerType.Primary ? _primary : _secondary;
 
         public Portrait ActivePortrait =>
             GetPortrait(GetActiveSlot().Speaker, GetActiveSlot().PortraitKey);

@@ -5,6 +5,9 @@ using Utils;
 
 public class AStarModified
 {
+    // Reusable dictionary for GetNeighborsNonAlloc to avoid allocations in hot paths
+    private readonly Dictionary<string, MapGridPoint> _neighborsBuffer = new(8);
+
     private float Heuristic(MapGridPoint a, MapGridPoint b)
     {
         int dRow = Mathf.Abs(a.Row - b.Row);
@@ -24,16 +27,29 @@ public class AStarModified
         float sameDirectionMultiplier = 0.95f
     )
     {
+        if (graph == null || start == null || goal == null)
+        {
+            return new List<MapGridPoint>();
+        }
+
         // Use canonical grid instances for start/goal so identity checks work
         MapGridPoint canonicalStart = graph.GetGridPoint(start.Row, start.Col) ?? start;
         MapGridPoint canonicalGoal = graph.GetGridPoint(goal.Row, goal.Col) ?? goal;
 
         PriorityQueue<MapGridPoint, float> frontier = new();
         frontier.Enqueue(canonicalStart, 0f);
-        Dictionary<MapGridPoint, MapGridPoint> cameFrom = new();
-        Dictionary<MapGridPoint, float> costSoFar = new();
-        HashSet<MapGridPoint> closed = new();
-        Dictionary<MapGridPoint, string> directionFromParent = new();
+
+        // Use pooled collections to reduce GC allocations
+        using var cameFromPooled = PooledDictionary<MapGridPoint, MapGridPoint>.Get();
+        using var costSoFarPooled = PooledDictionary<MapGridPoint, float>.Get();
+        using var directionFromParentPooled = PooledDictionary<MapGridPoint, string>.Get();
+        using var closedPooled = PooledHashSet<MapGridPoint>.Get();
+
+        var cameFrom = cameFromPooled.Dictionary;
+        var costSoFar = costSoFarPooled.Dictionary;
+        var directionFromParent = directionFromParentPooled.Dictionary;
+        var closed = closedPooled.HashSet;
+
         cameFrom[canonicalStart] = null;
         costSoFar[canonicalStart] = 0f;
         directionFromParent[canonicalStart] = null;
@@ -52,7 +68,7 @@ public class AStarModified
                 while (node != null)
                 {
                     result.Add(node);
-                    node = cameFrom.ContainsKey(node) ? cameFrom[node] : null;
+                    node = cameFrom.TryGetValue(node, out var parent) ? parent : null;
                 }
                 result.Reverse();
                 return result;
@@ -65,8 +81,9 @@ public class AStarModified
 
             closed.Add(current);
 
-            var neighborSet = current.GetNeighbors();
-            foreach (var neighborPair in neighborSet)
+            // Use non-allocating neighbor retrieval
+            current.GetNeighborsNonAlloc(_neighborsBuffer);
+            foreach (var neighborPair in _neighborsBuffer)
             {
                 var neighbor = neighborPair.Value;
                 if (closed.Contains(neighbor))
@@ -83,8 +100,8 @@ public class AStarModified
                 );
 
                 if (
-                    directionFromParent.ContainsKey(current)
-                    && directionFromParent[current] == neighborPair.Key
+                    directionFromParent.TryGetValue(current, out var parentDir)
+                    && parentDir == neighborPair.Key
                 )
                 {
                     stepCost *= sameDirectionMultiplier;
@@ -92,7 +109,10 @@ public class AStarModified
 
                 float newCost = costSoFar[current] + stepCost;
 
-                if (!costSoFar.ContainsKey(neighbor) || newCost < costSoFar[neighbor])
+                if (
+                    !costSoFar.TryGetValue(neighbor, out var existingCost)
+                    || newCost < existingCost
+                )
                 {
                     costSoFar[neighbor] = newCost;
                     float priority = newCost + Heuristic(neighbor, canonicalGoal);
@@ -107,8 +127,11 @@ public class AStarModified
         return new List<MapGridPoint>();
     }
 
-    // Compute all reachable tiles from start with a maximum movement budget (int).
-    // Returns a dictionary mapping reachable MapGridPoint -> least cost to reach.
+    /// <summary>
+    /// Compute all reachable tiles from start with a maximum movement budget.
+    /// Returns a dictionary mapping reachable MapGridPoint -> least cost to reach.
+    /// The returned dictionary is owned by the caller and should be managed accordingly.
+    /// </summary>
     public Dictionary<MapGridPoint, float> GetReachable(
         MapGrid graph,
         MapGridPoint start,
@@ -156,8 +179,9 @@ public class AStarModified
 
             result[current] = currentCost;
 
-            var neighbors = current.GetNeighbors();
-            foreach (var kv in neighbors)
+            // Use non-allocating neighbor retrieval
+            current.GetNeighborsNonAlloc(_neighborsBuffer);
+            foreach (var kv in _neighborsBuffer)
             {
                 var dir = kv.Key;
                 var neighbor = kv.Value;
@@ -172,7 +196,7 @@ public class AStarModified
                     isMagic,
                     isArmored
                 );
-                if (directionFromParent.ContainsKey(current) && directionFromParent[current] == dir)
+                if (directionFromParent.TryGetValue(current, out var parentDir) && parentDir == dir)
                 {
                     stepCost *= sameDirectionMultiplier;
                 }
@@ -183,7 +207,10 @@ public class AStarModified
                     continue;
                 }
 
-                if (!costSoFar.ContainsKey(neighbor) || newCost < costSoFar[neighbor])
+                if (
+                    !costSoFar.TryGetValue(neighbor, out var existingCost)
+                    || newCost < existingCost
+                )
                 {
                     costSoFar[neighbor] = newCost;
                     directionFromParent[neighbor] = dir;
@@ -191,46 +218,83 @@ public class AStarModified
                 }
             }
         }
-        if (includeRange)
-        {
-            // Find all boundary tiles (tiles at movementBudget)
-            var boundaryTiles = new List<MapGridPoint>();
-            foreach (var kv in result)
-            {
-                if (Mathf.RoundToInt(kv.Value) == movementBudget)
-                {
-                    boundaryTiles.Add(kv.Key);
-                }
-            }
 
-            // Expand from boundary tiles by maxRange steps
-            var expanded = new HashSet<MapGridPoint>(boundaryTiles);
-            var currentFrontier = new HashSet<MapGridPoint>(boundaryTiles);
-            for (int step = 1; step <= maxRange; step++)
-            {
-                var nextFrontier = new HashSet<MapGridPoint>();
-                foreach (var tile in currentFrontier)
-                {
-                    var neighbors = tile.GetNeighbors();
-                    foreach (var n in neighbors)
-                    {
-                        var neighbor = n.Value;
-                        if (!result.ContainsKey(neighbor) && !expanded.Contains(neighbor))
-                        {
-                            result[neighbor] = movementBudget + step;
-                            nextFrontier.Add(neighbor);
-                            expanded.Add(neighbor);
-                        }
-                    }
-                }
-                currentFrontier = nextFrontier;
-                if (currentFrontier.Count == 0)
-                {
-                    break;
-                }
-            }
+        if (includeRange && maxRange > 0)
+        {
+            ExpandRangeFromBoundary(result, movementBudget, maxRange);
         }
 
         return result;
+    }
+
+    /// <summary>
+    /// Expand range tiles outward from boundary tiles (tiles at exact movementBudget cost).
+    /// Used for attack range display after movement.
+    /// </summary>
+    private void ExpandRangeFromBoundary(
+        Dictionary<MapGridPoint, float> result,
+        int movementBudget,
+        int maxRange
+    )
+    {
+        // Find all boundary tiles (tiles at movementBudget)
+        using var boundaryTilesPooled = PooledList<MapGridPoint>.Get();
+        var boundaryTiles = boundaryTilesPooled.List;
+
+        foreach (var kv in result)
+        {
+            if (Mathf.RoundToInt(kv.Value) == movementBudget)
+            {
+                boundaryTiles.Add(kv.Key);
+            }
+        }
+
+        if (boundaryTiles.Count == 0)
+        {
+            return;
+        }
+
+        // Expand from boundary tiles by maxRange steps using BFS
+        using var expandedPooled = PooledHashSet<MapGridPoint>.Get();
+        using var currentFrontierPooled = PooledHashSet<MapGridPoint>.Get();
+        using var nextFrontierPooled = PooledHashSet<MapGridPoint>.Get();
+
+        var expanded = expandedPooled.HashSet;
+        var currentFrontier = currentFrontierPooled.HashSet;
+        var nextFrontier = nextFrontierPooled.HashSet;
+
+        foreach (var tile in boundaryTiles)
+        {
+            expanded.Add(tile);
+            currentFrontier.Add(tile);
+        }
+
+        for (int step = 1; step <= maxRange; step++)
+        {
+            nextFrontier.Clear();
+
+            foreach (var tile in currentFrontier)
+            {
+                tile.GetNeighborsNonAlloc(_neighborsBuffer);
+                foreach (var n in _neighborsBuffer)
+                {
+                    var neighbor = n.Value;
+                    if (!result.ContainsKey(neighbor) && !expanded.Contains(neighbor))
+                    {
+                        result[neighbor] = movementBudget + step;
+                        nextFrontier.Add(neighbor);
+                        expanded.Add(neighbor);
+                    }
+                }
+            }
+
+            if (nextFrontier.Count == 0)
+            {
+                break;
+            }
+
+            // Swap frontiers
+            (currentFrontier, nextFrontier) = (nextFrontier, currentFrontier);
+        }
     }
 }

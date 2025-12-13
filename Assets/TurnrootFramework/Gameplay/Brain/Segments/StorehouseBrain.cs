@@ -212,8 +212,8 @@ namespace Turnroot.Gameplay.Brain
         public bool HasMaterials(ObjectItem material, int amount) =>
             material != null
             && amount > 0
-            && _materials.ContainsKey(material)
-            && _materials[material] >= amount;
+            && _materials.TryGetValue(material, out var count)
+            && count >= amount;
 
         /// <summary>
         /// Consume materials from the storehouse.
@@ -246,12 +246,13 @@ namespace Turnroot.Gameplay.Brain
                 return;
             }
 
-            if (!_materials.ContainsKey(material))
+            // Use TryGetValue to avoid double lookup
+            if (!_materials.TryGetValue(material, out var currentCount))
             {
-                _materials[material] = 0;
+                currentCount = 0;
             }
 
-            _materials[material] += amount;
+            _materials[material] = currentCount + amount;
             SaveCurrentStorehouse();
             Debug.Log($"Added {amount}x {material.name} to storehouse.");
         }
@@ -261,7 +262,7 @@ namespace Turnroot.Gameplay.Brain
         /// </summary>
         public int GetMaterialCount(ObjectItem material) =>
             material == null ? 0
-            : _materials.ContainsKey(material) ? _materials[material]
+            : _materials.TryGetValue(material, out var count) ? count
             : 0;
 
         #endregion

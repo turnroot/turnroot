@@ -138,9 +138,12 @@ namespace Turnroot.Services
         /// </summary>
         public ValidationResult ValidateAll(params ValidationResult[] results)
         {
-            foreach (var result in results.Where(r => !r.IsValid))
+            foreach (var result in results)
             {
-                return result;
+                if (!result.IsValid)
+                {
+                    return result;
+                }
             }
 
             return ValidationResult.Success();

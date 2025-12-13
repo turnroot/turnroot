@@ -1,6 +1,6 @@
 using System.Collections.Generic;
-using System.Linq;
 using Turnroot.Characters;
+using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Locations
@@ -135,56 +135,154 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Locations
             }
         }
 
-        // get adjacent allies
+        // get adjacent allies - non-allocating version that fills provided list
+        public void GetAdjacentAlliesNonAlloc(
+            Turnroot.Gameplay.Combat.FundamentalComponents.Battles.BattleContext context,
+            List<CharacterInstance> result
+        )
+        {
+            result.Clear();
+            if (context?.Allies == null || context.Allies.Count == 0)
+            {
+                return;
+            }
+
+            // Build HashSet of ally IDs for O(1) lookup instead of O(n) Exists
+            using var allyIds = PooledHashSet<string>.Get();
+            foreach (var ally in context.Allies)
+            {
+                if (ally != null)
+                {
+                    allyIds.HashSet.Add(ally.Id);
+                }
+            }
+
+            foreach (var adjacent in GetAllAdjacent())
+            {
+                if (adjacent != null && allyIds.HashSet.Contains(adjacent.Id))
+                {
+                    result.Add(adjacent);
+                }
+            }
+        }
+
+        // get adjacent allies - allocating version for backwards compatibility
         public IEnumerable<CharacterInstance> GetAdjacentAllies(
             Turnroot.Gameplay.Combat.FundamentalComponents.Battles.BattleContext context
         )
         {
-            return GetAllAdjacent()
-                .Where(adjacent =>
-                    adjacent != null
-                    && context.Allies != null
-                    && context.Allies.Exists(ally => ally.Id == adjacent.Id)
-                );
+            using var result = PooledList<CharacterInstance>.Get();
+            GetAdjacentAlliesNonAlloc(context, result.List);
+            // Must copy since pooled list will be returned
+            foreach (var ally in result.List)
+            {
+                yield return ally;
+            }
         }
 
-        // get adjacent enemies
+        // get adjacent enemies - non-allocating version that fills provided list
+        public void GetAdjacentEnemiesNonAlloc(
+            Turnroot.Gameplay.Combat.FundamentalComponents.Battles.BattleContext context,
+            List<CharacterInstance> result
+        )
+        {
+            result.Clear();
+            if (context?.Targets == null || context.Targets.Count == 0)
+            {
+                return;
+            }
+
+            // Build HashSet of target IDs for O(1) lookup instead of O(n) Exists
+            using var targetIds = PooledHashSet<string>.Get();
+            foreach (var target in context.Targets)
+            {
+                if (target != null)
+                {
+                    targetIds.HashSet.Add(target.Id);
+                }
+            }
+
+            foreach (var adjacent in GetAllAdjacent())
+            {
+                if (adjacent != null && targetIds.HashSet.Contains(adjacent.Id))
+                {
+                    result.Add(adjacent);
+                }
+            }
+        }
+
+        // get adjacent enemies - allocating version for backwards compatibility
         public IEnumerable<CharacterInstance> GetAdjacentEnemies(
             Turnroot.Gameplay.Combat.FundamentalComponents.Battles.BattleContext context
         )
         {
-            return GetAllAdjacent()
-                .Where(adjacent =>
-                    adjacent != null
-                    && context.Targets != null
-                    && context.Targets.Exists(target => target.Id == adjacent.Id)
-                );
+            using var result = PooledList<CharacterInstance>.Get();
+            GetAdjacentEnemiesNonAlloc(context, result.List);
+            // Must copy since pooled list will be returned
+            foreach (var enemy in result.List)
+            {
+                yield return enemy;
+            }
         }
 
-        // get adjacent ally count
+        // get adjacent ally count - optimized O(n) instead of O(n²)
         public int GetAdjacentAllyCount(
             Turnroot.Gameplay.Combat.FundamentalComponents.Battles.BattleContext context
         )
         {
-            return GetAllAdjacent()
-                .Count(adjacent =>
-                    adjacent != null
-                    && context.Allies != null
-                    && context.Allies.Exists(ally => ally.Id == adjacent.Id)
-                );
+            if (context?.Allies == null || context.Allies.Count == 0)
+            {
+                return 0;
+            }
+
+            using var allyIds = PooledHashSet<string>.Get();
+            foreach (var ally in context.Allies)
+            {
+                if (ally != null)
+                {
+                    allyIds.HashSet.Add(ally.Id);
+                }
+            }
+
+            int count = 0;
+            foreach (var adjacent in GetAllAdjacent())
+            {
+                if (adjacent != null && allyIds.HashSet.Contains(adjacent.Id))
+                {
+                    count++;
+                }
+            }
+            return count;
         }
 
-        // get adjacent enemy count
+        // get adjacent enemy count - optimized O(n) instead of O(n²)
         public int GetAdjacentEnemyCount(
             Turnroot.Gameplay.Combat.FundamentalComponents.Battles.BattleContext context
         )
         {
-            return GetAllAdjacent()
-                .Count(adjacent =>
-                    adjacent != null
-                    && context.Targets != null
-                    && context.Targets.Exists(target => target.Id == adjacent.Id)
-                );
+            if (context?.Targets == null || context.Targets.Count == 0)
+            {
+                return 0;
+            }
+
+            using var targetIds = PooledHashSet<string>.Get();
+            foreach (var target in context.Targets)
+            {
+                if (target != null)
+                {
+                    targetIds.HashSet.Add(target.Id);
+                }
+            }
+
+            int count = 0;
+            foreach (var adjacent in GetAllAdjacent())
+            {
+                if (adjacent != null && targetIds.HashSet.Contains(adjacent.Id))
+                {
+                    count++;
+                }
+            }
+            return count;
         }
     }
 }

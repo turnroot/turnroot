@@ -35,8 +35,8 @@ namespace Turnroot.Characters.Subclasses
         public void SetPronounType(string pronounType)
         {
             string key = pronounType?.ToLower() ?? "they";
-            _selectedPronouns = PronounSets.ContainsKey(key)
-                ? PronounSets[key]
+            _selectedPronouns = PronounSets.TryGetValue(key, out var pronouns)
+                ? pronouns
                 : PronounSets["they"];
         }
 
@@ -115,6 +115,7 @@ namespace Turnroot.Characters.Subclasses
                     .Replace("{Theirs}", Capitalize(PossessivePronoun));
         }
 
-        private string Capitalize(string str) => string.IsNullOrEmpty(str) ? str : char.ToUpper(str[0]) + str.Substring(1);
+        private string Capitalize(string str) =>
+            string.IsNullOrEmpty(str) ? str : char.ToUpper(str[0]) + str.Substring(1);
     }
 }

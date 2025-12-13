@@ -98,25 +98,11 @@ namespace Turnroot.Skills.Nodes.Editor
                 string floatValueKey = NodeEditorUtilities.PrettyName(typeof(FloatValue));
                 string stringValueKey = NodeEditorUtilities.PrettyName(typeof(StringValue));
 
-                if (xnodeSettings.typeColors.ContainsKey(executionFlowKey))
-                    xnodeSettings.typeColors[executionFlowKey] = executionFlowColor;
-                else
-                    xnodeSettings.typeColors.Add(executionFlowKey, executionFlowColor);
-
-                if (xnodeSettings.typeColors.ContainsKey(boolValueKey))
-                    xnodeSettings.typeColors[boolValueKey] = boolValueColor;
-                else
-                    xnodeSettings.typeColors.Add(boolValueKey, boolValueColor);
-
-                if (xnodeSettings.typeColors.ContainsKey(floatValueKey))
-                    xnodeSettings.typeColors[floatValueKey] = floatValueColor;
-                else
-                    xnodeSettings.typeColors.Add(floatValueKey, floatValueColor);
-
-                if (xnodeSettings.typeColors.ContainsKey(stringValueKey))
-                    xnodeSettings.typeColors[stringValueKey] = stringValueColor;
-                else
-                    xnodeSettings.typeColors.Add(stringValueKey, stringValueColor);
+                // Simply assign colors - the indexer handles both add and update
+                xnodeSettings.typeColors[executionFlowKey] = executionFlowColor;
+                xnodeSettings.typeColors[boolValueKey] = boolValueColor;
+                xnodeSettings.typeColors[floatValueKey] = floatValueColor;
+                xnodeSettings.typeColors[stringValueKey] = stringValueColor;
 
                 // Manually save only the typeColors to EditorPrefs
                 // This preserves other settings like selection color, line style, etc.

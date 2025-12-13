@@ -22,6 +22,14 @@ using UnityEngine.Events;
 /// </summary>
 public class MapGridPoint : MonoBehaviour
 {
+    // Cached parent grid reference to avoid repeated GetComponentInParent calls
+    private MapGrid _cachedParentGrid;
+    private bool _parentGridCached;
+
+    // Cached terrain type to avoid repeated asset lookups during pathfinding
+    private TerrainType _cachedTerrainType;
+    private bool _terrainTypeCached;
+
     [SerializeField]
     private SpawnPoint _spawnPoint = new();
     public SpawnPoint SpawnPoint
@@ -34,6 +42,44 @@ public class MapGridPoint : MonoBehaviour
     {
         SpawnPoint ??= new SpawnPoint();
         InitializePresetGridPointProperties();
+        // Invalidate caches when inspector changes
+        _terrainTypeCached = false;
+    }
+
+    /// <summary>
+    /// Gets the parent MapGrid, using a cached reference for performance.
+    /// Call InvalidateParentCache() if the hierarchy changes.
+    /// </summary>
+    public MapGrid ParentGrid
+    {
+        get
+        {
+            if (!_parentGridCached)
+            {
+                _cachedParentGrid = GetComponentInParent<MapGrid>();
+                _parentGridCached = true;
+            }
+            return _cachedParentGrid;
+        }
+    }
+
+    /// <summary>
+    /// Invalidate the cached parent grid reference. Call this if the
+    /// MapGridPoint is reparented to a different grid.
+    /// </summary>
+    public void InvalidateParentCache()
+    {
+        _parentGridCached = false;
+        _cachedParentGrid = null;
+    }
+
+    /// <summary>
+    /// Invalidate the cached terrain type. Call this when the terrain type ID changes.
+    /// </summary>
+    public void InvalidateTerrainTypeCache()
+    {
+        _terrainTypeCached = false;
+        _cachedTerrainType = null;
     }
 
     /* ---------------------------- Grid point data ---------------------------- */
@@ -151,6 +197,10 @@ public class MapGridPoint : MonoBehaviour
         set => _featureTypeId = MapGridPointFeature.IdFromType(value) ?? string.Empty;
     }
 
+    /// <summary>
+    /// Gets the terrain type for this grid point. Does NOT use caching.
+    /// For performance-critical code, use GetCachedTerrainType() instead.
+    /// </summary>
     public TerrainType SelectedTerrainType
     {
         get
@@ -164,6 +214,32 @@ public class MapGridPoint : MonoBehaviour
             var terrainType = asset.GetTypeById(_terrainTypeId);
             return terrainType ?? (asset.Types?.Length > 0 ? asset.Types[0] : null);
         }
+    }
+
+    /// <summary>
+    /// Gets the terrain type using cached lookup. Much faster for repeated calls
+    /// during pathfinding. Cache is invalidated when SetTerrainTypeId is called.
+    /// </summary>
+    public TerrainType GetCachedTerrainType()
+    {
+        if (_terrainTypeCached)
+        {
+            return _cachedTerrainType;
+        }
+
+        var asset = TerrainTypes.LoadDefault();
+        if (asset == null)
+        {
+            _cachedTerrainType = null;
+        }
+        else
+        {
+            _cachedTerrainType =
+                asset.GetTypeById(_terrainTypeId)
+                ?? (asset.Types?.Length > 0 ? asset.Types[0] : null);
+        }
+        _terrainTypeCached = true;
+        return _cachedTerrainType;
     }
 
     public void Initialize(int row, int col)
@@ -192,7 +268,11 @@ public class MapGridPoint : MonoBehaviour
 
     public UnityEvent GetEnemyEntersEvent() => _enemyEntersEvent;
 
-    public void SetTerrainTypeId(string id) => _terrainTypeId = id ?? string.Empty;
+    public void SetTerrainTypeId(string id)
+    {
+        _terrainTypeId = id ?? string.Empty;
+        InvalidateTerrainTypeCache();
+    }
 
     public void SetFeatureTypeId(string id) => _featureTypeId = id ?? string.Empty;
 
@@ -620,6 +700,10 @@ public class MapGridPoint : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Get the movement cost for this terrain type based on movement mode.
+    /// Uses cached terrain type lookup for performance.
+    /// </summary>
     public float GetTerrainTypeCost(
         bool isWalking = true,
         bool isFlying = false,
@@ -628,7 +712,7 @@ public class MapGridPoint : MonoBehaviour
         bool isArmored = false
     )
     {
-        var terrainType = SelectedTerrainType;
+        var terrainType = GetCachedTerrainType();
         if (terrainType == null)
         {
             return 1f;
@@ -658,10 +742,14 @@ public class MapGridPoint : MonoBehaviour
 
     public Vector2Int CoordinatesInt() => new(_row, _col);
 
+    /// <summary>
+    /// Get neighboring grid points. Allocates a new dictionary each call.
+    /// For performance-critical code (pathfinding), use GetNeighborsNonAlloc instead.
+    /// </summary>
     public Dictionary<string, MapGridPoint> GetNeighbors(bool cardinal = false)
     {
         var neighbors = new Dictionary<string, MapGridPoint>();
-        var grid = GetComponentInParent<MapGrid>();
+        var grid = ParentGrid;
         if (grid == null)
         {
             return neighbors;
@@ -678,5 +766,40 @@ public class MapGridPoint : MonoBehaviour
         }
 
         return neighbors;
+    }
+
+    /// <summary>
+    /// Get neighboring grid points without allocation. Fills the provided dictionary.
+    /// The dictionary is cleared before filling. Returns the count of neighbors found.
+    /// Use this in performance-critical paths like pathfinding.
+    /// </summary>
+    /// <param name="neighbors">Dictionary to fill with neighbors. Will be cleared first.</param>
+    /// <param name="cardinal">If true, only return cardinal (N,E,S,W) neighbors.</param>
+    /// <returns>Number of neighbors found.</returns>
+    public int GetNeighborsNonAlloc(
+        Dictionary<string, MapGridPoint> neighbors,
+        bool cardinal = false
+    )
+    {
+        neighbors.Clear();
+        var grid = ParentGrid;
+        if (grid == null)
+        {
+            return 0;
+        }
+
+        var dirs = cardinal ? CardinalDirections : Directions;
+        int count = 0;
+        foreach (var (name, dRow, dCol) in dirs)
+        {
+            var neighbor = grid.GetGridPoint(_row + dRow, _col + dCol);
+            if (neighbor != null)
+            {
+                neighbors[name] = neighbor;
+                count++;
+            }
+        }
+
+        return count;
     }
 }

@@ -34,6 +34,12 @@ public class MapGrid : MonoBehaviour
     [SerializeField, ReadOnly]
     private Dictionary<Vector2Int, GameObject> _gridPoints = new();
 
+    /// <summary>
+    /// Cached MapGridPoint components to avoid repeated GetComponent calls.
+    /// This is rebuilt whenever _gridPoints changes.
+    /// </summary>
+    private Dictionary<Vector2Int, MapGridPoint> _cachedGridPoints;
+
     [SerializeField, ReadOnly]
     [Tooltip(
         "Serialized feature layer records (second layer) for editor features such as chests, doors, etc."
@@ -89,6 +95,8 @@ public class MapGrid : MonoBehaviour
             ClearGrid();
         }
 
+        _cachedGridPoints = new Dictionary<Vector2Int, MapGridPoint>(_gridWidth * _gridHeight);
+
         for (int x = 0; x < _gridWidth; x++)
         {
             for (int y = 0; y < _gridHeight; y++)
@@ -101,7 +109,9 @@ public class MapGrid : MonoBehaviour
                 point.transform.parent = transform;
                 point.transform.localPosition =
                     new Vector3(x * _gridScale, 0, y * _gridScale) + _gridOffset;
-                _gridPoints[new Vector2Int(x, y)] = point;
+                var key = new Vector2Int(x, y);
+                _gridPoints[key] = point;
+                _cachedGridPoints[key] = gridPoint;
             }
         }
 
@@ -276,17 +286,23 @@ public class MapGrid : MonoBehaviour
 
     public void ClearGrid()
     {
-        foreach (var point in _gridPoints.Values.Where(p => p != null))
+        foreach (var point in _gridPoints.Values)
         {
-            DestroyImmediate(point);
+            if (point != null)
+            {
+                DestroyImmediate(point);
+            }
         }
 
         _gridPoints.Clear();
+        _cachedGridPoints?.Clear();
     }
 
     public void RebuildGridDictionary()
     {
         var newDict = new Dictionary<Vector2Int, GameObject>();
+        var newCache = new Dictionary<Vector2Int, MapGridPoint>();
+
         foreach (Transform child in transform)
         {
             if (child == null)
@@ -296,17 +312,20 @@ public class MapGrid : MonoBehaviour
 
             if (child.TryGetComponent<MapGridPoint>(out var mgp))
             {
-                newDict[new Vector2Int(mgp.Row, mgp.Col)] = child.gameObject;
+                var key = new Vector2Int(mgp.Row, mgp.Col);
+                newDict[key] = child.gameObject;
+                newCache[key] = mgp;
             }
         }
         _gridPoints = newDict;
+        _cachedGridPoints = newCache;
 
         // Ensure each grid point has default properties applied. This helps
         // when opening or importing older maps that were created before
         // default point properties existed in the codebase.
-        foreach (var kv in _gridPoints)
+        foreach (var kv in _cachedGridPoints)
         {
-            var mgp = kv.Value?.GetComponent<MapGridPoint>();
+            var mgp = kv.Value;
             if (mgp == null)
             {
                 continue;
@@ -320,10 +339,12 @@ public class MapGrid : MonoBehaviour
 
     public void SaveFeatureLayer()
     {
+        EnsureCachedGridPoints();
+
         _features.Clear();
-        foreach (var kv in _gridPoints)
+        foreach (var kv in _cachedGridPoints)
         {
-            var mgp = kv.Value?.GetComponent<MapGridPoint>();
+            var mgp = kv.Value;
             if (mgp == null || string.IsNullOrEmpty(mgp.FeatureTypeId))
             {
                 continue;
@@ -336,41 +357,55 @@ public class MapGrid : MonoBehaviour
                     col = kv.Key.y,
                     typeId = mgp.FeatureTypeId,
                     name = mgp.FeatureName,
-                    // String properties removed
-                    boolProperties = mgp.GetAllBoolFeatureProperties()
-                        ?.Select(p => new PropertyRecord<bool> { key = p.key, value = p.value })
-                        .ToList(),
-                    // Int properties removed
-                    eventProperties = mgp.GetAllEventFeatureProperties()
-                        ?.Select(p => new PropertyRecord<UnityEvent>
-                        {
-                            key = p.key,
-                            value = p.value,
-                        })
-                        .ToList(),
-                    floatProperties = mgp.GetAllFloatFeatureProperties()
-                        ?.Select(p => new PropertyRecord<float> { key = p.key, value = p.value })
-                        .ToList(),
-                    unitProperties = mgp.GetAllUnitFeatureProperties()
-                        ?.Select(p => new PropertyRecord<CharacterInstance>
-                        {
-                            key = p.key,
-                            value = p.value,
-                        })
-                        .ToList(),
-                    objectItemProperties = mgp.GetAllObjectItemFeatureProperties()
-                        ?.Select(p => new PropertyRecord<ObjectItemInstance>
-                        {
-                            key = p.key,
-                            value = p.value,
-                        })
-                        .ToList(),
+                    // Only create property lists if there are properties to save
+                    boolProperties = ConvertPropertiesIfAny(
+                        mgp.GetAllBoolFeatureProperties(),
+                        p => new PropertyRecord<bool> { key = p.key, value = p.value }
+                    ),
+                    eventProperties = ConvertPropertiesIfAny(
+                        mgp.GetAllEventFeatureProperties(),
+                        p => new PropertyRecord<UnityEvent> { key = p.key, value = p.value }
+                    ),
+                    floatProperties = ConvertPropertiesIfAny(
+                        mgp.GetAllFloatFeatureProperties(),
+                        p => new PropertyRecord<float> { key = p.key, value = p.value }
+                    ),
+                    unitProperties = ConvertPropertiesIfAny(
+                        mgp.GetAllUnitFeatureProperties(),
+                        p => new PropertyRecord<CharacterInstance> { key = p.key, value = p.value }
+                    ),
+                    objectItemProperties = ConvertPropertiesIfAny(
+                        mgp.GetAllObjectItemFeatureProperties(),
+                        p => new PropertyRecord<ObjectItemInstance> { key = p.key, value = p.value }
+                    ),
                 }
             );
         }
 #if UNITY_EDITOR
         UnityEditor.EditorUtility.SetDirty(this);
 #endif
+    }
+
+    /// <summary>
+    /// Convert a list of properties to PropertyRecords, returning null if the source is empty.
+    /// This avoids allocating empty lists which saves memory and serialization overhead.
+    /// </summary>
+    private static List<PropertyRecord<TOut>> ConvertPropertiesIfAny<TIn, TOut>(
+        List<TIn> source,
+        System.Func<TIn, PropertyRecord<TOut>> converter
+    )
+    {
+        if (source == null || source.Count == 0)
+        {
+            return null;
+        }
+
+        var result = new List<PropertyRecord<TOut>>(source.Count);
+        foreach (var item in source)
+        {
+            result.Add(converter(item));
+        }
+        return result;
     }
 
     public void LoadFeatureLayer()
@@ -412,18 +447,26 @@ public class MapGrid : MonoBehaviour
             return;
         }
 
-        foreach (var pr in properties.Where(pr => !string.IsNullOrEmpty(pr.key)))
+        foreach (var pr in properties)
         {
-            setter(pr.key, pr.value);
+            if (!string.IsNullOrEmpty(pr.key))
+            {
+                setter(pr.key, pr.value);
+            }
         }
     }
 
     public void EnsureGridPoints()
     {
         int expectedCount = _gridWidth * _gridHeight;
-        int actualCount = transform
-            .Cast<Transform>()
-            .Count(child => child != null && child.GetComponent<MapGridPoint>() != null);
+        int actualCount = 0;
+        foreach (Transform child in transform)
+        {
+            if (child != null && child.TryGetComponent<MapGridPoint>(out _))
+            {
+                actualCount++;
+            }
+        }
 
         if (
             actualCount != expectedCount
@@ -473,23 +516,43 @@ public class MapGrid : MonoBehaviour
 
     public MapGridPoint GetGridPoint(int row, int col)
     {
-        return _gridPoints.TryGetValue(new Vector2Int(row, col), out var point)
-            ? point.GetComponent<MapGridPoint>()
-            : null;
+        var key = new Vector2Int(row, col);
+
+        // Try cached dictionary first (fast path)
+        if (
+            _cachedGridPoints != null
+            && _cachedGridPoints.TryGetValue(key, out var cached)
+            && cached != null
+        )
+        {
+            return cached;
+        }
+
+        // Fallback to GetComponent if cache miss (rebuilds cache entry)
+        if (_gridPoints.TryGetValue(key, out var point) && point != null)
+        {
+            var mgp = point.GetComponent<MapGridPoint>();
+            if (mgp != null)
+            {
+                _cachedGridPoints ??= new Dictionary<Vector2Int, MapGridPoint>();
+                _cachedGridPoints[key] = mgp;
+            }
+            return mgp;
+        }
+
+        return null;
     }
 
     public List<MapGridPoint> GetAllGridPoints()
     {
-        List<MapGridPoint> points = new List<MapGridPoint>();
-        foreach (var gameObject in _gridPoints.Values)
+        EnsureCachedGridPoints();
+
+        var points = new List<MapGridPoint>(_cachedGridPoints.Count);
+        foreach (var mgp in _cachedGridPoints.Values)
         {
-            if (gameObject != null)
+            if (mgp != null)
             {
-                var point = gameObject.GetComponent<MapGridPoint>();
-                if (point != null)
-                {
-                    points.Add(point);
-                }
+                points.Add(mgp);
             }
         }
         return points;
@@ -499,19 +562,38 @@ public class MapGrid : MonoBehaviour
         MapGridPointFeature.FeatureType featureType
     )
     {
-        List<MapGridPoint> points = new List<MapGridPoint>();
-        foreach (var gameObject in _gridPoints.Values)
+        EnsureCachedGridPoints();
+
+        var points = new List<MapGridPoint>();
+        foreach (var mgp in _cachedGridPoints.Values)
         {
-            if (gameObject != null)
+            if (mgp != null && mgp.FeatureType == featureType)
             {
-                var point = gameObject.GetComponent<MapGridPoint>();
-                if (point != null && point.FeatureType == featureType)
-                {
-                    points.Add(point);
-                }
+                points.Add(mgp);
             }
         }
         return points;
+    }
+
+    /// <summary>
+    /// Ensures the cached MapGridPoint dictionary is populated.
+    /// Call this before iterating over grid points to avoid repeated GetComponent calls.
+    /// </summary>
+    private void EnsureCachedGridPoints()
+    {
+        if (_cachedGridPoints != null && _cachedGridPoints.Count == _gridPoints.Count)
+        {
+            return;
+        }
+
+        _cachedGridPoints = new Dictionary<Vector2Int, MapGridPoint>(_gridPoints.Count);
+        foreach (var kv in _gridPoints)
+        {
+            if (kv.Value != null && kv.Value.TryGetComponent<MapGridPoint>(out var mgp))
+            {
+                _cachedGridPoints[kv.Key] = mgp;
+            }
+        }
     }
 
     private void RebuildRaycastColors()
@@ -524,10 +606,12 @@ public class MapGrid : MonoBehaviour
             return;
         }
 
+        EnsureCachedGridPoints();
+
         var colors = new Color[_single3dHeightMeshRaycastPoints.Length];
         var indices = new Vector2Int[_single3dHeightMeshRaycastPoints.Length];
 
-        var orderedFinal = OrderGridPoints(_gridPoints.AsEnumerable());
+        var orderedFinal = OrderGridPoints(_cachedGridPoints);
         int ci = 0;
 
         foreach (var kv in orderedFinal)
@@ -537,7 +621,7 @@ public class MapGrid : MonoBehaviour
                 break;
             }
 
-            var mgp = kv.Value?.GetComponent<MapGridPoint>();
+            var mgp = kv.Value;
             var tt = mgp?.SelectedTerrainType;
             colors[ci] = tt != null ? tt.EditorColor : Color.yellow;
             indices[ci] = kv.Key;
@@ -553,8 +637,8 @@ public class MapGrid : MonoBehaviour
         _single3dHeightMeshRaycastIndices = indices;
     }
 
-    private IOrderedEnumerable<KeyValuePair<Vector2Int, GameObject>> OrderGridPoints(
-        IEnumerable<KeyValuePair<Vector2Int, GameObject>> points
+    private IOrderedEnumerable<KeyValuePair<Vector2Int, TValue>> OrderGridPoints<TValue>(
+        IEnumerable<KeyValuePair<Vector2Int, TValue>> points
     )
     {
         var orderedByX = _flipRaycastX

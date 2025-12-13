@@ -37,7 +37,8 @@ public class ProtectTilesBattleCondition : BattleCondition
     {
         foreach (var tile in TilesToProtect)
         {
-            if (tileStatus.ContainsKey(tile) && tileStatus[tile] == false)
+            // Use TryGetValue to avoid double lookup
+            if (tileStatus.TryGetValue(tile, out var isProtected) && isProtected == false)
             {
                 ConditionFailed();
             }

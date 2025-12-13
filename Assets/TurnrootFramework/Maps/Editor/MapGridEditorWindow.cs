@@ -1005,32 +1005,104 @@ public class MapGridEditorWindow : EditorWindow
     {
         EditorGUILayout.BeginHorizontal();
         GUILayout.Label("Movement:", GUILayout.Width(70));
+
+        int prevMovement = _testMovementValue;
         _testMovementValue = EditorGUILayout.IntSlider(
             _testMovementValue,
             1,
             10,
             GUILayout.Width(300)
         );
+
+        // Recalculate if movement value changed
+        if (prevMovement != _testMovementValue && _testMovementStart != null && _grid != null)
+        {
+            _testMovementResults = new AStarModified().GetReachable(
+                _grid,
+                _testMovementStart,
+                _testMovementValue,
+                _asWalk,
+                _asFly,
+                _asRide,
+                _asMagic,
+                _asArmor,
+                _sameDirectionMultiplier
+            );
+        }
+
         if (GUILayout.Button("Clear Test", GUILayout.Width(90)))
         {
             _testMovementStart = null;
+            _testMovementResults = null;
             Repaint();
         }
         EditorGUILayout.EndHorizontal();
 
         EditorGUILayout.BeginHorizontal();
-        _asWalk = GUILayout.Toggle(_asWalk, "Walk", "Button");
-        _asFly = GUILayout.Toggle(_asFly, "Fly", "Button");
-        _asRide = GUILayout.Toggle(_asRide, "Ride", "Button");
-        _asMagic = GUILayout.Toggle(_asMagic, "Magic", "Button");
-        _asArmor = GUILayout.Toggle(_asArmor, "Armor", "Button");
+
+        // Use exclusive selection (radio button behavior) for movement types
+        int currentType =
+            _asWalk ? 0
+            : _asFly ? 1
+            : _asRide ? 2
+            : _asMagic ? 3
+            : _asArmor ? 4
+            : 0;
+        int newType = GUILayout.Toolbar(
+            currentType,
+            new[] { "Walk", "Fly", "Ride", "Magic", "Armor" }
+        );
+
+        if (newType != currentType)
+        {
+            _asWalk = newType == 0;
+            _asFly = newType == 1;
+            _asRide = newType == 2;
+            _asMagic = newType == 3;
+            _asArmor = newType == 4;
+
+            // Recalculate movement if we have a start point
+            if (_testMovementStart != null && _grid != null)
+            {
+                _testMovementResults = new AStarModified().GetReachable(
+                    _grid,
+                    _testMovementStart,
+                    _testMovementValue,
+                    _asWalk,
+                    _asFly,
+                    _asRide,
+                    _asMagic,
+                    _asArmor,
+                    _sameDirectionMultiplier
+                );
+            }
+        }
+
         GUILayout.Label("Same-dir:", GUILayout.Width(70));
+        float prevMultiplier = _sameDirectionMultiplier;
         _sameDirectionMultiplier = EditorGUILayout.Slider(
             _sameDirectionMultiplier,
             0.5f,
             1.1f,
             GUILayout.Width(150)
         );
+        
+        // Recalculate if multiplier changed
+        if (Mathf.Abs(prevMultiplier - _sameDirectionMultiplier) > 0.001f && _testMovementStart != null && _grid != null)
+        {
+            _testMovementResults = new AStarModified().GetReachable(
+                _grid,
+                _testMovementStart,
+                _testMovementValue,
+                _asWalk,
+                _asFly,
+                _asRide,
+                _asMagic,
+                _asArmor,
+                _sameDirectionMultiplier
+            );
+        }
+        
         EditorGUILayout.EndHorizontal();
     }
 
@@ -1441,7 +1513,7 @@ public class MapGridEditorWindow : EditorWindow
         }
 
         // Test movement overlay
-        if (_mode == Mode.TestMovement && _testMovementResults?.ContainsKey(point) == true)
+        if (_mode == Mode.TestMovement && _testMovementResults?.TryGetValue(point, out _) == true)
             EditorGUI.DrawRect(cellRect, new Color(.8f, 0f, 0.8f, .65f));
 
         // Feature overlay

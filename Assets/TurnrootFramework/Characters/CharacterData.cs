@@ -350,10 +350,9 @@ namespace Turnroot.Characters
                     {
                         if (
                             !string.IsNullOrEmpty(layer.Tag)
-                            && TaggedLayerDefaults.ContainsKey(layer.Tag)
+                            && TaggedLayerDefaults.TryGetValue(layer.Tag, out var def)
                         )
                         {
-                            var def = TaggedLayerDefaults[layer.Tag];
                             layer.Sprite = def.Sprite;
                             layer.Offset = def.Offset;
                             layer.Scale = def.Scale;

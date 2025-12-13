@@ -36,11 +36,9 @@ public static class PortraitLayerSpriteCache
     {
         if (string.IsNullOrEmpty(tag))
         {
-            if (_sprites.ContainsKey(tag))
-            {
-                _sprites.Remove(tag);
-                _names.Remove(tag);
-            }
+            // Remove empty/null tag entries if they exist
+            _sprites.Remove(tag);
+            _names.Remove(tag);
             return;
         }
 
@@ -72,9 +70,13 @@ public static class PortraitLayerSpriteCache
         if (string.IsNullOrEmpty(tag))
             return Array.Empty<Sprite>();
 
-        if (!_sprites.ContainsKey(tag))
+        // Use TryGetValue to avoid double lookup - refresh if not found
+        if (!_sprites.TryGetValue(tag, out var arr))
+        {
             Refresh(tag);
-        return _sprites.TryGetValue(tag, out var arr) ? arr : Array.Empty<Sprite>();
+            return _sprites.TryGetValue(tag, out arr) ? arr : Array.Empty<Sprite>();
+        }
+        return arr;
     }
 
     public static string[] GetNames(string tag)
@@ -82,8 +84,12 @@ public static class PortraitLayerSpriteCache
         if (string.IsNullOrEmpty(tag))
             return Array.Empty<string>();
 
-        if (!_names.ContainsKey(tag))
+        // Use TryGetValue to avoid double lookup - refresh if not found
+        if (!_names.TryGetValue(tag, out var arr))
+        {
             Refresh(tag);
-        return _names.TryGetValue(tag, out var arr) ? arr : Array.Empty<string>();
+            return _names.TryGetValue(tag, out arr) ? arr : Array.Empty<string>();
+        }
+        return arr;
     }
 }

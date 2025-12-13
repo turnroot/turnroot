@@ -37,10 +37,10 @@ public class SerializableDictionary<TKey, TValue>
 
     public TValue this[TKey key]
     {
-        get => Dictionary.ContainsKey(key) ? Dictionary[key] : default;
+        get => Dictionary.TryGetValue(key, out var value) ? value : default;
         set
         {
-            if (Dictionary.ContainsKey(key))
+            if (Dictionary.TryGetValue(key, out _))
             {
                 Dictionary[key] = value;
                 int index = _keys.IndexOf(key);
@@ -64,7 +64,7 @@ public class SerializableDictionary<TKey, TValue>
 
     public void Add(TKey key, TValue value)
     {
-        if (!Dictionary.ContainsKey(key))
+        if (!Dictionary.TryGetValue(key, out _))
         {
             Dictionary[key] = value;
             _keys.Add(key);
@@ -74,7 +74,7 @@ public class SerializableDictionary<TKey, TValue>
 
     public bool Remove(TKey key)
     {
-        if (Dictionary.ContainsKey(key))
+        if (Dictionary.TryGetValue(key, out _))
         {
             int index = _keys.IndexOf(key);
             if (index >= 0)
