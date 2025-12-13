@@ -100,7 +100,9 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Context
         {
             var inventory = character?.InventoryInstance;
             if (inventory == null)
+            {
                 return null;
+            }
 
             int weaponIndex = inventory.GetEquippedWeaponIndex();
             if (weaponIndex < 0 || weaponIndex >= inventory.InventoryItems.Count)

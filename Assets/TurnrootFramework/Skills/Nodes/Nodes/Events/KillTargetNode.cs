@@ -31,7 +31,7 @@ namespace Turnroot.Skills.Nodes.Events
             int killedCount = ExecuteOnTargets(
                 context,
                 shouldKillAll,
-                target => KillCharacter(target)
+                target => KillCharacter(context, target)
             );
 
             Debug.Log(

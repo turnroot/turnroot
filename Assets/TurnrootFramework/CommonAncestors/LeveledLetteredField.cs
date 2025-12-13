@@ -86,7 +86,8 @@ namespace Turnroot.CommonAncestors
         /// <summary>
         /// Compares this rank to another rank. Returns positive if this rank is higher, negative if lower, 0 if equal.
         /// </summary>
-        public int CompareTo(string otherRankLetter) => GetRankValue(_value).CompareTo(GetRankValue(otherRankLetter));
+        public int CompareTo(string otherRankLetter) =>
+            GetRankValue(_value).CompareTo(GetRankValue(otherRankLetter));
 
         /// <summary>
         /// Gets the numeric value of a rank (S=5, A=4, B=3, C=2, D=1, E=0)

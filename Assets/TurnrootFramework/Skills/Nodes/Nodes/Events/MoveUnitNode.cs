@@ -35,6 +35,13 @@ namespace Turnroot.Skills.Nodes.Events
                 return;
             }
 
+            if (context.Brain == null)
+            {
+                throw new System.InvalidOperationException(
+                    "MoveUnitNode requires BattleContext.Brain to be set."
+                );
+            }
+
             // Get target position from input port or use test value
             var port = GetInputPort("targetPosition");
             Vector2Int newPosition = testPosition;
@@ -48,20 +55,18 @@ namespace Turnroot.Skills.Nodes.Events
                 }
             }
 
-            // Move the unit
-            var result = context.UnitInstance.MoveToPosition(newPosition, context.mapGrid);
+            // Execute move through BattleContext (always uses commands)
+            bool success = context.MoveUnit(context.UnitInstance, newPosition);
 
-            if (result.Success)
+            if (success)
             {
-                // Invoke the Brain event to notify listeners
-                context.Brain?.PublishUnitMoved(context.UnitInstance, newPosition);
                 Debug.Log(
                     $"MoveUnit: Moved {context.UnitInstance.CharacterTemplate.DisplayName} to {newPosition}"
                 );
             }
             else
             {
-                Debug.LogWarning($"MoveUnit: Failed to move unit");
+                Debug.LogWarning($"MoveUnit: Failed to move unit to {newPosition}");
             }
         }
     }

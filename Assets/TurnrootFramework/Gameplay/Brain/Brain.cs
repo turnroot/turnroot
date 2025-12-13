@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Turnroot.Characters;
 using Turnroot.Characters.Components.Support;
 using Turnroot.Conversations;
@@ -21,6 +22,11 @@ namespace Turnroot.Gameplay.Brain
     /// If you're looking for hooks, there are lots of events you can subscribe to,
     /// search for `public event Action`.
     ///
+    /// Advanced Systems (see Brain.Advanced.cs):
+    /// - Priority Event System: Subscribe with priorities for ordered event handling
+    /// - Command Pattern: Undoable, serializable battle actions
+    /// - State Snapshot System: Save/restore battle state for preview and replay
+    ///
     /// Note: if you are going to make changes here, make sure you fork the Turnroot Framework repository
     /// on GitHub and make your changes there. If you go in willy-nily without git history,
     /// I can't help you if you mess up your game!
@@ -33,7 +39,7 @@ namespace Turnroot.Gameplay.Brain
     [RequireComponent(typeof(BattleBrain))]
     [RequireComponent(typeof(InventoryBrain))]
     [RequireComponent(typeof(StorehouseBrain))]
-    public class Brain : MonoBehaviour
+    public partial class Brain : MonoBehaviour
     {
         // Core components
         [HideInInspector]
@@ -64,40 +70,41 @@ namespace Turnroot.Gameplay.Brain
         private ConversationController _sceneConversationController;
 
         // Module flags - paid add-on modules that self-install (evaluated at compile-time)
+        public static bool HubModuleEnabled =>
 #if TURNROOT_HUB_MODULE
-        public static bool HubModuleEnabled => true;
+            true;
 #else
-        public static bool HubModuleEnabled => false;
+            false;
 #endif
-
+        public static bool BloodlinesModuleEnabled =>
 #if TURNROOT_BLOODLINES_MODULE
-        public static bool BloodlinesModuleEnabled => true;
+            true;
 #else
-        public static bool BloodlinesModuleEnabled => false;
+            false;
 #endif
-
+        public static bool RetroModuleEnabled =>
 #if TURNROOT_RETRO_MODULE
-        public static bool RetroModuleEnabled => true;
+            true;
 #else
-        public static bool RetroModuleEnabled => false;
+            false;
 #endif
-
+        public static bool UnwindModuleEnabled =>
 #if TURNROOT_UNWIND_MODULE
-        public static bool UnwindModuleEnabled => true;
+            true;
 #else
-        public static bool UnwindModuleEnabled => false;
+            false;
 #endif
-
+        public static bool TroopsModuleEnabled =>
 #if TURNROOT_TROOPS_MODULE
-        public static bool TroopsModuleEnabled => true;
+            true;
 #else
-        public static bool TroopsModuleEnabled => false;
+            false;
 #endif
-
+        public static bool MonstersModuleEnabled =>
 #if TURNROOT_MONSTERS_MODULE
-        public static bool MonstersModuleEnabled => true;
+            true;
 #else
-        public static bool MonstersModuleEnabled => false;
+            false;
 #endif
 
         #region Memory Events
@@ -142,35 +149,15 @@ namespace Turnroot.Gameplay.Brain
         public event Action OnGameOver;
         public event Action OnHighLevelStatesInitialized;
 
-        public void PublishPaused(BrainState prev)
-        {
-            Debug.Log($"EventsBrain: State paused -> {prev?.Name ?? "(null)"}");
-            OnPaused?.Invoke(prev);
-        }
+        public void PublishPaused(BrainState prev) => OnPaused?.Invoke(prev);
 
-        public void PublishResumed(BrainState prev)
-        {
-            Debug.Log($"EventsBrain: State resumed -> {prev?.Name ?? "(null)"}");
-            OnResumed?.Invoke(prev);
-        }
+        public void PublishResumed(BrainState prev) => OnResumed?.Invoke(prev);
 
-        public void PublishStateChanged(BrainState newState)
-        {
-            Debug.Log($"EventsBrain: State changed -> {newState?.Name ?? "(null)"}");
-            OnStateChanged?.Invoke(newState);
-        }
+        public void PublishStateChanged(BrainState newState) => OnStateChanged?.Invoke(newState);
 
-        public void PublishGameOver()
-        {
-            Debug.Log("EventsBrain: GameOver event received");
-            OnGameOver?.Invoke();
-        }
+        public void PublishGameOver() => OnGameOver?.Invoke();
 
-        public void PublishHighLevelStatesInitialized()
-        {
-            Debug.Log("EventsBrain: High-level states initialized");
-            OnHighLevelStatesInitialized?.Invoke();
-        }
+        public void PublishHighLevelStatesInitialized() => OnHighLevelStatesInitialized?.Invoke();
 
         #endregion
 
@@ -179,8 +166,7 @@ namespace Turnroot.Gameplay.Brain
         public event Action<RosterInstance> OnRosterReady;
         public event Action<Roster, string> OnRosterFailed;
 
-        public void PublishRosterReady(RosterInstance instance) =>
-            OnRosterReady?.Invoke(instance);
+        public void PublishRosterReady(RosterInstance instance) => OnRosterReady?.Invoke(instance);
 
         public void PublishRosterFailed(Roster roster, string reason) =>
             OnRosterFailed?.Invoke(roster, reason);
@@ -335,165 +321,73 @@ namespace Turnroot.Gameplay.Brain
 
         #region Battle Events
 
-        // NAMING CONVENTION: Events should follow the pattern OnXStarted/OnXCompleted
-        // For backwards compatibility, legacy event names are preserved as aliases.
-        // New code should use the standardized names.
-
-        // Legacy: OnStartBattle -> Standardized: OnBattleStarted
-        public event Action OnStartBattle;
-
-        /// <summary>Alias for OnStartBattle. Use this for new code.</summary>
-        public event Action OnBattleStarted
-        {
-            add => OnStartBattle += value;
-            remove => OnStartBattle -= value;
-        }
-
-        // Legacy: OnExitBattle -> Standardized: OnBattleCompleted
-        public event Action<BattleExitType> OnExitBattle;
-
-        /// <summary>Alias for OnExitBattle. Use this for new code.</summary>
-        public event Action<BattleExitType> OnBattleCompleted
-        {
-            add => OnExitBattle += value;
-            remove => OnExitBattle -= value;
-        }
-
+        public event Action OnBattleStarted;
+        public event Action<BattleExitType> OnBattleCompleted;
         public event Action OnBattleContextInitialized;
         public event Action OnPreBattleStarted;
-        public event Action OnPreBattleEnded;
-
-        /// <summary>Alias for OnPreBattleEnded. Use this for new code.</summary>
-        public event Action OnPreBattleCompleted
-        {
-            add => OnPreBattleEnded += value;
-            remove => OnPreBattleEnded -= value;
-        }
-
-        // Legacy: OnTurnBegin -> Standardized: OnTurnStarted
+        public event Action OnPreBattleCompleted;
         public event Action OnTurnBegin;
-
-        /// <summary>Alias for OnTurnBegin. Use this for new code.</summary>
-        public event Action OnTurnStarted
-        {
-            add => OnTurnBegin += value;
-            remove => OnTurnBegin -= value;
-        }
-
-        public event Action OnPlayerTurnStarted;
-        public event Action OnEnemyTurnStarted;
-        public event Action OnThirdPartyTurnStarted;
-        public event Action OnPlayerTurnEnded;
-
-        /// <summary>Alias for OnPlayerTurnEnded. Use this for new code.</summary>
-        public event Action OnPlayerTurnCompleted
-        {
-            add => OnPlayerTurnEnded += value;
-            remove => OnPlayerTurnEnded -= value;
-        }
-        public event Action OnEnemyTurnEnded;
-
-        /// <summary>Alias for OnEnemyTurnEnded. Use this for new code.</summary>
-        public event Action OnEnemyTurnCompleted
-        {
-            add => OnEnemyTurnEnded += value;
-            remove => OnEnemyTurnEnded -= value;
-        }
-        public event Action OnThirdPartyTurnEnded;
-
-        /// <summary>Alias for OnThirdPartyTurnEnded. Use this for new code.</summary>
-        public event Action OnThirdPartyTurnCompleted
-        {
-            add => OnThirdPartyTurnEnded += value;
-            remove => OnThirdPartyTurnEnded -= value;
-        }
         public event Action OnTurnEnded;
-
-        /// <summary>Alias for OnTurnEnded. Use this for new code.</summary>
-        public event Action OnTurnCompleted
-        {
-            add => OnTurnEnded += value;
-            remove => OnTurnEnded -= value;
-        }
-
+        public event Action OnPlayerTurnStarted;
+        public event Action OnPlayerTurnEnded;
+        public event Action OnEnemyTurnStarted;
+        public event Action OnEnemyTurnEnded;
+        public event Action OnThirdPartyTurnStarted;
+        public event Action OnThirdPartyTurnEnded;
         public event Action<CharacterInstance, int> OnAllyDamaged;
         public event Action<CharacterInstance, int> OnEnemyDamaged;
         public event Action<CharacterInstance> OnUnitDefeated;
         public event Action<CharacterInstance, Vector2Int> OnUnitMoved;
-
-        public void PublishStartBattle() => OnStartBattle?.Invoke();
-
-        /// <summary>Standardized alias for PublishStartBattle.</summary>
-        public void PublishBattleStarted() => PublishStartBattle();
-
-        public void PublishPreBattleStarted() => OnPreBattleStarted?.Invoke();
-
-        public void PublishPreBattleEnded() => OnPreBattleEnded?.Invoke();
-
-        /// <summary>Standardized alias for PublishPreBattleEnded.</summary>
-        public void PublishPreBattleCompleted() => PublishPreBattleEnded();
-
-        public void PublishExitBattle(BattleExitType exitType) => OnExitBattle?.Invoke(exitType);
-
-        /// <summary>Standardized alias for PublishExitBattle.</summary>
-        public void PublishBattleCompleted(BattleExitType exitType) => PublishExitBattle(exitType);
-
-        public void PublishBattleContextInitialized() => OnBattleContextInitialized?.Invoke();
-
-        public void PublishTurnBegin() => OnTurnBegin?.Invoke();
-
-        /// <summary>Standardized alias for PublishTurnBegin.</summary>
-        public void PublishTurnStarted() => PublishTurnBegin();
-
-        public void PublishPlayerTurnStarted() => OnPlayerTurnStarted?.Invoke();
-
-        public void PublishEnemyTurnStarted() => OnEnemyTurnStarted?.Invoke();
-
-        public void PublishThirdPartyTurnStarted() => OnThirdPartyTurnStarted?.Invoke();
-
-        public void PublishPlayerTurnEnded() => OnPlayerTurnEnded?.Invoke();
-
-        /// <summary>Standardized alias for PublishPlayerTurnEnded.</summary>
-        public void PublishPlayerTurnCompleted() => PublishPlayerTurnEnded();
-
-        public void PublishEnemyTurnEnded() => OnEnemyTurnEnded?.Invoke();
-
-        /// <summary>Standardized alias for PublishEnemyTurnEnded.</summary>
-        public void PublishEnemyTurnCompleted() => PublishEnemyTurnEnded();
-
-        public void PublishThirdPartyTurnEnded() => OnThirdPartyTurnEnded?.Invoke();
-
-        /// <summary>Standardized alias for PublishThirdPartyTurnEnded.</summary>
-        public void PublishThirdPartyTurnCompleted() => PublishThirdPartyTurnEnded();
-
-        public void PublishTurnEnded() => OnTurnEnded?.Invoke();
-
-        /// <summary>Standardized alias for PublishTurnEnded.</summary>
-        public void PublishTurnCompleted() => PublishTurnEnded();
-
-        public void PublishAllyDamaged(CharacterInstance unit, int damageAmount) =>
-            OnAllyDamaged?.Invoke(unit, damageAmount);
-
-        public void PublishEnemyDamaged(CharacterInstance unit, int damageAmount) =>
-            OnEnemyDamaged?.Invoke(unit, damageAmount);
-
-        public void PublishUnitDefeated(CharacterInstance unit) => OnUnitDefeated?.Invoke(unit);
-
-        public void PublishUnitMoved(CharacterInstance unit, Vector2Int newPosition) =>
-            OnUnitMoved?.Invoke(unit, newPosition);
-
         public event Action<CharacterInstance> OnUnitTakesAnotherTurn;
         public event Action<CharacterInstance> OnCriticalHit;
         public event Action<CharacterInstance, int> OnWeaponUsesChanged;
         public event Action<CharacterInstance, CharacterInstance> OnItemStolen;
+
+        public void PublishBattleStarted() => OnBattleStarted?.Invoke();
+
+        public void PublishBattleCompleted(BattleExitType exitType) =>
+            OnBattleCompleted?.Invoke(exitType);
+
+        public void PublishBattleContextInitialized() => OnBattleContextInitialized?.Invoke();
+
+        public void PublishPreBattleStarted() => OnPreBattleStarted?.Invoke();
+
+        public void PublishPreBattleCompleted() => OnPreBattleCompleted?.Invoke();
+
+        public void PublishTurnBegin() => OnTurnBegin?.Invoke();
+
+        public void PublishTurnEnded() => OnTurnEnded?.Invoke();
+
+        public void PublishPlayerTurnStarted() => OnPlayerTurnStarted?.Invoke();
+
+        public void PublishPlayerTurnEnded() => OnPlayerTurnEnded?.Invoke();
+
+        public void PublishEnemyTurnStarted() => OnEnemyTurnStarted?.Invoke();
+
+        public void PublishEnemyTurnEnded() => OnEnemyTurnEnded?.Invoke();
+
+        public void PublishThirdPartyTurnStarted() => OnThirdPartyTurnStarted?.Invoke();
+
+        public void PublishThirdPartyTurnEnded() => OnThirdPartyTurnEnded?.Invoke();
+
+        public void PublishAllyDamaged(CharacterInstance unit, int damage) =>
+            OnAllyDamaged?.Invoke(unit, damage);
+
+        public void PublishEnemyDamaged(CharacterInstance unit, int damage) =>
+            OnEnemyDamaged?.Invoke(unit, damage);
+
+        public void PublishUnitDefeated(CharacterInstance unit) => OnUnitDefeated?.Invoke(unit);
+
+        public void PublishUnitMoved(CharacterInstance unit, Vector2Int pos) =>
+            OnUnitMoved?.Invoke(unit, pos);
 
         public void PublishUnitTakesAnotherTurn(CharacterInstance unit) =>
             OnUnitTakesAnotherTurn?.Invoke(unit);
 
         public void PublishCriticalHit(CharacterInstance unit) => OnCriticalHit?.Invoke(unit);
 
-        public void PublishWeaponUsesChanged(CharacterInstance unit, int usesChange) =>
-            OnWeaponUsesChanged?.Invoke(unit, usesChange);
+        public void PublishWeaponUsesChanged(CharacterInstance unit, int change) =>
+            OnWeaponUsesChanged?.Invoke(unit, change);
 
         public void PublishItemStolen(CharacterInstance thief, CharacterInstance target) =>
             OnItemStolen?.Invoke(thief, target);
@@ -577,6 +471,7 @@ namespace Turnroot.Gameplay.Brain
 
             InitializeLongTermMemory();
             InitializeModules();
+            InitializeAdvancedSystems();
             TryLinkConversationController();
 
             // Unsubscribe before subscribing to prevent duplicate subscriptions
@@ -611,50 +506,17 @@ namespace Turnroot.Gameplay.Brain
 
         public void InitializeModules()
         {
-            var enabledModules = GetEnabledModulesString();
-
-            Debug.Log($"Turnroot add-on modules you have access to: {enabledModules}");
-            Debug.Log(
-                "You can find more info about Turnroot add-on modules on the Unity Asset Store."
-            );
-            Debug.Log("All available Turnroot modules initialized.");
-        }
-
-        private static string GetEnabledModulesString()
-        {
-            var modules = new System.Collections.Generic.List<string>();
-
-            if (HubModuleEnabled)
+            var modules = new[]
             {
-                modules.Add("Hub");
-            }
-
-            if (BloodlinesModuleEnabled)
-            {
-                modules.Add("Bloodlines");
-            }
-
-            if (UnwindModuleEnabled)
-            {
-                modules.Add("Unwind");
-            }
-
-            if (TroopsModuleEnabled)
-            {
-                modules.Add("Troops");
-            }
-
-            if (MonstersModuleEnabled)
-            {
-                modules.Add("Monsters");
-            }
-
-            if (RetroModuleEnabled)
-            {
-                modules.Add("Retro");
-            }
-
-            return modules.Count > 0 ? string.Join(", ", modules) : "None";
+                (HubModuleEnabled, "Hub"),
+                (BloodlinesModuleEnabled, "Bloodlines"),
+                (UnwindModuleEnabled, "Unwind"),
+                (TroopsModuleEnabled, "Troops"),
+                (MonstersModuleEnabled, "Monsters"),
+                (RetroModuleEnabled, "Retro"),
+            };
+            var enabled = string.Join(", ", modules.Where(m => m.Item1).Select(m => m.Item2));
+            Debug.Log($"Turnroot modules: {(string.IsNullOrEmpty(enabled) ? "None" : enabled)}");
         }
 
         #region Conversation Controller Management
@@ -708,7 +570,11 @@ namespace Turnroot.Gameplay.Brain
 
         #region Cleanup
 
-        private void OnDestroy() => SceneManager.sceneLoaded -= OnSceneLoaded_LinkControllers;
+        private void OnDestroy()
+        {
+            SceneManager.sceneLoaded -= OnSceneLoaded_LinkControllers;
+            CleanupAdvancedSystems();
+        }
 
         #endregion
     }

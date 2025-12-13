@@ -41,9 +41,7 @@ namespace Turnroot.Skills.Nodes
         /// <summary>
         /// Retrieves the current execution context from the given SkillGraph instance.
         /// </summary>
-        public BattleContext GetContextFromGraph(
-            SkillGraph skillGraph
-        )
+        public BattleContext GetContextFromGraph(SkillGraph skillGraph)
         {
             // Use reflection to access the private activeExecutor field
             var executorField = typeof(SkillGraph).GetField(
@@ -68,9 +66,7 @@ namespace Turnroot.Skills.Nodes
         /// Override this only if you need custom pre/post execution behavior.
         /// Most nodes should override ExecuteImpl() instead.
         /// </summary>
-        public virtual void Execute(
-            BattleContext context
-        )
+        public virtual void Execute(BattleContext context)
         {
             // Base validation - context must exist
             if (!ValidateContext(context))
@@ -165,7 +161,9 @@ namespace Turnroot.Skills.Nodes
         {
             var unitResult = RequireUnit(context);
             if (!unitResult.IsValid)
+            {
                 return unitResult;
+            }
 
             return RequireTargets(context);
         }
@@ -430,75 +428,71 @@ namespace Turnroot.Skills.Nodes
         #region Combat Helper Methods
 
         /// <summary>
-        /// Deals damage to a character by reducing their health stat.
+        /// Deals damage to a target using the command pattern.
+        /// This is the primary method for dealing damage - all damage goes through commands.
         /// </summary>
-        /// <param name="target">The character to damage.</param>
-        /// <param name="damage">The amount of damage to deal.</param>
-        /// <param name="nodeName">Name of the node for logging purposes.</param>
-        /// <returns>True if damage was successfully applied, false otherwise.</returns>
-        protected bool DealDamage(
-            CharacterInstance target,
-            float damage,
-            string nodeName = null
-        )
+        /// <param name="context">The battle context (required).</param>
+        /// <param name="target">The target to damage.</param>
+        /// <param name="damage">Amount of damage to deal.</param>
+        /// <returns>True if damage was successfully applied.</returns>
+        protected bool DealDamage(BattleContext context, CharacterInstance target, int damage)
         {
-            nodeName ??= GetType().Name;
-
             if (target == null)
             {
-                Debug.LogWarning($"{nodeName}: Target is null");
+                Debug.LogWarning($"{GetType().Name}: Target is null");
                 return false;
             }
 
-            var healthStat = target.GetBoundedStat(
-                Turnroot.Characters.Stats.BoundedStatType.Health
-            );
-            if (healthStat != null)
-            {
-                float newHealth = healthStat.Current - damage;
-                healthStat.SetCurrent(newHealth);
-                Debug.Log($"{nodeName}: Dealt {damage} damage (new HP: {healthStat.Current})");
-                return true;
-            }
-            else
-            {
-                Debug.LogWarning($"{nodeName}: Could not find health stat on target");
-                return false;
-            }
+            RequireContext(context);
+            return context.DealDamage(context.UnitInstance, target, damage);
         }
 
         /// <summary>
-        /// Kills a character by setting their health to 0.
+        /// Deals damage to a target using the command pattern (float overload for compatibility).
         /// </summary>
-        /// <param name="target">The character to kill.</param>
-        /// <param name="nodeName">Name of the node for logging purposes.</param>
-        /// <returns>True if the kill was successful, false otherwise.</returns>
-        protected bool KillCharacter(
-            CharacterInstance target,
-            string nodeName = null
-        )
+        protected bool DealDamage(BattleContext context, CharacterInstance target, float damage)
         {
-            nodeName ??= GetType().Name;
+            return DealDamage(context, target, (int)damage);
+        }
 
+        /// <summary>
+        /// Kills a character using the command pattern (deals lethal damage).
+        /// </summary>
+        /// <param name="context">The battle context (required).</param>
+        /// <param name="target">The character to kill.</param>
+        /// <returns>True if the kill command executed successfully.</returns>
+        protected bool KillCharacter(BattleContext context, CharacterInstance target)
+        {
             if (target == null)
             {
-                Debug.LogWarning($"{nodeName}: Target is null");
+                Debug.LogWarning($"{GetType().Name}: Target is null");
                 return false;
             }
 
-            var healthStat = target.GetBoundedStat(
-                Turnroot.Characters.Stats.BoundedStatType.Health
-            );
-            if (healthStat != null)
+            RequireContext(context);
+
+            var healthStat = target.GetBoundedStat(Characters.Stats.BoundedStatType.Health);
+            int killDamage = healthStat != null ? (int)healthStat.Current + 1 : 9999;
+
+            return context.DealDamage(context.UnitInstance, target, killDamage);
+        }
+
+        /// <summary>
+        /// Ensures context and brain are available. Throws if not.
+        /// </summary>
+        private void RequireContext(BattleContext context)
+        {
+            if (context?.Brain == null)
             {
-                healthStat.SetCurrent(0);
-                Debug.Log($"{nodeName}: Killed target (health set to 0)");
-                return true;
+                throw new System.InvalidOperationException(
+                    $"{GetType().Name}: BattleContext with Brain is required for combat operations."
+                );
             }
-            else
+            if (context.UnitInstance == null)
             {
-                Debug.LogWarning($"{nodeName}: Could not find health stat on target");
-                return false;
+                throw new System.InvalidOperationException(
+                    $"{GetType().Name}: BattleContext.UnitInstance must be set for combat operations."
+                );
             }
         }
 

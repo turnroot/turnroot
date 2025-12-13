@@ -17,7 +17,9 @@ namespace Turnroot.Characters
             where T : class
         {
             if (template == null)
+            {
                 return null;
+            }
 
             lock (_lock)
             {

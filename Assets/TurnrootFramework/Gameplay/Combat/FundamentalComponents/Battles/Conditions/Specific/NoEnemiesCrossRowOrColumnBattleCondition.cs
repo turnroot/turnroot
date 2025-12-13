@@ -43,7 +43,9 @@ public class NoEnemiesCrossRowOrColumnBattleCondition : BattleCondition
         foreach (var enemy in battleContext.Targets)
         {
             if (enemy == null)
+            {
                 continue;
+            }
 
             var position = enemy.MapGridPosition;
             bool hasCrossed = IsRow

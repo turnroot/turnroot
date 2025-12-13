@@ -39,7 +39,7 @@ namespace Turnroot.Skills.Nodes.Events
             int affected = ExecuteOnTargets(
                 context,
                 shouldAffectAll,
-                target => DealDamage(target, damage)
+                target => DealDamage(context, target, damage)
             );
 
             Debug.Log($"DealAdditionalDamage: Dealt {damage} damage to {affected} target(s)");

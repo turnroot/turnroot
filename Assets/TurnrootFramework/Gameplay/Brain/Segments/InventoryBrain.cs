@@ -1,4 +1,7 @@
 using System.Collections.Generic;
+using Turnroot.Characters;
+using Turnroot.Gameplay.Brain.Commands;
+using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
 using Turnroot.Gameplay.Objects;
 using UnityEngine;
 
@@ -49,6 +52,43 @@ namespace Turnroot.Gameplay.Brain
             }
 
             return remainingUses;
+        }
+
+        /// <summary>
+        /// Use an item in a battle context. Always uses the command pattern.
+        /// </summary>
+        /// <param name="user">The character using the item.</param>
+        /// <param name="item">The item to use.</param>
+        /// <param name="context">The battle context (required).</param>
+        /// <param name="target">Optional target for the item.</param>
+        /// <returns>True if the item was used successfully.</returns>
+        public bool UseItemInBattle(
+            CharacterInstance user,
+            ObjectItemInstance item,
+            BattleContext context,
+            CharacterInstance target = null
+        )
+        {
+            if (item == null || user == null)
+            {
+                return false;
+            }
+
+            if (context?.Brain == null)
+            {
+                throw new System.InvalidOperationException(
+                    "UseItemInBattle requires BattleContext.Brain to be set."
+                );
+            }
+
+            // Always use command pattern
+            var command = new UseItemCommand(
+                user.Id,
+                item.InstanceID,
+                target?.Id,
+                context.Brain.CurrentTurnNumber
+            );
+            return context.Brain.ExecuteCommand(command);
         }
 
         /// <summary>

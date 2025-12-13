@@ -69,19 +69,15 @@ namespace Turnroot.Gameplay.Brain
         public void Start() => RecallRosters();
 
         private void HandleRosterReady(RosterInstance instance) =>
-            // Automatically invalidate cache when new roster is created
             _rosterInstancesCache.Invalidate();
 
         private void OnCharacterLevelUpHandler(CharacterInstance character) =>
-            // Auto-invalidate cache when character levels up
             _rosterInstancesCache.Invalidate();
 
         private void OnCharacterClassChangedHandler(CharacterInstance character) =>
-            // Auto-invalidate cache when character class changes
             _rosterInstancesCache.Invalidate();
 
         private void OnCharacterSkillLearnedHandler(CharacterInstance character, Skill skill) =>
-            // Auto-invalidate cache when character learns skill
             _rosterInstancesCache.Invalidate();
 
         #region Roster Cache Management
@@ -304,24 +300,8 @@ namespace Turnroot.Gameplay.Brain
         /// <summary>
         /// Save unique character progress (preserves existing index).
         /// </summary>
-        public void SaveUniqueCharacterProgress(CharacterInstance instance)
-        {
-            if (instance?.CharacterTemplate == null)
-            {
-                Debug.LogWarning("Cannot save null character instance.");
-                return;
-            }
-
-            if (!instance.CharacterTemplate.IsUnique)
-            {
-                Debug.LogWarning(
-                    $"Cannot save non-unique character {instance.CharacterTemplate.DisplayName}. Only unique characters are persisted."
-                );
-                return;
-            }
-
+        public void SaveUniqueCharacterProgress(CharacterInstance instance) =>
             SaveUniqueCharacterInternal(instance, updateIndex: false);
-        }
 
         private CharacterInstance RecallUniqueCharacter(CharacterData characterData)
         {
@@ -544,79 +524,37 @@ namespace Turnroot.Gameplay.Brain
                 return null;
             }
 
-            var rosters = GetCachedRosterInstances();
-
-            foreach (var roster in rosters)
-            {
-                if (roster == null)
-                {
-                    continue;
-                }
-
-                var instance = roster.GetInstanceFor(template);
-                if (instance != null)
-                {
-                    return instance;
-                }
-            }
-
-            return null;
+            return GetCachedRosterInstances()
+                .Where(r => r != null)
+                .Select(r => r.GetInstanceFor(template))
+                .FirstOrDefault(i => i != null);
         }
 
         public List<CharacterInstance> FindInstancesByTemplates(CharacterData[] templates)
         {
-            var results = new List<CharacterInstance>();
-
             if (templates == null || templates.Length == 0)
             {
-                return results;
+                return new List<CharacterInstance>();
             }
 
-            var rosters = GetCachedRosterInstances();
-            var instanceLookup = new Dictionary<CharacterData, CharacterInstance>();
+            var instanceLookup = GetCachedRosterInstances()
+                .Where(r => r?.Instances != null)
+                .SelectMany(r => r.Instances)
+                .Where(i => i?.CharacterTemplate != null)
+                .GroupBy(i => i.CharacterTemplate)
+                .ToDictionary(g => g.Key, g => g.First());
 
-            foreach (var roster in rosters)
-            {
-                if (roster?.Instances == null)
-                {
-                    continue;
-                }
-
-                foreach (var instance in roster.Instances)
-                {
-                    if (instance?.CharacterTemplate != null)
-                    {
-                        instanceLookup[instance.CharacterTemplate] = instance;
-                    }
-                }
-            }
-
-            foreach (var template in templates)
-            {
-                if (template != null && instanceLookup.TryGetValue(template, out var instance))
-                {
-                    results.Add(instance);
-                }
-            }
-
-            return results;
+            return templates
+                .Where(t => t != null && instanceLookup.ContainsKey(t))
+                .Select(t => instanceLookup[t])
+                .ToList();
         }
 
-        public List<CharacterInstance> GetAllActiveInstances()
-        {
-            var results = new List<CharacterInstance>();
-            var rosters = GetCachedRosterInstances();
-
-            foreach (var roster in rosters)
-            {
-                if (roster?.Instances != null)
-                {
-                    results.AddRange(roster.Instances);
-                }
-            }
-
-            return results;
-        }
+        public List<CharacterInstance> GetAllActiveInstances() =>
+            GetCachedRosterInstances()
+                .Where(r => r?.Instances != null)
+                .SelectMany(r => r.Instances)
+                .ToList();
 
         #endregion
 

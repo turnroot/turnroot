@@ -58,12 +58,29 @@ public class TurnRotisserie : MonoBehaviour
 
     public bool Progress()
     {
+        TurnOrder previousOrder = _currentTurnOrder;
         _currentTurnOrder = GetNextTurnOrder();
         if (_brain != null)
         {
+            // When cycling back to PlayerStart, a new battle round begins
+            bool newRoundStarted =
+                _currentTurnOrder == TurnOrder.PlayerStart
+                && previousOrder != TurnOrder.PlayerStart;
+
+            // If completing a round, publish turn ended for the previous round
+            if (newRoundStarted)
+            {
+                _brain.PublishTurnEnded();
+            }
+
             switch (_currentTurnOrder)
             {
                 case TurnOrder.PlayerStart:
+                    // Publish general turn start (increments turn number)
+                    if (newRoundStarted)
+                    {
+                        _brain.PublishTurnBegin();
+                    }
                     _brain.PublishPlayerTurnStarted();
                     break;
                 case TurnOrder.PlayerEnd:

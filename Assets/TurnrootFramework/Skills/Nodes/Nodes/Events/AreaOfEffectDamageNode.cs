@@ -34,7 +34,10 @@ namespace Turnroot.Skills.Nodes.Events
             float damage = GetInputFloat("damageAmount", testDamage);
             float radius = GetInputFloat("aoeRadius", testRadius);
 
-            int affectedCount = ExecuteOnAllTargets(context, target => DealDamage(target, damage));
+            int affectedCount = ExecuteOnAllTargets(
+                context,
+                target => DealDamage(context, target, damage)
+            );
 
             Debug.Log(
                 $"AreaOfEffectDamage: Dealt {damage} damage to {affectedCount} enemies in {radius} tile radius"

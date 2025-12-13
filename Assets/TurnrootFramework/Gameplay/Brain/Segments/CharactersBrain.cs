@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Turnroot.Characters;
 using Turnroot.Characters.CharacterClass;
 using Turnroot.Characters.Components;
+using Turnroot.Gameplay.Brain.Events;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain
@@ -66,10 +67,19 @@ namespace Turnroot.Gameplay.Brain
             LoadBattleOutcomeStatistics();
         }
 
+        /// <summary>
+        /// CharactersBrain uses Highest priority because it manages critical character state.
+        /// This ensures character data is saved before UI tries to read it.
+        /// </summary>
+        protected override EventPriority GetSubscriptionPriority()
+        {
+            return EventPriority.Highest;
+        }
+
         protected override void SubscribeToBrainEvents()
         {
-            _brain.OnStartBattle += HandleStartBattle;
-            _brain.OnExitBattle += HandleExitBattle;
+            _brain.OnBattleStarted += HandleStartBattle;
+            _brain.OnBattleCompleted += HandleExitBattle;
             _brain.OnPlayerTurnStarted += HandlePlayerTurnStarted;
             _brain.OnEnemyTurnStarted += HandleEnemyTurnStarted;
             _brain.OnThirdPartyTurnStarted += HandleThirdPartyTurnStarted;
@@ -77,8 +87,8 @@ namespace Turnroot.Gameplay.Brain
 
         protected override void UnsubscribeFromBrainEvents()
         {
-            _brain.OnStartBattle -= HandleStartBattle;
-            _brain.OnExitBattle -= HandleExitBattle;
+            _brain.OnBattleStarted -= HandleStartBattle;
+            _brain.OnBattleCompleted -= HandleExitBattle;
             _brain.OnPlayerTurnStarted -= HandlePlayerTurnStarted;
             _brain.OnEnemyTurnStarted -= HandleEnemyTurnStarted;
             _brain.OnThirdPartyTurnStarted -= HandleThirdPartyTurnStarted;
@@ -95,15 +105,21 @@ namespace Turnroot.Gameplay.Brain
 
             _battlesWon = _ltm.RecallInt(LtmKeys.BattlesWon);
             if (_battlesWon < 0)
+            {
                 _battlesWon = 0;
+            }
 
             _battlesLost = _ltm.RecallInt(LtmKeys.BattlesLost);
             if (_battlesLost < 0)
+            {
                 _battlesLost = 0;
+            }
 
             _battlesRetreated = _ltm.RecallInt(LtmKeys.BattlesRetreated);
             if (_battlesRetreated < 0)
+            {
                 _battlesRetreated = 0;
+            }
 
             Debug.Log(
                 $"CharactersBrain: Loaded battle statistics - Won: {_battlesWon}, Lost: {_battlesLost}, Retreated: {_battlesRetreated}"
@@ -162,10 +178,7 @@ namespace Turnroot.Gameplay.Brain
             // Record the battle outcome
             RecordBattleOutcome(exitType);
 
-            if (
-                exitType is Combat.BattleExitType.Victory
-                or Combat.BattleExitType.Bookmark
-            )
+            if (exitType is Combat.BattleExitType.Victory or Combat.BattleExitType.Bookmark)
             {
                 SaveBattleParticipantsProgress();
             }

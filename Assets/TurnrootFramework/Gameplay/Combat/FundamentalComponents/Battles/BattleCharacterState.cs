@@ -250,7 +250,9 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         public int TakeDamage(int damage)
         {
             if (damage <= 0)
+            {
                 return 0;
+            }
 
             int previousHP = _battleHP;
             CurrentHP -= damage;
@@ -264,7 +266,9 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         public int Heal(int amount)
         {
             if (amount <= 0)
+            {
                 return 0;
+            }
 
             int previousHP = _battleHP;
             CurrentHP += amount;
@@ -299,7 +303,10 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         public bool ConsumeBonusTurn()
         {
             if (BonusTurns <= 0)
+            {
                 return false;
+            }
+
             BonusTurns--;
             return true;
         }
@@ -416,7 +423,9 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             {
                 var inventory = Instance.InventoryInstance;
                 if (inventory == null)
+                {
                     return null;
+                }
 
                 int weaponIndex = inventory.GetEquippedWeaponIndex();
                 if (weaponIndex < 0 || weaponIndex >= inventory.InventoryItems.Count)
