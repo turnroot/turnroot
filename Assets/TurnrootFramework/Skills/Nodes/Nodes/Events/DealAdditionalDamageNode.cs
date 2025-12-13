@@ -1,7 +1,6 @@
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
 using Turnroot.Skills.Nodes;
 using UnityEngine;
-using XNode;
 
 namespace Turnroot.Skills.Nodes.Events
 {
@@ -30,59 +29,21 @@ namespace Turnroot.Skills.Nodes.Events
 
         public override void Execute(BattleContext context)
         {
-            if (context?.Targets == null || context.Targets.Count == 0)
+            if (!ValidateHasTargets(context))
             {
-                Debug.LogWarning("DealAdditionalDamage: No target in context");
                 return;
             }
 
             float damage = GetInputFloat("damageAmount", testDamage);
             bool shouldAffectAll = GetInputBool("affectAllTargets", testAffectAll);
 
-            // Deal damage to all targeted enemies or just the first one
-            if (shouldAffectAll)
-            {
-                int affectedCount = 0;
-                foreach (var target in context.Targets)
-                {
-                    if (target != null)
-                    {
-                        DealDamage(target, damage);
-                        affectedCount++;
-                    }
-                }
-                Debug.Log(
-                    $"DealAdditionalDamage: Dealt {damage} damage to {affectedCount} enemies"
-                );
-            }
-            else
-            {
-                var target = context.Targets[0];
-                if (target == null)
-                {
-                    Debug.LogWarning("DealAdditionalDamage: Target is null");
-                    return;
-                }
-                DealDamage(target, damage);
-            }
-        }
-
-        private void DealDamage(Turnroot.Characters.CharacterInstance target, float damage)
-        {
-            var healthStat = target.GetBoundedStat(
-                Turnroot.Characters.Stats.BoundedStatType.Health
+            int affected = ExecuteOnTargets(
+                context,
+                shouldAffectAll,
+                target => DealDamage(target, damage)
             );
-            if (healthStat != null)
-            {
-                healthStat.SetCurrent(healthStat.Current - damage);
-                Debug.Log(
-                    $"DealAdditionalDamage: Dealt {damage} damage (new HP: {healthStat.Current})"
-                );
-            }
-            else
-            {
-                Debug.LogWarning($"DealAdditionalDamage: Could not find health stat on target");
-            }
+
+            Debug.Log($"DealAdditionalDamage: Dealt {damage} damage to {affected} target(s)");
         }
     }
 }

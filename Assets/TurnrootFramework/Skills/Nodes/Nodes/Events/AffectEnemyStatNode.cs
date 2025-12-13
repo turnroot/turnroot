@@ -1,8 +1,6 @@
-using Turnroot.Characters.Stats;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
 using Turnroot.Skills.Nodes;
 using UnityEngine;
-using XNode;
 
 namespace Turnroot.Skills.Nodes.Events
 {
@@ -35,54 +33,19 @@ namespace Turnroot.Skills.Nodes.Events
 
         public override void Execute(BattleContext context)
         {
-            if (context?.Targets == null || context.Targets.Count == 0)
-            {
-                Debug.LogWarning("AffectEnemyStat: No target in context");
-                return;
-            }
-
             float changeAmount = GetInputFloat("change", testChange);
             bool shouldAffectAll = GetInputBool("affectAllTargets", testAffectAll);
 
-            // Apply to all targeted enemies or just the first one
-            if (shouldAffectAll)
+            int affected = ExecuteOnTargets(
+                context,
+                shouldAffectAll,
+                target => ApplyStatChange(target, selectedStat, isBoundedStat, changeAmount),
+                "AffectEnemyStat"
+            );
+
+            if (shouldAffectAll && affected > 0)
             {
-                int affectedCount = 0;
-                foreach (var target in context.Targets)
-                {
-                    if (target != null)
-                    {
-                        if (
-                            ApplyStatChange(
-                                target,
-                                selectedStat,
-                                isBoundedStat,
-                                changeAmount,
-                                "AffectEnemyStat"
-                            )
-                        )
-                        {
-                            affectedCount++;
-                        }
-                    }
-                }
-                Debug.Log($"AffectEnemyStat: Affected {affectedCount} enemies");
-            }
-            else
-            {
-                var target = context.Targets[0];
-                if (target == null)
-                {
-                    Debug.LogWarning("AffectEnemyStat: Target is null");
-                    return;
-                }
-                ApplyStatChange(
-                    target,
-                    selectedStat,
-                    isBoundedStat,
-                    changeAmount,
-                    "AffectEnemyStat"
-                );
+                Debug.Log($"AffectEnemyStat: Affected {affected} enemies");
             }
         }
     }

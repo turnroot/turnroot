@@ -2,7 +2,6 @@ using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
 using Turnroot.Skills.Nodes;
 using Turnroot.Utilities;
 using UnityEngine;
-using XNode;
 
 namespace Turnroot.Skills.Nodes.Events
 {
@@ -59,7 +58,7 @@ namespace Turnroot.Skills.Nodes.Events
                 var brain = GetBrain.Get();
                 if (brain != null)
                 {
-                    brain.InvokeUnitMoved(context.UnitInstance, newPosition);
+                    brain.PublishUnitMoved(context.UnitInstance, newPosition);
                     Debug.Log(
                         $"MoveUnit: Moved {context.UnitInstance.CharacterTemplate.DisplayName} to {newPosition}"
                     );

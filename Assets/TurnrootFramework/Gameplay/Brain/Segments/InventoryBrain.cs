@@ -9,15 +9,23 @@ namespace Turnroot.Gameplay.Brain
     /// Manages inventory operations and publishes item-related events.
     /// Handles item transfers, usage, buying, selling, and repairs.
     /// </summary>
-    [RequireComponent(typeof(Brain))]
-    public class InventoryBrain : MonoBehaviour
+    public class InventoryBrain : BrainComponent
     {
-        private Brain _brain;
-
-        private void Awake()
+        protected override void Awake()
         {
-            _brain = GetComponent<Brain>();
+            base.Awake();
             Debug.Log("InventoryBrain is ready.");
+        }
+
+        protected override void SubscribeToBrainEvents()
+        {
+            // InventoryBrain primarily publishes events rather than subscribing
+            // Add any event subscriptions here if needed in the future
+        }
+
+        protected override void UnsubscribeFromBrainEvents()
+        {
+            // No subscriptions to clean up
         }
 
         #region Item Operations

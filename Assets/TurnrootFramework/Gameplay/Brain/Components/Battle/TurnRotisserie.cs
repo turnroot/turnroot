@@ -64,22 +64,22 @@ public class TurnRotisserie : MonoBehaviour
             switch (_currentTurnOrder)
             {
                 case TurnOrder.PlayerStart:
-                    _brain.InvokePlayerTurnStarted();
+                    _brain.PublishPlayerTurnStarted();
                     break;
                 case TurnOrder.PlayerEnd:
-                    _brain.InvokePlayerTurnEnded();
+                    _brain.PublishPlayerTurnEnded();
                     break;
                 case TurnOrder.EnemyStart:
-                    _brain.InvokeEnemyTurnStarted();
+                    _brain.PublishEnemyTurnStarted();
                     break;
                 case TurnOrder.EnemyEnd:
-                    _brain.InvokeEnemyTurnEnded();
+                    _brain.PublishEnemyTurnEnded();
                     break;
                 case TurnOrder.ThirdPartyStart:
-                    _brain.InvokeThirdPartyTurnStarted();
+                    _brain.PublishThirdPartyTurnStarted();
                     break;
                 case TurnOrder.ThirdPartyEnd:
-                    _brain.InvokeThirdPartyTurnEnded();
+                    _brain.PublishThirdPartyTurnEnded();
                     break;
             }
             return true;

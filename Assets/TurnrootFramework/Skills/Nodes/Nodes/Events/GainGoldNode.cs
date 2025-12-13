@@ -2,7 +2,6 @@ using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
 using Turnroot.Skills.Nodes;
 using Turnroot.Utilities;
 using UnityEngine;
-using XNode;
 
 namespace Turnroot.Skills.Nodes.Events
 {
@@ -22,9 +21,8 @@ namespace Turnroot.Skills.Nodes.Events
 
         public override void Execute(BattleContext context)
         {
-            if (context == null)
+            if (!ValidateContext(context))
             {
-                Debug.LogWarning("GainGold: No context provided");
                 return;
             }
 
@@ -33,7 +31,7 @@ namespace Turnroot.Skills.Nodes.Events
             var brain = GetBrain.Get();
             if (brain != null)
             {
-                brain.InvokeGoldGained(gold);
+                brain.PublishGoldGained(gold);
                 Debug.Log($"GainGold: Player gained {gold} gold");
             }
             else

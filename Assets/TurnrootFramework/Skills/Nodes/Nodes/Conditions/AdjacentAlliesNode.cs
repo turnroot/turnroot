@@ -1,47 +1,17 @@
-using Turnroot.Skills.Nodes;
+using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
 using UnityEngine;
-using XNode;
 
 namespace Turnroot.Skills.Nodes.Conditions
 {
     [CreateNodeMenu("Conditions/Position/Adjacent Allies")]
     [NodeLabel("Gets the current adjacent allies count")]
-    public class AdjacentAlliesNode : SkillNode
+    public class AdjacentAlliesNode : AdjacentUnitsNodeBase
     {
-        [Output]
-        public FloatValue count;
+        protected override string NodeName => "AdjacentAllies";
 
-        [Output]
-        BoolValue adjacentAlly;
-
-        public override object GetValue(NodePort port)
+        protected override int GetAdjacentCount(BattleContext context)
         {
-            // Get context from the graph
-            var skillGraph = graph as SkillGraph;
-            if (skillGraph == null)
-            {
-                Debug.LogWarning("AdjacentAllies: Could not get SkillGraph");
-                return port.fieldName == "count" ? new FloatValue() : (object)new BoolValue();
-            }
-
-            var context = GetContextFromGraph(skillGraph);
-            if (context?.AdjacentUnits == null)
-            {
-                Debug.LogWarning("AdjacentAllies: No adjacent units in context");
-                return port.fieldName == "count" ? new FloatValue() : (object)new BoolValue();
-            }
-
-            if (port.fieldName == "count")
-            {
-                int count = context.AdjacentUnits.GetAdjacentAllyCount(context);
-                return new FloatValue { value = count };
-            }
-            else if (port.fieldName == "adjacentAlly")
-            {
-                int count = context.AdjacentUnits.GetAdjacentAllyCount(context);
-                return new BoolValue { value = count > 0 };
-            }
-            return null;
+            return context.AdjacentUnits.GetAdjacentAllyCount(context);
         }
     }
 }

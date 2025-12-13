@@ -63,13 +63,42 @@ namespace Turnroot.Gameplay.Brain
         // Scene-level dependencies
         private ConversationController _sceneConversationController;
 
-        // Module flags - paid add-on modules that self-install
-        private readonly bool hubModuleEnabled = false;
-        private readonly bool bloodlinesModuleEnabled = false;
-        private readonly bool retroModuleEnabled = false;
-        private readonly bool unwindModuleEnabled = false;
-        private readonly bool troopsModuleEnabled = false;
-        private readonly bool monstersModuleEnabled = false;
+        // Module flags - paid add-on modules that self-install (evaluated at compile-time)
+#if TURNROOT_HUB_MODULE
+        public static bool HubModuleEnabled => true;
+#else
+        public static bool HubModuleEnabled => false;
+#endif
+
+#if TURNROOT_BLOODLINES_MODULE
+        public static bool BloodlinesModuleEnabled => true;
+#else
+        public static bool BloodlinesModuleEnabled => false;
+#endif
+
+#if TURNROOT_RETRO_MODULE
+        public static bool RetroModuleEnabled => true;
+#else
+        public static bool RetroModuleEnabled => false;
+#endif
+
+#if TURNROOT_UNWIND_MODULE
+        public static bool UnwindModuleEnabled => true;
+#else
+        public static bool UnwindModuleEnabled => false;
+#endif
+
+#if TURNROOT_TROOPS_MODULE
+        public static bool TroopsModuleEnabled => true;
+#else
+        public static bool TroopsModuleEnabled => false;
+#endif
+
+#if TURNROOT_MONSTERS_MODULE
+        public static bool MonstersModuleEnabled => true;
+#else
+        public static bool MonstersModuleEnabled => false;
+#endif
 
         #region Memory Events
 
@@ -111,7 +140,7 @@ namespace Turnroot.Gameplay.Brain
         public event Action<BrainState> OnResumed;
         public event Action<BrainState> OnStateChanged;
         public event Action OnGameOver;
-        public event Action HighLevelStatesInitialized;
+        public event Action OnHighLevelStatesInitialized;
 
         public void PublishPaused(BrainState prev)
         {
@@ -140,7 +169,7 @@ namespace Turnroot.Gameplay.Brain
         public void PublishHighLevelStatesInitialized()
         {
             Debug.Log("EventsBrain: High-level states initialized");
-            HighLevelStatesInitialized?.Invoke();
+            OnHighLevelStatesInitialized?.Invoke();
         }
 
         #endregion
@@ -197,6 +226,21 @@ namespace Turnroot.Gameplay.Brain
 
         #endregion
 
+        #region Spawn Events
+
+        public event Action<CharacterInstance, Vector2Int> OnCharacterSpawned;
+        public event Action<CharacterInstance, Vector2Int> OnCharacterRemovedFromSpawn;
+
+        public void PublishCharacterSpawned(CharacterInstance character, Vector2Int position) =>
+            OnCharacterSpawned?.Invoke(character, position);
+
+        public void PublishCharacterRemovedFromSpawn(
+            CharacterInstance character,
+            Vector2Int position
+        ) => OnCharacterRemovedFromSpawn?.Invoke(character, position);
+
+        #endregion
+
         #region Item Events
 
         public event Action<ObjectItemInstance, int> OnItemUsed;
@@ -249,9 +293,9 @@ namespace Turnroot.Gameplay.Brain
         public event Action<int> OnGoldGained;
         public event Action<int> OnGoldSpent;
 
-        public void InvokeGoldGained(int amount) => OnGoldGained?.Invoke(amount);
+        public void PublishGoldGained(int amount) => OnGoldGained?.Invoke(amount);
 
-        public void InvokeGoldSpent(int amount) => OnGoldSpent?.Invoke(amount);
+        public void PublishGoldSpent(int amount) => OnGoldSpent?.Invoke(amount);
 
         #endregion
 
@@ -259,11 +303,33 @@ namespace Turnroot.Gameplay.Brain
 
         public event Action<SupportRelationshipInstance> OnSupportPointsChanged;
         public event Action<SupportRelationshipInstance> OnSupportConversationAvailable;
-        public event Action<SupportRelationshipInstance> SLevelSupportConversationAvailable;
+        public event Action<SupportRelationshipInstance> OnSLevelSupportConversationAvailable;
         public event Action<Conversation> OnConversationStarted;
         public event Action<Conversation> OnConversationEnded;
         public event Action<ConversationLayer> OnConversationLayerStarted;
         public event Action<ConversationLayer> OnConversationLayerEnded;
+
+        public void PublishSupportPointsChanged(SupportRelationshipInstance relationship) =>
+            OnSupportPointsChanged?.Invoke(relationship);
+
+        public void PublishSupportConversationAvailable(SupportRelationshipInstance relationship) =>
+            OnSupportConversationAvailable?.Invoke(relationship);
+
+        public void PublishSLevelSupportConversationAvailable(
+            SupportRelationshipInstance relationship
+        ) => OnSLevelSupportConversationAvailable?.Invoke(relationship);
+
+        public void PublishConversationStarted(Conversation conversation) =>
+            OnConversationStarted?.Invoke(conversation);
+
+        public void PublishConversationEnded(Conversation conversation) =>
+            OnConversationEnded?.Invoke(conversation);
+
+        public void PublishConversationLayerStarted(ConversationLayer layer) =>
+            OnConversationLayerStarted?.Invoke(layer);
+
+        public void PublishConversationLayerEnded(ConversationLayer layer) =>
+            OnConversationLayerEnded?.Invoke(layer);
 
         #endregion
 
@@ -286,41 +352,41 @@ namespace Turnroot.Gameplay.Brain
         public event Action<CharacterInstance> OnUnitDefeated;
         public event Action<CharacterInstance, Vector2Int> OnUnitMoved;
 
-        public void InvokeStartBattle() => OnStartBattle?.Invoke();
+        public void PublishStartBattle() => OnStartBattle?.Invoke();
 
-        public void InvokePreBattleStarted() => OnPreBattleStarted?.Invoke();
+        public void PublishPreBattleStarted() => OnPreBattleStarted?.Invoke();
 
-        public void InvokePreBattleEnded() => OnPreBattleEnded?.Invoke();
+        public void PublishPreBattleEnded() => OnPreBattleEnded?.Invoke();
 
-        public void InvokeExitBattle(BattleExitType exitType) => OnExitBattle?.Invoke(exitType);
+        public void PublishExitBattle(BattleExitType exitType) => OnExitBattle?.Invoke(exitType);
 
-        public void InvokeBattleContextInitialized() => OnBattleContextInitialized?.Invoke();
+        public void PublishBattleContextInitialized() => OnBattleContextInitialized?.Invoke();
 
-        public void InvokeTurnBegin() => OnTurnBegin?.Invoke();
+        public void PublishTurnBegin() => OnTurnBegin?.Invoke();
 
-        public void InvokePlayerTurnStarted() => OnPlayerTurnStarted?.Invoke();
+        public void PublishPlayerTurnStarted() => OnPlayerTurnStarted?.Invoke();
 
-        public void InvokeEnemyTurnStarted() => OnEnemyTurnStarted?.Invoke();
+        public void PublishEnemyTurnStarted() => OnEnemyTurnStarted?.Invoke();
 
-        public void InvokeThirdPartyTurnStarted() => OnThirdPartyTurnStarted?.Invoke();
+        public void PublishThirdPartyTurnStarted() => OnThirdPartyTurnStarted?.Invoke();
 
-        public void InvokePlayerTurnEnded() => OnPlayerTurnEnded?.Invoke();
+        public void PublishPlayerTurnEnded() => OnPlayerTurnEnded?.Invoke();
 
-        public void InvokeEnemyTurnEnded() => OnEnemyTurnEnded?.Invoke();
+        public void PublishEnemyTurnEnded() => OnEnemyTurnEnded?.Invoke();
 
-        public void InvokeThirdPartyTurnEnded() => OnThirdPartyTurnEnded?.Invoke();
+        public void PublishThirdPartyTurnEnded() => OnThirdPartyTurnEnded?.Invoke();
 
-        public void InvokeTurnEnded() => OnTurnEnded?.Invoke();
+        public void PublishTurnEnded() => OnTurnEnded?.Invoke();
 
-        public void InvokeAllyDamaged(CharacterInstance unit, int damageAmount) =>
+        public void PublishAllyDamaged(CharacterInstance unit, int damageAmount) =>
             OnAllyDamaged?.Invoke(unit, damageAmount);
 
-        public void InvokeEnemyDamaged(CharacterInstance unit, int damageAmount) =>
+        public void PublishEnemyDamaged(CharacterInstance unit, int damageAmount) =>
             OnEnemyDamaged?.Invoke(unit, damageAmount);
 
-        public void InvokeUnitDefeated(CharacterInstance unit) => OnUnitDefeated?.Invoke(unit);
+        public void PublishUnitDefeated(CharacterInstance unit) => OnUnitDefeated?.Invoke(unit);
 
-        public void InvokeUnitMoved(CharacterInstance unit, Vector2Int newPosition) =>
+        public void PublishUnitMoved(CharacterInstance unit, Vector2Int newPosition) =>
             OnUnitMoved?.Invoke(unit, newPosition);
 
         public event Action<CharacterInstance> OnUnitTakesAnotherTurn;
@@ -328,15 +394,15 @@ namespace Turnroot.Gameplay.Brain
         public event Action<CharacterInstance, int> OnWeaponUsesChanged;
         public event Action<CharacterInstance, CharacterInstance> OnItemStolen;
 
-        public void InvokeUnitTakesAnotherTurn(CharacterInstance unit) =>
+        public void PublishUnitTakesAnotherTurn(CharacterInstance unit) =>
             OnUnitTakesAnotherTurn?.Invoke(unit);
 
-        public void InvokeCriticalHit(CharacterInstance unit) => OnCriticalHit?.Invoke(unit);
+        public void PublishCriticalHit(CharacterInstance unit) => OnCriticalHit?.Invoke(unit);
 
-        public void InvokeWeaponUsesChanged(CharacterInstance unit, int usesChange) =>
+        public void PublishWeaponUsesChanged(CharacterInstance unit, int usesChange) =>
             OnWeaponUsesChanged?.Invoke(unit, usesChange);
 
-        public void InvokeItemStolen(CharacterInstance thief, CharacterInstance target) =>
+        public void PublishItemStolen(CharacterInstance thief, CharacterInstance target) =>
             OnItemStolen?.Invoke(thief, target);
 
         #endregion
@@ -348,7 +414,6 @@ namespace Turnroot.Gameplay.Brain
             Debug.Log("Brain Awake!");
 
             InitializeLongTermMemory();
-            CheckScriptingSymbols();
             InitializeModules();
             TryLinkConversationController();
 
@@ -379,28 +444,6 @@ namespace Turnroot.Gameplay.Brain
             }
         }
 
-        public void CheckScriptingSymbols()
-        {
-#if TURNROOT_BLOODLINES_MODULE
-            bloodlinesModuleEnabled = true;
-#endif
-#if TURNROOT_HUB_MODULE
-            hubModuleEnabled = true;
-#endif
-#if TURNROOT_RETRO_MODULE
-            retroModuleEnabled = true;
-#endif
-#if TURNROOT_UNWIND_MODULE
-            unwindModuleEnabled = true;
-#endif
-#if TURNROOT_TROOPS_MODULE
-            troopsModuleEnabled = true;
-#endif
-#if TURNROOT_MONSTERS_MODULE
-            monstersModuleEnabled = true;
-#endif
-        }
-
         public void InitializeModules()
         {
             var enabledModules = GetEnabledModulesString();
@@ -412,36 +455,36 @@ namespace Turnroot.Gameplay.Brain
             Debug.Log("All available Turnroot modules initialized.");
         }
 
-        private string GetEnabledModulesString()
+        private static string GetEnabledModulesString()
         {
             var modules = new System.Collections.Generic.List<string>();
 
-            if (hubModuleEnabled)
+            if (HubModuleEnabled)
             {
                 modules.Add("Hub");
             }
 
-            if (bloodlinesModuleEnabled)
+            if (BloodlinesModuleEnabled)
             {
                 modules.Add("Bloodlines");
             }
 
-            if (unwindModuleEnabled)
+            if (UnwindModuleEnabled)
             {
                 modules.Add("Unwind");
             }
 
-            if (troopsModuleEnabled)
+            if (TroopsModuleEnabled)
             {
                 modules.Add("Troops");
             }
 
-            if (monstersModuleEnabled)
+            if (MonstersModuleEnabled)
             {
                 modules.Add("Monsters");
             }
 
-            if (retroModuleEnabled)
+            if (RetroModuleEnabled)
             {
                 modules.Add("Retro");
             }

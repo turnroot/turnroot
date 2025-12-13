@@ -1,7 +1,6 @@
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
 using Turnroot.Skills.Nodes;
 using UnityEngine;
-using XNode;
 
 namespace Turnroot.Skills.Nodes.Events
 {
@@ -23,54 +22,22 @@ namespace Turnroot.Skills.Nodes.Events
 
         public override void Execute(BattleContext context)
         {
-            if (context?.Targets == null || context.Targets.Count == 0)
+            if (!ValidateHasTargets(context))
             {
-                Debug.LogWarning("KillTarget: No target in context");
                 return;
             }
 
-            bool shouldKillAll = GetInputBool("killAllTargets", testKillAll);
+            bool shouldKillAll = GetInputBool("affectAllTargets", testKillAll);
 
-            // Kill all targeted enemies or just the first one
-            if (shouldKillAll)
-            {
-                int killedCount = 0;
-                foreach (var target in context.Targets)
-                {
-                    if (target != null)
-                    {
-                        KillCharacter(target);
-                        killedCount++;
-                    }
-                }
-                Debug.Log($"KillTarget: Killed {killedCount} enemies");
-            }
-            else
-            {
-                var target = context.Targets[0];
-                if (target == null)
-                {
-                    Debug.LogWarning("KillTarget: Target is null");
-                    return;
-                }
-                KillCharacter(target);
-            }
-        }
-
-        private void KillCharacter(Turnroot.Characters.CharacterInstance target)
-        {
-            var healthStat = target.GetBoundedStat(
-                Turnroot.Characters.Stats.BoundedStatType.Health
+            int killedCount = ExecuteOnTargets(
+                context,
+                shouldKillAll,
+                target => KillCharacter(target)
             );
-            if (healthStat != null)
-            {
-                healthStat.SetCurrent(0);
-                Debug.Log($"KillTarget: Set target health to 0");
-            }
-            else
-            {
-                Debug.LogWarning($"KillTarget: Could not find health stat on target");
-            }
+
+            Debug.Log(
+                $"KillTarget: Killed {killedCount} {(killedCount == 1 ? "enemy" : "enemies")}"
+            );
         }
     }
 }

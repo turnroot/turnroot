@@ -1,7 +1,6 @@
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
 using Turnroot.Skills.Nodes;
 using UnityEngine;
-using XNode;
 
 namespace Turnroot.Skills.Nodes.Events
 {
@@ -32,9 +31,8 @@ namespace Turnroot.Skills.Nodes.Events
 
         public override void Execute(BattleContext context)
         {
-            if (context == null)
+            if (!ValidateContext(context))
             {
-                Debug.LogWarning("AreaOfEffectBuff: No context provided");
                 return;
             }
 

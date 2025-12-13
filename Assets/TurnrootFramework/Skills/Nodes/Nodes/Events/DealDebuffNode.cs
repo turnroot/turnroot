@@ -1,7 +1,6 @@
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
 using Turnroot.Skills.Nodes;
 using UnityEngine;
-using XNode;
 
 namespace Turnroot.Skills.Nodes.Events
 {
@@ -32,51 +31,28 @@ namespace Turnroot.Skills.Nodes.Events
 
         public override void Execute(BattleContext context)
         {
-            if (context?.Targets == null || context.Targets.Count == 0)
-            {
-                Debug.LogWarning("DealDebuff: No target in context");
-                return;
-            }
-
             bool shouldAffectAll = GetInputBool("affectAllTargets", testAffectAll);
 
-            // Apply debuff to all targeted enemies or just the first one
-            if (shouldAffectAll)
-            {
-                foreach (var target in context.Targets)
+            int affected = ExecuteOnTargets(
+                context,
+                shouldAffectAll,
+                target =>
                 {
-                    if (target != null)
+                    var debuffData = new
                     {
-                        var debuffData = new
-                        {
-                            DebuffType = debuffTypePlaceholder,
-                            Duration = duration,
-                            Intensity = intensity,
-                        };
-                        context.SetCustomData($"ApplyDebuff_{target.Id}", debuffData);
-                    }
-                }
-                Debug.Log(
-                    $"DealDebuff: Applied {debuffTypePlaceholder} debuff to {context.Targets.Count} enemies"
-                );
-            }
-            else
+                        DebuffType = debuffTypePlaceholder,
+                        Duration = duration,
+                        Intensity = intensity,
+                    };
+                    context.SetCustomData($"ApplyDebuff_{target.Id}", debuffData);
+                },
+                "DealDebuff"
+            );
+
+            if (affected > 0)
             {
-                var target = context.Targets[0];
-                if (target == null)
-                {
-                    Debug.LogWarning("DealDebuff: Target is null");
-                    return;
-                }
-                var debuffData = new
-                {
-                    DebuffType = debuffTypePlaceholder,
-                    Duration = duration,
-                    Intensity = intensity,
-                };
-                context.SetCustomData($"ApplyDebuff_{target.Id}", debuffData);
                 Debug.Log(
-                    $"DealDebuff: Applied {debuffTypePlaceholder} debuff (duration: {duration}, intensity: {intensity})"
+                    $"DealDebuff: Applied {debuffTypePlaceholder} debuff to {affected} target(s)"
                 );
             }
         }

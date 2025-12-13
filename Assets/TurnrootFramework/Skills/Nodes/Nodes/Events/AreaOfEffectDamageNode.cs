@@ -1,7 +1,6 @@
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
 using Turnroot.Skills.Nodes;
 using UnityEngine;
-using XNode;
 
 namespace Turnroot.Skills.Nodes.Events
 {
@@ -28,47 +27,19 @@ namespace Turnroot.Skills.Nodes.Events
 
         public override void Execute(BattleContext context)
         {
-            if (context?.Targets == null || context.Targets.Count == 0)
+            if (!ValidateHasTargets(context))
             {
-                Debug.LogWarning("AreaOfEffectDamage: No targets in context");
                 return;
             }
 
             float damage = GetInputFloat("damageAmount", testDamage);
             float radius = GetInputFloat("aoeRadius", testRadius);
 
-            // Deal damage to all targeted enemies in the AoE
-            int affectedCount = 0;
-            foreach (var target in context.Targets)
-            {
-                if (target != null)
-                {
-                    DealDamage(target, damage);
-                    affectedCount++;
-                }
-            }
+            int affectedCount = ExecuteOnAllTargets(context, target => DealDamage(target, damage));
 
             Debug.Log(
                 $"AreaOfEffectDamage: Dealt {damage} damage to {affectedCount} enemies in {radius} tile radius"
             );
-        }
-
-        private void DealDamage(Turnroot.Characters.CharacterInstance target, float damage)
-        {
-            var healthStat = target.GetBoundedStat(
-                Turnroot.Characters.Stats.BoundedStatType.Health
-            );
-            if (healthStat != null)
-            {
-                healthStat.SetCurrent(healthStat.Current - damage);
-                Debug.Log(
-                    $"AreaOfEffectDamage: Dealt {damage} damage (new HP: {healthStat.Current})"
-                );
-            }
-            else
-            {
-                Debug.LogWarning($"AreaOfEffectDamage: Could not find health stat on target");
-            }
         }
     }
 }

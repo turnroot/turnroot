@@ -1,5 +1,3 @@
-using Turnroot.Conversations;
-using Turnroot.Skills.Nodes;
 using UnityEngine;
 using XNode;
 
@@ -16,20 +14,20 @@ namespace Turnroot.Conversations.Branching
 
         public string choiceA;
 
-        [Output]
+        [Output(ShowBackingValue.Unconnected, ConnectionType.Override)]
         public ConversationFlow ChoiceB;
 
-        public string choiceb;
+        public string choiceB;
 
         [Output(ShowBackingValue.Unconnected, ConnectionType.Override)]
         public ConversationFlow ChoiceC;
 
-        public string choicec;
+        public string choiceC;
 
         [Output(ShowBackingValue.Unconnected, ConnectionType.Override)]
         public ConversationFlow ChoiceD;
 
-        public string choiced;
+        public string choiceD;
 
         public override object GetValue(NodePort port)
         {

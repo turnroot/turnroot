@@ -2,7 +2,6 @@ using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
 using Turnroot.Skills.Nodes;
 using Turnroot.Utilities;
 using UnityEngine;
-using XNode;
 
 namespace Turnroot.Skills.Nodes.Events
 {
@@ -28,7 +27,7 @@ namespace Turnroot.Skills.Nodes.Events
             var brain = GetBrain.Get();
             if (brain != null)
             {
-                brain.InvokeUnitTakesAnotherTurn(context.UnitInstance);
+                brain.PublishUnitTakesAnotherTurn(context.UnitInstance);
                 Debug.Log(
                     $"TakeAnotherTurn: {context.UnitInstance.CharacterTemplate.DisplayName} will take another turn"
                 );

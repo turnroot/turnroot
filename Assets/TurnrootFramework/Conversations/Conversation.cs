@@ -1,6 +1,4 @@
-using System.Collections;
 using System.Collections.Generic;
-using System.Reflection;
 using NaughtyAttributes;
 using UnityEngine;
 using UnityEngine.Events;
@@ -92,7 +90,9 @@ namespace Turnroot.Conversations
         {
             get
             {
-                return _currentLayerIndex < 0 || _currentLayerIndex >= _layers.Length ? null : _layers[_currentLayerIndex];
+                return _currentLayerIndex < 0 || _currentLayerIndex >= _layers.Length
+                    ? null
+                    : _layers[_currentLayerIndex];
             }
         }
 

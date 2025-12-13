@@ -1,64 +1,11 @@
-using Turnroot.Skills.Nodes;
 using UnityEngine;
-using XNode;
 
 namespace Turnroot.Skills.Nodes.Conditions
 {
     [CreateNodeMenu("Conditions/Status/Is Flying")]
     [NodeLabel("Checks if the unit is flying")]
-    public class IsFlyingNode : SkillNode
+    public class IsFlyingNode : MovementTypeNodeBase
     {
-        [Output]
-        BoolValue UnitFlying;
-
-        [Output]
-        BoolValue EnemyFlying;
-
-        [Output]
-        BoolValue AdjacentAllyFlying;
-
-        public override object GetValue(NodePort port)
-        {
-            var skillGraph = graph as SkillGraph;
-            if (skillGraph == null || !Application.isPlaying)
-            {
-                // Return false in editor mode
-                return new BoolValue { value = false };
-            }
-
-            // Get context
-            var context = GetContextFromGraph(skillGraph);
-            if (context == null)
-            {
-                return new BoolValue { value = false };
-            }
-
-            // Determine which character to check based on port
-            var character = port.fieldName switch
-            {
-                "UnitFlying" => ConditionHelpers.GetCharacterFromContext(
-                    context,
-                    ConditionHelpers.CharacterSource.Unit
-                ),
-                "EnemyFlying" => ConditionHelpers.GetCharacterFromContext(
-                    context,
-                    ConditionHelpers.CharacterSource.Enemy
-                ),
-                "AdjacentAllyFlying" => ConditionHelpers.GetCharacterFromContext(
-                    context,
-                    ConditionHelpers.CharacterSource.Ally
-                ),
-                _ => null,
-            };
-
-            return character == null
-                ? new BoolValue { value = false }
-                : new BoolValue
-                {
-                    value =
-                        character.CurrentClass.ClassData.Identity.MovementType
-                        == MovementType.Flying,
-                };
-        }
+        protected override MovementType TargetMovementType => MovementType.Flying;
     }
 }

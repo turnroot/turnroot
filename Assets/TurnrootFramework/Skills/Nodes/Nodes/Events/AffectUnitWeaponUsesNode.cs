@@ -1,7 +1,6 @@
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
 using Turnroot.Skills.Nodes;
 using UnityEngine;
-using XNode;
 
 namespace Turnroot.Skills.Nodes.Events
 {
@@ -24,9 +23,8 @@ namespace Turnroot.Skills.Nodes.Events
 
         public override void Execute(BattleContext context)
         {
-            if (context == null)
+            if (!ValidateContext(context))
             {
-                Debug.LogWarning("AffectUnitWeaponUses: No context provided");
                 return;
             }
 
@@ -47,7 +45,7 @@ namespace Turnroot.Skills.Nodes.Events
             var brain = Turnroot.Utilities.GetBrain.Get();
             if (brain != null)
             {
-                brain.InvokeWeaponUsesChanged(targetCharacter, change);
+                brain.PublishWeaponUsesChanged(targetCharacter, change);
                 string target = applyToUnit ? "unit" : "target";
                 Debug.Log(
                     $"AffectUnitWeaponUses: Changed {target} ({targetCharacter.CharacterTemplate.DisplayName}) weapon uses by {change}"

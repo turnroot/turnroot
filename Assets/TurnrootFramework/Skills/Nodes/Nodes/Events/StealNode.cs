@@ -2,7 +2,6 @@ using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
 using Turnroot.Skills.Nodes;
 using Turnroot.Utilities;
 using UnityEngine;
-using XNode;
 
 namespace Turnroot.Skills.Nodes.Events
 {
@@ -42,7 +41,7 @@ namespace Turnroot.Skills.Nodes.Events
             var brain = GetBrain.Get();
             if (brain != null)
             {
-                brain.InvokeItemStolen(context.UnitInstance, target);
+                brain.PublishItemStolen(context.UnitInstance, target);
                 Debug.Log(
                     $"Steal: {context.UnitInstance.CharacterTemplate.DisplayName} attempted to steal {itemType} from {target.CharacterTemplate.DisplayName}"
                 );

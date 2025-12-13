@@ -1,7 +1,6 @@
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
 using Turnroot.Skills.Nodes;
 using UnityEngine;
-using XNode;
 
 namespace Turnroot.Skills.Nodes.Events
 {
@@ -32,18 +31,17 @@ namespace Turnroot.Skills.Nodes.Events
 
         public override void Execute(BattleContext context)
         {
-            if (context?.Targets == null || context.Targets.Count == 0)
+            if (!ValidateHasTargets(context))
             {
-                Debug.LogWarning("DealDebuffAreaOfEffect: No targets in context");
                 return;
             }
 
             float radius = GetInputFloat("aoeRadius", testRadius);
 
             // Apply debuff to all targeted enemies in the AoE
-            foreach (var target in context.Targets)
-            {
-                if (target != null)
+            int affectedCount = ExecuteOnAllTargets(
+                context,
+                target =>
                 {
                     var debuffData = new
                     {
@@ -54,10 +52,10 @@ namespace Turnroot.Skills.Nodes.Events
                     };
                     context.SetCustomData($"ApplyDebuff_{target.Id}", debuffData);
                 }
-            }
+            );
 
             Debug.Log(
-                $"DealDebuffAreaOfEffect: Applied {debuffTypePlaceholder} debuff to {context.Targets.Count} enemies in {radius} tile radius"
+                $"DealDebuffAreaOfEffect: Applied {debuffTypePlaceholder} debuff to {affectedCount} enemies in {radius} tile radius"
             );
         }
     }

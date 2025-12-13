@@ -1,47 +1,17 @@
-using Turnroot.Skills.Nodes;
+using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
 using UnityEngine;
-using XNode;
 
 namespace Turnroot.Skills.Nodes.Conditions
 {
     [CreateNodeMenu("Conditions/Position/Adjacent Enemies")]
     [NodeLabel("Gets the current adjacent enemies count")]
-    public class AdjacentEnemiesNode : SkillNode
+    public class AdjacentEnemiesNode : AdjacentUnitsNodeBase
     {
-        [Output]
-        public FloatValue value;
+        protected override string NodeName => "AdjacentEnemies";
 
-        [Output]
-        public BoolValue adjacentEnemy;
-
-        public override object GetValue(NodePort port)
+        protected override int GetAdjacentCount(BattleContext context)
         {
-            // Get context from the graph
-            var skillGraph = graph as SkillGraph;
-            if (skillGraph == null)
-            {
-                Debug.LogWarning("AdjacentEnemies: Could not get SkillGraph");
-                return port.fieldName == "value" ? new FloatValue() : (object)new BoolValue();
-            }
-
-            var context = GetContextFromGraph(skillGraph);
-            if (context?.AdjacentUnits == null)
-            {
-                Debug.LogWarning("AdjacentEnemies: No adjacent units in context");
-                return port.fieldName == "value" ? new FloatValue() : (object)new BoolValue();
-            }
-
-            if (port.fieldName == "value")
-            {
-                int count = context.AdjacentUnits.GetAdjacentEnemyCount(context);
-                return new FloatValue { value = count };
-            }
-            else if (port.fieldName == "adjacentEnemy")
-            {
-                int count = context.AdjacentUnits.GetAdjacentEnemyCount(context);
-                return new BoolValue { value = count > 0 };
-            }
-            return null;
+            return context.AdjacentUnits.GetAdjacentEnemyCount(context);
         }
     }
 }

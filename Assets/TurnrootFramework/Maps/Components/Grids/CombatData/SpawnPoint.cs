@@ -1,5 +1,6 @@
 using System;
 using Turnroot.Characters;
+using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Maps.Components.Grids
@@ -25,6 +26,16 @@ namespace Turnroot.Maps.Components.Grids
 
         [SerializeField, HideInInspector]
         private bool _isOccupied = false;
+
+        [SerializeField, HideInInspector]
+        private Vector2Int _gridPosition;
+
+        public Vector2Int GridPosition
+        {
+            get => _gridPosition;
+            set => _gridPosition = value;
+        }
+
         public bool IsPossibleAllySpawnPoint
         {
             get => _isPossibleAllySpawnPoint;
@@ -66,8 +77,18 @@ namespace Turnroot.Maps.Components.Grids
         }
 
         /* ------------------------------ Events ---------------------------------- */
-        public event Action<CharacterInstance> OnCharacterSpawned;
-        public event Action<CharacterInstance> OnCharacterRemoved;
+        /// <summary>
+        /// Local event for spawn point-specific listeners.
+        /// For centralized event handling, subscribe to Brain.OnCharacterSpawned instead.
+        /// </summary>
+        public event Action<CharacterInstance> OnCharacterSpawnedLocal;
+
+        /// <summary>
+        /// Local event for spawn point-specific listeners.
+        /// For centralized event handling, subscribe to Brain.OnCharacterRemovedFromSpawn instead.
+        /// </summary>
+        public event Action<CharacterInstance> OnCharacterRemovedLocal;
+
         public event Action<bool, bool, bool> OnFlagsChanged;
 
         /* ------------------------------ Spawn methods ----------------------------- */
@@ -80,7 +101,13 @@ namespace Turnroot.Maps.Components.Grids
 
             SpawnedCharacter = character;
             IsOccupied = true;
-            OnCharacterSpawned?.Invoke(character);
+
+            // Notify local listeners
+            OnCharacterSpawnedLocal?.Invoke(character);
+
+            // Bubble up to Brain for centralized event handling
+            var brain = GetBrain.Get();
+            brain?.PublishCharacterSpawned(character, _gridPosition);
         }
 
         public void RemoveCharacter()
@@ -93,7 +120,13 @@ namespace Turnroot.Maps.Components.Grids
             var removedCharacter = SpawnedCharacter;
             SpawnedCharacter = null;
             IsOccupied = false;
-            OnCharacterRemoved?.Invoke(removedCharacter);
+
+            // Notify local listeners
+            OnCharacterRemovedLocal?.Invoke(removedCharacter);
+
+            // Bubble up to Brain for centralized event handling
+            var brain = GetBrain.Get();
+            brain?.PublishCharacterRemovedFromSpawn(removedCharacter, _gridPosition);
         }
 
         /* ------------------------------ Flags Setter ------------------------------- */

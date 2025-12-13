@@ -2,7 +2,6 @@ using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
 using Turnroot.Skills.Nodes;
 using Turnroot.Utilities;
 using UnityEngine;
-using XNode;
 
 namespace Turnroot.Skills.Nodes.Events
 {
@@ -28,7 +27,7 @@ namespace Turnroot.Skills.Nodes.Events
             var brain = GetBrain.Get();
             if (brain != null)
             {
-                brain.InvokeCriticalHit(context.UnitInstance);
+                brain.PublishCriticalHit(context.UnitInstance);
                 Debug.Log(
                     $"CriticalHit: {context.UnitInstance.CharacterTemplate.DisplayName} triggered a critical hit"
                 );
