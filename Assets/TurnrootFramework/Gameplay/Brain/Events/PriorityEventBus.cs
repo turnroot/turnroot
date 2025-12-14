@@ -327,10 +327,14 @@ namespace Turnroot.Gameplay.Brain.Events
             return (DeferredEventQueue<T>)queue;
         }
 
+        /// <summary>
+        /// Checks if an event should be coalesced (deduplicated) based on its hash.
+        /// Note: Uses GetHashCode() which may have collisions.
+        /// </summary>
+        // TODO: Improve coalescing mechanism if needed
         private bool ShouldCoalesce<T>(T eventData)
         {
-            var type = typeof(T);
-            if (!_coalescedEvents.TryGetValue(type, out var hashes))
+            if (!_coalescedEvents.TryGetValue(typeof(T), out var hashes))
             {
                 return false;
             }

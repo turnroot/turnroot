@@ -300,8 +300,24 @@ namespace Turnroot.Gameplay.Brain
         /// <summary>
         /// Save unique character progress (preserves existing index).
         /// </summary>
-        public void SaveUniqueCharacterProgress(CharacterInstance instance) =>
+        public void SaveUniqueCharacterProgress(CharacterInstance instance)
+        {
+            if (instance?.CharacterTemplate == null)
+            {
+                Debug.LogWarning("Cannot save null character instance.");
+                return;
+            }
+
+            if (!instance.CharacterTemplate.IsUnique)
+            {
+                Debug.LogWarning(
+                    $"Cannot save non-unique character {instance.CharacterTemplate.DisplayName}. Only unique characters are persisted."
+                );
+                return;
+            }
+
             SaveUniqueCharacterInternal(instance, updateIndex: false);
+        }
 
         private CharacterInstance RecallUniqueCharacter(CharacterData characterData)
         {

@@ -13,7 +13,7 @@ namespace Turnroot.Gameplay.Brain.Snapshots
     [Serializable]
     public class Snapshot
     {
-        public string Id { get; } = Guid.NewGuid().ToString("N")[..8];
+        public string Id { get; } = Guid.NewGuid().ToString("N");
         public int TurnNumber { get; set; }
         public DateTime CreatedAt { get; } = DateTime.UtcNow;
 

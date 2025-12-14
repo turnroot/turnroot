@@ -101,7 +101,7 @@ namespace Turnroot.Gameplay.Brain.Commands
     /// </summary>
     public abstract class CommandBase : ICommand
     {
-        public string Id { get; } = Guid.NewGuid().ToString("N")[..8];
+        public string Id { get; } = Guid.NewGuid().ToString("N");
         public int TurnNumber { get; }
         protected Dictionary<string, object> UndoState { get; } = new();
 
@@ -311,12 +311,7 @@ namespace Turnroot.Gameplay.Brain.Commands
             TargetIds = targetIds ?? Array.Empty<string>();
         }
 
-        public override bool Execute(BattleContext context)
-        {
-            // Skills execute through the skill graph - this just records it happened
-            Debug.Log($"[SkillCommand] {CasterId} activated skill {SkillId}");
-            return true;
-        }
+        public override bool Execute(BattleContext context) => true;
 
         public override bool Undo(BattleContext context)
         {

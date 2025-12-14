@@ -595,12 +595,18 @@ public class MapGridPoint : MonoBehaviour
             }
 
             var existing = getter(prop.key);
-            if (existing != null)
+            // For reference types, check null. For nullable value types, the getter
+            // should return null/default when no value exists.
+            if (!EqualityComparer<TValue>.Default.Equals(existing, default))
             {
                 continue;
             }
 
-            setter(prop.key, (TValue)prop.GetValue());
+            var value = prop.GetValue();
+            if (value is TValue typedValue)
+            {
+                setter(prop.key, typedValue);
+            }
         }
     }
 

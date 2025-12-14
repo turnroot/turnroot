@@ -161,10 +161,12 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         /// <summary>
         /// Checks if a character is an ally in this context.
         /// </summary>
-        private bool IsAlly(CharacterInstance character)
-        {
-            return Allies?.Contains(character) ?? false;
-        }
+        public bool IsAlly(CharacterInstance character) => Allies?.Contains(character) ?? false;
+
+        /// <summary>
+        /// Checks if a character is a target (potential enemy) in this context.
+        /// </summary>
+        public bool IsTarget(CharacterInstance character) => Targets?.Contains(character) ?? false;
 
         #endregion
 

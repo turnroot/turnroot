@@ -479,8 +479,9 @@ namespace Turnroot.Skills.Nodes
 
         /// <summary>
         /// Ensures context and brain are available. Throws if not.
+        /// Derived classes can use this to validate context before performing operations.
         /// </summary>
-        private void RequireContext(BattleContext context)
+        protected void RequireContext(BattleContext context)
         {
             if (context?.Brain == null)
             {
