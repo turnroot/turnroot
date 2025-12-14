@@ -64,6 +64,9 @@ namespace Turnroot.Gameplay.Combat
 
             Debug.Log("BattleGameObject connecting to Brain events.");
 
+            // Initialize context with Brain reference for command pattern
+            InitializeContextWithBrain();
+
             // Subscribe to turn end event
             Brain.OnTurnEnded += HandleTurnEnded;
 
@@ -76,7 +79,7 @@ namespace Turnroot.Gameplay.Combat
             Brain.OnUnitMoved += HandleUnitMoved;
 
             // Subscribe to battle lifecycle events
-            Brain.OnExitBattle += HandleExitBattle;
+            Brain.OnBattleCompleted += HandleExitBattle;
 
             _isConnectedToBrain = true;
         }
@@ -93,7 +96,7 @@ namespace Turnroot.Gameplay.Combat
             Brain.OnEnemyDamaged -= HandleEnemyDamaged;
             Brain.OnUnitDefeated -= HandleUnitDefeated;
             Brain.OnUnitMoved -= HandleUnitMoved;
-            Brain.OnExitBattle -= HandleExitBattle;
+            Brain.OnBattleCompleted -= HandleExitBattle;
 
             _isConnectedToBrain = false;
         }
@@ -223,6 +226,33 @@ namespace Turnroot.Gameplay.Combat
                 Debug.LogError("BattleGameObject requires BattleConditions to be set.");
                 Debug.Break();
             }
+
+            // Connect Context to mapGrid
+            Context.mapGrid = _mapGrid;
+        }
+
+        /// <summary>
+        /// Called after Brain is set to finish context initialization.
+        /// Context requires Brain for all command-based operations.
+        /// </summary>
+        private void InitializeContextWithBrain()
+        {
+            if (Context == null)
+            {
+                Debug.LogError("BattleGameObject: Context is null during initialization!");
+                return;
+            }
+
+            if (Brain == null)
+            {
+                Debug.LogError(
+                    "BattleGameObject: Brain is null - context will not function correctly!"
+                );
+                return;
+            }
+
+            Context.Brain = Brain;
+            Debug.Log("BattleGameObject: Context initialized with Brain reference.");
         }
 
         public void IncrementTurnCount() => _currentTurnCount++;

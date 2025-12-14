@@ -457,7 +457,10 @@ namespace Assets.AbstractScripts.Graphics2D
         }
 
         // Helper: get pixels from a sprite if readable, otherwise null
-        private static Color[] GetSpritePixelsIfReadable(Sprite sprite) => sprite == null ? null : !IsTextureReadable(sprite.texture) ? null : sprite.texture.GetPixels();
+        private static Color[] GetSpritePixelsIfReadable(Sprite sprite) =>
+            sprite == null ? null
+            : !IsTextureReadable(sprite.texture) ? null
+            : sprite.texture.GetPixels();
 
         // Helper: show an editor popup for a non-readable texture and offer to open the
         // texture asset in the inspector (editor-only). This centralizes the UI so both
@@ -495,6 +498,23 @@ namespace Assets.AbstractScripts.Graphics2D
 #endif
         }
 
+        // Helper: alpha-blend a source color over a destination color
+        private static Color AlphaBlend(Color src, Color dst)
+        {
+            float srcAlpha = src.a;
+            float dstAlpha = dst.a * (1 - srcAlpha);
+            float outAlpha = srcAlpha + dstAlpha;
+
+            return outAlpha > 0
+                ? new Color(
+                    (src.r * srcAlpha + dst.r * dstAlpha) / outAlpha,
+                    (src.g * srcAlpha + dst.g * dstAlpha) / outAlpha,
+                    (src.b * srcAlpha + dst.b * dstAlpha) / outAlpha,
+                    outAlpha
+                )
+                : new Color(0, 0, 0, 0);
+        }
+
         // Helper: composite a single layer's pixels (already tinted) onto finalPixels
         private static void CompositeLayerOntoFinal(
             Color[] layerPixels,
@@ -530,11 +550,8 @@ namespace Assets.AbstractScripts.Graphics2D
                         continue;
                     }
 
-                    int sourceX = Mathf.FloorToInt(destX / scale);
-                    int sourceY = Mathf.FloorToInt(destY / scale);
-
-                    sourceX = Mathf.Clamp(sourceX, 0, layerWidth - 1);
-                    sourceY = Mathf.Clamp(sourceY, 0, layerHeight - 1);
+                    int sourceX = Mathf.Clamp(Mathf.FloorToInt(destX / scale), 0, layerWidth - 1);
+                    int sourceY = Mathf.Clamp(Mathf.FloorToInt(destY / scale), 0, layerHeight - 1);
 
                     int layerPixelIndex = sourceY * layerWidth + sourceX;
                     if (layerPixelIndex >= layerPixels.Length)
@@ -542,29 +559,16 @@ namespace Assets.AbstractScripts.Graphics2D
                         continue;
                     }
 
-                    Color src = layerPixels[layerPixelIndex];
-
                     int finalPixelIndex = finalY * finalWidth + finalX;
                     if (finalPixelIndex >= finalPixels.Length)
                     {
                         continue;
                     }
 
-                    Color dst = finalPixels[finalPixelIndex];
-
-                    float srcAlpha = src.a;
-                    float dstAlpha = dst.a * (1 - srcAlpha);
-                    float outAlpha = srcAlpha + dstAlpha;
-
-                    if (outAlpha > 0)
-                    {
-                        finalPixels[finalPixelIndex] = new Color(
-                            (src.r * srcAlpha + dst.r * dstAlpha) / outAlpha,
-                            (src.g * srcAlpha + dst.g * dstAlpha) / outAlpha,
-                            (src.b * srcAlpha + dst.b * dstAlpha) / outAlpha,
-                            outAlpha
-                        );
-                    }
+                    finalPixels[finalPixelIndex] = AlphaBlend(
+                        layerPixels[layerPixelIndex],
+                        finalPixels[finalPixelIndex]
+                    );
                 }
             }
         }
@@ -580,26 +584,7 @@ namespace Assets.AbstractScripts.Graphics2D
             int len = Mathf.Min(finalPixels.Length, layerPixels.Length);
             for (int i = 0; i < len; i++)
             {
-                Color src = layerPixels[i];
-                Color dst = finalPixels[i];
-
-                float srcAlpha = src.a;
-                float dstAlpha = dst.a * (1 - srcAlpha);
-                float outAlpha = srcAlpha + dstAlpha;
-
-                if (outAlpha > 0)
-                {
-                    finalPixels[i] = new Color(
-                        (src.r * srcAlpha + dst.r * dstAlpha) / outAlpha,
-                        (src.g * srcAlpha + dst.g * dstAlpha) / outAlpha,
-                        (src.b * srcAlpha + dst.b * dstAlpha) / outAlpha,
-                        outAlpha
-                    );
-                }
-                else
-                {
-                    finalPixels[i] = new Color(0, 0, 0, 0);
-                }
+                finalPixels[i] = AlphaBlend(layerPixels[i], finalPixels[i]);
             }
         }
     }

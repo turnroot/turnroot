@@ -1,4 +1,5 @@
 using Turnroot.Characters;
+using Turnroot.Gameplay.Brain.Events;
 using Turnroot.Gameplay.Combat;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -34,10 +35,19 @@ namespace Turnroot.Gameplay.Brain
             Debug.Log("BattleBrain TurnRotisserie is ready.");
         }
 
+        /// <summary>
+        /// BattleBrain uses Highest priority because it manages critical battle state.
+        /// This ensures roster updates complete before UI tries to display them.
+        /// </summary>
+        protected override EventPriority GetSubscriptionPriority()
+        {
+            return EventPriority.Highest;
+        }
+
         protected override void SubscribeToBrainEvents()
         {
-            _brain.OnStartBattle += HandleStartBattle;
-            _brain.OnExitBattle += HandleExitBattle;
+            _brain.OnBattleStarted += HandleStartBattle;
+            _brain.OnBattleCompleted += HandleExitBattle;
             _brain.OnUnitTakesAnotherTurn += HandleUnitTakesAnotherTurn;
             _brain.OnCriticalHit += HandleCriticalHit;
             _brain.OnWeaponUsesChanged += HandleWeaponUsesChanged;
@@ -46,8 +56,8 @@ namespace Turnroot.Gameplay.Brain
 
         protected override void UnsubscribeFromBrainEvents()
         {
-            _brain.OnStartBattle -= HandleStartBattle;
-            _brain.OnExitBattle -= HandleExitBattle;
+            _brain.OnBattleStarted -= HandleStartBattle;
+            _brain.OnBattleCompleted -= HandleExitBattle;
             _brain.OnUnitTakesAnotherTurn -= HandleUnitTakesAnotherTurn;
             _brain.OnCriticalHit -= HandleCriticalHit;
             _brain.OnWeaponUsesChanged -= HandleWeaponUsesChanged;
@@ -90,6 +100,9 @@ namespace Turnroot.Gameplay.Brain
                             _battleGameObject.PopulateBattleRostersFromGamewideContext(
                                 _brain.gamewideContextBrain
                             );
+
+                            // Initialize advanced systems for the battle
+                            InitializeBattleAdvancedSystems();
                             break;
                         }
                     }
@@ -97,10 +110,45 @@ namespace Turnroot.Gameplay.Brain
             }
         }
 
+        /// <summary>
+        /// Initializes advanced systems (commands, snapshots) for the battle.
+        /// </summary>
+        private void InitializeBattleAdvancedSystems()
+        {
+            // Clear any previous battle's command history
+            _brain.Commands?.Clear();
+
+            // Take initial snapshot of battle state
+            _brain.TakeSnapshot();
+
+            Debug.Log("BattleBrain: Advanced systems initialized for battle.");
+        }
+
         private void HandleExitBattle(BattleExitType exitType)
         {
             Debug.Log($"BattleBrain: Handling ExitBattle event with exit type: {exitType}.");
+
+            // Clean up advanced systems
+            CleanupBattleAdvancedSystems(exitType);
+
             _battleGameObject?.ClearBattleRosters();
+        }
+
+        /// <summary>
+        /// Cleans up advanced systems after battle ends.
+        /// </summary>
+        private void CleanupBattleAdvancedSystems(BattleExitType exitType)
+        {
+            // Clear command history (unless we want to keep for replay)
+            if (exitType != BattleExitType.Bookmark)
+            {
+                _brain.Commands?.Clear();
+            }
+
+            // Clear snapshots
+            _brain.Snapshots?.Clear();
+
+            Debug.Log($"BattleBrain: Advanced systems cleaned up (exitType: {exitType}).");
         }
 
         private void HandleUnitTakesAnotherTurn(CharacterInstance unit)

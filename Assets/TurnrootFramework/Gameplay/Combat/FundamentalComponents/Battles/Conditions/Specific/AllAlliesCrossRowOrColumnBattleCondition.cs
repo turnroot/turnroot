@@ -43,7 +43,9 @@ public class AllAlliesCrossRowOrColumnBattleCondition : BattleCondition
         foreach (var ally in battleContext.Allies)
         {
             if (ally == null)
+            {
                 continue;
+            }
 
             var position = ally.MapGridPosition;
             bool hasCrossed = IsRow

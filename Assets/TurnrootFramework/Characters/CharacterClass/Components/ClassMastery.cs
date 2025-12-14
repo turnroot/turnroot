@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Turnroot.Gameplay.Objects;
 using Turnroot.Gameplay.Objects.Components;
+using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Characters.CharacterClass

@@ -48,7 +48,9 @@ namespace Turnroot.Skills.Nodes.Conditions
             int turnsAlive = character.TurnsAliveThisBattle;
             // If TurnsAliveThisBattle is 0, treat as first turn (turn 1)
             if (turnsAlive == 0)
+            {
                 turnsAlive = 1;
+            }
 
             return port.fieldName switch
             {

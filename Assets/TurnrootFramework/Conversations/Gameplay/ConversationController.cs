@@ -140,9 +140,6 @@ namespace Turnroot.Conversations
             OnAnyConversationStart?.Invoke();
 
             _runningInstance = instance;
-            Debug.Log(
-                $"Starting conversation '{SelectedConversation?.name}' (instance '{instance?.name}')"
-            );
             _conversationRoutine = StartCoroutine(RunConversation(instance));
         }
 
@@ -161,20 +158,21 @@ namespace Turnroot.Conversations
         {
             if (!Application.isPlaying)
             {
-                Debug.LogError("StartConversation must be run in Play Mode.");
-                return false;
+                return LogError("StartConversation must be run in Play Mode.");
             }
 
             if (SelectedInstance == null)
             {
-                Debug.LogError($"No ConversationInstance selected at index {_currentConversation}");
-                return false;
+                return LogError(
+                    $"No ConversationInstance selected at index {_currentConversation}"
+                );
             }
 
             if (SelectedConversation == null)
             {
-                Debug.LogError($"Instance '{SelectedInstance.name}' has no Conversation assigned.");
-                return false;
+                return LogError(
+                    $"Instance '{SelectedInstance.name}' has no Conversation assigned."
+                );
             }
 
             if (
@@ -182,14 +180,18 @@ namespace Turnroot.Conversations
                 && SelectedConversation.ConversationGraph == null
             )
             {
-                Debug.LogError(
+                ResetUI();
+                return LogError(
                     $"Conversation '{SelectedConversation.name}' is branching but has no graph."
                 );
-                ResetUI();
-                return false;
             }
-
             return true;
+        }
+
+        private static bool LogError(string message)
+        {
+            Debug.LogError(message);
+            return false;
         }
 
         private void CleanupPreviousConversation()
@@ -235,7 +237,9 @@ namespace Turnroot.Conversations
 
             var conversation = instance.Conversation;
 
-            yield return conversation.BranchingConversation ? RunBranchingConversation(conversation) : RunLinearConversation(conversation);
+            yield return conversation.BranchingConversation
+                ? RunBranchingConversation(conversation)
+                : RunLinearConversation(conversation);
 
             instance?.OnConversationFinished?.Invoke();
             OnAnyConversationFinished?.Invoke();
@@ -374,9 +378,10 @@ namespace Turnroot.Conversations
 
         private string GetSpeakerName(ConversationLayer.SpeakerSlot slot)
         {
-            return !string.IsNullOrWhiteSpace(slot.DisplayName)
-                ? slot.DisplayName
-                : slot.Speaker != null && !string.IsNullOrWhiteSpace(slot.Speaker.DisplayName) ? slot.Speaker.DisplayName : "???";
+            return !string.IsNullOrWhiteSpace(slot.DisplayName) ? slot.DisplayName
+                : slot.Speaker != null && !string.IsNullOrWhiteSpace(slot.Speaker.DisplayName)
+                    ? slot.Speaker.DisplayName
+                : "???";
         }
 
         private void ApplyPortraitForLayer(ConversationLayer layer)
@@ -426,17 +431,19 @@ namespace Turnroot.Conversations
             }
         }
 
+        private static bool WillSwapForBehavior(
+            SecondaryConversationPortraitInactiveBehavior behavior
+        ) =>
+            behavior
+                is SecondaryConversationPortraitInactiveBehavior.Swap
+                    or SecondaryConversationPortraitInactiveBehavior.TintAndSwap
+                    or SecondaryConversationPortraitInactiveBehavior.SwapAndHide;
+
         private void SetupPortraitImages(
             ConversationLayer layer,
             SecondaryConversationPortraitInactiveBehavior behavior
         )
         {
-            var willSwap =
-                behavior
-                    is SecondaryConversationPortraitInactiveBehavior.Swap
-                        or SecondaryConversationPortraitInactiveBehavior.TintAndSwap
-                        or SecondaryConversationPortraitInactiveBehavior.SwapAndHide;
-
             var activeIsPrimary =
                 layer.ActiveSpeaker == ConversationLayer.ActiveSpeakerType.Primary;
             var activeSprite = layer.ActivePortrait?.SavedSprite;
@@ -444,7 +451,7 @@ namespace Turnroot.Conversations
                 ? layer.SecondaryPortraitSprite
                 : layer.PortraitSprite;
 
-            if (willSwap)
+            if (WillSwapForBehavior(behavior))
             {
                 Graphics2DUtils.SetSprite(_speakerPortraitImageActive, activeSprite);
                 Graphics2DUtils.SetSprite(_speakerPortraitImageInactive, inactiveSprite);
@@ -464,11 +471,7 @@ namespace Turnroot.Conversations
             SecondaryConversationPortraitInactiveBehavior behavior
         )
         {
-            var willSwap =
-                behavior
-                    is SecondaryConversationPortraitInactiveBehavior.Swap
-                        or SecondaryConversationPortraitInactiveBehavior.TintAndSwap
-                        or SecondaryConversationPortraitInactiveBehavior.SwapAndHide;
+            var willSwap = WillSwapForBehavior(behavior);
 
             var active = willSwap
                 ? _speakerPortraitImageActive
@@ -551,57 +554,43 @@ namespace Turnroot.Conversations
             }
         }
 
+        private void CreateSwapSequenceWithFollowUp(Tween followUp)
+        {
+            var runId = _tweenRunId;
+            DOTween
+                .Sequence()
+                .AppendCallback(() =>
+                {
+                    if (runId != _tweenRunId)
+                    {
+                        return;
+                    }
+
+                    (_speakerPortraitImageActive.sprite, _speakerPortraitImageInactive.sprite) = (
+                        _speakerPortraitImageInactive.sprite,
+                        _speakerPortraitImageActive.sprite
+                    );
+                })
+                .Append(followUp)
+                .SetId(_tweenRunId)
+                .Play();
+        }
+
         private void CreateTintAndSwapSequence(
             Image activeImg,
             Image inactiveImg,
             Color activeColor,
             Color inactiveColor,
             float duration
-        )
-        {
-            var runId = _tweenRunId;
-            DOTween
-                .Sequence()
-                .AppendCallback(() =>
-                {
-                    if (runId != _tweenRunId)
-                    {
-                        return;
-                    }
+        ) =>
+            CreateSwapSequenceWithFollowUp(
+                CreateTintSequence(activeImg, inactiveImg, activeColor, inactiveColor, duration)
+            );
 
-                    (_speakerPortraitImageActive.sprite, _speakerPortraitImageInactive.sprite) = (
-                        _speakerPortraitImageInactive.sprite,
-                        _speakerPortraitImageActive.sprite
-                    );
-                })
-                .Append(
-                    CreateTintSequence(activeImg, inactiveImg, activeColor, inactiveColor, duration)
-                )
-                .SetId(_tweenRunId)
-                .Play();
-        }
-
-        private void CreateSwapAndHideSequence(float duration)
-        {
-            var runId = _tweenRunId;
-            DOTween
-                .Sequence()
-                .AppendCallback(() =>
-                {
-                    if (runId != _tweenRunId)
-                    {
-                        return;
-                    }
-
-                    (_speakerPortraitImageActive.sprite, _speakerPortraitImageInactive.sprite) = (
-                        _speakerPortraitImageInactive.sprite,
-                        _speakerPortraitImageActive.sprite
-                    );
-                })
-                .Append(CreateHideTween(_speakerPortraitImageInactive, duration))
-                .SetId(_tweenRunId)
-                .Play();
-        }
+        private void CreateSwapAndHideSequence(float duration) =>
+            CreateSwapSequenceWithFollowUp(
+                CreateHideTween(_speakerPortraitImageInactive, duration)
+            );
 
         private void ClearChoiceButtons()
         {
@@ -719,10 +708,7 @@ namespace Turnroot.Conversations
 
         private void OnDisable()
         {
-            if (_tweenRunId != 0)
-            {
-                DOTween.Kill(_tweenRunId);
-            }
+            CleanupTweens();
 
             if (_conversationRoutine != null)
             {
@@ -731,7 +717,9 @@ namespace Turnroot.Conversations
             }
         }
 
-        private void OnDestroy()
+        private void OnDestroy() => CleanupTweens();
+
+        private void CleanupTweens()
         {
             if (_tweenRunId != 0)
             {

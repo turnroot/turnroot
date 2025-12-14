@@ -154,7 +154,8 @@ public class JsonPlayerPrefs
         );
     }
 
-    public string GetString(string key, string defaultValue = "") => GetValue(key, defaultValue, value => (true, value));
+    public string GetString(string key, string defaultValue = "") =>
+        GetValue(key, defaultValue, value => (true, value));
 
     public bool GetBool(string key, bool defaultValue = false)
     {

@@ -100,17 +100,7 @@ public class MapGrid : MonoBehaviour
         {
             for (int y = 0; y < _gridHeight; y++)
             {
-                var point = new GameObject($"Point_R{x}_C{y}");
-                var gridPoint = point.AddComponent<MapGridPoint>();
-                gridPoint.Initialize(x, y);
-                SetDefaultTerrainType(gridPoint);
-
-                point.transform.parent = transform;
-                point.transform.localPosition =
-                    new Vector3(x * _gridScale, 0, y * _gridScale) + _gridOffset;
-                var key = new Vector2Int(x, y);
-                _gridPoints[key] = point;
-                _cachedGridPoints[key] = gridPoint;
+                CreateGridPoint(x, y);
             }
         }
 
@@ -235,7 +225,11 @@ public class MapGrid : MonoBehaviour
         point.transform.parent = transform;
         point.transform.localPosition =
             new Vector3(row * _gridScale, 0, col * _gridScale) + _gridOffset;
-        _gridPoints[new Vector2Int(row, col)] = point;
+
+        var key = new Vector2Int(row, col);
+        _gridPoints[key] = point;
+        _cachedGridPoints ??= new Dictionary<Vector2Int, MapGridPoint>();
+        _cachedGridPoints[key] = gridPoint;
 
 #if UNITY_EDITOR
         UnityEditor.EditorUtility.SetDirty(point);
@@ -458,37 +452,26 @@ public class MapGrid : MonoBehaviour
     public void EnsureGridPoints()
     {
         int expectedCount = _gridWidth * _gridHeight;
-        int actualCount = 0;
-        foreach (Transform child in transform)
-        {
-            if (child != null && child.TryGetComponent<MapGridPoint>(out _))
-            {
-                actualCount++;
-            }
-        }
+        int actualCount = transform
+            .Cast<Transform>()
+            .Count(child => child != null && child.TryGetComponent<MapGridPoint>(out _));
 
-        if (
-            actualCount != expectedCount
-            || _gridPoints == null
-            || _gridPoints.Count != expectedCount
-        )
-        {
-            if (actualCount > 0)
-            {
-                RebuildGridDictionary();
-            }
-            else
-            {
-                CreateChildrenPoints();
-            }
-        }
-        else if (_gridPoints.Count == 0 && transform.childCount > 0)
+        bool needsRebuild =
+            actualCount > 0
+            && (actualCount != expectedCount || _gridPoints?.Count != expectedCount);
+        bool needsCreate = actualCount == 0;
+
+        if (needsRebuild)
         {
             RebuildGridDictionary();
         }
-        else if (_gridPoints.Count == 0 && transform.childCount == 0)
+        else if (needsCreate)
         {
             CreateChildrenPoints();
+        }
+        else if (_gridPoints?.Count == 0 && transform.childCount > 0)
+        {
+            RebuildGridDictionary();
         }
 
         RepositionGridPoints();

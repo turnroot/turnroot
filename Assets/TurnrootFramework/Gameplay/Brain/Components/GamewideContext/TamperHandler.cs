@@ -103,20 +103,29 @@ namespace Turnroot.Gameplay.Brain.Components
                 return null;
             }
 
-            try
-            {
-                var encoded = GamewideContextBrainHelpers.EncodeInstanceToBase64NoLedger(
-                    replacement
-                );
-                return GamewideContextBrainHelpers.DecodeWrapperFromBase64(encoded);
-            }
-            catch (Exception ex)
+            var encodeResult = GamewideContextBrainHelpers.EncodeInstanceToBase64NoLedger(
+                replacement
+            );
+            if (!encodeResult.Success)
             {
                 Debug.LogWarning(
-                    $"TamperHandler: failed to create replacement wrapper: {ex.Message}"
+                    $"TamperHandler: failed to encode replacement: {encodeResult.Error}"
                 );
                 return null;
             }
+
+            var decodeResult = GamewideContextBrainHelpers.DecodeWrapperFromBase64(
+                encodeResult.Value
+            );
+            if (!decodeResult.Success)
+            {
+                Debug.LogWarning(
+                    $"TamperHandler: failed to decode replacement wrapper: {decodeResult.Error}"
+                );
+                return null;
+            }
+
+            return decodeResult.Value;
         }
 
         private static void UpdateLedgerForReplacement<T>(

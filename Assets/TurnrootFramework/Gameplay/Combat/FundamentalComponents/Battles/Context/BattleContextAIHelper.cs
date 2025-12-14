@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using Turnroot.Characters;
-using Turnroot.Gameplay.Objects;
 using Turnroot.Maps;
 using Turnroot.Services;
 using Turnroot.Utilities;
@@ -265,11 +264,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                         _context.mapGrid
                     )
                 );
-                _ = _context.UnitInstance.MoveToPosition(
-                    closestFeature.CoordinatesInt(),
-                    _context.mapGrid
-                );
-                return true;
+                return _context.MoveUnit(_context.UnitInstance, closestFeature.CoordinatesInt());
             }
             return false;
         }
@@ -336,11 +331,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             if (safeTiles.Count > 0)
             {
                 var chosenTile = safeTiles[Random.Range(0, safeTiles.Count)];
-                _ = _context.UnitInstance.MoveToPosition(
-                    chosenTile.CoordinatesInt(),
-                    _context.mapGrid
-                );
-                return true;
+                return _context.MoveUnit(_context.UnitInstance, chosenTile.CoordinatesInt());
             }
             else
             {
@@ -389,11 +380,10 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             if (moveableNeighbors.Count > 0)
             {
                 var chosenTile = moveableNeighbors[Random.Range(0, moveableNeighbors.Count)];
-                _ = _context.UnitInstance.MoveToPosition(
-                    chosenTile.CoordinatesInt(),
-                    _context.mapGrid
-                );
-                return OperationResult.SuccessResult();
+                bool moved = _context.MoveUnit(_context.UnitInstance, chosenTile.CoordinatesInt());
+                return moved
+                    ? OperationResult.SuccessResult()
+                    : OperationResult.Failure("Failed to move to neighbor.");
             }
             else
             {
@@ -477,19 +467,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         }
 
         /// <summary>
-        /// Filters the available targets to only those within attack range.
-        /// </summary>
-        private List<CharacterInstance> GetTargetsInAttackRange(
-            Dictionary<MapGridPoint, float> attackTiles
-        )
-        {
-            var targetsInRange = new List<CharacterInstance>();
-            GetTargetsInAttackRangeNonAlloc(attackTiles, targetsInRange);
-            return targetsInRange;
-        }
-
-        /// <summary>
-        /// Non-allocating version: fills the provided list with targets in attack range.
+        /// Fills the provided list with targets in attack range (non-allocating).
         /// </summary>
         private void GetTargetsInAttackRangeNonAlloc(
             Dictionary<MapGridPoint, float> attackTiles,
@@ -512,19 +490,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         }
 
         /// <summary>
-        /// Filters allies to only those within movement range (not attack range).
-        /// </summary>
-        private List<CharacterInstance> GetAlliesInMovementRange(
-            Dictionary<MapGridPoint, float> moveTiles
-        )
-        {
-            var alliesInRange = new List<CharacterInstance>();
-            GetAlliesInMovementRangeNonAlloc(moveTiles, alliesInRange);
-            return alliesInRange;
-        }
-
-        /// <summary>
-        /// Non-allocating version: fills the provided list with allies in movement range.
+        /// Fills the provided list with allies in movement range (non-allocating).
         /// </summary>
         private void GetAlliesInMovementRangeNonAlloc(
             Dictionary<MapGridPoint, float> moveTiles,
@@ -614,11 +580,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             if (safeTiles.Count > 0)
             {
                 var chosenTile = safeTiles[Random.Range(0, safeTiles.Count)];
-                _ = _context.UnitInstance.MoveToPosition(
-                    chosenTile.CoordinatesInt(),
-                    _context.mapGrid
-                );
-                // TODO: Make sure whatever brain is calling all this fires the needed events
+                _context.MoveUnit(_context.UnitInstance, chosenTile.CoordinatesInt());
             }
             else
             {
@@ -667,31 +629,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         }
 
         /// <summary>
-        /// Filters movement tiles to only those that increase distance from the closest enemy
-        /// while maintaining or increasing distance from the furthest enemy.
-        /// </summary>
-        private List<MapGridPoint> FilterSafeTiles(
-            Dictionary<MapGridPoint, float> moveTiles,
-            Vector2 closestEnemyPos,
-            Vector2 furthestEnemyPos,
-            float closestDistance,
-            float furthestDistance
-        )
-        {
-            var safeTiles = new List<MapGridPoint>();
-            FilterSafeTilesNonAlloc(
-                moveTiles,
-                closestEnemyPos,
-                furthestEnemyPos,
-                closestDistance,
-                furthestDistance,
-                safeTiles
-            );
-            return safeTiles;
-        }
-
-        /// <summary>
-        /// Non-allocating version: fills the provided list with safe tiles.
+        /// Fills the provided list with tiles that increase distance from enemies (non-allocating).
         /// </summary>
         private void FilterSafeTilesNonAlloc(
             Dictionary<MapGridPoint, float> moveTiles,
@@ -719,36 +657,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         }
 
         /// <summary>
-        /// Excludes tiles within 2 tile of any ally (for lone wolf behavior).
-        /// </summary>
-        private List<MapGridPoint> ExcludeTilesNearAllies(
-            List<MapGridPoint> tiles,
-            List<CharacterInstance> allies
-        )
-        {
-            var filteredTiles = new List<MapGridPoint>();
-            foreach (var tile in tiles)
-            {
-                bool isTooCloseToAlly = false;
-                foreach (var ally in allies)
-                {
-                    if (Vector2.Distance(tile.Coordinates(), ally.MapGridPosition) <= 2)
-                    {
-                        isTooCloseToAlly = true;
-                        break;
-                    }
-                }
-                if (!isTooCloseToAlly)
-                {
-                    filteredTiles.Add(tile);
-                }
-            }
-            return filteredTiles;
-        }
-
-        /// <summary>
-        /// In-place version: removes tiles that are too close to allies from the list.
-        /// More efficient than creating a new filtered list.
+        /// Removes tiles within 2 tiles of any ally (for lone wolf behavior, in-place).
         /// </summary>
         private void ExcludeTilesNearAlliesInPlace(
             List<MapGridPoint> tiles,

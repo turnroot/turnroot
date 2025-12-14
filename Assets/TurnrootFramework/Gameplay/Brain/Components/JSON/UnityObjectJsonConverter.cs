@@ -17,7 +17,8 @@ namespace Turnroot.Gameplay.Brain.Components
         private const string GuidField = "guid";
         private const string AssetPathField = "assetPath";
 
-        public override bool CanConvert(Type objectType) => typeof(UnityEngine.Object).IsAssignableFrom(objectType);
+        public override bool CanConvert(Type objectType) =>
+            typeof(UnityEngine.Object).IsAssignableFrom(objectType);
 
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {

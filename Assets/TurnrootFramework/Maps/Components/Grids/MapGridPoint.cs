@@ -540,15 +540,75 @@ public class MapGridPoint : MonoBehaviour
             return;
         }
 
-        ApplyDefaultUnitProperties(defaultProps.unitProperties);
-        ApplyDefaultObjectItemProperties(defaultProps.objectItemProperties);
-        ApplyDefaultBoolProperties(defaultProps.boolProperties);
-        ApplyDefaultEventProperties(defaultProps.eventProperties);
-        // String and Int defaults intentionally omitted (types removed)
-        ApplyDefaultFloatProperties(defaultProps.floatProperties);
+        ApplyDefaults(defaultProps.unitProperties, GetUnitFeatureProperty, SetUnitFeatureProperty);
+        ApplyDefaults(
+            defaultProps.objectItemProperties,
+            GetObjectItemFeatureProperty,
+            SetObjectItemFeatureProperty
+        );
+        ApplyDefaults(
+            defaultProps.boolProperties,
+            k => GetBoolFeatureProperty(k),
+            (k, v) =>
+            {
+                if (v.HasValue)
+                {
+                    SetBoolFeatureProperty(k, v.Value);
+                }
+            }
+        );
+        ApplyDefaults(
+            defaultProps.eventProperties,
+            GetEventFeatureProperty,
+            SetEventFeatureProperty
+        );
+        ApplyDefaults(
+            defaultProps.floatProperties,
+            k => GetFloatFeatureProperty(k),
+            (k, v) =>
+            {
+                if (v.HasValue)
+                {
+                    SetFloatFeatureProperty(k, v.Value);
+                }
+            }
+        );
     }
 
-    // Removed: point-level default appliers — these helpers were unused.
+    private void ApplyDefaults<TProp, TValue>(
+        List<TProp> defaults,
+        Func<string, TValue> getter,
+        Action<string, TValue> setter
+    )
+        where TProp : MapGridPropertyBase.IProperty
+    {
+        if (defaults == null)
+        {
+            return;
+        }
+
+        foreach (var prop in defaults)
+        {
+            if (string.IsNullOrEmpty(prop.key))
+            {
+                continue;
+            }
+
+            var existing = getter(prop.key);
+            // For reference types, check null. For nullable value types, the getter
+            // should return null/default when no value exists.
+            if (!EqualityComparer<TValue>.Default.Equals(existing, default))
+            {
+                continue;
+            }
+
+            var value = prop.GetValue();
+            if (value is TValue typedValue)
+            {
+                setter(prop.key, typedValue);
+            }
+        }
+    }
 
     private MapGridFeatureProperties FindFeatureProperties(
         MapGridFeatureProperties[] allDefaults,
@@ -571,98 +631,6 @@ public class MapGridPoint : MonoBehaviour
             }
         }
         return null;
-    }
-
-    private void ApplyDefaultUnitProperties(List<MapGridPropertyBase.UnitProperty> defaults)
-    {
-        if (defaults == null)
-        {
-            return;
-        }
-
-        foreach (var prop in defaults)
-        {
-            if (string.IsNullOrEmpty(prop.key) || GetUnitFeatureProperty(prop.key) != null)
-            {
-                continue;
-            }
-
-            SetUnitFeatureProperty(prop.key, prop.value);
-        }
-    }
-
-    private void ApplyDefaultObjectItemProperties(
-        List<MapGridPropertyBase.ObjectItemProperty> defaults
-    )
-    {
-        if (defaults == null)
-        {
-            return;
-        }
-
-        foreach (var prop in defaults)
-        {
-            if (string.IsNullOrEmpty(prop.key) || GetObjectItemFeatureProperty(prop.key) != null)
-            {
-                continue;
-            }
-
-            SetObjectItemFeatureProperty(prop.key, prop.value);
-        }
-    }
-
-    private void ApplyDefaultBoolProperties(List<MapGridPropertyBase.BoolProperty> defaults)
-    {
-        if (defaults == null)
-        {
-            return;
-        }
-
-        foreach (var prop in defaults)
-        {
-            if (string.IsNullOrEmpty(prop.key) || GetBoolFeatureProperty(prop.key).HasValue)
-            {
-                continue;
-            }
-
-            SetBoolFeatureProperty(prop.key, prop.value);
-        }
-    }
-
-    private void ApplyDefaultEventProperties(List<MapGridPropertyBase.EventProperty> defaults)
-    {
-        if (defaults == null)
-        {
-            return;
-        }
-
-        foreach (var prop in defaults)
-        {
-            if (string.IsNullOrEmpty(prop.key) || GetEventFeatureProperty(prop.key) != null)
-            {
-                continue;
-            }
-
-            SetEventFeatureProperty(prop.key, prop.value);
-        }
-    }
-
-    private void ApplyDefaultFloatProperties(List<MapGridPropertyBase.FloatProperty> defaults)
-    {
-        if (defaults == null)
-        {
-            return;
-        }
-
-        foreach (var prop in defaults)
-        {
-            if (string.IsNullOrEmpty(prop.key) || GetFloatFeatureProperty(prop.key).HasValue)
-            {
-                continue;
-            }
-
-            SetFloatFeatureProperty(prop.key, prop.value);
-        }
     }
 
     /// <summary>
@@ -693,8 +661,7 @@ public class MapGridPoint : MonoBehaviour
             return terrainType.CostFly;
         }
 
-        return isRiding
-            ? terrainType.CostRide
+        return isRiding ? terrainType.CostRide
             : isMagic ? terrainType.CostMagic
             : isArmored ? terrainType.CostArmor
             : 1f;
