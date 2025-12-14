@@ -6,6 +6,7 @@ using Newtonsoft.Json.Linq;
 using Turnroot.Characters;
 using Turnroot.Gameplay.Brain.Components;
 using Turnroot.Serialization;
+using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain
@@ -277,79 +278,93 @@ namespace Turnroot.Gameplay.Brain
             return $"{LedgerKeyPrefixes.Roster}.{rosterType.FullName}.{keyHash}";
         }
 
-        public static SerializedWrapper DecodeWrapperFromBase64(string encoded)
+        public static OperationResult<SerializedWrapper> DecodeWrapperFromBase64(string encoded)
         {
             if (string.IsNullOrEmpty(encoded))
             {
-                return null;
+                return OperationResult<SerializedWrapper>.Failure(
+                    "Encoded string is null or empty."
+                );
             }
 
             try
             {
                 var wrapperJson = Encoding.UTF8.GetString(Convert.FromBase64String(encoded));
-                return JsonConvert.DeserializeObject<SerializedWrapper>(wrapperJson);
+                var wrapper = JsonConvert.DeserializeObject<SerializedWrapper>(wrapperJson);
+                return OperationResult<SerializedWrapper>.SuccessResult(wrapper);
             }
             catch (Exception ex)
             {
-                Debug.LogWarning($"Failed to decode wrapper: {ex.Message}");
-                return null;
+                return OperationResult<SerializedWrapper>.Failure(
+                    $"Failed to decode wrapper: {ex.Message}",
+                    ex
+                );
             }
         }
 
-        public static string EncodeWrapperToBase64(SerializedWrapper wrapper)
+        public static OperationResult<string> EncodeWrapperToBase64(SerializedWrapper wrapper)
         {
             if (wrapper == null)
             {
-                return null;
+                return OperationResult<string>.Failure("Wrapper is null.");
             }
 
             try
             {
                 var json = JsonConvert.SerializeObject(wrapper, Formatting.None);
-                return Convert.ToBase64String(Encoding.UTF8.GetBytes(json));
+                var encoded = Convert.ToBase64String(Encoding.UTF8.GetBytes(json));
+                return OperationResult<string>.SuccessResult(encoded);
             }
             catch (Exception ex)
             {
-                Debug.LogWarning($"Failed to encode wrapper: {ex.Message}");
-                return null;
+                return OperationResult<string>.Failure(
+                    $"Failed to encode wrapper: {ex.Message}",
+                    ex
+                );
             }
         }
 
-        public static JObject DecodeWrapperAsJObject(string encoded)
+        public static OperationResult<JObject> DecodeWrapperAsJObject(string encoded)
         {
             if (string.IsNullOrEmpty(encoded))
             {
-                return null;
+                return OperationResult<JObject>.Failure("Encoded string is null or empty.");
             }
 
             try
             {
                 var wrapperJson = Encoding.UTF8.GetString(Convert.FromBase64String(encoded));
-                return JObject.Parse(wrapperJson);
+                var obj = JObject.Parse(wrapperJson);
+                return OperationResult<JObject>.SuccessResult(obj);
             }
             catch (Exception ex)
             {
-                Debug.LogWarning($"Failed to decode wrapper as JObject: {ex.Message}");
-                return null;
+                return OperationResult<JObject>.Failure(
+                    $"Failed to decode wrapper as JObject: {ex.Message}",
+                    ex
+                );
             }
         }
 
-        public static string EncodeJObjectToBase64(JObject wrapper)
+        public static OperationResult<string> EncodeJObjectToBase64(JObject wrapper)
         {
             if (wrapper == null)
             {
-                return null;
+                return OperationResult<string>.Failure("JObject wrapper is null.");
             }
 
             try
             {
                 var json = wrapper.ToString(Formatting.None);
-                return Convert.ToBase64String(Encoding.UTF8.GetBytes(json));
+                var encoded = Convert.ToBase64String(Encoding.UTF8.GetBytes(json));
+                return OperationResult<string>.SuccessResult(encoded);
             }
             catch (Exception ex)
             {
-                Debug.LogWarning($"Failed to encode JObject: {ex.Message}");
-                return null;
+                return OperationResult<string>.Failure(
+                    $"Failed to encode JObject: {ex.Message}",
+                    ex
+                );
             }
         }
 
@@ -376,24 +391,33 @@ namespace Turnroot.Gameplay.Brain
         /// <summary>
         /// Encodes an instance to Base64 wrapper string and persists ledger entry.
         /// </summary>
-        public static string EncodeInstanceToString<T>(GamewideContextBrain brain, T instance)
+        public static OperationResult<string> EncodeInstanceToString<T>(
+            GamewideContextBrain brain,
+            T instance
+        )
         {
             try
             {
                 var wrapper = CreateWrapperForInstance(instance);
-                var encoded = EncodeWrapperToBase64(wrapper);
+                var encodeResult = EncodeWrapperToBase64(wrapper);
 
-                if (!string.IsNullOrEmpty(encoded))
+                if (!encodeResult.Success)
                 {
-                    PersistLedgerEntry(brain, instance, wrapper);
+                    return OperationResult<string>.Failure(
+                        encodeResult.Error,
+                        encodeResult.Exception
+                    );
                 }
 
-                return encoded;
+                PersistLedgerEntry(brain, instance, wrapper);
+                return OperationResult<string>.SuccessResult(encodeResult.Value);
             }
             catch (Exception e)
             {
-                Debug.LogError($"Error encoding instance to string: {e.Message}");
-                return null;
+                return OperationResult<string>.Failure(
+                    $"Error encoding instance to string: {e.Message}",
+                    e
+                );
             }
         }
 
@@ -438,27 +462,28 @@ namespace Turnroot.Gameplay.Brain
         /// Decodes an instance from the wrapper produced by EncodeInstanceToString.
         /// Performs tamper detection and applies the configured policy.
         /// </summary>
-        public static T DecodeInstanceFromString<T>(
+        public static OperationResult<T> DecodeInstanceFromString<T>(
             GamewideContextBrain brain,
             string encodedString
         )
         {
             try
             {
-                var wrapper = DecodeWrapperFromBase64(encodedString);
-                if (wrapper == null)
+                var decodeResult = DecodeWrapperFromBase64(encodedString);
+                if (!decodeResult.Success)
                 {
-                    Debug.LogError("Decoded wrapper is null or invalid.");
-                    return default;
+                    return OperationResult<T>.Failure(decodeResult.Error, decodeResult.Exception);
                 }
 
+                var wrapper = decodeResult.Value;
                 var settings = GetJsonSerializerSettings();
                 var instance = JsonConvert.DeserializeObject<T>(wrapper.Payload, settings);
 
                 // Verify payload integrity
                 if (!VerifyPayloadHash(wrapper))
                 {
-                    return TamperHandler.HandlePayloadMismatch(brain, instance, wrapper);
+                    var tampered = TamperHandler.HandlePayloadMismatch(brain, instance, wrapper);
+                    return OperationResult<T>.SuccessResult(tampered); // Still returns, but with replacement
                 }
 
                 // Post-deserialization hook
@@ -473,15 +498,23 @@ namespace Turnroot.Gameplay.Brain
                     var ltm = brain.GetComponent<LongTermMemory>();
                     var key = BuildHashLedgerKey(instance, wrapper);
                     var stored = ltm?.Recall(key);
-                    return TamperHandler.HandleLedgerMismatch(brain, instance, wrapper, stored);
+                    var tampered = TamperHandler.HandleLedgerMismatch(
+                        brain,
+                        instance,
+                        wrapper,
+                        stored
+                    );
+                    return OperationResult<T>.SuccessResult(tampered);
                 }
 
-                return instance;
+                return OperationResult<T>.SuccessResult(instance);
             }
             catch (Exception e)
             {
-                Debug.LogError($"Error decoding instance from string: {e.Message}");
-                return default;
+                return OperationResult<T>.Failure(
+                    $"Error decoding instance from string: {e.Message}",
+                    e
+                );
             }
         }
 
@@ -539,7 +572,7 @@ namespace Turnroot.Gameplay.Brain
         /// Encodes an instance to Base64 without persisting ledger entries.
         /// Useful for creating replacement payloads during tamper handling.
         /// </summary>
-        public static string EncodeInstanceToBase64NoLedger<T>(T instance)
+        public static OperationResult<string> EncodeInstanceToBase64NoLedger<T>(T instance)
         {
             try
             {
@@ -548,8 +581,10 @@ namespace Turnroot.Gameplay.Brain
             }
             catch (Exception e)
             {
-                Debug.LogWarning($"EncodeInstanceToBase64NoLedger failed: {e.Message}");
-                return null;
+                return OperationResult<string>.Failure(
+                    $"EncodeInstanceToBase64NoLedger failed: {e.Message}",
+                    e
+                );
             }
         }
     }

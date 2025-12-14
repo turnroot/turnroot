@@ -29,7 +29,8 @@ namespace Turnroot.Gameplay.Brain.Components
             public const string SupportRelationships = "_supportRelationships";
         }
 
-        public override bool CanConvert(Type objectType) => typeof(CharacterInstance).IsAssignableFrom(objectType);
+        public override bool CanConvert(Type objectType) =>
+            typeof(CharacterInstance).IsAssignableFrom(objectType);
 
         public override bool CanWrite => true;
 

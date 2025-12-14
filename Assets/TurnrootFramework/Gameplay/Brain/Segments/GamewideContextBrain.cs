@@ -263,7 +263,17 @@ namespace Turnroot.Gameplay.Brain
 
             try
             {
-                var encoded = EncodeInstanceToString(instance);
+                var encodeResult = GamewideContextBrainHelpers.EncodeInstanceToString(
+                    this,
+                    instance
+                );
+                if (!encodeResult.Success)
+                {
+                    Debug.LogError($"Failed to encode character: {encodeResult.Error}");
+                    return;
+                }
+
+                var encoded = encodeResult.Value;
                 var ltm = GetComponent<LongTermMemory>();
                 var templateName = instance.CharacterTemplate.name;
                 var key = BuildUniqueCharacterKey(instance.CharacterTemplate);
@@ -337,16 +347,21 @@ namespace Turnroot.Gameplay.Brain
                     return null;
                 }
 
-                var instance = DecodeInstanceFromString<CharacterInstance>(encoded);
+                var decodeResult =
+                    GamewideContextBrainHelpers.DecodeInstanceFromString<CharacterInstance>(
+                        this,
+                        encoded
+                    );
 
-                if (instance != null)
+                if (decodeResult.Success)
                 {
                     Debug.Log(
                         $"Recalled unique character: {characterData.DisplayName} (template: {characterData.name})"
                     );
+                    return decodeResult.Value;
                 }
 
-                return instance;
+                return null;
             }
             catch (Exception ex)
             {
@@ -388,12 +403,18 @@ namespace Turnroot.Gameplay.Brain
                 }
 
                 var encoded = EncodeRosterToStringNoLedger(roster);
-                var wrapper = GamewideContextBrainHelpers.DecodeWrapperFromBase64(encoded);
+                var decodeResult = GamewideContextBrainHelpers.DecodeWrapperFromBase64(encoded);
 
-                ltm.Remember(key, wrapper?.Hash);
-                UpdateRosterIndex(ltm, roster.Id);
-
-                Debug.Log($"Roster {roster.name} registered in LTM with key: {key}");
+                if (decodeResult.Success)
+                {
+                    ltm.Remember(key, decodeResult.Value?.Hash);
+                    UpdateRosterIndex(ltm, roster.Id);
+                    Debug.Log($"Roster {roster.name} registered in LTM with key: {key}");
+                }
+                else
+                {
+                    Debug.LogWarning($"Failed to decode roster wrapper: {decodeResult.Error}");
+                }
             }
             catch (Exception ex)
             {
@@ -589,10 +610,10 @@ namespace Turnroot.Gameplay.Brain
         public string DesignateInstanceType<T>() =>
             GamewideContextBrainHelpers.DesignateInstanceType<T>();
 
-        public string EncodeInstanceToString<T>(T instance) =>
+        public OperationResult<string> EncodeInstanceToString<T>(T instance) =>
             GamewideContextBrainHelpers.EncodeInstanceToString(this, instance);
 
-        public T DecodeInstanceFromString<T>(string encodedString) =>
+        public OperationResult<T> DecodeInstanceFromString<T>(string encodedString) =>
             GamewideContextBrainHelpers.DecodeInstanceFromString<T>(this, encodedString);
 
         #endregion

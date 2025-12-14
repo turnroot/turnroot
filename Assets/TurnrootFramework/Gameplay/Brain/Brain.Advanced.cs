@@ -4,7 +4,6 @@ using Turnroot.Characters;
 using Turnroot.Gameplay.Brain.Commands;
 using Turnroot.Gameplay.Brain.Events;
 using Turnroot.Gameplay.Brain.Snapshots;
-using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain

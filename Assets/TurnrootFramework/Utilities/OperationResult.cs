@@ -1,7 +1,7 @@
 using System;
 using Turnroot.Services;
 
-namespace Turnroot.Gameplay.Objects
+namespace Turnroot.Utilities
 {
     /// <summary>
     /// Represents the result of an operation that does not return a value.

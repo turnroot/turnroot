@@ -122,10 +122,18 @@ namespace Turnroot.Gameplay.Brain
         #region Memory Coders
 
         public string EncodeInstanceToString<T>(T instance)
-            where T : class => gamewideContextBrain.EncodeInstanceToString(instance);
+            where T : class
+        {
+            var result = gamewideContextBrain.EncodeInstanceToString(instance);
+            return result.Success ? result.Value : string.Empty;
+        }
 
         public T DecodeInstanceFromString<T>(string encodedString)
-            where T : class => gamewideContextBrain.DecodeInstanceFromString<T>(encodedString);
+            where T : class
+        {
+            var result = gamewideContextBrain.DecodeInstanceFromString<T>(encodedString);
+            return result.Success ? result.Value : null;
+        }
 
         public string EncodeString(string value)
         {
