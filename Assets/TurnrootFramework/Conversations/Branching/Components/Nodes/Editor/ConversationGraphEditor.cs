@@ -30,7 +30,9 @@ namespace Turnroot.Conversations.Branching.Nodes
                 node.Ports != null
                 && node.Ports.Any(p => p.GetConnections() != null && p.GetConnections().Count > 0)
             )
+            {
                 return false;
+            }
 
             var so = new UnityEditor.SerializedObject(node as UnityEngine.Object);
             var prop = so.GetIterator();
@@ -38,19 +40,25 @@ namespace Turnroot.Conversations.Branching.Nodes
             while (prop.NextVisible(true))
             {
                 if (ignore.Contains(prop.name))
+                {
                     continue;
+                }
 
                 if (
                     prop.propertyType == UnityEditor.SerializedPropertyType.ObjectReference
                     && prop.objectReferenceValue != null
                 )
+                {
                     return false;
+                }
 
                 if (
                     prop.propertyType == UnityEditor.SerializedPropertyType.String
                     && !string.IsNullOrEmpty(prop.stringValue)
                 )
+                {
                     return false;
+                }
             }
 
             return true;
@@ -75,24 +83,43 @@ namespace Turnroot.Conversations.Branching.Nodes
                 foreach (var t in types)
                 {
                     if (t == null)
+                    {
                         continue;
+                    }
+
                     if (!typeof(Node).IsAssignableFrom(t))
+                    {
                         continue;
+                    }
+
                     if (t.IsAbstract)
+                    {
                         continue;
+                    }
 
                     // Inspect custom attribute data to find CreateNodeMenu attribute's path
                     foreach (var cad in t.GetCustomAttributesData())
                     {
                         if (cad.AttributeType.Name != "CreateNodeMenuAttribute")
+                        {
                             continue;
+                        }
+
                         if (cad.ConstructorArguments.Count == 0)
+                        {
                             continue;
+                        }
+
                         var arg = cad.ConstructorArguments[0].Value as string;
                         if (string.IsNullOrEmpty(arg))
+                        {
                             continue;
+                        }
+
                         if (!arg.StartsWith("Conversation/"))
+                        {
                             continue;
+                        }
 
                         // Use the attribute's path as the label so nested paths are preserved
                         string label = arg.Substring("Conversation/".Length);
@@ -107,7 +134,10 @@ namespace Turnroot.Conversations.Branching.Nodes
                             {
                                 var graph = target as NodeGraph;
                                 if (graph == null)
+                                {
                                     return;
+                                }
+
                                 var created = graph.AddNode(t);
                                 // Create a short nickname from the full path: use last segment and strip trailing " Node" or "Node"
                                 if (created != null)
@@ -115,7 +145,9 @@ namespace Turnroot.Conversations.Branching.Nodes
                                     string shortName = menuArg;
                                     int lastSlash = shortName.LastIndexOf('/');
                                     if (lastSlash >= 0 && lastSlash < shortName.Length - 1)
+                                    {
                                         shortName = shortName.Substring(lastSlash + 1);
+                                    }
                                     // Strip common suffixes
                                     if (shortName.EndsWith(" Node", StringComparison.Ordinal))
                                     {
@@ -144,7 +176,10 @@ namespace Turnroot.Conversations.Branching.Nodes
                                                 string.IsNullOrEmpty(createdPath)
                                                 || createdPath != graphPath
                                             )
+                                            {
                                                 AssetDatabase.AddObjectToAsset(created, graphPath);
+                                            }
+
                                             UnityEditor.EditorUtility.SetDirty(
                                                 graph as UnityEngine.Object
                                             );
@@ -159,7 +194,9 @@ namespace Turnroot.Conversations.Branching.Nodes
                                     }
                                 }
                                 if (NodeEditorWindow.current != null)
+                                {
                                     NodeEditorWindow.current.Repaint();
+                                }
                             }
                         );
                         break;
@@ -226,7 +263,9 @@ namespace Turnroot.Conversations.Branching.Nodes
                         {
                             var nodePath = AssetDatabase.GetAssetPath(xNode as UnityEngine.Object);
                             if (!string.IsNullOrEmpty(nodePath))
+                            {
                                 AssetDatabase.RemoveObjectFromAsset(xNode as UnityEngine.Object);
+                            }
                         }
                         catch (System.Exception ex)
                         {

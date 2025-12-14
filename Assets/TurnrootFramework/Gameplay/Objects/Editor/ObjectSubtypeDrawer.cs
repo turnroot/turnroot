@@ -32,7 +32,9 @@ public class ObjectSubtypeDrawer : PropertyDrawer
             // Current value not in valid list, default to first option
             currentIndex = 0;
             if (validValues.Length > 0)
+            {
                 valueProperty.stringValue = validValues[0];
+            }
         }
 
         // Draw dropdown

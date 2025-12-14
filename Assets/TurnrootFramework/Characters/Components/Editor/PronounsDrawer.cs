@@ -34,7 +34,9 @@ namespace Turnroot.Characters.Subclasses.Editor
             var selectedPronounsProperty = property.FindPropertyRelative("_selectedPronouns");
 
             if (selectedPronounsProperty == null || selectedPronounsProperty.arraySize == 0)
+            {
                 return 0; // Default to "they"
+            }
 
             // Check the first element to determine which pronoun set
             string firstPronoun = selectedPronounsProperty.GetArrayElementAtIndex(0).stringValue;
@@ -56,7 +58,9 @@ namespace Turnroot.Characters.Subclasses.Editor
             var selectedPronounsProperty = property.FindPropertyRelative("_selectedPronouns");
 
             if (selectedPronounsProperty == null)
+            {
                 return;
+            }
 
             string[] pronouns;
             switch (pronounType.ToLower())

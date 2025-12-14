@@ -214,16 +214,11 @@ public class MapGridPoint : MonoBehaviour
         }
 
         var asset = TerrainTypes.LoadDefault();
-        if (asset == null)
-        {
-            _cachedTerrainType = null;
-        }
-        else
-        {
-            _cachedTerrainType =
-                asset.GetTypeById(_terrainTypeId)
-                ?? (asset.Types?.Length > 0 ? asset.Types[0] : null);
-        }
+        _cachedTerrainType =
+            asset == null
+                ? null
+                : asset.GetTypeById(_terrainTypeId)
+                    ?? (asset.Types?.Length > 0 ? asset.Types[0] : null);
         _terrainTypeCached = true;
         return _cachedTerrainType;
     }

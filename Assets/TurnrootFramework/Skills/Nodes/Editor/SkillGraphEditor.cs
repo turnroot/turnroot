@@ -76,7 +76,9 @@ namespace Turnroot.Skills.Nodes.Editor
                         {
                             var nodePath = AssetDatabase.GetAssetPath(xNode as UnityEngine.Object);
                             if (!string.IsNullOrEmpty(nodePath))
+                            {
                                 AssetDatabase.RemoveObjectFromAsset(xNode as UnityEngine.Object);
+                            }
                         }
                         catch (System.Exception ex)
                         {
@@ -113,25 +115,43 @@ namespace Turnroot.Skills.Nodes.Editor
                 foreach (var t in types)
                 {
                     if (t == null)
+                    {
                         continue;
+                    }
+
                     if (!typeof(Node).IsAssignableFrom(t))
+                    {
                         continue;
+                    }
+
                     if (t.IsAbstract)
+                    {
                         continue;
+                    }
 
                     // Only include nodes that derive from SkillNode (covers types with or without namespaces)
                     if (!typeof(SkillNode).IsAssignableFrom(t))
+                    {
                         continue;
+                    }
 
                     foreach (var cad in t.GetCustomAttributesData())
                     {
                         if (cad.AttributeType.Name != "CreateNodeMenuAttribute")
+                        {
                             continue;
+                        }
+
                         if (cad.ConstructorArguments.Count == 0)
+                        {
                             continue;
+                        }
+
                         var arg = cad.ConstructorArguments[0].Value as string;
                         if (string.IsNullOrEmpty(arg))
+                        {
                             continue;
+                        }
 
                         // Optionally filter by top-level category prefix and strip it from the label
                         string label = arg;
@@ -139,10 +159,15 @@ namespace Turnroot.Skills.Nodes.Editor
                         {
                             string prefix = categoryPrefix + "/";
                             if (!arg.StartsWith(prefix, StringComparison.Ordinal))
+                            {
                                 continue;
+                            }
+
                             label = arg.Substring(prefix.Length);
                             if (string.IsNullOrEmpty(label))
+                            {
                                 label = arg; // fallback to full label if nothing left
+                            }
                         }
                         // Capture for closure
                         string menuArg = arg;
@@ -154,14 +179,20 @@ namespace Turnroot.Skills.Nodes.Editor
                             {
                                 var graph = target as NodeGraph;
                                 if (graph == null)
+                                {
                                     return;
+                                }
+
                                 var created = graph.AddNode(t);
                                 if (created != null)
                                 {
                                     string shortName = menuArg;
                                     int lastSlash = shortName.LastIndexOf('/');
                                     if (lastSlash >= 0 && lastSlash < shortName.Length - 1)
+                                    {
                                         shortName = shortName.Substring(lastSlash + 1);
+                                    }
+
                                     if (shortName.EndsWith(" Node", StringComparison.Ordinal))
                                     {
                                         int newLen = shortName.Length - " Node".Length;
@@ -177,7 +208,9 @@ namespace Turnroot.Skills.Nodes.Editor
                                     UnityEditor.EditorUtility.SetDirty(created);
                                 }
                                 if (NodeEditorWindow.current != null)
+                                {
                                     NodeEditorWindow.current.Repaint();
+                                }
                             }
                         );
                         break;

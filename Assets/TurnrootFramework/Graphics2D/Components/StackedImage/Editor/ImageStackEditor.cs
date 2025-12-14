@@ -17,10 +17,16 @@ namespace Turnroot.Graphics.Portrait.Editor
         private static bool IsGrayscalePNG(Texture2D texture)
         {
             if (texture == null)
+            {
                 return false;
+            }
+
             string path = AssetDatabase.GetAssetPath(texture);
             if (string.IsNullOrEmpty(path) || !path.ToLower().EndsWith(".png"))
+            {
                 return false;
+            }
+
             try
             {
                 byte[] data = System.IO.File.ReadAllBytes(path);
@@ -35,7 +41,10 @@ namespace Turnroot.Graphics.Portrait.Editor
                     || data[6] != 0x1A
                     || data[7] != 0x0A
                 )
+                {
                     return false;
+                }
+
                 int pos = 8;
                 while (pos + 12 < data.Length)
                 {
@@ -104,7 +113,9 @@ namespace Turnroot.Graphics.Portrait.Editor
 
                     var tagProp = layerProp.FindPropertyRelative("Tag");
                     if (tagProp != null)
+                    {
                         EditorGUILayout.PropertyField(tagProp, new GUIContent("Tag"));
+                    }
 
                     if (layerObj is UnmaskedImageStackLayer)
                     {
@@ -201,7 +212,9 @@ namespace Turnroot.Graphics.Portrait.Editor
                 var el = _layersProp.GetArrayElementAtIndex(i);
                 var orderProp = el.FindPropertyRelative("Order");
                 if (orderProp != null)
+                {
                     orderProp.intValue = (_layersProp.arraySize - 1) - i;
+                }
             }
             _ = serializedObject.ApplyModifiedProperties();
         }

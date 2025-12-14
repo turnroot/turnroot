@@ -14,24 +14,16 @@ namespace Turnroot.Editor.PropertyDrawers
     [CustomPropertyDrawer(typeof(SpeciesType), true)]
     public class SpeciesTypeReferenceDrawer : PropertyDrawer
     {
+        private static SpeciesType[] _cachedOptions;
+        private static bool _optionsLoaded = false;
+
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
             EditorGUI.BeginProperty(position, label, property);
 
-            // Try to get the configured list from GameplayGeneralSettings
-            var settings = GameSettingsLoader.LoadFirst<GameplayGeneralSettings>("GameSettings");
-            SpeciesType[] options = null;
-            if (
-                settings != null
-                && settings.SpeciesTypes != null
-                && settings.SpeciesTypes.Length > 0
-            )
+            // Always show all SpeciesType assets in the project as dropdown options
+            if (!_optionsLoaded || _cachedOptions == null)
             {
-                options = settings.SpeciesTypes;
-            }
-            else
-            {
-                // Fallback: search the project for SpeciesType assets
                 var guids = AssetDatabase.FindAssets("t:SpeciesType");
                 var list = new List<SpeciesType>();
                 foreach (var g in guids)
@@ -43,8 +35,10 @@ namespace Turnroot.Editor.PropertyDrawers
                         list.Add(s);
                     }
                 }
-                options = list.ToArray();
+                _cachedOptions = list.ToArray();
+                _optionsLoaded = true;
             }
+            SpeciesType[] options = _cachedOptions;
 
             // Build display names
             var names = new string[options.Length + 1];

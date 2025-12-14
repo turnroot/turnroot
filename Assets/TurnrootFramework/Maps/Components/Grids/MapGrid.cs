@@ -554,6 +554,10 @@ public class MapGrid : MonoBehaviour
                 points.Add(mgp);
             }
         }
+        if (points.Count == 0)
+        {
+            return null;
+        }
         return points;
     }
 

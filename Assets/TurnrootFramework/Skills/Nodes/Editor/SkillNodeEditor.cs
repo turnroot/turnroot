@@ -133,7 +133,9 @@ namespace Turnroot.Skills.Nodes.Editor
                         || iterator.name == "ports"
                         || iterator.name == "OnNodeExecute"
                     )
+                    {
                         continue;
+                    }
 
                     EditorGUILayout.PropertyField(iterator, true);
                 }

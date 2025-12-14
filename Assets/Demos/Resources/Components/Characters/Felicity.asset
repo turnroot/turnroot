@@ -26,6 +26,7 @@ MonoBehaviour:
   <Height>k__BackingField: 156
   <BirthdayDay>k__BackingField: 5
   <BirthdayMonth>k__BackingField: 12
+  <Species>k__BackingField: {fileID: 0}
   <ShortDescription>k__BackingField: 
   <Likes>k__BackingField:
   - Octopi
@@ -67,11 +68,13 @@ MonoBehaviour:
   <ExtraLayerController>k__BackingField: {fileID: 0}
   <BehaviorSettings>k__BackingField:
     MovementDisabled: 0
-    SoldierLoneWolf: 0
-    MindlessCunning: 0
-    SelfishSelfless: 0
-    BrashWary: 0
-    BloodthirstGreed: 0
+    AttackDisabled: 0
+    SoldierLoneWolf: 0.326
+    MindlessCunning: 0.698
+    SelfishSelfless: 0.674
+    BrashWary: 0.5230752
+    BloodthirstGreed: 0.15547669
+    preset: 2
   <StartingInventory>k__BackingField:
   - _item: {fileID: 11400000, guid: 18c28f887826b0d4389fb021663c5146, type: 2}
     _slotIndex: 0

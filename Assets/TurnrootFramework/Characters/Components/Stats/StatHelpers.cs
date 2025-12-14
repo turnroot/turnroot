@@ -22,5 +22,11 @@ namespace Turnroot.Characters.Stats
             List<CharacterStat> stats,
             UnboundedStatType type
         ) => stats?.Find(s => s.StatType == type);
+
+        public static float GetHealthPercentage(List<BoundedCharacterStat> stats)
+        {
+            var healthStat = GetBoundedStat(stats, BoundedStatType.Health);
+            return (healthStat?.Current / healthStat?.Max) ?? 0;
+        }
     }
 }

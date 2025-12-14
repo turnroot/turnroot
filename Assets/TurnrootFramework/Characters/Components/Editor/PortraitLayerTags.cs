@@ -69,10 +69,18 @@ namespace Turnroot.Characters
         public static bool IsMandatory(string tag)
         {
             if (string.IsNullOrEmpty(tag))
+            {
                 return false;
+            }
+
             for (int i = 0; i < Mandatory.Length; i++)
+            {
                 if (string.Equals(Mandatory[i], tag, System.StringComparison.OrdinalIgnoreCase))
+                {
                     return true;
+                }
+            }
+
             return false;
         }
     }

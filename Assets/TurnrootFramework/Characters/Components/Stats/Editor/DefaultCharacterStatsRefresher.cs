@@ -27,7 +27,9 @@ public static class DefaultCharacterStatsRefresher
         requiredBoundedStats.Add(BoundedStatType.LevelExperience);
 
         if (gameplaySettings.GetUseExperienceAptitudes())
+        {
             requiredBoundedStats.Add(BoundedStatType.ClassExperience);
+        }
 
         // Get existing bounded stats
         var existingBoundedStats = new HashSet<BoundedStatType>();
@@ -88,13 +90,19 @@ public static class DefaultCharacterStatsRefresher
         var requiredUnboundedStats = new List<UnboundedStatType>(coreUnboundedStats);
 
         if (gameplaySettings.UseLuck)
+        {
             requiredUnboundedStats.Add(UnboundedStatType.Luck);
+        }
 
         if (gameplaySettings.UseSeparateCriticalAvoidance)
+        {
             requiredUnboundedStats.Add(UnboundedStatType.CriticalAvoidance);
+        }
 
         if (gameplaySettings.UseAuthority)
+        {
             requiredUnboundedStats.Add(UnboundedStatType.Authority);
+        }
 
         // Get existing stats
         var existingUnboundedStats = new HashSet<UnboundedStatType>();

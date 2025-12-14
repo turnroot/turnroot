@@ -21,16 +21,11 @@ namespace Turnroot.Gameplay.Brain
             Debug.Log("ConversationalBrain is ready.");
         }
 
-        protected override void SubscribeToBrainEvents()
-        {
+        protected override void SubscribeToBrainEvents() =>
             // Subscribe to conversation end to track completion
             _brain.OnConversationEnded += HandleConversationEnded;
-        }
 
-        protected override void UnsubscribeFromBrainEvents()
-        {
-            _brain.OnConversationEnded -= HandleConversationEnded;
-        }
+        protected override void UnsubscribeFromBrainEvents() => _brain.OnConversationEnded -= HandleConversationEnded;
 
         private void HandleConversationEnded(Conversation conversation)
         {

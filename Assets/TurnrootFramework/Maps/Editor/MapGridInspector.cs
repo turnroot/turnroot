@@ -80,9 +80,13 @@ public class MapGridInspector : Editor
                     {
                         var mgp = mg.GetGridPoint(idx.x, idx.y);
                         if (mgp != null && mgp.gameObject != null)
+                        {
                             pointName = mgp.gameObject.name;
+                        }
                         else
+                        {
                             pointName = $"Point_R{idx.x}_C{idx.y}";
+                        }
                     }
                     EditorGUILayout.LabelField("Point Name", pointName);
                 }
@@ -102,7 +106,10 @@ public class MapGridInspector : Editor
                     if (EditorGUI.EndChangeCheck())
                     {
                         if (mg != null)
+                        {
                             Undo.RecordObject(mg, "Edit Raycast Point");
+                        }
+
                         elem.vector3Value = newVal;
                         serializedObject.ApplyModifiedProperties();
                         if (mg != null)

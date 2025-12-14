@@ -27,7 +27,10 @@ public class MapGridFeaturePropertiesEditor : Editor
         foreach (MapGridPointFeature.FeatureType t in enumValues)
         {
             if (t == MapGridPointFeature.FeatureType.None)
+            {
                 continue;
+            }
+
             names.Add(t.ToString());
             ids.Add(MapGridPointFeature.IdFromType(t));
         }
@@ -36,7 +39,9 @@ public class MapGridFeaturePropertiesEditor : Editor
         string curId = featureIdProp.stringValue ?? string.Empty;
         int curIndex = ids.IndexOf(curId);
         if (curIndex < 0)
+        {
             curIndex = 0; // default to first option if current id not found
+        }
 
         // Popup to choose feature type
         int chosen = EditorGUILayout.Popup("Feature Type", curIndex, names.ToArray());

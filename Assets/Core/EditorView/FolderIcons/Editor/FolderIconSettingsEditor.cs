@@ -1,7 +1,7 @@
-﻿using UnityEngine;
+﻿using System.IO;
 using UnityEditor;
 using UnityEditorInternal;
-using System.IO;
+using UnityEngine;
 
 namespace FolderIcons
 {
@@ -33,7 +33,7 @@ namespace FolderIcons
 
         private int heightIndex;
 
-        // Sizing 
+        // Sizing
         private const float MAX_LABEL_WIDTH = 90f;
         private const float MAX_FIELD_WIDTH = 150f;
 
@@ -49,7 +49,9 @@ namespace FolderIcons
         private void OnEnable()
         {
             if (target == null)
+            {
                 return;
+            }
 
             settings = target as FolderIconSettings;
             serializedIcons = serializedObject.FindProperty("icons");
@@ -75,7 +77,9 @@ namespace FolderIcons
             savePath = Application.dataPath;
 
             if (selectedTexture != null)
+            {
                 UpdatePreview();
+            }
         }
 
         private void OnDisable()
@@ -93,13 +97,10 @@ namespace FolderIcons
                     fixedHeight = 64,
                     //fixedWidth = 64,
                     //stretchWidth = false,
-                    alignment = TextAnchor.MiddleCenter
+                    alignment = TextAnchor.MiddleCenter,
                 };
 
-                elementStyle = new GUIStyle(GUI.skin.box)
-                {
-
-                };
+                elementStyle = new GUIStyle(GUI.skin.box) { };
             }
 
             // Draw Settings
@@ -107,8 +108,14 @@ namespace FolderIcons
 
             EditorGUI.BeginChangeCheck();
             {
-                showCustomFolders = EditorGUILayout.ToggleLeft("Show Folder Textures", showCustomFolders);
-                showCustomOverlay = EditorGUILayout.ToggleLeft("Show Overlay Textures", showCustomOverlay);
+                showCustomFolders = EditorGUILayout.ToggleLeft(
+                    "Show Folder Textures",
+                    showCustomFolders
+                );
+                showCustomOverlay = EditorGUILayout.ToggleLeft(
+                    "Show Overlay Textures",
+                    showCustomOverlay
+                );
             }
             if (EditorGUI.EndChangeCheck())
             {
@@ -120,7 +127,9 @@ namespace FolderIcons
             EditorGUI.BeginChangeCheck();
             iconList.DoLayoutList();
             if (EditorGUI.EndChangeCheck())
+            {
                 _ = serializedObject.ApplyModifiedProperties();
+            }
 
             DrawTexturePreview();
 
@@ -128,10 +137,15 @@ namespace FolderIcons
             {
                 EditorGUI.BeginChangeCheck();
                 {
-                    replacementColour = EditorGUILayout.ColorField(new GUIContent("Replacement Colour"), replacementColour);
+                    replacementColour = EditorGUILayout.ColorField(
+                        new GUIContent("Replacement Colour"),
+                        replacementColour
+                    );
                 }
                 if (EditorGUI.EndChangeCheck())
+                {
                     SetPreviewColour();
+                }
 
                 DrawTextureSaving();
             }
@@ -153,13 +167,14 @@ namespace FolderIcons
             rect.width += 12f;
 
             Handles.BeginGUI();
-            Handles.DrawSolidRectangleWithOutline(rect,
+            Handles.DrawSolidRectangleWithOutline(
+                rect,
                 new Color(0.15f, 0.15f, 0.15f, 1f),
-                new Color(0.15f, 0.15f, 0.15f, 1f));
+                new Color(0.15f, 0.15f, 0.15f, 1f)
+            );
             Handles.EndGUI();
 
             EditorGUI.LabelField(rect, "Folders", EditorStyles.boldLabel);
-
         }
 
         private void OnElementDraw(Rect rect, int index, bool isActive, bool isFocused)
@@ -192,7 +207,11 @@ namespace FolderIcons
             Object folderObject = folderTexture.objectReferenceValue;
             Object overlayObject = overlayTexture.objectReferenceValue;
 
-            FolderIconGUI.DrawFolderPreview(rect, folderObject as Texture, overlayObject as Texture);
+            FolderIconGUI.DrawFolderPreview(
+                rect,
+                folderObject as Texture,
+                overlayObject as Texture
+            );
 
             // Revert width modification
             EditorGUIUtility.labelWidth = originalLabelWidth;
@@ -202,7 +221,11 @@ namespace FolderIcons
         {
             rect.width++;
             Handles.BeginGUI();
-            Handles.DrawSolidRectangleWithOutline(rect, Color.clear, new Color(0.15f, 0.15f, 0.15f, 1f));
+            Handles.DrawSolidRectangleWithOutline(
+                rect,
+                Color.clear,
+                new Color(0.15f, 0.15f, 0.15f, 1f)
+            );
             Handles.EndGUI();
 
             rect.x++;
@@ -216,7 +239,9 @@ namespace FolderIcons
             while (copy.Next(enterChildren))
             {
                 if (SerializedProperty.EqualContents(copy, property.GetEndProperty()))
+                {
                     break;
+                }
 
                 _ = EditorGUI.PropertyField(rect, copy, false);
                 rect.y += PROPERTY_HEIGHT + PROPERTY_PADDING;
@@ -236,7 +261,6 @@ namespace FolderIcons
             Handles.EndGUI();
         }
 
-
         // ========================
         //
         // ========================
@@ -248,12 +272,14 @@ namespace FolderIcons
         private float GetPropertyHeight(SerializedProperty property)
         {
             if (heightIndex == 0)
+            {
                 heightIndex = property.CountInProperty();
+            }
 
             // return (PROPERTY_HEIGHT + PROPERTY_PADDING) * (heightIndex-1) + PROPERTY_PADDING;
 
             //Property count returning wrong, so just supplying 3 for now
-            //TODO: Investigate GetPropertyCount and find issue with invalid value 
+            //TODO: Investigate GetPropertyCount and find issue with invalid value
             return (PROPERTY_HEIGHT + PROPERTY_PADDING) * (3) + PROPERTY_PADDING;
         }
 
@@ -276,8 +302,7 @@ namespace FolderIcons
             // Draw selection
             EditorGUI.BeginChangeCheck();
             {
-
-                // Headers 
+                // Headers
                 _ = EditorGUILayout.BeginHorizontal();
                 EditorGUILayout.LabelField("Original Texture");
                 EditorGUILayout.LabelField("Modified Texture");
@@ -286,8 +311,15 @@ namespace FolderIcons
                 // Texture -- Preview
                 _ = EditorGUILayout.BeginHorizontal();
                 {
-                    selectedTexture = EditorGUILayout.ObjectField(selectedTexture, typeof(Texture2D),
-                        false, GUILayout.ExpandWidth(false), GUILayout.ExpandHeight(true), GUILayout.Width(64f)) as Texture2D;
+                    selectedTexture =
+                        EditorGUILayout.ObjectField(
+                            selectedTexture,
+                            typeof(Texture2D),
+                            false,
+                            GUILayout.ExpandWidth(false),
+                            GUILayout.ExpandHeight(true),
+                            GUILayout.Width(64f)
+                        ) as Texture2D;
 
                     EditorGUILayout.LabelField(previewContent, previewStyle, GUILayout.Height(64));
                 }
@@ -336,7 +368,6 @@ namespace FolderIcons
                     savePath = EditorUtility.OpenFolderPanel("Texture Save Path", "Assets", "");
                     GUIUtility.ExitGUI();
                 }
-
             }
             GUILayout.EndHorizontal();
 
@@ -407,7 +438,9 @@ namespace FolderIcons
         private void ClearPreviewData()
         {
             if (previewRender != null)
+            {
                 previewRender.Release();
+            }
         }
 
         /// <summary>
@@ -425,20 +458,21 @@ namespace FolderIcons
             previewRender = new RenderTexture(width, height, 16);
             previewTexture = new Texture2D(previewRender.width, previewRender.height)
             {
-                alphaIsTransparency = true
+                alphaIsTransparency = true,
             };
             previewContent.image = previewTexture;
 
             Graphics.Blit(selectedTexture, previewRender);
 
             // Get pixels from current render texture and apply
-            previewTexture.ReadPixels(new Rect(0, 0, previewRender.width, previewRender.height), 0, 0);
+            previewTexture.ReadPixels(
+                new Rect(0, 0, previewRender.width, previewRender.height),
+                0,
+                0
+            );
             SetPreviewColour();
-
         }
 
         #endregion
-
-
     }
 }

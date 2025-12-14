@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Turnroot.Characters.CharacterClass;
+using Turnroot.Gameplay.Objects;
 using UnityEngine;
 
 namespace Turnroot.Characters
@@ -11,6 +12,53 @@ namespace Turnroot.Characters
     public partial class CharacterInstance
     {
         #region Battle Helpers
+
+        public ObjectItemInstance GetEquippedWeapon()
+        {
+            var allowedWeapons = _currentClass.ClassData.Requirements.AllowedWeaponTypes;
+            var inventory = _inventoryInstance.Items();
+
+            // return the weapon in slot 0
+            foreach (
+                var weapon in inventory.Where(w =>
+                    w.Template != null
+                    && allowedWeapons.Contains(w.Template.WeaponType)
+                    && w.Slot == 0
+                )
+            )
+            {
+                return weapon;
+            }
+            return null;
+        }
+
+        public List<ObjectItemInstance> GetAvailableWeapons()
+        {
+            var allowedWeapons = _currentClass.ClassData.Requirements.AllowedWeaponTypes;
+            var inventory = _inventoryInstance.Items();
+            bool hasWeapon = false;
+            var weapons = new List<ObjectItemInstance>();
+
+            foreach (
+                var weapon in inventory.Where(w =>
+                    w.Template != null && allowedWeapons.Contains(w.Template.WeaponType)
+                )
+            )
+            {
+                weapons.Add(weapon);
+                hasWeapon = true;
+            }
+
+            if (!hasWeapon)
+            {
+                return null;
+            }
+            else
+            {
+                // return the first weapon in the lowest slot [0]
+                return weapons;
+            }
+        }
 
         /// <summary>
         /// Returns the minimum attack range across all equippable weapons in the character's inventory, or 0 if no valid weapons are available.

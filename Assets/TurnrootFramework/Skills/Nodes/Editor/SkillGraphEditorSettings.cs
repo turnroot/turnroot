@@ -86,7 +86,9 @@ namespace Turnroot.Skills.Nodes.Editor
             UnityEditor.EditorApplication.delayCall += () =>
             {
                 if (this == null)
+                {
                     return; // Asset was deleted
+                }
 
                 // Get xNode's settings - but DON'T save them back
                 // We only want to update the typeColors dictionary stored in EditorPrefs
@@ -157,13 +159,21 @@ namespace Turnroot.Skills.Nodes.Editor
         public Color GetColorForType(Type type)
         {
             if (type == typeof(ExecutionFlow))
+            {
                 return executionFlowColor;
+            }
             else if (type == typeof(BoolValue))
+            {
                 return boolValueColor;
+            }
             else if (type == typeof(FloatValue))
+            {
                 return floatValueColor;
+            }
             else if (type == typeof(StringValue))
+            {
                 return stringValueColor;
+            }
 
             return Color.white;
         }
@@ -174,13 +184,21 @@ namespace Turnroot.Skills.Nodes.Editor
         public Color GetColorForNodeCategory(string scriptPath)
         {
             if (scriptPath.Contains("/Flow/"))
+            {
                 return flowNodeColor;
+            }
             else if (scriptPath.Contains("/Math/"))
+            {
                 return mathNodeColor;
+            }
             else if (scriptPath.Contains("/Events/"))
+            {
                 return eventsNodeColor;
+            }
             else if (scriptPath.Contains("/Conditions/"))
+            {
                 return conditionsNodeColor;
+            }
 
             return Color.gray;
         }

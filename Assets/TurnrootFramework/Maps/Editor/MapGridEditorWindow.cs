@@ -29,6 +29,9 @@ public class MapGridEditorWindow : EditorWindow
         _hoveredCell = new(-1, -1);
     private Mode _mode = Mode.Paint;
 
+    private Dictionary<MapGridPoint, Color> _cellColorCache = new();
+    private bool _needsGridRedraw = true;
+
     // Dimension tracking
     private int _lastKnownWidth = 0,
         _lastKnownHeight = 0;
@@ -138,17 +141,25 @@ public class MapGridEditorWindow : EditorWindow
         {
             _editorSettingsPath = AssetDatabase.GetAssetPath(_editorSettings) ?? string.Empty;
             if (!string.IsNullOrEmpty(_editorSettingsPath) && File.Exists(_editorSettingsPath))
+            {
                 _editorSettingsLastWriteTimeUtc = File.GetLastWriteTimeUtc(_editorSettingsPath);
+            }
         }
 
         minSize = new Vector2(1000, 600);
         maxSize = new Vector2(1920, 1080);
-        wantsMouseMove = true;
+        wantsMouseMove = false;
         _selectedSecondTool = -1;
         _selectedSecondToolName = string.Empty;
         _zoom = 1f;
 
         InitializeHotkeys();
+    }
+
+    private void InvalidateColorCache()
+    {
+        _cellColorCache.Clear();
+        _needsGridRedraw = true;
     }
 
     private void InitializeHotkeys()
@@ -211,7 +222,18 @@ public class MapGridEditorWindow : EditorWindow
         _sectionFoldouts = new Dictionary<string, bool>();
     }
 
-    private void OnInspectorUpdate() => ReloadEditorSettingsIfChanged();
+    private double _lastSettingsCheckTime = 0;
+    private const double SETTINGS_CHECK_INTERVAL = 2.0;
+
+    private void OnInspectorUpdate()
+    {
+        double currentTime = EditorApplication.timeSinceStartup;
+        if (currentTime - _lastSettingsCheckTime > SETTINGS_CHECK_INTERVAL)
+        {
+            _lastSettingsCheckTime = currentTime;
+            ReloadEditorSettingsIfChanged();
+        }
+    }
 
     private void ReloadEditorSettingsIfChanged()
     {
@@ -250,7 +272,9 @@ public class MapGridEditorWindow : EditorWindow
     private void EnsureStyles()
     {
         if (_guiStyleButton != null)
+        {
             return;
+        }
 
         _guiStyleButton = new GUIStyle(GUI.skin.button)
         {
@@ -273,8 +297,10 @@ public class MapGridEditorWindow : EditorWindow
         EnsureStyles();
         DrawToolbar();
 
-        if (Event.current?.type == EventType.MouseMove)
+        if (Event.current?.type == EventType.MouseMove && (_isDragging || _isPanning))
+        {
             Repaint();
+        }
 
         HandleKeyboardShortcuts();
         EnsureGridPoints();
@@ -292,7 +318,10 @@ public class MapGridEditorWindow : EditorWindow
                 MessageType.Warning
             );
             if (GUILayout.Button("Ensure Grid Points"))
+            {
                 EnsureGridPoints();
+            }
+
             if (GUILayout.Button("Rebuild Index"))
             {
                 _grid.RebuildGridDictionary();
@@ -301,7 +330,9 @@ public class MapGridEditorWindow : EditorWindow
         }
 
         if (_terrainAsset == null)
+        {
             EditorGUILayout.HelpBox("No TerrainTypes asset found.", MessageType.Warning);
+        }
 
         HandleModeSwitch();
         DrawMainLayout();
@@ -400,7 +431,9 @@ public class MapGridEditorWindow : EditorWindow
             _mode == Mode.Paint
             && (HandleShiftHotkey(e) || HandleFeatureHotkey(e) || HandleTerrainHotkey(e))
         )
+        {
             return;
+        }
 
         HandleZoomHotkeys(e);
 
@@ -414,7 +447,9 @@ public class MapGridEditorWindow : EditorWindow
     private bool HandleShiftHotkey(Event e)
     {
         if (!e.shift)
+        {
             return false;
+        }
 
         if (
             _shiftHotkeys?.TryGetValue(e.keyCode, out var featId) == true
@@ -507,12 +542,18 @@ public class MapGridEditorWindow : EditorWindow
 
         EditorGUILayout.BeginVertical(GUILayout.Width(52));
         if (_mode == Mode.Paint)
+        {
             DrawTerrainPalette();
+        }
+
         EditorGUILayout.EndVertical();
 
         EditorGUILayout.BeginVertical(GUILayout.Width(52));
         if (_mode == Mode.Paint)
+        {
             DrawToolsPalette(_featureTools);
+        }
+
         EditorGUILayout.EndVertical();
 
         EditorGUILayout.EndHorizontal();
@@ -524,7 +565,9 @@ public class MapGridEditorWindow : EditorWindow
         EditorGUILayout.BeginVertical(GUILayout.ExpandWidth(true));
 
         if (_mode == Mode.TestMovement)
+        {
             DrawTestMovementControls();
+        }
 
         DrawZoomControls();
 
@@ -535,7 +578,9 @@ public class MapGridEditorWindow : EditorWindow
 
         // Right panel
         if (_mode != Mode.TestMovement)
+        {
             DrawRightPanel();
+        }
 
         EditorGUILayout.EndHorizontal();
         EditorGUILayout.EndVertical();
@@ -619,9 +664,14 @@ public class MapGridEditorWindow : EditorWindow
                 if (EditorGUI.EndChangeCheck())
                 {
                     if (chosen == null)
+                    {
                         point.SetStartingUnit(null);
+                    }
                     else
+                    {
                         point.SetStartingUnit(Turnroot.Characters.CharacterInstance.Create(chosen));
+                    }
+
                     SafeSetDirty(point);
                     MarkDirty();
                 }
@@ -794,7 +844,10 @@ public class MapGridEditorWindow : EditorWindow
         bool expanded = GetSectionFoldout(sectionTitle, true);
         DrawSectionHeader(sectionTitle, expanded, onAddNew);
         if (!expanded)
+        {
             return;
+        }
+
         var serializedPoint = new SerializedObject(point);
         var propertiesArray = serializedPoint.FindProperty(propertyName);
 
@@ -806,7 +859,9 @@ public class MapGridEditorWindow : EditorWindow
                 var el = propertiesArray.GetArrayElementAtIndex(i);
                 var keyProp = el.FindPropertyRelative("key");
                 if (keyProp == null)
+                {
                     continue;
+                }
 
                 hasVisible = true;
                 break;
@@ -827,7 +882,10 @@ public class MapGridEditorWindow : EditorWindow
         EditorGUILayout.BeginHorizontal();
         GUILayout.FlexibleSpace();
         if (GUILayout.Button("+", GUILayout.Width(20)))
+        {
             onAddNew();
+        }
+
         EditorGUILayout.EndHorizontal();
 
         var toRemove = new List<int>();
@@ -839,7 +897,9 @@ public class MapGridEditorWindow : EditorWindow
             var valueProp = element.FindPropertyRelative("value");
 
             if (keyProp == null || valueProp == null)
+            {
                 continue;
+            }
 
             EditorGUILayout.BeginHorizontal();
             GUILayout.Space(_editorSettings?.propertyIndent ?? 12);
@@ -864,12 +924,17 @@ public class MapGridEditorWindow : EditorWindow
                 {
                     Undo.RecordObject(point, "Edit Unit Property");
                     if (chosen == null)
+                    {
                         point.SetUnitFeatureProperty(keyProp.stringValue, null);
+                    }
                     else
+                    {
                         point.SetUnitFeatureProperty(
                             keyProp.stringValue,
                             Turnroot.Characters.CharacterInstance.Create(chosen)
                         );
+                    }
+
                     SafeSetDirty(point);
                     MarkDirty();
                 }
@@ -889,12 +954,17 @@ public class MapGridEditorWindow : EditorWindow
                 {
                     Undo.RecordObject(point, "Edit ObjectItem Property");
                     if (chosen == null)
+                    {
                         point.SetObjectItemFeatureProperty(keyProp.stringValue, null);
+                    }
                     else
+                    {
                         point.SetObjectItemFeatureProperty(
                             keyProp.stringValue,
                             new Turnroot.Gameplay.Objects.ObjectItemInstance(chosen)
                         );
+                    }
+
                     SafeSetDirty(point);
                     MarkDirty();
                 }
@@ -945,12 +1015,17 @@ public class MapGridEditorWindow : EditorWindow
         bool expanded = GetSectionFoldout(sectionTitle, true);
         DrawSectionHeader(sectionTitle, expanded, onAddNew);
         if (!expanded)
+        {
             return;
+        }
 
         if (properties == null || properties.Count == 0)
         {
             if (GUILayout.Button("+", GUILayout.Width(20)))
+            {
                 onAddNew();
+            }
+
             return;
         }
 
@@ -989,13 +1064,24 @@ public class MapGridEditorWindow : EditorWindow
     private T DrawPropertyField<T>(T value)
     {
         if (value is string strVal)
+        {
             return (T)(object)EditorGUILayout.TextField(strVal);
+        }
+
         if (value is bool boolVal)
+        {
             return (T)(object)EditorGUILayout.Toggle(boolVal);
+        }
+
         if (value is int intVal)
+        {
             return (T)(object)EditorGUILayout.IntField(intVal);
+        }
+
         if (value is float floatVal)
+        {
             return (T)(object)EditorGUILayout.FloatField(floatVal);
+        }
 
         EditorGUILayout.LabelField(value?.ToString() ?? "null");
         return value;
@@ -1113,7 +1199,10 @@ public class MapGridEditorWindow : EditorWindow
     private bool GetSectionFoldout(string key, bool defaultValue)
     {
         if (_sectionFoldouts == null)
+        {
             _sectionFoldouts = new Dictionary<string, bool>();
+        }
+
         if (!_sectionFoldouts.TryGetValue(key, out var v))
         {
             _sectionFoldouts[key] = defaultValue;
@@ -1145,7 +1234,9 @@ public class MapGridEditorWindow : EditorWindow
 
         Rect buttonRect = new Rect(rect.x + rect.width - 28, rect.y + 2, 24, rect.height - 4);
         if (GUI.Button(buttonRect, "+"))
+        {
             onAddNew?.Invoke();
+        }
 
         _sectionFoldouts[title] = newExpanded;
     }
@@ -1153,23 +1244,38 @@ public class MapGridEditorWindow : EditorWindow
     private Color GetHeaderAccentColor(string sectionTitle)
     {
         if (_editorSettings == null)
+        {
             return new Color(0.0f, 0.35f, 0.8f, 0.18f);
+        }
 
         string title = sectionTitle ?? string.Empty;
         if (title.IndexOf("Bool", StringComparison.OrdinalIgnoreCase) >= 0)
+        {
             return _editorSettings.headerAccentBoolColor;
+        }
         // "String" and "Int" headers are no longer present — fall through to other types
         if (title.IndexOf("Float", StringComparison.OrdinalIgnoreCase) >= 0)
+        {
             return _editorSettings.headerAccentFloatColor;
+        }
+
         if (title.IndexOf("Unit", StringComparison.OrdinalIgnoreCase) >= 0)
+        {
             return _editorSettings.headerAccentUnitColor;
+        }
+
         if (
             title.IndexOf("ObjectItem", StringComparison.OrdinalIgnoreCase) >= 0
             || title.IndexOf("Object", StringComparison.OrdinalIgnoreCase) >= 0
         )
+        {
             return _editorSettings.headerAccentObjectItemColor;
+        }
+
         if (title.IndexOf("Event", StringComparison.OrdinalIgnoreCase) >= 0)
+        {
             return _editorSettings.headerAccentEventColor;
+        }
 
         return _editorSettings.headerAccentColor;
     }
@@ -1250,14 +1356,18 @@ public class MapGridEditorWindow : EditorWindow
     private void DrawTerrainPalette()
     {
         if (_terrainAsset?.Types == null)
+        {
             return;
+        }
 
         GUILayout.Label("Palette", EditorStyles.boldLabel);
         for (int i = 0; i < _terrainAsset.Types.Length; i++)
         {
             var t = _terrainAsset.Types[i];
             if (t == null)
+            {
                 continue;
+            }
 
             Texture2D icon = GetTerrainIcon(t);
             GUIContent content =
@@ -1289,7 +1399,9 @@ public class MapGridEditorWindow : EditorWindow
             );
             EditorGUI.DrawRect(cRect, col);
             if (GUI.Button(cRect, GUIContent.none, GUIStyle.none))
+            {
                 ShowTerrainPopup(cRect);
+            }
         }
     }
 
@@ -1328,7 +1440,9 @@ public class MapGridEditorWindow : EditorWindow
     private void ShowTerrainPopup(Rect rect)
     {
         if (_terrainAsset?.Types == null)
+        {
             return;
+        }
 
         GenericMenu menu = new();
         for (int i = 0; i < _terrainAsset.Types.Length; i++)
@@ -1352,17 +1466,23 @@ public class MapGridEditorWindow : EditorWindow
     private Texture2D GetIcon(string cacheKey, string[] paths)
     {
         if (_iconCache.TryGetValue(cacheKey, out var cached))
+        {
             return cached;
+        }
 
         Texture2D tex = null;
         foreach (var path in paths)
         {
             if (string.IsNullOrEmpty(path))
+            {
                 continue;
+            }
 
             tex = Resources.Load<Texture2D>(path);
             if (tex != null)
+            {
                 break;
+            }
 
             var spr = Resources.Load<Sprite>(path);
             if (spr?.texture != null)
@@ -1379,7 +1499,9 @@ public class MapGridEditorWindow : EditorWindow
     private Texture2D GetTerrainIcon(TerrainType t)
     {
         if (t == null)
+        {
             return null;
+        }
 
         string cacheKey = "terrain_" + (!string.IsNullOrEmpty(t.Id) ? t.Id : t.Name);
 
@@ -1401,7 +1523,9 @@ public class MapGridEditorWindow : EditorWindow
     private Texture2D GetToolIcon(string id)
     {
         if (string.IsNullOrEmpty(id))
+        {
             return null;
+        }
 
         string cacheKey = "feature_" + id;
 
@@ -1422,7 +1546,9 @@ public class MapGridEditorWindow : EditorWindow
         variants.Add(id.ToLower());
 
         if (id.Length > 0)
+        {
             variants.Add(char.ToUpper(id[0]) + id.Substring(1));
+        }
 
         return GetIcon(
             cacheKey,
@@ -1446,7 +1572,9 @@ public class MapGridEditorWindow : EditorWindow
         EditorGUI.DrawRect(contentRect, Color.grey * 0.2f);
 
         if (_spacePan || _isPanning)
+        {
             EditorGUIUtility.AddCursorRect(contentRect, MouseCursor.Pan);
+        }
 
         Event e = Event.current;
         Vector2 localMouse = e.mousePosition + _scroll;
@@ -1457,7 +1585,9 @@ public class MapGridEditorWindow : EditorWindow
 
         GUI.EndScrollView();
         if (GUI.changed)
+        {
             Repaint();
+        }
     }
 
     private void UpdateHoveredCell(Vector2 localMouse, float cellSize, int width, int height)
@@ -1468,9 +1598,13 @@ public class MapGridEditorWindow : EditorWindow
             && localMouse.x <= width * cellSize
             && localMouse.y <= height * cellSize
         )
+        {
             _hoveredCell = ClampCell(MouseToCell(localMouse, cellSize), width, height);
+        }
         else
+        {
             _hoveredCell = new(-1, -1);
+        }
     }
 
     private void DrawCells(float cellSize, int width, int height)
@@ -1491,19 +1625,12 @@ public class MapGridEditorWindow : EditorWindow
         }
     }
 
-    private Color GetCellColor(MapGridPoint point)
-    {
-        if (point == null)
-            return Color.white;
-        TerrainType tt =
-            _terrainAsset?.GetTypeById(point.TerrainTypeId) ?? point.SelectedTerrainType;
-        return tt?.EditorColor ?? Color.white;
-    }
-
     private void DrawCellOverlays(Rect cellRect, MapGridPoint point, Color fill, float cellSize)
     {
         if (point == null)
+        {
             return;
+        }
 
         // Paint selection overlay
         if ((_mode == Mode.Paint) && _isDragging)
@@ -1513,12 +1640,16 @@ public class MapGridEditorWindow : EditorWindow
             int minC = Mathf.Min(_dragStart.y, _dragEnd.y),
                 maxC = Mathf.Max(_dragStart.y, _dragEnd.y);
             if (point.Row >= minR && point.Row <= maxR && point.Col >= minC && point.Col <= maxC)
+            {
                 EditorGUI.DrawRect(cellRect, new Color(0, 0, 0, 0.25f));
+            }
         }
 
         // Test movement overlay
         if (_mode == Mode.TestMovement && _testMovementResults?.TryGetValue(point, out _) == true)
+        {
             EditorGUI.DrawRect(cellRect, new Color(.8f, 0f, 0.8f, .65f));
+        }
 
         // Feature overlay
         string featureId = point.FeatureTypeId;
@@ -1561,15 +1692,20 @@ public class MapGridEditorWindow : EditorWindow
             // If has feature, use magenta. If no feature but has modified properties, use lighter color
             Color borderCol;
             if (hasFeature)
+            {
                 borderCol =
                     _editorSettings?.selectedFeatureBorderColor
                     ?? _editorSettings?.selectedTileBorderColor
                     ?? Color.black;
+            }
             else
+            {
                 borderCol =
                     _editorSettings != null
                         ? _editorSettings.selectedTileBorderColor
                         : new Color(0.1f, 0.7f, 0.95f, 1f);
+            }
+
             DrawSelectionBorder(cellRect, cellSize, borderCol);
         }
         // Modified properties indicator (no feature, not selected, but has custom properties)
@@ -1584,7 +1720,9 @@ public class MapGridEditorWindow : EditorWindow
     private bool HasModifiedProperties(MapGridPoint point)
     {
         if (point == null)
+        {
             return false;
+        }
 
         // Show the modified overlay only when a map tile's built-in default
         // point properties are changed. These are the starting unit and the
@@ -1595,15 +1733,21 @@ public class MapGridEditorWindow : EditorWindow
         // template was assigned. Only treat the tile as modified if the
         // starting unit has a non-null template asset.
         if (startingUnit != null && startingUnit.CharacterTemplate != null)
+        {
             return true;
+        }
 
         var friendlyEvent = point.GetFriendlyEntersEvent();
         if (friendlyEvent != null && friendlyEvent.GetPersistentEventCount() > 0)
+        {
             return true;
+        }
 
         var enemyEvent = point.GetEnemyEntersEvent();
         if (enemyEvent != null && enemyEvent.GetPersistentEventCount() > 0)
+        {
             return true;
+        }
 
         return false;
     }
@@ -1702,9 +1846,13 @@ public class MapGridEditorWindow : EditorWindow
         }
 
         if (_mode == Mode.Paint)
+        {
             HandlePaintMode(e, localMouse, cellSize, width, height, inside);
+        }
         else if (_mode == Mode.TestMovement)
+        {
             HandleTestMovementMode(e, localMouse, cellSize, width, height, inside);
+        }
     }
 
     private void HandlePaintMode(
@@ -1823,6 +1971,28 @@ public class MapGridEditorWindow : EditorWindow
             Mathf.Clamp(cell.y, 0, Mathf.Max(0, height - 1))
         );
 
+    private Color GetCellColor(MapGridPoint point)
+    {
+        if (point == null)
+            return Color.white;
+
+        if (_cellColorCache.TryGetValue(point, out var cached))
+        {
+            return cached;
+        }
+
+        TerrainType tt = _terrainAsset?.GetTypeById(point.TerrainTypeId);
+        if (tt == null)
+        {
+            // Use cached terrain type from point
+            tt = point.GetCachedTerrainType();
+        }
+
+        Color color = tt?.EditorColor ?? Color.white;
+        _cellColorCache[point] = color;
+        return color;
+    }
+
     private void ApplyTerrainToSelection()
     {
         if (_grid == null || _terrainAsset?.Types == null)
@@ -1843,7 +2013,9 @@ public class MapGridEditorWindow : EditorWindow
             && _selectedTerrainIndex >= 0
             && _selectedTerrainIndex < _terrainAsset.Types.Length
         )
+        {
             chosenTerrain = _terrainAsset.Types[_selectedTerrainIndex];
+        }
 
         for (int r = minR; r <= maxR; r++)
         {
@@ -1863,6 +2035,8 @@ public class MapGridEditorWindow : EditorWindow
                     else if (chosenTerrain != null)
                     {
                         p.SetTerrainTypeId(chosenTerrain.Id);
+                        // PERFORMANCE FIX: Invalidate this cell's color cache
+                        _cellColorCache.Remove(p);
                     }
 
                     SafeSetDirty(p);
@@ -1872,20 +2046,63 @@ public class MapGridEditorWindow : EditorWindow
 
         SafeSetDirty(_grid);
         _grid.SaveFeatureLayer();
+        InvalidateColorCache();
         MarkDirty();
         SceneView.RepaintAll();
+    }
+
+    private void MarkDirty()
+    {
+        if (!EditorApplication.isCompiling && !EditorApplication.isPlayingOrWillChangePlaymode)
+        {
+            SafeSetDirty(_grid);
+            if (
+                !EditorApplication.isCompiling
+                && !EditorApplication.isPlayingOrWillChangePlaymode
+                && !EditorApplication.isUpdating
+            )
+            {
+                EditorSceneManager.MarkSceneDirty(
+                    UnityEngine.SceneManagement.SceneManager.GetActiveScene()
+                );
+            }
+            SceneView.RepaintAll();
+        }
+    }
+
+    private void SafeSetDirty(UnityEngine.Object obj)
+    {
+        if (obj == null)
+            return;
+
+        try
+        {
+            if (EditorApplication.isUpdating)
+            {
+                var path = AssetDatabase.GetAssetPath(obj);
+                if (string.IsNullOrEmpty(path))
+                    return;
+            }
+        }
+        catch { }
+
+        EditorUtility.SetDirty(obj);
     }
 
     private void ApplyToolToPoint(MapGridPoint p, string toolId, bool singleCell)
     {
         if (p == null || string.IsNullOrEmpty(toolId))
+        {
             return;
+        }
 
         // Handle cursor tool
         if (string.Equals(toolId, "cursor", StringComparison.OrdinalIgnoreCase))
         {
             if (!singleCell)
+            {
                 return;
+            }
 
             // Select any grid point, whether it has a feature or not
             SetSelectedFeaturePoint(p);
@@ -1953,7 +2170,9 @@ public class MapGridEditorWindow : EditorWindow
     {
         int idx = Array.IndexOf(_featureTools.Ids, toolId);
         if (idx >= 0 && idx < _featureTools.Names.Length)
+        {
             return _featureTools.Names[idx];
+        }
 
         return toolId;
     }
@@ -1967,53 +2186,11 @@ public class MapGridEditorWindow : EditorWindow
     private void ShowAddPropertyMenu(MapGridPoint point, string propType, bool forFeature = true)
     {
         if (point == null)
+        {
             return;
+        }
 
         NewPropertyPrompt.ShowFor(this, point, _grid, propType, forFeature);
-    }
-
-    private void MarkDirty()
-    {
-        // Avoid marking the scene dirty during compile/domain reload or while
-        // entering/exiting Play Mode. These events can re-run editor UI code and
-        // should not automatically flag the scene as modified.
-        if (!EditorApplication.isCompiling && !EditorApplication.isPlayingOrWillChangePlaymode)
-        {
-            SafeSetDirty(_grid);
-            if (
-                !EditorApplication.isCompiling
-                && !EditorApplication.isPlayingOrWillChangePlaymode
-                && !EditorApplication.isUpdating
-            )
-            {
-                EditorSceneManager.MarkSceneDirty(
-                    UnityEngine.SceneManagement.SceneManager.GetActiveScene()
-                );
-            }
-            SceneView.RepaintAll();
-        }
-    }
-
-    // Avoid marking scene objects dirty during editor update/import windows.
-    // If the object is part of a scene (no asset path) and the editor is
-    // currently updating, skip SetDirty to prevent the scene flag and save prompt.
-    private void SafeSetDirty(UnityEngine.Object obj)
-    {
-        if (obj == null)
-            return;
-
-        try
-        {
-            if (EditorApplication.isUpdating)
-            {
-                var path = AssetDatabase.GetAssetPath(obj);
-                if (string.IsNullOrEmpty(path))
-                    return; // don't mark scene objects during import/update
-            }
-        }
-        catch { }
-
-        EditorUtility.SetDirty(obj);
     }
 
     private class NewPropertyPrompt : EditorWindow
@@ -2033,7 +2210,10 @@ public class MapGridEditorWindow : EditorWindow
         )
         {
             if (point == null)
+            {
                 return;
+            }
+
             var win = CreateInstance<NewPropertyPrompt>();
             win._point = point;
             win._grid = grid;
@@ -2084,40 +2264,68 @@ public class MapGridEditorWindow : EditorWindow
         private void ApplyCreation()
         {
             if (_point == null)
+            {
                 return;
+            }
+
             Undo.RecordObject(_point, "Add Property");
 
             switch ((_propType ?? "").ToLowerInvariant())
             {
                 case "bool":
                     if (_forFeature)
+                    {
                         _point.SetBoolFeatureProperty(_key, false);
+                    }
                     else
+                    {
                         _point.SetBoolPointProperty(_key, false);
+                    }
+
                     break;
                 case "float":
                     if (_forFeature)
+                    {
                         _point.SetFloatFeatureProperty(_key, 0f);
+                    }
                     else
+                    {
                         _point.SetFloatPointProperty(_key, 0f);
+                    }
+
                     break;
                 case "unit":
                     if (_forFeature)
+                    {
                         _point.SetUnitFeatureProperty(_key, null);
+                    }
                     else
+                    {
                         _point.SetUnitPointProperty(_key, null);
+                    }
+
                     break;
                 case "objectitem":
                     if (_forFeature)
+                    {
                         _point.SetObjectItemFeatureProperty(_key, null);
+                    }
                     else
+                    {
                         _point.SetObjectItemPointProperty(_key, null);
+                    }
+
                     break;
                 case "event":
                     if (_forFeature)
+                    {
                         _point.SetEventFeatureProperty(_key, new UnityEvent());
+                    }
                     else
+                    {
                         _point.SetEventPointProperty(_key, new UnityEvent());
+                    }
+
                     break;
                 default:
                     // unknown / deprecated types (string/int) are no longer supported
@@ -2125,9 +2333,15 @@ public class MapGridEditorWindow : EditorWindow
             }
             // Avoid marking scene objects during non-interactive editor update/import.
             if (!EditorApplication.isUpdating)
+            {
                 EditorUtility.SetDirty(_point);
+            }
+
             if (_forFeature)
+            {
                 _grid?.SaveFeatureLayer();
+            }
+
             if (!EditorApplication.isUpdating)
             {
                 EditorSceneManager.MarkSceneDirty(

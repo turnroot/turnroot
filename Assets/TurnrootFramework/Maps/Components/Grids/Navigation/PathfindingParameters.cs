@@ -16,6 +16,7 @@ namespace Turnroot.Maps
         public bool IsArmored { get; set; } = false;
         public float SameDirectionMultiplier { get; set; } = 0.95f;
         public bool IncludeRange { get; set; } = false;
+        public bool IncludeHealRange { get; set; } = false;
         public int MaxRange { get; set; } = 0;
 
         /// <summary>
@@ -50,6 +51,7 @@ namespace Turnroot.Maps
                 IsArmored = movementType == MovementType.Armored,
                 SameDirectionMultiplier = 0.95f,
                 IncludeRange = false,
+                IncludeHealRange = false,
                 MaxRange = 0,
             };
         }
@@ -91,6 +93,7 @@ namespace Turnroot.Maps
                 IsArmored = IsArmored,
                 SameDirectionMultiplier = SameDirectionMultiplier,
                 IncludeRange = IncludeRange,
+                IncludeHealRange = IncludeHealRange,
                 MaxRange = MaxRange,
             };
         }

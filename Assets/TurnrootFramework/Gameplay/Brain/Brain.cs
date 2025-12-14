@@ -8,6 +8,7 @@ using Turnroot.Gameplay.Objects;
 using Turnroot.Utilities;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using static Turnroot.Characters.CharacterInstance;
 
 namespace Turnroot.Gameplay.Brain
 {
@@ -350,6 +351,7 @@ namespace Turnroot.Gameplay.Brain
         public event Action<CharacterInstance> OnCriticalHit;
         public event Action<CharacterInstance, int> OnWeaponUsesChanged;
         public event Action<CharacterInstance, CharacterInstance> OnItemStolen;
+        public event Action<CharacterInstance, BattleEmotion> OnUnitEmotionChanged;
 
         public void PublishBattleStarted() => OnBattleStarted?.Invoke();
 
@@ -385,6 +387,11 @@ namespace Turnroot.Gameplay.Brain
             OnEnemyDamaged?.Invoke(unit, damage);
 
         public void PublishUnitDefeated(CharacterInstance unit) => OnUnitDefeated?.Invoke(unit);
+
+        public void PublishUnitBattleEmotionChanged(
+            CharacterInstance unit,
+            BattleEmotion emotion
+        ) => OnUnitEmotionChanged?.Invoke(unit, emotion);
 
         public void PublishUnitMoved(CharacterInstance unit, Vector2Int pos) =>
             OnUnitMoved?.Invoke(unit, pos);

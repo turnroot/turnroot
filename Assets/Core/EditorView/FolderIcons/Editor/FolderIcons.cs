@@ -30,32 +30,44 @@ namespace FolderIcons
         {
             // Does the folder asset exist at all?
             if (allFolderIcons == null)
+            {
                 allFolderIcons = GetAllInstances<FolderIconSettings>();
+            }
 
             if (folderIcons == null)
             {
                 if (allFolderIcons.Length > 0)
+                {
                     folderIcons = allFolderIcons[0] as FolderIconSettings;
+                }
             }
 
             if (folderIcons == null)
+            {
                 return;
+            }
 
             if (!folderIcons.showCustomFolder && !folderIcons.showOverlay)
+            {
                 return;
+            }
 
             string path = AssetDatabase.GUIDToAssetPath(guid);
             Object folderAsset = AssetDatabase.LoadAssetAtPath(path, typeof(DefaultAsset));
 
             if (folderAsset == null)
+            {
                 return;
+            }
 
             for (int i = 0; i < folderIcons.icons.Length; i++)
             {
                 var icon = folderIcons.icons[i];
 
                 if (icon.folder != folderAsset)
+                {
                     continue;
+                }
 
                 DrawTextures(selectionRect, icon, folderAsset, guid);
             }
@@ -73,7 +85,9 @@ namespace FolderIcons
 
                 //Add small offset for correct placement
                 if (!isSideView)
+                {
                     rect.x += 3f;
+                }
             }
             else
             {
@@ -81,10 +95,14 @@ namespace FolderIcons
             }
 
             if (showFolder && icon.folderIcon)
+            {
                 FolderIconGUI.DrawFolderTexture(rect, icon.folderIcon, guid);
+            }
 
             if (showOverlay && icon.overlayIcon)
+            {
                 FolderIconGUI.DrawOverlayTexture(rect, icon.overlayIcon);
+            }
         }
 
         #region Initialize 
@@ -95,10 +113,14 @@ namespace FolderIcons
             string prefIcon = FolderIconConstants.ICONS_TEXTURE_PATH;
 
             if (!EditorPrefs.HasKey(prefFolder))
+            {
                 EditorPrefs.SetBool(prefFolder, true);
+            }
 
             if (!EditorPrefs.HasKey(prefIcon))
+            {
                 EditorPrefs.SetBool(prefIcon, true);
+            }
 
             showFolder = EditorPrefs.GetBool(prefFolder);
             showOverlay = EditorPrefs.GetBool(prefIcon);
@@ -107,7 +129,9 @@ namespace FolderIcons
         private static bool FindOrCreateFolder(string path, string folderCreateName)
         {
             if (AssetDatabase.IsValidFolder(path))
+            {
                 return true;
+            }
 
             string parentFolder = path.Substring(0, path.LastIndexOf('/'));
             return AssetDatabase.CreateFolder(parentFolder, folderCreateName) != "";

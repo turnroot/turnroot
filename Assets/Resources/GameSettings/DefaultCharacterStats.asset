@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 79177f364cda5c440bdc9828ad2b8b79, type: 3}
+  m_Name: DefaultCharacterStats
+  m_EditorClassIdentifier: 
+  _defaultBoundedStats:
+  - StatType: 0
+    Max: 100
+    Current: 100
+    Min: 0
+  _defaultUnboundedStats:
+  - StatType: 0
+    Current: 10

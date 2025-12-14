@@ -55,6 +55,7 @@ public class MapGridPointFeaturePropertiesEditor : Editor
         // String and Int properties have been removed (no-op)
 
         if (GUILayout.Button("Add Bool"))
+        {
             AddProperty(
                 src,
                 "Add Bool Property",
@@ -67,9 +68,11 @@ public class MapGridPointFeaturePropertiesEditor : Editor
                         }
                     )
             );
+        }
 
         // Int type removed. Expose other useful add buttons below.
         if (GUILayout.Button("Add Event"))
+        {
             AddProperty(
                 src,
                 "Add Event Property",
@@ -82,8 +85,10 @@ public class MapGridPointFeaturePropertiesEditor : Editor
                         }
                     )
             );
+        }
 
         if (GUILayout.Button("Add Unit"))
+        {
             AddProperty(
                 src,
                 "Add Unit Property",
@@ -92,8 +97,10 @@ public class MapGridPointFeaturePropertiesEditor : Editor
                         new MapGridPropertyBase.UnitProperty { key = "new_unit", value = null }
                     )
             );
+        }
 
         if (GUILayout.Button("Add ObjectItem"))
+        {
             AddProperty(
                 src,
                 "Add ObjectItem Property",
@@ -106,8 +113,10 @@ public class MapGridPointFeaturePropertiesEditor : Editor
                         }
                     )
             );
+        }
 
         if (GUILayout.Button("Add Float"))
+        {
             AddProperty(
                 src,
                 "Add Float Property",
@@ -120,6 +129,7 @@ public class MapGridPointFeaturePropertiesEditor : Editor
                         }
                     )
             );
+        }
 
         EditorGUILayout.EndHorizontal();
     }
@@ -143,7 +153,10 @@ public class MapGridPointFeaturePropertiesEditor : Editor
         {
             enterChildren = false;
             if (prop.name == "featureId" || prop.name == "featureName")
+            {
                 continue;
+            }
+
             EditorGUILayout.PropertyField(prop, true);
         }
     }

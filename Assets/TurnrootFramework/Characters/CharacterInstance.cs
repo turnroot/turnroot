@@ -123,7 +123,7 @@ namespace Turnroot.Characters
         // Active status effects on this character
         [SerializeField]
         private List<StatusEffectInstance> _activeStatusEffects = new();
-
+        public CharacterInstance LastAttackedTarget { get; set; } // TODO: Set this properly
         #endregion
 
         #region Properties
@@ -322,6 +322,8 @@ namespace Turnroot.Characters
         /// </summary>
         public CharacterStat GetUnboundedStat(UnboundedStatType type) =>
             StatHelpers.GetUnboundedStat(_runtimeUnboundedStats, type);
+
+        public float GetHealthPercentage() => StatHelpers.GetHealthPercentage(this.BoundedStats);
 
         #endregion
     }

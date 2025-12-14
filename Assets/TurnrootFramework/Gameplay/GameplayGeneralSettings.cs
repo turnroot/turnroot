@@ -178,6 +178,9 @@ public class GameplayGeneralSettings : SingletonScriptableObject<GameplayGeneral
     [SerializeField, BoxGroup("Combat Mechanics")]
     private int MaxWarpDistance = 20;
 
+    [SerializeField, BoxGroup("Combat Mechanics"), Range(0.5f, 1.1f)]
+    private float TerrainBonusMultiplier = 0.8f;
+
     [SerializeField, BoxGroup("Default Stat Values"), HorizontalLine(color: EColor.Blue)]
     private float DefaultMaxHealth = 100f;
 
@@ -253,9 +256,6 @@ public class GameplayGeneralSettings : SingletonScriptableObject<GameplayGeneral
     [SerializeField, BoxGroup("Items")]
     private bool ItemsCanBeGifts = true;
 
-    [SerializeField, BoxGroup("Experience Types"), HorizontalLine(color: EColor.Red)]
-    private ExperienceType[] ExperienceWeaponTypes;
-
     [SerializeField, BoxGroup("Extra Experience Types"), HorizontalLine(color: EColor.Orange)]
     private ExperienceType RidingExperienceType = new()
     {
@@ -300,6 +300,8 @@ public class GameplayGeneralSettings : SingletonScriptableObject<GameplayGeneral
     public int GetMagicTriangleDisadvantage() => MagicTriangleDisadvantage;
 
     public int GetCombatArtLimit() => CombatArtLimit;
+
+    public float GetTerrainBonusMultiplier() => TerrainBonusMultiplier;
 
     public int GetMaxEquippedSkills() => MaxEquippedSkills;
 
@@ -366,9 +368,19 @@ public class GameplayGeneralSettings : SingletonScriptableObject<GameplayGeneral
         var list = new System.Collections.Generic.List<ExperienceType>();
 
         // Add weapon-based experience types
-        if (ExperienceWeaponTypes != null)
+        if (WeaponTypes != null)
         {
-            list.AddRange(ExperienceWeaponTypes);
+            list.AddRange(
+                System.Array.ConvertAll(
+                    WeaponTypes,
+                    wt => new ExperienceType
+                    {
+                        Name = wt.ToString(),
+                        Enabled = true,
+                        HasWeaponType = true,
+                    }
+                )
+            );
         }
 
         // Add extra experience types if enabled
@@ -398,80 +410,56 @@ public class GameplayGeneralSettings : SingletonScriptableObject<GameplayGeneral
 #if UNITY_EDITOR
     private void OnValidate()
     {
-        // Auto-refresh DefaultCharacterStats when Extra Unit Stats change
+        // When gameplay toggles change, refresh related assets so their
+        // OnValidate/OnEnable handlers can re-apply defaults (ObjectItem, etc.)
         UnityEditor.EditorApplication.delayCall += () =>
         {
-            if (this != null)
+            if (this == null)
             {
-                RefreshDefaultCharacterStats();
-                // When gameplay toggles change, refresh related assets so their
-                // OnValidate/OnEnable handlers can re-apply defaults (ObjectItem, etc.)
-                UnityEditor.EditorApplication.delayCall += () =>
+                return;
+            }
+
+            UnityEditor.EditorApplication.delayCall += () =>
+            {
+                try
                 {
-                    try
+                    // Refresh ObjectItems
+                    var guids = UnityEditor.AssetDatabase.FindAssets("t:ObjectItem");
+                    foreach (var g in guids)
                     {
-                        // Refresh ObjectItems
-                        var guids = UnityEditor.AssetDatabase.FindAssets("t:ObjectItem");
-                        foreach (var g in guids)
+                        var path = UnityEditor.AssetDatabase.GUIDToAssetPath(g);
+                        if (string.IsNullOrEmpty(path))
                         {
-                            var path = UnityEditor.AssetDatabase.GUIDToAssetPath(g);
-                            if (string.IsNullOrEmpty(path))
-                            {
-                                continue;
-                            }
-
-                            // Force update so ScriptableObject OnValidate/OnEnable re-run
-                            UnityEditor.AssetDatabase.ImportAsset(
-                                path,
-                                UnityEditor.ImportAssetOptions.ForceUpdate
-                            );
+                            continue;
                         }
 
-                        // Refresh CharacterClassData to update ShowIf conditions
-                        var classGuids = UnityEditor.AssetDatabase.FindAssets(
-                            "t:CharacterClassData"
+                        // Force update so ScriptableObject OnValidate/OnEnable re-run
+                        UnityEditor.AssetDatabase.ImportAsset(
+                            path,
+                            UnityEditor.ImportAssetOptions.ForceUpdate
                         );
-                        foreach (var g in classGuids)
-                        {
-                            var path = UnityEditor.AssetDatabase.GUIDToAssetPath(g);
-                            if (string.IsNullOrEmpty(path))
-                            {
-                                continue;
-                            }
-
-                            // Force reimport to trigger OnEnable and update cached mode
-                            UnityEditor.AssetDatabase.ImportAsset(
-                                path,
-                                UnityEditor.ImportAssetOptions.ForceUpdate
-                            );
-                        }
                     }
-                    catch { }
-                };
-            }
-        };
-    }
 
-    private void RefreshDefaultCharacterStats()
-    {
-        var defaultStats = Turnroot.Characters.DefaultCharacterStats.Instance;
-        if (defaultStats != null)
-        {
-            // Use reflection to call the editor-only refresher
-            var refresherType = System.Type.GetType("DefaultCharacterStatsRefresher");
-            if (refresherType != null)
-            {
-                var method = refresherType.GetMethod(
-                    "RefreshStats",
-                    System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static
-                );
-                if (method != null)
-                {
-                    method.Invoke(null, new object[] { defaultStats, this });
-                    UnityEditor.EditorUtility.SetDirty(defaultStats);
+                    // Refresh CharacterClassData to update ShowIf conditions
+                    var classGuids = UnityEditor.AssetDatabase.FindAssets("t:CharacterClassData");
+                    foreach (var g in classGuids)
+                    {
+                        var path = UnityEditor.AssetDatabase.GUIDToAssetPath(g);
+                        if (string.IsNullOrEmpty(path))
+                        {
+                            continue;
+                        }
+
+                        // Force reimport to trigger OnEnable and update cached mode
+                        UnityEditor.AssetDatabase.ImportAsset(
+                            path,
+                            UnityEditor.ImportAssetOptions.ForceUpdate
+                        );
+                    }
                 }
-            }
-        }
+                catch { }
+            };
+        };
     }
 #endif
 }

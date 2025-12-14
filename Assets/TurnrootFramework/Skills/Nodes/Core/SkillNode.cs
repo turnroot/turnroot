@@ -98,10 +98,7 @@ namespace Turnroot.Skills.Nodes
         /// </summary>
         /// <param name="context">The battle context (guaranteed non-null when called).</param>
         /// <returns>Validation result indicating whether execution should proceed.</returns>
-        protected virtual SkillNodeValidationResult ValidateRequirements(BattleContext context)
-        {
-            return SkillNodeValidationResult.Success();
-        }
+        protected virtual SkillNodeValidationResult ValidateRequirements(BattleContext context) => SkillNodeValidationResult.Success();
 
         /// <summary>
         /// Override this method to implement the node's execution logic.
@@ -450,10 +447,7 @@ namespace Turnroot.Skills.Nodes
         /// <summary>
         /// Deals damage to a target using the command pattern (float overload for compatibility).
         /// </summary>
-        protected bool DealDamage(BattleContext context, CharacterInstance target, float damage)
-        {
-            return DealDamage(context, target, (int)damage);
-        }
+        protected bool DealDamage(BattleContext context, CharacterInstance target, float damage) => DealDamage(context, target, (int)damage);
 
         /// <summary>
         /// Kills a character using the command pattern (deals lethal damage).

@@ -217,7 +217,13 @@ namespace Turnroot.Gameplay.Objects
         private float _critical = 0f;
 
         [Foldout("Combat"), SerializeField, ShowIf(nameof(IsWeaponOrMagicSubtype))]
+        private SpeciesType[] _speciesEffectiveAgainst = new SpeciesType[0];
+
+        [Foldout("Combat"), SerializeField, ShowIf(nameof(IsWeaponOrMagicSubtype))]
         private SerializableDictionary<UnboundedStatType, float> _StatBonuses = new();
+
+        [Foldout("Combat"), SerializeField, ShowIf(nameof(IsWeaponOrMagicSubtype))]
+        private Skill _weaponEffect;
 
         public SerializableDictionary<UnboundedStatType, float> StatBonuses => _StatBonuses;
 

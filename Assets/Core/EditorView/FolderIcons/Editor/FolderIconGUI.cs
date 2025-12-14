@@ -18,17 +18,23 @@ namespace FolderIcons
         public static void DrawFolderPreview(Rect rect, Texture folder, Texture overlay)
         {
             if (folder == null && overlay == null)
+            {
                 return;
+            }
 
             if (folder != null)
+            {
                 GUI.DrawTexture(rect, folder, ScaleMode.ScaleToFit);
+            }
 
             //Half size of overlay, and reposition to center
             rect.size *= 0.5f;
             rect.position += rect.size * 0.5f;
 
             if (overlay != null)
+            {
                 GUI.DrawTexture(rect, overlay, ScaleMode.ScaleToFit);
+            }
         }
 
         /// <summary>
@@ -40,7 +46,9 @@ namespace FolderIcons
         public static void DrawFolderTexture(Rect rect, Texture folder, string guid)
         {
             if (folder == null)
+            {
                 return;
+            }
 
             Color rectCol = Selection.assetGUIDs.Contains(guid)
                 ? FolderIconConstants.SelectedColor
@@ -58,7 +66,9 @@ namespace FolderIcons
         public static void DrawOverlayTexture(Rect rect, Texture overlay)
         {
             if (overlay == null)
+            {
                 return;
+            }
 
             rect.size *= 0.5f;
             rect.position += rect.size * 0.5f;

@@ -43,7 +43,9 @@ namespace Turnroot.Graphics2D.Editor
             // If current image stack exists, ensure mandatory tags/indices are present
             var imageStack = _currentImage.ImageStack;
             if (imageStack == null)
+            {
                 return;
+            }
 
             var tags = GetMandatoryLayerTags();
             var indices = GetMandatoryLayerIndices();
@@ -99,11 +101,15 @@ namespace Turnroot.Graphics2D.Editor
                 System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance
             );
             if (field == null)
+            {
                 return;
+            }
 
             var reorder = field.GetValue(this) as ReorderableList;
             if (reorder == null)
+            {
                 return;
+            }
 
             // Replace onRemoveCallback to prevent removing mandatory layers
             reorder.onRemoveCallback = list =>

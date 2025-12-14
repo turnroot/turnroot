@@ -30,6 +30,23 @@ namespace Turnroot.Characters
         public int TurnsAliveThisBattle => _turnsAliveThisBattle;
         public int CombatsThisTurn => _combatsThisTurn;
 
+        public CharacterInstance LastAttacker { get; private set; }
+
+        public enum BattleEmotion
+        {
+            Neutral,
+            Desperate,
+            Enraged,
+            Cocky,
+            Cautious,
+        }
+
+        public BattleEmotion CurrentEmotion { get; set; } = BattleEmotion.Neutral;
+
+        public bool LastTurnCollectedTreasure { get; private set; }
+
+        public bool LastTurnKilledEnemy { get; private set; }
+
         internal void RecordKill() => _totalKills++;
 
         public void RecordBattleStart()

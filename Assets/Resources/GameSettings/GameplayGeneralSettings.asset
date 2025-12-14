@@ -1,0 +1,94 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 03a896db8f43bba419fac15576b362f2, type: 3}
+  m_Name: GameplayGeneralSettings
+  m_EditorClassIdentifier: 
+  ClassSelection: 1
+  WeaponTypes:
+  - {fileID: 11400000, guid: 030efab55c186fa4ead5d556dc84fdd5, type: 2}
+  SpeciesTypes:
+  - {fileID: 11400000, guid: 6b6a40766f8c5d843ba98e8e51603c6e, type: 2}
+  WeaponsCanBeForged: 1
+  WeaponsCanBeRepaired: 1
+  WeaponsHaveDurability: 1
+  UseExperienceAptitudes: 0
+  GoldDisplayNames:
+    OneLetter: G
+    FullName: gold
+  CombatArts: 0
+  CombatArtLimit: 3
+  MaxEquippedSkills: 0
+  WeaponTriangle: 0
+  ExpandedWeaponTriangle: 0
+  WeaponTriangleAdvantage: 20
+  WeaponTriangleDisadvantage: -20
+  MagicTriangle: 0
+  MagicTriangleAdvantage: 20
+  MagicTriangleDisadvantage: -20
+  Battalions: 0
+  BattalionLimit: 1
+  BattalionEndurance: 0
+  PairUp: 0
+  Adjutants: 0
+  AdjutantHeal: 0
+  AdjutantGuard: 0
+  AdjutantAttack: 0
+  CriticalHitMultiplier: 3
+  MaxWarpDistance: 20
+  DefaultMaxHealth: 100
+  DefaultCurrentHealth: 100
+  DefaultMinHealth: 0
+  DefaultMaxLevel: 99
+  DefaultStartingLevel: 1
+  DefaultMinLevel: 1
+  DefaultMaxExperience: 100
+  DefaultStartingExperience: 0
+  DefaultMinExperience: 0
+  DefaultCoreStatValue: 10
+  DefaultLuckValue: 5
+  DefaultAuthorityValue: 5
+  DefaultCriticalAvoidanceValue: 0
+  UnlimitedRange: 0
+  DefaultMinRange: 0
+  DefaultMaxRange: 0
+  Weight: 0
+  WeightAffectsMovement: 0
+  Luck: 1
+  SeparateCriticalAvoidance: 0
+  Authority: 0
+  EquippableOutfits: 0
+  ItemsCanBeLostItems: 1
+  ItemsCanBeGifts: 1
+  RidingExperienceType:
+    _name: Riding
+    _id: riding
+    _enabled: 1
+    _associatedWeaponType: {fileID: 0}
+    _hasWeaponType: 0
+  FlyingExperienceType:
+    _name: Flying
+    _id: flying
+    _enabled: 1
+    _associatedWeaponType: {fileID: 0}
+    _hasWeaponType: 0
+  ArmorExperienceType:
+    _name: Armor
+    _id: armor
+    _enabled: 1
+    _associatedWeaponType: {fileID: 0}
+    _hasWeaponType: 0
+  AuthorityExperienceType:
+    _name: Authority
+    _id: authority
+    _enabled: 0
+    _associatedWeaponType: {fileID: 0}
+    _hasWeaponType: 0

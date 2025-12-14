@@ -56,10 +56,7 @@ namespace Turnroot.Gameplay.Brain
         /// - Low: UI updates, visual effects, audio cues
         /// - Lowest: Analytics, achievement tracking, debug logging
         /// </remarks>
-        protected virtual EventPriority GetSubscriptionPriority()
-        {
-            return EventPriority.Normal;
-        }
+        protected virtual EventPriority GetSubscriptionPriority() => EventPriority.Normal;
 
         /// <summary>
         /// Subscribe to Brain events. Override in derived classes to add specific subscriptions.

@@ -71,10 +71,7 @@ namespace Turnroot.Gameplay.Brain
         /// CharactersBrain uses Highest priority because it manages critical character state.
         /// This ensures character data is saved before UI tries to read it.
         /// </summary>
-        protected override EventPriority GetSubscriptionPriority()
-        {
-            return EventPriority.Highest;
-        }
+        protected override EventPriority GetSubscriptionPriority() => EventPriority.Highest;
 
         protected override void SubscribeToBrainEvents()
         {

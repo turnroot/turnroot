@@ -34,6 +34,9 @@ public class TerrainType
     [SerializeField, Range(-20, 20)]
     private int _healthChangePerTurnFlying = 0;
 
+    [SerializeField, Range(-20, 20)]
+    private int _healthChangePerTurnArmor = 0;
+
     [SerializeField, Range(-40, 40)]
     private int _defenseBonusWalk = 0;
 
@@ -44,6 +47,9 @@ public class TerrainType
     private int _defenseBonusFlying = 0;
 
     [SerializeField, Range(-40, 40)]
+    private int _defenseBonusArmor = 0;
+
+    [SerializeField, Range(-40, 40)]
     private int _avoidBonusWalk = 0;
 
     [SerializeField, Range(-40, 40)]
@@ -51,6 +57,9 @@ public class TerrainType
 
     [SerializeField, Range(-40, 40)]
     private int _avoidBonusFlying = 0;
+
+    [SerializeField, Range(-40, 40)]
+    private int _avoidBonusArmor = 0;
 
     [SerializeField]
     private Color _editorColor = Color.white;
@@ -65,12 +74,18 @@ public class TerrainType
     public int HealthChangePerTurnWalk => _healthChangePerTurnWalk;
     public int HealthChangePerTurnRiding => _healthChangePerTurnRiding;
     public int HealthChangePerTurnFlying => _healthChangePerTurnFlying;
+
+    public int HealthChangePerTurnArmor => _healthChangePerTurnArmor;
     public int DefenseBonusWalk => _defenseBonusWalk;
     public int DefenseBonusRiding => _defenseBonusRiding;
     public int DefenseBonusFlying => _defenseBonusFlying;
+
+    public int DefenseBonusArmor => _defenseBonusArmor;
     public int AvoidBonusWalk => _avoidBonusWalk;
     public int AvoidBonusRiding => _avoidBonusRiding;
     public int AvoidBonusFlying => _avoidBonusFlying;
+
+    public int AvoidBonusArmor => _avoidBonusArmor;
     public Color EditorColor => _editorColor;
 
     // Stable identifier used to reference this type from other objects

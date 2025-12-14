@@ -93,14 +93,19 @@ public class FilteredSpritePicker : PopupWindowContent
                     _selectedIndex = index;
                     _onSelect?.Invoke(s);
                     if (editorWindow != null)
+                    {
                         editorWindow.Close();
+                    }
+
                     GUIUtility.ExitGUI();
                     return;
                 }
 
                 // Draw the preview texture inside the tile rect
                 if (preview != null)
+                {
                     GUI.DrawTexture(tileRect, preview, ScaleMode.ScaleToFit);
+                }
 
                 // Tooltip (sprite name) for the tile
                 if (!string.IsNullOrEmpty(s.name))
@@ -123,7 +128,9 @@ public class FilteredSpritePicker : PopupWindowContent
             PortraitLayerSpriteCache.Refresh(_tag);
             _sprites = PortraitLayerSpriteCache.GetSprites(_tag) ?? new Sprite[0];
             if (editorWindow != null)
+            {
                 editorWindow.Repaint();
+            }
         }
         GUILayout.EndHorizontal();
 
@@ -135,13 +142,19 @@ public class FilteredSpritePicker : PopupWindowContent
             if (ev.keyCode == KeyCode.RightArrow)
             {
                 if (_selectedIndex < _sprites.Length - 1)
+                {
                     _selectedIndex++;
+                }
+
                 ev.Use();
             }
             else if (ev.keyCode == KeyCode.LeftArrow)
             {
                 if (_selectedIndex > 0)
+                {
                     _selectedIndex--;
+                }
+
                 ev.Use();
             }
             else if (ev.keyCode == KeyCode.UpArrow)
@@ -152,9 +165,14 @@ public class FilteredSpritePicker : PopupWindowContent
             else if (ev.keyCode == KeyCode.DownArrow)
             {
                 if (_selectedIndex < 0)
+                {
                     _selectedIndex = 0;
+                }
                 else
+                {
                     _selectedIndex = Mathf.Min(_sprites.Length - 1, _selectedIndex + cols);
+                }
+
                 ev.Use();
             }
             else if (ev.keyCode == KeyCode.Return || ev.keyCode == KeyCode.KeypadEnter)
@@ -164,14 +182,19 @@ public class FilteredSpritePicker : PopupWindowContent
                     var s = _sprites[_selectedIndex];
                     _onSelect?.Invoke(s);
                     if (editorWindow != null)
+                    {
                         editorWindow.Close();
+                    }
+
                     GUIUtility.ExitGUI();
                     return;
                 }
             }
 
             if (prev != _selectedIndex && editorWindow != null)
+            {
                 editorWindow.Repaint();
+            }
         }
     }
 }

@@ -112,7 +112,10 @@ namespace Turnroot.Characters.Subclasses.Editor
                 GUILayout.BeginHorizontal();
                 _newPortraitName = GUILayout.TextField(_newPortraitName);
                 if (GUILayout.Button("Create"))
+                {
                     CreateNewPortrait(_newPortraitName);
+                }
+
                 GUILayout.EndHorizontal();
                 return;
             }
@@ -134,7 +137,10 @@ namespace Turnroot.Characters.Subclasses.Editor
 
             _quickPortraitName = GUILayout.TextField(_quickPortraitName, GUILayout.Width(120));
             if (GUILayout.Button("New +", EditorStyles.miniButton))
+            {
                 CreateNewPortrait(_quickPortraitName);
+            }
+
             GUILayout.EndHorizontal();
 
             if (_currentImage == null)
@@ -193,7 +199,9 @@ namespace Turnroot.Characters.Subclasses.Editor
                     {
                         EditorUtility.SetDirty(imageStack);
                         if (_autoRefresh)
+                        {
                             RefreshPreview();
+                        }
                     }
                 }
             }
@@ -226,7 +234,9 @@ namespace Turnroot.Characters.Subclasses.Editor
             }
 
             if (_lastListImageStack == imageStack && _layersReorderList != null)
+            {
                 return;
+            }
 
             _layersSerializedObject = new SerializedObject(imageStack);
             var layersProp = _layersSerializedObject.FindProperty("_layers");
@@ -239,7 +249,9 @@ namespace Turnroot.Characters.Subclasses.Editor
             {
                 var l = imageStack.Layers[i];
                 if (l != null && !string.IsNullOrEmpty(l.Tag))
+                {
                     existingTags.Add(l.Tag);
+                }
             }
 
             bool addedAny = false;
@@ -323,22 +335,32 @@ namespace Turnroot.Characters.Subclasses.Editor
             foreach (var l in original)
             {
                 if (l == null)
+                {
                     continue;
+                }
+
                 if (string.IsNullOrEmpty(l.Tag) && !result.Contains(l))
+                {
                     result.Add(l);
+                }
             }
 
             // 2) Optional tagged layers (non-mandatory), preserving original order
             foreach (var l in original)
             {
                 if (l == null)
+                {
                     continue;
+                }
+
                 if (
                     !string.IsNullOrEmpty(l.Tag)
                     && !Turnroot.Characters.PortraitLayerTags.IsMandatory(l.Tag)
                     && !result.Contains(l)
                 )
+                {
                     result.Add(l);
+                }
             }
 
             // 3) Mandatory tags in canonical front-to-back order
@@ -349,27 +371,38 @@ namespace Turnroot.Characters.Subclasses.Editor
                     && string.Equals(x.Tag, tag, System.StringComparison.OrdinalIgnoreCase)
                 );
                 if (found != null && !result.Contains(found))
+                {
                     result.Add(found);
+                }
             }
 
             // Replace the layers list contents with the ordered result
             imageStack.Layers.Clear();
             foreach (var r in result)
+            {
                 imageStack.Layers.Add(r);
+            }
 
             // Assign Order values: Face (back) gets 0, others incrementing from 1 (front highest)
             int orderCounter = 1;
             foreach (var l in imageStack.Layers)
             {
                 if (l == null)
+                {
                     continue;
+                }
+
                 if (
                     !string.IsNullOrEmpty(l.Tag)
                     && string.Equals(l.Tag, "Face", System.StringComparison.OrdinalIgnoreCase)
                 )
+                {
                     l.Order = 0;
+                }
                 else
+                {
                     l.Order = orderCounter++;
+                }
             }
 
             // We draw our own per-element remove button so we can hide removal for mandatory layers
@@ -413,7 +446,9 @@ namespace Turnroot.Characters.Subclasses.Editor
                         _layersSerializedObject.ApplyModifiedProperties();
                         EditorUtility.SetDirty(imageStack);
                         if (_autoRefresh)
+                        {
                             RefreshPreview();
+                        }
                     }
                 }
             };
@@ -427,7 +462,9 @@ namespace Turnroot.Characters.Subclasses.Editor
                 int srcIndex = layersProp.arraySize - 1;
                 int newIndex = 0;
                 if (srcIndex != newIndex)
+                {
                     layersProp.MoveArrayElement(srcIndex, newIndex);
+                }
 
                 var newEl = layersProp.GetArrayElementAtIndex(newIndex);
                 if (newEl != null)
@@ -442,15 +479,29 @@ namespace Turnroot.Characters.Subclasses.Editor
                     var tintProp = newEl.FindPropertyRelative("Tint");
 
                     if (spriteProp != null)
+                    {
                         spriteProp.objectReferenceValue = null;
+                    }
+
                     if (maskProp != null)
+                    {
                         maskProp.objectReferenceValue = null;
+                    }
+
                     if (offsetProp != null)
+                    {
                         offsetProp.vector2Value = Vector2.zero;
+                    }
+
                     if (scaleProp != null)
+                    {
                         scaleProp.floatValue = 1f;
+                    }
+
                     if (rotationProp != null)
+                    {
                         rotationProp.floatValue = 0f;
+                    }
 
                     // Put new layer at the front: give it a high Order so it renders on top.
                     if (orderProp != null)
@@ -459,27 +510,39 @@ namespace Turnroot.Characters.Subclasses.Editor
                         for (int i = 0; i < layersProp.arraySize; i++)
                         {
                             if (i == newIndex)
+                            {
                                 continue;
+                            }
+
                             var o = layersProp
                                 .GetArrayElementAtIndex(i)
                                 .FindPropertyRelative("Order");
                             if (o != null)
+                            {
                                 maxOrder = Mathf.Max(maxOrder, o.intValue);
+                            }
                         }
                         orderProp.intValue = (maxOrder == int.MinValue) ? 1 : (maxOrder + 1);
                     }
 
                     // Ensure new layers are normal (no tag) and have default tint/manual settings
                     if (tagProp != null)
+                    {
                         tagProp.stringValue = string.Empty;
+                    }
+
                     if (tintProp != null)
+                    {
                         tintProp.colorValue = Color.white;
+                    }
                 }
 
                 _layersSerializedObject.ApplyModifiedProperties();
                 EditorUtility.SetDirty(stackRef);
                 if (_autoRefresh)
+                {
                     RefreshPreview();
+                }
             };
 
             _layersReorderList.onRemoveCallback = list =>
@@ -514,13 +577,17 @@ namespace Turnroot.Characters.Subclasses.Editor
                     var el = layersProp.GetArrayElementAtIndex(i);
                     var orderProp = el.FindPropertyRelative("Order");
                     if (orderProp != null)
+                    {
                         orderProp.intValue = (layersProp.arraySize - 1) - i;
+                    }
                 }
 
                 _layersSerializedObject.ApplyModifiedProperties();
                 EditorUtility.SetDirty(stackRef);
                 if (_autoRefresh)
+                {
                     RefreshPreview();
+                }
             };
 
             _layersReorderList.onChangedCallback = list =>
@@ -530,13 +597,17 @@ namespace Turnroot.Characters.Subclasses.Editor
                     var el = layersProp.GetArrayElementAtIndex(i);
                     var orderProp = el.FindPropertyRelative("Order");
                     if (orderProp != null)
+                    {
                         orderProp.intValue = (layersProp.arraySize - 1) - i;
+                    }
                 }
 
                 _layersSerializedObject.ApplyModifiedProperties();
                 EditorUtility.SetDirty(stackRef);
                 if (_autoRefresh)
+                {
                     RefreshPreview();
+                }
             };
 
             _lastListImageStack = imageStack;
@@ -545,18 +616,27 @@ namespace Turnroot.Characters.Subclasses.Editor
         protected override Portrait[] GetImagesFromOwner(CharacterData owner)
         {
             if (owner?.Portraits == null)
+            {
                 return null;
+            }
 
             var arr = owner?.PortraitArray;
             if (arr == null || arr.Length == 0)
+            {
                 return null;
+            }
 
             var nonNull = arr.Where(p => p != null).ToArray();
             if (nonNull.Length == 0)
+            {
                 return null;
+            }
 
             foreach (var p in nonNull)
+            {
                 p.SetOwner(owner);
+            }
+
             return nonNull;
         }
     }

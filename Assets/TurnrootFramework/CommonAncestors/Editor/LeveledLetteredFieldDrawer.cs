@@ -18,7 +18,9 @@ public class LeveledLetteredFieldDrawer : PropertyDrawer
             // Find the current index
             int currentIndex = System.Array.IndexOf(_options, valueProp.stringValue);
             if (currentIndex == -1)
+            {
                 currentIndex = 0; // Default to first option if invalid
+            }
 
             // Draw the dropdown
             int newIndex = EditorGUI.Popup(position, label.text, currentIndex, _options);

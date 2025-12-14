@@ -22,7 +22,10 @@ public static class PortraitLayerSpriteCache
     private static string TagToPartial(string tag)
     {
         if (string.IsNullOrEmpty(tag))
+        {
             return string.Empty;
+        }
+
         return $"PortraitComponents/{tag.Trim().Replace(' ', '_')}/";
     }
 
@@ -68,7 +71,9 @@ public static class PortraitLayerSpriteCache
     public static Sprite[] GetSprites(string tag)
     {
         if (string.IsNullOrEmpty(tag))
+        {
             return Array.Empty<Sprite>();
+        }
 
         // Use TryGetValue to avoid double lookup - refresh if not found
         if (!_sprites.TryGetValue(tag, out var arr))
@@ -82,7 +87,9 @@ public static class PortraitLayerSpriteCache
     public static string[] GetNames(string tag)
     {
         if (string.IsNullOrEmpty(tag))
+        {
             return Array.Empty<string>();
+        }
 
         // Use TryGetValue to avoid double lookup - refresh if not found
         if (!_names.TryGetValue(tag, out var arr))

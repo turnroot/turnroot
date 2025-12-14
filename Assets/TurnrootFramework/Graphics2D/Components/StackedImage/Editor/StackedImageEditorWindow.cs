@@ -39,7 +39,10 @@ namespace Turnroot.Graphics2D.Editor
             }
 
             if (!DrawImageSelection())
+            {
                 return;
+            }
+
             if (_currentImage == null)
             {
                 EditorGUILayout.HelpBox("Selected image is null.", MessageType.Error);
@@ -80,8 +83,10 @@ namespace Turnroot.Graphics2D.Editor
                 EditorGUI.BeginChangeCheck();
                 string[] imageNames = new string[images.Length];
                 for (int i = 0; i < images.Length; i++)
+                {
                     imageNames[i] =
                         images[i] != null ? $"Image {i}: {images[i].Key}" : $"Image {i}: (null)";
+                }
 
                 _selectedImageIndex = EditorGUILayout.Popup(
                     "Select Image",
@@ -89,7 +94,9 @@ namespace Turnroot.Graphics2D.Editor
                     imageNames
                 );
                 if (EditorGUI.EndChangeCheck())
+                {
                     UpdateCurrentImage();
+                }
             }
             else if (_currentImage == null)
             {
@@ -129,10 +136,13 @@ namespace Turnroot.Graphics2D.Editor
         protected void DrawImageMetadataSection()
         {
             if (string.IsNullOrEmpty(_currentImage.Key))
+            {
                 EditorGUILayout.HelpBox(
                     "Warning: Key is empty. It will be auto-generated when rendering.",
                     MessageType.Warning
                 );
+            }
+
             EditorGUILayout.Space(10);
         }
 
@@ -162,7 +172,9 @@ namespace Turnroot.Graphics2D.Editor
                     MessageType.Warning
                 );
                 if (GUILayout.Button("+ Create New Image Stack"))
+                {
                     CreateNewImageStack();
+                }
             }
 
             EditorGUILayout.Space(10);
@@ -227,18 +239,26 @@ namespace Turnroot.Graphics2D.Editor
 
             EditorGUI.BeginChangeCheck();
             for (int i = 0; i < 3; i++)
+            {
                 _currentImage.TintColors[i] = EditorGUILayout.ColorField(
                     $"Tint Color {i + 1}",
                     _currentImage.TintColors[i]
                 );
+            }
+
             if (EditorGUI.EndChangeCheck())
+            {
                 MarkDirtyAndRefresh();
+            }
 
             EditorGUILayout.BeginHorizontal();
             if (GUILayout.Button("Reset to White"))
             {
                 for (int i = 0; i < 3; i++)
+                {
                     _currentImage.TintColors[i] = Color.white;
+                }
+
                 MarkDirtyAndRefresh();
             }
             if (GUILayout.Button("Update from Owner"))
@@ -273,12 +293,17 @@ namespace Turnroot.Graphics2D.Editor
             {
                 var layer = layers[i];
                 if (layer == null)
+                {
                     continue;
+                }
 
                 EditorGUILayout.BeginVertical("box");
                 DrawLayerButton(i, layer);
                 if (_selectedLayerIndex == i)
+                {
                     DrawLayerDetails(layer);
+                }
+
                 EditorGUILayout.EndVertical();
             }
 
@@ -290,10 +315,14 @@ namespace Turnroot.Graphics2D.Editor
             bool isSelected = _selectedLayerIndex == index;
             Color originalColor = GUI.backgroundColor;
             if (isSelected)
+            {
                 GUI.backgroundColor = Color.cyan;
+            }
 
             if (GUILayout.Button($"Layer {index}: Order {layer.Order}"))
+            {
                 _selectedLayerIndex = index;
+            }
 
             GUI.backgroundColor = originalColor;
         }
@@ -405,10 +434,12 @@ namespace Turnroot.Graphics2D.Editor
             }
 
             if (string.IsNullOrEmpty(_currentImage.Key))
+            {
                 EditorGUILayout.HelpBox(
                     "Warning: Key is empty. A key will be auto-generated.",
                     MessageType.Warning
                 );
+            }
 
             if (GUILayout.Button("Render and Save to File", GUILayout.Height(40)))
             {
@@ -485,7 +516,9 @@ namespace Turnroot.Graphics2D.Editor
         {
             EditorUtility.SetDirty(_currentOwner);
             if (_autoRefresh)
+            {
                 RefreshPreview();
+            }
         }
     }
 }

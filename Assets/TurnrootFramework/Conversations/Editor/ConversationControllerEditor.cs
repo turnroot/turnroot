@@ -35,11 +35,15 @@ namespace Turnroot.Conversations.Editor
                         instancesProp.GetArrayElementAtIndex(i).objectReferenceValue
                         as ConversationInstance;
                     if (elem == null)
+                    {
                         labels.Add($"{i}: <null>");
+                    }
                     else
+                    {
                         labels.Add(
                             $"{i}: {elem.name} -> {(elem.Conversation != null ? elem.Conversation.name : "<no conversation>")}"
                         );
+                    }
                 }
             }
             else
@@ -52,9 +56,13 @@ namespace Turnroot.Conversations.Editor
 
             // Clamp index into a safe range
             if (labels.Count > 0)
+            {
                 cur = Mathf.Clamp(cur, 0, labels.Count - 1);
+            }
             else
+            {
                 cur = 0;
+            }
 
             using (new EditorGUI.DisabledScope(labels.Count == 0))
             {

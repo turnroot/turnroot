@@ -39,10 +39,7 @@ namespace Turnroot.Gameplay.Brain
         /// BattleBrain uses Highest priority because it manages critical battle state.
         /// This ensures roster updates complete before UI tries to display them.
         /// </summary>
-        protected override EventPriority GetSubscriptionPriority()
-        {
-            return EventPriority.Highest;
-        }
+        protected override EventPriority GetSubscriptionPriority() => EventPriority.Highest;
 
         protected override void SubscribeToBrainEvents()
         {

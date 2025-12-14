@@ -18,6 +18,8 @@ namespace Turnroot.Gameplay.Objects
         [SerializeField]
         private ObjectItem _template;
 
+        public int Slot; // TODO: Actually set this up
+
         [NonSerialized]
         private CharacterInventoryInstance _ownerInventory;
         private int currentUses;

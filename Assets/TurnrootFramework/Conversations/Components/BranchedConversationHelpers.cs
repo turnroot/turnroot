@@ -55,14 +55,7 @@ namespace Turnroot.Conversations
                             }
 
                             var tid = c.node.GetInstanceID();
-                            if (!incomingCounts.TryGetValue(tid, out var cnt))
-                            {
-                                incomingCounts[tid] = 1;
-                            }
-                            else
-                            {
-                                incomingCounts[tid] = cnt + 1;
-                            }
+                            incomingCounts[tid] = !incomingCounts.TryGetValue(tid, out var cnt) ? 1 : cnt + 1;
                         }
                     }
                 }

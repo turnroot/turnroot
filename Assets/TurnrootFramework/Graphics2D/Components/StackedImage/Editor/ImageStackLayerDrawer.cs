@@ -78,11 +78,13 @@ public class ImageStackLayerDrawer : PropertyDrawer
                 {
                     int currentIndex = -1;
                     for (int i = 0; i < sprites.Length; i++)
+                    {
                         if (sprites[i] == spriteProp.objectReferenceValue)
                         {
                             currentIndex = i;
                             break;
                         }
+                    }
 
                     // Draw a button that opens a grid popup of sprite previews
                     string buttonLabel = currentIndex >= 0 ? names[currentIndex] : "Select...";
@@ -175,17 +177,21 @@ public class ImageStackLayerDrawer : PropertyDrawer
             string[] popupOptions = new string[all.Length + 1];
             popupOptions[0] = "<none>";
             for (int i = 0; i < all.Length; i++)
+            {
                 popupOptions[i + 1] = all[i];
+            }
 
             int tagCurrentIndex = 0;
             if (!string.IsNullOrEmpty(oldTag))
             {
                 for (int i = 0; i < all.Length; i++)
+                {
                     if (string.Equals(all[i], oldTag, StringComparison.OrdinalIgnoreCase))
                     {
                         tagCurrentIndex = i + 1;
                         break;
                     }
+                }
             }
 
             int tagSel = EditorGUI.Popup(
@@ -227,7 +233,10 @@ public class ImageStackLayerDrawer : PropertyDrawer
                         {
                             var el = layersProp.GetArrayElementAtIndex(i);
                             if (el == null)
+                            {
                                 continue;
+                            }
+
                             var t = el.FindPropertyRelative("Tag");
                             if (
                                 t != null
@@ -343,7 +352,10 @@ public class ImageStackLayerDrawer : PropertyDrawer
                             {
                                 var l = stack.Layers[i];
                                 if (l == null)
+                                {
                                     continue;
+                                }
+
                                 if (
                                     !string.IsNullOrEmpty(l.Tag)
                                     && string.Equals(
@@ -463,7 +475,9 @@ public class ImageStackLayerDrawer : PropertyDrawer
     {
         // If the property isn't expanded, only the foldout is shown.
         if (!property.isExpanded)
+        {
             return FieldHeight;
+        }
 
         float height = 0f;
         // Foldout line
@@ -479,40 +493,57 @@ public class ImageStackLayerDrawer : PropertyDrawer
         var tintProp = property.FindPropertyRelative("Tint");
 
         if (spriteProp != null)
+        {
             height += EditorGUI.GetPropertyHeight(spriteProp, true) + Spacing;
+        }
 
         // Mask only shown for non-hair layers; detect tag to decide
         string tag = string.Empty;
         if (tagProp != null)
+        {
             tag = tagProp.stringValue;
+        }
 
         if (string.IsNullOrEmpty(tag))
         {
             if (maskProp != null)
+            {
                 height += EditorGUI.GetPropertyHeight(maskProp, true) + Spacing;
+            }
         }
         else
         {
             // For hair/unmasked layers, we also show the tint swatch
             if (tintProp != null)
+            {
                 height += EditorGUI.GetPropertyHeight(tintProp, true) + Spacing;
+            }
         }
 
         if (offsetProp != null)
+        {
             height += EditorGUI.GetPropertyHeight(offsetProp, true) + Spacing;
+        }
+
         if (scaleProp != null)
+        {
             height += EditorGUI.GetPropertyHeight(scaleProp, true) + Spacing;
+        }
 
         // Tag field
         if (tagProp != null)
+        {
             height += EditorGUI.GetPropertyHeight(tagProp, true) + Spacing;
+        }
 
         // Ensure there's room for the preview on the right if a sprite exists
         if (spriteProp != null && spriteProp.objectReferenceValue != null)
         {
             float fieldsHeight = height;
             if (PreviewSize + FieldHeight + Spacing > fieldsHeight)
+            {
                 height = PreviewSize + FieldHeight + Spacing;
+            }
         }
 
         // padding
@@ -524,7 +555,9 @@ public class ImageStackLayerDrawer : PropertyDrawer
     private Rect GetSpriteTextureCoords(Sprite sprite)
     {
         if (sprite == null || sprite.texture == null)
+        {
             return new Rect(0, 0, 1, 1);
+        }
 
         float x = sprite.textureRect.x / sprite.texture.width;
         float y = sprite.textureRect.y / sprite.texture.height;

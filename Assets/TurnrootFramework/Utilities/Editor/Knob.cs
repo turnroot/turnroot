@@ -123,7 +123,9 @@ namespace UnityEditor
             public float Handle()
             {
                 if (KnobState().isEditing && CurrentEventType() != EventType.Repaint)
+                {
                     return DoKeyboardInput();
+                }
 
                 switch (CurrentEventType())
                 {
@@ -219,7 +221,9 @@ namespace UnityEditor
                     || KnobState().isEditing
                     || IsEmptyKnob()
                 )
+                {
                     return currentValue;
+                }
 
                 GUIUtility.hotControl = id;
 
@@ -241,11 +245,15 @@ namespace UnityEditor
             private float OnMouseDrag()
             {
                 if (GUIUtility.hotControl != id)
+                {
                     return currentValue;
+                }
 
                 var state = KnobState();
                 if (!state.isDragging)
+                {
                     return currentValue;
+                }
 
                 GUI.changed = true;
                 CurrentEvent().Use();
@@ -256,7 +264,10 @@ namespace UnityEditor
                 float deltaPos = state.dragStartPos - MousePosition();
                 var newValue = state.dragStartValue + (deltaPos / ValuesPerPixel());
                 if (snap > 0f)
+                {
                     newValue = Mathf.Round(newValue / snap) * snap;
+                }
+
                 return Clamp(newValue);
             }
 
@@ -274,7 +285,9 @@ namespace UnityEditor
             private void PrintValue()
             {
                 if (!showValue)
+                {
                     return;
+                }
 
                 string value = currentValue.ToString(
                     valueFormat,
@@ -323,7 +336,10 @@ namespace UnityEditor
                     if (float.TryParse(newStr, out float newValue) && newValue != currentValue)
                     {
                         if (snap > 0f)
+                        {
                             newValue = Mathf.Round(newValue / snap) * snap;
+                        }
+
                         return Clamp(newValue);
                     }
                 }
@@ -334,7 +350,9 @@ namespace UnityEditor
             private void DrawValueArc(float angle)
             {
                 if (Event.current.type != EventType.Repaint)
+                {
                     return;
+                }
 
                 // Simple knob: draw a wire circle and a line indicator from center to edge
                 Vector2 center2 = new Vector2(
@@ -391,10 +409,14 @@ namespace UnityEditor
                 DrawValueArc(GetCurrentValuePercent() * Mathf.PI * (3.0f / 2.0f));
 
                 if (KnobState().isEditing)
+                {
                     return DoKeyboardInput();
+                }
 
                 if (showValue)
+                {
                     PrintValue();
+                }
 
                 return currentValue;
             }

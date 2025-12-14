@@ -52,15 +52,19 @@ public class MapGridPointEditor : Editor
         string curId = idProp.stringValue;
         int curIndex = 0;
         for (int i = 0; i < ids.Length; i++)
+        {
             if (ids[i] == curId)
             {
                 curIndex = i;
                 break;
             }
+        }
 
         int newIndex = EditorGUILayout.Popup("Terrain Type", curIndex, names);
         if (newIndex != curIndex)
+        {
             idProp.stringValue = ids[newIndex];
+        }
 
         // We load the TerrainTypes asset centrally (Resources or project asset). No per-point asset field.
 
@@ -79,7 +83,9 @@ public class MapGridPointEditor : Editor
         {
             var val = fi.GetValue(point) as TerrainTypes;
             if (val != null)
+            {
                 return val;
+            }
         }
 
         // Fallback: find first TerrainTypes asset in project

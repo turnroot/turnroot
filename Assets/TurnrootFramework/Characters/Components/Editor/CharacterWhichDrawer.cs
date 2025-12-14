@@ -28,7 +28,9 @@ namespace Turnroot.Characters.Components.Editor
                 string currentValue = valueProperty.stringValue;
                 int currentIndex = System.Array.IndexOf(options, currentValue);
                 if (currentIndex < 0)
+                {
                     currentIndex = 1; // Default to Enemy
+                }
 
                 // Draw dropdown
                 int newIndex = EditorGUI.Popup(position, label.text, currentIndex, options);

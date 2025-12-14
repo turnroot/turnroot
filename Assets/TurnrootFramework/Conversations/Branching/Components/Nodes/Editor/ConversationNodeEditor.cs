@@ -32,7 +32,9 @@ namespace Turnroot.Conversations.Branching.Nodes.Editor
 
             var portNames = new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal);
             foreach (var p in target.Ports)
+            {
                 portNames.Add(p.fieldName);
+            }
 
             SerializedProperty iterator = serializedObject.GetIterator();
             iterator.NextVisible(true); // Skip script
@@ -44,7 +46,9 @@ namespace Turnroot.Conversations.Branching.Nodes.Editor
                     || iterator.name == "ports"
                     || portNames.Contains(iterator.name)
                 )
+                {
                     continue;
+                }
 
                 EditorGUILayout.PropertyField(iterator, true);
             }
