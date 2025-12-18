@@ -5,6 +5,7 @@ using Turnroot.Characters.Components.Support;
 using Turnroot.Conversations;
 using Turnroot.Gameplay.Combat;
 using Turnroot.Gameplay.Objects;
+using Turnroot.Gameplay.Player;
 using Turnroot.Utilities;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -40,6 +41,7 @@ namespace Turnroot.Gameplay.Brain
     [RequireComponent(typeof(BattleBrain))]
     [RequireComponent(typeof(InventoryBrain))]
     [RequireComponent(typeof(StorehouseBrain))]
+    [RequireComponent(typeof(PlayerInputBrain))]
     public partial class Brain : MonoBehaviour
     {
         // Core components
@@ -63,6 +65,9 @@ namespace Turnroot.Gameplay.Brain
 
         [HideInInspector]
         public StorehouseBrain storehouseBrain;
+
+        [HideInInspector]
+        public PlayerInputBrain playerInputBrain;
 
         [HideInInspector]
         public LongTermMemory ltm;
@@ -179,6 +184,35 @@ namespace Turnroot.Gameplay.Brain
 
         public void PublishRosterFailed(Roster roster, string reason) =>
             OnRosterFailed?.Invoke(roster, reason);
+
+        #endregion
+
+        #region Character Movement Events
+        public event Action<CharacterInstance, MapGridPoint> OnCharacterMoveStarted;
+
+        public event Action<CharacterInstance, MapGridPoint> OnCharacterMoveCompleted;
+
+        public event Action<CharacterInstance> OnPlayerMovePreviewStarted;
+
+        public event Action<CharacterInstance, MapGridPoint> OnPlayerChoseMoveTile;
+
+        public void PublishCharacterMoveStarted(
+            CharacterInstance character,
+            MapGridPoint targetPoint
+        ) => OnCharacterMoveStarted?.Invoke(character, targetPoint);
+
+        public void PublishCharacterMoveCompleted(
+            CharacterInstance character,
+            MapGridPoint targetPoint
+        ) => OnCharacterMoveCompleted?.Invoke(character, targetPoint);
+
+        public void PublishPlayerMovePreviewStarted(CharacterInstance character) =>
+            OnPlayerMovePreviewStarted?.Invoke(character);
+
+        public void PublishPlayerChoseMoveTile(
+            CharacterInstance character,
+            MapGridPoint targetPoint
+        ) => OnPlayerChoseMoveTile?.Invoke(character, targetPoint);
 
         #endregion
 
@@ -500,6 +534,9 @@ namespace Turnroot.Gameplay.Brain
             gamewideContextBrain = GetComponent<GamewideContextBrain>();
             battleBrain = GetComponent<BattleBrain>();
             charactersBrain = GetComponent<CharactersBrain>();
+            inventoryBrain = GetComponent<InventoryBrain>();
+            storehouseBrain = GetComponent<StorehouseBrain>();
+            playerInputBrain = GetComponent<PlayerInputBrain>();
         }
 
         public void InitializeLongTermMemory()
@@ -562,10 +599,13 @@ namespace Turnroot.Gameplay.Brain
             }
         }
 
-        private void OnSceneLoaded_LinkControllers(Scene scene, LoadSceneMode mode) =>
-            TryLinkConversationController();
-
         #endregion
+
+        private void OnSceneLoaded_LinkControllers(Scene scene, LoadSceneMode mode)
+        {
+            playerInputBrain.TryLinkPlayerController();
+            TryLinkConversationController();
+        }
 
         #region State Control
 

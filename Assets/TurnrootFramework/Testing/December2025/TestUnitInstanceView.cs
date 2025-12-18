@@ -1,4 +1,3 @@
-using NaughtyAttributes;
 using Turnroot.Characters;
 using UnityEngine;
 
@@ -9,14 +8,15 @@ public class TestUnitInstanceView : MonoBehaviour
 
     [Header("Data Reference")]
     public CharacterData CharacterData;
-
     private CharacterInstance _characterInstance;
+
+    public CharacterInstance CharacterDataInstance => _characterInstance;
+
+    private ICharacterAIData Data => _characterInstance.ToAIData();
 
     [Header("Debug Info")]
     public string DisplayName;
     public Vector2Int CurrentGridCoordinates;
-
-    public Vector2Int MoveToPoint;
 
     public AStarModified aStarModified;
     public MapGrid TestingGrid;
@@ -46,8 +46,7 @@ public class TestUnitInstanceView : MonoBehaviour
         }
     }
 
-    [Button]
-    public void MoveUnitToPoint()
+    public void MoveUnitToPoint(Vector2Int MoveToPoint)
     {
         Debug.Log("MoveUnitToPoint called");
         MapGridPoint MovePoint = TestingGrid.GetGridPoint(MoveToPoint.x, MoveToPoint.y);
@@ -56,23 +55,22 @@ public class TestUnitInstanceView : MonoBehaviour
             Debug.Log(
                 $"TestingGrid: {TestingGrid}, "
                     + $"CurrentGridPoint: {CurrentGridPoint}, "
-                    + $"Movement: {_characterInstance.ToAIData().GetStat(Turnroot.Characters.Stats.UnboundedStatType.Movement)}, "
-                    + $"Infantry: {_characterInstance.ToAIData().MovementType == MovementType.Infantry}, "
-                    + $"Flying: {_characterInstance.ToAIData().MovementType == MovementType.Flying}, "
-                    + $"Riding: {_characterInstance.ToAIData().MovementType == MovementType.Riding}, "
+                    + $"Movement: {Data.GetStat(Turnroot.Characters.Stats.UnboundedStatType.Movement)}, "
+                    + $"Infantry: {Data.MovementType == MovementType.Infantry}, "
+                    + $"Flying: {Data.MovementType == MovementType.Flying}, "
+                    + $"Riding: {Data.MovementType == MovementType.Riding}, "
                     + $"Magic: {false}, "
-                    + // TODO: Fix magic movement
-                    $"Armored: {_characterInstance.ToAIData().MovementType == MovementType.Armored}"
+                    + $"Armored: {Data.MovementType == MovementType.Armored}"
             );
             var reachable = aStarModified.GetReachable(
                 TestingGrid,
                 CurrentGridPoint,
-                _characterInstance.ToAIData().Movement,
-                _characterInstance.ToAIData().MovementType == MovementType.Infantry,
-                _characterInstance.ToAIData().MovementType == MovementType.Flying,
-                _characterInstance.ToAIData().MovementType == MovementType.Riding,
+                Data.Movement,
+                Data.MovementType == MovementType.Infantry,
+                Data.MovementType == MovementType.Flying,
+                Data.MovementType == MovementType.Riding,
                 false, // TODO: Fix magic movement
-                _characterInstance.ToAIData().MovementType == MovementType.Armored
+                Data.MovementType == MovementType.Armored
             );
             Debug.Log($"Reachable points count: {reachable.Count}");
 

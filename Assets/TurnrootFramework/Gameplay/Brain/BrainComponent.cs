@@ -18,6 +18,8 @@ namespace Turnroot.Gameplay.Brain
     {
         protected Brain _brain;
 
+        public Brain Brain => _brain;
+
         protected virtual void Awake()
         {
             _brain = GetComponent<Brain>();
