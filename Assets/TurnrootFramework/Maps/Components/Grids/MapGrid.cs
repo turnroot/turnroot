@@ -85,6 +85,27 @@ public class MapGrid : MonoBehaviour
     public float GridScale => _gridScale;
     public Vector3 GridOffset => _gridOffset;
 
+    private void Awake()
+    {
+        // Rebuild dictionaries from existing children at runtime
+        if (_gridPoints == null || _gridPoints.Count == 0)
+        {
+            if (transform.childCount > 0)
+            {
+                RebuildGridDictionary();
+            }
+        }
+
+        // Ensure cache is built
+        EnsureCachedGridPoints();
+
+        // Rebuild raycast colors for gizmos in play mode
+        if (_single3dHeightMeshRaycastPoints != null && _single3dHeightMeshRaycastPoints.Length > 0)
+        {
+            RebuildRaycastColors();
+        }
+    }
+
     /* -------------------------- Buttons -------------------------- */
     [Button("Create Grid Points")]
     public void CreateChildrenPoints()
@@ -523,6 +544,17 @@ public class MapGrid : MonoBehaviour
         }
 
         return null;
+    }
+
+    public Vector3 GetMapGridPointWorldLocation(MapGridPoint gridPoint)
+    {
+        // _gridPoints has real GameObjects, so use their transform for world position
+        var key = new Vector2Int(gridPoint.Row, gridPoint.Col);
+        if (_gridPoints.TryGetValue(key, out var point) && point != null)
+        {
+            return point.transform.position;
+        }
+        return Vector3.zero;
     }
 
     public List<MapGridPoint> GetAllGridPoints()
