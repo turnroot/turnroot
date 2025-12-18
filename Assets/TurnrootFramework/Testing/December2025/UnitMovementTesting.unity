@@ -8212,38 +8212,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ddabd10709cdeb24f8eed2df4447753b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  CharacterInstance:
-    _mapGridPosition: {x: 0, y: 0}
-    _isDefeatedInCurrentBattle: 0
-    _id: 
-    _characterTemplate: {fileID: 11400000, guid: a53a4ecdb913d9944b06166e1bc35ca6, type: 2}
-    _currentLevel: 0
-    _currentExp: 0
-    _runtimeBoundedStats: []
-    _runtimeUnboundedStats: []
-    _inventoryInstance:
-      _inventoryItems: []
-      _capacity: 6
-      _equippedItemIndices: ffffffffffffffffffffffff
-      _isWeaponEquipped: 0
-      _nonWeaponEquippedFlags: 0000
-    _skillInstances: []
-    _supportRelationships: []
-    _experienceRanks: []
-    _currentClass:
-      _characterData: {fileID: 0}
-      _classData: {fileID: 0}
-      _meshRenderer: {fileID: 0}
-      _isFirstTimeEquipped: 1
-      _battlesCompleted: 0
-      _levelWhenEquipped: 1
-      _masteredSkills: []
-    _equippedClassHistory: []
-    _activeStatusEffects: []
-    _totalKills: 0
-    _totalBattles: 0
+  CharacterData: {fileID: 11400000, guid: a53a4ecdb913d9944b06166e1bc35ca6, type: 2}
   DisplayName: 
-  CurrentGridCoordinates: {x: 0, y: 0}
+  CurrentGridCoordinates: {x: 6, y: 14}
   MoveToPoint: {x: 0, y: 0}
   TestingGrid: {fileID: 36972945}
   CurrentGridPoint: {fileID: 0}

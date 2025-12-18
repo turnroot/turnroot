@@ -228,6 +228,57 @@ public class AStarModified
     }
 
     /// <summary>
+    /// Given a dictionary of reachable tiles (from GetReachable), reconstruct a path from start to goal.
+    /// Returns an empty list if no path exists.
+    /// </summary>
+    public List<MapGridPoint> GetPathThroughReachable(
+        MapGridPoint start,
+        MapGridPoint goal,
+        Dictionary<MapGridPoint, float> reachable
+    )
+    {
+        var path = new List<MapGridPoint>();
+        if (!reachable.ContainsKey(goal))
+        {
+            return path;
+        }
+
+        MapGridPoint current = goal;
+        path.Add(current);
+
+        while (current != start)
+        {
+            MapGridPoint next = null;
+            float lowestCost = float.MaxValue;
+
+            // Use non-allocating neighbor retrieval
+            current.GetNeighborsNonAlloc(_neighborsBuffer);
+            foreach (var kv in _neighborsBuffer)
+            {
+                var neighbor = kv.Value;
+                if (reachable.TryGetValue(neighbor, out var cost) && cost < lowestCost)
+                {
+                    lowestCost = cost;
+                    next = neighbor;
+                }
+            }
+
+            if (next == null)
+            {
+                // No path found
+                path.Clear();
+                return path;
+            }
+
+            path.Add(next);
+            current = next;
+        }
+
+        path.Reverse();
+        return path;
+    }
+
+    /// <summary>
     /// Expand range tiles outward from boundary tiles (tiles at exact movementBudget cost).
     /// Used for attack range display after movement.
     /// </summary>

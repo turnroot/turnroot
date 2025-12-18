@@ -62,6 +62,10 @@ public class MapGrid : MonoBehaviour
     private bool _showRaycastGizmos = true;
 
     [SerializeField]
+    [Tooltip("Show coordinate labels for raycast points in the Scene view")]
+    private bool _showRaycastCoordinates = true;
+
+    [SerializeField]
     [Tooltip("Flip the X ordering used when mapping raycast points to grid indices")]
     private bool _flipRaycastX = false;
 
@@ -761,7 +765,21 @@ public class MapGrid : MonoBehaviour
                         : Color.magenta;
                 c.a = 1f;
                 Gizmos.color = c;
-                Gizmos.DrawSphere(p, s);
+                Gizmos.DrawSphere(p, s * (_showRaycastCoordinates ? 0.5f : 1f));
+                // add a Handle Label with coordinates
+                if (!_showRaycastCoordinates)
+                {
+                    continue;
+                }
+
+                Gizmos.color = Color.white;
+                UnityEditor.Handles.Label(
+                    p + (Vector3.up * s * 2f),
+                    _single3dHeightMeshRaycastIndices != null
+                    && i < _single3dHeightMeshRaycastIndices.Length
+                        ? $"({_single3dHeightMeshRaycastIndices[i].x}, {_single3dHeightMeshRaycastIndices[i].y})"
+                        : "(?, ?)"
+                );
             }
         }
         // Draw a rectangle for the traversable area

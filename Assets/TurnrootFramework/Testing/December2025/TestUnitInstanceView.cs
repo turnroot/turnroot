@@ -4,8 +4,13 @@ using UnityEngine;
 
 public class TestUnitInstanceView : MonoBehaviour
 {
+    private static readonly WaitForSeconds _wait = new(0.6f);
+    private Coroutine moveCoroutine;
+
     [Header("Data Reference")]
-    public CharacterInstance CharacterInstance;
+    public CharacterData CharacterData;
+
+    private CharacterInstance _characterInstance;
 
     [Header("Debug Info")]
     public string DisplayName;
@@ -17,13 +22,19 @@ public class TestUnitInstanceView : MonoBehaviour
     public MapGrid TestingGrid;
     public MapGridPoint CurrentGridPoint;
 
-    void Update()
+    private void Awake()
+    {
+        aStarModified = new AStarModified();
+        _characterInstance = new CharacterInstance(CharacterData);
+    }
+
+    private void Update()
     {
         // Keep inspector in sync for debugging
-        if (CharacterInstance != null && TestingGrid != null)
+        if (_characterInstance != null && TestingGrid != null)
         {
-            DisplayName = CharacterInstance.CharacterTemplate?.DisplayName;
-            CurrentGridPoint = CharacterInstance.UnitPositionToMapGridPoint(
+            DisplayName = _characterInstance.CharacterTemplate?.DisplayName;
+            CurrentGridPoint = _characterInstance.UnitPositionToMapGridPoint(
                 CurrentGridCoordinates,
                 TestingGrid
             );
@@ -42,29 +53,47 @@ public class TestUnitInstanceView : MonoBehaviour
         MapGridPoint MovePoint = TestingGrid.GetGridPoint(MoveToPoint.x, MoveToPoint.y);
         if (aStarModified != null && TestingGrid != null)
         {
-            var path = aStarModified.AStarSearch(
+            Debug.Log(
+                $"TestingGrid: {TestingGrid}, "
+                    + $"CurrentGridPoint: {CurrentGridPoint}, "
+                    + $"Movement: {_characterInstance.ToAIData().GetStat(Turnroot.Characters.Stats.UnboundedStatType.Movement)}, "
+                    + $"Infantry: {_characterInstance.ToAIData().MovementType == MovementType.Infantry}, "
+                    + $"Flying: {_characterInstance.ToAIData().MovementType == MovementType.Flying}, "
+                    + $"Riding: {_characterInstance.ToAIData().MovementType == MovementType.Riding}, "
+                    + $"Magic: {false}, "
+                    + // TODO: Fix magic movement
+                    $"Armored: {_characterInstance.ToAIData().MovementType == MovementType.Armored}"
+            );
+            var reachable = aStarModified.GetReachable(
                 TestingGrid,
                 CurrentGridPoint,
-                MovePoint,
-                CharacterInstance.ToAIData().MovementType == MovementType.Infantry,
-                CharacterInstance.ToAIData().MovementType == MovementType.Flying,
-                CharacterInstance.ToAIData().MovementType == MovementType.Riding,
+                _characterInstance.ToAIData().Movement,
+                _characterInstance.ToAIData().MovementType == MovementType.Infantry,
+                _characterInstance.ToAIData().MovementType == MovementType.Flying,
+                _characterInstance.ToAIData().MovementType == MovementType.Riding,
                 false, // TODO: Fix magic movement
-                CharacterInstance.ToAIData().MovementType == MovementType.Armored
+                _characterInstance.ToAIData().MovementType == MovementType.Armored
             );
-            if (path != null && path.Count > 0)
+            Debug.Log($"Reachable points count: {reachable.Count}");
+
+            // Check if MovePoint is in reachable points
+            if (reachable.ContainsKey(MovePoint))
             {
-                var index = 0;
-                while (index < path.Count)
+                var path = aStarModified.GetPathThroughReachable(
+                    CurrentGridPoint,
+                    MovePoint,
+                    reachable
+                );
+                Debug.Log($"Path found with {path.Count} points.");
+                if (moveCoroutine != null)
                 {
-                    Debug.Log("Stepping to: " + path[index].CoordinatesInt());
-                    Step(path[index]);
-                    index++;
+                    StopCoroutine(moveCoroutine);
                 }
+                moveCoroutine = StartCoroutine(MoveAlongPathCoroutine(path));
             }
             else
             {
-                Debug.Log("No path found");
+                Debug.Log("MovePoint is not reachable");
             }
         }
         else
@@ -80,6 +109,29 @@ public class TestUnitInstanceView : MonoBehaviour
         {
             CurrentGridPoint = point;
             CurrentGridCoordinates = point.CoordinatesInt();
+            Debug.Log($"Stepped to point: {point.CoordinatesInt()}");
+        }
+    }
+
+    private System.Collections.IEnumerator MoveAlongPathCoroutine(
+        System.Collections.Generic.List<MapGridPoint> path
+    )
+    {
+        if (path == null || path.Count == 0)
+        {
+            yield break;
+        }
+        // Skip the first point if it's the current position
+        int startIdx = 0;
+        if (CurrentGridPoint == path[0])
+        {
+            startIdx = 1;
+        }
+
+        for (int i = startIdx; i < path.Count; i++)
+        {
+            Step(path[i]);
+            yield return _wait;
         }
     }
 }
