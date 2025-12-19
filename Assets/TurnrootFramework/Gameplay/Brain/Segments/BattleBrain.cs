@@ -1,6 +1,7 @@
 using Turnroot.Characters;
 using Turnroot.Gameplay.Brain.Events;
 using Turnroot.Gameplay.Combat;
+using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -70,7 +71,7 @@ namespace Turnroot.Gameplay.Brain
             }
         }
 
-        private void HandleStartBattle()
+        public void HandleStartBattle()
         {
             Debug.Log("BattleBrain: Handling StartBattle event.");
 
@@ -100,6 +101,50 @@ namespace Turnroot.Gameplay.Brain
 
                             // Initialize advanced systems for the battle
                             InitializeBattleAdvancedSystems();
+
+                            Brain.playerInputBrain.ScenePlayerController.EnemyAIHelper =
+                                new BattleContextAIHelper(Brain.battleBrain.BattleObject.Context);
+                            Debug.Log(
+                                "BattleBrain: Initialized BattleContextAIHelper for enemy unit."
+                            );
+                            Brain.playerInputBrain.ScenePlayerController.EnemyAIHelper.InitializeAIControlledUnit(
+                                Brain
+                                    .playerInputBrain
+                                    .ScenePlayerController
+                                    .EnemyTestUnitView
+                                    .CharacterDataInstance
+                            ); // TODO: This is wildly wrong but will work for testing, fix later
+                            Debug.Log("BattleBrain: AI Controlled Unit initialized.");
+                            _battleGameObject.Context.Targets.Add(
+                                Brain
+                                    .playerInputBrain
+                                    .ScenePlayerController
+                                    .TestUnitView
+                                    .CharacterDataInstance
+                            );
+                            Debug.Log("BattleBrain: Player unit added to battle context targets.");
+                            _battleGameObject.Context.UnitInstance.MapGridPosition = Brain
+                                .playerInputBrain
+                                .ScenePlayerController
+                                .EnemyTestUnitView
+                                .CurrentGridCoordinates;
+                            Debug.Log(
+                                "BattleBrain: Enemy unit position set to "
+                                    + _battleGameObject.Context.UnitInstance.MapGridPosition
+                                    + " in battle context."
+                            );
+                            Debug.Log(
+                                "Enemy class: "
+                                    + Brain
+                                        .playerInputBrain
+                                        .ScenePlayerController
+                                        .EnemyTestUnitView
+                                        .CharacterDataInstance
+                                        .CurrentClass
+                                        .ClassData
+                                        .Identity
+                                        .ClassName
+                            );
                             break;
                         }
                     }

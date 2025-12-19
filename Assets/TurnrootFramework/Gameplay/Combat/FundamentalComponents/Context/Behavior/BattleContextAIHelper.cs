@@ -22,6 +22,9 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         private bool CanMove => BehaviorSettings.MovementDisabled == false;
         private bool CanAttack => BehaviorSettings.AttackDisabled == false;
         private bool CanHeal => _context.UnitInstance.CurrentClass.ClassData.Identity.CanHeal;
+        // TODO: This fails with an error if there is no class assigned!
+        // Technically, it should not be possible for a unit to not have a class, but for testing,
+        // it is possible that a unit has no class assigned.
 
         // Context dependent bools
         private bool WasDamagedThisTurn;
@@ -69,7 +72,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
         public void InitializeAIControlledUnit(CharacterInstance unitInstance)
         {
-            _context.UnitInstance = unitInstance;
+            _context.UnitInstance = unitInstance; // TODO: This needs to be controlled by the TurnRotiserrie
             _aStarModified = new AStarModified();
 
             // Always get latest battle conditions (fixed null check)
@@ -349,6 +352,9 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         {
             // 1. Ensure tiles are computed
             EnsureTilesAreComputed();
+            Debug.Log(
+                $"AI Picking action for {_context.UnitInstance} at {_context.UnitInstance.MapGridPosition}"
+            );
 
             // 2. Create pooled list with proper lifetime management
             using var goalsPooled = PooledList<AIGoal>.Get();
@@ -356,6 +362,12 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
             // 3. Populate goals
             ChooseEvaluations(potentialGoals);
+            foreach (var goal in potentialGoals)
+            {
+                Debug.Log(
+                    $"AI Potential Goal: {goal.Type}, Utility: {goal.UtilityScore}, Action: {goal.ActionToTake}"
+                );
+            }
 
             // 4. Sort by utility
 
@@ -384,6 +396,14 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                     }
                 }
 
+                Debug.Log("AI Potential Goals after formation bonus:");
+                foreach (var goal in potentialGoals)
+                {
+                    Debug.Log(
+                        $"Goal: {goal.Type}, Utility: {goal.UtilityScore}, Action: {goal.ActionToTake}"
+                    );
+                }
+
                 // 6. Choose and execute the best goal- choose (weighted) from top 3 randomly
 
                 AIGoal chosenGoal;
@@ -398,6 +418,9 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                     : roll <= 0.9f ? potentialGoals[1]
                     : potentialGoals[2];
 
+                Debug.Log(
+                    $"AI Chose Goal: {chosenGoal.Type} with Utility: {chosenGoal.UtilityScore}"
+                );
                 ExecuteGoal(chosenGoal);
             }
             else

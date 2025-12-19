@@ -1,4 +1,5 @@
 using NaughtyAttributes;
+using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.Player
@@ -7,6 +8,11 @@ namespace Turnroot.Gameplay.Player
     {
         // For now (testing), this just holds a single TestUnitInstanceView
         public TestUnitInstanceView TestUnitView;
+        // TODO: Get this from BattleBrain
+
+        public TestUnitInstanceView EnemyTestUnitView;
+
+        public BattleContextAIHelper EnemyAIHelper;
 
         // This is all testing stuff. Rewrite all this
 
@@ -29,6 +35,20 @@ namespace Turnroot.Gameplay.Player
             }
         }
 
+        [Button]
+        public void EvaluateAIAction()
+        {
+            Debug.Log("PlayerController EvaluateAIAction called");
+            if (EnemyAIHelper != null)
+            {
+                EnemyAIHelper.PickTileAndAction();
+            }
+            else
+            {
+                Debug.Log("No EnemyAIHelper assigned to PlayerController.");
+            }
+        }
+
         public Vector2Int MoveToPoint;
 
         public Brain.PlayerInputBrain Brain;
@@ -36,6 +56,8 @@ namespace Turnroot.Gameplay.Player
         public void Initialize()
         {
             Debug.Log("PlayerController started.");
+            Brain.Brain.battleBrain.HandleStartBattle();
+            Debug.Log("BattleBrain: Battle started from PlayerController.");
         }
     }
 }

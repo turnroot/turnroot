@@ -156,6 +156,7 @@ namespace Turnroot.Characters
         // enforces uniqueness for templates with IsUnique.
         internal CharacterInstance(CharacterData template)
         {
+            Debug.Log($"Creating CharacterInstance from template: {template.DisplayName}");
             _characterTemplate = template;
             _id = GenerateId(template);
             Initialize();
@@ -285,6 +286,23 @@ namespace Turnroot.Characters
                         _experienceRanks.Add(new ExperienceRankInstance(expRank));
                     }
                 }
+            }
+
+            // Initialize current class from template
+            // TODO: This only uses starting class currently, this is wrong
+            if (_characterTemplate.StartingClass != null)
+            {
+                Debug.Log(
+                    $"Initializing character {_characterTemplate.DisplayName} with starting class {_characterTemplate.StartingClass.Identity.ClassName}"
+                );
+                var classInstance = new CharacterClassDataInstance(
+                    _characterTemplate,
+                    _characterTemplate.StartingClass
+                );
+                _currentClass = classInstance;
+                Debug.Log(
+                    $"Character {_characterTemplate.DisplayName} initialized with class {_currentClass.ClassData.Identity.ClassName}"
+                );
             }
         }
 

@@ -6,7 +6,7 @@ namespace Turnroot.Gameplay.Brain
 {
     public class PlayerInputBrain : BrainComponent
     {
-        private PlayerController _scenePlayerController;
+        public PlayerController ScenePlayerController { get; private set; }
 
         protected override void Awake()
         {
@@ -18,7 +18,7 @@ namespace Turnroot.Gameplay.Brain
 
         public void PopulateScenePlayerController(PlayerController controller)
         {
-            _scenePlayerController = controller;
+            ScenePlayerController = controller;
             controller.Brain = this;
             _playerControllerCache.Invalidate(); // Invalidate cache when manually set
             Debug.Log("Brain populated scene PlayerController.");
@@ -34,7 +34,7 @@ namespace Turnroot.Gameplay.Brain
 
             if (controller != null)
             {
-                _scenePlayerController = controller;
+                ScenePlayerController = controller;
                 Debug.Log("Brain linked to scene PlayerController.");
                 controller.Brain = this;
                 controller.Initialize();

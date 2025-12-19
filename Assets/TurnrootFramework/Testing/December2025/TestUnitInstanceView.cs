@@ -8,11 +8,10 @@ public class TestUnitInstanceView : MonoBehaviour
 
     [Header("Data Reference")]
     public CharacterData CharacterData;
-    private CharacterInstance _characterInstance;
 
-    public CharacterInstance CharacterDataInstance => _characterInstance;
+    public CharacterInstance CharacterDataInstance { get; private set; }
 
-    private ICharacterAIData Data => _characterInstance.ToAIData();
+    private ICharacterAIData Data => CharacterDataInstance.ToAIData();
 
     [Header("Debug Info")]
     public string DisplayName;
@@ -25,16 +24,16 @@ public class TestUnitInstanceView : MonoBehaviour
     private void Awake()
     {
         aStarModified = new AStarModified();
-        _characterInstance = new CharacterInstance(CharacterData);
+        CharacterDataInstance = new CharacterInstance(CharacterData);
     }
 
     private void Update()
     {
         // Keep inspector in sync for debugging
-        if (_characterInstance != null && TestingGrid != null)
+        if (CharacterDataInstance != null && TestingGrid != null)
         {
-            DisplayName = _characterInstance.CharacterTemplate?.DisplayName;
-            CurrentGridPoint = _characterInstance.UnitPositionToMapGridPoint(
+            DisplayName = CharacterDataInstance.CharacterTemplate?.DisplayName;
+            CurrentGridPoint = CharacterDataInstance.UnitPositionToMapGridPoint(
                 CurrentGridCoordinates,
                 TestingGrid
             );
