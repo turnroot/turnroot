@@ -41,7 +41,7 @@ MonoBehaviour:
   <CanSSupportAvatar>k__BackingField: 1
   <IsRecruitable>k__BackingField: 0
   <IsUnique>k__BackingField: 0
-  <StartingClass>k__BackingField: {fileID: 11400000, guid: 5f3f502cbf2ca204a9eeed42737fdcf0, type: 2}
+  <StartingClass>k__BackingField: {fileID: 11400000, guid: c3c5e862da233c24ca2f3019a280df42, type: 2}
   <BadgeText>k__BackingField: Fishing Guild
   <BadgeIcon>k__BackingField: {fileID: 21300000, guid: 9f2c2612454aeb040bb1ab262a1e7c5f, type: 3}
   <Blendshapes>k__BackingField:
@@ -82,10 +82,10 @@ MonoBehaviour:
   <Level>k__BackingField: 1
   <Exp>k__BackingField: 0
   <BoundedStats>k__BackingField:
-  - _current: 100
+  - _current: 20
     _bonus: 0
     _statType: 0
-    _max: 100
+    _max: 20
     _min: 0
   - _current: 1
     _bonus: 0

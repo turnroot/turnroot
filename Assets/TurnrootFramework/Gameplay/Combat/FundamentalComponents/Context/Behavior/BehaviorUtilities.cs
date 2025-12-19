@@ -12,6 +12,29 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 {
     public partial class BattleContextAIHelper
     {
+        /// <summary>
+        /// Helper to add top N goals from a category to the main goals list
+        /// </summary>
+        private void AddTopGoals(List<AIGoal> goals, List<AIGoal> categoryGoals, int count = 3)
+        {
+            if (categoryGoals.Count == 0)
+            {
+                return;
+            }
+
+            Debug.Log($"Adding top {count} goals from category with {categoryGoals.Count} goals.");
+
+            // Sort by utility descending
+            categoryGoals.Sort((a, b) => b.UtilityScore.CompareTo(a.UtilityScore));
+
+            // Add top N (or fewer if less than N exist)
+            int toAdd = Mathf.Min(count, categoryGoals.Count);
+            for (int i = 0; i < toAdd; i++)
+            {
+                goals.Add(categoryGoals[i]);
+            }
+        }
+
         #region Goal Evaluation Methods
 
 
@@ -19,7 +42,9 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
         private void EvaluateAttackGoals(List<AIGoal> goals, CharacterBehavior behavior)
         {
-            float BestUtility = 0f;
+            using var attackGoalsPooled = PooledList<AIGoal>.Get();
+            var attackGoals = attackGoalsPooled.List;
+
             foreach (var target in _context.Targets)
             {
                 var targetGridPoint = target.UnitPositionToMapGridPoint(
@@ -32,33 +57,31 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 utility += CalculateTerrainBonusOrPenalty(targetGridPoint, behavior);
                 utility += _reusableAttackTiles.ContainsKey(targetGridPoint) ? 1f : 0f;
 
-                if (utility > BestUtility)
-                {
-                    BestUtility = utility;
-                    goals.Add(
-                        new AIGoal
-                        {
-                            Type = _reusableAttackTiles.ContainsKey(targetGridPoint)
-                                ? AIGoal.GoalType.AttackEnemy
-                                : AIGoal.GoalType.GainPosition,
-                            UtilityScore = utility,
-                            Target = target,
-                            Destination = _context.UnitInstance.UnitPositionToMapGridPoint(
-                                _context.UnitInstance.MapGridPosition,
-                                _context.mapGrid
-                            ),
-                            ActionToTake = _reusableAttackTiles.ContainsKey(targetGridPoint)
-                                ? AIGoal.Action.Attack
-                                : AIGoal.Action.Move,
-                        }
-                    );
-                }
+                attackGoals.Add(
+                    new AIGoal
+                    {
+                        Type = _reusableAttackTiles.ContainsKey(targetGridPoint)
+                            ? AIGoal.GoalType.AttackEnemy
+                            : AIGoal.GoalType.GainPosition,
+                        UtilityScore = utility,
+                        Target = target,
+                        Destination = _context.UnitInstance.UnitPositionToMapGridPoint(
+                            _context.UnitInstance.MapGridPosition,
+                            _context.mapGrid
+                        ),
+                        ActionToTake = _reusableAttackTiles.ContainsKey(targetGridPoint)
+                            ? AIGoal.Action.Attack
+                            : AIGoal.Action.Move,
+                    }
+                );
             }
+            AddTopGoals(goals, attackGoals, 3);
         }
 
         private void EvaluateKillEnemyGoals(List<AIGoal> goals, CharacterBehavior behavior)
         {
-            float BestUtility = 0f;
+            using var killGoalsPooled = PooledList<AIGoal>.Get();
+            var killGoals = killGoalsPooled.List;
             // here, get the enemies and do a normal attack calculation- but then,
             // if an attack would kill an an enemy, add a massive boost
             foreach (var target in _context.Targets)
@@ -79,33 +102,31 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                     utility += killBonus;
                 }
 
-                if (utility > BestUtility)
-                {
-                    BestUtility = utility;
-                    goals.Add(
-                        new AIGoal
-                        {
-                            Type = _reusableAttackTiles.ContainsKey(targetGridPoint)
-                                ? AIGoal.GoalType.KillEnemy
-                                : AIGoal.GoalType.GainPosition,
-                            UtilityScore = utility,
-                            Target = target,
-                            Destination = _context.UnitInstance.UnitPositionToMapGridPoint(
-                                _context.UnitInstance.MapGridPosition,
-                                _context.mapGrid
-                            ),
-                            ActionToTake = _reusableAttackTiles.ContainsKey(targetGridPoint)
-                                ? AIGoal.Action.Attack
-                                : AIGoal.Action.Move,
-                        }
-                    );
-                }
+                killGoals.Add(
+                    new AIGoal
+                    {
+                        Type = _reusableAttackTiles.ContainsKey(targetGridPoint)
+                            ? AIGoal.GoalType.KillEnemy
+                            : AIGoal.GoalType.GainPosition,
+                        UtilityScore = utility,
+                        Target = target,
+                        Destination = _context.UnitInstance.UnitPositionToMapGridPoint(
+                            _context.UnitInstance.MapGridPosition,
+                            _context.mapGrid
+                        ),
+                        ActionToTake = _reusableAttackTiles.ContainsKey(targetGridPoint)
+                            ? AIGoal.Action.Attack
+                            : AIGoal.Action.Move,
+                    }
+                );
             }
+            AddTopGoals(goals, killGoals, 3);
         }
 
         private void EvaluateSimpleAttackGoals(List<AIGoal> goals, CharacterBehavior behavior)
         {
-            float BestUtility = 0f;
+            using var attackGoalsPooled = PooledList<AIGoal>.Get();
+            var attackGoals = attackGoalsPooled.List;
             // Attack the closest enemy without regard for strategy
             CharacterInstance closestEnemy = null;
             float closestDistance = float.MaxValue;
@@ -140,28 +161,25 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                     (1f - behavior.BloodthirstGreed)
                     * (_reusableAttackTiles.ContainsKey(targetGridPoint) ? 5f : 3f);
 
-                if (utility > BestUtility)
-                {
-                    BestUtility = utility;
-                    goals.Add(
-                        new AIGoal
-                        {
-                            Type = _reusableAttackTiles.ContainsKey(targetGridPoint)
-                                ? AIGoal.GoalType.AttackEnemy
-                                : AIGoal.GoalType.GainPosition,
-                            UtilityScore = utility,
-                            Target = closestEnemy,
-                            Destination = _context.UnitInstance.UnitPositionToMapGridPoint(
-                                _context.UnitInstance.MapGridPosition,
-                                _context.mapGrid
-                            ),
-                            ActionToTake = _reusableAttackTiles.ContainsKey(targetGridPoint)
-                                ? AIGoal.Action.Attack
-                                : AIGoal.Action.Move,
-                        }
-                    );
-                }
+                attackGoals.Add(
+                    new AIGoal
+                    {
+                        Type = _reusableAttackTiles.ContainsKey(targetGridPoint)
+                            ? AIGoal.GoalType.AttackEnemy
+                            : AIGoal.GoalType.GainPosition,
+                        UtilityScore = utility,
+                        Target = closestEnemy,
+                        Destination = _context.UnitInstance.UnitPositionToMapGridPoint(
+                            _context.UnitInstance.MapGridPosition,
+                            _context.mapGrid
+                        ),
+                        ActionToTake = _reusableAttackTiles.ContainsKey(targetGridPoint)
+                            ? AIGoal.Action.Attack
+                            : AIGoal.Action.Move,
+                    }
+                );
             }
+            AddTopGoals(goals, attackGoals, 3);
         }
 
         #endregion
@@ -170,7 +188,8 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
         private void EvaluateHealAlliesGoals(List<AIGoal> goals, CharacterBehavior behavior)
         {
-            float BestUtility = 0f;
+            using var healGoalsPooled = PooledList<AIGoal>.Get();
+            var healGoals = healGoalsPooled.List;
             foreach (var ally in _context.Allies)
             {
                 var allyGridPoint = ally.UnitPositionToMapGridPoint(
@@ -183,25 +202,22 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 {
                     float utility = CalculateHealUtility(ally, behavior);
 
-                    if (utility > BestUtility)
-                    {
-                        BestUtility = utility;
-                        goals.Add(
-                            new AIGoal
-                            {
-                                Type = AIGoal.GoalType.HealAlly,
-                                UtilityScore = utility,
-                                Target = ally,
-                                Destination = _context.UnitInstance.UnitPositionToMapGridPoint(
-                                    _context.UnitInstance.MapGridPosition,
-                                    _context.mapGrid
-                                ),
-                                ActionToTake = AIGoal.Action.Heal,
-                            }
-                        );
-                    }
+                    goals.Add(
+                        new AIGoal
+                        {
+                            Type = AIGoal.GoalType.HealAlly,
+                            UtilityScore = utility,
+                            Target = ally,
+                            Destination = _context.UnitInstance.UnitPositionToMapGridPoint(
+                                _context.UnitInstance.MapGridPosition,
+                                _context.mapGrid
+                            ),
+                            ActionToTake = AIGoal.Action.Heal,
+                        }
+                    );
                 }
             }
+            AddTopGoals(goals, healGoals, 3);
         }
 
         private void EvaluateProtectAllyGoals(List<AIGoal> goals, CharacterBehavior behavior)
@@ -210,7 +226,8 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             // and whoever attacked the ally last.  We look at this last attacker to see how dangerous
             // they are both to the ally and to ourself.
 
-            float BestUtility = 0f;
+            using var protectGoalsPooled = PooledList<AIGoal>.Get();
+            var protectGoals = protectGoalsPooled.List;
 
             using var allyLastAttackers =
                 new PooledDictionary<CharacterInstance, CharacterInstance>();
@@ -247,23 +264,20 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                     behavior
                 );
 
-                if (utility > BestUtility)
-                {
-                    BestUtility = utility;
-                    goals.Add(
-                        new AIGoal
-                        {
-                            Type = AIGoal.GoalType.ProtectAlly,
-                            UtilityScore = utility,
-                            Target = ally,
-                            Destination = _context.UnitInstance.UnitPositionToMapGridPoint(
-                                _context.UnitInstance.MapGridPosition,
-                                _context.mapGrid
-                            ),
-                        }
-                    );
-                }
+                protectGoals.Add(
+                    new AIGoal
+                    {
+                        Type = AIGoal.GoalType.ProtectAlly,
+                        UtilityScore = utility,
+                        Target = ally,
+                        Destination = _context.UnitInstance.UnitPositionToMapGridPoint(
+                            _context.UnitInstance.MapGridPosition,
+                            _context.mapGrid
+                        ),
+                    }
+                );
             }
+            AddTopGoals(goals, protectGoals, 3);
         }
 
         #endregion
@@ -272,7 +286,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
         private void EvaluateExploreVillagesGoals(List<AIGoal> goals, CharacterBehavior behavior)
         {
-            float BestUtility = 0f;
+            float BestUtility = 0f; // This one just adds the best one instead of top 3
             var allVillageFeaturePoints = _context.mapGrid.GetAllGridPointsByFeatureType(
                 FeatureType.Village
             );
@@ -308,7 +322,9 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
         private void EvaluateTreasureGoals(List<AIGoal> goals, CharacterBehavior behavior)
         {
-            float BestUtility = 0f;
+            using var treasureGoalsPooled = PooledList<AIGoal>.Get();
+            var treasureGoals = treasureGoalsPooled.List;
+
             var allTreasureFeaturePoints = _context.mapGrid.GetAllGridPointsByFeatureType(
                 FeatureType.Treasure
             );
@@ -324,58 +340,52 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
                     utility += CalculateTerrainBonusOrPenalty(treasurePoint, behavior);
 
-                    if (utility > BestUtility)
-                    {
-                        BestUtility = utility;
-                        goals.Add(
-                            new AIGoal
-                            {
-                                Type = AIGoal.GoalType.CollectTreasure,
-                                UtilityScore = utility,
-                                Target = null,
-                                Destination = treasurePoint,
-                                ActionToTake = AIGoal.Action.Feature,
-                            }
-                        );
-                    }
-                }
-            }
-        }
-
-        private void EvaluateDefensiveGoals(List<AIGoal> goals, CharacterBehavior behavior)
-        {
-            // Use CalculateDefensiveUtility
-
-            // First, check if we are in danger with FindClosestAndFurthestEnemies,
-            // get closest enemy and current health, get count of close allies and close enemies,
-            // check for defensive terrain nearby
-            float BestUtility = 0f;
-            var DangerScore = 0f;
-            var ClosestAndFurthest = FindClosestAndFurthestEnemies(_context.Targets);
-            DangerScore += ClosestAndFurthest.closestDist;
-            DangerScore += 4f - ClosestAndFurthest.furthestDist;
-            DangerScore += 1f - _context.UnitInstance.GetHealthPercentage();
-            DangerScore += IsSurrounded ? 5f : 0f;
-            DangerScore += behavior.BrashWary * 5f;
-            foreach (var tile in _reusableMoveTiles.Keys)
-            {
-                DangerScore += CalculateDefensiveUtility(tile, behavior);
-                DangerScore += CalculateTerrainBonusOrPenalty(tile, behavior);
-                if (DangerScore > BestUtility)
-                {
-                    BestUtility = DangerScore;
-                    goals.Add(
+                    treasureGoals.Add(
                         new AIGoal
                         {
-                            Type = AIGoal.GoalType.DefensiveRetreat,
-                            UtilityScore = DangerScore,
+                            Type = AIGoal.GoalType.CollectTreasure,
+                            UtilityScore = utility,
                             Target = null,
-                            Destination = tile,
-                            ActionToTake = AIGoal.Action.Move,
+                            Destination = treasurePoint,
+                            ActionToTake = AIGoal.Action.Feature,
                         }
                     );
                 }
             }
+            AddTopGoals(goals, treasureGoals, behavior.BloodthirstGreed >= 0.5f ? 3 : 1);
+        }
+
+        private void EvaluateDefensiveGoals(List<AIGoal> goals, CharacterBehavior behavior)
+        {
+            using var defensiveGoalsPooled = PooledList<AIGoal>.Get();
+            var defensiveGoals = defensiveGoalsPooled.List;
+
+            var baseDanger = 0f;
+            var ClosestAndFurthest = FindClosestAndFurthestEnemies(_context.Targets);
+            baseDanger += ClosestAndFurthest.closestDist;
+            baseDanger += 4f - ClosestAndFurthest.furthestDist;
+            baseDanger += 1f - _context.UnitInstance.GetHealthPercentage();
+            baseDanger += IsSurrounded ? 5f : 0f;
+            baseDanger += behavior.BrashWary * 5f;
+
+            foreach (var tile in _reusableMoveTiles.Keys)
+            {
+                float tileUtility = baseDanger;
+                tileUtility += CalculateDefensiveUtility(tile, behavior);
+                tileUtility += CalculateTerrainBonusOrPenalty(tile, behavior);
+
+                defensiveGoals.Add(
+                    new AIGoal
+                    {
+                        Type = AIGoal.GoalType.DefensiveRetreat,
+                        UtilityScore = tileUtility,
+                        Target = null,
+                        Destination = tile,
+                        ActionToTake = AIGoal.Action.Move,
+                    }
+                );
+            }
+            AddTopGoals(goals, defensiveGoals, behavior.BrashWary >= 0.5f ? 3 : 2);
         }
 
         private void EvaluatePositionGoals(
@@ -385,7 +395,8 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             List<NoEnemyReachesTilesBattleCondition> reachConditions
         )
         {
-            float bestUtility = 0f;
+            using var moveGoalsPooled = PooledList<AIGoal>.Get();
+            var moveGoals = moveGoalsPooled.List;
 
             // === ROW/COLUMN CONDITIONS ===
             // Enemy wants to cross the forbidden line
@@ -444,22 +455,19 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
                         utility += CalculateTerrainBonusOrPenalty(tile, behavior);
 
-                        if (utility > bestUtility)
-                        {
-                            bestUtility = utility;
-                            goals.Add(
-                                new AIGoal
-                                {
-                                    Type = AIGoal.GoalType.GainPosition,
-                                    UtilityScore = utility,
-                                    Target = null,
-                                    Destination = tile,
-                                    ActionToTake = AIGoal.Action.Move,
-                                }
-                            );
-                        }
+                        moveGoals.Add(
+                            new AIGoal
+                            {
+                                Type = AIGoal.GoalType.GainPosition,
+                                UtilityScore = utility,
+                                Target = null,
+                                Destination = tile,
+                                ActionToTake = AIGoal.Action.Move,
+                            }
+                        );
                     }
                 }
+                AddTopGoals(goals, moveGoals, 2);
             }
 
             // === REACH TILE CONDITIONS ===
@@ -468,7 +476,9 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             {
                 var targetTiles = condition.TargetTiles;
                 if (targetTiles == null || targetTiles.Count == 0)
+                {
                     continue;
+                }
 
                 var currentPos = _context.UnitInstance.MapGridPosition;
 
@@ -510,28 +520,24 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
                         utility += CalculateTerrainBonusOrPenalty(tile, behavior);
 
-                        if (utility > bestUtility)
-                        {
-                            bestUtility = utility;
-                            goals.Add(
-                                new AIGoal
-                                {
-                                    Type = AIGoal.GoalType.GainPosition,
-                                    UtilityScore = utility,
-                                    Target = null,
-                                    Destination = tile,
-                                    ActionToTake = AIGoal.Action.Move,
-                                }
-                            );
-                        }
+                        goals.Add(
+                            new AIGoal
+                            {
+                                Type = AIGoal.GoalType.GainPosition,
+                                UtilityScore = utility,
+                                Target = null,
+                                Destination = tile,
+                                ActionToTake = AIGoal.Action.Move,
+                            }
+                        );
                     }
                 }
+                AddTopGoals(goals, moveGoals, 2);
             }
         }
 
         private void EvaluateHealSelfGoals(List<AIGoal> goals, CharacterBehavior behavior)
         {
-            float BestUtility = 0f;
             float healthPercentage = _context.UnitInstance.GetHealthPercentage();
 
             // Only evaluate if wounded
@@ -546,22 +552,18 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             // Lone wolves prioritize self-preservation
             utility += behavior.SoldierLoneWolf * 3f;
 
-            if (utility > BestUtility)
-            {
-                BestUtility = utility;
-                goals.Add(
-                    new AIGoal
-                    {
-                        Type = AIGoal.GoalType.HealSelf,
-                        UtilityScore = utility,
-                        Target = _context.UnitInstance,
-                        Destination = _context.UnitInstance.UnitPositionToMapGridPoint(
-                            _context.UnitInstance.MapGridPosition,
-                            _context.mapGrid
-                        ),
-                    }
-                );
-            }
+            goals.Add(
+                new AIGoal
+                {
+                    Type = AIGoal.GoalType.HealSelf,
+                    UtilityScore = utility,
+                    Target = _context.UnitInstance,
+                    Destination = _context.UnitInstance.UnitPositionToMapGridPoint(
+                        _context.UnitInstance.MapGridPosition,
+                        _context.mapGrid
+                    ),
+                }
+            );
         }
 
         #endregion
@@ -639,7 +641,9 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             {
                 float dist = Vector2.Distance(tile.Coordinates(), ally.MapGridPosition);
                 if (dist < closestPlayerDist)
+                {
                     closestPlayerDist = dist;
+                }
             }
 
             // Minor penalty for very dangerous tiles (but not as severe as defensive retreat)
@@ -714,7 +718,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
         private float CalculateDefensiveUtility(MapGridPoint safeTile, CharacterBehavior behavior)
         {
-            float utility = 10f;
+            float utility = 1f;
             utility += (1f - _context.UnitInstance.GetHealthPercentage()) * 10f;
             utility += behavior.SelfishSelfless * 3f; // Selfless units are less likely to retreat
             utility -= (1f - behavior.MindlessCunning) * 3f; // mindless units don't retreat as much
@@ -744,35 +748,31 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         {
             var MovementType = _context.UnitInstance.ToAIData().MovementType;
             var terrainType = tile.GetCachedTerrainType();
-            var PersonalityBonus = (1f * behavior.MindlessCunning) + (1f * behavior.BrashWary);
+            var PersonalityBonus = behavior.MindlessCunning + 1f * behavior.BrashWary;
             var TerrainBonus = 0f;
             if (MovementType == MovementType.Infantry)
             {
                 TerrainBonus += terrainType.AvoidBonusWalk * 0.1f;
                 TerrainBonus += terrainType.DefenseBonusWalk * 0.1f;
                 TerrainBonus += terrainType.HealthChangePerTurnWalk * 0.3f;
-                TerrainBonus -= Mathf.Abs(2f - terrainType.CostWalk) * 0.4f;
             }
             else if (MovementType == MovementType.Riding)
             {
                 TerrainBonus += terrainType.AvoidBonusRiding * 0.1f;
                 TerrainBonus += terrainType.DefenseBonusRiding * 0.1f;
                 TerrainBonus += terrainType.HealthChangePerTurnRiding * 0.3f;
-                TerrainBonus -= Mathf.Abs(2f - terrainType.CostRide) * 0.4f;
             }
             else if (MovementType == MovementType.Flying)
             {
                 TerrainBonus += terrainType.AvoidBonusFlying * 0.1f;
                 TerrainBonus += terrainType.DefenseBonusFlying * 0.1f;
                 TerrainBonus += terrainType.HealthChangePerTurnFlying * 0.3f;
-                TerrainBonus -= Mathf.Abs(2f - terrainType.CostFly) * 0.4f;
             }
             else if (MovementType == MovementType.Armored)
             {
                 TerrainBonus += terrainType.AvoidBonusArmor * 0.1f;
                 TerrainBonus += terrainType.DefenseBonusArmor * 0.1f;
                 TerrainBonus += terrainType.HealthChangePerTurnArmor * 0.3f;
-                TerrainBonus -= Mathf.Abs(2f - terrainType.CostArmor) * 0.4f;
             }
 
             var settings = GameSettingsLoader.LoadFirst<GameplayGeneralSettings>("GameSettings");

@@ -15,34 +15,7 @@ namespace Turnroot.Characters
 
         public ObjectItemInstance GetEquippedWeapon()
         {
-            Debug.Log("GetEquippedWeapon called");
-            if (_currentClass == null)
-            {
-                Debug.Log("No current class");
-                return null;
-            }
-            if (_currentClass.ClassData == null)
-            {
-                Debug.Log("No current class data");
-                return null;
-            }
-            if (_currentClass.ClassData.Requirements == null)
-            {
-                Debug.Log("No class requirements");
-                return null;
-            }
-            if (_currentClass.ClassData.Requirements.AllowedWeaponTypes == null)
-            {
-                Debug.Log("No allowed weapon types");
-                return null;
-            }
             var allowedWeapons = _currentClass.ClassData.Requirements.AllowedWeaponTypes;
-
-            // TODO: Remove this
-            foreach (var w in allowedWeapons)
-            {
-                Debug.Log($"Allowed Weapon Type: {w}");
-            }
 
             var inventory = _inventoryInstance.Items();
 

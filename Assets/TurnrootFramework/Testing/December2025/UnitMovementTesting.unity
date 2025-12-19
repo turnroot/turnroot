@@ -668,7 +668,16 @@ MonoBehaviour:
   _gridWidth: 20
   _gridHeight: 20
   _mapName: 
-  _features: []
+  _features:
+  - row: 3
+    col: 16
+    typeId: treasure
+    name: 
+    boolProperties: []
+    eventProperties: []
+    floatProperties: []
+    unitProperties: []
+    objectItemProperties: []
   _single3dHeightMesh: {fileID: 643002913}
   _single3dHeightMeshRaycastPoints:
   - {x: 0, y: 2.0894397e-16, z: 0}
@@ -21917,7 +21926,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   CharacterData: {fileID: 11400000, guid: d5a2d31196587d3489c8288432b323b7, type: 2}
   DisplayName: 
-  CurrentGridCoordinates: {x: 5, y: 16}
+  CurrentGridCoordinates: {x: 6, y: 15}
   TestingGrid: {fileID: 36972945}
   CurrentGridPoint: {fileID: 0}
 --- !u!23 &1000638341
@@ -31078,7 +31087,7 @@ MonoBehaviour:
   _col: 16
   _gizmoRadius: 0.35
   _terrainTypeId: e8a7f118-4d40-4240-8eaa-dc2e0ab48630
-  _featureTypeId: 
+  _featureTypeId: treasure
   _featureName: 
   _pointEventProperties: []
   _pointUnitProperties: []

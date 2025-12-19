@@ -156,8 +156,6 @@ namespace Turnroot.Characters
         // enforces uniqueness for templates with IsUnique.
         internal CharacterInstance(CharacterData template)
         {
-            Debug.Log($"Creating CharacterInstance from template: {template.DisplayName}");
-            _characterTemplate = template;
             _id = GenerateId(template);
             Initialize();
         }
@@ -293,7 +291,7 @@ namespace Turnroot.Characters
             if (_characterTemplate.StartingClass != null)
             {
                 Debug.Log(
-                    $"Initializing character {_characterTemplate.DisplayName} with starting class {_characterTemplate.StartingClass.Identity.ClassName}"
+                    $"Initializing character {Id} with starting class {_characterTemplate.StartingClass.Identity.ClassName}"
                 );
                 var classInstance = new CharacterClassDataInstance(
                     _characterTemplate,
@@ -301,7 +299,7 @@ namespace Turnroot.Characters
                 );
                 _currentClass = classInstance;
                 Debug.Log(
-                    $"Character {_characterTemplate.DisplayName} initialized with class {_currentClass.ClassData.Identity.ClassName}"
+                    $"Character {Id} initialized with class {_currentClass.ClassData.Identity.ClassName}"
                 );
             }
         }

@@ -24,7 +24,10 @@ public class TestUnitInstanceView : MonoBehaviour
     private void Awake()
     {
         aStarModified = new AStarModified();
-        CharacterDataInstance = new CharacterInstance(CharacterData);
+        CharacterDataInstance = CharacterInstance.Create(CharacterData);
+        Debug.Log(
+            $"TestUnitInstanceView Awake: Created {CharacterDataInstance.Id} for {CharacterData.DisplayName}"
+        );
     }
 
     private void Update()

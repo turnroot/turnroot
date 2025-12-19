@@ -8,6 +8,7 @@ namespace Turnroot.Gameplay.Player
     {
         // For now (testing), this just holds a single TestUnitInstanceView
         public TestUnitInstanceView TestUnitView;
+
         // TODO: Get this from BattleBrain
 
         public TestUnitInstanceView EnemyTestUnitView;

@@ -63,18 +63,20 @@ MonoBehaviour:
   <BehaviorSettings>k__BackingField:
     MovementDisabled: 0
     AttackDisabled: 0
-    SoldierLoneWolf: 0.358
-    MindlessCunning: 0.702
-    SelfishSelfless: 0.564
-    BrashWary: 0.587
-    BloodthirstGreed: 0.243
-    preset: 7
-  <StartingInventory>k__BackingField: []
+    SoldierLoneWolf: 0.931
+    MindlessCunning: 0.798
+    SelfishSelfless: 0.018
+    BrashWary: 0.697
+    BloodthirstGreed: 0.367
+    preset: 0
+  <StartingInventory>k__BackingField:
+  - _item: {fileID: 11400000, guid: 18c28f887826b0d4389fb021663c5146, type: 2}
+    _slotIndex: 0
   <SupportRelationships>k__BackingField: []
   <Level>k__BackingField: 1
   <Exp>k__BackingField: 0
   <BoundedStats>k__BackingField:
-  - _current: 20
+  - _current: 2
     _bonus: 0
     _statType: 0
     _max: 20
@@ -83,7 +85,7 @@ MonoBehaviour:
   - _current: 10
     _bonus: 0
     _statType: 0
-  - _current: 9
+  - _current: 5
     _bonus: 0
     _statType: 9
   <PersonalGrowthRates>k__BackingField:
