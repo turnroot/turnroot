@@ -1,5 +1,5 @@
-using UnityEngine;
 using NaughtyAttributes;
+using UnityEngine;
 
 namespace Turnroot.Gameplay.Player
 {

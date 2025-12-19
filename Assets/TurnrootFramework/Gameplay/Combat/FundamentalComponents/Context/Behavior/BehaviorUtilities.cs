@@ -27,30 +27,31 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                     _context.mapGrid
                 );
 
-                // Check if target is in attack range
-                if (_reusableAttackTiles.ContainsKey(targetGridPoint))
+                float utility = CalculateAttackUtility(target, behavior);
+
+                utility += CalculateTerrainBonusOrPenalty(targetGridPoint, behavior);
+                utility += _reusableAttackTiles.ContainsKey(targetGridPoint) ? 1f : 0f;
+
+                if (utility > BestUtility)
                 {
-                    float utility = CalculateAttackUtility(target, behavior);
-
-                    utility += CalculateTerrainBonusOrPenalty(targetGridPoint, behavior);
-
-                    if (utility > BestUtility)
-                    {
-                        BestUtility = utility;
-                        goals.Add(
-                            new AIGoal
-                            {
-                                Type = AIGoal.GoalType.AttackEnemy,
-                                UtilityScore = utility,
-                                Target = target,
-                                Destination = _context.UnitInstance.UnitPositionToMapGridPoint(
-                                    _context.UnitInstance.MapGridPosition,
-                                    _context.mapGrid
-                                ),
-                                ActionToTake = AIGoal.Action.Attack,
-                            }
-                        );
-                    }
+                    BestUtility = utility;
+                    goals.Add(
+                        new AIGoal
+                        {
+                            Type = _reusableAttackTiles.ContainsKey(targetGridPoint)
+                                ? AIGoal.GoalType.AttackEnemy
+                                : AIGoal.GoalType.GainPosition,
+                            UtilityScore = utility,
+                            Target = target,
+                            Destination = _context.UnitInstance.UnitPositionToMapGridPoint(
+                                _context.UnitInstance.MapGridPosition,
+                                _context.mapGrid
+                            ),
+                            ActionToTake = _reusableAttackTiles.ContainsKey(targetGridPoint)
+                                ? AIGoal.Action.Attack
+                                : AIGoal.Action.Move,
+                        }
+                    );
                 }
             }
         }
@@ -68,33 +69,36 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 );
 
                 // Check if target is in attack range
-                if (_reusableAttackTiles.ContainsKey(targetGridPoint))
-                {
-                    float utility = CalculateAttackUtility(target, behavior);
-                    utility -= behavior.SelfishSelfless * 3f; // Selfless units are less kill-focused
-                    if (_context.AttackWouldKill(target))
-                    {
-                        float killBonus = 5f + (1f - behavior.BloodthirstGreed) * 5f;
-                        utility += killBonus;
-                    }
 
-                    if (utility > BestUtility)
-                    {
-                        BestUtility = utility;
-                        goals.Add(
-                            new AIGoal
-                            {
-                                Type = AIGoal.GoalType.KillEnemy,
-                                UtilityScore = utility,
-                                Target = target,
-                                Destination = _context.UnitInstance.UnitPositionToMapGridPoint(
-                                    _context.UnitInstance.MapGridPosition,
-                                    _context.mapGrid
-                                ),
-                                ActionToTake = AIGoal.Action.Attack,
-                            }
-                        );
-                    }
+                float utility = CalculateAttackUtility(target, behavior);
+                utility -= behavior.SelfishSelfless * 3f; // Selfless units are less kill-focused
+                utility *= _reusableAttackTiles.ContainsKey(targetGridPoint) ? 5f : 3f;
+                if (_context.AttackWouldKill(target))
+                {
+                    float killBonus = 5f + ((1f - behavior.BloodthirstGreed) * 5f);
+                    utility += killBonus;
+                }
+
+                if (utility > BestUtility)
+                {
+                    BestUtility = utility;
+                    goals.Add(
+                        new AIGoal
+                        {
+                            Type = _reusableAttackTiles.ContainsKey(targetGridPoint)
+                                ? AIGoal.GoalType.KillEnemy
+                                : AIGoal.GoalType.GainPosition,
+                            UtilityScore = utility,
+                            Target = target,
+                            Destination = _context.UnitInstance.UnitPositionToMapGridPoint(
+                                _context.UnitInstance.MapGridPosition,
+                                _context.mapGrid
+                            ),
+                            ActionToTake = _reusableAttackTiles.ContainsKey(targetGridPoint)
+                                ? AIGoal.Action.Attack
+                                : AIGoal.Action.Move,
+                        }
+                    );
                 }
             }
         }
@@ -132,27 +136,30 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 );
 
                 // Check if target is in attack range
-                if (_reusableAttackTiles.ContainsKey(targetGridPoint))
-                {
-                    utility += (1f - behavior.BloodthirstGreed) * 5f;
+                utility +=
+                    (1f - behavior.BloodthirstGreed)
+                    * (_reusableAttackTiles.ContainsKey(targetGridPoint) ? 5f : 3f);
 
-                    if (utility > BestUtility)
-                    {
-                        BestUtility = utility;
-                        goals.Add(
-                            new AIGoal
-                            {
-                                Type = AIGoal.GoalType.AttackEnemy,
-                                UtilityScore = utility,
-                                Target = closestEnemy,
-                                Destination = _context.UnitInstance.UnitPositionToMapGridPoint(
-                                    _context.UnitInstance.MapGridPosition,
-                                    _context.mapGrid
-                                ),
-                                ActionToTake = AIGoal.Action.Attack,
-                            }
-                        );
-                    }
+                if (utility > BestUtility)
+                {
+                    BestUtility = utility;
+                    goals.Add(
+                        new AIGoal
+                        {
+                            Type = _reusableAttackTiles.ContainsKey(targetGridPoint)
+                                ? AIGoal.GoalType.AttackEnemy
+                                : AIGoal.GoalType.GainPosition,
+                            UtilityScore = utility,
+                            Target = closestEnemy,
+                            Destination = _context.UnitInstance.UnitPositionToMapGridPoint(
+                                _context.UnitInstance.MapGridPosition,
+                                _context.mapGrid
+                            ),
+                            ActionToTake = _reusableAttackTiles.ContainsKey(targetGridPoint)
+                                ? AIGoal.Action.Attack
+                                : AIGoal.Action.Move,
+                        }
+                    );
                 }
             }
         }
