@@ -6,9 +6,10 @@ public class TestUnitInstanceView : MonoBehaviour
     private static readonly WaitForSeconds _wait = new(0.6f);
     private Coroutine moveCoroutine;
 
-    [Header("Data Reference")]
+    [Header("Data Reference"), SerializeField]
     public CharacterData CharacterData;
 
+    [SerializeField]
     public CharacterInstance CharacterDataInstance { get; private set; }
 
     private ICharacterAIData Data => CharacterDataInstance.ToAIData();

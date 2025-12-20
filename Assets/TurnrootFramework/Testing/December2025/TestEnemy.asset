@@ -63,10 +63,10 @@ MonoBehaviour:
   <BehaviorSettings>k__BackingField:
     MovementDisabled: 0
     AttackDisabled: 0
-    SoldierLoneWolf: 0.931
+    SoldierLoneWolf: 0.583
     MindlessCunning: 0.798
     SelfishSelfless: 0.018
-    BrashWary: 0.697
+    BrashWary: 0.509
     BloodthirstGreed: 0.367
     preset: 0
   <StartingInventory>k__BackingField:

@@ -241,6 +241,11 @@ namespace Turnroot.Characters
         private void Initialize()
         {
             // Copy initial values from template
+            if (_characterTemplate == null)
+            {
+                Debug.LogWarning("CharacterInstance has null CharacterData template.");
+                return;
+            }
             _currentLevel = _characterTemplate.Level;
             _currentExp = _characterTemplate.Exp;
 
