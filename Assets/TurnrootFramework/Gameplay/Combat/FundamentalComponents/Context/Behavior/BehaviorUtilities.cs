@@ -52,23 +52,23 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                     _context.mapGrid
                 );
 
-                // TODO: Two units can't occupy the same tile! Get neighbors instead
+                var AccessibleTargetNearTile = GetAccessibleTile(targetGridPoint, behavior);
 
                 float utility = CalculateAttackUtility(target, behavior);
 
-                utility += CalculateTerrainBonusOrPenalty(targetGridPoint, behavior);
                 utility += _reusableAttackTiles.ContainsKey(targetGridPoint) ? 1f : 0f;
 
                 attackGoals.Add(
                     new AIGoal
                     {
-                        Type = _reusableAttackTiles.ContainsKey(targetGridPoint)
+                        Type = _reusableAttackTiles.ContainsKey(AccessibleTargetNearTile)
                             ? AIGoal.GoalType.AttackEnemy
                             : AIGoal.GoalType.GainPosition,
                         UtilityScore = utility,
                         Target = target,
-                        Destination = targetGridPoint,
-                        ActionToTake = _reusableAttackTiles.ContainsKey(targetGridPoint)
+                        Destination = AccessibleTargetNearTile,
+                        // Even if we are attacking, we still need to stand in a neighboring tile.
+                        ActionToTake = _reusableAttackTiles.ContainsKey(AccessibleTargetNearTile)
                             ? AIGoal.Action.Attack
                             : AIGoal.Action.Move,
                     }
@@ -850,6 +850,54 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             TerrainBonus *= settings.GetTerrainBonusMultiplier();
             TerrainBonus += PersonalityBonus;
             return TerrainBonus;
+        }
+
+        private MapGridPoint GetAccessibleTile(
+            MapGridPoint targetOccupiedPoint,
+            CharacterBehavior modifiedBehaviorSettings
+        )
+        {
+            // We need to find a tile we can attack from.
+            // Start by getting each tile in attack range of the target
+            // We get the maximum attack range as N and filter _reusableMoveTiles to tiles within N of targetOccupiedPoint
+            var attackRanges = _context.UnitInstance.ToAIData().AttackRange;
+            var maxAttackRange = attackRanges.max;
+            using var potentialDestinations = PooledList<MapGridPoint>.Get();
+            foreach (var moveTile in _reusableMoveTiles.Keys)
+            {
+                var distance = Vector2.Distance(
+                    moveTile.CoordinatesInt(),
+                    targetOccupiedPoint.CoordinatesInt()
+                );
+                if (distance <= maxAttackRange)
+                {
+                    potentialDestinations.List.Add(moveTile);
+                }
+            }
+            // Use modifiedBehaviorSettings to prioritize further tiles based on BrashWary
+            // CalculateTerrainBonusOrPenalty for each tile, prefer tiles with higher scores based on MindlessCunning
+            MapGridPoint bestTile = null;
+            float bestScore = float.MinValue;
+            foreach (var potentialTile in potentialDestinations.List)
+            {
+                float score = 0f;
+                score += CalculateTerrainBonusOrPenalty(potentialTile, modifiedBehaviorSettings);
+                score += modifiedBehaviorSettings.MindlessCunning * 2f; // Prioritize better terrain for smart units
+                score +=
+                    modifiedBehaviorSettings.BrashWary
+                    * (
+                        Vector2.Distance(
+                            potentialTile.CoordinatesInt(),
+                            targetOccupiedPoint.CoordinatesInt()
+                        )
+                    ); // Brash units prefer closer tiles
+                if (score > bestScore)
+                {
+                    bestScore = score;
+                    bestTile = potentialTile;
+                }
+            }
+            return bestTile;
         }
     }
         #endregion
