@@ -52,28 +52,25 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                     _context.mapGrid
                 );
 
-                var AccessibleTargetNearTile = GetAccessibleTile(targetGridPoint, behavior);
+                var (destination, canAttack) = GetAccessibleTile(targetGridPoint, behavior);
 
                 float utility = CalculateAttackUtility(target, behavior);
-
-                utility += _reusableAttackTiles.ContainsKey(targetGridPoint) ? 1f : 0f;
+                utility += canAttack ? 1f : 0f; // Bonus for being able to attack immediately
 
                 attackGoals.Add(
                     new AIGoal
                     {
-                        Type = _reusableAttackTiles.ContainsKey(AccessibleTargetNearTile)
+                        Type = canAttack
                             ? AIGoal.GoalType.AttackEnemy
                             : AIGoal.GoalType.GainPosition,
                         UtilityScore = utility,
                         Target = target,
-                        Destination = AccessibleTargetNearTile,
-                        // Even if we are attacking, we still need to stand in a neighboring tile.
-                        ActionToTake = _reusableAttackTiles.ContainsKey(AccessibleTargetNearTile)
-                            ? AIGoal.Action.Attack
-                            : AIGoal.Action.Move,
+                        Destination = destination,
+                        ActionToTake = canAttack ? AIGoal.Action.Attack : AIGoal.Action.Move,
                     }
                 );
             }
+
             AddTopGoals(goals, attackGoals, 3);
         }
 
@@ -852,52 +849,102 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             return TerrainBonus;
         }
 
-        private MapGridPoint GetAccessibleTile(
+        private (MapGridPoint tile, bool canAttack) GetAccessibleTile(
             MapGridPoint targetOccupiedPoint,
             CharacterBehavior modifiedBehaviorSettings
         )
         {
-            // We need to find a tile we can attack from.
-            // Start by getting each tile in attack range of the target
-            // We get the maximum attack range as N and filter _reusableMoveTiles to tiles within N of targetOccupiedPoint
             var attackRanges = _context.UnitInstance.ToAIData().AttackRange;
+            var minAttackRange = attackRanges.min;
             var maxAttackRange = attackRanges.max;
+
             using var potentialDestinations = PooledList<MapGridPoint>.Get();
+
+            // Find all move tiles that would put us in attack range
             foreach (var moveTile in _reusableMoveTiles.Keys)
             {
-                var distance = Vector2.Distance(
-                    moveTile.CoordinatesInt(),
-                    targetOccupiedPoint.CoordinatesInt()
-                );
-                if (distance <= maxAttackRange)
+                int distance =
+                    Mathf.Abs(moveTile.Row - targetOccupiedPoint.Row)
+                    + Mathf.Abs(moveTile.Col - targetOccupiedPoint.Col);
+
+                if (distance >= minAttackRange && distance <= maxAttackRange)
                 {
                     potentialDestinations.List.Add(moveTile);
                 }
             }
-            // Use modifiedBehaviorSettings to prioritize further tiles based on BrashWary
-            // CalculateTerrainBonusOrPenalty for each tile, prefer tiles with higher scores based on MindlessCunning
+
+            // If we found valid attack positions, score and return the best
+            if (potentialDestinations.List.Count > 0)
+            {
+                MapGridPoint bestTile = ScoreTiles(
+                    potentialDestinations.List,
+                    targetOccupiedPoint,
+                    modifiedBehaviorSettings
+                );
+                return (bestTile, canAttack: true);
+            }
+
+            // No attack positions available - return closest tile and signal we can't attack
+            MapGridPoint closestTile = GetClosestTileInMoveTiles(targetOccupiedPoint);
+            return (closestTile, canAttack: false);
+        }
+
+        private MapGridPoint ScoreTiles(
+            List<MapGridPoint> tiles,
+            MapGridPoint target,
+            CharacterBehavior behavior
+        )
+        {
+            var attackRanges = _context.UnitInstance.ToAIData().AttackRange;
             MapGridPoint bestTile = null;
             float bestScore = float.MinValue;
-            foreach (var potentialTile in potentialDestinations.List)
+
+            foreach (var tile in tiles)
             {
                 float score = 0f;
-                score += CalculateTerrainBonusOrPenalty(potentialTile, modifiedBehaviorSettings);
-                score += modifiedBehaviorSettings.MindlessCunning * 2f; // Prioritize better terrain for smart units
-                score +=
-                    modifiedBehaviorSettings.BrashWary
-                    * (
-                        Vector2.Distance(
-                            potentialTile.CoordinatesInt(),
-                            targetOccupiedPoint.CoordinatesInt()
-                        )
-                    ); // Brash units prefer closer tiles
+
+                // Terrain (smart units care more)
+                score += CalculateTerrainBonusOrPenalty(tile, behavior) * behavior.MindlessCunning;
+
+                // Distance preference
+                int distanceToTarget =
+                    Mathf.Abs(tile.Row - target.Row) + Mathf.Abs(tile.Col - target.Col);
+                float distanceFactor =
+                    behavior.BrashWary > 0.5f
+                        ? distanceToTarget // Wary: further is better
+                        : (attackRanges.max - distanceToTarget); // Brash: closer is better
+
+                score += distanceFactor * 2f;
+
                 if (score > bestScore)
                 {
                     bestScore = score;
-                    bestTile = potentialTile;
+                    bestTile = tile;
                 }
             }
+
             return bestTile;
+        }
+
+        // Helper: Find closest reachable tile when no attack positions available
+        private MapGridPoint GetClosestTileInMoveTiles(MapGridPoint target)
+        {
+            MapGridPoint closest = null;
+            int closestDist = int.MaxValue;
+
+            foreach (var moveTile in _reusableMoveTiles.Keys)
+            {
+                int dist =
+                    Mathf.Abs(moveTile.Row - target.Row) + Mathf.Abs(moveTile.Col - target.Col);
+
+                if (dist < closestDist)
+                {
+                    closestDist = dist;
+                    closest = moveTile;
+                }
+            }
+
+            return closest;
         }
     }
         #endregion
