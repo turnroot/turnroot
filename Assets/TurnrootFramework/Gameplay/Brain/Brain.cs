@@ -516,8 +516,6 @@ namespace Turnroot.Gameplay.Brain
 
         public void Awake()
         {
-            Debug.Log("Brain Awake!");
-
             InitializeLongTermMemory();
             InitializeModules();
             InitializeAdvancedSystems();

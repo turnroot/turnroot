@@ -20,19 +20,21 @@ namespace Turnroot.Gameplay.Player
         [Button]
         public void MoveTestUnitToPoint()
         {
+            // 1. Execute the command (updates data immediately)
             Debug.Log("PlayerController MoveTestUnitToPoint called");
-            if (TestUnitView != null)
+            Debug.Log(Brain.Brain.battleBrain.BattleObject); // TODO: BattleObject is null for some reason
+            Debug.Log(Brain.Brain.battleBrain.BattleObject.Context);
+            bool success = Brain.Brain.battleBrain.BattleObject.Context.MoveUnitToPoint(
+                TestUnitView.CharacterDataInstance,
+                TestUnitView.TestingGrid.GetGridPoint(MoveToPoint.x, MoveToPoint.y)
+            );
+
+            // 2. The command fires OnCharacterMoveCompleted event
+            // TODO: 3. Something needs to listen to that event and tell the view to animate
+
+            if (!success)
             {
-                TestUnitView.MoveUnitToPoint(MoveToPoint);
-                Brain.Brain.PublishCharacterMoveCompleted(
-                    TestUnitView.CharacterDataInstance,
-                    TestUnitView.TestingGrid.GetGridPoint(MoveToPoint.x, MoveToPoint.y)
-                // TODO: Move the event publishing to PlayerInputBrain. This is bad
-                );
-            }
-            else
-            {
-                Debug.Log("No TestUnitView assigned to PlayerController.");
+                Debug.LogError("Move command failed!");
             }
         }
 

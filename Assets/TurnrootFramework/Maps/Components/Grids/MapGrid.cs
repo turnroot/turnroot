@@ -597,6 +597,35 @@ public class MapGrid : MonoBehaviour
         return points;
     }
 
+    public void SetOccupied(MapGridPoint point, CharacterInstance occupier)
+    {
+        EnsureCachedGridPoints();
+
+        var key = new Vector2Int(point.Row, point.Col);
+        if (_cachedGridPoints != null && _cachedGridPoints.TryGetValue(key, out var mgp))
+        {
+            mgp.CurrentInstance = occupier;
+        }
+    }
+
+    public void GetAllOccupiedPoints()
+    {
+        EnsureCachedGridPoints();
+
+        var occupiedPoints = new List<MapGridPoint>();
+        var occupyingInstances = new List<CharacterInstance>();
+
+        foreach (var mgp in _cachedGridPoints.Values)
+        {
+            if (mgp != null && mgp.IsOccupied && mgp.CurrentInstance != null)
+            {
+                occupiedPoints.Add(mgp);
+                occupyingInstances.Add(mgp.CurrentInstance);
+                Debug.Log($"Occupied Point: ({mgp.Row}, {mgp.Col}) by {mgp.CurrentInstance.Id}");
+            }
+        }
+    }
+
     /// <summary>
     /// Ensures the cached MapGridPoint dictionary is populated.
     /// Call this before iterating over grid points to avoid repeated GetComponent calls.

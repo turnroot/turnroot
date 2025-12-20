@@ -115,6 +115,55 @@ namespace Turnroot.Gameplay.Brain
                                     .CharacterDataInstance
                             ); // TODO: This is wildly wrong but will work for testing, fix later
                             Debug.Log("BattleBrain: AI Controlled Unit initialized.");
+                            Brain
+                                .playerInputBrain
+                                .ScenePlayerController
+                                .TestUnitView
+                                .CharacterDataInstance
+                                .MapGridPosition = Brain
+                                .playerInputBrain
+                                .ScenePlayerController
+                                .TestUnitView
+                                .CurrentGridCoordinates;
+                            var enemyCoords = Brain
+                                .playerInputBrain
+                                .ScenePlayerController
+                                .EnemyTestUnitView
+                                .CurrentGridCoordinates;
+                            var enemyGridPoint = _battleGameObject.Context.mapGrid.GetGridPoint(
+                                enemyCoords.x,
+                                enemyCoords.y
+                            );
+                            var GridPoint = _battleGameObject.Context.mapGrid.GetGridPoint(
+                                Brain
+                                    .playerInputBrain
+                                    .ScenePlayerController
+                                    .TestUnitView
+                                    .CurrentGridCoordinates
+                                    .x,
+                                Brain
+                                    .playerInputBrain
+                                    .ScenePlayerController
+                                    .TestUnitView
+                                    .CurrentGridCoordinates
+                                    .y
+                            );
+                            _battleGameObject.Context.mapGrid.SetOccupied(
+                                enemyGridPoint,
+                                Brain
+                                    .playerInputBrain
+                                    .ScenePlayerController
+                                    .EnemyTestUnitView
+                                    .CharacterDataInstance
+                            );
+                            _battleGameObject.Context.mapGrid.SetOccupied(
+                                GridPoint,
+                                Brain
+                                    .playerInputBrain
+                                    .ScenePlayerController
+                                    .TestUnitView
+                                    .CharacterDataInstance
+                            );
                             _battleGameObject.Context.Targets.Add(
                                 Brain
                                     .playerInputBrain
@@ -145,8 +194,15 @@ namespace Turnroot.Gameplay.Brain
                                         .Identity
                                         .ClassName
                             );
+                            _battleGameObject.Context.mapGrid.GetAllOccupiedPoints();
                             break;
                         }
+                    }
+                    if (_battleGameObject == null)
+                    {
+                        Debug.LogWarning(
+                            $"BattleBrain: No BattleGameObject found in scene '{scene.name}'."
+                        );
                     }
                 }
             }

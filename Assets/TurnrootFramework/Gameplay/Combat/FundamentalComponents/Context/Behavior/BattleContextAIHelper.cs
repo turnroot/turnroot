@@ -354,7 +354,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
             // 7. Defensive Goals (Wary Wolf) (using modified wariness)
             var WaryWolf = modifiedBehaviorSettings.BrashWary + SoldierLoneWolf;
-            if ((WaryWolf >= 1.2f || modifiedBehaviorSettings.BrashWary >= .5f) && shouldProceed)
+            if ((WaryWolf >= 1.35f || modifiedBehaviorSettings.BrashWary > .5f) && shouldProceed)
             {
                 // High wariness and lone wolf- focused units prioritize defense
                 EvaluateDefensiveGoals(potentialGoals, modifiedBehaviorSettings);

@@ -22,7 +22,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             if (behavior.SelfishSelfless < 0.7f && healthPercent <= 0.5f)
             {
                 // Dramatically increase utility when critically wounded
-                float baseUtility = 10f + (1f - healthPercent) * 15f;
+                float baseUtility = 8f + (1f - healthPercent) * 15f;
 
                 // Critical health multiplier
                 if (isCritical)
@@ -99,7 +99,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                     // PENALTY for attacking when critically wounded (survival instinct)
                     if (isCritical && behavior.MindlessCunning > 0.5f)
                     {
-                        utility *= 0.6f; // Smart units less likely to suicide attack
+                        utility *= 0.8f; // Smart units less likely to suicide attack
                     }
 
                     if (utility > BestUtility)

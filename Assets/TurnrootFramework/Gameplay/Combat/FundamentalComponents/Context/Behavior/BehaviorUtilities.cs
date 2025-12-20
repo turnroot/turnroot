@@ -52,6 +52,8 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                     _context.mapGrid
                 );
 
+                // TODO: Two units can't occupy the same tile! Get neighbors instead
+
                 float utility = CalculateAttackUtility(target, behavior);
 
                 utility += CalculateTerrainBonusOrPenalty(targetGridPoint, behavior);
@@ -65,10 +67,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                             : AIGoal.GoalType.GainPosition,
                         UtilityScore = utility,
                         Target = target,
-                        Destination = _context.UnitInstance.UnitPositionToMapGridPoint(
-                            _context.UnitInstance.MapGridPosition,
-                            _context.mapGrid
-                        ),
+                        Destination = targetGridPoint,
                         ActionToTake = _reusableAttackTiles.ContainsKey(targetGridPoint)
                             ? AIGoal.Action.Attack
                             : AIGoal.Action.Move,
@@ -111,7 +110,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                         UtilityScore = utility,
                         Target = target,
                         Destination = _context.UnitInstance.UnitPositionToMapGridPoint(
-                            _context.UnitInstance.MapGridPosition,
+                            targetGridPoint.CoordinatesInt(),
                             _context.mapGrid
                         ),
                         ActionToTake = _reusableAttackTiles.ContainsKey(targetGridPoint)
@@ -170,7 +169,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                         UtilityScore = utility,
                         Target = closestEnemy,
                         Destination = _context.UnitInstance.UnitPositionToMapGridPoint(
-                            _context.UnitInstance.MapGridPosition,
+                            targetGridPoint.CoordinatesInt(),
                             _context.mapGrid
                         ),
                         ActionToTake = _reusableAttackTiles.ContainsKey(targetGridPoint)
@@ -209,7 +208,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                             UtilityScore = utility,
                             Target = ally,
                             Destination = _context.UnitInstance.UnitPositionToMapGridPoint(
-                                _context.UnitInstance.MapGridPosition,
+                                allyGridPoint.CoordinatesInt(),
                                 _context.mapGrid
                             ),
                             ActionToTake = AIGoal.Action.Heal,
@@ -271,7 +270,8 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                         UtilityScore = utility,
                         Target = ally,
                         Destination = _context.UnitInstance.UnitPositionToMapGridPoint(
-                            _context.UnitInstance.MapGridPosition,
+                            ally.UnitPositionToMapGridPoint(ally.MapGridPosition, _context.mapGrid)
+                                .CoordinatesInt(),
                             _context.mapGrid
                         ),
                     }
@@ -360,18 +360,85 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             using var defensiveGoalsPooled = PooledList<AIGoal>.Get();
             var defensiveGoals = defensiveGoalsPooled.List;
 
-            var baseDanger = 0f;
-            var ClosestAndFurthest = FindClosestAndFurthestEnemies(_context.Targets);
-            baseDanger += ClosestAndFurthest.closestDist;
-            baseDanger += 4f - ClosestAndFurthest.furthestDist;
-            baseDanger += 1f - _context.UnitInstance.GetHealthPercentage();
-            baseDanger += IsSurrounded ? 5f : 0f;
-            baseDanger += behavior.BrashWary * 5f;
+            // === ASSESS CURRENT THREAT LEVEL ===
+            var enemyProximity = FindClosestAndFurthestEnemies(_context.Targets);
+            float healthPercent = _context.UnitInstance.GetHealthPercentage();
 
+            // Base danger increases as:
+            // - Enemies get closer (10 - distance gives 0-10 scale)
+            // - Health decreases
+            // - Surrounded by multiple enemies
+            float baseDanger = 0f;
+            baseDanger += Mathf.Max(0, 10f - enemyProximity.closestDist); // 0-10: closer = more danger
+            baseDanger += (1f - healthPercent) * 2.5f; // 0-5: wounded = more danger
+            baseDanger += IsSurrounded ? 2.5f : 0f; // Big spike when surrounded
+
+            // === PERSONALITY MODIFIERS ===
+            // Wary units feel threatened earlier, but only if there's actual danger
+            if (enemyProximity.closestDist < 6f)
+            {
+                baseDanger += behavior.BrashWary * 3f; // 0-4 based on wariness
+            }
+
+            // Lone wolves more willing to retreat (soldiers hate abandoning formation)
+            float personalityMultiplier = 1f + (behavior.SoldierLoneWolf * 0.3f); // 1.0-1.3x
+            baseDanger *= personalityMultiplier;
+
+            // === DEBUG DIAGNOSTICS ===
+            Debug.Log(
+                $"[Defensive Eval] HP: {healthPercent:P0}, Surrounded: {IsSurrounded}, "
+                    + $"ClosestEnemy: {enemyProximity.closestDist:F1}, BaseDanger: {baseDanger:F1}"
+            );
+
+            // === EVALUATE EACH RETREAT TILE ===
             foreach (var tile in _reusableMoveTiles.Keys)
             {
                 float tileUtility = baseDanger;
-                tileUtility += CalculateDefensiveUtility(tile, behavior);
+
+                // How much safer is this tile than current position?
+                float newDistanceToClosest = Vector2.Distance(
+                    tile.Coordinates(),
+                    enemyProximity.closest
+                );
+                float distanceImprovement = newDistanceToClosest - enemyProximity.closestDist;
+
+                // Only consider tiles that actually increase distance from enemies
+                if (distanceImprovement <= 0)
+                {
+                    continue; // Not a retreat, skip it
+                }
+
+                // Reward tiles that move us further from danger
+                tileUtility += distanceImprovement * 2f;
+
+                // === FORMATION CONSIDERATION ===
+                // Soldiers don't want to retreat away from allies
+                if (behavior.SoldierLoneWolf < 0.5f)
+                {
+                    // Find closest ally to this retreat tile
+                    float closestAllyDist = float.MaxValue;
+                    foreach (var ally in _context.Allies)
+                    {
+                        if (ally == _context.UnitInstance)
+                            continue;
+
+                        float dist = Vector2.Distance(tile.Coordinates(), ally.MapGridPosition);
+                        if (dist < closestAllyDist)
+                        {
+                            closestAllyDist = dist;
+                        }
+                    }
+
+                    // Penalize tiles far from allies (soldiers retreat *toward* team, not away)
+                    if (closestAllyDist > 3f)
+                    {
+                        tileUtility -=
+                            (closestAllyDist - 3f) * (1f - behavior.SoldierLoneWolf) * 2f;
+                    }
+                }
+
+                // === TERRAIN EVALUATION ===
+                // Defensive terrain makes retreat tiles more attractive
                 tileUtility += CalculateTerrainBonusOrPenalty(tile, behavior);
 
                 defensiveGoals.Add(
@@ -385,7 +452,10 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                     }
                 );
             }
-            AddTopGoals(goals, defensiveGoals, behavior.BrashWary >= 0.5f ? 3 : 2);
+
+            // Sort and add top retreats (more for wary units, fewer for brash)
+            int retreatsToConsider = behavior.BrashWary >= 0.5f ? 3 : 2;
+            AddTopGoals(goals, defensiveGoals, retreatsToConsider);
         }
 
         private void EvaluatePositionGoals(
@@ -538,6 +608,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
         private void EvaluateHealSelfGoals(List<AIGoal> goals, CharacterBehavior behavior)
         {
+            // TODO: Consider moving to an advantageous position before healing self
             float healthPercentage = _context.UnitInstance.GetHealthPercentage();
 
             // Only evaluate if wounded

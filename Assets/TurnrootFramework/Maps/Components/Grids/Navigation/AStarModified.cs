@@ -256,7 +256,11 @@ public class AStarModified
             foreach (var kv in _neighborsBuffer)
             {
                 var neighbor = kv.Value;
-                if (reachable.TryGetValue(neighbor, out var cost) && cost < lowestCost)
+                if (
+                    reachable.TryGetValue(neighbor, out var cost)
+                    && cost < lowestCost
+                    && !neighbor.IsOccupied
+                )
                 {
                     lowestCost = cost;
                     next = neighbor;
