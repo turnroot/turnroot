@@ -6,10 +6,10 @@ namespace Turnroot.Characters
     /// <summary>
     /// Runtime component that holds the runtime instances for a `Roster` ScriptableObject.
     /// </summary>
-    public class RosterInstance : MonoBehaviour
+    public class PlayerTeamRosterInstance : MonoBehaviour
     {
         [SerializeField]
-        public Roster roster;
+        public PlayerTeamRoster roster;
         private readonly List<CharacterInstance> _instances = new();
         public IReadOnlyList<CharacterInstance> Instances => _instances;
 

@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using Turnroot.Characters;
 using Turnroot.Characters.Components.Behavior;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Locations;

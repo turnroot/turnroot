@@ -42,46 +42,65 @@ namespace Turnroot.Gameplay.Combat
         // Track connection state to prevent duplicate subscriptions
         private bool _isConnectedToBrain;
 
-        // Battle rosters - temporary for this battle only
+        // Battle rosters - typed for their specific roles
+        public PlayerTeamRosterInstance PlayerTeamRoster { get; private set; }
+        public GenericRosterInstance EnemyTeamRoster { get; private set; }
+        public GenericRosterInstance ThirdPartyTeamRoster { get; private set; }
 
-        public RosterInstance PlayerTeamRoster { get; private set; }
-        public RosterInstance EnemyTeamRoster { get; private set; }
-        public RosterInstance ThirdPartyTeamRoster { get; private set; }
+        #region Unity Lifecycle
+
+        public void Awake()
+        {
+            ResetTurnCount();
+            Context ??= new BattleContext();
+            _mapGrid = _mapGrid != null ? _mapGrid : GetComponentInChildren<MapGrid>();
+
+            if (_mapGrid == null)
+            {
+                Debug.LogError("BattleGameObject requires a MapGrid child");
+                Debug.Break();
+            }
+
+            if (_battleConditions == null)
+            {
+                Debug.LogError("BattleGameObject requires BattleConditions to be set");
+                Debug.Break();
+            }
+
+            // Connect Context to mapGrid
+            Context.mapGrid = _mapGrid;
+        }
+
+        #endregion
+
+        #region Brain Event Connection
 
         public void ConnectToBrainEvents()
         {
             if (Brain == null)
             {
-                Debug.LogWarning("BattleGameObject has no Brain to connect to.");
+                Debug.LogWarning("BattleGameObject has no Brain to connect to");
                 return;
             }
 
             // Guard against duplicate subscriptions
             if (_isConnectedToBrain)
             {
-                Debug.LogWarning(
-                    "BattleGameObject is already connected to Brain events. Skipping duplicate subscription."
-                );
+                Debug.LogWarning("BattleGameObject is already connected to Brain events");
                 return;
             }
 
-            Debug.Log("BattleGameObject connecting to Brain events.");
+            Debug.Log("BattleGameObject connecting to Brain events");
 
             // Initialize context with Brain reference for command pattern
             InitializeContextWithBrain();
 
-            // Subscribe to turn end event
+            // Subscribe to battle events
             Brain.OnTurnEnded += HandleTurnEnded;
-
-            // Subscribe to damage events
             Brain.OnAllyDamaged += HandleAllyDamaged;
             Brain.OnEnemyDamaged += HandleEnemyDamaged;
-
-            // Subscribe to defeat and movement events
             Brain.OnUnitDefeated += HandleUnitDefeated;
             Brain.OnUnitMoved += HandleUnitMoved;
-
-            // Subscribe to battle lifecycle events
             Brain.OnBattleCompleted += HandleExitBattle;
 
             _isConnectedToBrain = true;
@@ -103,6 +122,47 @@ namespace Turnroot.Gameplay.Combat
 
             _isConnectedToBrain = false;
         }
+
+        public void ConnectBattleConditionsToGamewideContextBrain()
+        {
+            if (Brain == null || Brain.gamewideContextBrain == null)
+            {
+                Debug.LogError(
+                    "BattleGameObject cannot connect BattleConditions: Brain or GamewideContextBrain is null"
+                );
+                Debug.Break();
+                return;
+            }
+
+            foreach (var condition in _battleConditions)
+            {
+                condition.gamewideContextBrain = Brain.gamewideContextBrain;
+            }
+        }
+
+        private void InitializeContextWithBrain()
+        {
+            if (Context == null)
+            {
+                Debug.LogError("BattleGameObject: Context is null during initialization!");
+                return;
+            }
+
+            if (Brain == null)
+            {
+                Debug.LogError(
+                    "BattleGameObject: Brain is null - context will not function correctly!"
+                );
+                return;
+            }
+
+            Context.Brain = Brain;
+            Debug.Log("BattleGameObject: Context initialized with Brain reference");
+        }
+
+        #endregion
+
+        #region Event Handlers
 
         private void HandleTurnEnded()
         {
@@ -183,7 +243,7 @@ namespace Turnroot.Gameplay.Combat
                 // Track reached tiles for ReachTilesBattleCondition
                 if (condition is ReachTilesBattleCondition reachTilesCondition)
                 {
-                    // Check if this unit is on the player team (typically only player units can fulfill reach conditions)
+                    // Check if this unit is on the player team
                     bool isPlayerUnit = PlayerTeamRoster?.Instances?.Contains(unit) ?? false;
                     if (isPlayerUnit)
                     {
@@ -193,70 +253,19 @@ namespace Turnroot.Gameplay.Combat
             }
         }
 
-        private void HandleExitBattle(BattleExitType exitType) => DisconnectFromBrainEvents();
-
-        private void OnDestroy() => DisconnectFromBrainEvents();
-
-        public void ConnectBattleConditionsToGamewideContextBrain()
+        private void HandleExitBattle(BattleExitType exitType)
         {
-            if (Brain == null || Brain.gamewideContextBrain == null)
-            {
-                Debug.LogError(
-                    "BattleGameObject cannot connect BattleConditions: Brain or GamewideContextBrain is null."
-                );
-                Debug.Break();
-                return;
-            }
-
-            foreach (var condition in _battleConditions)
-            {
-                condition.gamewideContextBrain = Brain.gamewideContextBrain;
-            }
+            DisconnectFromBrainEvents();
         }
 
-        public void Awake()
+        private void OnDestroy()
         {
-            ResetTurnCount();
-            Context ??= new BattleContext();
-            _mapGrid = _mapGrid != null ? _mapGrid : GetComponentInChildren<MapGrid>();
-            if (_mapGrid == null)
-            {
-                Debug.LogError("BattleGameObject requires a MapGrid child.");
-                Debug.Break();
-            }
-            if (_battleConditions == null)
-            {
-                Debug.LogError("BattleGameObject requires BattleConditions to be set.");
-                Debug.Break();
-            }
-
-            // Connect Context to mapGrid
-            Context.mapGrid = _mapGrid;
+            DisconnectFromBrainEvents();
         }
 
-        /// <summary>
-        /// Called after Brain is set to finish context initialization.
-        /// Context requires Brain for all command-based operations.
-        /// </summary>
-        private void InitializeContextWithBrain()
-        {
-            if (Context == null)
-            {
-                Debug.LogError("BattleGameObject: Context is null during initialization!");
-                return;
-            }
+        #endregion
 
-            if (Brain == null)
-            {
-                Debug.LogError(
-                    "BattleGameObject: Brain is null - context will not function correctly!"
-                );
-                return;
-            }
-
-            Context.Brain = Brain;
-            Debug.Log("BattleGameObject: Context initialized with Brain reference.");
-        }
+        #region Turn Count Management
 
         public void IncrementTurnCount() => _currentTurnCount++;
 
@@ -264,10 +273,13 @@ namespace Turnroot.Gameplay.Combat
 
         public int Turns() => _currentTurnCount;
 
+        #endregion
+
         #region Battle Roster Management
 
         /// <summary>
         /// Initialize the three temporary battle rosters.
+        /// Creates empty instances ready to be populated.
         /// </summary>
         public void InitializeBattleRosters()
         {
@@ -276,7 +288,7 @@ namespace Turnroot.Gameplay.Combat
             {
                 var go = new GameObject("BattleRoster - Player Team");
                 go.transform.SetParent(transform);
-                PlayerTeamRoster = go.AddComponent<RosterInstance>();
+                PlayerTeamRoster = go.AddComponent<PlayerTeamRosterInstance>();
             }
             else
             {
@@ -288,7 +300,7 @@ namespace Turnroot.Gameplay.Combat
             {
                 var go = new GameObject("BattleRoster - Enemy Team");
                 go.transform.SetParent(transform);
-                EnemyTeamRoster = go.AddComponent<RosterInstance>();
+                EnemyTeamRoster = go.AddComponent<GenericRosterInstance>();
             }
             else
             {
@@ -300,92 +312,70 @@ namespace Turnroot.Gameplay.Combat
             {
                 var go = new GameObject("BattleRoster - Third Party Team");
                 go.transform.SetParent(transform);
-                ThirdPartyTeamRoster = go.AddComponent<RosterInstance>();
+                ThirdPartyTeamRoster = go.AddComponent<GenericRosterInstance>();
             }
             else
             {
                 ThirdPartyTeamRoster.Clear();
             }
 
-            Debug.Log("BattleGameObject: Initialized three temporary battle rosters.");
+            Debug.Log("BattleGameObject: Initialized three temporary battle rosters");
         }
 
         /// <summary>
-        /// Populate battle rosters with characters sorted by faction.
+        /// Populate rosters from templates and persistent data.
         /// </summary>
-        public void PopulateBattleRostersFromGamewideContext(Brain.GamewideContextBrain gwcb)
+        public void PopulateBattleRostersFromTemplates()
         {
-            if (gwcb == null)
-            {
-                Debug.LogWarning(
-                    "BattleGameObject: Cannot populate battle rosters - GamewideContextBrain is null."
-                );
-                return;
-            }
+            // TODO: Load player roster from persistent data (GamewideContextBrain)
+            // PlayerTeamRoster should be populated from the persistent player roster
 
-            var allCharacters = gwcb.GetAllActiveInstances();
-            int playerCount = 0;
-            int enemyCount = 0;
-            int thirdPartyCount = 0;
+            // TODO: Load enemy roster from this battle's enemy template
+            // EnemyTeamRoster should be populated from a RosterTemplate assigned to this battle
 
-            foreach (var character in allCharacters)
-            {
-                if (character?.CharacterTemplate?.Which == null)
-                {
-                    continue;
-                }
+            // TODO: Load third party roster from this battle's NPC template (if any)
+            // ThirdPartyTeamRoster should be populated from a RosterTemplate if HasThirdParty is true
 
-                string faction = character.CharacterTemplate.Which.Value;
-
-                if (faction is CharacterWhich.ALLY or CharacterWhich.AVATAR)
-                {
-                    PlayerTeamRoster.AddInstance(character);
-                    playerCount++;
-                }
-                else if (faction == CharacterWhich.ENEMY)
-                {
-                    EnemyTeamRoster.AddInstance(character);
-                    enemyCount++;
-                }
-                else if (faction == CharacterWhich.NPC)
-                {
-                    ThirdPartyTeamRoster.AddInstance(character);
-                    thirdPartyCount++;
-                }
-            }
-
-            Debug.Log(
-                $"BattleGameObject: Populated battle rosters - Player: {playerCount}, Enemy: {enemyCount}, Third Party: {thirdPartyCount}"
-            );
+            Debug.Log("BattleGameObject: TODO - Populate rosters from templates");
         }
 
         /// <summary>
-        /// Add a character instance to the appropriate battle roster based on faction.
+        /// Spawn all roster units onto the grid at their spawn points.
         /// </summary>
-        public void AddCharacterToBattleRoster(CharacterInstance character)
+        public void SpawnRosterUnitsOntoGrid()
         {
-            if (character?.CharacterTemplate?.Which == null)
+            // TODO: For each roster, find spawn points and place units
+            // - Get spawn points from MapGrid
+            // - Match units to spawn points by faction
+            // - Set unit.MapGridPosition
+            // - Call Context.mapGrid.SetOccupied()
+            // - Publish Brain.PublishCharacterSpawned()
+
+            Debug.Log("BattleGameObject: TODO - Spawn roster units onto grid");
+        }
+
+        /// <summary>
+        /// Build the BattleContext from the populated rosters.
+        /// </summary>
+        public void PopulateBattleContextFromRosters()
+        {
+            if (Context == null)
             {
-                Debug.LogWarning(
-                    "BattleGameObject: Cannot add character to battle roster - invalid character or faction."
-                );
+                Debug.LogError("BattleGameObject: Context is null!");
                 return;
             }
 
-            string faction = character.CharacterTemplate.Which.Value;
+            // Clear existing context data
+            Context.Targets.Clear();
+            Context.Allies.Clear();
+            Context.ThirdParty.Clear();
 
-            if (faction is CharacterWhich.ALLY or CharacterWhich.AVATAR)
-            {
-                PlayerTeamRoster?.AddInstance(character);
-            }
-            else if (faction == CharacterWhich.ENEMY)
-            {
-                EnemyTeamRoster?.AddInstance(character);
-            }
-            else if (faction == CharacterWhich.NPC)
-            {
-                ThirdPartyTeamRoster?.AddInstance(character);
-            }
+            // TODO: Populate Context.Targets from EnemyTeamRoster
+            // TODO: Populate Context.Allies from PlayerTeamRoster
+            // TODO: Populate Context.ThirdParty from ThirdPartyTeamRoster
+            // Filter out defeated units when populating
+
+            Debug.Log("BattleGameObject: TODO - Populate battle context from rosters");
         }
 
         /// <summary>
@@ -397,7 +387,7 @@ namespace Turnroot.Gameplay.Combat
             EnemyTeamRoster?.Clear();
             ThirdPartyTeamRoster?.Clear();
 
-            Debug.Log("BattleGameObject: Cleared all temporary battle rosters.");
+            Debug.Log("BattleGameObject: Cleared all temporary battle rosters");
         }
 
         #endregion

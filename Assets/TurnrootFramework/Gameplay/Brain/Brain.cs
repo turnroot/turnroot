@@ -5,7 +5,6 @@ using Turnroot.Characters.Components.Support;
 using Turnroot.Conversations;
 using Turnroot.Gameplay.Combat;
 using Turnroot.Gameplay.Objects;
-using Turnroot.Gameplay.Player;
 using Turnroot.Utilities;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -177,13 +176,12 @@ namespace Turnroot.Gameplay.Brain
 
         #region Roster Lifecycle Events
 
-        public event Action<RosterInstance> OnRosterReady;
-        public event Action<Roster, string> OnRosterFailed;
+        public event Action OnRostersReady;
+        public event Action OnRostersFailed;
 
-        public void PublishRosterReady(RosterInstance instance) => OnRosterReady?.Invoke(instance);
+        public void PublishRostersReady() => OnRostersReady?.Invoke();
 
-        public void PublishRosterFailed(Roster roster, string reason) =>
-            OnRosterFailed?.Invoke(roster, reason);
+        public void PublishRostersFailed() => OnRostersFailed?.Invoke();
 
         #endregion
 
@@ -377,6 +375,8 @@ namespace Turnroot.Gameplay.Brain
         public event Action OnEnemyTurnEnded;
         public event Action OnThirdPartyTurnStarted;
         public event Action OnThirdPartyTurnEnded;
+
+        public event Action<CharacterInstance> OnPlayerControlledUnitActivated;
         public event Action<CharacterInstance, int> OnAllyDamaged;
         public event Action<CharacterInstance, int> OnEnemyDamaged;
         public event Action<CharacterInstance> OnUnitDefeated;
@@ -413,6 +413,9 @@ namespace Turnroot.Gameplay.Brain
         public void PublishThirdPartyTurnStarted() => OnThirdPartyTurnStarted?.Invoke();
 
         public void PublishThirdPartyTurnEnded() => OnThirdPartyTurnEnded?.Invoke();
+
+        public void PublishPlayerControlledUnitActivated(CharacterInstance unit) =>
+            OnPlayerControlledUnitActivated?.Invoke(unit);
 
         public void PublishAllyDamaged(CharacterInstance unit, int damage) =>
             OnAllyDamaged?.Invoke(unit, damage);

@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using Turnroot.Characters;
 using Turnroot.Characters.Components.Behavior;
-using Turnroot.Gameplay.Brain.Events;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Conditions.Specific;
 using Turnroot.Utilities;
 using UnityEngine;
@@ -386,6 +385,9 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         /// </summary>
         public void PickTileAndAction()
         {
+            // TEMPORARY DEBUG: Force recompute every time
+            _reusableMoveTiles.Clear();
+            _reusableAttackTiles.Clear();
             // 1. Ensure tiles are computed
             EnsureTilesAreComputed();
 
