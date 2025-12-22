@@ -1,7 +1,6 @@
 using System;
 using NaughtyAttributes;
 using UnityEngine;
-using static Turnroot.Characters.GenericRoster;
 
 namespace Turnroot.Characters
 {

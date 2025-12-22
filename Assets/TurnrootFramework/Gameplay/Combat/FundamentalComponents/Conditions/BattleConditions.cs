@@ -15,11 +15,7 @@ using UnityEngine.Events;
 /// </summary>
 public class BattleCondition
 {
-    [HideInInspector]
-    public GamewideContextBrain gamewideContextBrain;
-
-    protected BattleContext battleContext =>
-        gamewideContextBrain?.CentralBrain.battleBrain.BattleObject.Context;
+    public BattleContext battleContext;
 
     [HideInInspector]
     public string Name;
@@ -56,14 +52,14 @@ public class BattleCondition
     {
         OnConditionMet?.Invoke();
         // Publish to Brain for centralized event handling
-        gamewideContextBrain?.CentralBrain?.PublishBattleConditionMet(this);
+        battleContext.Brain.PublishBattleConditionMet(this);
     }
 
     public void ConditionFailed()
     {
         OnConditionFailed?.Invoke();
         // Publish to Brain for centralized event handling
-        gamewideContextBrain?.CentralBrain?.PublishBattleConditionFailed(this);
+        battleContext.Brain.PublishBattleConditionFailed(this);
     }
 
     /// <summary>

@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using Turnroot.Characters;
-using Turnroot.Gameplay.Brain.Events;
 using Turnroot.Gameplay.Combat;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
 using UnityEngine;
@@ -13,7 +12,7 @@ namespace Turnroot.Gameplay.Brain
     /// The battle brain manages one battle at a time.
     /// Responsible for initializing battles and managing turn order.
     /// </summary>
-    public class BattleBrain : BrainComponent
+    public partial class BattleBrain : BrainComponent
     {
         [SerializeField]
         private List<GenericRoster> _genericRosters;
@@ -23,13 +22,20 @@ namespace Turnroot.Gameplay.Brain
         private BattleGameObject _battleGameObject;
         private TurnRotisserie _turnRotisserie;
 
-        public BattleGameObject BattleObject => _battleGameObject;
+        private BattleContextAIHelper _aiHelper;
+
+        public BattleGameObject BattleObject { get; private set; }
 
         // Roster accessors through BattleGameObject
-        public PlayerTeamRosterInstance PlayerTeamRoster => _battleGameObject?.PlayerTeamRoster;
-        public GenericRosterInstance EnemyTeamRoster => _battleGameObject?.EnemyTeamRoster;
+        public PlayerTeamRosterInstance PlayerTeamRoster =>
+            BattleObject != null ? BattleObject.PlayerTeamRoster : null;
+        public GenericRosterInstance EnemyTeamRoster =>
+            BattleObject != null ? BattleObject.EnemyTeamRoster : null;
         public GenericRosterInstance ThirdPartyTeamRoster =>
-            _battleGameObject?.ThirdPartyTeamRoster;
+            BattleObject != null ? BattleObject.ThirdPartyTeamRoster : null;
+
+        private RosterManager _rosterManager;
+        private CharacterPersistence _characterPersistence;
 
         private RosterManager _rosterManager;
         private CharacterPersistence _characterPersistence;
@@ -88,15 +94,35 @@ namespace Turnroot.Gameplay.Brain
             _brain.OnItemStolen += HandleItemStolen;
         }
 
-        protected override void UnsubscribeFromBrainEvents()
+        private void Start()
         {
-            _brain.OnBattleStarted -= HandleStartBattle;
-            _brain.OnBattleCompleted -= HandleExitBattle;
-            _brain.OnUnitTakesAnotherTurn -= HandleUnitTakesAnotherTurn;
-            _brain.OnCriticalHit -= HandleCriticalHit;
-            _brain.OnWeaponUsesChanged -= HandleWeaponUsesChanged;
-            _brain.OnItemStolen -= HandleItemStolen;
+            _rosterManager.RecallGenericRosters(_genericRosters);
+            _rosterManager.InstantiatePlayerTeamRoster(_playerTeamRoster);
         }
+
+        #region Roster Management API
+
+        public GenericRosterInstance InstantiateGenericRoster(
+            GenericRoster roster,
+            bool register = false
+        ) => _rosterManager.InstantiateGenericRoster(roster, register);
+
+        public CharacterInstance FindInstanceByTemplate(CharacterData template) =>
+            _rosterManager.FindInstanceByTemplate(template);
+
+        public List<CharacterInstance> GetAllActiveInstances() =>
+            _rosterManager.GetAllActiveInstances();
+
+        public PlayerTeamRosterInstance InstantiatePlayerTeamRoster() =>
+            _rosterManager.InstantiatePlayerTeamRoster(_playerTeamRoster);
+
+        public void RecallGenericRosters(List<GenericRoster> rosters) =>
+            _rosterManager.RecallGenericRosters(rosters);
+
+        public void SaveUniqueCharacterProgress(CharacterInstance instance) =>
+            _characterPersistence.SaveCharacter(instance, updateIndex: false);
+
+        #endregion
 
         public void ProgressTurnOrder()
         {
@@ -113,18 +139,18 @@ namespace Turnroot.Gameplay.Brain
         {
             Debug.Log("BattleBrain: Handling StartBattle event");
 
-            _battleGameObject = FindBattleGameObjectInScene();
+            BattleObject = FindBattleGameObjectInScene();
 
-            if (_battleGameObject == null)
+            if (BattleObject == null)
             {
                 Debug.LogError("BattleBrain: No BattleGameObject found in any loaded scene!");
                 return;
             }
 
             // Connect systems
-            _battleGameObject.Brain = _brain;
-            _battleGameObject.ConnectToBrainEvents();
-            _battleGameObject.ConnectBattleConditionsToGamewideContextBrain();
+            BattleObject.Brain = _brain;
+            BattleObject.ConnectToBrainEvents();
+            BattleObject.ConnectBattleConditionsToContext();
 
             Debug.Log($"BattleBrain: Connected to BattleGameObject");
 
@@ -132,7 +158,10 @@ namespace Turnroot.Gameplay.Brain
             InitializeBattleRosters();
 
             // Initialize advanced systems (commands, snapshots)
-            InitializeBattleAdvancedSystems();
+            // Clear any previous battle's command history
+            _brain.Commands?.Clear();
+            // Take initial snapshot of battle state
+            _brain.TakeSnapshot();
 
             Debug.Log("BattleBrain: Battle initialization complete");
         }
@@ -143,7 +172,9 @@ namespace Turnroot.Gameplay.Brain
             {
                 Scene scene = SceneManager.GetSceneAt(i);
                 if (!scene.isLoaded)
+                {
                     continue;
+                }
 
                 foreach (GameObject rootObject in scene.GetRootGameObjects())
                 {
@@ -163,10 +194,10 @@ namespace Turnroot.Gameplay.Brain
         private void InitializeBattleRosters()
         {
             // 1. Create empty runtime roster instances
-            _battleGameObject.InitializeBattleRosters();
+            BattleObject.InitializeBattleRosters();
 
             // 2. Populate rosters from templates and persistent data
-            var result = _battleGameObject.PopulateBattleRostersFromTemplates();
+            var result = BattleObject.PopulateBattleRostersFromTemplates();
             if (!result.Success)
             {
                 Debug.LogError($"Failed to populate battle rosters: {result.ErrorMessage}");
@@ -174,63 +205,36 @@ namespace Turnroot.Gameplay.Brain
 
             SpawnRosterUnitsOntoGrid();
 
-            // TODO: 4. Build battle context from spawned units
-            // _battleGameObject.PopulateBattleContextFromRosters();
-
-            InitializeAISystem();
-        }
-
-        private void InitializeAISystem()
-        {
-            // TODO: Create AI helper for battle context
-            // TODO: Subscribe to AI evaluation events from TurnRotisserie
-            // var aiHelper = new BattleContextAIHelper(_battleGameObject.Context);
-            // _brain.OnAIEvaluationRequested += (unit) => { ... };
-
-            Debug.Log("BattleBrain: TODO - Initialize AI system");
-        }
-
-        private void InitializeBattleAdvancedSystems()
-        {
-            // Clear any previous battle's command history
-            _brain.Commands?.Clear();
-
-            // Take initial snapshot of battle state
-            _brain.TakeSnapshot();
-
-            Debug.Log("BattleBrain: Advanced systems initialized");
+            _aiHelper = new BattleContextAIHelper(BattleObject.Context);
         }
 
         private void SpawnRosterUnitsOntoGrid()
         {
-            var enemyRoster = _battleGameObject.EnemyTeamRoster;
-            if (_battleGameObject.HasThirdParty)
+            var enemyRoster = BattleObject.EnemyTeamRoster;
+            if (BattleObject.HasThirdParty)
             {
-                var thirdPartyRoster = _battleGameObject.ThirdPartyTeamRoster;
+                var thirdPartyRoster = BattleObject.ThirdPartyTeamRoster;
             }
-            var playerTeamRoster = _battleGameObject.PlayerTeamRoster;
+            var playerTeamRoster = BattleObject.PlayerTeamRoster;
             // 1. Spawn enemy units
             foreach (var c in enemyRoster.roster.characters)
             {
                 var characterData = c.CharacterData;
                 var characterInstance = enemyRoster.GetInstanceFor(characterData);
                 var placement = enemyRoster.GetPlacementFor(characterData);
-                _battleGameObject.Context.SpawnAtPosition(
-                    characterInstance,
-                    placement.SpawnPosition
-                );
+                BattleObject.Context.SpawnAtPosition(characterInstance, placement.SpawnPosition);
                 enemyRoster.SetOrder(characterData, placement.Order);
             }
             // 2. Spawn third-party units, if needed
-            if (_battleGameObject.HasThirdParty)
+            if (BattleObject.HasThirdParty)
             {
-                var thirdPartyRoster = _battleGameObject.ThirdPartyTeamRoster;
+                var thirdPartyRoster = BattleObject.ThirdPartyTeamRoster;
                 foreach (var c in thirdPartyRoster.roster.characters)
                 {
                     var characterData = c.CharacterData;
                     var characterInstance = thirdPartyRoster.GetInstanceFor(characterData);
                     var placement = thirdPartyRoster.GetPlacementFor(characterData);
-                    _battleGameObject.Context.SpawnAtPosition(
+                    BattleObject.Context.SpawnAtPosition(
                         characterInstance,
                         placement.SpawnPosition
                     );
@@ -243,10 +247,7 @@ namespace Turnroot.Gameplay.Brain
                 var characterData = c.CharacterData;
                 var characterInstance = playerTeamRoster.GetInstanceFor(characterData);
                 var placement = playerTeamRoster.GetPlacementFor(characterData);
-                _battleGameObject.Context.SpawnAtPosition(
-                    characterInstance,
-                    placement.SpawnPosition
-                );
+                BattleObject.Context.SpawnAtPosition(characterInstance, placement.SpawnPosition);
                 playerTeamRoster.SetOrder(characterData, placement.Order);
             }
         }
@@ -258,171 +259,13 @@ namespace Turnroot.Gameplay.Brain
         private void HandleExitBattle(BattleExitType exitType)
         {
             Debug.Log($"BattleBrain: Handling ExitBattle event with type: {exitType}");
-
-            CleanupBattleAdvancedSystems(exitType);
-
-            // TODO: Clean up rosters
-            // _battleGameObject?.ClearBattleRosters();
-
-            Debug.Log("BattleBrain: Battle cleanup complete");
-        }
-
-        private void CleanupBattleAdvancedSystems(BattleExitType exitType)
-        {
-            // Clear command history (unless bookmarking)
             if (exitType != BattleExitType.Bookmark)
             {
                 _brain.Commands?.Clear();
+                _brain.Snapshots?.Clear();
             }
-
-            // Clear snapshots
-            _brain.Snapshots?.Clear();
-
-            Debug.Log($"BattleBrain: Advanced systems cleaned up (exitType: {exitType})");
-        }
-
-        #endregion
-
-        #region Event Handlers
-
-        private void HandleUnitTakesAnotherTurn(CharacterInstance unit)
-        {
-            if (_battleGameObject?.Context == null)
-            {
-                Debug.LogWarning(
-                    "BattleBrain: Cannot grant another turn - BattleContext not available"
-                );
-                return;
-            }
-
-            _battleGameObject.Context.UnitTakingAnotherTurn = unit;
-            _battleGameObject.Context.AnotherTurnGranted = true;
-
-            Debug.Log($"BattleBrain: {unit.CharacterTemplate.DisplayName} will take another turn");
-        }
-
-        private void HandleCriticalHit(CharacterInstance unit)
-        {
-            if (_battleGameObject?.Context == null)
-            {
-                Debug.LogWarning(
-                    "BattleBrain: Cannot set critical hit - BattleContext not available"
-                );
-                return;
-            }
-
-            _battleGameObject.Context.IsCriticalHit = true;
-            _battleGameObject.Context.CriticalHitUnit = unit;
-
-            Debug.Log($"BattleBrain: {unit.CharacterTemplate.DisplayName} triggered critical hit");
-        }
-
-        private void HandleWeaponUsesChanged(CharacterInstance unit, int usesChange)
-        {
-            var inventory = unit.InventoryInstance;
-            if (inventory == null)
-            {
-                Debug.LogWarning(
-                    $"BattleBrain: {unit.CharacterTemplate.DisplayName} has no inventory"
-                );
-                return;
-            }
-
-            int weaponIndex = inventory.GetEquippedWeaponIndex();
-            if (weaponIndex == -1)
-            {
-                Debug.LogWarning(
-                    $"BattleBrain: {unit.CharacterTemplate.DisplayName} has no equipped weapon"
-                );
-                return;
-            }
-
-            var equippedWeapon = inventory.Items()[weaponIndex];
-            if (equippedWeapon == null)
-                return;
-
-            if (usesChange > 0)
-            {
-                equippedWeapon.Repair(usesChange);
-                Debug.Log(
-                    $"BattleBrain: Restored {usesChange} uses to {unit.CharacterTemplate.DisplayName}'s weapon"
-                );
-            }
-            else if (usesChange < 0)
-            {
-                for (int i = 0; i < Mathf.Abs(usesChange); i++)
-                {
-                    equippedWeapon.Use();
-                }
-                Debug.Log(
-                    $"BattleBrain: Reduced {Mathf.Abs(usesChange)} uses from {unit.CharacterTemplate.DisplayName}'s weapon"
-                );
-            }
-        }
-
-        private void HandleItemStolen(CharacterInstance thief, CharacterInstance target)
-        {
-            Debug.Log(
-                $"BattleBrain: {thief.CharacterTemplate.DisplayName} attempts to steal from {target.CharacterTemplate.DisplayName}"
-            );
-
-            // Get target's inventory
-            var targetInventory = target.InventoryInstance;
-            if (
-                targetInventory == null
-                || targetInventory.InventoryItems == null
-                || targetInventory.InventoryItems.Count == 0
-            )
-            {
-                Debug.Log("BattleBrain: Target has no items to steal");
-                return;
-            }
-
-            // Get thief's inventory
-            var thiefInventory = thief.InventoryInstance;
-            if (thiefInventory == null || thiefInventory.IsFull)
-            {
-                Debug.Log("BattleBrain: Thief's inventory is full or unavailable");
-                return;
-            }
-
-            // Find most valuable stealable item
-            Objects.ObjectItemInstance bestItem = null;
-            int bestValue = -1;
-
-            foreach (var item in targetInventory.InventoryItems)
-            {
-                if (item == null || item.Template == null)
-                    continue;
-                if (item.Template.IsUnequippable)
-                    continue;
-                if (targetInventory.IsItemEquipped(item))
-                    continue;
-
-                int itemValue = item.Template.BasePrice;
-                if (itemValue > bestValue)
-                {
-                    bestValue = itemValue;
-                    bestItem = item;
-                }
-            }
-
-            if (bestItem == null)
-            {
-                Debug.Log("BattleBrain: No stealable items found on target");
-                return;
-            }
-
-            // Perform the steal
-            targetInventory.RemoveFromInventory(bestItem);
-            thiefInventory.AddToInventory(bestItem);
-
-            Debug.Log(
-                $"BattleBrain: {thief.CharacterTemplate.DisplayName} stole {bestItem.Template.name} from {target.CharacterTemplate.DisplayName}!"
-            );
-
-            // Publish transfer event
-            _brain?.inventoryBrain?.TransferItem(bestItem, thiefInventory);
+            _brain.battleBrain.BattleObject.ClearBattleRosters();
+            Debug.Log("BattleBrain: Battle cleanup complete");
         }
 
         #endregion

@@ -1,6 +1,6 @@
 using System.Linq;
 using Turnroot.Characters;
-using Turnroot.Characters.Components;
+using Turnroot.Gameplay.Brain;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Environment;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Conditions.Specific;
@@ -35,6 +35,13 @@ namespace Turnroot.Gameplay.Combat
 
         [SerializeField]
         private MapGrid _mapGrid;
+
+        [Header("Roster Templates")]
+        [SerializeField]
+        private GenericRoster _enemyRoster;
+
+        [SerializeField]
+        private GenericRoster _thirdPartyRoster;
 
         [SerializeField, NaughtyAttributes.ReadOnly]
         private int _currentTurnCount;
@@ -78,19 +85,21 @@ namespace Turnroot.Gameplay.Combat
 
         #region Brain Event Connection
 
-        public void ConnectToBrainEvents()
+        public OperationResult ConnectToBrainEvents()
         {
             if (Brain == null)
             {
-                Debug.LogWarning("BattleGameObject has no Brain to connect to");
-                return;
+                return OperationResult.Failure(
+                    "BattleGameObject ConnectToBrainEvents failed: Brain reference is null."
+                );
             }
 
             // Guard against duplicate subscriptions
             if (_isConnectedToBrain)
             {
-                Debug.LogWarning("BattleGameObject is already connected to Brain events");
-                return;
+                return OperationResult.Failure(
+                    "BattleGameObject ConnectToBrainEvents failed: Already connected to Brain events."
+                );
             }
 
             Debug.Log("BattleGameObject connecting to Brain events");
@@ -107,6 +116,7 @@ namespace Turnroot.Gameplay.Combat
             Brain.OnBattleCompleted += HandleExitBattle;
 
             _isConnectedToBrain = true;
+            return OperationResult.SuccessResult();
         }
 
         public void DisconnectFromBrainEvents()
@@ -126,20 +136,21 @@ namespace Turnroot.Gameplay.Combat
             _isConnectedToBrain = false;
         }
 
-        public void ConnectBattleConditionsToGamewideContextBrain()
+        public OperationResult ConnectBattleConditionsToContext()
         {
-            if (Brain == null || Brain.gamewideContextBrain == null)
+            try
             {
-                Debug.LogError(
-                    "BattleGameObject cannot connect BattleConditions: Brain or GamewideContextBrain is null"
-                );
-                Debug.Break();
-                return;
+                foreach (var condition in _battleConditions)
+                {
+                    condition.battleContext = Context;
+                }
+                return OperationResult.SuccessResult();
             }
-
-            foreach (var condition in _battleConditions)
+            catch (System.Exception ex)
             {
-                condition.gamewideContextBrain = Brain.gamewideContextBrain;
+                return OperationResult.Failure(
+                    $"BattleGameObject ConnectBattleConditionsToContext failed: {ex.Message}"
+                );
             }
         }
 
@@ -352,49 +363,43 @@ namespace Turnroot.Gameplay.Combat
                 );
             }
 
-            // TODO: Load enemy roster from this battle's enemy template
-            // EnemyTeamRoster should be populated from a RosterTemplate assigned to this battle
+            // Load enemy roster from this battle's enemy template
+            if (_enemyRoster != null)
+            {
+                var enemyInstance = battleBrain.InstantiateGenericRoster(_enemyRoster);
+                EnemyTeamRoster.AddInstances(enemyInstance.Instances);
+            }
 
-            // TODO: Load third party roster from this battle's NPC template (if any)
-            // ThirdPartyTeamRoster should be populated from a RosterTemplate if HasThirdParty is true
+            // Load third party roster from this battle's NPC template (if any)
+            if (HasThirdParty && _thirdPartyRoster != null)
+            {
+                var thirdPartyInstance = battleBrain.InstantiateGenericRoster(_thirdPartyRoster);
+                ThirdPartyTeamRoster.AddInstances(thirdPartyInstance.Instances);
+            }
 
             return OperationResult.SuccessResult();
         }
 
         /// <summary>
-        /// Build the BattleContext from the populated rosters.
-        /// </summary>
-        public void PopulateBattleContextFromRosters()
-        {
-            if (Context == null)
-            {
-                Debug.LogError("BattleGameObject: Context is null!");
-                return;
-            }
-
-            // Clear existing context data
-            Context.Targets.Clear();
-            Context.Allies.Clear();
-            Context.ThirdParty.Clear();
-
-            // TODO: Populate Context.Targets from EnemyTeamRoster
-            // TODO: Populate Context.Allies from PlayerTeamRoster
-            // TODO: Populate Context.ThirdParty from ThirdPartyTeamRoster
-            // Filter out defeated units when populating
-
-            Debug.Log("BattleGameObject: TODO - Populate battle context from rosters");
-        }
-
-        /// <summary>
         /// Clear all three temporary battle rosters.
         /// </summary>
-        public void ClearBattleRosters()
+        public OperationResult ClearBattleRosters()
         {
-            PlayerTeamRoster?.Clear();
-            EnemyTeamRoster?.Clear();
-            ThirdPartyTeamRoster?.Clear();
+            try
+            {
+                PlayerTeamRoster.Clear();
+                EnemyTeamRoster.Clear();
+                ThirdPartyTeamRoster.Clear();
 
-            Debug.Log("BattleGameObject: Cleared all temporary battle rosters");
+                Debug.Log("BattleGameObject: Cleared all temporary battle rosters");
+                return OperationResult.SuccessResult();
+            }
+            catch (System.Exception ex)
+            {
+                return OperationResult.Failure(
+                    $"BattleGameObject ClearBattleRosters failed: {ex.Message}"
+                );
+            }
         }
 
         #endregion

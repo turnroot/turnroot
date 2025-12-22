@@ -1,7 +1,3 @@
-using System.Collections.Generic;
-using UnityEngine;
-using static Turnroot.Characters.GenericRoster;
-
 namespace Turnroot.Characters
 {
     /// <summary>
