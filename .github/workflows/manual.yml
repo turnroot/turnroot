@@ -47,28 +47,28 @@ jobs:
           from github import Github
           from pathlib import Path
           import hashlib
-
+          
           g = Github(os.environ['GITHUB_TOKEN'])
           repo = g.get_repo(os.environ['GITHUB_REPOSITORY'])
           
-          def get_file_hash(filepath, line_num):
-              return hashlib.md5(f"{filepath}:{line_num}".encode()).hexdigest()[:8]
-
+          def get_todo_hash(filepath, todo_text, occurrence):
+              """
+              Creates a hash based on file and content. 
+              'occurrence' handles multiple identical TODOs in one file.
+              """
+              unique_str = f"{filepath}:{todo_text}:{occurrence}"
+              return hashlib.md5(unique_str.encode()).hexdigest()[:8]
+          
           def get_domain_tag(filepath):
-              """
-              Extracts 'Gameplay' from 'TurnrootFramework/Gameplay/Combat/Script.cs'
-              Returns None if the path doesn't match the expected structure.
-              """
               parts = Path(filepath).parts
               try:
-                  # Look for the index of TurnrootFramework and take the next folder
                   idx = parts.index('TurnrootFramework')
                   if len(parts) > idx + 1:
                       return parts[idx + 1].lower()
               except (ValueError, IndexError):
                   pass
               return None
-
+          
           def extract_todos(ref='HEAD'):
               todos = {}
               try:
@@ -89,66 +89,83 @@ jobs:
                       if result.returncode != 0: continue
                       
                       lines = result.stdout.split('\n')
+                      content_counts = {} # Tracks identical TODOs in the same file
+                      
                       for line_num, line in enumerate(lines, 1):
                           match = re.search(r'//\s*TODO:?\s*(.+)', line, re.IGNORECASE)
                           if match:
                               todo_text = match.group(1).strip()
-                              file_hash = get_file_hash(filepath, line_num)
                               
-                              todos[file_hash] = {
+                              # Track occurrence to keep hash unique but stable
+                              content_counts[todo_text] = content_counts.get(todo_text, 0) + 1
+                              todo_hash = get_todo_hash(filepath, todo_text, content_counts[todo_text])
+                              
+                              todos[todo_hash] = {
                                   'file': filepath,
                                   'line': line_num,
                                   'text': todo_text,
-                                  'hash': file_hash,
+                                  'hash': todo_hash,
                                   'domain': get_domain_tag(filepath)
                               }
                   except Exception as e:
                       print(f"Error processing {filepath}: {e}")
               return todos
-
+          
           def get_existing_todo_issues():
-              issues = {}
+              """Returns a dict where key is hash and value is a LIST of issue objects."""
+              issues_map = {}
               for issue in repo.get_issues(state='open', labels=['todo', 'automated']):
                   match = re.search(r'\[([a-f0-9]{8})\]', issue.title)
                   if match:
-                      issues[match.group(1)] = issue
-              return issues
-
-          def sync_existing_issue_labels(existing_issues):
-              """Scan open issues and add missing domain tags based on their body content"""
-              print("Checking existing issues for missing domain tags...")
-              for issue in existing_issues.values():
-                  # Find the file path mentioned in the issue body
-                  path_match = re.search(r'\*\*File:\*\* `(.+?)`', issue.body)
-                  if path_match:
-                      filepath = path_match.group(1)
-                      domain = get_domain_tag(filepath)
-                      if domain:
-                          current_labels = [l.name for l in issue.get_labels()]
-                          if domain not in current_labels:
-                              print(f"Adding missing tag '{domain}' to issue #{issue.number}")
-                              issue.add_to_labels(domain)
-
-          def create_issue(todo):
+                      h = match.group(1)
+                      if h not in issues_map:
+                          issues_map[h] = []
+                      issues_map[h].append(issue)
+              return issues_map
+          
+          def cleanup_duplicates(issues_map):
+              """Closes duplicate issues for the same hash, keeping only the lowest ID."""
+              cleaned_map = {}
+              for h, issues in issues_map.items():
+                  if len(issues) > 1:
+                      # Sort by issue number ascending
+                      issues.sort(key=lambda x: x.number)
+                      keep = issues[0]
+                      to_close = issues[1:]
+                      print(f"Found {len(issues)} issues for hash {h}. Keeping #{keep.number}.")
+                      for duplicate in to_close:
+                          duplicate.create_comment("Closing as duplicate of #" + str(keep.number))
+                          duplicate.edit(state='closed')
+                          print(f"Closed duplicate issue #{duplicate.number}")
+                      cleaned_map[h] = keep
+                  else:
+                      cleaned_map[h] = issues[0]
+              return cleaned_map
+          
+          def create_or_update_issue(todo, existing_issue=None):
               title = f"TODO [{todo['hash']}]: {todo['text'][:60]}"
               body = f"**TODO found in code:**\n\n**File:** `{todo['file']}`\n**Line:** {todo['line']}\n**Description:** {todo['text']}\n\n---\n*Hash: `{todo['hash']}`*"
               
-              labels = ['todo', 'automated']
-              if todo['domain']:
-                  labels.append(todo['domain'])
-              
-              issue = repo.create_issue(title=title, body=body, labels=labels)
-              print(f"Created issue #{issue.number} with labels {labels}")
-              return issue
-
+              if existing_issue:
+                  # Update existing issue if line number or file moved
+                  if existing_issue.body != body or existing_issue.title != title:
+                      existing_issue.edit(title=title, body=body)
+                      print(f"Updated issue #{existing_issue.number} for hash {todo['hash']}")
+              else:
+                  labels = ['todo', 'automated']
+                  if todo['domain']:
+                      labels.append(todo['domain'])
+                  issue = repo.create_issue(title=title, body=body, labels=labels)
+                  print(f"Created issue #{issue.number} for hash {todo['hash']}")
+          
           # --- Main Logic ---
           current_todos = extract_todos('HEAD')
-          existing_issues = get_existing_todo_issues()
+          raw_issues = get_existing_todo_issues()
           
-          # 1. Update existing issues with missing tags
-          sync_existing_issue_labels(existing_issues)
-
-          # 2. Close removed TODOs (if PR)
+          # 1. Deduplicate existing open issues
+          existing_issues = cleanup_duplicates(raw_issues)
+          
+          # 2. Close TODOs that no longer exist in code (PR only)
           event_name = os.environ.get('EVENT_NAME')
           if event_name == 'pull_request':
               base_ref = os.environ.get('BASE_REF')
@@ -157,11 +174,12 @@ jobs:
                   removed_hashes = set(base_todos.keys()) - set(current_todos.keys())
                   for h in removed_hashes:
                       if h in existing_issues:
-                          # (Close logic remains same as your original)
-                          existing_issues[h].edit(state='closed')
-
-          # 3. Create new TODOs
-          new_todos = [t for h, t in current_todos.items() if h not in existing_issues]
-          for todo in new_todos[:10]:
-              create_issue(todo)
+                          issue = existing_issues[h]
+                          issue.create_comment("TODO removed from code. Closing issue.")
+                          issue.edit(state='closed')
+                          print(f"Closed issue #{issue.number} (TODO removed)")
+          
+          # 3. Create new or Update existing
+          for h, todo in current_todos.items():
+              create_or_update_issue(todo, existing_issues.get(h))
           EOF
