@@ -67,6 +67,7 @@ namespace Turnroot.Gameplay.Brain
         [SerializeField, HideInInspector]
         private int PlayerGold { get; set; } = 0;
 
+        [HideInInspector]
         public GoldDisplay GoldDisplayNames;
 
         #region Gold Operations

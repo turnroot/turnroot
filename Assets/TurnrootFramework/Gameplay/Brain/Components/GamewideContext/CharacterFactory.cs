@@ -10,9 +10,9 @@ namespace Turnroot.Gameplay.Brain
     {
         private readonly CharacterPersistence _persistence;
 
-        public CharacterFactory(GamewideContextBrain gwcb)
+        public CharacterFactory(LongTermMemory ltm)
         {
-            _persistence = new CharacterPersistence(gwcb.GetComponent<LongTermMemory>(), gwcb);
+            _persistence = new CharacterPersistence(ltm.GetComponent<Brain>());
         }
 
         public CharacterInstance CreateOrRecall(CharacterData template)

@@ -306,7 +306,7 @@ namespace Turnroot.Gameplay.Brain
 
                 if (character.CharacterTemplate?.IsUnique == true)
                 {
-                    _gamewideContextBrain.SaveUniqueCharacterProgress(character);
+                    _battleBrain.SaveUniqueCharacterProgress(character);
                     savedCount++;
                 }
             }
@@ -385,7 +385,7 @@ namespace Turnroot.Gameplay.Brain
         {
             if (character?.CharacterTemplate?.IsUnique == true && _gamewideContextBrain != null)
             {
-                _gamewideContextBrain.SaveUniqueCharacterProgress(character);
+                _battleBrain.SaveUniqueCharacterProgress(character);
                 Debug.Log(
                     $"CharactersBrain: Manually saved {character.CharacterTemplate.DisplayName}"
                 );
@@ -514,13 +514,13 @@ namespace Turnroot.Gameplay.Brain
         /// Get all currently active character instances.
         /// </summary>
         public List<CharacterInstance> GetAllActiveCharacters() =>
-            _gamewideContextBrain?.GetAllActiveInstances() ?? new List<CharacterInstance>();
+            _battleBrain?.GetAllActiveInstances() ?? new List<CharacterInstance>();
 
         /// <summary>
         /// Find a character instance by template.
         /// </summary>
         public CharacterInstance FindCharacterByTemplate(CharacterData template) =>
-            _gamewideContextBrain?.FindInstanceByTemplate(template);
+            _battleBrain?.FindInstanceByTemplate(template);
 
         #endregion
     }
