@@ -3,6 +3,7 @@ using System.Linq;
 using NaughtyAttributes;
 using Turnroot.Characters;
 using Turnroot.Gameplay.Objects;
+using Turnroot.Utilities;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -597,7 +598,7 @@ public class MapGrid : MonoBehaviour
         return points;
     }
 
-    public void SetOccupied(MapGridPoint point, CharacterInstance occupier)
+    public OperationResult SetOccupied(MapGridPoint point, CharacterInstance occupier)
     {
         EnsureCachedGridPoints();
 
@@ -605,7 +606,24 @@ public class MapGrid : MonoBehaviour
         if (_cachedGridPoints != null && _cachedGridPoints.TryGetValue(key, out var mgp))
         {
             mgp.CurrentInstance = occupier;
+            return OperationResult.SuccessResult();
         }
+        return OperationResult.Failure($"Set occupied for point ({point.Row}, {point.Col}) failed");
+    }
+
+    public OperationResult RemoveOccupied(MapGridPoint point)
+    {
+        EnsureCachedGridPoints();
+
+        var key = new Vector2Int(point.Row, point.Col);
+        if (_cachedGridPoints != null && _cachedGridPoints.TryGetValue(key, out var mgp))
+        {
+            mgp.CurrentInstance = null;
+            return OperationResult.SuccessResult();
+        }
+        return OperationResult.Failure(
+            $"Remove occupied for point ({point.Row}, {point.Col}) failed"
+        );
     }
 
     public void GetAllOccupiedPoints()

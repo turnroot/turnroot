@@ -127,27 +127,23 @@ namespace Turnroot.Gameplay.Brain
 
         private void InitializeBattleRosters()
         {
-            // TODO: 1. Create empty runtime roster instances
+            // 1. Create empty runtime roster instances
             _battleGameObject.InitializeBattleRosters();
 
-            // TODO: 2. Populate rosters from templates and persistent data
+            // 2. Populate rosters from templates and persistent data
             var result = _battleGameObject.PopulateBattleRostersFromTemplates();
             if (!result.Success)
             {
                 Debug.LogError($"Failed to populate battle rosters: {result.ErrorMessage}");
-                return;
             }
 
             // TODO: 3. Spawn units onto grid from rosters
-            // _battleGameObject.SpawnRosterUnitsOntoGrid();
+            SpawnRosterUnitsOntoGrid();
 
             // TODO: 4. Build battle context from spawned units
             // _battleGameObject.PopulateBattleContextFromRosters();
 
-            // TODO: 5. Initialize AI system
-            // InitializeAISystem();
-
-            Debug.Log("BattleBrain: TODO - Implement roster-based initialization");
+            InitializeAISystem();
         }
 
         private void InitializeAISystem()
@@ -169,6 +165,27 @@ namespace Turnroot.Gameplay.Brain
             _brain.TakeSnapshot();
 
             Debug.Log("BattleBrain: Advanced systems initialized");
+        }
+
+        private void SpawnRosterUnitsOntoGrid()
+        {
+            var enemyRoster = _battleGameObject.EnemyTeamRoster;
+            if (_battleGameObject.HasThirdParty)
+            {
+                var thirdPartyRoster = _battleGameObject.ThirdPartyTeamRoster;
+            }
+            var playerTeamRoster = _battleGameObject.PlayerTeamRoster;
+            // 1. Spawn enemy units
+            foreach (var c in enemyRoster.roster.characters)
+            {
+                var characterData = c.CharacterData;
+                var characterInstance = enemyRoster.GetInstanceFor(characterData);
+                var placement = enemyRoster.GetPlacementFor(characterData);
+                _battleGameObject.Context.SpawnAtPosition(
+                    enemyRoster.GetInstanceFor(characterData),
+                    placement.SpawnPosition
+                );
+            }
         }
 
         #endregion

@@ -95,6 +95,13 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             return Brain.ExecuteCommand(command);
         }
 
+        public bool SpawnAtPosition(CharacterInstance unit, Vector2Int spawnPosition)
+        {
+            RequireBrain();
+            var command = new SpawnCommand(unit.Id, spawnPosition, Brain.CurrentTurnNumber);
+            return Brain.ExecuteCommand(command);
+        }
+
         public bool MoveUnitToPoint(CharacterInstance unit, MapGridPoint targetPoint)
         {
             RequireBrain();

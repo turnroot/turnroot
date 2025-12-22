@@ -195,6 +195,61 @@ namespace Turnroot.Gameplay.Brain.Commands
         }
     }
 
+    public class SpawnCommand : CommandBase
+    {
+        public string UnitId { get; }
+        public Vector2Int SpawnPosition { get; }
+
+        public SpawnCommand(string unitId, Vector2Int spawnPosition, int turn)
+            : base(turn)
+        {
+            UnitId = unitId;
+            SpawnPosition = spawnPosition;
+        }
+
+        public override bool Execute(BattleContext context)
+        {
+            var unit = FindUnit(context, UnitId);
+            if (unit == null)
+            {
+                return false;
+            }
+
+            UndoState["wasSpawned"] = true;
+
+            var result = context.mapGrid.SetOccupied(
+                unit.UnitPositionToMapGridPoint(SpawnPosition, context.mapGrid),
+                unit
+            );
+            Debug.Log(
+                $"[SpawnCommand] Spawning Unit {UnitId} at {SpawnPosition}: Success={result.Success}"
+            );
+            if (result.Success)
+            {
+                context.Brain?.Publish(new Events.UnitSpawnedEvent(unit, SpawnPosition));
+            }
+            return result.Success;
+        }
+
+        public override bool Undo(BattleContext context)
+        {
+            var unit = FindUnit(context, UnitId);
+            if (unit == null || !UndoState.TryGetValue("from", out var from))
+            {
+                return false;
+            }
+
+            var result = context.mapGrid.RemoveOccupied(
+                unit.UnitPositionToMapGridPoint(SpawnPosition, context.mapGrid)
+            );
+            if (result.Success)
+            {
+                context.Brain?.Publish(new Events.UnitDespawnedEvent(unit, SpawnPosition));
+            }
+            return result.Success;
+        }
+    }
+
     /// <summary>
     /// Command to deal damage to a unit.
     /// </summary>
