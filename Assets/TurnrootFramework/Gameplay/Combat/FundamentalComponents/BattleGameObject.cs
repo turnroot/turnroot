@@ -21,6 +21,8 @@ namespace Turnroot.Gameplay.Combat
     public class BattleGameObject : MonoBehaviour
     {
         public bool HasThirdParty;
+        public bool ThirdPartyFightsAllies;
+        public bool ThirdPartyFightsEnemies;
 
         [field: Header("Battle Components")]
         [field: SerializeField]

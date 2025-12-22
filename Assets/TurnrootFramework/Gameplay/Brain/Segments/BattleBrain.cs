@@ -86,9 +86,6 @@ namespace Turnroot.Gameplay.Brain
 
             Debug.Log($"BattleBrain: Connected to BattleGameObject");
 
-            // Configure turn order
-            _turnRotisserie.HasThirdParty = _battleGameObject.HasThirdParty;
-
             // Initialize battle using roster system
             InitializeBattleRosters();
 
