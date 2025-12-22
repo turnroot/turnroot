@@ -257,13 +257,13 @@ namespace Turnroot.Gameplay.Brain
         /// Get all items across all character inventories.
         /// </summary>
         public List<ObjectItemInstance> GetAllItems()
-        {
+        { // TODO: Currently this only works during battle, we need instances inside GWCB also
             var items = new List<ObjectItemInstance>();
-            var gamewideContext = _brain.gamewideContextBrain;
+            var battleBrain = _brain.battleBrain;
 
-            if (gamewideContext != null)
+            if (battleBrain != null)
             {
-                var characters = gamewideContext.GetAllActiveInstances();
+                var characters = battleBrain.GetAllActiveInstances();
                 foreach (var character in characters)
                 {
                     if (character.InventoryInstance?.InventoryItems != null)

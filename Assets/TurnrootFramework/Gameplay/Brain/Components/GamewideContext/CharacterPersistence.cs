@@ -13,12 +13,12 @@ namespace Turnroot.Gameplay.Brain
     public class CharacterPersistence
     {
         private readonly LongTermMemory _ltm;
-        private readonly GamewideContextBrain _gwcb; // Need reference to GWC for helpers
+        public Brain brain;
 
-        public CharacterPersistence(LongTermMemory ltm, GamewideContextBrain gwcb)
+        public CharacterPersistence(Brain brain)
         {
-            _ltm = ltm;
-            _gwcb = gwcb;
+            _ltm = brain.GetComponent<LongTermMemory>();
+            this.brain = brain;
         }
 
         public void SaveCharacter(CharacterInstance instance, bool updateIndex)
@@ -33,7 +33,7 @@ namespace Turnroot.Gameplay.Brain
             {
                 // Use existing helper
                 var encodeResult = GamewideContextBrainHelpers.EncodeInstanceToString(
-                    _gwcb,
+                    brain.gamewideContextBrain,
                     instance
                 );
 
@@ -64,7 +64,9 @@ namespace Turnroot.Gameplay.Brain
         public CharacterInstance RecallCharacter(CharacterData template)
         {
             if (template == null || !template.IsUnique)
+            {
                 return null;
+            }
 
             try
             {
@@ -72,12 +74,14 @@ namespace Turnroot.Gameplay.Brain
                 var encoded = _ltm.Recall(key);
 
                 if (string.IsNullOrEmpty(encoded))
+                {
                     return null;
+                }
 
                 // Use existing helper
                 var decodeResult =
                     GamewideContextBrainHelpers.DecodeInstanceFromString<CharacterInstance>(
-                        _gwcb,
+                        brain.gamewideContextBrain,
                         encoded
                     );
 

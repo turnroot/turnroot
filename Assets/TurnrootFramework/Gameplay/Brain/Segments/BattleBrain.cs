@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Turnroot.Characters;
 using Turnroot.Gameplay.Brain.Events;
 using Turnroot.Gameplay.Combat;
@@ -14,6 +15,11 @@ namespace Turnroot.Gameplay.Brain
     /// </summary>
     public class BattleBrain : BrainComponent
     {
+        [SerializeField]
+        private List<GenericRoster> _genericRosters;
+
+        [SerializeField]
+        private PlayerTeamRoster _playerTeamRoster;
         private BattleGameObject _battleGameObject;
         private TurnRotisserie _turnRotisserie;
 
@@ -25,6 +31,9 @@ namespace Turnroot.Gameplay.Brain
         public GenericRosterInstance ThirdPartyTeamRoster =>
             _battleGameObject?.ThirdPartyTeamRoster;
 
+        private RosterManager _rosterManager;
+        private CharacterPersistence _characterPersistence;
+
         protected override void Awake()
         {
             base.Awake();
@@ -32,7 +41,40 @@ namespace Turnroot.Gameplay.Brain
             _turnRotisserie = GetComponent<TurnRotisserie>();
 
             Debug.Log("BattleBrain: TurnRotisserie ready");
+
+            _rosterManager = new RosterManager(_brain);
+            _characterPersistence = new CharacterPersistence(_brain);
         }
+
+        private void Start()
+        {
+            _rosterManager.RecallGenericRosters(_genericRosters);
+            _rosterManager.InstantiatePlayerTeamRoster(_playerTeamRoster);
+        }
+
+        #region Roster Management API
+
+        public GenericRosterInstance InstantiateGenericRoster(
+            GenericRoster roster,
+            bool register = false
+        ) => _rosterManager.InstantiateGenericRoster(roster, register);
+
+        public CharacterInstance FindInstanceByTemplate(CharacterData template) =>
+            _rosterManager.FindInstanceByTemplate(template);
+
+        public List<CharacterInstance> GetAllActiveInstances() =>
+            _rosterManager.GetAllActiveInstances();
+
+        public PlayerTeamRosterInstance InstantiatePlayerTeamRoster() =>
+            _rosterManager.InstantiatePlayerTeamRoster(_playerTeamRoster);
+
+        public void RecallGenericRosters(List<GenericRoster> rosters) =>
+            _rosterManager.RecallGenericRosters(rosters);
+
+        public void SaveUniqueCharacterProgress(CharacterInstance instance) =>
+            _characterPersistence.SaveCharacter(instance, updateIndex: false);
+
+        #endregion
 
         protected override EventPriority GetSubscriptionPriority() => EventPriority.Highest;
 
@@ -85,9 +127,6 @@ namespace Turnroot.Gameplay.Brain
             _battleGameObject.ConnectBattleConditionsToGamewideContextBrain();
 
             Debug.Log($"BattleBrain: Connected to BattleGameObject");
-
-            // Configure turn order
-            _turnRotisserie.HasThirdParty = _battleGameObject.HasThirdParty;
 
             // Initialize battle using roster system
             InitializeBattleRosters();

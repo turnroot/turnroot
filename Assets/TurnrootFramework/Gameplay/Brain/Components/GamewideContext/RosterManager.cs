@@ -12,7 +12,6 @@ namespace Turnroot.Gameplay.Brain
     /// </summary>
     public class RosterManager
     {
-        private readonly GamewideContextBrain _gwcb;
         private readonly Brain _brain;
         private readonly CharacterFactory _characterFactory;
         private readonly RosterPersistence _persistence;
@@ -22,12 +21,11 @@ namespace Turnroot.Gameplay.Brain
 
         private PlayerTeamRosterInstance _persistentPlayerRoster = null;
 
-        public RosterManager(GamewideContextBrain gwcb, Brain brain)
+        public RosterManager(Brain brain)
         {
-            _gwcb = gwcb;
             _brain = brain;
-            _characterFactory = new CharacterFactory(gwcb);
-            _persistence = new RosterPersistence(gwcb.GetComponent<LongTermMemory>());
+            _characterFactory = new CharacterFactory(brain.GetComponent<LongTermMemory>());
+            _persistence = new RosterPersistence(brain.GetComponent<LongTermMemory>());
         }
 
         #region Roster Instantiation
@@ -153,12 +151,12 @@ namespace Turnroot.Gameplay.Brain
 
             foreach (var unit in roster.characters)
             {
-                if (unit.Character == null)
+                if (unit == null)
                 {
                     continue;
                 }
 
-                var character = _characterFactory.CreateOrRecall(unit.Character);
+                var character = _characterFactory.CreateOrRecall(unit.CharacterData);
                 if (character != null)
                 {
                     characters.Add(character);

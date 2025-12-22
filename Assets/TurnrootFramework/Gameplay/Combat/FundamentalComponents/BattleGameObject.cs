@@ -21,6 +21,8 @@ namespace Turnroot.Gameplay.Combat
     public class BattleGameObject : MonoBehaviour
     {
         public bool HasThirdParty;
+        public bool ThirdPartyFightsAllies;
+        public bool ThirdPartyFightsEnemies;
 
         [field: Header("Battle Components")]
         [field: SerializeField]
@@ -328,10 +330,10 @@ namespace Turnroot.Gameplay.Combat
         /// </summary>
         public OperationResult PopulateBattleRostersFromTemplates()
         {
-            var gwcb = Brain?.gamewideContextBrain;
-            if (gwcb != null)
+            var battleBrain = Brain?.battleBrain;
+            if (battleBrain != null)
             {
-                var playerTeamRosterInstance = gwcb.InstantiatePlayerTeamRoster();
+                var playerTeamRosterInstance = battleBrain.InstantiatePlayerTeamRoster();
                 if (playerTeamRosterInstance != null)
                 {
                     PlayerTeamRoster.AddInstances(playerTeamRosterInstance.Instances);
