@@ -129,14 +129,20 @@ namespace Turnroot.Gameplay.Brain
         public string EncodeInstanceToString<T>(T instance)
             where T : class
         {
-            var result = gamewideContextBrain.EncodeInstanceToString(instance);
+            var result = GamewideContextBrainHelpers.EncodeInstanceToString(
+                gamewideContextBrain,
+                instance
+            );
             return result.Success ? result.Value : string.Empty;
         }
 
         public T DecodeInstanceFromString<T>(string encodedString)
             where T : class
         {
-            var result = gamewideContextBrain.DecodeInstanceFromString<T>(encodedString);
+            var result = GamewideContextBrainHelpers.DecodeInstanceFromString<T>(
+                gamewideContextBrain,
+                encodedString
+            );
             return result.Success ? result.Value : null;
         }
 

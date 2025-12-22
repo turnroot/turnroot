@@ -14,6 +14,18 @@ namespace Turnroot.Gameplay.Brain
     {
         public Brain CentralBrain => _brain;
 
+        public enum TamperPolicy
+        {
+            NotifyOnly, // Log warning but use data
+            Reject, // Return null/default
+            Replace, // Create safe default instance
+        }
+
+        [SerializeField]
+        private TamperPolicy _tamperPolicy = TamperPolicy.Replace;
+
+        public TamperPolicy Policy => _tamperPolicy;
+
         // Managers handle specific responsibilities
         private RosterManager _rosterManager;
         private CharacterPersistence _characterPersistence;
