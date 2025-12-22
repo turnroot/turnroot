@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using static Turnroot.Characters.GenericRoster;
 
 namespace Turnroot.Characters
 {
@@ -12,6 +13,19 @@ namespace Turnroot.Characters
         public GenericRoster roster;
         private readonly List<CharacterInstance> _instances = new();
         public IReadOnlyList<CharacterInstance> Instances => _instances;
+
+        public UnitPlacement GetPlacementFor(CharacterData data)
+        {
+            foreach (var placement in roster.characters)
+            {
+                if (placement.CharacterData == data)
+                {
+                    return placement;
+                }
+            }
+
+            return default;
+        }
 
         public CharacterInstance GetInstanceFor(CharacterData data) =>
             _instances.Find(i => i.CharacterTemplate == data);

@@ -88,12 +88,7 @@ public class ObjectSubtype
     /// </summary>
     public static bool IsValid(string value)
     {
-        return value is Weapon
-            or Magic
-            or Consumable
-            or Equipable
-            or Gift
-            or LostItem;
+        return value is Weapon or Magic or Consumable or Equipable or Gift or LostItem;
     }
 
     /// <summary>
@@ -112,7 +107,9 @@ public class ObjectSubtype
             return true; // If no settings, allow all
         }
 
-        return value == Gift ? settings.UseItemsCanBeGifts() : value == LostItem ? settings.UseItemsCanBeLostItems() : false;
+        return value == Gift
+            ? settings.UseItemsCanBeGifts()
+            : value == LostItem && settings.UseItemsCanBeLostItems();
     }
 
     // Implicit conversion to string
@@ -123,7 +120,8 @@ public class ObjectSubtype
 
     public override string ToString() => _value;
 
-    public override bool Equals(object obj) => obj is ObjectSubtype other ? _value == other._value : obj is string str && _value == str;
+    public override bool Equals(object obj) =>
+        obj is ObjectSubtype other ? _value == other._value : obj is string str && _value == str;
 
     public override int GetHashCode() => _value.GetHashCode();
 

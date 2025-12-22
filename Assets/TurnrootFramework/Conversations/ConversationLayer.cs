@@ -199,7 +199,8 @@ namespace Turnroot.Conversations
 
         private Portrait GetPortrait(CharacterData speaker, string portraitKey)
         {
-            return speaker != null
+            return
+                speaker != null
                 && portraitKey != null
                 && speaker.Portraits != null
                 && speaker.Portraits.TryGetValue(portraitKey, out var portrait)

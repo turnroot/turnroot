@@ -17,9 +17,9 @@ namespace Turnroot.Gameplay.Brain
 
         public enum TamperPolicy
         {
-            NotifyOnly, // Log warning but use data
-            Reject, // Return null/default
-            Replace, // Create safe default instance
+            NotifyOnly,
+            Reject,
+            Replace,
         }
 
         [SerializeField]
@@ -30,11 +30,6 @@ namespace Turnroot.Gameplay.Brain
         // Managers handle specific responsibilities
         private RosterManager _rosterManager;
         private CharacterPersistence _characterPersistence;
-
-        // Event handlers for EventBus
-        private Action<CharacterInstance> _onCharacterLevelUpHandler;
-        private Action<CharacterInstance> _onCharacterClassChangedHandler;
-        private Action<CharacterInstance, Skill> _onCharacterLearnedSkillHandler;
 
         [Header("Rosters")]
         [SerializeField]
@@ -65,29 +60,17 @@ namespace Turnroot.Gameplay.Brain
             SubscribeToBrainEvents();
         }
 
-        protected override void SubscribeToBrainEvents()
-        {
-            _brain.OnRostersReady += _rosterManager.OnRostersReady;
-            _onCharacterLevelUpHandler = (c) => _rosterManager.InvalidateCache();
-            _brain.OnCharacterLevelUp += _onCharacterLevelUpHandler;
-            _onCharacterClassChangedHandler = (c) => _rosterManager.InvalidateCache();
-            _brain.OnCharacterClassChanged += _onCharacterClassChangedHandler;
-            _onCharacterLearnedSkillHandler = (c, s) => _rosterManager.InvalidateCache();
-            _brain.OnCharacterLearnedSkill += _onCharacterLearnedSkillHandler;
-        }
+        protected override void SubscribeToBrainEvents() { }
 
         protected override void UnsubscribeFromBrainEvents()
         {
-            _brain.OnRostersReady -= _rosterManager.OnRostersReady;
-            _brain.OnCharacterLevelUp -= _onCharacterLevelUpHandler;
-            _brain.OnCharacterClassChanged -= _onCharacterClassChangedHandler;
-            _brain.OnCharacterLearnedSkill -= _onCharacterLearnedSkillHandler;
+            //  don't currently need to subscribe to anything
         }
 
         public void Start()
         {
             _rosterManager.RecallGenericRosters(_genericRosters);
-            _rosterManager.RecallPlayerRoster(_playerTeamRoster);
+            _rosterManager.InstantiatePlayerTeamRoster(_playerTeamRoster);
         }
 
         #region Public API - Delegates to managers
@@ -105,6 +88,9 @@ namespace Turnroot.Gameplay.Brain
 
         public List<CharacterInstance> GetAllActiveInstances() =>
             _rosterManager.GetAllActiveInstances();
+
+        public PlayerTeamRosterInstance InstantiatePlayerTeamRoster() =>
+            _rosterManager.InstantiatePlayerTeamRoster(_playerTeamRoster);
 
         #endregion
     }

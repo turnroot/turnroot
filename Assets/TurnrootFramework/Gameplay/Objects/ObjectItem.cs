@@ -267,7 +267,7 @@ namespace Turnroot.Gameplay.Objects
 
         public EquipableObjectType EquipableType => _equipableType;
 
-        // Helper methods for NaughtyAttributes ShowIf
+        /* --------------- Helper methods for NaughtyAttributes ShowIf -------------- */
         private bool IsEquipableSubtype() => _subtype == ObjectSubtype.Equipable;
 
         private bool IsWeaponSubtype() => _subtype == ObjectSubtype.Weapon;

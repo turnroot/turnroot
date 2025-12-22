@@ -53,8 +53,6 @@ namespace Turnroot.Gameplay.Brain
     /// </summary>
     public class StateBrain : BrainComponent
     {
-        // LtmKeys are now centralized in LtmKeys.cs
-
         [SerializeField]
         private BrainState _currentState;
         public BrainState CurrentState => _currentState;

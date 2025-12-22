@@ -38,6 +38,30 @@ namespace Turnroot.Gameplay.Brain.Events
         }
     }
 
+    public class UnitSpawnedEvent : BattleEvent
+    {
+        public CharacterInstance Unit { get; }
+        public Vector2Int SpawnPosition { get; }
+
+        public UnitSpawnedEvent(CharacterInstance unit, Vector2Int position)
+        {
+            Unit = unit;
+            SpawnPosition = position;
+        }
+    }
+
+    public class UnitDespawnedEvent : BattleEvent
+    {
+        public CharacterInstance Unit { get; }
+        public Vector2Int DespawnPosition { get; }
+
+        public UnitDespawnedEvent(CharacterInstance unit, Vector2Int position)
+        {
+            Unit = unit;
+            DespawnPosition = position;
+        }
+    }
+
     public class UnitEmotionChangesEvent : BattleEvent
     {
         public CharacterInstance Unit { get; }

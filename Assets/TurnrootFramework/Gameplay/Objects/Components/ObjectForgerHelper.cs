@@ -39,7 +39,7 @@ namespace Turnroot.Gameplay.Objects.Components
                 )
             )
             {
-                // failed for any reason, doesn't matter why yet
+                // TODO: Make this a OperationResult to get Failure reason
                 return false;
             }
             // good to go!
