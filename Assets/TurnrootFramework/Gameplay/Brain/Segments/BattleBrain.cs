@@ -131,7 +131,12 @@ namespace Turnroot.Gameplay.Brain
             _battleGameObject.InitializeBattleRosters();
 
             // TODO: 2. Populate rosters from templates and persistent data
-            // _battleGameObject.PopulateBattleRostersFromGamewideContext(_brain.gamewideContextBrain);
+            var result = _battleGameObject.PopulateBattleRostersFromTemplates();
+            if (!result.Success)
+            {
+                Debug.LogError($"Failed to populate battle rosters: {result.ErrorMessage}");
+                return;
+            }
 
             // TODO: 3. Spawn units onto grid from rosters
             // _battleGameObject.SpawnRosterUnitsOntoGrid();
