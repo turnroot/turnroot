@@ -153,12 +153,12 @@ namespace Turnroot.Gameplay.Brain
 
             foreach (var unit in roster.characters)
             {
-                if (unit.Character == null)
+                if (unit == null)
                 {
                     continue;
                 }
 
-                var character = _characterFactory.CreateOrRecall(unit.Character);
+                var character = _characterFactory.CreateOrRecall(unit.CharacterData);
                 if (character != null)
                 {
                     characters.Add(character);
