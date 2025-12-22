@@ -20,7 +20,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Get full history for comparison
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -35,10 +35,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
-          EVENT_NAME: ${{ github.event_name }}
-          BASE_REF: ${{ github.event.pull_request.base.sha }}
-          HEAD_REF: ${{ github.sha }}
         run: |
           python - <<'EOF'
           import os
@@ -51,12 +47,12 @@ jobs:
           g = Github(os.environ['GITHUB_TOKEN'])
           repo = g.get_repo(os.environ['GITHUB_REPOSITORY'])
           
-          def get_todo_hash(filepath, todo_text, occurrence):
+          def get_todo_hash(filepath, todo_text):
               """
-              Creates a hash based on file and content. 
-              'occurrence' handles multiple identical TODOs in one file.
+              Creates a stable hash based on file and content. 
+              Line numbers are excluded so the hash doesn't change when code moves.
               """
-              unique_str = f"{filepath}:{todo_text}:{occurrence}"
+              unique_str = f"{filepath}:{todo_text}"
               return hashlib.md5(unique_str.encode()).hexdigest()[:8]
           
           def get_domain_tag(filepath):
@@ -82,6 +78,7 @@ jobs:
               
               for filepath in files:
                   try:
+                      # Get file content from git to ensure consistency
                       result = subprocess.run(
                           ['git', 'show', f'{ref}:{filepath}'],
                           capture_output=True, text=True, check=False
@@ -89,17 +86,13 @@ jobs:
                       if result.returncode != 0: continue
                       
                       lines = result.stdout.split('\n')
-                      content_counts = {} # Tracks identical TODOs in the same file
-                      
                       for line_num, line in enumerate(lines, 1):
                           match = re.search(r'//\s*TODO:?\s*(.+)', line, re.IGNORECASE)
                           if match:
                               todo_text = match.group(1).strip()
+                              todo_hash = get_todo_hash(filepath, todo_text)
                               
-                              # Track occurrence to keep hash unique but stable
-                              content_counts[todo_text] = content_counts.get(todo_text, 0) + 1
-                              todo_hash = get_todo_hash(filepath, todo_text, content_counts[todo_text])
-                              
+                              # If multiple identical TODOs in one file, they share an issue
                               todos[todo_hash] = {
                                   'file': filepath,
                                   'line': line_num,
@@ -112,7 +105,7 @@ jobs:
               return todos
           
           def get_existing_todo_issues():
-              """Returns a dict where key is hash and value is a LIST of issue objects."""
+              """Returns a dict where key is hash and value is a LIST of open issue objects."""
               issues_map = {}
               for issue in repo.get_issues(state='open', labels=['todo', 'automated']):
                   match = re.search(r'\[([a-f0-9]{8})\]', issue.title)
@@ -124,22 +117,15 @@ jobs:
               return issues_map
           
           def cleanup_duplicates(issues_map):
-              """Closes duplicate issues for the same hash, keeping only the lowest ID."""
+              """Closes redundant issues for the same hash, returning a 1:1 map."""
               cleaned_map = {}
               for h, issues in issues_map.items():
-                  if len(issues) > 1:
-                      # Sort by issue number ascending
-                      issues.sort(key=lambda x: x.number)
-                      keep = issues[0]
-                      to_close = issues[1:]
-                      print(f"Found {len(issues)} issues for hash {h}. Keeping #{keep.number}.")
-                      for duplicate in to_close:
-                          duplicate.create_comment("Closing as duplicate of #" + str(keep.number))
-                          duplicate.edit(state='closed')
-                          print(f"Closed duplicate issue #{duplicate.number}")
-                      cleaned_map[h] = keep
-                  else:
-                      cleaned_map[h] = issues[0]
+                  issues.sort(key=lambda x: x.number)
+                  keep = issues[0]
+                  for duplicate in issues[1:]:
+                      duplicate.create_comment(f"Closing as duplicate of #{keep.number}")
+                      duplicate.edit(state='closed')
+                  cleaned_map[h] = keep
               return cleaned_map
           
           def create_or_update_issue(todo, existing_issue=None):
@@ -147,10 +133,10 @@ jobs:
               body = f"**TODO found in code:**\n\n**File:** `{todo['file']}`\n**Line:** {todo['line']}\n**Description:** {todo['text']}\n\n---\n*Hash: `{todo['hash']}`*"
               
               if existing_issue:
-                  # Update existing issue if line number or file moved
+                  # Update if file path or line number changed (but hash remained same)
                   if existing_issue.body != body or existing_issue.title != title:
                       existing_issue.edit(title=title, body=body)
-                      print(f"Updated issue #{existing_issue.number} for hash {todo['hash']}")
+                      print(f"Updated issue #{existing_issue.number}")
               else:
                   labels = ['todo', 'automated']
                   if todo['domain']:
@@ -158,28 +144,22 @@ jobs:
                   issue = repo.create_issue(title=title, body=body, labels=labels)
                   print(f"Created issue #{issue.number} for hash {todo['hash']}")
           
-          # --- Main Logic ---
+          # --- Execution ---
+          # 1. Get current state of code
           current_todos = extract_todos('HEAD')
-          raw_issues = get_existing_todo_issues()
           
-          # 1. Deduplicate existing open issues
+          # 2. Get current state of GitHub and fix any existing duplicates
+          raw_issues = get_existing_todo_issues()
           existing_issues = cleanup_duplicates(raw_issues)
           
-          # 2. Close TODOs that no longer exist in code (PR only)
-          event_name = os.environ.get('EVENT_NAME')
-          if event_name == 'pull_request':
-              base_ref = os.environ.get('BASE_REF')
-              if base_ref:
-                  base_todos = extract_todos(base_ref)
-                  removed_hashes = set(base_todos.keys()) - set(current_todos.keys())
-                  for h in removed_hashes:
-                      if h in existing_issues:
-                          issue = existing_issues[h]
-                          issue.create_comment("TODO removed from code. Closing issue.")
-                          issue.edit(state='closed')
-                          print(f"Closed issue #{issue.number} (TODO removed)")
+          # 3. CLOSE issues that are no longer in the code
+          for h, issue in existing_issues.items():
+              if h not in current_todos:
+                  issue.create_comment("TODO no longer found in code. Closing.")
+                  issue.edit(state='closed')
+                  print(f"Closed issue #{issue.number} (Resolved)")
           
-          # 3. Create new or Update existing
+          # 4. CREATE or UPDATE issues for current TODOs
           for h, todo in current_todos.items():
               create_or_update_issue(todo, existing_issues.get(h))
           EOF
