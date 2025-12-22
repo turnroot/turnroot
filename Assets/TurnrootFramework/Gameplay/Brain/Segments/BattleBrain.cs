@@ -137,7 +137,6 @@ namespace Turnroot.Gameplay.Brain
                 Debug.LogError($"Failed to populate battle rosters: {result.ErrorMessage}");
             }
 
-            // TODO: 3. Spawn units onto grid from rosters
             SpawnRosterUnitsOntoGrid();
 
             // TODO: 4. Build battle context from spawned units
@@ -182,7 +181,33 @@ namespace Turnroot.Gameplay.Brain
                 var characterInstance = enemyRoster.GetInstanceFor(characterData);
                 var placement = enemyRoster.GetPlacementFor(characterData);
                 _battleGameObject.Context.SpawnAtPosition(
-                    enemyRoster.GetInstanceFor(characterData),
+                    characterInstance,
+                    placement.SpawnPosition
+                );
+            }
+            // 2. Spawn third-party units, if needed
+            if (_battleGameObject.HasThirdParty)
+            {
+                var thirdPartyRoster = _battleGameObject.ThirdPartyTeamRoster;
+                foreach (var c in thirdPartyRoster.roster.characters)
+                {
+                    var characterData = c.CharacterData;
+                    var characterInstance = thirdPartyRoster.GetInstanceFor(characterData);
+                    var placement = thirdPartyRoster.GetPlacementFor(characterData);
+                    _battleGameObject.Context.SpawnAtPosition(
+                        characterInstance,
+                        placement.SpawnPosition
+                    );
+                }
+            }
+            // 3. Spawn player team units
+            foreach (var c in playerTeamRoster.roster.characters)
+            {
+                var characterData = c.Character;
+                var characterInstance = playerTeamRoster.GetInstanceFor(characterData);
+                var placement = playerTeamRoster.GetPlacementFor(characterData);
+                _battleGameObject.Context.SpawnAtPosition(
+                    characterInstance,
                     placement.SpawnPosition
                 );
             }
