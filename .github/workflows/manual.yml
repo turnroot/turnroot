@@ -1,0 +1,192 @@
+name: Sync TODOs with Issues
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  sync-todos:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      contents: read
+      pull-requests: read
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Get full history for comparison
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          pip install PyGithub requests
+
+      - name: Sync TODOs
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_REF: ${{ github.event.pull_request.base.sha }}
+          HEAD_REF: ${{ github.sha }}
+        run: |
+          python - <<'EOF'
+          import os
+          import re
+          import subprocess
+          from github import Github
+          from pathlib import Path
+          import hashlib
+
+          # Initialize GitHub client
+          g = Github(os.environ['GITHUB_TOKEN'])
+          repo = g.get_repo(os.environ['GITHUB_REPOSITORY'])
+          
+          def get_file_hash(filepath, line_num):
+              """Create unique hash for TODO location"""
+              return hashlib.md5(f"{filepath}:{line_num}".encode()).hexdigest()[:8]
+
+          def extract_todos(ref='HEAD'):
+              """Extract all TODOs from C# files at a specific git ref"""
+              todos = {}
+              
+              # Get list of C# files
+              try:
+                  result = subprocess.run(
+                      ['git', 'ls-tree', '-r', '--name-only', ref],
+                      capture_output=True, text=True, check=True
+                  )
+                  files = [f for f in result.stdout.split('\n') if f.endswith('.cs')]
+              except:
+                  # Fallback to current directory
+                  files = [str(p) for p in Path('.').rglob('*.cs')]
+              
+              for filepath in files:
+                  try:
+                      # Get file content at specific ref
+                      result = subprocess.run(
+                          ['git', 'show', f'{ref}:{filepath}'],
+                          capture_output=True, text=True, check=False
+                      )
+                      if result.returncode != 0:
+                          continue
+                      
+                      lines = result.stdout.split('\n')
+                      for line_num, line in enumerate(lines, 1):
+                          # Match TODO comments
+                          match = re.search(r'//\s*TODO:?\s*(.+)', line, re.IGNORECASE)
+                          if match:
+                              todo_text = match.group(1).strip()
+                              file_hash = get_file_hash(filepath, line_num)
+                              
+                              todos[file_hash] = {
+                                  'file': filepath,
+                                  'line': line_num,
+                                  'text': todo_text,
+                                  'hash': file_hash
+                              }
+                  except Exception as e:
+                      print(f"Error processing {filepath}: {e}")
+                      continue
+              
+              return todos
+
+          def get_existing_todo_issues():
+              """Get all open issues created by this workflow"""
+              issues = {}
+              for issue in repo.get_issues(state='open', labels=['todo', 'automated']):
+                  # Extract hash from issue title
+                  match = re.search(r'\[([a-f0-9]{8})\]', issue.title)
+                  if match:
+                      issues[match.group(1)] = issue
+              return issues
+
+          def create_issue(todo):
+              """Create a new issue for a TODO"""
+              title = f"TODO [{todo['hash']}]: {todo['text'][:60]}"
+              body = f"""**TODO found in code:**
+
+          **File:** `{todo['file']}`
+          **Line:** {todo['line']}
+          **Description:** {todo['text']}
+
+          ---
+          *This issue was automatically created by the TODO sync workflow.*
+          *Hash: `{todo['hash']}`*
+          """
+              
+              issue = repo.create_issue(
+                  title=title,
+                  body=body,
+                  labels=['todo', 'automated']
+              )
+              print(f"Created issue #{issue.number} for TODO in {todo['file']}:{todo['line']}")
+              return issue
+
+          def close_issue(issue, todo_info):
+              """Close an issue when TODO is removed"""
+              comment = f"""This TODO has been removed from the codebase.
+
+          **Previously in:** `{todo_info['file']}` (line {todo_info['line']})
+
+          Automatically closing this issue.
+          """
+              issue.create_comment(comment)
+              issue.edit(state='closed')
+              print(f"Closed issue #{issue.number} - TODO removed from {todo_info['file']}")
+
+          # Main logic
+          print("Starting TODO sync...")
+          
+          current_todos = extract_todos('HEAD')
+          print(f"Found {len(current_todos)} TODOs in current code")
+
+          # Check if this is a PR
+          event_name = os.environ.get('EVENT_NAME')
+          
+          if event_name == 'pull_request':
+              # Compare with base branch
+              base_ref = os.environ.get('BASE_REF')
+              if base_ref:
+                  print(f"Comparing with base ref: {base_ref}")
+                  base_todos = extract_todos(base_ref)
+                  print(f"Found {len(base_todos)} TODOs in base branch")
+                  
+                  # Find removed TODOs
+                  removed_hashes = set(base_todos.keys()) - set(current_todos.keys())
+                  
+                  if removed_hashes:
+                      print(f"\nFound {len(removed_hashes)} removed TODOs")
+                      existing_issues = get_existing_todo_issues()
+                      
+                      for todo_hash in removed_hashes:
+                          if todo_hash in existing_issues:
+                              close_issue(existing_issues[todo_hash], base_todos[todo_hash])
+              
+          # For push to main or PR, create issues for new TODOs
+          if event_name in ['push', 'pull_request']:
+              existing_issues = get_existing_todo_issues()
+              new_todos = [todo for hash, todo in current_todos.items() if hash not in existing_issues]
+              
+              if new_todos:
+                  print(f"\nCreating issues for {len(new_todos)} new TODOs")
+                  for todo in new_todos[:10]:  # Limit to 10 per run to avoid rate limits
+                      create_issue(todo)
+                  
+                  if len(new_todos) > 10:
+                      print(f"Note: Limited to 10 issues. {len(new_todos) - 10} TODOs remaining.")
+              else:
+                  print("\nNo new TODOs to create issues for")
+          
+          print("\nTODO sync complete!")
+          EOF
