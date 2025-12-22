@@ -31,11 +31,6 @@ namespace Turnroot.Gameplay.Brain
         private RosterManager _rosterManager;
         private CharacterPersistence _characterPersistence;
 
-        // Event handlers for EventBus
-        private Action<CharacterInstance> _onCharacterLevelUpHandler;
-        private Action<CharacterInstance> _onCharacterClassChangedHandler;
-        private Action<CharacterInstance, Skill> _onCharacterLearnedSkillHandler;
-
         [Header("Rosters")]
         [SerializeField]
         private List<GenericRoster> _genericRosters = new();
@@ -65,29 +60,17 @@ namespace Turnroot.Gameplay.Brain
             SubscribeToBrainEvents();
         }
 
-        protected override void SubscribeToBrainEvents()
-        {
-            _brain.OnRostersReady += _rosterManager.OnRostersReady;
-            _onCharacterLevelUpHandler = (c) => _rosterManager.InvalidateCache();
-            _brain.OnCharacterLevelUp += _onCharacterLevelUpHandler;
-            _onCharacterClassChangedHandler = (c) => _rosterManager.InvalidateCache();
-            _brain.OnCharacterClassChanged += _onCharacterClassChangedHandler;
-            _onCharacterLearnedSkillHandler = (c, s) => _rosterManager.InvalidateCache();
-            _brain.OnCharacterLearnedSkill += _onCharacterLearnedSkillHandler;
-        }
+        protected override void SubscribeToBrainEvents() { }
 
         protected override void UnsubscribeFromBrainEvents()
         {
-            _brain.OnRostersReady -= _rosterManager.OnRostersReady;
-            _brain.OnCharacterLevelUp -= _onCharacterLevelUpHandler;
-            _brain.OnCharacterClassChanged -= _onCharacterClassChangedHandler;
-            _brain.OnCharacterLearnedSkill -= _onCharacterLearnedSkillHandler;
+            //  don't currently need to subscribe to anything
         }
 
         public void Start()
         {
             _rosterManager.RecallGenericRosters(_genericRosters);
-            _rosterManager.RecallPlayerRoster(_playerTeamRoster);
+            _rosterManager.InstantiatePlayerTeamRoster(_playerTeamRoster);
         }
 
         #region Public API - Delegates to managers

@@ -17,7 +17,10 @@ namespace Turnroot.Gameplay.Brain
         private readonly CharacterFactory _characterFactory;
         private readonly RosterPersistence _persistence;
 
-        private readonly SingleValueCache<List<GenericRosterInstance>> _rosterCache = new();
+        // Explicitly track persistent rosters we create
+        private readonly List<GenericRosterInstance> _persistentRosters = new();
+
+        private PlayerTeamRosterInstance _persistentPlayerRoster = null;
 
         public RosterManager(GamewideContextBrain gwcb, Brain brain)
         {
@@ -26,12 +29,6 @@ namespace Turnroot.Gameplay.Brain
             _characterFactory = new CharacterFactory(gwcb);
             _persistence = new RosterPersistence(gwcb.GetComponent<LongTermMemory>());
         }
-
-        public void OnRostersReady() => InvalidateCache();
-
-        public void InvalidateCache() => _rosterCache.Invalidate();
-
-        public void InvalidateCache(CharacterInstance _) => InvalidateCache();
 
         #region Roster Instantiation
 
@@ -85,6 +82,8 @@ namespace Turnroot.Gameplay.Brain
             var instance = go.AddComponent<GenericRosterInstance>();
             instance.roster = roster;
 
+            _persistentRosters.Add(instance);
+
             PopulateRoster(instance, roster);
 
             if (register)
@@ -105,18 +104,17 @@ namespace Turnroot.Gameplay.Brain
                 return null;
             }
 
-            var existing = GetCachedInstances()
-                .OfType<PlayerTeamRosterInstance>()
-                .FirstOrDefault(r => r?.roster == roster);
-            if (existing != null)
+            if (_persistentPlayerRoster != null && _persistentPlayerRoster.roster == roster)
             {
                 Debug.Log($"Player team roster '{roster.name}' already exists, returning");
-                return existing;
+                return _persistentPlayerRoster;
             }
 
             var go = new GameObject($"PlayerTeamRosterInstance - {roster.name}");
             var instance = go.AddComponent<PlayerTeamRosterInstance>();
             instance.roster = roster;
+
+            _persistentPlayerRoster = instance;
 
             PopulatePlayerTeamRoster(instance, roster);
 
@@ -131,7 +129,9 @@ namespace Turnroot.Gameplay.Brain
             foreach (var unit in roster.characters)
             {
                 if (unit.CharacterData == null)
+                {
                     continue;
+                }
 
                 var character = _characterFactory.CreateOrRecall(unit.CharacterData);
                 if (character != null)
@@ -154,7 +154,9 @@ namespace Turnroot.Gameplay.Brain
             foreach (var unit in roster.characters)
             {
                 if (unit.Character == null)
+                {
                     continue;
+                }
 
                 var character = _characterFactory.CreateOrRecall(unit.Character);
                 if (character != null)
@@ -198,12 +200,6 @@ namespace Turnroot.Gameplay.Brain
             }
         }
 
-        public void RecallPlayerRoster(PlayerTeamRoster roster)
-        {
-            // TODO: Implement player-specific recall logic
-            Debug.Log("Player roster recall not yet implemented");
-        }
-
         private void RecallFromIndex(List<GenericRoster> rosters, List<string> indexedIds)
         {
             foreach (var id in indexedIds)
@@ -231,30 +227,44 @@ namespace Turnroot.Gameplay.Brain
         public CharacterInstance FindInstanceByTemplate(CharacterData template)
         {
             if (template == null)
+            {
                 return null;
+            }
 
-            return GetCachedInstances()
+            // Check generic rosters
+            var found = GetCachedInstances()
                 .Select(r => r.GetInstanceFor(template))
                 .FirstOrDefault(i => i != null);
+
+            if (found != null)
+            {
+                return found;
+            }
+
+            // Check player roster too
+            return _persistentPlayerRoster?.GetInstanceFor(template);
         }
 
-        public List<CharacterInstance> GetAllActiveInstances() =>
-            GetCachedInstances()
+        public List<CharacterInstance> GetAllActiveInstances()
+        {
+            var instances = GetCachedInstances()
                 .Where(r => r?.Instances != null)
                 .SelectMany(r => r.Instances)
                 .ToList();
 
+            // Include player roster instances too
+            if (_persistentPlayerRoster?.Instances != null)
+            {
+                instances.AddRange(_persistentPlayerRoster.Instances);
+            }
+
+            return instances;
+        }
+
         private List<GenericRosterInstance> GetCachedInstances()
         {
-            return _rosterCache.GetOrCompute(() =>
-            {
-                var rosters = UnityEngine.Object.FindObjectsByType<GenericRosterInstance>(
-                    FindObjectsSortMode.None
-                );
-                var instances = rosters.Where(r => r != null).ToList();
-                Debug.Log($"Roster cache refreshed: {instances.Count} active");
-                return instances;
-            });
+            // No searching needed - we tracked them as we created them
+            return _persistentRosters;
         }
 
         #endregion
