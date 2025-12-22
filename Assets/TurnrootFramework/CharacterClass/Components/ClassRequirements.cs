@@ -51,7 +51,8 @@ namespace Turnroot.Characters.CharacterClass
         /// <summary>
         /// Checks whether the given weapon type is allowed by this class.
         /// </summary>
-        public bool IsWeaponTypeAllowed(WeaponType weaponType) => AllowedWeaponTypes.Contains(weaponType);
+        public bool IsWeaponTypeAllowed(WeaponType weaponType) =>
+            AllowedWeaponTypes.Contains(weaponType);
 
         /// <summary>
         /// Checks whether this class has any promotion paths available.
