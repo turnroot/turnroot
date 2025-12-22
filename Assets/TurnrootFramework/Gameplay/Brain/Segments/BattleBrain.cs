@@ -7,6 +7,7 @@ using UnityEngine.SceneManagement;
 
 namespace Turnroot.Gameplay.Brain
 {
+    [RequireComponent(typeof(TurnRotisserie))]
     /// <summary>
     /// The battle brain manages one battle at a time.
     /// Responsible for initializing battles and managing turn order.
@@ -29,11 +30,6 @@ namespace Turnroot.Gameplay.Brain
             base.Awake();
 
             _turnRotisserie = GetComponent<TurnRotisserie>();
-            if (_turnRotisserie == null)
-            {
-                _turnRotisserie = gameObject.AddComponent<TurnRotisserie>();
-            }
-            _turnRotisserie.Brain = _brain;
 
             Debug.Log("BattleBrain: TurnRotisserie ready");
         }

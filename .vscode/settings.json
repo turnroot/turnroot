@@ -176,6 +176,10 @@
         {
             "path": "fe-prototyping\\Assets\\TurnrootFramework\\Characters\\Components\\Behavior\\",
             "color": "foldercustomization.AnsiColor104"
+        },
+        {
+            "path": "fe-prototyping\\Assets\\TurnrootFramework\\Gameplay\\Roster\\",
+            "color": "foldercustomization.AnsiColor44"
         }
     ]
 }

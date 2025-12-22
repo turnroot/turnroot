@@ -1,4 +1,5 @@
 using Turnroot.Characters;
+using Turnroot.Gameplay.Brain;
 using Turnroot.Utilities;
 using UnityEngine;
 
@@ -12,6 +13,7 @@ public enum TurnOrder
     ThirdPartyEnd = 5,
 }
 
+[RequireComponent(typeof(BattleBrain))]
 public class TurnRotisserie : MonoBehaviour
 {
     [SerializeField, HideInInspector]
@@ -24,17 +26,12 @@ public class TurnRotisserie : MonoBehaviour
         set => _hasThirdParty = value;
     }
 
-    [SerializeField, HideInInspector]
-    private Turnroot.Gameplay.Brain.Brain _brain;
-
-    [HideInInspector]
-    public Turnroot.Gameplay.Brain.Brain Brain
-    {
-        get => _brain;
-        set => _brain = value;
-    }
+    private BattleBrain BattleBrain => GetComponent<BattleBrain>();
+    private Brain _brain => BattleBrain.Brain;
 
     private TurnOrder _currentTurnOrder = TurnOrder.PlayerStart;
+
+    public int CurrentRosterInternalOrder = 0;
 
     public TurnOrder GetNextTurnOrder()
     {
@@ -113,7 +110,7 @@ public class TurnRotisserie : MonoBehaviour
 
     public OperationResult ChangeBattleContextData()
     {
-        var context = Brain.battleBrain.BattleObject.Context;
+        var context = BattleBrain.BattleObject.Context;
         try
         {
             switch (_currentTurnOrder)
@@ -134,9 +131,9 @@ public class TurnRotisserie : MonoBehaviour
 
     public void ChangeToPlayerContext(CharacterInstance activeCharacter)
     {
-        var context = Brain.battleBrain.BattleObject.Context;
+        var context = BattleBrain.BattleObject.Context;
         context.UnitInstance = activeCharacter;
-        Brain.PublishPlayerControlledUnitActivated(activeCharacter);
+        _brain.PublishPlayerControlledUnitActivated(activeCharacter);
         // TODO: Fill targets, allies, third party from rosters
         // TODO: Do something with context.AdjacentUnits.GetAdjacentAlliesNonAlloc and GetAdjacentEnemiesNonAlloc
     }
