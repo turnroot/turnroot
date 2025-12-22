@@ -40,18 +40,16 @@ jobs:
           import os
           import re
           import subprocess
-          from github import Github
-          from pathlib import Path
           import hashlib
+          from github import Github, Auth
+          from pathlib import Path
           
-          g = Github(os.environ['GITHUB_TOKEN'])
+          # Use the modern Auth method to avoid DeprecationWarning
+          auth = Auth.Token(os.environ['GITHUB_TOKEN'])
+          g = Github(auth=auth)
           repo = g.get_repo(os.environ['GITHUB_REPOSITORY'])
           
           def get_todo_hash(filepath, todo_text):
-              """
-              Creates a stable hash based on file and content. 
-              Line numbers are excluded so the hash doesn't change when code moves.
-              """
               unique_str = f"{filepath}:{todo_text}"
               return hashlib.md5(unique_str.encode()).hexdigest()[:8]
           
@@ -78,7 +76,6 @@ jobs:
               
               for filepath in files:
                   try:
-                      # Get file content from git to ensure consistency
                       result = subprocess.run(
                           ['git', 'show', f'{ref}:{filepath}'],
                           capture_output=True, text=True, check=False
@@ -91,8 +88,6 @@ jobs:
                           if match:
                               todo_text = match.group(1).strip()
                               todo_hash = get_todo_hash(filepath, todo_text)
-                              
-                              # If multiple identical TODOs in one file, they share an issue
                               todos[todo_hash] = {
                                   'file': filepath,
                                   'line': line_num,
@@ -105,26 +100,26 @@ jobs:
               return todos
           
           def get_existing_todo_issues():
-              """Returns a dict where key is hash and value is a LIST of open issue objects."""
               issues_map = {}
+              # Fetching open issues with the specific label
               for issue in repo.get_issues(state='open', labels=['todo', 'automated']):
                   match = re.search(r'\[([a-f0-9]{8})\]', issue.title)
                   if match:
                       h = match.group(1)
-                      if h not in issues_map:
-                          issues_map[h] = []
-                      issues_map[h].append(issue)
+                      issues_map.setdefault(h, []).append(issue)
               return issues_map
           
           def cleanup_duplicates(issues_map):
-              """Closes redundant issues for the same hash, returning a 1:1 map."""
               cleaned_map = {}
               for h, issues in issues_map.items():
                   issues.sort(key=lambda x: x.number)
                   keep = issues[0]
                   for duplicate in issues[1:]:
-                      duplicate.create_comment(f"Closing as duplicate of #{keep.number}")
-                      duplicate.edit(state='closed')
+                      try:
+                          duplicate.create_comment(f"Closing as duplicate of #{keep.number}")
+                          duplicate.edit(state='closed')
+                      except Exception as e:
+                          print(f"Failed to close duplicate #{duplicate.number}: {e}")
                   cleaned_map[h] = keep
               return cleaned_map
           
@@ -133,33 +128,40 @@ jobs:
               body = f"**TODO found in code:**\n\n**File:** `{todo['file']}`\n**Line:** {todo['line']}\n**Description:** {todo['text']}\n\n---\n*Hash: `{todo['hash']}`*"
               
               if existing_issue:
-                  # Update if file path or line number changed (but hash remained same)
+                  # Only update if there is a content change
                   if existing_issue.body != body or existing_issue.title != title:
-                      existing_issue.edit(title=title, body=body)
-                      print(f"Updated issue #{existing_issue.number}")
+                      try:
+                          existing_issue.edit(title=title, body=body)
+                          print(f"Updated issue #{existing_issue.number}")
+                      except Exception as e:
+                          print(f"Failed to update issue #{existing_issue.number}: {e}")
               else:
                   labels = ['todo', 'automated']
                   if todo['domain']:
                       labels.append(todo['domain'])
-                  issue = repo.create_issue(title=title, body=body, labels=labels)
-                  print(f"Created issue #{issue.number} for hash {todo['hash']}")
+                  try:
+                      issue = repo.create_issue(title=title, body=body, labels=labels)
+                      print(f"Created issue #{issue.number} for hash {todo['hash']}")
+                  except Exception as e:
+                      print(f"Failed to create issue for {todo['hash']}: {e}")
           
           # --- Execution ---
-          # 1. Get current state of code
           current_todos = extract_todos('HEAD')
-          
-          # 2. Get current state of GitHub and fix any existing duplicates
           raw_issues = get_existing_todo_issues()
           existing_issues = cleanup_duplicates(raw_issues)
           
-          # 3. CLOSE issues that are no longer in the code
+          # 3. CLOSE issues missing from current code
           for h, issue in existing_issues.items():
               if h not in current_todos:
-                  issue.create_comment("TODO no longer found in code. Closing.")
-                  issue.edit(state='closed')
-                  print(f"Closed issue #{issue.number} (Resolved)")
+                  try:
+                      issue.create_comment("TODO no longer found in code. Closing.")
+                      # Explicitly only update state to avoid validation errors
+                      issue.edit(state='closed')
+                      print(f"Closed issue #{issue.number} (Resolved)")
+                  except Exception as e:
+                      print(f"Error closing issue #{issue.number}: {e}")
           
-          # 4. CREATE or UPDATE issues for current TODOs
+          # 4. CREATE or UPDATE
           for h, todo in current_todos.items():
               create_or_update_issue(todo, existing_issues.get(h))
           EOF
