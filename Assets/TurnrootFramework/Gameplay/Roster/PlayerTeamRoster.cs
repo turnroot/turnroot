@@ -20,8 +20,6 @@ namespace Turnroot.Characters
             public bool ChosenForThisBattle { get; private set; }
 
             public void SetChosenForThisBattle(bool isChosen) => ChosenForThisBattle = isChosen;
-
-            public Vector2Int SpawnPosition;
         }
 
         [ReorderableList]
