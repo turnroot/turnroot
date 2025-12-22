@@ -1,3 +1,5 @@
+using Turnroot.Characters;
+using Turnroot.Utilities;
 using UnityEngine;
 
 public enum TurnOrder
@@ -99,6 +101,7 @@ public class TurnRotisserie : MonoBehaviour
                     _brain.PublishThirdPartyTurnEnded();
                     break;
             }
+            ChangeBattleContextData();
             return true;
         }
         else
@@ -106,5 +109,35 @@ public class TurnRotisserie : MonoBehaviour
             Debug.LogError("TurnRotisserie Progress failed: Brain reference is null.");
             return false;
         }
+    }
+
+    public OperationResult ChangeBattleContextData()
+    {
+        var context = Brain.battleBrain.BattleObject.Context;
+        try
+        {
+            switch (_currentTurnOrder)
+            {
+                case TurnOrder.PlayerStart:
+                    CharacterInstance activeCharacter = null; // TODO: Get this from roster
+                    ChangeToPlayerContext(activeCharacter);
+                    break;
+                // TODO: Fill in the rest
+            }
+            return OperationResult.SuccessResult();
+        }
+        catch (System.Exception ex)
+        {
+            return OperationResult.Failure("ChangeBattleContextData failed: " + ex.Message);
+        }
+    }
+
+    public void ChangeToPlayerContext(CharacterInstance activeCharacter)
+    {
+        var context = Brain.battleBrain.BattleObject.Context;
+        context.UnitInstance = activeCharacter;
+        Brain.PublishPlayerControlledUnitActivated(activeCharacter);
+        // TODO: Fill targets, allies, third party from rosters
+        // TODO: Do something with context.AdjacentUnits.GetAdjacentAlliesNonAlloc and GetAdjacentEnemiesNonAlloc
     }
 }

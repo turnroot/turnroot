@@ -166,6 +166,9 @@ namespace Turnroot.Gameplay.Brain.Commands
             UndoState["from"] = unit.MapGridPosition;
 
             var result = unit.MoveToPosition(Target, context.mapGrid);
+            Debug.Log(
+                $"[MoveCommand] Moving Unit {UnitId} from {UndoState["from"]} to {Target}: Success={result.Success}"
+            );
             if (result.Success)
             {
                 context.Brain?.Publish(

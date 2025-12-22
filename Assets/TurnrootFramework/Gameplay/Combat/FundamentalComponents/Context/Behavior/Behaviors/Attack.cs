@@ -1,7 +1,5 @@
-using System;
 using Turnroot.Characters;
 using Turnroot.Characters.Components.Behavior;
-using Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Locations;
 using Turnroot.Gameplay.Objects;
 using UnityEngine;
 
@@ -12,7 +10,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         #region Attack
         private float CalculateAttackUtility(CharacterInstance target, CharacterBehavior behavior)
         {
-            var baseWeight = 11f;
+            var baseWeight = 12f;
             // add bloodthirst
             baseWeight += (1 - behavior.BloodthirstGreed) * 2f;
             // Get effective (i.e. archer against flyer)

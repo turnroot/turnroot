@@ -242,6 +242,11 @@ namespace Turnroot.Characters
         private void Initialize()
         {
             // Copy initial values from template
+            if (_characterTemplate == null)
+            {
+                Debug.LogWarning("CharacterInstance has null CharacterData template.");
+                return;
+            }
             _currentLevel = _characterTemplate.Level;
             _currentExp = _characterTemplate.Exp;
 
@@ -285,6 +290,20 @@ namespace Turnroot.Characters
                         _experienceRanks.Add(new ExperienceRankInstance(expRank));
                     }
                 }
+            }
+
+            // Initialize current class from template
+            // TODO: This only uses starting class currently, this is wrong
+            if (_characterTemplate.StartingClass != null)
+            {
+                var classInstance = new CharacterClassDataInstance(
+                    _characterTemplate,
+                    _characterTemplate.StartingClass
+                );
+                _currentClass = classInstance;
+                Debug.Log(
+                    $"Character {Id} initialized with class {_currentClass.ClassData.Identity.ClassName}"
+                );
             }
         }
 

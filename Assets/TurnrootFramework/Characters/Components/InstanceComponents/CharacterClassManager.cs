@@ -16,6 +16,7 @@ namespace Turnroot.Characters
         public ObjectItemInstance GetEquippedWeapon()
         {
             var allowedWeapons = _currentClass.ClassData.Requirements.AllowedWeaponTypes;
+
             var inventory = _inventoryInstance.Items();
 
             // return the weapon in slot 0

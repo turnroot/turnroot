@@ -95,6 +95,17 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             return Brain.ExecuteCommand(command);
         }
 
+        public bool MoveUnitToPoint(CharacterInstance unit, MapGridPoint targetPoint)
+        {
+            RequireBrain();
+            var command = new MoveCommand(
+                unit.Id,
+                targetPoint.CoordinatesInt(),
+                Brain.CurrentTurnNumber
+            );
+            return Brain.ExecuteCommand(command);
+        }
+
         /// <summary>
         /// Deals damage to a target unit using the command pattern.
         /// </summary>

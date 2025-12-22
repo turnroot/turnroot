@@ -40,6 +40,7 @@ namespace Turnroot.Gameplay.Brain
     [RequireComponent(typeof(BattleBrain))]
     [RequireComponent(typeof(InventoryBrain))]
     [RequireComponent(typeof(StorehouseBrain))]
+    [RequireComponent(typeof(PlayerInputBrain))]
     public partial class Brain : MonoBehaviour
     {
         // Core components
@@ -63,6 +64,9 @@ namespace Turnroot.Gameplay.Brain
 
         [HideInInspector]
         public StorehouseBrain storehouseBrain;
+
+        [HideInInspector]
+        public PlayerInputBrain playerInputBrain;
 
         [HideInInspector]
         public LongTermMemory ltm;
@@ -125,14 +129,20 @@ namespace Turnroot.Gameplay.Brain
         public string EncodeInstanceToString<T>(T instance)
             where T : class
         {
-            var result = gamewideContextBrain.EncodeInstanceToString(instance);
+            var result = GamewideContextBrainHelpers.EncodeInstanceToString(
+                gamewideContextBrain,
+                instance
+            );
             return result.Success ? result.Value : string.Empty;
         }
 
         public T DecodeInstanceFromString<T>(string encodedString)
             where T : class
         {
-            var result = gamewideContextBrain.DecodeInstanceFromString<T>(encodedString);
+            var result = GamewideContextBrainHelpers.DecodeInstanceFromString<T>(
+                gamewideContextBrain,
+                encodedString
+            );
             return result.Success ? result.Value : null;
         }
 
@@ -172,13 +182,41 @@ namespace Turnroot.Gameplay.Brain
 
         #region Roster Lifecycle Events
 
-        public event Action<RosterInstance> OnRosterReady;
-        public event Action<Roster, string> OnRosterFailed;
+        public event Action OnRostersReady;
+        public event Action OnRostersFailed;
 
-        public void PublishRosterReady(RosterInstance instance) => OnRosterReady?.Invoke(instance);
+        public void PublishRostersReady() => OnRostersReady?.Invoke();
 
-        public void PublishRosterFailed(Roster roster, string reason) =>
-            OnRosterFailed?.Invoke(roster, reason);
+        public void PublishRostersFailed() => OnRostersFailed?.Invoke();
+
+        #endregion
+
+        #region Character Movement Events
+        public event Action<CharacterInstance, MapGridPoint> OnCharacterMoveStarted;
+
+        public event Action<CharacterInstance, MapGridPoint> OnCharacterMoveCompleted;
+
+        public event Action<CharacterInstance> OnPlayerMovePreviewStarted;
+
+        public event Action<CharacterInstance, MapGridPoint> OnPlayerChoseMoveTile;
+
+        public void PublishCharacterMoveStarted(
+            CharacterInstance character,
+            MapGridPoint targetPoint
+        ) => OnCharacterMoveStarted?.Invoke(character, targetPoint);
+
+        public void PublishCharacterMoveCompleted(
+            CharacterInstance character,
+            MapGridPoint targetPoint
+        ) => OnCharacterMoveCompleted?.Invoke(character, targetPoint);
+
+        public void PublishPlayerMovePreviewStarted(CharacterInstance character) =>
+            OnPlayerMovePreviewStarted?.Invoke(character);
+
+        public void PublishPlayerChoseMoveTile(
+            CharacterInstance character,
+            MapGridPoint targetPoint
+        ) => OnPlayerChoseMoveTile?.Invoke(character, targetPoint);
 
         #endregion
 
@@ -343,6 +381,8 @@ namespace Turnroot.Gameplay.Brain
         public event Action OnEnemyTurnEnded;
         public event Action OnThirdPartyTurnStarted;
         public event Action OnThirdPartyTurnEnded;
+
+        public event Action<CharacterInstance> OnPlayerControlledUnitActivated;
         public event Action<CharacterInstance, int> OnAllyDamaged;
         public event Action<CharacterInstance, int> OnEnemyDamaged;
         public event Action<CharacterInstance> OnUnitDefeated;
@@ -379,6 +419,9 @@ namespace Turnroot.Gameplay.Brain
         public void PublishThirdPartyTurnStarted() => OnThirdPartyTurnStarted?.Invoke();
 
         public void PublishThirdPartyTurnEnded() => OnThirdPartyTurnEnded?.Invoke();
+
+        public void PublishPlayerControlledUnitActivated(CharacterInstance unit) =>
+            OnPlayerControlledUnitActivated?.Invoke(unit);
 
         public void PublishAllyDamaged(CharacterInstance unit, int damage) =>
             OnAllyDamaged?.Invoke(unit, damage);
@@ -482,8 +525,6 @@ namespace Turnroot.Gameplay.Brain
 
         public void Awake()
         {
-            Debug.Log("Brain Awake!");
-
             InitializeLongTermMemory();
             InitializeModules();
             InitializeAdvancedSystems();
@@ -500,6 +541,9 @@ namespace Turnroot.Gameplay.Brain
             gamewideContextBrain = GetComponent<GamewideContextBrain>();
             battleBrain = GetComponent<BattleBrain>();
             charactersBrain = GetComponent<CharactersBrain>();
+            inventoryBrain = GetComponent<InventoryBrain>();
+            storehouseBrain = GetComponent<StorehouseBrain>();
+            playerInputBrain = GetComponent<PlayerInputBrain>();
         }
 
         public void InitializeLongTermMemory()
@@ -562,10 +606,13 @@ namespace Turnroot.Gameplay.Brain
             }
         }
 
-        private void OnSceneLoaded_LinkControllers(Scene scene, LoadSceneMode mode) =>
-            TryLinkConversationController();
-
         #endregion
+
+        private void OnSceneLoaded_LinkControllers(Scene scene, LoadSceneMode mode)
+        {
+            playerInputBrain.TryLinkPlayerController();
+            TryLinkConversationController();
+        }
 
         #region State Control
 

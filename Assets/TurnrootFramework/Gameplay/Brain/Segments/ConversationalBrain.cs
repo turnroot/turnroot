@@ -25,7 +25,8 @@ namespace Turnroot.Gameplay.Brain
             // Subscribe to conversation end to track completion
             _brain.OnConversationEnded += HandleConversationEnded;
 
-        protected override void UnsubscribeFromBrainEvents() => _brain.OnConversationEnded -= HandleConversationEnded;
+        protected override void UnsubscribeFromBrainEvents() =>
+            _brain.OnConversationEnded -= HandleConversationEnded;
 
         private void HandleConversationEnded(Conversation conversation)
         {

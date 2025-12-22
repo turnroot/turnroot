@@ -190,9 +190,9 @@ public class CharacterBehaviorDrawer : PropertyDrawer
                 EditorGUIUtility.singleLineHeight
             );
 
-            // Color blend: #2c4b62 (0) to #412424 (1)
-            Color color0 = new Color32(0x2C, 0x4B, 0x62, 0xFF);
-            Color color1 = new Color32(0x41, 0x24, 0x24, 0xFF);
+            // Color blend: #006D77 (0) to #7E9624 (1)
+            Color color0 = new Color32(0x00, 0x6D, 0x77, 0xFF);
+            Color color1 = new Color32(0x7E, 0x96, 0x24, 0xFF);
             float t = Mathf.Clamp01(prop.floatValue);
             Color blended = Color.Lerp(color0, color1, t);
             EditorGUI.DrawRect(sliderRect, blended);

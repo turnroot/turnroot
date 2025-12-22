@@ -10,40 +10,34 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1d531c8bfa9fbd649862bdaaa67913c8, type: 3}
-  m_Name: Felicity
+  m_Name: TestEnemy
   m_EditorClassIdentifier: 
   _: 
   <Which>k__BackingField:
-    _value: Ally
-  <DisplayName>k__BackingField: Felicity
-  <FullName>k__BackingField: Felicity
+    _value: Enemy
+  <DisplayName>k__BackingField: New Unit
+  <FullName>k__BackingField: Newly Created Unit
   <CharacterPronouns>k__BackingField:
     _selectedPronouns:
     - she
     - her
     - hers
     - her
-  <Height>k__BackingField: 156
-  <BirthdayDay>k__BackingField: 5
-  <BirthdayMonth>k__BackingField: 12
+  <Height>k__BackingField: 166
+  <BirthdayDay>k__BackingField: 1
+  <BirthdayMonth>k__BackingField: 1
   <Species>k__BackingField: {fileID: 0}
-  <ShortDescription>k__BackingField: 
-  <Likes>k__BackingField:
-  - Octopi
-  - Seaglass
-  - Staying up late
-  - Gossip
-  <Dislikes>k__BackingField:
-  - Horses
-  - Hot weather
+  <ShortDescription>k__BackingField: A new unit
+  <Likes>k__BackingField: []
+  <Dislikes>k__BackingField: []
   <Notes>k__BackingField: Take private notes (only in the editor) about this unit
   <CanSSupport>k__BackingField: 1
-  <CanSSupportAvatar>k__BackingField: 1
+  <CanSSupportAvatar>k__BackingField: 0
   <IsRecruitable>k__BackingField: 0
   <IsUnique>k__BackingField: 0
   <StartingClass>k__BackingField: {fileID: 11400000, guid: c3c5e862da233c24ca2f3019a280df42, type: 2}
-  <BadgeText>k__BackingField: Fishing Guild
-  <BadgeIcon>k__BackingField: {fileID: 21300000, guid: 9f2c2612454aeb040bb1ab262a1e7c5f, type: 3}
+  <BadgeText>k__BackingField: 
+  <BadgeIcon>k__BackingField: {fileID: 0}
   <Blendshapes>k__BackingField:
     chestSize: 0
     waistSize: 0
@@ -51,10 +45,10 @@ MonoBehaviour:
     thighThickness: 0
     armThickness: 0
     neckThickness: 0
-  <SkinColor>k__BackingField: {r: 0.8745098, g: 0.8235294, b: 0.7411765, a: 0}
-  <AccentColor1>k__BackingField: {r: 0.2, g: 0.28235295, b: 0.39215687, a: 0}
-  <AccentColor2>k__BackingField: {r: 0.34901962, g: 0.4, b: 0.2627451, a: 0}
-  <AccentColor3>k__BackingField: {r: 0.7607843, g: 0.65882355, b: 0.47058824, a: 0}
+  <SkinColor>k__BackingField: {r: 0, g: 0, b: 0, a: 0}
+  <AccentColor1>k__BackingField: {r: 0, g: 0, b: 0, a: 0}
+  <AccentColor2>k__BackingField: {r: 0, g: 0, b: 0, a: 0}
+  <AccentColor3>k__BackingField: {r: 0, g: 0, b: 0, a: 0}
   <Portraits>k__BackingField:
     _keys: []
     _values: []
@@ -69,12 +63,12 @@ MonoBehaviour:
   <BehaviorSettings>k__BackingField:
     MovementDisabled: 0
     AttackDisabled: 0
-    SoldierLoneWolf: 0.326
-    MindlessCunning: 0.698
-    SelfishSelfless: 0.674
-    BrashWary: 0.5230752
-    BloodthirstGreed: 0.15547669
-    preset: 2
+    SoldierLoneWolf: 0.294
+    MindlessCunning: 0.505
+    SelfishSelfless: 0.018
+    BrashWary: 0.477
+    BloodthirstGreed: 0.151
+    preset: 0
   <StartingInventory>k__BackingField:
   - _item: {fileID: 11400000, guid: 18c28f887826b0d4389fb021663c5146, type: 2}
     _slotIndex: 0
@@ -82,82 +76,20 @@ MonoBehaviour:
   <Level>k__BackingField: 1
   <Exp>k__BackingField: 0
   <BoundedStats>k__BackingField:
-  - _current: 20
+  - _current: 14
     _bonus: 0
     _statType: 0
     _max: 20
-    _min: 0
-  - _current: 1
-    _bonus: 0
-    _statType: 1
-    _max: 50
-    _min: 1
-  - _current: 0
-    _bonus: 0
-    _statType: 2
-    _max: 100
-    _min: 0
-  - _current: 0
-    _bonus: 0
-    _statType: 3
-    _max: 100
     _min: 0
   <UnboundedStats>k__BackingField:
   - _current: 10
     _bonus: 0
     _statType: 0
-  - _current: 10
-    _bonus: 0
-    _statType: 1
-  - _current: 10
-    _bonus: 0
-    _statType: 2
-  - _current: 10
-    _bonus: 0
-    _statType: 3
-  - _current: 10
-    _bonus: 0
-    _statType: 4
-  - _current: 10
-    _bonus: 0
-    _statType: 5
-  - _current: 10
-    _bonus: 0
-    _statType: 6
-  - _current: 10
-    _bonus: 0
-    _statType: 7
-  - _current: 10
-    _bonus: 0
-    _statType: 8
   - _current: 5
     _bonus: 0
     _statType: 9
-  - _current: 10
-    _bonus: 0
-    _statType: 10
   <PersonalGrowthRates>k__BackingField:
   - unboundedStatType: 0
-    value: 0
-  - unboundedStatType: 1
-    value: 0
-  - unboundedStatType: 2
-    value: 0
-  - unboundedStatType: 3
-    value: 0
-  - unboundedStatType: 4
-    value: 0
-  - unboundedStatType: 5
-    value: 0
-  - unboundedStatType: 6
-    value: 0
-  - unboundedStatType: 7
-    value: 0
-  - unboundedStatType: 8
-    value: 0
-  - unboundedStatType: 9
-    value: 0
-  - unboundedStatType: 10
     value: 0
   <Skills>k__BackingField: []
   <SpecialSkills>k__BackingField: []
