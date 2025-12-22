@@ -19,6 +19,7 @@ namespace Turnroot.Gameplay.Brain
 
         [SerializeField]
         private PlayerTeamRoster _playerTeamRoster;
+        private BattleGameObject _battleGameObject;
         private TurnRotisserie _turnRotisserie;
 
         private BattleContextAIHelper _aiHelper;
@@ -36,6 +37,9 @@ namespace Turnroot.Gameplay.Brain
         private RosterManager _rosterManager;
         private CharacterPersistence _characterPersistence;
 
+        private RosterManager _rosterManager;
+        private CharacterPersistence _characterPersistence;
+
         protected override void Awake()
         {
             base.Awake();
@@ -46,6 +50,48 @@ namespace Turnroot.Gameplay.Brain
 
             _rosterManager = new RosterManager(_brain);
             _characterPersistence = new CharacterPersistence(_brain);
+        }
+
+        private void Start()
+        {
+            _rosterManager.RecallGenericRosters(_genericRosters);
+            _rosterManager.InstantiatePlayerTeamRoster(_playerTeamRoster);
+        }
+
+        #region Roster Management API
+
+        public GenericRosterInstance InstantiateGenericRoster(
+            GenericRoster roster,
+            bool register = false
+        ) => _rosterManager.InstantiateGenericRoster(roster, register);
+
+        public CharacterInstance FindInstanceByTemplate(CharacterData template) =>
+            _rosterManager.FindInstanceByTemplate(template);
+
+        public List<CharacterInstance> GetAllActiveInstances() =>
+            _rosterManager.GetAllActiveInstances();
+
+        public PlayerTeamRosterInstance InstantiatePlayerTeamRoster() =>
+            _rosterManager.InstantiatePlayerTeamRoster(_playerTeamRoster);
+
+        public void RecallGenericRosters(List<GenericRoster> rosters) =>
+            _rosterManager.RecallGenericRosters(rosters);
+
+        public void SaveUniqueCharacterProgress(CharacterInstance instance) =>
+            _characterPersistence.SaveCharacter(instance, updateIndex: false);
+
+        #endregion
+
+        protected override EventPriority GetSubscriptionPriority() => EventPriority.Highest;
+
+        protected override void SubscribeToBrainEvents()
+        {
+            _brain.OnBattleStarted += HandleStartBattle;
+            _brain.OnBattleCompleted += HandleExitBattle;
+            _brain.OnUnitTakesAnotherTurn += HandleUnitTakesAnotherTurn;
+            _brain.OnCriticalHit += HandleCriticalHit;
+            _brain.OnWeaponUsesChanged += HandleWeaponUsesChanged;
+            _brain.OnItemStolen += HandleItemStolen;
         }
 
         private void Start()
