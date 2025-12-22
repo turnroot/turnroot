@@ -546,6 +546,7 @@ namespace Turnroot.Gameplay.Brain
                 if (string.IsNullOrEmpty(key) || ltm == null)
                 {
                     return true; // Can't verify, assume valid
+                    // TODO: Make this an Operation Result
                 }
 
                 var stored = ltm.Recall(key);
@@ -563,6 +564,7 @@ namespace Turnroot.Gameplay.Brain
             {
                 Debug.LogWarning($"Ledger verification failed: {ex.Message}");
                 return true; // Can't verify, assume valid
+                // TODO: Make this an Operation Result
             }
         }
 

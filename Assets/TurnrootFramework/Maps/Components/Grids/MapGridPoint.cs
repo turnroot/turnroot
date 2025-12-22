@@ -163,8 +163,6 @@ public class MapGridPoint : MonoBehaviour
     [SerializeField]
     private List<MapGridPropertyBase.BoolProperty> _featureBoolProperties = new();
 
-    // Int properties removed intentionally
-
     [SerializeField]
     private List<MapGridPropertyBase.FloatProperty> _featureFloatProperties = new();
 
@@ -320,7 +318,6 @@ public class MapGridPoint : MonoBehaviour
             && !UnityEditor.EditorApplication.isUpdating
         )
         {
-            // Int properties removed
             _featureFloatProperties.Clear();
         }
 
@@ -344,12 +341,10 @@ public class MapGridPoint : MonoBehaviour
         {
             return;
         }
-        // string properties removed
         _featureUnitProperties.RemoveAll(p => p.key == key);
         _featureObjectItemProperties.RemoveAll(p => p.key == key);
         _featureBoolProperties.RemoveAll(p => p.key == key);
         _featureEventProperties.RemoveAll(p => p.key == key);
-        // Int properties removed
         _featureFloatProperties.RemoveAll(p => p.key == key);
     }
 

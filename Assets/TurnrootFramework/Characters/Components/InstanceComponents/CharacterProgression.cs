@@ -23,55 +23,19 @@ namespace Turnroot.Characters
             var hpStat = GetBoundedStat(BoundedStatType.Health);
             hpStat.SetCurrent(hpStat.GetCurrent() + 1f);
 
-            if (_currentClass != null && _currentClass.ClassData != null)
+            var growthRates = GetEffectiveGrowthRates();
+            // TODO: Ensure there is always a class- character cannot level up without one
+
+            var increasedStats = StatApplicationHelper.ApplyStatGrowths(
+                growthRates,
+                new List<UnboundedStatModifier>(), // Already combined in GetEffectiveGrowthRates
+                this,
+                _currentClass.ClassData.Stats.UnboundedStatCaps
+            );
+
+            if (increasedStats.Count == UnboundedStats.Count)
             {
-                var growthRates = GetEffectiveGrowthRates();
-
-                var increasedStats = StatApplicationHelper.ApplyStatGrowths(
-                    growthRates,
-                    new List<UnboundedStatModifier>(), // Already combined in GetEffectiveGrowthRates
-                    this,
-                    _currentClass.ClassData.Stats.UnboundedStatCaps
-                );
-
-                if (increasedStats.Count == UnboundedStats.Count)
-                {
-                    hpStat.SetCurrent(hpStat.GetCurrent() + 1f);
-                }
-            }
-            else
-            {
-                // No class equipped - use personal growth rates only
-                var personalRates =
-                    _characterTemplate?.PersonalGrowthRates ?? new List<UnboundedStatModifier>();
-                if (personalRates.Count > 0)
-                {
-                    var increasedStats = StatApplicationHelper.ApplyStatGrowths(
-                        personalRates,
-                        new List<UnboundedStatModifier>(),
-                        this,
-                        new List<UnboundedStatModifier>() // No caps when classless
-                    );
-
-                    if (increasedStats.Count > 0)
-                    {
-                        Debug.Log(
-                            $"{_characterTemplate.DisplayName} leveled up to {_currentLevel}! Stats increased: {string.Join(", ", increasedStats)}"
-                        );
-                    }
-                    else
-                    {
-                        Debug.Log(
-                            $"{_characterTemplate.DisplayName} leveled up to {_currentLevel}!"
-                        );
-                    }
-                }
-                else
-                {
-                    Debug.LogWarning(
-                        $"{_characterTemplate.DisplayName} leveled up without a class or personal growth rates - no stat growth applied"
-                    );
-                }
+                hpStat.SetCurrent(hpStat.GetCurrent() + 1f);
             }
         }
 
@@ -89,28 +53,24 @@ namespace Turnroot.Characters
                 effectiveRates.AddRange(_characterTemplate.PersonalGrowthRates);
             }
 
-            // Add class growth rate modifiers if we have a class
-            if (_currentClass?.ClassData?.Stats?.GrowthRateModifiers != null)
+            foreach (var classMod in _currentClass.ClassData.Stats.GrowthRateModifiers)
             {
-                foreach (var classMod in _currentClass.ClassData.Stats.GrowthRateModifiers)
+                int index = effectiveRates.FindIndex(e =>
+                    e.unboundedStatType == classMod.unboundedStatType
+                );
+                if (index != -1)
                 {
-                    int index = effectiveRates.FindIndex(e =>
-                        e.unboundedStatType == classMod.unboundedStatType
+                    // Combine with existing personal rate
+                    var existing = effectiveRates[index];
+                    effectiveRates[index] = new UnboundedStatModifier(
+                        classMod.unboundedStatType,
+                        existing.value + classMod.value
                     );
-                    if (index != -1)
-                    {
-                        // Combine with existing personal rate
-                        var existing = effectiveRates[index];
-                        effectiveRates[index] = new UnboundedStatModifier(
-                            classMod.unboundedStatType,
-                            existing.value + classMod.value
-                        );
-                    }
-                    else
-                    {
-                        // Add class modifier
-                        effectiveRates.Add(classMod);
-                    }
+                }
+                else
+                {
+                    // Add class modifier
+                    effectiveRates.Add(classMod);
                 }
             }
 

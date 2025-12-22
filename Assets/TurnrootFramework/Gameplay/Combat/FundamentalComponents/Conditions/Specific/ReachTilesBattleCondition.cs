@@ -85,13 +85,13 @@ public class ReachTilesBattleCondition : BattleCondition
         }
 
         // HashSet.Add returns false if already present, so this is idempotent
+        // what does idempotent mean??
         if (_reachedTilesSet.Add(position))
         {
             UnityEngine.Debug.Log(
                 $"ReachTilesBattleCondition: Tile {position} reached ({_reachedTilesSet.Count}/{TargetTiles.Count})"
             );
 
-            // Check if condition is now met
             CheckCondition();
         }
     }

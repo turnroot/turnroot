@@ -17,10 +17,6 @@ namespace Turnroot.Conversations.Branching
         public ConversationLayer conversationLayer;
 
         public override object GetValue(NodePort port) => port.fieldName == "next" ? next : null;
-
-#if UNITY_EDITOR
-        // OnEnable diagnostics removed — cleanup after investigation.
-#endif
     }
 
     [Serializable]

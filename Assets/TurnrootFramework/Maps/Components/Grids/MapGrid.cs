@@ -445,10 +445,7 @@ public class MapGrid : MonoBehaviour
             mgp.SetFeatureTypeId(rec.typeId);
             mgp.FeatureName = rec.name ?? string.Empty;
             mgp.ApplyDefaultsForFeature(rec.typeId);
-
-            // string Properties removed
             ApplyPropertyList(rec.boolProperties, mgp.SetBoolFeatureProperty);
-            // int Properties removed
             ApplyPropertyList(rec.eventProperties, mgp.SetEventFeatureProperty);
             ApplyPropertyList(rec.floatProperties, mgp.SetFloatFeatureProperty);
             ApplyPropertyList(rec.unitProperties, mgp.SetUnitFeatureProperty);
@@ -861,11 +858,7 @@ public class FeatureRecord
     public int col;
     public string typeId;
     public string name;
-
-    // stringProperties removed
     public List<PropertyRecord<bool>> boolProperties = new();
-
-    // intProperties removed
     public List<PropertyRecord<UnityEvent>> eventProperties = new();
     public List<PropertyRecord<float>> floatProperties = new();
 

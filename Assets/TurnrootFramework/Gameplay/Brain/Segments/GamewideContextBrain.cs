@@ -17,9 +17,9 @@ namespace Turnroot.Gameplay.Brain
 
         public enum TamperPolicy
         {
-            NotifyOnly, // Log warning but use data
-            Reject, // Return null/default
-            Replace, // Create safe default instance
+            NotifyOnly,
+            Reject,
+            Replace,
         }
 
         [SerializeField]
