@@ -176,6 +176,10 @@
         {
             "path": "fe-prototyping\\Assets\\TurnrootFramework\\Characters\\Components\\Behavior\\",
             "color": "foldercustomization.AnsiColor104"
+        },
+        {
+            "path": "fe-prototyping\\Assets\\TurnrootFramework\\Testing\\December2025\\",
+            "color": "foldercustomization.AnsiColor105"
         }
     ]
 }
