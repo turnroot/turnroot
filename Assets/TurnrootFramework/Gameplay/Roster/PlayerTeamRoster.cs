@@ -12,28 +12,17 @@ namespace Turnroot.Characters
     public class PlayerTeamRoster : Roster
     {
         [Serializable]
-        public struct PlayerTeamRosterUnitPlacement
+        public class PlayerTeamRosterUnitPlacement : UnitPlacement
         {
-            public CharacterData Character;
-
-            public readonly bool IsAvatar => Character.Which == Components.CharacterWhich.AVATAR;
-            public readonly bool IsAlly => Character.Which == Components.CharacterWhich.ALLY;
-            public UnitStatus Status { get; private set; }
-
-            public void SetStatus(UnitStatus newStatus) => Status = newStatus;
-
-            public bool IsActiveRightNow { get; private set; }
-
-            public void SetActiveRightNow(bool isActive) => IsActiveRightNow = isActive;
+            public bool IsAvatar => CharacterData.Which == Components.CharacterWhich.AVATAR;
+            public bool IsAlly => CharacterData.Which == Components.CharacterWhich.ALLY;
 
             public bool ChosenForThisBattle { get; private set; }
 
             public void SetChosenForThisBattle(bool isChosen) => ChosenForThisBattle = isChosen;
-
-            public Vector2Int SpawnPosition;
         }
 
         [ReorderableList]
-        public PlayerTeamRosterUnitPlacement[] characters;
+        public new PlayerTeamRosterUnitPlacement[] characters;
     }
 }

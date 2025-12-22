@@ -493,8 +493,7 @@ namespace Turnroot.Gameplay.Brain
                 }
 
                 // Verify ledger integrity
-                var ledgerResult = VerifyLedgerHash(brain, instance, wrapper);
-                if (!ledgerResult.Success)
+                if (!VerifyLedgerHash(brain, instance, wrapper))
                 {
                     var ltm = brain.GetComponent<LongTermMemory>();
                     var key = BuildHashLedgerKey(instance, wrapper);
@@ -533,7 +532,7 @@ namespace Turnroot.Gameplay.Brain
             }
         }
 
-        private static OperationResult VerifyLedgerHash<T>(
+        private static bool VerifyLedgerHash<T>(
             GamewideContextBrain brain,
             T instance,
             SerializedWrapper wrapper
@@ -546,7 +545,8 @@ namespace Turnroot.Gameplay.Brain
 
                 if (string.IsNullOrEmpty(key) || ltm == null)
                 {
-                    return OperationResult.SuccessResult(); // Can't verify, assume valid
+                    return true; // Can't verify, assume valid
+                    // TODO: Make this an Operation Result
                 }
 
                 var stored = ltm.Recall(key);
@@ -555,22 +555,16 @@ namespace Turnroot.Gameplay.Brain
                 {
                     // First time seeing this instance, store its hash
                     ltm.Remember(key, wrapper.Hash);
-                    return OperationResult.SuccessResult();
+                    return true;
                 }
 
-                var result = string.Equals(
-                    stored,
-                    wrapper.Hash,
-                    StringComparison.OrdinalIgnoreCase
-                );
-                return result
-                    ? OperationResult.SuccessResult()
-                    : OperationResult.Failure("Ledger hash mismatch detected.");
+                return string.Equals(stored, wrapper.Hash, StringComparison.OrdinalIgnoreCase);
             }
             catch (Exception ex)
             {
                 Debug.LogWarning($"Ledger verification failed: {ex.Message}");
-                return OperationResult.Failure($"Ledger verification failed: {ex.Message}");
+                return true; // Can't verify, assume valid
+                // TODO: Make this an Operation Result
             }
         }
 
