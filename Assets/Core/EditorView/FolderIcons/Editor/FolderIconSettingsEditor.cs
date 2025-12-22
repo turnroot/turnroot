@@ -275,11 +275,6 @@ namespace FolderIcons
             {
                 heightIndex = property.CountInProperty();
             }
-
-            // return (PROPERTY_HEIGHT + PROPERTY_PADDING) * (heightIndex-1) + PROPERTY_PADDING;
-
-            //Property count returning wrong, so just supplying 3 for now
-            //TODO: Investigate GetPropertyCount and find issue with invalid value
             return (PROPERTY_HEIGHT + PROPERTY_PADDING) * (3) + PROPERTY_PADDING;
         }
 
