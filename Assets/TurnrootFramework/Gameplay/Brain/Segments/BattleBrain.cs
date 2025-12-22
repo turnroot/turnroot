@@ -184,6 +184,7 @@ namespace Turnroot.Gameplay.Brain
                     characterInstance,
                     placement.SpawnPosition
                 );
+                enemyRoster.SetOrder(characterData, placement.Order);
             }
             // 2. Spawn third-party units, if needed
             if (_battleGameObject.HasThirdParty)
@@ -198,18 +199,20 @@ namespace Turnroot.Gameplay.Brain
                         characterInstance,
                         placement.SpawnPosition
                     );
+                    thirdPartyRoster.SetOrder(characterData, placement.Order);
                 }
             }
             // 3. Spawn player team units
             foreach (var c in playerTeamRoster.roster.characters)
             {
-                var characterData = c.Character;
+                var characterData = c.CharacterData;
                 var characterInstance = playerTeamRoster.GetInstanceFor(characterData);
                 var placement = playerTeamRoster.GetPlacementFor(characterData);
                 _battleGameObject.Context.SpawnAtPosition(
                     characterInstance,
                     placement.SpawnPosition
                 );
+                playerTeamRoster.SetOrder(characterData, placement.Order);
             }
         }
 

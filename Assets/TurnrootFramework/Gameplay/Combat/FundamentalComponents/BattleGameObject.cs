@@ -360,21 +360,6 @@ namespace Turnroot.Gameplay.Combat
         }
 
         /// <summary>
-        /// Spawn all roster units onto the grid at their spawn points.
-        /// </summary>
-        public void SpawnRosterUnitsOntoGrid()
-        {
-            // TODO: For each roster, find spawn points and place units
-            // - Get spawn points from MapGrid
-            // - Match units to spawn points by faction
-            // - Set unit.MapGridPosition
-            // - Call Context.mapGrid.SetOccupied()
-            // - Publish Brain.PublishCharacterSpawned()
-
-            Debug.Log("BattleGameObject: TODO - Spawn roster units onto grid");
-        }
-
-        /// <summary>
         /// Build the BattleContext from the populated rosters.
         /// </summary>
         public void PopulateBattleContextFromRosters()
