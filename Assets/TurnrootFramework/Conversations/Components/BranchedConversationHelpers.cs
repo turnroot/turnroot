@@ -55,7 +55,9 @@ namespace Turnroot.Conversations
                             }
 
                             var tid = c.node.GetInstanceID();
-                            incomingCounts[tid] = !incomingCounts.TryGetValue(tid, out var cnt) ? 1 : cnt + 1;
+                            incomingCounts[tid] = !incomingCounts.TryGetValue(tid, out var cnt)
+                                ? 1
+                                : cnt + 1;
                         }
                     }
                 }
@@ -128,7 +130,7 @@ namespace Turnroot.Conversations
                                 portName = portName,
                                 targetNodeId = targetNode.GetInstanceID(),
                                 targetNodeName = targetNode.name,
-                                label = ResolveLabelForPort(node, portName, targetNode)
+                                label = ResolveLabelForPort(node, portName, targetNode),
                             };
                             choice.choiceText = choice.label;
                             nd.choices.Add(choice);

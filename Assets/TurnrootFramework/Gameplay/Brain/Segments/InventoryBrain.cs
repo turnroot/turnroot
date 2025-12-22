@@ -237,11 +237,7 @@ namespace Turnroot.Gameplay.Brain
             }
 
             // Get storehouse brain to consume resources
-            var storehouseBrain = _brain?.storehouseBrain;
-            if (storehouseBrain == null)
-            {
-                return OperationResult.Failure("Storehouse brain not available."); // TODO: This is sloppy, make a GetStorehouseBrain that returns a operation result
-            }
+            var storehouseBrain = _brain.storehouseBrain;
 
             // Perform the forg
             var result = item.Forger.ForgeItem(storehouseBrain, targetOption.Value);
