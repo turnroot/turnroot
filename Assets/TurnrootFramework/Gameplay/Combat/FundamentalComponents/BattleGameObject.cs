@@ -4,6 +4,7 @@ using Turnroot.Characters.Components;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Environment;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Conditions.Specific;
+using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.Combat
@@ -307,14 +308,14 @@ namespace Turnroot.Gameplay.Combat
                 EnemyTeamRoster.Clear();
             }
 
-            // Create or clear third party roster
-            if (ThirdPartyTeamRoster == null)
+            // Create or clear third party roster (if there is one)
+            if (ThirdPartyTeamRoster == null && HasThirdParty)
             {
                 var go = new GameObject("BattleRoster - Third Party Team");
                 go.transform.SetParent(transform);
                 ThirdPartyTeamRoster = go.AddComponent<GenericRosterInstance>();
             }
-            else
+            else if (HasThirdParty)
             {
                 ThirdPartyTeamRoster.Clear();
             }
@@ -325,10 +326,29 @@ namespace Turnroot.Gameplay.Combat
         /// <summary>
         /// Populate rosters from templates and persistent data.
         /// </summary>
-        public void PopulateBattleRostersFromTemplates()
+        public OperationResult PopulateBattleRostersFromTemplates()
         {
-            // TODO: Load player roster from persistent data (GamewideContextBrain)
-            // PlayerTeamRoster should be populated from the persistent player roster
+            var gwcb = Brain?.gamewideContextBrain;
+            if (gwcb != null)
+            {
+                var playerTeamRosterInstance = gwcb.InstantiatePlayerTeamRoster();
+                if (playerTeamRosterInstance != null)
+                {
+                    PlayerTeamRoster.AddInstances(playerTeamRosterInstance.Instances);
+                }
+                else
+                {
+                    return OperationResult.Failure(
+                        "PopulateBattleRostersFromTemplates failed: Could not instantiate player team roster from GamewideContextBrain."
+                    );
+                }
+            }
+            else
+            {
+                return OperationResult.Failure(
+                    "PopulateBattleRostersFromTemplates failed: Brain or GamewideContextBrain is null."
+                );
+            }
 
             // TODO: Load enemy roster from this battle's enemy template
             // EnemyTeamRoster should be populated from a RosterTemplate assigned to this battle
@@ -336,7 +356,7 @@ namespace Turnroot.Gameplay.Combat
             // TODO: Load third party roster from this battle's NPC template (if any)
             // ThirdPartyTeamRoster should be populated from a RosterTemplate if HasThirdParty is true
 
-            Debug.Log("BattleGameObject: TODO - Populate rosters from templates");
+            return OperationResult.SuccessResult();
         }
 
         /// <summary>

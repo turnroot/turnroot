@@ -106,6 +106,9 @@ namespace Turnroot.Gameplay.Brain
         public List<CharacterInstance> GetAllActiveInstances() =>
             _rosterManager.GetAllActiveInstances();
 
+        public PlayerTeamRosterInstance InstantiatePlayerTeamRoster() =>
+            _rosterManager.InstantiatePlayerTeamRoster(_playerTeamRoster);
+
         #endregion
     }
 }

@@ -96,6 +96,34 @@ namespace Turnroot.Gameplay.Brain
             return instance;
         }
 
+        public PlayerTeamRosterInstance InstantiatePlayerTeamRoster(PlayerTeamRoster roster)
+        {
+            if (roster == null)
+            {
+                Debug.LogWarning("Cannot instantiate null player team roster");
+                _brain?.PublishRostersFailed();
+                return null;
+            }
+
+            var existing = GetCachedInstances()
+                .OfType<PlayerTeamRosterInstance>()
+                .FirstOrDefault(r => r?.roster == roster);
+            if (existing != null)
+            {
+                Debug.Log($"Player team roster '{roster.name}' already exists, returning");
+                return existing;
+            }
+
+            var go = new GameObject($"PlayerTeamRosterInstance - {roster.name}");
+            var instance = go.AddComponent<PlayerTeamRosterInstance>();
+            instance.roster = roster;
+
+            PopulatePlayerTeamRoster(instance, roster);
+
+            _brain?.PublishRostersReady();
+            return instance;
+        }
+
         private void PopulateRoster(GenericRosterInstance instance, GenericRoster roster)
         {
             var characters = new List<CharacterInstance>();
@@ -114,6 +142,29 @@ namespace Turnroot.Gameplay.Brain
 
             instance.AddInstances(characters);
             Debug.Log($"Populated '{instance.name}' with {characters.Count} characters");
+        }
+
+        private void PopulatePlayerTeamRoster(
+            PlayerTeamRosterInstance instance,
+            PlayerTeamRoster roster
+        )
+        {
+            var characters = new List<CharacterInstance>();
+
+            foreach (var unit in roster.characters)
+            {
+                if (unit.Character == null)
+                    continue;
+
+                var character = _characterFactory.CreateOrRecall(unit.Character);
+                if (character != null)
+                {
+                    characters.Add(character);
+                }
+            }
+
+            instance.AddInstances(characters);
+            Debug.Log($"Populated '{instance.name}' with {characters.Count} player characters");
         }
 
         private bool HasInstancesPopulated(GenericRosterInstance instance, GenericRoster roster)

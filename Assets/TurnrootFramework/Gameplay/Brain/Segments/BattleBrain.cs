@@ -94,7 +94,7 @@ namespace Turnroot.Gameplay.Brain
             _turnRotisserie.HasThirdParty = _battleGameObject.HasThirdParty;
 
             // Initialize battle using roster system
-            InitializeBattleFromRosters();
+            InitializeBattleRosters();
 
             // Initialize advanced systems (commands, snapshots)
             InitializeBattleAdvancedSystems();
@@ -125,10 +125,10 @@ namespace Turnroot.Gameplay.Brain
             return null;
         }
 
-        private void InitializeBattleFromRosters()
+        private void InitializeBattleRosters()
         {
             // TODO: 1. Create empty runtime roster instances
-            // _battleGameObject.InitializeBattleRosters();
+            _battleGameObject.InitializeBattleRosters();
 
             // TODO: 2. Populate rosters from templates and persistent data
             // _battleGameObject.PopulateBattleRostersFromGamewideContext(_brain.gamewideContextBrain);
