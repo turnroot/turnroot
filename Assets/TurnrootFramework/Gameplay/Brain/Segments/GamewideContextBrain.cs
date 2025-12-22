@@ -51,16 +51,16 @@ namespace Turnroot.Gameplay.Brain
         protected override void SubscribeToBrainEvents()
         {
             _brain.OnRostersReady += _rosterManager.OnRostersReady;
-            _brain.OnCharacterLevelUp += _rosterManager.InvalidateCache;
-            _brain.OnCharacterClassChanged += _rosterManager.InvalidateCache;
+            _brain.OnCharacterLevelUp += (c) => _rosterManager.InvalidateCache();
+            _brain.OnCharacterClassChanged += (c) => _rosterManager.InvalidateCache();
             _brain.OnCharacterLearnedSkill += (c, s) => _rosterManager.InvalidateCache();
         }
 
         protected override void UnsubscribeFromBrainEvents()
         {
             _brain.OnRostersReady -= _rosterManager.OnRostersReady;
-            _brain.OnCharacterLevelUp -= _rosterManager.InvalidateCache;
-            _brain.OnCharacterClassChanged -= _rosterManager.InvalidateCache;
+            _brain.OnCharacterLevelUp -= (c) => _rosterManager.InvalidateCache();
+            _brain.OnCharacterClassChanged -= (c) => _rosterManager.InvalidateCache();
         }
 
         public void Start()
