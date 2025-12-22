@@ -18,14 +18,18 @@ namespace Turnroot.Gameplay.Brain
         public CharacterInstance CreateOrRecall(CharacterData template)
         {
             if (template == null)
+            {
                 return null;
+            }
 
             if (template.IsUnique)
             {
                 // Try to load existing unique character
                 var existing = _persistence.RecallCharacter(template);
                 if (existing != null)
+                {
                     return existing;
+                }
 
                 // Create new and save
                 var newUnique = CharacterInstance.Create(template);

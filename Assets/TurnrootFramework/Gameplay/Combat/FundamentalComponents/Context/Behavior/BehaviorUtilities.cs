@@ -416,7 +416,9 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                     foreach (var ally in _context.Allies)
                     {
                         if (ally == _context.UnitInstance)
+                        {
                             continue;
+                        }
 
                         float dist = Vector2.Distance(tile.Coordinates(), ally.MapGridPosition);
                         if (dist < closestAllyDist)

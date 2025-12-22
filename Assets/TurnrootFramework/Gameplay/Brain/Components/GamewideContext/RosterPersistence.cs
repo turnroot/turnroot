@@ -22,7 +22,9 @@ namespace Turnroot.Gameplay.Brain
         public void RegisterRoster(GenericRoster roster)
         {
             if (roster == null)
+            {
                 return;
+            }
 
             var key = BuildRosterKey(roster.Id);
             var existing = _ltm.Recall(key);

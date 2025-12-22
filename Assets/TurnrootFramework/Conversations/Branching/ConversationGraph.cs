@@ -3,7 +3,6 @@ using XNode;
 #if UNITY_EDITOR
 using UnityEditor;
 using System.Collections.Generic;
-using System.Linq;
 #endif
 
 namespace Turnroot.Conversations.Branching.Nodes
