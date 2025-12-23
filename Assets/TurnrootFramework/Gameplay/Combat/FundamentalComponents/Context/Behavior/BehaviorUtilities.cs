@@ -106,7 +106,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                         UtilityScore = utility,
                         Target = target,
                         Destination = _context.UnitInstance.UnitPositionToMapGridPoint(
-                            targetGridPoint.CoordinatesInt(),
+                            targetGridPoint.CoordinatesInt,
                             _context.mapGrid
                         ),
                         ActionToTake = _reusableAttackTiles.ContainsKey(targetGridPoint)
@@ -165,7 +165,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                         UtilityScore = utility,
                         Target = closestEnemy,
                         Destination = _context.UnitInstance.UnitPositionToMapGridPoint(
-                            targetGridPoint.CoordinatesInt(),
+                            targetGridPoint.CoordinatesInt,
                             _context.mapGrid
                         ),
                         ActionToTake = _reusableAttackTiles.ContainsKey(targetGridPoint)
@@ -204,7 +204,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                             UtilityScore = utility,
                             Target = ally,
                             Destination = _context.UnitInstance.UnitPositionToMapGridPoint(
-                                allyGridPoint.CoordinatesInt(),
+                                allyGridPoint.CoordinatesInt,
                                 _context.mapGrid
                             ),
                             ActionToTake = AIGoal.Action.Heal,
@@ -266,8 +266,10 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                         UtilityScore = utility,
                         Target = ally,
                         Destination = _context.UnitInstance.UnitPositionToMapGridPoint(
-                            ally.UnitPositionToMapGridPoint(ally.MapGridPosition, _context.mapGrid)
-                                .CoordinatesInt(),
+                            ally.UnitPositionToMapGridPoint(
+                                ally.MapGridPosition,
+                                _context.mapGrid
+                            ).CoordinatesInt,
                             _context.mapGrid
                         ),
                     }
