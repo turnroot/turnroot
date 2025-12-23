@@ -63,12 +63,9 @@ public class MapGridPointFeature
             return FeatureType.Mechanism;
         }
 
-        if (fid.StartsWith("control"))
-        {
-            return FeatureType.Control;
-        }
-
-        return fid.StartsWith("breakable") ? FeatureType.Breakable
+        return fid.StartsWith("control")
+            ? FeatureType.Control
+            : fid.StartsWith("breakable") ? FeatureType.Breakable
             : fid.StartsWith("shelter") ? FeatureType.Shelter
             : fid.StartsWith("village") ? FeatureType.Village
             : fid.StartsWith("fortress") ? FeatureType.Fortress

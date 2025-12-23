@@ -552,11 +552,7 @@ public class MapGrid : MonoBehaviour
     {
         // _gridPoints has real GameObjects, so use their transform for world position
         var key = new Vector2Int(gridPoint.Row, gridPoint.Col);
-        if (_gridPoints.TryGetValue(key, out var point) && point != null)
-        {
-            return point.transform.position;
-        }
-        return Vector3.zero;
+        return _gridPoints.TryGetValue(key, out var point) && point != null ? point.transform.position : Vector3.zero;
     }
 
     public List<MapGridPoint> GetAllGridPoints()
@@ -588,11 +584,7 @@ public class MapGrid : MonoBehaviour
                 points.Add(mgp);
             }
         }
-        if (points.Count == 0)
-        {
-            return null;
-        }
-        return points;
+        return points.Count == 0 ? null : points;
     }
 
     public OperationResult SetOccupied(MapGridPoint point, CharacterInstance occupier)

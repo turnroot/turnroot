@@ -20,11 +20,11 @@ namespace Turnroot.Gameplay.Brain
 
         private PlayerTeamRosterInstance _persistentPlayerRoster = null;
 
-        public RosterManager(Brain brain)
+        public RosterManager(Brain brain, RosterPersistence persistence = null)
         {
             _brain = brain;
             _characterFactory = new CharacterFactory(brain.GetComponent<LongTermMemory>());
-            _persistence = new RosterPersistence(brain.GetComponent<LongTermMemory>());
+            _persistence = persistence;
         }
 
         #region Roster Instantiation
@@ -39,12 +39,9 @@ namespace Turnroot.Gameplay.Brain
             }
 
             var existing = FindExistingRosterInstance(roster);
-            if (existing != null)
-            {
-                return HandleExistingRoster(existing, roster, register);
-            }
-
-            return CreateNewRosterInstance(roster, register);
+            return existing != null
+                ? HandleExistingRoster(existing, roster, register)
+                : CreateNewRosterInstance(roster, register);
         }
 
         private GenericRosterInstance FindExistingRosterInstance(GenericRoster roster) =>
@@ -64,7 +61,7 @@ namespace Turnroot.Gameplay.Brain
 
             PopulateRoster(existing, roster);
 
-            if (register)
+            if (register && _persistence != null)
             {
                 _persistence.RegisterRoster(roster);
             }
@@ -83,7 +80,7 @@ namespace Turnroot.Gameplay.Brain
 
             PopulateRoster(instance, roster);
 
-            if (register)
+            if (register && _persistence != null)
             {
                 _persistence.RegisterRoster(roster);
             }
@@ -114,6 +111,15 @@ namespace Turnroot.Gameplay.Brain
             _persistentPlayerRoster = instance;
 
             PopulatePlayerTeamRoster(instance, roster);
+
+            // Register the player roster in LTM if persistence is available
+            if (_persistence != null)
+            {
+                _persistence.RegisterPlayerRoster(roster);
+            }
+
+            // Subscribe to runtime changes so we can request a save when roster mutates
+            instance.OnRosterModified += () => _brain?.PublishSavePlayerRosterRequested();
 
             _brain?.PublishRostersReady();
             return instance;
@@ -185,6 +191,13 @@ namespace Turnroot.Gameplay.Brain
                 return;
             }
 
+            if (_persistence == null)
+            {
+                // No persistence available, just register all provided rosters
+                RegisterAllRosters(rosters);
+                return;
+            }
+
             var indexedRosters = _persistence.GetIndexedRosterIds();
 
             if (indexedRosters.Count > 0)
@@ -195,6 +208,26 @@ namespace Turnroot.Gameplay.Brain
             {
                 RegisterAllRosters(rosters);
             }
+        }
+
+        public PlayerTeamRosterInstance RecallPlayerTeamRoster(PlayerTeamRoster roster)
+        {
+            if (roster == null)
+            {
+                Debug.LogWarning("No player team roster configured to recall");
+                return null;
+            }
+
+            // Always instantiate a runtime instance for the given roster (creating if necessary)
+            var instance = InstantiatePlayerTeamRoster(roster);
+
+            // If this is the first time we've seen the roster, register it in LTM
+            if (_persistence != null && !_persistence.HasPlayerRosterInLTM(roster))
+            {
+                _persistence.RegisterPlayerRoster(roster);
+            }
+
+            return instance;
         }
 
         private void RecallFromIndex(List<GenericRoster> rosters, List<string> indexedIds)

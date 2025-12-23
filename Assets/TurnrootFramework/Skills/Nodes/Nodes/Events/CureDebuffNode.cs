@@ -133,13 +133,11 @@ namespace Turnroot.Skills.Nodes.Events
             {
                 return "all debuffs";
             }
-            else if (specificDebuffType != null)
-            {
-                return specificDebuffType.DisplayName;
-            }
             else
             {
-                return !string.IsNullOrEmpty(debuffName) ? debuffName : "specific debuff";
+                return specificDebuffType != null
+                    ? specificDebuffType.DisplayName
+                    : !string.IsNullOrEmpty(debuffName) ? debuffName : "specific debuff";
             }
         }
     }

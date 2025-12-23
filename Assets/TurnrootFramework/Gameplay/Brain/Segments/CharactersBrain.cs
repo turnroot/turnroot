@@ -80,6 +80,9 @@ namespace Turnroot.Gameplay.Brain
             _brain.OnPlayerTurnStarted += HandlePlayerTurnStarted;
             _brain.OnEnemyTurnStarted += HandleEnemyTurnStarted;
             _brain.OnThirdPartyTurnStarted += HandleThirdPartyTurnStarted;
+
+            // Respond to save requests triggered by roster mutations
+            _brain.OnSavePlayerRosterRequested += SavePlayerRosterProgress;
         }
 
         protected override void UnsubscribeFromBrainEvents()
@@ -89,6 +92,8 @@ namespace Turnroot.Gameplay.Brain
             _brain.OnPlayerTurnStarted -= HandlePlayerTurnStarted;
             _brain.OnEnemyTurnStarted -= HandleEnemyTurnStarted;
             _brain.OnThirdPartyTurnStarted -= HandleThirdPartyTurnStarted;
+
+            _brain.OnSavePlayerRosterRequested -= SavePlayerRosterProgress;
         }
 
         #region Battle Outcome Statistics
@@ -390,6 +395,31 @@ namespace Turnroot.Gameplay.Brain
                     $"CharactersBrain: Manually saved {character.CharacterTemplate.DisplayName}"
                 );
             }
+        }
+
+        /// <summary>
+        /// Saves all unique characters in the player roster.
+        /// Call this whenever roster state changes outside of battle.
+        /// </summary>
+        public void SavePlayerRosterProgress()
+        {
+            if (_battleBrain?.PlayerTeamRoster == null)
+            {
+                Debug.LogWarning("CharactersBrain: No player roster to save");
+                return;
+            }
+
+            int savedCount = 0;
+            foreach (var character in _battleBrain.PlayerTeamRoster.Instances)
+            {
+                if (character?.CharacterTemplate?.IsUnique == true)
+                {
+                    _battleBrain.SaveUniqueCharacterProgress(character);
+                    savedCount++;
+                }
+            }
+
+            Debug.Log($"CharactersBrain: Saved {savedCount} unique characters from player roster");
         }
 
         /// <summary>

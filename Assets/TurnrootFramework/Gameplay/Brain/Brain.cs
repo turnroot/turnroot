@@ -257,6 +257,14 @@ namespace Turnroot.Gameplay.Brain
             int amount
         ) => OnSupportIncreased?.Invoke(character, targetCharacter, amount);
 
+        /// <summary>
+        /// Request that all unique player roster characters be saved.
+        /// This is an event-based request; subscribers should perform the save.
+        /// </summary>
+        public event System.Action OnSavePlayerRosterRequested;
+
+        public void PublishSavePlayerRosterRequested() => OnSavePlayerRosterRequested?.Invoke();
+
         #endregion
 
         #region Spawn Events
