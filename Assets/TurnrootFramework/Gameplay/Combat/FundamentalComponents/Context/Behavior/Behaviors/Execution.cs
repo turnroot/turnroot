@@ -14,6 +14,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             {
                 case AIGoal.GoalType.AttackEnemy:
                     // TODO: Move to destination
+                    context.MoveUnit(_context.UnitInstance, goal.Destination.CoordinatesInt);
                     // TODO: Execute attack on target
                     break;
 
