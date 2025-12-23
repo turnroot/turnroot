@@ -14,11 +14,11 @@ namespace Turnroot.Gameplay.Brain
     /// </summary>
     public partial class BattleBrain : BrainComponent
     {
-        [SerializeField]
+        [SerializeField, HideInInspector]
         private List<GenericRoster> _genericRosters;
 
-        [SerializeField]
-        private PlayerTeamRoster _playerTeamRoster; // TODO: Load this from GamewideContextBrain, which in turn loads it from LongTermMemory
+        [SerializeField, HideInInspector]
+        private PlayerTeamRoster _playerTeamRoster;
         private TurnRotisserie _turnRotisserie;
 
         private BattleContextAIHelper _aiHelper;
