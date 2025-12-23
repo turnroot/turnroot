@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using static Turnroot.Characters.Roster;
@@ -14,6 +15,12 @@ namespace Turnroot.Characters
         public T roster;
         private readonly List<CharacterInstance> _instances = new();
         public IReadOnlyList<CharacterInstance> Instances => _instances;
+
+        /// <summary>
+        /// Fired when the runtime roster contents or ordering are modified.
+        /// Subscribers (e.g., RosterManager) can react and trigger persistence.
+        /// </summary>
+        public event Action OnRosterModified;
 
         public UnitPlacement GetPlacementFor(CharacterData data)
         {
@@ -35,6 +42,7 @@ namespace Turnroot.Characters
                 if (roster.characters[i].CharacterData == data)
                 {
                     roster.characters[i].Order = order;
+                    OnRosterModified?.Invoke();
                     return;
                 }
             }
@@ -56,6 +64,7 @@ namespace Turnroot.Characters
             }
 
             _instances.Add(instance);
+            OnRosterModified?.Invoke();
         }
 
         public void AddInstances(IEnumerable<CharacterInstance> instances)
@@ -65,12 +74,28 @@ namespace Turnroot.Characters
                 return;
             }
 
+            bool anyAdded = false;
             foreach (var inst in instances)
             {
-                AddInstance(inst);
+                if (!_instances.Contains(inst))
+                {
+                    _instances.Add(inst);
+                    anyAdded = true;
+                }
+            }
+
+            if (anyAdded)
+            {
+                OnRosterModified?.Invoke();
             }
         }
 
-        public void Clear() => _instances.Clear();
+        public void Clear()
+        {
+            if (_instances.Count == 0)
+                return;
+            _instances.Clear();
+            OnRosterModified?.Invoke();
+        }
     }
 }

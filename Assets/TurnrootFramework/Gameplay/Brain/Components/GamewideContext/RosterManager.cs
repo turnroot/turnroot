@@ -112,6 +112,15 @@ namespace Turnroot.Gameplay.Brain
 
             PopulatePlayerTeamRoster(instance, roster);
 
+            // Register the player roster in LTM if persistence is available
+            if (_persistence != null)
+            {
+                _persistence.RegisterPlayerRoster(roster);
+            }
+
+            // Subscribe to runtime changes so we can request a save when roster mutates
+            instance.OnRosterModified += () => _brain?.PublishSavePlayerRosterRequested();
+
             _brain?.PublishRostersReady();
             return instance;
         }
@@ -182,6 +191,13 @@ namespace Turnroot.Gameplay.Brain
                 return;
             }
 
+            if (_persistence == null)
+            {
+                // No persistence available, just register all provided rosters
+                RegisterAllRosters(rosters);
+                return;
+            }
+
             var indexedRosters = _persistence.GetIndexedRosterIds();
 
             if (indexedRosters.Count > 0)
@@ -194,18 +210,24 @@ namespace Turnroot.Gameplay.Brain
             }
         }
 
-        public void RecallPlayerTeamRoster(PlayerTeamRoster roster)
+        public PlayerTeamRosterInstance RecallPlayerTeamRoster(PlayerTeamRoster roster)
         {
             if (roster == null)
             {
                 Debug.LogWarning("No player team roster configured to recall");
-                return;
+                return null;
             }
 
-            if (_persistence.HasPlayerRosterInLTM(roster))
+            // Always instantiate a runtime instance for the given roster (creating if necessary)
+            var instance = InstantiatePlayerTeamRoster(roster);
+
+            // If this is the first time we've seen the roster, register it in LTM
+            if (_persistence != null && !_persistence.HasPlayerRosterInLTM(roster))
             {
-                InstantiatePlayerTeamRoster(roster);
+                _persistence.RegisterPlayerRoster(roster);
             }
+
+            return instance;
         }
 
         private void RecallFromIndex(List<GenericRoster> rosters, List<string> indexedIds)

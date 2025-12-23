@@ -35,7 +35,8 @@ namespace Turnroot.Gameplay.Brain
             SubscribeToBrainEvents();
 
             _rosterPersistence = new RosterPersistence(GetComponent<LongTermMemory>());
-            _rosterManager = new RosterManager(_brain);
+            // Pass persistence into RosterManager so it can register/recall rosters
+            _rosterManager = new RosterManager(_brain, _rosterPersistence);
         }
 
         // TODO: Store instances outside of battle
@@ -54,17 +55,23 @@ namespace Turnroot.Gameplay.Brain
 
         public PlayerTeamRoster CreateOrRecallGamewidePersistentPlayerRoster()
         {
+            // Prefer an editor-created asset assigned to GamewidePersistentPlayerRoster.
+            // DO NOT create PlayerTeamRoster assets at runtime. If none is assigned, warn and exit.
+            // TODO: Expose an editor wrapper to create/configure the persistent player roster asset.
+            if (GamewidePersistentPlayerRoster == null)
+            {
+                Debug.LogWarning(
+                    "GamewideContextBrain: No GamewidePersistentPlayerRoster assigned. Assign one in editor or implement an editor wrapper."
+                );
+                return null;
+            }
+
+            // If roster exists and is registered in LTM, recall it (this will create a runtime instance)
             if (_rosterPersistence.HasPlayerRosterInLTM(GamewidePersistentPlayerRoster))
             {
                 Debug.Log("GamewideContextBrain: Recalling existing persistent player roster");
-                var recalledRoster = _rosterManager.RecallPlayerTeamRoster();
-                GamewidePersistentPlayerRoster = recalledRoster;
+                _rosterManager?.RecallPlayerTeamRoster(GamewidePersistentPlayerRoster);
             }
-
-            Debug.Log("GamewideContextBrain: Creating new persistent player roster");
-            GamewidePersistentPlayerRoster = ScriptableObject.CreateInstance<PlayerTeamRoster>();
-            GamewidePersistentPlayerRoster.name = "Gamewide Persistent Player Roster";
-            _rosterPersistence.RegisterPlayerRoster(GamewidePersistentPlayerRoster);
 
             return GamewidePersistentPlayerRoster;
         }

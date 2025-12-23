@@ -51,7 +51,21 @@ namespace Turnroot.Gameplay.Brain
         private void Start()
         {
             _rosterManager.RecallGenericRosters(_genericRosters);
-            _rosterManager.InstantiatePlayerTeamRoster(_playerTeamRoster);
+
+            // Ensure the gamewide persistent player roster exists and is recalled
+            if (
+                _brain?.gamewideContextBrain != null
+                && _brain.gamewideContextBrain.GamewidePersistentPlayerRoster == null
+            )
+            {
+                _brain.gamewideContextBrain.CreateOrRecallGamewidePersistentPlayerRoster();
+            }
+
+            // Prefer the gamewide roster if available
+            _playerTeamRoster =
+                _brain?.gamewideContextBrain?.GamewidePersistentPlayerRoster ?? _playerTeamRoster;
+
+            _rosterManager.RecallPlayerTeamRoster(_playerTeamRoster);
         }
 
         #region Roster Management API
