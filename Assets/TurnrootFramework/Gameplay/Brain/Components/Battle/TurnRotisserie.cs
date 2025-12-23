@@ -30,6 +30,14 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         private int _currentRosterIndex = 0;
         private bool UnitTakesAnotherTurn => BattleBrain.BattleObject.Context.AnotherTurnGranted;
 
+        public CharacterInstance GetActiveUnit()
+        {
+            var units = GetCurrentRosterUnits();
+            return _currentRosterIndex >= 0 && _currentRosterIndex < units.Count
+                ? units[_currentRosterIndex]
+                : null;
+        }
+
         public TurnOrder GetNextTurnOrder()
         {
             switch (_currentTurnOrder)

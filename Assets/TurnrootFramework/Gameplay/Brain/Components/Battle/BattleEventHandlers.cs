@@ -1,4 +1,5 @@
 using Turnroot.Characters;
+using Turnroot.Gameplay.Brain.Commands;
 using Turnroot.Gameplay.Brain.Events;
 using UnityEngine;
 
@@ -10,6 +11,7 @@ namespace Turnroot.Gameplay.Brain
 
         protected override void SubscribeToBrainEvents()
         {
+            _brain.OnCharacterMoveStarted += HandleUnitMovesToTile;
             _brain.OnBattleStarted += HandleStartBattle;
             _brain.OnBattleCompleted += HandleExitBattle;
             _brain.OnUnitTakesAnotherTurn += HandleUnitTakesAnotherTurn;
@@ -20,6 +22,7 @@ namespace Turnroot.Gameplay.Brain
 
         protected override void UnsubscribeFromBrainEvents()
         {
+            _brain.OnCharacterMoveStarted -= HandleUnitMovesToTile;
             _brain.OnBattleStarted -= HandleStartBattle;
             _brain.OnBattleCompleted -= HandleExitBattle;
             _brain.OnUnitTakesAnotherTurn -= HandleUnitTakesAnotherTurn;
@@ -29,6 +32,24 @@ namespace Turnroot.Gameplay.Brain
         }
 
         #region Event Handlers
+
+        public void HandleUnitMovesToTile(CharacterInstance unit, MapGridPoint destination)
+        {
+            var currentTile = unit.UnitPositionToMapGridPoint(
+                unit.MapGridPosition,
+                BattleObject.Context.mapGrid
+            );
+            // Move the unit in the battle context
+            BattleObject.Context.MoveUnit(unit, destination.CoordinatesInt);
+            // Update the map grid to reflect this change
+            BattleObject.Context.mapGrid.SetOccupied(destination, unit);
+            BattleObject.Context.mapGrid.RemoveOccupied(currentTile);
+            // Update the unit's internal position
+            unit.MapGridPosition = destination.CoordinatesInt;
+            // Tell the brain the move is complete
+            Brain.PublishCharacterMoveCompleted(unit, destination);
+        }
+
         private void HandleUnitTakesAnotherTurn(CharacterInstance unit)
         {
             if (BattleObject?.Context == null)

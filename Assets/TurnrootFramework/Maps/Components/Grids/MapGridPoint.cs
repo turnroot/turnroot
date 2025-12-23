@@ -656,7 +656,7 @@ public class MapGridPoint : MonoBehaviour
 
     public Vector2 Coordinates() => new(_row, _col);
 
-    public Vector2Int CoordinatesInt() => new(_row, _col);
+    public Vector2Int CoordinatesInt => new(_row, _col);
 
     /// <summary>
     /// Get neighboring grid points. Allocates a new dictionary each call.

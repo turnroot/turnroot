@@ -8,21 +8,11 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         /// <summary>
         /// Executes the chosen goal, performing movement and actions as needed.
         /// </summary>
-        private void ExecuteGoal(AIGoal goal)
+        private void ExecuteGoal(AIGoal goal, BattleContext context)
         {
             switch (goal.Type)
             {
                 case AIGoal.GoalType.AttackEnemy:
-                    // TODO: Un-hardcode all this
-                    _ = _context.MoveUnitToPoint(
-                        _context
-                            .Brain
-                            .playerInputBrain
-                            .ScenePlayerController
-                            .EnemyTestUnitView
-                            .CharacterDataInstance,
-                        goal.Destination
-                    );
                     // TODO: Move to destination
                     // TODO: Execute attack on target
                     break;

@@ -107,7 +107,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             RequireBrain();
             var command = new MoveCommand(
                 unit.Id,
-                targetPoint.CoordinatesInt(),
+                targetPoint.CoordinatesInt,
                 Brain.CurrentTurnNumber
             );
             return Brain.ExecuteCommand(command);
