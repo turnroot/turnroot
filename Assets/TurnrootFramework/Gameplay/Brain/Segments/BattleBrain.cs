@@ -18,6 +18,8 @@ namespace Turnroot.Gameplay.Brain
         private PlayerTeamRoster _playerTeamRoster;
         private TurnRotisserie _turnRotisserie;
 
+        public CharacterInstance ActiveUnit => _turnRotisserie.GetActiveUnit();
+
         private BattleContextAIHelper _aiHelper;
 
         public BattleGameObject BattleObject { get; private set; }

@@ -159,22 +159,29 @@ namespace Turnroot.Gameplay.Brain.Commands
         {
             var unit = FindUnit(context, UnitId);
             if (unit == null)
-            {
                 return false;
-            }
+
+            var oldPoint = unit.UnitPositionToMapGridPoint(unit.MapGridPosition, context.mapGrid);
 
             UndoState["from"] = unit.MapGridPosition;
 
+            // Move the unit (updates internal position)
             var result = unit.MoveToPosition(Target, context.mapGrid);
-            Debug.Log(
-                $"[MoveCommand] Moving Unit {UnitId} from {UndoState["from"]} to {Target}: Success={result.Success}"
-            );
+
             if (result.Success)
             {
+                // Update grid occupancy
+                var newPoint = unit.UnitPositionToMapGridPoint(Target, context.mapGrid);
+                context.mapGrid.RemoveOccupied(oldPoint);
+                context.mapGrid.SetOccupied(newPoint, unit);
+                unit.MapGridPosition = Target;
+
+                // Publish event
                 context.Brain?.Publish(
                     new Events.UnitMovedEvent(unit, (Vector2Int)UndoState["from"], Target)
                 );
             }
+
             return result.Success;
         }
 

@@ -107,10 +107,27 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             RequireBrain();
             var command = new MoveCommand(
                 unit.Id,
-                targetPoint.CoordinatesInt(),
+                targetPoint.CoordinatesInt,
                 Brain.CurrentTurnNumber
             );
             return Brain.ExecuteCommand(command);
+        }
+
+        public bool AttackTarget(CharacterInstance attacker, CharacterInstance target)
+        {
+            var weaponItem = attacker.GetEquippedWeapon();
+            if (weaponItem == null)
+            {
+                Debug.LogWarning(
+                    $"BattleContext: {attacker.CharacterTemplate.DisplayName} has no equipped weapon to attack with!"
+                );
+                return false;
+            }
+            return DealDamage(
+                attacker,
+                target,
+                CalculatePotentialDamage(attacker, target, weaponItem) // TODO: CalculatePotentialDamage needs redone
+            );
         }
 
         /// <summary>

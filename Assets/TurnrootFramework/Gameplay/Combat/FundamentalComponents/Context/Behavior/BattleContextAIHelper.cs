@@ -429,7 +429,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 foreach (var goal in potentialGoals)
                 {
                     Debug.Log(
-                        $"Goal: {goal.Type}, Utility: {goal.UtilityScore}, Action: {goal.ActionToTake}, Tile: {goal.Destination?.CoordinatesInt()}, Target: {goal.Target?.Id}"
+                        $"Goal: {goal.Type}, Utility: {goal.UtilityScore}, Action: {goal.ActionToTake}, Tile: {goal.Destination?.CoordinatesInt}, Target: {goal.Target?.Id}"
                     );
                 }
 
@@ -448,9 +448,9 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                     : potentialGoals[2];
 
                 Debug.Log(
-                    $"AI Chose Goal: {chosenGoal.Type} with Utility: {chosenGoal.UtilityScore}, Action: {chosenGoal.ActionToTake}, Tile: {chosenGoal.Destination?.CoordinatesInt()}, Target: {chosenGoal.Target?.Id}"
+                    $"AI Chose Goal: {chosenGoal.Type} with Utility: {chosenGoal.UtilityScore}, Action: {chosenGoal.ActionToTake}, Tile: {chosenGoal.Destination?.CoordinatesInt}, Target: {chosenGoal.Target?.Id}"
                 );
-                ExecuteGoal(chosenGoal);
+                ExecuteGoal(chosenGoal, _context);
             }
             else
             {

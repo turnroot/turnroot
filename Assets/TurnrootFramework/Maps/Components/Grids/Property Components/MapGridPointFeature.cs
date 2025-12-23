@@ -53,17 +53,11 @@ public class MapGridPointFeature
             return FeatureType.Healing;
         }
 
-        if (fid.StartsWith("ranged"))
-        {
-            return FeatureType.Ranged;
-        }
-
-        if (fid.StartsWith("mechanism"))
-        {
-            return FeatureType.Mechanism;
-        }
-
-        return fid.StartsWith("control")
+        return fid.StartsWith("ranged")
+            ? FeatureType.Ranged
+            : fid.StartsWith("mechanism")
+            ? FeatureType.Mechanism
+            : fid.StartsWith("control")
             ? FeatureType.Control
             : fid.StartsWith("breakable") ? FeatureType.Breakable
             : fid.StartsWith("shelter") ? FeatureType.Shelter
