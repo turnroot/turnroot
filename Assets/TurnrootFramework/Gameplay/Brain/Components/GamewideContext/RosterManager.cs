@@ -20,11 +20,11 @@ namespace Turnroot.Gameplay.Brain
 
         private PlayerTeamRosterInstance _persistentPlayerRoster = null;
 
-        public RosterManager(Brain brain)
+        public RosterManager(Brain brain, RosterPersistence persistence = null)
         {
             _brain = brain;
             _characterFactory = new CharacterFactory(brain.GetComponent<LongTermMemory>());
-            _persistence = new RosterPersistence(brain.GetComponent<LongTermMemory>());
+            _persistence = persistence;
         }
 
         #region Roster Instantiation
@@ -39,12 +39,9 @@ namespace Turnroot.Gameplay.Brain
             }
 
             var existing = FindExistingRosterInstance(roster);
-            if (existing != null)
-            {
-                return HandleExistingRoster(existing, roster, register);
-            }
-
-            return CreateNewRosterInstance(roster, register);
+            return existing != null
+                ? HandleExistingRoster(existing, roster, register)
+                : CreateNewRosterInstance(roster, register);
         }
 
         private GenericRosterInstance FindExistingRosterInstance(GenericRoster roster) =>
@@ -64,7 +61,7 @@ namespace Turnroot.Gameplay.Brain
 
             PopulateRoster(existing, roster);
 
-            if (register)
+            if (register && _persistence != null)
             {
                 _persistence.RegisterRoster(roster);
             }
@@ -83,7 +80,7 @@ namespace Turnroot.Gameplay.Brain
 
             PopulateRoster(instance, roster);
 
-            if (register)
+            if (register && _persistence != null)
             {
                 _persistence.RegisterRoster(roster);
             }
@@ -194,6 +191,20 @@ namespace Turnroot.Gameplay.Brain
             else
             {
                 RegisterAllRosters(rosters);
+            }
+        }
+
+        public void RecallPlayerTeamRoster(PlayerTeamRoster roster)
+        {
+            if (roster == null)
+            {
+                Debug.LogWarning("No player team roster configured to recall");
+                return;
+            }
+
+            if (_persistence.HasPlayerRosterInLTM(roster))
+            {
+                InstantiatePlayerTeamRoster(roster);
             }
         }
 

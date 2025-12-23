@@ -42,7 +42,36 @@ namespace Turnroot.Gameplay.Brain
             Debug.Log($"Registered roster: {roster.name}");
         }
 
+        public void RegisterPlayerRoster(PlayerTeamRoster roster)
+        {
+            if (roster == null)
+            {
+                return;
+            }
+
+            var key = BuildRosterKey(roster.Id);
+            var existing = _ltm.Recall(key);
+
+            if (!string.IsNullOrEmpty(existing))
+            {
+                Debug.Log($"Player roster {roster.name} already registered");
+                return;
+            }
+
+            var hash = ComputeRosterHash(roster);
+            _ltm.Remember(key, hash);
+            AddToRosterIndex(roster.Id);
+
+            Debug.Log($"Registered player roster: {roster.name}");
+        }
+
         public bool HasRosterInLTM(GenericRoster roster)
+        {
+            var key = BuildRosterKey(roster.Id);
+            return !string.IsNullOrEmpty(_ltm.Recall(key));
+        }
+
+        public bool HasPlayerRosterInLTM(PlayerTeamRoster roster)
         {
             var key = BuildRosterKey(roster.Id);
             return !string.IsNullOrEmpty(_ltm.Recall(key));
@@ -58,10 +87,29 @@ namespace Turnroot.Gameplay.Brain
 
         private string BuildRosterKey(string rosterId) => $"GWB.Roster.{rosterId}";
 
-        private string ComputeRosterHash(GenericRoster roster)
+        private string ComputeRosterHash(Roster roster)
         {
-            // TODO: Use your existing hash logic
-            return Guid.NewGuid().ToString();
+            var keys = new List<string>();
+            foreach (var placement in roster.characters)
+            {
+                var key =
+                    $"{placement.CharacterData?.name ?? "null"}_{placement.SpawnPosition.x},{placement.SpawnPosition.y}_{(int)placement.Status}_{placement.IsActiveRightNow}_{placement.Order}";
+                if (placement is PlayerTeamRoster.PlayerTeamRosterUnitPlacement playerPlacement)
+                {
+                    key += $"_{playerPlacement.ChosenForThisBattle}";
+                }
+                keys.Add(key);
+            }
+            keys.Sort();
+            var combined = string.Join("|", keys);
+
+            // Simple djb2 hash for performance
+            uint hash = 5381;
+            foreach (char c in combined)
+            {
+                hash = ((hash << 5) + hash) + c; // hash * 33 + c
+            }
+            return hash.ToString();
         }
 
         private void AddToRosterIndex(string rosterId)

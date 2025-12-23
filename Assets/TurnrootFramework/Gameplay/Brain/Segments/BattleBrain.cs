@@ -18,7 +18,7 @@ namespace Turnroot.Gameplay.Brain
         private List<GenericRoster> _genericRosters;
 
         [SerializeField]
-        private PlayerTeamRoster _playerTeamRoster;
+        private PlayerTeamRoster _playerTeamRoster; // TODO: Load this from GamewideContextBrain, which in turn loads it from LongTermMemory
         private TurnRotisserie _turnRotisserie;
 
         private BattleContextAIHelper _aiHelper;

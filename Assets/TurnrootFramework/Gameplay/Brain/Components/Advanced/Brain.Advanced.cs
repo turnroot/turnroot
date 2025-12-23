@@ -70,24 +70,14 @@ namespace Turnroot.Gameplay.Brain
         public bool UndoCommand()
         {
             var context = battleBrain?.BattleObject?.Context;
-            if (context == null)
-            {
-                return false;
-            }
-
-            return Commands.Undo(context);
+            return context == null ? false : Commands.Undo(context);
         }
 
         /// <summary>Redo the last undone command.</summary>
         public bool RedoCommand()
         {
             var context = battleBrain?.BattleObject?.Context;
-            if (context == null)
-            {
-                return false;
-            }
-
-            return Commands.Redo(context);
+            return context == null ? false : Commands.Redo(context);
         }
 
         #endregion
@@ -115,12 +105,7 @@ namespace Turnroot.Gameplay.Brain
         public bool RestoreSnapshot()
         {
             var context = battleBrain?.BattleObject?.Context;
-            if (context == null)
-            {
-                return false;
-            }
-
-            return Snapshots.RestoreLast(context, GetAllBattleCharacters());
+            return context == null ? false : Snapshots.RestoreLast(context, GetAllBattleCharacters());
         }
 
         private IEnumerable<CharacterInstance> GetAllBattleCharacters()

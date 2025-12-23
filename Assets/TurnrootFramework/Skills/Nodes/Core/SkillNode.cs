@@ -132,11 +132,7 @@ namespace Turnroot.Skills.Nodes
         /// </summary>
         protected SkillNodeValidationResult RequireUnit(BattleContext context)
         {
-            if (context.UnitInstance == null)
-            {
-                return ValidationFailure("UnitInstance is required but was null");
-            }
-            return ValidationSuccess();
+            return context.UnitInstance == null ? ValidationFailure("UnitInstance is required but was null") : ValidationSuccess();
         }
 
         /// <summary>
@@ -144,11 +140,9 @@ namespace Turnroot.Skills.Nodes
         /// </summary>
         protected SkillNodeValidationResult RequireTargets(BattleContext context)
         {
-            if (context.Targets == null || context.Targets.Count == 0)
-            {
-                return ValidationFailure("At least one target is required");
-            }
-            return ValidationSuccess();
+            return context.Targets == null || context.Targets.Count == 0
+                ? ValidationFailure("At least one target is required")
+                : ValidationSuccess();
         }
 
         /// <summary>
@@ -157,12 +151,7 @@ namespace Turnroot.Skills.Nodes
         protected SkillNodeValidationResult RequireUnitAndTargets(BattleContext context)
         {
             var unitResult = RequireUnit(context);
-            if (!unitResult.IsValid)
-            {
-                return unitResult;
-            }
-
-            return RequireTargets(context);
+            return !unitResult.IsValid ? unitResult : RequireTargets(context);
         }
 
         /// <summary>
@@ -170,11 +159,7 @@ namespace Turnroot.Skills.Nodes
         /// </summary>
         protected SkillNodeValidationResult RequireAllies(BattleContext context)
         {
-            if (context.Allies == null || context.Allies.Count == 0)
-            {
-                return ValidationFailure("At least one ally is required");
-            }
-            return ValidationSuccess();
+            return context.Allies == null || context.Allies.Count == 0 ? ValidationFailure("At least one ally is required") : ValidationSuccess();
         }
 
         #endregion
