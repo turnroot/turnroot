@@ -5,8 +5,7 @@ on:
     branches:
       - main
       - master
-  pull_request:
-    types: [opened, synchronize, reopened]
+  workflow_dispatch:
 
 jobs:
   sync-todos:
@@ -14,7 +13,6 @@ jobs:
     permissions:
       issues: write
       contents: read
-      pull-requests: read
     
     steps:
       - name: Checkout code
@@ -23,13 +21,12 @@ jobs:
           fetch-depth: 0
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.10'
 
       - name: Install dependencies
-        run: |
-          pip install PyGithub requests
+        run: pip install PyGithub requests
 
       - name: Sync TODOs
         env:
@@ -39,20 +36,14 @@ jobs:
           python - <<'EOF'
           import os
           import re
-          import subprocess
           import hashlib
           from github import Github, Auth
           from pathlib import Path
-          
-          # Use the modern Auth method to avoid DeprecationWarning
+
           auth = Auth.Token(os.environ['GITHUB_TOKEN'])
           g = Github(auth=auth)
           repo = g.get_repo(os.environ['GITHUB_REPOSITORY'])
-          
-          def get_todo_hash(filepath, todo_text):
-              unique_str = f"{filepath}:{todo_text}"
-              return hashlib.md5(unique_str.encode()).hexdigest()[:8]
-          
+
           def get_domain_tag(filepath):
               parts = Path(filepath).parts
               try:
@@ -62,106 +53,98 @@ jobs:
               except (ValueError, IndexError):
                   pass
               return None
-          
-          def extract_todos(ref='HEAD'):
+
+          def get_todo_hash(todo_text, domain):
+              # Hash based on text and domain. 
+              # This allows moving the TODO within a domain without duplicating.
+              seed = f"{domain}:{todo_text.strip().lower()}"
+              return hashlib.md5(seed.encode()).hexdigest()[:10]
+
+          def extract_todos():
               todos = {}
-              try:
-                  result = subprocess.run(
-                      ['git', 'ls-tree', '-r', '--name-only', ref],
-                      capture_output=True, text=True, check=True
-                  )
-                  files = [f for f in result.stdout.split('\n') if f.endswith('.cs')]
-              except:
-                  files = [str(p) for p in Path('.').rglob('*.cs')]
-              
-              for filepath in files:
+              for path in Path('.').rglob('*.cs'):
+                  if any(x in str(path) for x in ['bin/', 'obj/', '.git/']): continue
+                  
                   try:
-                      result = subprocess.run(
-                          ['git', 'show', f'{ref}:{filepath}'],
-                          capture_output=True, text=True, check=False
-                      )
-                      if result.returncode != 0: continue
-                      
-                      lines = result.stdout.split('\n')
-                      for line_num, line in enumerate(lines, 1):
+                      content = path.read_text(encoding='utf-8')
+                      domain = get_domain_tag(path)
+                      for i, line in enumerate(content.splitlines(), 1):
                           match = re.search(r'//\s*TODO:?\s*(.+)', line, re.IGNORECASE)
                           if match:
-                              todo_text = match.group(1).strip()
-                              todo_hash = get_todo_hash(filepath, todo_text)
-                              todos[todo_hash] = {
-                                  'file': filepath,
-                                  'line': line_num,
-                                  'text': todo_text,
-                                  'hash': todo_hash,
-                                  'domain': get_domain_tag(filepath)
+                              text = match.group(1).strip()
+                              h = get_todo_hash(text, domain or "general")
+                              
+                              # Safety for identical TODOs in the same domain
+                              base_h = h
+                              counter = 1
+                              while h in todos:
+                                  h = f"{base_h}_{counter}"
+                                  counter += 1
+                                  
+                              todos[h] = {
+                                  'file': str(path),
+                                  'line': i,
+                                  'text': text,
+                                  'hash': h,
+                                  'domain': domain
                               }
                   except Exception as e:
-                      print(f"Error processing {filepath}: {e}")
+                      print(f"Skipping {path}: {e}")
               return todos
-          
-          def get_existing_todo_issues():
+
+          def get_all_managed_issues():
               issues_map = {}
-              # Fetching open issues with the specific label
-              for issue in repo.get_issues(state='open', labels=['todo', 'automated']):
-                  match = re.search(r'\[([a-f0-9]{8})\]', issue.title)
+              # Search for the specific Hash signature in the body
+              query = f"repo:{os.environ['GITHUB_REPOSITORY']} is:issue is:open [Hash:"
+              managed_issues = g.search_issues(query)
+              
+              for issue in managed_issues:
+                  match = re.search(r'\[Hash:\s*`?([a-z0-9_]+)`?\]', issue.body)
                   if match:
                       h = match.group(1)
                       issues_map.setdefault(h, []).append(issue)
               return issues_map
-          
-          def cleanup_duplicates(issues_map):
-              cleaned_map = {}
-              for h, issues in issues_map.items():
-                  issues.sort(key=lambda x: x.number)
-                  keep = issues[0]
-                  for duplicate in issues[1:]:
-                      try:
-                          duplicate.create_comment(f"Closing as duplicate of #{keep.number}")
-                          duplicate.edit(state='closed')
-                      except Exception as e:
-                          print(f"Failed to close duplicate #{duplicate.number}: {e}")
-                  cleaned_map[h] = keep
-              return cleaned_map
-          
-          def create_or_update_issue(todo, existing_issue=None):
-              title = f"TODO [{todo['hash']}]: {todo['text'][:60]}"
-              body = f"**TODO found in code:**\n\n**File:** `{todo['file']}`\n**Line:** {todo['line']}\n**Description:** {todo['text']}\n\n---\n*Hash: `{todo['hash']}`*"
+
+          # --- Execution ---
+          current_todos = extract_todos()
+          existing_issues_groups = get_all_managed_issues()
+
+          # 1. Cleanup Duplicates & Stale Issues
+          for h, issues in existing_issues_groups.items():
+              issues.sort(key=lambda x: x.created_at, reverse=True)
+              keep_issue = issues[0]
               
-              if existing_issue:
-                  # Only update if there is a content change
-                  if existing_issue.body != body or existing_issue.title != title:
-                      try:
-                          existing_issue.edit(title=title, body=body)
-                          print(f"Updated issue #{existing_issue.number}")
-                      except Exception as e:
-                          print(f"Failed to update issue #{existing_issue.number}: {e}")
+              # Close duplicates
+              for extra in issues[1:]:
+                  extra.create_comment(f"Closing as duplicate of #{keep_issue.number}")
+                  extra.edit(state='closed')
+
+              # Close if code is gone
+              if h not in current_todos:
+                  keep_issue.create_comment("TODO no longer found in code. Closing.")
+                  keep_issue.edit(state='closed')
+                  print(f"Resolved: #{keep_issue.number}")
+
+          # 2. Create or Update
+          for h, todo in current_todos.items():
+              title = f"TODO: {todo['text'][:60]}"
+              body = (f"**Description:** {todo['text']}\n\n"
+                      f"**Location:** `{todo['file']}` (Line {todo['line']})\n\n"
+                      f"---\n[Hash: `{h}`]")
+              
+              found_group = existing_issues_groups.get(h)
+              if found_group:
+                  issue = found_group[0]
+                  # Update body if file path or line number changed
+                  if issue.body != body:
+                      issue.edit(title=title, body=body)
+                      print(f"Updated #{issue.number}")
               else:
                   labels = ['todo', 'automated']
                   if todo['domain']:
                       labels.append(todo['domain'])
-                  try:
-                      issue = repo.create_issue(title=title, body=body, labels=labels)
-                      print(f"Created issue #{issue.number} for hash {todo['hash']}")
-                  except Exception as e:
-                      print(f"Failed to create issue for {todo['hash']}: {e}")
-          
-          # --- Execution ---
-          current_todos = extract_todos('HEAD')
-          raw_issues = get_existing_todo_issues()
-          existing_issues = cleanup_duplicates(raw_issues)
-          
-          # 3. CLOSE issues missing from current code
-          for h, issue in existing_issues.items():
-              if h not in current_todos:
-                  try:
-                      issue.create_comment("TODO no longer found in code. Closing.")
-                      # Explicitly only update state to avoid validation errors
-                      issue.edit(state='closed')
-                      print(f"Closed issue #{issue.number} (Resolved)")
-                  except Exception as e:
-                      print(f"Error closing issue #{issue.number}: {e}")
-          
-          # 4. CREATE or UPDATE
-          for h, todo in current_todos.items():
-              create_or_update_issue(todo, existing_issues.get(h))
+                  
+                  new_issue = repo.create_issue(title=title, body=body, labels=labels)
+                  print(f"Created #{new_issue.number} for {h}")
+
           EOF
