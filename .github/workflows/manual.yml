@@ -105,7 +105,7 @@ jobs:
                       issues_map.setdefault(h, []).append(issue)
               return issues_map
 
-          # --- Execution ---
+          # --- Execution --
           current_todos = extract_todos()
           existing_issues_groups = get_all_managed_issues()
 
