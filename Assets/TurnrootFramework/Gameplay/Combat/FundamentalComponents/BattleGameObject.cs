@@ -18,6 +18,7 @@ namespace Turnroot.Gameplay.Combat
     }
 
     [RequireComponent(typeof(EnvironmentalConditions))]
+    [RequireComponent(typeof(BattleContext))]
     public class BattleGameObject : MonoBehaviour
     {
         public bool HasThirdParty;
@@ -62,7 +63,7 @@ namespace Turnroot.Gameplay.Combat
         public void Awake()
         {
             ResetTurnCount();
-            Context ??= new BattleContext();
+            Context ??= GetComponent<BattleContext>();
             _mapGrid = _mapGrid != null ? _mapGrid : GetComponentInChildren<MapGrid>();
 
             if (_mapGrid == null)
