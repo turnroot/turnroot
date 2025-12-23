@@ -24,18 +24,13 @@ namespace Turnroot.Gameplay.Player
             Debug.Log("PlayerController MoveTestUnitToPoint called");
             Debug.Log(Brain.Brain.battleBrain.BattleObject); // TODO: BattleObject is null for some reason
             Debug.Log(Brain.Brain.battleBrain.BattleObject.Context);
-            bool success = Brain.Brain.battleBrain.BattleObject.Context.MoveUnitToPoint(
+            Brain.Brain.battleBrain.BattleObject.Context.MoveUnitToPoint(
                 TestUnitView.CharacterDataInstance,
                 TestUnitView.TestingGrid.GetGridPoint(MoveToPoint.x, MoveToPoint.y)
             );
 
             // 2. The command fires OnCharacterMoveCompleted event
             // TODO: 3. Something needs to listen to that event and tell the view to animate
-
-            if (!success)
-            {
-                Debug.LogError("Move command failed!");
-            }
         }
 
         [Button]

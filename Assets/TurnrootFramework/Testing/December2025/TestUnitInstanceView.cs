@@ -109,8 +109,8 @@ public class TestUnitInstanceView : MonoBehaviour
         if (point != null)
         {
             CurrentGridPoint = point;
-            CurrentGridCoordinates = point.CoordinatesInt();
-            Debug.Log($"Stepped to point: {point.CoordinatesInt()}");
+            CurrentGridCoordinates = point.CoordinatesInt;
+            Debug.Log($"Stepped to point: {point.CoordinatesInt}");
         }
     }
 
