@@ -89,11 +89,13 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         /// <param name="unit">The unit to move.</param>
         /// <param name="targetPosition">The target position.</param>
         /// <returns>True if the move succeeded.</returns>
-        public bool MoveUnit(CharacterInstance unit, Vector2Int targetPosition)
+        public OperationResult MoveUnitToPointInt(CharacterInstance unit, Vector2Int CoordinatesInt)
         {
             RequireBrain();
-            var command = new MoveCommand(unit.Id, targetPosition, Brain.CurrentTurnNumber);
-            return Brain.ExecuteCommand(command);
+            var command = new MoveCommand(unit.Id, CoordinatesInt, Brain.CurrentTurnNumber);
+            return Brain.ExecuteCommand(command)
+                ? OperationResult.SuccessResult()
+                : OperationResult.Failure("Move command failed to execute");
         }
 
         public bool SpawnAtPosition(CharacterInstance unit, Vector2Int spawnPosition)

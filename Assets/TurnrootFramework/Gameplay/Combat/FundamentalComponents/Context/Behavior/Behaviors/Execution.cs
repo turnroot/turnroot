@@ -16,7 +16,10 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             {
                 case AIGoal.GoalType.AttackEnemy:
 
-                    context.MoveUnit(_context.UnitInstance, goal.Destination.CoordinatesInt);
+                    context.MoveUnitToPointInt(
+                        _context.UnitInstance,
+                        goal.Destination.CoordinatesInt
+                    );
                     context.AttackTarget(_context.UnitInstance, goal.Target);
 
                     break;
