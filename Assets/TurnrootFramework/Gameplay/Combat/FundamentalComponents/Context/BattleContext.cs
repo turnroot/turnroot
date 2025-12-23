@@ -6,6 +6,7 @@ using Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Environment;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Locations;
 using Turnroot.Gameplay.Objects;
 using Turnroot.Skills.Nodes;
+using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
@@ -102,7 +103,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             return Brain.ExecuteCommand(command);
         }
 
-        public bool MoveUnitToPoint(CharacterInstance unit, MapGridPoint targetPoint)
+        public OperationResult MoveUnitToPoint(CharacterInstance unit, MapGridPoint targetPoint)
         {
             RequireBrain();
             var command = new MoveCommand(
@@ -110,10 +111,17 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 targetPoint.CoordinatesInt,
                 Brain.CurrentTurnNumber
             );
-            return Brain.ExecuteCommand(command);
+            if (Brain.ExecuteCommand(command))
+            {
+                return OperationResult.SuccessResult();
+            }
+            else
+            {
+                return OperationResult.Failure("Move command failed to execute");
+            }
         }
 
-        public bool AttackTarget(CharacterInstance attacker, CharacterInstance target)
+        public OperationResult AttackTarget(CharacterInstance attacker, CharacterInstance target)
         {
             var weaponItem = attacker.GetEquippedWeapon();
             if (weaponItem == null)
@@ -121,13 +129,15 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 Debug.LogWarning(
                     $"BattleContext: {attacker.CharacterTemplate.DisplayName} has no equipped weapon to attack with!"
                 );
-                return false;
+                return OperationResult.Failure("No equipped weapon to attack with");
             }
             return DealDamage(
                 attacker,
                 target,
                 CalculatePotentialDamage(attacker, target, weaponItem) // TODO: CalculatePotentialDamage needs redone
-            );
+            )
+                ? OperationResult.SuccessResult()
+                : OperationResult.Failure("Attack command failed to execute");
         }
 
         /// <summary>

@@ -15,14 +15,10 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             switch (goal.Type)
             {
                 case AIGoal.GoalType.AttackEnemy:
-                    _ =
-                        context.MoveUnit(_context.UnitInstance, goal.Destination.CoordinatesInt)
-                        == true
-                            ? OperationResult.SuccessResult()
-                            : OperationResult.Failure("Failed to move unit to destination");
-                    _ = context.AttackTarget(_context.UnitInstance, goal.Target)
-                        ? OperationResult.SuccessResult()
-                        : OperationResult.Failure("Failed to execute attack on target");
+
+                    context.MoveUnit(_context.UnitInstance, goal.Destination.CoordinatesInt);
+                    context.AttackTarget(_context.UnitInstance, goal.Target);
+
                     break;
 
                 case AIGoal.GoalType.HealAlly:
