@@ -113,6 +113,23 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             return Brain.ExecuteCommand(command);
         }
 
+        public bool AttackTarget(CharacterInstance attacker, CharacterInstance target)
+        {
+            var weaponItem = attacker.GetEquippedWeapon();
+            if (weaponItem == null)
+            {
+                Debug.LogWarning(
+                    $"BattleContext: {attacker.CharacterTemplate.DisplayName} has no equipped weapon to attack with!"
+                );
+                return false;
+            }
+            return DealDamage(
+                attacker,
+                target,
+                CalculatePotentialDamage(attacker, target, weaponItem) // TODO: CalculatePotentialDamage needs redone
+            );
+        }
+
         /// <summary>
         /// Deals damage to a target unit using the command pattern.
         /// </summary>

@@ -129,16 +129,11 @@ namespace Turnroot.Skills.Nodes.Events
 
         private string GetCureDescription()
         {
-            if (cureMode == CureMode.AllDebuffs)
-            {
-                return "all debuffs";
-            }
-            else
-            {
-                return specificDebuffType != null
+            return cureMode == CureMode.AllDebuffs
+                ? "all debuffs"
+                : specificDebuffType != null
                     ? specificDebuffType.DisplayName
                     : !string.IsNullOrEmpty(debuffName) ? debuffName : "specific debuff";
-            }
         }
     }
 

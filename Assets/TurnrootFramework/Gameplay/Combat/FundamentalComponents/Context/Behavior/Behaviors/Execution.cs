@@ -1,3 +1,5 @@
+using Turnroot.Utilities;
+
 namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 {
     public partial class BattleContextAIHelper
@@ -13,9 +15,14 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             switch (goal.Type)
             {
                 case AIGoal.GoalType.AttackEnemy:
-                    // TODO: Move to destination
-                    context.MoveUnit(_context.UnitInstance, goal.Destination.CoordinatesInt);
-                    // TODO: Execute attack on target
+                    _ =
+                        context.MoveUnit(_context.UnitInstance, goal.Destination.CoordinatesInt)
+                        == true
+                            ? OperationResult.SuccessResult()
+                            : OperationResult.Failure("Failed to move unit to destination");
+                    _ = context.AttackTarget(_context.UnitInstance, goal.Target)
+                        ? OperationResult.SuccessResult()
+                        : OperationResult.Failure("Failed to execute attack on target");
                     break;
 
                 case AIGoal.GoalType.HealAlly:

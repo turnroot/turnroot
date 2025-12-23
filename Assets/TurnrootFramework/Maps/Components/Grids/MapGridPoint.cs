@@ -636,18 +636,9 @@ public class MapGridPoint : MonoBehaviour
     )
     {
         var terrainType = GetCachedTerrainType();
-        if (terrainType == null)
-        {
-            return 1f;
-        }
-
-        if (isWalking)
-        {
-            return terrainType.CostWalk;
-        }
-
-        return isFlying
-            ? terrainType.CostFly
+        return terrainType == null ? 1f
+            : isWalking ? terrainType.CostWalk
+            : isFlying ? terrainType.CostFly
             : isRiding ? terrainType.CostRide
             : isMagic ? terrainType.CostMagic
             : isArmored ? terrainType.CostArmor
