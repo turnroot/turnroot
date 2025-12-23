@@ -40234,8 +40234,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   HasThirdParty: 0
+  ThirdPartyFightsAllies: 0
+  ThirdPartyFightsEnemies: 0
   _battleConditions: []
   _mapGrid: {fileID: 0}
+  _enemyRoster: {fileID: 0}
+  _thirdPartyRoster: {fileID: 0}
   _currentTurnCount: 0
   references:
     version: 2
