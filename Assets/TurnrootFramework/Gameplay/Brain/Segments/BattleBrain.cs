@@ -15,9 +15,6 @@ namespace Turnroot.Gameplay.Brain
     public partial class BattleBrain : BrainComponent
     {
         [SerializeField, HideInInspector]
-        private List<GenericRoster> _genericRosters;
-
-        [SerializeField, HideInInspector]
         private PlayerTeamRoster _playerTeamRoster;
         private TurnRotisserie _turnRotisserie;
 
@@ -50,8 +47,6 @@ namespace Turnroot.Gameplay.Brain
 
         private void Start()
         {
-            _rosterManager.RecallGenericRosters(_genericRosters);
-
             // Ensure the gamewide persistent player roster exists and is recalled
             if (
                 _brain?.gamewideContextBrain != null
