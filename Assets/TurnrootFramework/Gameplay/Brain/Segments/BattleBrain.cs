@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using Turnroot.Characters;
-using Turnroot.Gameplay.Brain.Events;
 using Turnroot.Gameplay.Combat;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
 using UnityEngine;
@@ -20,7 +19,6 @@ namespace Turnroot.Gameplay.Brain
 
         [SerializeField]
         private PlayerTeamRoster _playerTeamRoster;
-        private BattleGameObject _battleGameObject;
         private TurnRotisserie _turnRotisserie;
 
         private BattleContextAIHelper _aiHelper;

@@ -18,6 +18,7 @@ namespace Turnroot.Gameplay.Combat
     }
 
     [RequireComponent(typeof(EnvironmentalConditions))]
+    [RequireComponent(typeof(BattleContext))]
     public class BattleGameObject : MonoBehaviour
     {
         public bool HasThirdParty;
@@ -62,7 +63,7 @@ namespace Turnroot.Gameplay.Combat
         public void Awake()
         {
             ResetTurnCount();
-            Context ??= new BattleContext();
+            Context = GetComponent<BattleContext>();
             _mapGrid = _mapGrid != null ? _mapGrid : GetComponentInChildren<MapGrid>();
 
             if (_mapGrid == null)
@@ -103,9 +104,6 @@ namespace Turnroot.Gameplay.Combat
             }
 
             Debug.Log("BattleGameObject connecting to Brain events");
-
-            // Initialize context with Brain reference for command pattern
-            InitializeContextWithBrain();
 
             // Subscribe to battle events
             Brain.OnTurnEnded += HandleTurnEnded;
@@ -152,26 +150,6 @@ namespace Turnroot.Gameplay.Combat
                     $"BattleGameObject ConnectBattleConditionsToContext failed: {ex.Message}"
                 );
             }
-        }
-
-        private void InitializeContextWithBrain()
-        {
-            if (Context == null)
-            {
-                Debug.LogError("BattleGameObject: Context is null during initialization!");
-                return;
-            }
-
-            if (Brain == null)
-            {
-                Debug.LogError(
-                    "BattleGameObject: Brain is null - context will not function correctly!"
-                );
-                return;
-            }
-
-            Context.Brain = Brain;
-            Debug.Log("BattleGameObject: Context initialized with Brain reference");
         }
 
         #endregion

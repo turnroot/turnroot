@@ -14,7 +14,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
     /// Runtime context for the entire battle.
     /// Contains all the dynamic data that skills and other systems need at runtime.
     /// </summary>
-    public class BattleContext
+    public class BattleContext : MonoBehaviour
     {
         /// <summary>
         /// Reference to the Brain for publishing events.
@@ -173,7 +173,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         {
             if (Brain == null)
             {
-                throw new System.InvalidOperationException(
+                throw new InvalidOperationException(
                     "BattleContext.Brain must be set before performing command-based actions. "
                         + "Ensure BattleGameObject.InitializeContextWithBrain() was called."
                 );
