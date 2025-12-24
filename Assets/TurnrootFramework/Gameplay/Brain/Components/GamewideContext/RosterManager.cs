@@ -14,6 +14,7 @@ namespace Turnroot.Gameplay.Brain
         private readonly Brain _brain;
         private readonly CharacterFactory _characterFactory;
         private readonly RosterPersistence _persistence;
+        private readonly CharacterPersistence _characterPersistence;
 
         // Explicitly track persistent rosters we create
         private readonly List<GenericRosterInstance> _persistentRosters = new();
@@ -24,6 +25,7 @@ namespace Turnroot.Gameplay.Brain
         {
             _brain = brain;
             _characterFactory = new CharacterFactory(brain.GetComponent<LongTermMemory>());
+            _characterPersistence = new CharacterPersistence(brain);
             _persistence = persistence;
         }
 
@@ -76,6 +78,9 @@ namespace Turnroot.Gameplay.Brain
             var instance = go.AddComponent<GenericRosterInstance>();
             instance.roster = roster;
 
+            // Initialize runtime placements copy so runtime modifications don't hit the template
+            instance.InitializeRuntimePlacementsFromTemplate();
+
             _persistentRosters.Add(instance);
 
             PopulateRoster(instance, roster);
@@ -108,6 +113,9 @@ namespace Turnroot.Gameplay.Brain
             var instance = go.AddComponent<PlayerTeamRosterInstance>();
             instance.roster = roster;
 
+            // Initialize runtime copy of placements so we don't mutate the template
+            instance.InitializeRuntimePlacementsFromTemplate();
+
             _persistentPlayerRoster = instance;
 
             PopulatePlayerTeamRoster(instance, roster);
@@ -129,7 +137,10 @@ namespace Turnroot.Gameplay.Brain
         {
             var characters = new List<CharacterInstance>();
 
-            foreach (var unit in roster.characters)
+            // Use runtime placements if the instance has them, otherwise fall back to the template
+            var placements = instance.GetPlacements();
+
+            foreach (var unit in placements)
             {
                 if (unit.CharacterData == null)
                 {
@@ -140,6 +151,12 @@ namespace Turnroot.Gameplay.Brain
                 if (character != null)
                 {
                     characters.Add(character);
+
+                    // Persist unique characters explicitly (factory no longer auto-saves)
+                    if (character.CharacterTemplate?.IsUnique == true)
+                    {
+                        _characterPersistence.SaveCharacter(character, updateIndex: true);
+                    }
                 }
             }
 
@@ -154,7 +171,10 @@ namespace Turnroot.Gameplay.Brain
         {
             var characters = new List<CharacterInstance>();
 
-            foreach (var unit in roster.characters)
+            // Use runtime placements on the instance if available (will be initialized by caller)
+            var placements = instance.GetPlacements();
+
+            foreach (var unit in placements)
             {
                 if (unit == null)
                 {
@@ -165,11 +185,39 @@ namespace Turnroot.Gameplay.Brain
                 if (character != null)
                 {
                     characters.Add(character);
+
+                    // Persist unique characters explicitly (factory no longer auto-saves)
+                    if (character.CharacterTemplate?.IsUnique == true)
+                    {
+                        _characterPersistence.SaveCharacter(character, updateIndex: true);
+                    }
                 }
             }
 
             instance.AddInstances(characters);
             Debug.Log($"Populated '{instance.name}' with {characters.Count} player characters");
+        }
+
+        /// <summary>
+        /// Apply decoded persistent player roster payload onto an existing runtime instance.
+        /// This will overwrite runtime placements and repopulate instances from decoded data.
+        /// </summary>
+        public void ApplyDecodedPlayerRoster(
+            PlayerTeamRosterInstance instance,
+            PlayerTeamRoster decoded
+        )
+        {
+            if (instance == null || decoded == null)
+            {
+                return;
+            }
+
+            // Apply placements first so PopulatePlayerTeamRoster uses them
+            instance.ApplyDecodedPlacements(decoded.characters);
+
+            // Clear existing instances and repopulate
+            instance.Clear();
+            PopulatePlayerTeamRoster(instance, decoded);
         }
 
         private bool HasInstancesPopulated(GenericRosterInstance instance, GenericRoster roster)
@@ -229,6 +277,12 @@ namespace Turnroot.Gameplay.Brain
 
             return instance;
         }
+
+        /// <summary>
+        /// Returns the currently active runtime PlayerTeamRosterInstance if any.
+        /// </summary>
+        public PlayerTeamRosterInstance GetPersistentPlayerRosterInstance() =>
+            _persistentPlayerRoster;
 
         private void RecallFromIndex(List<GenericRoster> rosters, List<string> indexedIds)
         {

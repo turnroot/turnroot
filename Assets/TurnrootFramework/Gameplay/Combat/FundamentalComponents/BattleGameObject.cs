@@ -78,8 +78,8 @@ namespace Turnroot.Gameplay.Combat
                 Debug.Break();
             }
 
-            // Connect Context to mapGrid
-            Context.mapGrid = _mapGrid;
+            // MapGrid will be set during context initialization when the Brain is connected.
+            // Context.mapGrid will be initialized in InitializeContextWithBrain().
         }
 
         #endregion
@@ -171,8 +171,16 @@ namespace Turnroot.Gameplay.Combat
                 return;
             }
 
-            Context.Brain = Brain;
-            Debug.Log("BattleGameObject: Context initialized with Brain reference");
+            // Use explicit initialization so the Context has non-null Brain guaranteed
+            try
+            {
+                Context.Initialize(Brain, _mapGrid);
+                Debug.Log("BattleGameObject: Context initialized via Initialize(brain, mapGrid)");
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"BattleGameObject: Failed to initialize context: {ex.Message}");
+            }
         }
 
         #endregion

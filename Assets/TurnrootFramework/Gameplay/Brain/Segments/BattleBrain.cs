@@ -32,8 +32,7 @@ namespace Turnroot.Gameplay.Brain
         public GenericRosterInstance ThirdPartyTeamRoster =>
             BattleObject != null ? BattleObject.ThirdPartyTeamRoster : null;
 
-        private RosterManager _rosterManager;
-        private CharacterPersistence _characterPersistence;
+        // Roster lifecycle and character persistence are delegated to GamewideContextBrain
 
         protected override void Awake()
         {
@@ -42,9 +41,6 @@ namespace Turnroot.Gameplay.Brain
             _turnRotisserie = GetComponent<TurnRotisserie>();
 
             Debug.Log("BattleBrain: TurnRotisserie ready");
-
-            _rosterManager = new RosterManager(_brain);
-            _characterPersistence = new CharacterPersistence(_brain);
         }
 
         private void Start()
@@ -62,7 +58,7 @@ namespace Turnroot.Gameplay.Brain
             _playerTeamRoster =
                 _brain?.gamewideContextBrain?.GamewidePersistentPlayerRoster ?? _playerTeamRoster;
 
-            _rosterManager.RecallPlayerTeamRoster(_playerTeamRoster);
+            _brain?.gamewideContextBrain?.GetOrCreatePlayerTeamRoster(_playerTeamRoster);
         }
 
         #region Roster Management API
@@ -70,22 +66,22 @@ namespace Turnroot.Gameplay.Brain
         public GenericRosterInstance InstantiateGenericRoster(
             GenericRoster roster,
             bool register = false
-        ) => _rosterManager.InstantiateGenericRoster(roster, register);
+        ) => _brain?.gamewideContextBrain?.GetOrCreateGenericRoster(roster, register);
 
         public CharacterInstance FindInstanceByTemplate(CharacterData template) =>
-            _rosterManager.FindInstanceByTemplate(template);
+            _brain?.gamewideContextBrain?.FindInstanceByTemplate(template);
 
         public List<CharacterInstance> GetAllActiveInstances() =>
-            _rosterManager.GetAllActiveInstances();
+            _brain?.gamewideContextBrain?.GetAllActiveInstances();
 
         public PlayerTeamRosterInstance InstantiatePlayerTeamRoster() =>
-            _rosterManager.InstantiatePlayerTeamRoster(_playerTeamRoster);
+            _brain?.gamewideContextBrain?.GetOrCreatePlayerTeamRoster(_playerTeamRoster);
 
         public void RecallGenericRosters(List<GenericRoster> rosters) =>
-            _rosterManager.RecallGenericRosters(rosters);
+            _brain?.gamewideContextBrain?.RecallGenericRosters(rosters);
 
         public void SaveUniqueCharacterProgress(CharacterInstance instance) =>
-            _characterPersistence.SaveCharacter(instance, updateIndex: false);
+            _brain?.gamewideContextBrain?.SaveUniqueCharacterProgress(instance);
 
         #endregion
 
@@ -181,12 +177,12 @@ namespace Turnroot.Gameplay.Brain
                 var thirdPartyRoster = BattleObject.ThirdPartyTeamRoster;
             }
             var playerTeamRoster = BattleObject.PlayerTeamRoster;
-            // 1. Spawn enemy units
-            foreach (var c in enemyRoster.roster.characters)
+            // 1. Spawn enemy units (iterate runtime placements)
+            foreach (var p in enemyRoster.GetPlacements())
             {
-                var characterData = c.CharacterData;
+                var characterData = p.CharacterData;
                 var characterInstance = enemyRoster.GetInstanceFor(characterData);
-                var placement = enemyRoster.GetPlacementFor(characterData);
+                var placement = p;
                 BattleObject.Context.SpawnAtPosition(characterInstance, placement.SpawnPosition);
                 enemyRoster.SetOrder(characterData, placement.Order);
             }
@@ -194,11 +190,11 @@ namespace Turnroot.Gameplay.Brain
             if (BattleObject.HasThirdParty)
             {
                 var thirdPartyRoster = BattleObject.ThirdPartyTeamRoster;
-                foreach (var c in thirdPartyRoster.roster.characters)
+                foreach (var p in thirdPartyRoster.GetPlacements())
                 {
-                    var characterData = c.CharacterData;
+                    var characterData = p.CharacterData;
                     var characterInstance = thirdPartyRoster.GetInstanceFor(characterData);
-                    var placement = thirdPartyRoster.GetPlacementFor(characterData);
+                    var placement = p;
                     BattleObject.Context.SpawnAtPosition(
                         characterInstance,
                         placement.SpawnPosition
@@ -207,11 +203,11 @@ namespace Turnroot.Gameplay.Brain
                 }
             }
             // 3. Spawn player team units
-            foreach (var c in playerTeamRoster.roster.characters)
+            foreach (var p in playerTeamRoster.GetPlacements())
             {
-                var characterData = c.CharacterData;
+                var characterData = p.CharacterData;
                 var characterInstance = playerTeamRoster.GetInstanceFor(characterData);
-                var placement = playerTeamRoster.GetPlacementFor(characterData);
+                var placement = p;
                 BattleObject.Context.SpawnAtPosition(characterInstance, placement.SpawnPosition);
                 playerTeamRoster.SetOrder(characterData, placement.Order);
             }
