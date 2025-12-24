@@ -538,11 +538,6 @@ namespace Turnroot.Gameplay.Brain
             InitializeAdvancedSystems();
             TryLinkConversationController();
 
-            // Unsubscribe before subscribing to prevent duplicate subscriptions
-            // This is important if Brain survives scene loads (DontDestroyOnLoad)
-            SceneManager.sceneLoaded -= OnSceneLoaded_LinkControllers;
-            SceneManager.sceneLoaded += OnSceneLoaded_LinkControllers;
-
             // populate remaining core components
             stateBrain = GetComponent<StateBrain>();
             conversationalBrain = GetComponent<ConversationalBrain>();
@@ -616,12 +611,6 @@ namespace Turnroot.Gameplay.Brain
 
         #endregion
 
-        private void OnSceneLoaded_LinkControllers(Scene scene, LoadSceneMode mode)
-        {
-            playerInputBrain.TryLinkPlayerController();
-            TryLinkConversationController();
-        }
-
         #region State Control
 
         public void Pause()
@@ -642,7 +631,6 @@ namespace Turnroot.Gameplay.Brain
 
         private void OnDestroy()
         {
-            SceneManager.sceneLoaded -= OnSceneLoaded_LinkControllers;
             CleanupAdvancedSystems();
         }
 

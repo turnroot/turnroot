@@ -123,7 +123,11 @@ namespace Turnroot.Characters
         /// Change to a new class. Applies all class bonuses, enforces minimums/caps.
         /// Removes bonuses from old class if present.
         /// </summary>
-        public bool ChangeClass(CharacterClassData newClassData, MeshRenderer meshRenderer = null)
+        public bool ChangeClass(
+            CharacterClassData newClassData,
+            MeshRenderer meshRenderer = null,
+            bool applyClassChangeBonuses = true
+        )
         {
             if (newClassData == null)
             {
@@ -162,10 +166,14 @@ namespace Turnroot.Characters
             // Apply class bonuses
             _currentClass.ApplyClassBonuses(this);
 
-            // Apply one-time class change bonuses if first time
+            // Apply one-time class change bonuses if first time (optionally skipped)
             if (isFirstTime)
             {
-                _currentClass.ApplyClassChangeBonuses(this);
+                if (applyClassChangeBonuses)
+                {
+                    _currentClass.ApplyClassChangeBonuses(this);
+                }
+                // Mark as equipped so first-time bonuses aren't applied again later
                 _equippedClassHistory.Add(newClassData);
             }
 

@@ -18,7 +18,23 @@ namespace Turnroot.Gameplay.Objects
         [SerializeField]
         private ObjectItem _template;
 
-        public int Slot; // TODO: Actually set this up
+        // Index of this item within the owner's inventory. -1 means not assigned to an inventory.
+        public int Slot = -1; // Slot index within owner inventory (-1 = not assigned)
+
+        /// <summary>
+        /// Set the inventory that owns this item. Call from the inventory when adding an item.
+        /// </summary>
+        internal void SetOwnerInventory(CharacterInventoryInstance owner) =>
+            _ownerInventory = owner;
+
+        /// <summary>
+        /// Clear the owner (called when removed from inventory). Also resets the Slot to -1.
+        /// </summary>
+        internal void ClearOwnerInventory()
+        {
+            _ownerInventory = null;
+            Slot = -1;
+        }
 
         [NonSerialized]
         private CharacterInventoryInstance _ownerInventory;
@@ -111,7 +127,7 @@ namespace Turnroot.Gameplay.Objects
 
             _ownerInventory.RemoveFromInventory(this);
             targetInventory.AddToInventory(this);
-            _ownerInventory = targetInventory;
+            // owner & slot set by CharacterInventoryInstance.AddToInventory
             InventoryBrain?.TransferItem(this, targetInventory);
             return OperationResult.SuccessResult();
         }
@@ -171,7 +187,7 @@ namespace Turnroot.Gameplay.Objects
             }
 
             buyerInventory.AddToInventory(this);
-            _ownerInventory = buyerInventory;
+            // owner & slot set by CharacterInventoryInstance.AddToInventory
             StorehouseBrain?.SpendGold(_template.BasePrice);
             InventoryBrain?.BuyItem(this, buyerInventory);
             return OperationResult.SuccessResult();
@@ -265,6 +281,12 @@ namespace Turnroot.Gameplay.Objects
                 {
                     currentUses = _template.MaxUses;
                 }
+            }
+
+            // If this item was deserialized without an owning inventory, clear slot
+            if (_ownerInventory == null)
+            {
+                Slot = -1;
             }
         }
     }

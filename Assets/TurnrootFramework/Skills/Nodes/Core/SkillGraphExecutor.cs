@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
+using Turnroot.Utilities;
 using UnityEngine;
 using XNode;
 
@@ -73,11 +74,11 @@ namespace Turnroot.Skills.Nodes
         /// <summary>
         /// Execute a specific node and follow its execution chain.
         /// </summary>
-        private void ExecuteNode(SkillNode node)
+        private OperationResult ExecuteNode(SkillNode node)
         {
             if (node == null)
             {
-                return;
+                return OperationResult.Failure("Node is null");
             }
 
             // Prevent infinite loops from circular connections
@@ -86,17 +87,10 @@ namespace Turnroot.Skills.Nodes
                 Debug.LogWarning(
                     $"Circular execution detected at node {node.name}. Stopping execution."
                 );
-                return;
+                return OperationResult.Failure("Circular execution detected");
             }
 
             visitedNodes.Add(node);
-
-            // Check if execution was interrupted
-            if (context.IsInterrupted)
-            {
-                Debug.Log($"Execution interrupted at node {node.name}");
-                return;
-            }
 
             // Fire the node's event
             node.OnNodeExecute?.Invoke();
@@ -110,11 +104,12 @@ namespace Turnroot.Skills.Nodes
             {
                 Debug.LogError($"Error executing node {node.name}: {e.Message}\n{e.StackTrace}");
                 context.IsInterrupted = true;
-                return;
+                return OperationResult.Failure($"Error executing node {node.name}: {e.Message}");
             }
 
             // Store as current node - execution will wait here until Proceed() is called
             currentNode = node;
+            return OperationResult.SuccessResult();
         }
 
         /// <summary>
