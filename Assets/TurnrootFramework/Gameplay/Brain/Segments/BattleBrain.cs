@@ -43,7 +43,7 @@ namespace Turnroot.Gameplay.Brain
 
             Debug.Log("BattleBrain: TurnRotisserie ready");
 
-            _rosterManager = new RosterManager(_brain);
+            // Roster lifecycle is owned by GamewideContextBrain; request rosters there instead of creating new managers here.
             _characterPersistence = new CharacterPersistence(_brain);
         }
 
@@ -62,7 +62,7 @@ namespace Turnroot.Gameplay.Brain
             _playerTeamRoster =
                 _brain?.gamewideContextBrain?.GamewidePersistentPlayerRoster ?? _playerTeamRoster;
 
-            _rosterManager.RecallPlayerTeamRoster(_playerTeamRoster);
+            _brain?.gamewideContextBrain?.GetOrCreatePlayerTeamRoster(_playerTeamRoster);
         }
 
         #region Roster Management API
@@ -70,7 +70,7 @@ namespace Turnroot.Gameplay.Brain
         public GenericRosterInstance InstantiateGenericRoster(
             GenericRoster roster,
             bool register = false
-        ) => _rosterManager.InstantiateGenericRoster(roster, register);
+        ) => _brain?.gamewideContextBrain?.GetOrCreateGenericRoster(roster, register);
 
         public CharacterInstance FindInstanceByTemplate(CharacterData template) =>
             _rosterManager.FindInstanceByTemplate(template);
@@ -79,7 +79,7 @@ namespace Turnroot.Gameplay.Brain
             _rosterManager.GetAllActiveInstances();
 
         public PlayerTeamRosterInstance InstantiatePlayerTeamRoster() =>
-            _rosterManager.InstantiatePlayerTeamRoster(_playerTeamRoster);
+            _brain?.gamewideContextBrain?.GetOrCreatePlayerTeamRoster(_playerTeamRoster);
 
         public void RecallGenericRosters(List<GenericRoster> rosters) =>
             _rosterManager.RecallGenericRosters(rosters);

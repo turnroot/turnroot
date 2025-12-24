@@ -13,6 +13,10 @@ namespace Turnroot.Characters
     {
         [SerializeField]
         public T roster;
+
+        // Runtime copy of placements so we never mutate the ScriptableObject template at runtime
+        private UnitPlacement[] _runtimePlacements = null;
+
         private readonly List<CharacterInstance> _instances = new();
         public IReadOnlyList<CharacterInstance> Instances => _instances;
 
@@ -22,13 +26,99 @@ namespace Turnroot.Characters
         /// </summary>
         public event Action OnRosterModified;
 
+        /// <summary>
+        /// Initialize a runtime copy of placements from the template. Call this when creating an instance.
+        /// </summary>
+        public void InitializeRuntimePlacementsFromTemplate()
+        {
+            if (roster?.characters == null)
+            {
+                _runtimePlacements = new UnitPlacement[0];
+                return;
+            }
+
+            // Deep copy placements so changes affect only the runtime instance
+            _runtimePlacements = new UnitPlacement[roster.characters.Length];
+            for (int i = 0; i < roster.characters.Length; i++)
+            {
+                var src = roster.characters[i];
+                _runtimePlacements[i] = new UnitPlacement
+                {
+                    CharacterData = src.CharacterData,
+                    SpawnPosition = src.SpawnPosition,
+                    Status = src.Status,
+                    IsActiveRightNow = src.IsActiveRightNow,
+                    Order = src.Order,
+                };
+            }
+        }
+
+        /// <summary>
+        /// Apply placements from a decoded payload (e.g., from LTM) into this runtime instance.
+        /// This overwrites any existing runtime placements.
+        /// </summary>
+        public void ApplyDecodedPlacements(UnitPlacement[] placements)
+        {
+            if (placements == null)
+            {
+                _runtimePlacements = new UnitPlacement[0];
+            }
+            else
+            {
+                // Clone to ensure we own the array
+                _runtimePlacements = new UnitPlacement[placements.Length];
+                for (int i = 0; i < placements.Length; i++)
+                {
+                    var src = placements[i];
+                    _runtimePlacements[i] = new UnitPlacement
+                    {
+                        CharacterData = src.CharacterData,
+                        SpawnPosition = src.SpawnPosition,
+                        Status = src.Status,
+                        IsActiveRightNow = src.IsActiveRightNow,
+                        Order = src.Order,
+                    };
+                }
+            }
+
+            OnRosterModified?.Invoke();
+        }
+
+        /// <summary>
+        /// Returns the current placements for this instance: runtime copy if present, otherwise the template placements.
+        /// </summary>
+        public UnitPlacement[] GetPlacements()
+        {
+            if (_runtimePlacements != null)
+            {
+                return _runtimePlacements;
+            }
+
+            return roster?.characters ?? new UnitPlacement[0];
+        }
+
         public UnitPlacement GetPlacementFor(CharacterData data)
         {
-            foreach (var placement in roster.characters)
+            if (_runtimePlacements != null)
             {
-                if (placement.CharacterData == data)
+                foreach (var placement in _runtimePlacements)
                 {
-                    return placement;
+                    if (placement.CharacterData == data)
+                    {
+                        return placement;
+                    }
+                }
+            }
+
+            // Fallback to template if no runtime placements exist
+            if (roster?.characters != null)
+            {
+                foreach (var placement in roster.characters)
+                {
+                    if (placement.CharacterData == data)
+                    {
+                        return placement;
+                    }
                 }
             }
 
@@ -37,13 +127,30 @@ namespace Turnroot.Characters
 
         public void SetOrder(CharacterData data, int order)
         {
-            for (int i = 0; i < roster.characters.Length; i++)
+            if (_runtimePlacements != null)
             {
-                if (roster.characters[i].CharacterData == data)
+                for (int i = 0; i < _runtimePlacements.Length; i++)
                 {
-                    roster.characters[i].Order = order;
-                    OnRosterModified?.Invoke();
-                    return;
+                    if (_runtimePlacements[i].CharacterData == data)
+                    {
+                        _runtimePlacements[i].Order = order;
+                        OnRosterModified?.Invoke();
+                        return;
+                    }
+                }
+            }
+
+            // Fallback to modifying template (should be rare if instance was initialized properly)
+            if (roster?.characters != null)
+            {
+                for (int i = 0; i < roster.characters.Length; i++)
+                {
+                    if (roster.characters[i].CharacterData == data)
+                    {
+                        roster.characters[i].Order = order;
+                        OnRosterModified?.Invoke();
+                        return;
+                    }
                 }
             }
         }

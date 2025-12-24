@@ -19,14 +19,25 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
     {
         /// <summary>
         /// Reference to the Brain for publishing events.
-        /// Set this when creating the BattleContext.
+        /// Set this when creating the BattleContext. Use Initialize() to assign.
         /// </summary>
-        public Brain.Brain Brain { get; set; }
+        public Brain.Brain Brain { get; private set; }
 
         /// <summary>
         /// Active map graph for this battle.
         /// </summary>
-        public MapGrid mapGrid { get; set; }
+        public MapGrid mapGrid { get; private set; }
+
+        /// <summary>
+        /// Initialize the BattleContext with required dependencies. Throws if brain is null.
+        /// </summary>
+        public void Initialize(Brain.Brain brain, MapGrid mapGrid)
+        {
+            if (brain == null)
+                throw new System.ArgumentNullException(nameof(brain));
+            Brain = brain;
+            this.mapGrid = mapGrid;
+        }
 
         // Currently executing skill (if any)
         public Skill CurrentSkill { get; set; }

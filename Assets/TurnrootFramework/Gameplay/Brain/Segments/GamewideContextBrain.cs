@@ -125,20 +125,32 @@ namespace Turnroot.Gameplay.Brain
                 {
                     try
                     {
-                        // Apply decoded payload to the asset so runtime reflects persisted state
-                        GamewidePersistentPlayerRoster.characters = decode.Value.characters;
+                        // Do NOT modify the ScriptableObject asset at runtime.
+                        // Instead, instantiate a runtime team roster and apply the decoded payload to it.
                         Debug.Log(
-                            "GamewideContextBrain: Applied persisted player roster from LTM."
+                            "GamewideContextBrain: Recalling persisted player roster from LTM into runtime instance."
                         );
+                        var runtimeInstance = _rosterManager?.InstantiatePlayerTeamRoster(
+                            GamewidePersistentPlayerRoster
+                        );
+                        if (runtimeInstance != null)
+                        {
+                            _rosterManager?.ApplyDecodedPlayerRoster(runtimeInstance, decode.Value);
+                            Debug.Log(
+                                "GamewideContextBrain: Applied persisted player roster to runtime instance."
+                            );
+                        }
                     }
                     catch (System.Exception ex)
                     {
-                        Debug.LogWarning($"Failed to apply persisted player roster: {ex.Message}");
+                        Debug.LogWarning(
+                            $"Failed to apply persisted player roster to runtime instance: {ex.Message}"
+                        );
                     }
                 }
             }
 
-            // Instantiate and register (RosterManager will register if needed)
+            // Ensure there is a runtime instance for the persistent player roster (it will register if needed)
             _rosterManager?.RecallPlayerTeamRoster(GamewidePersistentPlayerRoster);
         }
 
@@ -152,34 +164,90 @@ namespace Turnroot.Gameplay.Brain
 
             try
             {
-                var encode = GamewideContextBrainHelpers.EncodeInstanceToString(
+                // Prefer to encode the runtime instance (so runtime ordering and selections are preserved)
+                var runtimeInstance = _rosterManager?.GetPersistentPlayerRosterInstance();
+                if (runtimeInstance != null)
+                {
+                    var encode = GamewideContextBrainHelpers.EncodeInstanceToString(
+                        this,
+                        runtimeInstance
+                    );
+                    if (!encode.Success)
+                    {
+                        Debug.LogError(
+                            $"GamewideContextBrain: Failed to encode runtime player roster: {encode.Error}"
+                        );
+                        return;
+                    }
+
+                    var encoded = encode.Value;
+                    var key = GamewideContextBrainHelpers.BuildRosterLedgerKey(
+                        GamewidePersistentPlayerRoster.Id
+                    );
+                    var ltm = GetComponent<LongTermMemory>();
+                    ltm?.Remember(key, encoded);
+
+                    // Ensure roster index/hash registration
+                    _rosterPersistence?.RegisterPlayerRoster(GamewidePersistentPlayerRoster);
+
+                    Debug.Log("GamewideContextBrain: Saved runtime player roster to LTM.");
+                    return;
+                }
+
+                // Fallback: no runtime instance available, encode the template (rare)
+                var fallbackEncode = GamewideContextBrainHelpers.EncodeInstanceToString(
                     this,
                     GamewidePersistentPlayerRoster
                 );
-                if (!encode.Success)
+                if (!fallbackEncode.Success)
                 {
                     Debug.LogError(
-                        $"GamewideContextBrain: Failed to encode player roster: {encode.Error}"
+                        $"GamewideContextBrain: Failed to encode player roster: {fallbackEncode.Error}"
                     );
                     return;
                 }
 
-                var encoded = encode.Value;
-                var key = GamewideContextBrainHelpers.BuildRosterLedgerKey(
+                var fallbackEncoded = fallbackEncode.Value;
+                var fallbackKey = GamewideContextBrainHelpers.BuildRosterLedgerKey(
                     GamewidePersistentPlayerRoster.Id
                 );
-                var ltm = GetComponent<LongTermMemory>();
-                ltm?.Remember(key, encoded);
+                var fallbackLtm = GetComponent<LongTermMemory>();
+                fallbackLtm?.Remember(fallbackKey, fallbackEncoded);
 
-                // Ensure roster index/hash registration
                 _rosterPersistence?.RegisterPlayerRoster(GamewidePersistentPlayerRoster);
 
-                Debug.Log("GamewideContextBrain: Saved persistent player roster to LTM.");
+                Debug.Log(
+                    "GamewideContextBrain: Saved persistent player roster to LTM (fallback template encoded)."
+                );
             }
             catch (System.Exception ex)
             {
                 Debug.LogError($"GamewideContextBrain: Save player roster failed: {ex.Message}");
             }
+        }
+
+        #endregion
+
+        #region Roster Manager Facade
+
+        /// <summary>
+        /// Returns a runtime GenericRosterInstance for the provided template. GamewideContextBrain
+        /// owns and tracks persistent runtime rosters; callers should request, not create.
+        /// </summary>
+        public GenericRosterInstance GetOrCreateGenericRoster(
+            GenericRoster roster,
+            bool register = false
+        )
+        {
+            return _rosterManager.InstantiateGenericRoster(roster, register);
+        }
+
+        /// <summary>
+        /// Returns a runtime PlayerTeamRosterInstance for the provided persistent PlayerTeamRoster template.
+        /// </summary>
+        public PlayerTeamRosterInstance GetOrCreatePlayerTeamRoster(PlayerTeamRoster roster)
+        {
+            return _rosterManager.InstantiatePlayerTeamRoster(roster);
         }
 
         #endregion
