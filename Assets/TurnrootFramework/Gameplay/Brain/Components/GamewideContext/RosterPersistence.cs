@@ -85,7 +85,7 @@ namespace Turnroot.Gameplay.Brain
                 : JsonConvert.DeserializeObject<List<string>>(indexJson);
         }
 
-        private string BuildRosterKey(string rosterId) => $"GWB.Roster.{rosterId}";
+        private string BuildRosterKey(string rosterId) => $"{LtmKeys.Roster}.{rosterId}";
 
         private string ComputeRosterHash(Turnroot.Characters.Roster roster)
         {
