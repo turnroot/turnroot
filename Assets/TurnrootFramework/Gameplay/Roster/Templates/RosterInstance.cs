@@ -46,10 +46,12 @@ namespace Turnroot.Characters
                 {
                     CharacterData = src.CharacterData,
                     SpawnPosition = src.SpawnPosition,
-                    Status = src.Status,
-                    IsActiveRightNow = src.IsActiveRightNow,
                     Order = src.Order,
                 };
+
+                // Use setters for private set properties
+                _runtimePlacements[i].SetStatus(src.Status);
+                _runtimePlacements[i].SetActiveRightNow(src.IsActiveRightNow);
             }
         }
 
@@ -74,10 +76,12 @@ namespace Turnroot.Characters
                     {
                         CharacterData = src.CharacterData,
                         SpawnPosition = src.SpawnPosition,
-                        Status = src.Status,
-                        IsActiveRightNow = src.IsActiveRightNow,
                         Order = src.Order,
                     };
+
+                    // Use setters for private set properties
+                    _runtimePlacements[i].SetStatus(src.Status);
+                    _runtimePlacements[i].SetActiveRightNow(src.IsActiveRightNow);
                 }
             }
 
@@ -127,32 +131,23 @@ namespace Turnroot.Characters
 
         public void SetOrder(CharacterData data, int order)
         {
-            if (_runtimePlacements != null)
+            // Ensure runtime placements exist to avoid mutating the template
+            if (_runtimePlacements == null)
             {
-                for (int i = 0; i < _runtimePlacements.Length; i++)
+                InitializeRuntimePlacementsFromTemplate();
+            }
+
+            for (int i = 0; i < _runtimePlacements.Length; i++)
+            {
+                if (_runtimePlacements[i].CharacterData == data)
                 {
-                    if (_runtimePlacements[i].CharacterData == data)
-                    {
-                        _runtimePlacements[i].Order = order;
-                        OnRosterModified?.Invoke();
-                        return;
-                    }
+                    _runtimePlacements[i].Order = order;
+                    OnRosterModified?.Invoke();
+                    return;
                 }
             }
 
-            // Fallback to modifying template (should be rare if instance was initialized properly)
-            if (roster?.characters != null)
-            {
-                for (int i = 0; i < roster.characters.Length; i++)
-                {
-                    if (roster.characters[i].CharacterData == data)
-                    {
-                        roster.characters[i].Order = order;
-                        OnRosterModified?.Invoke();
-                        return;
-                    }
-                }
-            }
+            Debug.LogWarning($"SetOrder: Character {data?.name} not found in roster");
         }
 
         public CharacterInstance GetInstanceFor(CharacterData data) =>

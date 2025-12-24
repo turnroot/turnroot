@@ -102,7 +102,6 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         /// <returns>True if the move succeeded.</returns>
         public OperationResult MoveUnitToPointInt(CharacterInstance unit, Vector2Int CoordinatesInt)
         {
-            RequireBrain();
             var command = new MoveCommand(unit.Id, CoordinatesInt, Brain.CurrentTurnNumber);
             return Brain.ExecuteCommand(command)
                 ? OperationResult.SuccessResult()
@@ -111,14 +110,12 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
         public bool SpawnAtPosition(CharacterInstance unit, Vector2Int spawnPosition)
         {
-            RequireBrain();
             var command = new SpawnCommand(unit.Id, spawnPosition, Brain.CurrentTurnNumber);
             return Brain.ExecuteCommand(command);
         }
 
         public OperationResult MoveUnitToPoint(CharacterInstance unit, MapGridPoint targetPoint)
         {
-            RequireBrain();
             var command = new MoveCommand(
                 unit.Id,
                 targetPoint.CoordinatesInt,
@@ -162,7 +159,6 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         /// <returns>True if the damage was applied.</returns>
         public bool DealDamage(CharacterInstance attacker, CharacterInstance target, int damage)
         {
-            RequireBrain();
             var command = new DamageCommand(
                 attacker.Id,
                 target.Id,
@@ -185,7 +181,6 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             CharacterInstance target = null
         )
         {
-            RequireBrain();
             var command = new UseItemCommand(
                 user.Id,
                 item.InstanceID,
@@ -201,23 +196,8 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         /// <returns>True if ending turn succeeded.</returns>
         public bool EndTurn()
         {
-            RequireBrain();
             var command = new EndTurnCommand(Brain.CurrentTurnNumber);
             return Brain.ExecuteCommand(command);
-        }
-
-        /// <summary>
-        /// Throws if Brain is not set. All command operations require a Brain.
-        /// </summary>
-        private void RequireBrain()
-        {
-            if (Brain == null)
-            {
-                throw new InvalidOperationException(
-                    "BattleContext.Brain must be set before performing command-based actions. "
-                        + "Ensure BattleGameObject.InitializeContextWithBrain() was called."
-                );
-            }
         }
 
         /// <summary>

@@ -78,8 +78,8 @@ namespace Turnroot.Gameplay.Combat
                 Debug.Break();
             }
 
-            // Connect Context to mapGrid
-            Context.mapGrid = _mapGrid;
+            // MapGrid will be set during context initialization when the Brain is connected.
+            // Context.mapGrid will be initialized in InitializeContextWithBrain().
         }
 
         #endregion

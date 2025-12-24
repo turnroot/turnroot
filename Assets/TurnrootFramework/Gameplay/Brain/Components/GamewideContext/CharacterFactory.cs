@@ -31,5 +31,13 @@ namespace Turnroot.Gameplay.Brain
                     return existing;
                 }
 
-            // Create new but DO NOT persist here - caller decides when to save
-            var newUnique = CharacterInstance.Create(template);
+                // Create new but DO NOT persist here - caller decides when to save
+                var newUnique = CharacterInstance.Create(template);
+                return newUnique;
+            }
+
+            // Non-unique: always create a fresh instance
+            return CharacterInstance.Create(template);
+        }
+    }
+}

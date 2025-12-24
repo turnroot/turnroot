@@ -13,6 +13,14 @@ namespace Turnroot.Gameplay.Brain
 
         private RosterManager _rosterManager;
 
+        private CharacterPersistence _characterPersistence;
+
+        // Track all active runtime roster instances by roster id
+        private readonly System.Collections.Generic.Dictionary<
+            string,
+            object
+        > _activeRosterInstances = new();
+
         public enum TamperPolicy
         {
             NotifyOnly,
@@ -20,9 +28,8 @@ namespace Turnroot.Gameplay.Brain
             Replace,
         }
 
-        [SerializeField]
-        private TamperPolicy _tamperPolicy = TamperPolicy.Replace;
-        public TamperPolicy Policy => _tamperPolicy;
+        [field: SerializeField]
+        public TamperPolicy Policy { get; } = TamperPolicy.Replace;
 
         protected override void Awake()
         {
@@ -37,6 +44,7 @@ namespace Turnroot.Gameplay.Brain
             _rosterPersistence = new RosterPersistence(GetComponent<LongTermMemory>());
             // Pass persistence into RosterManager so it can register/recall rosters
             _rosterManager = new RosterManager(_brain, _rosterPersistence);
+            _characterPersistence = new CharacterPersistence(_brain);
 
             // Try to find the persistent player roster asset in Resources and recall it from LTM if present
             TryLoadAndRecallPersistentPlayerRoster();
@@ -239,7 +247,25 @@ namespace Turnroot.Gameplay.Brain
             bool register = false
         )
         {
-            return _rosterManager.InstantiateGenericRoster(roster, register);
+            if (roster == null)
+            {
+                Debug.LogWarning("Cannot get/create null roster");
+                return null;
+            }
+
+            // Return tracked instance if exists
+            if (_activeRosterInstances.TryGetValue(roster.Id, out var existing))
+            {
+                return existing as GenericRosterInstance;
+            }
+
+            var instance = _rosterManager.InstantiateGenericRoster(roster, register);
+            if (instance != null)
+            {
+                _activeRosterInstances[roster.Id] = instance;
+            }
+
+            return instance;
         }
 
         /// <summary>
@@ -247,8 +273,56 @@ namespace Turnroot.Gameplay.Brain
         /// </summary>
         public PlayerTeamRosterInstance GetOrCreatePlayerTeamRoster(PlayerTeamRoster roster)
         {
-            return _rosterManager.InstantiatePlayerTeamRoster(roster);
+            if (roster == null)
+            {
+                Debug.LogWarning("Cannot get/create null player roster");
+                return null;
+            }
+
+            if (_activeRosterInstances.TryGetValue(roster.Id, out var existing))
+            {
+                return existing as PlayerTeamRosterInstance;
+            }
+
+            var instance = _rosterManager.InstantiatePlayerTeamRoster(roster);
+            if (instance != null)
+            {
+                _activeRosterInstances[roster.Id] = instance;
+            }
+
+            return instance;
         }
+
+        /// <summary>
+        /// Find an active CharacterInstance by template across all tracked rosters.
+        /// </summary>
+        public CharacterInstance FindInstanceByTemplate(CharacterData template) =>
+            _rosterManager?.FindInstanceByTemplate(template);
+
+        /// <summary>
+        /// Return all active CharacterInstances from all tracked rosters.
+        /// </summary>
+        public System.Collections.Generic.List<CharacterInstance> GetAllActiveInstances() =>
+            _rosterManager?.GetAllActiveInstances()
+            ?? new System.Collections.Generic.List<CharacterInstance>();
+
+        /// <summary>
+        /// Persist a unique character's state via the centralized character persistence.
+        /// </summary>
+        public void SaveUniqueCharacterProgress(CharacterInstance instance) =>
+            _characterPersistence?.SaveCharacter(instance, updateIndex: false);
+
+        /// <summary>
+        /// Delegates to roster manager to recall generic rosters from a list.
+        /// </summary>
+        public void RecallGenericRosters(System.Collections.Generic.List<GenericRoster> rosters) =>
+            _rosterManager?.RecallGenericRosters(rosters);
+
+        /// <summary>
+        /// Delegates to roster manager to recall a player team roster and return the runtime instance.
+        /// </summary>
+        public PlayerTeamRosterInstance RecallPlayerTeamRoster(PlayerTeamRoster roster) =>
+            _rosterManager?.RecallPlayerTeamRoster(roster);
 
         #endregion
     }
