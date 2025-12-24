@@ -39,10 +39,7 @@ public static class BrainStateNames
 
     // Battle child states
     public const string PreBattle = "PreBattle";
-    public const string PlayerTurn = "PlayerTurn";
-    public const string EnemyTurn = "EnemyTurn";
-    public const string ThirdPartyTurn = "ThirdPartyTurn";
-    public const string SpecialCircumstances = "SpecialCircumstances";
+    public const string Battle = "PlayerTurn";
     public const string PostBattle = "PostBattle";
 }
 
@@ -131,10 +128,7 @@ namespace Turnroot.Gameplay.Brain
             var childStates = new System.Collections.Generic.List<BrainState>
             {
                 new(BrainStateNames.PreBattle, null, new[] { battleState }),
-                new(BrainStateNames.PlayerTurn, null, new[] { battleState }),
-                new(BrainStateNames.EnemyTurn, null, new[] { battleState }),
-                new(BrainStateNames.ThirdPartyTurn, null, new[] { battleState }),
-                new(BrainStateNames.SpecialCircumstances, null, new[] { battleState }),
+                new(BrainStateNames.Battle, null, new[] { battleState }),
                 new(BrainStateNames.PostBattle, null, new[] { battleState }),
             };
 

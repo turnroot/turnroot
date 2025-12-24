@@ -159,7 +159,9 @@ namespace Turnroot.Gameplay.Brain.Commands
         {
             var unit = FindUnit(context, UnitId);
             if (unit == null)
+            {
                 return false;
+            }
 
             var oldPoint = unit.UnitPositionToMapGridPoint(unit.MapGridPosition, context.mapGrid);
 
@@ -294,6 +296,26 @@ namespace Turnroot.Gameplay.Brain.Commands
             health.SetCurrent(health.Current - Damage);
 
             var attacker = FindUnit(context, AttackerId);
+
+            // Track last attacked target on the attacker for this battle
+            if (attacker != null)
+            {
+                // Save previous value for undo
+                UndoState["prevLastTarget"] = attacker.LastAttackedTarget;
+                attacker.LastAttackedTarget = target;
+            }
+
+            // Track last attacker per target in the BattleContext
+            if (context != null)
+            {
+                UndoState["prevLastAttackerOfTarget"] = context.GetLastAttacker(target);
+                context.RegisterLastAttacker(target, attacker);
+
+                // Also save and set target's own LastAttacker field for convenience
+                UndoState["prevTargetLastAttacker"] = target.LastAttacker;
+                target.SetLastAttacker(attacker);
+            }
+
             context.Brain?.Publish(
                 new Events.UnitDamagedEvent(target, attacker, Damage, (int)health.Current)
             );
@@ -323,6 +345,28 @@ namespace Turnroot.Gameplay.Brain.Commands
 
             health.SetCurrent((float)prev);
             target.IsDefeatedInCurrentBattle = (bool)UndoState["wasDefeated"];
+
+            // Restore previous LastAttackedTarget on the attacker if present
+            var attacker = FindUnit(context, AttackerId);
+            if (attacker != null && UndoState.TryGetValue("prevLastTarget", out var prevLast))
+            {
+                attacker.LastAttackedTarget = prevLast as CharacterInstance;
+            }
+
+            // Restore previous last-attacker mapping for the target and the target's own LastAttacker
+            if (target != null)
+            {
+                if (UndoState.TryGetValue("prevLastAttackerOfTarget", out var prevLastAttacker))
+                {
+                    context.RegisterLastAttacker(target, prevLastAttacker as CharacterInstance);
+                }
+
+                if (UndoState.TryGetValue("prevTargetLastAttacker", out var prevTargetLast))
+                {
+                    target.SetLastAttacker(prevTargetLast as CharacterInstance);
+                }
+            }
+
             return true;
         }
     }

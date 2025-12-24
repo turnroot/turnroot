@@ -123,7 +123,7 @@ namespace Turnroot.Characters
         // Active status effects on this character
         [SerializeField]
         private List<StatusEffectInstance> _activeStatusEffects = new();
-        public CharacterInstance LastAttackedTarget { get; set; } // TODO: Set this properly
+        public CharacterInstance LastAttackedTarget { get; set; }
         #endregion
 
         #region Properties
@@ -138,6 +138,13 @@ namespace Turnroot.Characters
         public List<SkillInstance> SkillInstances => _skillInstances;
         public List<ExperienceRankInstance> ExperienceRanks => _experienceRanks;
         public CharacterClassDataInstance CurrentClass => _currentClass;
+
+        /// <summary>
+        /// Returns the template for the currently equipped class if any, otherwise falls back to the starting class template.
+        /// This allows callers to query the class *template* without needing the runtime instance.
+        /// </summary>
+        public CharacterClassData CurrentClassTemplate =>
+            _currentClass?.ClassData ?? _characterTemplate?.StartingClass;
         public IReadOnlyList<StatusEffectInstance> ActiveStatusEffects => _activeStatusEffects;
 
         // IHasStats implementation - expose runtime stats
@@ -292,17 +299,17 @@ namespace Turnroot.Characters
                 }
             }
 
-            // Initialize current class from template
-            // TODO: This only uses starting class currently, this is wrong
+            // Initialize current class from template (use ChangeClass to ensure consistent behavior)
+            // If a starting class is defined on the template, equip it without applying one-time change bonuses
             if (_characterTemplate.StartingClass != null)
             {
-                var classInstance = new CharacterClassDataInstance(
-                    _characterTemplate,
-                    _characterTemplate.StartingClass
+                ChangeClass(
+                    _characterTemplate.StartingClass,
+                    meshRenderer: null,
+                    applyClassChangeBonuses: false
                 );
-                _currentClass = classInstance;
                 Debug.Log(
-                    $"Character {Id} initialized with class {_currentClass.ClassData.Identity.ClassName}"
+                    $"Character {Id} initialized with starting class {_characterTemplate.StartingClass.Identity.ClassName}"
                 );
             }
         }

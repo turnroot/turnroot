@@ -281,6 +281,10 @@ public class CharacterInventoryInstance : IPostDeserialize
         }
 
         _inventoryItems.Add(item);
+        // Set owner and slot index on the item so callers can query Slot and owner reliably
+        int newIndex = _inventoryItems.Count - 1;
+        item.Slot = newIndex;
+        item.SetOwnerInventory(this);
     }
 
     public void RemoveFromInventory(ObjectItemInstance item)
@@ -292,7 +296,16 @@ public class CharacterInventoryInstance : IPostDeserialize
             return;
         }
 
+        // Clear ownership on the item being removed
+        var removedItem = _inventoryItems[index];
         _inventoryItems.RemoveAt(index);
+        removedItem.ClearOwnerInventory();
+
+        // Update Slot indices on remaining items (shift left)
+        for (int i = index; i < _inventoryItems.Count; i++)
+        {
+            _inventoryItems[i].Slot = i;
+        }
 
         // Update equipped indices if the removed item was equipped or affects indices
         for (int i = 0; i < _equippedItemIndices.Length; i++)

@@ -552,7 +552,9 @@ public class MapGrid : MonoBehaviour
     {
         // _gridPoints has real GameObjects, so use their transform for world position
         var key = new Vector2Int(gridPoint.Row, gridPoint.Col);
-        return _gridPoints.TryGetValue(key, out var point) && point != null ? point.transform.position : Vector3.zero;
+        return _gridPoints.TryGetValue(key, out var point) && point != null
+            ? point.transform.position
+            : Vector3.zero;
     }
 
     public List<MapGridPoint> GetAllGridPoints()

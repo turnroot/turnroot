@@ -51,8 +51,6 @@ namespace Turnroot.Gameplay.Brain
             TryLoadAndRecallPersistentPlayerRoster();
         }
 
-        // TODO: Store instances outside of battle
-
         protected override void SubscribeToBrainEvents()
         {
             // Subscribe to save requests so we can persist roster changes triggered at runtime

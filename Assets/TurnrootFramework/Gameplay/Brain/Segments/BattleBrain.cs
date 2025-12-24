@@ -118,6 +118,20 @@ namespace Turnroot.Gameplay.Brain
             // Initialize battle using roster system
             InitializeBattleRosters();
 
+            // Clear last-attacked per-character so we start fresh for this battle
+            var allInstances = GetAllActiveInstances();
+            foreach (var inst in allInstances)
+            {
+                if (inst != null)
+                {
+                    inst.LastAttackedTarget = null;
+                    inst.ClearLastAttacker();
+                }
+            }
+
+            // Clear central last-attacker mapping in the context
+            BattleObject?.Context?.ClearLastAttackHistory();
+
             // Initialize advanced systems (commands, snapshots)
             // Clear any previous battle's command history
             _brain.Commands?.Clear();
@@ -226,6 +240,20 @@ namespace Turnroot.Gameplay.Brain
                 _brain.Snapshots?.Clear();
             }
             _brain.battleBrain.BattleObject.ClearBattleRosters();
+
+            // Clear transient per-battle data on characters
+            var allInstances = GetAllActiveInstances();
+            foreach (var inst in allInstances)
+            {
+                if (inst != null)
+                {
+                    inst.LastAttackedTarget = null;
+                    inst.ClearLastAttacker();
+                }
+            }
+
+            // Clear central last-attacker mapping in the context
+            _brain?.battleBrain?.BattleObject?.Context?.ClearLastAttackHistory();
             Debug.Log("BattleBrain: Battle cleanup complete");
         }
 

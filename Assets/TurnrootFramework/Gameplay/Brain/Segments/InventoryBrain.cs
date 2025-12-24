@@ -257,15 +257,44 @@ namespace Turnroot.Gameplay.Brain
         /// Get all items across all character inventories.
         /// </summary>
         public List<ObjectItemInstance> GetAllItems()
-        { // TODO: Currently this only works during battle, we need instances inside GWCB also
+        {
+            // Gather items from both an active battle and gamewide context to support both modes
             var items = new List<ObjectItemInstance>();
-            var battleBrain = _brain.battleBrain;
+            var seenCharacters = new System.Collections.Generic.HashSet<string>();
 
+            // 1) From active BattleBrain (in-battle instances)
+            var battleBrain = _brain.battleBrain;
             if (battleBrain != null)
             {
                 var characters = battleBrain.GetAllActiveInstances();
                 foreach (var character in characters)
                 {
+                    if (character == null || seenCharacters.Contains(character.Id))
+                    {
+                        continue;
+                    }
+
+                    seenCharacters.Add(character.Id);
+                    if (character.InventoryInstance?.InventoryItems != null)
+                    {
+                        items.AddRange(character.InventoryInstance.InventoryItems);
+                    }
+                }
+            }
+
+            // 2) From GamewideContextBrain (persistent/runtime instances outside battle)
+            var gw = _brain?.gamewideContextBrain;
+            if (gw != null)
+            {
+                var characters = gw.GetAllActiveInstances();
+                foreach (var character in characters)
+                {
+                    if (character == null || seenCharacters.Contains(character.Id))
+                    {
+                        continue;
+                    }
+
+                    seenCharacters.Add(character.Id);
                     if (character.InventoryInstance?.InventoryItems != null)
                     {
                         items.AddRange(character.InventoryInstance.InventoryItems);

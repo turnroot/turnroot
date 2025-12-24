@@ -195,7 +195,10 @@ namespace Turnroot.Characters
         public void Clear()
         {
             if (_instances.Count == 0)
+            {
                 return;
+            }
+
             _instances.Clear();
             OnRosterModified?.Invoke();
         }

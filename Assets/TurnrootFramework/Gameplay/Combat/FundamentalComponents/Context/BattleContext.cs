@@ -34,7 +34,10 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         public void Initialize(Brain.Brain brain, MapGrid mapGrid)
         {
             if (brain == null)
+            {
                 throw new System.ArgumentNullException(nameof(brain));
+            }
+
             Brain = brain;
             this.mapGrid = mapGrid;
         }
@@ -60,6 +63,41 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         public Dictionary<string, object> CustomData { get; private set; }
 
         public bool IsInterrupted { get; set; }
+
+        // Track last attacker per target for the current battle
+        private readonly Dictionary<string, CharacterInstance> _lastAttackerByTarget = new();
+
+        /// <summary>
+        /// Returns the last attacker who attacked the specified target during this battle, or null.
+        /// </summary>
+        public CharacterInstance GetLastAttacker(CharacterInstance target) =>
+            target != null && _lastAttackerByTarget.TryGetValue(target.Id, out var a) ? a : null;
+
+        /// <summary>
+        /// Registers that attacker attacked target for the purposes of per-battle queries.
+        /// Passing null removes the entry.
+        /// </summary>
+        public void RegisterLastAttacker(CharacterInstance target, CharacterInstance attacker)
+        {
+            if (target == null)
+            {
+                return;
+            }
+
+            if (attacker == null)
+            {
+                _lastAttackerByTarget.Remove(target.Id);
+            }
+            else
+            {
+                _lastAttackerByTarget[target.Id] = attacker;
+            }
+        }
+
+        /// <summary>
+        /// Clears last-attacker tracking for this battle.
+        /// </summary>
+        public void ClearLastAttackHistory() => _lastAttackerByTarget.Clear();
 
         // Combat state flags
         public bool IsCriticalHit { get; set; }

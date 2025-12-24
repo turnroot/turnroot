@@ -25,22 +25,34 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                     break;
 
                 case AIGoal.GoalType.HealAlly:
-                    // TODO: Move to destination
+                    context.MoveUnitToPointInt(
+                        _context.UnitInstance,
+                        goal.Destination.CoordinatesInt
+                    );
                     // TODO: Execute heal on target
                     break;
 
                 case AIGoal.GoalType.ProtectAlly:
-                    // TODO: Move to destination
+                    context.MoveUnitToPointInt(
+                        _context.UnitInstance,
+                        goal.Destination.CoordinatesInt
+                    );
                     // TODO: Apply protective buff to target or attack enemies threatening them
                     break;
 
                 case AIGoal.GoalType.KillEnemy:
-                    // TODO: Move to destination
+                    context.MoveUnitToPointInt(
+                        _context.UnitInstance,
+                        goal.Destination.CoordinatesInt
+                    );
                     // TODO: Execute attack on target
                     break;
 
                 case AIGoal.GoalType.HealSelf:
-                    // TODO: Move to safety
+                    context.MoveUnitToPointInt(
+                        _context.UnitInstance,
+                        goal.Destination.CoordinatesInt
+                    );
                     // TODO: Execute self-heal
                     break;
 
@@ -49,12 +61,18 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                     break;
 
                 case AIGoal.GoalType.CollectTreasure:
-                    // TODO: Move to treasure location
+                    context.MoveUnitToPointInt(
+                        _context.UnitInstance,
+                        goal.Destination.CoordinatesInt
+                    );
                     // TODO: Trigger treasure collection
                     break;
 
                 case AIGoal.GoalType.DefensiveRetreat:
-                    // TODO: Move to safe tile
+                    context.MoveUnitToPointInt(
+                        _context.UnitInstance,
+                        goal.Destination.CoordinatesInt
+                    );
                     // TODO: End turn
                     break;
 

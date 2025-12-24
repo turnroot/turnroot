@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Turnroot.Characters.CharacterClass;
 using Turnroot.Characters.Stats;
+using UnityEngine;
 
 namespace Turnroot.Characters
 {
@@ -17,19 +18,36 @@ namespace Turnroot.Characters
         /// </summary>
         internal void LevelUp()
         {
+            // Ensure character has a class equipped before leveling up — fail fast if invariant is violated
+            if (_currentClass == null || _currentClass.ClassData == null)
+            {
+                Debug.LogError(
+                    "CharacterInstance.LevelUp: No class equipped — this is a critical invariant and must be fixed. Breaking into debugger."
+                );
+#if UNITY_EDITOR
+                Debug.Break(); // Help developer catch this during debugging
+#endif
+                throw new System.InvalidOperationException(
+                    "CharacterInstance.LevelUp: Cannot level up without an equipped class."
+                );
+            }
+
             _currentLevel++;
             // HP always increases by 1 on level up
             var hpStat = GetBoundedStat(BoundedStatType.Health);
             hpStat.SetCurrent(hpStat.GetCurrent() + 1f);
 
             var growthRates = GetEffectiveGrowthRates();
-            // TODO: Ensure there is always a class- character cannot level up without one
+
+            var caps =
+                _currentClass?.ClassData?.Stats?.UnboundedStatCaps
+                ?? new List<UnboundedStatModifier>();
 
             var increasedStats = StatApplicationHelper.ApplyStatGrowths(
                 growthRates,
                 new List<UnboundedStatModifier>(), // Already combined in GetEffectiveGrowthRates
                 this,
-                _currentClass.ClassData.Stats.UnboundedStatCaps
+                caps
             );
 
             if (increasedStats.Count == UnboundedStats.Count)
@@ -52,24 +70,29 @@ namespace Turnroot.Characters
                 effectiveRates.AddRange(_characterTemplate.PersonalGrowthRates);
             }
 
-            foreach (var classMod in _currentClass.ClassData.Stats.GrowthRateModifiers)
+            // Safely add class growth modifiers if a class is equipped
+            var classMods = _currentClass?.ClassData?.Stats?.GrowthRateModifiers;
+            if (classMods != null)
             {
-                int index = effectiveRates.FindIndex(e =>
-                    e.unboundedStatType == classMod.unboundedStatType
-                );
-                if (index != -1)
+                foreach (var classMod in classMods)
                 {
-                    // Combine with existing personal rate
-                    var existing = effectiveRates[index];
-                    effectiveRates[index] = new UnboundedStatModifier(
-                        classMod.unboundedStatType,
-                        existing.value + classMod.value
+                    int index = effectiveRates.FindIndex(e =>
+                        e.unboundedStatType == classMod.unboundedStatType
                     );
-                }
-                else
-                {
-                    // Add class modifier
-                    effectiveRates.Add(classMod);
+                    if (index != -1)
+                    {
+                        // Combine with existing personal rate
+                        var existing = effectiveRates[index];
+                        effectiveRates[index] = new UnboundedStatModifier(
+                            classMod.unboundedStatType,
+                            existing.value + classMod.value
+                        );
+                    }
+                    else
+                    {
+                        // Add class modifier
+                        effectiveRates.Add(classMod);
+                    }
                 }
             }
 

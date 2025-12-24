@@ -1,5 +1,6 @@
 using Turnroot.Gameplay.Brain;
 using Turnroot.Utilities;
+using UnityEngine;
 
 namespace Turnroot.Gameplay.Objects.Components
 {
@@ -27,23 +28,71 @@ namespace Turnroot.Gameplay.Objects.Components
         /// The storehouse brain to check resources against
         /// </param>
         /// <returns></returns>
-        public bool CanForge(StorehouseBrain storehouseBrain, ForgeOption selectedForgeOption)
+        public OperationResult CanForge(
+            StorehouseBrain storehouseBrain,
+            ForgeOption selectedForgeOption
+        )
         {
+            // Validate basic state
+            if (ThisItem == null || !ThisItem.Forgeable)
+            {
+                return OperationResult.Failure("Item is not forgeable.");
+            }
+
+            // Ensure there are options to choose
+            if (forgeOptions == null || forgeOptions.Length == 0)
+            {
+                return OperationResult.Failure("No forge options available.");
+            }
+
+            // Validate selected option
+            bool optionExists = false;
+            foreach (var opt in forgeOptions)
+            {
+                if (
+                    opt.ForgeInto == selectedForgeOption.ForgeInto
+                    && opt.Price == selectedForgeOption.Price
+                    && opt.Item == selectedForgeOption.Item
+                    && opt.ItemAmount == selectedForgeOption.ItemAmount
+                )
+                {
+                    optionExists = true;
+                    break;
+                }
+            }
+
+            if (!optionExists)
+            {
+                return OperationResult.Failure("Selected forge option is not available.");
+            }
+
+            if (storehouseBrain == null)
+            {
+                return OperationResult.Failure("Storehouse not available.");
+            }
+
+            if (!storehouseBrain.CanAfford(selectedForgeOption.Price))
+            {
+                return OperationResult.Failure(
+                    $"Insufficient gold to forge (need {selectedForgeOption.Price})."
+                );
+            }
+
             if (
-                forgeOptions == null
-                || forgeOptions.Length == 0
-                || !storehouseBrain.CanAfford(selectedForgeOption.Price)
-                || !storehouseBrain.HasMaterials(
+                !storehouseBrain.HasMaterials(
                     selectedForgeOption.Item,
                     selectedForgeOption.ItemAmount
                 )
             )
             {
-                // TODO: Make this a OperationResult to get Failure reason
-                return false;
+                int available = storehouseBrain.GetMaterialCount(selectedForgeOption.Item);
+                return OperationResult.Failure(
+                    $"Insufficient materials: need {selectedForgeOption.ItemAmount}, have {available}."
+                );
             }
+
             // good to go!
-            return true;
+            return OperationResult.SuccessResult();
         }
 
         /// <summary>
@@ -58,15 +107,17 @@ namespace Turnroot.Gameplay.Objects.Components
         public OperationResult ForgeItem(StorehouseBrain storehouseBrain, ForgeOption option)
         {
             var canForgeResult = CanForge(storehouseBrain, option);
-            if (!canForgeResult)
+            if (!canForgeResult.Success)
             {
-                return OperationResult.Failure("Cannot forge item.");
+                Debug.LogWarning($"ForgeItem failed: {canForgeResult.ErrorMessage}");
+                return canForgeResult;
             }
 
             // spend gold
             var spendGoldResult = storehouseBrain.SpendGold(option.Price);
             if (!spendGoldResult.Success)
             {
+                Debug.LogWarning($"ForgeItem failed: {spendGoldResult.ErrorMessage}");
                 return spendGoldResult;
             }
 
@@ -75,9 +126,15 @@ namespace Turnroot.Gameplay.Objects.Components
                 option.Item,
                 option.ItemAmount
             );
-            return !useMaterialsResult.Success
-                ? useMaterialsResult
-                : OperationResult.SuccessResult();
+
+            if (!useMaterialsResult.Success)
+            {
+                Debug.LogWarning($"ForgeItem failed: {useMaterialsResult.ErrorMessage}");
+                return useMaterialsResult;
+            }
+
+            Debug.Log($"Forged {ThisItem.name} into {option.ForgeInto.name}.");
+            return OperationResult.SuccessResult();
         }
     }
 }
