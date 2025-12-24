@@ -57,7 +57,7 @@ namespace Turnroot.Gameplay.Brain
 
         #region Persistent Player Roster
 
-        [HideInInspector] // TODO: Set up an accessible editor
+        [HideInInspector]
         public PlayerTeamRoster GamewidePersistentPlayerRoster { get; set; }
 
         public PlayerTeamRoster CreateOrRecallGamewidePersistentPlayerRoster()
