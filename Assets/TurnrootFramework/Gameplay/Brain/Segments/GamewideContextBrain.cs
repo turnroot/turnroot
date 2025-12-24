@@ -1,3 +1,4 @@
+using System.Linq;
 using Turnroot.Characters;
 using UnityEngine;
 
@@ -125,35 +126,39 @@ namespace Turnroot.Gameplay.Brain
 
             if (!string.IsNullOrEmpty(encoded))
             {
-                var decode = GamewideContextBrainHelpers.DecodeInstanceFromString<PlayerTeamRoster>(
-                    this,
-                    encoded
-                );
+                // Decode saved DTO containing placements and (optionally) character snapshots
+                var decode =
+                    GamewideContextBrainHelpers.DecodeInstanceFromString<PlayerRosterSaveData>(
+                        this,
+                        encoded
+                    );
                 if (decode.Success && decode.Value != null)
                 {
                     try
                     {
-                        // Do NOT modify the ScriptableObject asset at runtime.
-                        // Instead, instantiate a runtime team roster and apply the decoded payload to it.
                         Debug.Log(
-                            "GamewideContextBrain: Recalling persisted player roster from LTM into runtime instance."
+                            "GamewideContextBrain: Recalling persisted player roster from LTM."
                         );
+
                         var runtimeInstance = _rosterManager?.InstantiatePlayerTeamRoster(
                             GamewidePersistentPlayerRoster
                         );
+
                         if (runtimeInstance != null)
                         {
-                            _rosterManager?.ApplyDecodedPlayerRoster(runtimeInstance, decode.Value);
+                            // Apply saved placements into runtime instance
+                            runtimeInstance.ApplyDecodedPlacements(decode.Value.Placements);
+
+                            // TODO: Optionally restore CharacterInstance snapshots from decode.Value.CharacterInstances
+
                             Debug.Log(
-                                "GamewideContextBrain: Applied persisted player roster to runtime instance."
+                                $"GamewideContextBrain: Applied {decode.Value.Placements?.Length ?? 0} placements to runtime instance."
                             );
                         }
                     }
                     catch (System.Exception ex)
                     {
-                        Debug.LogWarning(
-                            $"Failed to apply persisted player roster to runtime instance: {ex.Message}"
-                        );
+                        Debug.LogWarning($"Failed to apply persisted player roster: {ex.Message}");
                     }
                 }
             }
@@ -172,18 +177,24 @@ namespace Turnroot.Gameplay.Brain
 
             try
             {
-                // Prefer to encode the runtime instance (so runtime ordering and selections are preserved)
                 var runtimeInstance = _rosterManager?.GetPersistentPlayerRosterInstance();
                 if (runtimeInstance != null)
                 {
-                    var encode = GamewideContextBrainHelpers.EncodeInstanceToString(
-                        this,
-                        runtimeInstance
-                    );
+                    // Create serializable DTO from runtime instance
+                    var saveData = new PlayerRosterSaveData
+                    {
+                        RosterId = GamewidePersistentPlayerRoster.Id,
+                        Placements = runtimeInstance.GetPlacements(),
+                        CharacterInstances = System.Linq.Enumerable.ToArray(
+                            runtimeInstance.Instances
+                        ),
+                    };
+
+                    var encode = GamewideContextBrainHelpers.EncodeInstanceToString(this, saveData);
                     if (!encode.Success)
                     {
                         Debug.LogError(
-                            $"GamewideContextBrain: Failed to encode runtime player roster: {encode.Error}"
+                            $"GamewideContextBrain: Failed to encode player roster: {encode.Error}"
                         );
                         return;
                     }
@@ -195,38 +206,13 @@ namespace Turnroot.Gameplay.Brain
                     var ltm = GetComponent<LongTermMemory>();
                     ltm?.Remember(key, encoded);
 
-                    // Ensure roster index/hash registration
                     _rosterPersistence?.RegisterPlayerRoster(GamewidePersistentPlayerRoster);
 
                     Debug.Log("GamewideContextBrain: Saved runtime player roster to LTM.");
                     return;
                 }
 
-                // Fallback: no runtime instance available, encode the template (rare)
-                var fallbackEncode = GamewideContextBrainHelpers.EncodeInstanceToString(
-                    this,
-                    GamewidePersistentPlayerRoster
-                );
-                if (!fallbackEncode.Success)
-                {
-                    Debug.LogError(
-                        $"GamewideContextBrain: Failed to encode player roster: {fallbackEncode.Error}"
-                    );
-                    return;
-                }
-
-                var fallbackEncoded = fallbackEncode.Value;
-                var fallbackKey = GamewideContextBrainHelpers.BuildRosterLedgerKey(
-                    GamewidePersistentPlayerRoster.Id
-                );
-                var fallbackLtm = GetComponent<LongTermMemory>();
-                fallbackLtm?.Remember(fallbackKey, fallbackEncoded);
-
-                _rosterPersistence?.RegisterPlayerRoster(GamewidePersistentPlayerRoster);
-
-                Debug.Log(
-                    "GamewideContextBrain: Saved persistent player roster to LTM (fallback template encoded)."
-                );
+                Debug.LogWarning("GamewideContextBrain: No runtime instance available to save.");
             }
             catch (System.Exception ex)
             {
@@ -325,5 +311,14 @@ namespace Turnroot.Gameplay.Brain
             _rosterManager?.RecallPlayerTeamRoster(roster);
 
         #endregion
+    }
+
+    // Serializable DTO for player roster saves
+    [System.Serializable]
+    public class PlayerRosterSaveData
+    {
+        public string RosterId;
+        public Turnroot.Characters.Roster.UnitPlacement[] Placements;
+        public Turnroot.Characters.CharacterInstance[] CharacterInstances;
     }
 }

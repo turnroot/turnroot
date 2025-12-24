@@ -14,6 +14,7 @@ namespace Turnroot.Gameplay.Brain
         private readonly Brain _brain;
         private readonly CharacterFactory _characterFactory;
         private readonly RosterPersistence _persistence;
+        private readonly CharacterPersistence _characterPersistence;
 
         // Explicitly track persistent rosters we create
         private readonly List<GenericRosterInstance> _persistentRosters = new();
@@ -24,6 +25,7 @@ namespace Turnroot.Gameplay.Brain
         {
             _brain = brain;
             _characterFactory = new CharacterFactory(brain.GetComponent<LongTermMemory>());
+            _characterPersistence = new CharacterPersistence(brain);
             _persistence = persistence;
         }
 
@@ -149,6 +151,12 @@ namespace Turnroot.Gameplay.Brain
                 if (character != null)
                 {
                     characters.Add(character);
+
+                    // Persist unique characters explicitly (factory no longer auto-saves)
+                    if (character.CharacterTemplate?.IsUnique == true)
+                    {
+                        _characterPersistence.SaveCharacter(character, updateIndex: true);
+                    }
                 }
             }
 
@@ -177,6 +185,12 @@ namespace Turnroot.Gameplay.Brain
                 if (character != null)
                 {
                     characters.Add(character);
+
+                    // Persist unique characters explicitly (factory no longer auto-saves)
+                    if (character.CharacterTemplate?.IsUnique == true)
+                    {
+                        _characterPersistence.SaveCharacter(character, updateIndex: true);
+                    }
                 }
             }
 
