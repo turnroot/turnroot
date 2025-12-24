@@ -1,5 +1,6 @@
 using NaughtyAttributes;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Turnroot.Characters
 {
@@ -12,6 +13,14 @@ namespace Turnroot.Characters
     public class GenericRoster : Roster
     {
         [ReorderableList]
-        public new UnitPlacement[] characters;
+        [FormerlySerializedAs("characters")]
+        [SerializeField]
+        private UnitPlacement[] _characters;
+
+        public override UnitPlacement[] characters
+        {
+            get => _characters;
+            set => _characters = value;
+        }
     }
 }

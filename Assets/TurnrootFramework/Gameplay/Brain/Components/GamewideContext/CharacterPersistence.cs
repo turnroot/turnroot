@@ -102,7 +102,7 @@ namespace Turnroot.Gameplay.Brain
         }
 
         private string BuildCharacterKey(CharacterData template) =>
-            $"GWB.UniqueCharacter.{template.name}";
+            $"{LtmKeys.CharacterKey}.{template.name}";
 
         private void AddToCharacterIndex(string templateName)
         {

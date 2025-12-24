@@ -17,12 +17,6 @@ namespace Turnroot.Gameplay.Brain
     /// </summary>
     public static class GamewideContextBrainHelpers
     {
-        private static class LedgerKeyPrefixes
-        {
-            public const string InstanceHash = "GWB.InstanceHash";
-            public const string Roster = "GWB.Roster";
-        }
-
         public static JsonSerializerSettings GetJsonSerializerSettings()
         {
             var settings = new JsonSerializerSettings
@@ -192,11 +186,11 @@ namespace Turnroot.Gameplay.Brain
                 var id = ExtractInstanceId(instance, wrapper);
 
                 string rawKey = !string.IsNullOrEmpty(id)
-                    ? $"{LedgerKeyPrefixes.InstanceHash}.{tname}.{id}"
+                    ? $"{LtmKeys.InstanceHash}.{tname}.{id}"
                     : BuildHashBasedKey(tname, wrapper);
 
                 var keyHash = ComputeFNV1a64Hex(rawKey);
-                return $"{LedgerKeyPrefixes.InstanceHash}.{tname}.{keyHash}";
+                return $"{LtmKeys.InstanceHash}.{tname}.{keyHash}";
             }
             catch (Exception ex)
             {
@@ -264,7 +258,7 @@ namespace Turnroot.Gameplay.Brain
             var hashPart = wrapper?.Hash ?? string.Empty;
             var versionPart = wrapper?.Version ?? string.Empty;
             var shortHash = hashPart.Length > 8 ? hashPart.Substring(0, 8) : hashPart;
-            return $"{LedgerKeyPrefixes.InstanceHash}.{typeName}.hash_{shortHash}.v_{versionPart}";
+            return $"{LtmKeys.InstanceHash}.{typeName}.hash_{shortHash}.v_{versionPart}";
         }
 
         /// <summary>
@@ -272,10 +266,10 @@ namespace Turnroot.Gameplay.Brain
         /// </summary>
         public static string BuildRosterLedgerKey(string rosterId)
         {
-            var rosterType = typeof(Roster);
-            var rawKey = $"{LedgerKeyPrefixes.Roster}.{rosterType.FullName}.{rosterId}";
+            var rosterType = typeof(Turnroot.Characters.Roster);
+            var rawKey = $"{LtmKeys.Roster}.{rosterType.FullName}.{rosterId}";
             var keyHash = ComputeFNV1a64Hex(rawKey);
-            return $"{LedgerKeyPrefixes.Roster}.{rosterType.FullName}.{keyHash}";
+            return $"{LtmKeys.Roster}.{rosterType.FullName}.{keyHash}";
         }
 
         public static OperationResult<SerializedWrapper> DecodeWrapperFromBase64(string encoded)

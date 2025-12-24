@@ -122,7 +122,10 @@ namespace Turnroot.Gameplay.Brain
             // loop through _materials and save each material count
             foreach (var material in _materials)
             {
-                _ = _ltm.RememberInt($"Storehouse_Material_{material.Key.name}", material.Value);
+                _ = _ltm.RememberInt(
+                    LtmKeys.StorehouseMaterialKey(material.Key.name),
+                    material.Value
+                );
             }
             // save a single string with all stored item IDs, separated by commas
             var itemIds = string.Join(",", _storedItems.ConvertAll(i => i.InstanceID.ToString()));
@@ -139,11 +142,11 @@ namespace Turnroot.Gameplay.Brain
                     : 0;
             // loop through all known materials and load their counts
             _materials.Clear();
-            var allMaterialKeys = _ltm.RecallKeysByPrefix("Storehouse_Material_")
-                .FindAll(k => k.StartsWith("Storehouse_Material_"));
+            var allMaterialKeys = _ltm.RecallKeysByPrefix(LtmKeys.StorehouseMaterialPrefix)
+                .FindAll(k => k.StartsWith(LtmKeys.StorehouseMaterialPrefix));
             foreach (var key in allMaterialKeys)
             {
-                var materialName = key.Replace("Storehouse_Material_", "");
+                var materialName = key.Replace(LtmKeys.StorehouseMaterialPrefix, "");
                 var materialCount = _ltm.RecallInt(key);
                 var materialItem = Resources.Load<ObjectItem>($"Items/{materialName}");
                 if (materialItem != null && materialCount > 0)
