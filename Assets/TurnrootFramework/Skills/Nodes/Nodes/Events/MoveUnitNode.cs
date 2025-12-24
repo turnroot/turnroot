@@ -56,18 +56,7 @@ namespace Turnroot.Skills.Nodes.Events
             }
 
             // Execute move through BattleContext (always uses commands)
-            bool success = context.MoveUnit(context.UnitInstance, newPosition);
-
-            if (success)
-            {
-                Debug.Log(
-                    $"MoveUnit: Moved {context.UnitInstance.CharacterTemplate.DisplayName} to {newPosition}"
-                );
-            }
-            else
-            {
-                Debug.LogWarning($"MoveUnit: Failed to move unit to {newPosition}");
-            }
+            context.MoveUnitToPointInt(context.UnitInstance, newPosition);
         }
     }
 }
