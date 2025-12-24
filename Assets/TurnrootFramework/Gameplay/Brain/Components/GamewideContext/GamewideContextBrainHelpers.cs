@@ -272,7 +272,7 @@ namespace Turnroot.Gameplay.Brain
         /// </summary>
         public static string BuildRosterLedgerKey(string rosterId)
         {
-            var rosterType = typeof(Roster);
+            var rosterType = typeof(Turnroot.Characters.Roster);
             var rawKey = $"{LedgerKeyPrefixes.Roster}.{rosterType.FullName}.{rosterId}";
             var keyHash = ComputeFNV1a64Hex(rawKey);
             return $"{LedgerKeyPrefixes.Roster}.{rosterType.FullName}.{keyHash}";

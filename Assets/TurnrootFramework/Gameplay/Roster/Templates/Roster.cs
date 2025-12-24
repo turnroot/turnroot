@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Turnroot.Characters
 {
-    public class Roster : ScriptableObject
+    public abstract class Roster : ScriptableObject
     {
         public enum UnitStatus
         {
@@ -43,7 +43,12 @@ namespace Turnroot.Characters
             set => _id = value;
         }
 
-        public UnitPlacement[] characters;
+        /// <summary>
+        /// Specialized roster types must provide their underlying placement array via this property.
+        /// This allows derived classes to expose typed serialized arrays while letting code work
+        /// with the general UnitPlacement type.
+        /// </summary>
+        public abstract UnitPlacement[] characters { get; set; }
 
 #if UNITY_EDITOR
         private void OnValidate()

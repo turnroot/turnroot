@@ -66,7 +66,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         private List<CharacterInstance> GetCurrentRosterUnits()
         {
             IReadOnlyList<CharacterInstance> instances = null;
-            Roster roster = null;
+            Turnroot.Characters.Roster roster = null;
 
             switch (_currentTurnOrder)
             {
