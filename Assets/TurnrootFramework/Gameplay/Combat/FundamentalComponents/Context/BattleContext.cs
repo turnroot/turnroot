@@ -35,7 +35,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         {
             if (brain == null)
             {
-                throw new System.ArgumentNullException(nameof(brain));
+                throw new ArgumentNullException(nameof(brain));
             }
 
             Brain = brain;
@@ -105,7 +105,50 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         public bool AnotherTurnGranted { get; set; }
         public CharacterInstance UnitTakingAnotherTurn { get; set; }
 
-        public bool AttackIsEffective(CharacterInstance unit, CharacterInstance target) => false; //TODO: set this up properly
+        public bool AttackIsEffective(CharacterInstance unit, CharacterInstance target)
+        {
+            if (unit == null || target == null)
+            {
+                return false;
+            }
+
+            var attackerWeapon = unit.GetEquippedWeapon();
+            if (attackerWeapon == null || attackerWeapon.Template == null)
+            {
+                return false;
+            }
+
+            var weaponTemplate = attackerWeapon.Template;
+
+            // Check species effectiveness
+            var targetSpecies = target.CharacterTemplate?.Species;
+            if (targetSpecies != null && weaponTemplate.SpeciesEffectiveAgainst != null)
+            {
+                foreach (var s in weaponTemplate.SpeciesEffectiveAgainst)
+                {
+                    if (s == targetSpecies)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            // Check weapon-type effectiveness against the target's equipped weapon
+            var targetWeapon = target.GetEquippedWeapon();
+            if (targetWeapon?.Template != null)
+            {
+                var targetWeaponType = targetWeapon.Template.WeaponType;
+                if (weaponTemplate.WeaponTypesEffectiveAgainst != null)
+                {
+                    foreach (var wt in weaponTemplate.WeaponTypesEffectiveAgainst)
+                    {
+                        return wt == targetWeaponType;
+                    }
+                }
+            }
+
+            return false;
+        }
 
         public bool AttackWouldKill(CharacterInstance target) => false; // TODO: Implement this
 
@@ -226,6 +269,25 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 Brain.CurrentTurnNumber
             );
             return Brain.ExecuteCommand(command);
+        }
+
+        public bool HealUnit(
+            CharacterInstance user,
+            CharacterInstance target,
+            ObjectItemInstance fromItem = null
+        )
+        {
+            // If healing comes from an item, use UseItem
+            if (fromItem != null)
+            {
+                UseItem(user, fromItem, target);
+            }
+            else
+            {
+                var command = new HealCommand(user.Id, target.Id, Brain.CurrentTurnNumber);
+                return Brain.ExecuteCommand(command);
+            }
+            return true;
         }
 
         /// <summary>

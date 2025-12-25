@@ -220,6 +220,13 @@ namespace Turnroot.Gameplay.Objects
         private SpeciesType[] _speciesEffectiveAgainst = new SpeciesType[0];
 
         [Foldout("Combat"), SerializeField, ShowIf(nameof(IsWeaponOrMagicSubtype))]
+        private WeaponType[] _weaponTypesEffectiveAgainst = new WeaponType[0];
+
+        // Public getters for effectiveness criteria
+        public SpeciesType[] SpeciesEffectiveAgainst => _speciesEffectiveAgainst;
+        public WeaponType[] WeaponTypesEffectiveAgainst => _weaponTypesEffectiveAgainst;
+
+        [Foldout("Combat"), SerializeField, ShowIf(nameof(IsWeaponOrMagicSubtype))]
         private SerializableDictionary<UnboundedStatType, float> _StatBonuses = new();
 
         [Foldout("Combat"), SerializeField, ShowIf(nameof(IsWeaponOrMagicSubtype))]
