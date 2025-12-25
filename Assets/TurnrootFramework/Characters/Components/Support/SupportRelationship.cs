@@ -20,11 +20,19 @@ namespace Turnroot.Characters.Components.Support
         [SerializeField, Range(1, 5)]
         private int _supportSpeed = 1;
 
+        [SerializeField]
+        private GameplayGeneralSettings.SupportBonus _supportBonusOverride;
+
+        [SerializeField]
+        private bool _hasSupportBonusOverride = false;
+
         public SupportRelationship()
         {
             _supportLevel = new SupportLevels { Value = "E" };
             _maxLevel = new SupportLevels { Value = "A" };
             _supportSpeed = 1;
+            _hasSupportBonusOverride = false;
+            _supportBonusOverride = new GameplayGeneralSettings.SupportBonus();
         }
 
         public CharacterData Character
@@ -70,7 +78,21 @@ namespace Turnroot.Characters.Components.Support
             {
                 _supportSpeed = 1;
             }
+
+            // ensure override structures are initialized
+            _supportBonusOverride = _supportBonusOverride;
         }
+
+        /// <summary>
+        /// Whether this relationship defines its own support bonus values (overrides global settings)
+        /// </summary>
+        public bool HasSupportBonusOverride => _hasSupportBonusOverride;
+
+        /// <summary>
+        /// Returns the override support bonus if present.
+        /// </summary>
+        public GameplayGeneralSettings.SupportBonus GetSupportBonusOverride() =>
+            _supportBonusOverride;
 
         /// <summary>
         /// Sanitize a list of support relationships for a character.

@@ -29,12 +29,22 @@ namespace Turnroot.Characters.Components.Support
             _supportSpeed = 1;
         }
 
+        [SerializeField]
+        private GameplayGeneralSettings.SupportBonus _supportBonusOverride;
+
+        [SerializeField]
+        private bool _hasSupportBonusOverride;
+
         public SupportRelationshipInstance(SupportRelationship template)
         {
             _character = template.Character;
             _supportLevels = new SupportLevels { Value = template.SupportLevel.Value };
             _maxLevel = template.MaxLevel;
             _supportSpeed = template.SupportSpeed;
+
+            // copy override values from template when present
+            _hasSupportBonusOverride = template.HasSupportBonusOverride;
+            _supportBonusOverride = template.GetSupportBonusOverride();
         }
 
         public CharacterData Character
@@ -78,5 +88,16 @@ namespace Turnroot.Characters.Components.Support
                 _supportPoints = 0;
             }
         }
+
+        /// <summary>
+        /// Whether this instance includes a support-bonus override.
+        /// </summary>
+        public bool HasSupportBonusOverride() => _hasSupportBonusOverride;
+
+        /// <summary>
+        /// Returns the override support bonus for this relationship instance.
+        /// </summary>
+        public GameplayGeneralSettings.SupportBonus GetSupportBonusOverride() =>
+            _supportBonusOverride;
     }
 }
