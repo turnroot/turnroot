@@ -19,7 +19,6 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             {
                 baseWeight += 1f + (behavior.MindlessCunning * 3f);
             }
-            // TODO: Set up effective weapons
             // Bonus for attacking same target as allies (focus fire) if solider
             foreach (var ally in _context.Allies)
             {
@@ -28,48 +27,46 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                     baseWeight += 2f * (1f - behavior.SoldierLoneWolf);
                 }
             }
-            // Get weapon triangle advantage or disadvantage
-            float bestWeaponTriangleModifier = 1f;
-            float weaponTriangleModifier = 1f;
+            // Evaluate available weapons using centralized DamageCalculator
             var availableWeapons = _context.UnitInstance.GetAvailableWeapons();
             var bestWeapon = null as ObjectItemInstance;
-            var potentialDamage = 0;
-            var targetEquippedWeapon = target.GetEquippedWeapon();
+            float bestTotalPotential = 0f;
+            int potentialDamage = 0;
+
             foreach (var weaponItem in availableWeapons)
             {
-                var advantageCheck = weaponItem.Template.WeaponType.TrianglePosition;
-                var targetWeaponAdvantageCheck = targetEquippedWeapon
-                    .Template
-                    .WeaponType
-                    .TrianglePosition;
-                if (advantageCheck.WinsAgainst(targetWeaponAdvantageCheck))
+                int perHit = DamageCalculator.CalculatePotentialDamage(
+                    _context.UnitInstance,
+                    target,
+                    weaponItem,
+                    _context
+                );
+                int attackCount = DamageCalculator.CalculateAttackCount(
+                    _context.UnitInstance,
+                    target
+                );
+                float totalPotential = perHit * attackCount;
+
+                if (totalPotential > bestTotalPotential)
                 {
-                    float advantageBonus = 1f + behavior.MindlessCunning * 10f;
-                    baseWeight += advantageBonus;
-                    var checkDamage = _context.CalculatePotentialDamage(
-                        _context.UnitInstance,
-                        target,
-                        weaponItem
-                    ); // TODO: Make this
-                    if (checkDamage > potentialDamage)
-                    {
-                        potentialDamage = checkDamage;
-                        bestWeapon = weaponItem;
-                    }
+                    bestTotalPotential = totalPotential;
+                    potentialDamage = perHit;
+                    bestWeapon = weaponItem;
                 }
-                else
+
+                // Large bonus for kill opportunities
+                if (DamageCalculator.WouldKill(_context.UnitInstance, target, weaponItem, _context))
                 {
-                    if (advantageCheck.LosesTo(targetWeaponAdvantageCheck))
-                    {
-                        float disadvantagePenalty = 3f + (behavior.MindlessCunning * 7f);
-                        baseWeight -= disadvantagePenalty;
-                    }
-                }
-                if (weaponTriangleModifier > bestWeaponTriangleModifier)
-                {
-                    bestWeaponTriangleModifier = weaponTriangleModifier;
+                    baseWeight += 6f + (behavior.MindlessCunning * 4f);
                 }
             }
+
+            // Add a scaled weight based on best potential damage
+            baseWeight += Mathf.Clamp(
+                bestTotalPotential / 10f * (1f + behavior.MindlessCunning),
+                0f,
+                20f
+            );
             // add some based on if the target was the last attacked target
             if (_context.UnitInstance.LastAttackedTarget == target)
             {
