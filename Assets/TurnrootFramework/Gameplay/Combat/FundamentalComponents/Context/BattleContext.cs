@@ -150,7 +150,21 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             return false;
         }
 
-        public bool AttackWouldKill(CharacterInstance target) => false; // TODO: Implement this
+        public bool AttackWouldKill(CharacterInstance target)
+        {
+            if (UnitInstance == null || target == null)
+            {
+                return false;
+            }
+
+            var weaponItem = UnitInstance.GetEquippedWeapon();
+            if (weaponItem == null)
+            {
+                return false;
+            }
+
+            return DamageCalculator.WouldKill(UnitInstance, target, weaponItem, this);
+        }
 
         public BattleContext()
         {
@@ -225,7 +239,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             return DealDamage(
                 attacker,
                 target,
-                CalculatePotentialDamage(attacker, target, weaponItem) // TODO: CalculatePotentialDamage needs redone
+                DamageCalculator.CalculatePotentialDamage(attacker, target, weaponItem, this)
             )
                 ? OperationResult.SuccessResult()
                 : OperationResult.Failure("Attack command failed to execute");
@@ -314,7 +328,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             CharacterInstance unitInstance,
             CharacterInstance target,
             ObjectItemInstance weaponItem
-        ) => throw new NotImplementedException(); // TODO: Implement potential damage calculation
+        ) => DamageCalculator.CalculatePotentialDamage(unitInstance, target, weaponItem, this);
         #endregion
     }
 }
