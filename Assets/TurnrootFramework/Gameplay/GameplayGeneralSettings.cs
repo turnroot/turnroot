@@ -1,5 +1,6 @@
 using NaughtyAttributes;
 using Turnroot.Characters;
+using Turnroot.CommonAncestors;
 using Turnroot.Gameplay.Combat.FundamentalComponents;
 using Turnroot.Gameplay.Objects.Components;
 using UnityEngine;
@@ -86,6 +87,31 @@ public class GameplayGeneralSettings : SingletonScriptableObject<GameplayGeneral
         RequirementBased,
     }
 
+    public enum HitFormulaType
+    {
+        ClassicDouble, // Skill*2 + Dex + Luck/2
+        RadiantDouble, // Skill*2.5 + Dex + Luck/2
+        Modern, // Skill + Dex + Luck/2
+        WeaponOnly, // Just weapon hit (no stat bonuses)
+        Custom, // Manual multipliers
+    }
+
+    public enum CritFormulaType
+    {
+        SkillHalf, // Skill/2
+        SkillAndLuck, // (Skill + Luck)/2
+        WeaponOnly, // Just weapon crit
+        Custom, // Manual multiplier
+    }
+
+    public enum AvoidFormulaType
+    {
+        ClassicDouble, // Speed*2 + Luck
+        Modern, // Speed + Luck
+        SpeedOnly, // Just Speed
+        Custom, // Manual multiplier
+    }
+
     [SerializeField, BoxGroup("General Gameplay"), HorizontalLine(color: EColor.Blue)]
     private ClassSelectionMode ClassSelection = ClassSelectionMode.PromotionBased;
 
@@ -128,25 +154,155 @@ public class GameplayGeneralSettings : SingletonScriptableObject<GameplayGeneral
     private int MaxEquippedSkills = 0;
 
     [SerializeField, BoxGroup("Combat Mechanics")]
-    private bool WeaponTriangle;
+    public bool WeaponTriangle;
 
-    [SerializeField, BoxGroup("Combat Mechanics")]
+    [SerializeField, BoxGroup("Combat Mechanics"), ShowIf("WeaponTriangle")]
     private bool ExpandedWeaponTriangle;
 
-    [SerializeField, BoxGroup("Combat Mechanics")]
-    private int WeaponTriangleAdvantage = 20;
+    [SerializeField, BoxGroup("Combat Mechanics"), ShowIf("WeaponTriangle")]
+    private bool WeaponTriangleAffectsDamage = true;
+
+    [SerializeField, BoxGroup("Combat Mechanics"), ShowIf("WeaponTriangle")]
+    private bool WeaponTriangleAffectsHit = true;
+
+    [SerializeField, BoxGroup("Combat Mechanics"), ShowIf("WeaponTriangle")]
+    public int WeaponTriangleAdvantage = 20;
+
+    [SerializeField, BoxGroup("Combat Mechanics"), ShowIf("WeaponTriangle")]
+    public int WeaponTriangleDisadvantage = -20;
 
     [SerializeField, BoxGroup("Combat Mechanics")]
-    private int WeaponTriangleDisadvantage = -20;
+    public bool MagicTriangle;
+
+    [SerializeField, BoxGroup("Combat Mechanics"), ShowIf("MagicTriangle")]
+    public int MagicTriangleAdvantage = 20;
+
+    [SerializeField, BoxGroup("Combat Mechanics"), ShowIf("MagicTriangle")]
+    public int MagicTriangleDisadvantage = -20;
+
+    // Combat formula configuration
+    [SerializeField, BoxGroup("Combat Formulas"), HorizontalLine(color: EColor.Red)]
+    private HitFormulaType HitFormula = HitFormulaType.ClassicDouble;
+
+    [SerializeField, BoxGroup("Combat Formulas"), ShowIf("HitFormula", HitFormulaType.Custom)]
+    private float CustomSkillMultiplierForHit = 2f;
+
+    [SerializeField, BoxGroup("Combat Formulas"), ShowIf("HitFormula", HitFormulaType.Custom)]
+    private float CustomDexMultiplierForHit = 1f;
+
+    [SerializeField, BoxGroup("Combat Formulas"), ShowIf("HitFormula", HitFormulaType.Custom)]
+    private float CustomLuckMultiplierForHit = 0.5f;
+
+    [SerializeField, BoxGroup("Combat Formulas")]
+    private CritFormulaType CritFormula = CritFormulaType.SkillHalf;
+
+    [SerializeField, BoxGroup("Combat Formulas"), ShowIf("CritFormula", CritFormulaType.Custom)]
+    private float CustomSkillMultiplierForCrit = 0.5f;
+
+    [SerializeField, BoxGroup("Combat Formulas"), ShowIf("CritFormula", CritFormulaType.Custom)]
+    private float CustomLuckMultiplierForCrit = 0f;
+
+    [SerializeField, BoxGroup("Combat Formulas")]
+    private AvoidFormulaType AvoidFormula = AvoidFormulaType.ClassicDouble;
+
+    [SerializeField, BoxGroup("Combat Formulas"), ShowIf("AvoidFormula", AvoidFormulaType.Custom)]
+    private float CustomSpeedMultiplierForAvoid = 2f;
+
+    [SerializeField, BoxGroup("Combat Formulas"), ShowIf("AvoidFormula", AvoidFormulaType.Custom)]
+    private float CustomLuckMultiplierForAvoid = 1f;
+
+    [SerializeField, BoxGroup("Combat Formulas"), ShowIf("ShowWeaponTriangleHitBonus")]
+    private float WeaponTriangleHitBonus = 15f;
+
+    // Combat tuning: effectiveness, crit multiplier, double-attack speed threshold, and support bonuses
+
+    [System.Serializable]
+    public struct SupportBonus
+    {
+        public int Hit;
+        public int Avoid;
+        public int Crit;
+        public int Dodge;
+    }
 
     [SerializeField, BoxGroup("Combat Mechanics")]
-    private bool MagicTriangle;
+    private float EffectivenessMultiplier = 1.5f;
 
     [SerializeField, BoxGroup("Combat Mechanics")]
-    private int MagicTriangleAdvantage = 20;
+    private int DoubleAttackSpeedThreshold = 4; // speed threshold for double attacks
+
+    // Support bonuses per rank (C/B/A/S). D/E default to zero.
+    [SerializeField, BoxGroup("Combat Mechanics")]
+    private SupportBonus SupportBonusC = new SupportBonus
+    {
+        Hit = 2,
+        Avoid = 1,
+        Crit = 0,
+        Dodge = 0,
+    };
 
     [SerializeField, BoxGroup("Combat Mechanics")]
-    private int MagicTriangleDisadvantage = -20;
+    private SupportBonus SupportBonusB = new SupportBonus
+    {
+        Hit = 3,
+        Avoid = 2,
+        Crit = 1,
+        Dodge = 1,
+    };
+
+    [SerializeField, BoxGroup("Combat Mechanics")]
+    private SupportBonus SupportBonusA = new SupportBonus
+    {
+        Hit = 4,
+        Avoid = 3,
+        Crit = 2,
+        Dodge = 2,
+    };
+
+    [SerializeField, BoxGroup("Combat Mechanics")]
+    private SupportBonus SupportBonusD = new SupportBonus
+    {
+        Hit = 1,
+        Avoid = 0,
+        Crit = 0,
+        Dodge = 0,
+    };
+
+    [SerializeField, BoxGroup("Combat Mechanics")]
+    private SupportBonus SupportBonusE = new SupportBonus
+    {
+        Hit = 0,
+        Avoid = 0,
+        Crit = 0,
+        Dodge = 0,
+    };
+
+    [SerializeField, BoxGroup("Combat Mechanics")]
+    private SupportBonus SupportBonusS = new SupportBonus
+    {
+        Hit = 5,
+        Avoid = 4,
+        Crit = 3,
+        Dodge = 3,
+    };
+
+    public float GetEffectivenessMultiplier() => EffectivenessMultiplier;
+
+    public int GetDoubleAttackSpeedThreshold() => DoubleAttackSpeedThreshold;
+
+    public SupportBonus GetSupportBonusForRank(string rank)
+    {
+        return rank switch
+        {
+            LeveledLetteredField.S => SupportBonusS,
+            LeveledLetteredField.A => SupportBonusA,
+            LeveledLetteredField.B => SupportBonusB,
+            LeveledLetteredField.C => SupportBonusC,
+            LeveledLetteredField.D => SupportBonusD,
+            LeveledLetteredField.E => SupportBonusE,
+            _ => new SupportBonus(),
+        };
+    }
 
     [SerializeField, BoxGroup("Combat Mechanics")]
     private bool Battalions;
@@ -309,6 +465,110 @@ public class GameplayGeneralSettings : SingletonScriptableObject<GameplayGeneral
 
     public int GetMaxWarpDistance() => MaxWarpDistance;
 
+    public float GetWeaponTriangleHitBonus() => WeaponTriangleHitBonus;
+
+    public bool GetWeaponTriangleAffectsDamage() => WeaponTriangleAffectsDamage;
+
+    public bool GetWeaponTriangleAffectsHit() => WeaponTriangleAffectsHit;
+
+    // Public accessors for Combat Formulas
+    public HitFormulaType GetHitFormula() => HitFormula;
+
+    public void GetHitFormulaMultipliers(out float skillMult, out float dexMult, out float luckMult)
+    {
+        switch (HitFormula)
+        {
+            case HitFormulaType.ClassicDouble:
+                skillMult = 2f;
+                dexMult = 1f;
+                luckMult = 0.5f;
+                break;
+            case HitFormulaType.RadiantDouble:
+                skillMult = 2.5f;
+                dexMult = 1f;
+                luckMult = 0.5f;
+                break;
+            case HitFormulaType.Modern:
+                skillMult = 1f;
+                dexMult = 1f;
+                luckMult = 0.5f;
+                break;
+            case HitFormulaType.WeaponOnly:
+                skillMult = 0f;
+                dexMult = 0f;
+                luckMult = 0f;
+                break;
+            case HitFormulaType.Custom:
+                skillMult = CustomSkillMultiplierForHit;
+                dexMult = CustomDexMultiplierForHit;
+                luckMult = CustomLuckMultiplierForHit;
+                break;
+            default:
+                skillMult = 2f;
+                dexMult = 1f;
+                luckMult = 0.5f;
+                break;
+        }
+    }
+
+    public CritFormulaType GetCritFormula() => CritFormula;
+
+    public void GetCritFormulaMultipliers(out float skillMult, out float luckMult)
+    {
+        switch (CritFormula)
+        {
+            case CritFormulaType.SkillHalf:
+                skillMult = 0.5f;
+                luckMult = 0f;
+                break;
+            case CritFormulaType.SkillAndLuck:
+                skillMult = 0.5f;
+                luckMult = 0.5f;
+                break;
+            case CritFormulaType.WeaponOnly:
+                skillMult = 0f;
+                luckMult = 0f;
+                break;
+            case CritFormulaType.Custom:
+                skillMult = CustomSkillMultiplierForCrit;
+                luckMult = CustomLuckMultiplierForCrit;
+                break;
+            default:
+                skillMult = 0.5f;
+                luckMult = 0f;
+                break;
+        }
+    }
+
+    public AvoidFormulaType GetAvoidFormula() => AvoidFormula;
+
+    public void GetAvoidFormulaMultipliers(out float speedMult, out float luckMult)
+    {
+        switch (AvoidFormula)
+        {
+            case AvoidFormulaType.ClassicDouble:
+                speedMult = 2f;
+                luckMult = 1f;
+                break;
+            case AvoidFormulaType.Modern:
+                speedMult = 1f;
+                luckMult = 1f;
+                break;
+            case AvoidFormulaType.SpeedOnly:
+                speedMult = 1f;
+                luckMult = 0f;
+                break;
+            case AvoidFormulaType.Custom:
+                speedMult = CustomSpeedMultiplierForAvoid;
+                luckMult = CustomLuckMultiplierForAvoid;
+                break;
+            default:
+                speedMult = 2f;
+                luckMult = 1f;
+                break;
+        }
+    }
+
     // Public accessors for Default Stat Values
     public float GetDefaultMaxHealth() => DefaultMaxHealth;
 
@@ -359,6 +619,13 @@ public class GameplayGeneralSettings : SingletonScriptableObject<GameplayGeneral
     public bool UseItemsCanBeGifts() => ItemsCanBeGifts;
 
     public bool GetUseExperienceAptitudes() => UseExperienceAptitudes;
+
+    // Helper method for ShowIf condition
+    private bool ShowWeaponTriangleHitBonus()
+    {
+        return (WeaponTriangle && WeaponTriangleAffectsHit)
+            || (MagicTriangle && WeaponTriangleAffectsHit);
+    }
 
     /// <summary>
     /// Returns all configured experience types (weapon types + extra types that are enabled)

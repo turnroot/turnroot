@@ -27,13 +27,58 @@ MonoBehaviour:
   CombatArts: 0
   CombatArtLimit: 3
   MaxEquippedSkills: 0
-  WeaponTriangle: 0
+  WeaponTriangle: 1
   ExpandedWeaponTriangle: 0
   WeaponTriangleAdvantage: 20
   WeaponTriangleDisadvantage: -20
   MagicTriangle: 0
   MagicTriangleAdvantage: 20
   MagicTriangleDisadvantage: -20
+  WeaponTriangleAffectsDamage: 1
+  WeaponTriangleAffectsHit: 1
+  HitFormula: 2
+  CustomSkillMultiplierForHit: 2
+  CustomDexMultiplierForHit: 1
+  CustomLuckMultiplierForHit: 0.5
+  CritFormula: 1
+  CustomSkillMultiplierForCrit: 0.5
+  CustomLuckMultiplierForCrit: 0
+  AvoidFormula: 0
+  CustomSpeedMultiplierForAvoid: 2
+  CustomLuckMultiplierForAvoid: 1
+  WeaponTriangleHitBonus: 15
+  EffectivenessMultiplier: 1.5
+  DoubleAttackSpeedThreshold: 4
+  SupportBonusC:
+    Hit: 2
+    Avoid: 1
+    Crit: 0
+    Dodge: 0
+  SupportBonusB:
+    Hit: 3
+    Avoid: 2
+    Crit: 1
+    Dodge: 1
+  SupportBonusA:
+    Hit: 4
+    Avoid: 3
+    Crit: 2
+    Dodge: 2
+  SupportBonusD:
+    Hit: 1
+    Avoid: 0
+    Crit: 0
+    Dodge: 0
+  SupportBonusE:
+    Hit: 0
+    Avoid: 0
+    Crit: 0
+    Dodge: 0
+  SupportBonusS:
+    Hit: 5
+    Avoid: 4
+    Crit: 3
+    Dodge: 3
   Battalions: 0
   BattalionLimit: 1
   BattalionEndurance: 0
@@ -44,6 +89,7 @@ MonoBehaviour:
   AdjutantAttack: 0
   CriticalHitMultiplier: 3
   MaxWarpDistance: 20
+  TerrainBonusMultiplier: 0.8
   DefaultMaxHealth: 100
   DefaultCurrentHealth: 100
   DefaultMinHealth: 0

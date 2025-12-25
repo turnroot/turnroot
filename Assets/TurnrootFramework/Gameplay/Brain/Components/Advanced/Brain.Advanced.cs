@@ -105,7 +105,7 @@ namespace Turnroot.Gameplay.Brain
         public bool RestoreSnapshot()
         {
             var context = battleBrain?.BattleObject?.Context;
-            return context == null ? false : Snapshots.RestoreLast(context, GetAllBattleCharacters());
+            return context != null && Snapshots.RestoreLast(context, GetAllBattleCharacters());
         }
 
         private IEnumerable<CharacterInstance> GetAllBattleCharacters()

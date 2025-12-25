@@ -29,7 +29,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                         _context.UnitInstance,
                         goal.Destination.CoordinatesInt
                     );
-                    // TODO: Execute heal on target
+                    context.HealUnit(_context.UnitInstance, goal.Target); // TODO: Specify healing item if using
                     break;
 
                 case AIGoal.GoalType.ProtectAlly:
@@ -45,7 +45,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                         _context.UnitInstance,
                         goal.Destination.CoordinatesInt
                     );
-                    // TODO: Execute attack on target
+                    context.AttackTarget(_context.UnitInstance, goal.Target);
                     break;
 
                 case AIGoal.GoalType.HealSelf:
@@ -53,11 +53,14 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                         _context.UnitInstance,
                         goal.Destination.CoordinatesInt
                     );
-                    // TODO: Execute self-heal
+                    context.HealUnit(_context.UnitInstance, _context.UnitInstance); // TODO: Specify healing item if using
                     break;
 
                 case AIGoal.GoalType.GainPosition:
-                    // TODO: Move to strategic position
+                    context.MoveUnitToPointInt(
+                        _context.UnitInstance,
+                        goal.Destination.CoordinatesInt
+                    );
                     break;
 
                 case AIGoal.GoalType.CollectTreasure:
