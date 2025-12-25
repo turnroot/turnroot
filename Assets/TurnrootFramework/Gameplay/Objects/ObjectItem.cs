@@ -234,6 +234,11 @@ namespace Turnroot.Gameplay.Objects
 
         public SerializableDictionary<UnboundedStatType, float> StatBonuses => _StatBonuses;
 
+        // Expose combat values for use by damage calculator
+        public float Might => _might;
+        public float Hit => _hit;
+        public float Critical => _critical;
+
         [
             Foldout("Aptitude"),
             SerializeField,

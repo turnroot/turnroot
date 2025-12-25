@@ -128,25 +128,42 @@ public class GameplayGeneralSettings : SingletonScriptableObject<GameplayGeneral
     private int MaxEquippedSkills = 0;
 
     [SerializeField, BoxGroup("Combat Mechanics")]
-    private bool WeaponTriangle;
+    public bool WeaponTriangle;
 
     [SerializeField, BoxGroup("Combat Mechanics")]
     private bool ExpandedWeaponTriangle;
 
     [SerializeField, BoxGroup("Combat Mechanics")]
-    private int WeaponTriangleAdvantage = 20;
+    public int WeaponTriangleAdvantage = 20;
 
     [SerializeField, BoxGroup("Combat Mechanics")]
-    private int WeaponTriangleDisadvantage = -20;
+    public int WeaponTriangleDisadvantage = -20;
 
     [SerializeField, BoxGroup("Combat Mechanics")]
-    private bool MagicTriangle;
+    public bool MagicTriangle;
 
     [SerializeField, BoxGroup("Combat Mechanics")]
-    private int MagicTriangleAdvantage = 20;
+    public int MagicTriangleAdvantage = 20;
 
     [SerializeField, BoxGroup("Combat Mechanics")]
-    private int MagicTriangleDisadvantage = -20;
+    public int MagicTriangleDisadvantage = -20;
+
+    // Combat tuning: effectiveness, crit multiplier, and double-attack speed threshold
+
+    [SerializeField, BoxGroup("Combat Mechanics")]
+    public float EffectivenessMultiplier = 1.5f;
+
+    [SerializeField, BoxGroup("Combat Mechanics")]
+    public float CriticalMultiplier = 3f;
+
+    [SerializeField, BoxGroup("Combat Mechanics")]
+    public int DoubleAttackSpeedThreshold = 4; // speed threshold for double attacks
+
+    public float GetEffectivenessMultiplier() => EffectivenessMultiplier;
+
+    public float GetCriticalMultiplier() => CriticalMultiplier;
+
+    public int GetDoubleAttackSpeedThreshold() => DoubleAttackSpeedThreshold;
 
     [SerializeField, BoxGroup("Combat Mechanics")]
     private bool Battalions;
