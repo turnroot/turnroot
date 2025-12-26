@@ -59,8 +59,10 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             }
 
             // --- KILL ENEMY (Desperate Attacks) ---
-            foreach (var target in _context.Participants.Targets)
+            var targets = _context.Participants.Targets;
+            for (int ti = 0; ti < (targets?.Count ?? 0); ti++)
             {
+                var target = targets[ti];
                 var targetGridPoint = target.UnitPositionToMapGridPoint(
                     target.MapGridPosition,
                     _context.mapGrid
@@ -176,8 +178,10 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                     // Soldiers seek allies when retreating
                     if (behavior.SoldierLoneWolf < 0.5f)
                     {
-                        foreach (var ally in _context.Participants.Allies)
+                        var allies = _context.Participants.Allies;
+                        for (int ai = 0; ai < (allies?.Count ?? 0); ai++)
                         {
+                            var ally = allies[ai];
                             if (ally == _context.Unit.UnitInstance)
                             {
                                 continue;

@@ -151,6 +151,21 @@ namespace Turnroot.Gameplay.Combat
             Brain.Unsubscribe<UnitSpawnedEvent>(HandleUnitSpawnedEvent);
             Brain.Unsubscribe<UnitDefeatedEvent>(HandleUnitDefeatedEvent);
 
+            // Unsubscribe from map state changes if any
+            try
+            {
+                if (_mapGrid != null)
+                {
+                    _mapGrid.OnStateVersionChanged -= HandleMapStateChanged;
+                }
+            }
+            catch (System.Exception ex)
+            {
+#if UNITY_EDITOR
+                Debug.LogWarning($"Failed to unsubscribe from map state changes: {ex.Message}");
+#endif
+            }
+
             _isConnectedToBrain = false;
         }
 
@@ -265,6 +280,17 @@ namespace Turnroot.Gameplay.Combat
 #if UNITY_EDITOR
                 Debug.Log("BattleGameObject: Context initialized via Initialize(brain, mapGrid)");
 #endif
+                // Subscribe to map state changes to invalidate AI caches when terrain/occupancy changes
+                try
+                {
+                    _mapGrid.OnStateVersionChanged += HandleMapStateChanged;
+                }
+                catch (System.Exception ex)
+                {
+#if UNITY_EDITOR
+                    Debug.LogWarning($"Failed to subscribe to map state changes: {ex.Message}");
+#endif
+                }
             }
             catch (System.Exception ex)
             {
@@ -320,6 +346,18 @@ namespace Turnroot.Gameplay.Combat
             // Invalidate caches for all conditions (unit lists changed)
             InvalidateAllConditionCaches();
 
+            // Also clear AI helper caches to avoid stale pathfinding tiles and reachability results
+            try
+            {
+                Brain?.battleBrain?.ClearAICache();
+            }
+            catch (System.Exception ex)
+            {
+#if UNITY_EDITOR
+                Debug.LogWarning($"Failed to clear AI cache on unit defeated: {ex.Message}");
+#endif
+            }
+
             // Check defeat-related conditions
             foreach (var defeatAll in _battleConditions.OfType<DefeatAllEnemiesBattleCondition>())
             {
@@ -368,6 +406,18 @@ namespace Turnroot.Gameplay.Combat
                     }
                 }
             }
+
+            // Clear AI caches when a unit moves as occupancy changed
+            try
+            {
+                Brain?.battleBrain?.ClearAICache();
+            }
+            catch (System.Exception ex)
+            {
+#if UNITY_EDITOR
+                Debug.LogWarning($"Failed to clear AI cache on unit moved: {ex.Message}");
+#endif
+            }
         }
 
         private void HandleExitBattle(BattleExitType exitType)
@@ -379,6 +429,17 @@ namespace Turnroot.Gameplay.Combat
         {
             // Unit spawned into battle - invalidate caches that rely on unit lists
             InvalidateAllConditionCaches();
+            // Also clear AI helper caches to avoid stale pathfinding tiles and reachability results
+            try
+            {
+                Brain?.battleBrain?.ClearAICache();
+            }
+            catch (System.Exception ex)
+            {
+#if UNITY_EDITOR
+                Debug.LogWarning($"Failed to clear AI cache on unit spawned: {ex.Message}");
+#endif
+            }
 
             // Optionally check conditions that may be affected by new unit presence
             foreach (var condition in _battleConditions)
@@ -415,6 +476,20 @@ namespace Turnroot.Gameplay.Combat
                         $"Failed to invalidate cache for condition {condition?.Name ?? condition?.GetType().Name}: {ex.Message}"
                     );
                 }
+            }
+        }
+
+        private void HandleMapStateChanged()
+        {
+            try
+            {
+                Brain?.battleBrain?.ClearAICache();
+            }
+            catch (System.Exception ex)
+            {
+#if UNITY_EDITOR
+                Debug.LogWarning($"Failed to clear AI cache on map change: {ex.Message}");
+#endif
             }
         }
 

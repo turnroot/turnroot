@@ -74,6 +74,19 @@ namespace Turnroot.Characters
         }
 
         [SerializeField]
+        private bool _wasSpawnedDuringBattle = false;
+
+        /// <summary>
+        /// Indicates the unit was spawned during the current battle (not part of initial roster).
+        /// This flag helps snapshot/restore logic determine whether to remove reinforcements on restore.
+        /// </summary>
+        public bool WasSpawnedDuringBattle
+        {
+            get => _wasSpawnedDuringBattle;
+            set => _wasSpawnedDuringBattle = value;
+        }
+
+        [SerializeField]
         private string _id;
 
         [SerializeField]
