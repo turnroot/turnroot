@@ -594,7 +594,17 @@ public class MapGrid : MonoBehaviour
 
     public int StateVersion { get; private set; }
 
-    public void IncrementStateVersion() => StateVersion++;
+    /// <summary>
+    /// Invoked whenever the map state version increments (terrain/occupancy/feature changes).
+    /// Subscribers can use this to invalidate caches dependent on map layout.
+    /// </summary>
+    public event System.Action OnStateVersionChanged;
+
+    public void IncrementStateVersion()
+    {
+        StateVersion++;
+        OnStateVersionChanged?.Invoke();
+    }
 
     public OperationResult SetOccupied(MapGridPoint point, CharacterInstance occupier)
     {

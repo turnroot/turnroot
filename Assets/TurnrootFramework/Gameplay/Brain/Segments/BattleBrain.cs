@@ -99,9 +99,9 @@ namespace Turnroot.Gameplay.Brain
         }
 
         /// <summary>
-        /// Clears AI helper's reusable caches (move/attack tiles).
+        /// Clears AI helper's reusable caches (move/attack tiles) and reachability caches.
         /// </summary>
-        public void ClearAICache() => _aiHelper?.ClearReusableTileDictionaries();
+        public void ClearAICache() => _aiHelper?.InvalidateAllCaches();
 
         #region Battle Initialization
 

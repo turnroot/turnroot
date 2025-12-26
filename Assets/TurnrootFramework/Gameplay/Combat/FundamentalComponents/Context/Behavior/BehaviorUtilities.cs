@@ -46,8 +46,10 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             using var attackGoalsPooled = PooledList<AIGoal>.Get();
             var attackGoals = attackGoalsPooled.List;
 
-            foreach (var target in _context.Participants.Targets)
+            var targets = _context.Participants.Targets;
+            for (int ti = 0; ti < (targets?.Count ?? 0); ti++)
             {
+                var target = targets[ti];
                 var targetGridPoint = target.UnitPositionToMapGridPoint(
                     target.MapGridPosition,
                     _context.mapGrid
@@ -121,8 +123,10 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             var killGoals = killGoalsPooled.List;
             // here, get the enemies and do a normal attack calculation- but then,
             // if an attack would kill an an enemy, add a massive boost
-            foreach (var target in _context.Participants.Targets)
+            var targets = _context.Participants.Targets;
+            for (int ti = 0; ti < (targets?.Count ?? 0); ti++)
             {
+                var target = targets[ti];
                 var targetGridPoint = target.UnitPositionToMapGridPoint(
                     target.MapGridPosition,
                     _context.mapGrid
@@ -178,8 +182,10 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             CharacterInstance closestEnemy = null;
             float closestDistance = float.MaxValue;
             float utility = 0f;
-            foreach (var target in _context.Participants.Targets)
+            var targetsForSimple = _context.Participants.Targets;
+            for (int ti = 0; ti < (targetsForSimple?.Count ?? 0); ti++)
             {
+                var target = targetsForSimple[ti];
                 utility = 6f;
 
                 if (target == LastAttackedTarget)
@@ -241,8 +247,10 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         {
             using var healGoalsPooled = PooledList<AIGoal>.Get();
             var healGoals = healGoalsPooled.List;
-            foreach (var ally in _context.Participants.Allies)
+            var allies = _context.Participants.Allies;
+            for (int ai = 0; ai < (allies?.Count ?? 0); ai++)
             {
+                var ally = allies[ai];
                 var allyGridPoint = ally.UnitPositionToMapGridPoint(
                     ally.MapGridPosition,
                     _context.mapGrid
@@ -282,8 +290,10 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
             using var allyLastAttackers =
                 new PooledDictionary<CharacterInstance, CharacterInstance>();
-            foreach (var ally in _context.Participants.Allies)
+            var allies = _context.Participants.Allies;
+            for (int ai = 0; ai < (allies?.Count ?? 0); ai++)
             {
+                var ally = allies[ai];
                 // get: distance to ally, last attacker, ally health, last attacker health,
                 // we also get how many squares around the ally
                 // are occupied by enemies, how many are occupied by allies
@@ -471,8 +481,10 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 {
                     // Find closest ally to this retreat tile
                     float closestAllyDist = float.MaxValue;
-                    foreach (var ally in _context.Participants.Allies)
+                    var allies = _context.Participants.Allies;
+                    for (int ai = 0; ai < (allies?.Count ?? 0); ai++)
                     {
+                        var ally = allies[ai];
                         if (ally == _context.Unit.UnitInstance)
                         {
                             continue;
@@ -764,8 +776,10 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
             // Check if tile is dangerous (near player units = enemies to this AI)
             float closestPlayerDist = float.MaxValue;
-            foreach (var ally in _context.Participants.Allies) // _context.Participants.Allies are player units from enemy perspective
+            var allies = _context.Participants.Allies;
+            for (int ai = 0; ai < (allies?.Count ?? 0); ai++) // _context.Participants.Allies are player units from enemy perspective
             {
+                var ally = allies[ai];
                 float dist = Vector2.Distance(tile.Coordinates(), ally.MapGridPosition);
                 if (dist < closestPlayerDist)
                 {

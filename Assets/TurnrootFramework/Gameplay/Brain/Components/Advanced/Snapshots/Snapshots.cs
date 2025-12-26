@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Turnroot.Characters;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
 using UnityEngine;
@@ -35,6 +36,7 @@ namespace Turnroot.Gameplay.Brain.Snapshots
                 Position = unit.MapGridPosition,
                 IsDefeated = unit.IsDefeatedInCurrentBattle,
                 Stats = CaptureStats(unit),
+                WasSpawned = unit.WasSpawnedDuringBattle,
             };
         }
 
@@ -232,6 +234,44 @@ namespace Turnroot.Gameplay.Brain.Snapshots
                     Debug.LogWarning(
                         $"[Snapshot] Skipping restore for unit {unitId} - not present in current battle"
                     );
+                }
+            }
+
+            // Remove any units that were spawned AFTER the snapshot was taken (reinforcements)
+            if (units != null)
+            {
+                foreach (var u in units)
+                {
+                    if (u == null || string.IsNullOrEmpty(u.Id))
+                    {
+                        continue;
+                    }
+
+                    if (!snapshot.GetCapturedUnitIds().Contains(u.Id) && u.WasSpawnedDuringBattle)
+                    {
+                        // Remove occupancy for spawned reinforcements so restore reflects snapshot state
+                        try
+                        {
+                            var mgp = u.UnitPositionToMapGridPoint(
+                                u.MapGridPosition,
+                                context.mapGrid
+                            );
+                            if (mgp != null)
+                            {
+                                context.mapGrid.RemoveOccupied(mgp);
+                            }
+                            // Clear flag so repeated restores don't double-remove
+                            u.WasSpawnedDuringBattle = false;
+                        }
+                        catch (System.Exception ex)
+                        {
+#if UNITY_EDITOR
+                            Debug.LogWarning(
+                                $"[Snapshot] Failed to remove spawned unit {u.Id}: {ex.Message}"
+                            );
+#endif
+                        }
+                    }
                 }
             }
 

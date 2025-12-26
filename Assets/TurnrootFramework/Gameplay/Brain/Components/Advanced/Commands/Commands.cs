@@ -235,7 +235,21 @@ namespace Turnroot.Gameplay.Brain.Commands
             );
             if (result.Success)
             {
+                // Mark unit as spawned during this battle so snapshot restore can identify reinforcements
+                try
+                {
+                    unit.WasSpawnedDuringBattle = true;
+                }
+                catch (System.Exception) { }
+
                 context.Brain?.Publish(new Events.UnitSpawnedEvent(unit, SpawnPosition));
+
+                // Take a new snapshot to capture the spawn event immediately (helps testing and rollback)
+                try
+                {
+                    context.Brain?.TakeSnapshot();
+                }
+                catch (System.Exception) { }
             }
             return result.Success;
         }
@@ -253,7 +267,20 @@ namespace Turnroot.Gameplay.Brain.Commands
             );
             if (result.Success)
             {
+                try
+                {
+                    unit.WasSpawnedDuringBattle = false;
+                }
+                catch (System.Exception) { }
+
                 context.Brain?.Publish(new Events.UnitDespawnedEvent(unit, SpawnPosition));
+
+                // Update snapshot to reflect removal
+                try
+                {
+                    context.Brain?.TakeSnapshot();
+                }
+                catch (System.Exception) { }
             }
             return result.Success;
         }
