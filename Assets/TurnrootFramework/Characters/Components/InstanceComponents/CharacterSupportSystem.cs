@@ -63,6 +63,143 @@ namespace Turnroot.Characters
         public void RemoveSupportRelationship(CharacterData character) =>
             _ = _supportRelationships.RemoveAll(s => s.Character == character);
 
+        /* ---------------------- Recruitment helpers ---------------------- */
+        public bool IsCharacterRecruitable(CharacterData character)
+        {
+            if (character == null)
+            {
+                return false;
+            }
+
+            var rel = GetSupportRelationship(character);
+            return rel != null ? rel.GetIsRecruitable() : character.IsRecruitable;
+        }
+
+        public void SetCharacterRecruitable(CharacterData character, bool isRecruitable)
+        {
+            if (character == null)
+            {
+                return;
+            }
+
+            var rel = GetSupportRelationship(character);
+            if (rel == null)
+            {
+                AddSupportRelationship(new SupportRelationship { Character = character });
+                rel = GetSupportRelationship(character);
+            }
+            rel.SetIsRecruitableOverride(isRecruitable);
+        }
+
+        public float GetCharacterRecruitmentChance(CharacterData character)
+        {
+            if (character == null)
+            {
+                return 0f;
+            }
+
+            var rel = GetSupportRelationship(character);
+            return rel != null ? rel.GetRecruitmentChance() : character.RecruitmentChance;
+        }
+
+        public void SetCharacterRecruitmentChance(CharacterData character, float chance)
+        {
+            if (character == null)
+            {
+                return;
+            }
+
+            var rel = GetSupportRelationship(character);
+            if (rel == null)
+            {
+                AddSupportRelationship(new SupportRelationship { Character = character });
+                rel = GetSupportRelationship(character);
+            }
+            rel.SetRecruitmentChanceOverride(Mathf.Clamp(chance, 0f, 100f));
+        }
+
+        public float GetCharacterRecruitmentChanceIncreasePerConversation(CharacterData character)
+        {
+            if (character == null)
+            {
+                return 0f;
+            }
+
+            var rel = GetSupportRelationship(character);
+            return rel != null
+                ? rel.GetRecruitmentChanceIncreasePerConversation()
+                : character.RecruitmentChanceIncreasePerConversation;
+        }
+
+        public void SetCharacterRecruitmentChanceIncreasePerConversation(
+            CharacterData character,
+            float increase
+        )
+        {
+            if (character == null)
+            {
+                return;
+            }
+
+            var rel = GetSupportRelationship(character);
+            if (rel == null)
+            {
+                AddSupportRelationship(new SupportRelationship { Character = character });
+                rel = GetSupportRelationship(character);
+            }
+            rel.SetRecruitmentChanceIncreasePerConversationOverride(
+                Mathf.Clamp(increase, 0f, 100f)
+            );
+        }
+
+        public bool GetCharacterRequiresMinSupportLevel(CharacterData character)
+        {
+            if (character == null)
+            {
+                return false;
+            }
+
+            var rel = GetSupportRelationship(character);
+            return rel != null
+                ? rel.GetRequiresMinSupportLevel()
+                : character.RequiresMinSupportLevel;
+        }
+
+        public void SetCharacterRequiresMinSupportLevel(CharacterData character, bool requires)
+        {
+            if (character == null)
+            {
+                return;
+            }
+
+            var rel = GetSupportRelationship(character);
+            if (rel == null)
+            {
+                AddSupportRelationship(new SupportRelationship { Character = character });
+                rel = GetSupportRelationship(character);
+            }
+            rel.SetRequiresMinSupportLevelOverride(requires);
+        }
+
+        public void ClearRecruitmentOverrides(CharacterData character)
+        {
+            if (character == null)
+            {
+                return;
+            }
+
+            var rel = GetSupportRelationship(character);
+            if (rel == null)
+            {
+                return;
+            }
+
+            rel.ClearIsRecruitableOverride();
+            rel.ClearRecruitmentChanceOverride();
+            rel.ClearRecruitmentChanceIncreasePerConversationOverride();
+            rel.ClearRequiresMinSupportLevelOverride();
+        }
+
         #endregion
     }
 }

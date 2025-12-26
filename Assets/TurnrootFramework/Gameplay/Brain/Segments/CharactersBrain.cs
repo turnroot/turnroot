@@ -154,7 +154,7 @@ namespace Turnroot.Gameplay.Brain
                 case Combat.BattleExitType.Retreat:
                     _battlesRetreated++;
                     break;
-                    // Bookmark doesn't count as a completed battle outcome
+                // Bookmark doesn't count as a completed battle outcome
             }
 
             SaveBattleOutcomeStatistics();
@@ -548,6 +548,204 @@ namespace Turnroot.Gameplay.Brain
             Debug.Log(
                 $"Support increased between {character.CharacterTemplate?.DisplayName} and {targetCharacter.DisplayName}"
             );
+        }
+
+        /* ----------------- Support relationship wrappers ----------------- */
+        public void AddSupportRelationship(
+            CharacterInstance character,
+            Turnroot.Characters.Components.Support.SupportRelationship template
+        )
+        {
+            if (character == null || template == null || template.Character == null)
+            {
+                return;
+            }
+
+            character.AddSupportRelationship(template);
+            var added = character.GetSupportRelationship(template.Character);
+            if (added != null)
+            {
+                _brain?.PublishSupportRelationshipAdded(character, added);
+            }
+
+            Debug.Log(
+                $"CharactersBrain: Added support relationship for {template.Character.DisplayName} on {character.Id}"
+            );
+        }
+
+        public void RemoveSupportRelationship(CharacterInstance character, CharacterData target)
+        {
+            if (character == null || target == null)
+            {
+                return;
+            }
+
+            character.RemoveSupportRelationship(target);
+            _brain?.PublishSupportRelationshipRemoved(character, target);
+
+            Debug.Log(
+                $"CharactersBrain: Removed support relationship for {target.DisplayName} on {character.Id}"
+            );
+        }
+
+        /* ----------------- Recruitment override wrappers ----------------- */
+        public void SetCharacterRecruitableOverride(
+            CharacterInstance character,
+            CharacterData targetCharacter,
+            bool isRecruitable
+        )
+        {
+            if (character == null || targetCharacter == null)
+            {
+                return;
+            }
+
+            character.SetCharacterRecruitable(targetCharacter, isRecruitable);
+            _brain?.PublishCharacterRecruitableChanged(character, targetCharacter, isRecruitable);
+
+            Debug.Log(
+                $"CharactersBrain: Set recruitable override for {targetCharacter.DisplayName} to {isRecruitable} on {character.Id}"
+            );
+        }
+
+        public void SetCharacterRecruitmentChanceOverride(
+            CharacterInstance character,
+            CharacterData targetCharacter,
+            float chance
+        )
+        {
+            if (character == null || targetCharacter == null)
+            {
+                return;
+            }
+
+            character.SetCharacterRecruitmentChance(targetCharacter, chance);
+            _brain?.PublishCharacterRecruitmentChanceChanged(character, targetCharacter, chance);
+
+            Debug.Log(
+                $"CharactersBrain: Set recruitment chance override for {targetCharacter.DisplayName} to {chance} on {character.Id}"
+            );
+        }
+
+        public void SetCharacterRecruitmentChanceIncreaseOverride(
+            CharacterInstance character,
+            CharacterData targetCharacter,
+            float increase
+        )
+        {
+            if (character == null || targetCharacter == null)
+            {
+                return;
+            }
+
+            character.SetCharacterRecruitmentChanceIncreasePerConversation(
+                targetCharacter,
+                increase
+            );
+            _brain?.PublishCharacterRecruitmentChanceIncreaseChanged(
+                character,
+                targetCharacter,
+                increase
+            );
+
+            Debug.Log(
+                $"CharactersBrain: Set recruitment increase override for {targetCharacter.DisplayName} to {increase} on {character.Id}"
+            );
+        }
+
+        public void SetCharacterRequiresMinSupportLevelOverride(
+            CharacterInstance character,
+            CharacterData targetCharacter,
+            bool requiresMinSupportLevel
+        )
+        {
+            if (character == null || targetCharacter == null)
+            {
+                return;
+            }
+
+            character.SetCharacterRequiresMinSupportLevel(targetCharacter, requiresMinSupportLevel);
+            _brain?.PublishCharacterRequiresMinSupportLevelChanged(
+                character,
+                targetCharacter,
+                requiresMinSupportLevel
+            );
+
+            Debug.Log(
+                $"CharactersBrain: Set requires-min-support override for {targetCharacter.DisplayName} to {requiresMinSupportLevel} on {character.Id}"
+            );
+        }
+
+        public void ClearCharacterRecruitmentOverrides(
+            CharacterInstance character,
+            CharacterData targetCharacter
+        )
+        {
+            if (character == null || targetCharacter == null)
+            {
+                return;
+            }
+
+            character.ClearRecruitmentOverrides(targetCharacter);
+            _brain?.PublishCharacterRecruitmentOverridesCleared(character, targetCharacter);
+
+            Debug.Log(
+                $"CharactersBrain: Cleared recruitment overrides for {targetCharacter.DisplayName} on {character.Id}"
+            );
+        }
+
+        /* ----------------- Recruitment override query wrappers ----------------- */
+        public bool IsCharacterRecruitable(
+            CharacterInstance character,
+            CharacterData targetCharacter
+        )
+        {
+            if (character == null || targetCharacter == null)
+            {
+                return false;
+            }
+
+            var result = character.IsCharacterRecruitable(targetCharacter);
+            return result;
+        }
+
+        public float GetCharacterRecruitmentChance(
+            CharacterInstance character,
+            CharacterData targetCharacter
+        )
+        {
+            if (character == null || targetCharacter == null)
+            {
+                return 0f;
+            }
+
+            return character.GetCharacterRecruitmentChance(targetCharacter);
+        }
+
+        public float GetCharacterRecruitmentChanceIncreasePerConversation(
+            CharacterInstance character,
+            CharacterData targetCharacter
+        )
+        {
+            if (character == null || targetCharacter == null)
+            {
+                return 0f;
+            }
+
+            return character.GetCharacterRecruitmentChanceIncreasePerConversation(targetCharacter);
+        }
+
+        public bool GetCharacterRequiresMinSupportLevel(
+            CharacterInstance character,
+            CharacterData targetCharacter
+        )
+        {
+            if (character == null || targetCharacter == null)
+            {
+                return false;
+            }
+
+            return character.GetCharacterRequiresMinSupportLevel(targetCharacter);
         }
 
         /// <summary>

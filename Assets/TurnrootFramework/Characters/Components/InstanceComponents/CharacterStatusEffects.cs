@@ -165,6 +165,12 @@ namespace Turnroot.Characters
         }
 
         /// <summary>
+        /// Return a copy of active status effects for external consumers.
+        /// </summary>
+        public List<StatusEffectInstance> GetActiveStatusEffects() =>
+            new List<StatusEffectInstance>(_activeStatusEffects);
+
+        /// <summary>
         /// Check if movement is prevented by any status effect.
         /// </summary>
         public bool IsMovementPrevented() =>

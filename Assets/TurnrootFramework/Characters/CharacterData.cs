@@ -8,6 +8,7 @@ using Turnroot.Characters.Components.Behavior;
 using Turnroot.Characters.Components.Support;
 using Turnroot.Characters.Stats;
 using Turnroot.Characters.Subclasses;
+using Turnroot.CommonAncestors;
 using Turnroot.Gameplay.Objects;
 using UnityEngine;
 
@@ -110,6 +111,36 @@ namespace Turnroot.Characters
 
         [field: Foldout("Character Flags"), SerializeField, ShowIf(nameof(CanShowRecruitable))]
         public bool IsRecruitable { get; private set; } = false;
+
+        [field: Foldout("Character Flags"), SerializeField, ShowIf(nameof(IsRecruitable))]
+        public bool RequiresMinSupportLevel { get; private set; } = true;
+
+        [field:
+            Foldout("Character Flags"),
+            SerializeField,
+            ShowIf(nameof(IsRecruitableRequiresMinSupportLevel))
+        ]
+        public LeveledLetteredField SupportRelationshipMinRank { get; private set; } =
+            new LeveledLetteredField(LeveledLetteredField.E);
+
+        [field: Foldout("Character Flags"), SerializeField, ShowIf(nameof(IsRecruitable))]
+        public bool UseRecruitmentChance { get; private set; } = true;
+
+        [field:
+            Foldout("Character Flags"),
+            SerializeField,
+            Range(0f, 100f),
+            ShowIf(nameof(IsRecruitableUseRecruitmentChance))
+        ]
+        public float RecruitmentChance { get; private set; } = 25f;
+
+        [field:
+            Foldout("Character Flags"),
+            SerializeField,
+            Range(0f, 100f),
+            ShowIf(nameof(IsRecruitableUseRecruitmentChance))
+        ]
+        public float RecruitmentChanceIncreasePerConversation { get; private set; } = 15f;
 
         [field: Foldout("Character Flags"), SerializeField, ShowIf(nameof(CanShowUnique))]
         public bool IsUnique { get; private set; } = false;
@@ -288,6 +319,11 @@ namespace Turnroot.Characters
             Which == CharacterWhich.ENEMY || Which == CharacterWhich.NPC;
 
         private bool IsAllyOrRecruitable() => Which == CharacterWhich.ALLY || IsRecruitable;
+
+        private bool IsRecruitableRequiresMinSupportLevel() =>
+            IsRecruitable && RequiresMinSupportLevel;
+
+        private bool IsRecruitableUseRecruitmentChance() => IsRecruitable && UseRecruitmentChance;
 
         // Helper: returns the dictionary values as an array (cached). Use when you need indexed access.
         public Portrait[] PortraitArray
@@ -479,11 +515,7 @@ namespace Turnroot.Characters
             // Validate support relationships - remove any that reference this character
             if (SupportRelationships != null)
             {
-                var removed =
-                    SupportRelationship.SanitizeForCharacter(
-                        this,
-                        SupportRelationships
-                    );
+                var removed = SupportRelationship.SanitizeForCharacter(this, SupportRelationships);
                 foreach (var r in removed)
                 {
                     Debug.LogWarning(
