@@ -59,7 +59,7 @@ namespace Turnroot.Skills.Nodes.Events
                 int affectedCount = 0;
                 foreach (var adjacentUnit in adjacentAllies)
                 {
-                    int removed = CureDebuffsFromCharacter(adjacentUnit);
+                    int removed = CureDebuffsFromCharacter(context, adjacentUnit);
                     if (removed > 0)
                     {
                         affectedCount++;
@@ -90,7 +90,7 @@ namespace Turnroot.Skills.Nodes.Events
                         ? context.Participants.Targets[0]
                         : context.Unit.UnitInstance;
 
-                int removed = CureDebuffsFromCharacter(target);
+                int removed = CureDebuffsFromCharacter(context, target);
                 string cureText = GetCureDescription();
 #if UNITY_EDITOR
                 Debug.Log($"CureDebuff: Cured {cureText} from target ({removed} effects removed)");
@@ -98,7 +98,7 @@ namespace Turnroot.Skills.Nodes.Events
             }
         }
 
-        private int CureDebuffsFromCharacter(CharacterInstance character)
+        private int CureDebuffsFromCharacter(BattleContext context, CharacterInstance character)
         {
             if (character == null)
             {
@@ -106,13 +106,15 @@ namespace Turnroot.Skills.Nodes.Events
             }
 
             int removed;
+            var battleBrain = context.Brain?.GetComponent<Turnroot.Gameplay.Brain.BattleBrain>();
             if (cureMode == CureMode.AllDebuffs)
             {
-                removed = character.RemoveAllDebuffs();
+                removed = battleBrain?.RemoveAllDebuffs(character) ?? 0;
             }
             else if (specificDebuffType != null)
             {
-                removed = character.RemoveStatusEffectsByType(specificDebuffType);
+                removed =
+                    battleBrain?.RemoveStatusEffectsByType(character, specificDebuffType) ?? 0;
             }
             else if (!string.IsNullOrEmpty(debuffName))
             {
@@ -120,8 +122,7 @@ namespace Turnroot.Skills.Nodes.Events
                 var effect = character.GetStatusEffectByName(debuffName);
                 if (effect != null)
                 {
-                    character.RemoveStatusEffect(effect);
-                    removed = 1;
+                    removed = battleBrain?.RemoveStatusEffect(character, effect) == true ? 1 : 0;
                 }
                 else
                 {

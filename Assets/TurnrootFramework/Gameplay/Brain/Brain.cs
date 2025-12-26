@@ -228,6 +228,28 @@ namespace Turnroot.Gameplay.Brain
         public event Action<CharacterInstance, string, int> OnExperienceGained;
         public event Action<CharacterInstance, CharacterData, int> OnSupportIncreased;
 
+        // Recruitment-related events (published when runtime recruitment overrides change)
+        public event Action<CharacterInstance, CharacterData, bool> OnCharacterRecruitableChanged;
+        public event Action<
+            CharacterInstance,
+            CharacterData,
+            float
+        > OnCharacterRecruitmentChanceChanged;
+        public event Action<
+            CharacterInstance,
+            CharacterData,
+            float
+        > OnCharacterRecruitmentChanceIncreaseChanged;
+        public event Action<
+            CharacterInstance,
+            CharacterData,
+            bool
+        > OnCharacterRequiresMinSupportLevelChanged;
+        public event Action<
+            CharacterInstance,
+            CharacterData
+        > OnCharacterRecruitmentOverridesCleared;
+
         public void PublishCharacterLevelUp(CharacterInstance character) =>
             OnCharacterLevelUp?.Invoke(character);
 
@@ -254,6 +276,46 @@ namespace Turnroot.Gameplay.Brain
             CharacterData targetCharacter,
             int amount
         ) => OnSupportIncreased?.Invoke(character, targetCharacter, amount);
+
+        // Publication helpers for recruitment-related events
+        public void PublishCharacterRecruitableChanged(
+            CharacterInstance sourceCharacter,
+            CharacterData targetCharacter,
+            bool isRecruitable
+        ) => OnCharacterRecruitableChanged?.Invoke(sourceCharacter, targetCharacter, isRecruitable);
+
+        public void PublishCharacterRecruitmentChanceChanged(
+            CharacterInstance sourceCharacter,
+            CharacterData targetCharacter,
+            float chance
+        ) => OnCharacterRecruitmentChanceChanged?.Invoke(sourceCharacter, targetCharacter, chance);
+
+        public void PublishCharacterRecruitmentChanceIncreaseChanged(
+            CharacterInstance sourceCharacter,
+            CharacterData targetCharacter,
+            float increase
+        ) =>
+            OnCharacterRecruitmentChanceIncreaseChanged?.Invoke(
+                sourceCharacter,
+                targetCharacter,
+                increase
+            );
+
+        public void PublishCharacterRequiresMinSupportLevelChanged(
+            CharacterInstance sourceCharacter,
+            CharacterData targetCharacter,
+            bool requiresMinSupportLevel
+        ) =>
+            OnCharacterRequiresMinSupportLevelChanged?.Invoke(
+                sourceCharacter,
+                targetCharacter,
+                requiresMinSupportLevel
+            );
+
+        public void PublishCharacterRecruitmentOverridesCleared(
+            CharacterInstance sourceCharacter,
+            CharacterData targetCharacter
+        ) => OnCharacterRecruitmentOverridesCleared?.Invoke(sourceCharacter, targetCharacter);
 
         /// <summary>
         /// Request that all unique player roster characters be saved.
@@ -370,6 +432,23 @@ namespace Turnroot.Gameplay.Brain
         public void PublishConversationLayerEnded(ConversationLayer layer) =>
             OnConversationLayerEnded?.Invoke(layer);
 
+        // Support relationship added/removed events
+        public event Action<
+            CharacterInstance,
+            Turnroot.Characters.Components.Support.SupportRelationshipInstance
+        > OnSupportRelationshipAdded;
+        public event Action<CharacterInstance, CharacterData> OnSupportRelationshipRemoved;
+
+        public void PublishSupportRelationshipAdded(
+            CharacterInstance source,
+            Turnroot.Characters.Components.Support.SupportRelationshipInstance relationship
+        ) => OnSupportRelationshipAdded?.Invoke(source, relationship);
+
+        public void PublishSupportRelationshipRemoved(
+            CharacterInstance source,
+            CharacterData target
+        ) => OnSupportRelationshipRemoved?.Invoke(source, target);
+
         #endregion
 
         #region Battle Events
@@ -396,6 +475,17 @@ namespace Turnroot.Gameplay.Brain
         public event Action<CharacterInstance> OnUnitTakesAnotherTurn;
         public event Action<CharacterInstance> OnCriticalHit;
         public event Action<CharacterInstance, int> OnWeaponUsesChanged;
+
+        // Last-attacker change events (per-target)
+        public event Action<CharacterInstance, CharacterInstance> OnLastAttackerSet;
+        public event Action<CharacterInstance> OnLastAttackerCleared;
+
+        public void PublishLastAttackerSet(CharacterInstance target, CharacterInstance attacker) =>
+            OnLastAttackerSet?.Invoke(target, attacker);
+
+        public void PublishLastAttackerCleared(CharacterInstance target) =>
+            OnLastAttackerCleared?.Invoke(target);
+
         public event Action<CharacterInstance, CharacterInstance> OnItemStolen;
         public event Action<CharacterInstance, BattleEmotion> OnUnitEmotionChanged;
 
@@ -496,6 +586,12 @@ namespace Turnroot.Gameplay.Brain
             CharacterInstance character,
             Characters.StatusEffects.StatusEffectInstance effect
         ) => OnStatusEffectExpired?.Invoke(character, effect);
+
+        // Notification that all status effects were cleared from a character (explicit clear)
+        public event Action<CharacterInstance> OnAllStatusEffectsCleared;
+
+        public void PublishAllStatusEffectsCleared(CharacterInstance character) =>
+            OnAllStatusEffectsCleared?.Invoke(character);
 
         #endregion
 

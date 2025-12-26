@@ -336,11 +336,12 @@ namespace Turnroot.Gameplay.Brain.Commands
             if (context != null)
             {
                 UndoState["prevLastAttackerOfTarget"] = context.GetLastAttacker(target);
-                context.RegisterLastAttacker(target, attacker);
-
                 // Also save and set target's own LastAttacker field for convenience
                 UndoState["prevTargetLastAttacker"] = target.LastAttacker;
-                target.SetLastAttacker(attacker);
+                // Use BattleBrain wrapper to ensure events are published and context mapping updated
+                context
+                    .Brain?.GetComponent<BattleBrain>()
+                    ?.SetLastAttacker(context, target, attacker);
             }
 
             context.Brain?.Publish(
@@ -385,12 +386,13 @@ namespace Turnroot.Gameplay.Brain.Commands
             {
                 if (UndoState.TryGetValue("prevLastAttackerOfTarget", out var prevLastAttacker))
                 {
-                    context.RegisterLastAttacker(target, prevLastAttacker as CharacterInstance);
+                    var bb = context.Brain?.GetComponent<BattleBrain>();
+                    bb?.SetLastAttacker(context, target, prevLastAttacker as CharacterInstance);
                 }
-
-                if (UndoState.TryGetValue("prevTargetLastAttacker", out var prevTargetLast))
+                else if (UndoState.TryGetValue("prevTargetLastAttacker", out var prevTargetLast))
                 {
-                    target.SetLastAttacker(prevTargetLast as CharacterInstance);
+                    var bb = context.Brain?.GetComponent<BattleBrain>();
+                    bb?.SetLastAttacker(context, target, prevTargetLast as CharacterInstance);
                 }
             }
 

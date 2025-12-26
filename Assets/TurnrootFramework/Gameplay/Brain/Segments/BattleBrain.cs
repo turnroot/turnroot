@@ -87,6 +87,136 @@ namespace Turnroot.Gameplay.Brain
 
         #endregion
 
+        #region Status Effect & Last-Attacker API
+
+        public bool RemoveStatusEffect(
+            CharacterInstance character,
+            Characters.StatusEffects.StatusEffectInstance effect
+        )
+        {
+            if (character == null || effect == null)
+            {
+                return false;
+            }
+
+            var removed = character.RemoveStatusEffect(effect);
+            if (removed)
+            {
+                _brain?.PublishStatusEffectRemoved(character, effect);
+            }
+            return removed;
+        }
+
+        public int RemoveStatusEffectsByType(
+            CharacterInstance character,
+            Characters.StatusEffects.StatusEffectType effectType
+        )
+        {
+            if (character == null || effectType == null)
+            {
+                return 0;
+            }
+
+            var toRemove = character
+                .GetActiveStatusEffects()
+                .FindAll(e => e.EffectType == effectType);
+            var count = character.RemoveStatusEffectsByType(effectType);
+            foreach (var r in toRemove)
+            {
+                _brain?.PublishStatusEffectRemoved(character, r);
+            }
+            return count;
+        }
+
+        public int RemoveAllBuffs(CharacterInstance character)
+        {
+            if (character == null)
+            {
+                return 0;
+            }
+
+            var toRemove = character
+                .GetActiveStatusEffects()
+                .FindAll(e => e.EffectType?.IsBuff == true);
+            var count = character.RemoveAllBuffs();
+            foreach (var r in toRemove)
+            {
+                _brain?.PublishStatusEffectRemoved(character, r);
+            }
+            return count;
+        }
+
+        public int RemoveAllDebuffs(CharacterInstance character)
+        {
+            if (character == null)
+            {
+                return 0;
+            }
+
+            var toRemove = character
+                .GetActiveStatusEffects()
+                .FindAll(e => e.EffectType?.IsDebuff == true);
+            var count = character.RemoveAllDebuffs();
+            foreach (var r in toRemove)
+            {
+                _brain?.PublishStatusEffectRemoved(character, r);
+            }
+            return count;
+        }
+
+        public void ClearAllStatusEffects(CharacterInstance character)
+        {
+            if (character == null)
+            {
+                return;
+            }
+
+            var toRemove = character.GetActiveStatusEffects();
+            character.ClearAllStatusEffects();
+            foreach (var r in toRemove)
+            {
+                _brain?.PublishStatusEffectRemoved(character, r);
+            }
+            _brain?.PublishAllStatusEffectsCleared(character);
+        }
+
+        public void SetLastAttacker(
+            BattleContext context,
+            CharacterInstance target,
+            CharacterInstance attacker
+        )
+        {
+            if (target == null)
+            {
+                return;
+            }
+
+            target.SetLastAttacker(attacker);
+            context?.RegisterLastAttacker(target, attacker);
+            if (attacker == null)
+            {
+                _brain?.PublishLastAttackerCleared(target);
+            }
+            else
+            {
+                _brain?.PublishLastAttackerSet(target, attacker);
+            }
+        }
+
+        public void ClearLastAttacker(BattleContext context, CharacterInstance target)
+        {
+            if (target == null)
+            {
+                return;
+            }
+
+            target.ClearLastAttacker();
+            context?.RegisterLastAttacker(target, null);
+            _brain?.PublishLastAttackerCleared(target);
+        }
+
+        #endregion
+
         public void ProgressTurnOrder()
         {
             if (!_turnRotisserie.Progress())
@@ -140,7 +270,7 @@ namespace Turnroot.Gameplay.Brain
                 if (inst != null)
                 {
                     inst.LastAttackedTarget = null;
-                    inst.ClearLastAttacker();
+                    ClearLastAttacker(BattleObject?.Context, inst);
                 }
             }
 
@@ -273,7 +403,7 @@ namespace Turnroot.Gameplay.Brain
                 if (inst != null)
                 {
                     inst.LastAttackedTarget = null;
-                    inst.ClearLastAttacker();
+                    ClearLastAttacker(BattleObject?.Context, inst);
                 }
             }
 
