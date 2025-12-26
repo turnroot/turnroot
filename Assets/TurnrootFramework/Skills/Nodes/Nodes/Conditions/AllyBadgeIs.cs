@@ -24,14 +24,14 @@ namespace Turnroot.Skills.Nodes.Conditions
             }
 
             var context = GetContextFromGraph(skillGraph);
-            if (context?.AdjacentUnits == null)
+            if (context?.Participants?.AdjacentUnits == null)
             {
                 return new FloatValue();
             }
 
             var matchCount = 0;
             var adjacentAllies = ListPool<CharacterInstance>.Get();
-            context.AdjacentUnits.GetAdjacentAlliesNonAlloc(context, adjacentAllies);
+            context.Participants.AdjacentUnits.GetAdjacentAlliesNonAlloc(context, adjacentAllies);
 
             foreach (var unit in adjacentAllies)
             {

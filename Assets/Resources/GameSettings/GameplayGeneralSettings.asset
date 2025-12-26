@@ -29,13 +29,13 @@ MonoBehaviour:
   MaxEquippedSkills: 0
   WeaponTriangle: 1
   ExpandedWeaponTriangle: 0
+  WeaponTriangleAffectsDamage: 1
+  WeaponTriangleAffectsHit: 1
   WeaponTriangleAdvantage: 20
   WeaponTriangleDisadvantage: -20
   MagicTriangle: 0
   MagicTriangleAdvantage: 20
   MagicTriangleDisadvantage: -20
-  WeaponTriangleAffectsDamage: 1
-  WeaponTriangleAffectsHit: 1
   HitFormula: 2
   CustomSkillMultiplierForHit: 2
   CustomDexMultiplierForHit: 1

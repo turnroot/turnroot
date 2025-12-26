@@ -37,7 +37,7 @@ namespace Turnroot.Skills.Nodes.Conditions
             }
 
             var context = GetContextFromGraph(skillGraph);
-            if (context?.AdjacentUnits == null)
+            if (context?.Participants?.AdjacentUnits == null)
             {
                 Debug.LogWarning($"{NodeName}: No adjacent units in context");
                 return port.fieldName == "count" ? new FloatValue() : (object)new BoolValue();

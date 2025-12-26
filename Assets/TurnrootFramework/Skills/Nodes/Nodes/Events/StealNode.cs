@@ -18,28 +18,33 @@ namespace Turnroot.Skills.Nodes.Events
         {
             if (
                 !ValidationHelper.ValidateNotNull(
-                    context?.UnitInstance,
-                    nameof(context.UnitInstance)
+                    context?.Unit.UnitInstance,
+                    nameof(context.Unit.UnitInstance)
                 )
             )
             {
                 return;
             }
 
-            if (!ValidationHelper.ValidateNotNullOrEmpty(context.Targets, nameof(context.Targets)))
+            if (
+                !ValidationHelper.ValidateNotNullOrEmpty(
+                    context.Participants.Targets,
+                    nameof(context.Participants.Targets)
+                )
+            )
             {
                 return;
             }
 
-            var target = context.Targets[0];
+            var target = context.Participants.Targets[0];
             if (!ValidationHelper.ValidateNotNull(target, nameof(target)))
             {
                 return;
             }
 
-            context.Brain?.PublishItemStolen(context.UnitInstance, target);
+            context.Brain?.PublishItemStolen(context.Unit.UnitInstance, target);
             Debug.Log(
-                $"Steal: {context.UnitInstance.CharacterTemplate.DisplayName} attempted to steal {itemType} from {target.CharacterTemplate.DisplayName}"
+                $"Steal: {context.Unit.UnitInstance.CharacterTemplate.DisplayName} attempted to steal {itemType} from {target.CharacterTemplate.DisplayName}"
             );
         }
     }

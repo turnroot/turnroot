@@ -32,7 +32,7 @@ namespace Turnroot.Skills.Nodes
             this.visitedNodes = new HashSet<SkillNode>();
             this.currentNode = null;
 
-            context.CurrentSkillGraph = graph;
+            context.Skill.CurrentSkillGraph = graph;
             // Store executor in context so nodes can signal completion
             context.SetCustomData("_executor", this);
 
@@ -103,7 +103,7 @@ namespace Turnroot.Skills.Nodes
             catch (System.Exception e)
             {
                 Debug.LogError($"Error executing node {node.name}: {e.Message}\n{e.StackTrace}");
-                context.IsInterrupted = true;
+                context.Flags.IsInterrupted = true;
                 return OperationResult.Failure($"Error executing node {node.name}: {e.Message}");
             }
 

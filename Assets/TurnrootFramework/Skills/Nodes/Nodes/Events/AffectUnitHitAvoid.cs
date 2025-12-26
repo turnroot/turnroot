@@ -27,8 +27,8 @@ namespace Turnroot.Skills.Nodes.Events
         {
             if (
                 !ValidationHelper.ValidateNotNull(
-                    context?.UnitInstance,
-                    nameof(context.UnitInstance)
+                    context?.Unit.UnitInstance,
+                    nameof(context.Unit.UnitInstance)
                 )
             )
             {
@@ -37,7 +37,7 @@ namespace Turnroot.Skills.Nodes.Events
 
             var changeHitAmount = GetInputFloat("changeHit", testChangeHit);
             ApplyStatChange(
-                context.UnitInstance,
+                context.Unit.UnitInstance,
                 "HitAvoid",
                 false,
                 changeHitAmount,
@@ -46,7 +46,7 @@ namespace Turnroot.Skills.Nodes.Events
 
             var changeAvoidAmount = GetInputFloat("changeAvoid", testChangeAvoid);
             ApplyStatChange(
-                context.UnitInstance,
+                context.Unit.UnitInstance,
                 "HitAvoid",
                 false,
                 changeAvoidAmount,

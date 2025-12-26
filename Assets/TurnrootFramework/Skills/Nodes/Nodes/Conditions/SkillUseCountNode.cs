@@ -21,7 +21,7 @@ namespace Turnroot.Skills.Nodes.Conditions
                     return null;
                 }
 
-                if (contextFromGraph.CurrentSkill == null)
+                if (contextFromGraph.Skill.CurrentSkill == null)
                 {
                     Debug.LogError("CurrentSkill is null in BattleContext!");
                     return null;
@@ -29,9 +29,9 @@ namespace Turnroot.Skills.Nodes.Conditions
 
                 int count = 0;
                 if (
-                    contextFromGraph.SkillUseCount != null
-                    && contextFromGraph.SkillUseCount.TryGetValue(
-                        contextFromGraph.CurrentSkill,
+                    contextFromGraph.Skill.SkillUseCount != null
+                    && contextFromGraph.Skill.SkillUseCount.TryGetValue(
+                        contextFromGraph.Skill.CurrentSkill,
                         out count
                     )
                 )

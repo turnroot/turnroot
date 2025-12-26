@@ -22,8 +22,8 @@ namespace Turnroot.Skills.Nodes.Events
         {
             if (
                 !ValidationHelper.ValidateNotNull(
-                    context?.UnitInstance,
-                    nameof(context.UnitInstance)
+                    context?.Unit.UnitInstance,
+                    nameof(context.Unit.UnitInstance)
                 )
             )
             {
@@ -56,7 +56,7 @@ namespace Turnroot.Skills.Nodes.Events
             }
 
             // Execute move through BattleContext (always uses commands)
-            context.MoveUnitToPointInt(context.UnitInstance, newPosition);
+            context.MoveUnitToPointInt(context.Unit.UnitInstance, newPosition);
         }
     }
 }

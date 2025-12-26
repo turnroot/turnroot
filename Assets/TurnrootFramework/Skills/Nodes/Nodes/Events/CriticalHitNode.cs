@@ -15,17 +15,17 @@ namespace Turnroot.Skills.Nodes.Events
         {
             if (
                 !ValidationHelper.ValidateNotNull(
-                    context?.UnitInstance,
-                    nameof(context.UnitInstance)
+                    context?.Unit.UnitInstance,
+                    nameof(context.Unit.UnitInstance)
                 )
             )
             {
                 return;
             }
 
-            context.Brain?.PublishCriticalHit(context.UnitInstance);
+            context.Brain?.PublishCriticalHit(context.Unit.UnitInstance);
             Debug.Log(
-                $"CriticalHit: {context.UnitInstance.CharacterTemplate.DisplayName} triggered a critical hit"
+                $"CriticalHit: {context.Unit.UnitInstance.CharacterTemplate.DisplayName} triggered a critical hit"
             );
         }
     }

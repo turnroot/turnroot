@@ -130,6 +130,10 @@ namespace Turnroot.Gameplay.Brain.Snapshots
             public Vector2Int Position;
             public bool IsDefeated;
             public Dictionary<string, float> Stats;
+
+            // Mark whether this unit was spawned during battle after the snapshot was taken.
+            // This field is reserved for future logic (e.g., skip restoring spawned reinforcements).
+            public bool WasSpawned;
         }
     }
 
@@ -200,9 +204,33 @@ namespace Turnroot.Gameplay.Brain.Snapshots
                 return false;
             }
 
-            foreach (var unit in units)
+            // Build a lookup of current units by ID for safe restoration
+            var unitLookup = new Dictionary<string, CharacterInstance>();
+            if (units != null)
             {
-                snapshot.RestoreUnit(unit, context.mapGrid);
+                foreach (var u in units)
+                {
+                    if (u != null && !string.IsNullOrEmpty(u.Id))
+                    {
+                        unitLookup[u.Id] = u;
+                    }
+                }
+            }
+
+            // Restore only units that were captured in the snapshot and still exist in the current battle context.
+            foreach (var unitId in snapshot.GetCapturedUnitIds())
+            {
+                if (unitLookup.TryGetValue(unitId, out var currentUnit))
+                {
+                    snapshot.RestoreUnit(currentUnit, context.mapGrid);
+                }
+                else
+                {
+                    // Unit was captured previously but is missing now (was removed); skip to avoid null refs.
+                    Debug.LogWarning(
+                        $"[Snapshot] Skipping restore for unit {unitId} - not present in current battle"
+                    );
+                }
             }
 
             OnSnapshotRestored?.Invoke(snapshot);

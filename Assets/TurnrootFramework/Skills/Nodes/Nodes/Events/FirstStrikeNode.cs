@@ -20,7 +20,7 @@ namespace Turnroot.Skills.Nodes.Events
             // Set flag that unit always attacks first regardless of speed
             // This is different from ChangeBattleOrder.AttackFirst which modifies order within combat
             // FirstStrike means this unit initiates combat before enemy can counterattack
-            context.SetCustomData($"FirstStrike_{context.UnitInstance.Id}", true);
+            context.SetCustomData($"FirstStrike_{context.Unit.UnitInstance.Id}", true);
 
             Debug.Log("FirstStrike: Unit will attack first, preventing enemy counterattack");
         }

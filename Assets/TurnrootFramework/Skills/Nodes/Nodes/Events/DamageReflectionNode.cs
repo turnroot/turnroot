@@ -34,7 +34,7 @@ namespace Turnroot.Skills.Nodes.Events
             // Key format: "ReflectDamage_{CharacterInstanceId}"
             var reflectionData = new { Percent = reflectPercent };
 
-            context.SetCustomData($"ReflectDamage_{context.UnitInstance.Id}", reflectionData);
+            context.SetCustomData($"ReflectDamage_{context.Unit.UnitInstance.Id}", reflectionData);
 
             Debug.Log($"DamageReflection: Will reflect {reflectPercent}% of damage");
         }

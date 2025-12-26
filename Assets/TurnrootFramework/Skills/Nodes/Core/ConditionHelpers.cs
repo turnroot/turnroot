@@ -16,7 +16,7 @@ namespace Turnroot.Skills.Nodes
         /// </summary>
         public enum CharacterSource
         {
-            Unit, // From context.UnitInstance
+            Unit, // From context.Unit.UnitInstance
             Enemy, // From context.Targets[0]
             Ally, // From context.Allies[0]
         }
@@ -33,12 +33,14 @@ namespace Turnroot.Skills.Nodes
                 ? null
                 : source switch
                 {
-                    CharacterSource.Unit => context.UnitInstance,
-                    CharacterSource.Enemy => context.Targets != null && context.Targets.Count > 0
-                        ? context.Targets[0]
+                    CharacterSource.Unit => context.Unit.UnitInstance,
+                    CharacterSource.Enemy => context.Participants.Targets != null
+                    && context.Participants.Targets.Count > 0
+                        ? context.Participants.Targets[0]
                         : null,
-                    CharacterSource.Ally => context.Allies != null && context.Allies.Count > 0
-                        ? context.Allies[0]
+                    CharacterSource.Ally => context.Participants.Allies != null
+                    && context.Participants.Allies.Count > 0
+                        ? context.Participants.Allies[0]
                         : null,
                     _ => null,
                 };
@@ -79,12 +81,14 @@ namespace Turnroot.Skills.Nodes
         /// <summary>
         /// Creates a FloatValue output with a runtime value or default.
         /// </summary>
-        public static FloatValue CreateFloatOutput(float defaultValue, float runtimeValue) => new FloatValue { value = Application.isPlaying ? runtimeValue : defaultValue };
+        public static FloatValue CreateFloatOutput(float defaultValue, float runtimeValue) =>
+            new FloatValue { value = Application.isPlaying ? runtimeValue : defaultValue };
 
         /// <summary>
         /// Creates a BoolValue output with a runtime value or default.
         /// </summary>
-        public static BoolValue CreateBoolOutput(bool defaultValue, bool runtimeValue) => new BoolValue { value = Application.isPlaying ? runtimeValue : defaultValue };
+        public static BoolValue CreateBoolOutput(bool defaultValue, bool runtimeValue) =>
+            new BoolValue { value = Application.isPlaying ? runtimeValue : defaultValue };
 
         /// <summary>
         /// Gets stat current value with fallback handling.

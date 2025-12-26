@@ -17,7 +17,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Conditions.Specific
                 return;
             }
 
-            if (battleContext.Targets.All(enemy => enemy.IsDefeatedInCurrentBattle))
+            if (battleContext.Participants.Targets.All(enemy => enemy.IsDefeatedInCurrentBattle))
             {
                 ConditionMet();
             }

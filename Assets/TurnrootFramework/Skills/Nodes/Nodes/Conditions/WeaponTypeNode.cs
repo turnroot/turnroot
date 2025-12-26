@@ -45,7 +45,7 @@ namespace Turnroot.Skills.Nodes.Conditions
             }
 
             var context = GetContextFromGraph(skillGraph);
-            if (context == null || context.UnitInstance == null)
+            if (context == null || context.Unit.UnitInstance == null)
             {
                 Debug.LogWarning("WeaponType: Could not retrieve context or unit from graph");
                 return port.fieldName switch
@@ -56,7 +56,7 @@ namespace Turnroot.Skills.Nodes.Conditions
             }
 
             // Get equipped weapon from character inventory
-            var inventory = context.UnitInstance.InventoryInstance;
+            var inventory = context.Unit.UnitInstance.InventoryInstance;
             var weaponIndex = inventory?.GetEquippedWeaponIndex() ?? -1;
             if (
                 weaponIndex < 0

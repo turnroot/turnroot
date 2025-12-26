@@ -46,7 +46,7 @@ namespace Turnroot.Skills.Nodes.Events
             if (shouldAffectAdjacent)
             {
                 // Get adjacent allies from context
-                if (context.AdjacentUnits == null)
+                if (context.Participants.AdjacentUnits == null)
                 {
                     Debug.LogWarning("ReduceDamage: No adjacent units available in context");
                     return;
@@ -54,7 +54,10 @@ namespace Turnroot.Skills.Nodes.Events
 
                 // Get all adjacent allies using non-allocating method
                 var adjacentAllies = ListPool<CharacterInstance>.Get();
-                context.AdjacentUnits.GetAdjacentAlliesNonAlloc(context, adjacentAllies);
+                context.Participants.AdjacentUnits.GetAdjacentAlliesNonAlloc(
+                    context,
+                    adjacentAllies
+                );
 
                 int affectedCount = 0;
                 foreach (var adjacentUnit in adjacentAllies)
@@ -83,7 +86,10 @@ namespace Turnroot.Skills.Nodes.Events
             else
             {
                 // Affect only the caster
-                context.SetCustomData($"DamageReduction_{context.UnitInstance.Id}", reductionData);
+                context.SetCustomData(
+                    $"DamageReduction_{context.Unit.UnitInstance.Id}",
+                    reductionData
+                );
                 string reductionType = isPercentage ? "%" : "flat";
                 Debug.Log($"ReduceDamage: Will take {reduction} {reductionType} less damage");
             }

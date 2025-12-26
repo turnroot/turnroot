@@ -42,8 +42,8 @@ namespace Turnroot.Gameplay.Brain
                 return;
             }
 
-            BattleObject.Context.UnitTakingAnotherTurn = unit;
-            BattleObject.Context.AnotherTurnGranted = true;
+            BattleObject.Context.Flags.UnitTakingAnotherTurn = unit;
+            BattleObject.Context.Flags.AnotherTurnGranted = true;
 
             Debug.Log($"BattleBrain: {unit.CharacterTemplate.DisplayName} will take another turn");
         }
@@ -58,8 +58,8 @@ namespace Turnroot.Gameplay.Brain
                 return;
             }
 
-            BattleObject.Context.IsCriticalHit = true;
-            BattleObject.Context.CriticalHitUnit = unit;
+            BattleObject.Context.Flags.IsCriticalHit = true;
+            BattleObject.Context.Flags.CriticalHitUnit = unit;
 
             Debug.Log($"BattleBrain: {unit.CharacterTemplate.DisplayName} triggered critical hit");
         }

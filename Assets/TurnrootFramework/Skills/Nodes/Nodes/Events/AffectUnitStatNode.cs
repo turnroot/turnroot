@@ -26,8 +26,8 @@ namespace Turnroot.Skills.Nodes.Events
         {
             if (
                 !ValidationHelper.ValidateNotNull(
-                    context?.UnitInstance,
-                    nameof(context.UnitInstance)
+                    context?.Unit.UnitInstance,
+                    nameof(context.Unit.UnitInstance)
                 )
             )
             {
@@ -36,7 +36,7 @@ namespace Turnroot.Skills.Nodes.Events
 
             float changeAmount = GetInputFloat("change", testChange);
             ApplyStatChange(
-                context.UnitInstance,
+                context.Unit.UnitInstance,
                 selectedStat,
                 isBoundedStat,
                 changeAmount,

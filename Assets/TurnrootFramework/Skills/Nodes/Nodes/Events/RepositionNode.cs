@@ -19,10 +19,7 @@ namespace Turnroot.Skills.Nodes.Events
             }
 
             // Get the direction from custom data (set by player during gameplay)
-            Direction allyDirection = context.GetCustomData(
-                "SelectedDirection",
-                Direction.Center
-            );
+            Direction allyDirection = context.GetCustomData("SelectedDirection", Direction.Center);
 
             // Get the move direction from custom data (set by player during gameplay)
             RepositionDirection moveDirection = context.GetCustomData(
@@ -31,13 +28,13 @@ namespace Turnroot.Skills.Nodes.Events
             );
 
             // Get the unit in the specified direction
-            if (context.AdjacentUnits == null)
+            if (context.Participants.AdjacentUnits == null)
             {
                 Debug.LogWarning("Reposition: No adjacent units data");
                 return;
             }
 
-            var ally = context.AdjacentUnits.GetUnit(allyDirection);
+            var ally = context.Participants.AdjacentUnits.GetUnit(allyDirection);
             if (ally == null)
             {
                 Debug.LogWarning($"Reposition: No unit at {allyDirection}");
@@ -49,7 +46,7 @@ namespace Turnroot.Skills.Nodes.Events
             {
                 AllyId = ally.Id,
                 MoveDirection = moveDirection,
-                CasterId = context.UnitInstance.Id,
+                CasterId = context.Unit.UnitInstance.Id,
             };
 
             context.SetCustomData("Reposition", repositionData);

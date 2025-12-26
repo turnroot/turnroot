@@ -31,7 +31,7 @@ namespace Turnroot.Skills.Nodes.Conditions
             }
 
             // Check if this is the unit's first combat this turn
-            var unit = context.UnitInstance;
+            var unit = context.Unit.UnitInstance;
             if (unit == null)
             {
                 return new BoolValue { value = true };

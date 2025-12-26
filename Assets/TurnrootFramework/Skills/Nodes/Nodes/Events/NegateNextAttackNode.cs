@@ -23,7 +23,7 @@ namespace Turnroot.Skills.Nodes.Events
             }
 
             int attacksToNegate = allAttacksThisTurn ? -1 : 1;
-            context.SetCustomData($"NegateAttacks_{context.UnitInstance.Id}", attacksToNegate);
+            context.SetCustomData($"NegateAttacks_{context.Unit.UnitInstance.Id}", attacksToNegate);
 
             if (allAttacksThisTurn)
             {

@@ -66,15 +66,16 @@ public class SkillInstance : IPostDeserialize
         }
 
         // Set runtime context
-        context.CurrentSkill = _skillTemplate;
-        context.CurrentSkillGraph = _skillTemplate.BehaviorGraph;
+        context.Skill.CurrentSkill = _skillTemplate;
+        context.Skill.CurrentSkillGraph = _skillTemplate.BehaviorGraph;
 
         // Record skill activation for replay
-        if (context.UnitInstance != null)
+        if (context.Unit.UnitInstance != null)
         {
-            var targetIds = context.Targets?.Select(t => t.Id).ToArray() ?? Array.Empty<string>();
+            var targetIds =
+                context.Participants.Targets?.Select(t => t.Id).ToArray() ?? Array.Empty<string>();
             var command = new SkillCommand(
-                context.UnitInstance.Id,
+                context.Unit.UnitInstance.Id,
                 _skillTemplate.SkillName,
                 targetIds,
                 context.Brain.CurrentTurnNumber
@@ -86,7 +87,7 @@ public class SkillInstance : IPostDeserialize
         _skillTemplate.TriggerSkillEvents();
 
         // Publish to Brain for centralized tracking
-        context.Brain.PublishSkillTriggered(context.UnitInstance, _skillTemplate);
+        context.Brain.PublishSkillTriggered(context.Unit.UnitInstance, _skillTemplate);
 
         // Execute the behavior graph (individual effects use their own commands)
         _skillTemplate.BehaviorGraph.Execute(context);

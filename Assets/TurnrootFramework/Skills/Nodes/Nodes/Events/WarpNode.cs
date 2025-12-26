@@ -26,19 +26,16 @@ namespace Turnroot.Skills.Nodes.Events
             }
 
             // Get the direction from custom data (set by player during gameplay)
-            Direction allyDirection = context.GetCustomData(
-                "SelectedDirection",
-                Direction.Center
-            );
+            Direction allyDirection = context.GetCustomData("SelectedDirection", Direction.Center);
 
             // Get the unit in the specified direction
-            if (context.AdjacentUnits == null)
+            if (context.Participants.AdjacentUnits == null)
             {
                 Debug.LogWarning("Warp: No adjacent units data");
                 return;
             }
 
-            var ally = context.AdjacentUnits.GetUnit(allyDirection);
+            var ally = context.Participants.AdjacentUnits.GetUnit(allyDirection);
             if (ally == null)
             {
                 Debug.LogWarning($"Warp: No unit at {allyDirection}");
@@ -49,7 +46,7 @@ namespace Turnroot.Skills.Nodes.Events
             var warpData = new
             {
                 AllyId = ally.Id,
-                CasterId = context.UnitInstance.Id,
+                CasterId = context.Unit.UnitInstance.Id,
                 Mode = mode,
                 MaxDistance = maxDistance,
             };

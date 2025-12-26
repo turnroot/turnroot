@@ -8,6 +8,7 @@ namespace Turnroot.Skills.Nodes.Conditions
     {
         protected override string NodeName => "AdjacentEnemies";
 
-        protected override int GetAdjacentCount(BattleContext context) => context.AdjacentUnits.GetAdjacentEnemyCount(context);
+        protected override int GetAdjacentCount(BattleContext context) =>
+            context.Participants.AdjacentUnits.GetAdjacentEnemyCount(context);
     }
 }

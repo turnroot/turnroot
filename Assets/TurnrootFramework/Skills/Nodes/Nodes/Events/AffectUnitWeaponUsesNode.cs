@@ -28,9 +28,11 @@ namespace Turnroot.Skills.Nodes.Events
             }
 
             var targetCharacter = applyToUnit
-                ? context.UnitInstance
+                ? context.Unit.UnitInstance
                 : (
-                    context.Targets != null && context.Targets.Count > 0 ? context.Targets[0] : null
+                    context.Participants.Targets != null && context.Participants.Targets.Count > 0
+                        ? context.Participants.Targets[0]
+                        : null
                 );
 
             if (targetCharacter == null)

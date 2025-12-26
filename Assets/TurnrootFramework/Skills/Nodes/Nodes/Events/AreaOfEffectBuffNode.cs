@@ -42,7 +42,7 @@ namespace Turnroot.Skills.Nodes.Events
                 return;
             }
 
-            if (context.Allies == null || context.Allies.Count == 0)
+            if (context.Participants.Allies == null || context.Participants.Allies.Count == 0)
             {
                 Debug.LogWarning("AreaOfEffectBuff: No allies in context");
                 return;
@@ -53,10 +53,10 @@ namespace Turnroot.Skills.Nodes.Events
 
             // Apply buff to allies within radius
             int affectedCount = 0;
-            foreach (var ally in context.Allies)
+            foreach (var ally in context.Participants.Allies)
             {
                 // Check if ally is within radius (using Manhattan distance for grid-based)
-                var casterPos = context.UnitInstance?.MapGridPosition;
+                var casterPos = context.Unit.UnitInstance?.MapGridPosition;
                 var allyPos = ally?.MapGridPosition;
 
                 if (casterPos == null || allyPos == null)
@@ -71,8 +71,8 @@ namespace Turnroot.Skills.Nodes.Events
                 {
                     var effect = ally.ApplyStatusEffect(
                         buffType,
-                        sourceCharacterId: context.UnitInstance?.Id,
-                        sourceSkillId: context.CurrentSkill?.name,
+                        sourceCharacterId: context.Unit.UnitInstance?.Id,
+                        sourceSkillId: context.Skill.CurrentSkill?.name,
                         duration: duration,
                         intensity: intensityValue
                     );

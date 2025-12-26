@@ -27,8 +27,8 @@ namespace Turnroot.Skills.Nodes.Events
         {
             if (
                 !ValidationHelper.ValidateNotNull(
-                    context?.UnitInstance,
-                    nameof(context.UnitInstance)
+                    context?.Unit.UnitInstance,
+                    nameof(context.Unit.UnitInstance)
                 )
             )
             {
@@ -37,8 +37,8 @@ namespace Turnroot.Skills.Nodes.Events
 
             if (
                 !ValidationHelper.ValidateNotNull(
-                    context.AdjacentUnits,
-                    nameof(context.AdjacentUnits)
+                    context.Participants.AdjacentUnits,
+                    nameof(context.Participants.AdjacentUnits)
                 )
             )
             {
@@ -47,7 +47,7 @@ namespace Turnroot.Skills.Nodes.Events
 
             float changeAmount = GetInputFloat("change", testChange);
             var adjacentAllies = ListPool<CharacterInstance>.Get();
-            context.AdjacentUnits.GetAdjacentAlliesNonAlloc(context, adjacentAllies);
+            context.Participants.AdjacentUnits.GetAdjacentAlliesNonAlloc(context, adjacentAllies);
 
             int affectedCount = 0;
             foreach (var adjacentUnit in adjacentAllies)

@@ -115,12 +115,12 @@ namespace Turnroot.Gameplay.Brain.Commands
 
         protected CharacterInstance FindUnit(BattleContext context, string unitId)
         {
-            if (context.UnitInstance?.Id == unitId)
+            if (context?.Unit?.UnitInstance?.Id == unitId)
             {
-                return context.UnitInstance;
+                return context.Unit.UnitInstance;
             }
 
-            foreach (var target in context.Targets ?? new List<CharacterInstance>())
+            foreach (var target in context?.Participants?.Targets ?? new List<CharacterInstance>())
             {
                 if (target.Id == unitId)
                 {
@@ -128,7 +128,7 @@ namespace Turnroot.Gameplay.Brain.Commands
                 }
             }
 
-            foreach (var ally in context.Allies ?? new List<CharacterInstance>())
+            foreach (var ally in context?.Participants?.Allies ?? new List<CharacterInstance>())
             {
                 if (ally.Id == unitId)
                 {

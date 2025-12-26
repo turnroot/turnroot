@@ -24,7 +24,7 @@ namespace Turnroot.Skills.Nodes.Flow
             // If condition is false, interrupt execution (don't proceed)
             if (!conditionValue.value)
             {
-                context.IsInterrupted = true;
+                context.Flags.IsInterrupted = true;
                 Debug.Log($"FlowIf condition is false, stopping execution.");
             }
             // If true, execution will proceed normally when Proceed() is called

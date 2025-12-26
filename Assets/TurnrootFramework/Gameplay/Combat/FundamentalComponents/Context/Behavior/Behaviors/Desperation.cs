@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Turnroot.Characters;
 using Turnroot.Characters.Components.Behavior;
+using Turnroot.Gameplay.Objects;
 using Turnroot.Utilities;
 using UnityEngine;
 
@@ -14,7 +15,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             float BestUtility = 0f;
 
             // Calculate health status
-            float healthPercent = _context.UnitInstance.GetHealthPercentage();
+            float healthPercent = _context.Unit.UnitInstance.GetHealthPercentage();
             bool isCritical = healthPercent < 0.2f;
 
             // --- HEAL SELF (Higher Priority) ---
@@ -47,9 +48,9 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                         {
                             Type = AIGoal.GoalType.HealSelf,
                             UtilityScore = baseUtility,
-                            Target = _context.UnitInstance,
-                            Destination = _context.UnitInstance.UnitPositionToMapGridPoint(
-                                _context.UnitInstance.MapGridPosition,
+                            Target = _context.Unit.UnitInstance,
+                            Destination = _context.Unit.UnitInstance.UnitPositionToMapGridPoint(
+                                _context.Unit.UnitInstance.MapGridPosition,
                                 _context.mapGrid
                             ),
                         }
@@ -58,7 +59,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             }
 
             // --- KILL ENEMY (Desperate Attacks) ---
-            foreach (var target in _context.Targets)
+            foreach (var target in _context.Participants.Targets)
             {
                 var targetGridPoint = target.UnitPositionToMapGridPoint(
                     target.MapGridPosition,
@@ -91,7 +92,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
                     // Distance bonus
                     var distance = Vector2.Distance(
-                        _context.UnitInstance.MapGridPosition,
+                        _context.Unit.UnitInstance.MapGridPosition,
                         target.MapGridPosition
                     );
                     utility += Mathf.Max(0, 3f - distance);
@@ -100,6 +101,34 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                     if (isCritical && behavior.MindlessCunning > 0.5f)
                     {
                         utility *= 0.8f; // Smart units less likely to suicide attack
+                    }
+
+                    // Prefer weapons that provide higher potential damage - use DamageCalculator to evaluate
+                    var availableWeapons = _context.Unit.UnitInstance.GetAvailableWeapons();
+                    ObjectItemInstance bestWeapon = null;
+                    float bestPotential = 0f;
+                    foreach (var w in availableWeapons)
+                    {
+                        int perHit = DamageCalculator.CalculatePotentialDamage(
+                            _context.Unit.UnitInstance,
+                            target,
+                            w,
+                            _context
+                        );
+                        int attackCount = DamageCalculator.CalculateAttackCount(
+                            _context.Unit.UnitInstance,
+                            target
+                        );
+                        float total = perHit * attackCount;
+                        if (w == _context.Unit.UnitInstance.GetEquippedWeapon())
+                        {
+                            total *= 1.05f; // small preference for equipped weapon
+                        }
+                        if (total > bestPotential)
+                        {
+                            bestPotential = total;
+                            bestWeapon = w;
+                        }
                     }
 
                     if (utility > BestUtility)
@@ -111,10 +140,11 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                                 Type = AIGoal.GoalType.KillEnemy,
                                 UtilityScore = utility,
                                 Target = target,
-                                Destination = _context.UnitInstance.UnitPositionToMapGridPoint(
-                                    _context.UnitInstance.MapGridPosition,
+                                Destination = _context.Unit.UnitInstance.UnitPositionToMapGridPoint(
+                                    _context.Unit.UnitInstance.MapGridPosition,
                                     _context.mapGrid
                                 ),
+                                ChosenWeapon = bestWeapon,
                             }
                         );
                     }
@@ -126,7 +156,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             {
                 // OPTIMIZATION: Calculate enemy positions once, not per tile
                 var enemyData = FindClosestAndFurthestEnemies(
-                    new List<CharacterInstance>(_context.Targets)
+                    new List<CharacterInstance>(_context.Participants.Targets)
                 );
                 float currentDistanceToEnemy = enemyData.closestDist;
 
@@ -146,9 +176,9 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                     // Soldiers seek allies when retreating
                     if (behavior.SoldierLoneWolf < 0.5f)
                     {
-                        foreach (var ally in _context.Allies)
+                        foreach (var ally in _context.Participants.Allies)
                         {
-                            if (ally == _context.UnitInstance)
+                            if (ally == _context.Unit.UnitInstance)
                             {
                                 continue;
                             }
@@ -208,7 +238,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                             {
                                 Type = AIGoal.GoalType.DefensiveRetreat,
                                 UtilityScore = safeTile.Value,
-                                Target = _context.UnitInstance,
+                                Target = _context.Unit.UnitInstance,
                                 Destination = safeTile.Key,
                             }
                         );

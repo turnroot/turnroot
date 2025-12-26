@@ -98,7 +98,7 @@ public class BattleCondition
     protected List<CharacterInstance> GetMatchingAlliesAndThirdParty(CharacterData[] templates)
     {
         return battleContext
-            .Allies.Concat(battleContext.ThirdParty)
+            .Participants.Allies.Concat(battleContext.Participants.ThirdParty)
             .Where(u => templates.Contains(u.CharacterTemplate))
             .ToList();
     }

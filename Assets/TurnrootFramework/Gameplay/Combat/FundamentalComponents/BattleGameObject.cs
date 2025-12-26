@@ -1,6 +1,7 @@
 using System.Linq;
 using Turnroot.Characters;
 using Turnroot.Gameplay.Brain;
+using Turnroot.Gameplay.Brain.Events;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Environment;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Conditions.Specific;
@@ -116,6 +117,13 @@ namespace Turnroot.Gameplay.Combat
             Brain.OnUnitMoved += HandleUnitMoved;
             Brain.OnBattleCompleted += HandleExitBattle;
 
+            // Subscribe to advanced priority events for spawn/defeat to invalidate condition caches
+            Brain.Subscribe<UnitSpawnedEvent>(HandleUnitSpawnedEvent, EventPriority.Normal);
+            Brain.Subscribe<UnitDefeatedEvent>(HandleUnitDefeatedEvent, EventPriority.Normal);
+
+            // Also subscribe to Brain's advanced PriorityEventBus for basic unit events in case commands publish them
+            // (handlers above will take care of cache invalidation and checks)
+
             _isConnectedToBrain = true;
             return OperationResult.SuccessResult();
         }
@@ -133,6 +141,10 @@ namespace Turnroot.Gameplay.Combat
             Brain.OnUnitDefeated -= HandleUnitDefeated;
             Brain.OnUnitMoved -= HandleUnitMoved;
             Brain.OnBattleCompleted -= HandleExitBattle;
+
+            // Unsubscribe from advanced events
+            Brain.Unsubscribe<UnitSpawnedEvent>(HandleUnitSpawnedEvent);
+            Brain.Unsubscribe<UnitDefeatedEvent>(HandleUnitDefeatedEvent);
 
             _isConnectedToBrain = false;
         }
@@ -226,6 +238,9 @@ namespace Turnroot.Gameplay.Combat
 
         private void HandleUnitDefeated(CharacterInstance unit)
         {
+            // Invalidate caches for all conditions (unit lists changed)
+            InvalidateAllConditionCaches();
+
             // Check defeat-related conditions
             foreach (var defeatAll in _battleConditions.OfType<DefeatAllEnemiesBattleCondition>())
             {
@@ -279,6 +294,49 @@ namespace Turnroot.Gameplay.Combat
         private void HandleExitBattle(BattleExitType exitType)
         {
             DisconnectFromBrainEvents();
+        }
+
+        private void HandleUnitSpawnedEvent(UnitSpawnedEvent evt)
+        {
+            // Unit spawned into battle - invalidate caches that rely on unit lists
+            InvalidateAllConditionCaches();
+
+            // Optionally check conditions that may be affected by new unit presence
+            foreach (var condition in _battleConditions)
+            {
+                // Some conditions may react to increased ally/enemy counts; call CheckCondition when available
+                if (condition is DefeatEnemyBattleCondition defeatSpecific)
+                {
+                    defeatSpecific.CheckCondition();
+                }
+                if (condition is DefeatAllEnemiesBattleCondition defeatAll)
+                {
+                    defeatAll.CheckCondition();
+                }
+            }
+        }
+
+        private void HandleUnitDefeatedEvent(UnitDefeatedEvent evt)
+        {
+            // Delegate to existing handler for defeated units to reuse logic
+            HandleUnitDefeated(evt.Unit);
+        }
+
+        private void InvalidateAllConditionCaches()
+        {
+            foreach (var condition in _battleConditions)
+            {
+                try
+                {
+                    condition?.InvalidateCache();
+                }
+                catch (System.Exception ex)
+                {
+                    Debug.LogWarning(
+                        $"Failed to invalidate cache for condition {condition?.Name ?? condition?.GetType().Name}: {ex.Message}"
+                    );
+                }
+            }
         }
 
         private void OnDestroy()

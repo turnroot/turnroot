@@ -79,7 +79,7 @@ namespace Turnroot.Skills.Nodes.Conditions
             }
 
             var context = GetContextFromGraph(skillGraph);
-            if (context == null || context.UnitInstance == null)
+            if (context == null || context.Unit.UnitInstance == null)
             {
                 Debug.LogWarning("WeaponAdvantage: Could not retrieve context or unit from graph");
                 return port.fieldName == "Matchup"
@@ -113,12 +113,14 @@ namespace Turnroot.Skills.Nodes.Conditions
         )
         {
             // Get unit's equipped weapon type
-            var unitWeaponType = GetEquippedWeaponType(context.UnitInstance);
+            var unitWeaponType = GetEquippedWeaponType(context.Unit.UnitInstance);
             var unitTrianglePos = unitWeaponType?.TrianglePosition;
 
             // Get enemy's equipped weapon type
             var enemy =
-                context.Targets != null && context.Targets.Count > 0 ? context.Targets[0] : null;
+                context.Participants.Targets != null && context.Participants.Targets.Count > 0
+                    ? context.Participants.Targets[0]
+                    : null;
             var enemyWeaponType = enemy != null ? GetEquippedWeaponType(enemy) : null;
             var enemyTrianglePos = enemyWeaponType?.TrianglePosition;
 
@@ -157,9 +159,7 @@ namespace Turnroot.Skills.Nodes.Conditions
             return WeaponMatchup.Neutral;
         }
 
-        private static WeaponType GetEquippedWeaponType(
-            Characters.CharacterInstance character
-        )
+        private static WeaponType GetEquippedWeaponType(Characters.CharacterInstance character)
         {
             var inventory = character?.InventoryInstance;
             var weaponIndex = inventory?.GetEquippedWeaponIndex() ?? -1;

@@ -19,7 +19,7 @@ namespace Turnroot.Skills.Nodes.Events
 
         public override void Execute(BattleContext context)
         {
-            if (context?.Targets == null || context.Targets.Count == 0)
+            if (context?.Participants?.Targets == null || context.Participants.Targets.Count == 0)
             {
                 Debug.LogWarning("UnmountEnemy: No target in context");
                 return;
@@ -30,18 +30,18 @@ namespace Turnroot.Skills.Nodes.Events
             // Unmount all targeted enemies or just the first one
             if (shouldAffectAll)
             {
-                foreach (var target in context.Targets)
+                foreach (var target in context.Participants.Targets)
                 {
                     if (target != null)
                     {
                         context.SetCustomData($"ForceUnmount_{target.Id}", true);
                     }
                 }
-                Debug.Log($"UnmountEnemy: Unmounted {context.Targets.Count} enemies");
+                Debug.Log($"UnmountEnemy: Unmounted {context.Participants.Targets.Count} enemies");
             }
             else
             {
-                var target = context.Targets[0];
+                var target = context.Participants.Targets[0];
                 if (target == null)
                 {
                     Debug.LogWarning("UnmountEnemy: Target is null");

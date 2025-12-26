@@ -79,8 +79,8 @@ public class Skill : ScriptableObject
             return;
         }
 
-        context.CurrentSkill = this;
-        context.CurrentSkillGraph = BehaviorGraph;
+        context.Skill.CurrentSkill = this;
+        context.Skill.CurrentSkillGraph = BehaviorGraph;
         SkillTriggered?.Invoke();
         BehaviorGraph.Execute(context);
     }
