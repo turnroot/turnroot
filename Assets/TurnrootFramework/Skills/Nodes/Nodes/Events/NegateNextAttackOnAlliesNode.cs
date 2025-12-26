@@ -103,7 +103,9 @@ namespace Turnroot.Skills.Nodes.Events
                 }
                 else
                 {
+#if UNITY_EDITOR
                     Debug.Log("NegateNextAttackOnAllies: Next attack will be negated for caster");
+#endif
                 }
             }
         }

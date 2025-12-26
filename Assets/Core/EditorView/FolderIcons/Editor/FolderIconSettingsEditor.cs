@@ -402,7 +402,9 @@ namespace FolderIcons
         {
             if (string.IsNullOrWhiteSpace(path) || !path.Contains("Assets"))
             {
+                #if UNITY_EDITOR
                 Debug.LogWarning("Cannot save texture to invalid path.");
+                #endif
                 return;
             }
 

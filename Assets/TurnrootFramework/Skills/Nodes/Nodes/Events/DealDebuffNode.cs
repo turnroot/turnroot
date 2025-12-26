@@ -31,7 +31,9 @@ namespace Turnroot.Skills.Nodes.Events
         {
             if (debuffType == null)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning("DealDebuffNode: No debuff type assigned!");
+#endif
                 return;
             }
 

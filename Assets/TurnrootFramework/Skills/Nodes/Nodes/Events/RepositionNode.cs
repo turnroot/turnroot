@@ -30,14 +30,18 @@ namespace Turnroot.Skills.Nodes.Events
             // Get the unit in the specified direction
             if (context.Participants.AdjacentUnits == null)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning("Reposition: No adjacent units data");
+#endif
                 return;
             }
 
             var ally = context.Participants.AdjacentUnits.GetUnit(allyDirection);
             if (ally == null)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning($"Reposition: No unit at {allyDirection}");
+#endif
                 return;
             }
 

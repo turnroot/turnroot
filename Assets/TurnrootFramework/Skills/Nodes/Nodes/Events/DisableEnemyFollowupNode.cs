@@ -23,7 +23,9 @@ namespace Turnroot.Skills.Nodes.Events
         {
             if (context?.Participants?.Targets == null || context.Participants.Targets.Count == 0)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning("DisableEnemyFollowup: No target in context");
+#endif
                 return;
             }
 
@@ -48,11 +50,15 @@ namespace Turnroot.Skills.Nodes.Events
                 var target = context.Participants.Targets[0];
                 if (target == null)
                 {
+#if UNITY_EDITOR
                     Debug.LogWarning("DisableEnemyFollowup: Target is null");
+#endif
                     return;
                 }
                 context.SetCustomData($"DisableFollowup_{target.Id}", true);
+#if UNITY_EDITOR
                 Debug.Log("DisableEnemyFollowup: Disabled followup attack for target");
+#endif
             }
         }
     }

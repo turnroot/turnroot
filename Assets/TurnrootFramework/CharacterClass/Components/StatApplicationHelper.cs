@@ -313,7 +313,7 @@ namespace Turnroot.Characters.CharacterClass
                 // Clamp growth rate to 0-100 range
                 totalGrowth = Mathf.Clamp(totalGrowth, 0f, 100f);
 
-                float roll = UnityEngine.Random.Range(0f, 100f);
+                float roll = Random.Range(0f, 100f);
                 if (roll < totalGrowth)
                 {
                     // Check if stat is below cap
@@ -360,13 +360,17 @@ namespace Turnroot.Characters.CharacterClass
         {
             if (character == null)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning($"{operationName}: character is null");
+#endif
                 return false;
             }
 
             if (classData == null)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning($"{operationName}: classData is null");
+#endif
                 return false;
             }
 

@@ -48,13 +48,17 @@ public class SkillInstance : IPostDeserialize
     {
         if (_skillTemplate == null)
         {
+#if UNITY_EDITOR
             Debug.LogWarning("SkillInstance has no SkillTemplate assigned.");
+#endif
             return;
         }
 
         if (_skillTemplate.BehaviorGraph == null)
         {
+#if UNITY_EDITOR
             Debug.LogWarning($"Skill {_skillTemplate.SkillName} has no BehaviorGraph assigned.");
+#endif
             return;
         }
 

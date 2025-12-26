@@ -54,7 +54,9 @@ namespace Turnroot.Skills.Nodes.Conditions
 
             if (enemy == null)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning("EnemyTerrainType: Could not retrieve enemy from context");
+#endif
                 return new BoolValue { value = false };
             }
 

@@ -26,7 +26,9 @@ namespace Turnroot.Skills.Nodes.Conditions
             var context = GetContextFromGraph(skillGraph);
             if (context == null)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning("IsFirstCombatOfTurn: Could not retrieve context from graph");
+#endif
                 return new BoolValue { value = true };
             }
 

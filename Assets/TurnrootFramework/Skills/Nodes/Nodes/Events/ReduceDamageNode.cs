@@ -48,7 +48,9 @@ namespace Turnroot.Skills.Nodes.Events
                 // Get adjacent allies from context
                 if (context.Participants.AdjacentUnits == null)
                 {
+#if UNITY_EDITOR
                     Debug.LogWarning("ReduceDamage: No adjacent units available in context");
+#endif
                     return;
                 }
 
@@ -91,7 +93,9 @@ namespace Turnroot.Skills.Nodes.Events
                     reductionData
                 );
                 string reductionType = isPercentage ? "%" : "flat";
+#if UNITY_EDITOR
                 Debug.Log($"ReduceDamage: Will take {reduction} {reductionType} less damage");
+#endif
             }
         }
     }

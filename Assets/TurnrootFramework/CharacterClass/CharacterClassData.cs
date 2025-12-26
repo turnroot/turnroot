@@ -132,7 +132,7 @@ namespace Turnroot.Characters.CharacterClass
         private void ValidateStatLists()
         {
             var defaultStats =
-                Turnroot.Utilities.GameSettingsLoader.LoadFirst<DefaultCharacterStats>(
+                GameSettingsLoader.LoadFirst<DefaultCharacterStats>(
                     "GameSettings"
                 );
             if (defaultStats == null)

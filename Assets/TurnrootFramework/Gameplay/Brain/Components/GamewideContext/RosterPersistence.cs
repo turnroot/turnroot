@@ -31,7 +31,9 @@ namespace Turnroot.Gameplay.Brain
 
             if (!string.IsNullOrEmpty(existing))
             {
+#if UNITY_EDITOR
                 Debug.Log($"Roster {roster.name} already registered");
+#endif
                 return;
             }
 
@@ -39,7 +41,9 @@ namespace Turnroot.Gameplay.Brain
             _ltm.Remember(key, hash);
             AddToRosterIndex(roster.Id);
 
+#if UNITY_EDITOR
             Debug.Log($"Registered roster: {roster.name}");
+#endif
         }
 
         public void RegisterPlayerRoster(PlayerTeamRoster roster)
@@ -54,7 +58,9 @@ namespace Turnroot.Gameplay.Brain
 
             if (!string.IsNullOrEmpty(existing))
             {
+#if UNITY_EDITOR
                 Debug.Log($"Player roster {roster.name} already registered");
+#endif
                 return;
             }
 
@@ -62,7 +68,9 @@ namespace Turnroot.Gameplay.Brain
             _ltm.Remember(key, hash);
             AddToRosterIndex(roster.Id);
 
+#if UNITY_EDITOR
             Debug.Log($"Registered player roster: {roster.name}");
+#endif
         }
 
         public bool HasRosterInLTM(GenericRoster roster)

@@ -69,13 +69,17 @@ namespace Turnroot.Gameplay.Combat
 
             if (_mapGrid == null)
             {
+#if UNITY_EDITOR
                 Debug.LogError("BattleGameObject requires a MapGrid child");
+#endif
                 Debug.Break();
             }
 
             if (_battleConditions == null)
             {
+#if UNITY_EDITOR
                 Debug.LogError("BattleGameObject requires BattleConditions to be set");
+#endif
                 Debug.Break();
             }
 
@@ -104,7 +108,9 @@ namespace Turnroot.Gameplay.Combat
                 );
             }
 
+#if UNITY_EDITOR
             Debug.Log("BattleGameObject connecting to Brain events");
+#endif
 
             // Initialize context with Brain reference for command pattern
             InitializeContextWithBrain();
@@ -171,7 +177,9 @@ namespace Turnroot.Gameplay.Combat
         {
             if (Context == null)
             {
+#if UNITY_EDITOR
                 Debug.LogError("BattleGameObject: Context is null during initialization!");
+#endif
                 return;
             }
 
@@ -187,11 +195,15 @@ namespace Turnroot.Gameplay.Combat
             try
             {
                 Context.Initialize(Brain, _mapGrid);
+#if UNITY_EDITOR
                 Debug.Log("BattleGameObject: Context initialized via Initialize(brain, mapGrid)");
+#endif
             }
             catch (System.Exception ex)
             {
+#if UNITY_EDITOR
                 Debug.LogError($"BattleGameObject: Failed to initialize context: {ex.Message}");
+#endif
             }
         }
 
@@ -400,7 +412,9 @@ namespace Turnroot.Gameplay.Combat
                 ThirdPartyTeamRoster.Clear();
             }
 
+#if UNITY_EDITOR
             Debug.Log("BattleGameObject: Initialized three temporary battle rosters");
+#endif
         }
 
         /// <summary>
@@ -458,7 +472,9 @@ namespace Turnroot.Gameplay.Combat
                 EnemyTeamRoster.Clear();
                 ThirdPartyTeamRoster.Clear();
 
+#if UNITY_EDITOR
                 Debug.Log("BattleGameObject: Cleared all temporary battle rosters");
+#endif
                 return OperationResult.SuccessResult();
             }
             catch (System.Exception ex)

@@ -27,7 +27,9 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         {
             if (attacker == null || target == null || weaponItem?.Template == null)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning("CalculatePotentialDamage: null attacker, target, or weapon");
+#endif
                 return 0;
             }
 

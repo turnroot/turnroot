@@ -317,7 +317,7 @@ namespace Turnroot.Characters
             TaggedLayerDefaults.Clear();
             if (Portraits != null)
             {
-                Turnroot.Characters.CharacterHelpers.ForEachPortraitLayer(
+                CharacterHelpers.ForEachPortraitLayer(
                     Portraits,
                     layer =>
                     {
@@ -341,7 +341,7 @@ namespace Turnroot.Characters
         {
             if (Portraits != null)
             {
-                Turnroot.Characters.CharacterHelpers.ForEachPortraitLayer(
+                CharacterHelpers.ForEachPortraitLayer(
                     Portraits,
                     layer =>
                     {
@@ -404,7 +404,7 @@ namespace Turnroot.Characters
             [Tooltip("Current rank/level (E=0, D=1, C=2, B=3, A=4, S=5)")]
             [SerializeField]
             private CommonAncestors.LeveledLetteredField _rank = new(
-                Turnroot.CommonAncestors.LeveledLetteredField.E
+                CommonAncestors.LeveledLetteredField.E
             );
 
             public string ExperienceTypeId
@@ -480,7 +480,7 @@ namespace Turnroot.Characters
             if (SupportRelationships != null)
             {
                 var removed =
-                    Turnroot.Characters.Components.Support.SupportRelationship.SanitizeForCharacter(
+                    SupportRelationship.SanitizeForCharacter(
                         this,
                         SupportRelationships
                     );

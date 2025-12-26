@@ -5,7 +5,7 @@ using UnityEngine;
 public class TerrainType
 {
     [SerializeField]
-    private string _id = System.Guid.NewGuid().ToString();
+    private string _id = Guid.NewGuid().ToString();
 
     [SerializeField]
     private string _name = "New Terrain";

@@ -155,7 +155,9 @@ public class BattleGameObjectEditor : Editor
         }
         catch (Exception ex)
         {
+            #if UNITY_EDITOR
             Debug.LogError($"Failed to create instance of {t.FullName}: {ex.Message}");
+            #endif
         }
 
         el.managedReferenceValue = instance;

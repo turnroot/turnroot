@@ -81,7 +81,9 @@ namespace Turnroot.Skills.Nodes.Conditions
             var context = GetContextFromGraph(skillGraph);
             if (context == null || context.Unit.UnitInstance == null)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning("WeaponAdvantage: Could not retrieve context or unit from graph");
+#endif
                 return port.fieldName == "Matchup"
                     ? new WeaponMatchupValue { matchup = WeaponMatchup.NotOnTriangle }
                     : new BoolValue { value = false };

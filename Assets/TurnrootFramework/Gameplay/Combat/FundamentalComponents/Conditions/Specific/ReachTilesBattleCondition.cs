@@ -88,7 +88,7 @@ public class ReachTilesBattleCondition : BattleCondition
         // what does idempotent mean??
         if (_reachedTilesSet.Add(position))
         {
-            UnityEngine.Debug.Log(
+            Debug.Log(
                 $"ReachTilesBattleCondition: Tile {position} reached ({_reachedTilesSet.Count}/{TargetTiles.Count})"
             );
 

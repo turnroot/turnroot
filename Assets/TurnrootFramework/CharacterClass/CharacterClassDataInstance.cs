@@ -82,19 +82,25 @@ namespace Turnroot.Characters.CharacterClass
             // Validate required references
             if (_characterData == null)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning("CharacterClassDataInstance.Initialize: characterData is null");
+#endif
                 return false;
             }
 
             if (_meshRenderer == null)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning("CharacterClassDataInstance.Initialize: meshRenderer is null");
+#endif
                 return false;
             }
 
             if (_classData == null)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning("CharacterClassDataInstance.Initialize: classData is null");
+#endif
                 return false;
             }
 

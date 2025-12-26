@@ -117,8 +117,8 @@ namespace Turnroot.AbstractScripts.Graphics2D
             seq.OnComplete(() =>
             {
                 // cleanup overlays
-                UnityEngine.Object.Destroy(overlayA);
-                UnityEngine.Object.Destroy(overlayB);
+                Object.Destroy(overlayA);
+                Object.Destroy(overlayB);
             });
             return seq.SetId(runId);
         }

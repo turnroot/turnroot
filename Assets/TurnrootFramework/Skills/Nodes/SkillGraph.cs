@@ -35,7 +35,9 @@ namespace Turnroot.Skills.Nodes
             }
             else
             {
+#if UNITY_EDITOR
                 Debug.LogWarning("Cannot proceed: No active executor. Creating a new executor.");
+#endif
                 activeExecutor = new SkillGraphExecutor(this);
                 activeExecutor.Execute(new BattleContext());
                 activeExecutor.Proceed();

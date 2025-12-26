@@ -27,7 +27,9 @@ namespace Turnroot.Skills.Nodes.Events
             int gold = (int)GetInputFloat("goldAmount", testGold);
 
             context.Brain?.PublishGoldGained(gold);
+#if UNITY_EDITOR
             Debug.Log($"GainGold: Player gained {gold} gold");
+#endif
         }
     }
 }

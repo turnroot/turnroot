@@ -75,7 +75,9 @@ public class Skill : ScriptableObject
     {
         if (BehaviorGraph == null)
         {
-            UnityEngine.Debug.LogWarning($"Skill {SkillName} has no BehaviorGraph assigned.");
+#if UNITY_EDITOR
+            Debug.LogWarning($"Skill {SkillName} has no BehaviorGraph assigned.");
+#endif
             return;
         }
 

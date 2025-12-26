@@ -21,7 +21,9 @@ namespace Turnroot.Utilities
                 var message = string.IsNullOrEmpty(context)
                     ? $"{objectName} is null"
                     : $"{context}: {objectName} is null";
+#if UNITY_EDITOR
                 Debug.LogWarning(message);
+#endif
                 return false;
             }
             return true;
@@ -67,7 +69,9 @@ namespace Turnroot.Utilities
                 var message = string.IsNullOrEmpty(context)
                     ? $"{stringName} is null or empty"
                     : $"{context}: {stringName} is null or empty";
+#if UNITY_EDITOR
                 Debug.LogWarning(message);
+#endif
                 return false;
             }
             return true;
@@ -91,7 +95,9 @@ namespace Turnroot.Utilities
                 var message = string.IsNullOrEmpty(context)
                     ? $"{collectionName} is null or empty"
                     : $"{context}: {collectionName} is null or empty";
+#if UNITY_EDITOR
                 Debug.LogWarning(message);
+#endif
                 return false;
             }
             return true;

@@ -31,14 +31,18 @@ namespace Turnroot.Skills.Nodes.Events
             // Get the unit in the specified direction
             if (context.Participants.AdjacentUnits == null)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning("Warp: No adjacent units data");
+#endif
                 return;
             }
 
             var ally = context.Participants.AdjacentUnits.GetUnit(allyDirection);
             if (ally == null)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning($"Warp: No unit at {allyDirection}");
+#endif
                 return;
             }
 
@@ -56,7 +60,9 @@ namespace Turnroot.Skills.Nodes.Events
             string modeText = mode == WarpMode.AllyToCaster ? "to caster" : "to ally";
             string distanceText =
                 maxDistance > 0 ? $" (max {maxDistance} tiles)" : " (unlimited range)";
+#if UNITY_EDITOR
             Debug.Log($"Warp: Will warp {modeText}{distanceText}");
+#endif
         }
     }
 

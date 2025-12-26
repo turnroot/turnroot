@@ -67,7 +67,9 @@ namespace Turnroot.Skills.Nodes
             }
             else
             {
+#if UNITY_EDITOR
                 Debug.LogWarning("No current node to proceed from.");
+#endif
             }
         }
 
@@ -102,7 +104,9 @@ namespace Turnroot.Skills.Nodes
             }
             catch (System.Exception e)
             {
+#if UNITY_EDITOR
                 Debug.LogError($"Error executing node {node.name}: {e.Message}\n{e.StackTrace}");
+#endif
                 context.Flags.IsInterrupted = true;
                 return OperationResult.Failure($"Error executing node {node.name}: {e.Message}");
             }

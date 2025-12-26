@@ -107,7 +107,7 @@ public class CharacterInventoryInstance : IPostDeserialize
             {
                 for (
                     int i = 0;
-                    i < System.Math.Min(oldFlags.Length, _nonWeaponEquippedFlags.Length);
+                    i < Math.Min(oldFlags.Length, _nonWeaponEquippedFlags.Length);
                     i++
                 )
                 {
@@ -276,7 +276,9 @@ public class CharacterInventoryInstance : IPostDeserialize
     {
         if (!CanAddItem())
         {
+#if UNITY_EDITOR
             Debug.LogWarning("Inventory is full. Cannot add item.");
+#endif
             return;
         }
 
@@ -292,7 +294,9 @@ public class CharacterInventoryInstance : IPostDeserialize
         int index = _inventoryItems.IndexOf(item);
         if (index < 0)
         {
+#if UNITY_EDITOR
             Debug.LogWarning("Item not found in inventory. Cannot remove item.");
+#endif
             return;
         }
 
@@ -328,7 +332,9 @@ public class CharacterInventoryInstance : IPostDeserialize
     {
         if (index < 0 || index >= _inventoryItems.Count)
         {
+#if UNITY_EDITOR
             Debug.LogWarning("Invalid inventory index. Cannot equip item.");
+#endif
             return;
         }
 
@@ -338,7 +344,9 @@ public class CharacterInventoryInstance : IPostDeserialize
 
         if (slotIndex == -1)
         {
+#if UNITY_EDITOR
             Debug.LogWarning("Item type cannot be equipped.");
+#endif
             return;
         }
 
@@ -356,7 +364,9 @@ public class CharacterInventoryInstance : IPostDeserialize
     {
         if (inventoryIndex < 0 || inventoryIndex >= _inventoryItems.Count)
         {
+#if UNITY_EDITOR
             Debug.LogWarning("Invalid inventory index. Cannot unequip item.");
+#endif
             return;
         }
 
@@ -369,7 +379,9 @@ public class CharacterInventoryInstance : IPostDeserialize
             }
         }
 
+#if UNITY_EDITOR
         Debug.LogWarning("Item is not currently equipped.");
+#endif
     }
 
     private void UnequipItemFromSlot(int slotIndex)

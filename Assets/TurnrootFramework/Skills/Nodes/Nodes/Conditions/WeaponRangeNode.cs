@@ -42,7 +42,9 @@ namespace Turnroot.Skills.Nodes.Conditions
             var context = GetContextFromGraph(skillGraph);
             if (context == null || context.Unit.UnitInstance == null)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning("WeaponRange: Could not retrieve context or unit from graph");
+#endif
                 return port.fieldName switch
                 {
                     "MinRange" or "MaxRange" => new FloatValue { value = 0f },
@@ -59,7 +61,9 @@ namespace Turnroot.Skills.Nodes.Conditions
                 || weaponIndex >= inventory.InventoryItems.Count
             )
             {
+#if UNITY_EDITOR
                 Debug.LogWarning("WeaponRange: No weapon equipped");
+#endif
                 return port.fieldName switch
                 {
                     "MinRange" or "MaxRange" => new FloatValue { value = 0f },

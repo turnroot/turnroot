@@ -251,7 +251,9 @@ namespace Turnroot.Characters
             // Copy initial values from template
             if (_characterTemplate == null)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning("CharacterInstance has null CharacterData template.");
+#endif
                 return;
             }
             _currentLevel = _characterTemplate.Level;

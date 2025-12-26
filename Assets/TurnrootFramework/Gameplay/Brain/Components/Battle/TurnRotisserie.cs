@@ -56,7 +56,9 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 case TurnOrder.ThirdPartyEnd:
                     return TurnOrder.PlayerStart;
                 default:
+#if UNITY_EDITOR
                     Debug.LogError("Invalid TurnOrder state.");
+#endif
                     return TurnOrder.PlayerStart;
             }
         }
@@ -155,7 +157,9 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
             if (_currentRosterIndex < 0 || _currentRosterIndex >= units.Count)
             {
+#if UNITY_EDITOR
                 Debug.LogError($"TurnRotisserie: Invalid roster index {_currentRosterIndex}");
+#endif
                 return;
             }
 

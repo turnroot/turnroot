@@ -17,7 +17,9 @@ namespace Turnroot.Gameplay.Brain
         protected override void Awake()
         {
             base.Awake();
+#if UNITY_EDITOR
             Debug.Log("InventoryBrain is ready.");
+#endif
         }
 
         protected override void SubscribeToBrainEvents()
@@ -49,7 +51,9 @@ namespace Turnroot.Gameplay.Brain
             if (remainingUses == 0)
             {
                 _brain?.PublishItemBroken(item);
+#if UNITY_EDITOR
                 Debug.Log($"{item.Template.name} has broken!");
+#endif
             }
 
             return remainingUses;

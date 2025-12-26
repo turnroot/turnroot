@@ -292,7 +292,9 @@ public class JsonPlayerPrefs
         }
         catch (Exception ex)
         {
+#if UNITY_EDITOR
             Debug.LogWarning($"JsonPlayerPrefs: failed to encode key '{key}': {ex.Message}");
+#endif
             return key;
         }
     }
@@ -311,7 +313,9 @@ public class JsonPlayerPrefs
         }
         catch (Exception ex)
         {
+#if UNITY_EDITOR
             Debug.LogWarning($"JsonPlayerPrefs: failed to decode key: {ex.Message}");
+#endif
             return encoded;
         }
     }

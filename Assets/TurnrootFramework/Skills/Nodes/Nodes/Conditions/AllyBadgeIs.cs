@@ -19,7 +19,9 @@ namespace Turnroot.Skills.Nodes.Conditions
             var skillGraph = graph as SkillGraph;
             if (skillGraph == null)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning("AllyBadgeIs: Could not get SkillGraph");
+#endif
                 return new FloatValue();
             }
 

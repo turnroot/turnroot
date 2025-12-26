@@ -392,13 +392,17 @@ namespace Turnroot.Gameplay.Brain.Commands
         {
             // Item use is typically not undoable in most games
             // This is a placeholder - implement based on your item system
+#if UNITY_EDITOR
             Debug.Log($"[UseItemCommand] {UserId} used item {ItemId} on {TargetId ?? "self"}");
+#endif
             return true;
         }
 
         public override bool Undo(BattleContext context)
         {
+#if UNITY_EDITOR
             Debug.LogWarning("[UseItemCommand] Item use cannot be undone");
+#endif
             return false;
         }
     }
@@ -485,7 +489,9 @@ namespace Turnroot.Gameplay.Brain.Commands
         public override bool Undo(BattleContext context)
         {
             // Skill effects are undone through their individual commands (damage, buffs, etc.)
+#if UNITY_EDITOR
             Debug.LogWarning("[SkillCommand] Skill activation record cannot be undone");
+#endif
             return false;
         }
     }
@@ -506,7 +512,9 @@ namespace Turnroot.Gameplay.Brain.Commands
 
         public override bool Undo(BattleContext context)
         {
+#if UNITY_EDITOR
             Debug.LogWarning("[EndTurnCommand] Turn end cannot be undone");
+#endif
             return false;
         }
     }

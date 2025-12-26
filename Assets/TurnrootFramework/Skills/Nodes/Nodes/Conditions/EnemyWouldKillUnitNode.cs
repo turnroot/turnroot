@@ -61,7 +61,9 @@ namespace Turnroot.Skills.Nodes.Conditions
                             }
                             else
                             {
+#if UNITY_EDITOR
                                 Debug.LogWarning("EnemyWouldKillUnit: Unit has no Health stat");
+#endif
                                 wouldKill.value = false;
                             }
                         }

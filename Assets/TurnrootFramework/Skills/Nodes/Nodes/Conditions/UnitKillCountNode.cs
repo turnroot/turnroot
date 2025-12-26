@@ -31,7 +31,9 @@ namespace Turnroot.Skills.Nodes.Conditions
 
             if (character == null)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning("UnitKillCount: Could not retrieve unit from context");
+#endif
                 return new FloatValue { value = 0f };
             }
 

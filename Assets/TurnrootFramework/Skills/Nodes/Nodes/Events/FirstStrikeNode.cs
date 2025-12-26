@@ -22,7 +22,9 @@ namespace Turnroot.Skills.Nodes.Events
             // FirstStrike means this unit initiates combat before enemy can counterattack
             context.SetCustomData($"FirstStrike_{context.Unit.UnitInstance.Id}", true);
 
+#if UNITY_EDITOR
             Debug.Log("FirstStrike: Unit will attack first, preventing enemy counterattack");
+#endif
         }
     }
 }

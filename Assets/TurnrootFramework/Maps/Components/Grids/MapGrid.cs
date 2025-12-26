@@ -636,7 +636,9 @@ public class MapGrid : MonoBehaviour
             {
                 occupiedPoints.Add(mgp);
                 occupyingInstances.Add(mgp.CurrentInstance);
+#if UNITY_EDITOR
                 Debug.Log($"Occupied Point: ({mgp.Row}, {mgp.Col}) by {mgp.CurrentInstance.Id}");
+#endif
             }
         }
     }

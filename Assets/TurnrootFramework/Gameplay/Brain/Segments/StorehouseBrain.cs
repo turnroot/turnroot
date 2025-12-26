@@ -40,13 +40,17 @@ namespace Turnroot.Gameplay.Brain
                 _gameplaySettings != null
                     ? _gameplaySettings.GoldDisplayNames
                     : new GoldDisplay { OneLetter = "G", FullName = "gold" };
+#if UNITY_EDITOR
             Debug.Log("StorehouseBrain is ready.");
+#endif
 
             // Load saved gold amount
             int tryLoadGold = GetGoldFromLTM();
             if (tryLoadGold <= 0)
             {
+#if UNITY_EDITOR
                 Debug.Log("No saved gold found, initializing to 0.");
+#endif
                 PlayerGold = 0;
                 SaveGoldToLTM();
                 SaveCurrentStorehouse();
@@ -200,7 +204,9 @@ namespace Turnroot.Gameplay.Brain
             SaveCurrentStorehouse();
             _brain?.PublishItemDeposited(item);
 
+#if UNITY_EDITOR
             Debug.Log($"Deposited {item.Template.name} into storehouse.");
+#endif
             return OperationResult.SuccessResult();
         }
 
@@ -234,7 +240,9 @@ namespace Turnroot.Gameplay.Brain
 
             _brain?.PublishItemWithdrawn(item, targetInventory);
 
+#if UNITY_EDITOR
             Debug.Log($"Withdrew {item.Template.name} from storehouse.");
+#endif
             return OperationResult.SuccessResult();
         }
 
@@ -264,7 +272,9 @@ namespace Turnroot.Gameplay.Brain
                 _ = _materials.Remove(material);
             }
             SaveCurrentStorehouse();
+#if UNITY_EDITOR
             Debug.Log($"Consumed {amount}x {material.name} from storehouse.");
+#endif
             return OperationResult.SuccessResult();
         }
 
@@ -286,7 +296,9 @@ namespace Turnroot.Gameplay.Brain
 
             _materials[material] = currentCount + amount;
             SaveCurrentStorehouse();
+#if UNITY_EDITOR
             Debug.Log($"Added {amount}x {material.name} to storehouse.");
+#endif
         }
 
         /// <summary>

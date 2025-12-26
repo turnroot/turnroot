@@ -27,11 +27,15 @@ namespace Turnroot.Skills.Nodes.Events
 
             if (allAttacksThisTurn)
             {
+#if UNITY_EDITOR
                 Debug.Log("NegateNextAttack: All attacks this turn will be negated for unit");
+#endif
             }
             else
             {
+#if UNITY_EDITOR
                 Debug.Log("NegateNextAttack: Next attack will be negated for unit");
+#endif
             }
         }
     }

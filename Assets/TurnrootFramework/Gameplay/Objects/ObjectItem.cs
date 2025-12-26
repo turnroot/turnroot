@@ -245,7 +245,7 @@ namespace Turnroot.Gameplay.Objects
             HorizontalLine(color: EColor.Violet),
             ShowIf(nameof(IsWeaponOrMagicSubtype))
         ]
-        private Aptitude _minWeaponTypeAptitude = new(Aptitude.E);
+        private Aptitude _minWeaponTypeAptitude = new(CommonAncestors.LeveledLetteredField.E);
 
         private void ApplyGameplayDefaultsFromSettings()
         {

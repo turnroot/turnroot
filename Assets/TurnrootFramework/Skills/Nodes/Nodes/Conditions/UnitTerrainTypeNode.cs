@@ -54,7 +54,9 @@ namespace Turnroot.Skills.Nodes.Conditions
 
             if (unit == null)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning("UnitTerrainType: Could not retrieve unit from context");
+#endif
                 return new BoolValue { value = false };
             }
 

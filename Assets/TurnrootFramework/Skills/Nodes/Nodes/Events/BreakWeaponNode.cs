@@ -21,7 +21,9 @@ namespace Turnroot.Skills.Nodes.Events
         {
             if (context?.Participants?.Targets == null || context.Participants.Targets.Count == 0)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning("BreakWeapon: No target in context");
+#endif
                 return;
             }
 
@@ -43,7 +45,9 @@ namespace Turnroot.Skills.Nodes.Events
                 var target = context.Participants.Targets[0];
                 // Store break weapon command in CustomData
                 context.SetCustomData($"BreakWeapon_{target.Id}", true);
+#if UNITY_EDITOR
                 Debug.Log("BreakWeapon: Would break weapon for first target");
+#endif
             }
         }
     }

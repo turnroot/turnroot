@@ -60,7 +60,9 @@ namespace Turnroot.Gameplay.Brain
         protected override void Awake()
         {
             base.Awake(); // Calls parent Awake
+#if UNITY_EDITOR
             Debug.Log("StateBrain Awake called.");
+#endif
             InitializeHighLevelStates();
             InitializeBattleChildStates();
         }
@@ -81,7 +83,9 @@ namespace Turnroot.Gameplay.Brain
         {
             if (_highLevelStates != null && _highLevelStates.Length > 0)
             {
+#if UNITY_EDITOR
                 Debug.Log("High-level states already initialized.");
+#endif
                 return;
             }
 
@@ -89,7 +93,9 @@ namespace Turnroot.Gameplay.Brain
             {
                 SetHighLevelStates();
                 SaveHighLevelStates();
+#if UNITY_EDITOR
                 Debug.Log("High-level states set and saved to long-term memory.");
+#endif
             }
         }
 
@@ -98,13 +104,17 @@ namespace Turnroot.Gameplay.Brain
             var battleState = FindHighLevelState(BrainStateNames.Combat);
             if (battleState == null)
             {
+#if UNITY_EDITOR
                 Debug.LogError("Combat state not found. Cannot initialize battle child states.");
+#endif
                 return;
             }
 
             if (battleState.ParentOfStates != null && battleState.ParentOfStates.Length > 0)
             {
+#if UNITY_EDITOR
                 Debug.Log("Battle child states already initialized.");
+#endif
                 return;
             }
 
@@ -112,7 +122,9 @@ namespace Turnroot.Gameplay.Brain
             {
                 SetBattleChildStates();
                 SaveBattleChildStates();
+#if UNITY_EDITOR
                 Debug.Log("Battle child states set and saved.");
+#endif
             }
         }
 
@@ -121,7 +133,9 @@ namespace Turnroot.Gameplay.Brain
             var battleState = FindHighLevelState(BrainStateNames.Combat);
             if (battleState == null)
             {
+#if UNITY_EDITOR
                 Debug.LogError("Combat state not found.");
+#endif
                 return;
             }
 
@@ -133,7 +147,9 @@ namespace Turnroot.Gameplay.Brain
             };
 
             battleState.ParentOfStates = childStates.ToArray();
+#if UNITY_EDITOR
             Debug.Log("Battle child states initialized.");
+#endif
         }
 
         public void SetHighLevelStates()
@@ -163,7 +179,9 @@ namespace Turnroot.Gameplay.Brain
             _highLevelStates = states.ToArray();
             SaveHighLevelStates();
             _brain?.PublishHighLevelStatesInitialized();
+#if UNITY_EDITOR
             Debug.Log("High-level states initialized.");
+#endif
         }
 
         private bool TryRestoreHighLevelStates()
@@ -199,7 +217,9 @@ namespace Turnroot.Gameplay.Brain
             var battleState = FindHighLevelState(BrainStateNames.Combat);
             if (battleState == null)
             {
+#if UNITY_EDITOR
                 Debug.LogError("Combat state not found.");
+#endif
                 return false;
             }
 
@@ -309,7 +329,9 @@ namespace Turnroot.Gameplay.Brain
             var newState = FindHighLevelState(stateName);
             if (newState == null)
             {
+#if UNITY_EDITOR
                 Debug.LogError($"State '{stateName}' not found.");
+#endif
                 return null;
             }
 
@@ -321,13 +343,17 @@ namespace Turnroot.Gameplay.Brain
         {
             if (_currentState == null)
             {
+#if UNITY_EDITOR
                 Debug.LogError("No active high-level state.");
+#endif
                 return;
             }
 
             if (_currentState.ParentOfStates == null)
             {
+#if UNITY_EDITOR
                 Debug.LogError($"Child state '{childStateName}' not found.");
+#endif
                 return;
             }
 
@@ -341,7 +367,9 @@ namespace Turnroot.Gameplay.Brain
             }
             else
             {
+#if UNITY_EDITOR
                 Debug.LogError($"Child state '{childStateName}' not found.");
+#endif
             }
         }
 
@@ -349,19 +377,25 @@ namespace Turnroot.Gameplay.Brain
         {
             if (_currentState == null)
             {
+#if UNITY_EDITOR
                 Debug.LogError("No active high-level state.");
+#endif
                 return false;
             }
 
             if (_currentState.ParentOfStates == null || _currentState.ParentOfStates.Length == 0)
             {
+#if UNITY_EDITOR
                 Debug.Log("No child states available.");
+#endif
                 return false;
             }
 
             foreach (var child in _currentState.ParentOfStates)
             {
+#if UNITY_EDITOR
                 Debug.Log($"Child State: {child.Name}");
+#endif
             }
             return true;
         }
@@ -379,7 +413,9 @@ namespace Turnroot.Gameplay.Brain
             var pausedState = FindHighLevelState(BrainStateNames.Paused);
             if (pausedState == null)
             {
+#if UNITY_EDITOR
                 Debug.LogError("Paused state not found.");
+#endif
                 return false;
             }
 

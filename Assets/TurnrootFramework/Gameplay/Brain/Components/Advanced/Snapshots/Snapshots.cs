@@ -177,7 +177,9 @@ namespace Turnroot.Gameplay.Brain.Snapshots
             Push(snapshot);
             OnSnapshotTaken?.Invoke(snapshot);
 
+#if UNITY_EDITOR
             Debug.Log($"[Snapshot] Captured turn {turnNumber}, ID: {snapshot.Id}");
+#endif
             return snapshot;
         }
 
@@ -234,7 +236,9 @@ namespace Turnroot.Gameplay.Brain.Snapshots
             }
 
             OnSnapshotRestored?.Invoke(snapshot);
+#if UNITY_EDITOR
             Debug.Log($"[Snapshot] Restored turn {snapshot.TurnNumber}, ID: {snapshot.Id}");
+#endif
             return true;
         }
 

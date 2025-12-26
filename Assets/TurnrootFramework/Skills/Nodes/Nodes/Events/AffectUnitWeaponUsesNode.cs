@@ -37,7 +37,9 @@ namespace Turnroot.Skills.Nodes.Events
 
             if (targetCharacter == null)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning("AffectUnitWeaponUses: No valid character to affect");
+#endif
                 return;
             }
 

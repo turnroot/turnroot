@@ -295,7 +295,9 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             );
             foreach (var target in enemies)
             {
+#if UNITY_EDITOR
                 Debug.Log($"  Target {target.Id}: Position={target.MapGridPosition}");
+#endif
             }
             float furthestDistance = 0;
             float closestDistance = float.MaxValue;

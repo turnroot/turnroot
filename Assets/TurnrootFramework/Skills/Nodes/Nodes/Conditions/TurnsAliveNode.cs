@@ -35,7 +35,9 @@ namespace Turnroot.Skills.Nodes.Conditions
 
             if (character == null)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning("TurnsAlive: Could not retrieve unit from context");
+#endif
                 return port.fieldName switch
                 {
                     "TurnCount" => new FloatValue { value = 1f },

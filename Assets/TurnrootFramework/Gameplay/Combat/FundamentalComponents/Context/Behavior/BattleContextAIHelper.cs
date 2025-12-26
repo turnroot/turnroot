@@ -243,7 +243,9 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             {
                 // High greed and cunning- focused units prioritize treasure
                 EvaluateTreasureGoals(potentialGoals, modifiedBehaviorSettings);
+#if UNITY_EDITOR
                 Debug.Log($"AI added treasure goals for unit {_context.Unit.UnitInstance.Id}.");
+#endif
 
                 if (modifiedBehaviorSettings.BloodthirstGreed >= .7f)
                 {
@@ -270,7 +272,9 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             )
             {
                 EvaluateHealSelfGoals(potentialGoals, modifiedBehaviorSettings);
+#if UNITY_EDITOR
                 Debug.Log($"AI added self-heal goals for {_context.Unit.UnitInstance.Id}.");
+#endif
             }
 
             // 2. Mindless Attack
@@ -335,14 +339,18 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             if ((CunningSelfless >= 1.2f || SelfishSelfless >= .5f) && shouldProceed)
             {
                 EvaluateProtectAllyGoals(potentialGoals, modifiedBehaviorSettings);
+#if UNITY_EDITOR
                 Debug.Log($"AI added protect ally goals for unit {_context.Unit.UnitInstance.Id}.");
+#endif
             }
 
             // 5. Heal Allies
             if (CanHeal && shouldProceed)
             {
                 EvaluateHealAlliesGoals(potentialGoals, modifiedBehaviorSettings);
+#if UNITY_EDITOR
                 Debug.Log($"AI added heal ally goals for unit {_context.Unit.UnitInstance.Id}.");
+#endif
                 if (modifiedBehaviorSettings.MindlessCunning <= .3f)
                 {
                     shouldProceed = false;
@@ -366,7 +374,9 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             {
                 // High wariness and lone wolf- focused units prioritize defense
                 EvaluateDefensiveGoals(potentialGoals, modifiedBehaviorSettings);
+#if UNITY_EDITOR
                 Debug.Log($"AI added defensive goals for unit {_context.Unit.UnitInstance.Id}.");
+#endif
             }
 
             // 8. Kill Enemy Goals (Kill Focused) (using modified bloodthirst/wariness)
@@ -380,7 +390,9 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             {
                 // Very kill-focused units prioritize eliminating enemies
                 EvaluateKillEnemyGoals(potentialGoals, modifiedBehaviorSettings);
+#if UNITY_EDITOR
                 Debug.Log($"AI added kill enemy goals for unit {_context.Unit.UnitInstance.Id}.");
+#endif
                 if (modifiedBehaviorSettings.BrashWary <= .3f)
                 {
                     // Very kill-focused and not wary units only think about killing enemies
@@ -436,7 +448,9 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                     }
                 }
 
+#if UNITY_EDITOR
                 Debug.Log("AI Potential Goals after formation bonus:");
+#endif
                 foreach (var goal in potentialGoals)
                 {
                     Debug.Log(

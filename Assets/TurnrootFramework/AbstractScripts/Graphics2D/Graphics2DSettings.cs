@@ -89,7 +89,9 @@ namespace Turnroot.AbstractScripts.Graphics2D
 
             // Save all marked assets
             UnityEditor.AssetDatabase.SaveAssets();
+#if UNITY_EDITOR
             Debug.Log($"Updated {guids.Length} ImageStack assets with new settings.");
+#endif
         }
 #endif
     }

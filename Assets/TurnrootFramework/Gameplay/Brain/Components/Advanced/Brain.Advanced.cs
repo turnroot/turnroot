@@ -60,7 +60,9 @@ namespace Turnroot.Gameplay.Brain
             var context = battleBrain?.BattleObject?.Context;
             if (context == null)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning("[Brain] Cannot execute command: No active battle context.");
+#endif
                 return false;
             }
             return Commands.Execute(command, context);
@@ -95,7 +97,9 @@ namespace Turnroot.Gameplay.Brain
             var context = battleBrain?.BattleObject?.Context;
             if (context == null)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning("[Brain] Cannot take snapshot: No active battle context.");
+#endif
                 return null;
             }
             return Snapshots.Take(context, GetAllBattleCharacters(), _currentTurnNumber);
@@ -142,7 +146,9 @@ namespace Turnroot.Gameplay.Brain
             OnTurnBegin += HandleTurnBegin;
             OnTurnEnded += HandleTurnEnd;
 
+#if UNITY_EDITOR
             Debug.Log("[Brain] Advanced systems initialized: EventBus, Commands, Snapshots");
+#endif
         }
 
         private void HandleTurnBegin()

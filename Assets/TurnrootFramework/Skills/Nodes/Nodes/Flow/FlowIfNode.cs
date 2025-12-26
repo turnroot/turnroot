@@ -25,7 +25,9 @@ namespace Turnroot.Skills.Nodes.Flow
             if (!conditionValue.value)
             {
                 context.Flags.IsInterrupted = true;
+#if UNITY_EDITOR
                 Debug.Log($"FlowIf condition is false, stopping execution.");
+#endif
             }
             // If true, execution will proceed normally when Proceed() is called
         }

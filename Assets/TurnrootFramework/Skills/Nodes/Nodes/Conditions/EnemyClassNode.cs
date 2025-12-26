@@ -47,7 +47,9 @@ namespace Turnroot.Skills.Nodes.Conditions
 
             if (enemy == null)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning("EnemyClass: Could not retrieve enemy from context");
+#endif
                 return port.fieldName switch
                 {
                     "ClassName" => new StringValue { value = "" },
@@ -59,7 +61,9 @@ namespace Turnroot.Skills.Nodes.Conditions
             var classData = enemy.CurrentClass?.ClassData;
             if (classData == null)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning("EnemyClass: Enemy has no class data assigned");
+#endif
                 return port.fieldName switch
                 {
                     "ClassName" => new StringValue { value = "" },

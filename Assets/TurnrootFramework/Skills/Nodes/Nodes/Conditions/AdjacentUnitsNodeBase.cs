@@ -32,14 +32,18 @@ namespace Turnroot.Skills.Nodes.Conditions
             var skillGraph = graph as SkillGraph;
             if (skillGraph == null)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning($"{NodeName}: Could not get SkillGraph");
+#endif
                 return port.fieldName == "count" ? new FloatValue() : (object)new BoolValue();
             }
 
             var context = GetContextFromGraph(skillGraph);
             if (context?.Participants?.AdjacentUnits == null)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning($"{NodeName}: No adjacent units in context");
+#endif
                 return port.fieldName == "count" ? new FloatValue() : (object)new BoolValue();
             }
 

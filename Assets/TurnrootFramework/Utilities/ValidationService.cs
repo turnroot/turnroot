@@ -142,7 +142,9 @@ namespace Turnroot.Services
         {
             if (!string.IsNullOrEmpty(errorMessage))
             {
+#if UNITY_EDITOR
                 Debug.LogWarning(errorMessage);
+#endif
             }
             return new ValidationResult(false, errorMessage);
         }
@@ -151,7 +153,9 @@ namespace Turnroot.Services
         {
             if (!IsValid && !string.IsNullOrEmpty(ErrorMessage))
             {
+#if UNITY_EDITOR
                 Debug.LogWarning(ErrorMessage);
+#endif
             }
         }
     }

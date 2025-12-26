@@ -30,7 +30,9 @@ public class LongTermMemory : MonoBehaviour
         prefs = new JsonPlayerPrefs(
             Application.persistentDataPath + "/TurnrootBrain/structured/.turnrootdata"
         );
+#if UNITY_EDITOR
         Debug.Log($"Brain LongTermMemory initialized at: {Application.persistentDataPath}");
+#endif
 
         prefs.OnKeySetChanged += HandlePrefsKeySetChanged;
     }

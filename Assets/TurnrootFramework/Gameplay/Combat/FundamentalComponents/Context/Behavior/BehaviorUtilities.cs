@@ -21,7 +21,9 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 return;
             }
 
+#if UNITY_EDITOR
             Debug.Log($"Adding top {count} goals from category with {categoryGoals.Count} goals.");
+#endif
 
             // Sort by utility descending
             categoryGoals.Sort((a, b) => b.UtilityScore.CompareTo(a.UtilityScore));

@@ -123,7 +123,9 @@ namespace Turnroot.Gameplay.Brain
             }
             catch (Exception ex)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning($"Failed to extract CharacterData from wrapper: {ex.Message}");
+#endif
             }
 
             return null;
@@ -169,7 +171,9 @@ namespace Turnroot.Gameplay.Brain
             }
             catch (Exception ex)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning($"Failed to compute modification hash: {ex.Message}");
+#endif
                 return string.Empty;
             }
         }
@@ -194,7 +198,9 @@ namespace Turnroot.Gameplay.Brain
             }
             catch (Exception ex)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning($"Failed to build ledger key: {ex.Message}");
+#endif
                 return null;
             }
         }
@@ -377,7 +383,9 @@ namespace Turnroot.Gameplay.Brain
             }
             catch (Exception ex)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning($"Failed to recompute hash: {ex.Message}");
+#endif
                 return string.Empty;
             }
         }
@@ -448,7 +456,9 @@ namespace Turnroot.Gameplay.Brain
             }
             catch (Exception ex)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning($"Failed to write hash ledger entry: {ex.Message}");
+#endif
             }
         }
 
@@ -521,7 +531,9 @@ namespace Turnroot.Gameplay.Brain
             }
             catch (Exception ex)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning($"Hash verification failed: {ex.Message}");
+#endif
                 return false;
             }
         }
@@ -555,7 +567,9 @@ namespace Turnroot.Gameplay.Brain
             }
             catch (Exception ex)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning($"Ledger verification failed: {ex.Message}");
+#endif
                 return true; // Can't verify, assume valid
             }
         }

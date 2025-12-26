@@ -38,13 +38,17 @@ namespace Turnroot.Skills.Nodes.Events
 
             if (buffType == null)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning("AreaOfEffectBuffNode: No buff type assigned!");
+#endif
                 return;
             }
 
             if (context.Participants.Allies == null || context.Participants.Allies.Count == 0)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning("AreaOfEffectBuff: No allies in context");
+#endif
                 return;
             }
 

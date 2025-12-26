@@ -47,7 +47,9 @@ namespace Turnroot.Skills.Nodes.Conditions
             var context = GetContextFromGraph(skillGraph);
             if (context == null || context.Unit.UnitInstance == null)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning("WeaponType: Could not retrieve context or unit from graph");
+#endif
                 return port.fieldName switch
                 {
                     "TypeName" => new StringValue { value = "" },
@@ -64,7 +66,9 @@ namespace Turnroot.Skills.Nodes.Conditions
                 || weaponIndex >= inventory.InventoryItems.Count
             )
             {
+#if UNITY_EDITOR
                 Debug.LogWarning("WeaponType: No weapon equipped");
+#endif
                 return port.fieldName switch
                 {
                     "TypeName" => new StringValue { value = "" },

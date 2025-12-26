@@ -43,7 +43,9 @@ namespace Turnroot.Skills.Nodes.Events
                 // Get adjacent allies from context
                 if (context.Participants.AdjacentUnits == null)
                 {
+#if UNITY_EDITOR
                     Debug.LogWarning("CureDebuff: No adjacent units available in context");
+#endif
                     return;
                 }
 
@@ -73,7 +75,9 @@ namespace Turnroot.Skills.Nodes.Events
                 }
                 else
                 {
+#if UNITY_EDITOR
                     Debug.LogWarning("CureDebuff: No adjacent allies found to cure");
+#endif
                 }
 
                 ListPool<CharacterInstance>.Return(adjacentAllies);
@@ -88,7 +92,9 @@ namespace Turnroot.Skills.Nodes.Events
 
                 int removed = CureDebuffsFromCharacter(target);
                 string cureText = GetCureDescription();
+#if UNITY_EDITOR
                 Debug.Log($"CureDebuff: Cured {cureText} from target ({removed} effects removed)");
+#endif
             }
         }
 
