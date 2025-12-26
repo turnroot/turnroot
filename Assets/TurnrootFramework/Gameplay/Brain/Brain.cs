@@ -148,14 +148,12 @@ namespace Turnroot.Gameplay.Brain
 
         public string EncodeString(string value)
         {
-            var bytes = System.Text.Encoding.UTF8.GetBytes(value);
-            return Convert.ToBase64String(bytes);
+            return Turnroot.Utilities.DeviceDataCipher.EncryptToBase64(value);
         }
 
         public string DecodeString(string encodedString)
         {
-            var bytes = Convert.FromBase64String(encodedString);
-            return System.Text.Encoding.UTF8.GetString(bytes);
+            return Turnroot.Utilities.DeviceDataCipher.DecryptFromBase64(encodedString);
         }
 
         #endregion
