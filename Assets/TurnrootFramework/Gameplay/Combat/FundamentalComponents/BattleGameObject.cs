@@ -1,6 +1,5 @@
 using System.Linq;
 using Turnroot.Characters;
-using Turnroot.Gameplay.Brain;
 using Turnroot.Gameplay.Brain.Events;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Environment;
@@ -22,13 +21,13 @@ namespace Turnroot.Gameplay.Combat
     [RequireComponent(typeof(BattleContext))]
     public class BattleGameObject : MonoBehaviour
     {
+        [field: Header("Battle Components")]
+        [field: SerializeField, HideInInspector]
+        public BattleContext Context { get; private set; }
+
         public bool HasThirdParty;
         public bool ThirdPartyFightsAllies;
         public bool ThirdPartyFightsEnemies;
-
-        [field: Header("Battle Components")]
-        [field: SerializeField]
-        public BattleContext Context { get; private set; }
 
         [SerializeField, SerializeReference]
         private BattleCondition[] _battleConditions;
