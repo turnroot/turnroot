@@ -28,7 +28,8 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
         private TurnOrder _currentTurnOrder = TurnOrder.PlayerStart;
         private int _currentRosterIndex = 0;
-        private bool UnitTakesAnotherTurn => BattleBrain.BattleObject.Context.AnotherTurnGranted;
+        private bool UnitTakesAnotherTurn =>
+            BattleBrain.BattleObject.Context.Flags.AnotherTurnGranted;
 
         public CharacterInstance GetActiveUnit()
         {
@@ -55,7 +56,9 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 case TurnOrder.ThirdPartyEnd:
                     return TurnOrder.PlayerStart;
                 default:
+#if UNITY_EDITOR
                     Debug.LogError("Invalid TurnOrder state.");
+#endif
                     return TurnOrder.PlayerStart;
             }
         }
@@ -112,7 +115,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             // Check if current unit gets another turn
             if (UnitTakesAnotherTurn)
             {
-                BattleBrain.BattleObject.Context.AnotherTurnGranted = false;
+                BattleBrain.BattleObject.Context.Flags.AnotherTurnGranted = false;
                 // Same unit goes again, don't increment roster index
                 ActivateCurrentUnit();
                 return true;
@@ -134,6 +137,8 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                     ActivateCurrentUnit();
                     return true;
                 }
+                // Unit is defeated; clear AI helper caches to avoid stale reusable tile data
+                BattleBrain.ClearAICache();
 
                 // Skip defeated unit
                 _currentRosterIndex++;
@@ -152,7 +157,9 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
             if (_currentRosterIndex < 0 || _currentRosterIndex >= units.Count)
             {
+#if UNITY_EDITOR
                 Debug.LogError($"TurnRotisserie: Invalid roster index {_currentRosterIndex}");
+#endif
                 return;
             }
 
@@ -229,14 +236,14 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
             try
             {
-                context.UnitInstance = activeUnit;
-                context.Targets.Clear();
-                context.Allies.Clear();
-                context.ThirdParty.Clear();
+                context.Unit.UnitInstance = activeUnit;
+                context.Participants.Targets.Clear();
+                context.Participants.Allies.Clear();
+                context.Participants.ThirdParty.Clear();
 
                 PopulateContext(context);
 
-                context.AdjacentUnits =
+                context.Participants.AdjacentUnits =
                     new Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Locations.Adjacency(
                         activeUnit
                     );
@@ -292,18 +299,18 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             {
                 foreach (var unit in instances)
                 {
-                    if (unit.IsDefeatedInCurrentBattle || unit == context.UnitInstance)
+                    if (unit.IsDefeatedInCurrentBattle || unit == context.Unit.UnitInstance)
                     {
                         continue;
                     }
 
                     if (role == Role.Ally)
                     {
-                        context.Allies.Add(unit);
+                        context.Participants.Allies.Add(unit);
                     }
                     else
                     {
-                        context.Targets.Add(unit);
+                        context.Participants.Targets.Add(unit);
                     }
                 }
             }
@@ -331,7 +338,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 if (currentUnits[_currentRosterIndex] == unit)
                 {
                     BattleBrain.Brain.PublishUnitTakesAnotherTurn(unit);
-                    BattleBrain.BattleObject.Context.AnotherTurnGranted = true;
+                    BattleBrain.BattleObject.Context.Flags.AnotherTurnGranted = true;
                     return OperationResult.SuccessResult();
                 }
             }

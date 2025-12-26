@@ -20,7 +20,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         // Some basic behavioral bools
         private bool CanMove => BehaviorSettings.MovementDisabled == false;
         private bool CanAttack => BehaviorSettings.AttackDisabled == false;
-        private bool CanHeal => _context.UnitInstance.CurrentClass.ClassData.Identity.CanHeal;
+        private bool CanHeal => _context.Unit.UnitInstance.CurrentClass.ClassData.Identity.CanHeal;
 
         // TODO: This fails with an error if there is no class assigned!
         // Technically, it should not be possible for a unit to not have a class, but for testing,
@@ -33,22 +33,23 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
         // Computed situational states
         private bool IsWounded =>
-            _context.UnitInstance.GetBoundedStat(Characters.Stats.BoundedStatType.Health).Current
-            < ((MindlessCunning / 2.5f) + .1f);
+            _context
+                .Unit.UnitInstance.GetBoundedStat(Characters.Stats.BoundedStatType.Health)
+                .Current < ((MindlessCunning / 2.5f) + .1f);
 
         private bool IsSurrounded =>
-            _context.AdjacentUnits.GetAdjacentEnemyCount(_context)
+            _context.Participants.AdjacentUnits.GetAdjacentEnemyCount(_context)
             >= (SoldierLoneWolf >= .6f ? 2 : 3);
         private CharacterInstance LastAttackedTarget; // TODO: Set this
 
         private Vector2Int LastTurnPosition; // TODO: Set these
 
-        private Vector2Int CurrentTurnPosition => _context.UnitInstance.MapGridPosition;
+        private Vector2Int CurrentTurnPosition => _context.Unit.UnitInstance.MapGridPosition;
         private bool HasMovedSinceLastTurn => LastTurnPosition != CurrentTurnPosition;
 
         // Behavior weights
         private CharacterBehavior BehaviorSettings =>
-            _context.UnitInstance.CharacterTemplate.BehaviorSettings;
+            _context.Unit.UnitInstance.CharacterTemplate.BehaviorSettings;
         private float BloodthirstGreed => BehaviorSettings.BloodthirstGreed;
         private float BrashWary => BehaviorSettings.BrashWary;
         private float MindlessCunning => BehaviorSettings.MindlessCunning;
@@ -72,7 +73,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
         public void InitializeAIControlledUnit(CharacterInstance unitInstance)
         {
-            _context.UnitInstance = unitInstance; // TODO: This needs to be controlled by the TurnRotiserrie
+            _context.Unit.UnitInstance = unitInstance; // TODO: This needs to be controlled by the TurnRotiserrie
             _aStarModified = new AStarModified();
 
             // Always get latest battle conditions (fixed null check)
@@ -107,6 +108,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             public float UtilityScore;
             public CharacterInstance Target; // Enemy or ally, if applicable
             public MapGridPoint Destination; // Store any extra info needed for execution
+            public Turnroot.Gameplay.Objects.ObjectItemInstance ChosenWeapon; // Optional chosen weapon for attack goals
 
             public enum Action
             {
@@ -122,7 +124,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         private void ChooseEvaluations(List<AIGoal> potentialGoals)
         {
             _context.Brain.PublishUnitBattleEmotionChanged(
-                _context.UnitInstance,
+                _context.Unit.UnitInstance,
                 CharacterInstance.BattleEmotion.Neutral
             );
 
@@ -136,13 +138,13 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 if (IsSurrounded)
                 {
                     _context.Brain.PublishUnitBattleEmotionChanged(
-                        _context.UnitInstance,
+                        _context.Unit.UnitInstance,
                         CharacterInstance.BattleEmotion.Desperate
                     );
 
                     EvaluateDesperationGoals(potentialGoals, modifiedBehaviorSettings);
                     Debug.Log(
-                        $"AI added desperation goals due to being wounded and surrounded for unit {_context.UnitInstance.Id}."
+                        $"AI added desperation goals due to being wounded and surrounded for unit {_context.Unit.UnitInstance.Id}."
                     );
                 }
             }
@@ -154,11 +156,11 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             {
                 modifiedBehaviorSettings.BrashWary = Mathf.Min(1f, BrashWary + 0.18f);
                 _context.Brain.PublishUnitBattleEmotionChanged(
-                    _context.UnitInstance,
+                    _context.Unit.UnitInstance,
                     CharacterInstance.BattleEmotion.Cautious
                 );
                 Debug.Log(
-                    $"AI modified behavior to be more cautious due to being wounded for unit {_context.UnitInstance.Id}."
+                    $"AI modified behavior to be more cautious due to being wounded for unit {_context.Unit.UnitInstance.Id}."
                 );
             }
 
@@ -167,7 +169,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             {
                 modifiedBehaviorSettings.BloodthirstGreed = Mathf.Min(1f, BloodthirstGreed - 0.4f);
                 _context.Brain.PublishUnitBattleEmotionChanged(
-                    _context.UnitInstance,
+                    _context.Unit.UnitInstance,
                     CharacterInstance.BattleEmotion.Enraged
                 );
                 // if the unit was especially selfless, also become more brash
@@ -176,7 +178,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                     modifiedBehaviorSettings.BrashWary = Mathf.Max(0f, BrashWary - 0.2f);
                 }
                 Debug.Log(
-                    $"AI modified behavior to be more bloodthirsty due to ally death for unit {_context.UnitInstance.Id}."
+                    $"AI modified behavior to be more bloodthirsty due to ally death for unit {_context.Unit.UnitInstance.Id}."
                 );
             }
 
@@ -185,38 +187,38 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             {
                 modifiedBehaviorSettings.BrashWary = Mathf.Min(1f, BrashWary + 0.2f);
                 _context.Brain.PublishUnitBattleEmotionChanged(
-                    _context.UnitInstance,
+                    _context.Unit.UnitInstance,
                     CharacterInstance.BattleEmotion.Cautious
                 );
                 Debug.Log(
-                    $"AI modified behavior to be more cautious due to being attacked for unit {_context.UnitInstance.Id}."
+                    $"AI modified behavior to be more cautious due to being attacked for unit {_context.Unit.UnitInstance.Id}."
                 );
             }
 
             // If a brash unit got a kill last turn, they become more bloodthirsty and slightly more careless
-            if (_context.UnitInstance.LastTurnKilledEnemy && BrashWary >= 0.5f)
+            if (_context.Unit.UnitInstance.LastTurnKilledEnemy && BrashWary >= 0.5f)
             {
                 modifiedBehaviorSettings.BloodthirstGreed -= .2f;
                 modifiedBehaviorSettings.BrashWary -= .1f;
                 _context.Brain.PublishUnitBattleEmotionChanged(
-                    _context.UnitInstance,
+                    _context.Unit.UnitInstance,
                     CharacterInstance.BattleEmotion.Cocky
                 );
                 Debug.Log(
-                    $"AI modified behavior to be more bloodthirsty and careless due to getting a kill for unit {_context.UnitInstance.Id}."
+                    $"AI modified behavior to be more bloodthirsty and careless due to getting a kill for unit {_context.Unit.UnitInstance.Id}."
                 );
             }
 
             // Getting treasure successfully makes a greedy unit more brash
-            if (_context.UnitInstance.LastTurnCollectedTreasure && BloodthirstGreed >= 0.5f)
+            if (_context.Unit.UnitInstance.LastTurnCollectedTreasure && BloodthirstGreed >= 0.5f)
             {
                 modifiedBehaviorSettings.BrashWary -= .2f;
                 _context.Brain.PublishUnitBattleEmotionChanged(
-                    _context.UnitInstance,
+                    _context.Unit.UnitInstance,
                     CharacterInstance.BattleEmotion.Cocky
                 );
                 Debug.Log(
-                    $"AI modified behavior to be more careless due to getting treasure for unit {_context.UnitInstance.Id}."
+                    $"AI modified behavior to be more careless due to getting treasure for unit {_context.Unit.UnitInstance.Id}."
                 );
             }
 
@@ -225,11 +227,11 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             {
                 modifiedBehaviorSettings.SelfishSelfless -= .2f;
                 _context.Brain.PublishUnitBattleEmotionChanged(
-                    _context.UnitInstance,
+                    _context.Unit.UnitInstance,
                     CharacterInstance.BattleEmotion.Cautious
                 );
                 Debug.Log(
-                    $"AI modified behavior to be more self-centered due to being surrounded for unit {_context.UnitInstance.Id}."
+                    $"AI modified behavior to be more self-centered due to being surrounded for unit {_context.Unit.UnitInstance.Id}."
                 );
             }
 
@@ -241,7 +243,9 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             {
                 // High greed and cunning- focused units prioritize treasure
                 EvaluateTreasureGoals(potentialGoals, modifiedBehaviorSettings);
-                Debug.Log($"AI added treasure goals for unit {_context.UnitInstance.Id}.");
+#if UNITY_EDITOR
+                Debug.Log($"AI added treasure goals for unit {_context.Unit.UnitInstance.Id}.");
+#endif
 
                 if (modifiedBehaviorSettings.BloodthirstGreed >= .7f)
                 {
@@ -259,7 +263,8 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 (
                     modifiedBehaviorSettings.SelfishSelfless <= 0.5f
                     || (
-                        MindlessCunning >= 0.5 && _context.UnitInstance.GetHealthPercentage() <= 0.3
+                        MindlessCunning >= 0.5
+                        && _context.Unit.UnitInstance.GetHealthPercentage() <= 0.3
                     )
                 )
                 && shouldProceed
@@ -267,7 +272,9 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             )
             {
                 EvaluateHealSelfGoals(potentialGoals, modifiedBehaviorSettings);
-                Debug.Log($"AI added self-heal goals for {_context.UnitInstance.Id}.");
+#if UNITY_EDITOR
+                Debug.Log($"AI added self-heal goals for {_context.Unit.UnitInstance.Id}.");
+#endif
             }
 
             // 2. Mindless Attack
@@ -275,7 +282,9 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             {
                 // mindless enemies attack the closest enemy without thought of strategy
                 EvaluateSimpleAttackGoals(potentialGoals, modifiedBehaviorSettings);
-                Debug.Log($"AI added simple attack goals for unit {_context.UnitInstance.Id}.");
+                Debug.Log(
+                    $"AI added simple attack goals for unit {_context.Unit.UnitInstance.Id}."
+                );
                 if (modifiedBehaviorSettings.MindlessCunning < .2f)
                 {
                     shouldProceed = false;
@@ -286,7 +295,9 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             if (CanAttack && shouldProceed)
             {
                 EvaluateAttackGoals(potentialGoals, modifiedBehaviorSettings);
-                Debug.Log($"AI added standard attack goals for unit {_context.UnitInstance.Id}.");
+                Debug.Log(
+                    $"AI added standard attack goals for unit {_context.Unit.UnitInstance.Id}."
+                );
             }
 
             // If there are positioning goals, prioritize them
@@ -313,7 +324,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             if (ConditionCount > 0)
             {
                 Debug.Log(
-                    $"AI evaluating position goals due to {ConditionCount} active battle conditions for unit {_context.UnitInstance.Id}."
+                    $"AI evaluating position goals due to {ConditionCount} active battle conditions for unit {_context.Unit.UnitInstance.Id}."
                 );
                 EvaluatePositionGoals(
                     potentialGoals,
@@ -328,14 +339,18 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             if ((CunningSelfless >= 1.2f || SelfishSelfless >= .5f) && shouldProceed)
             {
                 EvaluateProtectAllyGoals(potentialGoals, modifiedBehaviorSettings);
-                Debug.Log($"AI added protect ally goals for unit {_context.UnitInstance.Id}.");
+#if UNITY_EDITOR
+                Debug.Log($"AI added protect ally goals for unit {_context.Unit.UnitInstance.Id}.");
+#endif
             }
 
             // 5. Heal Allies
             if (CanHeal && shouldProceed)
             {
                 EvaluateHealAlliesGoals(potentialGoals, modifiedBehaviorSettings);
-                Debug.Log($"AI added heal ally goals for unit {_context.UnitInstance.Id}.");
+#if UNITY_EDITOR
+                Debug.Log($"AI added heal ally goals for unit {_context.Unit.UnitInstance.Id}.");
+#endif
                 if (modifiedBehaviorSettings.MindlessCunning <= .3f)
                 {
                     shouldProceed = false;
@@ -346,7 +361,9 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             if (MindlessCunning >= 0.5f && shouldProceed)
             {
                 EvaluateExploreVillagesGoals(potentialGoals, modifiedBehaviorSettings);
-                Debug.Log($"AI added explore village goals for unit {_context.UnitInstance.Id}.");
+                Debug.Log(
+                    $"AI added explore village goals for unit {_context.Unit.UnitInstance.Id}."
+                );
             }
 
             // --- MORE COMPLEX GOALS (Using Situational Traits) ---
@@ -357,7 +374,9 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             {
                 // High wariness and lone wolf- focused units prioritize defense
                 EvaluateDefensiveGoals(potentialGoals, modifiedBehaviorSettings);
-                Debug.Log($"AI added defensive goals for unit {_context.UnitInstance.Id}.");
+#if UNITY_EDITOR
+                Debug.Log($"AI added defensive goals for unit {_context.Unit.UnitInstance.Id}.");
+#endif
             }
 
             // 8. Kill Enemy Goals (Kill Focused) (using modified bloodthirst/wariness)
@@ -371,7 +390,9 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             {
                 // Very kill-focused units prioritize eliminating enemies
                 EvaluateKillEnemyGoals(potentialGoals, modifiedBehaviorSettings);
-                Debug.Log($"AI added kill enemy goals for unit {_context.UnitInstance.Id}.");
+#if UNITY_EDITOR
+                Debug.Log($"AI added kill enemy goals for unit {_context.Unit.UnitInstance.Id}.");
+#endif
                 if (modifiedBehaviorSettings.BrashWary <= .3f)
                 {
                     // Very kill-focused and not wary units only think about killing enemies
@@ -407,7 +428,9 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 //5. Add formation bonus to team-oriented units
                 if (modifiedBehaviorSettings.SoldierLoneWolf < 0.5f)
                 {
-                    int nearbyAllies = _context.AdjacentUnits.GetAdjacentAllyCount(_context);
+                    int nearbyAllies = _context.Participants.AdjacentUnits.GetAdjacentAllyCount(
+                        _context
+                    );
                     float formationBonus =
                         (nearbyAllies * (2f - modifiedBehaviorSettings.SoldierLoneWolf))
                         + 1f
@@ -425,7 +448,9 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                     }
                 }
 
+#if UNITY_EDITOR
                 Debug.Log("AI Potential Goals after formation bonus:");
+#endif
                 foreach (var goal in potentialGoals)
                 {
                     Debug.Log(
@@ -468,8 +493,8 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                     _reusableAttackTiles.Clear();
 
                     GetTilesForAINonAlloc(
-                        _context.UnitInstance.UnitPositionToMapGridPoint(
-                            _context.UnitInstance.MapGridPosition,
+                        _context.Unit.UnitInstance.UnitPositionToMapGridPoint(
+                            _context.Unit.UnitInstance.MapGridPosition,
                             _context.mapGrid
                         ),
                         _reusableMoveTiles,
@@ -490,8 +515,8 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                     _reusableHealTiles.Clear();
 
                     GetTilesForAIWithHealNonAlloc(
-                        _context.UnitInstance.UnitPositionToMapGridPoint(
-                            _context.UnitInstance.MapGridPosition,
+                        _context.Unit.UnitInstance.UnitPositionToMapGridPoint(
+                            _context.Unit.UnitInstance.MapGridPosition,
                             _context.mapGrid
                         ),
                         _reusableMoveTiles,

@@ -148,14 +148,12 @@ namespace Turnroot.Gameplay.Brain
 
         public string EncodeString(string value)
         {
-            var bytes = System.Text.Encoding.UTF8.GetBytes(value);
-            return Convert.ToBase64String(bytes);
+            return Turnroot.Utilities.DeviceDataCipher.EncryptToBase64(value);
         }
 
         public string DecodeString(string encodedString)
         {
-            var bytes = Convert.FromBase64String(encodedString);
-            return System.Text.Encoding.UTF8.GetString(bytes);
+            return Turnroot.Utilities.DeviceDataCipher.DecryptFromBase64(encodedString);
         }
 
         #endregion
@@ -557,12 +555,16 @@ namespace Turnroot.Gameplay.Brain
 
             if (ltm == null)
             {
+#if UNITY_EDITOR
                 Debug.LogError("Brain failed to initialize LongTermMemory.");
+#endif
                 Debug.Break();
             }
             else
             {
+#if UNITY_EDITOR
                 Debug.Log("Brain initialized LongTermMemory.");
+#endif
             }
         }
 
@@ -578,7 +580,9 @@ namespace Turnroot.Gameplay.Brain
                 (RetroModuleEnabled, "Retro"),
             };
             var enabled = string.Join(", ", modules.Where(m => m.Item1).Select(m => m.Item2));
+#if UNITY_EDITOR
             Debug.Log($"Turnroot modules: {(string.IsNullOrEmpty(enabled) ? "None" : enabled)}");
+#endif
         }
 
         #region Conversation Controller Management
@@ -590,7 +594,9 @@ namespace Turnroot.Gameplay.Brain
         {
             _sceneConversationController = controller;
             _conversationControllerCache.Invalidate(); // Invalidate cache when manually set
+#if UNITY_EDITOR
             Debug.Log("Brain populated scene ConversationController.");
+#endif
         }
 
         private void TryLinkConversationController()

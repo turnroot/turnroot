@@ -15,17 +15,17 @@ namespace Turnroot.Skills.Nodes.Events
         {
             if (
                 !ValidationHelper.ValidateNotNull(
-                    context?.UnitInstance,
-                    nameof(context.UnitInstance)
+                    context?.Unit.UnitInstance,
+                    nameof(context.Unit.UnitInstance)
                 )
             )
             {
                 return;
             }
 
-            context.Brain?.PublishUnitTakesAnotherTurn(context.UnitInstance);
+            context.Brain?.PublishUnitTakesAnotherTurn(context.Unit.UnitInstance);
             Debug.Log(
-                $"TakeAnotherTurn: {context.UnitInstance.CharacterTemplate.DisplayName} will take another turn"
+                $"TakeAnotherTurn: {context.Unit.UnitInstance.CharacterTemplate.DisplayName} will take another turn"
             );
         }
     }

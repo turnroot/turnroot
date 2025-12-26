@@ -443,7 +443,9 @@ namespace Turnroot.Graphics2D.Editor
 
             if (GUILayout.Button("Render and Save to File", GUILayout.Height(40)))
             {
+                #if UNITY_EDITOR
                 Debug.Log($"Saving image with key: '{_currentImage.Key}'");
+                #endif
                 _currentImage.Render();
                 EditorUtility.DisplayDialog(
                     "Render Complete",
@@ -480,14 +482,18 @@ namespace Turnroot.Graphics2D.Editor
         {
             if (_currentImage == null)
             {
+                #if UNITY_EDITOR
                 Debug.Log("RefreshPreview: _currentImage is null");
+                #endif
                 _previewTexture = null;
                 return;
             }
 
             if (_currentImage.ImageStack == null)
             {
+                #if UNITY_EDITOR
                 Debug.Log($"RefreshPreview: ImageStack is null for image '{_currentImage?.Key}'");
+                #endif
                 _previewTexture = null;
                 return;
             }
@@ -504,7 +510,9 @@ namespace Turnroot.Graphics2D.Editor
                 );
                 if (_currentImage.SavedSprite?.texture != null)
                 {
+                    #if UNITY_EDITOR
                     Debug.Log("RefreshPreview: using SavedSprite.texture as fallback preview");
+                    #endif
                     _previewTexture = _currentImage.SavedSprite.texture;
                 }
             }

@@ -26,7 +26,9 @@ namespace Turnroot.Gameplay.Brain
 
             if (_brain == null)
             {
+#if UNITY_EDITOR
                 Debug.LogError($"{GetType().Name}: Brain component not found!");
+#endif
                 return;
             }
 
@@ -40,7 +42,9 @@ namespace Turnroot.Gameplay.Brain
         {
             if (_brain != null)
             {
+#if UNITY_EDITOR
                 Debug.Log($"{GetType().Name} OnDestroy - unsubscribing from brain events.");
+#endif
                 UnsubscribeFromBrainEvents();
             }
         }

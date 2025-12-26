@@ -34,7 +34,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Conditions.Specific
         private void InitializeCache()
         {
             _enemiesCache = new CacheManager<string, List<CharacterInstance>>(key =>
-                GetMatchingUnits(battleContext.Targets, EnemiesToDefeat)
+                GetMatchingUnits(battleContext.Participants.Targets, EnemiesToDefeat)
             );
         }
 

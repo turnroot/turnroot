@@ -27,7 +27,9 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         {
             if (attacker == null || target == null || weaponItem?.Template == null)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning("CalculatePotentialDamage: null attacker, target, or weapon");
+#endif
                 return 0;
             }
 
@@ -58,7 +60,11 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             float finalDamage = Mathf.Max(0, baseDamage - defense);
 
             // Apply critical hit if applicable
-            if (context != null && context.IsCriticalHit && context.CriticalHitUnit == attacker)
+            if (
+                context != null
+                && context.Flags.IsCriticalHit
+                && context.Flags.CriticalHitUnit == attacker
+            )
             {
                 float critMult = settings != null ? settings.GetCriticalHitMultiplier() : 3f;
                 finalDamage *= critMult;
@@ -509,17 +515,20 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
             // Use context's adjacency if centered on this unit, otherwise create temporary
             var adjacency =
-                (context.AdjacentUnits != null && context.AdjacentUnits.Center == unit)
-                    ? context.AdjacentUnits
+                (
+                    context.Participants.AdjacentUnits != null
+                    && context.Participants.AdjacentUnits.Center == unit
+                )
+                    ? context.Participants.AdjacentUnits
                     : new Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Locations.Adjacency(
                         unit
                     );
 
             // Build fast lookup of ally IDs
             using var allyIds = PooledHashSet<string>.Get();
-            if (context.Allies != null)
+            if (context.Participants.Allies != null)
             {
-                foreach (var ally in context.Allies)
+                foreach (var ally in context.Participants.Allies)
                 {
                     if (ally != null)
                     {
@@ -528,8 +537,10 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 }
             }
 
-            // Iterate adjacent units and apply support for allied neighbors
-            foreach (var adjacent in adjacency.GetAllAdjacent())
+            // Iterate adjacent units and apply support for allied neighbors (non-alloc)
+            var adjacentList = ListPool<CharacterInstance>.Get();
+            adjacency.GetAllAdjacentNonAlloc(adjacentList);
+            foreach (var adjacent in adjacentList)
             {
                 if (adjacent == null || adjacent == unit || !allyIds.HashSet.Contains(adjacent.Id))
                 {
@@ -544,6 +555,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 total.Crit += bonus.Crit;
                 total.Dodge += bonus.Dodge;
             }
+            ListPool<CharacterInstance>.Return(adjacentList);
 
             return total;
         }

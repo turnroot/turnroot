@@ -23,7 +23,7 @@ public class ObjectPool<T>
 
     private T CreateNewObject(bool active = true)
     {
-        T newObj = GameObject.Instantiate(_prefab, _parent);
+        T newObj = Object.Instantiate(_prefab, _parent);
         newObj.gameObject.SetActive(active);
         return newObj;
     }

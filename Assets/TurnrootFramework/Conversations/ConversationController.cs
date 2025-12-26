@@ -190,7 +190,9 @@ namespace Turnroot.Conversations
 
         private static bool LogError(string message)
         {
+#if UNITY_EDITOR
             Debug.LogError(message);
+#endif
             return false;
         }
 
@@ -251,7 +253,9 @@ namespace Turnroot.Conversations
             var nodes = conversation.GetGraphNodes();
             if (nodes == null || nodes.Count == 0)
             {
+#if UNITY_EDITOR
                 Debug.LogError($"Branching conversation '{conversation.name}' has no nodes.");
+#endif
                 ResetUI();
                 yield break;
             }

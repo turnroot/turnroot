@@ -26,22 +26,23 @@ namespace Turnroot.Skills.Nodes.Events
             }
 
             // Get the direction from custom data (set by player during gameplay)
-            Direction allyDirection = context.GetCustomData(
-                "SelectedDirection",
-                Direction.Center
-            );
+            Direction allyDirection = context.GetCustomData("SelectedDirection", Direction.Center);
 
             // Get the unit in the specified direction
-            if (context.AdjacentUnits == null)
+            if (context.Participants.AdjacentUnits == null)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning("Warp: No adjacent units data");
+#endif
                 return;
             }
 
-            var ally = context.AdjacentUnits.GetUnit(allyDirection);
+            var ally = context.Participants.AdjacentUnits.GetUnit(allyDirection);
             if (ally == null)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning($"Warp: No unit at {allyDirection}");
+#endif
                 return;
             }
 
@@ -49,7 +50,7 @@ namespace Turnroot.Skills.Nodes.Events
             var warpData = new
             {
                 AllyId = ally.Id,
-                CasterId = context.UnitInstance.Id,
+                CasterId = context.Unit.UnitInstance.Id,
                 Mode = mode,
                 MaxDistance = maxDistance,
             };
@@ -59,7 +60,9 @@ namespace Turnroot.Skills.Nodes.Events
             string modeText = mode == WarpMode.AllyToCaster ? "to caster" : "to ally";
             string distanceText =
                 maxDistance > 0 ? $" (max {maxDistance} tiles)" : " (unlimited range)";
+#if UNITY_EDITOR
             Debug.Log($"Warp: Will warp {modeText}{distanceText}");
+#endif
         }
     }
 

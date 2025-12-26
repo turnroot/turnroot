@@ -18,7 +18,9 @@ namespace Turnroot.Gameplay.Brain
         {
             base.Awake();
             _ltm = GetComponent<LongTermMemory>();
+#if UNITY_EDITOR
             Debug.Log("ConversationalBrain is ready.");
+#endif
         }
 
         protected override void SubscribeToBrainEvents() =>
@@ -174,12 +176,16 @@ namespace Turnroot.Gameplay.Brain
         {
             if (conversation == null)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning("ConversationalBrain: Cannot start null conversation.");
+#endif
                 return;
             }
 
             _brain?.PublishConversationStarted(conversation);
+#if UNITY_EDITOR
             Debug.Log($"ConversationalBrain: Started conversation '{conversation.name}'");
+#endif
         }
 
         /// <summary>
@@ -189,12 +195,16 @@ namespace Turnroot.Gameplay.Brain
         {
             if (conversation == null)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning("ConversationalBrain: Cannot end null conversation.");
+#endif
                 return;
             }
 
             _brain?.PublishConversationEnded(conversation);
+#if UNITY_EDITOR
             Debug.Log($"ConversationalBrain: Ended conversation '{conversation.name}'");
+#endif
         }
 
         /// <summary>
@@ -204,7 +214,9 @@ namespace Turnroot.Gameplay.Brain
         {
             if (layer == null)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning("ConversationalBrain: Cannot start null conversation layer.");
+#endif
                 return;
             }
 
@@ -218,7 +230,9 @@ namespace Turnroot.Gameplay.Brain
         {
             if (layer == null)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning("ConversationalBrain: Cannot end null conversation layer.");
+#endif
                 return;
             }
 

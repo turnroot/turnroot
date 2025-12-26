@@ -40,9 +40,11 @@ namespace Turnroot.Skills.Nodes.Conditions
             }
 
             var context = GetContextFromGraph(skillGraph);
-            if (context == null || context.UnitInstance == null)
+            if (context == null || context.Unit.UnitInstance == null)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning("WeaponRange: Could not retrieve context or unit from graph");
+#endif
                 return port.fieldName switch
                 {
                     "MinRange" or "MaxRange" => new FloatValue { value = 0f },
@@ -51,7 +53,7 @@ namespace Turnroot.Skills.Nodes.Conditions
             }
 
             // Get equipped weapon from character inventory
-            var inventory = context.UnitInstance.InventoryInstance;
+            var inventory = context.Unit.UnitInstance.InventoryInstance;
             var weaponIndex = inventory?.GetEquippedWeaponIndex() ?? -1;
             if (
                 weaponIndex < 0
@@ -59,7 +61,9 @@ namespace Turnroot.Skills.Nodes.Conditions
                 || weaponIndex >= inventory.InventoryItems.Count
             )
             {
+#if UNITY_EDITOR
                 Debug.LogWarning("WeaponRange: No weapon equipped");
+#endif
                 return port.fieldName switch
                 {
                     "MinRange" or "MaxRange" => new FloatValue { value = 0f },
@@ -85,11 +89,13 @@ namespace Turnroot.Skills.Nodes.Conditions
 
             // Get combat distance to determine counterattack capability
             var enemy =
-                context.Targets != null && context.Targets.Count > 0 ? context.Targets[0] : null;
+                context.Participants.Targets != null && context.Participants.Targets.Count > 0
+                    ? context.Participants.Targets[0]
+                    : null;
             int combatDistance = 1;
             if (enemy != null)
             {
-                var unitPos = context.UnitInstance.MapGridPosition;
+                var unitPos = context.Unit.UnitInstance.MapGridPosition;
                 var enemyPos = enemy.MapGridPosition;
                 combatDistance =
                     Mathf.Abs(unitPos.x - enemyPos.x) + Mathf.Abs(unitPos.y - enemyPos.y);

@@ -18,16 +18,22 @@ namespace Turnroot.Gameplay.Brain
 
         private void LoadBrainScene()
         {
+#if UNITY_EDITOR
             Debug.Log($"Loading {BrainSceneName} scene.");
+#endif
 
             try
             {
                 SceneManager.LoadScene(BrainSceneName, LoadSceneMode.Additive);
+#if UNITY_EDITOR
                 Debug.Log($"{BrainSceneName} scene loaded successfully.");
+#endif
             }
             catch (System.Exception e)
             {
+#if UNITY_EDITOR
                 Debug.LogError($"Failed to load {BrainSceneName} scene: {e.Message}");
+#endif
                 Debug.Break();
             }
         }

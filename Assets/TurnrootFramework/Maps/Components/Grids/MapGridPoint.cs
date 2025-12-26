@@ -251,9 +251,14 @@ public class MapGridPoint : MonoBehaviour
     {
         _terrainTypeId = id ?? string.Empty;
         InvalidateTerrainTypeCache();
+        ParentGrid?.IncrementStateVersion();
     }
 
-    public void SetFeatureTypeId(string id) => _featureTypeId = id ?? string.Empty;
+    public void SetFeatureTypeId(string id)
+    {
+        _featureTypeId = id ?? string.Empty;
+        ParentGrid?.IncrementStateVersion();
+    }
 
     public void ApplyFeature(string selId, string name, bool singleClickToggle)
     {
@@ -276,6 +281,7 @@ public class MapGridPoint : MonoBehaviour
 
         _featureTypeId = selId;
         _featureName = name ?? string.Empty;
+        ParentGrid?.IncrementStateVersion();
 
         // When a feature is applied, automatically apply any configured defaults
         // so newly created features get their expected starting properties.
@@ -320,6 +326,7 @@ public class MapGridPoint : MonoBehaviour
         {
             _featureFloatProperties.Clear();
         }
+        ParentGrid?.IncrementStateVersion();
 
 #if UNITY_EDITOR
         if (

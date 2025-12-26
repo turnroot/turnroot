@@ -42,7 +42,9 @@ namespace Turnroot.Skills.Nodes.Events
                 target => DealDamage(context, target, damage)
             );
 
+#if UNITY_EDITOR
             Debug.Log($"DealAdditionalDamage: Dealt {damage} damage to {affected} target(s)");
+#endif
         }
     }
 }

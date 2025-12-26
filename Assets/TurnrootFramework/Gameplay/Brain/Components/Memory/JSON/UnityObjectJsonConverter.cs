@@ -65,13 +65,17 @@ namespace Turnroot.Gameplay.Brain.Components
                     }
                     catch (Exception ex)
                     {
+#if UNITY_EDITOR
                         Debug.LogWarning($"Failed to get GUID for asset at {path}: {ex.Message}");
+#endif
                     }
                 }
             }
             catch (Exception ex)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning($"Failed to get asset path: {ex.Message}");
+#endif
             }
         }
 #endif
@@ -129,7 +133,9 @@ namespace Turnroot.Gameplay.Brain.Components
             }
             catch (Exception ex)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning($"Failed to resolve type '{typeName}': {ex.Message}");
+#endif
                 return fallbackType;
             }
         }
@@ -161,7 +167,9 @@ namespace Turnroot.Gameplay.Brain.Components
             }
             catch (Exception ex)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning($"Failed to load asset by GUID '{guid}': {ex.Message}");
+#endif
             }
             return null;
         }
@@ -174,7 +182,9 @@ namespace Turnroot.Gameplay.Brain.Components
             }
             catch (Exception ex)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning($"Failed to load asset at path '{assetPath}': {ex.Message}");
+#endif
                 return null;
             }
         }
@@ -193,7 +203,9 @@ namespace Turnroot.Gameplay.Brain.Components
             }
             catch (Exception ex)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning($"Failed to load resource '{name}': {ex.Message}");
+#endif
                 return null;
             }
         }

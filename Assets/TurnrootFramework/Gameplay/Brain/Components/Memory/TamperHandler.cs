@@ -64,7 +64,9 @@ namespace Turnroot.Gameplay.Brain.Components
             var parentBrain = brain.GetComponent<Brain>();
             parentBrain?.NotifyIllegalModification(message);
 
+#if UNITY_EDITOR
             Debug.LogWarning(message);
+#endif
         }
 
         private static string ExtractInstanceId<T>(T instance)

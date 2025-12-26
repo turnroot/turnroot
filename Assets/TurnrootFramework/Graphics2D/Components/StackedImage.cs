@@ -62,13 +62,17 @@ namespace Turnroot.Graphics2D
             if (!string.IsNullOrEmpty(key))
             {
                 _key = key;
+#if UNITY_EDITOR
                 Debug.Log($"StackedImage key set to: {_key}");
+#endif
             }
             else
             {
                 // If empty/null key is passed, generate a new one
                 EnsureKeyInitialized();
+#if UNITY_EDITOR
                 Debug.Log($"Generated new stackedImage key: {_key}");
+#endif
             }
         }
 
@@ -106,7 +110,9 @@ namespace Turnroot.Graphics2D
             if (string.IsNullOrEmpty(_key))
             {
                 EnsureKeyInitialized();
+#if UNITY_EDITOR
                 Debug.Log($"Generated new stackedImage key: {_key}");
+#endif
             }
 
             // Initialize tint colors array if null
@@ -138,7 +144,9 @@ namespace Turnroot.Graphics2D
             // Validate that we have an ImageStack
             if (_imageStack == null)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning("Cannot render stackedImage: ImageStack is not assigned.");
+#endif
                 return;
             }
 
@@ -146,16 +154,22 @@ namespace Turnroot.Graphics2D
             if (string.IsNullOrEmpty(_key))
             {
                 EnsureKeyInitialized();
+#if UNITY_EDITOR
                 Debug.LogWarning($"StackedImage key was empty, generated new key: {_key}");
+#endif
             }
 
+#if UNITY_EDITOR
             Debug.Log($"Rendering stackedImage with key: {_key}");
+#endif
 
             // Use compositor to create the final texture
             Texture2D composited = CompositeLayers();
             if (composited == null)
             {
+#if UNITY_EDITOR
                 Debug.LogError("Failed to composite layers.");
+#endif
                 return;
             }
 
@@ -177,7 +191,9 @@ namespace Turnroot.Graphics2D
         {
             if (_imageStack == null)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning("CompositeLayers: _imageStack is null.");
+#endif
                 return null;
             }
 
@@ -200,7 +216,7 @@ namespace Turnroot.Graphics2D
             Graphics2DSettings settings = null;
             try
             {
-                settings = Turnroot.Utilities.GameSettingsLoader.LoadFirst<Graphics2DSettings>(
+                settings = Utilities.GameSettingsLoader.LoadFirst<Graphics2DSettings>(
                     "GameSettings"
                 );
             }
@@ -339,13 +355,17 @@ namespace Turnroot.Graphics2D
             if (!System.IO.Directory.Exists(directoryPath))
             {
                 System.IO.Directory.CreateDirectory(directoryPath);
+#if UNITY_EDITOR
                 Debug.Log($"Created directory: {directoryPath}");
+#endif
             }
 
             // Save the texture as PNG
             byte[] pngData = texture.EncodeToPNG();
             System.IO.File.WriteAllBytes(fullPath, pngData);
+#if UNITY_EDITOR
             Debug.Log($"Successfully saved stackedImage texture: {fileName} to {fullPath}");
+#endif
 
 #if UNITY_EDITOR
             // Refresh the asset database so Unity sees the new file
@@ -365,7 +385,9 @@ namespace Turnroot.Graphics2D
             string subdirectory = GetSaveSubdirectory();
             string assetPath = $"Assets/Resources/GameContent/Graphics/{subdirectory}/{_key}.png";
 
+#if UNITY_EDITOR
             Debug.Log($"Attempting to load sprite from: {assetPath}");
+#endif
 
             // Import the texture with sprite settings
             UnityEditor.TextureImporter importer =
@@ -373,7 +395,9 @@ namespace Turnroot.Graphics2D
 
             if (importer == null)
             {
+#if UNITY_EDITOR
                 Debug.LogError($"Could not get TextureImporter for: {assetPath}");
+#endif
                 return;
             }
 
@@ -392,7 +416,9 @@ namespace Turnroot.Graphics2D
                 );
                 UnityEditor.AssetDatabase.SaveAssets();
 
+#if UNITY_EDITOR
                 Debug.Log($"Configured texture as sprite: {assetPath}");
+#endif
             }
 
             // Load the sprite
@@ -400,7 +426,9 @@ namespace Turnroot.Graphics2D
 
             if (_savedSprite != null)
             {
+#if UNITY_EDITOR
                 Debug.Log($"Successfully loaded saved sprite: {_savedSprite.name}");
+#endif
 
                 if (_owner != null)
                 {
@@ -416,7 +444,9 @@ namespace Turnroot.Graphics2D
             }
             else
             {
+#if UNITY_EDITOR
                 Debug.LogError($"Failed to load sprite from: {assetPath}");
+#endif
             }
 #endif
         }

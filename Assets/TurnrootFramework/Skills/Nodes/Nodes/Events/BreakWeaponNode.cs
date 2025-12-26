@@ -19,9 +19,11 @@ namespace Turnroot.Skills.Nodes.Events
 
         public override void Execute(BattleContext context)
         {
-            if (context?.Targets == null || context.Targets.Count == 0)
+            if (context?.Participants?.Targets == null || context.Participants.Targets.Count == 0)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning("BreakWeapon: No target in context");
+#endif
                 return;
             }
 
@@ -29,19 +31,23 @@ namespace Turnroot.Skills.Nodes.Events
 
             if (shouldAffectAll)
             {
-                foreach (var target in context.Targets)
+                foreach (var target in context.Participants.Targets)
                 {
                     // Store break weapon command in CustomData
                     context.SetCustomData($"BreakWeapon_{target.Id}", true);
                 }
-                Debug.Log($"BreakWeapon: Would break weapon for {context.Targets.Count} targets");
+                Debug.Log(
+                    $"BreakWeapon: Would break weapon for {context.Participants.Targets.Count} targets"
+                );
             }
             else
             {
-                var target = context.Targets[0];
+                var target = context.Participants.Targets[0];
                 // Store break weapon command in CustomData
                 context.SetCustomData($"BreakWeapon_{target.Id}", true);
+#if UNITY_EDITOR
                 Debug.Log("BreakWeapon: Would break weapon for first target");
+#endif
             }
         }
     }

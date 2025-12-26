@@ -84,7 +84,9 @@ namespace Turnroot.Gameplay.Brain
                 && _rosterPersistence.HasPlayerRosterInLTM(GamewidePersistentPlayerRoster)
             )
             {
+#if UNITY_EDITOR
                 Debug.Log("GamewideContextBrain: Recalling existing persistent player roster");
+#endif
                 _rosterManager?.RecallPlayerTeamRoster(GamewidePersistentPlayerRoster);
             }
 
@@ -99,7 +101,7 @@ namespace Turnroot.Gameplay.Brain
         private void TryLoadAndRecallPersistentPlayerRoster()
         {
             // Try graceful load via singleton accessor if available
-            var persistent = Turnroot.Gameplay.Roster.PersistentPlayerRoster.Instance;
+            var persistent = Roster.PersistentPlayerRoster.Instance;
             if (persistent == null)
             {
                 return; // nothing to do
@@ -156,7 +158,9 @@ namespace Turnroot.Gameplay.Brain
                     }
                     catch (System.Exception ex)
                     {
+#if UNITY_EDITOR
                         Debug.LogWarning($"Failed to apply persisted player roster: {ex.Message}");
+#endif
                     }
                 }
             }
@@ -169,7 +173,9 @@ namespace Turnroot.Gameplay.Brain
         {
             if (GamewidePersistentPlayerRoster == null)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning("GamewideContextBrain: No persistent player roster to save.");
+#endif
                 return;
             }
 
@@ -183,7 +189,7 @@ namespace Turnroot.Gameplay.Brain
                     {
                         RosterId = GamewidePersistentPlayerRoster.Id,
                         Placements = runtimeInstance.GetPlacements(),
-                        CharacterInstances = System.Linq.Enumerable.ToArray(
+                        CharacterInstances = Enumerable.ToArray(
                             runtimeInstance.Instances
                         ),
                     };
@@ -206,15 +212,21 @@ namespace Turnroot.Gameplay.Brain
 
                     _rosterPersistence?.RegisterPlayerRoster(GamewidePersistentPlayerRoster);
 
+#if UNITY_EDITOR
                     Debug.Log("GamewideContextBrain: Saved runtime player roster to LTM.");
+#endif
                     return;
                 }
 
+#if UNITY_EDITOR
                 Debug.LogWarning("GamewideContextBrain: No runtime instance available to save.");
+#endif
             }
             catch (System.Exception ex)
             {
+#if UNITY_EDITOR
                 Debug.LogError($"GamewideContextBrain: Save player roster failed: {ex.Message}");
+#endif
             }
         }
 
@@ -233,7 +245,9 @@ namespace Turnroot.Gameplay.Brain
         {
             if (roster == null)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning("Cannot get/create null roster");
+#endif
                 return null;
             }
 
@@ -259,7 +273,9 @@ namespace Turnroot.Gameplay.Brain
         {
             if (roster == null)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning("Cannot get/create null player roster");
+#endif
                 return null;
             }
 

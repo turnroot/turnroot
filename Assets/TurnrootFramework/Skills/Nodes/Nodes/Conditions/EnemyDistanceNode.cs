@@ -24,24 +24,30 @@ namespace Turnroot.Skills.Nodes.Conditions
             }
 
             var context = GetContextFromGraph(skillGraph);
-            if (context == null || context.UnitInstance == null)
+            if (context == null || context.Unit.UnitInstance == null)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning("EnemyDistance: Could not retrieve context or unit from graph");
+#endif
                 return new FloatValue { value = 0f };
             }
 
             // Get enemy from context (first target)
             var enemy =
-                context.Targets != null && context.Targets.Count > 0 ? context.Targets[0] : null;
+                context.Participants.Targets != null && context.Participants.Targets.Count > 0
+                    ? context.Participants.Targets[0]
+                    : null;
 
             if (enemy == null)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning("EnemyDistance: No enemy target in context");
+#endif
                 return new FloatValue { value = 0f };
             }
 
             // Calculate Manhattan distance between unit and enemy positions
-            var unitPos = context.UnitInstance.MapGridPosition;
+            var unitPos = context.Unit.UnitInstance.MapGridPosition;
             var enemyPos = enemy.MapGridPosition;
             int distance = Mathf.Abs(unitPos.x - enemyPos.x) + Mathf.Abs(unitPos.y - enemyPos.y);
 

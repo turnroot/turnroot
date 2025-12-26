@@ -35,7 +35,7 @@ namespace Turnroot.Skills.Nodes.Conditions
                     if (graph is SkillGraph skillGraph)
                     {
                         var context = GetContextFromGraph(skillGraph);
-                        if (context != null && context.UnitInstance != null)
+                        if (context != null && context.Unit.UnitInstance != null)
                         {
                             // Get incoming damage
                             float damage = testDamage;
@@ -50,7 +50,7 @@ namespace Turnroot.Skills.Nodes.Conditions
                             }
 
                             // Check unit's current HP
-                            var healthStat = context.UnitInstance.GetBoundedStat(
+                            var healthStat = context.Unit.UnitInstance.GetBoundedStat(
                                 BoundedStatType.Health
                             );
 
@@ -61,7 +61,9 @@ namespace Turnroot.Skills.Nodes.Conditions
                             }
                             else
                             {
+#if UNITY_EDITOR
                                 Debug.LogWarning("EnemyWouldKillUnit: Unit has no Health stat");
+#endif
                                 wouldKill.value = false;
                             }
                         }

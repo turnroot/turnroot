@@ -41,7 +41,7 @@ namespace Turnroot.Skills.Nodes.Events
             if (shouldAffectAdjacent)
             {
                 // Get adjacent allies from context
-                if (context.AdjacentUnits == null)
+                if (context.Participants.AdjacentUnits == null)
                 {
                     Debug.LogWarning(
                         "NegateNextAttackOnAllies: No adjacent units available in context"
@@ -51,7 +51,10 @@ namespace Turnroot.Skills.Nodes.Events
 
                 // Get all adjacent allies using non-allocating method
                 var adjacentAllies = ListPool<CharacterInstance>.Get();
-                context.AdjacentUnits.GetAdjacentAlliesNonAlloc(context, adjacentAllies);
+                context.Participants.AdjacentUnits.GetAdjacentAlliesNonAlloc(
+                    context,
+                    adjacentAllies
+                );
 
                 int affectedCount = 0;
                 foreach (var adjacentUnit in adjacentAllies)
@@ -88,7 +91,10 @@ namespace Turnroot.Skills.Nodes.Events
             else
             {
                 // Affect only the caster
-                context.SetCustomData($"NegateAttacks_{context.UnitInstance.Id}", attacksToNegate);
+                context.SetCustomData(
+                    $"NegateAttacks_{context.Unit.UnitInstance.Id}",
+                    attacksToNegate
+                );
                 if (allAttacksThisTurn)
                 {
                     Debug.Log(
@@ -97,7 +103,9 @@ namespace Turnroot.Skills.Nodes.Events
                 }
                 else
                 {
+#if UNITY_EDITOR
                     Debug.Log("NegateNextAttackOnAllies: Next attack will be negated for caster");
+#endif
                 }
             }
         }

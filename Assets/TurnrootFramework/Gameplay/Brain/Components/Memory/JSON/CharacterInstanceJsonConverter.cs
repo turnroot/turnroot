@@ -136,7 +136,9 @@ namespace Turnroot.Gameplay.Brain.Components
             }
             catch (Exception ex)
             {
+#if UNITY_EDITOR
                 UnityEngine.Debug.LogWarning($"Failed to get template asset path: {ex.Message}");
+#endif
             }
         }
 #endif
@@ -274,7 +276,9 @@ namespace Turnroot.Gameplay.Brain.Components
             }
             catch (Exception ex)
             {
+#if UNITY_EDITOR
                 UnityEngine.Debug.LogWarning($"Failed to set field '{fieldName}': {ex.Message}");
+#endif
             }
         }
 

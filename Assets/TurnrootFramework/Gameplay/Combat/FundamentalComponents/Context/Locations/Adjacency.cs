@@ -131,18 +131,40 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Locations
             }
         }
 
+        // Non-allocating variant that fills the provided list with adjacent units (excluding center)
+        public void GetAllAdjacentNonAlloc(List<CharacterInstance> result)
+        {
+            result.Clear();
+            if (TopLeft != null)
+                result.Add(TopLeft);
+            if (TopCenter != null)
+                result.Add(TopCenter);
+            if (TopRight != null)
+                result.Add(TopRight);
+            if (CenterLeft != null)
+                result.Add(CenterLeft);
+            if (CenterRight != null)
+                result.Add(CenterRight);
+            if (BottomLeft != null)
+                result.Add(BottomLeft);
+            if (BottomCenter != null)
+                result.Add(BottomCenter);
+            if (BottomRight != null)
+                result.Add(BottomRight);
+        }
+
         // get adjacent allies - non-allocating version that fills provided list
         public void GetAdjacentAlliesNonAlloc(BattleContext context, List<CharacterInstance> result)
         {
             result.Clear();
-            if (context?.Allies == null || context.Allies.Count == 0)
+            if (context?.Participants?.Allies == null || context.Participants.Allies.Count == 0)
             {
                 return;
             }
 
             // Build HashSet of ally IDs for O(1) lookup instead of O(n) Exists
             using var allyIds = PooledHashSet<string>.Get();
-            foreach (var ally in context.Allies)
+            foreach (var ally in context.Participants.Allies)
             {
                 if (ally != null)
                 {
@@ -150,13 +172,17 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Locations
                 }
             }
 
-            foreach (var adjacent in GetAllAdjacent())
+            // Use non-alloc collection to avoid enumerator allocations
+            var allAdjAllies = ListPool<CharacterInstance>.Get();
+            GetAllAdjacentNonAlloc(allAdjAllies);
+            foreach (var adjacent in allAdjAllies)
             {
                 if (adjacent != null && allyIds.HashSet.Contains(adjacent.Id))
                 {
                     result.Add(adjacent);
                 }
             }
+            ListPool<CharacterInstance>.Return(allAdjAllies);
         }
 
         // get adjacent enemies - non-allocating version that fills provided list
@@ -166,14 +192,14 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Locations
         )
         {
             result.Clear();
-            if (context?.Targets == null || context.Targets.Count == 0)
+            if (context?.Participants?.Targets == null || context.Participants.Targets.Count == 0)
             {
                 return;
             }
 
             // Build HashSet of target IDs for O(1) lookup instead of O(n) Exists
             using var targetIds = PooledHashSet<string>.Get();
-            foreach (var target in context.Targets)
+            foreach (var target in context.Participants.Targets)
             {
                 if (target != null)
                 {
@@ -181,25 +207,29 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Locations
                 }
             }
 
-            foreach (var adjacent in GetAllAdjacent())
+            // Use non-alloc collection to avoid enumerator allocations
+            var allAdjTargets = ListPool<CharacterInstance>.Get();
+            GetAllAdjacentNonAlloc(allAdjTargets);
+            foreach (var adjacent in allAdjTargets)
             {
                 if (adjacent != null && targetIds.HashSet.Contains(adjacent.Id))
                 {
                     result.Add(adjacent);
                 }
             }
+            ListPool<CharacterInstance>.Return(allAdjTargets);
         }
 
         // get adjacent ally count - optimized O(n) instead of O(n²)
         public int GetAdjacentAllyCount(BattleContext context)
         {
-            if (context?.Allies == null || context.Allies.Count == 0)
+            if (context?.Participants?.Allies == null || context.Participants.Allies.Count == 0)
             {
                 return 0;
             }
 
             using var allyIds = PooledHashSet<string>.Get();
-            foreach (var ally in context.Allies)
+            foreach (var ally in context.Participants.Allies)
             {
                 if (ally != null)
                 {
@@ -208,26 +238,30 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Locations
             }
 
             int count = 0;
-            foreach (var adjacent in GetAllAdjacent())
+            // Use non-alloc collection to avoid enumerator allocations
+            var allAdjCount = ListPool<CharacterInstance>.Get();
+            GetAllAdjacentNonAlloc(allAdjCount);
+            foreach (var adjacent in allAdjCount)
             {
                 if (adjacent != null && allyIds.HashSet.Contains(adjacent.Id))
                 {
                     count++;
                 }
             }
+            ListPool<CharacterInstance>.Return(allAdjCount);
             return count;
         }
 
         // get adjacent enemy count - optimized O(n) instead of O(n²)
         public int GetAdjacentEnemyCount(BattleContext context)
         {
-            if (context?.Targets == null || context.Targets.Count == 0)
+            if (context?.Participants?.Targets == null || context.Participants.Targets.Count == 0)
             {
                 return 0;
             }
 
             using var targetIds = PooledHashSet<string>.Get();
-            foreach (var target in context.Targets)
+            foreach (var target in context.Participants.Targets)
             {
                 if (target != null)
                 {
@@ -236,13 +270,17 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Locations
             }
 
             int count = 0;
-            foreach (var adjacent in GetAllAdjacent())
+            // Use non-alloc collection to avoid enumerator allocations
+            var allAdjTargetCount = ListPool<CharacterInstance>.Get();
+            GetAllAdjacentNonAlloc(allAdjTargetCount);
+            foreach (var adjacent in allAdjTargetCount)
             {
                 if (adjacent != null && targetIds.HashSet.Contains(adjacent.Id))
                 {
                     count++;
                 }
             }
+            ListPool<CharacterInstance>.Return(allAdjTargetCount);
             return count;
         }
     }

@@ -147,7 +147,9 @@ namespace Turnroot.Characters
                 }
             }
 
+#if UNITY_EDITOR
             Debug.LogWarning($"SetOrder: Character {data?.name} not found in roster");
+#endif
         }
 
         public CharacterInstance GetInstanceFor(CharacterData data) =>

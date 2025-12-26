@@ -589,6 +589,10 @@ public class MapGrid : MonoBehaviour
         return points.Count == 0 ? null : points;
     }
 
+    public int StateVersion { get; private set; }
+
+    public void IncrementStateVersion() => StateVersion++;
+
     public OperationResult SetOccupied(MapGridPoint point, CharacterInstance occupier)
     {
         EnsureCachedGridPoints();
@@ -597,6 +601,7 @@ public class MapGrid : MonoBehaviour
         if (_cachedGridPoints != null && _cachedGridPoints.TryGetValue(key, out var mgp))
         {
             mgp.CurrentInstance = occupier;
+            IncrementStateVersion();
             return OperationResult.SuccessResult();
         }
         return OperationResult.Failure($"Set occupied for point ({point.Row}, {point.Col}) failed");
@@ -610,6 +615,7 @@ public class MapGrid : MonoBehaviour
         if (_cachedGridPoints != null && _cachedGridPoints.TryGetValue(key, out var mgp))
         {
             mgp.CurrentInstance = null;
+            IncrementStateVersion();
             return OperationResult.SuccessResult();
         }
         return OperationResult.Failure(
@@ -630,7 +636,9 @@ public class MapGrid : MonoBehaviour
             {
                 occupiedPoints.Add(mgp);
                 occupyingInstances.Add(mgp.CurrentInstance);
+#if UNITY_EDITOR
                 Debug.Log($"Occupied Point: ({mgp.Row}, {mgp.Col}) by {mgp.CurrentInstance.Id}");
+#endif
             }
         }
     }

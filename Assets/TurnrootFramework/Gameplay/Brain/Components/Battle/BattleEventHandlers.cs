@@ -42,10 +42,12 @@ namespace Turnroot.Gameplay.Brain
                 return;
             }
 
-            BattleObject.Context.UnitTakingAnotherTurn = unit;
-            BattleObject.Context.AnotherTurnGranted = true;
+            BattleObject.Context.Flags.UnitTakingAnotherTurn = unit;
+            BattleObject.Context.Flags.AnotherTurnGranted = true;
 
+#if UNITY_EDITOR
             Debug.Log($"BattleBrain: {unit.CharacterTemplate.DisplayName} will take another turn");
+#endif
         }
 
         private void HandleCriticalHit(CharacterInstance unit)
@@ -58,10 +60,12 @@ namespace Turnroot.Gameplay.Brain
                 return;
             }
 
-            BattleObject.Context.IsCriticalHit = true;
-            BattleObject.Context.CriticalHitUnit = unit;
+            BattleObject.Context.Flags.IsCriticalHit = true;
+            BattleObject.Context.Flags.CriticalHitUnit = unit;
 
+#if UNITY_EDITOR
             Debug.Log($"BattleBrain: {unit.CharacterTemplate.DisplayName} triggered critical hit");
+#endif
         }
 
         private void HandleWeaponUsesChanged(CharacterInstance unit, int usesChange)
@@ -123,7 +127,9 @@ namespace Turnroot.Gameplay.Brain
                 || targetInventory.InventoryItems.Count == 0
             )
             {
+#if UNITY_EDITOR
                 Debug.Log("BattleBrain: Target has no items to steal");
+#endif
                 return;
             }
 
@@ -131,7 +137,9 @@ namespace Turnroot.Gameplay.Brain
             var thiefInventory = thief.InventoryInstance;
             if (thiefInventory == null || thiefInventory.IsFull)
             {
+#if UNITY_EDITOR
                 Debug.Log("BattleBrain: Thief's inventory is full or unavailable");
+#endif
                 return;
             }
 
@@ -166,7 +174,9 @@ namespace Turnroot.Gameplay.Brain
 
             if (bestItem == null)
             {
+#if UNITY_EDITOR
                 Debug.Log("BattleBrain: No stealable items found on target");
+#endif
                 return;
             }
 

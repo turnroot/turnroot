@@ -45,7 +45,9 @@ public class SurviveUntilAllyReachesTileBattleCondition : BattleCondition
     private CharacterInstance GetTargetAlly()
     {
         return _allyCache.GetOrCompute(() =>
-            battleContext.Allies.FirstOrDefault(a => a.CharacterTemplate == AllyToReachTile)
+            battleContext.Participants.Allies.FirstOrDefault(a =>
+                a.CharacterTemplate == AllyToReachTile
+            )
         );
     }
 

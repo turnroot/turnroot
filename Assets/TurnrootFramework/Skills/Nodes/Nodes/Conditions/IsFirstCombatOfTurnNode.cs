@@ -26,12 +26,14 @@ namespace Turnroot.Skills.Nodes.Conditions
             var context = GetContextFromGraph(skillGraph);
             if (context == null)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning("IsFirstCombatOfTurn: Could not retrieve context from graph");
+#endif
                 return new BoolValue { value = true };
             }
 
             // Check if this is the unit's first combat this turn
-            var unit = context.UnitInstance;
+            var unit = context.Unit.UnitInstance;
             if (unit == null)
             {
                 return new BoolValue { value = true };

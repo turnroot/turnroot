@@ -106,7 +106,9 @@ namespace Turnroot.Conversations
             }
             else
             {
+#if UNITY_EDITOR
                 Debug.LogWarning("No pronouns to parse were found");
+#endif
                 _t = Dialogue;
             }
 

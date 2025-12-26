@@ -123,7 +123,9 @@ namespace Turnroot.Gameplay.Brain
             }
             catch (Exception ex)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning($"Failed to extract CharacterData from wrapper: {ex.Message}");
+#endif
             }
 
             return null;
@@ -169,7 +171,9 @@ namespace Turnroot.Gameplay.Brain
             }
             catch (Exception ex)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning($"Failed to compute modification hash: {ex.Message}");
+#endif
                 return string.Empty;
             }
         }
@@ -194,7 +198,9 @@ namespace Turnroot.Gameplay.Brain
             }
             catch (Exception ex)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning($"Failed to build ledger key: {ex.Message}");
+#endif
                 return null;
             }
         }
@@ -283,7 +289,7 @@ namespace Turnroot.Gameplay.Brain
 
             try
             {
-                var wrapperJson = Encoding.UTF8.GetString(Convert.FromBase64String(encoded));
+                var wrapperJson = Turnroot.Utilities.DeviceDataCipher.DecryptFromBase64(encoded);
                 var wrapper = JsonConvert.DeserializeObject<SerializedWrapper>(wrapperJson);
                 return OperationResult<SerializedWrapper>.SuccessResult(wrapper);
             }
@@ -306,7 +312,7 @@ namespace Turnroot.Gameplay.Brain
             try
             {
                 var json = JsonConvert.SerializeObject(wrapper, Formatting.None);
-                var encoded = Convert.ToBase64String(Encoding.UTF8.GetBytes(json));
+                var encoded = Turnroot.Utilities.DeviceDataCipher.EncryptToBase64(json);
                 return OperationResult<string>.SuccessResult(encoded);
             }
             catch (Exception ex)
@@ -327,7 +333,7 @@ namespace Turnroot.Gameplay.Brain
 
             try
             {
-                var wrapperJson = Encoding.UTF8.GetString(Convert.FromBase64String(encoded));
+                var wrapperJson = Turnroot.Utilities.DeviceDataCipher.DecryptFromBase64(encoded);
                 var obj = JObject.Parse(wrapperJson);
                 return OperationResult<JObject>.SuccessResult(obj);
             }
@@ -350,7 +356,7 @@ namespace Turnroot.Gameplay.Brain
             try
             {
                 var json = wrapper.ToString(Formatting.None);
-                var encoded = Convert.ToBase64String(Encoding.UTF8.GetBytes(json));
+                var encoded = Turnroot.Utilities.DeviceDataCipher.EncryptToBase64(json);
                 return OperationResult<string>.SuccessResult(encoded);
             }
             catch (Exception ex)
@@ -377,13 +383,15 @@ namespace Turnroot.Gameplay.Brain
             }
             catch (Exception ex)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning($"Failed to recompute hash: {ex.Message}");
+#endif
                 return string.Empty;
             }
         }
 
         /// <summary>
-        /// Encodes an instance to Base64 wrapper string and persists ledger entry.
+        /// Encodes an instance to a device-key XOR + Base64 wrapper string and persists ledger entry.
         /// </summary>
         public static OperationResult<string> EncodeInstanceToString<T>(
             GamewideContextBrain brain,
@@ -448,7 +456,9 @@ namespace Turnroot.Gameplay.Brain
             }
             catch (Exception ex)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning($"Failed to write hash ledger entry: {ex.Message}");
+#endif
             }
         }
 
@@ -521,7 +531,9 @@ namespace Turnroot.Gameplay.Brain
             }
             catch (Exception ex)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning($"Hash verification failed: {ex.Message}");
+#endif
                 return false;
             }
         }
@@ -555,7 +567,9 @@ namespace Turnroot.Gameplay.Brain
             }
             catch (Exception ex)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning($"Ledger verification failed: {ex.Message}");
+#endif
                 return true; // Can't verify, assume valid
             }
         }
@@ -563,7 +577,7 @@ namespace Turnroot.Gameplay.Brain
         public static string DesignateInstanceType<T>() => typeof(T).FullName;
 
         /// <summary>
-        /// Encodes an instance to Base64 without persisting ledger entries.
+        /// Encodes an instance to a device-key XOR + Base64 wrapper string without persisting ledger entries.
         /// Useful for creating replacement payloads during tamper handling.
         /// </summary>
         public static OperationResult<string> EncodeInstanceToBase64NoLedger<T>(T instance)

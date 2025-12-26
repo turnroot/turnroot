@@ -42,27 +42,18 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             this.mapGrid = mapGrid;
         }
 
-        // Currently executing skill (if any)
-        public Skill CurrentSkill { get; set; }
+        // Sub-contexts for clearer separation
+        public UnitContext Unit { get; private set; }
+        public SkillContext Skill { get; private set; }
+        public BattleParticipants Participants { get; private set; }
+        public CombatFlags Flags { get; private set; }
 
-        // All skills and their graphs that can be executed in this battle
-        public List<Skill> ActiveSkills { get; set; }
-        public List<SkillGraph> ActiveSkillGraphs { get; set; }
-
-        public Dictionary<Skill, int> SkillUseCount { get; set; }
-        public CharacterInstance UnitInstance { get; set; }
-        public List<CharacterInstance> Targets { get; set; }
-        public List<CharacterInstance> Allies { get; set; }
-        public List<CharacterInstance> ThirdParty { get; set; }
-        public Adjacency AdjacentUnits { get; set; }
+        // Backwards-compatible accessors will follow
 
         // Currently executing skill graph (if any)
-        public SkillGraph CurrentSkillGraph { get; set; }
 
         public EnvironmentalConditions EnvironmentalConditions { get; set; }
         public Dictionary<string, object> CustomData { get; private set; }
-
-        public bool IsInterrupted { get; set; }
 
         // Track last attacker per target for the current battle
         private readonly Dictionary<string, CharacterInstance> _lastAttackerByTarget = new();
@@ -99,11 +90,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         /// </summary>
         public void ClearLastAttackHistory() => _lastAttackerByTarget.Clear();
 
-        // Combat state flags
-        public bool IsCriticalHit { get; set; }
-        public CharacterInstance CriticalHitUnit { get; set; }
-        public bool AnotherTurnGranted { get; set; }
-        public CharacterInstance UnitTakingAnotherTurn { get; set; }
+        // Combat state flags (backward-compatible wrappers)
 
         public bool AttackIsEffective(CharacterInstance unit, CharacterInstance target)
         {
@@ -152,30 +139,38 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
         public bool AttackWouldKill(CharacterInstance target)
         {
-            if (UnitInstance == null || target == null)
+            if (Unit.UnitInstance == null || target == null)
             {
                 return false;
             }
 
-            var weaponItem = UnitInstance.GetEquippedWeapon();
+            var weaponItem = Unit.UnitInstance.GetEquippedWeapon();
             if (weaponItem == null)
             {
                 return false;
             }
 
-            return DamageCalculator.WouldKill(UnitInstance, target, weaponItem, this);
+            return DamageCalculator.WouldKill(Unit.UnitInstance, target, weaponItem, this);
         }
 
         public BattleContext()
         {
             CustomData = new Dictionary<string, object>();
-            Targets = new List<CharacterInstance>();
-            Allies = new List<CharacterInstance>();
-            ThirdParty = new List<CharacterInstance>();
-            AdjacentUnits = new Adjacency(null);
-            ActiveSkills = new List<Skill>();
-            ActiveSkillGraphs = new List<SkillGraph>();
-            SkillUseCount = new Dictionary<Skill, int>();
+            Unit = new UnitContext();
+            Skill = new SkillContext
+            {
+                ActiveSkills = new List<Skill>(),
+                ActiveSkillGraphs = new List<SkillGraph>(),
+                SkillUseCount = new Dictionary<Skill, int>(),
+            };
+            Participants = new BattleParticipants
+            {
+                Targets = new List<CharacterInstance>(),
+                Allies = new List<CharacterInstance>(),
+                ThirdParty = new List<CharacterInstance>(),
+                AdjacentUnits = new Adjacency(null),
+            };
+            Flags = new CombatFlags();
         }
 
         // Get a custom data value, or default if not found
@@ -226,16 +221,26 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             }
         }
 
-        public OperationResult AttackTarget(CharacterInstance attacker, CharacterInstance target)
+        public OperationResult AttackTarget(
+            CharacterInstance attacker,
+            CharacterInstance target,
+            ObjectItemInstance weaponItem = null
+        )
         {
-            var weaponItem = attacker.GetEquippedWeapon();
+            // If a weapon was not explicitly provided, use the currently equipped weapon
+            if (weaponItem == null)
+            {
+                weaponItem = attacker.GetEquippedWeapon();
+            }
+
             if (weaponItem == null)
             {
                 Debug.LogWarning(
-                    $"BattleContext: {attacker.CharacterTemplate.DisplayName} has no equipped weapon to attack with!"
+                    $"BattleContext: {attacker.CharacterTemplate.DisplayName} has no weapon to attack with!"
                 );
-                return OperationResult.Failure("No equipped weapon to attack with");
+                return OperationResult.Failure("No weapon to attack with");
             }
+
             return DealDamage(
                 attacker,
                 target,
@@ -317,12 +322,14 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         /// <summary>
         /// Checks if a character is an ally in this context.
         /// </summary>
-        public bool IsAlly(CharacterInstance character) => Allies?.Contains(character) ?? false;
+        public bool IsAlly(CharacterInstance character) =>
+            Participants?.Allies?.Contains(character) ?? false;
 
         /// <summary>
         /// Checks if a character is a target (potential enemy) in this context.
         /// </summary>
-        public bool IsTarget(CharacterInstance character) => Targets?.Contains(character) ?? false;
+        public bool IsTarget(CharacterInstance character) =>
+            Participants?.Targets?.Contains(character) ?? false;
 
         public int CalculatePotentialDamage(
             CharacterInstance unitInstance,

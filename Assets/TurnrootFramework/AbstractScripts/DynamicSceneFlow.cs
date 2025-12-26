@@ -40,12 +40,16 @@ public class DynamicSceneFlow : MonoBehaviour
     {
         if (state >= segments.Count)
         {
+#if UNITY_EDITOR
             Debug.Log("Scene Flow Completed");
+#endif
             return;
         }
 
         var segment = CurrentSegment;
+#if UNITY_EDITOR
         Debug.Log($"Scene Flow State: {segment.segmentName}");
+#endif
 
         segment.onSegmentReached?.Invoke();
     }

@@ -98,7 +98,8 @@ namespace Turnroot.Skills.Nodes
         /// </summary>
         /// <param name="context">The battle context (guaranteed non-null when called).</param>
         /// <returns>Validation result indicating whether execution should proceed.</returns>
-        protected virtual SkillNodeValidationResult ValidateRequirements(BattleContext context) => SkillNodeValidationResult.Success();
+        protected virtual SkillNodeValidationResult ValidateRequirements(BattleContext context) =>
+            SkillNodeValidationResult.Success();
 
         /// <summary>
         /// Override this method to implement the node's execution logic.
@@ -132,7 +133,9 @@ namespace Turnroot.Skills.Nodes
         /// </summary>
         protected SkillNodeValidationResult RequireUnit(BattleContext context)
         {
-            return context.UnitInstance == null ? ValidationFailure("UnitInstance is required but was null") : ValidationSuccess();
+            return context.Unit.UnitInstance == null
+                ? ValidationFailure("UnitInstance is required but was null")
+                : ValidationSuccess();
         }
 
         /// <summary>
@@ -140,7 +143,7 @@ namespace Turnroot.Skills.Nodes
         /// </summary>
         protected SkillNodeValidationResult RequireTargets(BattleContext context)
         {
-            return context.Targets == null || context.Targets.Count == 0
+            return context.Participants.Targets == null || context.Participants.Targets.Count == 0
                 ? ValidationFailure("At least one target is required")
                 : ValidationSuccess();
         }
@@ -159,7 +162,9 @@ namespace Turnroot.Skills.Nodes
         /// </summary>
         protected SkillNodeValidationResult RequireAllies(BattleContext context)
         {
-            return context.Allies == null || context.Allies.Count == 0 ? ValidationFailure("At least one ally is required") : ValidationSuccess();
+            return context.Participants.Allies == null || context.Participants.Allies.Count == 0
+                ? ValidationFailure("At least one ally is required")
+                : ValidationSuccess();
         }
 
         #endregion
@@ -177,7 +182,9 @@ namespace Turnroot.Skills.Nodes
             nodeName ??= GetType().Name;
             if (context == null)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning($"{nodeName}: No context provided");
+#endif
                 return false;
             }
             return true;
@@ -193,7 +200,7 @@ namespace Turnroot.Skills.Nodes
         {
             nodeName ??= GetType().Name;
             return ValidationHelper.ValidateNotNull(
-                context?.UnitInstance,
+                context?.Unit.UnitInstance,
                 "UnitInstance",
                 nodeName
             );
@@ -208,9 +215,11 @@ namespace Turnroot.Skills.Nodes
         protected bool ValidateHasTargets(BattleContext context, string nodeName = null)
         {
             nodeName ??= GetType().Name;
-            if (context?.Targets == null || context.Targets.Count == 0)
+            if (context?.Participants?.Targets == null || context.Participants.Targets.Count == 0)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning($"{nodeName}: No targets in context");
+#endif
                 return false;
             }
             return true;
@@ -254,7 +263,7 @@ namespace Turnroot.Skills.Nodes
             if (affectAll)
             {
                 int affectedCount = 0;
-                foreach (var target in context.Targets)
+                foreach (var target in context.Participants.Targets)
                 {
                     if (target != null)
                     {
@@ -266,13 +275,15 @@ namespace Turnroot.Skills.Nodes
             }
             else
             {
-                var target = context.Targets[0];
+                var target = context.Participants.Targets[0];
                 if (target != null)
                 {
                     action(target);
                     return 1;
                 }
+#if UNITY_EDITOR
                 Debug.LogWarning($"{nodeName}: First target is null");
+#endif
                 return 0;
             }
         }
@@ -347,7 +358,9 @@ namespace Turnroot.Skills.Nodes
         {
             if (character == null)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning($"{nodeName}: Character is null");
+#endif
                 return false;
             }
 
@@ -356,7 +369,7 @@ namespace Turnroot.Skills.Nodes
             if (isBoundedStat)
             {
                 if (
-                    System.Enum.TryParse<Characters.Stats.BoundedStatType>(
+                    Enum.TryParse<Characters.Stats.BoundedStatType>(
                         statName,
                         out var boundedType
                     )
@@ -366,14 +379,16 @@ namespace Turnroot.Skills.Nodes
                 }
                 else
                 {
+#if UNITY_EDITOR
                     Debug.LogWarning($"{nodeName}: Invalid bounded stat type: {statName}");
+#endif
                     return false;
                 }
             }
             else
             {
                 if (
-                    System.Enum.TryParse<Characters.Stats.UnboundedStatType>(
+                    Enum.TryParse<Characters.Stats.UnboundedStatType>(
                         statName,
                         out var unboundedType
                     )
@@ -383,7 +398,9 @@ namespace Turnroot.Skills.Nodes
                 }
                 else
                 {
+#if UNITY_EDITOR
                     Debug.LogWarning($"{nodeName}: Invalid unbounded stat type: {statName}");
+#endif
                     return false;
                 }
             }
@@ -400,7 +417,9 @@ namespace Turnroot.Skills.Nodes
             else
             {
                 string statType = isBoundedStat ? "bounded" : "unbounded";
+#if UNITY_EDITOR
                 Debug.LogWarning($"{nodeName}: {statType} stat {statName} not found on character");
+#endif
                 return false;
             }
         }
@@ -421,18 +440,21 @@ namespace Turnroot.Skills.Nodes
         {
             if (target == null)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning($"{GetType().Name}: Target is null");
+#endif
                 return false;
             }
 
             RequireContext(context);
-            return context.DealDamage(context.UnitInstance, target, damage);
+            return context.DealDamage(context.Unit.UnitInstance, target, damage);
         }
 
         /// <summary>
         /// Deals damage to a target using the command pattern (float overload for compatibility).
         /// </summary>
-        protected bool DealDamage(BattleContext context, CharacterInstance target, float damage) => DealDamage(context, target, (int)damage);
+        protected bool DealDamage(BattleContext context, CharacterInstance target, float damage) =>
+            DealDamage(context, target, (int)damage);
 
         /// <summary>
         /// Kills a character using the command pattern (deals lethal damage).
@@ -444,7 +466,9 @@ namespace Turnroot.Skills.Nodes
         {
             if (target == null)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning($"{GetType().Name}: Target is null");
+#endif
                 return false;
             }
 
@@ -453,7 +477,7 @@ namespace Turnroot.Skills.Nodes
             var healthStat = target.GetBoundedStat(Characters.Stats.BoundedStatType.Health);
             int killDamage = healthStat != null ? (int)healthStat.Current + 1 : 9999;
 
-            return context.DealDamage(context.UnitInstance, target, killDamage);
+            return context.DealDamage(context.Unit.UnitInstance, target, killDamage);
         }
 
         /// <summary>
@@ -468,10 +492,10 @@ namespace Turnroot.Skills.Nodes
                     $"{GetType().Name}: BattleContext with Brain is required for combat operations."
                 );
             }
-            if (context.UnitInstance == null)
+            if (context.Unit.UnitInstance == null)
             {
                 throw new System.InvalidOperationException(
-                    $"{GetType().Name}: BattleContext.UnitInstance must be set for combat operations."
+                    $"{GetType().Name}: Battlecontext.Unit.UnitInstance must be set for combat operations."
                 );
             }
         }
@@ -505,7 +529,9 @@ namespace Turnroot.Skills.Nodes
                 {
                     // Clear existing connection before making new one
                     to.ClearConnections();
+#if UNITY_EDITOR
                     Debug.Log($"Replacing existing connection to input port {to.fieldName}");
+#endif
                 }
             }
 

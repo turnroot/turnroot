@@ -79,8 +79,7 @@ namespace Turnroot.Characters.Components.Support
                 _supportSpeed = 1;
             }
 
-            // ensure override structures are initialized
-            _supportBonusOverride = _supportBonusOverride;
+            // ensure override structures are initialized (value type - nothing to initialize)
         }
 
         /// <summary>

@@ -23,15 +23,19 @@ namespace Turnroot.Skills.Nodes.Events
             }
 
             int attacksToNegate = allAttacksThisTurn ? -1 : 1;
-            context.SetCustomData($"NegateAttacks_{context.UnitInstance.Id}", attacksToNegate);
+            context.SetCustomData($"NegateAttacks_{context.Unit.UnitInstance.Id}", attacksToNegate);
 
             if (allAttacksThisTurn)
             {
+#if UNITY_EDITOR
                 Debug.Log("NegateNextAttack: All attacks this turn will be negated for unit");
+#endif
             }
             else
             {
+#if UNITY_EDITOR
                 Debug.Log("NegateNextAttack: Next attack will be negated for unit");
+#endif
             }
         }
     }

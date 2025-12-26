@@ -115,12 +115,12 @@ namespace Turnroot.Gameplay.Brain.Commands
 
         protected CharacterInstance FindUnit(BattleContext context, string unitId)
         {
-            if (context.UnitInstance?.Id == unitId)
+            if (context?.Unit?.UnitInstance?.Id == unitId)
             {
-                return context.UnitInstance;
+                return context.Unit.UnitInstance;
             }
 
-            foreach (var target in context.Targets ?? new List<CharacterInstance>())
+            foreach (var target in context?.Participants?.Targets ?? new List<CharacterInstance>())
             {
                 if (target.Id == unitId)
                 {
@@ -128,7 +128,7 @@ namespace Turnroot.Gameplay.Brain.Commands
                 }
             }
 
-            foreach (var ally in context.Allies ?? new List<CharacterInstance>())
+            foreach (var ally in context?.Participants?.Allies ?? new List<CharacterInstance>())
             {
                 if (ally.Id == unitId)
                 {
@@ -392,13 +392,17 @@ namespace Turnroot.Gameplay.Brain.Commands
         {
             // Item use is typically not undoable in most games
             // This is a placeholder - implement based on your item system
+#if UNITY_EDITOR
             Debug.Log($"[UseItemCommand] {UserId} used item {ItemId} on {TargetId ?? "self"}");
+#endif
             return true;
         }
 
         public override bool Undo(BattleContext context)
         {
+#if UNITY_EDITOR
             Debug.LogWarning("[UseItemCommand] Item use cannot be undone");
+#endif
             return false;
         }
     }
@@ -485,7 +489,9 @@ namespace Turnroot.Gameplay.Brain.Commands
         public override bool Undo(BattleContext context)
         {
             // Skill effects are undone through their individual commands (damage, buffs, etc.)
+#if UNITY_EDITOR
             Debug.LogWarning("[SkillCommand] Skill activation record cannot be undone");
+#endif
             return false;
         }
     }
@@ -506,7 +512,9 @@ namespace Turnroot.Gameplay.Brain.Commands
 
         public override bool Undo(BattleContext context)
         {
+#if UNITY_EDITOR
             Debug.LogWarning("[EndTurnCommand] Turn end cannot be undone");
+#endif
             return false;
         }
     }

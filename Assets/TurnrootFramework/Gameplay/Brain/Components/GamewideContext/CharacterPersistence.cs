@@ -25,7 +25,9 @@ namespace Turnroot.Gameplay.Brain
         {
             if (instance?.CharacterTemplate == null || !instance.CharacterTemplate.IsUnique)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning("Can only save unique characters");
+#endif
                 return;
             }
 
@@ -39,7 +41,9 @@ namespace Turnroot.Gameplay.Brain
 
                 if (!encodeResult.Success)
                 {
+#if UNITY_EDITOR
                     Debug.LogError($"Failed to encode character: {encodeResult.Error}");
+#endif
                     return;
                 }
 
@@ -53,11 +57,15 @@ namespace Turnroot.Gameplay.Brain
                     AddToCharacterIndex(instance.CharacterTemplate.name);
                 }
 
+#if UNITY_EDITOR
                 Debug.Log($"Saved unique character: {instance.CharacterTemplate.DisplayName}");
+#endif
             }
             catch (Exception ex)
             {
+#if UNITY_EDITOR
                 Debug.LogError($"Failed to save character: {ex.Message}");
+#endif
             }
         }
 
@@ -87,16 +95,22 @@ namespace Turnroot.Gameplay.Brain
 
                 if (!decodeResult.Success)
                 {
+#if UNITY_EDITOR
                     Debug.LogError($"Failed to decode character: {decodeResult.Error}");
+#endif
                     return null;
                 }
 
+#if UNITY_EDITOR
                 Debug.Log($"Recalled unique character: {template.DisplayName}");
+#endif
                 return decodeResult.Value;
             }
             catch (Exception ex)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning($"Failed to recall character: {ex.Message}");
+#endif
                 return null;
             }
         }

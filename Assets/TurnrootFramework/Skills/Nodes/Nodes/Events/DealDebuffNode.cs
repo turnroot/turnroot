@@ -31,7 +31,9 @@ namespace Turnroot.Skills.Nodes.Events
         {
             if (debuffType == null)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning("DealDebuffNode: No debuff type assigned!");
+#endif
                 return;
             }
 
@@ -46,8 +48,8 @@ namespace Turnroot.Skills.Nodes.Events
                     // Apply the debuff using the typed StatusEffect system
                     var effect = target.ApplyStatusEffect(
                         debuffType,
-                        sourceCharacterId: context.UnitInstance?.Id,
-                        sourceSkillId: context.CurrentSkill?.name,
+                        sourceCharacterId: context.Unit.UnitInstance?.Id,
+                        sourceSkillId: context.Skill.CurrentSkill?.name,
                         duration: duration,
                         intensity: intensity
                     );

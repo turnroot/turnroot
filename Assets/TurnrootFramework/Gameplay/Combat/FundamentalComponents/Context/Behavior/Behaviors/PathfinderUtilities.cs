@@ -11,6 +11,9 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
     {
         #region Pathfinding Helpers
 
+        // Track the map state version to invalidate caches when the map mutates (terrain/feature/occupancy changes)
+        private int _lastSeenMapVersion = -1;
+
         /// <summary>
         /// Gets references to the reusable tile dictionaries for callers that need them.
         /// WARNING: These dictionaries are reused between calls. Copy values if you need to persist them.
@@ -21,6 +24,15 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         ) GetReusableTileDictionaries() => (_reusableMoveTiles, _reusableAttackTiles);
 
         /// <summary>
+        /// Clears internal reusable tile dictionaries to avoid stale data when the active unit changes or is removed.
+        /// </summary>
+        public void ClearReusableTileDictionaries()
+        {
+            _reusableMoveTiles.Clear();
+            _reusableAttackTiles.Clear();
+        }
+
+        /// <summary>
         /// Populates the provided dictionary with possible tiles that the unit can move to, including the range of its attacks.
         /// </summary>
         public bool GetPossibleTilesIncludingRangeNonAlloc(
@@ -29,10 +41,17 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             bool includeHealRange = false
         )
         {
+            // If map changed, clear reusable caches to ensure up-to-date tiles
+            if (_context?.mapGrid != null && _context.mapGrid.StateVersion != _lastSeenMapVersion)
+            {
+                ClearReusableTileDictionaries();
+                _lastSeenMapVersion = _context.mapGrid.StateVersion;
+            }
+
             result.Clear();
 
             var validation = ValidationService.Instance.ValidateCharacter(
-                _context.UnitInstance,
+                _context.Unit.UnitInstance,
                 "GetPossibleTilesIncludingRangeNonAlloc"
             );
             if (!validation.IsValid)
@@ -41,7 +60,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             }
 
             var parameters = PathfindingParameters.FromCharacterWithRange(
-                _context.UnitInstance,
+                _context.Unit.UnitInstance,
                 _context.mapGrid,
                 start
             );
@@ -55,7 +74,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             }
 
             // Apply movement bonuses
-            var classData = _context.UnitInstance.CurrentClass.ClassData;
+            var classData = _context.Unit.UnitInstance.CurrentClass.ClassData;
             var movementBonusMod = classData.Stats.UnboundedStatBonuses?.Find(b =>
                 b.unboundedStatType == Characters.Stats.UnboundedStatType.Movement
             );
@@ -97,10 +116,17 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             Dictionary<MapGridPoint, float> result
         )
         {
+            // If map changed, clear reusable caches to ensure up-to-date tiles
+            if (_context?.mapGrid != null && _context.mapGrid.StateVersion != _lastSeenMapVersion)
+            {
+                ClearReusableTileDictionaries();
+                _lastSeenMapVersion = _context.mapGrid.StateVersion;
+            }
+
             result.Clear();
 
             var validation = ValidationService.Instance.ValidateCharacter(
-                _context.UnitInstance,
+                _context.Unit.UnitInstance,
                 "GetPossibleMoveTilesNonAlloc"
             );
             if (!validation.IsValid)
@@ -109,7 +135,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             }
 
             var parameters = PathfindingParameters.FromCharacter(
-                _context.UnitInstance,
+                _context.Unit.UnitInstance,
                 _context.mapGrid,
                 start
             );
@@ -150,6 +176,13 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             Dictionary<MapGridPoint, float> attackTilesResult
         )
         {
+            // If map changed, clear reusable caches to ensure up-to-date tiles
+            if (_context?.mapGrid != null && _context.mapGrid.StateVersion != _lastSeenMapVersion)
+            {
+                ClearReusableTileDictionaries();
+                _lastSeenMapVersion = _context.mapGrid.StateVersion;
+            }
+
             attackTilesResult.Clear();
 
             if (!GetPossibleMoveTilesNonAlloc(start, moveTilesResult))
@@ -183,6 +216,13 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             Dictionary<MapGridPoint, float> healTilesResult
         )
         {
+            // If map changed, clear reusable caches to ensure up-to-date tiles
+            if (_context?.mapGrid != null && _context.mapGrid.StateVersion != _lastSeenMapVersion)
+            {
+                ClearReusableTileDictionaries();
+                _lastSeenMapVersion = _context.mapGrid.StateVersion;
+            }
+
             healTilesResult.Clear();
 
             if (!GetTilesForAINonAlloc(start, moveTilesResult, attackTilesResult))
@@ -250,12 +290,14 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         ) FindClosestAndFurthestEnemies(List<CharacterInstance> enemies)
         {
             Debug.Log(
-                $"[Distance Check] MyPosition: {_context.UnitInstance.MapGridPosition}, "
+                $"[Distance Check] MyPosition: {_context.Unit.UnitInstance.MapGridPosition}, "
                     + $"TargetCount: {enemies.Count}"
             );
             foreach (var target in enemies)
             {
+#if UNITY_EDITOR
                 Debug.Log($"  Target {target.Id}: Position={target.MapGridPosition}");
+#endif
             }
             float furthestDistance = 0;
             float closestDistance = float.MaxValue;
@@ -266,7 +308,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             {
                 var targetPosition = target.MapGridPosition;
                 var distance = Vector2.Distance(
-                    _context.UnitInstance.MapGridPosition,
+                    _context.Unit.UnitInstance.MapGridPosition,
                     targetPosition
                 );
 

@@ -131,7 +131,9 @@ namespace Turnroot.Characters
         {
             if (newClassData == null)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning("ChangeClass: newClassData is null");
+#endif
                 return false;
             }
 

@@ -78,13 +78,17 @@ namespace Turnroot.Characters
                     }
                     catch
                     {
+#if UNITY_EDITOR
                         Debug.LogWarning("Could not mark Roster asset dirty to save generated ID.");
+#endif
                     }
                 }
             }
             catch
             {
+#if UNITY_EDITOR
                 Debug.LogWarning("Could not auto-assign Roster ID.");
+#endif
             }
         }
 #else

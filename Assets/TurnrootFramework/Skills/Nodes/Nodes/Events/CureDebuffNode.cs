@@ -41,15 +41,20 @@ namespace Turnroot.Skills.Nodes.Events
             if (shouldAffectAdjacent)
             {
                 // Get adjacent allies from context
-                if (context.AdjacentUnits == null)
+                if (context.Participants.AdjacentUnits == null)
                 {
+#if UNITY_EDITOR
                     Debug.LogWarning("CureDebuff: No adjacent units available in context");
+#endif
                     return;
                 }
 
                 // Get all adjacent allies using non-allocating method
                 var adjacentAllies = ListPool<CharacterInstance>.Get();
-                context.AdjacentUnits.GetAdjacentAlliesNonAlloc(context, adjacentAllies);
+                context.Participants.AdjacentUnits.GetAdjacentAlliesNonAlloc(
+                    context,
+                    adjacentAllies
+                );
 
                 int affectedCount = 0;
                 foreach (var adjacentUnit in adjacentAllies)
@@ -70,7 +75,9 @@ namespace Turnroot.Skills.Nodes.Events
                 }
                 else
                 {
+#if UNITY_EDITOR
                     Debug.LogWarning("CureDebuff: No adjacent allies found to cure");
+#endif
                 }
 
                 ListPool<CharacterInstance>.Return(adjacentAllies);
@@ -79,13 +86,15 @@ namespace Turnroot.Skills.Nodes.Events
             {
                 // Cure caster or first target
                 var target =
-                    context.Targets != null && context.Targets.Count > 0
-                        ? context.Targets[0]
-                        : context.UnitInstance;
+                    context.Participants.Targets != null && context.Participants.Targets.Count > 0
+                        ? context.Participants.Targets[0]
+                        : context.Unit.UnitInstance;
 
                 int removed = CureDebuffsFromCharacter(target);
                 string cureText = GetCureDescription();
+#if UNITY_EDITOR
                 Debug.Log($"CureDebuff: Cured {cureText} from target ({removed} effects removed)");
+#endif
             }
         }
 
@@ -129,11 +138,10 @@ namespace Turnroot.Skills.Nodes.Events
 
         private string GetCureDescription()
         {
-            return cureMode == CureMode.AllDebuffs
-                ? "all debuffs"
-                : specificDebuffType != null
-                    ? specificDebuffType.DisplayName
-                    : !string.IsNullOrEmpty(debuffName) ? debuffName : "specific debuff";
+            return cureMode == CureMode.AllDebuffs ? "all debuffs"
+                : specificDebuffType != null ? specificDebuffType.DisplayName
+                : !string.IsNullOrEmpty(debuffName) ? debuffName
+                : "specific debuff";
         }
     }
 

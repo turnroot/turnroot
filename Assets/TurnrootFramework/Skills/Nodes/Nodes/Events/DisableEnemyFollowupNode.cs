@@ -21,9 +21,11 @@ namespace Turnroot.Skills.Nodes.Events
 
         public override void Execute(BattleContext context)
         {
-            if (context?.Targets == null || context.Targets.Count == 0)
+            if (context?.Participants?.Targets == null || context.Participants.Targets.Count == 0)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning("DisableEnemyFollowup: No target in context");
+#endif
                 return;
             }
 
@@ -32,7 +34,7 @@ namespace Turnroot.Skills.Nodes.Events
             // Disable followup for all targeted enemies or just the first one
             if (shouldAffectAll)
             {
-                foreach (var target in context.Targets)
+                foreach (var target in context.Participants.Targets)
                 {
                     if (target != null)
                     {
@@ -40,19 +42,23 @@ namespace Turnroot.Skills.Nodes.Events
                     }
                 }
                 Debug.Log(
-                    $"DisableEnemyFollowup: Disabled followup for {context.Targets.Count} enemies"
+                    $"DisableEnemyFollowup: Disabled followup for {context.Participants.Targets.Count} enemies"
                 );
             }
             else
             {
-                var target = context.Targets[0];
+                var target = context.Participants.Targets[0];
                 if (target == null)
                 {
+#if UNITY_EDITOR
                     Debug.LogWarning("DisableEnemyFollowup: Target is null");
+#endif
                     return;
                 }
                 context.SetCustomData($"DisableFollowup_{target.Id}", true);
+#if UNITY_EDITOR
                 Debug.Log("DisableEnemyFollowup: Disabled followup attack for target");
+#endif
             }
         }
     }

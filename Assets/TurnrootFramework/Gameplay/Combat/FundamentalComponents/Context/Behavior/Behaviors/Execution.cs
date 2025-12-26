@@ -17,24 +17,28 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 case AIGoal.GoalType.AttackEnemy:
 
                     context.MoveUnitToPointInt(
-                        _context.UnitInstance,
+                        _context.Unit.UnitInstance,
                         goal.Destination.CoordinatesInt
                     );
-                    context.AttackTarget(_context.UnitInstance, goal.Target);
+                    context.AttackTarget(
+                        _context.Unit.UnitInstance,
+                        goal.Target,
+                        goal.ChosenWeapon
+                    );
 
                     break;
 
                 case AIGoal.GoalType.HealAlly:
                     context.MoveUnitToPointInt(
-                        _context.UnitInstance,
+                        _context.Unit.UnitInstance,
                         goal.Destination.CoordinatesInt
                     );
-                    context.HealUnit(_context.UnitInstance, goal.Target); // TODO: Specify healing item if using
+                    context.HealUnit(_context.Unit.UnitInstance, goal.Target); // TODO: Specify healing item if using
                     break;
 
                 case AIGoal.GoalType.ProtectAlly:
                     context.MoveUnitToPointInt(
-                        _context.UnitInstance,
+                        _context.Unit.UnitInstance,
                         goal.Destination.CoordinatesInt
                     );
                     // TODO: Apply protective buff to target or attack enemies threatening them
@@ -42,30 +46,34 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
                 case AIGoal.GoalType.KillEnemy:
                     context.MoveUnitToPointInt(
-                        _context.UnitInstance,
+                        _context.Unit.UnitInstance,
                         goal.Destination.CoordinatesInt
                     );
-                    context.AttackTarget(_context.UnitInstance, goal.Target);
+                    context.AttackTarget(
+                        _context.Unit.UnitInstance,
+                        goal.Target,
+                        goal.ChosenWeapon
+                    );
                     break;
 
                 case AIGoal.GoalType.HealSelf:
                     context.MoveUnitToPointInt(
-                        _context.UnitInstance,
+                        _context.Unit.UnitInstance,
                         goal.Destination.CoordinatesInt
                     );
-                    context.HealUnit(_context.UnitInstance, _context.UnitInstance); // TODO: Specify healing item if using
+                    context.HealUnit(_context.Unit.UnitInstance, _context.Unit.UnitInstance); // TODO: Specify healing item if using
                     break;
 
                 case AIGoal.GoalType.GainPosition:
                     context.MoveUnitToPointInt(
-                        _context.UnitInstance,
+                        _context.Unit.UnitInstance,
                         goal.Destination.CoordinatesInt
                     );
                     break;
 
                 case AIGoal.GoalType.CollectTreasure:
                     context.MoveUnitToPointInt(
-                        _context.UnitInstance,
+                        _context.Unit.UnitInstance,
                         goal.Destination.CoordinatesInt
                     );
                     // TODO: Trigger treasure collection
@@ -73,7 +81,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
                 case AIGoal.GoalType.DefensiveRetreat:
                     context.MoveUnitToPointInt(
-                        _context.UnitInstance,
+                        _context.Unit.UnitInstance,
                         goal.Destination.CoordinatesInt
                     );
                     // TODO: End turn

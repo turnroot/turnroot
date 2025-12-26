@@ -287,12 +287,13 @@ public class JsonPlayerPrefs
 
         try
         {
-            var bytes = Encoding.UTF8.GetBytes(key);
-            return Convert.ToBase64String(bytes);
+            return Turnroot.Utilities.DeviceDataCipher.EncryptToBase64(key);
         }
         catch (Exception ex)
         {
+#if UNITY_EDITOR
             Debug.LogWarning($"JsonPlayerPrefs: failed to encode key '{key}': {ex.Message}");
+#endif
             return key;
         }
     }
@@ -306,15 +307,15 @@ public class JsonPlayerPrefs
 
         try
         {
-            var bytes = Convert.FromBase64String(encoded);
-            return Encoding.UTF8.GetString(bytes);
+            return Turnroot.Utilities.DeviceDataCipher.DecryptFromBase64(encoded);
         }
         catch (Exception ex)
         {
+#if UNITY_EDITOR
             Debug.LogWarning($"JsonPlayerPrefs: failed to decode key: {ex.Message}");
+#endif
             return encoded;
         }
     }
-
     #endregion
 }

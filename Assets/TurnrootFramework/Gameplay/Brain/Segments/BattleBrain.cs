@@ -40,7 +40,9 @@ namespace Turnroot.Gameplay.Brain
 
             _turnRotisserie = GetComponent<TurnRotisserie>();
 
+#if UNITY_EDITOR
             Debug.Log("BattleBrain: TurnRotisserie ready");
+#endif
         }
 
         private void Start()
@@ -89,22 +91,33 @@ namespace Turnroot.Gameplay.Brain
         {
             if (!_turnRotisserie.Progress())
             {
+#if UNITY_EDITOR
                 Debug.LogError("BattleBrain: Failed to progress turn order!");
+#endif
                 Debug.Break();
             }
         }
+
+        /// <summary>
+        /// Clears AI helper's reusable caches (move/attack tiles).
+        /// </summary>
+        public void ClearAICache() => _aiHelper?.ClearReusableTileDictionaries();
 
         #region Battle Initialization
 
         public void HandleStartBattle()
         {
+#if UNITY_EDITOR
             Debug.Log("BattleBrain: Handling StartBattle event");
+#endif
 
             BattleObject = FindBattleGameObjectInScene();
 
             if (BattleObject == null)
             {
+#if UNITY_EDITOR
                 Debug.LogError("BattleBrain: No BattleGameObject found in any loaded scene!");
+#endif
                 return;
             }
 
@@ -113,7 +126,9 @@ namespace Turnroot.Gameplay.Brain
             BattleObject.ConnectToBrainEvents();
             BattleObject.ConnectBattleConditionsToContext();
 
+#if UNITY_EDITOR
             Debug.Log($"BattleBrain: Connected to BattleGameObject");
+#endif
 
             // Initialize battle using roster system
             InitializeBattleRosters();
@@ -138,7 +153,9 @@ namespace Turnroot.Gameplay.Brain
             // Take initial snapshot of battle state
             _brain.TakeSnapshot();
 
+#if UNITY_EDITOR
             Debug.Log("BattleBrain: Battle initialization complete");
+#endif
         }
 
         private BattleGameObject FindBattleGameObjectInScene()
@@ -156,13 +173,17 @@ namespace Turnroot.Gameplay.Brain
                     var battleObj = rootObject.GetComponentInChildren<BattleGameObject>();
                     if (battleObj != null)
                     {
+#if UNITY_EDITOR
                         Debug.Log($"BattleBrain: Found BattleGameObject in scene '{scene.name}'");
+#endif
                         return battleObj;
                     }
                 }
             }
 
+#if UNITY_EDITOR
             Debug.LogWarning("BattleBrain: No BattleGameObject found in loaded scenes");
+#endif
             return null;
         }
 
@@ -175,7 +196,9 @@ namespace Turnroot.Gameplay.Brain
             var result = BattleObject.PopulateBattleRostersFromTemplates();
             if (!result.Success)
             {
+#if UNITY_EDITOR
                 Debug.LogError($"Failed to populate battle rosters: {result.ErrorMessage}");
+#endif
             }
 
             SpawnRosterUnitsOntoGrid();
@@ -233,7 +256,9 @@ namespace Turnroot.Gameplay.Brain
 
         private void HandleExitBattle(BattleExitType exitType)
         {
+#if UNITY_EDITOR
             Debug.Log($"BattleBrain: Handling ExitBattle event with type: {exitType}");
+#endif
             if (exitType != BattleExitType.Bookmark)
             {
                 _brain.Commands?.Clear();
@@ -254,7 +279,9 @@ namespace Turnroot.Gameplay.Brain
 
             // Clear central last-attacker mapping in the context
             _brain?.battleBrain?.BattleObject?.Context?.ClearLastAttackHistory();
+#if UNITY_EDITOR
             Debug.Log("BattleBrain: Battle cleanup complete");
+#endif
         }
 
         #endregion

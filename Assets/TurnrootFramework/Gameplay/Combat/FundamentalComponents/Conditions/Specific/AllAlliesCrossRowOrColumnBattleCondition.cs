@@ -45,7 +45,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Conditions.Specific
             }
 
             bool allCrossed = true;
-            foreach (var ally in battleContext.Allies)
+            foreach (var ally in battleContext.Participants.Allies)
             {
                 if (ally == null)
                 {
@@ -64,7 +64,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Conditions.Specific
                 }
             }
 
-            if (allCrossed && battleContext.Allies.Count > 0)
+            if (allCrossed && battleContext.Participants.Allies.Count > 0)
             {
                 ConditionMet();
             }

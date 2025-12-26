@@ -11,7 +11,9 @@ namespace Assets.AbstractScripts.Graphics2D
         {
             if (texture == null)
             {
+#if UNITY_EDITOR
                 Debug.LogError("Cannot create sprite from null texture.");
+#endif
                 return null;
             }
 
@@ -30,13 +32,17 @@ namespace Assets.AbstractScripts.Graphics2D
 
             if (sprite == null || mask == null)
             {
+#if UNITY_EDITOR
                 Debug.LogError("Invalid parameters for TintSpritePixels.");
+#endif
                 return null;
             }
 
             if (tints == null || tints.Length < 3)
             {
+#if UNITY_EDITOR
                 Debug.LogError("TintSpritePixels requires 3 tint colors.");
+#endif
                 return null;
             }
 
@@ -45,7 +51,9 @@ namespace Assets.AbstractScripts.Graphics2D
                 || mask.texture.height != sprite.texture.height
             )
             {
+#if UNITY_EDITOR
                 Debug.LogError("Mask and sprite textures must be the same size.");
+#endif
                 return null;
             }
 
@@ -220,7 +228,9 @@ namespace Assets.AbstractScripts.Graphics2D
         {
             if (baseTexture == null || layers == null)
             {
+#if UNITY_EDITOR
                 Debug.LogError("Invalid parameters for CompositeImageStackLayers.");
+#endif
                 return null;
             }
 
@@ -287,7 +297,9 @@ namespace Assets.AbstractScripts.Graphics2D
         {
             if (baseTexture == null || layers == null)
             {
+#if UNITY_EDITOR
                 Debug.LogError("Invalid parameters for CompositeLayersOnTexture.");
+#endif
                 return null;
             }
 
@@ -344,7 +356,9 @@ namespace Assets.AbstractScripts.Graphics2D
                     );
                     if (layerPixels == null)
                     {
+#if UNITY_EDITOR
                         Debug.LogWarning($"Failed to tint layer {layerIndex}. Skipping.");
+#endif
                         continue;
                     }
                 }
@@ -494,7 +508,9 @@ namespace Assets.AbstractScripts.Graphics2D
             }
             // choice == 2 (Skip) or 0 (OK) both fall through; caller typically skips the layer.
 #else
+#if UNITY_EDITOR
             Debug.LogWarning(message + " Skipping.");
+#endif
 #endif
         }
 

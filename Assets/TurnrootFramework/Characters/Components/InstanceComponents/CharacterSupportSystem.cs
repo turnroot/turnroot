@@ -49,7 +49,9 @@ namespace Turnroot.Characters
             }
             else
             {
+#if UNITY_EDITOR
                 Debug.LogWarning($"No support relationship found with {character.FullName}");
+#endif
                 AddSupportRelationship(new SupportRelationship { Character = character });
                 GetSupportRelationship(character)?.Increase(amount);
             }

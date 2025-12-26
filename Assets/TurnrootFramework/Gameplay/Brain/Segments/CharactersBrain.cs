@@ -154,7 +154,7 @@ namespace Turnroot.Gameplay.Brain
                 case Combat.BattleExitType.Retreat:
                     _battlesRetreated++;
                     break;
-                // Bookmark doesn't count as a completed battle outcome
+                    // Bookmark doesn't count as a completed battle outcome
             }
 
             SaveBattleOutcomeStatistics();
@@ -169,13 +169,17 @@ namespace Turnroot.Gameplay.Brain
 
         private void HandleStartBattle()
         {
+#if UNITY_EDITOR
             Debug.Log("CharactersBrain: Initializing battle statistics for all characters.");
+#endif
             InitializeBattleStatistics();
         }
 
         private void HandleExitBattle(Combat.BattleExitType exitType)
         {
+#if UNITY_EDITOR
             Debug.Log($"CharactersBrain: Handling battle exit with type: {exitType}");
+#endif
 
             // Record the battle outcome
             RecordBattleOutcome(exitType);
@@ -283,7 +287,9 @@ namespace Turnroot.Gameplay.Brain
                 instance?.ResetBattleStats();
             }
 
+#if UNITY_EDITOR
             Debug.Log("CharactersBrain: Reset battle statistics for all characters.");
+#endif
         }
 
         private void SaveBattleParticipantsProgress()
@@ -405,7 +411,9 @@ namespace Turnroot.Gameplay.Brain
         {
             if (_battleBrain?.PlayerTeamRoster == null)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning("CharactersBrain: No player roster to save");
+#endif
                 return;
             }
 
@@ -419,7 +427,9 @@ namespace Turnroot.Gameplay.Brain
                 }
             }
 
+#if UNITY_EDITOR
             Debug.Log($"CharactersBrain: Saved {savedCount} unique characters from player roster");
+#endif
         }
 
         /// <summary>

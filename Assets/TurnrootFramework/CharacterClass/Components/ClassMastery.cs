@@ -86,7 +86,9 @@ namespace Turnroot.Characters.CharacterClass
 
             if (MasteryTargets.Count == 0)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning("Class uses mastery system but has no MasteryTargets defined.");
+#endif
                 return OperationResult.Failure("No MasteryTargets defined.");
             }
 
