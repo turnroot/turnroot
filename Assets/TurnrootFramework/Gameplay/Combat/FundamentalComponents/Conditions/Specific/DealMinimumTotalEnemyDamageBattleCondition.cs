@@ -35,12 +35,22 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Conditions.Specific
 
         public void OnEnemyDamaged(int damageAmount)
         {
+            if (!AreRequirementsMet())
+            {
+                return;
+            }
+
             currentTotalDamage += damageAmount;
             CheckCondition();
         }
 
         public void CheckCondition()
         {
+            if (!AreRequirementsMet())
+            {
+                return;
+            }
+
             if (currentTotalDamage >= MinTotalDamage)
             {
                 ConditionMet();

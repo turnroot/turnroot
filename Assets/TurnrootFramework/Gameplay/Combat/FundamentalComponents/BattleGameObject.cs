@@ -1,6 +1,5 @@
 using System.Linq;
 using Turnroot.Characters;
-using Turnroot.Gameplay.Brain;
 using Turnroot.Gameplay.Brain.Events;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Environment;
@@ -22,13 +21,13 @@ namespace Turnroot.Gameplay.Combat
     [RequireComponent(typeof(BattleContext))]
     public class BattleGameObject : MonoBehaviour
     {
+        [field: Header("Battle Components")]
+        [field: SerializeField, HideInInspector]
+        public BattleContext Context { get; private set; }
+
         public bool HasThirdParty;
         public bool ThirdPartyFightsAllies;
         public bool ThirdPartyFightsEnemies;
-
-        [field: Header("Battle Components")]
-        [field: SerializeField]
-        public BattleContext Context { get; private set; }
 
         [SerializeField, SerializeReference]
         private BattleCondition[] _battleConditions;
@@ -163,6 +162,36 @@ namespace Turnroot.Gameplay.Combat
                 {
                     condition.battleContext = Context;
                 }
+
+                // Resolve any required-condition references (by name) so conditions can query requirements
+                foreach (var condition in _battleConditions)
+                {
+                    try
+                    {
+                        condition.ResolveRequiredConditions(_battleConditions);
+
+                        // Resolve ConditionalGroup children if applicable
+                        if (condition is ConditionalGroupBattleCondition group)
+                        {
+                            try
+                            {
+                                group.ResolveChildConditions(_battleConditions);
+                            }
+                            catch (System.Exception ex2)
+                            {
+                                Debug.LogWarning(
+                                    $"Failed to resolve group children for {condition?.Name}: {ex2.Message}"
+                                );
+                            }
+                        }
+                    }
+                    catch (System.Exception ex)
+                    {
+                        Debug.LogWarning(
+                            $"Failed to resolve required conditions for {condition?.Name}: {ex.Message}"
+                        );
+                    }
+                }
                 return OperationResult.SuccessResult();
             }
             catch (System.Exception ex)
@@ -170,6 +199,44 @@ namespace Turnroot.Gameplay.Combat
                 return OperationResult.Failure(
                     $"BattleGameObject ConnectBattleConditionsToContext failed: {ex.Message}"
                 );
+            }
+        }
+
+        /// <summary>
+        /// Adds a new BattleCondition instance to this BattleGameObject at runtime.
+        /// Resolves its context and any named references and returns an OperationResult.
+        /// </summary>
+        public OperationResult AddConditionAtRuntime(BattleCondition condition)
+        {
+            if (condition == null)
+            {
+                return OperationResult.Failure("Condition is null");
+            }
+
+            try
+            {
+                var list = new System.Collections.Generic.List<BattleCondition>(
+                    _battleConditions ?? System.Array.Empty<BattleCondition>()
+                );
+                list.Add(condition);
+                _battleConditions = list.ToArray();
+
+                // Connect new condition to context and resolve its references
+                condition.battleContext = Context;
+                condition.ResolveRequiredConditions(_battleConditions);
+                if (condition is ConditionalGroupBattleCondition group)
+                {
+                    group.ResolveChildConditions(_battleConditions);
+                }
+
+                // Invalidate caches in case the new condition depends on unit lists
+                condition?.InvalidateCache();
+
+                return OperationResult.SuccessResult();
+            }
+            catch (System.Exception ex)
+            {
+                return OperationResult.Failure($"AddConditionAtRuntime failed: {ex.Message}");
             }
         }
 

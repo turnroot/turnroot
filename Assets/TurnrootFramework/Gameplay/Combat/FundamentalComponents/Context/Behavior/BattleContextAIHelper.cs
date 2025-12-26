@@ -438,13 +438,57 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
                     for (int i = 0; i < potentialGoals.Count; i++)
                     {
-                        // Don't reward formation for retreating away from allies
-                        if (potentialGoals[i].Type != AIGoal.GoalType.DefensiveRetreat)
+                        var goal = potentialGoals[i];
+
+                        // For position-gaining goals, only apply formation bonus if the move does not
+                        // increase the unit's distance to the nearest ally (i.e., not moving away from team)
+                        if (goal.Type == AIGoal.GoalType.GainPosition && goal.Destination != null)
                         {
-                            var goal = potentialGoals[i];
-                            goal.UtilityScore += formationBonus;
-                            potentialGoals[i] = goal;
+                            // Compute closest ally distance from current position (path-cost aware)
+                            float currentClosestAllyDist = float.MaxValue;
+                            var currentStart =
+                                _context.Unit.UnitInstance.UnitPositionToMapGridPoint(
+                                    _context.Unit.UnitInstance.MapGridPosition,
+                                    _context.mapGrid
+                                );
+                            if (
+                                PathfinderHelpers.TryFindClosestAllyPathCost(
+                                    _context.mapGrid,
+                                    _context.Unit.UnitInstance,
+                                    currentStart,
+                                    _context.Participants.Allies,
+                                    out float currentCost
+                                )
+                            )
+                            {
+                                currentClosestAllyDist = currentCost;
+                            }
+
+                            // Compute closest ally distance from candidate destination (path-cost aware)
+                            float destClosestAllyDist = float.MaxValue;
+                            var destStart = goal.Destination;
+                            if (
+                                PathfinderHelpers.TryFindClosestAllyPathCost(
+                                    _context.mapGrid,
+                                    _context.Unit.UnitInstance,
+                                    destStart,
+                                    _context.Participants.Allies,
+                                    out float destCost
+                                )
+                            )
+                            {
+                                destClosestAllyDist = destCost;
+                            }
+
+                            // If moving increases distance to the nearest ally, skip formation bonus
+                            if (destClosestAllyDist > currentClosestAllyDist + 0.01f)
+                            {
+                                continue;
+                            }
                         }
+
+                        goal.UtilityScore += formationBonus;
+                        potentialGoals[i] = goal;
                     }
                 }
 

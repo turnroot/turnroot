@@ -53,6 +53,11 @@ public class SurviveUntilAllyReachesTileBattleCondition : BattleCondition
 
     public void CheckCondition()
     {
+        if (!AreRequirementsMet())
+        {
+            return;
+        }
+
         if (!ValidateBattleContext(nameof(SurviveUntilAllyReachesTileBattleCondition)))
         {
             return;

@@ -47,6 +47,11 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Conditions.Specific
 
         public void CheckCondition()
         {
+            if (!AreRequirementsMet())
+            {
+                return;
+            }
+
             if (allTiles)
             {
                 // All target tiles must NOT be reached
@@ -73,6 +78,11 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Conditions.Specific
         /// </summary>
         public void OnUnitReachedTile(Vector2Int position)
         {
+            if (!AreRequirementsMet())
+            {
+                return;
+            }
+
             // Validate that this position is actually a target tile before adding
             // This prevents unlimited accumulation of non-target positions
             if (!TargetTiles.Contains(position))

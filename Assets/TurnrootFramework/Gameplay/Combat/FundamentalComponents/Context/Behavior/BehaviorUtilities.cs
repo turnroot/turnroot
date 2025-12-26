@@ -56,7 +56,46 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 var (destination, canAttack) = GetAccessibleTile(targetGridPoint, behavior);
 
                 var (utility, chosenWeapon) = CalculateAttackUtility(target, behavior);
-                utility += canAttack ? 1f : 0f; // Bonus for being able to attack immediately
+                utility += canAttack ? 2f : 0f; // Bonus for being able to attack immediately
+
+                // If the unit is cunning or wary, check for possible counterattacks
+                // reduce weight if the target can counterattack
+                // extra reduction if the counterattack would do major damage
+
+                if (behavior.MindlessCunning > 0.5f || behavior.BrashWary > 0.5f)
+                {
+                    bool canCounter = _context.TargetCanCounterattack(
+                        _context.Unit.UnitInstance,
+                        target,
+                        destination
+                    );
+                    if (canCounter)
+                    {
+                        utility -= 3f * behavior.MindlessCunning;
+                        // check if the counterattack would do major damage
+                        int counterDamage = DamageCalculator.CalculatePotentialDamage(
+                            target,
+                            _context.Unit.UnitInstance,
+                            chosenWeapon,
+                            _context
+                        );
+                        int myHealth = (int)
+                            _context
+                                .Unit.UnitInstance.GetBoundedStat(
+                                    Characters.Stats.BoundedStatType.Health
+                                )
+                                .Current;
+                        if (counterDamage >= myHealth * 0.5f)
+                        {
+                            utility -= 3f * behavior.BrashWary;
+                        }
+                    }
+                    else
+                    {
+                        // small bonus if they can't counterattack
+                        utility += behavior.MindlessCunning;
+                    }
+                }
 
                 attackGoals.Add(
                     new AIGoal

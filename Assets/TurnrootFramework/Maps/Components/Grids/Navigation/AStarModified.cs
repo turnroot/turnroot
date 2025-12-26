@@ -128,6 +128,122 @@ public class AStarModified
     }
 
     /// <summary>
+    /// Computes the movement-cost to reach the goal using the same A* search but avoids
+    /// constructing the full path list (non-allocating in the hot path).
+    /// Returns true and sets out cost when a path exists; returns false otherwise.
+    /// </summary>
+    public bool TryComputePathCost(
+        MapGrid graph,
+        MapGridPoint start,
+        MapGridPoint goal,
+        out float totalCost,
+        bool isWalking = true,
+        bool isFlying = false,
+        bool isRiding = false,
+        bool isMagic = false,
+        bool isArmored = false,
+        float sameDirectionMultiplier = 0.95f
+    )
+    {
+        totalCost = 0f;
+        if (graph == null || start == null || goal == null)
+        {
+            return false;
+        }
+
+        // Use canonical grid instances for start/goal so identity checks work
+        MapGridPoint canonicalStart = graph.GetGridPoint(start.Row, start.Col) ?? start;
+        MapGridPoint canonicalGoal = graph.GetGridPoint(goal.Row, goal.Col) ?? goal;
+
+        PriorityQueue<MapGridPoint, float> frontier = new();
+        frontier.Enqueue(canonicalStart, 0f);
+
+        // Use pooled collections to reduce GC allocations
+        using var cameFromPooled = PooledDictionary<MapGridPoint, MapGridPoint>.Get();
+        using var costSoFarPooled = PooledDictionary<MapGridPoint, float>.Get();
+        using var directionFromParentPooled = PooledDictionary<MapGridPoint, string>.Get();
+        using var closedPooled = PooledHashSet<MapGridPoint>.Get();
+
+        var cameFrom = cameFromPooled.Dictionary;
+        var costSoFar = costSoFarPooled.Dictionary;
+        var directionFromParent = directionFromParentPooled.Dictionary;
+        var closed = closedPooled.HashSet;
+
+        cameFrom[canonicalStart] = null;
+        costSoFar[canonicalStart] = 0f;
+        directionFromParent[canonicalStart] = null;
+
+        while (frontier.Count > 0)
+        {
+            MapGridPoint current = frontier.Dequeue();
+            if (
+                current == canonicalGoal
+                || (current.Row == canonicalGoal.Row && current.Col == canonicalGoal.Col)
+            )
+            {
+                // We have reached the goal. The cost to reach it is recorded in costSoFar.
+                if (costSoFar.TryGetValue(current, out var c))
+                {
+                    totalCost = c;
+                    return true;
+                }
+                return false;
+            }
+
+            if (closed.Contains(current))
+            {
+                continue;
+            }
+
+            closed.Add(current);
+
+            // Use non-allocating neighbor retrieval
+            current.GetNeighborsNonAlloc(_neighborsBuffer);
+            foreach (var neighborPair in _neighborsBuffer)
+            {
+                var neighbor = neighborPair.Value;
+                if (closed.Contains(neighbor))
+                {
+                    continue;
+                }
+
+                float stepCost = neighbor.GetTerrainTypeCost(
+                    isWalking,
+                    isFlying,
+                    isRiding,
+                    isMagic,
+                    isArmored
+                );
+
+                if (
+                    directionFromParent.TryGetValue(current, out var parentDir)
+                    && parentDir == neighborPair.Key
+                )
+                {
+                    stepCost *= sameDirectionMultiplier;
+                }
+
+                float newCost = costSoFar[current] + stepCost;
+
+                if (
+                    !costSoFar.TryGetValue(neighbor, out var existingCost)
+                    || newCost < existingCost
+                )
+                {
+                    costSoFar[neighbor] = newCost;
+                    float priority = newCost + Heuristic(neighbor, canonicalGoal);
+                    frontier.Enqueue(neighbor, priority);
+                    cameFrom[neighbor] = current;
+                    directionFromParent[neighbor] = neighborPair.Key;
+                }
+            }
+        }
+
+        // No path found
+        return false;
+    }
+
+    /// <summary>
     /// Compute all reachable tiles from start with a maximum movement budget.
     /// Returns a dictionary mapping reachable MapGridPoint -> least cost to reach.
     /// The returned dictionary is owned by the caller and should be managed accordingly.
