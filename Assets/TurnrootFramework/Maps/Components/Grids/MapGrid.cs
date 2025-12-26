@@ -589,6 +589,9 @@ public class MapGrid : MonoBehaviour
         return points.Count == 0 ? null : points;
     }
 
+    public int GetManhattanDistance(MapGridPoint a, MapGridPoint b) =>
+        a == null || b == null ? -1 : Mathf.Abs(a.Row - b.Row) + Mathf.Abs(a.Col - b.Col);
+
     public int StateVersion { get; private set; }
 
     public void IncrementStateVersion() => StateVersion++;

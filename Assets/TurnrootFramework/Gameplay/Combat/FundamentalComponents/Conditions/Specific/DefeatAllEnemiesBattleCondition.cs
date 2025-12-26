@@ -12,6 +12,11 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Conditions.Specific
 
         public void CheckCondition()
         {
+            if (!AreRequirementsMet())
+            {
+                return;
+            }
+
             if (!ValidateBattleContext(nameof(DefeatAllEnemiesBattleCondition)))
             {
                 return;

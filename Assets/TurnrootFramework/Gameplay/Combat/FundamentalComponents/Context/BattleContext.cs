@@ -8,6 +8,7 @@ using Turnroot.Gameplay.Objects;
 using Turnroot.Skills.Nodes;
 using Turnroot.Utilities;
 using UnityEngine;
+using static Turnroot.Gameplay.Combat.FundamentalComponents.Battles.BattleContextAIHelper;
 
 namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 {
@@ -151,6 +152,55 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             }
 
             return DamageCalculator.WouldKill(Unit.UnitInstance, target, weaponItem, this);
+        }
+
+        public bool TargetCanCounterattack(
+            CharacterInstance self,
+            CharacterInstance target,
+            MapGridPoint projectedDestination
+        )
+        {
+            if (self == null || target == null)
+            {
+                return false;
+            }
+            var targetWeapon = target.GetEquippedWeapon();
+            if (targetWeapon == null)
+            {
+                return false;
+            }
+
+            var targetAttackRange = targetWeapon.Template.UpperRange;
+
+            var targetGridPoint = target.UnitPositionToMapGridPoint(
+                target.MapGridPosition,
+                mapGrid
+            );
+            var parameters = Maps.PathfindingParameters.FromCharacter(
+                target,
+                mapGrid,
+                targetGridPoint
+            );
+
+            if (parameters == null || projectedDestination == null)
+            {
+                return false;
+            }
+
+            if (
+                !PathfinderHelpers.TryComputePathMovementCost(
+                    mapGrid,
+                    parameters,
+                    projectedDestination,
+                    out float totalCost
+                )
+            )
+            {
+                return false;
+            }
+
+            // Compare path cost to attack range (treating range as movement-cost budget)
+            return totalCost <= targetAttackRange;
         }
 
         public BattleContext()

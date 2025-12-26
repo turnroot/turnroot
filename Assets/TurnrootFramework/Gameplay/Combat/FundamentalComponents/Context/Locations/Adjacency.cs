@@ -136,21 +136,44 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Locations
         {
             result.Clear();
             if (TopLeft != null)
+            {
                 result.Add(TopLeft);
+            }
+
             if (TopCenter != null)
+            {
                 result.Add(TopCenter);
+            }
+
             if (TopRight != null)
+            {
                 result.Add(TopRight);
+            }
+
             if (CenterLeft != null)
+            {
                 result.Add(CenterLeft);
+            }
+
             if (CenterRight != null)
+            {
                 result.Add(CenterRight);
+            }
+
             if (BottomLeft != null)
+            {
                 result.Add(BottomLeft);
+            }
+
             if (BottomCenter != null)
+            {
                 result.Add(BottomCenter);
+            }
+
             if (BottomRight != null)
+            {
                 result.Add(BottomRight);
+            }
         }
 
         // get adjacent allies - non-allocating version that fills provided list

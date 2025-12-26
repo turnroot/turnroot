@@ -30,6 +30,17 @@ public class BattleCondition
     public UnityEvent OnConditionInactive;
     public UnityEvent OnConditionFailed;
 
+    // Optional list of names of other conditions that must be satisfied before this one can evaluate
+    [SerializeField]
+    public string[] RequiredConditionNames;
+
+    // Runtime-resolved references (not serialized)
+    [NonSerialized]
+    public BattleCondition[] RequiredConditions;
+
+    // Indicates whether this condition has been satisfied (ConditionMet was called)
+    public bool IsSatisfied { get; private set; } = false;
+
     public BattleCondition(string name, string description)
     {
         Name = name;
@@ -50,6 +61,7 @@ public class BattleCondition
 
     public void ConditionMet()
     {
+        IsSatisfied = true;
         OnConditionMet?.Invoke();
         // Publish to Brain for centralized event handling
         battleContext.Brain.PublishBattleConditionMet(this);
@@ -57,9 +69,53 @@ public class BattleCondition
 
     public void ConditionFailed()
     {
+        IsSatisfied = false;
         OnConditionFailed?.Invoke();
         // Publish to Brain for centralized event handling
         battleContext.Brain.PublishBattleConditionFailed(this);
+    }
+
+    /// <summary>
+    /// Returns true if all required conditions are satisfied (or if none are required).
+    /// </summary>
+    public bool AreRequirementsMet()
+    {
+        if (RequiredConditions == null || RequiredConditions.Length == 0)
+        {
+            return true;
+        }
+
+        foreach (var rc in RequiredConditions)
+        {
+            if (rc == null || !rc.IsSatisfied)
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /// <summary>
+    /// Resolves required condition references by matching names from the provided list of all conditions.
+    /// Should be called by the owning `BattleGameObject` during connect/initialization.
+    /// </summary>
+    public void ResolveRequiredConditions(BattleCondition[] allConditions)
+    {
+        if (RequiredConditionNames == null || RequiredConditionNames.Length == 0)
+        {
+            return;
+        }
+
+        var list = new List<BattleCondition>();
+        foreach (var name in RequiredConditionNames)
+        {
+            var match = Array.Find(allConditions, c => c != null && c.Name == name);
+            if (match != null)
+            {
+                list.Add(match);
+            }
+        }
+        RequiredConditions = list.ToArray();
     }
 
     /// <summary>

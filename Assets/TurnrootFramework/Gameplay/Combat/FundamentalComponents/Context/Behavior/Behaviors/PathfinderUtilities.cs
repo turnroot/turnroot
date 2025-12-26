@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Turnroot.Characters;
 using Turnroot.Maps;
@@ -13,6 +14,17 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
         // Track the map state version to invalidate caches when the map mutates (terrain/feature/occupancy changes)
         private int _lastSeenMapVersion = -1;
+
+        // Pathfinding cache keyed by turn and parameter key to avoid recalculating
+        private int _lastCachedTurnNumber = -1;
+        private readonly Dictionary<string, Dictionary<MapGridPoint, float>> _reachabilityCache =
+            new();
+
+        private static string BuildPathCacheKey(PathfindingParameters p)
+        {
+            // Include start, movement budget and flags relevant to reachability
+            return $"{p.Start.Col}_{p.Start.Row}_mb{p.MovementBudget}_w{p.IsWalking}_f{p.IsFlying}_r{p.IncludeRange}_max{p.MaxRange}";
+        }
 
         /// <summary>
         /// Gets references to the reusable tile dictionaries for callers that need them.
@@ -83,25 +95,47 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 parameters.MovementBudget += (int)movementBonusMod.Value.value;
             }
 
-            var points = _aStarModified.GetReachable(
-                parameters.Graph,
-                parameters.Start,
-                parameters.MovementBudget,
-                parameters.IsWalking,
-                parameters.IsFlying,
-                parameters.IsRiding,
-                parameters.IsMagic,
-                parameters.IsArmored,
-                parameters.SameDirectionMultiplier,
-                parameters.IncludeRange,
-                parameters.MaxRange
-            );
-
-            if (points != null)
+            // Turn-level caching: clear if turn changed
+            int currentTurn = _context?.Brain?.CurrentTurnNumber ?? -1;
+            if (currentTurn != _lastCachedTurnNumber)
             {
-                foreach (var kvp in points)
+                _reachabilityCache.Clear();
+                _lastCachedTurnNumber = currentTurn;
+            }
+
+            var cacheKey = BuildPathCacheKey(parameters);
+            if (_reachabilityCache.TryGetValue(cacheKey, out var cached))
+            {
+                foreach (var kvp in cached)
                 {
                     result[kvp.Key] = kvp.Value;
+                }
+            }
+            else
+            {
+                var points = _aStarModified.GetReachable(
+                    parameters.Graph,
+                    parameters.Start,
+                    parameters.MovementBudget,
+                    parameters.IsWalking,
+                    parameters.IsFlying,
+                    parameters.IsRiding,
+                    parameters.IsMagic,
+                    parameters.IsArmored,
+                    parameters.SameDirectionMultiplier,
+                    parameters.IncludeRange,
+                    parameters.MaxRange
+                );
+
+                if (points != null)
+                {
+                    var copy = new Dictionary<MapGridPoint, float>(points);
+                    _reachabilityCache[cacheKey] = copy;
+
+                    foreach (var kvp in copy)
+                    {
+                        result[kvp.Key] = kvp.Value;
+                    }
                 }
             }
 
@@ -145,22 +179,45 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 return false;
             }
 
-            var points = _aStarModified.GetReachable(
-                parameters.Graph,
-                parameters.Start,
-                parameters.MovementBudget,
-                parameters.IsWalking,
-                parameters.IsFlying,
-                parameters.IsRiding,
-                parameters.IsMagic,
-                parameters.IsArmored
-            );
-
-            if (points != null)
+            // Turn-level caching: clear if turn changed
+            int currentTurn = _context?.Brain?.CurrentTurnNumber ?? -1;
+            if (currentTurn != _lastCachedTurnNumber)
             {
-                foreach (var kvp in points)
+                _reachabilityCache.Clear();
+                _lastCachedTurnNumber = currentTurn;
+            }
+
+            var cacheKey =
+                $"{parameters.Start.Col}_{parameters.Start.Row}_mb{parameters.MovementBudget}_w{parameters.IsWalking}_f{parameters.IsFlying}_rfalse_max0";
+            if (_reachabilityCache.TryGetValue(cacheKey, out var cached))
+            {
+                foreach (var kvp in cached)
                 {
                     result[kvp.Key] = kvp.Value;
+                }
+            }
+            else
+            {
+                var points = _aStarModified.GetReachable(
+                    parameters.Graph,
+                    parameters.Start,
+                    parameters.MovementBudget,
+                    parameters.IsWalking,
+                    parameters.IsFlying,
+                    parameters.IsRiding,
+                    parameters.IsMagic,
+                    parameters.IsArmored
+                );
+
+                if (points != null)
+                {
+                    var copy = new Dictionary<MapGridPoint, float>(points);
+                    _reachabilityCache[cacheKey] = copy;
+
+                    foreach (var kvp in copy)
+                    {
+                        result[kvp.Key] = kvp.Value;
+                    }
                 }
             }
 
@@ -357,5 +414,279 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         }
 
         #endregion
+
+        /// <summary>
+        /// Utility helpers for computing path-cost-based distances using the A* search.
+        /// </summary>
+        public static class PathfinderHelpers
+        {
+            /// <summary>
+            /// Computes the movement-cost-aware path cost from parameters.Start to destination.
+            /// Returns true and sets totalCost when a path exists; returns false otherwise.
+            /// </summary>
+            public static bool TryComputePathMovementCost(
+                MapGrid mapGrid,
+                PathfindingParameters parameters,
+                MapGridPoint destination,
+                out float totalCost
+            )
+            {
+                totalCost = 0f;
+                if (mapGrid == null || parameters == null)
+                {
+                    return false;
+                }
+
+                var astar = new AStarModified();
+                var path = astar.AStarSearch(
+                    mapGrid,
+                    parameters.Start,
+                    destination,
+                    parameters.IsWalking,
+                    parameters.IsFlying,
+                    parameters.IsRiding,
+                    parameters.IsMagic,
+                    parameters.IsArmored,
+                    parameters.SameDirectionMultiplier
+                );
+
+                if (path == null || path.Count == 0)
+                {
+                    return false;
+                }
+
+                float sum = 0f;
+                string prevDir = null;
+                for (int i = 1; i < path.Count; i++)
+                {
+                    var from = path[i - 1];
+                    var to = path[i];
+                    int dRow = to.Row - from.Row;
+                    int dCol = to.Col - from.Col;
+                    string dir =
+                        dRow == -1 && dCol == 0 ? "N"
+                        : dRow == -1 && dCol == 1 ? "NE"
+                        : dRow == 0 && dCol == 1 ? "E"
+                        : dRow == 1 && dCol == 1 ? "SE"
+                        : dRow == 1 && dCol == 0 ? "S"
+                        : dRow == 1 && dCol == -1 ? "SW"
+                        : dRow == 0 && dCol == -1 ? "W"
+                        : dRow == -1 && dCol == -1 ? "NW"
+                        : null;
+
+                    float stepCost = to.GetTerrainTypeCost(
+                        parameters.IsWalking,
+                        parameters.IsFlying,
+                        parameters.IsRiding,
+                        parameters.IsMagic,
+                        parameters.IsArmored
+                    );
+
+                    if (prevDir != null && prevDir == dir)
+                    {
+                        stepCost *= parameters.SameDirectionMultiplier;
+                    }
+
+                    sum += stepCost;
+                    prevDir = dir;
+                }
+
+                totalCost = sum;
+                return true;
+            }
+
+            /// <summary>
+            /// Finds the lowest path-cost to any point in the provided sequence of MapGridPoints.
+            /// </summary>
+            public static bool TryFindClosestPointPathCost(
+                MapGrid mapGrid,
+                PathfindingParameters parameters,
+                IEnumerable<MapGridPoint> points,
+                out float closestCost
+            )
+            {
+                closestCost = float.MaxValue;
+                if (points == null)
+                {
+                    return false;
+                }
+
+                bool foundAny = false;
+                foreach (var p in points)
+                {
+                    if (TryComputePathMovementCost(mapGrid, parameters, p, out float c))
+                    {
+                        foundAny = true;
+                        if (c < closestCost)
+                        {
+                            closestCost = c;
+                        }
+                    }
+                }
+                return foundAny;
+            }
+
+            /// <summary>
+            /// Convenience wrapper to find the closest path-cost to any of the provided characters (skips the subject unit).
+            /// </summary>
+            public static bool TryFindClosestAllyPathCost(
+                MapGrid mapGrid,
+                CharacterInstance subjectUnit,
+                MapGridPoint start,
+                IEnumerable<CharacterInstance> allies,
+                out float closestCost
+            )
+            {
+                if (mapGrid == null || subjectUnit == null)
+                {
+                    closestCost = float.MaxValue;
+                    return false;
+                }
+
+                var parameters = PathfindingParameters.FromCharacter(subjectUnit, mapGrid, start);
+                if (parameters == null)
+                {
+                    closestCost = float.MaxValue;
+                    return false;
+                }
+
+                var points = new List<MapGridPoint>();
+                foreach (var a in allies)
+                {
+                    if (a == null || a == subjectUnit)
+                    {
+                        continue;
+                    }
+                    points.Add(a.UnitPositionToMapGridPoint(a.MapGridPosition, mapGrid));
+                }
+
+                return TryFindClosestPointPathCost(mapGrid, parameters, points, out closestCost);
+            }
+        }
+    } // end partial class BattleContextAIHelper
+
+    /// <summary>
+    /// Utility helpers for computing path-cost-based distances using the A* search.
+    /// </summary>
+    public static class PathfinderHelpers
+    {
+        /// <summary>
+        /// Computes the movement-cost-aware path cost from parameters.Start to destination.
+        /// Returns true and sets totalCost when a path exists; returns false otherwise.
+        /// </summary>
+        public static bool TryComputePathMovementCost(
+            MapGrid mapGrid,
+            PathfindingParameters parameters,
+            MapGridPoint destination,
+            out float totalCost
+        )
+        {
+            totalCost = 0f;
+            if (mapGrid == null || parameters == null)
+            {
+                return false;
+            }
+
+            var astar = new AStarModified();
+            if (
+                !astar.TryComputePathCost(
+                    mapGrid,
+                    parameters.Start,
+                    destination,
+                    out float computedCost,
+                    parameters.IsWalking,
+                    parameters.IsFlying,
+                    parameters.IsRiding,
+                    parameters.IsMagic,
+                    parameters.IsArmored,
+                    parameters.SameDirectionMultiplier
+                )
+            )
+            {
+                return false;
+            }
+
+            totalCost = computedCost;
+            return true;
+        }
+
+        /// <summary>
+        /// Finds the lowest path-cost to any point in the provided sequence of MapGridPoints.
+        /// </summary>
+        public static bool TryFindClosestPointPathCost(
+            MapGrid mapGrid,
+            PathfindingParameters parameters,
+            IEnumerable<MapGridPoint> points,
+            out float closestCost
+        )
+        {
+            closestCost = float.MaxValue;
+            if (points == null)
+            {
+                return false;
+            }
+
+            bool foundAny = false;
+            foreach (var p in points)
+            {
+                if (TryComputePathMovementCost(mapGrid, parameters, p, out float c))
+                {
+                    foundAny = true;
+                    if (c < closestCost)
+                    {
+                        closestCost = c;
+                    }
+                }
+            }
+            return foundAny;
+        }
+
+        /// <summary>
+        /// Convenience wrapper to find the closest path-cost to any of the provided characters (skips the subject unit).
+        /// </summary>
+        public static bool TryFindClosestAllyPathCost(
+            MapGrid mapGrid,
+            CharacterInstance subjectUnit,
+            MapGridPoint start,
+            IEnumerable<CharacterInstance> allies,
+            out float closestCost
+        )
+        {
+            if (mapGrid == null || subjectUnit == null)
+            {
+                closestCost = float.MaxValue;
+                return false;
+            }
+
+            var parameters = PathfindingParameters.FromCharacter(subjectUnit, mapGrid, start);
+            if (parameters == null)
+            {
+                closestCost = float.MaxValue;
+                return false;
+            }
+
+            bool foundAny = false;
+            closestCost = float.MaxValue;
+
+            foreach (var a in allies)
+            {
+                if (a == null || a == subjectUnit)
+                {
+                    continue;
+                }
+
+                var dest = a.UnitPositionToMapGridPoint(a.MapGridPosition, mapGrid);
+                if (TryComputePathMovementCost(mapGrid, parameters, dest, out float c))
+                {
+                    foundAny = true;
+                    if (c < closestCost)
+                    {
+                        closestCost = c;
+                    }
+                }
+            }
+
+            return foundAny;
+        }
     }
 }
