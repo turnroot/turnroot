@@ -5,6 +5,7 @@ using Turnroot.Characters.Components.Support;
 using Turnroot.Characters.Stats;
 using Turnroot.Characters.StatusEffects;
 using Turnroot.Gameplay.Objects;
+using Turnroot.GameSettings;
 using Turnroot.Utilities;
 using UnityEngine;
 
@@ -326,6 +327,55 @@ namespace Turnroot.Characters
                 Debug.Log(
                     $"Character {Id} initialized with starting class {_characterTemplate.StartingClass.Identity.ClassName}"
                 );
+            }
+            else
+            {
+                // get the default class from GameplayGeneralSettings, use that
+                try
+                {
+                    var settings = GameSettingsLoader.LoadFirst<GameplayGeneralSettings>(
+                        "GameSettings"
+                    );
+                    var defaultClass = settings?.GetDefaultStartingClass();
+                    if (defaultClass != null)
+                    {
+                        var changed = ChangeClass(
+                            defaultClass,
+                            meshRenderer: null,
+                            applyClassChangeBonuses: false
+                        );
+                        if (changed)
+                        {
+                            Debug.Log(
+                                $"Character {Id} initialized with default starting class {defaultClass.Identity.ClassName}"
+                            );
+                        }
+                        else
+                        {
+#if UNITY_EDITOR
+                            Debug.LogWarning(
+                                $"Character {Id}: failed to apply default starting class {defaultClass.Identity.ClassName}."
+                            );
+#endif
+                        }
+                    }
+                    else
+                    {
+#if UNITY_EDITOR
+                        Debug.LogWarning(
+                            $"Character {Id} has no starting class and GameplayGeneralSettings.DefaultStartingClass is not set."
+                        );
+#endif
+                    }
+                }
+                catch (System.Exception ex)
+                {
+#if UNITY_EDITOR
+                    Debug.LogWarning(
+                        $"Character {Id}: error loading default class from settings: {ex.Message}"
+                    );
+#endif
+                }
             }
         }
 
