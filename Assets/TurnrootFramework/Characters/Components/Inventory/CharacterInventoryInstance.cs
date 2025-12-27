@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Turnroot.Gameplay.Objects;
+using Turnroot.GameSettings;
 using Turnroot.Serialization;
 using UnityEngine;
 
@@ -105,11 +106,7 @@ public class CharacterInventoryInstance : IPostDeserialize
             _nonWeaponEquippedFlags = new bool[maxNonWeapon];
             if (oldFlags != null)
             {
-                for (
-                    int i = 0;
-                    i < Math.Min(oldFlags.Length, _nonWeaponEquippedFlags.Length);
-                    i++
-                )
+                for (int i = 0; i < Math.Min(oldFlags.Length, _nonWeaponEquippedFlags.Length); i++)
                 {
                     _nonWeaponEquippedFlags[i] = oldFlags[i];
                 }

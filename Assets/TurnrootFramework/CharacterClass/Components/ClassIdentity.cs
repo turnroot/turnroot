@@ -1,4 +1,5 @@
 using System;
+using Turnroot.GameSettings;
 using UnityEngine;
 
 namespace Turnroot.Characters.CharacterClass

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Turnroot.Characters.Subclasses;
+using Turnroot.GameSettings;
 using UnityEngine;
 
 namespace Turnroot.Characters.Components.Support

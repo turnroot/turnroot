@@ -84,10 +84,6 @@ namespace Turnroot.Gameplay.Brain
 
             // Respond to save requests triggered by roster mutations
             _brain.OnSavePlayerRosterRequested += SavePlayerRosterProgress;
-
-            // Forward skill equip/unequip Brain events to Skill UnityEvents (editor hookups)
-            _brain.OnSkillEquipped += HandleSkillEquippedEvent;
-            _brain.OnSkillUnequipped += HandleSkillUnequippedEvent;
         }
 
         protected override void UnsubscribeFromBrainEvents()
@@ -99,9 +95,6 @@ namespace Turnroot.Gameplay.Brain
             _brain.OnThirdPartyTurnStarted -= HandleThirdPartyTurnStarted;
 
             _brain.OnSavePlayerRosterRequested -= SavePlayerRosterProgress;
-
-            _brain.OnSkillEquipped -= HandleSkillEquippedEvent;
-            _brain.OnSkillUnequipped -= HandleSkillUnequippedEvent;
         }
 
         #region Battle Outcome Statistics
@@ -520,16 +513,6 @@ namespace Turnroot.Gameplay.Brain
             _brain?.PublishSkillUnequipped(character, skill);
             Debug.Log($"CharactersBrain: Unequipped skill {skill.SkillName} on {character.Id}");
             return OperationResult.SuccessResult();
-        }
-
-        private void HandleSkillEquippedEvent(CharacterInstance character, Skill skill)
-        {
-            skill?.SkillEquipped?.Invoke();
-        }
-
-        private void HandleSkillUnequippedEvent(CharacterInstance character, Skill skill)
-        {
-            skill?.SkillUnequipped?.Invoke();
         }
 
         /// <summary>

@@ -87,9 +87,6 @@ public class SkillInstance : IPostDeserialize
             context.Brain.ExecuteCommand(command);
         }
 
-        // Trigger template events
-        _skillTemplate.TriggerSkillEvents();
-
         // Publish to Brain for centralized tracking
         context.Brain.PublishSkillTriggered(context.Unit.UnitInstance, _skillTemplate);
 

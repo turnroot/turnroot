@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Turnroot.Characters.Stats;
 using Turnroot.Gameplay.Objects.Components;
+using Turnroot.GameSettings;
 
 namespace Turnroot.Characters
 {

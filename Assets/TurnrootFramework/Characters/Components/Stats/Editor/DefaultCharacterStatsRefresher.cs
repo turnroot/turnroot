@@ -10,7 +10,7 @@ public static class DefaultCharacterStatsRefresher
 {
     public static void RefreshStats(
         DefaultCharacterStats defaultStats,
-        GameplayGeneralSettings gameplaySettings
+        Turnroot.GameSettings.GameplayGeneralSettings gameplaySettings
     )
     {
         // Get the serialized object to access private fields
@@ -49,9 +49,9 @@ public static class DefaultCharacterStatsRefresher
             if (!requiredBoundedStats.Contains(statType))
             {
                 boundedStatsProperty.DeleteArrayElementAtIndex(i);
-                #if UNITY_EDITOR
+#if UNITY_EDITOR
                 Debug.Log($"Removed bounded stat: {statType}");
-                #endif
+#endif
             }
         }
 
@@ -69,9 +69,9 @@ public static class DefaultCharacterStatsRefresher
                 newElement.FindPropertyRelative("Max").floatValue = max;
                 newElement.FindPropertyRelative("Current").floatValue = current;
                 newElement.FindPropertyRelative("Min").floatValue = min;
-                #if UNITY_EDITOR
+#if UNITY_EDITOR
                 Debug.Log($"Added bounded stat: {requiredStat}");
-                #endif
+#endif
             }
         }
 
@@ -128,9 +128,9 @@ public static class DefaultCharacterStatsRefresher
             if (!requiredUnboundedStats.Contains(statType))
             {
                 unboundedStatsProperty.DeleteArrayElementAtIndex(i);
-                #if UNITY_EDITOR
+#if UNITY_EDITOR
                 Debug.Log($"Removed unbounded stat: {statType}");
-                #endif
+#endif
             }
         }
 
@@ -147,9 +147,9 @@ public static class DefaultCharacterStatsRefresher
                 newElement.FindPropertyRelative("Current").floatValue = GetDefaultValueForStat(
                     requiredStat
                 );
-                #if UNITY_EDITOR
+#if UNITY_EDITOR
                 Debug.Log($"Added unbounded stat: {requiredStat}");
-                #endif
+#endif
             }
         }
 
