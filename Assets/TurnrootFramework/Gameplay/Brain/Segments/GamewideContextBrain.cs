@@ -51,16 +51,11 @@ namespace Turnroot.Gameplay.Brain
             TryLoadAndRecallPersistentPlayerRoster();
         }
 
-        protected override void SubscribeToBrainEvents()
-        {
+        protected override void SubscribeToBrainEvents() =>
             // Subscribe to save requests so we can persist roster changes triggered at runtime
             _brain.OnSavePlayerRosterRequested += HandleSavePlayerRosterRequested;
-        }
 
-        protected override void UnsubscribeFromBrainEvents()
-        {
-            _brain.OnSavePlayerRosterRequested -= HandleSavePlayerRosterRequested;
-        }
+        protected override void UnsubscribeFromBrainEvents() => _brain.OnSavePlayerRosterRequested -= HandleSavePlayerRosterRequested;
 
         #region Persistent Player Roster
 

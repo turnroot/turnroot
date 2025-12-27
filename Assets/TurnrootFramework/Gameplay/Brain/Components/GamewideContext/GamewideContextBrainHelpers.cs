@@ -289,7 +289,7 @@ namespace Turnroot.Gameplay.Brain
 
             try
             {
-                var wrapperJson = Turnroot.Utilities.DeviceDataCipher.DecryptFromBase64(encoded);
+                var wrapperJson = DeviceDataCipher.DecryptFromBase64(encoded);
                 var wrapper = JsonConvert.DeserializeObject<SerializedWrapper>(wrapperJson);
                 return OperationResult<SerializedWrapper>.SuccessResult(wrapper);
             }
@@ -312,7 +312,7 @@ namespace Turnroot.Gameplay.Brain
             try
             {
                 var json = JsonConvert.SerializeObject(wrapper, Formatting.None);
-                var encoded = Turnroot.Utilities.DeviceDataCipher.EncryptToBase64(json);
+                var encoded = DeviceDataCipher.EncryptToBase64(json);
                 return OperationResult<string>.SuccessResult(encoded);
             }
             catch (Exception ex)
@@ -333,7 +333,7 @@ namespace Turnroot.Gameplay.Brain
 
             try
             {
-                var wrapperJson = Turnroot.Utilities.DeviceDataCipher.DecryptFromBase64(encoded);
+                var wrapperJson = DeviceDataCipher.DecryptFromBase64(encoded);
                 var obj = JObject.Parse(wrapperJson);
                 return OperationResult<JObject>.SuccessResult(obj);
             }
@@ -356,7 +356,7 @@ namespace Turnroot.Gameplay.Brain
             try
             {
                 var json = wrapper.ToString(Formatting.None);
-                var encoded = Turnroot.Utilities.DeviceDataCipher.EncryptToBase64(json);
+                var encoded = DeviceDataCipher.EncryptToBase64(json);
                 return OperationResult<string>.SuccessResult(encoded);
             }
             catch (Exception ex)

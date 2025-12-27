@@ -440,7 +440,7 @@ namespace Turnroot.Characters
             [Tooltip("Current rank/level (E=0, D=1, C=2, B=3, A=4, S=5)")]
             [SerializeField]
             private CommonAncestors.LeveledLetteredField _rank = new(
-                CommonAncestors.LeveledLetteredField.E
+                LeveledLetteredField.E
             );
 
             public string ExperienceTypeId

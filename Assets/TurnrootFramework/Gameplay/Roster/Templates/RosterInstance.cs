@@ -93,12 +93,7 @@ namespace Turnroot.Characters
         /// </summary>
         public UnitPlacement[] GetPlacements()
         {
-            if (_runtimePlacements != null)
-            {
-                return _runtimePlacements;
-            }
-
-            return roster?.characters ?? new UnitPlacement[0];
+            return _runtimePlacements != null ? _runtimePlacements : roster?.characters ?? new UnitPlacement[0];
         }
 
         public UnitPlacement GetPlacementFor(CharacterData data)
