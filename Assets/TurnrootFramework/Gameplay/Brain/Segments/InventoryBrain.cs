@@ -255,6 +255,54 @@ namespace Turnroot.Gameplay.Brain
 
         #endregion
 
+        /// <summary>
+        /// Equip an item on a character and publish an equipped event.
+        /// </summary>
+        public OperationResult EquipItem(CharacterInstance character, int inventoryIndex)
+        {
+            if (character == null || character.InventoryInstance == null)
+            {
+                return OperationResult.Failure("Invalid character or inventory.");
+            }
+
+            if (
+                inventoryIndex < 0
+                || inventoryIndex >= character.InventoryInstance.InventoryItems.Count
+            )
+            {
+                return OperationResult.Failure("Invalid inventory index.");
+            }
+
+            character.InventoryInstance.EquipItem(inventoryIndex);
+            var item = character.InventoryInstance.InventoryItems[inventoryIndex];
+            _brain?.PublishItemEquipped(character, item);
+            return OperationResult.SuccessResult();
+        }
+
+        /// <summary>
+        /// Unequip an item on a character and publish an unequipped event.
+        /// </summary>
+        public OperationResult UnequipItem(CharacterInstance character, int inventoryIndex)
+        {
+            if (character == null || character.InventoryInstance == null)
+            {
+                return OperationResult.Failure("Invalid character or inventory.");
+            }
+
+            if (
+                inventoryIndex < 0
+                || inventoryIndex >= character.InventoryInstance.InventoryItems.Count
+            )
+            {
+                return OperationResult.Failure("Invalid inventory index.");
+            }
+
+            var item = character.InventoryInstance.InventoryItems[inventoryIndex];
+            character.InventoryInstance.UnequipItem(inventoryIndex);
+            _brain?.PublishItemUnequipped(character, item);
+            return OperationResult.SuccessResult();
+        }
+
         #region Queries
 
         /// <summary>

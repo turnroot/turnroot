@@ -17,6 +17,8 @@ namespace Turnroot.Gameplay.Brain
             _brain.OnCriticalHit += HandleCriticalHit;
             _brain.OnWeaponUsesChanged += HandleWeaponUsesChanged;
             _brain.OnItemStolen += HandleItemStolen;
+            // Hook into turn end for status effect expiry handling
+            _brain.OnTurnEnded += HandleTurnEndStatusEffects;
         }
 
         protected override void UnsubscribeFromBrainEvents()
@@ -27,6 +29,8 @@ namespace Turnroot.Gameplay.Brain
             _brain.OnCriticalHit -= HandleCriticalHit;
             _brain.OnWeaponUsesChanged -= HandleWeaponUsesChanged;
             _brain.OnItemStolen -= HandleItemStolen;
+            // Unhook turn end handler
+            _brain.OnTurnEnded -= HandleTurnEndStatusEffects;
         }
 
         #region Event Handlers

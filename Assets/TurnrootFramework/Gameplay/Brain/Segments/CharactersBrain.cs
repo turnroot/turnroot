@@ -3,6 +3,7 @@ using Turnroot.Characters;
 using Turnroot.Characters.CharacterClass;
 using Turnroot.Characters.Components;
 using Turnroot.Gameplay.Brain.Events;
+using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain
@@ -83,6 +84,10 @@ namespace Turnroot.Gameplay.Brain
 
             // Respond to save requests triggered by roster mutations
             _brain.OnSavePlayerRosterRequested += SavePlayerRosterProgress;
+
+            // Forward skill equip/unequip Brain events to Skill UnityEvents (editor hookups)
+            _brain.OnSkillEquipped += HandleSkillEquippedEvent;
+            _brain.OnSkillUnequipped += HandleSkillUnequippedEvent;
         }
 
         protected override void UnsubscribeFromBrainEvents()
@@ -94,6 +99,9 @@ namespace Turnroot.Gameplay.Brain
             _brain.OnThirdPartyTurnStarted -= HandleThirdPartyTurnStarted;
 
             _brain.OnSavePlayerRosterRequested -= SavePlayerRosterProgress;
+
+            _brain.OnSkillEquipped -= HandleSkillEquippedEvent;
+            _brain.OnSkillUnequipped -= HandleSkillUnequippedEvent;
         }
 
         #region Battle Outcome Statistics
@@ -466,6 +474,62 @@ namespace Turnroot.Gameplay.Brain
             Debug.Log(
                 $"{character.CharacterTemplate?.DisplayName} learned skill: {skill.SkillName}"
             );
+        }
+
+        /// <summary>
+        /// Equip a skill on a character and publish the equip event via Brain.
+        /// This operation is not battle-specific and should go through CharactersBrain.
+        /// </summary>
+        public OperationResult EquipSkill(CharacterInstance character, Skill skill)
+        {
+            if (character == null || skill == null)
+            {
+                return OperationResult.Failure("Invalid character or skill.");
+            }
+
+            var instance = character.SkillInstances?.Find(s => s.SkillTemplate == skill);
+            if (instance == null)
+            {
+                return OperationResult.Failure("Skill not found on character.");
+            }
+
+            instance.SetEquipped(true, character);
+            _brain?.PublishSkillEquipped(character, skill);
+
+            Debug.Log($"CharactersBrain: Equipped skill {skill.SkillName} on {character.Id}");
+            return OperationResult.SuccessResult();
+        }
+
+        /// <summary>
+        /// Unequip a skill on a character and publish the unequip event via Brain.
+        /// </summary>
+        public OperationResult UnequipSkill(CharacterInstance character, Skill skill)
+        {
+            if (character == null || skill == null)
+            {
+                return OperationResult.Failure("Invalid character or skill.");
+            }
+
+            var instance = character.SkillInstances?.Find(s => s.SkillTemplate == skill);
+            if (instance == null)
+            {
+                return OperationResult.Failure("Skill not found on character.");
+            }
+
+            instance.SetEquipped(false, character);
+            _brain?.PublishSkillUnequipped(character, skill);
+            Debug.Log($"CharactersBrain: Unequipped skill {skill.SkillName} on {character.Id}");
+            return OperationResult.SuccessResult();
+        }
+
+        private void HandleSkillEquippedEvent(CharacterInstance character, Skill skill)
+        {
+            skill?.SkillEquipped?.Invoke();
+        }
+
+        private void HandleSkillUnequippedEvent(CharacterInstance character, Skill skill)
+        {
+            skill?.SkillUnequipped?.Invoke();
         }
 
         /// <summary>

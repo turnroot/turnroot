@@ -387,6 +387,16 @@ namespace Turnroot.Gameplay.Brain
             CharacterInventoryInstance targetInventory
         ) => OnItemWithdrawn?.Invoke(item, targetInventory);
 
+        // Equip/Unequip events for inventory items
+        public event Action<CharacterInstance, ObjectItemInstance> OnItemEquipped;
+        public event Action<CharacterInstance, ObjectItemInstance> OnItemUnequipped;
+
+        public void PublishItemEquipped(CharacterInstance character, ObjectItemInstance item) =>
+            OnItemEquipped?.Invoke(character, item);
+
+        public void PublishItemUnequipped(CharacterInstance character, ObjectItemInstance item) =>
+            OnItemUnequipped?.Invoke(character, item);
+
         #endregion
 
         #region Gold Events

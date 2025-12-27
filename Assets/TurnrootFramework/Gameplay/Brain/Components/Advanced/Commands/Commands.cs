@@ -195,12 +195,9 @@ namespace Turnroot.Gameplay.Brain.Commands
                 return false;
             }
 
-            var result = unit.MoveToPosition((Vector2Int)from, context.mapGrid);
-            if (result.Success)
-            {
-                context.Brain?.Publish(new Events.UnitMovedEvent(unit, Target, (Vector2Int)from));
-            }
-            return result.Success;
+            var bb = context.Brain?.battleBrain;
+            var moved = bb != null && bb.MoveUnit(unit, (Vector2Int)from, context.mapGrid);
+            return moved;
         }
     }
 

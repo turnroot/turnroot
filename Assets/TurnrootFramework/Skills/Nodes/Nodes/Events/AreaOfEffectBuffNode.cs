@@ -73,7 +73,8 @@ namespace Turnroot.Skills.Nodes.Events
                     + Mathf.Abs(casterPos.Value.y - allyPos.Value.y);
                 if (distance <= radius)
                 {
-                    var effect = ally.ApplyStatusEffect(
+                    var effect = context.Brain?.battleBrain?.ApplyStatusEffect(
+                        ally,
                         buffType,
                         sourceCharacterId: context.Unit.UnitInstance?.Id,
                         sourceSkillId: context.Skill.CurrentSkill?.name,
@@ -83,7 +84,6 @@ namespace Turnroot.Skills.Nodes.Events
 
                     if (effect != null)
                     {
-                        context.Brain?.PublishStatusEffectApplied(ally, effect);
                         affectedCount++;
                     }
                 }

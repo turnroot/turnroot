@@ -1737,18 +1737,6 @@ public class MapGridEditorWindow : EditorWindow
             return true;
         }
 
-        var friendlyEvent = point.GetFriendlyEntersEvent();
-        if (friendlyEvent != null && friendlyEvent.GetPersistentEventCount() > 0)
-        {
-            return true;
-        }
-
-        var enemyEvent = point.GetEnemyEntersEvent();
-        if (enemyEvent != null && enemyEvent.GetPersistentEventCount() > 0)
-        {
-            return true;
-        }
-
         return false;
     }
 

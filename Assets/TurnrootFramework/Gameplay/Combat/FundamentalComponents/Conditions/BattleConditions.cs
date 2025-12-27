@@ -2,10 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Turnroot.Characters;
-using Turnroot.Gameplay.Brain;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
 using UnityEngine;
-using UnityEngine.Events;
 
 [Serializable]
 /// <summary>
@@ -15,6 +13,7 @@ using UnityEngine.Events;
 /// </summary>
 public class BattleCondition
 {
+    [HideInInspector]
     public BattleContext battleContext;
 
     [HideInInspector]
@@ -24,11 +23,6 @@ public class BattleCondition
     public string Description;
 
     private bool IsActive { get; set; } = false;
-
-    public UnityEvent OnConditionMet;
-    public UnityEvent OnConditionActive;
-    public UnityEvent OnConditionInactive;
-    public UnityEvent OnConditionFailed;
 
     // Optional list of names of other conditions that must be satisfied before this one can evaluate
     [SerializeField]
@@ -47,22 +41,13 @@ public class BattleCondition
         Description = description;
     }
 
-    public void ActivateCondition()
-    {
-        IsActive = true;
-        OnConditionActive?.Invoke();
-    }
+    public void ActivateCondition() => IsActive = true;
 
-    public void DeactivateCondition()
-    {
-        IsActive = false;
-        OnConditionInactive?.Invoke();
-    }
+    public void DeactivateCondition() => IsActive = false;
 
     public void ConditionMet()
     {
         IsSatisfied = true;
-        OnConditionMet?.Invoke();
         // Publish to Brain for centralized event handling
         battleContext.Brain.PublishBattleConditionMet(this);
     }
@@ -70,7 +55,6 @@ public class BattleCondition
     public void ConditionFailed()
     {
         IsSatisfied = false;
-        OnConditionFailed?.Invoke();
         // Publish to Brain for centralized event handling
         battleContext.Brain.PublishBattleConditionFailed(this);
     }
