@@ -4,6 +4,7 @@ using Turnroot.Gameplay.Brain.Events;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Environment;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Conditions.Specific;
+using Turnroot.Gameplay.Combat.PreBattle;
 using Turnroot.Utilities;
 using UnityEngine;
 
@@ -19,6 +20,7 @@ namespace Turnroot.Gameplay.Combat
 
     [RequireComponent(typeof(EnvironmentalConditions))]
     [RequireComponent(typeof(BattleContext))]
+    [RequireComponent(typeof(BattlePreparationObject))]
     public class BattleGameObject : MonoBehaviour
     {
         [field: Header("Battle Components")]
@@ -85,6 +87,46 @@ namespace Turnroot.Gameplay.Combat
             // MapGrid will be set during context initialization when the Brain is connected.
             // Context.mapGrid will be initialized in InitializeContextWithBrain().
         }
+
+#if UNITY_EDITOR
+        private void OnValidate()
+        {
+            // Ensure the Context reference is set in the editor so condition assets can reference it.
+            Context ??= GetComponent<BattleContext>();
+
+            if (_battleConditions == null)
+            {
+                return;
+            }
+
+            foreach (var condition in _battleConditions)
+            {
+                if (condition == null)
+                {
+                    continue;
+                }
+
+                // Auto-assign the context so conditions edited in the inspector can use it
+                condition.battleContext = Context;
+
+                // Attempt to resolve references so configured conditions immediately have valid links
+                try
+                {
+                    condition.ResolveRequiredConditions(_battleConditions);
+                    if (condition is ConditionalGroupBattleCondition group)
+                    {
+                        group.ResolveChildConditions(_battleConditions);
+                    }
+                }
+                catch (System.Exception ex)
+                {
+                    Debug.LogWarning(
+                        $"BattleGameObject OnValidate: Failed to resolve condition {condition?.Name}: {ex.Message}"
+                    );
+                }
+            }
+        }
+#endif
 
         #endregion
 

@@ -1,3 +1,4 @@
+using Turnroot.GameSettings;
 using UnityEngine;
 using XNode;
 

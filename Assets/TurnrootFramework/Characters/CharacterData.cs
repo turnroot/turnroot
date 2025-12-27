@@ -38,7 +38,7 @@ namespace Turnroot.Characters
 {
     [CreateAssetMenu(
         fileName = "NewCharacterConfiguration",
-        menuName = "Turnroot/Character/CharacterData"
+        menuName = "Turnroot/Characters/CharacterData"
     )]
     public class CharacterData : ScriptableObject, IHasStats
     {

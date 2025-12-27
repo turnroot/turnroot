@@ -35,12 +35,12 @@ namespace Turnroot.Characters
         /// <summary>
         /// Set the last attacker for this character for the current battle.
         /// </summary>
-        public void SetLastAttacker(CharacterInstance attacker) => LastAttacker = attacker;
+        internal void SetLastAttacker(CharacterInstance attacker) => LastAttacker = attacker;
 
         /// <summary>
         /// Clear the per-battle last attacker record.
         /// </summary>
-        public void ClearLastAttacker() => LastAttacker = null;
+        internal void ClearLastAttacker() => LastAttacker = null;
 
         public enum BattleEmotion
         {

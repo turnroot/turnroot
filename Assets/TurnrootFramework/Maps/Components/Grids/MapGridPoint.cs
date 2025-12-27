@@ -27,7 +27,6 @@ public class MapGridPoint : MonoBehaviour
     void OnValidate()
     {
         SpawnPoint ??= new SpawnPoint();
-        InitializePresetGridPointProperties();
         // Invalidate caches when inspector changes
         _terrainTypeCached = false;
     }
@@ -143,12 +142,6 @@ public class MapGridPoint : MonoBehaviour
     /// </summary>
     public bool IsOccupied => CurrentInstance != null;
 
-    [SerializeField]
-    private UnityEvent _friendlyEntersEvent = new();
-
-    [SerializeField]
-    private UnityEvent _enemyEntersEvent = new();
-
     /* ---------------------------- Feature Properties ---------------------------- */
     [Header("Feature Properties")]
     [SerializeField]
@@ -225,16 +218,6 @@ public class MapGridPoint : MonoBehaviour
     {
         _row = row;
         _col = col;
-        InitializePresetGridPointProperties();
-    }
-
-    /// <summary>
-    /// Initialize the preset properties that every grid point should have.
-    /// </summary>
-    private void InitializePresetGridPointProperties()
-    {
-        _friendlyEntersEvent ??= new UnityEvent();
-        _enemyEntersEvent ??= new UnityEvent();
     }
 
     /* ---------------------------- Grid Point Property Accessors ---------------------------- */
@@ -242,10 +225,6 @@ public class MapGridPoint : MonoBehaviour
     public CharacterInstance GetStartingUnit() => _startingUnit;
 
     public void SetStartingUnit(CharacterInstance unit) => _startingUnit = unit;
-
-    public UnityEvent GetFriendlyEntersEvent() => _friendlyEntersEvent;
-
-    public UnityEvent GetEnemyEntersEvent() => _enemyEntersEvent;
 
     public void SetTerrainTypeId(string id)
     {

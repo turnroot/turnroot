@@ -87,9 +87,6 @@ public class SkillInstance : IPostDeserialize
             context.Brain.ExecuteCommand(command);
         }
 
-        // Trigger template events
-        _skillTemplate.TriggerSkillEvents();
-
         // Publish to Brain for centralized tracking
         context.Brain.PublishSkillTriggered(context.Unit.UnitInstance, _skillTemplate);
 
@@ -102,20 +99,8 @@ public class SkillInstance : IPostDeserialize
 
     public void SetReadyToFire(bool ready) => _readyToFire = ready;
 
-    public void SetEquipped(bool equipped, CharacterInstance owner = null, Brain brain = null)
+    public void SetEquipped(bool equipped, CharacterInstance owner = null)
     {
         _equipped = equipped;
-        if (equipped)
-        {
-            _skillTemplate.SkillEquipped?.Invoke();
-            // Publish to Brain for centralized tracking
-            brain?.PublishSkillEquipped(owner, _skillTemplate);
-        }
-        else
-        {
-            _skillTemplate.SkillUnequipped?.Invoke();
-            // Publish to Brain for centralized tracking
-            brain?.PublishSkillUnequipped(owner, _skillTemplate);
-        }
     }
 }

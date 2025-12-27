@@ -3,6 +3,7 @@ using Turnroot.Characters.Components.Support;
 using Turnroot.Characters.Stats;
 using Turnroot.CommonAncestors;
 using Turnroot.Gameplay.Objects;
+using Turnroot.GameSettings;
 using Turnroot.Utilities;
 using UnityEngine;
 

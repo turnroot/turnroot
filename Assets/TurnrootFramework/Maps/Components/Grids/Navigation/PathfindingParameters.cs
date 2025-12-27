@@ -1,3 +1,5 @@
+using Turnroot.GameSettings;
+
 namespace Turnroot.Maps
 {
     /// <summary>

@@ -5,6 +5,7 @@ using Turnroot.Characters.Stats;
 using Turnroot.Characters.Subclasses;
 using Turnroot.CommonAncestors;
 using Turnroot.Gameplay.Objects.Components;
+using Turnroot.GameSettings;
 using Turnroot.Utilities;
 using UnityEngine;
 
@@ -51,7 +52,7 @@ namespace Turnroot.Characters.CharacterClass
         }
     }
 
-    [CreateAssetMenu(fileName = "New Character Class", menuName = "Turnroot/Character/Class Data")]
+    [CreateAssetMenu(fileName = "New Character Class", menuName = "Turnroot/Characters/Class Data")]
     public class CharacterClassData : ScriptableObject
     {
         // Hidden field to cache the ClassSelectionMode for ShowIf evaluation
@@ -131,10 +132,7 @@ namespace Turnroot.Characters.CharacterClass
 
         private void ValidateStatLists()
         {
-            var defaultStats =
-                GameSettingsLoader.LoadFirst<DefaultCharacterStats>(
-                    "GameSettings"
-                );
+            var defaultStats = GameSettingsLoader.LoadFirst<DefaultCharacterStats>("GameSettings");
             if (defaultStats == null)
             {
                 return;

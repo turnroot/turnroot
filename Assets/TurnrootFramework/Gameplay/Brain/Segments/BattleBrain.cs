@@ -217,6 +217,99 @@ namespace Turnroot.Gameplay.Brain
 
         #endregion
 
+        private void HandleTurnEndStatusEffects()
+        {
+            var allInstances = GetAllActiveInstances();
+            foreach (var inst in allInstances)
+            {
+                if (inst == null)
+                    continue;
+                var expired = inst.TickStatusEffects();
+                foreach (var e in expired)
+                {
+                    _brain?.PublishStatusEffectExpired(inst, e);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Apply a status effect to a character via the BattleBrain so events are published consistently.
+        /// </summary>
+        public Characters.StatusEffects.StatusEffectInstance ApplyStatusEffect(
+            CharacterInstance character,
+            Characters.StatusEffects.StatusEffectType effectType,
+            string sourceCharacterId = null,
+            string sourceSkillId = null,
+            int? duration = null,
+            float intensity = 1f
+        )
+        {
+            if (character == null || effectType == null)
+            {
+                return null;
+            }
+
+            var previous = character.GetActiveStatusEffects().Find(e => e.EffectType == effectType);
+            var prevStacks = previous?.CurrentStacks ?? 0;
+
+            var result = character.ApplyStatusEffect(
+                effectType,
+                sourceCharacterId,
+                sourceSkillId,
+                duration,
+                intensity
+            );
+            if (result == null)
+            {
+                return null;
+            }
+
+            if (previous == null)
+            {
+                _brain?.PublishStatusEffectApplied(character, result);
+            }
+            else if (result.CurrentStacks > prevStacks)
+            {
+                _brain?.PublishStatusEffectStacked(character, result);
+            }
+            else
+            {
+                // Refreshed or updated duration without stacking
+                _brain?.PublishStatusEffectApplied(character, result);
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Internal helper to move a unit on the grid and publish movement events.
+        /// This should only be called by command implementations (e.g., MoveCommand) so that movement is undoable/redoable.
+        /// Use <see cref="Turnroot.Gameplay.Combat.FundamentalComponents.Battles.BattleContext.MoveUnitToPoint"/> to perform a commanded move.
+        /// </summary>
+        internal bool MoveUnit(CharacterInstance unit, Vector2Int target, MapGrid mapGrid)
+        {
+            if (unit == null || mapGrid == null)
+            {
+                return false;
+            }
+
+            var from = unit.MapGridPosition;
+            var oldPoint = unit.UnitPositionToMapGridPoint(from, mapGrid);
+            var result = unit.MoveToPosition(target, mapGrid);
+            if (result.Success)
+            {
+                var newPoint = unit.UnitPositionToMapGridPoint(target, mapGrid);
+                mapGrid.RemoveOccupied(oldPoint);
+                mapGrid.SetOccupied(newPoint, unit);
+                unit.MapGridPosition = target;
+                // publish both simple event and the advanced UnitMovedEvent for subscribers
+                _brain?.PublishCharacterMoveCompleted(unit, newPoint);
+                _brain?.PublishUnitMoved(unit, target);
+                _brain?.Publish(new Events.UnitMovedEvent(unit, from, target));
+            }
+            return result.Success;
+        }
+
         public void ProgressTurnOrder()
         {
             if (!_turnRotisserie.Progress())

@@ -47,8 +47,6 @@ public class BattleGameObjectEditor : Editor
                 }
 
                 EditorGUILayout.EndHorizontal();
-
-                // Draw all non-UnityEvent children manually so we can fold events separately
                 var iterator = element.Copy();
                 var endProp = iterator.GetEndProperty(true);
 
@@ -56,18 +54,6 @@ public class BattleGameObjectEditor : Editor
                 iterator.NextVisible(true);
                 while (!SerializedProperty.EqualContents(iterator, endProp))
                 {
-                    // skip UnityEvent fields; we'll draw them inside a foldout
-                    if (
-                        iterator.name == "OnConditionMet"
-                        || iterator.name == "OnConditionActive"
-                        || iterator.name == "OnConditionInactive"
-                        || iterator.name == "OnConditionFailed"
-                    )
-                    {
-                        iterator.NextVisible(false);
-                        continue;
-                    }
-
                     EditorGUILayout.PropertyField(iterator, true);
 
                     if (!iterator.NextVisible(false))
@@ -75,42 +61,6 @@ public class BattleGameObjectEditor : Editor
                         break;
                     }
                 }
-
-                // UnityEvents foldout
-                string foldKey = element.propertyPath + ":events";
-                _eventsFoldouts.TryGetValue(foldKey, out bool eventsOpen);
-                eventsOpen = EditorGUILayout.Foldout(eventsOpen, "Unity Events");
-                if (eventsOpen)
-                {
-                    var onMet = element.FindPropertyRelative("OnConditionMet");
-                    var onActive = element.FindPropertyRelative("OnConditionActive");
-                    var onInactive = element.FindPropertyRelative("OnConditionInactive");
-                    var onFailed = element.FindPropertyRelative("OnConditionFailed");
-
-                    if (onMet != null)
-                    {
-                        EditorGUILayout.PropertyField(onMet, true);
-                    }
-
-                    if (onActive != null)
-                    {
-                        EditorGUILayout.PropertyField(onActive, true);
-                    }
-
-                    if (onInactive != null)
-                    {
-                        EditorGUILayout.PropertyField(onInactive, true);
-                    }
-
-                    if (onFailed != null)
-                    {
-                        EditorGUILayout.PropertyField(onFailed, true);
-                    }
-                }
-
-                _eventsFoldouts[foldKey] = eventsOpen;
-                EditorGUILayout.EndVertical();
-                EditorGUILayout.Space();
             }
 
             EditorGUILayout.BeginHorizontal();
@@ -155,9 +105,9 @@ public class BattleGameObjectEditor : Editor
         }
         catch (Exception ex)
         {
-            #if UNITY_EDITOR
+#if UNITY_EDITOR
             Debug.LogError($"Failed to create instance of {t.FullName}: {ex.Message}");
-            #endif
+#endif
         }
 
         el.managedReferenceValue = instance;

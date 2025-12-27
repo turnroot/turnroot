@@ -1,3 +1,5 @@
+using Turnroot.GameSettings;
+
 namespace Turnroot.Skills.Nodes.Conditions
 {
     [CreateNodeMenu("Conditions/Status/Is Riding")]

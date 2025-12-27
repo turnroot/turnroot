@@ -2,6 +2,7 @@ using NaughtyAttributes;
 using Turnroot.Characters;
 using Turnroot.Characters.Stats;
 using Turnroot.Gameplay.Objects.Components;
+using Turnroot.GameSettings;
 using Turnroot.Utilities;
 using UnityEngine;
 

@@ -52,21 +52,6 @@ public class Skill : ScriptableObject
     [Foldout("Behavior"), HorizontalLine(color: EColor.Blue)]
     public SkillGraph BehaviorGraph;
 
-    [Foldout("Behavior")]
-    public UnityEvent ReadyToFire;
-
-    [Foldout("Behavior")]
-    public UnityEvent SkillTriggered;
-
-    [Foldout("Behavior")]
-    public UnityEvent ActionCompleted;
-
-    [Foldout("Behavior")]
-    public UnityEvent SkillEquipped;
-
-    [Foldout("Behavior")]
-    public UnityEvent SkillUnequipped;
-
     /// <summary>
     /// Execute this skill's behavior graph with the given context.
     /// This is a template method - use SkillInstance.ExecuteSkill for runtime execution.
@@ -83,13 +68,6 @@ public class Skill : ScriptableObject
 
         context.Skill.CurrentSkill = this;
         context.Skill.CurrentSkillGraph = BehaviorGraph;
-        SkillTriggered?.Invoke();
         BehaviorGraph.Execute(context);
     }
-
-    /// <summary>
-    /// Template method to trigger skill events.
-    /// Called by SkillInstance during runtime execution.
-    /// </summary>
-    public void TriggerSkillEvents() => SkillTriggered?.Invoke();
 }
