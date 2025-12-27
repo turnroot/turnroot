@@ -358,6 +358,13 @@ namespace Turnroot.UI.Components.RadialMenu
             float radialDist = radialPct * menuRadius;
 
             _contentRect.anchoredPosition = dir * radialDist;
+
+            // If this item is the center item, offset its content downward by half the menu radius
+            if (isCenter)
+            {
+                _contentRect.anchoredPosition += Vector2.down * (menuRadius * 0.5f);
+            }
+
             _contentRect.rotation = Quaternion.identity;
         }
 
