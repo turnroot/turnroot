@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 99a9a21b6d9c244488124f61274fb0ed, type: 3}
+  m_Name: Graphics2DSettings
+  m_EditorClassIdentifier: 
+  _secondaryConversationPortraitInactiveBehavior: 0
+  _animatePortraitTransitions: 1
+  _portraitTransitionDuration: 0.4
+  _swapCrossfade: 0.4
+  _inactiveTintColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+  _inactiveTintMix: 0.5
+  _portraitTransitionEase: 4
+  portraitRenderWidth: 512
+  portraitRenderHeight: 512

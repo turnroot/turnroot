@@ -25,5 +25,8 @@ namespace Turnroot.GameSettings
         public MenuStyle BattlePreparationMenuStyle = MenuStyle.Filmstrip;
         public MenuStyle InBattleMenuStyle = MenuStyle.List;
         public MenuStyle InBattleUnitSelectedMenuStyle = MenuStyle.List;
+
+        [Range(0f, 10f)]
+        public float MenuButtonSpacing = 2f;
     }
 }
