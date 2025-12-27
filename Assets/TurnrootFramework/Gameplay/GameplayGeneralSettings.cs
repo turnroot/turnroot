@@ -1,5 +1,6 @@
 using NaughtyAttributes;
 using Turnroot.Characters;
+using Turnroot.Characters.CharacterClass;
 using Turnroot.CommonAncestors;
 using Turnroot.Gameplay.Combat.FundamentalComponents;
 using Turnroot.Gameplay.Objects.Components;
@@ -118,6 +119,11 @@ namespace Turnroot.GameSettings
         private ClassSelectionMode ClassSelection = ClassSelectionMode.PromotionBased;
 
         public ClassSelectionMode GetClassSelectionMode() => ClassSelection;
+
+        [SerializeField, BoxGroup("General Gameplay")]
+        private CharacterClassData DefaultStartingClass;
+
+        public CharacterClassData GetDefaultStartingClass() => DefaultStartingClass;
 
         [SerializeField, BoxGroup("General Gameplay")]
         public WeaponType[] WeaponTypes;

@@ -189,7 +189,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 var target = targetsForSimple[ti];
                 utility = 6f;
 
-                if (target == LastAttackedTarget)
+                if (target == _context.Unit.UnitInstance.LastAttackedTarget)
                 {
                     utility += 3f * (1f - MindlessCunning); // Mindless units more consistent
                 }

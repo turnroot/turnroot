@@ -22,10 +22,6 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         private bool CanAttack => BehaviorSettings.AttackDisabled == false;
         private bool CanHeal => _context.Unit.UnitInstance.CurrentClass.ClassData.Identity.CanHeal;
 
-        // TODO: This fails with an error if there is no class assigned!
-        // Technically, it should not be possible for a unit to not have a class, but for testing,
-        // it is possible that a unit has no class assigned.
-
         // Context dependent bools
         private bool WasDamagedThisTurn;
         private bool AllyDiedLastTurn;
@@ -40,9 +36,8 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         private bool IsSurrounded =>
             _context.Participants.AdjacentUnits.GetAdjacentEnemyCount(_context)
             >= (SoldierLoneWolf >= .6f ? 2 : 3);
-        private CharacterInstance LastAttackedTarget; // TODO: Set this
 
-        private Vector2Int LastTurnPosition; // TODO: Set these
+        private Vector2Int LastTurnPosition; // TODO: Set LastTurnPosition at end of turn
 
         private Vector2Int CurrentTurnPosition => _context.Unit.UnitInstance.MapGridPosition;
         private bool HasMovedSinceLastTurn => LastTurnPosition != CurrentTurnPosition;
