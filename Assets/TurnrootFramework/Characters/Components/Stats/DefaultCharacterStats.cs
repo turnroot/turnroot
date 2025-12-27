@@ -6,7 +6,7 @@ namespace Turnroot.Characters
 {
     [CreateAssetMenu(
         fileName = "DefaultCharacterStats",
-        menuName = "Turnroot/Character/Default Character Stats"
+        menuName = "Turnroot/Characters/Default Character Stats"
     )]
     public class DefaultCharacterStats : SingletonScriptableObject<DefaultCharacterStats>
     {

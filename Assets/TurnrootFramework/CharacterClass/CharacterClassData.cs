@@ -52,7 +52,7 @@ namespace Turnroot.Characters.CharacterClass
         }
     }
 
-    [CreateAssetMenu(fileName = "New Character Class", menuName = "Turnroot/Character/Class Data")]
+    [CreateAssetMenu(fileName = "New Character Class", menuName = "Turnroot/Characters/Class Data")]
     public class CharacterClassData : ScriptableObject
     {
         // Hidden field to cache the ClassSelectionMode for ShowIf evaluation
