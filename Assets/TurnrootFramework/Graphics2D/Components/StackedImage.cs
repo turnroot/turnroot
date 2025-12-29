@@ -1,7 +1,9 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Assets.AbstractScripts.Graphics2D;
 using Turnroot.AbstractScripts.Graphics2D;
-using Turnroot.Graphics.Portrait;
+using Turnroot.Graphics2D.Tags;
 using UnityEngine;
 
 namespace Turnroot.Graphics2D
@@ -10,6 +12,7 @@ namespace Turnroot.Graphics2D
     /// A stacked image is a group of ImageLayers
     /// with tint and layer order. It is rendered
     /// to a single sprite.
+    /// Each concrete subclass can provide specific validation and ordering rules.
     /// </summary>
     [Serializable]
     public abstract class StackedImage<TOwner>
@@ -18,8 +21,9 @@ namespace Turnroot.Graphics2D
         [SerializeField]
         protected TOwner _owner;
 
+        // Direct ownership of layers (new model)
         [SerializeField]
-        private ImageStack _imageStack;
+        private List<ImageStackLayer> _layers = new();
 
         [SerializeField, HideInInspector]
         private string _key;
@@ -38,8 +42,24 @@ namespace Turnroot.Graphics2D
 
         private Guid _id;
 
+        // Editor-only fallback for Graphics2DSettings to avoid creating multiple temporary instances
+#if UNITY_EDITOR
+        [System.NonSerialized]
+        private static Graphics2DSettings _editorFallbackGraphics2DSettings;
+#endif
+
         public TOwner Owner => _owner;
-        public ImageStack ImageStack => _imageStack;
+
+        // Layers: direct ownership.
+        public List<ImageStackLayer> Layers
+        {
+            get
+            {
+                EnsureMandatoryLayers();
+                return _layers;
+            }
+        }
+
         public string Key => _key;
 
         public Sprite RuntimeSprite => _runtimeSprite;
@@ -52,10 +72,6 @@ namespace Turnroot.Graphics2D
             _owner = owner;
             UpdateTintColorsFromOwner();
         }
-
-        // Editor helper: assign an ImageStack to this StackedImage instance.
-        // Prefer calling this instead of using reflection from editor code.
-        public void SetImageStack(ImageStack stack) => _imageStack = stack;
 
         public void SetKey(string key)
         {
@@ -127,6 +143,48 @@ namespace Turnroot.Graphics2D
 
         public abstract void UpdateTintColorsFromOwner();
 
+        // Subclasses can provide their mandatory tags and ordering behavior
+        protected virtual IEnumerable<ILayerTag> MandatoryTags() => Enumerable.Empty<ILayerTag>();
+
+        protected virtual int GetLayerOrder(ImageStackLayer layer) => layer.Order;
+
+        protected virtual ImageStackLayer CreateLayerForTag(ILayerTag tag)
+        {
+            var l = new UnmaskedImageStackLayer();
+            l.Tag = tag.Name;
+            l.Order = tag.Order;
+            l.Sprite = null;
+            l.Tint = Color.white;
+            return l;
+        }
+
+        private void EnsureMandatoryLayers()
+        {
+            var mandatory = MandatoryTags();
+            if (mandatory == null)
+                return;
+
+            foreach (var tag in mandatory)
+            {
+                if (tag == null)
+                    continue;
+                if (
+                    _layers.Any(l =>
+                        string.Equals(l.Tag, tag.Name, StringComparison.OrdinalIgnoreCase)
+                    )
+                )
+                    continue;
+                _layers.Add(CreateLayerForTag(tag));
+            }
+
+            SortLayers();
+        }
+
+        private void SortLayers()
+        {
+            _layers.Sort((a, b) => GetLayerOrder(a).CompareTo(GetLayerOrder(b)));
+        }
+
         // Subclasses must provide the subdirectory name for saving files
         // e.g., "Portraits" for Portrait class, "ItemIcons" for ItemIcon class
         protected abstract string GetSaveSubdirectory();
@@ -141,11 +199,11 @@ namespace Turnroot.Graphics2D
 
         public void Render()
         {
-            // Validate that we have an ImageStack
-            if (_imageStack == null)
+            // Validate that we have layers to render
+            if (Layers == null || Layers.Count == 0)
             {
 #if UNITY_EDITOR
-                Debug.LogWarning("Cannot render stackedImage: ImageStack is not assigned.");
+                Debug.LogWarning("Cannot render stackedImage: No layers present.");
 #endif
                 return;
             }
@@ -189,19 +247,11 @@ namespace Turnroot.Graphics2D
 
         public Texture2D CompositeLayers()
         {
-            if (_imageStack == null)
+            if (Layers == null || Layers.Count == 0)
             {
 #if UNITY_EDITOR
-                Debug.LogWarning("CompositeLayers: _imageStack is null.");
+                Debug.LogWarning("CompositeLayers: no layers available to composite.");
 #endif
-                return null;
-            }
-
-            if (_imageStack.Layers == null || _imageStack.Layers.Count == 0)
-            {
-                Debug.LogWarning(
-                    $"CompositeLayers: ImageStack '{_imageStack.name}' has no layers."
-                );
                 return null;
             }
 
@@ -216,7 +266,7 @@ namespace Turnroot.Graphics2D
             Graphics2DSettings settings = null;
             try
             {
-                settings = Utilities.GameSettingsLoader.LoadFirst<Graphics2DSettings>(
+                settings = Turnroot.Utilities.GameSettingsLoader.LoadFirst<Graphics2DSettings>(
                     "GameSettings"
                 );
             }
@@ -227,7 +277,15 @@ namespace Turnroot.Graphics2D
                 Debug.LogError(
                     "Graphics2DSettings not found in Resources/GameSettings (expected under Resources/GameSettings/*). Using default 512x512."
                 );
-                settings = ScriptableObject.CreateInstance<Graphics2DSettings>();
+
+                // Create a single cached fallback instance so we don't create multiple in-memory duplicates
+                // which cause duplicate singleton OnEnable logs and confusion in the editor.
+                if (_editorFallbackGraphics2DSettings == null)
+                {
+                    _editorFallbackGraphics2DSettings =
+                        ScriptableObject.CreateInstance<Graphics2DSettings>();
+                }
+                settings = _editorFallbackGraphics2DSettings;
             }
 
             int width = settings.portraitRenderWidth;
@@ -244,7 +302,7 @@ namespace Turnroot.Graphics2D
             baseTexture.Apply();
 
             // Composite the layers using static method
-            ImageStackLayer[] originalLayers = _imageStack.Layers.ToArray();
+            ImageStackLayer[] originalLayers = Layers.ToArray();
 
             // Defensive: create a temporary normalized copy of layers so we don't
             // mutate the stored asset if any layer has an invalid Scale (e.g. 0).
@@ -269,7 +327,7 @@ namespace Turnroot.Graphics2D
                     Offset = src.Offset,
                     Scale = src.Scale,
                     Rotation = src.Rotation,
-                    Order = src.Order
+                    Order = src.Order,
                 };
                 // Preserve Tag if present on source
                 try
@@ -290,10 +348,7 @@ namespace Turnroot.Graphics2D
                             // Use reflection to set Tint on the copy if available
                             var copyType = copy.GetType();
                             var copyTintField = copyType.GetField("Tint");
-                            if (copyTintField != null)
-                            {
-                                copyTintField.SetValue(copy, c);
-                            }
+                            copyTintField?.SetValue(copy, c);
                         }
                     }
                 }
@@ -315,7 +370,7 @@ namespace Turnroot.Graphics2D
             if (correctedScale)
             {
                 Debug.LogWarning(
-                    $"CompositeLayers: One or more layers in ImageStack '{_imageStack.name}' had non-positive Scale and were temporarily normalized to 1.0 for preview/compositing. Consider fixing the asset in the ImageStack editor."
+                    $"CompositeLayers: One or more layers in image '{_key}' had non-positive Scale and were temporarily normalized to 1.0 for preview/compositing. Consider fixing the layer data."
                 );
             }
 

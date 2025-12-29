@@ -1,4 +1,3 @@
-using Turnroot.Graphics.Portrait;
 using Turnroot.Graphics2D;
 using UnityEditor;
 using UnityEngine;
@@ -17,14 +16,41 @@ namespace Turnroot.Graphics2D.Editor
         protected bool _autoRefresh = true;
         protected int _selectedLayerIndex = -1;
 
+        // Tracks a simple hash of the current image's layer state to detect external changes
+        private int _lastLayerHash = 0;
+
         protected abstract string WindowTitle { get; }
         protected abstract string OwnerFieldLabel { get; }
         protected abstract TStackedImage[] GetImagesFromOwner(TOwner owner);
 
         protected virtual void SetImagesToOwner(TOwner owner, TStackedImage[] images) { }
 
+        protected virtual void OnEnable()
+        {
+            Undo.undoRedoPerformed += OnUndoRedo;
+        }
+
+        protected virtual void OnDisable()
+        {
+            Undo.undoRedoPerformed -= OnUndoRedo;
+        }
+
+        private void OnUndoRedo()
+        {
+            _lastLayerHash = 0; // Force next check to trigger refresh
+            Repaint();
+        }
+
         protected virtual void OnGUI()
         {
+            if (Event.current.type == EventType.Layout)
+            {
+                if (_currentImage != null && _autoRefresh && ShouldRefreshPreview())
+                {
+                    RefreshPreview();
+                }
+            }
+
             EditorGUILayout.LabelField($"Live {WindowTitle}", EditorStyles.boldLabel);
             EditorGUILayout.Space(10);
 
@@ -148,55 +174,16 @@ namespace Turnroot.Graphics2D.Editor
 
         protected void DrawImageStackSection()
         {
-            if (_currentImage.ImageStack == null)
-            {
-                EditorGUI.BeginChangeCheck();
-                var newStack =
-                    EditorGUILayout.ObjectField(
-                        "Image Stack",
-                        _currentImage.ImageStack,
-                        typeof(ImageStack),
-                        false
-                    ) as ImageStack;
-                if (EditorGUI.EndChangeCheck())
-                {
-                    _currentImage.SetImageStack(newStack);
-                    MarkDirtyAndRefresh();
-                }
-            }
-
-            if (_currentImage.ImageStack == null)
+            EditorGUILayout.LabelField("Layers", EditorStyles.boldLabel);
+            if (_currentImage.Layers == null || _currentImage.Layers.Count == 0)
             {
                 EditorGUILayout.HelpBox(
-                    "No ImageStack assigned. Assign one to see layers.",
+                    "No layers defined. Use the Layer Management section to add layers.",
                     MessageType.Warning
                 );
-                if (GUILayout.Button("+ Create New Image Stack"))
-                {
-                    CreateNewImageStack();
-                }
             }
 
             EditorGUILayout.Space(10);
-        }
-
-        private void CreateNewImageStack()
-        {
-            var newImageStack = ScriptableObject.CreateInstance<ImageStack>();
-            string path = EditorUtility.SaveFilePanelInProject(
-                "Create New Image Stack",
-                "NewImageStack",
-                "asset",
-                "Choose where to save the new ImageStack"
-            );
-
-            if (!string.IsNullOrEmpty(path))
-            {
-                AssetDatabase.CreateAsset(newImageStack, path);
-                AssetDatabase.SaveAssets();
-                _currentImage.SetImageStack(newImageStack);
-                MarkDirtyAndRefresh();
-            }
         }
 
         protected void DrawOwnerSection()
@@ -231,6 +218,12 @@ namespace Turnroot.Graphics2D.Editor
         {
             EditorGUILayout.LabelField("Tint Colors", EditorStyles.boldLabel);
 
+            EditorGUILayout.HelpBox(
+                "Global Tint Colors are used for mask-based tinting (mask RGB channels map to Tint Color 1/2/3).\n"
+                    + "Use per-layer 'Layer Color' (shown on unmasked layers) to colorize grayscale sprites like hair.",
+                MessageType.Info
+            );
+
             if (_currentImage.TintColors == null || _currentImage.TintColors.Length < 3)
             {
                 EditorGUILayout.HelpBox("Tint colors are not initialized.", MessageType.Error);
@@ -241,7 +234,10 @@ namespace Turnroot.Graphics2D.Editor
             for (int i = 0; i < 3; i++)
             {
                 _currentImage.TintColors[i] = EditorGUILayout.ColorField(
-                    $"Tint Color {i + 1}",
+                    new GUIContent(
+                        $"Tint Color {i + 1}",
+                        "Global tint color used by mask-based tinting. Red = Tint Color 1, Green = Tint Color 2, Blue = Tint Color 3."
+                    ),
                     _currentImage.TintColors[i]
                 );
             }
@@ -252,7 +248,11 @@ namespace Turnroot.Graphics2D.Editor
             }
 
             EditorGUILayout.BeginHorizontal();
-            if (GUILayout.Button("Reset to White"))
+            if (
+                GUILayout.Button(
+                    new GUIContent("Reset to White", "Reset all tint colors to white (no tint).")
+                )
+            )
             {
                 for (int i = 0; i < 3; i++)
                 {
@@ -261,7 +261,14 @@ namespace Turnroot.Graphics2D.Editor
 
                 MarkDirtyAndRefresh();
             }
-            if (GUILayout.Button("Update from Owner"))
+            if (
+                GUILayout.Button(
+                    new GUIContent(
+                        "Update from Owner",
+                        "Copy tint colors from the owner (e.g., character accent colors)."
+                    )
+                )
+            )
             {
                 _currentImage.UpdateTintColorsFromOwner();
                 MarkDirtyAndRefresh();
@@ -274,16 +281,16 @@ namespace Turnroot.Graphics2D.Editor
         {
             EditorGUILayout.LabelField("Layer Management", EditorStyles.boldLabel);
 
-            if (_currentImage.ImageStack == null)
+            if (_currentImage.Layers == null)
             {
-                EditorGUILayout.HelpBox("No ImageStack assigned.", MessageType.Info);
+                EditorGUILayout.HelpBox("No layers defined.", MessageType.Info);
                 return;
             }
 
-            var layers = _currentImage.ImageStack.Layers;
+            var layers = _currentImage.Layers;
             if (layers == null || layers.Count == 0)
             {
-                EditorGUILayout.HelpBox("ImageStack has no layers.", MessageType.Info);
+                EditorGUILayout.HelpBox("No layers present.", MessageType.Info);
                 return;
             }
 
@@ -340,7 +347,6 @@ namespace Turnroot.Graphics2D.Editor
             EditorGUILayout.LabelField("Order", layer.Order.ToString());
             EditorGUILayout.LabelField("Offset", $"({layer.Offset.x}, {layer.Offset.y})");
             EditorGUILayout.LabelField("Scale", layer.Scale.ToString());
-            EditorGUILayout.LabelField("Rotation", layer.Rotation.ToString());
 
             EditorGUI.indentLevel--;
         }
@@ -414,20 +420,11 @@ namespace Turnroot.Graphics2D.Editor
 
         private void DrawRenderSection()
         {
-            if (_currentImage.ImageStack == null)
-            {
-                EditorGUILayout.HelpBox(
-                    "Cannot render: No ImageStack assigned.",
-                    MessageType.Warning
-                );
-                return;
-            }
-
-            var layers = _currentImage.ImageStack.Layers;
+            var layers = _currentImage.Layers;
             if (layers == null || layers.Count == 0)
             {
                 EditorGUILayout.HelpBox(
-                    "Cannot render: ImageStack has no layers.",
+                    "Cannot render: No layers defined on this image.",
                     MessageType.Warning
                 );
                 return;
@@ -443,9 +440,9 @@ namespace Turnroot.Graphics2D.Editor
 
             if (GUILayout.Button("Render and Save to File", GUILayout.Height(40)))
             {
-                #if UNITY_EDITOR
+#if UNITY_EDITOR
                 Debug.Log($"Saving image with key: '{_currentImage.Key}'");
-                #endif
+#endif
                 _currentImage.Render();
                 EditorUtility.DisplayDialog(
                     "Render Complete",
@@ -470,6 +467,10 @@ namespace Turnroot.Graphics2D.Editor
             if (images != null && _selectedImageIndex >= 0 && _selectedImageIndex < images.Length)
             {
                 _currentImage = images[_selectedImageIndex];
+
+                // Ensure mandatory layers are present before generating a preview
+                _ = _currentImage.Layers;
+
                 RefreshPreview();
             }
             else
@@ -482,24 +483,25 @@ namespace Turnroot.Graphics2D.Editor
         {
             if (_currentImage == null)
             {
-                #if UNITY_EDITOR
+#if UNITY_EDITOR
                 Debug.Log("RefreshPreview: _currentImage is null");
-                #endif
+#endif
                 _previewTexture = null;
                 return;
             }
 
-            if (_currentImage.ImageStack == null)
+            var layers = _currentImage.Layers;
+            if (layers == null || layers.Count == 0)
             {
-                #if UNITY_EDITOR
-                Debug.Log($"RefreshPreview: ImageStack is null for image '{_currentImage?.Key}'");
-                #endif
+#if UNITY_EDITOR
+                Debug.Log($"RefreshPreview: No layers defined for image '{_currentImage?.Key}'");
+#endif
                 _previewTexture = null;
                 return;
             }
 
             Debug.Log(
-                $"RefreshPreview: Compositing image '{_currentImage.Key}' using ImageStack '{_currentImage.ImageStack.name}'"
+                $"RefreshPreview: Compositing image '{_currentImage.Key}' using in-object layers"
             );
             _previewTexture = _currentImage.CompositeLayers();
 
@@ -510,9 +512,9 @@ namespace Turnroot.Graphics2D.Editor
                 );
                 if (_currentImage.SavedSprite?.texture != null)
                 {
-                    #if UNITY_EDITOR
+#if UNITY_EDITOR
                     Debug.Log("RefreshPreview: using SavedSprite.texture as fallback preview");
-                    #endif
+#endif
                     _previewTexture = _currentImage.SavedSprite.texture;
                 }
             }
@@ -526,6 +528,39 @@ namespace Turnroot.Graphics2D.Editor
             if (_autoRefresh)
             {
                 RefreshPreview();
+            }
+        }
+
+        private bool ShouldRefreshPreview()
+        {
+            if (_currentImage == null || _currentImage.Layers == null)
+                return false;
+            unchecked
+            {
+                int hash = 17;
+                var layers = _currentImage.Layers;
+                hash = hash * 23 + (layers?.Count ?? 0);
+                if (layers != null)
+                {
+                    for (int i = 0; i < layers.Count; i++)
+                    {
+                        var l = layers[i];
+                        if (l == null)
+                            continue;
+                        hash = hash * 23 + (l.Tag ?? string.Empty).GetHashCode();
+                        hash = hash * 23 + l.Order.GetHashCode();
+                        hash = hash * 23 + (l.Sprite != null ? l.Sprite.GetInstanceID() : 0);
+                        hash = hash * 23 + (l.Mask != null ? l.Mask.GetInstanceID() : 0);
+                    }
+                }
+
+                if (hash != _lastLayerHash)
+                {
+                    _lastLayerHash = hash;
+                    return true;
+                }
+
+                return false;
             }
         }
     }

@@ -57,15 +57,6 @@ namespace Assets.AbstractScripts.Graphics2D
                 return null;
             }
 
-            // Check if textures are readable
-            if (!IsTextureReadable(sprite.texture) || !IsTextureReadable(mask.texture))
-            {
-                Debug.LogError(
-                    "Sprite or mask texture is not readable. Enable Read/Write in import settings."
-                );
-                return null;
-            }
-
             Color[] originalPixels = sprite.texture.GetPixels();
             Color[] maskPixels = mask.texture.GetPixels();
             Color[] tintedPixels = new Color[originalPixels.Length];
@@ -159,14 +150,6 @@ namespace Assets.AbstractScripts.Graphics2D
                     return null;
                 }
 
-                if (!IsTextureReadable(sprite.texture) || !IsTextureReadable(mask.texture))
-                {
-                    Debug.LogWarning(
-                        $"Tinting skipped for layer {layerIndex} (sprite='{spriteName}', mask='{maskName}', tag='{layerTag}'): one or more textures are not readable. Enable Read/Write in import settings for both assets."
-                    );
-                    return null;
-                }
-
                 var tinted = TintSpritePixels(sprite, mask, tints);
                 if (tinted == null)
                 {
@@ -189,7 +172,8 @@ namespace Assets.AbstractScripts.Graphics2D
 
             bool isGrayscale = false;
 #if UNITY_EDITOR
-            isGrayscale = IsGrayscalePNG(sprite.texture);
+            var gtex = sprite.texture;
+            isGrayscale = Turnroot.Graphics2D.Utilities.TextureValidator.IsGrayscalePNG(gtex);
 #endif
 
             Color[] tintedPixels;
@@ -372,77 +356,6 @@ namespace Assets.AbstractScripts.Graphics2D
             return compositedTexture;
         }
 
-        private static bool IsTextureReadable(Texture2D texture)
-        {
-            try
-            {
-                _ = texture.GetPixel(0, 0);
-                return true;
-            }
-            catch
-            {
-                Debug.LogError(
-                    $"Texture '{texture.name}' is not readable. Enable Read/Write in import settings."
-                );
-
-                return false;
-            }
-        }
-
-#if UNITY_EDITOR
-        private static bool IsGrayscalePNG(Texture2D texture)
-        {
-            if (texture == null)
-            {
-                return false;
-            }
-
-            string path = AssetDatabase.GetAssetPath(texture);
-            if (string.IsNullOrEmpty(path) || !path.ToLower().EndsWith(".png"))
-            {
-                return false;
-            }
-
-            try
-            {
-                byte[] data = System.IO.File.ReadAllBytes(path);
-                if (
-                    data.Length < 24
-                    || data[0] != 0x89
-                    || data[1] != 0x50
-                    || data[2] != 0x4E
-                    || data[3] != 0x47
-                    || data[4] != 0x0D
-                    || data[5] != 0x0A
-                    || data[6] != 0x1A
-                    || data[7] != 0x0A
-                )
-                {
-                    return false;
-                }
-
-                int pos = 8;
-                while (pos + 12 < data.Length)
-                {
-                    int length =
-                        (data[pos] << 24)
-                        | (data[pos + 1] << 16)
-                        | (data[pos + 2] << 8)
-                        | data[pos + 3];
-                    string type = System.Text.Encoding.ASCII.GetString(data, pos + 4, 4);
-                    if (type == "IHDR" && length >= 13)
-                    {
-                        int colorType = data[pos + 17];
-                        return colorType is 0 or 4; // grayscale or grayscale+alpha
-                    }
-                    pos += length + 12;
-                }
-            }
-            catch { }
-            return false;
-        }
-#endif
-
         // Helper: create the composited texture and initialize final pixel buffer
         private static Texture2D CreateCompositedTexture(
             Texture2D baseTexture,
@@ -473,7 +386,7 @@ namespace Assets.AbstractScripts.Graphics2D
         // Helper: get pixels from a sprite if readable, otherwise null
         private static Color[] GetSpritePixelsIfReadable(Sprite sprite) =>
             sprite == null ? null
-            : !IsTextureReadable(sprite.texture) ? null
+            : !Turnroot.Graphics2D.Utilities.TextureValidator.EnsureReadable(sprite.texture) ? null
             : sprite.texture.GetPixels();
 
         // Helper: show an editor popup for a non-readable texture and offer to open the
