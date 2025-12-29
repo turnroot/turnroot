@@ -1,5 +1,5 @@
 using System;
-using Turnroot.Characters;
+using Turnroot.Graphics2D.Tags;
 using UnityEditor;
 using UnityEngine;
 
@@ -9,8 +9,6 @@ public class ImageStackLayerDrawer : PropertyDrawer
     private const float PreviewSize = 48f;
     private const float Spacing = 4f;
     private const float FieldHeight = 18f;
-
-    // Use PortraitLayerSpriteCache for portrait-specific sprite lists per tag.
 
     public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
     {
@@ -97,10 +95,7 @@ public class ImageStackLayerDrawer : PropertyDrawer
                                 spriteProp.objectReferenceValue = s;
                                 property.serializedObject.ApplyModifiedProperties();
 #if UNITY_EDITOR
-                                if (
-                                    !UnityEditor.EditorApplication.isCompiling
-                                    && !UnityEditor.EditorApplication.isUpdating
-                                )
+                                if (!EditorApplication.isCompiling && !EditorApplication.isUpdating)
                                 {
                                     EditorUtility.SetDirty(property.serializedObject.targetObject);
                                 }
@@ -146,11 +141,6 @@ public class ImageStackLayerDrawer : PropertyDrawer
                 h = EditorGUI.GetPropertyHeight(maskProp, true);
                 yPos += h + Spacing;
             }
-            else
-            {
-                // No mask for hair/unmasked layers; ensure spacing accounts for the absent field
-                // (we already incremented yPos for sprite and the tint field if present)
-            }
 
             // Offset (Vector2)
             fieldRect.y = yPos;
@@ -173,7 +163,7 @@ public class ImageStackLayerDrawer : PropertyDrawer
             string oldTag = tagFieldProp != null ? tagFieldProp.stringValue : string.Empty;
 
             // Build popup options with an initial empty option
-            var all = PortraitLayerTags.All;
+            string[] all = PortraitLayerTags.Names();
             string[] popupOptions = new string[all.Length + 1];
             popupOptions[0] = "<none>";
             for (int i = 0; i < all.Length; i++)
@@ -309,8 +299,8 @@ public class ImageStackLayerDrawer : PropertyDrawer
                                     stack.Layers[idx] = converted;
 #if UNITY_EDITOR
                                     if (
-                                        !UnityEditor.EditorApplication.isCompiling
-                                        && !UnityEditor.EditorApplication.isUpdating
+                                        !EditorApplication.isCompiling
+                                        && !EditorApplication.isUpdating
                                     )
                                     {
                                         EditorUtility.SetDirty(stack);
@@ -336,8 +326,8 @@ public class ImageStackLayerDrawer : PropertyDrawer
                                     stack.Layers[idx] = converted;
 #if UNITY_EDITOR
                                     if (
-                                        !UnityEditor.EditorApplication.isCompiling
-                                        && !UnityEditor.EditorApplication.isUpdating
+                                        !EditorApplication.isCompiling
+                                        && !EditorApplication.isUpdating
                                     )
                                     {
                                         EditorUtility.SetDirty(stack);
@@ -374,10 +364,7 @@ public class ImageStackLayerDrawer : PropertyDrawer
                                 }
                             }
 #if UNITY_EDITOR
-                            if (
-                                !UnityEditor.EditorApplication.isCompiling
-                                && !UnityEditor.EditorApplication.isUpdating
-                            )
+                            if (!EditorApplication.isCompiling && !EditorApplication.isUpdating)
                             {
                                 EditorUtility.SetDirty(stack);
                             }

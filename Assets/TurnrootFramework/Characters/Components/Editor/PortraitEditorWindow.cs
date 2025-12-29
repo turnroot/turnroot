@@ -1,5 +1,6 @@
 using System.Linq;
 using Turnroot.Graphics2D.Editor;
+using Turnroot.Graphics2D.Tags;
 using UnityEditor;
 using UnityEditorInternal;
 using UnityEngine;
@@ -12,7 +13,7 @@ namespace Turnroot.Characters.Subclasses.Editor
         protected override string OwnerFieldLabel => "Character";
 
         private ReorderableList _layersReorderList;
-        private Turnroot.Graphics.Portrait.ImageStack _lastListImageStack;
+        private Graphics.Portrait.ImageStack _lastListImageStack;
         private SerializedObject _layersSerializedObject;
         private string _newPortraitName = "";
         private string _quickPortraitName = "";
@@ -223,7 +224,7 @@ namespace Turnroot.Characters.Subclasses.Editor
             EditorGUILayout.EndHorizontal();
         }
 
-        private void EnsureLayersReorderList(Turnroot.Graphics.Portrait.ImageStack imageStack)
+        private void EnsureLayersReorderList(Graphics.Portrait.ImageStack imageStack)
         {
             if (imageStack == null)
             {
@@ -255,9 +256,9 @@ namespace Turnroot.Characters.Subclasses.Editor
             }
 
             bool addedAny = false;
-            foreach (var t in Turnroot.Characters.PortraitLayerTags.Mandatory)
+            foreach (var mt in PortraitLayerTags.MandatoryTags())
             {
-                if (!existingTags.Contains(t))
+                if (!existingTags.Contains(mt.Name))
                 {
                     // Any named portrait tag is represented as an unmasked layer so it can
                     // receive per-layer tinting and be composited appropriately.
@@ -269,7 +270,7 @@ namespace Turnroot.Characters.Subclasses.Editor
                         Scale = 1f,
                         Rotation = 0f,
                         Order = 0,
-                        Tag = t,
+                        Tag = mt.Name,
                         Tint = Color.white,
                     };
                     imageStack.Layers.Add(layer);
@@ -294,7 +295,7 @@ namespace Turnroot.Characters.Subclasses.Editor
                 var l = imageStack.Layers[i];
                 if (l != null && !string.IsNullOrEmpty(l.Tag))
                 {
-                    if (!(l is UnmaskedImageStackLayer))
+                    if (l is not UnmaskedImageStackLayer)
                     {
                         var converted = new UnmaskedImageStackLayer();
                         converted.Sprite = l.Sprite;
@@ -327,7 +328,7 @@ namespace Turnroot.Characters.Subclasses.Editor
             // 2. Add any remaining optional tagged layers in their original order.
             // 3. Append mandatory tagged layers in the configured canonical
             //    front-to-back order if present.
-            var canonical = Turnroot.Characters.PortraitLayerTags.CanonicalFrontToBackMandatory;
+            var canonical = PortraitLayerTags.MandatoryTags();
             var original = imageStack.Layers.ToList();
             var result = new System.Collections.Generic.List<ImageStackLayer>();
 
@@ -355,7 +356,7 @@ namespace Turnroot.Characters.Subclasses.Editor
 
                 if (
                     !string.IsNullOrEmpty(l.Tag)
-                    && !Turnroot.Characters.PortraitLayerTags.IsMandatory(l.Tag)
+                    && !PortraitLayerTags.IsMandatory(l.Tag)
                     && !result.Contains(l)
                 )
                 {
@@ -368,7 +369,7 @@ namespace Turnroot.Characters.Subclasses.Editor
             {
                 var found = original.FirstOrDefault(x =>
                     x != null
-                    && string.Equals(x.Tag, tag, System.StringComparison.OrdinalIgnoreCase)
+                    && string.Equals(x.Tag, tag.Name, System.StringComparison.OrdinalIgnoreCase)
                 );
                 if (found != null && !result.Contains(found))
                 {
@@ -392,17 +393,11 @@ namespace Turnroot.Characters.Subclasses.Editor
                     continue;
                 }
 
-                if (
+                l.Order =
                     !string.IsNullOrEmpty(l.Tag)
                     && string.Equals(l.Tag, "Face", System.StringComparison.OrdinalIgnoreCase)
-                )
-                {
-                    l.Order = 0;
-                }
-                else
-                {
-                    l.Order = orderCounter++;
-                }
+                        ? 0
+                        : orderCounter++;
             }
 
             // We draw our own per-element remove button so we can hide removal for mandatory layers
@@ -434,10 +429,7 @@ namespace Turnroot.Characters.Subclasses.Editor
                 // Draw a per-element remove button unless the layer is tagged as mandatory
                 var tagProp = el.FindPropertyRelative("Tag");
                 string tag = tagProp != null ? tagProp.stringValue : string.Empty;
-                if (
-                    string.IsNullOrEmpty(tag)
-                    || !Turnroot.Characters.PortraitLayerTags.IsMandatory(tag)
-                )
+                if (string.IsNullOrEmpty(tag) || !PortraitLayerTags.IsMandatory(tag))
                 {
                     Rect btnRect = new Rect(fieldRect.xMax + 4, fieldRect.y, 56, 18);
                     if (GUI.Button(btnRect, "Remove"))
@@ -557,7 +549,7 @@ namespace Turnroot.Characters.Subclasses.Editor
                     if (tagProp != null && !string.IsNullOrEmpty(tagProp.stringValue))
                     {
                         string tag = tagProp.stringValue;
-                        if (Turnroot.Characters.PortraitLayerTags.IsMandatory(tag))
+                        if (PortraitLayerTags.IsMandatory(tag))
                         {
                             EditorUtility.DisplayDialog(
                                 "Cannot remove layer",

@@ -1,4 +1,5 @@
 using Turnroot.Graphics.Portrait;
+using Turnroot.Graphics2D.Tags;
 using UnityEditor;
 using UnityEngine;
 
@@ -206,19 +207,27 @@ namespace Turnroot.Graphics.Portrait.Editor
 
         private void RenumberLayerOrders()
         {
-            // We want Order 0 to be the bottom of the stack, while index 0 is the top in the list.
             for (int i = 0; i < _layersProp.arraySize; i++)
             {
                 var el = _layersProp.GetArrayElementAtIndex(i);
                 var orderProp = el.FindPropertyRelative("Order");
-                if (orderProp != null)
+                if (orderProp == null)
                 {
-                    orderProp.intValue = (_layersProp.arraySize - 1) - i;
+                    continue;
+                }
+
+                var tagProp = el.FindPropertyRelative("Tag");
+                if (tagProp != null && !string.IsNullOrEmpty(tagProp.stringValue))
+                {
+                    if (PortraitLayerTags.TryGetOrder(tagProp.stringValue, out var tagOrder))
+                    {
+                        orderProp.intValue = tagOrder;
+                        continue;
+                    }
                 }
             }
+
             _ = serializedObject.ApplyModifiedProperties();
         }
-
-        // Owner resolution removed: ImageStack is edited in the Portrait context. No auto-owner assignment.
     }
 }
