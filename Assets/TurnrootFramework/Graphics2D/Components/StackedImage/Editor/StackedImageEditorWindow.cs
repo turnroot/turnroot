@@ -17,14 +17,41 @@ namespace Turnroot.Graphics2D.Editor
         protected bool _autoRefresh = true;
         protected int _selectedLayerIndex = -1;
 
+        // Tracks a simple hash of the current image's layer state to detect external changes
+        private int _lastLayerHash = 0;
+
         protected abstract string WindowTitle { get; }
         protected abstract string OwnerFieldLabel { get; }
         protected abstract TStackedImage[] GetImagesFromOwner(TOwner owner);
 
         protected virtual void SetImagesToOwner(TOwner owner, TStackedImage[] images) { }
 
+        protected virtual void OnEnable()
+        {
+            Undo.undoRedoPerformed += OnUndoRedo;
+        }
+
+        protected virtual void OnDisable()
+        {
+            Undo.undoRedoPerformed -= OnUndoRedo;
+        }
+
+        private void OnUndoRedo()
+        {
+            _lastLayerHash = 0; // Force next check to trigger refresh
+            Repaint();
+        }
+
         protected virtual void OnGUI()
         {
+            if (Event.current.type == EventType.Layout)
+            {
+                if (_currentImage != null && _autoRefresh && ShouldRefreshPreview())
+                {
+                    RefreshPreview();
+                }
+            }
+
             EditorGUILayout.LabelField($"Live {WindowTitle}", EditorStyles.boldLabel);
             EditorGUILayout.Space(10);
 
@@ -526,6 +553,39 @@ namespace Turnroot.Graphics2D.Editor
             if (_autoRefresh)
             {
                 RefreshPreview();
+            }
+        }
+
+        private bool ShouldRefreshPreview()
+        {
+            if (_currentImage == null || _currentImage.ImageStack == null)
+                return false;
+            unchecked
+            {
+                int hash = 17;
+                var layers = _currentImage.ImageStack.Layers;
+                hash = hash * 23 + (layers?.Count ?? 0);
+                if (layers != null)
+                {
+                    for (int i = 0; i < layers.Count; i++)
+                    {
+                        var l = layers[i];
+                        if (l == null)
+                            continue;
+                        hash = hash * 23 + (l.Tag ?? string.Empty).GetHashCode();
+                        hash = hash * 23 + l.Order.GetHashCode();
+                        hash = hash * 23 + (l.Sprite != null ? l.Sprite.GetInstanceID() : 0);
+                        hash = hash * 23 + (l.Mask != null ? l.Mask.GetInstanceID() : 0);
+                    }
+                }
+
+                if (hash != _lastLayerHash)
+                {
+                    _lastLayerHash = hash;
+                    return true;
+                }
+
+                return false;
             }
         }
     }

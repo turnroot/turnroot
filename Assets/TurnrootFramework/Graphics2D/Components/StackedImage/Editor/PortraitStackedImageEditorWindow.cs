@@ -21,19 +21,13 @@ namespace Turnroot.Graphics2D.Editor
         /// Return an array of tags that must exist in the ImageStack and cannot be removed.
         /// Default: empty (no enforced tags). Override in Portrait-specific editor.
         /// </summary>
-        protected virtual string[] GetMandatoryLayerTags()
-        {
-            return Array.Empty<string>();
-        }
+        protected virtual string[] GetMandatoryLayerTags() => Array.Empty<string>();
 
         /// <summary>
         /// Return an array of indices (0-based) that cannot be removed from the stack.
         /// Default: empty. Override to reserve specific positions.
         /// </summary>
-        protected virtual int[] GetMandatoryLayerIndices()
-        {
-            return Array.Empty<int>();
-        }
+        protected virtual int[] GetMandatoryLayerIndices() => Array.Empty<int>();
 
         protected override void DrawControlPanel()
         {
