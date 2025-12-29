@@ -1,6 +1,5 @@
 using DG.Tweening;
 using NaughtyAttributes;
-using Turnroot.Graphics.Portrait;
 using UnityEngine;
 
 namespace Turnroot.AbstractScripts.Graphics2D
@@ -58,41 +57,5 @@ namespace Turnroot.AbstractScripts.Graphics2D
 
         [Header("Portrait Render Settings")]
         public int portraitRenderHeight = 512;
-
-#if UNITY_EDITOR
-        private void OnValidate() =>
-            // Defer the update to avoid issues during asset import
-            UnityEditor.EditorApplication.delayCall += UpdateAllImageStacks;
-
-        private void UpdateAllImageStacks()
-        {
-            // Check if we're in the middle of asset importing
-            if (UnityEditor.AssetDatabase.IsAssetImportWorkerProcess())
-            {
-                return;
-            }
-
-            // Find all ImageStack assets in the project
-            string[] guids = UnityEditor.AssetDatabase.FindAssets("t:ImageStack");
-
-            foreach (string guid in guids)
-            {
-                string path = UnityEditor.AssetDatabase.GUIDToAssetPath(guid);
-                ImageStack imageStack = UnityEditor.AssetDatabase.LoadAssetAtPath<ImageStack>(path);
-
-                if (imageStack != null)
-                {
-                    // Mark the image stack as dirty so it will be saved with updated settings
-                    UnityEditor.EditorUtility.SetDirty(imageStack);
-                }
-            }
-
-            // Save all marked assets
-            UnityEditor.AssetDatabase.SaveAssets();
-#if UNITY_EDITOR
-            Debug.Log($"Updated {guids.Length} ImageStack assets with new settings.");
-#endif
-        }
-#endif
     }
 }

@@ -79,7 +79,7 @@ namespace Turnroot.Characters
 
             foreach (var p in portraits.Values)
             {
-                var layers = p.ImageStack?.Layers;
+                var layers = p.Layers;
                 if (layers == null)
                 {
                     continue;

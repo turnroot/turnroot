@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using Turnroot.Graphics2D;
+using Turnroot.Graphics2D.Tags;
 using UnityEngine;
 
 namespace Turnroot.Characters.Subclasses
@@ -8,6 +10,10 @@ namespace Turnroot.Characters.Subclasses
     public class Portrait : StackedImage<CharacterData>
     {
         protected override string GetSaveSubdirectory() => "Portraits";
+
+        // Ensure portrait-specific mandatory tags are applied at the object level
+        protected override IEnumerable<ILayerTag> MandatoryTags() =>
+            Turnroot.Graphics2D.Tags.PortraitLayerTags.MandatoryTags();
 
         public override void UpdateTintColorsFromOwner()
         {
