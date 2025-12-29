@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using Turnroot.Graphics2D.Editor;
 using Turnroot.Graphics2D.Tags;
@@ -13,7 +14,7 @@ namespace Turnroot.Characters.Subclasses.Editor
         protected override string OwnerFieldLabel => "Character";
 
         private ReorderableList _layersReorderList;
-        private Graphics.Portrait.ImageStack _lastListImageStack;
+
         private SerializedObject _layersSerializedObject;
         private string _newPortraitName = "";
         private string _quickPortraitName = "";
@@ -53,22 +54,11 @@ namespace Turnroot.Characters.Subclasses.Editor
             _selectedImageIndex = portraitsDict.Count - 1;
             UpdateCurrentImage();
 
-            var newImageStack =
-                ScriptableObject.CreateInstance<Turnroot.Graphics.Portrait.ImageStack>();
-            string path = EditorUtility.SaveFilePanelInProject(
-                "Create New Image Stack for Portrait",
-                newKey + ".asset",
-                "asset",
-                "Choose where to save the new ImageStack"
-            );
+            // The ImageStack ScriptableObject has been removed.
+            // Portraits now own their layers directly; ensure mandatory layers are present immediately.
+            _ = _currentImage.Layers; // ensure mandatory layers are created
 
-            if (!string.IsNullOrEmpty(path))
-            {
-                AssetDatabase.CreateAsset(newImageStack, path);
-                AssetDatabase.SaveAssets();
-                _currentImage.SetImageStack(newImageStack);
-            }
-
+            EditorUtility.SetDirty(_currentOwner);
             RefreshPreview();
         }
 
@@ -176,17 +166,17 @@ namespace Turnroot.Characters.Subclasses.Editor
             EditorGUILayout.BeginVertical(GUILayout.Width(600));
             _scrollPosition = EditorGUILayout.BeginScrollView(_scrollPosition);
 
-            var imageStack = _currentImage.ImageStack;
-            if (imageStack == null)
+            var layers = _currentImage.Layers;
+            if (layers == null || layers.Count == 0)
             {
                 EditorGUILayout.HelpBox(
-                    "No ImageStack assigned. Use the right column to create or assign one.",
+                    "No layers defined. Use the right column to add layers.",
                     MessageType.Info
                 );
             }
             else
             {
-                EnsureLayersReorderList(imageStack);
+                EnsureLayersReorderList();
 
                 if (_layersReorderList != null)
                 {
@@ -198,7 +188,7 @@ namespace Turnroot.Characters.Subclasses.Editor
                         && _layersSerializedObject.ApplyModifiedProperties()
                     )
                     {
-                        EditorUtility.SetDirty(imageStack);
+                        EditorUtility.SetDirty(_currentOwner);
                         if (_autoRefresh)
                         {
                             RefreshPreview();
@@ -224,75 +214,28 @@ namespace Turnroot.Characters.Subclasses.Editor
             EditorGUILayout.EndHorizontal();
         }
 
-        private void EnsureLayersReorderList(Graphics.Portrait.ImageStack imageStack)
+        private void EnsureLayersReorderList()
         {
-            if (imageStack == null)
+            if (_currentImage == null)
             {
                 _layersReorderList = null;
                 _layersSerializedObject = null;
-                _lastListImageStack = null;
                 return;
             }
 
-            if (_lastListImageStack == imageStack && _layersReorderList != null)
-            {
-                return;
-            }
+            // No serialized backing available for in-object Layers; we'll operate directly on the list.
+            _layersSerializedObject = null;
 
-            _layersSerializedObject = new SerializedObject(imageStack);
-            var layersProp = _layersSerializedObject.FindProperty("_layers");
-
-            // Ensure mandatory portrait layers exist. Add any missing mandatory tags.
-            var existingTags = new System.Collections.Generic.HashSet<string>(
-                System.StringComparer.OrdinalIgnoreCase
-            );
-            for (int i = 0; i < imageStack.Layers.Count; i++)
-            {
-                var l = imageStack.Layers[i];
-                if (l != null && !string.IsNullOrEmpty(l.Tag))
-                {
-                    existingTags.Add(l.Tag);
-                }
-            }
-
-            bool addedAny = false;
-            foreach (var mt in PortraitLayerTags.MandatoryTags())
-            {
-                if (!existingTags.Contains(mt.Name))
-                {
-                    // Any named portrait tag is represented as an unmasked layer so it can
-                    // receive per-layer tinting and be composited appropriately.
-                    var layer = new UnmaskedImageStackLayer()
-                    {
-                        Sprite = null,
-                        Mask = null,
-                        Offset = Vector2.zero,
-                        Scale = 1f,
-                        Rotation = 0f,
-                        Order = 0,
-                        Tag = mt.Name,
-                        Tint = Color.white,
-                    };
-                    imageStack.Layers.Add(layer);
-                    addedAny = true;
-                }
-            }
-
-            if (addedAny)
-            {
-                EditorUtility.SetDirty(imageStack);
-                // Recreate the serialized object so layersProp reflects the inserted elements
-                _layersSerializedObject = new SerializedObject(imageStack);
-                layersProp = _layersSerializedObject.FindProperty("_layers");
-            }
+            // Mandatory layer creation is handled by the StackedImage/Portrait implementation
+            // via the Portrait.MandatoryTags override, so we don't duplicate that work here.
 
             // Convert any tagged layer to UnmaskedImageStackLayer so it carries the per-layer
             // Tint used by the compositor and editor. We'll also enforce canonical ordering
             // for mandatory tags (front-to-back) so that the UI always shows a predictable
             // stacking order.
-            for (int i = 0; i < imageStack.Layers.Count; i++)
+            for (int i = 0; i < _currentImage.Layers.Count; i++)
             {
-                var l = imageStack.Layers[i];
+                var l = _currentImage.Layers[i];
                 if (l != null && !string.IsNullOrEmpty(l.Tag))
                 {
                     if (l is not UnmaskedImageStackLayer)
@@ -307,8 +250,8 @@ namespace Turnroot.Characters.Subclasses.Editor
                         converted.Tag = l.Tag;
                         converted.Tint = Color.white;
 
-                        imageStack.Layers[i] = converted;
-                        EditorUtility.SetDirty(imageStack);
+                        _currentImage.Layers[i] = converted;
+                        EditorUtility.SetDirty(_currentOwner);
                         Debug.Log(
                             "Converted ImageStack layer at index "
                                 + i
@@ -329,7 +272,7 @@ namespace Turnroot.Characters.Subclasses.Editor
             // 3. Append mandatory tagged layers in the configured canonical
             //    front-to-back order if present.
             var canonical = PortraitLayerTags.MandatoryTags();
-            var original = imageStack.Layers.ToList();
+            var original = _currentImage.Layers.ToList();
             var result = new System.Collections.Generic.List<ImageStackLayer>();
 
             // 1) Untagged layers (preserve original order) - keep new layers at front
@@ -378,15 +321,15 @@ namespace Turnroot.Characters.Subclasses.Editor
             }
 
             // Replace the layers list contents with the ordered result
-            imageStack.Layers.Clear();
+            _currentImage.Layers.Clear();
             foreach (var r in result)
             {
-                imageStack.Layers.Add(r);
+                _currentImage.Layers.Add(r);
             }
 
             // Assign Order values: Face (back) gets 0, others incrementing from 1 (front highest)
             int orderCounter = 1;
-            foreach (var l in imageStack.Layers)
+            foreach (var l in _currentImage.Layers)
             {
                 if (l == null)
                 {
@@ -401,208 +344,379 @@ namespace Turnroot.Characters.Subclasses.Editor
             }
 
             // We draw our own per-element remove button so we can hide removal for mandatory layers
+            var layersList = _currentImage.Layers;
             _layersReorderList = new ReorderableList(
-                _layersSerializedObject,
-                layersProp,
+                layersList,
+                typeof(ImageStackLayer),
                 true,
                 true,
                 true,
-                false
+                true
             );
             _layersReorderList.drawHeaderCallback = rect =>
-                EditorGUI.LabelField(rect, $"Layers ({layersProp.arraySize})");
+                EditorGUI.LabelField(rect, $"Layers ({layersList?.Count ?? 0})");
             _layersReorderList.elementHeightCallback = index =>
-                EditorGUI.GetPropertyHeight(layersProp.GetArrayElementAtIndex(index), true) + 12;
+            {
+                var l = (index >= 0 && index < layersList.Count) ? layersList[index] : null;
+                if (l == null)
+                    return 48f;
+                float height = 20f; // header row
+                // one compact row for color/offset/scale
+                height += 22f;
+                // tag row
+                height += 20f;
+                // optional mask row if untagged
+                if (string.IsNullOrEmpty(l.Tag))
+                    height += 20f;
+                // padding
+                height += 6f;
+                return height;
+            };
             _layersReorderList.drawElementCallback = (rect, index, isActive, isFocused) =>
             {
-                var el = layersProp.GetArrayElementAtIndex(index);
                 rect.y += 2;
-                // Draw the element property field
-                Rect fieldRect = new Rect(
-                    rect.x,
-                    rect.y,
-                    rect.width - 60,
-                    EditorGUI.GetPropertyHeight(el, true)
-                );
-                EditorGUI.PropertyField(fieldRect, el, new GUIContent($"Layer {index}"), true);
+                var layer = (index >= 0 && index < layersList.Count) ? layersList[index] : null;
+                if (layer == null)
+                    return;
 
-                // Draw a per-element remove button unless the layer is tagged as mandatory
-                var tagProp = el.FindPropertyRelative("Tag");
-                string tag = tagProp != null ? tagProp.stringValue : string.Empty;
-                if (string.IsNullOrEmpty(tag) || !PortraitLayerTags.IsMandatory(tag))
+                // Layout constants
+                const float previewSize = 48f;
+                const float pad = 6f;
+                float x = rect.x;
+                float y = rect.y;
+                float width = rect.width;
+
+                // Header row: small foldout-like label with layer name or tag + sprite name
+                Rect headerRect = new Rect(x, y, width - previewSize - pad, 18f);
+                string headerLabel = !string.IsNullOrEmpty(layer.Tag)
+                    ? layer.Tag
+                    : $"Layer {index}";
+                EditorGUI.LabelField(headerRect, headerLabel, EditorStyles.boldLabel);
+
+                // Sprite selector (compact) to the right of the header label
+                Rect selectRect = new Rect(
+                    headerRect.xMax - 88f,
+                    headerRect.y,
+                    86f,
+                    headerRect.height
+                );
+                if (!string.IsNullOrEmpty(layer.Tag))
                 {
-                    Rect btnRect = new Rect(fieldRect.xMax + 4, fieldRect.y, 56, 18);
-                    if (GUI.Button(btnRect, "Remove"))
+                    var sprites = PortraitLayerSpriteCache.GetSprites(layer.Tag);
+                    var names = PortraitLayerSpriteCache.GetNames(layer.Tag);
+                    int currentIndex = -1;
+                    if (sprites != null)
                     {
-                        layersProp.DeleteArrayElementAtIndex(index);
-                        _layersSerializedObject.ApplyModifiedProperties();
-                        EditorUtility.SetDirty(imageStack);
-                        if (_autoRefresh)
+                        for (int i = 0; i < sprites.Length; i++)
                         {
+                            if (sprites[i] == layer.Sprite)
+                            {
+                                currentIndex = i;
+                                break;
+                            }
+                        }
+                    }
+
+                    string btnLabel =
+                        currentIndex >= 0 && names != null ? names[currentIndex] : "Select...";
+                    var btnContent = new GUIContent(
+                        btnLabel,
+                        $"Open sprite picker for tag '{layer.Tag}'."
+                    );
+                    if (GUI.Button(selectRect, btnContent))
+                    {
+                        var popup = new FilteredSpritePicker(
+                            layer.Tag,
+                            s =>
+                            {
+                                Undo.RecordObject(_currentOwner, "Portrait layer sprite");
+                                layer.Sprite = s;
+                                EditorUtility.SetDirty(_currentOwner);
+                                if (_autoRefresh)
+                                    RefreshPreview();
+                            },
+                            currentIndex >= 0 && sprites != null ? sprites[currentIndex] : null
+                        );
+                        PopupWindow.Show(selectRect, popup);
+                    }
+                }
+                else
+                {
+                    EditorGUI.BeginChangeCheck();
+                    var spr = (Sprite)
+                        EditorGUI.ObjectField(
+                            selectRect,
+                            GUIContent.none,
+                            layer.Sprite,
+                            typeof(Sprite),
+                            false
+                        );
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        Undo.RecordObject(_currentOwner, "Change layer sprite");
+                        layer.Sprite = spr;
+                        EditorUtility.SetDirty(_currentOwner);
+                        if (_autoRefresh)
                             RefreshPreview();
+                    }
+                }
+
+                // Preview on the right (top-aligned)
+                Rect previewRect = new Rect(x + width - previewSize, y, previewSize, previewSize);
+                if (layer.Sprite != null)
+                {
+                    EditorGUI.DrawPreviewTexture(
+                        previewRect,
+                        AssetPreview.GetAssetPreview(layer.Sprite) ?? layer.Sprite.texture
+                    );
+                    // Draw order badge
+                    Rect orderRect = new Rect(previewRect.x + 2, previewRect.y + 2, 18, 18);
+                    EditorGUI.DrawRect(orderRect, new Color(0f, 0f, 0f, 0.7f));
+                    GUIStyle orderStyle = new GUIStyle(GUI.skin.label)
+                    {
+                        alignment = TextAnchor.MiddleCenter,
+                        normal = { textColor = Color.white },
+                        fontStyle = FontStyle.Bold,
+                        fontSize = 10,
+                    };
+                    GUI.Label(orderRect, layer.Order.ToString(), orderStyle);
+                }
+
+                y += 20f;
+
+                // Compact row: Layer Color (if unmasked), Offset X/Y, Scale
+                float leftAreaWidth = width - previewSize - pad;
+                float cursorX = x;
+
+                // Layer Color (for Unmasked layers)
+                if (layer is UnmaskedImageStackLayer u)
+                {
+                    // Compact label + small color field to avoid overlap with the Offset label
+                    Rect colorLabelRect = new Rect(cursorX, y, 70f, 18f);
+                    EditorGUI.LabelField(
+                        colorLabelRect,
+                        new GUIContent(
+                            "Layer Color",
+                            "Per-layer tint: applied to unmasked grayscale sprites (e.g., hair). Not applied if sprite already contains color."
+                        )
+                    );
+                    Rect colorFieldRect = new Rect(colorLabelRect.xMax + 6f, y, 36f, 18f);
+                    EditorGUI.BeginChangeCheck();
+                    var newCol = EditorGUI.ColorField(colorFieldRect, GUIContent.none, u.Tint);
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        Undo.RecordObject(_currentOwner, "Change layer tint");
+                        u.Tint = newCol;
+                        EditorUtility.SetDirty(_currentOwner);
+                        if (_autoRefresh)
+                            RefreshPreview();
+                    }
+                    cursorX += colorLabelRect.width + 6f + colorFieldRect.width + 8f;
+                }
+
+                // Offset X / Y fields (inline) - draw small label then unlabeled float fields to avoid internal label overlap
+                Rect offsetLabelRect = new Rect(cursorX, y, 36f, 18f);
+                EditorGUI.LabelField(
+                    offsetLabelRect,
+                    new GUIContent(
+                        "Offset",
+                        "Pixel offset applied to the layer when compositing (X, Y)."
+                    )
+                );
+                Rect offXRect = new Rect(offsetLabelRect.xMax + 6f, y, 52f, 18f);
+                Rect offYRect = new Rect(offXRect.xMax + 6f, y, 52f, 18f);
+                Rect scaleLabelRect = new Rect(offYRect.xMax + 8f, y, 40f, 18f);
+                Rect scaleValRect = new Rect(scaleLabelRect.xMax + 6f, y, 48f, 18f);
+
+                EditorGUI.BeginChangeCheck();
+                float newOffX = EditorGUI.FloatField(offXRect, GUIContent.none, layer.Offset.x);
+                float newOffY = EditorGUI.FloatField(offYRect, GUIContent.none, layer.Offset.y);
+                EditorGUI.LabelField(
+                    scaleLabelRect,
+                    new GUIContent("Scale", "Scale multiplier applied to the layer sprite.")
+                );
+                float newScale = EditorGUI.FloatField(scaleValRect, GUIContent.none, layer.Scale);
+
+                if (EditorGUI.EndChangeCheck())
+                {
+                    Undo.RecordObject(_currentOwner, "Change layer transform");
+                    layer.Offset = new Vector2(newOffX, newOffY);
+                    layer.Scale = newScale;
+                    EditorUtility.SetDirty(_currentOwner);
+                    if (_autoRefresh)
+                        RefreshPreview();
+                }
+
+                y += 22f;
+
+                // Tag row / Mask field (for untagged layers show Mask)
+                if (string.IsNullOrEmpty(layer.Tag))
+                {
+                    EditorGUI.BeginChangeCheck();
+                    var mask = (Sprite)
+                        EditorGUI.ObjectField(
+                            new Rect(x, y, width - previewSize - pad, 18f),
+                            new GUIContent(
+                                "Mask",
+                                "Mask sprite whose RGB channels control the global Tint Colors when present."
+                            ),
+                            layer.Mask,
+                            typeof(Sprite),
+                            false
+                        );
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        Undo.RecordObject(_currentOwner, "Change layer mask");
+                        layer.Mask = mask;
+                        EditorUtility.SetDirty(_currentOwner);
+                        if (_autoRefresh)
+                            RefreshPreview();
+                    }
+                }
+                else
+                {
+                    // Tag selector (compact)
+                    string[] all = PortraitLayerTags.Names();
+                    string[] popupOptions = new string[all.Length + 1];
+                    popupOptions[0] = "<none>";
+                    for (int i = 0; i < all.Length; i++)
+                        popupOptions[i + 1] = all[i];
+
+                    int tagIdx = 0;
+                    for (int i = 0; i < all.Length; i++)
+                    {
+                        if (string.Equals(all[i], layer.Tag, StringComparison.OrdinalIgnoreCase))
+                        {
+                            tagIdx = i + 1;
+                            break;
+                        }
+                    }
+
+                    // Tag label + popup (compact)
+                    EditorGUI.LabelField(
+                        new Rect(x, y, 48f, 18f),
+                        new GUIContent(
+                            "Tag",
+                            "Select a portrait layer tag. Mandatory tags are locked and only one layer per tag is allowed."
+                        )
+                    );
+                    int newTagSel = EditorGUI.Popup(
+                        new Rect(x + 52f, y, width - previewSize - pad - 52f, 18f),
+                        tagIdx,
+                        popupOptions
+                    );
+                    string newTag = newTagSel == 0 ? string.Empty : all[newTagSel - 1];
+                    if (
+                        !string.Equals(
+                            layer.Tag ?? string.Empty,
+                            newTag,
+                            StringComparison.OrdinalIgnoreCase
+                        )
+                    )
+                    {
+                        // enforce uniqueness
+                        bool duplicate = false;
+                        for (int _i = 0; _i < layersList.Count; _i++)
+                            if (
+                                _i != index
+                                && string.Equals(
+                                    layersList[_i]?.Tag,
+                                    newTag,
+                                    StringComparison.OrdinalIgnoreCase
+                                )
+                            )
+                            {
+                                duplicate = true;
+                                break;
+                            }
+                        if (duplicate)
+                        {
+                            EditorUtility.DisplayDialog(
+                                "Duplicate Tag",
+                                $"Only one layer may use the tag '{newTag}'. Reverting the change.",
+                                "OK"
+                            );
+                        }
+                        else
+                        {
+                            Undo.RecordObject(_currentOwner, "Change layer tag");
+                            layer.Tag = newTag;
+                            if (!string.IsNullOrEmpty(newTag))
+                                layer.Mask = null;
+                            if (
+                                !string.IsNullOrEmpty(newTag)
+                                && string.Equals(newTag, "Face", StringComparison.OrdinalIgnoreCase)
+                            )
+                                layer.Order = 0;
+                            EditorUtility.SetDirty(_currentOwner);
+                            if (_autoRefresh)
+                                RefreshPreview();
                         }
                     }
                 }
             };
 
-            var stackRef = imageStack;
-
             _layersReorderList.onAddCallback = list =>
             {
-                // Increase the array size, then move the newly-created slot to index 0
-                layersProp.arraySize++;
-                int srcIndex = layersProp.arraySize - 1;
-                int newIndex = 0;
-                if (srcIndex != newIndex)
+                var newLayer = new ImageStackLayer()
                 {
-                    layersProp.MoveArrayElement(srcIndex, newIndex);
-                }
-
-                var newEl = layersProp.GetArrayElementAtIndex(newIndex);
-                if (newEl != null)
-                {
-                    var spriteProp = newEl.FindPropertyRelative("Sprite");
-                    var maskProp = newEl.FindPropertyRelative("Mask");
-                    var offsetProp = newEl.FindPropertyRelative("Offset");
-                    var scaleProp = newEl.FindPropertyRelative("Scale");
-                    var rotationProp = newEl.FindPropertyRelative("Rotation");
-                    var orderProp = newEl.FindPropertyRelative("Order");
-                    var tagProp = newEl.FindPropertyRelative("Tag");
-                    var tintProp = newEl.FindPropertyRelative("Tint");
-
-                    if (spriteProp != null)
-                    {
-                        spriteProp.objectReferenceValue = null;
-                    }
-
-                    if (maskProp != null)
-                    {
-                        maskProp.objectReferenceValue = null;
-                    }
-
-                    if (offsetProp != null)
-                    {
-                        offsetProp.vector2Value = Vector2.zero;
-                    }
-
-                    if (scaleProp != null)
-                    {
-                        scaleProp.floatValue = 1f;
-                    }
-
-                    if (rotationProp != null)
-                    {
-                        rotationProp.floatValue = 0f;
-                    }
-
-                    // Put new layer at the front: give it a high Order so it renders on top.
-                    if (orderProp != null)
-                    {
-                        int maxOrder = int.MinValue;
-                        for (int i = 0; i < layersProp.arraySize; i++)
-                        {
-                            if (i == newIndex)
-                            {
-                                continue;
-                            }
-
-                            var o = layersProp
-                                .GetArrayElementAtIndex(i)
-                                .FindPropertyRelative("Order");
-                            if (o != null)
-                            {
-                                maxOrder = Mathf.Max(maxOrder, o.intValue);
-                            }
-                        }
-                        orderProp.intValue = (maxOrder == int.MinValue) ? 1 : (maxOrder + 1);
-                    }
-
-                    // Ensure new layers are normal (no tag) and have default tint/manual settings
-                    if (tagProp != null)
-                    {
-                        tagProp.stringValue = string.Empty;
-                    }
-
-                    if (tintProp != null)
-                    {
-                        tintProp.colorValue = Color.white;
-                    }
-                }
-
-                _layersSerializedObject.ApplyModifiedProperties();
-                EditorUtility.SetDirty(stackRef);
+                    Sprite = null,
+                    Mask = null,
+                    Offset = Vector2.zero,
+                    Scale = 1f,
+                    Rotation = 0f,
+                    Order = layersList.Count > 0 ? layersList.Max(l => l?.Order ?? 0) + 1 : 1,
+                    Tag = string.Empty,
+                    Tint = Color.white,
+                };
+                Undo.RecordObject(_currentOwner, "Add layer");
+                layersList.Insert(0, newLayer);
+                EditorUtility.SetDirty(_currentOwner);
                 if (_autoRefresh)
-                {
                     RefreshPreview();
-                }
             };
 
             _layersReorderList.onRemoveCallback = list =>
             {
                 int removeIndex = list.index;
+                if (removeIndex < 0 || removeIndex >= layersList.Count)
+                    return;
 
-                // Prevent removal of mandatory portrait layers identified by Tag (e.g., "Hair")
-                var elToRemove = layersProp.GetArrayElementAtIndex(removeIndex);
-                if (elToRemove != null)
+                var layer = layersList[removeIndex];
+                if (!string.IsNullOrEmpty(layer.Tag) && PortraitLayerTags.IsMandatory(layer.Tag))
                 {
-                    var tagProp = elToRemove.FindPropertyRelative("Tag");
-                    if (tagProp != null && !string.IsNullOrEmpty(tagProp.stringValue))
-                    {
-                        string tag = tagProp.stringValue;
-                        if (PortraitLayerTags.IsMandatory(tag))
-                        {
-                            EditorUtility.DisplayDialog(
-                                "Cannot remove layer",
-                                $"The '{tag}' layer is mandatory for portraits and cannot be removed.",
-                                "OK"
-                            );
-                            return;
-                        }
-                    }
+                    EditorUtility.DisplayDialog(
+                        "Cannot remove layer",
+                        $"The '{layer.Tag}' layer is mandatory for portraits and cannot be removed.",
+                        "OK"
+                    );
+                    return;
                 }
 
-                layersProp.DeleteArrayElementAtIndex(removeIndex);
-                _layersSerializedObject.ApplyModifiedProperties();
-
-                for (int i = 0; i < layersProp.arraySize; i++)
+                Undo.RecordObject(_currentOwner, "Remove layer");
+                layersList.RemoveAt(removeIndex);
+                // Reassign orders
+                for (int i = 0; i < layersList.Count; i++)
                 {
-                    var el = layersProp.GetArrayElementAtIndex(i);
-                    var orderProp = el.FindPropertyRelative("Order");
-                    if (orderProp != null)
-                    {
-                        orderProp.intValue = (layersProp.arraySize - 1) - i;
-                    }
+                    layersList[i].Order = (layersList.Count - 1) - i;
                 }
-
-                _layersSerializedObject.ApplyModifiedProperties();
-                EditorUtility.SetDirty(stackRef);
+                EditorUtility.SetDirty(_currentOwner);
                 if (_autoRefresh)
-                {
                     RefreshPreview();
-                }
             };
 
             _layersReorderList.onChangedCallback = list =>
             {
-                for (int i = 0; i < layersProp.arraySize; i++)
+                // Recompute orders: front-most (index 0) gets highest order
+                for (int i = 0; i < layersList.Count; i++)
                 {
-                    var el = layersProp.GetArrayElementAtIndex(i);
-                    var orderProp = el.FindPropertyRelative("Order");
-                    if (orderProp != null)
-                    {
-                        orderProp.intValue = (layersProp.arraySize - 1) - i;
-                    }
+                    layersList[i].Order = (layersList.Count - 1) - i;
                 }
-
-                _layersSerializedObject.ApplyModifiedProperties();
-                EditorUtility.SetDirty(stackRef);
+                Undo.RecordObject(_currentOwner, "Reorder layers");
+                EditorUtility.SetDirty(_currentOwner);
                 if (_autoRefresh)
-                {
                     RefreshPreview();
-                }
             };
-
-            _lastListImageStack = imageStack;
         }
 
         protected override Portrait[] GetImagesFromOwner(CharacterData owner)
