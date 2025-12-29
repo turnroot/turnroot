@@ -21,28 +21,22 @@ namespace Turnroot.Graphics2D.Editor
         /// Return an array of tags that must exist in the ImageStack and cannot be removed.
         /// Default: empty (no enforced tags). Override in Portrait-specific editor.
         /// </summary>
-        protected virtual string[] GetMandatoryLayerTags()
-        {
-            return Array.Empty<string>();
-        }
+        protected virtual string[] GetMandatoryLayerTags() => Array.Empty<string>();
 
         /// <summary>
         /// Return an array of indices (0-based) that cannot be removed from the stack.
         /// Default: empty. Override to reserve specific positions.
         /// </summary>
-        protected virtual int[] GetMandatoryLayerIndices()
-        {
-            return Array.Empty<int>();
-        }
+        protected virtual int[] GetMandatoryLayerIndices() => Array.Empty<int>();
 
         protected override void DrawControlPanel()
         {
             // Let base draw its panels (including layer management)
             base.DrawControlPanel();
 
-            // If current image stack exists, ensure mandatory tags/indices are present
-            var imageStack = _currentImage.ImageStack;
-            if (imageStack == null)
+            // If current image layers exist, ensure mandatory tags/indices are present
+            var layers = _currentImage.Layers;
+            if (layers == null)
             {
                 return;
             }
@@ -53,23 +47,24 @@ namespace Turnroot.Graphics2D.Editor
             // Ensure mandatory-tagged layers exist (if not, add placeholders at the end)
             foreach (var tag in tags)
             {
-                bool found = imageStack.Layers.Any(l =>
+                bool found = layers.Any(l =>
                     string.Equals(l?.Tag ?? string.Empty, tag, StringComparison.OrdinalIgnoreCase)
                 );
                 if (!found)
                 {
-                    var newLayer = new ImageStackLayer()
+                    var newLayer = new UnmaskedImageStackLayer()
                     {
                         Sprite = null,
                         Mask = null,
                         Offset = Vector2.zero,
                         Scale = 1f,
                         Rotation = 0f,
-                        Order = imageStack.Layers.Count,
+                        Order = layers.Count,
                         Tag = tag,
+                        Tint = Color.white,
                     };
-                    imageStack.Layers.Add(newLayer);
-                    EditorUtility.SetDirty(imageStack);
+                    layers.Add(newLayer);
+                    EditorUtility.SetDirty(_currentOwner);
                 }
             }
 
@@ -77,7 +72,7 @@ namespace Turnroot.Graphics2D.Editor
             if (indices != null && indices.Length > 0)
             {
                 int maxIndex = indices.Max();
-                while (imageStack.Layers.Count <= maxIndex)
+                while (layers.Count <= maxIndex)
                 {
                     var newLayer = new ImageStackLayer()
                     {
@@ -86,10 +81,10 @@ namespace Turnroot.Graphics2D.Editor
                         Offset = Vector2.zero,
                         Scale = 1f,
                         Rotation = 0f,
-                        Order = imageStack.Layers.Count,
+                        Order = layers.Count,
                     };
-                    imageStack.Layers.Add(newLayer);
-                    EditorUtility.SetDirty(imageStack);
+                    layers.Add(newLayer);
+                    EditorUtility.SetDirty(_currentOwner);
                 }
             }
 
@@ -127,40 +122,29 @@ namespace Turnroot.Graphics2D.Editor
                     return;
                 }
 
-                // Check by tag requirement
-                var layersProp = (new SerializedObject(imageStack)).FindProperty("_layers");
-                if (layersProp != null && removeIndex >= 0 && removeIndex < layersProp.arraySize)
+                // Check by tag requirement using runtime list
+                if (removeIndex >= 0 && removeIndex < layers.Count)
                 {
-                    var el = layersProp.GetArrayElementAtIndex(removeIndex);
-                    var tagProp = el.FindPropertyRelative("Tag");
-                    if (tagProp != null)
+                    var el = layers[removeIndex];
+                    string tag = el?.Tag ?? string.Empty;
+                    if (
+                        !string.IsNullOrEmpty(tag)
+                        && tags.Contains(tag, StringComparer.OrdinalIgnoreCase)
+                    )
                     {
-                        string tag = tagProp.stringValue;
-                        if (
-                            !string.IsNullOrEmpty(tag)
-                            && tags.Contains(tag, StringComparer.OrdinalIgnoreCase)
-                        )
-                        {
-                            EditorUtility.DisplayDialog(
-                                "Cannot remove layer",
-                                "This layer is mandatory for portraits (tag: "
-                                    + tag
-                                    + ") and cannot be removed.",
-                                "OK"
-                            );
-                            return;
-                        }
+                        EditorUtility.DisplayDialog(
+                            "Cannot remove layer",
+                            "This layer is mandatory for portraits (tag: "
+                                + tag
+                                + ") and cannot be removed.",
+                            "OK"
+                        );
+                        return;
                     }
-                }
 
-                // Fallback to default removal behavior (delete element at index)
-                var so = new SerializedObject(imageStack);
-                var layers = so.FindProperty("_layers");
-                if (layers != null)
-                {
-                    layers.DeleteArrayElementAtIndex(removeIndex);
-                    so.ApplyModifiedProperties();
-                    EditorUtility.SetDirty(imageStack);
+                    // Default removal behavior
+                    layers.RemoveAt(removeIndex);
+                    EditorUtility.SetDirty(_currentOwner);
                 }
             };
         }

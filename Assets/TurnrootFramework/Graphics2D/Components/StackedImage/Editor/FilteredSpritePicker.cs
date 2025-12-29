@@ -38,10 +38,7 @@ public class FilteredSpritePicker : PopupWindowContent
         }
     }
 
-    public override Vector2 GetWindowSize()
-    {
-        return new Vector2(360, 360);
-    }
+    public override Vector2 GetWindowSize() => new(360, 360);
 
     public override void OnGUI(Rect rect)
     {
@@ -85,7 +82,7 @@ public class FilteredSpritePicker : PopupWindowContent
 
                 Texture preview =
                     AssetPreview.GetAssetPreview(s)
-                    ?? (Texture)EditorGUIUtility.IconContent("Sprite Icon").image;
+                    ?? EditorGUIUtility.IconContent("Sprite Icon").image;
 
                 // Click behavior: select and close
                 if (GUI.Button(tileRect, GUIContent.none))
@@ -164,14 +161,8 @@ public class FilteredSpritePicker : PopupWindowContent
             }
             else if (ev.keyCode == KeyCode.DownArrow)
             {
-                if (_selectedIndex < 0)
-                {
-                    _selectedIndex = 0;
-                }
-                else
-                {
-                    _selectedIndex = Mathf.Min(_sprites.Length - 1, _selectedIndex + cols);
-                }
+                _selectedIndex =
+                    _selectedIndex < 0 ? 0 : Mathf.Min(_sprites.Length - 1, _selectedIndex + cols);
 
                 ev.Use();
             }

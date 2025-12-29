@@ -1,5 +1,5 @@
 using System;
-using Turnroot.Characters;
+using Turnroot.Graphics2D.Tags;
 using UnityEditor;
 using UnityEngine;
 
@@ -10,8 +10,6 @@ public class ImageStackLayerDrawer : PropertyDrawer
     private const float Spacing = 4f;
     private const float FieldHeight = 18f;
 
-    // Use PortraitLayerSpriteCache for portrait-specific sprite lists per tag.
-
     public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
     {
         _ = EditorGUI.BeginProperty(position, label, property);
@@ -21,7 +19,6 @@ public class ImageStackLayerDrawer : PropertyDrawer
         var maskProp = property.FindPropertyRelative("Mask");
         var offsetProp = property.FindPropertyRelative("Offset");
         var scaleProp = property.FindPropertyRelative("Scale");
-        var rotationProp = property.FindPropertyRelative("Rotation");
         var orderProp = property.FindPropertyRelative("Order");
 
         // Draw foldout
@@ -87,7 +84,7 @@ public class ImageStackLayerDrawer : PropertyDrawer
                     }
 
                     // Draw a button that opens a grid popup of sprite previews
-                    string buttonLabel = currentIndex >= 0 ? names[currentIndex] : "Select...";
+                    string buttonLabel = currentIndex >= 0 ? names[currentIndex] : "Select Image";
                     if (GUI.Button(popupRect, buttonLabel))
                     {
                         var popup = new FilteredSpritePicker(
@@ -97,10 +94,7 @@ public class ImageStackLayerDrawer : PropertyDrawer
                                 spriteProp.objectReferenceValue = s;
                                 property.serializedObject.ApplyModifiedProperties();
 #if UNITY_EDITOR
-                                if (
-                                    !UnityEditor.EditorApplication.isCompiling
-                                    && !UnityEditor.EditorApplication.isUpdating
-                                )
+                                if (!EditorApplication.isCompiling && !EditorApplication.isUpdating)
                                 {
                                     EditorUtility.SetDirty(property.serializedObject.targetObject);
                                 }
@@ -142,22 +136,66 @@ public class ImageStackLayerDrawer : PropertyDrawer
             {
                 fieldRect.y = yPos;
                 fieldRect.height = EditorGUI.GetPropertyHeight(maskProp, true);
-                _ = EditorGUI.PropertyField(fieldRect, maskProp, new GUIContent("Mask"));
+                _ = EditorGUI.PropertyField(
+                    fieldRect,
+                    maskProp,
+                    new GUIContent(
+                        "Mask",
+                        "Mask sprite whose RGB channels control the global Tint Colors when present. Use masks to apply per-channel tints via the three global tint colors."
+                    )
+                );
+                // finalize mask layout
                 h = EditorGUI.GetPropertyHeight(maskProp, true);
                 yPos += h + Spacing;
             }
-            else
+            // Offset & Scale (compact inline layout)
+            fieldRect.y = yPos;
+            fieldRect.height = FieldHeight;
+
+            float labelW = 44f;
+            Rect offsetLabelRect = new Rect(fieldRect.x, fieldRect.y, labelW, fieldRect.height);
+            EditorGUI.LabelField(
+                offsetLabelRect,
+                new GUIContent(
+                    "Offset",
+                    "Pixel offset applied to the layer when compositing (X,Y)."
+                )
+            );
+
+            Rect offXRect = new Rect(offsetLabelRect.xMax + 6f, fieldRect.y, 52f, fieldRect.height);
+            Rect offYRect = new Rect(offXRect.xMax + 6f, fieldRect.y, 52f, fieldRect.height);
+
+            float currentX = offsetProp.vector2Value.x;
+            float currentY = offsetProp.vector2Value.y;
+
+            EditorGUI.BeginChangeCheck();
+            float newX = EditorGUI.FloatField(offXRect, GUIContent.none, currentX);
+            float newY = EditorGUI.FloatField(offYRect, GUIContent.none, currentY);
+
+            // Scale
+            Rect scaleLabelRect = new Rect(offYRect.xMax + 8f, fieldRect.y, 40f, fieldRect.height);
+            Rect scaleValRect = new Rect(
+                scaleLabelRect.xMax + 6f,
+                fieldRect.y,
+                48f,
+                fieldRect.height
+            );
+            EditorGUI.LabelField(
+                scaleLabelRect,
+                new GUIContent("Scale", "Scale multiplier applied to the layer sprite.")
+            );
+            float newScale = scaleProp != null ? scaleProp.floatValue : 1f;
+            newScale = EditorGUI.FloatField(scaleValRect, GUIContent.none, newScale);
+
+            if (EditorGUI.EndChangeCheck())
             {
-                // No mask for hair/unmasked layers; ensure spacing accounts for the absent field
-                // (we already incremented yPos for sprite and the tint field if present)
+                offsetProp.vector2Value = new Vector2(newX, newY);
+                if (scaleProp != null)
+                    scaleProp.floatValue = newScale;
+                property.serializedObject.ApplyModifiedProperties();
             }
 
-            // Offset (Vector2)
-            fieldRect.y = yPos;
-            fieldRect.height = EditorGUI.GetPropertyHeight(offsetProp, true);
-            _ = EditorGUI.PropertyField(fieldRect, offsetProp, new GUIContent("Offset"));
-            h = EditorGUI.GetPropertyHeight(offsetProp, true);
-            yPos += h + Spacing;
+            yPos += fieldRect.height + Spacing;
 
             // Scale
             fieldRect.y = yPos;
@@ -173,7 +211,7 @@ public class ImageStackLayerDrawer : PropertyDrawer
             string oldTag = tagFieldProp != null ? tagFieldProp.stringValue : string.Empty;
 
             // Build popup options with an initial empty option
-            var all = PortraitLayerTags.All;
+            string[] all = PortraitLayerTags.Names();
             string[] popupOptions = new string[all.Length + 1];
             popupOptions[0] = "<none>";
             for (int i = 0; i < all.Length; i++)
@@ -194,9 +232,16 @@ public class ImageStackLayerDrawer : PropertyDrawer
                 }
             }
 
+            // Tag label with tooltip
+            EditorGUI.LabelField(
+                new Rect(fieldRect.x, fieldRect.y, 48f, FieldHeight),
+                new GUIContent(
+                    "Tag",
+                    "Select a portrait layer tag. Mandatory tags are locked and only one layer per tag is allowed."
+                )
+            );
             int tagSel = EditorGUI.Popup(
-                new Rect(fieldRect.x, fieldRect.y, fieldRect.width, FieldHeight),
-                "Tag",
+                new Rect(fieldRect.x + 52f, fieldRect.y, fieldRect.width - 52f, FieldHeight),
                 tagCurrentIndex,
                 popupOptions
             );
@@ -266,7 +311,7 @@ public class ImageStackLayerDrawer : PropertyDrawer
                     {
                         tagFieldProp.stringValue = newTag;
 
-                        // Commit the property change then convert the runtime layer type
+                        // Commit the property change
                         property.serializedObject.ApplyModifiedProperties();
 
                         // Determine array index from property path like '_layers.Array.data[3]'
@@ -285,110 +330,61 @@ public class ImageStackLayerDrawer : PropertyDrawer
                             }
                         }
 
-                        var stack =
-                            property.serializedObject.targetObject
-                            as Turnroot.Graphics.Portrait.ImageStack;
-                        if (stack != null && idx >= 0 && idx < stack.Layers.Count)
+                        // If we have a valid index, ensure mask is cleared for unmasked tagged layers
+                        if (idx >= 0 && layersProp != null && idx < layersProp.arraySize)
                         {
-                            var runtimeLayer = stack.Layers[idx];
-                            if (!string.IsNullOrEmpty(newTag))
-                            {
-                                // Convert to unmasked if needed
-                                if (!(runtimeLayer is UnmaskedImageStackLayer))
-                                {
-                                    var converted = new UnmaskedImageStackLayer();
-                                    converted.Sprite = runtimeLayer.Sprite;
-                                    converted.Mask = null;
-                                    converted.Offset = runtimeLayer.Offset;
-                                    converted.Scale = runtimeLayer.Scale;
-                                    converted.Rotation = runtimeLayer.Rotation;
-                                    converted.Order = runtimeLayer.Order;
-                                    converted.Tag = newTag;
-                                    converted.Tint = runtimeLayer.Tint;
+                            var targetLayersEl = layersProp.GetArrayElementAtIndex(idx);
+                            var targetMaskProp = targetLayersEl.FindPropertyRelative("Mask");
 
-                                    stack.Layers[idx] = converted;
-#if UNITY_EDITOR
-                                    if (
-                                        !UnityEditor.EditorApplication.isCompiling
-                                        && !UnityEditor.EditorApplication.isUpdating
-                                    )
-                                    {
-                                        EditorUtility.SetDirty(stack);
-                                    }
-#endif
-                                }
-                            }
-                            else
+                            if (!string.IsNullOrEmpty(newTag) && targetMaskProp != null)
                             {
-                                // Convert back to normal layer if currently unmasked
-                                if (runtimeLayer is UnmaskedImageStackLayer)
-                                {
-                                    var converted = new ImageStackLayer();
-                                    converted.Sprite = runtimeLayer.Sprite;
-                                    converted.Mask = runtimeLayer.Mask;
-                                    converted.Offset = runtimeLayer.Offset;
-                                    converted.Scale = runtimeLayer.Scale;
-                                    converted.Rotation = runtimeLayer.Rotation;
-                                    converted.Order = runtimeLayer.Order;
-                                    converted.Tag = newTag;
-                                    converted.Tint = runtimeLayer.Tint;
-
-                                    stack.Layers[idx] = converted;
-#if UNITY_EDITOR
-                                    if (
-                                        !UnityEditor.EditorApplication.isCompiling
-                                        && !UnityEditor.EditorApplication.isUpdating
-                                    )
-                                    {
-                                        EditorUtility.SetDirty(stack);
-                                    }
-#endif
-                                }
+                                targetMaskProp.objectReferenceValue = null;
                             }
 
                             // Recompute order so Face is always order 0, others sequential
                             int orderCounter = 1;
-                            for (int i = 0; i < stack.Layers.Count; i++)
+                            for (int i = 0; i < layersProp.arraySize; i++)
                             {
-                                var l = stack.Layers[i];
-                                if (l == null)
-                                {
+                                var el = layersProp.GetArrayElementAtIndex(i);
+                                var orderPropLocal = el.FindPropertyRelative("Order");
+                                var tagPropLocal = el.FindPropertyRelative("Tag");
+                                if (orderPropLocal == null)
                                     continue;
-                                }
 
                                 if (
-                                    !string.IsNullOrEmpty(l.Tag)
+                                    tagPropLocal != null
+                                    && !string.IsNullOrEmpty(tagPropLocal.stringValue)
                                     && string.Equals(
-                                        l.Tag,
+                                        tagPropLocal.stringValue,
                                         "Face",
                                         StringComparison.OrdinalIgnoreCase
                                     )
                                 )
                                 {
-                                    l.Order = 0;
+                                    orderPropLocal.intValue = 0;
                                 }
                                 else
                                 {
-                                    l.Order = orderCounter;
+                                    orderPropLocal.intValue = orderCounter;
                                     orderCounter++;
                                 }
                             }
+
+                            property.serializedObject.ApplyModifiedProperties();
 #if UNITY_EDITOR
+                            var ownerObj =
+                                property.serializedObject.targetObject as UnityEngine.Object;
                             if (
-                                !UnityEditor.EditorApplication.isCompiling
-                                && !UnityEditor.EditorApplication.isUpdating
+                                ownerObj != null
+                                && !EditorApplication.isCompiling
+                                && !EditorApplication.isUpdating
                             )
                             {
-                                EditorUtility.SetDirty(stack);
+                                EditorUtility.SetDirty(ownerObj);
                             }
 #endif
-                            property.serializedObject.Update();
                         }
                     }
-                }
-                else
-                {
-                    tagFieldProp.stringValue = string.Empty;
                 }
                 h = EditorGUI.GetPropertyHeight(tagFieldProp, true);
                 yPos += h + Spacing;
@@ -488,7 +484,6 @@ public class ImageStackLayerDrawer : PropertyDrawer
         var maskProp = property.FindPropertyRelative("Mask");
         var offsetProp = property.FindPropertyRelative("Offset");
         var scaleProp = property.FindPropertyRelative("Scale");
-        var rotationProp = property.FindPropertyRelative("Rotation");
         var tagProp = property.FindPropertyRelative("Tag");
         var tintProp = property.FindPropertyRelative("Tint");
 
@@ -522,12 +517,12 @@ public class ImageStackLayerDrawer : PropertyDrawer
 
         if (offsetProp != null)
         {
-            height += EditorGUI.GetPropertyHeight(offsetProp, true) + Spacing;
+            height += FieldHeight + Spacing;
         }
 
         if (scaleProp != null)
         {
-            height += EditorGUI.GetPropertyHeight(scaleProp, true) + Spacing;
+            height += FieldHeight + Spacing;
         }
 
         // Tag field

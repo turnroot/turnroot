@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Turnroot.Graphics2D.Tags;
 using UnityEditor;
 using UnityEngine;
 
@@ -33,7 +34,15 @@ public static class PortraitLayerSpriteCache
     {
         _sprites.Clear();
         _names.Clear();
+
+        // Refresh caches for all known portrait tags from the registry
+        foreach (var name in PortraitLayerTags.Names())
+        {
+            Refresh(name);
+        }
     }
+
+    public static void Refresh(ILayerTag tag) => Refresh(tag?.Name);
 
     public static void Refresh(string tag)
     {
@@ -43,6 +52,14 @@ public static class PortraitLayerSpriteCache
             _sprites.Remove(tag);
             _names.Remove(tag);
             return;
+        }
+
+        // If the tag isn't registered, warn -- still allow refreshing custom tags.
+        if (!PortraitLayerTags.TryGet(tag, out _))
+        {
+            Debug.LogWarning(
+                $"Refreshing sprites for unknown portrait tag '{tag}'. This tag is not registered in PortraitLayerTags."
+            );
         }
 
         var partial = TagToPartial(tag);
@@ -67,6 +84,12 @@ public static class PortraitLayerSpriteCache
         _sprites[tag] = results.ToArray();
         _names[tag] = names.ToArray();
     }
+
+    public static Sprite[] GetSprites(ILayerTag tag) =>
+        tag == null ? Array.Empty<Sprite>() : GetSprites(tag.Name);
+
+    public static string[] GetNames(ILayerTag tag) =>
+        tag == null ? Array.Empty<string>() : GetNames(tag.Name);
 
     public static Sprite[] GetSprites(string tag)
     {
