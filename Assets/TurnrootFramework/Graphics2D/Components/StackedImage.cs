@@ -216,7 +216,7 @@ namespace Turnroot.Graphics2D
             Graphics2DSettings settings = null;
             try
             {
-                settings = Utilities.GameSettingsLoader.LoadFirst<Graphics2DSettings>(
+                settings = Turnroot.Utilities.GameSettingsLoader.LoadFirst<Graphics2DSettings>(
                     "GameSettings"
                 );
             }
@@ -269,7 +269,7 @@ namespace Turnroot.Graphics2D
                     Offset = src.Offset,
                     Scale = src.Scale,
                     Rotation = src.Rotation,
-                    Order = src.Order
+                    Order = src.Order,
                 };
                 // Preserve Tag if present on source
                 try
@@ -290,10 +290,7 @@ namespace Turnroot.Graphics2D
                             // Use reflection to set Tint on the copy if available
                             var copyType = copy.GetType();
                             var copyTintField = copyType.GetField("Tint");
-                            if (copyTintField != null)
-                            {
-                                copyTintField.SetValue(copy, c);
-                            }
+                            copyTintField?.SetValue(copy, c);
                         }
                     }
                 }
