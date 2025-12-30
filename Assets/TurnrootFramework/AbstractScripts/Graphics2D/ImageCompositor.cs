@@ -140,13 +140,13 @@ namespace Assets.AbstractScripts.Graphics2D
                 }
 
                 if (
-                    mask.texture.width != sprite.texture.width
-                    || mask.texture.height != sprite.texture.height
+                    !Turnroot.Graphics2D.Utilities.TextureValidator.ValidateMatch(
+                        sprite.texture,
+                        mask.texture,
+                        $"Tinting skipped for layer {layerIndex} (sprite='{spriteName}', mask='{maskName}', tag='{layerTag}')"
+                    )
                 )
                 {
-                    Debug.LogWarning(
-                        $"Tinting skipped for layer {layerIndex} (sprite='{spriteName}', mask='{maskName}', tag='{layerTag}'): size mismatch (sprite={sprite.texture.width}x{sprite.texture.height}, mask={mask.texture.width}x{mask.texture.height}). Ensure both textures are the same dimensions."
-                    );
                     return null;
                 }
 
@@ -310,13 +310,13 @@ namespace Assets.AbstractScripts.Graphics2D
 
                 // Validate layer size matches base texture
                 if (
-                    layer.texture.width != baseTexture.width
-                    || layer.texture.height != baseTexture.height
+                    !Turnroot.Graphics2D.Utilities.TextureValidator.ValidateMatch(
+                        baseTexture,
+                        layer.texture,
+                        $"Layer {layerIndex} size mismatch. Skipping."
+                    )
                 )
                 {
-                    Debug.LogWarning(
-                        $"Layer {layerIndex} size mismatch. Skipping. Expected {baseTexture.width}x{baseTexture.height}, got {layer.texture.width}x{layer.texture.height}"
-                    );
                     continue;
                 }
 
