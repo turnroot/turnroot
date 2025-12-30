@@ -15,7 +15,7 @@ public class RadialMenuContent : MonoBehaviour, IRadialMenuContent
     public void SetLabel(string text)
     {
         if (labelText != null)
-            labelText.text = text ?? "";
+            labelText.text = text ?? "Segment";
     }
 
     public void SetIcon(Sprite icon)

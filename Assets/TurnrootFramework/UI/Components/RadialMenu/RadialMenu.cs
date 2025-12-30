@@ -162,8 +162,6 @@ namespace Turnroot.UI.Components.RadialMenu
 
         private void OnSelectPerformed(InputAction.CallbackContext context) => ConfirmSelection();
 
-        private void Update() => HandleNavigationInput();
-
         private void Update()
         {
             HandleNavigationInput();
@@ -196,11 +194,7 @@ namespace Turnroot.UI.Components.RadialMenu
                     else if (direction != _lastNavigateInput)
                     {
                         // Direction changed - check for reversal
-                        if (
-                            _justNavigated
-                            && GetDirectionInt(direction) != GetDirectionInt(_lastNavigateInput)
-                            && centerItem != null
-                        )
+                        if (_justNavigated && direction != _lastNavigateInput && centerItem != null)
                         {
                             // Opposite direction during reversal window = select center
                             SelectItemByIndex(0, true);
@@ -397,7 +391,8 @@ namespace Turnroot.UI.Components.RadialMenu
 
         private void SetupCenterItem()
         {
-            if (centerItem == null)
+            // Do not resize or reposition a minimal sprite-only center item
+            if (centerItem == null || centerItem is RadialMenuItemSprite)
             {
                 return;
             }

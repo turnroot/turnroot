@@ -17,6 +17,9 @@ namespace Turnroot.UI.Components.RadialMenu
         private Image backgroundImage;
 
         [SerializeField]
+        private bool showIcon = false;
+
+        [SerializeField]
         private Color normalColor = Color.white;
 
         [SerializeField]
@@ -80,7 +83,7 @@ namespace Turnroot.UI.Components.RadialMenu
                 if (gw != null)
                 {
                     _contentComponent.ApplyVisibility(
-                        gw.RadialMenuHaveIcons,
+                        gw.RadialMenuHaveIcons && showIcon,
                         gw.RadialMenuHaveLabels
                     );
                 }
