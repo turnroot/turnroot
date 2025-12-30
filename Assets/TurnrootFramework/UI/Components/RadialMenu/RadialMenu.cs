@@ -8,11 +8,11 @@ namespace Turnroot.UI.Components.RadialMenu
     public class RadialMenu : MonoBehaviour
     {
         [Header("Menu Items")]
-        public List<RadialMenuItem> menuItems = new List<RadialMenuItem>();
+        public List<RadialMenuItemBase> menuItems = new List<RadialMenuItemBase>();
 
         [Header("Layout Settings")]
         [SerializeField]
-        private RadialMenuItem centerItem;
+        private RadialMenuItemBase centerItem;
 
         [SerializeField]
         private float innerRadiusPercent = 0.35f;
@@ -66,7 +66,7 @@ namespace Turnroot.UI.Components.RadialMenu
         private Vector2 _lastNavigateInput;
         private float _lastInputTime;
 
-        public event Action<RadialMenuItem> OnItemSelected;
+        public event Action<RadialMenuItemBase> OnItemSelected;
 
         private void OnEnable()
         {
@@ -80,9 +80,12 @@ namespace Turnroot.UI.Components.RadialMenu
             selectAction?.Disable();
         }
 
-        private void Start(){InitializeMenu();
-        StartCoroutine(LateRefresh());}
-
+        private void Start()
+        {
+            // Initialize and defer some layout till next frame
+            InitializeMenu();
+            StartCoroutine(LateRefresh());
+        }
 
         private System.Collections.IEnumerator LateRefresh()
         {
@@ -108,7 +111,7 @@ namespace Turnroot.UI.Components.RadialMenu
         {
             if (menuItems.Count == 0)
             {
-                RadialMenuItem[] allItems = GetComponentsInChildren<RadialMenuItem>();
+                RadialMenuItemBase[] allItems = GetComponentsInChildren<RadialMenuItemBase>();
                 foreach (var item in allItems)
                 {
                     if (item != centerItem && item.transform.parent == transform)
@@ -412,7 +415,7 @@ namespace Turnroot.UI.Components.RadialMenu
 
         public bool IsCenterSelected() => _centerSelected;
 
-        public RadialMenuItem GetSelectedItem()
+        public RadialMenuItemBase GetSelectedItem()
         {
             if (_centerSelected)
             {

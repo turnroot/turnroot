@@ -7,7 +7,7 @@ namespace Turnroot.UI.Components.RadialMenu
 {
     [RequireComponent(typeof(Image))]
     public class RadialMenuItem
-        : MonoBehaviour,
+        : RadialMenuItemBase,
             IPointerEnterHandler,
             IPointerExitHandler,
             IPointerClickHandler
@@ -29,23 +29,20 @@ namespace Turnroot.UI.Components.RadialMenu
         [SerializeField]
         private GameObject contentPrefab;
 
-        [SerializeField]
-        private bool isCenter = false;
-
-        private bool _isSelected = false;
-        private bool _isHovered = false;
+        [Header("Behavior")]
+        [
+            SerializeField,
+            Tooltip(
+                "If checked, the menu will NOT automatically reposition/scale/rotate or color content and background. Caller must handle transforms and colors manually."
+            )
+        ]
         private Material _material;
 
         // optional content prefab instance interface
         private IRadialMenuContent _contentComponent;
         private RectTransform _contentRect;
 
-        public event Action OnHoverEnter;
-        public event Action OnHoverExit;
-        public event Action OnClick;
-
-        public string ItemName => itemName;
-        public bool IsCenter => isCenter;
+        public override string ItemName => itemName;
 
         private void Awake()
         {
@@ -181,35 +178,35 @@ namespace Turnroot.UI.Components.RadialMenu
         public void OnPointerEnter(PointerEventData eventData)
         {
             _isHovered = true;
-            OnHoverEnter?.Invoke();
+            RaiseHoverEnter();
             UpdateVisuals();
         }
 
         public void OnPointerExit(PointerEventData eventData)
         {
             _isHovered = false;
-            OnHoverExit?.Invoke();
+            RaiseHoverExit();
             UpdateVisuals();
         }
 
         public void OnPointerClick(PointerEventData eventData)
         {
-            OnClick?.Invoke();
+            RaiseClick();
         }
 
-        public void Select()
+        public override void Select()
         {
-            _isSelected = true;
+            base.Select();
             UpdateVisuals();
         }
 
-        public void Deselect()
+        public override void Deselect()
         {
-            _isSelected = false;
+            base.Deselect();
             UpdateVisuals();
         }
 
-        public virtual void Activate()
+        public override void Activate()
         {
             Debug.Log($"Activated menu item: {itemName}");
         }
@@ -225,7 +222,7 @@ namespace Turnroot.UI.Components.RadialMenu
             backgroundImage.color = _isSelected ? selectedColor : normalColor;
         }
 
-        public void SetItemName(string name)
+        public override void SetItemName(string name)
         {
             itemName = name;
             if (_contentComponent != null)
@@ -242,7 +239,7 @@ namespace Turnroot.UI.Components.RadialMenu
         /// <summary>
         /// Set the content prefab at runtime (optional). If provided it will be instantiated and centered.
         /// </summary>
-        public void SetContentPrefab(GameObject prefab)
+        public override void SetContentPrefab(GameObject prefab)
         {
             contentPrefab = prefab;
             // Remove existing children created from previous prefab
@@ -284,7 +281,7 @@ namespace Turnroot.UI.Components.RadialMenu
             }
         }
 
-        public void SetColors(Color normal, Color selected)
+        public override void SetColors(Color normal, Color selected)
         {
             normalColor = normal;
             selectedColor = selected;
@@ -295,7 +292,7 @@ namespace Turnroot.UI.Components.RadialMenu
         /// Ensure instantiated/assigned content is placed above the segment visuals and z is reset.
         /// Useful to fix inconsistent prefab ordering in the scene.
         /// </summary>
-        public void EnsureContentOnTop()
+        public override void EnsureContentOnTop()
         {
             if (_contentRect == null)
                 return;
@@ -313,7 +310,7 @@ namespace Turnroot.UI.Components.RadialMenu
             }
         }
 
-        public void SetSegmentAngles(
+        public override void SetSegmentAngles(
             float startAngle,
             float endAngle,
             float innerRadius,
@@ -335,7 +332,7 @@ namespace Turnroot.UI.Components.RadialMenu
         /// Keeps content upright and centered in the segment.
         /// </summary>
         /// <param name="radialOffsetPct">Additional radial offset applied to the computed radial percent (fraction of menu radius). Can be negative.</param>
-        public void PositionContent(
+        public override void PositionContent(
             float centerAngleDeg,
             float innerRadiusPct,
             float outerRadiusPct,
@@ -368,7 +365,7 @@ namespace Turnroot.UI.Components.RadialMenu
             _contentRect.rotation = Quaternion.identity;
         }
 
-        public void SetIsCenter(bool center)
+        public override void SetIsCenter(bool center)
         {
             isCenter = center;
             if (_material != null)
