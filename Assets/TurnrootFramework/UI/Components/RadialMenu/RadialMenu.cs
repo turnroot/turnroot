@@ -7,6 +7,29 @@ namespace Turnroot.UI.Components.RadialMenu
 {
     public class RadialMenu : MonoBehaviour
     {
+        private static readonly Vector2 DirectionRight = Vector2.right;
+        private static readonly Vector2 DirectionLeft = Vector2.left;
+        private static readonly Vector2 DirectionUp = Vector2.up;
+        private static readonly Vector2 DirectionDown = Vector2.down;
+
+        private Vector2 GetCardinalDirection(Vector2 input)
+        {
+            return input.magnitude <= joystickDeadzone ? Vector2.zero
+                : Mathf.Abs(input.x) >= Mathf.Abs(input.y)
+                    ? (input.x > 0 ? DirectionRight : DirectionLeft)
+                : (input.y > 0 ? DirectionUp : DirectionDown);
+        }
+
+        private enum NavigationState
+        {
+            Idle,
+            FirstPress,
+            Holding,
+            Repeating,
+        }
+
+        private NavigationState _navState = NavigationState.Idle;
+
         [Header("Menu Items")]
         public List<RadialMenuItemBase> menuItems = new List<RadialMenuItemBase>();
 
@@ -80,31 +103,24 @@ namespace Turnroot.UI.Components.RadialMenu
             selectAction?.Disable();
         }
 
-        private void Start()
+        private void Start() => Canvas.willRenderCanvases += OnFirstRender;
+
+        private void OnFirstRender()
         {
-            // Initialize and defer some layout till next frame
+            // Unsubscribe so this only runs once
+            Canvas.willRenderCanvases -= OnFirstRender;
+
             InitializeMenu();
-            StartCoroutine(LateRefresh());
+            RefreshLayout();
         }
 
-        private System.Collections.IEnumerator LateRefresh()
+        private void OnDestroy()
         {
-            yield return null; // Wait one frame
-
-            foreach (var item in menuItems)
+            Canvas.willRenderCanvases -= OnFirstRender;
+            if (selectAction != null)
             {
-                Debug.Log($"{item.ItemName}: child count = {item.transform.childCount}");
-                for (int i = 0; i < item.transform.childCount; i++)
-                {
-                    var child = item.transform.GetChild(i);
-                    Debug.Log(
-                        $"  Child {i}: {child.name}, siblingIndex={child.GetSiblingIndex()}, z={child.localPosition.z}"
-                    );
-                }
-                item.EnsureContentOnTop();
+                selectAction.performed -= OnSelectPerformed;
             }
-
-            RefreshLayout();
         }
 
         private void InitializeMenu()
@@ -144,111 +160,142 @@ namespace Turnroot.UI.Components.RadialMenu
             }
         }
 
-        private void OnDestroy()
-        {
-            if (selectAction != null)
-            {
-                selectAction.performed -= OnSelectPerformed;
-            }
-        }
-
         private void OnSelectPerformed(InputAction.CallbackContext context) => ConfirmSelection();
 
         private void Update() => HandleNavigationInput();
 
+        private void Update()
+        {
+            HandleNavigationInput();
+            UpdateReversalWindow();
+        }
+
         private void HandleNavigationInput()
         {
             if (navigateAction == null || (menuItems.Count == 0 && centerItem == null))
-            {
                 return;
-            }
 
-            Vector2 navigationInput = navigateAction.ReadValue<Vector2>();
+            Vector2 input = navigateAction.ReadValue<Vector2>();
+            bool hasInput = input.magnitude > joystickDeadzone;
+            Vector2 direction = GetCardinalDirection(input);
 
-            if (navigationInput.magnitude > joystickDeadzone)
+            switch (_navState)
             {
-                Vector2 direction;
-                int dirInt;
-
-                if (Mathf.Abs(navigationInput.x) >= Mathf.Abs(navigationInput.y))
-                {
-                    direction = navigationInput.x > 0 ? Vector2.right : Vector2.left;
-                    dirInt = navigationInput.x > 0 ? +1 : -1;
-                }
-                else
-                {
-                    direction = navigationInput.y > 0 ? Vector2.up : Vector2.down;
-                    dirInt = navigationInput.y > 0 ? -1 : +1;
-                }
-
-                if (direction != _lastNavigateInput)
-                {
-                    _lastNavigateInput = direction;
-
-                    if (
-                        _justNavigated
-                        && _lastNavDir != 0
-                        && dirInt != _lastNavDir
-                        && centerItem != null
-                    )
+                case NavigationState.Idle:
+                    if (hasInput)
                     {
-                        SelectItemByIndex(0, true);
-                        _lastNavDir = 0;
-                        _navDir = 0;
-                        _navHoldTime = 0f;
-                        _navRepeatTimer = 0f;
-                        _justNavigated = false;
-                        _justNavTimer = 0f;
+                        TransitionTo(NavigationState.FirstPress, input);
+                    }
+                    break;
+
+                case NavigationState.FirstPress:
+                    if (!hasInput)
+                    {
+                        TransitionTo(NavigationState.Idle, Vector2.zero);
+                    }
+                    else if (direction != _lastNavigateInput)
+                    {
+                        // Direction changed - check for reversal
+                        if (
+                            _justNavigated
+                            && GetDirectionInt(direction) != GetDirectionInt(_lastNavigateInput)
+                            && centerItem != null
+                        )
+                        {
+                            // Opposite direction during reversal window = select center
+                            SelectItemByIndex(0, true);
+                            TransitionTo(NavigationState.Idle, Vector2.zero);
+                        }
+                        else
+                        {
+                            // Different direction, not a reversal - navigate again
+                            NavigateInDirection(direction);
+                            _lastNavigateInput = direction;
+                            _justNavigated = true;
+                            _justNavTimer = 0f;
+                            // Stay in FirstPress to allow chaining
+                        }
                     }
                     else
                     {
-                        NavigateInDirection(direction);
-                        _lastNavDir = dirInt;
-                        _navDir = dirInt;
-                        _navHoldTime = 0f;
-                        _navRepeatTimer = 0f;
-                        _justNavigated = true;
-                        _justNavTimer = 0f;
+                        // Same direction still held - transition to holding
+                        TransitionTo(NavigationState.Holding, input);
                     }
-                }
-                else
-                {
-                    if (_navDir == 0)
-                    {
-                        _navDir = dirInt;
-                        _lastNavDir = dirInt;
-                    }
+                    break;
 
-                    _navHoldTime += Time.deltaTime;
-                    if (_navHoldTime >= navigationInitialDelay)
+                case NavigationState.Holding:
+                    if (!hasInput)
+                    {
+                        TransitionTo(NavigationState.Idle, Vector2.zero);
+                    }
+                    else
+                    {
+                        _navHoldTime += Time.deltaTime;
+                        if (_navHoldTime >= navigationInitialDelay)
+                        {
+                            TransitionTo(NavigationState.Repeating, input);
+                        }
+                    }
+                    break;
+
+                case NavigationState.Repeating:
+                    if (!hasInput)
+                    {
+                        TransitionTo(NavigationState.Idle, Vector2.zero);
+                    }
+                    else
                     {
                         _navRepeatTimer += Time.deltaTime;
                         if (_navRepeatTimer >= navigationRepeatDelay)
                         {
                             NavigateSegments(_lastNavigateInput);
                             _navRepeatTimer = 0f;
-                            _justNavigated = true;
-                            _justNavTimer = 0f;
                         }
                     }
-                }
+                    break;
             }
-            else
-            {
-                _lastNavigateInput = Vector2.zero;
-                _navDir = 0;
-                _navHoldTime = 0f;
-                _navRepeatTimer = 0f;
-            }
+        }
 
+        private void UpdateReversalWindow()
+        {
             if (_justNavigated)
             {
                 _justNavTimer += Time.deltaTime;
                 if (_justNavTimer > reversalWindow)
                 {
                     _justNavigated = false;
-                    _justNavTimer = 0f;
                 }
+            }
+        }
+
+        private void TransitionTo(NavigationState newState, Vector2 input)
+        {
+            var oldState = _navState;
+            _navState = newState;
+
+            switch (newState)
+            {
+                case NavigationState.Idle:
+                    _lastNavigateInput = Vector2.zero;
+                    _navHoldTime = 0f;
+                    _navRepeatTimer = 0f;
+                    break;
+
+                case NavigationState.FirstPress:
+                    Vector2 dir = GetCardinalDirection(input);
+                    NavigateInDirection(dir);
+                    _lastNavigateInput = dir;
+                    _justNavigated = true;
+                    _justNavTimer = 0f;
+                    break;
+
+                case NavigationState.Holding:
+                    _navHoldTime = 0f;
+                    break;
+
+                case NavigationState.Repeating:
+                    _navRepeatTimer = 0f;
+                    break;
             }
         }
 
