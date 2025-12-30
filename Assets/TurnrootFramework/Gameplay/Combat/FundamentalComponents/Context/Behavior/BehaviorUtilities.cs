@@ -458,57 +458,19 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             // === EVALUATE EACH RETREAT TILE ===
             foreach (var tile in _reusableMoveTiles.Keys)
             {
-                float tileUtility = baseDanger;
-
-                // How much safer is this tile than current position?
-                float newDistanceToClosest = Vector2.Distance(
-                    tile.Coordinates(),
-                    enemyProximity.closest
-                );
-                float distanceImprovement = newDistanceToClosest - enemyProximity.closestDist;
-
-                // Only consider tiles that actually increase distance from enemies
-                if (distanceImprovement <= 0)
+                if (
+                    !TryComputeRetreatTileUtility(
+                        tile,
+                        behavior,
+                        baseDanger,
+                        enemyProximity.closest,
+                        enemyProximity.closestDist,
+                        out float tileUtility
+                    )
+                )
                 {
-                    continue; // Not a retreat, skip it
+                    continue;
                 }
-
-                // Reward tiles that move us further from danger
-                tileUtility += distanceImprovement * 2f;
-
-                // === FORMATION CONSIDERATION ===
-                // Soldiers don't want to retreat away from allies
-                if (behavior.SoldierLoneWolf < 0.5f)
-                {
-                    // Find closest ally to this retreat tile
-                    float closestAllyDist = float.MaxValue;
-                    var allies = _context.Participants.Allies;
-                    for (int ai = 0; ai < (allies?.Count ?? 0); ai++)
-                    {
-                        var ally = allies[ai];
-                        if (ally == _context.Unit.UnitInstance)
-                        {
-                            continue;
-                        }
-
-                        float dist = Vector2.Distance(tile.Coordinates(), ally.MapGridPosition);
-                        if (dist < closestAllyDist)
-                        {
-                            closestAllyDist = dist;
-                        }
-                    }
-
-                    // Penalize tiles far from allies (soldiers retreat *toward* team, not away)
-                    if (closestAllyDist > 3f)
-                    {
-                        tileUtility -=
-                            (closestAllyDist - 3f) * (1f - behavior.SoldierLoneWolf) * 2f;
-                    }
-                }
-
-                // === TERRAIN EVALUATION ===
-                // Defensive terrain makes retreat tiles more attractive
-                tileUtility += CalculateTerrainBonusOrPenalty(tile, behavior);
 
                 defensiveGoals.Add(
                     new AIGoal
@@ -677,33 +639,84 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
         private void EvaluateHealSelfGoals(List<AIGoal> goals, CharacterBehavior behavior)
         {
-            // TODO: Consider moving to an advantageous position before healing self
             float healthPercentage = _context.Unit.UnitInstance.GetHealthPercentage();
 
             // Only evaluate if wounded
-            if (healthPercentage >= 0.8f)
+            if (!IsWounded)
             {
                 return;
             }
 
-            float utility = 14f;
-            utility += (1f - healthPercentage) * (1f - behavior.SelfishSelfless) * 10f;
-
-            // Lone wolves prioritize self-preservation
-            utility += behavior.SoldierLoneWolf * 3f;
+            // Baseline desire to heal now (stay in place)
+            float stayHealUtility = 14f;
+            stayHealUtility += (1f - healthPercentage) * (1f - behavior.SelfishSelfless) * 10f;
+            stayHealUtility += behavior.SoldierLoneWolf * 3f;
 
             goals.Add(
                 new AIGoal
                 {
                     Type = AIGoal.GoalType.HealSelf,
-                    UtilityScore = utility,
+                    UtilityScore = stayHealUtility,
                     Target = _context.Unit.UnitInstance,
                     Destination = _context.Unit.UnitInstance.UnitPositionToMapGridPoint(
                         _context.Unit.UnitInstance.MapGridPosition,
                         _context.mapGrid
                     ),
+                    ActionToTake = AIGoal.Action.Heal,
                 }
             );
+
+            // Evaluate moving to a safer tile and then healing there
+            using var healMoveGoalsPooled = PooledList<AIGoal>.Get();
+            var healMoveGoals = healMoveGoalsPooled.List;
+
+            var enemyProximity = FindClosestAndFurthestEnemies(_context.Participants.Targets);
+
+            // Build a base danger metric similar to defensive goals
+            float baseDanger = 0f;
+            baseDanger += Mathf.Max(0, 10f - enemyProximity.closestDist);
+            baseDanger += (1f - healthPercentage) * 2.5f;
+            baseDanger += IsSurrounded ? 2.5f : 0f;
+            if (enemyProximity.closestDist < 6f)
+            {
+                baseDanger += behavior.BrashWary * 3f;
+            }
+            float personalityMultiplier = 1f + (behavior.SoldierLoneWolf * 0.3f);
+            baseDanger *= personalityMultiplier;
+
+            foreach (var tile in _reusableMoveTiles.Keys)
+            {
+                if (
+                    !TryComputeRetreatTileUtility(
+                        tile,
+                        behavior,
+                        baseDanger,
+                        enemyProximity.closest,
+                        enemyProximity.closestDist,
+                        out float tileUtility
+                    )
+                )
+                {
+                    continue;
+                }
+
+                // Combine with baseline heal desire so move+heal competes with heal-now
+                tileUtility += stayHealUtility;
+
+                healMoveGoals.Add(
+                    new AIGoal
+                    {
+                        Type = AIGoal.GoalType.HealSelf,
+                        UtilityScore = tileUtility,
+                        Target = _context.Unit.UnitInstance,
+                        Destination = tile,
+                        ActionToTake = AIGoal.Action.Move,
+                    }
+                );
+            }
+
+            // Add the top move+heal goals alongside the stay-and-heal option
+            AddTopGoals(goals, healMoveGoals, 2);
         }
 
         #endregion
@@ -921,6 +934,58 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             TerrainBonus *= settings.GetTerrainBonusMultiplier();
             TerrainBonus += PersonalityBonus;
             return TerrainBonus;
+        }
+
+        /// <summary>
+        /// Compute a utility for moving to a retreat tile. Returns false if the tile does not
+        /// increase distance from the nearest enemy (i.e., not a retreat candidate).
+        /// </summary>
+        private bool TryComputeRetreatTileUtility(
+            MapGridPoint tile,
+            CharacterBehavior behavior,
+            float baseDanger,
+            Vector2 enemyClosest,
+            float enemyClosestDist,
+            out float utility
+        )
+        {
+            utility = 0f;
+
+            float newDistanceToClosest = Vector2.Distance(tile.Coordinates(), enemyClosest);
+            float distanceImprovement = newDistanceToClosest - enemyClosestDist;
+            if (distanceImprovement <= 0f)
+                return false;
+
+            utility = baseDanger + distanceImprovement * 2f;
+
+            // Formation consideration: penalize tiles far from allies for soldiers
+            if (behavior.SoldierLoneWolf < 0.5f)
+            {
+                float closestAllyDist = float.MaxValue;
+                var allies = _context.Participants.Allies;
+                for (int ai = 0; ai < (allies?.Count ?? 0); ai++)
+                {
+                    var ally = allies[ai];
+                    if (ally == _context.Unit.UnitInstance)
+                        continue;
+
+                    float dist = Vector2.Distance(tile.Coordinates(), ally.MapGridPosition);
+                    if (dist < closestAllyDist)
+                    {
+                        closestAllyDist = dist;
+                    }
+                }
+
+                if (closestAllyDist > 3f)
+                {
+                    utility -= (closestAllyDist - 3f) * (1f - behavior.SoldierLoneWolf) * 2f;
+                }
+            }
+
+            // Apply terrain consideration
+            utility += CalculateTerrainBonusOrPenalty(tile, behavior);
+
+            return true;
         }
 
         private (MapGridPoint tile, bool canAttack) GetAccessibleTile(
