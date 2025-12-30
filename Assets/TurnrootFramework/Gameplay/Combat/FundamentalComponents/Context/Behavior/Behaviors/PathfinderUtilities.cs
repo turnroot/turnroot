@@ -20,11 +20,9 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         private readonly Dictionary<string, Dictionary<MapGridPoint, float>> _reachabilityCache =
             new();
 
-        private static string BuildPathCacheKey(PathfindingParameters p)
-        {
+        private static string BuildPathCacheKey(PathfindingParameters p) =>
             // Include start, movement budget and flags relevant to reachability
-            return $"{p.Start.Col}_{p.Start.Row}_mb{p.MovementBudget}_w{p.IsWalking}_f{p.IsFlying}_r{p.IncludeRange}_max{p.MaxRange}";
-        }
+            $"{p.Start.Col}_{p.Start.Row}_mb{p.MovementBudget}_w{p.IsWalking}_f{p.IsFlying}_r{p.IncludeRange}_max{p.MaxRange}";
 
         /// <summary>
         /// Gets references to the reusable tile dictionaries for callers that need them.

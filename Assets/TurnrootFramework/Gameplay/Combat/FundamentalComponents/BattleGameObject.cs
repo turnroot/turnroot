@@ -462,10 +462,7 @@ namespace Turnroot.Gameplay.Combat
             }
         }
 
-        private void HandleExitBattle(BattleExitType exitType)
-        {
-            DisconnectFromBrainEvents();
-        }
+        private void HandleExitBattle(BattleExitType exitType) => DisconnectFromBrainEvents();
 
         private void HandleUnitSpawnedEvent(UnitSpawnedEvent evt)
         {
@@ -498,11 +495,9 @@ namespace Turnroot.Gameplay.Combat
             }
         }
 
-        private void HandleUnitDefeatedEvent(UnitDefeatedEvent evt)
-        {
+        private void HandleUnitDefeatedEvent(UnitDefeatedEvent evt) =>
             // Delegate to existing handler for defeated units to reuse logic
             HandleUnitDefeated(evt.Unit);
-        }
 
         private void InvalidateAllConditionCaches()
         {
@@ -535,10 +530,7 @@ namespace Turnroot.Gameplay.Combat
             }
         }
 
-        private void OnDestroy()
-        {
-            DisconnectFromBrainEvents();
-        }
+        private void OnDestroy() => DisconnectFromBrainEvents();
 
         #endregion
 

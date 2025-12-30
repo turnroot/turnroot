@@ -587,12 +587,9 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 (rel1 != null && val1 >= val2) ? rel1 : rel2;
 
             // Check for per-relationship override, otherwise use global settings
-            if (chosenRelInstance != null && chosenRelInstance.HasSupportBonusOverride())
-            {
-                return chosenRelInstance.GetSupportBonusOverride();
-            }
-
-            return settings.GetSupportBonusForRank(rankLetter);
+            return chosenRelInstance != null && chosenRelInstance.HasSupportBonusOverride()
+                ? chosenRelInstance.GetSupportBonusOverride()
+                : settings.GetSupportBonusForRank(rankLetter);
         }
 
         private static int RankValue(string rankLetter)

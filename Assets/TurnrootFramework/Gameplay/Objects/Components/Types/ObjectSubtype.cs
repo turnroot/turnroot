@@ -87,10 +87,7 @@ public class ObjectSubtype
     /// <summary>
     /// Checks if a value is valid (exists in the defined constants).
     /// </summary>
-    public static bool IsValid(string value)
-    {
-        return value is Weapon or Magic or Consumable or Equipable or Gift or LostItem;
-    }
+    public static bool IsValid(string value) => value is Weapon or Magic or Consumable or Equipable or Gift or LostItem;
 
     /// <summary>
     /// Checks if a value is enabled based on GameplayGeneralSettings.

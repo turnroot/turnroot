@@ -146,15 +146,9 @@ namespace Turnroot.Gameplay.Brain
             return result.Success ? result.Value : null;
         }
 
-        public string EncodeString(string value)
-        {
-            return Turnroot.Utilities.DeviceDataCipher.EncryptToBase64(value);
-        }
+        public string EncodeString(string value) => DeviceDataCipher.EncryptToBase64(value);
 
-        public string DecodeString(string encodedString)
-        {
-            return Turnroot.Utilities.DeviceDataCipher.DecryptFromBase64(encodedString);
-        }
+        public string DecodeString(string encodedString) => DeviceDataCipher.DecryptFromBase64(encodedString);
 
         #endregion
 
@@ -741,10 +735,7 @@ namespace Turnroot.Gameplay.Brain
 
         #region Cleanup
 
-        private void OnDestroy()
-        {
-            CleanupAdvancedSystems();
-        }
+        private void OnDestroy() => CleanupAdvancedSystems();
 
         #endregion
     }

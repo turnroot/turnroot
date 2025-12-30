@@ -146,12 +146,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             }
 
             var weaponItem = Unit.UnitInstance.GetEquippedWeapon();
-            if (weaponItem == null)
-            {
-                return false;
-            }
-
-            return DamageCalculator.WouldKill(Unit.UnitInstance, target, weaponItem, this);
+            return weaponItem == null ? false : DamageCalculator.WouldKill(Unit.UnitInstance, target, weaponItem, this);
         }
 
         public bool TargetCanCounterattack(
@@ -261,14 +256,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 targetPoint.CoordinatesInt,
                 Brain.CurrentTurnNumber
             );
-            if (Brain.ExecuteCommand(command))
-            {
-                return OperationResult.SuccessResult();
-            }
-            else
-            {
-                return OperationResult.Failure("Move command failed to execute");
-            }
+            return Brain.ExecuteCommand(command) ? OperationResult.SuccessResult() : OperationResult.Failure("Move command failed to execute");
         }
 
         public OperationResult AttackTarget(
