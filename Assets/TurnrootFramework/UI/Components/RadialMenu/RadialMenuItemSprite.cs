@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace Turnroot.UI.Components.RadialMenu
@@ -10,9 +11,15 @@ namespace Turnroot.UI.Components.RadialMenu
     /// - Optional Image target (defaults to Image on same GameObject)
     /// - Optional IsCenter checkbox which will set the parent RadialMenuItem's center flag
     /// Implements IRadialMenuContent so it can be used as the content prefab for RadialMenuItem.
+    /// Can also be used standalone as a center item.
     /// </summary>
     [RequireComponent(typeof(Image))]
-    public class RadialMenuItemSprite : RadialMenuItemBase, IRadialMenuContent
+    public class RadialMenuItemSprite
+        : RadialMenuItemBase,
+            IRadialMenuContent,
+            IPointerEnterHandler,
+            IPointerExitHandler,
+            IPointerClickHandler
     {
         [Header("Sprite Settings")]
         [SerializeField]
@@ -34,21 +41,39 @@ namespace Turnroot.UI.Components.RadialMenu
         private Image targetImage;
 
         private RadialMenuItemBase _ownerItem;
+        private bool _isStandalone = false;
 
         private void Awake()
         {
             if (targetImage == null)
                 targetImage = GetComponent<Image>();
 
-            // If we're inside a RadialMenuItem, wire up selection events
+            // Check if we're inside a RadialMenuItem or standalone
             _ownerItem = GetComponentInParent<RadialMenuItemBase>();
-            if (_ownerItem != null && _ownerItem != this)
+
+            // Make sure we don't consider ourselves as our own owner
+            if (_ownerItem == this)
+            {
+                _ownerItem = null;
+            }
+
+            if (_ownerItem != null)
             {
                 // reflect isCenter to owner
                 _ownerItem.SetIsCenter(isCenter);
 
                 // Subscribe to selection changes if available
                 _ownerItem.OnSelectedChanged += HandleOwnerSelectedChanged;
+            }
+            else
+            {
+                // We're a standalone item (e.g., center item)
+                _isStandalone = true;
+                // Enable raycast target for mouse interaction
+                if (targetImage != null)
+                {
+                    targetImage.raycastTarget = true;
+                }
             }
 
             // Initialize sprite to unselected
@@ -63,6 +88,33 @@ namespace Turnroot.UI.Components.RadialMenu
             }
         }
 
+        // IPointerEventHandlers for standalone usage
+        public void OnPointerEnter(PointerEventData eventData)
+        {
+            if (_isStandalone)
+            {
+                _isHovered = true;
+                RaiseHoverEnter();
+            }
+        }
+
+        public void OnPointerExit(PointerEventData eventData)
+        {
+            if (_isStandalone)
+            {
+                _isHovered = false;
+                RaiseHoverExit();
+            }
+        }
+
+        public void OnPointerClick(PointerEventData eventData)
+        {
+            if (_isStandalone)
+            {
+                RaiseClick();
+            }
+        }
+
         private void HandleOwnerSelectedChanged(bool selected)
         {
             if (selected)
@@ -74,13 +126,23 @@ namespace Turnroot.UI.Components.RadialMenu
         private void ApplySelected()
         {
             if (targetImage != null && selectedSprite != null)
+            {
                 targetImage.sprite = selectedSprite;
+            }
+            else
+            {
+                Debug.LogWarning(
+                    $"[RadialMenuItemSprite] Cannot apply selected sprite - targetImage: {targetImage != null}, selectedSprite: {selectedSprite != null}"
+                );
+            }
         }
 
         private void ApplyUnselected()
         {
             if (targetImage != null && unselectedSprite != null)
+            {
                 targetImage.sprite = unselectedSprite;
+            }
         }
 
         public override void Select()
@@ -98,7 +160,6 @@ namespace Turnroot.UI.Components.RadialMenu
         public override void SetIsCenter(bool center)
         {
             isCenter = center;
-            // If we sit inside another item, propagate to it
             if (_ownerItem != null && _ownerItem != this)
                 _ownerItem.SetIsCenter(center);
         }

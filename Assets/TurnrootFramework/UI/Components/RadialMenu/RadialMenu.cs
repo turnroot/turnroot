@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -55,6 +56,21 @@ namespace Turnroot.UI.Components.RadialMenu
         [SerializeField]
         private float joystickDeadzone = 0.3f;
 
+        [Header("Startup Visibility")]
+        [SerializeField]
+        [Tooltip("If true, the menu will be hidden until initialization/layout completes.")]
+        private bool hideUntilReady = true;
+
+        [SerializeField]
+        [Tooltip(
+            "Fade time (sec) to reveal the menu after initialization. Set to 0 for instant show."
+        )]
+        private float showFadeTime = 0.12f;
+
+        // CanvasGroup used to hide/show the whole menu during startup
+        private CanvasGroup _canvasGroup;
+        private Coroutine _showCoroutine;
+
         [Header("Navigation Repeat")]
         [SerializeField]
         private float navigationInitialDelay = 0.4f;
@@ -91,6 +107,30 @@ namespace Turnroot.UI.Components.RadialMenu
 
         public event Action<RadialMenuItemBase> OnItemSelected;
 
+        /// <summary>
+        /// Fired when the radial menu has completed initialization and is visible/ready.
+        /// Passes the menu instance so managers can subscribe and act on it.
+        /// </summary>
+        public event Action<RadialMenu> OnMenuReady;
+
+        private void Awake()
+        {
+            // Ensure a CanvasGroup exists so we can hide the menu until ready.
+            _canvasGroup = GetComponent<CanvasGroup>();
+            if (_canvasGroup == null)
+            {
+                _canvasGroup = gameObject.AddComponent<CanvasGroup>();
+            }
+
+            if (hideUntilReady)
+            {
+                // Hide immediately so the menu doesn't flash while children are instantiating/layouting.
+                _canvasGroup.alpha = 0f;
+                _canvasGroup.blocksRaycasts = false;
+                _canvasGroup.interactable = false;
+            }
+        }
+
         private void OnEnable()
         {
             navigateAction?.Enable();
@@ -112,6 +152,9 @@ namespace Turnroot.UI.Components.RadialMenu
 
             InitializeMenu();
             RefreshLayout();
+
+            // Reveal the menu now that initialization & layout are complete
+            ShowMenu();
         }
 
         private void OnDestroy()
@@ -177,6 +220,21 @@ namespace Turnroot.UI.Components.RadialMenu
             bool hasInput = input.magnitude > joystickDeadzone;
             Vector2 direction = GetCardinalDirection(input);
 
+            // If the user reverses direction within the reversal window after a navigation,
+            // treat it as a request to select the center item (if present). Require an exact reversal
+            // (opposite cardinal direction) to avoid accidental center selection on repeated input.
+            if (
+                hasInput
+                && _justNavigated
+                && centerItem != null
+                && direction == -_lastNavigateInput
+            )
+            {
+                SelectItemByIndex(0, true);
+                TransitionTo(NavigationState.Idle, Vector2.zero);
+                return;
+            }
+
             switch (_navState)
             {
                 case NavigationState.Idle:
@@ -193,16 +251,20 @@ namespace Turnroot.UI.Components.RadialMenu
                     }
                     else if (direction != _lastNavigateInput)
                     {
-                        // Direction changed - check for reversal
-                        if (_justNavigated && direction != _lastNavigateInput && centerItem != null)
+                        // Direction changed - check for reversal (require exact opposite)
+                        if (
+                            _justNavigated
+                            && centerItem != null
+                            && direction == -_lastNavigateInput
+                        )
                         {
-                            // Opposite direction during reversal window = select center
+                            // Exact opposite direction during reversal window = select center
                             SelectItemByIndex(0, true);
                             TransitionTo(NavigationState.Idle, Vector2.zero);
                         }
                         else
                         {
-                            // Different direction, not a reversal - navigate again
+                            // Different direction, not an exact reversal - navigate again
                             NavigateInDirection(direction);
                             _lastNavigateInput = direction;
                             _justNavigated = true;
@@ -270,7 +332,8 @@ namespace Turnroot.UI.Components.RadialMenu
             switch (newState)
             {
                 case NavigationState.Idle:
-                    _lastNavigateInput = Vector2.zero;
+                    // Do not clear _lastNavigateInput here — keep last direction available for
+                    // reversal detection across a brief release between inputs.
                     _navHoldTime = 0f;
                     _navRepeatTimer = 0f;
                     break;
@@ -495,6 +558,61 @@ namespace Turnroot.UI.Components.RadialMenu
         {
             menuRadiusPixels = radiusPixels;
             RefreshLayout();
+        }
+
+        private void ShowMenu()
+        {
+            if (_canvasGroup == null)
+                return;
+
+            // If we're not configured to hide the menu until ready, just notify immediately.
+            if (!hideUntilReady)
+            {
+                NotifyMenuReady();
+                return;
+            }
+
+            // Stop any existing reveal coroutine
+            if (_showCoroutine != null)
+            {
+                StopCoroutine(_showCoroutine);
+                _showCoroutine = null;
+            }
+
+            if (showFadeTime <= 0f)
+            {
+                _canvasGroup.alpha = 1f;
+                _canvasGroup.interactable = true;
+                _canvasGroup.blocksRaycasts = true;
+                NotifyMenuReady();
+            }
+            else
+            {
+                _showCoroutine = StartCoroutine(FadeIn(_canvasGroup, showFadeTime));
+            }
+        }
+
+        private IEnumerator FadeIn(CanvasGroup cg, float duration)
+        {
+            float t = 0f;
+            cg.blocksRaycasts = false;
+            cg.interactable = false;
+            while (t < duration)
+            {
+                t += Time.deltaTime;
+                cg.alpha = Mathf.Clamp01(t / duration);
+                yield return null;
+            }
+            cg.alpha = 1f;
+            cg.interactable = true;
+            cg.blocksRaycasts = true;
+            _showCoroutine = null;
+            NotifyMenuReady();
+        }
+
+        private void NotifyMenuReady()
+        {
+            OnMenuReady?.Invoke(this);
         }
     }
 }

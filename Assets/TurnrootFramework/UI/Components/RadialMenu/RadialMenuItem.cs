@@ -32,13 +32,6 @@ namespace Turnroot.UI.Components.RadialMenu
         [SerializeField]
         private GameObject contentPrefab;
 
-        [Header("Behavior")]
-        [
-            SerializeField,
-            Tooltip(
-                "If checked, the menu will NOT automatically reposition/scale/rotate or color content and background. Caller must handle transforms and colors manually."
-            )
-        ]
         private Material _material;
 
         // optional content prefab instance interface
