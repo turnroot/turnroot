@@ -761,12 +761,7 @@ namespace Turnroot.Gameplay.Brain
             CharacterData targetCharacter
         )
         {
-            if (character == null || targetCharacter == null)
-            {
-                return 0f;
-            }
-
-            return character.GetCharacterRecruitmentChance(targetCharacter);
+            return character == null || targetCharacter == null ? 0f : character.GetCharacterRecruitmentChance(targetCharacter);
         }
 
         public float GetCharacterRecruitmentChanceIncreasePerConversation(
@@ -774,12 +769,9 @@ namespace Turnroot.Gameplay.Brain
             CharacterData targetCharacter
         )
         {
-            if (character == null || targetCharacter == null)
-            {
-                return 0f;
-            }
-
-            return character.GetCharacterRecruitmentChanceIncreasePerConversation(targetCharacter);
+            return character == null || targetCharacter == null
+                ? 0f
+                : character.GetCharacterRecruitmentChanceIncreasePerConversation(targetCharacter);
         }
 
         public bool GetCharacterRequiresMinSupportLevel(
@@ -787,12 +779,7 @@ namespace Turnroot.Gameplay.Brain
             CharacterData targetCharacter
         )
         {
-            if (character == null || targetCharacter == null)
-            {
-                return false;
-            }
-
-            return character.GetCharacterRequiresMinSupportLevel(targetCharacter);
+            return character == null || targetCharacter == null ? false : character.GetCharacterRequiresMinSupportLevel(targetCharacter);
         }
 
         /// <summary>

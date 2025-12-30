@@ -48,12 +48,9 @@ public class MapGridPointFeature
             return FeatureType.Warp;
         }
 
-        if (fid.StartsWith("healing"))
-        {
-            return FeatureType.Healing;
-        }
-
-        return fid.StartsWith("ranged")
+        return fid.StartsWith("healing")
+            ? FeatureType.Healing
+            : fid.StartsWith("ranged")
             ? FeatureType.Ranged
             : fid.StartsWith("mechanism")
             ? FeatureType.Mechanism

@@ -99,8 +99,5 @@ public class SkillInstance : IPostDeserialize
 
     public void SetReadyToFire(bool ready) => _readyToFire = ready;
 
-    public void SetEquipped(bool equipped, CharacterInstance owner = null)
-    {
-        _equipped = equipped;
-    }
+    public void SetEquipped(bool equipped, CharacterInstance owner = null) => _equipped = equipped;
 }

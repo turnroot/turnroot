@@ -223,7 +223,10 @@ namespace Turnroot.Gameplay.Brain
             foreach (var inst in allInstances)
             {
                 if (inst == null)
+                {
                     continue;
+                }
+
                 var expired = inst.TickStatusEffects();
                 foreach (var e in expired)
                 {

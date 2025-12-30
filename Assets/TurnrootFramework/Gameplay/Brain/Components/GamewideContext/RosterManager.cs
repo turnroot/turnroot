@@ -361,11 +361,9 @@ namespace Turnroot.Gameplay.Brain
             return instances;
         }
 
-        private List<GenericRosterInstance> GetCachedInstances()
-        {
+        private List<GenericRosterInstance> GetCachedInstances() =>
             // No searching needed - we tracked them as we created them
-            return _persistentRosters;
-        }
+            _persistentRosters;
 
         #endregion
     }
