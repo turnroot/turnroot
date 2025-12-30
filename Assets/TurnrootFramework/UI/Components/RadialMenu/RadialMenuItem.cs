@@ -291,7 +291,9 @@ namespace Turnroot.UI.Components.RadialMenu
         public override void EnsureContentOnTop()
         {
             if (_contentRect == null)
+            {
                 return;
+            }
 
             var t = _contentRect.transform;
             t.SetAsLastSibling();
@@ -337,12 +339,31 @@ namespace Turnroot.UI.Components.RadialMenu
         )
         {
             if (_contentRect == null)
+            {
                 return;
+            }
 
-            // Adjust angle: shader has 0° at top, Unity UI has 0° at right
-            // So rotate by 90° to align them
-            float angleRad = (centerAngleDeg + 90f) * Mathf.Deg2Rad;
-            Vector2 dir = new Vector2(Mathf.Cos(angleRad), Mathf.Sin(angleRad));
+            // TODO: Warning- unsolvable bug!
+            // I've spent two days trying to figure out why the first segment's content is always
+            // in the wrong place. I've asked professional developers. I've asked chatbots. I've iterated
+            // over every possible trigonometric combination. There is no logical or rational behavior
+            // for this behavior. There is no way to explain it mathematically, programatically, or
+            // algorithmically. There is no solving this issue- it is a permanent bug
+            // and this issue will remain open as a load-bearing pillar of malicious, precarious,
+            // entropic hate and rage. Don't try and solve this.
+            // If you make a PR that "fixes" this, I promise you I've already tried whatever you
+            // are trying. It doesn't work. It will never work. Run away.
+
+            bool isFirstSegment = transform.GetSiblingIndex() == 0;
+
+            float angleRad = centerAngleDeg * Mathf.Deg2Rad;
+            Vector2 dir = new Vector2(Mathf.Sin(angleRad), Mathf.Cos(angleRad));
+
+            // WORKAROUND: Flip both X and Y for first segment only (180° rotation)
+            if (isFirstSegment)
+            {
+                dir = -dir;
+            }
 
             float radialPct = innerRadiusPct + (outerRadiusPct - innerRadiusPct) * 0.5f;
             radialPct += radialOffsetPct;
@@ -350,14 +371,15 @@ namespace Turnroot.UI.Components.RadialMenu
 
             float radialDist = radialPct * menuRadius;
 
-            _contentRect.anchoredPosition = dir * radialDist;
+            Vector2 targetPos = dir * radialDist;
 
             // If this item is the center item, offset its content downward by half the menu radius
             if (isCenter)
             {
-                _contentRect.anchoredPosition += Vector2.down * (menuRadius * 0.5f);
+                targetPos += Vector2.down * (menuRadius * 0.5f);
             }
 
+            _contentRect.anchoredPosition = targetPos;
             _contentRect.rotation = Quaternion.identity;
         }
 

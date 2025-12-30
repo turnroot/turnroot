@@ -356,6 +356,33 @@ namespace Turnroot.UI.Components.RadialMenu
             }
         }
 
+        // Add this helper method to RadialMenu.cs to find the visual index closest to a target angle
+        private int GetItemIndexAtAngle(float targetAngle)
+        {
+            if (menuItems.Count == 0)
+                return -1;
+
+            // Normalize target angle to 0-360
+            targetAngle = (targetAngle + 360f) % 360f;
+
+            int closestIndex = 0;
+            float closestDiff = float.MaxValue;
+
+            for (int i = 0; i < menuItems.Count; i++)
+            {
+                float itemAngle = (i * _rotStep + _rotStep * 0.5f) % 360f;
+                float diff = Mathf.Abs(Mathf.DeltaAngle(targetAngle, itemAngle));
+
+                if (diff < closestDiff)
+                {
+                    closestDiff = diff;
+                    closestIndex = i;
+                }
+            }
+
+            return closestIndex;
+        }
+
         private void NavigateInDirection(Vector2 direction)
         {
             if (centerItem == null)
@@ -366,22 +393,14 @@ namespace Turnroot.UI.Components.RadialMenu
 
             if (_centerSelected)
             {
-                if (direction == Vector2.up)
-                {
-                    SelectItemByIndex(0, false);
-                }
-                else if (direction == Vector2.down)
-                {
-                    SelectItemByIndex(menuItems.Count / 2, false);
-                }
-                else if (direction == Vector2.right)
-                {
-                    SelectItemByIndex(menuItems.Count / 4, false);
-                }
-                else if (direction == Vector2.left)
-                {
-                    SelectItemByIndex((menuItems.Count * 3) / 4, false);
-                }
+                // From center, navigate to the item in the direction pressed
+                // Convert direction to angle (0° = up/top, 90° = right, etc.)
+                float targetAngle = Mathf.Atan2(direction.x, direction.y) * Mathf.Rad2Deg;
+                if (targetAngle < 0)
+                    targetAngle += 360f;
+
+                int targetIndex = GetItemIndexAtAngle(targetAngle);
+                SelectItemByIndex(targetIndex, false);
             }
             else
             {
@@ -435,8 +454,15 @@ namespace Turnroot.UI.Components.RadialMenu
 
                 itemRect.sizeDelta = new Vector2(segmentSize, segmentSize);
 
-                float startAngle = i * _rotStep;
-                float endAngle = (i + 1) * _rotStep;
+                // Start at top (0°) and go clockwise. Subtract from 360 to reverse the order
+                // so menu items match visual layout (index 0 at top, increasing clockwise)
+                float startAngle = (360f - (i * _rotStep)) % 360f;
+                float endAngle = (360f - ((i + 1) * _rotStep)) % 360f;
+
+                // Swap start/end since we reversed the direction
+                float temp = startAngle;
+                startAngle = endAngle;
+                endAngle = temp;
 
                 menuItems[i].SetSegmentAngles(startAngle, endAngle, innerRadiusPercent, segmentGap);
 
