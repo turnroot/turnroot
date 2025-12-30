@@ -55,7 +55,8 @@ namespace Turnroot.Gameplay.Brain
             // Subscribe to save requests so we can persist roster changes triggered at runtime
             _brain.OnSavePlayerRosterRequested += HandleSavePlayerRosterRequested;
 
-        protected override void UnsubscribeFromBrainEvents() => _brain.OnSavePlayerRosterRequested -= HandleSavePlayerRosterRequested;
+        protected override void UnsubscribeFromBrainEvents() =>
+            _brain.OnSavePlayerRosterRequested -= HandleSavePlayerRosterRequested;
 
         #region Persistent Player Roster
 
@@ -143,9 +144,6 @@ namespace Turnroot.Gameplay.Brain
                         {
                             // Apply saved placements into runtime instance
                             runtimeInstance.ApplyDecodedPlacements(decode.Value.Placements);
-
-                            // TODO: Optionally restore CharacterInstance snapshots from decode.Value.CharacterInstances
-
                             Debug.Log(
                                 $"GamewideContextBrain: Applied {decode.Value.Placements?.Length ?? 0} placements to runtime instance."
                             );
@@ -184,9 +182,7 @@ namespace Turnroot.Gameplay.Brain
                     {
                         RosterId = GamewidePersistentPlayerRoster.Id,
                         Placements = runtimeInstance.GetPlacements(),
-                        CharacterInstances = Enumerable.ToArray(
-                            runtimeInstance.Instances
-                        ),
+                        CharacterInstances = Enumerable.ToArray(runtimeInstance.Instances),
                     };
 
                     var encode = GamewideContextBrainHelpers.EncodeInstanceToString(this, saveData);
