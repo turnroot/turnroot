@@ -64,14 +64,36 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         public BattleContextAIHelper(BattleContext context)
         {
             _context = context;
+            // Subscribe to unit turn ended so we can capture last-turn position and reset per-turn flags
+            if (_context?.Brain != null)
+            {
+                _context.Brain.OnUnitTurnEnded += HandleUnitTurnEnded;
+            }
+        }
+
+        private void HandleUnitTurnEnded(CharacterInstance unit)
+        {
+            // If the unit ending its turn is the one this helper is currently tracking, record position
+            if (unit != null && unit == _context.Unit.UnitInstance)
+            {
+                LastTurnPosition = CurrentTurnPosition;
+
+                // Reset per-turn transient flags
+                WasDamagedThisTurn = false;
+                AllyDiedLastTurn = false;
+                LastAttackerThisTurn = null;
+            }
         }
 
         public void InitializeAIControlledUnit(CharacterInstance unitInstance)
         {
-            _context.Unit.UnitInstance = unitInstance; // TODO: This needs to be controlled by the TurnRotiserrie
+            // Prefer routing context activation through the TurnRotisserie so
+            // a single subsystem owns the ActiveUnit lifecycle and publishes appropriate events.
+            var tr = _context.Brain?.battleBrain?.GetComponent<TurnRotisserie>();
+            _ = tr.ChangeBattleContextData(unitInstance);
+
             _aStarModified = new AStarModified();
 
-            // Always get latest battle conditions (fixed null check)
             if (_context.Brain?.battleBrain?.BattleObject != null)
             {
                 BattleConditions = _context.Brain.battleBrain.BattleObject.BattleConditions;

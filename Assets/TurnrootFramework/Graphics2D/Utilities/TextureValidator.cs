@@ -149,7 +149,85 @@ namespace Turnroot.Graphics2D.Utilities
             return false;
         }
 
-        // TODO: Add a ValidateSize method
+        /// <summary>
+        /// Validate that a texture matches the expected dimensions.
+        /// Logs a warning and returns false if the texture is null or the size doesn't match.
+        /// </summary>
+        public static bool ValidateSize(
+            Texture2D tex,
+            int expectedWidth,
+            int expectedHeight,
+            string context = null
+        )
+        {
+            if (tex == null)
+            {
+                if (!string.IsNullOrEmpty(context))
+                    Debug.LogWarning($"{context}: texture is null.");
+                return false;
+            }
+
+            if (tex.width != expectedWidth || tex.height != expectedHeight)
+            {
+                var ctx = string.IsNullOrEmpty(context) ? "Texture" : context;
+                Debug.LogWarning(
+                    $"{ctx}: size mismatch. Expected {expectedWidth}x{expectedHeight}, got {tex.width}x{tex.height}."
+                );
+                return false;
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Validate that two textures have identical dimensions. Logs a warning and returns false on mismatch.
+        /// </summary>
+        public static bool ValidateMatch(
+            Texture2D expected,
+            Texture2D actual,
+            string context = null
+        )
+        {
+            if (expected == null || actual == null)
+            {
+                var ctx = string.IsNullOrEmpty(context) ? "Texture match" : context;
+                Debug.LogWarning(
+                    $"{ctx}: one or both textures are null (expected='{expected?.name ?? "(null)"}', actual='{actual?.name ?? "(null)"}')."
+                );
+                return false;
+            }
+
+            return ValidateSize(
+                actual,
+                expected.width,
+                expected.height,
+                context ?? $"Texture '{expected.name}'"
+            );
+        }
+
+        /// <summary>
+        /// Convenience overloads for Sprite arguments.
+        /// </summary>
+        public static bool ValidateMatch(
+            Sprite expectedSprite,
+            Sprite actualSprite,
+            string context = null
+        )
+        {
+            if (expectedSprite == null || actualSprite == null)
+            {
+                var ctx = string.IsNullOrEmpty(context) ? "Sprite match" : context;
+                Debug.LogWarning(
+                    $"{ctx}: one or both sprites are null (expected='{expectedSprite?.name ?? "(null)"}', actual='{actualSprite?.name ?? "(null)"}')."
+                );
+                return false;
+            }
+            return ValidateMatch(
+                expectedSprite.texture,
+                actualSprite.texture,
+                context ?? $"Sprite '{expectedSprite.name}'"
+            );
+        }
     }
 }
 
