@@ -37,7 +37,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             _context.Participants.AdjacentUnits.GetAdjacentEnemyCount(_context)
             >= (SoldierLoneWolf >= .6f ? 2 : 3);
 
-        private Vector2Int LastTurnPosition; // TODO: Set LastTurnPosition at end of turn
+        private Vector2Int LastTurnPosition;
 
         private Vector2Int CurrentTurnPosition => _context.Unit.UnitInstance.MapGridPosition;
         private bool HasMovedSinceLastTurn => LastTurnPosition != CurrentTurnPosition;
