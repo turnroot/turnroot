@@ -63,8 +63,8 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             // Apply critical hit if applicable
             if (
                 context != null
-                && context.Flags.IsCriticalHit
-                && context.Flags.CriticalHitUnit == attacker
+                && context.Flags.ActiveUnitFlags.WillCriticalHit
+                && context.Flags.ActiveUnitFlags.Unit == attacker
             )
             {
                 float critMult = settings != null ? settings.GetCriticalHitMultiplier() : 3f;

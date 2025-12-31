@@ -7,7 +7,6 @@ using Turnroot.Gameplay.Combat;
 using Turnroot.Gameplay.Objects;
 using Turnroot.Utilities;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using static Turnroot.Characters.CharacterInstance;
 
 namespace Turnroot.Gameplay.Brain
@@ -465,7 +464,7 @@ namespace Turnroot.Gameplay.Brain
         public event Action OnPreBattleCompleted;
         public event Action OnTurnBegin;
         public event Action OnTurnEnded;
-        public event Action OnPlayerTurnStarted;
+        public event Action<CharacterInstance> OnPlayerTurnStarted;
         public event Action OnPlayerTurnEnded;
         public event Action OnEnemyTurnStarted;
         public event Action OnEnemyTurnEnded;
@@ -478,6 +477,8 @@ namespace Turnroot.Gameplay.Brain
         public event Action<CharacterInstance> OnUnitDefeated;
         public event Action<CharacterInstance, Vector2Int> OnUnitMoved;
         public event Action<CharacterInstance> OnUnitTakesAnotherTurn;
+
+        public event Action<CharacterInstance> OnUnitFinishedMovingAfterAction;
         public event Action<CharacterInstance> OnCriticalHit;
         public event Action<CharacterInstance, int> OnWeaponUsesChanged;
 
@@ -509,7 +510,8 @@ namespace Turnroot.Gameplay.Brain
 
         public void PublishTurnEnded() => OnTurnEnded?.Invoke();
 
-        public void PublishPlayerTurnStarted() => OnPlayerTurnStarted?.Invoke();
+        public void PublishPlayerTurnStarted(CharacterInstance unit) =>
+            OnPlayerTurnStarted?.Invoke(unit);
 
         public void PublishPlayerTurnEnded() => OnPlayerTurnEnded?.Invoke();
 
@@ -549,6 +551,9 @@ namespace Turnroot.Gameplay.Brain
         public void PublishUnitTurnEnded(CharacterInstance unit) => OnUnitTurnEnded?.Invoke(unit);
 
         public void PublishCriticalHit(CharacterInstance unit) => OnCriticalHit?.Invoke(unit);
+
+        public void PublishUnitFinishedMovingAfterAction(CharacterInstance unit) =>
+            OnUnitFinishedMovingAfterAction?.Invoke(unit);
 
         public void PublishWeaponUsesChanged(CharacterInstance unit, int change) =>
             OnWeaponUsesChanged?.Invoke(unit, change);

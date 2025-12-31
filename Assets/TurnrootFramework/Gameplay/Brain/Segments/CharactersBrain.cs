@@ -197,7 +197,7 @@ namespace Turnroot.Gameplay.Brain
 
         #region Turn Phase Handlers
 
-        private void HandlePlayerTurnStarted() =>
+        private void HandlePlayerTurnStarted(CharacterInstance character) =>
             IncrementTurnsAliveForFaction(CharacterWhich.ALLY, CharacterWhich.AVATAR);
 
         private void HandleEnemyTurnStarted() =>
@@ -761,7 +761,9 @@ namespace Turnroot.Gameplay.Brain
             CharacterData targetCharacter
         )
         {
-            return character == null || targetCharacter == null ? 0f : character.GetCharacterRecruitmentChance(targetCharacter);
+            return character == null || targetCharacter == null
+                ? 0f
+                : character.GetCharacterRecruitmentChance(targetCharacter);
         }
 
         public float GetCharacterRecruitmentChanceIncreasePerConversation(
@@ -779,7 +781,9 @@ namespace Turnroot.Gameplay.Brain
             CharacterData targetCharacter
         )
         {
-            return character == null || targetCharacter == null ? false : character.GetCharacterRequiresMinSupportLevel(targetCharacter);
+            return character == null || targetCharacter == null
+                ? false
+                : character.GetCharacterRequiresMinSupportLevel(targetCharacter);
         }
 
         /// <summary>
