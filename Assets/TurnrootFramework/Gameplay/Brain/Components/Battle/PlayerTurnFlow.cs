@@ -9,56 +9,130 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
     {
         private PlayerTurnState _currentState;
         private CharacterInstance _activePlayerUnit;
-        private MapGridPoint _selectedDestination;
-        private CharacterInstance _selectedTarget;
 
         private BattleBrain _battleBrain;
 
         public void Intialize()
         {
             _currentState ??= new PlayerTurnState();
+            _battleBrain ??= GetComponent<BattleBrain>();
+
+            if (_battleBrain?.Brain != null)
+            {
+                _battleBrain.Brain.OnPlayerUndoAction += HandlePlayerUndoAction;
+            }
+#if UNITY_EDITOR
+            Debug.Log("PlayerTurnFlow: Initialized and subscribed to Brain events");
+#endif
+        }
+
+        private void OnDestroy()
+        {
+            if (_battleBrain?.Brain != null)
+            {
+                _battleBrain.Brain.OnPlayerUndoAction -= HandlePlayerUndoAction;
+            }
         }
 
         public void StartPlayerTurn()
         {
             _activePlayerUnit = _battleBrain.BattleObject.Context.Unit.UnitInstance;
-            _currentState.TransitionToState(PlayerTurnStates.NoUnitSelected);
-            _battleBrain.Brain.PublishPlayerTurnStarted(_activePlayerUnit);
+            var res = _currentState.TransitionToState(PlayerTurnStates.NoUnitSelected);
+            if (res.Success)
+            {
+                _battleBrain.Brain.PublishPlayerTurnStarted(_activePlayerUnit);
+                _battleBrain.Brain.PublishPlayerTurnStateChanged(_currentState.CurrentState);
+            }
         }
 
-        public OperationResult SelectUnit() =>
-            _currentState.TransitionToState(PlayerTurnStates.NoActionChosen);
+        public void SelectUnit()
+        {
+            var res = _currentState.TransitionToState(PlayerTurnStates.NoActionChosen);
+            if (res.Success)
+            {
+                _battleBrain.Brain.PublishPlayerControlledUnitActivated(_activePlayerUnit);
+                _battleBrain.Brain.PublishPlayerTurnStateChanged(_currentState.CurrentState);
+            }
+        }
 
-        public OperationResult DeselectUnit() =>
-            _currentState.TransitionToState(PlayerTurnStates.NoUnitSelected);
+        public void DeselectUnit()
+        {
+            var res = _currentState.TransitionToState(PlayerTurnStates.NoUnitSelected);
+            if (res.Success)
+            {
+                _battleBrain.Brain.PublishPlayerTurnStateChanged(_currentState.CurrentState);
+            }
+        }
 
-        public OperationResult ActionChosen(PlayerTurnStates actionState) =>
-            _currentState.TransitionToState(actionState);
+        public void ActionChosen(PlayerTurnStates actionState)
+        {
+            var res = _currentState.TransitionToState(actionState);
+            if (res.Success)
+            {
+                _battleBrain.Brain.PublishPlayerTurnStateChanged(_currentState.CurrentState);
+            }
+        }
 
-        public OperationResult UndoActionChoice() =>
-            _currentState.TransitionToState(PlayerTurnStates.NoActionChosen);
+        public void SelectTargetOrDestination(PlayerTurnStates targetSelectedState)
+        {
+            var res = _currentState.TransitionToState(targetSelectedState);
+            if (res.Success)
+            {
+                _battleBrain.Brain.PublishPlayerTurnStateChanged(_currentState.CurrentState);
+            }
+        }
 
-        public OperationResult SelectTargetOrDestination(PlayerTurnStates targetSelectedState) =>
-            _currentState.TransitionToState(targetSelectedState);
+        public void ConfirmAction()
+        {
+            var res = _currentState.TransitionToState(PlayerTurnStates.ConfirmAction);
+            if (res.Success)
+            {
+                _battleBrain.Brain.PublishPlayerTurnStateChanged(_currentState.CurrentState);
+            }
+        }
 
-        public OperationResult ConfirmAction() =>
-            _currentState.TransitionToState(PlayerTurnStates.ConfirmAction);
+        public void CancelTargetOrDestinationChoice(PlayerTurnStates actionChoosingState)
+        {
+            var res = _currentState.TransitionToState(actionChoosingState);
+            if (res.Success)
+            {
+                _battleBrain.Brain.PublishPlayerTurnStateChanged(_currentState.CurrentState);
+            }
+        }
 
-        public OperationResult UndoTargetOrDestinationChoice(
-            PlayerTurnStates actionChoosingState
-        ) => _currentState.TransitionToState(actionChoosingState);
+        public void EndTurn()
+        {
+            var res = _currentState.TransitionToState(PlayerTurnStates.TurnEnded);
+            if (res.Success)
+            {
+                _battleBrain.Brain.PublishPlayerTurnEnded();
+                _battleBrain.Brain.PublishPlayerTurnStateChanged(_currentState.CurrentState);
+            }
+        }
 
-        public OperationResult EndTurn() =>
-            _currentState.TransitionToState(PlayerTurnStates.TurnEnded);
+        private void HandlePlayerUndoAction()
+        {
+            // TODO: Handle undo event
+        }
 
-        public OperationResult SpecialTurnReset() =>
-            _currentState.TransitionToState(PlayerTurnStates.NoActionChosen);
+        public OperationResult SpecialTurnReset()
+        {
+            var res = _currentState.TransitionToState(PlayerTurnStates.NoActionChosen);
+            if (res.Success)
+            {
+                _battleBrain.Brain.PublishPlayerTurnStateChanged(_currentState.CurrentState);
+            }
+            return res;
+        }
 
-        public OperationResult WaitAndEndTurn() =>
-            _currentState.TransitionToState(PlayerTurnStates.TurnEnded);
-
-        // TODO: State transition methods
-        // TODO: Subscribe to relevant Brain events (unit activated, turn ended)
-        // TODO: Publish player-specific events (state changed, action confirmed)
+        public void WaitAndEndTurn()
+        {
+            var res = _currentState.TransitionToState(PlayerTurnStates.TurnEnded);
+            if (res.Success)
+            {
+                _battleBrain.Brain.PublishPlayerTurnEnded();
+                _battleBrain.Brain.PublishPlayerTurnStateChanged(_currentState.CurrentState);
+            }
+        }
     }
 }

@@ -41,10 +41,10 @@ public class PlayerTurnState
         // 7. Any action-chosen-target-selected -> ConfirmAction. The player has confirmed their action.
         // 8. Any action-chosen-target-selected -> corresponding action-chosen-choosing-target state. The player has undone their target/destination/item choice.
         // 9. ConfirmAction -> ExecutingAction. The player's command executes and animations/effects play while input is locked.
-        // 9a. ExecutingAction -> TurnEnded. Action complete; the player's turn ends.
-        // 9b. ExecutingAction -> NoActionChosen. Action complete but player can act again (e.g., canto/follow-up).
-        // 10. ConfirmAction -> NoActionChosen. This allows for skills that grant moving after attacking, or attacking a second enemy (shortcut flows).
-        // 11. Wait ActionChosen -> TurnEnded. The player has chosen to wait and end their turn.
+        // 10. ExecutingAction -> TurnEnded. Action complete; the player's turn ends.
+        // 11. ExecutingAction -> NoActionChosen. Action complete but player can act again (e.g., canto/follow-up).
+        // 12. ConfirmAction -> NoActionChosen. This allows for skills that grant moving after attacking, or attacking a second enemy (shortcut flows).
+        // 13. Wait ActionChosen -> TurnEnded. The player has chosen to wait and end their turn.
         bool allowed = (CurrentState, newState) switch
         {
             (PlayerTurnStates.Inactive, PlayerTurnStates.NoUnitSelected) => true,
