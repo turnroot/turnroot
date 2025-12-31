@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Turnroot.Characters;
+using Turnroot.Gameplay.Brain.Components.Battle;
 using Turnroot.Gameplay.Combat;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
 using UnityEngine;
@@ -8,6 +9,7 @@ using UnityEngine.SceneManagement;
 namespace Turnroot.Gameplay.Brain
 {
     [RequireComponent(typeof(TurnRotisserie))]
+    [RequireComponent(typeof(PlayerTurnFlow))]
     /// <summary>
     /// The battle brain manages one battle at a time.
     /// Responsible for initializing battles and managing turn order.
@@ -17,6 +19,9 @@ namespace Turnroot.Gameplay.Brain
         [SerializeField, HideInInspector]
         private PlayerTeamRoster _playerTeamRoster;
         private TurnRotisserie _turnRotisserie;
+
+        [HideInInspector]
+        public PlayerTurnFlow playerTurnFlow;
 
         public CharacterInstance ActiveUnit => _turnRotisserie.GetActiveUnit();
 
@@ -39,9 +44,11 @@ namespace Turnroot.Gameplay.Brain
             base.Awake();
 
             _turnRotisserie = GetComponent<TurnRotisserie>();
+            playerTurnFlow = GetComponent<PlayerTurnFlow>();
+            playerTurnFlow.Intialize();
 
 #if UNITY_EDITOR
-            Debug.Log("BattleBrain: TurnRotisserie ready");
+            Debug.Log("BattleBrain: TurnRotisserie and PlayerTurnFlow ready");
 #endif
         }
 

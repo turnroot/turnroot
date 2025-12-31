@@ -1,7 +1,6 @@
 using System;
 using System.Linq;
 using Turnroot.Characters;
-using Turnroot.Gameplay.Brain;
 using Turnroot.Gameplay.Brain.Commands;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
 using Turnroot.Serialization;
