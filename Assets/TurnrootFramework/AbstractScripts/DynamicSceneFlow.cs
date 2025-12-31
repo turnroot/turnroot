@@ -34,7 +34,28 @@ public class DynamicSceneFlow : MonoBehaviour
 
     public void ProgressState() => Index++;
 
+    public void DegressState()
+    {
+        if (Index > 0)
+        {
+            Index--;
+        }
+    }
+
     public void SetState(int state) => Index = state;
+
+    public void SetState(string segmentName)
+    {
+        int foundIndex = segments.FindIndex(s => s.segmentName == segmentName);
+        if (foundIndex != -1)
+        {
+            Index = foundIndex;
+        }
+        else
+        {
+            Debug.LogWarning($"DynamicSceneFlow: Segment '{segmentName}' not found.");
+        }
+    }
 
     private void OnStateChange(int state)
     {

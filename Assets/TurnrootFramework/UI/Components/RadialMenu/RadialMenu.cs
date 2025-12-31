@@ -636,9 +636,6 @@ namespace Turnroot.UI.Components.RadialMenu
             NotifyMenuReady();
         }
 
-        private void NotifyMenuReady()
-        {
-            OnMenuReady?.Invoke(this);
-        }
+        private void NotifyMenuReady() => OnMenuReady?.Invoke(this);
     }
 }

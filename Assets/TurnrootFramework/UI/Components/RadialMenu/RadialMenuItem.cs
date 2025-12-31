@@ -56,13 +56,13 @@ namespace Turnroot.UI.Components.RadialMenu
                 backgroundImage.raycastTarget = true;
             }
 
-            // Initialize default colors from global settings if available
+/*             // Initialize default colors from global settings if available
             var settings = Turnroot.GameSettings.GamewideUiSettings.Instance;
             if (settings != null)
             {
                 normalColor = settings.RadialMenuNormalColor;
                 selectedColor = settings.RadialMenuSelectedColor;
-            }
+            } */
 
             // Prefer existing content in scene (assigned instance) if present
             var existingContent = GetComponentInChildren<IRadialMenuContent>(includeInactive: true);
@@ -297,14 +297,6 @@ namespace Turnroot.UI.Components.RadialMenu
             var t = _contentRect.transform;
             t.SetAsLastSibling();
             t.localPosition = new Vector3(t.localPosition.x, t.localPosition.y, 0f);
-
-            var prefabCanvas = (t as Component)?.GetComponentInChildren<Canvas>();
-            if (prefabCanvas != null)
-            {
-                Debug.LogWarning(
-                    $"RadialMenuItem '{name}' content contains a Canvas. Remove Canvas from content prefabs to avoid draw order issues."
-                );
-            }
         }
 
         public override void SetSegmentAngles(

@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace Turnroot.UI.Components.RadialMenu
 {
@@ -14,8 +15,13 @@ namespace Turnroot.UI.Components.RadialMenu
         public event Action OnHoverExit;
         public event Action OnClick;
 
+        public UnityEvent firedEvent;
+
         // Notify content when selection changes (true = selected, false = deselected)
         public event Action<bool> OnSelectedChanged;
+
+        public UnityEvent OnSelected;
+        public UnityEvent OnDeselected;
 
         protected bool _isSelected = false;
         protected bool _isHovered = false;
@@ -35,25 +41,26 @@ namespace Turnroot.UI.Components.RadialMenu
 
         protected void RaiseSelectedChanged(bool s) => OnSelectedChanged?.Invoke(s);
 
+        protected void RaiseFiredEvent() => firedEvent?.Invoke();
+
         // Selection API
         public virtual void Select()
         {
             _isSelected = true;
             OnSelectedChanged?.Invoke(true);
+            OnSelected?.Invoke();
         }
 
         public virtual void Deselect()
         {
             _isSelected = false;
             OnSelectedChanged?.Invoke(false);
+            OnDeselected?.Invoke();
         }
 
-        public virtual void SetIsCenter(bool center)
-        {
-            isCenter = center;
-        }
+        public virtual void SetIsCenter(bool center) => isCenter = center;
 
-        public virtual void Activate() { }
+        public virtual void Activate() => RaiseFiredEvent();
 
         // Visual/layout helpers - default no-op for simple content
         public virtual void EnsureContentOnTop() { }

@@ -156,6 +156,12 @@ namespace Turnroot.UI.Components.RadialMenu
             ApplyUnselected();
         }
 
+        public override void Activate()
+        {
+            base.Activate();
+            Debug.Log($"Selected: {ItemName}");
+        }
+
         public override void SetIsCenter(bool center)
         {
             isCenter = center;
