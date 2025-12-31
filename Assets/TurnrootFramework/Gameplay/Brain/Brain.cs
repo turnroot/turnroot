@@ -148,7 +148,8 @@ namespace Turnroot.Gameplay.Brain
 
         public string EncodeString(string value) => DeviceDataCipher.EncryptToBase64(value);
 
-        public string DecodeString(string encodedString) => DeviceDataCipher.DecryptFromBase64(encodedString);
+        public string DecodeString(string encodedString) =>
+            DeviceDataCipher.DecryptFromBase64(encodedString);
 
         #endregion
 
@@ -541,6 +542,11 @@ namespace Turnroot.Gameplay.Brain
 
         public void PublishUnitTakesAnotherTurn(CharacterInstance unit) =>
             OnUnitTakesAnotherTurn?.Invoke(unit);
+
+        // Published when an individual unit completes its turn (end of that unit's turn)
+        public event System.Action<CharacterInstance> OnUnitTurnEnded;
+
+        public void PublishUnitTurnEnded(CharacterInstance unit) => OnUnitTurnEnded?.Invoke(unit);
 
         public void PublishCriticalHit(CharacterInstance unit) => OnCriticalHit?.Invoke(unit);
 

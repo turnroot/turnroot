@@ -25,7 +25,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                         goal.Target,
                         goal.ChosenWeapon
                     );
-
+                    context.EndTurn();
                     break;
 
                 case AIGoal.GoalType.HealAlly:
@@ -34,6 +34,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                         goal.Destination.CoordinatesInt
                     );
                     context.HealUnit(_context.Unit.UnitInstance, goal.Target); // TODO: Specify healing item if using
+                    context.EndTurn();
                     break;
 
                 case AIGoal.GoalType.ProtectAlly:
@@ -42,6 +43,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                         goal.Destination.CoordinatesInt
                     );
                     // TODO: Apply protective buff to target or attack enemies threatening them
+                    context.EndTurn();
                     break;
 
                 case AIGoal.GoalType.KillEnemy:
@@ -49,11 +51,13 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                         _context.Unit.UnitInstance,
                         goal.Destination.CoordinatesInt
                     );
+                    context.EndTurn();
                     context.AttackTarget(
                         _context.Unit.UnitInstance,
                         goal.Target,
                         goal.ChosenWeapon
                     );
+                    context.EndTurn();
                     break;
 
                 case AIGoal.GoalType.HealSelf:
@@ -62,6 +66,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                         goal.Destination.CoordinatesInt
                     );
                     context.HealUnit(_context.Unit.UnitInstance, _context.Unit.UnitInstance); // TODO: Specify healing item if using
+                    context.EndTurn();
                     break;
 
                 case AIGoal.GoalType.GainPosition:
@@ -69,6 +74,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                         _context.Unit.UnitInstance,
                         goal.Destination.CoordinatesInt
                     );
+                    context.EndTurn();
                     break;
 
                 case AIGoal.GoalType.CollectTreasure:
@@ -77,6 +83,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                         goal.Destination.CoordinatesInt
                     );
                     // TODO: Trigger treasure collection
+                    context.EndTurn();
                     break;
 
                 case AIGoal.GoalType.DefensiveRetreat:
@@ -84,11 +91,13 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                         _context.Unit.UnitInstance,
                         goal.Destination.CoordinatesInt
                     );
-                    // TODO: End turn
+                    // End turn after retreating to a safe tile
+                    context.EndTurn();
                     break;
 
                 case AIGoal.GoalType.HoldPosition:
-                    // TODO: Just end turn without moving
+                    // Hold position — end turn immediately
+                    context.EndTurn();
                     break;
             }
         }
