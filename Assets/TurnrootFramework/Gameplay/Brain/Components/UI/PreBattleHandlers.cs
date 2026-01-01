@@ -1,4 +1,3 @@
-using System.Collections;
 using Turnroot.Gameplay.Brain;
 using Turnroot.UI.Components.RadialMenu;
 using UnityEngine;
@@ -13,9 +12,6 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
         private void HandlePreBattleMenuNavigate(RadialMenuItemBase item)
         {
             // Handle navigation to item
-#if UNITY_EDITOR
-            Debug.Log($"UiBrain: Navigated to item: {item.name}");
-#endif
         }
 
         private void HandlePreBattleMenuSelect(RadialMenuItemBase item)
@@ -23,35 +19,48 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             // Handle selection of item
             if (item.name == "Center")
             {
-                _brain.PublishPreBattleCompleted();
-                var uiFade = PreBattleMenuInstance.GetComponent<UIFade>();
+                if (PreBattleMenuInstance == null)
+                {
+                    return;
+                }
 
-                // Subscribe to the fade completion event
-                uiFade.OnHidden.AddListener(DestroyPreBattleMenu);
+                var menuInstance = PreBattleMenuInstance;
+
+                if (!menuInstance.TryGetComponent<UIFade>(out var uiFade) || uiFade == null)
+                {
+                    _brain.PublishPreBattleCompleted();
+                    Destroy(menuInstance);
+                    PreBattleMenuInstance = null;
+                    return;
+                }
+
+#if COFFEE_UIEFFECTS
+                var radialMenu = menuInstance.GetComponent<RadialMenu>();
+                var effectTweener = radialMenu?.centerItem?.GetComponent<UIEffectTweener>();
+#endif
+
+                // Subscribe to the fade completion event to destroy menu when done
+                uiFade.OnHidden ??= new UnityEngine.Events.UnityEvent();
+
+                uiFade.OnHidden.AddListener(() =>
+                {
+                    if (menuInstance != null)
+                    {
+                        Destroy(menuInstance);
+                        PreBattleMenuInstance = null;
+                    }
+                });
+
+                _brain.PublishPreBattleCompleted();
+
                 uiFade.Hide();
 
 #if COFFEE_UIEFFECTS
-
-                PreBattleMenuInstance
-                    .GetComponent<RadialMenu>()
-                    .centerItem.GetComponent<UIEffectTweener>()
-                    .Play();
-
+                effectTweener?.Play();
 #endif
 #if UNITY_EDITOR
                 Debug.Log($"UiBrain: Pre-battle completed, transitioning to Battle");
 #endif
-            }
-        }
-
-        private void DestroyPreBattleMenu()
-        {
-            if (PreBattleMenuInstance != null)
-            {
-                var uiFade = PreBattleMenuInstance.GetComponent<UIFade>();
-                uiFade.OnHidden.RemoveListener(DestroyPreBattleMenu);
-                Destroy(PreBattleMenuInstance);
-                PreBattleMenuInstance = null;
             }
         }
     }
