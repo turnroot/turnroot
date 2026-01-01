@@ -6,7 +6,7 @@ using UnityEngine.Events;
 public class UIFade : MonoBehaviour
 {
     [SerializeField]
-    float lerpTime = 0.3f;
+    public float lerpTime = 0.3f;
     float visibleAlpha;
     CanvasGroup canvasGroup;
 

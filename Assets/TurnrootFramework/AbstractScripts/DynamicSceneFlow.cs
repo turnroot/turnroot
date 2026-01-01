@@ -8,7 +8,7 @@ using UnityEngine.Events;
 [Serializable]
 public class FlowSegment
 {
-    public string segmentName = "segment";
+    public string stateId = "";
     public UnityEvent onSegmentReached;
 }
 
@@ -27,56 +27,106 @@ public class DynamicSceneFlow : MonoBehaviour
         {
             StopAllCoroutines();
             _index = value;
-            OnStateChange(_index);
+            OnSegmentReached(_index);
         }
     }
 
-    private void Start() => _ = StartCoroutine(RunNextFrame(StartScene));
-
-    public void SetBrainHighLevelState(string stateName)
+    private void Start()
     {
-        var stateBrain = brain?.stateBrain;
-
-        stateBrain.ActivateHighLevelState(NormalizeStateName(stateName));
+        _ = StartCoroutine(RunNextFrame(StartScene));
+        SubscribeToBrainEvents();
     }
 
-    public void SetBrainChildState(string stateName)
+    private void OnDestroy()
     {
-        var stateBrain = brain?.stateBrain;
+        UnsubscribeFromBrainEvents();
+    }
 
-        var normalized = NormalizeStateName(stateName);
-
-        if (
-            stateBrain.CurrentState == null
-            || stateBrain.CurrentState.Name != BrainStateNames.Combat
-        )
+    private void SubscribeToBrainEvents()
+    {
+        if (brain != null)
         {
-            stateBrain.ActivateHighLevelState(BrainStateNames.Combat);
+            brain.OnStateChanged += HandleStateChanged;
         }
-
-        stateBrain.ActivateChildState(normalized);
     }
 
-    private string NormalizeStateName(string s) =>
-        string.IsNullOrEmpty(s) ? s : s.Replace("-", "").Replace(" ", "");
-
-    private void StartScene() => Index = 0;
-
-    public void ProgressState() => Index++;
-
-    public void DegressState()
+    private void UnsubscribeFromBrainEvents()
     {
-        if (Index > 0)
+        if (brain != null)
         {
-            Index--;
+            brain.OnStateChanged -= HandleStateChanged;
         }
     }
 
-    public void SetState(int state) => Index = state;
-
-    public void SetState(string segmentName)
+    private void StartScene()
     {
-        int foundIndex = segments.FindIndex(s => s.segmentName == segmentName);
+        Index = 0;
+
+        // Set the Brain state to match the first segment
+        if (CurrentSegment != null && !string.IsNullOrEmpty(CurrentSegment.stateId))
+        {
+            SetBrainStateFromSegment(CurrentSegment.stateId);
+        }
+    }
+
+    private void SetBrainStateFromSegment(string stateId)
+    {
+        if (brain?.stateBrain == null || string.IsNullOrEmpty(stateId))
+        {
+            return;
+        }
+
+        // Check if this is a child state (contains a dot, e.g. "Combat.PreBattle")
+        if (stateId.Contains("."))
+        {
+            var parts = stateId.Split('.');
+            if (parts.Length == 2)
+            {
+                string parentStateName = parts[0];
+                string childStateName = parts[1];
+
+                // Activate parent state first
+                brain.stateBrain.ActivateHighLevelState(parentStateName);
+
+                // Activate child state next frame to ensure parent is set
+                StartCoroutine(ActivateChildStateNextFrame(childStateName));
+                return;
+            }
+        }
+
+        // Otherwise it's a top-level state
+        brain.stateBrain.ActivateHighLevelState(stateId);
+    }
+
+    private IEnumerator ActivateChildStateNextFrame(string childStateName)
+    {
+        yield return null;
+        brain.stateBrain.ActivateChildState(childStateName);
+    }
+
+    private void HandleStateChanged(BrainState newState)
+    {
+        if (newState == null)
+        {
+            return;
+        }
+
+        // When Brain state changes, find and activate the matching segment
+        ActivateSegmentByState(newState);
+    }
+
+    public void ActivateSegmentByState(BrainState state)
+    {
+        if (state == null)
+        {
+            return;
+        }
+
+        // Build the full state path: if the state has a parent, use "Parent.Child" format
+        string fullStatePath = GetFullStatePath(state);
+
+        // Find segment with matching state ID
+        int foundIndex = segments.FindIndex(s => s.stateId == fullStatePath);
         if (foundIndex != -1)
         {
             Index = foundIndex;
@@ -84,12 +134,17 @@ public class DynamicSceneFlow : MonoBehaviour
         else
         {
 #if UNITY_EDITOR
-            Debug.LogWarning($"DynamicSceneFlow: Segment '{segmentName}' not found.");
+            Debug.LogWarning($"DynamicSceneFlow: No segment found for state '{fullStatePath}'.");
 #endif
         }
     }
 
-    private void OnStateChange(int state)
+    private string GetFullStatePath(BrainState state)
+    {
+        return state?.GetFullPath() ?? "";
+    }
+
+    private void OnSegmentReached(int state)
     {
         if (state >= segments.Count)
         {
@@ -97,7 +152,6 @@ public class DynamicSceneFlow : MonoBehaviour
         }
 
         var segment = CurrentSegment;
-
         segment.onSegmentReached?.Invoke();
     }
 

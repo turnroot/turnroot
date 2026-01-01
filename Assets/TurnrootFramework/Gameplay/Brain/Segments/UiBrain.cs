@@ -1,12 +1,17 @@
 using Turnroot.Gameplay.Brain;
 using Turnroot.GameSettings;
+using Turnroot.UI.Components.RadialMenu;
 using Turnroot.Utilities;
 using UnityEngine;
 
 namespace TurnrootFramework.Gameplay.Brain.Segments
 {
-    public class UiBrain : BrainComponent
+    public partial class UiBrain : BrainComponent
     {
+        [HideInInspector]
+        public GameObject PreBattleMenuInstance { get; private set; }
+
+        [HideInInspector]
         public GamewideUiSettings uiSettings;
 
         protected override void Awake()
@@ -65,7 +70,13 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
 #if UNITY_EDITOR
                 Debug.Log("UiBrain: Instantiating PreBattleMenuPrefab.");
 #endif
-                Instantiate(uiSettings.PreBattleMenuPrefab);
+                PreBattleMenuInstance = Instantiate(uiSettings.PreBattleMenuPrefab);
+                var uiFade = PreBattleMenuInstance.AddComponent<UIFade>();
+                uiFade.lerpTime = 0.8f;
+                var radialMenu = PreBattleMenuInstance.GetComponent<RadialMenu>();
+                radialMenu.uiBrain = this;
+                radialMenu.OnNavigate += HandlePreBattleMenuNavigate;
+                radialMenu.OnItemSelected += HandlePreBattleMenuSelect;
             }
         }
     }

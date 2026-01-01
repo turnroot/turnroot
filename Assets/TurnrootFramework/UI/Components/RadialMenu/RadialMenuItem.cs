@@ -203,13 +203,6 @@ namespace Turnroot.UI.Components.RadialMenu
             UpdateVisuals();
         }
 
-        public override void Activate()
-        {
-#if UNITY_EDITOR
-            Debug.Log($"Activated menu item: {itemName}");
-#endif
-        }
-
         private void UpdateVisuals()
         {
             if (backgroundImage == null)
