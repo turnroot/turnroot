@@ -12,10 +12,7 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
         protected override void Awake()
         {
             base.Awake();
-            uiSettings = GameSettingsLoader.LoadFirst<GamewideUiSettings>();
-#if UNITY_EDITOR
-            Debug.Log($"UiBrain Awake - Brain present: {Brain != null}");
-#endif
+            uiSettings = GameSettingsLoader.LoadFirst<GamewideUiSettings>(); Debug.Log($"UiBrain Awake - Brain present: {Brain != null}");
         }
 
         private System.Action<BrainState> _onStateChangedHandler;
@@ -35,19 +32,10 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             };
 
             Brain.OnStateChanged += _onStateChangedHandler;
-#if UNITY_EDITOR
-            Debug.Log("UiBrain: Subscribed to Brain.OnStateChanged");
-#endif
-
             // If the Brain already has an active state, invoke handler immediately so UI can react to the current state
             var current = Brain?.stateBrain?.CurrentState;
             if (current != null)
             {
-#if UNITY_EDITOR
-                Debug.Log(
-                    $"UiBrain: Invoking state handler immediately for current state: {current.Name}"
-                );
-#endif
                 _onStateChangedHandler(current);
             }
         }

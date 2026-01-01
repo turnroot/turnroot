@@ -52,7 +52,7 @@ public class UIFade : MonoBehaviour
         }
 
         canvasGroup.alpha = targetAlpha;
-        if (targetAlpha == visibleAlpha)
+        if (Mathf.Approximately(targetAlpha, visibleAlpha))
         {
             OnVisible?.Invoke();
         }

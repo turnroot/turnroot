@@ -30,7 +30,7 @@ namespace Turnroot.Characters.Stats.Editor
             float current = currentProp.floatValue;
             float max = maxProp.floatValue;
             float bonus = bonusProp.floatValue;
-            float ratio = max == 0 ? 0 : (current + bonus) / max;
+            float ratio = Mathf.Approximately(max, 0) ? 0 : (current + bonus) / max;
 
             // Color logic:
             // - Blue if bonus is active (bonus != 0)

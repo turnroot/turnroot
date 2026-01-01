@@ -58,7 +58,8 @@ namespace Turnroot.Characters.Stats
         public override float Bonus => Mathf.Round(_bonus);
         public float Max => Mathf.Round(_max);
         public float Min => Mathf.Round(_min);
-        public float Ratio => _max == 0 ? 0 : (Mathf.Clamp(_current, _min, _max) + _bonus) / _max;
+        public float Ratio =>
+            Mathf.Approximately(_max, 0) ? 0 : (Mathf.Clamp(_current, _min, _max) + _bonus) / _max;
 
         // Int accessors for all values
         public override int CurrentInt => Mathf.RoundToInt(Mathf.Clamp(_current, _min, _max));
