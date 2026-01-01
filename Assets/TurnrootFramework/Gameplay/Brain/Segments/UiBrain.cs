@@ -64,6 +64,15 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
 #if UNITY_EDITOR
             Debug.Log("UiBrain: Handling PreBattle UI setup.");
 #endif
+            // Clean up any existing menu first
+            if (PreBattleMenuInstance != null)
+            {
+#if UNITY_EDITOR
+                Debug.Log("UiBrain: Cleaning up existing PreBattleMenuInstance.");
+#endif
+                CleanupPreBattleMenu();
+            }
+
             // Instantiate the pre-battle menu prefab
             if (uiSettings.PreBattleMenuPrefab != null)
             {
@@ -77,6 +86,23 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                 radialMenu.uiBrain = this;
                 radialMenu.OnNavigate += HandlePreBattleMenuNavigate;
                 radialMenu.OnItemSelected += HandlePreBattleMenuSelect;
+            }
+        }
+
+        private void CleanupPreBattleMenu()
+        {
+            if (PreBattleMenuInstance != null)
+            {
+                var radialMenu = PreBattleMenuInstance.GetComponent<RadialMenu>();
+                if (radialMenu != null)
+                {
+                    // Unsubscribe from events to prevent orphaned references
+                    radialMenu.OnNavigate -= HandlePreBattleMenuNavigate;
+                    radialMenu.OnItemSelected -= HandlePreBattleMenuSelect;
+                }
+
+                Destroy(PreBattleMenuInstance);
+                PreBattleMenuInstance = null;
             }
         }
     }

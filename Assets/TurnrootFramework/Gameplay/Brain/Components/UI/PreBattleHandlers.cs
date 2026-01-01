@@ -1,3 +1,4 @@
+using System.Collections;
 using Turnroot.Gameplay.Brain;
 using Turnroot.UI.Components.RadialMenu;
 using UnityEngine;
@@ -24,7 +25,11 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             {
                 _brain.PublishPreBattleCompleted();
                 var uiFade = PreBattleMenuInstance.GetComponent<UIFade>();
+
+                // Subscribe to the fade completion event
+                uiFade.OnHidden.AddListener(DestroyPreBattleMenu);
                 uiFade.Hide();
+
 #if COFFEE_UIEFFECTS
 
                 PreBattleMenuInstance
@@ -36,6 +41,17 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
 #if UNITY_EDITOR
                 Debug.Log($"UiBrain: Pre-battle completed, transitioning to Battle");
 #endif
+            }
+        }
+
+        private void DestroyPreBattleMenu()
+        {
+            if (PreBattleMenuInstance != null)
+            {
+                var uiFade = PreBattleMenuInstance.GetComponent<UIFade>();
+                uiFade.OnHidden.RemoveListener(DestroyPreBattleMenu);
+                Destroy(PreBattleMenuInstance);
+                PreBattleMenuInstance = null;
             }
         }
     }
