@@ -41,9 +41,11 @@ namespace Turnroot.Gameplay.Brain
         {
             if (BattleObject?.Context == null)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning(
                     "BattleBrain: Cannot grant another turn - BattleContext not available"
                 );
+#endif
                 return;
             }
 
@@ -59,9 +61,11 @@ namespace Turnroot.Gameplay.Brain
         {
             if (BattleObject?.Context == null)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning(
                     "BattleBrain: Cannot set finish moving after action - BattleContext not available"
                 );
+#endif
                 return;
             }
 
@@ -78,9 +82,11 @@ namespace Turnroot.Gameplay.Brain
         {
             if (BattleObject?.Context == null)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning(
                     "BattleBrain: Cannot set critical hit - BattleContext not available"
                 );
+#endif
                 return;
             }
 
@@ -97,18 +103,22 @@ namespace Turnroot.Gameplay.Brain
             var inventory = unit.InventoryInstance;
             if (inventory == null)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning(
                     $"BattleBrain: {unit.CharacterTemplate.DisplayName} has no inventory"
                 );
+#endif
                 return;
             }
 
             int weaponIndex = inventory.GetEquippedWeaponIndex();
             if (weaponIndex == -1)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning(
                     $"BattleBrain: {unit.CharacterTemplate.DisplayName} has no equipped weapon"
                 );
+#endif
                 return;
             }
 
@@ -121,9 +131,11 @@ namespace Turnroot.Gameplay.Brain
             if (usesChange > 0)
             {
                 equippedWeapon.Repair(usesChange);
+#if UNITY_EDITOR
                 Debug.Log(
                     $"BattleBrain: Restored {usesChange} uses to {unit.CharacterTemplate.DisplayName}'s weapon"
                 );
+#endif
             }
             else if (usesChange < 0)
             {
@@ -131,17 +143,21 @@ namespace Turnroot.Gameplay.Brain
                 {
                     equippedWeapon.Use();
                 }
+#if UNITY_EDITOR
                 Debug.Log(
                     $"BattleBrain: Reduced {Mathf.Abs(usesChange)} uses from {unit.CharacterTemplate.DisplayName}'s weapon"
                 );
+#endif
             }
         }
 
         private void HandleItemStolen(CharacterInstance thief, CharacterInstance target)
         {
+#if UNITY_EDITOR
             Debug.Log(
                 $"BattleBrain: {thief.CharacterTemplate.DisplayName} attempts to steal from {target.CharacterTemplate.DisplayName}"
             );
+#endif
 
             // Get target's inventory
             var targetInventory = target.InventoryInstance;
@@ -208,9 +224,11 @@ namespace Turnroot.Gameplay.Brain
             targetInventory.RemoveFromInventory(bestItem);
             thiefInventory.AddToInventory(bestItem);
 
+#if UNITY_EDITOR
             Debug.Log(
                 $"BattleBrain: {thief.CharacterTemplate.DisplayName} stole {bestItem.Template.name} from {target.CharacterTemplate.DisplayName}!"
             );
+#endif
 
             // Publish transfer event
             _brain.inventoryBrain.TransferItem(bestItem, thiefInventory);

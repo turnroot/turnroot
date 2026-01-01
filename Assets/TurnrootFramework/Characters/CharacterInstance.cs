@@ -324,9 +324,11 @@ namespace Turnroot.Characters
                     meshRenderer: null,
                     applyClassChangeBonuses: false
                 );
+#if UNITY_EDITOR
                 Debug.Log(
                     $"Character {Id} initialized with starting class {_characterTemplate.StartingClass.Identity.ClassName}"
                 );
+#endif
             }
             else
             {
@@ -346,9 +348,11 @@ namespace Turnroot.Characters
                         );
                         if (changed)
                         {
+#if UNITY_EDITOR
                             Debug.Log(
                                 $"Character {Id} initialized with default starting class {defaultClass.Identity.ClassName}"
                             );
+#endif
                         }
                         else
                         {

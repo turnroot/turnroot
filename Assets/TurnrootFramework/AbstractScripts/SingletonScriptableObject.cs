@@ -35,17 +35,21 @@ public abstract class SingletonScriptableObject<T> : ScriptableObject
                             _instance = all[0];
                         }
 
+#if UNITY_EDITOR
                         Debug.LogWarning(
                             $"SingletonScriptableObject: Loaded {typeof(T).Name} from Resources via fallback (found {all.Length} candidates). Consider placing the asset at 'Assets/Resources/{typeof(T).Name}.asset' for deterministic loading."
                         );
+#endif
                     }
                 }
 
                 if (_instance == null)
                 {
+#if UNITY_EDITOR
                     Debug.LogError(
                         $"SingletonScriptableObject: Could not find instance of {typeof(T).Name} in Resources."
                     );
+#endif
                 }
             }
             return _instance;

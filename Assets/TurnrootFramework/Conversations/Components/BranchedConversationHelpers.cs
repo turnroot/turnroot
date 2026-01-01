@@ -144,9 +144,11 @@ namespace Turnroot.Conversations
             }
             catch (System.Exception ex)
             {
+#if UNITY_EDITOR
                 Debug.LogError(
                     $"BranchedConversationHelpers.GetDataFromGraph: exception while parsing graph '{conversationGraph?.name}': {ex.GetType().Name} - {ex.Message}\n{ex.StackTrace}"
                 );
+#endif
                 return null;
             }
         }

@@ -56,13 +56,13 @@ namespace Turnroot.UI.Components.RadialMenu
                 backgroundImage.raycastTarget = true;
             }
 
-/*             // Initialize default colors from global settings if available
-            var settings = Turnroot.GameSettings.GamewideUiSettings.Instance;
-            if (settings != null)
-            {
-                normalColor = settings.RadialMenuNormalColor;
-                selectedColor = settings.RadialMenuSelectedColor;
-            } */
+            /*             // Initialize default colors from global settings if available
+                        var settings = Turnroot.GameSettings.GamewideUiSettings.Instance;
+                        if (settings != null)
+                        {
+                            normalColor = settings.RadialMenuNormalColor;
+                            selectedColor = settings.RadialMenuSelectedColor;
+                        } */
 
             // Prefer existing content in scene (assigned instance) if present
             var existingContent = GetComponentInChildren<IRadialMenuContent>(includeInactive: true);
@@ -135,9 +135,11 @@ namespace Turnroot.UI.Components.RadialMenu
                     var prefabCanvas = instance.GetComponentInChildren<Canvas>();
                     if (prefabCanvas != null)
                     {
+#if UNITY_EDITOR
                         Debug.LogWarning(
                             $"RadialMenuItem '{name}' instantiated content prefab contains a Canvas. This may override draw order; consider removing it."
                         );
+#endif
                     }
                 }
             }
@@ -203,7 +205,9 @@ namespace Turnroot.UI.Components.RadialMenu
 
         public override void Activate()
         {
+#if UNITY_EDITOR
             Debug.Log($"Activated menu item: {itemName}");
+#endif
         }
 
         private void UpdateVisuals()
@@ -345,7 +349,7 @@ namespace Turnroot.UI.Components.RadialMenu
             // If you make a PR that "fixes" this, I promise you I've already tried whatever you
             // are trying. It doesn't work. It will never work. Run away.
 
-            bool isFirstSegment = transform.GetSiblingIndex() == 1; 
+            bool isFirstSegment = transform.GetSiblingIndex() == 1;
 
             float angleRad = centerAngleDeg * Mathf.Deg2Rad;
             Vector2 dir = new Vector2(Mathf.Sin(angleRad), Mathf.Cos(angleRad));

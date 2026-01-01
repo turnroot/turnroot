@@ -32,9 +32,11 @@ namespace Turnroot.Gameplay.Brain
                 return;
             }
 
+#if UNITY_EDITOR
             Debug.Log(
                 $"{GetType().Name} Awake - subscribing to brain events with priority {GetSubscriptionPriority()}."
             );
+#endif
             SubscribeToBrainEvents();
         }
 

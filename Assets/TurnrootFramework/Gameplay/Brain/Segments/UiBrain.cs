@@ -12,7 +12,10 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
         protected override void Awake()
         {
             base.Awake();
-            uiSettings = GameSettingsLoader.LoadFirst<GamewideUiSettings>(); Debug.Log($"UiBrain Awake - Brain present: {Brain != null}");
+            uiSettings = GameSettingsLoader.LoadFirst<GamewideUiSettings>();
+#if UNITY_EDITOR
+            Debug.Log($"UiBrain Awake - Brain present: {Brain != null}");
+#endif
         }
 
         private System.Action<BrainState> _onStateChangedHandler;
@@ -22,7 +25,9 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             _onStateChangedHandler = (state) =>
             {
                 var name = state?.Name ?? string.Empty;
+#if UNITY_EDITOR
                 Debug.Log($"UiBrain: Brain state changed to {name}");
+#endif
                 switch (name)
                 {
                     case BrainStateNames.PreBattle:
@@ -51,11 +56,15 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
 
         public void HandlePreBattleUi()
         {
+#if UNITY_EDITOR
             Debug.Log("UiBrain: Handling PreBattle UI setup.");
+#endif
             // Instantiate the pre-battle menu prefab
             if (uiSettings.PreBattleMenuPrefab != null)
             {
+#if UNITY_EDITOR
                 Debug.Log("UiBrain: Instantiating PreBattleMenuPrefab.");
+#endif
                 Instantiate(uiSettings.PreBattleMenuPrefab);
             }
         }

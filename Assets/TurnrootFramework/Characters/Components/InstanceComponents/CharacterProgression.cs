@@ -21,9 +21,11 @@ namespace Turnroot.Characters
             // Ensure character has a class equipped before leveling up — fail fast if invariant is violated
             if (_currentClass == null || _currentClass.ClassData == null)
             {
+#if UNITY_EDITOR
                 Debug.LogError(
                     "CharacterInstance.LevelUp: No class equipped — this is a critical invariant and must be fixed. Breaking into debugger."
                 );
+#endif
 #if UNITY_EDITOR
                 Debug.Break(); // Help developer catch this during debugging
 #endif

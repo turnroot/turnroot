@@ -190,9 +190,11 @@ namespace Turnroot.Gameplay.Brain.Events
                     {
                         nonCriticalExceptions ??= new List<Exception>();
                         nonCriticalExceptions.Add(ex);
+#if UNITY_EDITOR
                         Debug.LogError(
                             $"[PriorityEventBus] Exception in handler for {typeof(T).Name} at priority {handler.Priority}: {ex}"
                         );
+#endif
                     }
                 }
             }
@@ -200,9 +202,11 @@ namespace Turnroot.Gameplay.Brain.Events
             // Log summary if there were exceptions
             if (nonCriticalExceptions != null && nonCriticalExceptions.Count > 0)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning(
                     $"[PriorityEventBus] {nonCriticalExceptions.Count} exception(s) occurred during event {typeof(T).Name} processing."
                 );
+#endif
             }
         }
 
