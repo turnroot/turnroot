@@ -12,8 +12,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c583338e71983104d95054f99e91658a, type: 3}
   m_Name: GamewideUiSettings
   m_EditorClassIdentifier: 
-  PieMenusUseIcons: 1
-  PieMenusHaveText: 0
+  PreBattleMenuPrefab: {fileID: 312688979984975295, guid: ce54cc1f4ce2a624f8d2665af9d2b92a, type: 3}
   BattlePreparationMenuStyle: 2
   InBattleMenuStyle: 1
   InBattleUnitSelectedMenuStyle: 1
+  MenuButtonSpacing: 2
+  RadialMenuNormalColor: {r: 1, g: 1, b: 1, a: 1}
+  RadialMenuSelectedColor: {r: 1, g: 0.8, b: 0, a: 1}
+  RadialMenuInnerRadius: 0.3
+  RadialMenuSegmentGap: 0.02
+  RadialMenuHaveIcons: 1
+  RadialMenuHaveLabels: 1

@@ -56,13 +56,13 @@ namespace Turnroot.UI.Components.RadialMenu
                 backgroundImage.raycastTarget = true;
             }
 
-            // Initialize default colors from global settings if available
+/*             // Initialize default colors from global settings if available
             var settings = Turnroot.GameSettings.GamewideUiSettings.Instance;
             if (settings != null)
             {
                 normalColor = settings.RadialMenuNormalColor;
                 selectedColor = settings.RadialMenuSelectedColor;
-            }
+            } */
 
             // Prefer existing content in scene (assigned instance) if present
             var existingContent = GetComponentInChildren<IRadialMenuContent>(includeInactive: true);
@@ -297,14 +297,6 @@ namespace Turnroot.UI.Components.RadialMenu
             var t = _contentRect.transform;
             t.SetAsLastSibling();
             t.localPosition = new Vector3(t.localPosition.x, t.localPosition.y, 0f);
-
-            var prefabCanvas = (t as Component)?.GetComponentInChildren<Canvas>();
-            if (prefabCanvas != null)
-            {
-                Debug.LogWarning(
-                    $"RadialMenuItem '{name}' content contains a Canvas. Remove Canvas from content prefabs to avoid draw order issues."
-                );
-            }
         }
 
         public override void SetSegmentAngles(
@@ -353,7 +345,7 @@ namespace Turnroot.UI.Components.RadialMenu
             // If you make a PR that "fixes" this, I promise you I've already tried whatever you
             // are trying. It doesn't work. It will never work. Run away.
 
-            bool isFirstSegment = transform.GetSiblingIndex() == 0;
+            bool isFirstSegment = transform.GetSiblingIndex() == 1; 
 
             float angleRad = centerAngleDeg * Mathf.Deg2Rad;
             Vector2 dir = new Vector2(Mathf.Sin(angleRad), Mathf.Cos(angleRad));

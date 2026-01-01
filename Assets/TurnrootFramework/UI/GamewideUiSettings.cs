@@ -3,6 +3,7 @@ using UnityEngine;
 
 namespace Turnroot.GameSettings
 {
+    
     public enum MenuStyle
     {
         Pie,
@@ -19,6 +20,8 @@ namespace Turnroot.GameSettings
     )]
     public class GamewideUiSettings : SingletonScriptableObject<GamewideUiSettings>
     {
+        public GameObject PreBattleMenuPrefab;
+
         [Header("Menu Styles"), HorizontalLine(color: EColor.Green)]
         public MenuStyle BattlePreparationMenuStyle = MenuStyle.Filmstrip;
         public MenuStyle InBattleMenuStyle = MenuStyle.List;

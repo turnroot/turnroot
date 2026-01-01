@@ -1,18 +1,22 @@
 using System.Collections;
 using UnityEngine;
-using UnityEngine.UI;
+using UnityEngine.Events;
 
+[RequireComponent(typeof(CanvasGroup))]
 public class UIFade : MonoBehaviour
 {
     [SerializeField]
-    float lerpTime;
+    float lerpTime = 0.3f;
     float visibleAlpha;
-    Graphic graphic;
+    CanvasGroup canvasGroup;
+
+    public UnityEvent OnVisible;
+    public UnityEvent OnHidden;
 
     private void Awake()
     {
-        graphic = GetComponent<Graphic>();
-        visibleAlpha = graphic.color.a;
+        canvasGroup = GetComponent<CanvasGroup>();
+        visibleAlpha = canvasGroup.alpha;
     }
 
     bool _visible = true;
@@ -25,32 +29,36 @@ public class UIFade : MonoBehaviour
             {
                 return;
             }
-
             _visible = value;
-
             float targetAlpha = value ? visibleAlpha : 0f;
-
             StopAllCoroutines();
-
-            _ = StartCoroutine(lerpAlpha(graphic.color.a, targetAlpha));
+            StartCoroutine(LerpAlpha(canvasGroup.alpha, targetAlpha));
         }
     }
 
-    IEnumerator lerpAlpha(float startAlpha, float targetAlpha)
-    {
-        var color = graphic.color;
-        var time = 0f;
+    public void Show() => Visible = true;
 
-        while (Mathf.Abs(graphic.color.a - targetAlpha) > .01)
+    public void Hide() => Visible = false;
+
+    private IEnumerator LerpAlpha(float startAlpha, float targetAlpha)
+    {
+        float time = 0f;
+
+        while (time < lerpTime)
         {
             time += Time.deltaTime;
-            color.a = Mathf.Lerp(startAlpha, targetAlpha, time / lerpTime);
-            graphic.color = color;
-
-            yield return new WaitForEndOfFrame();
+            canvasGroup.alpha = Mathf.Lerp(startAlpha, targetAlpha, time / lerpTime);
+            yield return null;
         }
 
-        color.a = targetAlpha;
-        graphic.color = color;
+        canvasGroup.alpha = targetAlpha;
+        if (targetAlpha == visibleAlpha)
+        {
+            OnVisible?.Invoke();
+        }
+        else
+        {
+            OnHidden?.Invoke();
+        }
     }
 }

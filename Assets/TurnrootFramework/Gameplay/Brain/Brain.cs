@@ -6,6 +6,7 @@ using Turnroot.Conversations;
 using Turnroot.Gameplay.Combat;
 using Turnroot.Gameplay.Objects;
 using Turnroot.Utilities;
+using TurnrootFramework.Gameplay.Brain.Segments;
 using UnityEngine;
 using static Turnroot.Characters.CharacterInstance;
 
@@ -40,6 +41,7 @@ namespace Turnroot.Gameplay.Brain
     [RequireComponent(typeof(InventoryBrain))]
     [RequireComponent(typeof(StorehouseBrain))]
     [RequireComponent(typeof(PlayerInputBrain))]
+    [RequireComponent(typeof(UiBrain))]
     public partial class Brain : MonoBehaviour
     {
         // Core components
@@ -66,6 +68,9 @@ namespace Turnroot.Gameplay.Brain
 
         [HideInInspector]
         public PlayerInputBrain playerInputBrain;
+
+        [HideInInspector]
+        public UiBrain uiBrain;
 
         [HideInInspector]
         public LongTermMemory ltm;
@@ -664,6 +669,17 @@ namespace Turnroot.Gameplay.Brain
             inventoryBrain = GetComponent<InventoryBrain>();
             storehouseBrain = GetComponent<StorehouseBrain>();
             playerInputBrain = GetComponent<PlayerInputBrain>();
+            uiBrain = GetComponent<UiBrain>();
+
+            // Find all DynamicSceneFlows in other scenes and set their .brain to this
+            var allSceneFlows = FindObjectsByType<DynamicSceneFlow>(FindObjectsSortMode.None);
+            foreach (var sceneFlow in allSceneFlows)
+            {
+                if (sceneFlow.gameObject.scene != gameObject.scene)
+                {
+                    sceneFlow.brain = this;
+                }
+            }
         }
 
         public void InitializeLongTermMemory()
