@@ -345,7 +345,7 @@ namespace Turnroot.UI.Components.RadialMenu
             // If you make a PR that "fixes" this, I promise you I've already tried whatever you
             // are trying. It doesn't work. It will never work. Run away.
 
-            bool isFirstSegment = transform.GetSiblingIndex() == 0;
+            bool isFirstSegment = transform.GetSiblingIndex() == 1; 
 
             float angleRad = centerAngleDeg * Mathf.Deg2Rad;
             Vector2 dir = new Vector2(Mathf.Sin(angleRad), Mathf.Cos(angleRad));

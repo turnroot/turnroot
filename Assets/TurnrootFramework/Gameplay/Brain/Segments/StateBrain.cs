@@ -321,6 +321,9 @@ namespace Turnroot.Gameplay.Brain
             _currentState = newState;
             _currentState.IsActive = true;
 
+#if UNITY_EDITOR
+            Debug.Log($"StateBrain: SetCurrentState -> {_currentState.Name}");
+#endif
             _brain?.PublishStateChanged(_currentState);
         }
 
