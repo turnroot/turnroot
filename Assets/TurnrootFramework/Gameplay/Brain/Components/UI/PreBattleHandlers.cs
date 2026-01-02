@@ -24,8 +24,8 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             else
             {
                 var radialMenu = PreBattleMenuInstance.GetComponent<RadialMenu>();
-                var w = radialMenu.FindPreBattleOptionByName(item.ItemName);
-                switch (w)
+                var selectedOption = radialMenu.FindPreBattleOptionByName(item.ItemName);
+                switch (selectedOption)
                 {
                     case PrebattleOptions.Items:
                         // Open inventory UI
