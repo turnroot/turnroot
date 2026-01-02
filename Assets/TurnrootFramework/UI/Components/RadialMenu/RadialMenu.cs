@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using NaughtyAttributes;
+using Turnroot.Gameplay.Brain.UI;
 using Turnroot.GameSettings;
 using Turnroot.Utilities;
 using TurnrootFramework.Gameplay.Brain.Segments;
@@ -13,17 +14,6 @@ namespace Turnroot.UI.Components.RadialMenu
     public enum RadialMenuLocations
     {
         PreBattle,
-    }
-
-    public enum PrebattleOptions
-    {
-        Team,
-        Items,
-        Settings,
-        Skills,
-        Withdraw,
-        Map,
-        Support,
     }
 
     [RequireComponent(typeof(CanvasGroup))]
@@ -134,32 +124,25 @@ namespace Turnroot.UI.Components.RadialMenu
 
         public PrebattleOptions FindPreBattleOptionByName(string name)
         {
-            for (int i = 0; i < menuItems.Count; i++)
+            switch (name)
             {
-                if (menuItems[i].ItemName == name)
-                {
-                    switch (menuItems[i].ItemName)
-                    {
-                        case "Team":
-                            return PrebattleOptions.Team;
-                        case "Items":
-                            return PrebattleOptions.Items;
-                        case "Settings":
-                            return PrebattleOptions.Settings;
-                        case "Skills":
-                            return PrebattleOptions.Skills;
-                        case "Withdraw":
-                            return PrebattleOptions.Withdraw;
-                        case "Map":
-                            return PrebattleOptions.Map;
-                        case "Support":
-                            return PrebattleOptions.Support;
-                        default:
-                            break;
-                    }
-                }
+                case "Team":
+                    return PrebattleOptions.Team;
+                case "Items":
+                    return PrebattleOptions.Items;
+                case "Settings":
+                    return PrebattleOptions.Settings;
+                case "Skills":
+                    return PrebattleOptions.Skills;
+                case "Withdraw":
+                    return PrebattleOptions.Withdraw;
+                case "Map":
+                    return PrebattleOptions.Map;
+                case "Support":
+                    return PrebattleOptions.Support;
+                default:
+                    throw new Exception($"No PrebattleOption found for segment name: {name}");
             }
-            throw new Exception($"No PrebattleOption found for segment name: {name}");
         }
 
         public UiBrain uiBrain;

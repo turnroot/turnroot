@@ -302,6 +302,13 @@ namespace Turnroot.Gameplay.Brain
                 return;
             }
 
+            // Validate that the parent state has children
+            if (parentState.Children == null || parentState.Children.Length == 0)
+            {
+                Debug.LogError($"StateBrain: Parent state '{parentStateName}' has no children.");
+                return;
+            }
+
             // Find the child state within the parent
             var childState = Array.Find(parentState.Children, s => s.Name == childStateName);
             if (childState != null)

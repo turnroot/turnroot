@@ -25,7 +25,17 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
         {
             base.Awake();
             uiSettings = GameSettingsLoader.LoadFirst<GamewideUiSettings>();
-            _preBattleMenuStyle = uiSettings.BattlePreparationMenuStyle;
+            if (uiSettings != null)
+            {
+                _preBattleMenuStyle = uiSettings.BattlePreparationMenuStyle;
+            }
+            else
+            {
+#if UNITY_EDITOR
+                Debug.LogError("UiBrain: GamewideUiSettings not found! Using default menu style.");
+#endif
+                _preBattleMenuStyle = MenuStyle.Pie; // Default fallback
+            }
         }
 
         private System.Action<BrainState> _onStateChangedHandler;

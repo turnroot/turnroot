@@ -149,17 +149,11 @@ public class DynamicSceneFlow : MonoBehaviour
     /// <summary>
     /// Gets the full path of a brain state (e.g., "Combat.PreBattle" for hierarchical states).
     /// </summary>
-    /// <summary>
-    /// Gets the full path of a brain state (e.g., "Combat.PreBattle" for hierarchical states).
-    /// </summary>
     private string GetFullStatePath(BrainState state)
     {
         return state?.GetFullPath() ?? "";
     }
 
-    /// <summary>
-    /// Called when a new segment is reached. Invokes the segment's event callbacks.
-    /// </summary>
     /// <summary>
     /// Called when a new segment is reached. Invokes the segment's event callbacks.
     /// </summary>
