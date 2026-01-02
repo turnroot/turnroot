@@ -183,9 +183,11 @@ namespace Turnroot.Characters
             _currentClass.EnforceStatMinimums(this);
             _currentClass.ApplyStatCaps(this);
 
+#if UNITY_EDITOR
             Debug.Log(
                 $"{_characterTemplate.DisplayName} changed to class: {newClassData.Identity.ClassName}"
             );
+#endif
             return true;
         }
 
@@ -251,9 +253,11 @@ namespace Turnroot.Characters
             // Tier regression is allowed (Advanced -> Intermediate is valid)
             if (targetTier > currentTier + 1)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning(
                     $"Cannot change from {currentTier} class to {targetTier} class - must progress one tier at a time"
                 );
+#endif
                 return false;
             }
 

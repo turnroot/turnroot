@@ -1,12 +1,17 @@
 using Turnroot.Gameplay.Brain;
 using Turnroot.GameSettings;
+using Turnroot.UI.Components.RadialMenu;
 using Turnroot.Utilities;
 using UnityEngine;
 
 namespace TurnrootFramework.Gameplay.Brain.Segments
 {
-    public class UiBrain : BrainComponent
+    public partial class UiBrain : BrainComponent
     {
+        [HideInInspector]
+        public GameObject PreBattleMenuInstance { get; private set; }
+
+        [HideInInspector]
         public GamewideUiSettings uiSettings;
 
         protected override void Awake()
@@ -25,7 +30,9 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             _onStateChangedHandler = (state) =>
             {
                 var name = state?.Name ?? string.Empty;
+#if UNITY_EDITOR
                 Debug.Log($"UiBrain: Brain state changed to {name}");
+#endif
                 switch (name)
                 {
                     case BrainStateNames.PreBattle:
@@ -35,19 +42,10 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             };
 
             Brain.OnStateChanged += _onStateChangedHandler;
-#if UNITY_EDITOR
-            Debug.Log("UiBrain: Subscribed to Brain.OnStateChanged");
-#endif
-
             // If the Brain already has an active state, invoke handler immediately so UI can react to the current state
             var current = Brain?.stateBrain?.CurrentState;
             if (current != null)
             {
-#if UNITY_EDITOR
-                Debug.Log(
-                    $"UiBrain: Invoking state handler immediately for current state: {current.Name}"
-                );
-#endif
                 _onStateChangedHandler(current);
             }
         }
@@ -59,16 +57,37 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                 Brain.OnStateChanged -= _onStateChangedHandler;
                 _onStateChangedHandler = null;
             }
+
+            // Clean up radial menu events if menu still exists
+            if (PreBattleMenuInstance != null)
+            {
+                var radialMenu = PreBattleMenuInstance.GetComponent<RadialMenu>();
+                if (radialMenu != null)
+                {
+                    radialMenu.OnNavigate -= HandlePreBattleMenuNavigate;
+                    radialMenu.OnItemSelected -= HandlePreBattleMenuSelect;
+                }
+            }
         }
 
         public void HandlePreBattleUi()
         {
-            Debug.Log("UiBrain: Handling PreBattle UI setup.");
+            // Guard: Return early if PreBattleMenuInstance already exists to prevent duplicates
+            if (PreBattleMenuInstance != null)
+            {
+                return;
+            }
+
             // Instantiate the pre-battle menu prefab
             if (uiSettings.PreBattleMenuPrefab != null)
             {
-                Debug.Log("UiBrain: Instantiating PreBattleMenuPrefab.");
-                Instantiate(uiSettings.PreBattleMenuPrefab);
+                PreBattleMenuInstance = Instantiate(uiSettings.PreBattleMenuPrefab);
+                var uiFade = PreBattleMenuInstance.AddComponent<UIFade>();
+                uiFade.lerpTime = 0.8f;
+                var radialMenu = PreBattleMenuInstance.GetComponent<RadialMenu>();
+                radialMenu.uiBrain = this;
+                radialMenu.OnNavigate += HandlePreBattleMenuNavigate;
+                radialMenu.OnItemSelected += HandlePreBattleMenuSelect;
             }
         }
     }

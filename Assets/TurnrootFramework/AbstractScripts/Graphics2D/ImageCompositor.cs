@@ -125,17 +125,21 @@ namespace Assets.AbstractScripts.Graphics2D
 
                 if (tints == null || tints.Length < 3)
                 {
+#if UNITY_EDITOR
                     Debug.LogWarning(
                         $"Tinting skipped for layer {layerIndex} (sprite='{spriteName}', tag='{layerTag}'): tints array is null or too short (length={(tints == null ? 0 : tints.Length)}). Provide exactly 3 tint colors for mask-based tinting."
                     );
+#endif
                     return null;
                 }
 
                 if (sprite == null || sprite.texture == null || mask.texture == null)
                 {
+#if UNITY_EDITOR
                     Debug.LogWarning(
                         $"Tinting skipped for layer {layerIndex} (tag='{layerTag}'): sprite or mask texture is null."
                     );
+#endif
                     return null;
                 }
 
@@ -153,9 +157,11 @@ namespace Assets.AbstractScripts.Graphics2D
                 var tinted = TintSpritePixels(sprite, mask, tints);
                 if (tinted == null)
                 {
+#if UNITY_EDITOR
                     Debug.LogWarning(
                         $"Tinting failed for layer {layerIndex} (sprite='{spriteName}', tag='{layerTag}'): TintSpritePixels returned null despite pre-checks. Skipping."
                     );
+#endif
                     return null;
                 }
                 return tinted;

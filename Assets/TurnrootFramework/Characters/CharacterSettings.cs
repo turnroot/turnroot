@@ -58,9 +58,11 @@ namespace Turnroot.Characters
 
                 if (_cachedPrototypeSettings == null)
                 {
+#if UNITY_EDITOR
                     Debug.LogError(
                         "CharacterPrototypeSettings not found in Resources/GameSettings. Please create one."
                     );
+#endif
                 }
 
                 return _cachedPrototypeSettings;
@@ -86,9 +88,11 @@ namespace Turnroot.Characters
 
                 if (_cachedDefaultStats == null)
                 {
+#if UNITY_EDITOR
                     Debug.LogError(
                         "DefaultCharacterStats not found in Resources/GameSettings. Please create one."
                     );
+#endif
                 }
 
                 return _cachedDefaultStats;
@@ -128,9 +132,11 @@ namespace Turnroot.Characters
             }
             catch (Exception ex)
             {
+#if UNITY_EDITOR
                 Debug.LogError(
                     $"Error loading {settingName}: {ex.Message}. Using default: {defaultValue}"
                 );
+#endif
                 return defaultValue;
             }
         }

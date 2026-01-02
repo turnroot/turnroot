@@ -110,9 +110,11 @@ namespace Turnroot.Gameplay.Brain.Components
             );
             if (!encodeResult.Success)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning(
                     $"TamperHandler: failed to encode replacement: {encodeResult.Error}"
                 );
+#endif
                 return null;
             }
 
@@ -121,9 +123,11 @@ namespace Turnroot.Gameplay.Brain.Components
             );
             if (!decodeResult.Success)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning(
                     $"TamperHandler: failed to decode replacement wrapper: {decodeResult.Error}"
                 );
+#endif
                 return null;
             }
 
@@ -161,9 +165,11 @@ namespace Turnroot.Gameplay.Brain.Components
             }
             catch (Exception ex)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning(
                     $"TamperHandler: failed to update ledger for replacement: {ex.Message}"
                 );
+#endif
             }
         }
     }

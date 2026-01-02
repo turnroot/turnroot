@@ -130,9 +130,11 @@ namespace Turnroot.UI.Components.RadialMenu
             }
             else
             {
+#if UNITY_EDITOR
                 Debug.LogWarning(
                     $"[RadialMenuItemSprite] Cannot apply selected sprite - targetImage: {targetImage != null}, selectedSprite: {selectedSprite != null}"
                 );
+#endif
             }
         }
 
@@ -154,12 +156,6 @@ namespace Turnroot.UI.Components.RadialMenu
         {
             base.Deselect();
             ApplyUnselected();
-        }
-
-        public override void Activate()
-        {
-            base.Activate();
-            Debug.Log($"Selected: {ItemName}");
         }
 
         public override void SetIsCenter(bool center)

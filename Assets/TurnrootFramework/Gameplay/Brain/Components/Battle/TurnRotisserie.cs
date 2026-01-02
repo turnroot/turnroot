@@ -92,9 +92,11 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
             if (instances == null || roster == null)
             {
+#if UNITY_EDITOR
                 Debug.LogError(
                     "TurnRotisserie: Something is wrong with the battle rosters! They are null!"
                 );
+#endif
                 return new List<CharacterInstance>();
             }
 
@@ -170,9 +172,11 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
             if (activeUnit == null)
             {
+#if UNITY_EDITOR
                 Debug.LogError(
                     $"TurnRotisserie: Active unit at index {_currentRosterIndex} is null"
                 );
+#endif
                 return;
             }
 

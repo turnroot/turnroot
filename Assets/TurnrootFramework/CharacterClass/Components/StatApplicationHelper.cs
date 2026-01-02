@@ -83,9 +83,11 @@ namespace Turnroot.Characters.CharacterClass
                         stat.SetCurrent(stat.Current + modifier.value);
                         if (logChanges)
                         {
+#if UNITY_EDITOR
                             Debug.Log(
                                 $"Class change bonus: {modifier.boundedStatType} +{modifier.value} (now {stat.Current})"
                             );
+#endif
                         }
                     }
                 }
@@ -119,9 +121,11 @@ namespace Turnroot.Characters.CharacterClass
                         stat.SetCurrent(stat.Current + modifier.value);
                         if (logChanges)
                         {
+#if UNITY_EDITOR
                             Debug.Log(
                                 $"Class change bonus: {modifier.unboundedStatType} +{modifier.value} (now {stat.Current})"
                             );
+#endif
                         }
                     }
                 }
@@ -159,9 +163,11 @@ namespace Turnroot.Characters.CharacterClass
                         stat.SetCurrent(minimum.value);
                         if (logChanges)
                         {
+#if UNITY_EDITOR
                             Debug.Log(
                                 $"Enforced minimum: {minimum.boundedStatType} raised to {minimum.value}"
                             );
+#endif
                         }
                     }
                 }
@@ -195,9 +201,11 @@ namespace Turnroot.Characters.CharacterClass
                         stat.SetCurrent(minimum.value);
                         if (logChanges)
                         {
+#if UNITY_EDITOR
                             Debug.Log(
                                 $"Enforced minimum: {minimum.unboundedStatType} raised to {minimum.value}"
                             );
+#endif
                         }
                     }
                 }

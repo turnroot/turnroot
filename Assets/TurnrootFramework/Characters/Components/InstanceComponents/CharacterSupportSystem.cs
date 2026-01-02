@@ -24,9 +24,11 @@ namespace Turnroot.Characters
             // Validate that the support relationship is not with the same character
             if (template.Character == _characterTemplate)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning(
                     $"Cannot add support relationship with the same character ({template.Character.name})"
                 );
+#endif
                 return;
             }
 

@@ -4,20 +4,21 @@ using UnityEngine;
 public class BrainState
 {
     public string Name { get; private set; }
-    public BrainState[] ChildOfState { get; set; }
-    public BrainState[] ParentOfStates { get; set; }
+    public BrainState Parent { get; set; }
+    public BrainState[] Children { get; set; }
     public bool IsActive { get; set; }
 
-    public BrainState(
-        string name,
-        BrainState[] childOfState = null,
-        BrainState[] parentOfStates = null
-    )
+    public BrainState(string name, BrainState parent = null)
     {
         Name = name;
-        ChildOfState = childOfState;
-        ParentOfStates = parentOfStates;
+        Parent = parent;
+        Children = null;
         IsActive = false;
+    }
+
+    public string GetFullPath()
+    {
+        return Parent != null ? $"{Parent.Name}.{Name}" : Name;
     }
 }
 
@@ -26,7 +27,7 @@ public class BrainState
 /// </summary>
 public static class BrainStateNames
 {
-    // High-level states
+    // High-level states (these are parent states)
     public const string Combat = "Combat";
     public const string Paused = "Paused";
     public const string Cutscene = "Cutscene";
@@ -37,10 +38,36 @@ public static class BrainStateNames
     public const string NonCombatGameplay = "NonCombatGameplay";
     public const string Hub = "Hub";
 
-    // Battle child states
+    // Battle child states (full paths)
     public const string PreBattle = "PreBattle";
-    public const string Battle = "PlayerTurn";
+    public const string Battle = "Battle";
     public const string PostBattle = "PostBattle";
+
+    /// <summary>
+    /// Returns all valid state IDs as full paths. This is the single source of truth for all states.
+    /// High-level states without children are listed as-is (e.g., "Paused").
+    /// States with children are listed with their hierarchy (e.g., "Combat.PreBattle").
+    /// Used by UI and flow systems for validation and dropdown menus.
+    /// </summary>
+    public static string[] GetAllStateIds()
+    {
+        return new[]
+        {
+            // High-level states without children
+            Paused,
+            Cutscene,
+            WorldMap,
+            MainMenu,
+            GameOver,
+            Credits,
+            NonCombatGameplay,
+            Hub,
+            // Combat with child states
+            $"{Combat}.{PreBattle}",
+            $"{Combat}.{Battle}",
+            $"{Combat}.{PostBattle}",
+        };
+    }
 }
 
 namespace Turnroot.Gameplay.Brain
@@ -69,12 +96,32 @@ namespace Turnroot.Gameplay.Brain
 
         protected override void SubscribeToBrainEvents()
         {
-            // StateBrain doesn't subscribe to events, it publishes them
+            // Listen for pre-battle completion and transition to Battle state
+            _brain.OnPreBattleCompleted += HandlePreBattleCompleted;
+        }
+
+        private void HandlePreBattleCompleted()
+        {
+            // Battle is a sibling of PreBattle under Combat
+            if (_currentState?.Parent != null)
+            {
+                // Go to parent (Combat) then activate Battle as its child
+                SetCurrentState(_currentState.Parent);
+                ActivateChildState(BrainStateNames.Battle);
+            }
+            else
+            {
+                // Fallback: try to activate Battle directly
+                ActivateChildState(BrainStateNames.Battle);
+            }
         }
 
         protected override void UnsubscribeFromBrainEvents()
         {
-            // No subscriptions to clean up
+            if (_brain != null)
+            {
+                _brain.OnPreBattleCompleted -= HandlePreBattleCompleted;
+            }
         }
 
         #region Initialization
@@ -83,55 +130,27 @@ namespace Turnroot.Gameplay.Brain
         {
             if (_highLevelStates != null && _highLevelStates.Length > 0)
             {
-#if UNITY_EDITOR
-                Debug.Log("High-level states already initialized.");
-#endif
                 return;
             }
 
-            if (!TryRestoreHighLevelStates())
-            {
-                SetHighLevelStates();
-                SaveHighLevelStates();
-#if UNITY_EDITOR
-                Debug.Log("High-level states set and saved to long-term memory.");
-#endif
-            }
+            SetHighLevelStates();
         }
 
         public void InitializeBattleChildStates()
         {
-            var battleState = FindHighLevelState(BrainStateNames.Combat);
-            if (battleState == null)
+            var combatState = FindHighLevelState(BrainStateNames.Combat);
+            if (combatState.Children != null && combatState.Children.Length > 0)
             {
-#if UNITY_EDITOR
-                Debug.LogError("Combat state not found. Cannot initialize battle child states.");
-#endif
-                return;
+                return; // Already initialized
             }
 
-            if (battleState.ParentOfStates != null && battleState.ParentOfStates.Length > 0)
-            {
-#if UNITY_EDITOR
-                Debug.Log("Battle child states already initialized.");
-#endif
-                return;
-            }
-
-            if (!TryRestoreBattleChildStates())
-            {
-                SetBattleChildStates();
-                SaveBattleChildStates();
-#if UNITY_EDITOR
-                Debug.Log("Battle child states set and saved.");
-#endif
-            }
+            SetBattleChildStates();
         }
 
         public void SetBattleChildStates()
         {
-            var battleState = FindHighLevelState(BrainStateNames.Combat);
-            if (battleState == null)
+            var combatState = FindHighLevelState(BrainStateNames.Combat);
+            if (combatState == null)
             {
 #if UNITY_EDITOR
                 Debug.LogError("Combat state not found.");
@@ -139,17 +158,14 @@ namespace Turnroot.Gameplay.Brain
                 return;
             }
 
-            var childStates = new System.Collections.Generic.List<BrainState>
+            var childStates = new BrainState[]
             {
-                new(BrainStateNames.PreBattle, null, new[] { battleState }),
-                new(BrainStateNames.Battle, null, new[] { battleState }),
-                new(BrainStateNames.PostBattle, null, new[] { battleState }),
+                new(BrainStateNames.PreBattle, combatState),
+                new(BrainStateNames.Battle, combatState),
+                new(BrainStateNames.PostBattle, combatState),
             };
 
-            battleState.ParentOfStates = childStates.ToArray();
-#if UNITY_EDITOR
-            Debug.Log("Battle child states initialized.");
-#endif
+            combatState.Children = childStates;
         }
 
         public void SetHighLevelStates()
@@ -177,122 +193,7 @@ namespace Turnroot.Gameplay.Brain
             );
 
             _highLevelStates = states.ToArray();
-            SaveHighLevelStates();
             _brain?.PublishHighLevelStatesInitialized();
-#if UNITY_EDITOR
-            Debug.Log("High-level states initialized.");
-#endif
-        }
-
-        private bool TryRestoreHighLevelStates()
-        {
-            if (_brain?.ltm == null)
-            {
-                return false;
-            }
-
-            int storedCount = _brain.ltm.RecallInt(LtmKeys.HighLevelStatesCount);
-            if (storedCount <= 0)
-            {
-                return false;
-            }
-
-            if (!ValidateStoredStates(storedCount))
-            {
-                return false;
-            }
-
-            _highLevelStates = new BrainState[storedCount];
-            for (int i = 0; i < storedCount; i++)
-            {
-                string name = _brain.ltm.Recall(LtmKeys.HighLevelStatePrefix + i);
-                _highLevelStates[i] = new BrainState(name);
-            }
-
-            return true;
-        }
-
-        private bool TryRestoreBattleChildStates()
-        {
-            var battleState = FindHighLevelState(BrainStateNames.Combat);
-            if (battleState == null)
-            {
-#if UNITY_EDITOR
-                Debug.LogError("Combat state not found.");
-#endif
-                return false;
-            }
-
-            if (_brain?.ltm == null)
-            {
-                return false;
-            }
-
-            var childStates = new System.Collections.Generic.List<BrainState>();
-            int index = 0;
-            while (true)
-            {
-                string key = $"{LtmKeys.HighLevelStatePrefix}Combat.Child.{index}";
-                string stateName = _brain.ltm.Recall(key);
-                if (string.IsNullOrEmpty(stateName))
-                {
-                    break;
-                }
-
-                childStates.Add(new BrainState(stateName, null, new[] { battleState }));
-                index++;
-            }
-
-            if (childStates.Count == 0)
-            {
-                return false;
-            }
-
-            battleState.ParentOfStates = childStates.ToArray();
-            return true;
-        }
-
-        private bool ValidateStoredStates(int count)
-        {
-            for (int i = 0; i < count; i++)
-            {
-                string stateName = _brain.ltm.Recall(LtmKeys.HighLevelStatePrefix + i);
-                if (string.IsNullOrEmpty(stateName))
-                {
-                    return false;
-                }
-            }
-            return true;
-        }
-
-        private void SaveHighLevelStates()
-        {
-            if (_highLevelStates == null || _brain?.ltm == null)
-            {
-                return;
-            }
-
-            for (int i = 0; i < _highLevelStates.Length; i++)
-            {
-                _brain.ltm.Remember(LtmKeys.HighLevelStatePrefix + i, _highLevelStates[i].Name);
-            }
-
-            _brain.ltm.RememberInt(LtmKeys.HighLevelStatesCount, _highLevelStates.Length);
-        }
-
-        private void SaveBattleChildStates()
-        {
-            var battleState = FindHighLevelState(BrainStateNames.Combat);
-            if (battleState == null || battleState.ParentOfStates == null || _brain?.ltm == null)
-            {
-                return;
-            }
-
-            for (int i = 0; i < battleState.ParentOfStates.Length; i++)
-            {
-                string key = $"{LtmKeys.HighLevelStatePrefix}Combat.Child.{i}";
-                _brain.ltm.Remember(key, battleState.ParentOfStates[i].Name);
-            }
         }
 
         #endregion
@@ -352,18 +253,23 @@ namespace Turnroot.Gameplay.Brain
                 return;
             }
 
-            if (_currentState.ParentOfStates == null)
+            // Determine the parent state to search in
+            BrainState parentState =
+                _currentState.Children != null && _currentState.Children.Length > 0
+                    ? _currentState // Current state is a parent
+                    : _currentState.Parent; // Current state is a child, use its parent
+
+            if (parentState?.Children == null || parentState.Children.Length == 0)
             {
 #if UNITY_EDITOR
-                Debug.LogError($"Child state '{childStateName}' not found.");
+                Debug.LogError(
+                    $"Cannot find child state '{childStateName}' from '{_currentState.Name}'."
+                );
 #endif
                 return;
             }
 
-            var childState = Array.Find(
-                _currentState.ParentOfStates,
-                s => s.Name == childStateName
-            );
+            var childState = Array.Find(parentState.Children, s => s.Name == childStateName);
             if (childState != null)
             {
                 SetCurrentState(childState);
@@ -371,7 +277,9 @@ namespace Turnroot.Gameplay.Brain
             else
             {
 #if UNITY_EDITOR
-                Debug.LogError($"Child state '{childStateName}' not found.");
+                Debug.LogError(
+                    $"Child state '{childStateName}' not found in '{parentState.Name}'."
+                );
 #endif
             }
         }
@@ -386,7 +294,7 @@ namespace Turnroot.Gameplay.Brain
                 return false;
             }
 
-            if (_currentState.ParentOfStates == null || _currentState.ParentOfStates.Length == 0)
+            if (_currentState.Children == null || _currentState.Children.Length == 0)
             {
 #if UNITY_EDITOR
                 Debug.Log("No child states available.");
@@ -394,7 +302,7 @@ namespace Turnroot.Gameplay.Brain
                 return false;
             }
 
-            foreach (var child in _currentState.ParentOfStates)
+            foreach (var child in _currentState.Children)
             {
 #if UNITY_EDITOR
                 Debug.Log($"Child State: {child.Name}");

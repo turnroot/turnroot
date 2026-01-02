@@ -231,9 +231,11 @@ namespace Turnroot.Gameplay.Brain.Snapshots
                 else
                 {
                     // Unit was captured previously but is missing now (was removed); skip to avoid null refs.
+#if UNITY_EDITOR
                     Debug.LogWarning(
                         $"[Snapshot] Skipping restore for unit {unitId} - not present in current battle"
                     );
+#endif
                 }
             }
 

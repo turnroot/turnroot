@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using TurnrootFramework.Gameplay.Brain.Segments;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -36,7 +37,7 @@ namespace Turnroot.UI.Components.RadialMenu
 
         [Header("Layout Settings")]
         [SerializeField]
-        private RadialMenuItemBase centerItem;
+        public RadialMenuItemBase centerItem;
 
         [SerializeField]
         private float innerRadiusPercent = 0.35f;
@@ -94,10 +95,10 @@ namespace Turnroot.UI.Components.RadialMenu
 
         [Header("Input Actions")]
         [SerializeField]
-        private InputAction navigateAction;
+        public InputAction navigateAction;
 
         [SerializeField]
-        private InputAction selectAction;
+        public InputAction selectAction;
 
         private int _selectedIndex = 0;
         private bool _centerSelected = false;
@@ -105,6 +106,9 @@ namespace Turnroot.UI.Components.RadialMenu
         private Vector2 _lastNavigateInput;
         private float _lastInputTime;
 
+        public UiBrain uiBrain;
+
+        public event Action<RadialMenuItemBase> OnNavigate;
         public event Action<RadialMenuItemBase> OnItemSelected;
 
         /// <summary>
@@ -517,11 +521,13 @@ namespace Turnroot.UI.Components.RadialMenu
             if (isCenter && centerItem != null)
             {
                 centerItem.Select();
+                OnNavigate?.Invoke(centerItem);
             }
             else if (!isCenter && index >= 0 && index < menuItems.Count)
             {
                 _selectedIndex = index;
                 menuItems[_selectedIndex].Select();
+                OnNavigate?.Invoke(menuItems[_selectedIndex]);
             }
         }
 
@@ -529,12 +535,10 @@ namespace Turnroot.UI.Components.RadialMenu
         {
             if (_centerSelected && centerItem != null)
             {
-                centerItem.Activate();
                 OnItemSelected?.Invoke(centerItem);
             }
             else if (_selectedIndex >= 0 && _selectedIndex < menuItems.Count)
             {
-                menuItems[_selectedIndex].Activate();
                 OnItemSelected?.Invoke(menuItems[_selectedIndex]);
             }
         }
