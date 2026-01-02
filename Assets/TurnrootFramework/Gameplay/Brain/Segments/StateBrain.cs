@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using Turnroot.Gameplay.Brain.Events;
 using UnityEngine;
 
 public class BrainState
@@ -84,6 +85,8 @@ namespace Turnroot.Gameplay.Brain
 
         private BrainState[] _highLevelStates;
         private BrainState _savedStateBeforePause;
+
+        protected override EventPriority GetSubscriptionPriority() => EventPriority.Highest;
 
         protected override void Awake()
         {

@@ -57,9 +57,6 @@ namespace Turnroot.Gameplay.Brain
 
             if (!string.IsNullOrEmpty(existing))
             {
-#if UNITY_EDITOR
-                Debug.Log($"Player roster {roster.name} already registered");
-#endif
                 return;
             }
 

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Turnroot.Characters;
 using Turnroot.Gameplay.Brain.Components.Battle;
+using Turnroot.Gameplay.Brain.Events;
 using Turnroot.Gameplay.Combat;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
 using UnityEngine;
@@ -28,6 +29,8 @@ namespace Turnroot.Gameplay.Brain
         private BattleContextAIHelper _aiHelper;
 
         public BattleGameObject BattleObject { get; private set; }
+
+        protected override EventPriority GetSubscriptionPriority() => EventPriority.High;
 
         // Roster accessors through BattleGameObject
         public PlayerTeamRosterInstance PlayerTeamRoster =>

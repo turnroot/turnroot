@@ -191493,7 +191493,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e098fbdb6ab736f4d894bc75743cfe7d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  lerpTime: 0.3
+  lerpTime: 0.1
   OnVisible:
     m_PersistentCalls:
       m_Calls: []

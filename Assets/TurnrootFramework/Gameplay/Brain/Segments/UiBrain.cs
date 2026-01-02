@@ -1,4 +1,5 @@
 using Turnroot.Gameplay.Brain;
+using Turnroot.Gameplay.Brain.Events;
 using Turnroot.GameSettings;
 using Turnroot.UI.Components.RadialMenu;
 using Turnroot.Utilities;
@@ -15,6 +16,8 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
         public GamewideUiSettings uiSettings;
 
         private bool _isTransitioning = false;
+
+        protected override EventPriority GetSubscriptionPriority() => EventPriority.Low;
 
         protected override void Awake()
         {
