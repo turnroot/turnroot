@@ -40,7 +40,7 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                         // Open skills UI
                         break;
                     case PrebattleOptions.Map:
-                        // Open conditions UI
+                        // Open map UI
                         break;
                     case PrebattleOptions.Support:
                         // Open support UI
