@@ -1,6 +1,7 @@
 using Turnroot.Characters;
 using Turnroot.Characters.Components.Support;
 using Turnroot.Conversations;
+using Turnroot.Gameplay.Brain.Events;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain
@@ -13,6 +14,8 @@ namespace Turnroot.Gameplay.Brain
     public class ConversationalBrain : BrainComponent
     {
         private LongTermMemory _ltm;
+
+        protected override EventPriority GetSubscriptionPriority() => EventPriority.Normal;
 
         protected override void Awake()
         {

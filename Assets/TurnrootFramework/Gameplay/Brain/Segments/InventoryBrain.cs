@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Turnroot.Characters;
 using Turnroot.Gameplay.Brain.Commands;
+using Turnroot.Gameplay.Brain.Events;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
 using Turnroot.Gameplay.Objects;
 using Turnroot.Utilities;
@@ -14,6 +15,8 @@ namespace Turnroot.Gameplay.Brain
     /// </summary>
     public class InventoryBrain : BrainComponent
     {
+        protected override EventPriority GetSubscriptionPriority() => EventPriority.Normal;
+
         protected override void Awake()
         {
             base.Awake();

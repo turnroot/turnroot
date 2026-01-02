@@ -509,7 +509,15 @@ namespace Turnroot.Gameplay.Brain
 
         public void PublishPreBattleStarted() => OnPreBattleStarted?.Invoke();
 
-        public void PublishPreBattleCompleted() => OnPreBattleCompleted?.Invoke();
+        public void PublishPreBattleCompleted()
+        {
+#if UNITY_EDITOR
+            Debug.Log(
+                $"Brain: PublishPreBattleCompleted called. Subscribers: {OnPreBattleCompleted?.GetInvocationList()?.Length ?? 0}"
+            );
+#endif
+            OnPreBattleCompleted?.Invoke();
+        }
 
         public void PublishTurnBegin() => OnTurnBegin?.Invoke();
 

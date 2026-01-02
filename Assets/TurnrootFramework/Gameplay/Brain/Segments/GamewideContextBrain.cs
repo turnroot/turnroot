@@ -1,5 +1,6 @@
 using System.Linq;
 using Turnroot.Characters;
+using Turnroot.Gameplay.Brain.Events;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain
@@ -31,6 +32,8 @@ namespace Turnroot.Gameplay.Brain
 
         [field: SerializeField]
         public TamperPolicy Policy { get; } = TamperPolicy.Replace;
+
+        protected override EventPriority GetSubscriptionPriority() => EventPriority.High;
 
         protected override void Awake()
         {

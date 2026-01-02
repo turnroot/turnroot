@@ -1,4 +1,5 @@
 using Turnroot.Gameplay.Brain;
+using Turnroot.Gameplay.Brain.Events;
 using Turnroot.GameSettings;
 using Turnroot.UI.Components.RadialMenu;
 using Turnroot.Utilities;
@@ -11,16 +12,30 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
         [HideInInspector]
         public GameObject PreBattleMenuInstance { get; private set; }
 
+        private MenuStyle _preBattleMenuStyle;
+
         [HideInInspector]
         public GamewideUiSettings uiSettings;
+
+        private bool _isTransitioning = false;
+
+        protected override EventPriority GetSubscriptionPriority() => EventPriority.Low;
 
         protected override void Awake()
         {
             base.Awake();
             uiSettings = GameSettingsLoader.LoadFirst<GamewideUiSettings>();
+            if (uiSettings != null)
+            {
+                _preBattleMenuStyle = uiSettings.BattlePreparationMenuStyle;
+            }
+            else
+            {
 #if UNITY_EDITOR
-            Debug.Log($"UiBrain Awake - Brain present: {Brain != null}");
+                Debug.LogError("UiBrain: GamewideUiSettings not found! Using default menu style.");
 #endif
+                _preBattleMenuStyle = MenuStyle.Pie; // Default fallback
+            }
         }
 
         private System.Action<BrainState> _onStateChangedHandler;
@@ -83,11 +98,26 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             {
                 PreBattleMenuInstance = Instantiate(uiSettings.PreBattleMenuPrefab);
                 var uiFade = PreBattleMenuInstance.AddComponent<UIFade>();
-                uiFade.lerpTime = 0.8f;
-                var radialMenu = PreBattleMenuInstance.GetComponent<RadialMenu>();
-                radialMenu.uiBrain = this;
-                radialMenu.OnNavigate += HandlePreBattleMenuNavigate;
-                radialMenu.OnItemSelected += HandlePreBattleMenuSelect;
+                uiFade.lerpTime = uiSettings.MenuFadeTime;
+                if (_preBattleMenuStyle == MenuStyle.Pie)
+                {
+                    var radialMenu = PreBattleMenuInstance.GetComponent<RadialMenu>();
+                    radialMenu.uiBrain = this;
+                    radialMenu.OnNavigate += HandlePreBattleMenuNavigate;
+                    radialMenu.OnItemSelected += HandlePreBattleMenuSelect;
+                }
+                else if (_preBattleMenuStyle == MenuStyle.Filmstrip)
+                {
+                    // TODO: Set up filmstrip prebattle menu handling
+                }
+                else if (_preBattleMenuStyle == MenuStyle.List)
+                {
+                    // TODO: Set up list prebattle menu handling
+                }
+                else if (_preBattleMenuStyle == MenuStyle.Grid)
+                {
+                    // TODO: Set up grid prebattle menu handling
+                }
             }
         }
     }
