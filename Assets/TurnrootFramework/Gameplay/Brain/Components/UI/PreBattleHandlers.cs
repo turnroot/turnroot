@@ -24,44 +24,49 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             }
             else
             {
-                var radialMenu = PreBattleMenuInstance.GetComponent<RadialMenu>();
-                var selectedOption = radialMenu.FindPreBattleOptionByName(item.ItemName);
-                switch (selectedOption)
+                var preBattleMenuLocation = uiSettings?.GetPreBattleMenu();
+                var radialMenu = preBattleMenuLocation?.activeInstance?.GetComponent<RadialMenu>();
+                if (radialMenu != null)
                 {
-                    case PrebattleOptions.Items:
-                        // Open inventory UI
-                        break;
-                    case PrebattleOptions.Team:
-                        // Open team management UI
-                        break;
-                    case PrebattleOptions.Settings:
-                        // Open settings UI
-                        break;
-                    case PrebattleOptions.Skills:
-                        // Open skills UI
-                        break;
-                    case PrebattleOptions.Map:
-                        // Open map UI
-                        break;
-                    case PrebattleOptions.Support:
-                        // Open support UI
-                        break;
-                    case PrebattleOptions.Withdraw:
-                        // Handle withdraw action
-                        break;
+                    var selectedOption = radialMenu.FindPreBattleOptionByName(item.ItemName);
+                    switch (selectedOption)
+                    {
+                        case PrebattleOptions.Items:
+                            // TODO: inventory UI
+                            break;
+                        case PrebattleOptions.Team:
+                            // TODO: team management UI
+                            break;
+                        case PrebattleOptions.Settings:
+                            // TODO: settings UI
+                            break;
+                        case PrebattleOptions.Skills:
+                            // TODO: skills UI
+                            break;
+                        case PrebattleOptions.Map:
+                            // TODO: map UI
+                            break;
+                        case PrebattleOptions.Support:
+                            // TODO: support UI
+                            break;
+                        case PrebattleOptions.Withdraw:
+                            // TODO: Handle withdraw action
+                            break;
+                    }
                 }
             }
         }
 
         private void HandleStartBattleClick()
         {
-            if (PreBattleMenuInstance == null || _isTransitioning)
+            var preBattleMenuLocation = uiSettings?.GetPreBattleMenu();
+            if (preBattleMenuLocation?.activeInstance == null || _isTransitioning)
             {
                 return;
             }
 
             _isTransitioning = true;
-            var menuInstance = PreBattleMenuInstance;
+            var menuInstance = preBattleMenuLocation.activeInstance;
 
             if (!menuInstance.TryGetComponent<UIFade>(out var uiFade))
             {
@@ -75,7 +80,7 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
 
                 _brain.PublishPreBattleCompleted();
                 Destroy(menuInstance);
-                PreBattleMenuInstance = null;
+                preBattleMenuLocation.activeInstance = null;
                 _isTransitioning = false;
                 return;
             }
@@ -116,7 +121,13 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                 }
 
                 Destroy(menuInstance);
-                PreBattleMenuInstance = null;
+
+                // Clear the active instance from the MenuLocation
+                var preBattleMenuLocation = uiSettings?.GetPreBattleMenu();
+                if (preBattleMenuLocation != null)
+                {
+                    preBattleMenuLocation.activeInstance = null;
+                }
             }
 
             // Publish battle completion to transition states
