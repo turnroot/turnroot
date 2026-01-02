@@ -14,13 +14,12 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
         [HideInInspector]
         public GamewideUiSettings uiSettings;
 
+        private bool _isTransitioning = false;
+
         protected override void Awake()
         {
             base.Awake();
             uiSettings = GameSettingsLoader.LoadFirst<GamewideUiSettings>();
-#if UNITY_EDITOR
-            Debug.Log($"UiBrain Awake - Brain present: {Brain != null}");
-#endif
         }
 
         private System.Action<BrainState> _onStateChangedHandler;

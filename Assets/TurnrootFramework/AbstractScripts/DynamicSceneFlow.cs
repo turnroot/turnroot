@@ -69,6 +69,10 @@ public class DynamicSceneFlow : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Activates the brain state corresponding to the given state ID.
+    /// Handles both hierarchical states ("Parent.Child") and top-level states.
+    /// </summary>
     private void SetBrainStateFromSegment(string stateId)
     {
         if (brain?.stateBrain == null || string.IsNullOrEmpty(stateId))
@@ -76,7 +80,7 @@ public class DynamicSceneFlow : MonoBehaviour
             return;
         }
 
-        // Check if this is a child state (contains a dot, e.g. "Combat.PreBattle")
+        // Check if this is a hierarchical state (contains a dot, e.g. "Combat.PreBattle")
         if (stateId.Contains("."))
         {
             var parts = stateId.Split('.');
@@ -85,25 +89,25 @@ public class DynamicSceneFlow : MonoBehaviour
                 string parentStateName = parts[0];
                 string childStateName = parts[1];
 
-                // Activate parent state first
-                brain.stateBrain.ActivateHighLevelState(parentStateName);
-
-                // Activate child state next frame to ensure parent is set
-                StartCoroutine(ActivateChildStateNextFrame(childStateName));
+                // Directly activate the child state, which will automatically set the parent
+                brain.stateBrain.ActivateChildStateByFullPath(parentStateName, childStateName);
+#if UNITY_EDITOR
+                Debug.Log($"DynamicSceneFlow: Activated hierarchical state '{stateId}'");
+#endif
                 return;
             }
         }
 
         // Otherwise it's a top-level state
         brain.stateBrain.ActivateHighLevelState(stateId);
+#if UNITY_EDITOR
+        Debug.Log($"DynamicSceneFlow: Activated top-level state '{stateId}'");
+#endif
     }
 
-    private IEnumerator ActivateChildStateNextFrame(string childStateName)
-    {
-        yield return null;
-        brain.stateBrain.ActivateChildState(childStateName);
-    }
-
+    /// <summary>
+    /// Handles brain state changes by finding and activating the corresponding flow segment.
+    /// </summary>
     private void HandleStateChanged(BrainState newState)
     {
         if (newState == null)
@@ -111,10 +115,13 @@ public class DynamicSceneFlow : MonoBehaviour
             return;
         }
 
-        // When Brain state changes, find and activate the matching segment
+        // Find and activate the segment that matches the new brain state
         ActivateSegmentByState(newState);
     }
 
+    /// <summary>
+    /// Finds and activates the flow segment that corresponds to the given brain state.
+    /// </summary>
     public void ActivateSegmentByState(BrainState state)
     {
         if (state == null)
@@ -122,7 +129,7 @@ public class DynamicSceneFlow : MonoBehaviour
             return;
         }
 
-        // Build the full state path: if the state has a parent, use "Parent.Child" format
+        // Build the full state path (e.g., "Combat.PreBattle" for hierarchical states)
         string fullStatePath = GetFullStatePath(state);
 
         // Find segment with matching state ID
@@ -139,22 +146,37 @@ public class DynamicSceneFlow : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Gets the full path of a brain state (e.g., "Combat.PreBattle" for hierarchical states).
+    /// </summary>
+    /// <summary>
+    /// Gets the full path of a brain state (e.g., "Combat.PreBattle" for hierarchical states).
+    /// </summary>
     private string GetFullStatePath(BrainState state)
     {
         return state?.GetFullPath() ?? "";
     }
 
-    private void OnSegmentReached(int state)
+    /// <summary>
+    /// Called when a new segment is reached. Invokes the segment's event callbacks.
+    /// </summary>
+    /// <summary>
+    /// Called when a new segment is reached. Invokes the segment's event callbacks.
+    /// </summary>
+    private void OnSegmentReached(int segmentIndex)
     {
-        if (state >= segments.Count)
+        if (segmentIndex >= segments.Count)
         {
             return;
         }
 
         var segment = CurrentSegment;
-        segment.onSegmentReached?.Invoke();
+        segment?.onSegmentReached?.Invoke();
     }
 
+    /// <summary>
+    /// Utility method to execute an action on the next frame.
+    /// </summary>
     private IEnumerator RunNextFrame(Action action)
     {
         yield return null;

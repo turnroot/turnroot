@@ -1,14 +1,35 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using NaughtyAttributes;
 using TurnrootFramework.Gameplay.Brain.Segments;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
 namespace Turnroot.UI.Components.RadialMenu
 {
+    public enum RadialMenuLocations
+    {
+        PreBattle,
+    }
+
+    public enum PrebattleOptions
+    {
+        Team,
+        Items,
+        Settings,
+        Skills,
+        Withdraw,
+        Map,
+        Support,
+    }
+
     public class RadialMenu : MonoBehaviour
     {
+        [HideInInspector]
+        public List<string> segmentNames = new();
+        public RadialMenuLocations menuLocation;
+
         private static readonly Vector2 DirectionRight = Vector2.right;
         private static readonly Vector2 DirectionLeft = Vector2.left;
         private static readonly Vector2 DirectionUp = Vector2.up;
@@ -33,7 +54,7 @@ namespace Turnroot.UI.Components.RadialMenu
         private NavigationState _navState = NavigationState.Idle;
 
         [Header("Menu Items")]
-        public List<RadialMenuItemBase> menuItems = new List<RadialMenuItemBase>();
+        public List<RadialMenuItemBase> menuItems = new();
 
         [Header("Layout Settings")]
         [SerializeField]
@@ -105,6 +126,36 @@ namespace Turnroot.UI.Components.RadialMenu
         private float _rotStep;
         private Vector2 _lastNavigateInput;
         private float _lastInputTime;
+
+        public PrebattleOptions FindPreBattleOptionByName(string name)
+        {
+            for (int i = 0; i < menuItems.Count; i++)
+            {
+                if (menuItems[i].ItemName == name)
+                {
+                    switch (menuItems[i].ItemName)
+                    {
+                        case "Team":
+                            return PrebattleOptions.Team;
+                        case "Items":
+                            return PrebattleOptions.Items;
+                        case "Settings":
+                            return PrebattleOptions.Settings;
+                        case "Skills":
+                            return PrebattleOptions.Skills;
+                        case "Withdraw":
+                            return PrebattleOptions.Withdraw;
+                        case "Map":
+                            return PrebattleOptions.Map;
+                        case "Support":
+                            return PrebattleOptions.Support;
+                        default:
+                            break;
+                    }
+                }
+            }
+            throw new Exception($"No PrebattleOption found for segment name: {name}");
+        }
 
         public UiBrain uiBrain;
 
@@ -180,6 +231,7 @@ namespace Turnroot.UI.Components.RadialMenu
                     if (item != centerItem && item.transform.parent == transform)
                     {
                         menuItems.Add(item);
+                        segmentNames.Add(item.ItemName);
                     }
                 }
             }
