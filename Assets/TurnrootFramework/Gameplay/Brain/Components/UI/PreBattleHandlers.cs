@@ -17,7 +17,7 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
         private void HandlePreBattleMenuSelect(RadialMenuItemBase item)
         {
             // Handle selection of item
-            if (item.name == "Center")
+            if (item.IsCenter)
             {
                 if (PreBattleMenuInstance == null)
                 {
@@ -26,7 +26,7 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
 
                 var menuInstance = PreBattleMenuInstance;
 
-                if (!menuInstance.TryGetComponent<UIFade>(out var uiFade) || uiFade == null)
+                if (!menuInstance.TryGetComponent<UIFade>(out var uiFade))
                 {
                     _brain.PublishPreBattleCompleted();
                     Destroy(menuInstance);
@@ -46,12 +46,21 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                 {
                     if (menuInstance != null)
                     {
+                        // Unsubscribe from events to prevent memory leaks
+                        var radialMenu = menuInstance.GetComponent<RadialMenu>();
+                        if (radialMenu != null)
+                        {
+                            radialMenu.OnNavigate -= HandlePreBattleMenuNavigate;
+                            radialMenu.OnItemSelected -= HandlePreBattleMenuSelect;
+                        }
+
                         Destroy(menuInstance);
                         PreBattleMenuInstance = null;
+
+                        // Publish completion after cleanup to ensure proper sequencing
+                        _brain.PublishPreBattleCompleted();
                     }
                 });
-
-                _brain.PublishPreBattleCompleted();
 
                 uiFade.Hide();
 

@@ -57,10 +57,27 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                 Brain.OnStateChanged -= _onStateChangedHandler;
                 _onStateChangedHandler = null;
             }
+
+            // Clean up radial menu events if menu still exists
+            if (PreBattleMenuInstance != null)
+            {
+                var radialMenu = PreBattleMenuInstance.GetComponent<RadialMenu>();
+                if (radialMenu != null)
+                {
+                    radialMenu.OnNavigate -= HandlePreBattleMenuNavigate;
+                    radialMenu.OnItemSelected -= HandlePreBattleMenuSelect;
+                }
+            }
         }
 
         public void HandlePreBattleUi()
         {
+            // Guard: Return early if PreBattleMenuInstance already exists to prevent duplicates
+            if (PreBattleMenuInstance != null)
+            {
+                return;
+            }
+
             // Instantiate the pre-battle menu prefab
             if (uiSettings.PreBattleMenuPrefab != null)
             {
