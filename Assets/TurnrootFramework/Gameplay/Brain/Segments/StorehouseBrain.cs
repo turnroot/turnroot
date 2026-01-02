@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Turnroot.Gameplay.Brain.Events;
 using Turnroot.Gameplay.Objects;
 using Turnroot.GameSettings;
 using Turnroot.Utilities;
@@ -15,6 +16,8 @@ namespace Turnroot.Gameplay.Brain
     public class StorehouseBrain : BrainComponent
     {
         GameplayGeneralSettings _gameplaySettings;
+
+        protected override EventPriority GetSubscriptionPriority() => EventPriority.Normal;
 
         protected override void SubscribeToBrainEvents()
         {
