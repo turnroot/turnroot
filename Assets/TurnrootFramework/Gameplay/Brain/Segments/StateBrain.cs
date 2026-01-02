@@ -322,12 +322,7 @@ namespace Turnroot.Gameplay.Brain
                 return false;
             }
 
-            if (_currentState.Children == null || _currentState.Children.Length == 0)
-            {
-                return false;
-            }
-
-            return true;
+            return _currentState.Children != null && _currentState.Children.Length != 0;
         }
 
         #endregion
