@@ -45,7 +45,9 @@ namespace Turnroot.UI.Components.RadialMenu
         private void Awake()
         {
             if (targetImage == null)
+            {
                 targetImage = GetComponent<Image>();
+            }
 
             // Check if we're inside a RadialMenuItem or standalone
             _ownerItem = GetComponentInParent<RadialMenuItemBase>();
@@ -117,9 +119,13 @@ namespace Turnroot.UI.Components.RadialMenu
         private void HandleOwnerSelectedChanged(bool selected)
         {
             if (selected)
+            {
                 ApplySelected();
+            }
             else
+            {
                 ApplyUnselected();
+            }
         }
 
         private void ApplySelected()
@@ -162,7 +168,9 @@ namespace Turnroot.UI.Components.RadialMenu
         {
             isCenter = center;
             if (_ownerItem != null && _ownerItem != this)
+            {
                 _ownerItem.SetIsCenter(center);
+            }
         }
 
         public override void EnsureContentOnTop()
@@ -216,9 +224,14 @@ namespace Turnroot.UI.Components.RadialMenu
 
                     // update preview image
                     if (targetImage == null)
+                    {
                         targetImage = GetComponent<Image>();
+                    }
+
                     if (targetImage != null && unselectedSprite != null)
+                    {
                         targetImage.sprite = unselectedSprite;
+                    }
                 }
             }
         }

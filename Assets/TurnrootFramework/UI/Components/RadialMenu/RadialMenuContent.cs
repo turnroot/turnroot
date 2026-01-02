@@ -15,7 +15,9 @@ public class RadialMenuContent : MonoBehaviour, IRadialMenuContent
     public void SetLabel(string text)
     {
         if (labelText != null)
+        {
             labelText.text = text ?? "Segment";
+        }
     }
 
     public void SetIcon(Sprite icon)
@@ -30,8 +32,13 @@ public class RadialMenuContent : MonoBehaviour, IRadialMenuContent
     public void ApplyVisibility(bool showIcon, bool showLabel)
     {
         if (iconImage != null)
+        {
             iconImage.gameObject.SetActive(showIcon);
+        }
+
         if (labelText != null)
+        {
             labelText.gameObject.SetActive(showLabel);
+        }
     }
 }

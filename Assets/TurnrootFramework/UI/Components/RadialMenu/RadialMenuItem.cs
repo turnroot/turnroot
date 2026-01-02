@@ -1,3 +1,5 @@
+using Turnroot.GameSettings;
+using Turnroot.Utilities;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -17,12 +19,8 @@ namespace Turnroot.UI.Components.RadialMenu
 
         [SerializeField]
         private bool showIcon = false;
-
-        [SerializeField]
-        private Color normalColor = Color.white;
-
-        [SerializeField]
-        private Color selectedColor = new Color(1f, 0.8f, 0f);
+        private Color normalColor;
+        private Color selectedColor;
 
         [Header("Item Data")]
         [SerializeField]
@@ -41,6 +39,20 @@ namespace Turnroot.UI.Components.RadialMenu
 
         private void Awake()
         {
+            // Load UI settings and apply them
+            var uiSettings = GameSettingsLoader.LoadFirst<GamewideUiSettings>();
+            if (uiSettings != null)
+            {
+                normalColor = uiSettings.RadialMenuNormalColor;
+                selectedColor = uiSettings.RadialMenuSelectedColor;
+            }
+            else
+            {
+                // Fallback values if settings can't be loaded
+                normalColor = Color.white;
+                selectedColor = new Color(1f, 0.8f, 0f);
+            }
+
             if (backgroundImage == null)
             {
                 backgroundImage = GetComponent<Image>();

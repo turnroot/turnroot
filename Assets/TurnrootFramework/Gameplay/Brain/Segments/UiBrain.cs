@@ -12,6 +12,8 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
         [HideInInspector]
         public GameObject PreBattleMenuInstance { get; private set; }
 
+        private MenuStyle _preBattleMenuStyle;
+
         [HideInInspector]
         public GamewideUiSettings uiSettings;
 
@@ -23,6 +25,7 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
         {
             base.Awake();
             uiSettings = GameSettingsLoader.LoadFirst<GamewideUiSettings>();
+            _preBattleMenuStyle = uiSettings.BattlePreparationMenuStyle;
         }
 
         private System.Action<BrainState> _onStateChangedHandler;
@@ -85,11 +88,26 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             {
                 PreBattleMenuInstance = Instantiate(uiSettings.PreBattleMenuPrefab);
                 var uiFade = PreBattleMenuInstance.AddComponent<UIFade>();
-                uiFade.lerpTime = 0.8f;
-                var radialMenu = PreBattleMenuInstance.GetComponent<RadialMenu>();
-                radialMenu.uiBrain = this;
-                radialMenu.OnNavigate += HandlePreBattleMenuNavigate;
-                radialMenu.OnItemSelected += HandlePreBattleMenuSelect;
+                uiFade.lerpTime = uiSettings.MenuFadeTime;
+                if (_preBattleMenuStyle == MenuStyle.Pie)
+                {
+                    var radialMenu = PreBattleMenuInstance.GetComponent<RadialMenu>();
+                    radialMenu.uiBrain = this;
+                    radialMenu.OnNavigate += HandlePreBattleMenuNavigate;
+                    radialMenu.OnItemSelected += HandlePreBattleMenuSelect;
+                }
+                else if (_preBattleMenuStyle == MenuStyle.Filmstrip)
+                {
+                    // TODO: Set up filmstrip prebattle menu handling
+                }
+                else if (_preBattleMenuStyle == MenuStyle.List)
+                {
+                    // TODO: Set up list prebattle menu handling
+                }
+                else if (_preBattleMenuStyle == MenuStyle.Grid)
+                {
+                    // TODO: Set up grid prebattle menu handling
+                }
             }
         }
     }

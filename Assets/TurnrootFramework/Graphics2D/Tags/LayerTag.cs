@@ -188,9 +188,14 @@ namespace Turnroot.Graphics2D.Tags
                 foreach (var t in _orderedTags.Value)
                 {
                     if (t == null || string.IsNullOrEmpty(t.Name))
+                    {
                         continue;
+                    }
+
                     if (!d.ContainsKey(t.Name))
+                    {
                         d[t.Name] = t;
+                    }
                 }
 
                 return d;
@@ -205,9 +210,14 @@ namespace Turnroot.Graphics2D.Tags
                 foreach (var t in _orderedTags.Value)
                 {
                     if (t == null)
+                    {
                         continue;
+                    }
+
                     if (!d.ContainsKey(t.Order))
+                    {
                         d[t.Order] = t;
+                    }
                 }
 
                 return d;

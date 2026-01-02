@@ -13,13 +13,18 @@ MonoBehaviour:
   m_Name: GamewideUiSettings
   m_EditorClassIdentifier: 
   PreBattleMenuPrefab: {fileID: 312688979984975295, guid: ce54cc1f4ce2a624f8d2665af9d2b92a, type: 3}
-  BattlePreparationMenuStyle: 2
+  BattlePreparationMenuStyle: 0
   InBattleMenuStyle: 1
   InBattleUnitSelectedMenuStyle: 1
   MenuButtonSpacing: 2
-  RadialMenuNormalColor: {r: 1, g: 1, b: 1, a: 1}
-  RadialMenuSelectedColor: {r: 1, g: 0.8, b: 0, a: 1}
-  RadialMenuInnerRadius: 0.3
+  MenuFadeTime: 0.75
+  RadialMenuNormalColor: {r: 0.1882353, g: 0.14509805, b: 0.2, a: 0.6509804}
+  RadialMenuSelectedColor: {r: 0.355, g: 0.22151999, b: 0.28603536, a: 0.8}
+  RadialMenuInnerRadius: 0.35
   RadialMenuSegmentGap: 0.02
   RadialMenuHaveIcons: 1
   RadialMenuHaveLabels: 1
+  RadialMenuJoystickDeadzone: 0.3
+  RadialMenuNavigationInitialDelay: 0.18
+  RadialMenuNavigationRepeatDelay: 0.029
+  RadialMenuDefaultRadiusPixels: 400

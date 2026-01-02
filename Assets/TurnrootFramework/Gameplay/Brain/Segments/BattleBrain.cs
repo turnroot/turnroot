@@ -30,8 +30,6 @@ namespace Turnroot.Gameplay.Brain
 
         public BattleGameObject BattleObject { get; private set; }
 
-        protected override EventPriority GetSubscriptionPriority() => EventPriority.High;
-
         // Roster accessors through BattleGameObject
         public PlayerTeamRosterInstance PlayerTeamRoster =>
             BattleObject != null ? BattleObject.PlayerTeamRoster : null;

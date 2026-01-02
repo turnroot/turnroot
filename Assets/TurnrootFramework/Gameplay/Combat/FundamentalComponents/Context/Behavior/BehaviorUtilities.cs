@@ -954,7 +954,9 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             float newDistanceToClosest = Vector2.Distance(tile.Coordinates(), enemyClosest);
             float distanceImprovement = newDistanceToClosest - enemyClosestDist;
             if (distanceImprovement <= 0f)
+            {
                 return false;
+            }
 
             utility = baseDanger + distanceImprovement * 2f;
 
@@ -967,7 +969,9 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 {
                     var ally = allies[ai];
                     if (ally == _context.Unit.UnitInstance)
+                    {
                         continue;
+                    }
 
                     float dist = Vector2.Distance(tile.Coordinates(), ally.MapGridPosition);
                     if (dist < closestAllyDist)
