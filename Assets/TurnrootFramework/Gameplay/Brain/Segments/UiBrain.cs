@@ -27,7 +27,6 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
         [HideInInspector]
         public bool IsInSubMenu => CurrentMenuDepth > 0;
 
-        [HideInInspector]
         protected override void Awake()
         {
             base.Awake();
