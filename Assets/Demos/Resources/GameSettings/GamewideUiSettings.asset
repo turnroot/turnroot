@@ -21,7 +21,7 @@ MonoBehaviour:
     menuName: 1
     style: 1
     prefab: {fileID: 0}
-  - parentMenuName: 1
+  - parentMenuName: 0
     menuName: 2
     style: 1
     prefab: {fileID: 0}
