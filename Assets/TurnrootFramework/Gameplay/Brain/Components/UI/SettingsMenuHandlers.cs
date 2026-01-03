@@ -1,7 +1,6 @@
 using Turnroot.Gameplay.Brain;
 using Turnroot.Gameplay.Brain.UI;
 using Turnroot.UI.Components;
-using Turnroot.UI.Components.ListMenu;
 using UnityEngine;
 
 namespace TurnrootFramework.Gameplay.Brain.Segments
@@ -24,7 +23,7 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             // TODO: Set up ListMenu component and events
         }
 
-        public void HandleGameSettingsMenuNavigate(ListMenuItem item)
+        public void HandleGameSettingsMenuNavigate(MenuItemBase item)
         {
 #if UNITY_EDITOR
             Debug.Log($"UiBrain: Navigated to settings item: {item.ItemName}");
@@ -32,7 +31,7 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             // TODO: Handle settings menu navigation (highlighting, audio feedback, etc.)
         }
 
-        public void HandleGameSettingsMenuSelect(ListMenuItem item)
+        public void HandleGameSettingsMenuSelect(MenuItemBase item)
         {
 #if UNITY_EDITOR
             Debug.Log($"UiBrain: Selected settings item: {item.ItemName}");

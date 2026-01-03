@@ -111,7 +111,7 @@ namespace Turnroot.GameSettings
         [Header("Menus"), HorizontalLine(color: EColor.Blue), SerializeField]
         public List<MenuLocation> allPossibleMenuLocations;
 
-        public GamewideUiSettings()
+        private void OnEnable()
         {
             // Only initialize if list is null or empty to preserve Inspector settings
             if (allPossibleMenuLocations == null || allPossibleMenuLocations.Count == 0)
@@ -122,7 +122,7 @@ namespace Turnroot.GameSettings
 
         private void InitializeDefaultMenuLocations()
         {
-            // TODO: Verify these are correctly hierached
+            // TODO: Verify these are correctly hierarchically organized
             allPossibleMenuLocations = new List<MenuLocation>();
 
             // Main menu
