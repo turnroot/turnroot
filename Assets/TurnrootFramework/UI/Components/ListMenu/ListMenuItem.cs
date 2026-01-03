@@ -37,7 +37,7 @@ namespace Turnroot.UI.Components.ListMenu
 
         public void OnPointerClick(PointerEventData eventData) => Select();
 
-        public new void Select()
+        public override void Select()
         {
             base.Select();
             if (parentMenu != null)
