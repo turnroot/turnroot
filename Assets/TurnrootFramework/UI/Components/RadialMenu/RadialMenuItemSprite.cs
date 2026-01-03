@@ -30,11 +30,6 @@ namespace Turnroot.UI.Components.RadialMenu
 
         [Header("Behavior")]
         [SerializeField]
-        [Tooltip("If checked, mark this item as the center item in the parent RadialMenuItem")]
-        // uses base 'isCenter' field (serialized in RadialMenuItemBase)
-        private bool _editor_isCenterProxy = false;
-
-        [SerializeField]
         [Tooltip(
             "Optional target Image to update when selected/unselected. If null, the Image on this GameObject is used."
         )]

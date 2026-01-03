@@ -3,6 +3,7 @@ using Turnroot.Gameplay.Brain.Events;
 using Turnroot.GameSettings;
 using Turnroot.UI.Components.ListMenu;
 using Turnroot.UI.Components.RadialMenu;
+using Turnroot.UI.Components.SimpleButton;
 using Turnroot.Utilities;
 using UnityEngine;
 
@@ -14,6 +15,7 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
         public GamewideUiSettings uiSettings;
 
         private bool _isTransitioning = false;
+        private GameObject _currentMenuCanvasPrefab;
 
         // Public property to access current pre-battle menu instance through MenuLocation system
         public GameObject CurrentPreBattleMenuInstance =>
@@ -49,6 +51,9 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
 #if UNITY_EDITOR
                 Debug.Log($"UiBrain: Brain state changed to {name}");
 #endif
+                // Handle back button based on state
+                HandleBackButtonForState(name);
+
                 switch (name)
                 {
                     case BrainStateNames.PreBattle:
@@ -92,6 +97,9 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                     listMenu.OnItemSelected -= HandlePreBattleMenuSelect;
                 }
             }
+
+            // Clean up back button
+            DestroyBackButton();
         }
 
         public void HandlePreBattleUi()
@@ -165,5 +173,146 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                 // TODO: Set up grid prebattle menu handling
             }
         }
+
+        #region Back Button Management
+
+        private void HandleBackButtonForState(string stateName)
+        {
+            bool needsBackButton = System.Array.Exists(
+                StateBrain.StatesThatNeedMenus,
+                state => state == stateName
+            );
+
+            if (needsBackButton && _currentMenuCanvasPrefab == null)
+            {
+                CreateBackButton();
+            }
+            else if (!needsBackButton && _currentMenuCanvasPrefab != null)
+            {
+                DestroyBackButton();
+            }
+        }
+
+        private void CreateBackButton()
+        {
+            if (uiSettings?.MenuCanvasPrefab == null)
+            {
+#if UNITY_EDITOR
+                Debug.LogWarning("UiBrain: MenuCanvasPrefab is not set in GamewideUiSettings");
+#endif
+                return;
+            }
+
+            _currentMenuCanvasPrefab = Instantiate(uiSettings.MenuCanvasPrefab);
+
+            // Wire up the back button to handle menu navigation
+            // Find the SimpleButton component in children since it's a child of the canvas
+            var simpleButton = _currentMenuCanvasPrefab.GetComponentInChildren<SimpleButton>();
+            if (simpleButton != null && simpleButton.Role == SimpleButtonRole.Back)
+            {
+                simpleButton.OnSelected += HandleBackButtonPressed;
+            }
+            else
+            {
+                // TODO: Handle other button types
+#if UNITY_EDITOR
+                if (simpleButton == null)
+                {
+                    Debug.LogWarning(
+                        "UiBrain: MenuCanvasPrefab doesn't have SimpleButton component in children"
+                    );
+                }
+                else
+                {
+                    Debug.LogWarning(
+                        $"UiBrain: SimpleButton found but Role is {simpleButton.Role}, expected Back"
+                    );
+                }
+#endif
+            }
+
+#if UNITY_EDITOR
+            Debug.Log("UiBrain: Back button created and wired up");
+#endif
+        }
+
+        private void DestroyBackButton()
+        {
+            if (_currentMenuCanvasPrefab != null)
+            {
+                // Clean up event subscription
+                var simpleButton = _currentMenuCanvasPrefab.GetComponentInChildren<SimpleButton>();
+                if (simpleButton != null && simpleButton.Role == SimpleButtonRole.Back)
+                {
+                    simpleButton.OnSelected -= HandleBackButtonPressed;
+                }
+
+                Destroy(_currentMenuCanvasPrefab);
+                _currentMenuCanvasPrefab = null;
+#if UNITY_EDITOR
+                Debug.Log("UiBrain: Back button destroyed and events cleaned up");
+#endif
+            }
+        }
+
+        #endregion
+
+        #region Menu Navigation
+
+        private void HandleBackButtonPressed()
+        {
+            if (CurrentMenuDepth > 0)
+            {
+                // Navigate up one level in menu hierarchy
+                NavigateToParentMenu();
+            }
+            else
+            {
+                // At root level, handle based on current state
+                HandleRootLevelBack();
+            }
+        }
+
+        private void NavigateToParentMenu()
+        {
+            // TODO: Implement menu hierarchy navigation
+            // This should:
+            // 1. Destroy current menu instance
+            // 2. Decrement CurrentMenuDepth
+            // 3. Activate parent menu instance
+            // 4. Update UI state accordingly
+            CurrentMenuDepth = Mathf.Max(0, CurrentMenuDepth - 1);
+
+#if UNITY_EDITOR
+            Debug.Log($"UiBrain: Navigated to parent menu. New depth: {CurrentMenuDepth}");
+#endif
+        }
+
+        private void HandleRootLevelBack()
+        {
+            var currentState = Brain?.stateBrain?.CurrentState?.Name;
+
+            // TODO: Implement root level back behavior based on state
+            switch (currentState)
+            {
+                case BrainStateNames.PreBattle:
+                    // TODO: Return to previous state or world map
+                    break;
+                case BrainStateNames.Paused:
+                    // TODO: Resume game
+                    break;
+                case BrainStateNames.MainMenu:
+                    // TODO: Exit game or return to previous screen
+                    break;
+                default:
+                    break;
+            }
+
+#if UNITY_EDITOR
+            Debug.Log($"UiBrain: Root level back pressed in state: {currentState}");
+#endif
+        }
+
+        #endregion
     }
 }

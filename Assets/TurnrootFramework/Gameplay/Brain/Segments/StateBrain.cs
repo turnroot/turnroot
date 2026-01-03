@@ -86,6 +86,14 @@ namespace Turnroot.Gameplay.Brain
         private BrainState[] _highLevelStates;
         private BrainState _savedStateBeforePause;
 
+        // States that require back button and menu UI
+        public static readonly string[] StatesThatNeedMenus = new string[]
+        {
+            BrainStateNames.Paused,
+            BrainStateNames.MainMenu,
+            BrainStateNames.PreBattle,
+        };
+
         protected override EventPriority GetSubscriptionPriority() => EventPriority.Highest;
 
         protected override void Awake()

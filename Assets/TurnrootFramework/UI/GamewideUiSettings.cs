@@ -276,5 +276,21 @@ namespace Turnroot.GameSettings
         [Header("Radial Menu Layout")]
         [Range(200f, 2000f), Tooltip("Default radius for radial menus in pixels")]
         public float RadialMenuDefaultRadiusPixels = 800f;
+
+        [Header("Button Settings"), HorizontalLine(color: EColor.Orange)]
+        [Tooltip("Default normal color for buttons")]
+        public Color ButtonNormalColor = Color.white;
+
+        [Tooltip("Default hovered color for buttons")]
+        public Color ButtonHoveredColor = Color.cyan;
+
+        [Tooltip("Default selected color for buttons")]
+        public Color ButtonSelectedColor = Color.yellow;
+
+        [Range(0f, 1f), Tooltip("Duration for button color transitions")]
+        public float ButtonTransitionDuration = 0.12f;
+
+        [Space, Tooltip("Prefab for menu canvas with back button that appears in menu states")]
+        public GameObject MenuCanvasPrefab;
     }
 }

@@ -88,9 +88,6 @@ namespace Turnroot.UI.Components.RadialMenu
 
         [SerializeField]
         private float navigationRepeatDelay;
-
-        private int _navDir = 0;
-        private int _lastNavDir = 0;
         private float _navHoldTime = 0f;
         private float _navRepeatTimer = 0f;
 
@@ -114,7 +111,6 @@ namespace Turnroot.UI.Components.RadialMenu
         private bool _centerSelected = false;
         private float _rotStep;
         private Vector2 _lastNavigateInput;
-        private float _lastInputTime;
 
         public PrebattleOptions FindPreBattleOptionByName(string name)
         {

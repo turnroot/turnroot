@@ -89,3 +89,8 @@ MonoBehaviour:
   RadialMenuNavigationInitialDelay: 0.18
   RadialMenuNavigationRepeatDelay: 0.029
   RadialMenuDefaultRadiusPixels: 400
+  ButtonNormalColor: {r: 1, g: 1, b: 1, a: 1}
+  ButtonHoveredColor: {r: 0.674, g: 0.43944803, b: 0.55337334, a: 1}
+  ButtonSelectedColor: {r: 0.84400004, g: 0.365452, b: 0.59788966, a: 1}
+  ButtonTransitionDuration: 0.12
+  MenuCanvasPrefab: {fileID: 6717558390753289932, guid: 015cf6f2a44a8fd48872b6635c3ca360, type: 3}
