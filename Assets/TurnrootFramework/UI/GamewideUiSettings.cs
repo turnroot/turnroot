@@ -92,8 +92,8 @@ namespace Turnroot.GameSettings
             this.style = style;
         }
 
-        public MenuLocation Clone(MenuLocation parent) =>
-            new(parent)
+        public MenuLocation Clone(MenuLocation newParent) =>
+            new(newParent)
             {
                 style = style,
                 prefab = prefab,
