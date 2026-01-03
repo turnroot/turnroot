@@ -167,8 +167,8 @@ namespace Turnroot.GameSettings
                 MenuName.PreBattleSupportMenu
             );
             allPossibleMenuLocations.Add(preBattleSupportMenu);
-            // Pre-battle settings menu is the game settings menu
-            var preBattleSettingsMenu = gameSettingsMenu.Clone(parent: preBattleMenu);
+            // Pre-battle settings menu: its own menu under PreBattleMenu
+            var preBattleSettingsMenu = new MenuLocation(preBattleMenu, MenuName.PreBattleSettingsMenu);
             allPossibleMenuLocations.Add(preBattleSettingsMenu);
         }
 
