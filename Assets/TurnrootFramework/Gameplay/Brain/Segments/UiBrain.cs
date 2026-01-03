@@ -31,12 +31,12 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
         {
             base.Awake();
             uiSettings = GameSettingsLoader.LoadFirst<GamewideUiSettings>();
+#if UNITY_EDITOR
             if (uiSettings == null)
             {
-#if UNITY_EDITOR
                 Debug.LogError("UiBrain: GamewideUiSettings not found!");
-#endif
             }
+#endif
         }
 
         private System.Action<BrainState> _onStateChangedHandler;

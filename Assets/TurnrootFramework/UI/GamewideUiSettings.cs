@@ -69,7 +69,9 @@ namespace Turnroot.GameSettings
                     // Detect circular references in the parent chain
                     if (!visited.Add(current))
                     {
-                        Debug.LogError($"Circular parent reference detected in menu hierarchy starting from '{menuName}'.");
+                        Debug.LogError(
+                            $"Circular parent reference detected in menu hierarchy starting from '{menuName}'."
+                        );
                         return -1;
                     }
 
@@ -111,8 +113,10 @@ namespace Turnroot.GameSettings
         [Header("Menus"), HorizontalLine(color: EColor.Blue), SerializeField]
         public List<MenuLocation> allPossibleMenuLocations;
 
-        public GamewideUiSettings()
+        protected override void OnEnable()
         {
+            base.OnEnable();
+
             // Only initialize if list is null or empty to preserve Inspector settings
             if (allPossibleMenuLocations == null || allPossibleMenuLocations.Count == 0)
             {
@@ -122,7 +126,7 @@ namespace Turnroot.GameSettings
 
         private void InitializeDefaultMenuLocations()
         {
-            // TODO: Verify these are correctly hierached
+            // TODO: Verify these are correctly hierarchically organized
             allPossibleMenuLocations = new List<MenuLocation>();
 
             // Main menu
@@ -168,7 +172,10 @@ namespace Turnroot.GameSettings
             );
             allPossibleMenuLocations.Add(preBattleSupportMenu);
             // Pre-battle settings menu: its own menu under PreBattleMenu
-            var preBattleSettingsMenu = new MenuLocation(preBattleMenu, MenuName.PreBattleSettingsMenu);
+            var preBattleSettingsMenu = new MenuLocation(
+                preBattleMenu,
+                MenuName.PreBattleSettingsMenu
+            );
             allPossibleMenuLocations.Add(preBattleSettingsMenu);
         }
 
