@@ -1,3 +1,4 @@
+using Turnroot.UI.Components;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -14,7 +15,7 @@ namespace Turnroot.UI.Components.RadialMenu
     /// </summary>
     [RequireComponent(typeof(Image))]
     public class RadialMenuItemSprite
-        : RadialMenuItemBase,
+        : MenuItemBase,
             IRadialMenuContent,
             IPointerEnterHandler,
             IPointerExitHandler,
@@ -39,7 +40,7 @@ namespace Turnroot.UI.Components.RadialMenu
         )]
         private Image targetImage;
 
-        private RadialMenuItemBase _ownerItem;
+        private MenuItemBase _ownerItem;
         private bool _isStandalone = false;
 
         private void Awake()
@@ -50,7 +51,7 @@ namespace Turnroot.UI.Components.RadialMenu
             }
 
             // Check if we're inside a RadialMenuItem or standalone
-            _ownerItem = GetComponentInParent<RadialMenuItemBase>();
+            _ownerItem = GetComponentInParent<MenuItemBase>();
 
             // Make sure we don't consider ourselves as our own owner
             if (_ownerItem == this)
@@ -217,7 +218,7 @@ namespace Turnroot.UI.Components.RadialMenu
             // keep owner isCenter in sync in editor
             if (!Application.isPlaying)
             {
-                _ownerItem = GetComponentInParent<RadialMenuItemBase>();
+                _ownerItem = GetComponentInParent<MenuItemBase>();
                 if (_ownerItem != null && _ownerItem != this)
                 {
                     _ownerItem.SetIsCenter(isCenter);

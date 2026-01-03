@@ -1,6 +1,7 @@
 using Turnroot.Gameplay.Brain;
 using Turnroot.Gameplay.Brain.Events;
 using Turnroot.GameSettings;
+using Turnroot.UI.Components.ListMenu;
 using Turnroot.UI.Components.RadialMenu;
 using Turnroot.Utilities;
 using UnityEngine;
@@ -10,32 +11,32 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
     public partial class UiBrain : BrainComponent
     {
         [HideInInspector]
-        public GameObject PreBattleMenuInstance { get; private set; }
-
-        private MenuStyle _preBattleMenuStyle;
-
-        [HideInInspector]
         public GamewideUiSettings uiSettings;
 
         private bool _isTransitioning = false;
 
+        // Public property to access current pre-battle menu instance through MenuLocation system
+        public GameObject CurrentPreBattleMenuInstance =>
+            uiSettings?.GetPreBattleMenu()?.activeInstance;
+
         protected override EventPriority GetSubscriptionPriority() => EventPriority.Low;
+
+        [HideInInspector]
+        public int CurrentMenuDepth = 0;
+
+        [HideInInspector]
+        public bool IsInSubMenu => CurrentMenuDepth > 0;
 
         protected override void Awake()
         {
             base.Awake();
             uiSettings = GameSettingsLoader.LoadFirst<GamewideUiSettings>();
-            if (uiSettings != null)
-            {
-                _preBattleMenuStyle = uiSettings.BattlePreparationMenuStyle;
-            }
-            else
-            {
 #if UNITY_EDITOR
-                Debug.LogError("UiBrain: GamewideUiSettings not found! Using default menu style.");
-#endif
-                _preBattleMenuStyle = MenuStyle.Pie; // Default fallback
+            if (uiSettings == null)
+            {
+                Debug.LogError("UiBrain: GamewideUiSettings not found!");
             }
+#endif
         }
 
         private System.Action<BrainState> _onStateChangedHandler;
@@ -73,51 +74,95 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                 _onStateChangedHandler = null;
             }
 
-            // Clean up radial menu events if menu still exists
-            if (PreBattleMenuInstance != null)
+            // Clean up menu events if menu still exists
+            var preBattleMenuLocation = uiSettings?.GetPreBattleMenu();
+            if (preBattleMenuLocation?.activeInstance != null)
             {
-                var radialMenu = PreBattleMenuInstance.GetComponent<RadialMenu>();
+                var radialMenu = preBattleMenuLocation.activeInstance.GetComponent<RadialMenu>();
                 if (radialMenu != null)
                 {
                     radialMenu.OnNavigate -= HandlePreBattleMenuNavigate;
                     radialMenu.OnItemSelected -= HandlePreBattleMenuSelect;
+                }
+
+                var listMenu = preBattleMenuLocation.activeInstance.GetComponent<ListMenu>();
+                if (listMenu != null)
+                {
+                    listMenu.OnNavigate -= HandlePreBattleMenuNavigate;
+                    listMenu.OnItemSelected -= HandlePreBattleMenuSelect;
                 }
             }
         }
 
         public void HandlePreBattleUi()
         {
-            // Guard: Return early if PreBattleMenuInstance already exists to prevent duplicates
-            if (PreBattleMenuInstance != null)
+            if (uiSettings == null)
+            {
+#if UNITY_EDITOR
+                Debug.LogError("UiBrain: Cannot create pre-battle UI - uiSettings is null");
+#endif
+                return;
+            }
+
+            var preBattleMenuLocation = uiSettings.GetPreBattleMenu();
+            if (preBattleMenuLocation == null)
+            {
+#if UNITY_EDITOR
+                Debug.LogError("UiBrain: Pre-battle menu location not found");
+#endif
+                return;
+            }
+
+            // Guard: Return early if activeInstance already exists to prevent duplicates
+            if (preBattleMenuLocation.activeInstance != null)
             {
                 return;
             }
 
-            // Instantiate the pre-battle menu prefab
-            if (uiSettings.PreBattleMenuPrefab != null)
+            if (preBattleMenuLocation.prefab == null)
             {
-                PreBattleMenuInstance = Instantiate(uiSettings.PreBattleMenuPrefab);
-                var uiFade = PreBattleMenuInstance.AddComponent<UIFade>();
-                uiFade.lerpTime = uiSettings.MenuFadeTime;
-                if (_preBattleMenuStyle == MenuStyle.Pie)
+#if UNITY_EDITOR
+                Debug.LogError("UiBrain: No prefab set for pre-battle menu location");
+#endif
+                return;
+            }
+
+            preBattleMenuLocation.activeInstance = Instantiate(preBattleMenuLocation.prefab);
+            var uiFade = preBattleMenuLocation.activeInstance.AddComponent<UIFade>();
+            uiFade.lerpTime = uiSettings.MenuFadeTime;
+
+            var menuStyle = preBattleMenuLocation.style;
+            if (menuStyle == MenuStyle.Pie)
+            {
+                var radialMenu = preBattleMenuLocation.activeInstance.GetComponent<RadialMenu>();
+                if (radialMenu != null)
                 {
-                    var radialMenu = PreBattleMenuInstance.GetComponent<RadialMenu>();
                     radialMenu.uiBrain = this;
                     radialMenu.OnNavigate += HandlePreBattleMenuNavigate;
                     radialMenu.OnItemSelected += HandlePreBattleMenuSelect;
                 }
-                else if (_preBattleMenuStyle == MenuStyle.Filmstrip)
+            }
+            else if (menuStyle == MenuStyle.Filmstrip)
+            {
+                // TODO: Set up filmstrip prebattle menu handling
+            }
+            else if (menuStyle == MenuStyle.List)
+            {
+                var listMenu = preBattleMenuLocation.activeInstance.GetComponent<ListMenu>();
+                if (listMenu != null)
                 {
-                    // TODO: Set up filmstrip prebattle menu handling
+                    listMenu.uiBrain = this;
+                    listMenu.OnNavigate += HandlePreBattleMenuNavigate;
+                    listMenu.OnItemSelected += HandlePreBattleMenuSelect;
                 }
-                else if (_preBattleMenuStyle == MenuStyle.List)
+                else
                 {
-                    // TODO: Set up list prebattle menu handling
+                    // TODO: Handle case where ListMenu component is missing
                 }
-                else if (_preBattleMenuStyle == MenuStyle.Grid)
-                {
-                    // TODO: Set up grid prebattle menu handling
-                }
+            }
+            else if (menuStyle == MenuStyle.Grid)
+            {
+                // TODO: Set up grid prebattle menu handling
             }
         }
     }

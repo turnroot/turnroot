@@ -12,10 +12,67 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c583338e71983104d95054f99e91658a, type: 3}
   m_Name: GamewideUiSettings
   m_EditorClassIdentifier: 
-  PreBattleMenuPrefab: {fileID: 312688979984975295, guid: ce54cc1f4ce2a624f8d2665af9d2b92a, type: 3}
-  BattlePreparationMenuStyle: 0
-  InBattleMenuStyle: 1
-  InBattleUnitSelectedMenuStyle: 1
+  allPossibleMenuLocations:
+  - parentMenuName: 0
+    menuName: 1
+    style: 0
+    prefab: {fileID: 312688979984975295, guid: ce54cc1f4ce2a624f8d2665af9d2b92a, type: 3}
+  - parentMenuName: 0
+    menuName: 1
+    style: 1
+    prefab: {fileID: 0}
+  - parentMenuName: 0
+    menuName: 2
+    style: 1
+    prefab: {fileID: 0}
+  - parentMenuName: 0
+    menuName: 3
+    style: 1
+    prefab: {fileID: 0}
+  - parentMenuName: 3
+    menuName: 4
+    style: 1
+    prefab: {fileID: 0}
+  - parentMenuName: 3
+    menuName: 5
+    style: 1
+    prefab: {fileID: 0}
+  - parentMenuName: 2
+    menuName: 6
+    style: 1
+    prefab: {fileID: 0}
+  - parentMenuName: 8
+    menuName: 7
+    style: 1
+    prefab: {fileID: 0}
+  - parentMenuName: 2
+    menuName: 8
+    style: 1
+    prefab: {fileID: 0}
+  - parentMenuName: 10
+    menuName: 11
+    style: 1
+    prefab: {fileID: 0}
+  - parentMenuName: 10
+    menuName: 12
+    style: 1
+    prefab: {fileID: 0}
+  - parentMenuName: 10
+    menuName: 13
+    style: 1
+    prefab: {fileID: 0}
+  - parentMenuName: 10
+    menuName: 14
+    style: 1
+    prefab: {fileID: 0}
+  - parentMenuName: 10
+    menuName: 15
+    style: 1
+    prefab: {fileID: 0}
+  - parentMenuName: 10
+    menuName: 13
+    style: 1
+    prefab: {fileID: 0}
   MenuButtonSpacing: 2
   MenuFadeTime: 0.75
   RadialMenuNormalColor: {r: 0.1882353, g: 0.14509805, b: 0.2, a: 0.6509804}

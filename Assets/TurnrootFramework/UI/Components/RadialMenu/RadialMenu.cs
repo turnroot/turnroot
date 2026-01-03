@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using NaughtyAttributes;
 using Turnroot.Gameplay.Brain.UI;
 using Turnroot.GameSettings;
+using Turnroot.UI.Components;
 using Turnroot.Utilities;
 using TurnrootFramework.Gameplay.Brain.Segments;
 using UnityEngine;
@@ -11,18 +12,11 @@ using UnityEngine.InputSystem;
 
 namespace Turnroot.UI.Components.RadialMenu
 {
-    public enum RadialMenuLocations
-    {
-        PreBattle,
-    }
-
     [RequireComponent(typeof(CanvasGroup))]
     public class RadialMenu : MonoBehaviour
     {
         [HideInInspector]
         public List<string> segmentNames = new();
-        public RadialMenuLocations menuLocation;
-
         private GamewideUiSettings _uiSettings;
 
         private static readonly Vector2 DirectionRight = Vector2.right;
@@ -49,11 +43,11 @@ namespace Turnroot.UI.Components.RadialMenu
         private NavigationState _navState = NavigationState.Idle;
 
         [Header("Menu Items")]
-        public List<RadialMenuItemBase> menuItems = new();
+        public List<MenuItemBase> menuItems = new();
 
         [Header("Layout Settings")]
         [SerializeField]
-        public RadialMenuItemBase centerItem;
+        public MenuItemBase centerItem;
 
         [SerializeField]
         private float innerRadiusPercent;
@@ -147,8 +141,8 @@ namespace Turnroot.UI.Components.RadialMenu
 
         public UiBrain uiBrain;
 
-        public event Action<RadialMenuItemBase> OnNavigate;
-        public event Action<RadialMenuItemBase> OnItemSelected;
+        public event Action<MenuItemBase> OnNavigate;
+        public event Action<MenuItemBase> OnItemSelected;
 
         /// <summary>
         /// Fired when the radial menu has completed initialization and is visible/ready.
@@ -236,7 +230,7 @@ namespace Turnroot.UI.Components.RadialMenu
         {
             if (menuItems.Count == 0)
             {
-                RadialMenuItemBase[] allItems = GetComponentsInChildren<RadialMenuItemBase>();
+                MenuItemBase[] allItems = GetComponentsInChildren<MenuItemBase>();
                 foreach (var item in allItems)
                 {
                     if (item != centerItem && item.transform.parent == transform)
@@ -619,7 +613,7 @@ namespace Turnroot.UI.Components.RadialMenu
 
         public bool IsCenterSelected() => _centerSelected;
 
-        public RadialMenuItemBase GetSelectedItem()
+        public MenuItemBase GetSelectedItem()
         {
             if (_centerSelected)
             {
