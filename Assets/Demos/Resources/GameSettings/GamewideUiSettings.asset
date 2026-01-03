@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   allPossibleMenuLocations:
   - parentMenuName: 0
-    menuName: 10
+    menuName: 1
     style: 0
     prefab: {fileID: 312688979984975295, guid: ce54cc1f4ce2a624f8d2665af9d2b92a, type: 3}
   - parentMenuName: 0
