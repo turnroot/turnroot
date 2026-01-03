@@ -49,10 +49,6 @@ MonoBehaviour:
     menuName: 8
     style: 1
     prefab: {fileID: 0}
-  - parentMenuName: 0
-    menuName: 10
-    style: 1
-    prefab: {fileID: 0}
   - parentMenuName: 10
     menuName: 11
     style: 1
