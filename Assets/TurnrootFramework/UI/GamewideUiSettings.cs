@@ -63,14 +63,18 @@ namespace Turnroot.GameSettings
             {
                 int depth = 0;
                 var current = parent;
+                var visited = new HashSet<MenuLocation>();
                 while (current != null)
                 {
+                    // Detect circular references in the parent chain
+                    if (!visited.Add(current))
+                    {
+                        Debug.LogError($"Circular parent reference detected in menu hierarchy starting from '{menuName}'.");
+                        return -1;
+                    }
+
                     depth++;
                     current = current.parent;
-                    if (depth > 10)
-                    {
-                        break;
-                    }
                 }
                 return depth;
             }
