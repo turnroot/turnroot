@@ -1,5 +1,6 @@
 using Turnroot.Gameplay.Brain;
 using Turnroot.Gameplay.Brain.UI;
+using Turnroot.UI.Components;
 using Turnroot.UI.Components.RadialMenu;
 using UnityEngine;
 #if COFFEE_UIEFFECTS
@@ -10,12 +11,12 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
 {
     public partial class UiBrain : BrainComponent
     {
-        private void HandlePreBattleMenuNavigate(RadialMenuItemBase item)
+        public void HandlePreBattleMenuNavigate(MenuItemBase item)
         {
             // Handle navigation to item
         }
 
-        private void HandlePreBattleMenuSelect(RadialMenuItemBase item)
+        public void HandlePreBattleMenuSelect(MenuItemBase item)
         {
             // Handle selection of item
             if (item.IsCenter)
@@ -38,7 +39,7 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                             // TODO: team management UI
                             break;
                         case PrebattleOptions.Settings:
-                            // TODO: settings UI
+                            HandlePreBattleMenuSettings();
                             break;
                         case PrebattleOptions.Skills:
                             // TODO: skills UI
@@ -55,6 +56,11 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                     }
                 }
             }
+        }
+
+        private void HandlePreBattleMenuSettings()
+        {
+            OpenMainGameSettingsMenu();
         }
 
         private void HandleStartBattleClick()

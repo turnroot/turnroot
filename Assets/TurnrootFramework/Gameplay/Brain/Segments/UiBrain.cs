@@ -1,6 +1,7 @@
 using Turnroot.Gameplay.Brain;
 using Turnroot.Gameplay.Brain.Events;
 using Turnroot.GameSettings;
+using Turnroot.UI.Components.ListMenu;
 using Turnroot.UI.Components.RadialMenu;
 using Turnroot.Utilities;
 using UnityEngine;
@@ -74,7 +75,7 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                 _onStateChangedHandler = null;
             }
 
-            // Clean up radial menu events if menu still exists
+            // Clean up menu events if menu still exists
             var preBattleMenuLocation = uiSettings?.GetPreBattleMenu();
             if (preBattleMenuLocation?.activeInstance != null)
             {
@@ -83,6 +84,13 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                 {
                     radialMenu.OnNavigate -= HandlePreBattleMenuNavigate;
                     radialMenu.OnItemSelected -= HandlePreBattleMenuSelect;
+                }
+
+                var listMenu = preBattleMenuLocation.activeInstance.GetComponent<ListMenu>();
+                if (listMenu != null)
+                {
+                    listMenu.OnNavigate -= HandlePreBattleMenuNavigate;
+                    listMenu.OnItemSelected -= HandlePreBattleMenuSelect;
                 }
             }
         }
@@ -141,7 +149,17 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             }
             else if (menuStyle == MenuStyle.List)
             {
-                // TODO: Set up list prebattle menu handling
+                var listMenu = preBattleMenuLocation.activeInstance.GetComponent<ListMenu>();
+                if (listMenu != null)
+                {
+                    listMenu.uiBrain = this;
+                    listMenu.OnNavigate += HandlePreBattleMenuNavigate;
+                    listMenu.OnItemSelected += HandlePreBattleMenuSelect;
+                }
+                else
+                {
+                    // TODO: Handle case where ListMenu component is missing
+                }
             }
             else if (menuStyle == MenuStyle.Grid)
             {

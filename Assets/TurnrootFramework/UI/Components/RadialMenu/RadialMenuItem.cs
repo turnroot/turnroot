@@ -1,4 +1,5 @@
 using Turnroot.GameSettings;
+using Turnroot.UI.Components;
 using Turnroot.Utilities;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -8,7 +9,7 @@ namespace Turnroot.UI.Components.RadialMenu
 {
     [RequireComponent(typeof(Image))]
     public class RadialMenuItem
-        : RadialMenuItemBase,
+        : MenuItemBase,
             IPointerEnterHandler,
             IPointerExitHandler,
             IPointerClickHandler

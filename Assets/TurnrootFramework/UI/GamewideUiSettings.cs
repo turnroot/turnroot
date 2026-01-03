@@ -194,6 +194,8 @@ namespace Turnroot.GameSettings
 
         public MenuLocation GetPreBattleMenu() => GetMenuLocation(MenuName.PreBattleMenu);
 
+        public MenuLocation GetGameSettingsMenu() => GetMenuLocation(MenuName.GameSettingsMenu);
+
         public void ResolveParentReferences()
         {
             if (allPossibleMenuLocations == null)
