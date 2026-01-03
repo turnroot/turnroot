@@ -126,6 +126,12 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                     radialMenu.OnItemSelected -= HandlePreBattleMenuSelect;
                 }
 
+                var listMenu = menuInstance.GetComponent<ListMenu>();
+                if (listMenu != null)
+                {
+                    listMenu.OnNavigate -= HandlePreBattleMenuNavigate;
+                    listMenu.OnItemSelected -= HandlePreBattleMenuSelect;
+                }
                 Destroy(menuInstance);
 
                 // Clear the active instance from the MenuLocation
