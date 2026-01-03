@@ -31,7 +31,7 @@ namespace Turnroot.UI.Components.ListMenu
         public event Action<MenuItemBase> OnNavigate;
         public event Action<MenuItemBase> OnItemSelected;
 
-        private int _currentSelectedIndex = 0;
+        private readonly int _currentSelectedIndex = 0;
 
         private void Awake()
         {
