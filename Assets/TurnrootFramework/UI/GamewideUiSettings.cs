@@ -98,6 +98,7 @@ namespace Turnroot.GameSettings
                 style = style,
                 prefab = prefab,
                 menuName = menuName,
+                parentMenuName = parent?.menuName ?? MenuName.None,
             };
     }
 
