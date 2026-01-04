@@ -23,7 +23,7 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             if (settingsMenuLocation == null)
             {
 #if UNITY_EDITOR
-                Debug.LogError("UiBrain: Pre-battle menu location not found");
+                Debug.LogError("UiBrain: Settings menu location not found");
 #endif
                 return;
             }
