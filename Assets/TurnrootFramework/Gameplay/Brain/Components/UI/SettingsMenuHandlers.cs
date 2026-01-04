@@ -37,7 +37,7 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             if (settingsMenuLocation.prefab == null)
             {
 #if UNITY_EDITOR
-                Debug.LogError("UiBrain: No prefab set for pre-battle menu location");
+                Debug.LogError("UiBrain: No prefab set for settings menu location");
 #endif
                 return;
             }
