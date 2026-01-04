@@ -537,8 +537,7 @@ public class MapGrid : MonoBehaviour
         // Fallback to GetComponent if cache miss (rebuilds cache entry)
         if (_gridPoints.TryGetValue(key, out var point) && point != null)
         {
-            var mgp = point.GetComponent<MapGridPoint>();
-            if (mgp != null)
+            if (point.TryGetComponent<MapGridPoint>(out var mgp))
             {
                 _cachedGridPoints ??= new Dictionary<Vector2Int, MapGridPoint>();
                 _cachedGridPoints[key] = mgp;

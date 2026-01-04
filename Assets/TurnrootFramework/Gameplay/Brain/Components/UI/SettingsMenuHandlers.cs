@@ -1,6 +1,8 @@
 using Turnroot.Gameplay.Brain;
 using Turnroot.Gameplay.Brain.UI;
+using Turnroot.GameSettings;
 using Turnroot.UI.Components;
+using Turnroot.UI.Components.Menu;
 using UnityEngine;
 
 namespace TurnrootFramework.Gameplay.Brain.Segments
@@ -18,9 +20,42 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                 return;
             }
 
-            // TODO: Implement settings menu opening logic similar to HandlePreBattleUi
-            // TODO: Instantiate settings menu prefab
-            // TODO: Set up ListMenu component and events
+            if (settingsMenuLocation == null)
+            {
+#if UNITY_EDITOR
+                Debug.LogError("UiBrain: Pre-battle menu location not found");
+#endif
+                return;
+            }
+
+            // Guard: Return early if activeInstance already exists to prevent duplicates
+            if (settingsMenuLocation.activeInstance != null)
+            {
+                return;
+            }
+
+            if (settingsMenuLocation.prefab == null)
+            {
+#if UNITY_EDITOR
+                Debug.LogError("UiBrain: No prefab set for pre-battle menu location");
+#endif
+                return;
+            }
+
+            settingsMenuLocation.activeInstance = Instantiate(settingsMenuLocation.prefab);
+            if (!settingsMenuLocation.activeInstance.TryGetComponent<UIFade>(out var uiFade))
+            {
+                uiFade = settingsMenuLocation.activeInstance.AddComponent<UIFade>();
+                uiFade.lerpTime = uiSettings.MenuFadeTime;
+            }
+
+            // Simplified: Just get MenuBase component since both ListMenu and GridMenu inherit from it
+            if (settingsMenuLocation.activeInstance.TryGetComponent<MenuBase>(out var menu))
+            {
+                menu.uiBrain = this;
+                menu.OnNavigate += HandleGameSettingsMenuNavigate;
+                menu.OnItemSelected += HandleGameSettingsMenuSelect;
+            }
         }
 
         public void HandleGameSettingsMenuNavigate(MenuItemBase item)

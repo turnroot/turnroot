@@ -1,9 +1,6 @@
-using Turnroot.GameSettings;
-using Turnroot.UI.Components;
-using Turnroot.Utilities;
+using Turnroot.UI.Components.Menu;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using UnityEngine.UI;
 
 namespace Turnroot.UI.Components.ListMenu
 {
@@ -14,7 +11,7 @@ namespace Turnroot.UI.Components.ListMenu
             IPointerClickHandler
     {
         [HideInInspector]
-        public ListMenu parentMenu;
+        public MenuBase parentMenu;
 
         public override string ItemName => itemName;
 
@@ -46,9 +43,6 @@ namespace Turnroot.UI.Components.ListMenu
             }
         }
 
-        public override void SetItemName(string name)
-        {
-            itemName = name;
-        }
+        public override void SetItemName(string name) => itemName = name;
     }
 }

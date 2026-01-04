@@ -2,6 +2,7 @@ using Turnroot.Gameplay.Brain;
 using Turnroot.Gameplay.Brain.Events;
 using Turnroot.GameSettings;
 using Turnroot.UI.Components.ListMenu;
+using Turnroot.UI.Components.Menu;
 using Turnroot.UI.Components.RadialMenu;
 using Turnroot.UI.Components.SimpleButton;
 using Turnroot.Utilities;
@@ -83,15 +84,19 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             var preBattleMenuLocation = uiSettings?.GetPreBattleMenu();
             if (preBattleMenuLocation?.activeInstance != null)
             {
-                var radialMenu = preBattleMenuLocation.activeInstance.GetComponent<RadialMenu>();
-                if (radialMenu != null)
+                if (
+                    preBattleMenuLocation.activeInstance.TryGetComponent<RadialMenu>(
+                        out var radialMenu
+                    )
+                )
                 {
                     radialMenu.OnNavigate -= HandlePreBattleMenuNavigate;
                     radialMenu.OnItemSelected -= HandlePreBattleMenuSelect;
                 }
 
-                var listMenu = preBattleMenuLocation.activeInstance.GetComponent<ListMenu>();
-                if (listMenu != null)
+                if (
+                    preBattleMenuLocation.activeInstance.TryGetComponent<MenuBase>(out var listMenu)
+                )
                 {
                     listMenu.OnNavigate -= HandlePreBattleMenuNavigate;
                     listMenu.OnItemSelected -= HandlePreBattleMenuSelect;
@@ -136,14 +141,20 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             }
 
             preBattleMenuLocation.activeInstance = Instantiate(preBattleMenuLocation.prefab);
-            var uiFade = preBattleMenuLocation.activeInstance.AddComponent<UIFade>();
-            uiFade.lerpTime = uiSettings.MenuFadeTime;
+            if (!preBattleMenuLocation.activeInstance.TryGetComponent<UIFade>(out var uiFade))
+            {
+                uiFade = preBattleMenuLocation.activeInstance.AddComponent<UIFade>();
+                uiFade.lerpTime = uiSettings.MenuFadeTime;
+            }
 
             var menuStyle = preBattleMenuLocation.style;
             if (menuStyle == MenuStyle.Pie)
             {
-                var radialMenu = preBattleMenuLocation.activeInstance.GetComponent<RadialMenu>();
-                if (radialMenu != null)
+                if (
+                    preBattleMenuLocation.activeInstance.TryGetComponent<RadialMenu>(
+                        out var radialMenu
+                    )
+                )
                 {
                     radialMenu.uiBrain = this;
                     radialMenu.OnNavigate += HandlePreBattleMenuNavigate;
@@ -156,8 +167,9 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             }
             else if (menuStyle == MenuStyle.List)
             {
-                var listMenu = preBattleMenuLocation.activeInstance.GetComponent<ListMenu>();
-                if (listMenu != null)
+                if (
+                    preBattleMenuLocation.activeInstance.TryGetComponent<MenuBase>(out var listMenu)
+                )
                 {
                     listMenu.uiBrain = this;
                     listMenu.OnNavigate += HandlePreBattleMenuNavigate;
