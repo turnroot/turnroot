@@ -1,19 +1,15 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using NaughtyAttributes;
-using Turnroot.Gameplay.Brain.UI;
 using Turnroot.GameSettings;
-using Turnroot.UI.Components;
-using Turnroot.Utilities;
+using Turnroot.UI.Components.ListMenu;
 using TurnrootFramework.Gameplay.Brain.Segments;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-namespace Turnroot.UI.Components.ListMenu
+namespace Turnroot.UI.Components.Menu
 {
     [RequireComponent(typeof(CanvasGroup))]
-    public class ListMenu : MonoBehaviour
+    public abstract class MenuBase : MonoBehaviour
     {
         [HideInInspector]
         public List<ListMenuItem> menuItems = new();
@@ -23,7 +19,7 @@ namespace Turnroot.UI.Components.ListMenu
         public InputAction selectAction;
 
         public InputAction navigateAction;
-        private GamewideUiSettings _uiSettings;
+        protected GamewideUiSettings _uiSettings;
 
         [HideInInspector]
         public UiBrain uiBrain;
@@ -31,15 +27,15 @@ namespace Turnroot.UI.Components.ListMenu
         public event Action<MenuItemBase> OnNavigate;
         public event Action<MenuItemBase> OnItemSelected;
 
-        private readonly int _currentSelectedIndex = 0;
+        protected readonly int _currentSelectedIndex = 0;
 
-        private void Awake()
+        protected virtual void Awake()
         {
             // Initialize menu items
             RefreshMenuItems();
         }
 
-        private void RefreshMenuItems()
+        protected virtual void RefreshMenuItems()
         {
             menuItems.Clear();
             var items = GetComponentsInChildren<ListMenuItem>();
@@ -50,12 +46,12 @@ namespace Turnroot.UI.Components.ListMenu
             }
         }
 
-        public void NavigateToItem(ListMenuItem item)
+        public virtual void NavigateToItem(ListMenuItem item)
         {
             OnNavigate?.Invoke(item);
         }
 
-        public void SelectItem(ListMenuItem item)
+        public virtual void SelectItem(ListMenuItem item)
         {
             OnItemSelected?.Invoke(item);
         }

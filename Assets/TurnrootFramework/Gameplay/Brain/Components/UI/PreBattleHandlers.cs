@@ -2,6 +2,7 @@ using Turnroot.Gameplay.Brain;
 using Turnroot.Gameplay.Brain.UI;
 using Turnroot.UI.Components;
 using Turnroot.UI.Components.ListMenu;
+using Turnroot.UI.Components.Menu;
 using Turnroot.UI.Components.RadialMenu;
 using UnityEngine;
 #if COFFEE_UIEFFECTS
@@ -78,8 +79,7 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             if (!menuInstance.TryGetComponent<UIFade>(out var uiFade))
             {
                 // No fade component, proceed directly
-                var menu = menuInstance.GetComponent<RadialMenu>();
-                if (menu != null)
+                if (menuInstance.TryGetComponent<RadialMenu>(out var menu))
                 {
                     menu.OnNavigate -= HandlePreBattleMenuNavigate;
                     menu.OnItemSelected -= HandlePreBattleMenuSelect;
@@ -120,18 +120,16 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             // Clean up menu
             if (menuInstance != null)
             {
-                var radialMenu = menuInstance.GetComponent<RadialMenu>();
-                if (radialMenu != null)
+                if (menuInstance.TryGetComponent<RadialMenu>(out var radialMenu))
                 {
                     radialMenu.OnNavigate -= HandlePreBattleMenuNavigate;
                     radialMenu.OnItemSelected -= HandlePreBattleMenuSelect;
                 }
 
-                var listMenu = menuInstance.GetComponent<ListMenu>();
-                if (listMenu != null)
+                if (menuInstance.TryGetComponent<MenuBase>(out var menu))
                 {
-                    listMenu.OnNavigate -= HandlePreBattleMenuNavigate;
-                    listMenu.OnItemSelected -= HandlePreBattleMenuSelect;
+                    menu.OnNavigate -= HandlePreBattleMenuNavigate;
+                    menu.OnItemSelected -= HandlePreBattleMenuSelect;
                 }
                 Destroy(menuInstance);
 
