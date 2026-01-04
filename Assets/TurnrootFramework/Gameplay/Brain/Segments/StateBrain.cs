@@ -364,6 +364,7 @@ namespace Turnroot.Gameplay.Brain
             {
                 _savedStateBeforePause = _currentState;
                 SetCurrentState(pausedState);
+                TimeManager.PauseGame();
                 _brain?.PublishPaused(_savedStateBeforePause);
             }
             else
@@ -371,6 +372,7 @@ namespace Turnroot.Gameplay.Brain
                 if (_savedStateBeforePause != null)
                 {
                     SetCurrentState(_savedStateBeforePause);
+                    TimeManager.ResumeGame();
                     _brain?.PublishResumed(_savedStateBeforePause);
                     _savedStateBeforePause = null;
                 }

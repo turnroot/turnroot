@@ -1,9 +1,11 @@
 using Turnroot.UI.Components.Menu;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using SimpleButtonComponent = Turnroot.UI.Components.SimpleButton.SimpleButton;
 
 namespace Turnroot.UI.Components.ListMenu
 {
+    [RequireComponent(typeof(SimpleButtonComponent))]
     public class ListMenuItem
         : MenuItemBase,
             IPointerEnterHandler,
@@ -18,21 +20,53 @@ namespace Turnroot.UI.Components.ListMenu
         [SerializeField]
         private string itemName;
 
+        private SimpleButtonComponent _simpleButton;
+
+        private void Awake()
+        {
+            // Get or add SimpleButton component for visual feedback
+            _simpleButton = GetComponent<SimpleButtonComponent>();
+            if (_simpleButton == null)
+            {
+                _simpleButton = gameObject.AddComponent<SimpleButtonComponent>();
+            }
+
+            // Subscribe to SimpleButton's OnSelected event to trigger menu selection
+            _simpleButton.OnSelected += HandleSimpleButtonSelection;
+        }
+
+        private void OnDestroy()
+        {
+            // Clean up event subscription
+            if (_simpleButton != null)
+            {
+                _simpleButton.OnSelected -= HandleSimpleButtonSelection;
+            }
+        }
+
         public void OnPointerEnter(PointerEventData eventData)
         {
+            // Delegate to SimpleButton for visual feedback
+            _simpleButton.OnPointerEnter(eventData);
+
+            // Handle menu navigation
             if (parentMenu != null)
             {
                 parentMenu.NavigateToItem(this);
             }
-            // TODO: Add visual highlighting
+
+            RaiseHoverEnter();
         }
 
         public void OnPointerExit(PointerEventData eventData)
         {
-            // TODO: Remove visual highlighting
+            _simpleButton.OnPointerExit(eventData);
+
+            RaiseHoverExit();
         }
 
-        public void OnPointerClick(PointerEventData eventData) => Select();
+        public void OnPointerClick(PointerEventData eventData) =>
+            _simpleButton.OnPointerClick(eventData);
 
         public override void Select()
         {
@@ -42,6 +76,8 @@ namespace Turnroot.UI.Components.ListMenu
                 parentMenu.SelectItem(this);
             }
         }
+
+        private void HandleSimpleButtonSelection() => Select();
 
         public override void SetItemName(string name) => itemName = name;
     }

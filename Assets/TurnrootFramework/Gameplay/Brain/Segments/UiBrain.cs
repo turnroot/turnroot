@@ -175,10 +175,6 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                     listMenu.OnNavigate += HandlePreBattleMenuNavigate;
                     listMenu.OnItemSelected += HandlePreBattleMenuSelect;
                 }
-                else
-                {
-                    // TODO: Handle case where ListMenu component is missing
-                }
             }
             else if (menuStyle == MenuStyle.Grid)
             {
@@ -311,7 +307,7 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                     // TODO: Return to previous state or world map
                     break;
                 case BrainStateNames.Paused:
-                    // TODO: Resume game
+                    Brain.stateBrain.Resume();
                     break;
                 case BrainStateNames.MainMenu:
                     // TODO: Exit game or return to previous screen
