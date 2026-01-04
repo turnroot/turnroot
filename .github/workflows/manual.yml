@@ -32,6 +32,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
+          # We use github.ref_name to ensure the link points to the correct branch
+          BRANCH_NAME: ${{ github.ref_name }} 
         run: |
           python - <<'EOF'
           import os
@@ -43,6 +45,8 @@ jobs:
           auth = Auth.Token(os.environ['GITHUB_TOKEN'])
           g = Github(auth=auth)
           repo = g.get_repo(os.environ['GITHUB_REPOSITORY'])
+          branch = os.environ['BRANCH_NAME']
+          repo_url = f"https://github.com/{os.environ['GITHUB_REPOSITORY']}"
 
           def get_domain_tag(filepath):
               parts = Path(filepath).parts
@@ -55,8 +59,6 @@ jobs:
               return None
 
           def get_todo_hash(todo_text, domain):
-              # Hash based on text and domain. 
-              # This allows moving the TODO within a domain without duplicating.
               seed = f"{domain}:{todo_text.strip().lower()}"
               return hashlib.md5(seed.encode()).hexdigest()[:10]
 
@@ -74,7 +76,6 @@ jobs:
                               text = match.group(1).strip()
                               h = get_todo_hash(text, domain or "general")
                               
-                              # Safety for identical TODOs in the same domain
                               base_h = h
                               counter = 1
                               while h in todos:
@@ -94,7 +95,6 @@ jobs:
 
           def get_all_managed_issues():
               issues_map = {}
-              # Search for the specific Hash signature in the body
               query = f"repo:{os.environ['GITHUB_REPOSITORY']} is:issue is:open [Hash:"
               managed_issues = g.search_issues(query)
               
@@ -105,21 +105,19 @@ jobs:
                       issues_map.setdefault(h, []).append(issue)
               return issues_map
 
-          # --- Execution --
+          # --- Execution ---
           current_todos = extract_todos()
           existing_issues_groups = get_all_managed_issues()
 
-          # 1. Cleanup Duplicates & Stale Issues
+          # 1. Cleanup
           for h, issues in existing_issues_groups.items():
               issues.sort(key=lambda x: x.created_at, reverse=True)
               keep_issue = issues[0]
               
-              # Close duplicates
               for extra in issues[1:]:
                   extra.create_comment(f"Closing as duplicate of #{keep_issue.number}")
                   extra.edit(state='closed')
 
-              # Close if code is gone
               if h not in current_todos:
                   keep_issue.create_comment("TODO no longer found in code. Closing.")
                   keep_issue.edit(state='closed')
@@ -127,15 +125,17 @@ jobs:
 
           # 2. Create or Update
           for h, todo in current_todos.items():
+              # Construct the clickable GitHub URL
+              file_link = f"{repo_url}/blob/{branch}/{todo['file']}#L{todo['line']}"
+              
               title = f"TODO: {todo['text'][:60]}"
               body = (f"**Description:** {todo['text']}\n\n"
-                      f"**Location:** `{todo['file']}` (Line {todo['line']})\n\n"
+                      f"**Location:** [{todo['file']} (Line {todo['line']})]({file_link})\n\n"
                       f"---\n[Hash: `{h}`]")
               
               found_group = existing_issues_groups.get(h)
               if found_group:
                   issue = found_group[0]
-                  # Update body if file path or line number changed
                   if issue.body != body:
                       issue.edit(title=title, body=body)
                       print(f"Updated #{issue.number}")

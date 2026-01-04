@@ -1,13 +1,24 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using NaughtyAttributes;
+using Turnroot.Gameplay.Brain.UI;
+using Turnroot.GameSettings;
+using Turnroot.UI.Components;
+using Turnroot.Utilities;
+using TurnrootFramework.Gameplay.Brain.Segments;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
 namespace Turnroot.UI.Components.RadialMenu
 {
+    [RequireComponent(typeof(CanvasGroup))]
     public class RadialMenu : MonoBehaviour
     {
+        [HideInInspector]
+        public List<string> segmentNames = new();
+        private GamewideUiSettings _uiSettings;
+
         private static readonly Vector2 DirectionRight = Vector2.right;
         private static readonly Vector2 DirectionLeft = Vector2.left;
         private static readonly Vector2 DirectionUp = Vector2.up;
@@ -32,20 +43,20 @@ namespace Turnroot.UI.Components.RadialMenu
         private NavigationState _navState = NavigationState.Idle;
 
         [Header("Menu Items")]
-        public List<RadialMenuItemBase> menuItems = new List<RadialMenuItemBase>();
+        public List<MenuItemBase> menuItems = new();
 
         [Header("Layout Settings")]
         [SerializeField]
-        private RadialMenuItemBase centerItem;
+        public MenuItemBase centerItem;
 
         [SerializeField]
-        private float innerRadiusPercent = 0.35f;
+        private float innerRadiusPercent;
 
         [SerializeField]
-        private float segmentGap = 0.01f;
+        private float segmentGap;
 
         [SerializeField]
-        private float menuRadiusPixels = 800f;
+        private float menuRadiusPixels;
 
         [Header("Content Settings")]
         [Range(-0.5f, 0.5f)]
@@ -54,7 +65,7 @@ namespace Turnroot.UI.Components.RadialMenu
 
         [Header("Input Settings")]
         [SerializeField]
-        private float joystickDeadzone = 0.3f;
+        private float joystickDeadzone;
 
         [Header("Startup Visibility")]
         [SerializeField]
@@ -65,7 +76,7 @@ namespace Turnroot.UI.Components.RadialMenu
         [Tooltip(
             "Fade time (sec) to reveal the menu after initialization. Set to 0 for instant show."
         )]
-        private float showFadeTime = 0.12f;
+        private float showFadeTime;
 
         // CanvasGroup used to hide/show the whole menu during startup
         private CanvasGroup _canvasGroup;
@@ -73,13 +84,10 @@ namespace Turnroot.UI.Components.RadialMenu
 
         [Header("Navigation Repeat")]
         [SerializeField]
-        private float navigationInitialDelay = 0.4f;
+        private float navigationInitialDelay;
 
         [SerializeField]
-        private float navigationRepeatDelay = 0.08f;
-
-        private int _navDir = 0;
-        private int _lastNavDir = 0;
+        private float navigationRepeatDelay;
         private float _navHoldTime = 0f;
         private float _navRepeatTimer = 0f;
 
@@ -94,18 +102,43 @@ namespace Turnroot.UI.Components.RadialMenu
 
         [Header("Input Actions")]
         [SerializeField]
-        private InputAction navigateAction;
+        public InputAction navigateAction;
 
         [SerializeField]
-        private InputAction selectAction;
+        public InputAction selectAction;
 
         private int _selectedIndex = 0;
         private bool _centerSelected = false;
         private float _rotStep;
         private Vector2 _lastNavigateInput;
-        private float _lastInputTime;
 
-        public event Action<RadialMenuItemBase> OnItemSelected;
+        public PrebattleOptions FindPreBattleOptionByName(string name)
+        {
+            switch (name)
+            {
+                case "Team":
+                    return PrebattleOptions.Team;
+                case "Items":
+                    return PrebattleOptions.Items;
+                case "Settings":
+                    return PrebattleOptions.Settings;
+                case "Skills":
+                    return PrebattleOptions.Skills;
+                case "Withdraw":
+                    return PrebattleOptions.Withdraw;
+                case "Map":
+                    return PrebattleOptions.Map;
+                case "Support":
+                    return PrebattleOptions.Support;
+                default:
+                    throw new Exception($"No PrebattleOption found for segment name: {name}");
+            }
+        }
+
+        public UiBrain uiBrain;
+
+        public event Action<MenuItemBase> OnNavigate;
+        public event Action<MenuItemBase> OnItemSelected;
 
         /// <summary>
         /// Fired when the radial menu has completed initialization and is visible/ready.
@@ -115,12 +148,35 @@ namespace Turnroot.UI.Components.RadialMenu
 
         private void Awake()
         {
+            // Load UI settings and apply them
+            _uiSettings = GameSettingsLoader.LoadFirst<GamewideUiSettings>();
+            if (_uiSettings != null)
+            {
+                innerRadiusPercent = _uiSettings.RadialMenuInnerRadius;
+                segmentGap = _uiSettings.RadialMenuSegmentGap;
+                showFadeTime = _uiSettings.MenuFadeTime;
+                joystickDeadzone = _uiSettings.RadialMenuJoystickDeadzone;
+                navigationInitialDelay = _uiSettings.RadialMenuNavigationInitialDelay;
+                navigationRepeatDelay = _uiSettings.RadialMenuNavigationRepeatDelay;
+                menuRadiusPixels = _uiSettings.RadialMenuDefaultRadiusPixels;
+            }
+            else
+            {
+                // Fallback values if settings can't be loaded
+                Debug.LogWarning(
+                    "GamewideUiSettings not found, using fallback values for RadialMenu"
+                );
+                innerRadiusPercent = 0.3f;
+                segmentGap = 0.02f;
+                showFadeTime = 0.75f;
+                joystickDeadzone = 0.3f;
+                navigationInitialDelay = 0.4f;
+                navigationRepeatDelay = 0.08f;
+                menuRadiusPixels = 800f;
+            }
+
             // Ensure a CanvasGroup exists so we can hide the menu until ready.
             _canvasGroup = GetComponent<CanvasGroup>();
-            if (_canvasGroup == null)
-            {
-                _canvasGroup = gameObject.AddComponent<CanvasGroup>();
-            }
 
             if (hideUntilReady)
             {
@@ -170,12 +226,13 @@ namespace Turnroot.UI.Components.RadialMenu
         {
             if (menuItems.Count == 0)
             {
-                RadialMenuItemBase[] allItems = GetComponentsInChildren<RadialMenuItemBase>();
+                MenuItemBase[] allItems = GetComponentsInChildren<MenuItemBase>();
                 foreach (var item in allItems)
                 {
                     if (item != centerItem && item.transform.parent == transform)
                     {
                         menuItems.Add(item);
+                        segmentNames.Add(item.ItemName);
                     }
                 }
             }
@@ -214,7 +271,9 @@ namespace Turnroot.UI.Components.RadialMenu
         private void HandleNavigationInput()
         {
             if (navigateAction == null || (menuItems.Count == 0 && centerItem == null))
+            {
                 return;
+            }
 
             Vector2 input = navigateAction.ReadValue<Vector2>();
             bool hasInput = input.magnitude > joystickDeadzone;
@@ -360,7 +419,9 @@ namespace Turnroot.UI.Components.RadialMenu
         private int GetItemIndexAtAngle(float targetAngle)
         {
             if (menuItems.Count == 0)
+            {
                 return -1;
+            }
 
             // Normalize target angle to 0-360
             targetAngle = (targetAngle + 360f) % 360f;
@@ -397,7 +458,9 @@ namespace Turnroot.UI.Components.RadialMenu
                 // Convert direction to angle (0° = up/top, 90° = right, etc.)
                 float targetAngle = Mathf.Atan2(direction.x, direction.y) * Mathf.Rad2Deg;
                 if (targetAngle < 0)
+                {
                     targetAngle += 360f;
+                }
 
                 int targetIndex = GetItemIndexAtAngle(targetAngle);
                 SelectItemByIndex(targetIndex, false);
@@ -517,11 +580,13 @@ namespace Turnroot.UI.Components.RadialMenu
             if (isCenter && centerItem != null)
             {
                 centerItem.Select();
+                OnNavigate?.Invoke(centerItem);
             }
             else if (!isCenter && index >= 0 && index < menuItems.Count)
             {
                 _selectedIndex = index;
                 menuItems[_selectedIndex].Select();
+                OnNavigate?.Invoke(menuItems[_selectedIndex]);
             }
         }
 
@@ -529,12 +594,10 @@ namespace Turnroot.UI.Components.RadialMenu
         {
             if (_centerSelected && centerItem != null)
             {
-                centerItem.Activate();
                 OnItemSelected?.Invoke(centerItem);
             }
             else if (_selectedIndex >= 0 && _selectedIndex < menuItems.Count)
             {
-                menuItems[_selectedIndex].Activate();
                 OnItemSelected?.Invoke(menuItems[_selectedIndex]);
             }
         }
@@ -546,7 +609,7 @@ namespace Turnroot.UI.Components.RadialMenu
 
         public bool IsCenterSelected() => _centerSelected;
 
-        public RadialMenuItemBase GetSelectedItem()
+        public MenuItemBase GetSelectedItem()
         {
             if (_centerSelected)
             {
@@ -589,7 +652,9 @@ namespace Turnroot.UI.Components.RadialMenu
         private void ShowMenu()
         {
             if (_canvasGroup == null)
+            {
                 return;
+            }
 
             // If we're not configured to hide the menu until ready, just notify immediately.
             if (!hideUntilReady)
@@ -636,9 +701,6 @@ namespace Turnroot.UI.Components.RadialMenu
             NotifyMenuReady();
         }
 
-        private void NotifyMenuReady()
-        {
-            OnMenuReady?.Invoke(this);
-        }
+        private void NotifyMenuReady() => OnMenuReady?.Invoke(this);
     }
 }

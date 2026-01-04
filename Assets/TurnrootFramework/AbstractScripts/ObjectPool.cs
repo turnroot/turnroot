@@ -40,9 +40,11 @@ public class ObjectPool<T>
         else
         {
             // If the pool runs out, create a new one and grow the pool
+#if UNITY_EDITOR
             Debug.LogWarning(
                 $"Pool of type {typeof(T).Name} is growing. Consider increasing initial size."
             );
+#endif
             obj = CreateNewObject(true);
         }
         return obj;

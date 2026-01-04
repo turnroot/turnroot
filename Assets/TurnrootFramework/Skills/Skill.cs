@@ -3,7 +3,6 @@ using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
 using Turnroot.Skills.Components.Badges;
 using Turnroot.Skills.Nodes;
 using UnityEngine;
-using UnityEngine.Events;
 
 [CreateAssetMenu(fileName = "NewSkill", menuName = "Turnroot/Skills/Skill")]
 public class Skill : ScriptableObject

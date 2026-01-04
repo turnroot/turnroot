@@ -41,12 +41,15 @@ public class BattleGameObjectEditor : Editor
 
                 if (GUILayout.Button("Remove", GUILayout.Width(80)))
                 {
+                    EditorGUILayout.EndHorizontal();
+                    EditorGUILayout.EndVertical();
                     _battleConditionsProp.DeleteArrayElementAtIndex(i);
                     // break so the array is re-drawn correctly
                     break;
                 }
 
                 EditorGUILayout.EndHorizontal();
+
                 var iterator = element.Copy();
                 var endProp = iterator.GetEndProperty(true);
 
@@ -61,6 +64,8 @@ public class BattleGameObjectEditor : Editor
                         break;
                     }
                 }
+
+                EditorGUILayout.EndVertical();
             }
 
             EditorGUILayout.BeginHorizontal();

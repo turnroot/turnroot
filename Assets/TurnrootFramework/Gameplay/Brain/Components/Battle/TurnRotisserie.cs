@@ -29,7 +29,10 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         private TurnOrder _currentTurnOrder = TurnOrder.PlayerStart;
         private int _currentRosterIndex = 0;
         private bool UnitTakesAnotherTurn =>
-            BattleBrain.BattleObject.Context.Flags.AnotherTurnGranted;
+            BattleBrain.BattleObject.Context.Flags.ActiveUnitFlags.AnotherTurnGranted;
+
+        private bool UnitFinishesMovingAfterAction =>
+            BattleBrain.BattleObject.Context.Flags.ActiveUnitFlags.CanFinishMovingAfterAction;
 
         public CharacterInstance GetActiveUnit()
         {
@@ -89,9 +92,11 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
             if (instances == null || roster == null)
             {
+#if UNITY_EDITOR
                 Debug.LogError(
                     "TurnRotisserie: Something is wrong with the battle rosters! They are null!"
                 );
+#endif
                 return new List<CharacterInstance>();
             }
 
@@ -115,7 +120,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             // Check if current unit gets another turn
             if (UnitTakesAnotherTurn)
             {
-                BattleBrain.BattleObject.Context.Flags.AnotherTurnGranted = false;
+                BattleBrain.BattleObject.Context.Flags.ActiveUnitFlags.AnotherTurnGranted = false;
                 // Same unit goes again, don't increment roster index
                 ActivateCurrentUnit();
                 return true;
@@ -167,9 +172,11 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
             if (activeUnit == null)
             {
+#if UNITY_EDITOR
                 Debug.LogError(
                     $"TurnRotisserie: Active unit at index {_currentRosterIndex} is null"
                 );
+#endif
                 return;
             }
 
@@ -204,7 +211,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             switch (_currentTurnOrder)
             {
                 case TurnOrder.PlayerStart:
-                    _brain.PublishPlayerTurnStarted();
+                    BattleBrain.playerTurnFlow.StartPlayerTurn();
                     break;
                 case TurnOrder.PlayerEnd:
                     _brain.PublishPlayerTurnEnded();
@@ -338,7 +345,8 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 if (currentUnits[_currentRosterIndex] == unit)
                 {
                     BattleBrain.Brain.PublishUnitTakesAnotherTurn(unit);
-                    BattleBrain.BattleObject.Context.Flags.AnotherTurnGranted = true;
+                    BattleBrain.BattleObject.Context.Flags.ActiveUnitFlags.AnotherTurnGranted =
+                        true;
                     return OperationResult.SuccessResult();
                 }
             }

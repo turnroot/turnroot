@@ -1,4 +1,4 @@
-using System;
+using Turnroot.UI.Components;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -15,7 +15,7 @@ namespace Turnroot.UI.Components.RadialMenu
     /// </summary>
     [RequireComponent(typeof(Image))]
     public class RadialMenuItemSprite
-        : RadialMenuItemBase,
+        : MenuItemBase,
             IRadialMenuContent,
             IPointerEnterHandler,
             IPointerExitHandler,
@@ -30,26 +30,23 @@ namespace Turnroot.UI.Components.RadialMenu
 
         [Header("Behavior")]
         [SerializeField]
-        [Tooltip("If checked, mark this item as the center item in the parent RadialMenuItem")]
-        // uses base 'isCenter' field (serialized in RadialMenuItemBase)
-        private bool _editor_isCenterProxy = false;
-
-        [SerializeField]
         [Tooltip(
             "Optional target Image to update when selected/unselected. If null, the Image on this GameObject is used."
         )]
         private Image targetImage;
 
-        private RadialMenuItemBase _ownerItem;
+        private MenuItemBase _ownerItem;
         private bool _isStandalone = false;
 
         private void Awake()
         {
             if (targetImage == null)
+            {
                 targetImage = GetComponent<Image>();
+            }
 
             // Check if we're inside a RadialMenuItem or standalone
-            _ownerItem = GetComponentInParent<RadialMenuItemBase>();
+            _ownerItem = GetComponentInParent<MenuItemBase>();
 
             // Make sure we don't consider ourselves as our own owner
             if (_ownerItem == this)
@@ -118,9 +115,13 @@ namespace Turnroot.UI.Components.RadialMenu
         private void HandleOwnerSelectedChanged(bool selected)
         {
             if (selected)
+            {
                 ApplySelected();
+            }
             else
+            {
                 ApplyUnselected();
+            }
         }
 
         private void ApplySelected()
@@ -131,9 +132,11 @@ namespace Turnroot.UI.Components.RadialMenu
             }
             else
             {
+#if UNITY_EDITOR
                 Debug.LogWarning(
                     $"[RadialMenuItemSprite] Cannot apply selected sprite - targetImage: {targetImage != null}, selectedSprite: {selectedSprite != null}"
                 );
+#endif
             }
         }
 
@@ -161,7 +164,9 @@ namespace Turnroot.UI.Components.RadialMenu
         {
             isCenter = center;
             if (_ownerItem != null && _ownerItem != this)
+            {
                 _ownerItem.SetIsCenter(center);
+            }
         }
 
         public override void EnsureContentOnTop()
@@ -208,16 +213,21 @@ namespace Turnroot.UI.Components.RadialMenu
             // keep owner isCenter in sync in editor
             if (!Application.isPlaying)
             {
-                _ownerItem = GetComponentInParent<RadialMenuItemBase>();
+                _ownerItem = GetComponentInParent<MenuItemBase>();
                 if (_ownerItem != null && _ownerItem != this)
                 {
                     _ownerItem.SetIsCenter(isCenter);
 
                     // update preview image
                     if (targetImage == null)
+                    {
                         targetImage = GetComponent<Image>();
+                    }
+
                     if (targetImage != null && unselectedSprite != null)
+                    {
                         targetImage.sprite = unselectedSprite;
+                    }
                 }
             }
         }

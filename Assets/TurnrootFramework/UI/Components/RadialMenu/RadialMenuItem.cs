@@ -1,4 +1,6 @@
-using System;
+using Turnroot.GameSettings;
+using Turnroot.UI.Components;
+using Turnroot.Utilities;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -7,7 +9,7 @@ namespace Turnroot.UI.Components.RadialMenu
 {
     [RequireComponent(typeof(Image))]
     public class RadialMenuItem
-        : RadialMenuItemBase,
+        : MenuItemBase,
             IPointerEnterHandler,
             IPointerExitHandler,
             IPointerClickHandler
@@ -18,12 +20,8 @@ namespace Turnroot.UI.Components.RadialMenu
 
         [SerializeField]
         private bool showIcon = false;
-
-        [SerializeField]
-        private Color normalColor = Color.white;
-
-        [SerializeField]
-        private Color selectedColor = new Color(1f, 0.8f, 0f);
+        private Color normalColor;
+        private Color selectedColor;
 
         [Header("Item Data")]
         [SerializeField]
@@ -42,6 +40,20 @@ namespace Turnroot.UI.Components.RadialMenu
 
         private void Awake()
         {
+            // Load UI settings and apply them
+            var uiSettings = GameSettingsLoader.LoadFirst<GamewideUiSettings>();
+            if (uiSettings != null)
+            {
+                normalColor = uiSettings.RadialMenuNormalColor;
+                selectedColor = uiSettings.RadialMenuSelectedColor;
+            }
+            else
+            {
+                // Fallback values if settings can't be loaded
+                normalColor = Color.white;
+                selectedColor = new Color(1f, 0.8f, 0f);
+            }
+
             if (backgroundImage == null)
             {
                 backgroundImage = GetComponent<Image>();
@@ -57,13 +69,13 @@ namespace Turnroot.UI.Components.RadialMenu
                 backgroundImage.raycastTarget = true;
             }
 
-            // Initialize default colors from global settings if available
-            var settings = Turnroot.GameSettings.GamewideUiSettings.Instance;
-            if (settings != null)
-            {
-                normalColor = settings.RadialMenuNormalColor;
-                selectedColor = settings.RadialMenuSelectedColor;
-            }
+            /*             // Initialize default colors from global settings if available
+                        var settings = Turnroot.GameSettings.GamewideUiSettings.Instance;
+                        if (settings != null)
+                        {
+                            normalColor = settings.RadialMenuNormalColor;
+                            selectedColor = settings.RadialMenuSelectedColor;
+                        } */
 
             // Prefer existing content in scene (assigned instance) if present
             var existingContent = GetComponentInChildren<IRadialMenuContent>(includeInactive: true);
@@ -136,9 +148,11 @@ namespace Turnroot.UI.Components.RadialMenu
                     var prefabCanvas = instance.GetComponentInChildren<Canvas>();
                     if (prefabCanvas != null)
                     {
+#if UNITY_EDITOR
                         Debug.LogWarning(
                             $"RadialMenuItem '{name}' instantiated content prefab contains a Canvas. This may override draw order; consider removing it."
                         );
+#endif
                     }
                 }
             }
@@ -200,11 +214,6 @@ namespace Turnroot.UI.Components.RadialMenu
         {
             base.Deselect();
             UpdateVisuals();
-        }
-
-        public override void Activate()
-        {
-            Debug.Log($"Activated menu item: {itemName}");
         }
 
         private void UpdateVisuals()
@@ -298,14 +307,6 @@ namespace Turnroot.UI.Components.RadialMenu
             var t = _contentRect.transform;
             t.SetAsLastSibling();
             t.localPosition = new Vector3(t.localPosition.x, t.localPosition.y, 0f);
-
-            var prefabCanvas = (t as Component)?.GetComponentInChildren<Canvas>();
-            if (prefabCanvas != null)
-            {
-                Debug.LogWarning(
-                    $"RadialMenuItem '{name}' content contains a Canvas. Remove Canvas from content prefabs to avoid draw order issues."
-                );
-            }
         }
 
         public override void SetSegmentAngles(
@@ -354,7 +355,7 @@ namespace Turnroot.UI.Components.RadialMenu
             // If you make a PR that "fixes" this, I promise you I've already tried whatever you
             // are trying. It doesn't work. It will never work. Run away.
 
-            bool isFirstSegment = transform.GetSiblingIndex() == 0;
+            bool isFirstSegment = transform.GetSiblingIndex() == 1;
 
             float angleRad = centerAngleDeg * Mathf.Deg2Rad;
             Vector2 dir = new Vector2(Mathf.Sin(angleRad), Mathf.Cos(angleRad));

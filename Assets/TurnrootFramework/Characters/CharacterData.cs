@@ -439,9 +439,7 @@ namespace Turnroot.Characters
 
             [Tooltip("Current rank/level (E=0, D=1, C=2, B=3, A=4, S=5)")]
             [SerializeField]
-            private CommonAncestors.LeveledLetteredField _rank = new(
-                LeveledLetteredField.E
-            );
+            private CommonAncestors.LeveledLetteredField _rank = new(LeveledLetteredField.E);
 
             public string ExperienceTypeId
             {
@@ -518,9 +516,11 @@ namespace Turnroot.Characters
                 var removed = SupportRelationship.SanitizeForCharacter(this, SupportRelationships);
                 foreach (var r in removed)
                 {
+#if UNITY_EDITOR
                     Debug.LogWarning(
                         $"Removed invalid support relationship: {name} cannot have a support relationship with themselves ({r.Character?.name})"
                     );
+#endif
                 }
             }
 
@@ -529,9 +529,11 @@ namespace Turnroot.Characters
             {
                 if (AdditionalBonesMask == null)
                 {
+#if UNITY_EDITOR
                     Debug.LogWarning(
                         $"{name}: 'HasExtraBoneLayer' is true but 'AdditionalBonesMask' is not set. This may cause Animator layering misconfiguration."
                     );
+#endif
                 }
 
                 if (
@@ -539,9 +541,11 @@ namespace Turnroot.Characters
                     && AdditionalBonesMask == null
                 )
                 {
+#if UNITY_EDITOR
                     Debug.LogWarning(
                         $"{name}: No additional bone names or AvatarMask were provided for the extra bone layer. Add names or an AvatarMask for tooling/runtime mapping."
                     );
+#endif
                 }
             }
         }

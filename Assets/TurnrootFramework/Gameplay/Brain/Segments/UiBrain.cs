@@ -1,0 +1,318 @@
+using Turnroot.Gameplay.Brain;
+using Turnroot.Gameplay.Brain.Events;
+using Turnroot.GameSettings;
+using Turnroot.UI.Components.ListMenu;
+using Turnroot.UI.Components.RadialMenu;
+using Turnroot.UI.Components.SimpleButton;
+using Turnroot.Utilities;
+using UnityEngine;
+
+namespace TurnrootFramework.Gameplay.Brain.Segments
+{
+    public partial class UiBrain : BrainComponent
+    {
+        [HideInInspector]
+        public GamewideUiSettings uiSettings;
+
+        private bool _isTransitioning = false;
+        private GameObject _currentMenuCanvasPrefab;
+
+        // Public property to access current pre-battle menu instance through MenuLocation system
+        public GameObject CurrentPreBattleMenuInstance =>
+            uiSettings?.GetPreBattleMenu()?.activeInstance;
+
+        protected override EventPriority GetSubscriptionPriority() => EventPriority.Low;
+
+        [HideInInspector]
+        public int CurrentMenuDepth = 0;
+
+        [HideInInspector]
+        public bool IsInSubMenu => CurrentMenuDepth > 0;
+
+        protected override void Awake()
+        {
+            base.Awake();
+            uiSettings = GameSettingsLoader.LoadFirst<GamewideUiSettings>();
+#if UNITY_EDITOR
+            if (uiSettings == null)
+            {
+                Debug.LogError("UiBrain: GamewideUiSettings not found!");
+            }
+#endif
+        }
+
+        private System.Action<BrainState> _onStateChangedHandler;
+
+        protected override void SubscribeToBrainEvents()
+        {
+            _onStateChangedHandler = (state) =>
+            {
+                var name = state?.Name ?? string.Empty;
+#if UNITY_EDITOR
+                Debug.Log($"UiBrain: Brain state changed to {name}");
+#endif
+                // Handle back button based on state
+                HandleBackButtonForState(name);
+
+                switch (name)
+                {
+                    case BrainStateNames.PreBattle:
+                        HandlePreBattleUi();
+                        break;
+                }
+            };
+
+            Brain.OnStateChanged += _onStateChangedHandler;
+            // If the Brain already has an active state, invoke handler immediately so UI can react to the current state
+            var current = Brain?.stateBrain?.CurrentState;
+            if (current != null)
+            {
+                _onStateChangedHandler(current);
+            }
+        }
+
+        protected override void UnsubscribeFromBrainEvents()
+        {
+            if (_onStateChangedHandler != null)
+            {
+                Brain.OnStateChanged -= _onStateChangedHandler;
+                _onStateChangedHandler = null;
+            }
+
+            // Clean up menu events if menu still exists
+            var preBattleMenuLocation = uiSettings?.GetPreBattleMenu();
+            if (preBattleMenuLocation?.activeInstance != null)
+            {
+                var radialMenu = preBattleMenuLocation.activeInstance.GetComponent<RadialMenu>();
+                if (radialMenu != null)
+                {
+                    radialMenu.OnNavigate -= HandlePreBattleMenuNavigate;
+                    radialMenu.OnItemSelected -= HandlePreBattleMenuSelect;
+                }
+
+                var listMenu = preBattleMenuLocation.activeInstance.GetComponent<ListMenu>();
+                if (listMenu != null)
+                {
+                    listMenu.OnNavigate -= HandlePreBattleMenuNavigate;
+                    listMenu.OnItemSelected -= HandlePreBattleMenuSelect;
+                }
+            }
+
+            // Clean up back button
+            DestroyBackButton();
+        }
+
+        public void HandlePreBattleUi()
+        {
+            if (uiSettings == null)
+            {
+#if UNITY_EDITOR
+                Debug.LogError("UiBrain: Cannot create pre-battle UI - uiSettings is null");
+#endif
+                return;
+            }
+
+            var preBattleMenuLocation = uiSettings.GetPreBattleMenu();
+            if (preBattleMenuLocation == null)
+            {
+#if UNITY_EDITOR
+                Debug.LogError("UiBrain: Pre-battle menu location not found");
+#endif
+                return;
+            }
+
+            // Guard: Return early if activeInstance already exists to prevent duplicates
+            if (preBattleMenuLocation.activeInstance != null)
+            {
+                return;
+            }
+
+            if (preBattleMenuLocation.prefab == null)
+            {
+#if UNITY_EDITOR
+                Debug.LogError("UiBrain: No prefab set for pre-battle menu location");
+#endif
+                return;
+            }
+
+            preBattleMenuLocation.activeInstance = Instantiate(preBattleMenuLocation.prefab);
+            var uiFade = preBattleMenuLocation.activeInstance.AddComponent<UIFade>();
+            uiFade.lerpTime = uiSettings.MenuFadeTime;
+
+            var menuStyle = preBattleMenuLocation.style;
+            if (menuStyle == MenuStyle.Pie)
+            {
+                var radialMenu = preBattleMenuLocation.activeInstance.GetComponent<RadialMenu>();
+                if (radialMenu != null)
+                {
+                    radialMenu.uiBrain = this;
+                    radialMenu.OnNavigate += HandlePreBattleMenuNavigate;
+                    radialMenu.OnItemSelected += HandlePreBattleMenuSelect;
+                }
+            }
+            else if (menuStyle == MenuStyle.Filmstrip)
+            {
+                // TODO: Set up filmstrip prebattle menu handling
+            }
+            else if (menuStyle == MenuStyle.List)
+            {
+                var listMenu = preBattleMenuLocation.activeInstance.GetComponent<ListMenu>();
+                if (listMenu != null)
+                {
+                    listMenu.uiBrain = this;
+                    listMenu.OnNavigate += HandlePreBattleMenuNavigate;
+                    listMenu.OnItemSelected += HandlePreBattleMenuSelect;
+                }
+                else
+                {
+                    // TODO: Handle case where ListMenu component is missing
+                }
+            }
+            else if (menuStyle == MenuStyle.Grid)
+            {
+                // TODO: Set up grid prebattle menu handling
+            }
+        }
+
+        #region Back Button Management
+
+        private void HandleBackButtonForState(string stateName)
+        {
+            bool needsBackButton = System.Array.Exists(
+                StateBrain.StatesThatNeedMenus,
+                state => state == stateName
+            );
+
+            if (needsBackButton && _currentMenuCanvasPrefab == null)
+            {
+                CreateBackButton();
+            }
+            else if (!needsBackButton && _currentMenuCanvasPrefab != null)
+            {
+                DestroyBackButton();
+            }
+        }
+
+        private void CreateBackButton()
+        {
+            if (uiSettings?.MenuCanvasPrefab == null)
+            {
+#if UNITY_EDITOR
+                Debug.LogWarning("UiBrain: MenuCanvasPrefab is not set in GamewideUiSettings");
+#endif
+                return;
+            }
+
+            _currentMenuCanvasPrefab = Instantiate(uiSettings.MenuCanvasPrefab);
+
+            // Wire up the back button to handle menu navigation
+            // Find the SimpleButton component in children since it's a child of the canvas
+            var simpleButton = _currentMenuCanvasPrefab.GetComponentInChildren<SimpleButton>();
+            if (simpleButton != null && simpleButton.Role == SimpleButtonRole.Back)
+            {
+                simpleButton.OnSelected += HandleBackButtonPressed;
+            }
+            else
+            {
+                // TODO: Handle other button types
+#if UNITY_EDITOR
+                if (simpleButton == null)
+                {
+                    Debug.LogWarning(
+                        "UiBrain: MenuCanvasPrefab doesn't have SimpleButton component in children"
+                    );
+                }
+                else
+                {
+                    Debug.LogWarning(
+                        $"UiBrain: SimpleButton found but Role is {simpleButton.Role}, expected Back"
+                    );
+                }
+#endif
+            }
+
+#if UNITY_EDITOR
+            Debug.Log("UiBrain: Back button created and wired up");
+#endif
+        }
+
+        private void DestroyBackButton()
+        {
+            if (_currentMenuCanvasPrefab != null)
+            {
+                // Clean up event subscription
+                var simpleButton = _currentMenuCanvasPrefab.GetComponentInChildren<SimpleButton>();
+                if (simpleButton != null && simpleButton.Role == SimpleButtonRole.Back)
+                {
+                    simpleButton.OnSelected -= HandleBackButtonPressed;
+                }
+
+                Destroy(_currentMenuCanvasPrefab);
+                _currentMenuCanvasPrefab = null;
+#if UNITY_EDITOR
+                Debug.Log("UiBrain: Back button destroyed and events cleaned up");
+#endif
+            }
+        }
+
+        #endregion
+
+        #region Menu Navigation
+
+        private void HandleBackButtonPressed()
+        {
+            if (CurrentMenuDepth > 0)
+            {
+                // Navigate up one level in menu hierarchy
+                NavigateToParentMenu();
+            }
+            else
+            {
+                // At root level, handle based on current state
+                HandleRootLevelBack();
+            }
+        }
+
+        private void NavigateToParentMenu()
+        {
+            // TODO: Implement menu hierarchy navigation
+            // This should:
+            // 1. Destroy current menu instance
+            // 2. Decrement CurrentMenuDepth
+            // 3. Activate parent menu instance
+            // 4. Update UI state accordingly
+            CurrentMenuDepth = Mathf.Max(0, CurrentMenuDepth - 1);
+
+#if UNITY_EDITOR
+            Debug.Log($"UiBrain: Navigated to parent menu. New depth: {CurrentMenuDepth}");
+#endif
+        }
+
+        private void HandleRootLevelBack()
+        {
+            var currentState = Brain?.stateBrain?.CurrentState?.Name;
+
+            // TODO: Implement root level back behavior based on state
+            switch (currentState)
+            {
+                case BrainStateNames.PreBattle:
+                    // TODO: Return to previous state or world map
+                    break;
+                case BrainStateNames.Paused:
+                    // TODO: Resume game
+                    break;
+                case BrainStateNames.MainMenu:
+                    // TODO: Exit game or return to previous screen
+                    break;
+                default:
+                    break;
+            }
+
+#if UNITY_EDITOR
+            Debug.Log($"UiBrain: Root level back pressed in state: {currentState}");
+#endif
+        }
+
+        #endregion
+    }
+}

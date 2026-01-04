@@ -6,8 +6,8 @@ using Turnroot.Conversations;
 using Turnroot.Gameplay.Combat;
 using Turnroot.Gameplay.Objects;
 using Turnroot.Utilities;
+using TurnrootFramework.Gameplay.Brain.Segments;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using static Turnroot.Characters.CharacterInstance;
 
 namespace Turnroot.Gameplay.Brain
@@ -41,6 +41,7 @@ namespace Turnroot.Gameplay.Brain
     [RequireComponent(typeof(InventoryBrain))]
     [RequireComponent(typeof(StorehouseBrain))]
     [RequireComponent(typeof(PlayerInputBrain))]
+    [RequireComponent(typeof(UiBrain))]
     public partial class Brain : MonoBehaviour
     {
         // Core components
@@ -67,6 +68,9 @@ namespace Turnroot.Gameplay.Brain
 
         [HideInInspector]
         public PlayerInputBrain playerInputBrain;
+
+        [HideInInspector]
+        public UiBrain uiBrain;
 
         [HideInInspector]
         public LongTermMemory ltm;
@@ -316,7 +320,7 @@ namespace Turnroot.Gameplay.Brain
         /// Request that all unique player roster characters be saved.
         /// This is an event-based request; subscribers should perform the save.
         /// </summary>
-        public event System.Action OnSavePlayerRosterRequested;
+        public event Action OnSavePlayerRosterRequested;
 
         public void PublishSavePlayerRosterRequested() => OnSavePlayerRosterRequested?.Invoke();
 
@@ -440,13 +444,13 @@ namespace Turnroot.Gameplay.Brain
         // Support relationship added/removed events
         public event Action<
             CharacterInstance,
-            Turnroot.Characters.Components.Support.SupportRelationshipInstance
+            SupportRelationshipInstance
         > OnSupportRelationshipAdded;
         public event Action<CharacterInstance, CharacterData> OnSupportRelationshipRemoved;
 
         public void PublishSupportRelationshipAdded(
             CharacterInstance source,
-            Turnroot.Characters.Components.Support.SupportRelationshipInstance relationship
+            SupportRelationshipInstance relationship
         ) => OnSupportRelationshipAdded?.Invoke(source, relationship);
 
         public void PublishSupportRelationshipRemoved(
@@ -465,7 +469,7 @@ namespace Turnroot.Gameplay.Brain
         public event Action OnPreBattleCompleted;
         public event Action OnTurnBegin;
         public event Action OnTurnEnded;
-        public event Action OnPlayerTurnStarted;
+        public event Action<CharacterInstance> OnPlayerTurnStarted;
         public event Action OnPlayerTurnEnded;
         public event Action OnEnemyTurnStarted;
         public event Action OnEnemyTurnEnded;
@@ -478,6 +482,8 @@ namespace Turnroot.Gameplay.Brain
         public event Action<CharacterInstance> OnUnitDefeated;
         public event Action<CharacterInstance, Vector2Int> OnUnitMoved;
         public event Action<CharacterInstance> OnUnitTakesAnotherTurn;
+
+        public event Action<CharacterInstance> OnUnitFinishedMovingAfterAction;
         public event Action<CharacterInstance> OnCriticalHit;
         public event Action<CharacterInstance, int> OnWeaponUsesChanged;
 
@@ -509,9 +515,19 @@ namespace Turnroot.Gameplay.Brain
 
         public void PublishTurnEnded() => OnTurnEnded?.Invoke();
 
-        public void PublishPlayerTurnStarted() => OnPlayerTurnStarted?.Invoke();
+        public void PublishPlayerTurnStarted(CharacterInstance unit) =>
+            OnPlayerTurnStarted?.Invoke(unit);
 
         public void PublishPlayerTurnEnded() => OnPlayerTurnEnded?.Invoke();
+
+        public event Action<PlayerTurnStates> OnPlayerTurnStateChanged;
+
+        public void PublishPlayerTurnStateChanged(PlayerTurnStates newState) =>
+            OnPlayerTurnStateChanged?.Invoke(newState);
+
+        public event Action OnPlayerUndoAction;
+
+        public void PublishPlayerUndoAction() => OnPlayerUndoAction?.Invoke();
 
         public void PublishEnemyTurnStarted() => OnEnemyTurnStarted?.Invoke();
 
@@ -543,12 +559,14 @@ namespace Turnroot.Gameplay.Brain
         public void PublishUnitTakesAnotherTurn(CharacterInstance unit) =>
             OnUnitTakesAnotherTurn?.Invoke(unit);
 
-        // Published when an individual unit completes its turn (end of that unit's turn)
-        public event System.Action<CharacterInstance> OnUnitTurnEnded;
+        public event Action<CharacterInstance> OnUnitTurnEnded;
 
         public void PublishUnitTurnEnded(CharacterInstance unit) => OnUnitTurnEnded?.Invoke(unit);
 
         public void PublishCriticalHit(CharacterInstance unit) => OnCriticalHit?.Invoke(unit);
+
+        public void PublishUnitFinishedMovingAfterAction(CharacterInstance unit) =>
+            OnUnitFinishedMovingAfterAction?.Invoke(unit);
 
         public void PublishWeaponUsesChanged(CharacterInstance unit, int change) =>
             OnWeaponUsesChanged?.Invoke(unit, change);
@@ -651,6 +669,17 @@ namespace Turnroot.Gameplay.Brain
             inventoryBrain = GetComponent<InventoryBrain>();
             storehouseBrain = GetComponent<StorehouseBrain>();
             playerInputBrain = GetComponent<PlayerInputBrain>();
+            uiBrain = GetComponent<UiBrain>();
+
+            // Find all DynamicSceneFlows in other scenes and set their .brain to this
+            var allSceneFlows = FindObjectsByType<DynamicSceneFlow>(FindObjectsSortMode.None);
+            foreach (var sceneFlow in allSceneFlows)
+            {
+                if (sceneFlow.gameObject.scene != gameObject.scene)
+                {
+                    sceneFlow.brain = this;
+                }
+            }
         }
 
         public void InitializeLongTermMemory()

@@ -8,7 +8,6 @@ using Turnroot.Gameplay.Objects;
 using Turnroot.Skills.Nodes;
 using Turnroot.Utilities;
 using UnityEngine;
-using static Turnroot.Gameplay.Combat.FundamentalComponents.Battles.BattleContextAIHelper;
 
 namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 {
@@ -146,7 +145,8 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             }
 
             var weaponItem = Unit.UnitInstance.GetEquippedWeapon();
-            return weaponItem == null ? false : DamageCalculator.WouldKill(Unit.UnitInstance, target, weaponItem, this);
+            return weaponItem != null
+                && DamageCalculator.WouldKill(Unit.UnitInstance, target, weaponItem, this);
         }
 
         public bool TargetCanCounterattack(
@@ -256,7 +256,9 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 targetPoint.CoordinatesInt,
                 Brain.CurrentTurnNumber
             );
-            return Brain.ExecuteCommand(command) ? OperationResult.SuccessResult() : OperationResult.Failure("Move command failed to execute");
+            return Brain.ExecuteCommand(command)
+                ? OperationResult.SuccessResult()
+                : OperationResult.Failure("Move command failed to execute");
         }
 
         public OperationResult AttackTarget(

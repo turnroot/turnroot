@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 
 namespace Turnroot.Graphics2D.Tags

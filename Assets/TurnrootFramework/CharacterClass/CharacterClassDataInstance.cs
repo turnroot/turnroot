@@ -106,9 +106,11 @@ namespace Turnroot.Characters.CharacterClass
 
             if (_classData.Identity.ShaderGraph == null)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning(
                     $"CharacterClassDataInstance.Initialize: ShaderGraph is null for class '{_classData.Identity.ClassName}'"
                 );
+#endif
                 return false;
             }
 

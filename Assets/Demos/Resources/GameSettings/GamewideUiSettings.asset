@@ -12,8 +12,85 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c583338e71983104d95054f99e91658a, type: 3}
   m_Name: GamewideUiSettings
   m_EditorClassIdentifier: 
-  PieMenusUseIcons: 1
-  PieMenusHaveText: 0
-  BattlePreparationMenuStyle: 2
-  InBattleMenuStyle: 1
-  InBattleUnitSelectedMenuStyle: 1
+  allPossibleMenuLocations:
+  - parentMenuName: 0
+    menuName: 1
+    style: 1
+    prefab: {fileID: 0}
+  - parentMenuName: 1
+    menuName: 2
+    style: 1
+    prefab: {fileID: 0}
+  - parentMenuName: 1
+    menuName: 3
+    style: 1
+    prefab: {fileID: 0}
+  - parentMenuName: 3
+    menuName: 4
+    style: 1
+    prefab: {fileID: 0}
+  - parentMenuName: 3
+    menuName: 5
+    style: 1
+    prefab: {fileID: 0}
+  - parentMenuName: 3
+    menuName: 6
+    style: 1
+    prefab: {fileID: 0}
+  - parentMenuName: 3
+    menuName: 7
+    style: 1
+    prefab: {fileID: 0}
+  - parentMenuName: 2
+    menuName: 8
+    style: 1
+    prefab: {fileID: 0}
+  - parentMenuName: 8
+    menuName: 9
+    style: 1
+    prefab: {fileID: 0}
+  - parentMenuName: 0
+    menuName: 10
+    style: 0
+    prefab: {fileID: 312688979984975295, guid: ce54cc1f4ce2a624f8d2665af9d2b92a, type: 3}
+  - parentMenuName: 10
+    menuName: 11
+    style: 1
+    prefab: {fileID: 0}
+  - parentMenuName: 10
+    menuName: 12
+    style: 1
+    prefab: {fileID: 0}
+  - parentMenuName: 10
+    menuName: 13
+    style: 1
+    prefab: {fileID: 0}
+  - parentMenuName: 10
+    menuName: 15
+    style: 1
+    prefab: {fileID: 0}
+  - parentMenuName: 10
+    menuName: 16
+    style: 1
+    prefab: {fileID: 0}
+  - parentMenuName: 10
+    menuName: 14
+    style: 1
+    prefab: {fileID: 0}
+  MenuButtonSpacing: 2
+  MenuFadeTime: 0.75
+  RadialMenuNormalColor: {r: 0.1882353, g: 0.14509805, b: 0.2, a: 0.6509804}
+  RadialMenuSelectedColor: {r: 0.355, g: 0.22151999, b: 0.28603536, a: 0.8}
+  RadialMenuInnerRadius: 0.35
+  RadialMenuSegmentGap: 0.02
+  RadialMenuHaveIcons: 1
+  RadialMenuHaveLabels: 1
+  RadialMenuJoystickDeadzone: 0.3
+  RadialMenuNavigationInitialDelay: 0.18
+  RadialMenuNavigationRepeatDelay: 0.029
+  RadialMenuDefaultRadiusPixels: 400
+  ButtonNormalColor: {r: 1, g: 1, b: 1, a: 1}
+  ButtonHoveredColor: {r: 0.674, g: 0.43944803, b: 0.55337334, a: 1}
+  ButtonSelectedColor: {r: 0.84400004, g: 0.365452, b: 0.59788966, a: 1}
+  ButtonTransitionDuration: 0.12
+  MenuCanvasPrefab: {fileID: 6717558390753289932, guid: 015cf6f2a44a8fd48872b6635c3ca360, type: 3}

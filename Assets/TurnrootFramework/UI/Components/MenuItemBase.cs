@@ -1,14 +1,13 @@
 using System;
 using UnityEngine;
-using UnityEngine.UI;
 
-namespace Turnroot.UI.Components.RadialMenu
+namespace Turnroot.UI.Components
 {
     /// <summary>
-    /// Common base for selectable radial menu items and minimal selectable sprite content.
-    /// Provides selection events and a common API used by RadialMenu.
+    /// Common base for selectable menu items.
+    /// Provides selection events and a common API used by both RadialMenu and ListMenu.
     /// </summary>
-    public abstract class RadialMenuItemBase : MonoBehaviour
+    public abstract class MenuItemBase : MonoBehaviour
     {
         // Hover / click events
         public event Action OnHoverEnter;
@@ -49,12 +48,7 @@ namespace Turnroot.UI.Components.RadialMenu
             OnSelectedChanged?.Invoke(false);
         }
 
-        public virtual void SetIsCenter(bool center)
-        {
-            isCenter = center;
-        }
-
-        public virtual void Activate() { }
+        public virtual void SetIsCenter(bool center) => isCenter = center;
 
         // Visual/layout helpers - default no-op for simple content
         public virtual void EnsureContentOnTop() { }

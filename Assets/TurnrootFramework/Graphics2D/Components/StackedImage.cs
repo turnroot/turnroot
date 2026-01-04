@@ -162,18 +162,26 @@ namespace Turnroot.Graphics2D
         {
             var mandatory = MandatoryTags();
             if (mandatory == null)
+            {
                 return;
+            }
 
             foreach (var tag in mandatory)
             {
                 if (tag == null)
+                {
                     continue;
+                }
+
                 if (
                     _layers.Any(l =>
                         string.Equals(l.Tag, tag.Name, StringComparison.OrdinalIgnoreCase)
                     )
                 )
+                {
                     continue;
+                }
+
                 _layers.Add(CreateLayerForTag(tag));
             }
 

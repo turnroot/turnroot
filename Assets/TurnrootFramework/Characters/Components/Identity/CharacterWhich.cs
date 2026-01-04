@@ -32,9 +32,11 @@ namespace Turnroot.Characters.Components
                 }
                 else
                 {
+#if UNITY_EDITOR
                     Debug.LogWarning(
                         $"Invalid character type '{value}'. Valid types: {AVATAR}, {ENEMY}, {ALLY}, {NPC}. Defaulting to {ENEMY}."
                     );
+#endif
                     _value = ENEMY;
                 }
             }

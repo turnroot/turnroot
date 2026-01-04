@@ -163,7 +163,10 @@ namespace Turnroot.Graphics2D.Utilities
             if (tex == null)
             {
                 if (!string.IsNullOrEmpty(context))
+                {
                     Debug.LogWarning($"{context}: texture is null.");
+                }
+
                 return false;
             }
 

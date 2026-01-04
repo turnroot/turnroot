@@ -180,6 +180,14 @@
         {
             "path": "fe-prototyping\\Assets\\TurnrootFramework\\Gameplay\\Roster\\",
             "color": "foldercustomization.AnsiColor44"
+        },
+        {
+            "path": "fe-prototyping\\Assets\\TurnrootFramework\\CharacterClass\\",
+            "color": "foldercustomization.AnsiColor185"
+        },
+        {
+            "path": "fe-prototyping\\Assets\\TurnrootFramework\\UI\\",
+            "color": "foldercustomization.AnsiColor69"
         }
     ]
 }

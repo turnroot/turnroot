@@ -99,6 +99,7 @@ public class MapGrid : MonoBehaviour
             {
                 RebuildGridDictionary();
             }
+            _single3dHeightMesh.SetActive(false);
         }
 
         // Ensure cache is built

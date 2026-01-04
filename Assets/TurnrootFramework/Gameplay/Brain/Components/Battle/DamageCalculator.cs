@@ -63,8 +63,8 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             // Apply critical hit if applicable
             if (
                 context != null
-                && context.Flags.IsCriticalHit
-                && context.Flags.CriticalHitUnit == attacker
+                && context.Flags.ActiveUnitFlags.WillCriticalHit
+                && context.Flags.ActiveUnitFlags.Unit == attacker
             )
             {
                 float critMult = settings != null ? settings.GetCriticalHitMultiplier() : 3f;
@@ -223,20 +223,20 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             // Calculate attacker hit based on formula
             float attackerHit = 0f;
 
-            if (skillMult != 0f)
+            if (!Mathf.Approximately(skillMult, 0f))
             {
                 var skillStat = attacker.GetUnboundedStat(UnboundedStatType.Skill);
                 attackerHit += (skillStat?.Get() ?? 0) * skillMult;
             }
 
-            if (dexMult != 0f)
+            if (!Mathf.Approximately(dexMult, 0f))
             {
                 var dexStat = attacker.GetUnboundedStat(UnboundedStatType.Dexterity);
                 attackerHit += (dexStat?.Get() ?? 0) * dexMult;
             }
 
             // Add luck bonus if enabled and multiplier is set
-            if (luckMult != 0f && settings != null && settings.UseLuck)
+            if (!Mathf.Approximately(luckMult, 0f) && settings != null && settings.UseLuck)
             {
                 var luckStat = attacker.GetUnboundedStat(UnboundedStatType.Luck);
                 attackerHit += (luckStat?.Get() ?? 0) * luckMult;
@@ -266,7 +266,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             if (triangleActive && triangleAffectsHit)
             {
                 float triangleModifier = CalculateWeaponTriangleModifier(attacker, target);
-                if (triangleModifier != 1.0f)
+                if (!Mathf.Approximately(triangleModifier, 1.0f))
                 {
                     float triangleHitBonusValue = settings?.GetWeaponTriangleHitBonus() ?? 15f;
                     triangleHitBonus = (triangleModifier - 1.0f) * triangleHitBonusValue;
@@ -321,13 +321,13 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             // Calculate attacker's crit bonus based on formula
             float attackerCritBonus = 0f;
 
-            if (skillMult != 0f)
+            if (!Mathf.Approximately(skillMult, 0f))
             {
                 var skillStat = attacker.GetUnboundedStat(UnboundedStatType.Skill);
                 attackerCritBonus += (skillStat?.Get() ?? 0) * skillMult;
             }
 
-            if (luckMult != 0f && settings != null && settings.UseLuck)
+            if (!Mathf.Approximately(luckMult, 0f) && settings != null && settings.UseLuck)
             {
                 var luckStat = attacker.GetUnboundedStat(UnboundedStatType.Luck);
                 attackerCritBonus += (luckStat?.Get() ?? 0) * luckMult;
@@ -427,14 +427,14 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             // Calculate avoid based on formula
             float avoid = 0f;
 
-            if (speedMult != 0f)
+            if (!Mathf.Approximately(speedMult, 0f))
             {
                 var speedStat = target.GetUnboundedStat(UnboundedStatType.Speed);
                 avoid += (speedStat?.Get() ?? 0) * speedMult;
             }
 
             // Add Luck if enabled and multiplier is set
-            if (luckMult != 0f && settings != null && settings.UseLuck)
+            if (!Mathf.Approximately(luckMult, 0f) && settings != null && settings.UseLuck)
             {
                 var luckStat = target.GetUnboundedStat(UnboundedStatType.Luck);
                 avoid += (luckStat?.Get() ?? 0) * luckMult;

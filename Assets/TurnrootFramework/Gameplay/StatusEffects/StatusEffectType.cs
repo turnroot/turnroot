@@ -126,11 +126,11 @@ namespace Turnroot.Characters.StatusEffects
         public float BloodthirstGreedModifier => _bloodthirstGreedModifier;
 
         public bool HasBehaviorModifiers =>
-            _soldierLoneWolfModifier != 0f
-            || _mindlessCunningModifier != 0f
-            || _selfishSelflessModifier != 0f
-            || _brashWaryModifier != 0f
-            || _bloodthirstGreedModifier != 0f;
+            !Mathf.Approximately(_soldierLoneWolfModifier, 0f)
+            || !Mathf.Approximately(_mindlessCunningModifier, 0f)
+            || !Mathf.Approximately(_selfishSelflessModifier, 0f)
+            || !Mathf.Approximately(_brashWaryModifier, 0f)
+            || !Mathf.Approximately(_bloodthirstGreedModifier, 0f);
 
         public bool IsBuff => _category == StatusEffectCategory.Buff;
         public bool IsDebuff => _category == StatusEffectCategory.Debuff;

@@ -54,9 +54,37 @@ ShaderVariantCollection:
       variants:
       - keywords: 
         passType: 0
+      - keywords: COLOR_FILTER SAMPLING_BLUR_FAST
+        passType: 0
+      - keywords: COLOR_FILTER TRANSITION_MELT
+        passType: 0
+      - keywords: COLOR_FILTER TRANSITION_SHINY
+        passType: 0
+      - keywords: EDGE_SHINY
+        passType: 0
+      - keywords: EDGE_SHINY TRANSITION_MELT
+        passType: 0
       - keywords: SAMPLING_EDGE_LUMINANCE
         passType: 0
       - keywords: TRANSITION_BURN
         passType: 0
       - keywords: TRANSITION_MELT
+        passType: 0
+      - keywords: TRANSITION_SHINY
+        passType: 0
+  - first: {fileID: 4800000, guid: 935b7be1c88464d2eb87204fdfab5a38, type: 3}
+    second:
+      variants:
+      - keywords: EDGE_PLAIN
+        passType: 0
+      - keywords: EDGE_SHINY
+        passType: 0
+      - keywords: EDGE_SHINY SAMPLING_EDGE_LUMINANCE
+        passType: 0
+      - keywords: TRANSITION_SHINY
+        passType: 0
+  - first: {fileID: 4800000, guid: e65241fa80a374114b3f55ed746c04d9, type: 3}
+    second:
+      variants:
+      - keywords: EDGE_SHINY
         passType: 0
