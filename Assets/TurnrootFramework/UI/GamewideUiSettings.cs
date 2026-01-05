@@ -208,6 +208,8 @@ namespace Turnroot.GameSettings
 
         public MenuLocation GetGameSettingsGraphicsMenu() => GetMenuLocation(MenuName.GraphicsMenu);
 
+        public MenuLocation GetGameSettingsGameplayMenu() => GetMenuLocation(MenuName.GameplayMenu);
+
         public MenuLocation GetGameSettingsMenu() => GetMenuLocation(MenuName.GameSettingsMenu);
 
         public void ResolveParentReferences()

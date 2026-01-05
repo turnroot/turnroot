@@ -188,6 +188,11 @@
         {
             "path": "fe-prototyping\\Assets\\TurnrootFramework\\UI\\",
             "color": "foldercustomization.AnsiColor69"
+        },
+        {
+            "path": "fe-prototyping\\Assets\\TurnrootFramework\\Gameplay\\Audio\\",
+            "color": "foldercustomization.AnsiColor36",
+            "badge": "🎵"
         }
     ]
 }

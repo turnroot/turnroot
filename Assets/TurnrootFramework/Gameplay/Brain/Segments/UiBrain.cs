@@ -11,6 +11,8 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
 {
     public partial class UiBrain : BrainComponent
     {
+        #region Fields and Properties
+
         [HideInInspector]
         public GamewideUiSettings uiSettings;
 
@@ -19,6 +21,9 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
 
         [HideInInspector]
         public MenuLocation gameSettingsGraphicsLocation;
+
+        [HideInInspector]
+        public MenuLocation gameSettingsGameplayLocation;
 
         [HideInInspector]
         public MenuLocation preBattleMenuLocation;
@@ -38,6 +43,10 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
         [HideInInspector]
         public bool IsInSubMenu => CurrentMenuDepth > 0;
 
+        #endregion
+
+        #region Unity Lifecycle and Initialization
+
         protected override void Awake()
         {
             base.Awake();
@@ -47,6 +56,7 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                 preBattleMenuLocation = uiSettings.GetPreBattleMenu();
                 settingsMenuLocation = uiSettings.GetGameSettingsMenu();
                 gameSettingsGraphicsLocation = uiSettings.GetGameSettingsGraphicsMenu();
+                gameSettingsGameplayLocation = uiSettings.GetGameSettingsGameplayMenu();
             }
 #if UNITY_EDITOR
             WarnPrefabs();
@@ -76,6 +86,10 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                 Debug.LogError("UiBrain: Pre-battle menu location not found!");
             }
         }
+
+        #endregion
+
+        #region Brain Events and State Management
 
         private System.Action<BrainState> _onStateChangedHandler;
 
@@ -140,6 +154,10 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             // Clean up back button
             DestroyBackButton();
         }
+
+        #endregion
+
+        #region PreBattle UI Management
 
         public void HandlePreBattleUi()
         {
@@ -215,6 +233,8 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                 // TODO: Set up grid prebattle menu handling
             }
         }
+
+        #endregion
 
         #region Back Button Management
 
@@ -352,20 +372,28 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
         {
             // Check all possible settings submenus to find which one is active
             if (gameSettingsGraphicsLocation?.activeInstance != null)
+            {
                 return gameSettingsGraphicsLocation;
+            }
 
             // Add other submenu locations as they're created
             var audioMenuLocation = uiSettings?.GetMenuLocation(MenuName.AudioMenu);
             if (audioMenuLocation?.activeInstance != null)
+            {
                 return audioMenuLocation;
+            }
 
             var controlsMenuLocation = uiSettings?.GetMenuLocation(MenuName.ControlsMenu);
             if (controlsMenuLocation?.activeInstance != null)
+            {
                 return controlsMenuLocation;
+            }
 
             var gameplayMenuLocation = uiSettings?.GetMenuLocation(MenuName.GameplayMenu);
             if (gameplayMenuLocation?.activeInstance != null)
+            {
                 return gameplayMenuLocation;
+            }
 
             return null;
         }

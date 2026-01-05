@@ -12,6 +12,8 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
 {
     public partial class UiBrain : BrainComponent
     {
+        #region PreBattle Menu Event Handlers
+
         public void HandlePreBattleMenuNavigate(MenuItemBase item)
         {
             // Handle navigation to item
@@ -64,6 +66,10 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             }
         }
 
+        #endregion
+
+        #region PreBattle Settings and Helpers
+
         private void HandlePreBattleMenuSettings() => OpenMainGameSettingsMenu();
 
         private void SetPreBattleMenuFadeSpeed(float fadeTime)
@@ -77,6 +83,10 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                 uiFade.lerpTime = fadeTime;
             }
         }
+
+        #endregion
+
+        #region Battle Transition Management
 
         private void HandleStartBattleClick()
         {
@@ -158,5 +168,7 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             _brain.PublishPreBattleCompleted();
             _isTransitioning = false;
         }
+
+        #endregion
     }
 }

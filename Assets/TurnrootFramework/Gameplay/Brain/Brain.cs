@@ -324,6 +324,14 @@ namespace Turnroot.Gameplay.Brain
 
         public void PublishSavePlayerRosterRequested() => OnSavePlayerRosterRequested?.Invoke();
 
+        /// <summary>
+        /// Request that player settings be saved to long term memory.
+        /// This is an event-based request; subscribers should perform the save.
+        /// </summary>
+        public event Action OnSavePlayerSettingsRequested;
+
+        public void PublishSavePlayerSettingsRequested() => OnSavePlayerSettingsRequested?.Invoke();
+
         #endregion
 
         #region Spawn Events

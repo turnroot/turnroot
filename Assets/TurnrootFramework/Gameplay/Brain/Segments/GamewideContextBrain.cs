@@ -1,6 +1,7 @@
 using System.Linq;
 using Turnroot.Characters;
 using Turnroot.Gameplay.Brain.Events;
+using Turnroot.Gameplay.PlayerSettings;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain
@@ -23,6 +24,8 @@ namespace Turnroot.Gameplay.Brain
             object
         > _activeRosterInstances = new();
 
+        private PlayerSettingsPersistence _playerSettingsPersistence;
+
         public enum TamperPolicy
         {
             NotifyOnly,
@@ -32,6 +35,9 @@ namespace Turnroot.Gameplay.Brain
 
         [field: SerializeField]
         public TamperPolicy Policy { get; } = TamperPolicy.Replace;
+
+        [HideInInspector]
+        public GameplayPlayerSettings PlayerSettings => _playerSettingsPersistence?.PlayerSettings;
 
         protected override EventPriority GetSubscriptionPriority() => EventPriority.High;
 
@@ -50,16 +56,27 @@ namespace Turnroot.Gameplay.Brain
             _rosterManager = new RosterManager(_brain, _rosterPersistence);
             _characterPersistence = new CharacterPersistence(_brain);
 
+            // Initialize player settings persistence
+            _playerSettingsPersistence = new PlayerSettingsPersistence(
+                GetComponent<LongTermMemory>(),
+                this
+            );
+            _playerSettingsPersistence.Initialize();
+
             // Try to find the persistent player roster asset in Resources and recall it from LTM if present
             TryLoadAndRecallPersistentPlayerRoster();
         }
 
-        protected override void SubscribeToBrainEvents() =>
+        protected override void SubscribeToBrainEvents()
+        {
             // Subscribe to save requests so we can persist roster changes triggered at runtime
             _brain.OnSavePlayerRosterRequested += HandleSavePlayerRosterRequested;
+        }
 
-        protected override void UnsubscribeFromBrainEvents() =>
+        protected override void UnsubscribeFromBrainEvents()
+        {
             _brain.OnSavePlayerRosterRequested -= HandleSavePlayerRosterRequested;
+        }
 
         #region Persistent Player Roster
 
@@ -317,6 +334,15 @@ namespace Turnroot.Gameplay.Brain
         /// </summary>
         public PlayerTeamRosterInstance RecallPlayerTeamRoster(PlayerTeamRoster roster) =>
             _rosterManager?.RecallPlayerTeamRoster(roster);
+
+        #endregion
+
+        #region Player Settings Delegation
+
+        public void UpdatePlayerSetting(string settingName, object value)
+        {
+            _playerSettingsPersistence?.UpdatePlayerSetting(settingName, value);
+        }
 
         #endregion
     }
