@@ -101,6 +101,7 @@ namespace Turnroot.Gameplay.Brain
             PlayerSettings.MusicVolume = data.MusicVolume;
             PlayerSettings.SfxVolume = data.SfxVolume;
             PlayerSettings.VoiceVolume = data.VoiceVolume;
+            PlayerSettings.PreferredBattleMusic = data.PreferredBattleMusic;
         }
 
         public void SavePlayerSettings()
@@ -139,6 +140,7 @@ namespace Turnroot.Gameplay.Brain
                     MusicVolume = PlayerSettings.MusicVolume,
                     SfxVolume = PlayerSettings.SfxVolume,
                     VoiceVolume = PlayerSettings.VoiceVolume,
+                    PreferredBattleMusic = PlayerSettings.PreferredBattleMusic,
                 };
 
                 var encode = GamewideContextBrainHelpers.EncodeInstanceToString(_brain, saveData);
@@ -309,6 +311,15 @@ namespace Turnroot.Gameplay.Brain
                             PlayerSettings.VoiceVolume = Mathf.Clamp01(voiceVolume);
                         }
                         break;
+                    case "preferredbattlemusic":
+                        if (
+                            value
+                            is Turnroot.Audio.PreferredBattleMusic.SongChoice preferredBattleMusic
+                        )
+                        {
+                            PlayerSettings.PreferredBattleMusic = preferredBattleMusic;
+                        }
+                        break;
                     default:
 #if UNITY_EDITOR
                         Debug.LogWarning($"Unknown setting: {settingName}");
@@ -378,5 +389,10 @@ namespace Turnroot.Gameplay.Brain
         public float MusicVolume = 0.8f;
         public float SfxVolume = 0.8f;
         public float VoiceVolume = 0.8f;
+        public Turnroot.Audio.PreferredBattleMusic.SongChoice PreferredBattleMusic = Turnroot
+            .Audio
+            .PreferredBattleMusic
+            .SongChoice
+            .Default;
     }
 }

@@ -1,3 +1,4 @@
+using Turnroot.Audio.PreferredBattleMusic;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.PlayerSettings
@@ -83,7 +84,6 @@ namespace Turnroot.Gameplay.PlayerSettings
         public float SfxVolume = 0.8f;
         public float VoiceVolume = 0.8f;
         public bool MusicWhenPaused = true;
-        // public Turnroot.Audio.SongChoice PreferredBattleMusic = Turnroot.Audio.SongChoice.Default;
-        // TODO: Set up Turnroot.Audio.SongChoice
+        public SongChoice PreferredBattleMusic = SongChoice.Default;
     }
 }

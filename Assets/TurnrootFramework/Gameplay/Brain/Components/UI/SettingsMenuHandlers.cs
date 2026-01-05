@@ -332,6 +332,9 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                 case "startunitsetting":
                     carousel.InitializeCarousel(settings.StartUnitSetting);
                     break;
+                case "preferredbattlemusic":
+                    carousel.InitializeCarousel(settings.PreferredBattleMusic);
+                    break;
                 default:
                     return; // Unknown carousel setting
             }
@@ -370,6 +373,9 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                             break;
                         case "startunitsetting":
                             gamewideContext.UpdatePlayerSetting("StartUnitSetting", enumValue);
+                            break;
+                        case "preferredbattlemusic":
+                            gamewideContext.UpdatePlayerSetting("PreferredBattleMusic", enumValue);
                             break;
                     }
                 }
