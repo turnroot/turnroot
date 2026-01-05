@@ -117,37 +117,46 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
         }
 
         private System.Collections.IEnumerator TransitionToSettingsMenu(
-            MenuLocation preBattleMenuLocation,
-            MenuLocation settingsMenuLocation
+            MenuLocation fromMenuLocation,
+            MenuLocation toMenuLocation
         )
         {
-            var preBattleInstance = preBattleMenuLocation.activeInstance;
+            var fromInstance = fromMenuLocation.activeInstance;
 
-            // Hide the prebattle menu
-            if (preBattleInstance.TryGetComponent<UIFade>(out var preBattleFade))
+            // Hide the source menu
+            if (fromInstance.TryGetComponent<UIFade>(out var fromFade))
             {
-                preBattleFade.Hide();
-                var fadeDuration = preBattleFade.lerpTime + 0.1f;
+                fromFade.Hide();
+                var fadeDuration = fromFade.lerpTime + 0.1f;
                 yield return new WaitForSeconds(fadeDuration);
             }
 
-            // Clean up prebattle menu events
-            CleanupPreBattleMenu(preBattleInstance);
-
-            // Destroy prebattle menu
-            Destroy(preBattleInstance);
-            preBattleMenuLocation.activeInstance = null;
-
-            // Instantiate settings menu
-            settingsMenuLocation.activeInstance = Instantiate(settingsMenuLocation.prefab);
-            if (!settingsMenuLocation.activeInstance.TryGetComponent<UIFade>(out var settingsFade))
+            // If transitioning from prebattle to settings, destroy prebattle menu
+            if (fromMenuLocation == preBattleMenuLocation)
             {
-                settingsFade = settingsMenuLocation.activeInstance.AddComponent<UIFade>();
-                settingsFade.lerpTime = uiSettings.MenuInternalTransitionTime;
+                // Clean up prebattle menu events
+                CleanupPreBattleMenu(fromInstance);
+
+                // Destroy prebattle menu
+                Destroy(fromInstance);
+                fromMenuLocation.activeInstance = null;
+            }
+            // If transitioning from settings to sub-menu (like graphics), keep settings menu but hidden
+
+            // Instantiate target menu if it doesn't exist
+            if (toMenuLocation.activeInstance == null)
+            {
+                toMenuLocation.activeInstance = Instantiate(toMenuLocation.prefab);
             }
 
-            // Set up settings menu events
-            if (settingsMenuLocation.activeInstance.TryGetComponent<MenuBase>(out var menu))
+            if (!toMenuLocation.activeInstance.TryGetComponent<UIFade>(out var toFade))
+            {
+                toFade = toMenuLocation.activeInstance.AddComponent<UIFade>();
+                toFade.lerpTime = uiSettings.MenuInternalTransitionTime;
+            }
+
+            // Set up target menu events
+            if (toMenuLocation.activeInstance.TryGetComponent<MenuBase>(out var menu))
             {
                 menu.uiBrain = this;
                 menu.OnNavigate += HandleGameSettingsMenuNavigate;
@@ -157,14 +166,14 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                 SetupMenuInputActions(menu);
 
                 // Apply colors based on menu style
-                ApplyMenuColors(settingsMenuLocation.activeInstance, settingsMenuLocation.style);
+                ApplyMenuColors(toMenuLocation.activeInstance, toMenuLocation.style);
             }
 
             // Increment menu depth to indicate we're in a submenu
             CurrentMenuDepth++;
 
-            // Show the settings menu
-            settingsFade.Show();
+            // Show the target menu
+            toFade.Show();
 
             _isTransitioning = false;
         }
@@ -243,6 +252,47 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
 
             // Show the prebattle menu
             preBattleFade.Show();
+
+            _isTransitioning = false;
+        }
+
+        private System.Collections.IEnumerator TransitionBackToSettingsMenu(
+            MenuLocation currentMenuLocation,
+            MenuLocation parentMenuLocation
+        )
+        {
+            var currentInstance = currentMenuLocation.activeInstance;
+
+            // Hide the current menu (e.g., graphics menu)
+            if (currentInstance.TryGetComponent<UIFade>(out var currentFade))
+            {
+                currentFade.Hide();
+                var fadeDuration = currentFade.lerpTime + 0.1f;
+                yield return new WaitForSeconds(fadeDuration);
+            }
+
+            // Clean up current menu events
+            if (currentInstance.TryGetComponent<MenuBase>(out var currentMenu))
+            {
+                currentMenu.OnNavigate -= HandleGameSettingsMenuNavigate;
+                currentMenu.OnItemSelected -= HandleGameSettingsMenuSelect;
+            }
+
+            // Destroy current menu
+            Destroy(currentInstance);
+            currentMenuLocation.activeInstance = null;
+
+            // Decrement menu depth
+            CurrentMenuDepth = Mathf.Max(0, CurrentMenuDepth - 1);
+
+            // Show the parent menu (settings menu should already exist)
+            if (
+                parentMenuLocation.activeInstance != null
+                && parentMenuLocation.activeInstance.TryGetComponent<UIFade>(out var parentFade)
+            )
+            {
+                parentFade.Show();
+            }
 
             _isTransitioning = false;
         }

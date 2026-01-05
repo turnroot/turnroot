@@ -317,26 +317,57 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
 
         private void NavigateToParentMenu()
         {
-            // Check if we're currently in the settings menu
-            var settingsMenuLocation = uiSettings?.GetGameSettingsMenu();
-            if (settingsMenuLocation?.activeInstance != null)
+            // If we're at depth 2 or higher, we're in a submenu and should go back to its parent
+            if (CurrentMenuDepth >= 2)
             {
-                // Use the settings menu's back transition system
+                // Find which submenu is currently active and transition back to settings menu
+                var activeSubMenu = FindActiveSettingsSubmenu();
+                if (activeSubMenu != null)
+                {
+                    _isTransitioning = true;
+                    StartCoroutine(
+                        TransitionBackToSettingsMenu(activeSubMenu, settingsMenuLocation)
+                    );
+                    return;
+                }
+            }
+
+            // If we're at depth 1, check if we're in the main settings menu
+            if (CurrentMenuDepth == 1 && settingsMenuLocation?.activeInstance != null)
+            {
+                // Transition from main settings back to prebattle menu
                 BackToPreBattleMenu();
                 return;
             }
 
-            // TODO: Implement menu hierarchy navigation for other menus
-            // This should:
-            // 1. Destroy current menu instance
-            // 2. Decrement CurrentMenuDepth
-            // 3. Activate parent menu instance
-            // 4. Update UI state accordingly
+            // Fallback for unhandled cases - just decrement depth
             CurrentMenuDepth = Mathf.Max(0, CurrentMenuDepth - 1);
 
 #if UNITY_EDITOR
             Debug.Log($"UiBrain: Navigated to parent menu. New depth: {CurrentMenuDepth}");
 #endif
+        }
+
+        private MenuLocation FindActiveSettingsSubmenu()
+        {
+            // Check all possible settings submenus to find which one is active
+            if (gameSettingsGraphicsLocation?.activeInstance != null)
+                return gameSettingsGraphicsLocation;
+
+            // Add other submenu locations as they're created
+            var audioMenuLocation = uiSettings?.GetMenuLocation(MenuName.AudioMenu);
+            if (audioMenuLocation?.activeInstance != null)
+                return audioMenuLocation;
+
+            var controlsMenuLocation = uiSettings?.GetMenuLocation(MenuName.ControlsMenu);
+            if (controlsMenuLocation?.activeInstance != null)
+                return controlsMenuLocation;
+
+            var gameplayMenuLocation = uiSettings?.GetMenuLocation(MenuName.GameplayMenu);
+            if (gameplayMenuLocation?.activeInstance != null)
+                return gameplayMenuLocation;
+
+            return null;
         }
 
         private void HandleRootLevelBack()
