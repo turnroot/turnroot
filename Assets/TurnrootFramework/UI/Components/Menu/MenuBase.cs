@@ -162,20 +162,26 @@ namespace Turnroot.UI.Components.Menu
                         .TryGetComponent<SimpleButtonComponent>(out var prevButton)
                 )
                 {
-                    var fakeExitEvent = new UnityEngine.EventSystems.PointerEventData(
-                        UnityEngine.EventSystems.EventSystem.current
-                    );
-                    prevButton.OnPointerExit(fakeExitEvent);
+                    if (UnityEngine.EventSystems.EventSystem.current != null)
+                    {
+                        var fakeExitEvent = new UnityEngine.EventSystems.PointerEventData(
+                            UnityEngine.EventSystems.EventSystem.current
+                        );
+                        prevButton.OnPointerExit(fakeExitEvent);
+                    }
                 }
 
                 // Highlight the current item
                 var currentItem = menuItems[_actualCurrentSelectedIndex];
                 if (currentItem.TryGetComponent<SimpleButtonComponent>(out var currentButton))
                 {
-                    var fakeHoverEvent = new UnityEngine.EventSystems.PointerEventData(
-                        UnityEngine.EventSystems.EventSystem.current
-                    );
-                    currentButton.OnPointerEnter(fakeHoverEvent);
+                    if (UnityEngine.EventSystems.EventSystem.current != null)
+                    {
+                        var fakeHoverEvent = new UnityEngine.EventSystems.PointerEventData(
+                            UnityEngine.EventSystems.EventSystem.current
+                        );
+                        currentButton.OnPointerEnter(fakeHoverEvent);
+                    }
                 }
 
                 _previousSelectedIndex = _actualCurrentSelectedIndex;
