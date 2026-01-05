@@ -42,8 +42,12 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
         {
             base.Awake();
             uiSettings = GameSettingsLoader.LoadFirst<GamewideUiSettings>();
-            preBattleMenuLocation = uiSettings.GetPreBattleMenu();
-            gameSettingsGraphicsLocation = uiSettings.GetGameSettingsGraphicsMenu();
+            if (uiSettings != null)
+            {
+                preBattleMenuLocation = uiSettings.GetPreBattleMenu();
+                settingsMenuLocation = uiSettings.GetGameSettingsMenu();
+                gameSettingsGraphicsLocation = uiSettings.GetGameSettingsGraphicsMenu();
+            }
 #if UNITY_EDITOR
             WarnPrefabs();
 #endif
@@ -54,6 +58,7 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             if (uiSettings == null)
             {
                 Debug.LogError("UiBrain: GamewideUiSettings not found!");
+                return; // Don't check other things if uiSettings is null
             }
 
             if (settingsMenuLocation == null)
@@ -95,7 +100,7 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
 
             Brain.OnStateChanged += _onStateChangedHandler;
             // If the Brain already has an active state, invoke handler immediately so UI can react to the current state
-            var current = Brain.stateBrain.CurrentState;
+            var current = Brain?.stateBrain?.CurrentState;
             if (current != null)
             {
                 _onStateChangedHandler(current);
@@ -111,19 +116,25 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             }
 
             // Clean up menu events if menu still exists
-
-            if (
-                preBattleMenuLocation.activeInstance.TryGetComponent<RadialMenu>(out var radialMenu)
-            )
+            if (preBattleMenuLocation?.activeInstance != null)
             {
-                radialMenu.OnNavigate -= HandlePreBattleMenuNavigate;
-                radialMenu.OnItemSelected -= HandlePreBattleMenuSelect;
-            }
+                if (
+                    preBattleMenuLocation.activeInstance.TryGetComponent<RadialMenu>(
+                        out var radialMenu
+                    )
+                )
+                {
+                    radialMenu.OnNavigate -= HandlePreBattleMenuNavigate;
+                    radialMenu.OnItemSelected -= HandlePreBattleMenuSelect;
+                }
 
-            if (preBattleMenuLocation.activeInstance.TryGetComponent<MenuBase>(out var listMenu))
-            {
-                listMenu.OnNavigate -= HandlePreBattleMenuNavigate;
-                listMenu.OnItemSelected -= HandlePreBattleMenuSelect;
+                if (
+                    preBattleMenuLocation.activeInstance.TryGetComponent<MenuBase>(out var listMenu)
+                )
+                {
+                    listMenu.OnNavigate -= HandlePreBattleMenuNavigate;
+                    listMenu.OnItemSelected -= HandlePreBattleMenuSelect;
+                }
             }
 
             // Clean up back button

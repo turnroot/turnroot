@@ -84,6 +84,22 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                 return;
             }
 
+            if (settingsMenuLocation?.activeInstance == null)
+            {
+#if UNITY_EDITOR
+                Debug.LogError("UiBrain: Settings menu instance not found");
+#endif
+                return;
+            }
+
+            if (preBattleMenuLocation == null)
+            {
+#if UNITY_EDITOR
+                Debug.LogError("UiBrain: Pre-battle menu location not found");
+#endif
+                return;
+            }
+
             if (preBattleMenuLocation.prefab == null)
             {
 #if UNITY_EDITOR

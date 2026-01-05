@@ -155,7 +155,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   isCenter: 0
   parentMenu: {fileID: 0}
-  itemName: 
+  itemName: Gameplay
 --- !u!1 &1350168139434030168
 GameObject:
   m_ObjectHideFlags: 0
@@ -372,7 +372,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   isCenter: 0
   parentMenu: {fileID: 0}
-  itemName: 
+  itemName: Controls
 --- !u!1 &2599841781435253208
 GameObject:
   m_ObjectHideFlags: 0
@@ -705,7 +705,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   isCenter: 0
   parentMenu: {fileID: 0}
-  itemName: 
+  itemName: Graphics
 --- !u!1 &3822432246053448772
 GameObject:
   m_ObjectHideFlags: 0
@@ -1133,7 +1133,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   isCenter: 0
   parentMenu: {fileID: 0}
-  itemName: 
+  itemName: Audio
 --- !u!1 &6709008920573802829
 GameObject:
   m_ObjectHideFlags: 0
