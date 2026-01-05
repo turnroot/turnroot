@@ -1,8 +1,5 @@
-using NaughtyAttributes;
-using Turnroot.UI.Components.Menu.Submenu;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.UI;
 
 namespace Turnroot.UI.Components.Menu.Submenu
 {
@@ -13,193 +10,99 @@ namespace Turnroot.UI.Components.Menu.Submenu
         Select,
     }
 
-    public class PanelRow : MonoBehaviour
-    {
-        public enum RowType
-        {
-            Slider,
-            Toggles,
-            Button,
-            Carousel,
-        }
-
-        public RowType rowType;
-
-        public bool isSelected;
-
-        public int rowIndex;
-
-        [HideIf("rowType", RowType.Slider)]
-        public int currentSelectionIndex;
-        public string label;
-        public TMPro.TextMeshProUGUI labelText;
-
-        [ShowIf("rowType", RowType.Slider)]
-        public Slider sliderComponent;
-
-        [ShowIf("rowType", RowType.Toggles)]
-        public Toggle[] toggleComponents;
-
-        [ShowIf("rowType", RowType.Button)]
-        public Button[] buttonComponents;
-
-        [ShowIf("rowType", RowType.Carousel)]
-        public MenuCarousel carouselComponent;
-
-        public void InitializeRow()
-        {
-            if (rowType == RowType.Slider)
-            {
-                // TODO: Initialize slider component
-            }
-            else if (rowType == RowType.Toggles)
-            {
-                // TODO: Initialize toggles component
-            }
-            else if (rowType == RowType.Button)
-            {
-                // TODO: Initialize button component
-            }
-            else if (rowType == RowType.Carousel)
-            {
-                // TODO: Initialize carousel component
-            }
-        }
-
-        public void SelectRow()
-        {
-            labelText.fontStyle = TMPro.FontStyles.Bold;
-            isSelected = true;
-        }
-
-        public void DeselectRow()
-        {
-            labelText.fontStyle = TMPro.FontStyles.Normal;
-            isSelected = false;
-        }
-
-        public bool HandleInput(SubmenuRowInput input)
-        {
-            if (!isSelected)
-            {
-                return false;
-            }
-            switch (input)
-            {
-                case SubmenuRowInput.Left:
-                    HandleInputLeftRight(SubmenuRowInput.Left);
-                    return true;
-                case SubmenuRowInput.Right:
-                    HandleInputLeftRight(SubmenuRowInput.Right);
-                    return true;
-                case SubmenuRowInput.Select:
-                    HandleInputSelect();
-                    return true;
-                default:
-                    return false;
-            }
-        }
-
-        public void HandleInputLeftRight(SubmenuRowInput direction)
-        {
-            switch (rowType)
-            {
-                case RowType.Slider:
-                    AdjustSlider(.1f * (direction == SubmenuRowInput.Left ? -1 : 1));
-                    break;
-                case RowType.Toggles:
-                    if (toggleComponents == null || toggleComponents.Length == 0)
-                    {
-                        return;
-                    }
-                    // Deselect current
-                    toggleComponents[currentSelectionIndex].isOn = false;
-                    // Move direction with wrapping
-                    currentSelectionIndex =
-                        (
-                            currentSelectionIndex
-                            + (direction == SubmenuRowInput.Left ? -1 : 1)
-                            + toggleComponents.Length
-                        ) % toggleComponents.Length;
-                    // Select new
-                    toggleComponents[currentSelectionIndex].isOn = true;
-                    break;
-                case RowType.Button:
-                    if (buttonComponents == null || buttonComponents.Length == 0)
-                    {
-                        return;
-                    }
-                    // Deselect current
-                    buttonComponents[currentSelectionIndex].OnDeselect(null);
-                    // Move direction with wrapping
-                    currentSelectionIndex =
-                        (
-                            currentSelectionIndex
-                            + (direction == SubmenuRowInput.Left ? -1 : 1)
-                            + buttonComponents.Length
-                        ) % buttonComponents.Length;
-                    // Select new
-                    buttonComponents[currentSelectionIndex].Select();
-                    break;
-                // TODO: Handle Carousel
-            }
-        }
-
-        public void HandleInputSelect()
-        {
-            switch (rowType)
-            {
-                case RowType.Slider:
-                    // No action on select for slider
-                    break;
-                case RowType.Toggles:
-                    if (toggleComponents == null || toggleComponents.Length == 0)
-                    {
-                        return;
-                    }
-                    // Toggle the current selection
-                    toggleComponents[currentSelectionIndex].isOn = !toggleComponents[
-                        currentSelectionIndex
-                    ].isOn;
-                    break;
-                case RowType.Button:
-                    if (buttonComponents == null || buttonComponents.Length == 0)
-                    {
-                        return;
-                    }
-                    // Invoke the button's onClick event
-                    buttonComponents[currentSelectionIndex].onClick.Invoke();
-                    break;
-                    // TODO: Handle Carousel
-            }
-        }
-
-        public void AdjustSlider(float delta)
-        {
-            if (rowType != RowType.Slider || sliderComponent == null)
-            {
-                return;
-            }
-            sliderComponent.value = Mathf.Clamp(
-                sliderComponent.value + delta,
-                sliderComponent.minValue,
-                sliderComponent.maxValue
-            );
-        }
-    }
-
     public class PanelRows : MonoBehaviour
     {
         public PanelRow[] panelRows;
 
+        [HideInInspector]
+        public int currentRowIndex = 0;
+
         public void Awake()
         {
-            var index = -1;
+            var index = 0;
             foreach (var row in panelRows)
             {
                 row.InitializeRow();
                 row.rowIndex = index;
                 index++;
+            }
+        }
+
+        private void OnEnable()
+        {
+            navigateUpAction?.Enable();
+            navigateDownAction?.Enable();
+            navigateLeftAction?.Enable();
+            navigateRightAction?.Enable();
+            selectAction?.Enable();
+        }
+
+        private void OnDisable()
+        {
+            navigateUpAction?.Disable();
+            navigateDownAction?.Disable();
+            navigateLeftAction?.Disable();
+            navigateRightAction?.Disable();
+            selectAction?.Disable();
+        }
+
+        private void Update()
+        {
+            HandleInput();
+        }
+
+        private void HandleInput()
+        {
+            if (panelRows == null || panelRows.Length == 0)
+                return;
+
+            if (navigateUpAction?.WasPressedThisFrame() == true)
+            {
+                NavigateUp();
+            }
+            else if (navigateDownAction?.WasPressedThisFrame() == true)
+            {
+                NavigateDown();
+            }
+            else if (navigateLeftAction?.WasPressedThisFrame() == true)
+            {
+                HandleRowInput(SubmenuRowInput.Left);
+            }
+            else if (navigateRightAction?.WasPressedThisFrame() == true)
+            {
+                HandleRowInput(SubmenuRowInput.Right);
+            }
+            else if (selectAction?.WasPressedThisFrame() == true)
+            {
+                HandleRowInput(SubmenuRowInput.Select);
+            }
+        }
+
+        private void NavigateUp()
+        {
+            currentRowIndex = (currentRowIndex - 1 + panelRows.Length) % panelRows.Length;
+            UpdateRowFocus();
+        }
+
+        private void NavigateDown()
+        {
+            currentRowIndex = (currentRowIndex + 1) % panelRows.Length;
+            UpdateRowFocus();
+        }
+
+        private void HandleRowInput(SubmenuRowInput inputType)
+        {
+            if (currentRowIndex >= 0 && currentRowIndex < panelRows.Length)
+            {
+                panelRows[currentRowIndex].HandleInput(inputType);
+            }
+        }
+
+        private void UpdateRowFocus()
+        {
+            for (int i = 0; i < panelRows.Length; i++)
+            {
+                panelRows[i].SetFocused(i == currentRowIndex);
             }
         }
 
