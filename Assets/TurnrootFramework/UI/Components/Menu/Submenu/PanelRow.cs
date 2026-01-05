@@ -166,13 +166,21 @@ namespace Turnroot.UI.Components.Menu.Submenu
 
         public void SelectRow()
         {
-            labelText.fontStyle = TMPro.FontStyles.Bold;
+            if (labelText != null)
+            {
+                labelText.fontStyle = TMPro.FontStyles.Bold;
+            }
+
             isSelected = true;
         }
 
         public void DeselectRow()
         {
-            labelText.fontStyle = TMPro.FontStyles.Normal;
+            if (labelText != null)
+            {
+                labelText.fontStyle = TMPro.FontStyles.Normal;
+            }
+            
             isSelected = false;
         }
 
