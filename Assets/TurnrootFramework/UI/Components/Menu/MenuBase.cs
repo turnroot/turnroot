@@ -37,22 +37,6 @@ namespace Turnroot.UI.Components.Menu
         {
             // Initialize menu items
             RefreshMenuItems();
-
-            // Set up input actions if they exist
-            if (navigateUpAction != null)
-            {
-                navigateUpAction.Enable();
-            }
-
-            if (navigateDownAction != null)
-            {
-                navigateDownAction.Enable();
-            }
-
-            if (selectAction != null)
-            {
-                selectAction.Enable();
-            }
         }
 
         protected virtual void OnEnable()
