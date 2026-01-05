@@ -92,8 +92,6 @@ MonoBehaviour:
   isCenter: 0
   backgroundImage: {fileID: 0}
   showIcon: 0
-  normalColor: {r: 0.1882353, g: 0.14509805, b: 0.2, a: 0.6509804}
-  selectedColor: {r: 0.355, g: 0.22151999, b: 0.28603536, a: 0.8}
   itemName: Items
   contentPrefab: {fileID: 8899272358339271300}
 --- !u!1 &281875881464394218
@@ -188,8 +186,6 @@ MonoBehaviour:
   isCenter: 0
   backgroundImage: {fileID: 0}
   showIcon: 0
-  normalColor: {r: 0.1882353, g: 0.14509805, b: 0.2, a: 0.6509804}
-  selectedColor: {r: 0.355, g: 0.22151999, b: 0.28603536, a: 0.8}
   itemName: Support
   contentPrefab: {fileID: 7441224518554346878}
 --- !u!1 &312688979984975295
@@ -205,6 +201,7 @@ GameObject:
   - component: {fileID: 5897909641009598273}
   - component: {fileID: 5534630035897414332}
   - component: {fileID: 5911442755278044011}
+  - component: {fileID: 7056022653962320051}
   m_Layer: 5
   m_Name: RadialPreBattleMenu
   m_TagString: Untagged
@@ -275,10 +272,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cd44c1031e13a943bb63640046fad76, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_UiScaleMode: 0
+  m_UiScaleMode: 1
   m_ReferencePixelsPerUnit: 100
   m_ScaleFactor: 1
-  m_ReferenceResolution: {x: 800, y: 600}
+  m_ReferenceResolution: {x: 1920, y: 1080}
   m_ScreenMatchMode: 0
   m_MatchWidthOrHeight: 0
   m_PhysicalUnit: 3
@@ -316,7 +313,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   segmentNames: []
-  menuLocation: 0
   menuItems:
   - {fileID: 4238424857971916009}
   - {fileID: 9065179252763448529}
@@ -345,46 +341,6 @@ MonoBehaviour:
     m_Processors: 
     m_Interactions: 
     m_SingletonActionBindings:
-    - m_Name: Keyboard Arrows
-      m_Id: af2e17ea-30cf-4b82-9722-e1a2233474d9
-      m_Path: 2DVector
-      m_Interactions: 
-      m_Processors: 
-      m_Groups: 
-      m_Action: Navigate
-      m_Flags: 4
-    - m_Name: up
-      m_Id: 04c4adf5-b762-4049-9f91-3ccced49e5a4
-      m_Path: <Keyboard>/upArrow
-      m_Interactions: 
-      m_Processors: 
-      m_Groups: 
-      m_Action: Navigate
-      m_Flags: 8
-    - m_Name: down
-      m_Id: 951e401b-b063-426a-9ac4-bf5893d82bc3
-      m_Path: <Keyboard>/downArrow
-      m_Interactions: 
-      m_Processors: 
-      m_Groups: 
-      m_Action: Navigate
-      m_Flags: 8
-    - m_Name: left
-      m_Id: b6123e54-0364-463a-9b66-79f5f0b5e932
-      m_Path: <Keyboard>/leftArrow
-      m_Interactions: 
-      m_Processors: 
-      m_Groups: 
-      m_Action: Navigate
-      m_Flags: 8
-    - m_Name: right
-      m_Id: 4a5890ac-e2fe-4daa-afd5-7255c457e47e
-      m_Path: <Keyboard>/rightArrow
-      m_Interactions: 
-      m_Processors: 
-      m_Groups: 
-      m_Action: Navigate
-      m_Flags: 8
     - m_Name: Keyboard WASD
       m_Id: bdf6a149-55e3-489f-810f-6443c6010594
       m_Path: 2DVector
@@ -393,7 +349,7 @@ MonoBehaviour:
       m_Groups: 
       m_Action: Navigate
       m_Flags: 4
-    - m_Name: up
+    - m_Name: down
       m_Id: 7c890358-888f-4ad3-9d72-35d9abe00fb8
       m_Path: <Keyboard>/w
       m_Interactions: 
@@ -401,7 +357,7 @@ MonoBehaviour:
       m_Groups: 
       m_Action: Navigate
       m_Flags: 8
-    - m_Name: down
+    - m_Name: up
       m_Id: 41da902d-982e-451b-9caa-25e14a5e279a
       m_Path: <Keyboard>/s
       m_Interactions: 
@@ -484,6 +440,18 @@ MonoBehaviour:
       m_Flags: 0
     m_Flags: 0
   uiBrain: {fileID: 0}
+--- !u!225 &7056022653962320051
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 312688979984975295}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!1 &1719434811272008199
 GameObject:
   m_ObjectHideFlags: 0
@@ -576,8 +544,6 @@ MonoBehaviour:
   isCenter: 0
   backgroundImage: {fileID: 0}
   showIcon: 0
-  normalColor: {r: 0.1882353, g: 0.14509805, b: 0.2, a: 0.6509804}
-  selectedColor: {r: 0.355, g: 0.22151999, b: 0.28603536, a: 0.8}
   itemName: Withdraw
   contentPrefab: {fileID: 8052361931193492757}
 --- !u!1 &3637567708908320911
@@ -672,8 +638,6 @@ MonoBehaviour:
   isCenter: 0
   backgroundImage: {fileID: 0}
   showIcon: 0
-  normalColor: {r: 0.1882353, g: 0.14509805, b: 0.2, a: 0.6509804}
-  selectedColor: {r: 0.355, g: 0.22151999, b: 0.28603536, a: 0.8}
   itemName: Settings
   contentPrefab: {fileID: 6012534394366880695}
 --- !u!1 &4222251290577627553
@@ -769,7 +733,6 @@ MonoBehaviour:
   isCenter: 1
   unselectedSprite: {fileID: 21300000, guid: 4e49d1eeb7dfbea46ae3b547f41413bc, type: 3}
   selectedSprite: {fileID: 21300000, guid: ef1bef81cb553544b9f50419888dd989, type: 3}
-  _editor_isCenterProxy: 0
   targetImage: {fileID: 7141203694781302200}
 --- !u!114 &8652020116910111918
 MonoBehaviour:
@@ -3531,8 +3494,6 @@ MonoBehaviour:
   isCenter: 0
   backgroundImage: {fileID: 0}
   showIcon: 0
-  normalColor: {r: 0.1882353, g: 0.14509805, b: 0.2, a: 0.6509804}
-  selectedColor: {r: 0.355, g: 0.22151999, b: 0.28603536, a: 0.8}
   itemName: Map
   contentPrefab: {fileID: 5411687904658505806}
 --- !u!1 &7409864306231111348
@@ -4087,8 +4048,6 @@ MonoBehaviour:
   isCenter: 0
   backgroundImage: {fileID: 0}
   showIcon: 0
-  normalColor: {r: 0.1882353, g: 0.14509805, b: 0.2, a: 0.6509804}
-  selectedColor: {r: 0.355, g: 0.22151999, b: 0.28603536, a: 0.8}
   itemName: Skills
   contentPrefab: {fileID: 6145240445697590926}
 --- !u!1 &8217344857908938434
@@ -4183,8 +4142,6 @@ MonoBehaviour:
   isCenter: 0
   backgroundImage: {fileID: 0}
   showIcon: 0
-  normalColor: {r: 0.1882353, g: 0.14509805, b: 0.2, a: 0.6509804}
-  selectedColor: {r: 0.355, g: 0.22151999, b: 0.28603536, a: 0.8}
   itemName: Team
   contentPrefab: {fileID: 4624008686005550444}
 --- !u!1 &8435831325737059545

@@ -37,10 +37,7 @@ public class DynamicSceneFlow : MonoBehaviour
         SubscribeToBrainEvents();
     }
 
-    private void OnDestroy()
-    {
-        UnsubscribeFromBrainEvents();
-    }
+    private void OnDestroy() => UnsubscribeFromBrainEvents();
 
     private void SubscribeToBrainEvents()
     {
@@ -149,10 +146,7 @@ public class DynamicSceneFlow : MonoBehaviour
     /// <summary>
     /// Gets the full path of a brain state (e.g., "Combat.PreBattle" for hierarchical states).
     /// </summary>
-    private string GetFullStatePath(BrainState state)
-    {
-        return state?.GetFullPath() ?? "";
-    }
+    private string GetFullStatePath(BrainState state) => state?.GetFullPath() ?? "";
 
     /// <summary>
     /// Called when a new segment is reached. Invokes the segment's event callbacks.

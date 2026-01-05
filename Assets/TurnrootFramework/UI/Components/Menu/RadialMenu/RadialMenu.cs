@@ -1,10 +1,8 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using NaughtyAttributes;
 using Turnroot.Gameplay.Brain.UI;
 using Turnroot.GameSettings;
-using Turnroot.UI.Components;
 using Turnroot.Utilities;
 using TurnrootFramework.Gameplay.Brain.Segments;
 using UnityEngine;
