@@ -152,6 +152,16 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                 // Also disable the GameObject to prevent any input handling
                 fromInstance.SetActive(false);
             }
+
+            // Instantiate target menu if it doesn't exist
+            if (toMenuLocation.activeInstance == null)
+            {
+                toMenuLocation.activeInstance = Instantiate(toMenuLocation.prefab);
+            }
+
+            if (!toMenuLocation.activeInstance.TryGetComponent<UIFade>(out var toFade))
+            {
+                toFade = toMenuLocation.activeInstance.AddComponent<UIFade>();
                 toFade.lerpTime = uiSettings.MenuInternalTransitionTime;
             }
 
@@ -294,7 +304,7 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                 {
                     parentMenu.enabled = true;
                 }
-                
+
                 // Show the parent menu with fade
                 if (parentMenuLocation.activeInstance.TryGetComponent<UIFade>(out var parentFade))
                 {
