@@ -278,11 +278,9 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                 // Radial menus already pull colors from GamewideUiSettings automatically
                 return;
             }
-            else
-            {
-                // Apply grid/list/filmstrip colors for other menu types
-                ApplyGridListFilmstripColors(menuInstance);
-            }
+
+            // Apply grid/list/filmstrip colors for other menu types
+            ApplyGridListFilmstripColors(menuInstance);
         }
 
         private void ApplyGridListFilmstripColors(GameObject menuInstance)
