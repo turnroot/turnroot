@@ -266,7 +266,7 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             _isTransitioning = false;
         }
 
-        private System.Collections.IEnumerator TransitionBackToSettingsMenu(
+        protected System.Collections.IEnumerator TransitionBackToSettingsMenu(
             MenuLocation currentMenuLocation,
             MenuLocation parentMenuLocation
         )
