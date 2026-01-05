@@ -1532,7 +1532,7 @@ MonoBehaviour:
   m_Interactable: 1
   m_TargetGraphic: {fileID: 8079242575566910645}
   toggleTransition: 1
-  graphic: {fileID: 7759368756874909840}
+  graphic: {fileID: 3718388277374555968}
   m_Group: {fileID: 0}
   onValueChanged:
     m_PersistentCalls:
@@ -2636,7 +2636,7 @@ MonoBehaviour:
   m_Interactable: 1
   m_TargetGraphic: {fileID: 8079242575566910645}
   toggleTransition: 1
-  graphic: {fileID: 7759368756874909840}
+  graphic: {fileID: 5722384956238063276}
   m_Group: {fileID: 0}
   onValueChanged:
     m_PersistentCalls:
@@ -3300,7 +3300,7 @@ MonoBehaviour:
   m_Direction: 0
   m_MinValue: 0
   m_MaxValue: 2
-  m_WholeNumbers: 1
+  m_WholeNumbers: 0
   m_Value: 1
   m_OnValueChanged:
     m_PersistentCalls:
