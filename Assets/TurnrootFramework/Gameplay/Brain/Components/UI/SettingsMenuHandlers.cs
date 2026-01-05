@@ -17,6 +17,12 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                 return;
             }
 
+            var settingsMenuLocation = uiSettings?.GetGameSettingsMenu();
+            if (settingsMenuLocation == null)
+            {
+                return;
+            }
+
             if (preBattleMenuLocation?.activeInstance == null)
             {
 #if UNITY_EDITOR
