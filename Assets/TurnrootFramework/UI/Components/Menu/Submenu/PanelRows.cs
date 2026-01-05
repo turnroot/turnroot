@@ -58,23 +58,23 @@ namespace Turnroot.UI.Components.Menu.Submenu
                 return;
             }
 
-            if (navigateUpAction?.WasPressedThisFrame() == true)
+            if (navigateUpAction?.WasPressedThisFrame() is true)
             {
                 NavigateUp();
             }
-            else if (navigateDownAction?.WasPressedThisFrame() == true)
+            else if (navigateDownAction?.WasPressedThisFrame() is true)
             {
                 NavigateDown();
             }
-            else if (navigateLeftAction?.WasPressedThisFrame() == true)
+            else if (navigateLeftAction?.WasPressedThisFrame() is true)
             {
                 HandleRowInput(SubmenuRowInput.Left);
             }
-            else if (navigateRightAction?.WasPressedThisFrame() == true)
+            else if (navigateRightAction?.WasPressedThisFrame() is true)
             {
                 HandleRowInput(SubmenuRowInput.Right);
             }
-            else if (selectAction?.WasPressedThisFrame() == true)
+            else if (selectAction?.WasPressedThisFrame() is true)
             {
                 HandleRowInput(SubmenuRowInput.Select);
             }
