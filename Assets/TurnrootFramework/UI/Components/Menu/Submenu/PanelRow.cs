@@ -24,13 +24,14 @@ namespace Turnroot.UI.Components.Menu.Submenu
 
         [HideInInspector]
         public int currentSelectionIndex;
+
         public TMPro.TextMeshProUGUI labelText;
 
         [ShowIf("rowType", RowType.Slider)]
         public Slider sliderComponent;
 
         [ShowIf("rowType", RowType.Toggles)]
-        public Toggle[] toggleComponents;
+        public SimpleToggle[] toggleComponents;
 
         [ShowIf("rowType", RowType.Button)]
         public Button[] buttonComponents;
@@ -38,41 +39,11 @@ namespace Turnroot.UI.Components.Menu.Submenu
         [ShowIf("rowType", RowType.Carousel)]
         public MenuCarousel carouselComponent;
 
-        // Store original colors for each toggle
-        private ColorBlock[] originalToggleColors;
-
         public void InitializeRow()
         {
-            if (
-                rowType == RowType.Toggles
-                && toggleComponents != null
-                && toggleComponents.Length > 0
-            )
-            {
-                // Store original color blocks
-                originalToggleColors = new ColorBlock[toggleComponents.Length];
-                for (int i = 0; i < toggleComponents.Length; i++)
-                {
-                    if (toggleComponents[i] != null)
-                    {
-                        originalToggleColors[i] = toggleComponents[i].colors;
-                    }
-                    else { }
-                }
-            }
-
-            else if (rowType == RowType.Slider)
-            {
-                // TODO: Initialize slider component
-            }
-            else if (rowType == RowType.Button)
-            {
-                // TODO: Initialize button component
-            }
-            else if (rowType == RowType.Carousel)
-            {
-                // TODO: Initialize carousel component
-            }
+            // TODO: Initialize slider component
+            // TODO: Initialize button component
+            // TODO: Initialize carousel component
         }
 
         public void SetFocused(bool focused)
@@ -80,7 +51,6 @@ namespace Turnroot.UI.Components.Menu.Submenu
             if (focused)
             {
                 SelectRow();
-                // Reset selection index when row gains focus
                 ResetSelectionIndex();
                 UpdateSelectionVisuals();
             }
@@ -88,40 +58,24 @@ namespace Turnroot.UI.Components.Menu.Submenu
             {
                 DeselectRow();
                 ClearSelectionVisuals();
-                // Clear selection index when row loses focus
                 currentSelectionIndex = 0;
             }
         }
 
         private void ResetSelectionIndex()
         {
-            // Reset to first item when row gains focus
             currentSelectionIndex = 0;
+            currentSelectionIndex = Mathf.Clamp(currentSelectionIndex, 0, GetMaxSelectionIndex());
+        }
 
-            // Ensure we have valid selection bounds
-            switch (rowType)
+        private int GetMaxSelectionIndex()
+        {
+            return rowType switch
             {
-                case RowType.Toggles:
-                    if (toggleComponents != null && toggleComponents.Length > 0)
-                    {
-                        currentSelectionIndex = Mathf.Clamp(
-                            currentSelectionIndex,
-                            0,
-                            toggleComponents.Length - 1
-                        );
-                    }
-                    break;
-                case RowType.Button:
-                    if (buttonComponents != null && buttonComponents.Length > 0)
-                    {
-                        currentSelectionIndex = Mathf.Clamp(
-                            currentSelectionIndex,
-                            0,
-                            buttonComponents.Length - 1
-                        );
-                    }
-                    break;
-            }
+                RowType.Toggles when HasElements(toggleComponents) => toggleComponents.Length - 1,
+                RowType.Button when HasElements(buttonComponents) => buttonComponents.Length - 1,
+                _ => 0,
+            };
         }
 
         private void UpdateSelectionVisuals()
@@ -147,82 +101,47 @@ namespace Turnroot.UI.Components.Menu.Submenu
                 case RowType.Button:
                     ClearButtonVisuals();
                     break;
-                default:
-                    break;
             }
         }
 
         private void UpdateToggleVisuals()
         {
-            // TODO: Somewhere this is doing the wrong thing visually - investigate
-            if (toggleComponents == null || toggleComponents.Length == 0)
-            {
+            if (!HasElements(toggleComponents))
                 return;
-            }
 
             for (int i = 0; i < toggleComponents.Length; i++)
             {
-                if (
-                    toggleComponents[i] != null
-                    && originalToggleColors != null
-                    && i < originalToggleColors.Length
-                )
+                if (toggleComponents[i] != null)
                 {
-                    ColorBlock colors = originalToggleColors[i];
-
-                    if (i == currentSelectionIndex)
-                    {
-                        // Highlight selected toggle by forcing it to selected state
-                        toggleComponents[i].targetGraphic.color = colors.highlightedColor;
-                    }
-                    else
-                    {
-                        // Reset to normal color
-                        toggleComponents[i].targetGraphic.color = colors.normalColor;
-                    }
+                    toggleComponents[i].SetHighlighted(i == currentSelectionIndex);
                 }
-                else { }
             }
         }
 
         private void ClearToggleVisuals()
         {
-            if (toggleComponents == null || toggleComponents.Length == 0)
-            {
+            if (!HasElements(toggleComponents))
                 return;
-            }
 
             for (int i = 0; i < toggleComponents.Length; i++)
             {
-                if (
-                    toggleComponents[i] != null
-                    && toggleComponents[i].targetGraphic != null
-                    && originalToggleColors != null
-                    && i < originalToggleColors.Length
-                )
-                {
-                    // Restore original normal color
-                    toggleComponents[i].targetGraphic.color = originalToggleColors[i].normalColor;
-                }
-                else { }
+                toggleComponents[i]?.SetHighlighted(false);
             }
         }
 
         private void UpdateButtonVisuals()
         {
-            if (buttonComponents == null || buttonComponents.Length == 0)
-            {
+            if (!HasElements(buttonComponents))
                 return;
-            }
 
             for (int i = 0; i < buttonComponents.Length; i++)
             {
                 var textComponent = buttonComponents[i]
-                    .GetComponentInChildren<TMPro.TextMeshProUGUI>();
+                    ?.GetComponentInChildren<TMPro.TextMeshProUGUI>();
                 if (textComponent != null)
                 {
                     textComponent.fontStyle =
-                        i == currentSelectionIndex
+                        (i == currentSelectionIndex)
                             ? TMPro.FontStyles.Bold
                             : TMPro.FontStyles.Normal;
                 }
@@ -231,15 +150,13 @@ namespace Turnroot.UI.Components.Menu.Submenu
 
         private void ClearButtonVisuals()
         {
-            if (buttonComponents == null || buttonComponents.Length == 0)
-            {
+            if (!HasElements(buttonComponents))
                 return;
-            }
 
             for (int i = 0; i < buttonComponents.Length; i++)
             {
                 var textComponent = buttonComponents[i]
-                    .GetComponentInChildren<TMPro.TextMeshProUGUI>();
+                    ?.GetComponentInChildren<TMPro.TextMeshProUGUI>();
                 if (textComponent != null)
                 {
                     textComponent.fontStyle = TMPro.FontStyles.Normal;
@@ -262,139 +179,95 @@ namespace Turnroot.UI.Components.Menu.Submenu
         public bool HandleInput(SubmenuRowInput input)
         {
             if (!isSelected)
-            {
                 return false;
-            }
-            switch (input)
+
+            return input switch
             {
-                case SubmenuRowInput.Left:
-                    HandleInputLeftRight(SubmenuRowInput.Left);
+                SubmenuRowInput.Left => HandleInputLeftRight(SubmenuRowInput.Left),
+                SubmenuRowInput.Right => HandleInputLeftRight(SubmenuRowInput.Right),
+                SubmenuRowInput.Select => HandleInputSelect(),
+                _ => false,
+            };
+        }
+
+        private bool HandleInputLeftRight(SubmenuRowInput direction)
+        {
+            int delta = direction == SubmenuRowInput.Left ? -1 : 1;
+
+            switch (rowType)
+            {
+                case RowType.Slider:
+                    AdjustSlider(0.1f * delta);
                     return true;
-                case SubmenuRowInput.Right:
-                    HandleInputLeftRight(SubmenuRowInput.Right);
-                    return true;
-                case SubmenuRowInput.Select:
-                    HandleInputSelect();
-                    return true;
+
+                case RowType.Toggles:
+                    return NavigateElements(toggleComponents, delta, UpdateToggleVisuals);
+
+                case RowType.Button:
+                    return NavigateElements(buttonComponents, delta, UpdateButtonVisuals);
+
+                // TODO: Handle Carousel
                 default:
                     return false;
             }
         }
 
-        public void HandleInputLeftRight(SubmenuRowInput direction)
+        private bool NavigateElements<T>(T[] elements, int delta, System.Action updateVisuals)
+        {
+            if (!HasElements(elements))
+                return false;
+
+            currentSelectionIndex = Mathf.Clamp(currentSelectionIndex, 0, elements.Length - 1);
+            currentSelectionIndex =
+                (currentSelectionIndex + delta + elements.Length) % elements.Length;
+            updateVisuals?.Invoke();
+            return true;
+        }
+
+        private bool HandleInputSelect()
         {
             switch (rowType)
             {
                 case RowType.Slider:
-                    AdjustSlider(.1f * (direction == SubmenuRowInput.Left ? -1 : 1));
-                    break;
+                    return false;
+
                 case RowType.Toggles:
-                    if (toggleComponents == null || toggleComponents.Length == 0)
-                    {
-                        return;
-                    }
-                    // Ensure currentSelectionIndex is within bounds before navigation
+                    if (!HasElements(toggleComponents))
+                        return false;
+
                     currentSelectionIndex = Mathf.Clamp(
                         currentSelectionIndex,
                         0,
                         toggleComponents.Length - 1
                     );
+                    toggleComponents[currentSelectionIndex]?.Toggle();
+                    return true;
 
-                    // Move direction with wrapping
-                    currentSelectionIndex =
-                        (
-                            currentSelectionIndex
-                            + (direction == SubmenuRowInput.Left ? -1 : 1)
-                            + toggleComponents.Length
-                        ) % toggleComponents.Length;
-
-                    // Update visual feedback
-                    UpdateToggleVisuals();
-                    break;
                 case RowType.Button:
-                    if (buttonComponents == null || buttonComponents.Length == 0)
-                    {
-                        return;
-                    }
-                    // Ensure currentSelectionIndex is within bounds before navigation
-                    currentSelectionIndex = Mathf.Clamp(
-                        currentSelectionIndex,
-                        0,
-                        buttonComponents.Length - 1
-                    );
+                    if (!HasElements(buttonComponents))
+                        return false;
 
-                    // Move direction with wrapping
-                    currentSelectionIndex =
-                        (
-                            currentSelectionIndex
-                            + (direction == SubmenuRowInput.Left ? -1 : 1)
-                            + buttonComponents.Length
-                        ) % buttonComponents.Length;
-                    // Update visual feedback
-                    UpdateButtonVisuals();
-                    break;
+                    buttonComponents[currentSelectionIndex]?.onClick.Invoke();
+                    return true;
+
                 // TODO: Handle Carousel
+                default:
+                    return false;
             }
         }
 
-        public void HandleInputSelect()
-        {
-            switch (rowType)
-            {
-                case RowType.Slider:
-                    // No action on select for slider
-                    break;
-                case RowType.Toggles:
-                    if (toggleComponents == null)
-                    {
-                        return;
-                    }
-                    if (toggleComponents.Length == 0)
-                    {
-                        return;
-                    }
-
-                    // Ensure currentSelectionIndex is within bounds
-                    currentSelectionIndex = Mathf.Clamp(
-                        currentSelectionIndex,
-                        0,
-                        toggleComponents.Length - 1
-                    );
-
-                    if (toggleComponents[currentSelectionIndex] == null)
-                    {
-                        return;
-                    }
-
-                    // Toggle the current selection
-                    toggleComponents[currentSelectionIndex].isOn = !toggleComponents[
-                        currentSelectionIndex
-                    ].isOn;
-
-                    break;
-                case RowType.Button:
-                    if (buttonComponents == null || buttonComponents.Length == 0)
-                    {
-                        return;
-                    }
-                    // Invoke the button's onClick event
-                    buttonComponents[currentSelectionIndex].onClick.Invoke();
-                    break;
-                // TODO: Handle Carousel
-            }
-        }
-
-        public void AdjustSlider(float delta)
+        private void AdjustSlider(float delta)
         {
             if (rowType != RowType.Slider || sliderComponent == null)
-            {
                 return;
-            }
+
             sliderComponent.value = Mathf.Clamp(
                 sliderComponent.value + delta,
                 sliderComponent.minValue,
                 sliderComponent.maxValue
             );
         }
+
+        private static bool HasElements<T>(T[] array) => array != null && array.Length > 0;
     }
 }
