@@ -16,6 +16,11 @@ namespace Turnroot.UI.Components.Menu.Submenu
 
         public event System.Action<int> onValueChanged;
 
+        private void Start()
+        {
+            UpdateDisplay();
+        }
+
         public void InitializeCarousel<T>(T currentValue = default)
             where T : System.Enum
         {
@@ -33,6 +38,12 @@ namespace Turnroot.UI.Components.Menu.Submenu
             {
                 CurrentIndex = System.Array.IndexOf(enumValues, currentValue);
             }
+            else
+            {
+                CurrentIndex = 0;
+            }
+
+            UpdateDisplay();
         }
 
         public void IncrementIndex()

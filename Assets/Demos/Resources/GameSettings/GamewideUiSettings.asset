@@ -40,7 +40,7 @@ MonoBehaviour:
   - parentMenuName: 3
     menuName: 7
     style: 1
-    prefab: {fileID: 0}
+    prefab: {fileID: 25012695618156106, guid: 08294e0d8f33d514895d7c3eee16b741, type: 3}
   - parentMenuName: 2
     menuName: 8
     style: 1

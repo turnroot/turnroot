@@ -93,6 +93,14 @@ namespace Turnroot.Gameplay.Brain
             PlayerSettings.Bloom = data.Bloom;
             PlayerSettings.DepthOfField = data.DepthOfField;
             PlayerSettings.AnimatedCameraMovement = data.AnimatedCameraMovement;
+            PlayerSettings.AutoEndTurn = data.AutoEndTurn;
+            PlayerSettings.Permadeath = data.Permadeath;
+            PlayerSettings.DisableTurnwheel = data.DisableTurnwheel;
+            PlayerSettings.DisableTacticalLens = data.DisableTacticalLens;
+            PlayerSettings.MusicWhenPaused = data.MusicWhenPaused;
+            PlayerSettings.MusicVolume = data.MusicVolume;
+            PlayerSettings.SfxVolume = data.SfxVolume;
+            PlayerSettings.VoiceVolume = data.VoiceVolume;
         }
 
         public void SavePlayerSettings()
@@ -123,6 +131,14 @@ namespace Turnroot.Gameplay.Brain
                     Bloom = PlayerSettings.Bloom,
                     DepthOfField = PlayerSettings.DepthOfField,
                     AnimatedCameraMovement = PlayerSettings.AnimatedCameraMovement,
+                    AutoEndTurn = PlayerSettings.AutoEndTurn,
+                    Permadeath = PlayerSettings.Permadeath,
+                    DisableTurnwheel = PlayerSettings.DisableTurnwheel,
+                    DisableTacticalLens = PlayerSettings.DisableTacticalLens,
+                    MusicWhenPaused = PlayerSettings.MusicWhenPaused,
+                    MusicVolume = PlayerSettings.MusicVolume,
+                    SfxVolume = PlayerSettings.SfxVolume,
+                    VoiceVolume = PlayerSettings.VoiceVolume,
                 };
 
                 var encode = GamewideContextBrainHelpers.EncodeInstanceToString(_brain, saveData);
@@ -245,6 +261,54 @@ namespace Turnroot.Gameplay.Brain
                             PlayerSettings.AnimatedCameraMovement = animatedCamera;
                         }
                         break;
+                    case "autoendturn":
+                        if (value is bool autoEndTurn)
+                        {
+                            PlayerSettings.AutoEndTurn = autoEndTurn;
+                        }
+                        break;
+                    case "permadeath":
+                        if (value is bool permadeath)
+                        {
+                            PlayerSettings.Permadeath = permadeath;
+                        }
+                        break;
+                    case "disableturnwheel":
+                        if (value is bool disableTurnwheel)
+                        {
+                            PlayerSettings.DisableTurnwheel = disableTurnwheel;
+                        }
+                        break;
+                    case "disabletacticallens":
+                        if (value is bool disableTacticalLens)
+                        {
+                            PlayerSettings.DisableTacticalLens = disableTacticalLens;
+                        }
+                        break;
+                    case "musicwhenpaused":
+                        if (value is bool musicWhenPaused)
+                        {
+                            PlayerSettings.MusicWhenPaused = musicWhenPaused;
+                        }
+                        break;
+                    case "musicvolume":
+                        if (value is float musicVolume)
+                        {
+                            PlayerSettings.MusicVolume = Mathf.Clamp01(musicVolume);
+                        }
+                        break;
+                    case "sfxvolume":
+                        if (value is float sfxVolume)
+                        {
+                            PlayerSettings.SfxVolume = Mathf.Clamp01(sfxVolume);
+                        }
+                        break;
+                    case "voicevolume":
+                        if (value is float voiceVolume)
+                        {
+                            PlayerSettings.VoiceVolume = Mathf.Clamp01(voiceVolume);
+                        }
+                        break;
                     default:
 #if UNITY_EDITOR
                         Debug.LogWarning($"Unknown setting: {settingName}");
@@ -302,5 +366,17 @@ namespace Turnroot.Gameplay.Brain
         public bool Bloom = true;
         public bool DepthOfField = true;
         public bool AnimatedCameraMovement = true;
+        public bool AutoEndTurn = true;
+
+        // Additional gameplay settings
+        public bool Permadeath = false;
+        public bool DisableTurnwheel = false;
+        public bool DisableTacticalLens = false;
+        public bool MusicWhenPaused = true;
+
+        // Audio settings
+        public float MusicVolume = 0.8f;
+        public float SfxVolume = 0.8f;
+        public float VoiceVolume = 0.8f;
     }
 }

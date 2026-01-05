@@ -23,6 +23,9 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
         public MenuLocation gameSettingsGraphicsLocation;
 
         [HideInInspector]
+        public MenuLocation gameSettingsGameplayLocation;
+
+        [HideInInspector]
         public MenuLocation preBattleMenuLocation;
 
         private bool _isTransitioning = false;
@@ -53,6 +56,7 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                 preBattleMenuLocation = uiSettings.GetPreBattleMenu();
                 settingsMenuLocation = uiSettings.GetGameSettingsMenu();
                 gameSettingsGraphicsLocation = uiSettings.GetGameSettingsGraphicsMenu();
+                gameSettingsGameplayLocation = uiSettings.GetGameSettingsGameplayMenu();
             }
 #if UNITY_EDITOR
             WarnPrefabs();

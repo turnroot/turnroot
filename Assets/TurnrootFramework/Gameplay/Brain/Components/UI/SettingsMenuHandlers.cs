@@ -108,7 +108,7 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             // Handle sliders in the panel row
             if (panelRow.rowType == PanelRow.RowType.Slider && panelRow.sliderComponent != null)
             {
-                string settingName = panelRow.labelText?.text?.Trim();
+                string settingName = panelRow.sliderComponent.gameObject.name;
                 if (!string.IsNullOrEmpty(settingName))
                 {
                     SetupSliderBinding(
@@ -135,7 +135,7 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             // Handle carousels in the panel row
             if (panelRow.rowType == PanelRow.RowType.Carousel && panelRow.carouselComponent != null)
             {
-                string settingName = panelRow.labelText?.text?.Trim();
+                string settingName = panelRow.carouselComponent.gameObject.name;
                 if (!string.IsNullOrEmpty(settingName))
                 {
                     SetupCarouselBinding(
@@ -171,6 +171,15 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                     break;
                 case "quality":
                     slider.value = settings.Quality;
+                    break;
+                case "musicvolume":
+                    slider.value = settings.MusicVolume;
+                    break;
+                case "sfxvolume":
+                    slider.value = settings.SfxVolume;
+                    break;
+                case "voicevolume":
+                    slider.value = settings.VoiceVolume;
                     break;
                 default:
                     return; // Unknown slider setting
@@ -219,6 +228,21 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                 case "animatedcameramovement":
                     toggle.isOn = settings.AnimatedCameraMovement;
                     break;
+                case "autoendturn":
+                    toggle.isOn = settings.AutoEndTurn;
+                    break;
+                case "permadeath":
+                    toggle.isOn = settings.Permadeath;
+                    break;
+                case "disableturnwheel":
+                    toggle.isOn = settings.DisableTurnwheel;
+                    break;
+                case "disabletacticallens":
+                    toggle.isOn = settings.DisableTacticalLens;
+                    break;
+                case "musicwhenpaused":
+                    toggle.isOn = settings.MusicWhenPaused;
+                    break;
                 default:
                     return; // Unknown toggle setting
             }
@@ -253,6 +277,15 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                     break;
                 case "quality":
                     slider.value = settings.Quality;
+                    break;
+                case "musicvolume":
+                    slider.value = settings.MusicVolume;
+                    break;
+                case "sfxvolume":
+                    slider.value = settings.SfxVolume;
+                    break;
+                case "voicevolume":
+                    slider.value = settings.VoiceVolume;
                     break;
                 default:
                     return; // Unknown slider setting
@@ -332,7 +365,7 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                         case "battlegridsetting":
                             gamewideContext.UpdatePlayerSetting("BattleGridSetting", enumValue);
                             break;
-                        case "battlegriddisplaystyle":
+                        case "battlegridstyle":
                             gamewideContext.UpdatePlayerSetting("BattleGridStyle", enumValue);
                             break;
                         case "startunitsetting":

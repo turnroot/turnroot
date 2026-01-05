@@ -80,6 +80,13 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                     TransitionToSettingsMenu(settingsMenuLocation, gameSettingsGraphicsLocation)
                 );
             }
+            else if (item.ItemName == "Gameplay")
+            {
+                _isTransitioning = true;
+                StartCoroutine(
+                    TransitionToSettingsMenu(settingsMenuLocation, gameSettingsGameplayLocation)
+                );
+            }
         }
 
         #endregion
