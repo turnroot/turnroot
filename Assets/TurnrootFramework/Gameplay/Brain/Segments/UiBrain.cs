@@ -11,6 +11,8 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
 {
     public partial class UiBrain : BrainComponent
     {
+        #region Fields and Properties
+
         [HideInInspector]
         public GamewideUiSettings uiSettings;
 
@@ -37,6 +39,10 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
 
         [HideInInspector]
         public bool IsInSubMenu => CurrentMenuDepth > 0;
+
+        #endregion
+
+        #region Unity Lifecycle and Initialization
 
         protected override void Awake()
         {
@@ -76,6 +82,10 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                 Debug.LogError("UiBrain: Pre-battle menu location not found!");
             }
         }
+
+        #endregion
+
+        #region Brain Events and State Management
 
         private System.Action<BrainState> _onStateChangedHandler;
 
@@ -140,6 +150,10 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             // Clean up back button
             DestroyBackButton();
         }
+
+        #endregion
+
+        #region PreBattle UI Management
 
         public void HandlePreBattleUi()
         {
@@ -215,6 +229,8 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                 // TODO: Set up grid prebattle menu handling
             }
         }
+
+        #endregion
 
         #region Back Button Management
 
