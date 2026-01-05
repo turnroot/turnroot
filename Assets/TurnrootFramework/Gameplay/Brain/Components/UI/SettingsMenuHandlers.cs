@@ -141,17 +141,17 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                 Destroy(fromInstance);
                 fromMenuLocation.activeInstance = null;
             }
-            // If transitioning from settings to sub-menu (like graphics), keep settings menu but hidden
-
-            // Instantiate target menu if it doesn't exist
-            if (toMenuLocation.activeInstance == null)
+            else
             {
-                toMenuLocation.activeInstance = Instantiate(toMenuLocation.prefab);
+                // If transitioning from settings to sub-menu (like graphics), disable parent menu
+                // Disable the parent menu's input handling and interaction
+                if (fromInstance.TryGetComponent<MenuBase>(out var parentMenu))
+                {
+                    parentMenu.enabled = false;
+                }
+                // Also disable the GameObject to prevent any input handling
+                fromInstance.SetActive(false);
             }
-
-            if (!toMenuLocation.activeInstance.TryGetComponent<UIFade>(out var toFade))
-            {
-                toFade = toMenuLocation.activeInstance.AddComponent<UIFade>();
                 toFade.lerpTime = uiSettings.MenuInternalTransitionTime;
             }
 
@@ -286,12 +286,20 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             CurrentMenuDepth = Mathf.Max(0, CurrentMenuDepth - 1);
 
             // Show the parent menu (settings menu should already exist)
-            if (
-                parentMenuLocation.activeInstance != null
-                && parentMenuLocation.activeInstance.TryGetComponent<UIFade>(out var parentFade)
-            )
+            if (parentMenuLocation.activeInstance != null)
             {
-                parentFade.Show();
+                // Re-enable the parent menu that was disabled
+                parentMenuLocation.activeInstance.SetActive(true);
+                if (parentMenuLocation.activeInstance.TryGetComponent<MenuBase>(out var parentMenu))
+                {
+                    parentMenu.enabled = true;
+                }
+                
+                // Show the parent menu with fade
+                if (parentMenuLocation.activeInstance.TryGetComponent<UIFade>(out var parentFade))
+                {
+                    parentFade.Show();
+                }
             }
 
             _isTransitioning = false;
