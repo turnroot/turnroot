@@ -206,6 +206,10 @@ namespace Turnroot.GameSettings
 
         public MenuLocation GetPreBattleMenu() => GetMenuLocation(MenuName.PreBattleMenu);
 
+        public MenuLocation GetGameSettingsGraphicsMenu() => GetMenuLocation(MenuName.GraphicsMenu);
+
+        public MenuLocation GetGameSettingsGameplayMenu() => GetMenuLocation(MenuName.GameplayMenu);
+
         public MenuLocation GetGameSettingsMenu() => GetMenuLocation(MenuName.GameSettingsMenu);
 
         public void ResolveParentReferences()
@@ -243,6 +247,12 @@ namespace Turnroot.GameSettings
         [Range(0f, 1.5f)]
         public float MenuFadeTime = .75f;
 
+        [
+            Range(0f, 1.5f),
+            Tooltip("Fade time for internal menu transitions (should be shorter than MenuFadeTime)")
+        ]
+        public float MenuInternalTransitionTime = .15f;
+
         [Header("Radial Menu"), HorizontalLine(color: EColor.Yellow)]
         [Tooltip("Default normal color for radial menu segments")]
         public Color RadialMenuNormalColor = Color.white;
@@ -276,5 +286,19 @@ namespace Turnroot.GameSettings
         [Header("Radial Menu Layout")]
         [Range(200f, 2000f), Tooltip("Default radius for radial menus in pixels")]
         public float RadialMenuDefaultRadiusPixels = 800f;
+
+        [Header("Button Settings"), HorizontalLine(color: EColor.Orange)]
+        public Color RadialMenuButtonNormalColor = Color.white;
+        public Color RadialMenuButtonHoveredColor = Color.cyan;
+        public Color RadialMenuButtonSelectedColor = Color.yellow;
+        public Color GridListFilmstripButtonNormalColor = Color.white;
+        public Color GridListFilmstripButtonHoveredColor = Color.cyan;
+        public Color GridListFilmstripButtonSelectedColor = Color.yellow;
+
+        [Range(0f, 1f), Tooltip("Duration for button color transitions")]
+        public float ButtonTransitionDuration = 0.12f;
+
+        [Space, Tooltip("Prefab for menu canvas with back button that appears in menu states")]
+        public GameObject MenuCanvasPrefab;
     }
 }

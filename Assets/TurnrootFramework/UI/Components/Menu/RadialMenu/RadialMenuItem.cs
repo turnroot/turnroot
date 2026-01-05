@@ -1,5 +1,4 @@
 using Turnroot.GameSettings;
-using Turnroot.UI.Components;
 using Turnroot.Utilities;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -199,10 +198,7 @@ namespace Turnroot.UI.Components.RadialMenu
             UpdateVisuals();
         }
 
-        public void OnPointerClick(PointerEventData eventData)
-        {
-            RaiseClick();
-        }
+        public void OnPointerClick(PointerEventData eventData) => RaiseClick();
 
         public override void Select()
         {

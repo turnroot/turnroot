@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 49abcace4c16701468b7790f4defcb6c, type: 3}
+  m_Name: GameplayPlayerSettings
+  m_EditorClassIdentifier: 
+  TutorialPrompts: 1
+  GameDifficulty: 1
+  Brightness: 1
+  Gamma: 1
+  Quality: 0.3
+  Subtitles: 1
+  Bloom: 1
+  DepthOfField: 1
+  AnimatedCameraMovement: 1

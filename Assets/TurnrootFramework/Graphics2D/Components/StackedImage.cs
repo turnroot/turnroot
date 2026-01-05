@@ -188,10 +188,7 @@ namespace Turnroot.Graphics2D
             SortLayers();
         }
 
-        private void SortLayers()
-        {
-            _layers.Sort((a, b) => GetLayerOrder(a).CompareTo(GetLayerOrder(b)));
-        }
+        private void SortLayers() => _layers.Sort((a, b) => GetLayerOrder(a).CompareTo(GetLayerOrder(b)));
 
         // Subclasses must provide the subdirectory name for saving files
         // e.g., "Portraits" for Portrait class, "ItemIcons" for ItemIcon class

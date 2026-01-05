@@ -18,10 +18,7 @@ public class BrainState
         IsActive = false;
     }
 
-    public string GetFullPath()
-    {
-        return Parent != null ? $"{Parent.Name}.{Name}" : Name;
-    }
+    public string GetFullPath() => Parent != null ? $"{Parent.Name}.{Name}" : Name;
 }
 
 /// <summary>
@@ -86,6 +83,14 @@ namespace Turnroot.Gameplay.Brain
         private BrainState[] _highLevelStates;
         private BrainState _savedStateBeforePause;
 
+        // States that require back button and menu UI
+        public static readonly string[] StatesThatNeedMenus = new string[]
+        {
+            BrainStateNames.Paused,
+            BrainStateNames.MainMenu,
+            BrainStateNames.PreBattle,
+        };
+
         protected override EventPriority GetSubscriptionPriority() => EventPriority.Highest;
 
         protected override void Awake()
@@ -98,11 +103,9 @@ namespace Turnroot.Gameplay.Brain
             InitializeBattleChildStates();
         }
 
-        protected override void SubscribeToBrainEvents()
-        {
+        protected override void SubscribeToBrainEvents() =>
             // Listen for pre-battle completion and transition to Battle state
             _brain.OnPreBattleCompleted += HandlePreBattleCompleted;
-        }
 
         private void HandlePreBattleCompleted()
         {
@@ -356,6 +359,7 @@ namespace Turnroot.Gameplay.Brain
             {
                 _savedStateBeforePause = _currentState;
                 SetCurrentState(pausedState);
+                TimeManager.PauseGame();
                 _brain?.PublishPaused(_savedStateBeforePause);
             }
             else
@@ -363,6 +367,7 @@ namespace Turnroot.Gameplay.Brain
                 if (_savedStateBeforePause != null)
                 {
                     SetCurrentState(_savedStateBeforePause);
+                    TimeManager.ResumeGame();
                     _brain?.PublishResumed(_savedStateBeforePause);
                     _savedStateBeforePause = null;
                 }

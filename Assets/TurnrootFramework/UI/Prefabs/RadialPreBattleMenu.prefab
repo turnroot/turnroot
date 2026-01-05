@@ -92,8 +92,6 @@ MonoBehaviour:
   isCenter: 0
   backgroundImage: {fileID: 0}
   showIcon: 0
-  normalColor: {r: 1, g: 1, b: 1, a: 1}
-  selectedColor: {r: 1, g: 0.8, b: 0, a: 1}
   itemName: Conditions
   contentPrefab: {fileID: 3549125320510619000}
 --- !u!1 &824675290854243792
@@ -188,8 +186,6 @@ MonoBehaviour:
   isCenter: 0
   backgroundImage: {fileID: 0}
   showIcon: 0
-  normalColor: {r: 1, g: 1, b: 1, a: 1}
-  selectedColor: {r: 1, g: 0.8, b: 0, a: 1}
   itemName: Withdraw
   contentPrefab: {fileID: 2254463916952897039}
 --- !u!1 &2128088995944587315
@@ -284,8 +280,6 @@ MonoBehaviour:
   isCenter: 0
   backgroundImage: {fileID: 0}
   showIcon: 0
-  normalColor: {r: 1, g: 1, b: 1, a: 1}
-  selectedColor: {r: 1, g: 0.8, b: 0, a: 1}
   itemName: Support
   contentPrefab: {fileID: 7230573461004593974}
 --- !u!1 &2210110132164967324
@@ -380,8 +374,6 @@ MonoBehaviour:
   isCenter: 0
   backgroundImage: {fileID: 0}
   showIcon: 0
-  normalColor: {r: 1, g: 1, b: 1, a: 1}
-  selectedColor: {r: 1, g: 0.8, b: 0, a: 1}
   itemName: Team
   contentPrefab: {fileID: 3209372798477320242}
 --- !u!1 &5059067451870323369
@@ -476,8 +468,6 @@ MonoBehaviour:
   isCenter: 0
   backgroundImage: {fileID: 0}
   showIcon: 0
-  normalColor: {r: 1, g: 1, b: 1, a: 1}
-  selectedColor: {r: 1, g: 0.8, b: 0, a: 1}
   itemName: Inventory
   contentPrefab: {fileID: 516390953557235000}
 --- !u!1 &5171598503745212547
@@ -572,8 +562,6 @@ MonoBehaviour:
   isCenter: 0
   backgroundImage: {fileID: 0}
   showIcon: 0
-  normalColor: {r: 1, g: 1, b: 1, a: 1}
-  selectedColor: {r: 1, g: 0.8, b: 0, a: 1}
   itemName: Settings
   contentPrefab: {fileID: 781720104127964834}
 --- !u!1 &6213366345014498559
@@ -667,7 +655,6 @@ MonoBehaviour:
   isCenter: 1
   unselectedSprite: {fileID: 21300000, guid: 4e49d1eeb7dfbea46ae3b547f41413bc, type: 3}
   selectedSprite: {fileID: 21300000, guid: ef1bef81cb553544b9f50419888dd989, type: 3}
-  _editor_isCenterProxy: 0
   targetImage: {fileID: 1132824649369991398}
 --- !u!1 &7562907239699953889
 GameObject:
@@ -682,6 +669,7 @@ GameObject:
   - component: {fileID: 4430320995993006623}
   - component: {fileID: 2336462592861261794}
   - component: {fileID: 4515867107724084789}
+  - component: {fileID: 6288929054517681878}
   m_Layer: 5
   m_Name: RadialPreBattleMenu
   m_TagString: Untagged
@@ -791,6 +779,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a3d4b2881f6ab094580d3cd2628a43cf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  segmentNames: []
   menuItems:
   - {fileID: 6229555922956272055}
   - {fileID: 7301240092338355863}
@@ -957,6 +946,19 @@ MonoBehaviour:
       m_Action: Select
       m_Flags: 0
     m_Flags: 0
+  uiBrain: {fileID: 0}
+--- !u!225 &6288929054517681878
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7562907239699953889}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!1 &8678074654602018263
 GameObject:
   m_ObjectHideFlags: 0
@@ -1049,8 +1051,6 @@ MonoBehaviour:
   isCenter: 0
   backgroundImage: {fileID: 0}
   showIcon: 0
-  normalColor: {r: 1, g: 1, b: 1, a: 1}
-  selectedColor: {r: 1, g: 0.8, b: 0, a: 1}
   itemName: Skills
   contentPrefab: {fileID: 2013563078241500323}
 --- !u!1001 &194622566803809214

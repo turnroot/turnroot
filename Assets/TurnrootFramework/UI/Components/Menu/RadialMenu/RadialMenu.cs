@@ -1,10 +1,8 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using NaughtyAttributes;
 using Turnroot.Gameplay.Brain.UI;
 using Turnroot.GameSettings;
-using Turnroot.UI.Components;
 using Turnroot.Utilities;
 using TurnrootFramework.Gameplay.Brain.Segments;
 using UnityEngine;
@@ -88,9 +86,6 @@ namespace Turnroot.UI.Components.RadialMenu
 
         [SerializeField]
         private float navigationRepeatDelay;
-
-        private int _navDir = 0;
-        private int _lastNavDir = 0;
         private float _navHoldTime = 0f;
         private float _navRepeatTimer = 0f;
 
@@ -98,7 +93,7 @@ namespace Turnroot.UI.Components.RadialMenu
         private float _justNavTimer = 0f;
 
         [SerializeField]
-        private float reversalWindow = 0.6f;
+        private float reversalWindow = 1.2f;
 
         [SerializeField]
         private float inputRepeatDelay = 0.2f;
@@ -114,7 +109,6 @@ namespace Turnroot.UI.Components.RadialMenu
         private bool _centerSelected = false;
         private float _rotStep;
         private Vector2 _lastNavigateInput;
-        private float _lastInputTime;
 
         public PrebattleOptions FindPreBattleOptionByName(string name)
         {

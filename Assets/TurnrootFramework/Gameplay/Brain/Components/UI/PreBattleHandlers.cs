@@ -1,7 +1,7 @@
 using Turnroot.Gameplay.Brain;
 using Turnroot.Gameplay.Brain.UI;
 using Turnroot.UI.Components;
-using Turnroot.UI.Components.ListMenu;
+using Turnroot.UI.Components.Menu;
 using Turnroot.UI.Components.RadialMenu;
 using UnityEngine;
 #if COFFEE_UIEFFECTS
@@ -12,6 +12,8 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
 {
     public partial class UiBrain : BrainComponent
     {
+        #region PreBattle Menu Event Handlers
+
         public void HandlePreBattleMenuNavigate(MenuItemBase item)
         {
             // Handle navigation to item
@@ -22,10 +24,15 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             // Handle selection of item
             if (item.IsCenter)
             {
+                // Center selection should use slow fade speed for dramatic effect
+                SetPreBattleMenuFadeSpeed(uiSettings.MenuFadeTime);
                 HandleStartBattleClick();
             }
             else
             {
+                // Segment selection should use fast fade speed for responsive UI
+                SetPreBattleMenuFadeSpeed(uiSettings.MenuInternalTransitionTime);
+
                 var preBattleMenuLocation = uiSettings?.GetPreBattleMenu();
                 var radialMenu = preBattleMenuLocation?.activeInstance?.GetComponent<RadialMenu>();
                 if (radialMenu != null)
@@ -59,10 +66,27 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             }
         }
 
-        private void HandlePreBattleMenuSettings()
+        #endregion
+
+        #region PreBattle Settings and Helpers
+
+        private void HandlePreBattleMenuSettings() => OpenMainGameSettingsMenu();
+
+        private void SetPreBattleMenuFadeSpeed(float fadeTime)
         {
-            OpenMainGameSettingsMenu();
+            var preBattleMenuLocation = uiSettings?.GetPreBattleMenu();
+            if (
+                preBattleMenuLocation?.activeInstance != null
+                && preBattleMenuLocation.activeInstance.TryGetComponent<UIFade>(out var uiFade)
+            )
+            {
+                uiFade.lerpTime = fadeTime;
+            }
         }
+
+        #endregion
+
+        #region Battle Transition Management
 
         private void HandleStartBattleClick()
         {
@@ -78,8 +102,7 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             if (!menuInstance.TryGetComponent<UIFade>(out var uiFade))
             {
                 // No fade component, proceed directly
-                var menu = menuInstance.GetComponent<RadialMenu>();
-                if (menu != null)
+                if (menuInstance.TryGetComponent<RadialMenu>(out var menu))
                 {
                     menu.OnNavigate -= HandlePreBattleMenuNavigate;
                     menu.OnItemSelected -= HandlePreBattleMenuSelect;
@@ -120,18 +143,16 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             // Clean up menu
             if (menuInstance != null)
             {
-                var radialMenu = menuInstance.GetComponent<RadialMenu>();
-                if (radialMenu != null)
+                if (menuInstance.TryGetComponent<RadialMenu>(out var radialMenu))
                 {
                     radialMenu.OnNavigate -= HandlePreBattleMenuNavigate;
                     radialMenu.OnItemSelected -= HandlePreBattleMenuSelect;
                 }
 
-                var listMenu = menuInstance.GetComponent<ListMenu>();
-                if (listMenu != null)
+                if (menuInstance.TryGetComponent<MenuBase>(out var menu))
                 {
-                    listMenu.OnNavigate -= HandlePreBattleMenuNavigate;
-                    listMenu.OnItemSelected -= HandlePreBattleMenuSelect;
+                    menu.OnNavigate -= HandlePreBattleMenuNavigate;
+                    menu.OnItemSelected -= HandlePreBattleMenuSelect;
                 }
                 Destroy(menuInstance);
 
@@ -147,5 +168,7 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             _brain.PublishPreBattleCompleted();
             _isTransitioning = false;
         }
+
+        #endregion
     }
 }
