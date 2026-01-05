@@ -62,13 +62,174 @@ namespace Turnroot.UI.Components.Menu.Submenu
 
         public void SetFocused(bool focused)
         {
+            Debug.Log($"Row {rowIndex}: SetFocused({focused}) - currentSelectionIndex: {currentSelectionIndex}");
+            
             if (focused)
             {
                 SelectRow();
+                // Reset selection index when row gains focus
+                ResetSelectionIndex();
+                UpdateSelectionVisuals();
             }
             else
             {
                 DeselectRow();
+                ClearSelectionVisuals();
+                // Clear selection index when row loses focus
+                currentSelectionIndex = 0;
+            }
+        }
+
+        private void ResetSelectionIndex()
+        {
+            // Reset to first item when row gains focus
+            currentSelectionIndex = 0;
+
+            // Ensure we have valid selection bounds
+            switch (rowType)
+            {
+                case RowType.Toggles:
+                    if (toggleComponents != null && toggleComponents.Length > 0)
+                    {
+                        currentSelectionIndex = Mathf.Clamp(
+                            currentSelectionIndex,
+                            0,
+                            toggleComponents.Length - 1
+                        );
+                    }
+                    break;
+                case RowType.Button:
+                    if (buttonComponents != null && buttonComponents.Length > 0)
+                    {
+                        currentSelectionIndex = Mathf.Clamp(
+                            currentSelectionIndex,
+                            0,
+                            buttonComponents.Length - 1
+                        );
+                    }
+                    break;
+            }
+        }
+
+        private void UpdateSelectionVisuals()
+        {
+            switch (rowType)
+            {
+                case RowType.Toggles:
+                    UpdateToggleVisuals();
+                    break;
+                case RowType.Button:
+                    UpdateButtonVisuals();
+                    break;
+            }
+        }
+
+        private void ClearSelectionVisuals()
+        {
+            Debug.Log($"Row {rowIndex}: ClearSelectionVisuals called for rowType: {rowType}");
+            
+            switch (rowType)
+            {
+                case RowType.Toggles:
+                    ClearToggleVisuals();
+                    break;
+                case RowType.Button:
+                    ClearButtonVisuals();
+                    break;
+                default:
+                    Debug.Log($"Row {rowIndex}: No visual clearing needed for rowType: {rowType}");
+                    break;
+            }
+        }
+
+        private void UpdateToggleVisuals()
+        {
+            if (toggleComponents == null || toggleComponents.Length == 0)
+            {
+                return;
+            }
+
+            Debug.Log($"Row {rowIndex}: UpdateToggleVisuals - highlighting index {currentSelectionIndex} of {toggleComponents.Length}");
+
+            for (int i = 0; i < toggleComponents.Length; i++)
+            {
+                if (toggleComponents[i] != null)
+                {
+                    var color = i == currentSelectionIndex 
+                        ? toggleComponents[i].colors.highlightedColor 
+                        : toggleComponents[i].colors.normalColor;
+                    
+                    toggleComponents[i].targetGraphic.color = color;
+                    
+                    Debug.Log($"Row {rowIndex}: Toggle {i} ({toggleComponents[i].name}) set to {(i == currentSelectionIndex ? "HIGHLIGHTED" : "normal")} color");
+                }
+                else
+                {
+                    Debug.LogWarning($"Row {rowIndex}: Toggle {i} is null!");
+                }
+            }
+        }
+
+        private void ClearToggleVisuals()
+        {
+            if (toggleComponents == null || toggleComponents.Length == 0)
+            {
+                Debug.Log($"Row {rowIndex}: ClearToggleVisuals - no toggles to clear");
+                return;
+            }
+
+            Debug.Log($"Row {rowIndex}: ClearToggleVisuals - clearing {toggleComponents.Length} toggles");
+
+            for (int i = 0; i < toggleComponents.Length; i++)
+            {
+                if (toggleComponents[i] != null && toggleComponents[i].targetGraphic != null)
+                {
+                    toggleComponents[i].targetGraphic.color = toggleComponents[i].colors.normalColor;
+                    Debug.Log($"Row {rowIndex}: Cleared toggle {i} to normal color");
+                }
+                else
+                {
+                    Debug.LogWarning($"Row {rowIndex}: Toggle {i} or its targetGraphic is null!");
+                }
+            }
+        }
+
+        private void UpdateButtonVisuals()
+        {
+            if (buttonComponents == null || buttonComponents.Length == 0)
+            {
+                return;
+            }
+
+            for (int i = 0; i < buttonComponents.Length; i++)
+            {
+                var textComponent = buttonComponents[i]
+                    .GetComponentInChildren<TMPro.TextMeshProUGUI>();
+                if (textComponent != null)
+                {
+                    textComponent.fontStyle =
+                        i == currentSelectionIndex
+                            ? TMPro.FontStyles.Bold
+                            : TMPro.FontStyles.Normal;
+                }
+            }
+        }
+
+        private void ClearButtonVisuals()
+        {
+            if (buttonComponents == null || buttonComponents.Length == 0)
+            {
+                return;
+            }
+
+            for (int i = 0; i < buttonComponents.Length; i++)
+            {
+                var textComponent = buttonComponents[i]
+                    .GetComponentInChildren<TMPro.TextMeshProUGUI>();
+                if (textComponent != null)
+                {
+                    textComponent.fontStyle = TMPro.FontStyles.Normal;
+                }
             }
         }
 
@@ -118,8 +279,15 @@ namespace Turnroot.UI.Components.Menu.Submenu
                     {
                         return;
                     }
-                    // Deselect current
-                    toggleComponents[currentSelectionIndex].isOn = false;
+                    // Ensure currentSelectionIndex is within bounds before navigation
+                    currentSelectionIndex = Mathf.Clamp(
+                        currentSelectionIndex,
+                        0,
+                        toggleComponents.Length - 1
+                    );
+
+                    Debug.Log($"Row {rowIndex}: Before navigation - currentSelectionIndex: {currentSelectionIndex}");
+
                     // Move direction with wrapping
                     currentSelectionIndex =
                         (
@@ -127,16 +295,24 @@ namespace Turnroot.UI.Components.Menu.Submenu
                             + (direction == SubmenuRowInput.Left ? -1 : 1)
                             + toggleComponents.Length
                         ) % toggleComponents.Length;
-                    // Select new
-                    toggleComponents[currentSelectionIndex].isOn = true;
+                    
+                    Debug.Log($"Row {rowIndex}: After navigation - currentSelectionIndex: {currentSelectionIndex}");
+                    
+                    // Update visual feedback
+                    UpdateToggleVisuals();
                     break;
                 case RowType.Button:
                     if (buttonComponents == null || buttonComponents.Length == 0)
                     {
                         return;
                     }
-                    // Deselect current
-                    buttonComponents[currentSelectionIndex].OnDeselect(null);
+                    // Ensure currentSelectionIndex is within bounds before navigation
+                    currentSelectionIndex = Mathf.Clamp(
+                        currentSelectionIndex,
+                        0,
+                        buttonComponents.Length - 1
+                    );
+
                     // Move direction with wrapping
                     currentSelectionIndex =
                         (
@@ -144,8 +320,8 @@ namespace Turnroot.UI.Components.Menu.Submenu
                             + (direction == SubmenuRowInput.Left ? -1 : 1)
                             + buttonComponents.Length
                         ) % buttonComponents.Length;
-                    // Select new
-                    buttonComponents[currentSelectionIndex].Select();
+                    // Update visual feedback
+                    UpdateButtonVisuals();
                     break;
                 // TODO: Handle Carousel
             }
@@ -163,10 +339,21 @@ namespace Turnroot.UI.Components.Menu.Submenu
                     {
                         return;
                     }
+                    // Ensure currentSelectionIndex is within bounds
+                    currentSelectionIndex = Mathf.Clamp(
+                        currentSelectionIndex,
+                        0,
+                        toggleComponents.Length - 1
+                    );
+                    
+                    Debug.Log($"Row {rowIndex}: Toggling index {currentSelectionIndex} of {toggleComponents.Length} toggles - Toggle name: {toggleComponents[currentSelectionIndex].name}");
+                    
                     // Toggle the current selection
                     toggleComponents[currentSelectionIndex].isOn = !toggleComponents[
                         currentSelectionIndex
                     ].isOn;
+                    
+                    Debug.Log($"Row {rowIndex}: Toggle {toggleComponents[currentSelectionIndex].name} is now {(toggleComponents[currentSelectionIndex].isOn ? "ON" : "OFF")}");
                     break;
                 case RowType.Button:
                     if (buttonComponents == null || buttonComponents.Length == 0)

@@ -54,7 +54,9 @@ namespace Turnroot.UI.Components.Menu.Submenu
         private void HandleInput()
         {
             if (panelRows == null || panelRows.Length == 0)
+            {
                 return;
+            }
 
             if (navigateUpAction?.WasPressedThisFrame() == true)
             {
