@@ -38,14 +38,6 @@ namespace Turnroot.UI.Components.Menu.Submenu
 
         [ShowIf("rowType", RowType.Carousel)]
         public MenuCarousel carouselComponent;
-
-        public void InitializeRow()
-        {
-            // TODO: Initialize slider component
-            // TODO: Initialize button component
-            // TODO: Initialize carousel component
-        }
-
         public void SetFocused(bool focused)
         {
             if (focused)
@@ -74,6 +66,8 @@ namespace Turnroot.UI.Components.Menu.Submenu
             {
                 RowType.Toggles when HasElements(toggleComponents) => toggleComponents.Length - 1,
                 RowType.Button when HasElements(buttonComponents) => buttonComponents.Length - 1,
+                RowType.Carousel when carouselComponent != null => carouselComponent.Options.Count
+                    - 1,
                 _ => 0,
             };
         }
@@ -88,6 +82,9 @@ namespace Turnroot.UI.Components.Menu.Submenu
                 case RowType.Button:
                     UpdateButtonVisuals();
                     break;
+                case RowType.Carousel:
+                    UpdateCarouselVisuals();
+                    break;
             }
         }
 
@@ -101,13 +98,17 @@ namespace Turnroot.UI.Components.Menu.Submenu
                 case RowType.Button:
                     ClearButtonVisuals();
                     break;
+                case RowType.Carousel:
+                    break;
             }
         }
 
         private void UpdateToggleVisuals()
         {
             if (!HasElements(toggleComponents))
+            {
                 return;
+            }
 
             for (int i = 0; i < toggleComponents.Length; i++)
             {
@@ -121,7 +122,9 @@ namespace Turnroot.UI.Components.Menu.Submenu
         private void ClearToggleVisuals()
         {
             if (!HasElements(toggleComponents))
+            {
                 return;
+            }
 
             for (int i = 0; i < toggleComponents.Length; i++)
             {
@@ -132,7 +135,9 @@ namespace Turnroot.UI.Components.Menu.Submenu
         private void UpdateButtonVisuals()
         {
             if (!HasElements(buttonComponents))
+            {
                 return;
+            }
 
             for (int i = 0; i < buttonComponents.Length; i++)
             {
@@ -151,7 +156,9 @@ namespace Turnroot.UI.Components.Menu.Submenu
         private void ClearButtonVisuals()
         {
             if (!HasElements(buttonComponents))
+            {
                 return;
+            }
 
             for (int i = 0; i < buttonComponents.Length; i++)
             {
@@ -164,11 +171,24 @@ namespace Turnroot.UI.Components.Menu.Submenu
             }
         }
 
+        private void UpdateCarouselVisuals()
+        {
+            if (carouselComponent != null)
+            {
+                carouselComponent.UpdateDisplay();
+            }
+        }
+
         public void SelectRow()
         {
             if (labelText != null)
             {
                 labelText.fontStyle = TMPro.FontStyles.Bold;
+            }
+
+            if (rowType == RowType.Carousel)
+            {
+                UpdateCarouselVisuals();
             }
 
             isSelected = true;
@@ -180,14 +200,21 @@ namespace Turnroot.UI.Components.Menu.Submenu
             {
                 labelText.fontStyle = TMPro.FontStyles.Normal;
             }
-            
+
+            if (rowType == RowType.Carousel)
+            {
+                UpdateCarouselVisuals();
+            }
+
             isSelected = false;
         }
 
         public bool HandleInput(SubmenuRowInput input)
         {
             if (!isSelected)
+            {
                 return false;
+            }
 
             return input switch
             {
@@ -214,7 +241,9 @@ namespace Turnroot.UI.Components.Menu.Submenu
                 case RowType.Button:
                     return NavigateElements(buttonComponents, delta, UpdateButtonVisuals);
 
-                // TODO: Handle Carousel
+                case RowType.Carousel:
+                    return HandleCarouselNavigation(delta);
+
                 default:
                     return false;
             }
@@ -223,12 +252,34 @@ namespace Turnroot.UI.Components.Menu.Submenu
         private bool NavigateElements<T>(T[] elements, int delta, System.Action updateVisuals)
         {
             if (!HasElements(elements))
+            {
                 return false;
+            }
 
             currentSelectionIndex = Mathf.Clamp(currentSelectionIndex, 0, elements.Length - 1);
             currentSelectionIndex =
                 (currentSelectionIndex + delta + elements.Length) % elements.Length;
             updateVisuals?.Invoke();
+            return true;
+        }
+
+        private bool HandleCarouselNavigation(int delta)
+        {
+            if (carouselComponent == null || carouselComponent.Options.Count == 0)
+            {
+                return false;
+            }
+
+            if (delta > 0)
+            {
+                carouselComponent.IncrementIndex();
+            }
+            else if (delta < 0)
+            {
+                carouselComponent.DecrementIndex();
+            }
+
+            currentSelectionIndex = carouselComponent.CurrentIndex;
             return true;
         }
 
@@ -241,7 +292,9 @@ namespace Turnroot.UI.Components.Menu.Submenu
 
                 case RowType.Toggles:
                     if (!HasElements(toggleComponents))
+                    {
                         return false;
+                    }
 
                     currentSelectionIndex = Mathf.Clamp(
                         currentSelectionIndex,
@@ -253,12 +306,16 @@ namespace Turnroot.UI.Components.Menu.Submenu
 
                 case RowType.Button:
                     if (!HasElements(buttonComponents))
+                    {
                         return false;
+                    }
 
                     buttonComponents[currentSelectionIndex]?.onClick.Invoke();
                     return true;
 
-                // TODO: Handle Carousel
+                case RowType.Carousel:
+                    return true;
+
                 default:
                     return false;
             }
@@ -267,7 +324,9 @@ namespace Turnroot.UI.Components.Menu.Submenu
         private void AdjustSlider(float delta)
         {
             if (rowType != RowType.Slider || sliderComponent == null)
+            {
                 return;
+            }
 
             sliderComponent.value = Mathf.Clamp(
                 sliderComponent.value + delta,

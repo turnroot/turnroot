@@ -131,6 +131,21 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                     }
                 }
             }
+
+            // Handle carousels in the panel row
+            if (panelRow.rowType == PanelRow.RowType.Carousel && panelRow.carouselComponent != null)
+            {
+                string settingName = panelRow.labelText?.text?.Trim();
+                if (!string.IsNullOrEmpty(settingName))
+                {
+                    SetupCarouselBinding(
+                        panelRow.carouselComponent,
+                        settingName,
+                        settings,
+                        gamewideContext
+                    );
+                }
+            }
         }
 
         private void SetupSliderBinding(
@@ -249,6 +264,81 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             {
                 gamewideContext.UpdatePlayerSetting(settingName, value);
             });
+        }
+
+        private void SetupCarouselBinding(
+            MenuCarousel carousel,
+            string settingName,
+            GameplayPlayerSettings settings,
+            GamewideContextBrain gamewideContext
+        )
+        {
+            if (carousel == null)
+                return;
+
+            // Initialize carousel value from settings
+            switch (settingName.ToLower())
+            {
+                case "gamedifficulty":
+                    carousel.InitializeCarousel(settings.GameDifficulty);
+                    break;
+                case "speedsetting":
+                    carousel.InitializeCarousel(settings.SpeedSetting);
+                    break;
+                case "skipenemyturnanimations":
+                    carousel.InitializeCarousel(settings.SkipEnemyTurnAnimations);
+                    break;
+                case "battlegridsetting":
+                    carousel.InitializeCarousel(settings.BattleGridSetting);
+                    break;
+                case "battlegridstyle":
+                    carousel.InitializeCarousel(settings.BattleGridStyle);
+                    break;
+                case "startunitsetting":
+                    carousel.InitializeCarousel(settings.StartUnitSetting);
+                    break;
+                default:
+                    return; // Unknown carousel setting
+            }
+
+            carousel.UpdateDisplay();
+
+            // Set up change listener
+            carousel.onValueChanged += index =>
+            {
+                if (
+                    carousel.OptionStringToEnumValue.TryGetValue(
+                        carousel.Options[index],
+                        out var enumValue
+                    )
+                )
+                {
+                    switch (settingName.ToLower())
+                    {
+                        case "gamedifficulty":
+                            gamewideContext.UpdatePlayerSetting("GameDifficulty", enumValue);
+                            break;
+                        case "speedsetting":
+                            gamewideContext.UpdatePlayerSetting("SpeedSetting", enumValue);
+                            break;
+                        case "skipenemyturnanimations":
+                            gamewideContext.UpdatePlayerSetting(
+                                "SkipEnemyTurnAnimations",
+                                enumValue
+                            );
+                            break;
+                        case "battlegridsetting":
+                            gamewideContext.UpdatePlayerSetting("BattleGridSetting", enumValue);
+                            break;
+                        case "battlegriddisplaystyle":
+                            gamewideContext.UpdatePlayerSetting("BattleGridStyle", enumValue);
+                            break;
+                        case "startunitsetting":
+                            gamewideContext.UpdatePlayerSetting("StartUnitSetting", enumValue);
+                            break;
+                    }
+                }
+            };
         }
 
         #endregion

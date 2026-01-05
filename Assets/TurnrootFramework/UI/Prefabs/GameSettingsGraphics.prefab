@@ -228,6 +228,7 @@ MonoBehaviour:
   toggleComponents:
   - {fileID: 5546612171255677828}
   - {fileID: 4853674419293583694}
+  - {fileID: 5568349520463974475}
   buttonComponents: []
   carouselComponent: {fileID: 0}
 --- !u!1 &288509851398435586

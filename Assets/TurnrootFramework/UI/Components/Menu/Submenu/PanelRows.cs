@@ -22,7 +22,6 @@ namespace Turnroot.UI.Components.Menu.Submenu
             var index = 0;
             foreach (var row in panelRows)
             {
-                row.InitializeRow();
                 row.rowIndex = index;
                 index++;
             }

@@ -465,6 +465,26 @@ namespace Turnroot.Gameplay.Brain
                         if (value is GameplayPlayerSettings.DifficultyLevel difficulty)
                             PlayerSettings.GameDifficulty = difficulty;
                         break;
+                    case "speedsetting":
+                        if (value is GameplayPlayerSettings.GameSpeed speed)
+                            PlayerSettings.SpeedSetting = speed;
+                        break;
+                    case "skipenemyturnanimations":
+                        if (value is GameplayPlayerSettings.SkipEnemyTurn skipEnemyTurn)
+                            PlayerSettings.SkipEnemyTurnAnimations = skipEnemyTurn;
+                        break;
+                    case "battlegridsetting":
+                        if (value is GameplayPlayerSettings.BattleGridDisplay battleGridDisplay)
+                            PlayerSettings.BattleGridSetting = battleGridDisplay;
+                        break;
+                    case "battlegridstyle":
+                        if (value is GameplayPlayerSettings.BattleGridDisplayStyle battleGridStyle)
+                            PlayerSettings.BattleGridStyle = battleGridStyle;
+                        break;
+                    case "startunitsetting":
+                        if (value is GameplayPlayerSettings.StartTurnUnit startTurnUnit)
+                            PlayerSettings.StartUnitSetting = startTurnUnit;
+                        break;
                     case "brightness":
                         if (value is float brightness)
                             PlayerSettings.Brightness = Mathf.Clamp01(brightness);
