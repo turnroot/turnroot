@@ -180,6 +180,7 @@ namespace Turnroot.UI.Components.Menu.Submenu
             {
                 labelText.fontStyle = TMPro.FontStyles.Normal;
             }
+            
             isSelected = false;
         }
 
