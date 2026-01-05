@@ -368,20 +368,28 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
         {
             // Check all possible settings submenus to find which one is active
             if (gameSettingsGraphicsLocation?.activeInstance != null)
+            {
                 return gameSettingsGraphicsLocation;
+            }
 
             // Add other submenu locations as they're created
             var audioMenuLocation = uiSettings?.GetMenuLocation(MenuName.AudioMenu);
             if (audioMenuLocation?.activeInstance != null)
+            {
                 return audioMenuLocation;
+            }
 
             var controlsMenuLocation = uiSettings?.GetMenuLocation(MenuName.ControlsMenu);
             if (controlsMenuLocation?.activeInstance != null)
+            {
                 return controlsMenuLocation;
+            }
 
             var gameplayMenuLocation = uiSettings?.GetMenuLocation(MenuName.GameplayMenu);
             if (gameplayMenuLocation?.activeInstance != null)
+            {
                 return gameplayMenuLocation;
+            }
 
             return null;
         }

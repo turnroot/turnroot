@@ -40,7 +40,9 @@ namespace Turnroot.UI.Components.Menu.Submenu
         private void Awake()
         {
             if (backgroundImage == null)
+            {
                 backgroundImage = GetComponent<Image>();
+            }
 
             UpdateCheckmark();
             SetHighlighted(false);

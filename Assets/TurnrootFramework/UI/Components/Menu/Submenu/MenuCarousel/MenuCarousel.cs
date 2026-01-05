@@ -41,7 +41,9 @@ namespace Turnroot.UI.Components.Menu.Submenu
             CurrentIndex = (CurrentIndex + 1) % Options.Count;
             UpdateDisplay();
             if (oldIndex != CurrentIndex)
+            {
                 onValueChanged?.Invoke(CurrentIndex);
+            }
         }
 
         public void DecrementIndex()
@@ -50,7 +52,9 @@ namespace Turnroot.UI.Components.Menu.Submenu
             CurrentIndex = (CurrentIndex - 1 + Options.Count) % Options.Count;
             UpdateDisplay();
             if (oldIndex != CurrentIndex)
+            {
                 onValueChanged?.Invoke(CurrentIndex);
+            }
         }
 
         public void GetCurrentEnumValue<T>(out T enumValue)

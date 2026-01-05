@@ -274,7 +274,9 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
         )
         {
             if (carousel == null)
+            {
                 return;
+            }
 
             // Initialize carousel value from settings
             switch (settingName.ToLower())

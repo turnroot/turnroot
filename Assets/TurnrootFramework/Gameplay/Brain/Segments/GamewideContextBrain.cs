@@ -24,6 +24,8 @@ namespace Turnroot.Gameplay.Brain
             object
         > _activeRosterInstances = new();
 
+        private PlayerSettingsPersistence _playerSettingsPersistence;
+
         public enum TamperPolicy
         {
             NotifyOnly,
@@ -35,7 +37,7 @@ namespace Turnroot.Gameplay.Brain
         public TamperPolicy Policy { get; } = TamperPolicy.Replace;
 
         [HideInInspector]
-        public GameplayPlayerSettings PlayerSettings { get; private set; }
+        public GameplayPlayerSettings PlayerSettings => _playerSettingsPersistence?.PlayerSettings;
 
         protected override EventPriority GetSubscriptionPriority() => EventPriority.High;
 
@@ -54,8 +56,12 @@ namespace Turnroot.Gameplay.Brain
             _rosterManager = new RosterManager(_brain, _rosterPersistence);
             _characterPersistence = new CharacterPersistence(_brain);
 
-            // Initialize player settings
-            InitializePlayerSettings();
+            // Initialize player settings persistence
+            _playerSettingsPersistence = new PlayerSettingsPersistence(
+                GetComponent<LongTermMemory>(),
+                this
+            );
+            _playerSettingsPersistence.Initialize();
 
             // Try to find the persistent player roster asset in Resources and recall it from LTM if present
             TryLoadAndRecallPersistentPlayerRoster();
@@ -331,208 +337,11 @@ namespace Turnroot.Gameplay.Brain
 
         #endregion
 
-        #region Player Settings Persistence
-
-        private void InitializePlayerSettings()
-        {
-            PlayerSettings = GameplayPlayerSettings.Instance;
-            if (PlayerSettings == null)
-            {
-#if UNITY_EDITOR
-                Debug.LogError(
-                    "GamewideContextBrain: Could not find GameplayPlayerSettings instance"
-                );
-#endif
-                return;
-            }
-
-            // Load saved settings from LTM
-            LoadPlayerSettingsFromLTM();
-        }
-
-        private void LoadPlayerSettingsFromLTM()
-        {
-            var ltm = GetComponent<LongTermMemory>();
-            if (ltm == null)
-                return;
-
-            var settingsData = ltm.Recall("PlayerSettings");
-            if (string.IsNullOrEmpty(settingsData))
-                return;
-
-            try
-            {
-                var decode =
-                    GamewideContextBrainHelpers.DecodeInstanceFromString<PlayerSettingsSaveData>(
-                        this,
-                        settingsData
-                    );
-                if (decode.Success && decode.Value != null)
-                {
-                    ApplySettingsData(decode.Value);
-#if UNITY_EDITOR
-                    Debug.Log("GamewideContextBrain: Loaded player settings from LTM");
-#endif
-                }
-            }
-            catch (System.Exception ex)
-            {
-#if UNITY_EDITOR
-                Debug.LogError($"Failed to load player settings: {ex.Message}");
-#endif
-            }
-        }
-
-        private void ApplySettingsData(PlayerSettingsSaveData data)
-        {
-            if (PlayerSettings == null)
-                return;
-
-            PlayerSettings.TutorialPrompts = data.TutorialPrompts;
-            PlayerSettings.GameDifficulty = data.GameDifficulty;
-            PlayerSettings.Brightness = data.Brightness;
-            PlayerSettings.Gamma = data.Gamma;
-            PlayerSettings.Quality = data.Quality;
-            PlayerSettings.Subtitles = data.Subtitles;
-            PlayerSettings.Bloom = data.Bloom;
-            PlayerSettings.DepthOfField = data.DepthOfField;
-            PlayerSettings.AnimatedCameraMovement = data.AnimatedCameraMovement;
-        }
-
-        private void HandleSavePlayerSettingsRequested()
-        {
-            if (PlayerSettings == null)
-            {
-#if UNITY_EDITOR
-                Debug.LogWarning("GamewideContextBrain: No player settings to save");
-#endif
-                return;
-            }
-
-            try
-            {
-                var saveData = new PlayerSettingsSaveData
-                {
-                    TutorialPrompts = PlayerSettings.TutorialPrompts,
-                    GameDifficulty = PlayerSettings.GameDifficulty,
-                    Brightness = PlayerSettings.Brightness,
-                    Gamma = PlayerSettings.Gamma,
-                    Quality = PlayerSettings.Quality,
-                    Subtitles = PlayerSettings.Subtitles,
-                    Bloom = PlayerSettings.Bloom,
-                    DepthOfField = PlayerSettings.DepthOfField,
-                    AnimatedCameraMovement = PlayerSettings.AnimatedCameraMovement,
-                };
-
-                var encode = GamewideContextBrainHelpers.EncodeInstanceToString(this, saveData);
-                if (!encode.Success)
-                {
-                    Debug.LogError(
-                        $"GamewideContextBrain: Failed to encode player settings: {encode.Error}"
-                    );
-                    return;
-                }
-
-                var ltm = GetComponent<LongTermMemory>();
-                ltm?.Remember("PlayerSettings", encode.Value);
-
-#if UNITY_EDITOR
-                Debug.Log("GamewideContextBrain: Saved player settings to LTM");
-#endif
-            }
-            catch (System.Exception ex)
-            {
-#if UNITY_EDITOR
-                Debug.LogError($"GamewideContextBrain: Save player settings failed: {ex.Message}");
-#endif
-            }
-        }
+        #region Player Settings Delegation
 
         public void UpdatePlayerSetting(string settingName, object value)
         {
-            if (PlayerSettings == null)
-                return;
-
-            try
-            {
-                switch (settingName.ToLower())
-                {
-                    case "tutorialprompts":
-                        if (value is bool tutorialPrompts)
-                            PlayerSettings.TutorialPrompts = tutorialPrompts;
-                        break;
-                    case "gamedifficulty":
-                        if (value is GameplayPlayerSettings.DifficultyLevel difficulty)
-                            PlayerSettings.GameDifficulty = difficulty;
-                        break;
-                    case "speedsetting":
-                        if (value is GameplayPlayerSettings.GameSpeed speed)
-                            PlayerSettings.SpeedSetting = speed;
-                        break;
-                    case "skipenemyturnanimations":
-                        if (value is GameplayPlayerSettings.SkipEnemyTurn skipEnemyTurn)
-                            PlayerSettings.SkipEnemyTurnAnimations = skipEnemyTurn;
-                        break;
-                    case "battlegridsetting":
-                        if (value is GameplayPlayerSettings.BattleGridDisplay battleGridDisplay)
-                            PlayerSettings.BattleGridSetting = battleGridDisplay;
-                        break;
-                    case "battlegridstyle":
-                        if (value is GameplayPlayerSettings.BattleGridDisplayStyle battleGridStyle)
-                            PlayerSettings.BattleGridStyle = battleGridStyle;
-                        break;
-                    case "startunitsetting":
-                        if (value is GameplayPlayerSettings.StartTurnUnit startTurnUnit)
-                            PlayerSettings.StartUnitSetting = startTurnUnit;
-                        break;
-                    case "brightness":
-                        if (value is float brightness)
-                            PlayerSettings.Brightness = Mathf.Clamp01(brightness);
-                        break;
-                    case "gamma":
-                        if (value is float gamma)
-                            PlayerSettings.Gamma = Mathf.Clamp(gamma, 0.5f, 2.0f);
-                        break;
-                    case "quality":
-                        if (value is float quality)
-                            PlayerSettings.Quality = Mathf.Clamp01(quality);
-                        break;
-                    case "subtitles":
-                        if (value is bool subtitles)
-                            PlayerSettings.Subtitles = subtitles;
-                        break;
-                    case "bloom":
-                        if (value is bool bloom)
-                            PlayerSettings.Bloom = bloom;
-                        break;
-                    case "depthoffield":
-                        if (value is bool depthOfField)
-                            PlayerSettings.DepthOfField = depthOfField;
-                        break;
-                    case "animatedcameramovement":
-                        if (value is bool animatedCamera)
-                            PlayerSettings.AnimatedCameraMovement = animatedCamera;
-                        break;
-                    default:
-#if UNITY_EDITOR
-                        Debug.LogWarning($"Unknown setting: {settingName}");
-#endif
-                        return;
-                }
-
-                // Auto-save after each setting change
-                HandleSavePlayerSettingsRequested();
-
-#if UNITY_EDITOR
-                Debug.Log($"Updated setting {settingName} to {value}");
-#endif
-            }
-            catch (System.Exception ex)
-            {
-#if UNITY_EDITOR
-                Debug.LogError($"Failed to update setting {settingName}: {ex.Message}");
-#endif
-            }
+            _playerSettingsPersistence?.UpdatePlayerSetting(settingName, value);
         }
 
         #endregion
@@ -545,22 +354,5 @@ namespace Turnroot.Gameplay.Brain
         public string RosterId;
         public Turnroot.Characters.Roster.UnitPlacement[] Placements;
         public Turnroot.Characters.CharacterInstance[] CharacterInstances;
-    }
-
-    // Serializable DTO for player settings saves
-    [System.Serializable]
-    public class PlayerSettingsSaveData
-    {
-        public bool TutorialPrompts = true;
-        public GameplayPlayerSettings.DifficultyLevel GameDifficulty = GameplayPlayerSettings
-            .DifficultyLevel
-            .Normal;
-        public float Brightness = 1.0f;
-        public float Gamma = 1.0f;
-        public float Quality = 0.3f;
-        public bool Subtitles = true;
-        public bool Bloom = true;
-        public bool DepthOfField = true;
-        public bool AnimatedCameraMovement = true;
     }
 }
