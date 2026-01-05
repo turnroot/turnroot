@@ -17,16 +17,6 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                 return;
             }
 
-            var settingsMenuLocation = uiSettings?.GetGameSettingsMenu();
-            if (settingsMenuLocation == null)
-            {
-#if UNITY_EDITOR
-                Debug.LogError("UiBrain: Game settings menu location not found");
-#endif
-                return;
-            }
-
-            var preBattleMenuLocation = uiSettings?.GetPreBattleMenu();
             if (preBattleMenuLocation?.activeInstance == null)
             {
 #if UNITY_EDITOR
@@ -71,30 +61,20 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             // TODO: Handle settings item selection based on item.ItemName
             // TODO: Open sub-menus or apply settings changes
             // Note: Back navigation is handled by the existing back button system
+
+            if (item.ItemName == "Graphics")
+            {
+                _isTransitioning = true;
+                StartCoroutine(
+                    TransitionToSettingsMenu(settingsMenuLocation, gameSettingsGraphicsLocation)
+                );
+            }
         }
 
         public void BackToPreBattleMenu()
         {
             if (_isTransitioning)
             {
-                return;
-            }
-
-            var settingsMenuLocation = uiSettings?.GetGameSettingsMenu();
-            if (settingsMenuLocation?.activeInstance == null)
-            {
-#if UNITY_EDITOR
-                Debug.LogError("UiBrain: Settings menu instance not found");
-#endif
-                return;
-            }
-
-            var preBattleMenuLocation = uiSettings?.GetPreBattleMenu();
-            if (preBattleMenuLocation == null)
-            {
-#if UNITY_EDITOR
-                Debug.LogError("UiBrain: Pre-battle menu location not found");
-#endif
                 return;
             }
 

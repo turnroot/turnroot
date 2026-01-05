@@ -14,6 +14,15 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
         [HideInInspector]
         public GamewideUiSettings uiSettings;
 
+        [HideInInspector]
+        public MenuLocation settingsMenuLocation;
+
+        [HideInInspector]
+        public MenuLocation gameSettingsGraphicsLocation;
+
+        [HideInInspector]
+        public MenuLocation preBattleMenuLocation;
+
         private bool _isTransitioning = false;
         private GameObject _currentMenuCanvasPrefab;
 
@@ -33,12 +42,34 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
         {
             base.Awake();
             uiSettings = GameSettingsLoader.LoadFirst<GamewideUiSettings>();
+            preBattleMenuLocation = uiSettings.GetPreBattleMenu();
+            gameSettingsGraphicsLocation = uiSettings.GetGameSettingsGraphicsMenu();
 #if UNITY_EDITOR
+            WarnPrefabs();
+#endif
+        }
+
+        protected void WarnPrefabs()
+        {
             if (uiSettings == null)
             {
                 Debug.LogError("UiBrain: GamewideUiSettings not found!");
             }
-#endif
+
+            if (settingsMenuLocation == null)
+            {
+                Debug.LogError("UiBrain: Game settings menu location not found!");
+            }
+
+            if (gameSettingsGraphicsLocation == null)
+            {
+                Debug.LogError("UiBrain: Game settings graphics menu location not found!");
+            }
+
+            if (preBattleMenuLocation == null)
+            {
+                Debug.LogError("UiBrain: Pre-battle menu location not found!");
+            }
         }
 
         private System.Action<BrainState> _onStateChangedHandler;
@@ -64,7 +95,7 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
 
             Brain.OnStateChanged += _onStateChangedHandler;
             // If the Brain already has an active state, invoke handler immediately so UI can react to the current state
-            var current = Brain?.stateBrain?.CurrentState;
+            var current = Brain.stateBrain.CurrentState;
             if (current != null)
             {
                 _onStateChangedHandler(current);
@@ -80,26 +111,19 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             }
 
             // Clean up menu events if menu still exists
-            var preBattleMenuLocation = uiSettings?.GetPreBattleMenu();
-            if (preBattleMenuLocation?.activeInstance != null)
-            {
-                if (
-                    preBattleMenuLocation.activeInstance.TryGetComponent<RadialMenu>(
-                        out var radialMenu
-                    )
-                )
-                {
-                    radialMenu.OnNavigate -= HandlePreBattleMenuNavigate;
-                    radialMenu.OnItemSelected -= HandlePreBattleMenuSelect;
-                }
 
-                if (
-                    preBattleMenuLocation.activeInstance.TryGetComponent<MenuBase>(out var listMenu)
-                )
-                {
-                    listMenu.OnNavigate -= HandlePreBattleMenuNavigate;
-                    listMenu.OnItemSelected -= HandlePreBattleMenuSelect;
-                }
+            if (
+                preBattleMenuLocation.activeInstance.TryGetComponent<RadialMenu>(out var radialMenu)
+            )
+            {
+                radialMenu.OnNavigate -= HandlePreBattleMenuNavigate;
+                radialMenu.OnItemSelected -= HandlePreBattleMenuSelect;
+            }
+
+            if (preBattleMenuLocation.activeInstance.TryGetComponent<MenuBase>(out var listMenu))
+            {
+                listMenu.OnNavigate -= HandlePreBattleMenuNavigate;
+                listMenu.OnItemSelected -= HandlePreBattleMenuSelect;
             }
 
             // Clean up back button

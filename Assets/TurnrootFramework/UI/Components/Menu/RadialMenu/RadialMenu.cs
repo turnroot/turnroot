@@ -93,7 +93,7 @@ namespace Turnroot.UI.Components.RadialMenu
         private float _justNavTimer = 0f;
 
         [SerializeField]
-        private float reversalWindow = 0.6f;
+        private float reversalWindow = 1.2f;
 
         [SerializeField]
         private float inputRepeatDelay = 0.2f;
