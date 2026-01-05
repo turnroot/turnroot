@@ -61,11 +61,15 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
         private void SetupSettingsUIBindings(GameObject menuInstance)
         {
             if (menuInstance == null)
+            {
                 return;
+            }
 
             var gamewideContext = _brain.GetComponent<GamewideContextBrain>();
             if (gamewideContext?.PlayerSettings == null)
+            {
                 return;
+            }
 
             // Find all PanelRow components and set up their events
             var panelRows = menuInstance.GetComponentsInChildren<PanelRow>();
@@ -95,7 +99,9 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
         )
         {
             if (panelRow == null)
+            {
                 return;
+            }
 
             var settings = gamewideContext.PlayerSettings;
 
@@ -135,7 +141,9 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
         )
         {
             if (slider == null)
+            {
                 return;
+            }
 
             // Initialize slider value from settings
             switch (settingName.ToLower())
@@ -161,53 +169,15 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             });
         }
 
-        private void SetupToggleBinding(
-            SimpleToggle toggle,
-            string settingName,
-            GameplayPlayerSettings settings,
-            GamewideContextBrain gamewideContext
-        )
-        {
-            if (toggle == null)
-                return;
-
-            // Initialize toggle value from settings
-            switch (settingName.ToLower())
-            {
-                case "tutorialprompts":
-                    toggle.isOn = settings.TutorialPrompts;
-                    break;
-                case "subtitles":
-                    toggle.isOn = settings.Subtitles;
-                    break;
-                case "bloom":
-                    toggle.isOn = settings.Bloom;
-                    break;
-                case "depthoffield":
-                    toggle.isOn = settings.DepthOfField;
-                    break;
-                case "animatedcameramovement":
-                    toggle.isOn = settings.AnimatedCameraMovement;
-                    break;
-                default:
-                    return; // Unknown toggle setting
-            }
-
-            // Set up change listener
-            toggle.onValueChanged.RemoveAllListeners();
-            toggle.onValueChanged.AddListener(value =>
-            {
-                gamewideContext.UpdatePlayerSetting(settingName, value);
-            });
-        }
-
         private void SetupDirectToggleBinding(
             SimpleToggle toggle,
             GamewideContextBrain gamewideContext
         )
         {
             if (toggle == null || gamewideContext?.PlayerSettings == null)
+            {
                 return;
+            }
 
             // Get the setting name from the GameObject name
             string settingName = toggle.gameObject.name;
@@ -228,6 +198,9 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                 case "depthoffield":
                     toggle.isOn = settings.DepthOfField;
                     break;
+                case "lensflare":
+                    toggle.isOn = settings.LensFlare;
+                    break;
                 case "animatedcameramovement":
                     toggle.isOn = settings.AnimatedCameraMovement;
                     break;
@@ -246,7 +219,9 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
         private void SetupDirectSliderBinding(Slider slider, GamewideContextBrain gamewideContext)
         {
             if (slider == null || gamewideContext?.PlayerSettings == null)
+            {
                 return;
+            }
 
             // Get the setting name from the GameObject name
             string settingName = slider.gameObject.name;
