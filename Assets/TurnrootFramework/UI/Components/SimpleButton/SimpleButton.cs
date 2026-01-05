@@ -37,6 +37,9 @@ namespace Turnroot.UI.Components.SimpleButton
             // After the coroutine finished, and if it's a selection
             OnSelected?.Invoke();
             OnSelectedInspector?.Invoke();
+
+            // Transition back to normal color after action is invoked
+            yield return StartCoroutine(TweenColors(SelectedColor, NormalColor));
         }
 
         private System.Collections.IEnumerator TweenColors(Color startColor, Color endColor)

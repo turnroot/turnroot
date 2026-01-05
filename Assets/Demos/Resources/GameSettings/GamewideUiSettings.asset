@@ -28,7 +28,7 @@ MonoBehaviour:
   - parentMenuName: 3
     menuName: 4
     style: 1
-    prefab: {fileID: 0}
+    prefab: {fileID: 25012695618156106, guid: afc2e0d0bc0da824eb4f3edbd9467c70, type: 3}
   - parentMenuName: 3
     menuName: 5
     style: 1
