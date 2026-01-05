@@ -24,7 +24,7 @@ MonoBehaviour:
   - parentMenuName: 1
     menuName: 3
     style: 1
-    prefab: {fileID: 0}
+    prefab: {fileID: 2599841781435253208, guid: 2fc7a3f1a9ba23d48ad0c45435a5aee2, type: 3}
   - parentMenuName: 3
     menuName: 4
     style: 1
@@ -79,6 +79,7 @@ MonoBehaviour:
     prefab: {fileID: 0}
   MenuButtonSpacing: 2
   MenuFadeTime: 0.75
+  MenuInternalTransitionTime: 0.15
   RadialMenuNormalColor: {r: 0.1882353, g: 0.14509805, b: 0.2, a: 0.6509804}
   RadialMenuSelectedColor: {r: 0.355, g: 0.22151999, b: 0.28603536, a: 0.8}
   RadialMenuInnerRadius: 0.35
@@ -89,8 +90,11 @@ MonoBehaviour:
   RadialMenuNavigationInitialDelay: 0.18
   RadialMenuNavigationRepeatDelay: 0.029
   RadialMenuDefaultRadiusPixels: 400
-  ButtonNormalColor: {r: 1, g: 1, b: 1, a: 1}
-  ButtonHoveredColor: {r: 0.674, g: 0.43944803, b: 0.55337334, a: 1}
-  ButtonSelectedColor: {r: 0.84400004, g: 0.365452, b: 0.59788966, a: 1}
+  RadialMenuButtonNormalColor: {r: 1, g: 1, b: 1, a: 1}
+  RadialMenuButtonHoveredColor: {r: 0.84400004, g: 0.688704, b: 0.76399904, a: 1}
+  RadialMenuButtonSelectedColor: {r: 0.667, g: 0.41046154, b: 0.53506595, a: 1}
+  GridListFilmstripButtonNormalColor: {r: 1, g: 1, b: 1, a: 1}
+  GridListFilmstripButtonHoveredColor: {r: 0.84705883, g: 0.6901961, b: 0.7647059, a: 1}
+  GridListFilmstripButtonSelectedColor: {r: 0.67058825, g: 0.4117647, b: 0.5372549, a: 1}
   ButtonTransitionDuration: 0.12
   MenuCanvasPrefab: {fileID: 6717558390753289932, guid: 015cf6f2a44a8fd48872b6635c3ca360, type: 3}

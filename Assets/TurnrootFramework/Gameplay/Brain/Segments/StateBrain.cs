@@ -18,10 +18,7 @@ public class BrainState
         IsActive = false;
     }
 
-    public string GetFullPath()
-    {
-        return Parent != null ? $"{Parent.Name}.{Name}" : Name;
-    }
+    public string GetFullPath() => Parent != null ? $"{Parent.Name}.{Name}" : Name;
 }
 
 /// <summary>
@@ -106,11 +103,9 @@ namespace Turnroot.Gameplay.Brain
             InitializeBattleChildStates();
         }
 
-        protected override void SubscribeToBrainEvents()
-        {
+        protected override void SubscribeToBrainEvents() =>
             // Listen for pre-battle completion and transition to Battle state
             _brain.OnPreBattleCompleted += HandlePreBattleCompleted;
-        }
 
         private void HandlePreBattleCompleted()
         {

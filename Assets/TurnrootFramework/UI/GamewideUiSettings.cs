@@ -243,6 +243,12 @@ namespace Turnroot.GameSettings
         [Range(0f, 1.5f)]
         public float MenuFadeTime = .75f;
 
+        [
+            Range(0f, 1.5f),
+            Tooltip("Fade time for internal menu transitions (should be shorter than MenuFadeTime)")
+        ]
+        public float MenuInternalTransitionTime = .15f;
+
         [Header("Radial Menu"), HorizontalLine(color: EColor.Yellow)]
         [Tooltip("Default normal color for radial menu segments")]
         public Color RadialMenuNormalColor = Color.white;
@@ -278,14 +284,12 @@ namespace Turnroot.GameSettings
         public float RadialMenuDefaultRadiusPixels = 800f;
 
         [Header("Button Settings"), HorizontalLine(color: EColor.Orange)]
-        [Tooltip("Default normal color for buttons")]
-        public Color ButtonNormalColor = Color.white;
-
-        [Tooltip("Default hovered color for buttons")]
-        public Color ButtonHoveredColor = Color.cyan;
-
-        [Tooltip("Default selected color for buttons")]
-        public Color ButtonSelectedColor = Color.yellow;
+        public Color RadialMenuButtonNormalColor = Color.white;
+        public Color RadialMenuButtonHoveredColor = Color.cyan;
+        public Color RadialMenuButtonSelectedColor = Color.yellow;
+        public Color GridListFilmstripButtonNormalColor = Color.white;
+        public Color GridListFilmstripButtonHoveredColor = Color.cyan;
+        public Color GridListFilmstripButtonSelectedColor = Color.yellow;
 
         [Range(0f, 1f), Tooltip("Duration for button color transitions")]
         public float ButtonTransitionDuration = 0.12f;

@@ -1,7 +1,6 @@
 using Turnroot.Gameplay.Brain;
 using Turnroot.Gameplay.Brain.UI;
 using Turnroot.UI.Components;
-using Turnroot.UI.Components.ListMenu;
 using Turnroot.UI.Components.Menu;
 using Turnroot.UI.Components.RadialMenu;
 using UnityEngine;
@@ -23,10 +22,15 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             // Handle selection of item
             if (item.IsCenter)
             {
+                // Center selection should use slow fade speed for dramatic effect
+                SetPreBattleMenuFadeSpeed(uiSettings.MenuFadeTime);
                 HandleStartBattleClick();
             }
             else
             {
+                // Segment selection should use fast fade speed for responsive UI
+                SetPreBattleMenuFadeSpeed(uiSettings.MenuInternalTransitionTime);
+
                 var preBattleMenuLocation = uiSettings?.GetPreBattleMenu();
                 var radialMenu = preBattleMenuLocation?.activeInstance?.GetComponent<RadialMenu>();
                 if (radialMenu != null)
@@ -60,9 +64,18 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             }
         }
 
-        private void HandlePreBattleMenuSettings()
+        private void HandlePreBattleMenuSettings() => OpenMainGameSettingsMenu();
+
+        private void SetPreBattleMenuFadeSpeed(float fadeTime)
         {
-            OpenMainGameSettingsMenu();
+            var preBattleMenuLocation = uiSettings?.GetPreBattleMenu();
+            if (
+                preBattleMenuLocation?.activeInstance != null
+                && preBattleMenuLocation.activeInstance.TryGetComponent<UIFade>(out var uiFade)
+            )
+            {
+                uiFade.lerpTime = fadeTime;
+            }
         }
 
         private void HandleStartBattleClick()

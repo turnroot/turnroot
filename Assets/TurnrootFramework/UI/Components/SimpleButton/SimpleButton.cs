@@ -27,10 +27,7 @@ namespace Turnroot.UI.Components.SimpleButton
 
         public SimpleButtonRole Role;
 
-        public void Select()
-        {
-            StartCoroutine(SelectCoroutine());
-        }
+        public void Select() => StartCoroutine(SelectCoroutine());
 
         private System.Collections.IEnumerator SelectCoroutine()
         {
@@ -99,9 +96,11 @@ namespace Turnroot.UI.Components.SimpleButton
 
         private GamewideUiSettings _uiSettings;
 
-        private Color NormalColor => _uiSettings?.ButtonNormalColor ?? Color.white;
-        private Color SelectedColor => _uiSettings?.ButtonSelectedColor ?? Color.yellow;
-        private Color HoveredColor => _uiSettings?.ButtonHoveredColor ?? Color.cyan;
+        private Color NormalColor => _uiSettings?.GridListFilmstripButtonNormalColor ?? Color.white;
+        private Color SelectedColor =>
+            _uiSettings?.GridListFilmstripButtonSelectedColor ?? Color.yellow;
+        private Color HoveredColor =>
+            _uiSettings?.GridListFilmstripButtonHoveredColor ?? Color.cyan;
         private float Duration => _uiSettings?.ButtonTransitionDuration ?? 0.12f;
 
         private void Awake()
@@ -141,9 +140,6 @@ namespace Turnroot.UI.Components.SimpleButton
             }
         }
 
-        private void OnSelectActionPerformed(InputAction.CallbackContext context)
-        {
-            Select();
-        }
+        private void OnSelectActionPerformed(InputAction.CallbackContext context) => Select();
     }
 }

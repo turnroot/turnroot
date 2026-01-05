@@ -1,7 +1,6 @@
 using Turnroot.Gameplay.Brain;
 using Turnroot.Gameplay.Brain.Events;
 using Turnroot.GameSettings;
-using Turnroot.UI.Components.ListMenu;
 using Turnroot.UI.Components.Menu;
 using Turnroot.UI.Components.RadialMenu;
 using Turnroot.UI.Components.SimpleButton;
@@ -283,7 +282,16 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
 
         private void NavigateToParentMenu()
         {
-            // TODO: Implement menu hierarchy navigation
+            // Check if we're currently in the settings menu
+            var settingsMenuLocation = uiSettings?.GetGameSettingsMenu();
+            if (settingsMenuLocation?.activeInstance != null)
+            {
+                // Use the settings menu's back transition system
+                BackToPreBattleMenu();
+                return;
+            }
+
+            // TODO: Implement menu hierarchy navigation for other menus
             // This should:
             // 1. Destroy current menu instance
             // 2. Decrement CurrentMenuDepth
