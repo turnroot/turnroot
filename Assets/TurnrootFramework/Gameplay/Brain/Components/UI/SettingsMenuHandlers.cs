@@ -27,7 +27,7 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             }
 
             var preBattleMenuLocation = uiSettings?.GetPreBattleMenu();
-            if (preBattleMenuLocation?.activeInstance == null)
+            if (preBattleMenuLocation == null || preBattleMenuLocation.activeInstance == null)
             {
 #if UNITY_EDITOR
                 Debug.LogError("UiBrain: Pre-battle menu instance not found");
