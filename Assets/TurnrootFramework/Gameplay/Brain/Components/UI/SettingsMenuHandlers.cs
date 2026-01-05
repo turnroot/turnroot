@@ -213,32 +213,28 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
 
             // Set up prebattle menu events based on menu style
             var menuStyle = preBattleMenuLocation.style;
-            if (menuStyle == MenuStyle.Pie)
-            {
-                if (
-                    preBattleMenuLocation.activeInstance.TryGetComponent<RadialMenu>(
-                        out var radialMenu
-                    )
+            if (
+                menuStyle == MenuStyle.Pie
+                && preBattleMenuLocation.activeInstance.TryGetComponent<RadialMenu>(
+                    out var radialMenu
                 )
-                {
-                    radialMenu.uiBrain = this;
-                    radialMenu.OnNavigate += HandlePreBattleMenuNavigate;
-                    radialMenu.OnItemSelected += HandlePreBattleMenuSelect;
-                }
+            )
+            {
+                radialMenu.uiBrain = this;
+                radialMenu.OnNavigate += HandlePreBattleMenuNavigate;
+                radialMenu.OnItemSelected += HandlePreBattleMenuSelect;
             }
-            else if (menuStyle == MenuStyle.List || menuStyle == MenuStyle.Grid)
+            else if (
+                (menuStyle == MenuStyle.List || menuStyle == MenuStyle.Grid)
+                && preBattleMenuLocation.activeInstance.TryGetComponent<MenuBase>(out var listMenu)
+            )
             {
-                if (
-                    preBattleMenuLocation.activeInstance.TryGetComponent<MenuBase>(out var listMenu)
-                )
-                {
-                    listMenu.uiBrain = this;
-                    listMenu.OnNavigate += HandlePreBattleMenuNavigate;
-                    listMenu.OnItemSelected += HandlePreBattleMenuSelect;
+                listMenu.uiBrain = this;
+                listMenu.OnNavigate += HandlePreBattleMenuNavigate;
+                listMenu.OnItemSelected += HandlePreBattleMenuSelect;
 
-                    // Set up input actions for keyboard/gamepad navigation
-                    SetupMenuInputActions(listMenu);
-                }
+                // Set up input actions for keyboard/gamepad navigation
+                SetupMenuInputActions(listMenu);
             }
 
             // Apply colors based on menu style
