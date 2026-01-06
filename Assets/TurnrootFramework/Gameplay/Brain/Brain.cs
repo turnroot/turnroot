@@ -42,6 +42,7 @@ namespace Turnroot.Gameplay.Brain
     [RequireComponent(typeof(StorehouseBrain))]
     [RequireComponent(typeof(PlayerInputBrain))]
     [RequireComponent(typeof(UiBrain))]
+    [RequireComponent(typeof(VolumeBrain))]
     public partial class Brain : MonoBehaviour
     {
         // Core components
@@ -71,6 +72,9 @@ namespace Turnroot.Gameplay.Brain
 
         [HideInInspector]
         public UiBrain uiBrain;
+
+        [HideInInspector]
+        public VolumeBrain volumeBrain;
 
         [HideInInspector]
         public LongTermMemory ltm;
@@ -678,6 +682,7 @@ namespace Turnroot.Gameplay.Brain
             storehouseBrain = GetComponent<StorehouseBrain>();
             playerInputBrain = GetComponent<PlayerInputBrain>();
             uiBrain = GetComponent<UiBrain>();
+            volumeBrain = GetComponent<VolumeBrain>();
 
             // Find all DynamicSceneFlows in other scenes and set their .brain to this
             var allSceneFlows = FindObjectsByType<DynamicSceneFlow>(FindObjectsSortMode.None);
