@@ -17,6 +17,8 @@ namespace Turnroot.Gameplay.Brain
     // TODO: Add advanced input features (buffering, accessibility, custom mappings, replay)
     public class BattleInputControllerBrain : BrainComponent
     {
+        #region Fields and Properties
+
         [HideInInspector]
         public MapGridPoint CursorPosition; // TODO: Initialize with constraints
 
@@ -47,6 +49,10 @@ namespace Turnroot.Gameplay.Brain
 
         private float _lastInputTime;
         private const float INPUT_COOLDOWN = 0.1f;
+
+        #endregion
+
+        #region Brain Event Management
 
         protected override EventPriority GetSubscriptionPriority() => EventPriority.High;
 
@@ -85,6 +91,10 @@ namespace Turnroot.Gameplay.Brain
             _brain.OnPlayerControlledUnitActivated -= HandlePlayerUnitActivated;
             _brain.OnPlayerTurnStateChanged -= HandlePlayerTurnStateChanged;
         }
+
+        #endregion
+
+        #region Unity Lifecycle
 
         protected override void Awake()
         {
@@ -185,6 +195,10 @@ namespace Turnroot.Gameplay.Brain
             base.OnDestroy();
         }
 
+        #endregion
+
+        #region Event Handlers
+
         // Event handlers for input events from BattleContext
         private void HandleNavigateEvent(BattleContext.BattleInputNavigateEvent navEvent) =>
             HandleNavigateInput(navEvent.Direction);
@@ -196,6 +210,10 @@ namespace Turnroot.Gameplay.Brain
             HandleCancelInput();
 
         private void HandleMenuEvent(BattleContext.BattleInputMenuEvent menuEvent) => OpenMenu();
+
+        #endregion
+
+        #region Player Turn Management
 
         // Player turn event handlers
         private void HandlePlayerUnitActivated(CharacterInstance unit)
@@ -231,6 +249,18 @@ namespace Turnroot.Gameplay.Brain
                 // TODO: Complete state handling
             }
         }
+
+        private void CompletePlayerTurn()
+        {
+            _validMoveTiles.Clear();
+            _validAttackTiles.Clear();
+            _brain.PublishPlayerTurnEnded();
+            _playerTurnFlow?.EndTurn();
+        }
+
+        #endregion
+
+        #region Tile Calculation and Validation
 
         private OperationResult CalculateValidTiles(CharacterInstance unit)
         {
@@ -336,6 +366,10 @@ namespace Turnroot.Gameplay.Brain
             }
         }
 
+        #endregion
+
+        #region Action Methods
+
         // Additional detailed damage/movement preview implementations already planned above
 
         public void MoveCursorToPoint(MapGridPoint point) => CursorPosition = point; // TODO: Cursor UI updates (visuals, sound, previews, constraints)
@@ -373,12 +407,6 @@ namespace Turnroot.Gameplay.Brain
             }
         }
 
-        private CharacterInstance GetUnitAtPosition(MapGridPoint position)
-        {
-            var cache = BattleContext.GetCurrentUnitPositions();
-            return cache.TryGetValue(position.CoordinatesInt, out var unit) ? unit : null;
-        }
-
         public void ChangeSelectedUnit(CharacterInstance unit)
         {
             // TODO: Validate player control, update flow, recalculate tiles, update UI
@@ -397,6 +425,10 @@ namespace Turnroot.Gameplay.Brain
         }
 
         // TODO: Advanced input features (buffering, platform-specific controls, recording/replay, accessibility)
+
+        #endregion
+
+        #region Input Handling
 
         public void HandleNavigateInput(Vector2 direction)
         {
@@ -520,5 +552,17 @@ namespace Turnroot.Gameplay.Brain
                 // TODO: Handle all other action cancellation states
             }
         }
+
+        #endregion
+
+        #region Utility Methods
+
+        private CharacterInstance GetUnitAtPosition(MapGridPoint position)
+        {
+            var cache = BattleContext.GetCurrentUnitPositions();
+            return cache.TryGetValue(position.CoordinatesInt, out var unit) ? unit : null;
+        }
+
+        #endregion
     }
 }
