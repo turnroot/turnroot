@@ -69,9 +69,6 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
 #if UNITY_EDITOR
             Debug.Log($"UiBrain: Selected settings item: {item.ItemName}");
 #endif
-            // TODO: Handle settings item selection based on item.ItemName
-            // TODO: Open sub-menus or apply settings changes
-            // Note: Back navigation is handled by the existing back button system
 
             if (item.ItemName == "Graphics")
             {
@@ -85,6 +82,20 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                 _isTransitioning = true;
                 StartCoroutine(
                     TransitionToSettingsMenu(settingsMenuLocation, gameSettingsGameplayLocation)
+                );
+            }
+            else if (item.ItemName == "Audio")
+            {
+                _isTransitioning = true;
+                StartCoroutine(
+                    TransitionToSettingsMenu(settingsMenuLocation, gameSettingsAudioLocation)
+                );
+            }
+            else if (item.ItemName == "Controls")
+            {
+                _isTransitioning = true;
+                StartCoroutine(
+                    TransitionToSettingsMenu(settingsMenuLocation, gameSettingsControlsLocation)
                 );
             }
         }

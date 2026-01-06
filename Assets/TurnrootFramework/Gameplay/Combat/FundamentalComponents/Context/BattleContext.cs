@@ -9,6 +9,7 @@ using Turnroot.Gameplay.Objects;
 using Turnroot.Skills.Nodes;
 using Turnroot.Utilities;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 {
@@ -416,8 +417,6 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         ) => DamageCalculator.CalculatePotentialDamage(unitInstance, target, weaponItem, this);
         #endregion
 
-        #region Input Event Definitions
-
         // Input handling moved to BattleInputControllerBrain
 
         // Input event definitions
@@ -431,7 +430,5 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         public class BattleInputCancelEvent { }
 
         public class BattleInputMenuEvent { }
-
-        #endregion
     }
 }

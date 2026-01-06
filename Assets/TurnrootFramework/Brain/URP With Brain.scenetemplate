@@ -16,7 +16,11 @@ MonoBehaviour:
   templateName: URP With Brain
   description: An empty scene with the Turnroot Brain Loader
   preview: {fileID: 5902933910326176697}
-  dependencies: []
+  dependencies:
+  - dependency: {fileID: 2800000, guid: 32b23d5d74f3aee4f9364e34e2f59379, type: 3}
+    instantiationMode: 1
+  - dependency: {fileID: 11400000, guid: b94448e6681460647bd75cf4d31fc233, type: 2}
+    instantiationMode: 0
   templatePipeline: {fileID: 0}
   badge: {fileID: 0}
   addToDefaults: 1
