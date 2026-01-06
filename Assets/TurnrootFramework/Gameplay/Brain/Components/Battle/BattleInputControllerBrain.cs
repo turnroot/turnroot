@@ -5,6 +5,7 @@ using Turnroot.Gameplay.Brain.Events;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Locations;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 namespace Turnroot.Gameplay.Brain
 {
@@ -36,6 +37,12 @@ namespace Turnroot.Gameplay.Brain
         private Dictionary<MapGridPoint, float> _validAttackTiles = new();
 
         // TODO: Add caching for all action types, movement costs, and performance optimization
+
+        // Unity Input System actions
+        private InputAction _navigateAction;
+        private InputAction _confirmAction;
+        private InputAction _cancelAction;
+        private InputAction _menuAction;
 
         protected override EventPriority GetSubscriptionPriority() => EventPriority.High;
 
@@ -79,7 +86,80 @@ namespace Turnroot.Gameplay.Brain
         {
             base.Awake();
             _playerTurnFlow = _brain?.battleBrain?.playerTurnFlow;
-            // TODO: Initialize cursor, subscribe to map changes, setup input bindings
+
+            // Initialize Unity Input System actions
+            _navigateAction = new InputAction(
+                "Navigate",
+                InputActionType.Value,
+                "<Gamepad>/leftStick"
+            );
+            _navigateAction.AddBinding("<Keyboard>/wasd");
+            _navigateAction.AddBinding("<Keyboard>/upDownLeftRight");
+            _navigateAction.AddBinding("<Gamepad>/dpad");
+
+            _confirmAction = new InputAction(
+                "Confirm",
+                InputActionType.Button,
+                "<Gamepad>/buttonSouth"
+            );
+            _confirmAction.AddBinding("<Keyboard>/enter");
+            _confirmAction.AddBinding("<Keyboard>/space");
+
+            _cancelAction = new InputAction(
+                "Cancel",
+                InputActionType.Button,
+                "<Gamepad>/buttonEast"
+            );
+            _cancelAction.AddBinding("<Keyboard>/escape");
+
+            _menuAction = new InputAction("Menu", InputActionType.Button, "<Gamepad>/start");
+            _menuAction.AddBinding("<Keyboard>/tab");
+
+            // Enable actions
+            _navigateAction.Enable();
+            _confirmAction.Enable();
+            _cancelAction.Enable();
+            _menuAction.Enable();
+
+            // TODO: Initialize cursor position, subscribe to map changes
+        }
+
+        private void Update()
+        {
+            // Process Unity Input System and publish Brain events
+            if (_navigateAction?.WasPressedThisFrame() == true)
+            {
+                var direction = _navigateAction.ReadValue<Vector2>();
+                _brain?.Publish(
+                    new BattleContext.BattleInputNavigateEvent { Direction = direction }
+                );
+            }
+
+            if (_confirmAction?.WasPressedThisFrame() == true)
+            {
+                _brain?.Publish(new BattleContext.BattleInputConfirmEvent());
+            }
+
+            if (_cancelAction?.WasPressedThisFrame() == true)
+            {
+                _brain?.Publish(new BattleContext.BattleInputCancelEvent());
+            }
+
+            if (_menuAction?.WasPressedThisFrame() == true)
+            {
+                _brain?.Publish(new BattleContext.BattleInputMenuEvent());
+            }
+        }
+
+        protected override void OnDestroy()
+        {
+            // Clean up input actions
+            _navigateAction?.Disable();
+            _confirmAction?.Disable();
+            _cancelAction?.Disable();
+            _menuAction?.Disable();
+
+            base.OnDestroy();
         }
 
         // Event handlers for input events from BattleContext
@@ -277,28 +357,13 @@ namespace Turnroot.Gameplay.Brain
                 return;
             }
 
-            // Convert direction to grid movement
-            var gridDirection = Vector2Int.zero;
-            if (Mathf.Abs(direction.x) > Mathf.Abs(direction.y))
-            {
-                gridDirection.x = direction.x > 0 ? 1 : -1;
-            }
-            else
-            {
-                gridDirection.y = direction.y > 0 ? 1 : -1;
-            }
-
-            var newCursorCoords = CursorPosition.CoordinatesInt + gridDirection;
-
-            // TODO: Get the map grid reference to validate and convert coordinates to MapGridPoint
-            // var mapGrid = BattleContext?.mapGrid;
-            // var newPosition = mapGrid?.GetGridPoint(newCursorCoords.x, newCursorCoords.y);
-
-            // TODO: Validate position is within grid bounds and convert to MapGridPoint
-            // if (newPosition != null)
-            // {
-            //     MoveCursorToPoint(newPosition);
-            // }
+            // TODO: Navigation behavior depends on current battle state
+            // NoUnitSelected: Move camera/cursor to select units
+            // MoveActionChosenChoosingDestination: Navigate valid movement tiles with path preview
+            // AttackActionChosenChoosingTarget: Navigate valid attack targets with damage preview
+            // MenuOpen: Navigate menu options
+            // Convert direction to grid movement, validate bounds, update cursor position
+            // Trigger appropriate preview systems based on current state
         }
 
         public void HandleConfirmInput()

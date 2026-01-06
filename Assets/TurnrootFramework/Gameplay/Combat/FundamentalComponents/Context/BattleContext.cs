@@ -43,14 +43,6 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             this.mapGrid = mapGrid;
         }
 
-        // Input actions for battle control
-        // these pass down to the BattleInputControllerBrain
-        public InputAction NavigateAction;
-
-        public InputAction ConfirmAction;
-        public InputAction CancelAction;
-        public InputAction MenuAction;
-
         // Sub-contexts for clearer separation
         public UnitContext Unit { get; private set; }
         public SkillContext Skill { get; private set; }
@@ -387,50 +379,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         ) => DamageCalculator.CalculatePotentialDamage(unitInstance, target, weaponItem, this);
         #endregion
 
-        private void Update()
-        {
-            // Handle input actions and publish events
-            if (NavigateAction?.WasPressedThisFrame() == true)
-            {
-                var direction = NavigateAction.ReadValue<Vector2>();
-                HandleNavigateInput(direction);
-            }
-
-            if (ConfirmAction?.WasPressedThisFrame() == true)
-            {
-                HandleConfirmInput();
-            }
-
-            if (CancelAction?.WasPressedThisFrame() == true)
-            {
-                HandleCancelInput();
-            }
-
-            if (MenuAction?.WasPressedThisFrame() == true)
-            {
-                HandleMenuInput();
-            }
-        }
-
-        private void HandleNavigateInput(Vector2 direction)
-        {
-            Brain?.Publish(new BattleInputNavigateEvent { Direction = direction });
-        }
-
-        private void HandleConfirmInput()
-        {
-            Brain?.Publish(new BattleInputConfirmEvent());
-        }
-
-        private void HandleCancelInput()
-        {
-            Brain?.Publish(new BattleInputCancelEvent());
-        }
-
-        private void HandleMenuInput()
-        {
-            Brain?.Publish(new BattleInputMenuEvent());
-        }
+        // Input handling moved to BattleInputControllerBrain
 
         // Input event definitions
         public class BattleInputNavigateEvent
