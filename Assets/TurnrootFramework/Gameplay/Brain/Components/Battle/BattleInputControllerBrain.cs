@@ -91,6 +91,9 @@ namespace Turnroot.Gameplay.Brain
             base.Awake();
             _playerTurnFlow = _brain?.battleBrain?.playerTurnFlow;
 
+            CursorPosition = BattleContext?.mapGrid?.GetGridPoint(0, 0);
+            // TODO: Set this to the correct unit based on gameplay settings and unit positions
+
             // Initialize Unity Input System actions
             _navigateAction = new InputAction(
                 "Navigate",

@@ -484,6 +484,7 @@ namespace Turnroot.Gameplay.Brain
                 BattleObject.Context.SpawnAtPosition(characterInstance, placement.SpawnPosition);
                 playerTeamRoster.SetOrder(characterData, placement.Order);
             }
+            BattleObject.Context.InvalidateUnitPositionCache();
         }
 
         #endregion
