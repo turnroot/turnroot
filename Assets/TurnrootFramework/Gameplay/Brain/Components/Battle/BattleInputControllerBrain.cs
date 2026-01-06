@@ -125,7 +125,7 @@ namespace Turnroot.Gameplay.Brain
             _cancelAction.Enable();
             _menuAction.Enable();
 
-            // TODO: Initialize cursor position, subscribe to map changes
+            Brain.PublishBattleCursorMoved(CursorPosition.CoordinatesInt);
         }
 
         private void Update()
