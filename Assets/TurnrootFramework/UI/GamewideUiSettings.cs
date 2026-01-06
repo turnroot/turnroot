@@ -304,5 +304,12 @@ namespace Turnroot.GameSettings
 
         [Space, Tooltip("Prefab for menu canvas with back button that appears in menu states")]
         public GameObject MenuCanvasPrefab;
+
+        [Header("Battle Graphics"), HorizontalLine(color: EColor.Pink)]
+        public Sprite PathTipSprite; // the end of the path
+        public Sprite PathPreTipSprite; // end -1 of the path
+        public Sprite PathStraightSprite;
+        public Sprite PathCornerSprite;
+        public Sprite PathStartSprite;
     }
 }

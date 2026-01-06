@@ -419,7 +419,6 @@ namespace Turnroot.Gameplay.Brain
             {
                 case PlayerTurnStates.NoUnitSelected:
                     OpenActionMenu();
-                    // TODO: Handle multiple unit selection if needed
                     break;
                 case PlayerTurnStates.NoActionChosen:
                     // TODO: Open context-sensitive action menu
