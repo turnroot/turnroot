@@ -392,6 +392,56 @@ namespace Turnroot.Gameplay.Brain
 
             // TODO: Navigation behavior depends on current battle state
             // NoUnitSelected: Move camera/cursor to select units
+            bool UnitSelected =
+                _playerTurnFlow?.GetCurrentState() == PlayerTurnStates.NoUnitSelected;
+
+            if (!UnitSelected)
+            {
+                // Move the cursor on the grid based on input direction
+                // If the cursor goes near the edge of the screen, pan the camera
+                // Here, we  publish an event through the brain, PublishBattleCursorMoved
+                // so the CameraBrain can worry about that.
+                // UI will also take care of itself. Here it is JUST the logic of moving the cursor.
+                var newCursorPos = CursorPosition;
+                // Get the MapGridPoint based on direction- BattleContext.mapGrid.GetGridPoint()
+                // move one tile in the direction indicated by input
+                if (Mathf.Abs(direction.x) > Mathf.Abs(direction.y))
+                {
+                    // Horizontal movement
+                    if (direction.x > 0)
+                    {
+                        var targetPos = CursorPosition.CoordinatesInt + Vector2Int.right;
+                        newCursorPos = BattleContext.mapGrid.GetGridPoint(targetPos.y, targetPos.x);
+                    }
+                    else
+                    {
+                        var targetPos = CursorPosition.CoordinatesInt + Vector2Int.left;
+                        newCursorPos = BattleContext.mapGrid.GetGridPoint(targetPos.y, targetPos.x);
+                    }
+                }
+                else
+                {
+                    // Vertical movement
+                    if (direction.y > 0)
+                    {
+                        var targetPos = CursorPosition.CoordinatesInt + Vector2Int.up;
+                        newCursorPos = BattleContext.mapGrid.GetGridPoint(targetPos.y, targetPos.x);
+                    }
+                    else
+                    {
+                        var targetPos = CursorPosition.CoordinatesInt + Vector2Int.down;
+                        newCursorPos = BattleContext.mapGrid.GetGridPoint(targetPos.y, targetPos.x);
+                    }
+                }
+
+                // Update cursor position if the new position is valid
+                if (newCursorPos != null)
+                {
+                    CursorPosition = newCursorPos;
+                    _brain?.PublishBattleCursorMoved(CursorPosition.CoordinatesInt);
+                }
+            }
+
             // MoveActionChosenChoosingDestination: Navigate valid movement tiles with path preview
             // AttackActionChosenChoosingTarget: Navigate valid attack targets with damage preview
             // MenuOpen: Navigate menu options
