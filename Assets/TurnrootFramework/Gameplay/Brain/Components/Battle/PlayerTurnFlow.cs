@@ -12,6 +12,9 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
 
         private BattleBrain _battleBrain;
 
+        public PlayerTurnStates GetCurrentState() =>
+            _currentState?.CurrentState ?? PlayerTurnStates.Inactive;
+
         public void Intialize()
         {
             _currentState ??= new PlayerTurnState();

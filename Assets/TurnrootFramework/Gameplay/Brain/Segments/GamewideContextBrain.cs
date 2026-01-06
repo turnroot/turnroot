@@ -65,6 +65,8 @@ namespace Turnroot.Gameplay.Brain
 
             // Try to find the persistent player roster asset in Resources and recall it from LTM if present
             TryLoadAndRecallPersistentPlayerRoster();
+            var volumeBrain = _brain.volumeBrain;
+            volumeBrain.ApplySettingsToVolumes(PlayerSettings);
         }
 
         protected override void SubscribeToBrainEvents()
@@ -352,7 +354,7 @@ namespace Turnroot.Gameplay.Brain
     public class PlayerRosterSaveData
     {
         public string RosterId;
-        public Turnroot.Characters.Roster.UnitPlacement[] Placements;
-        public Turnroot.Characters.CharacterInstance[] CharacterInstances;
+        public Characters.Roster.UnitPlacement[] Placements;
+        public CharacterInstance[] CharacterInstances;
     }
 }
