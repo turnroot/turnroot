@@ -133,6 +133,8 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
 
         protected override void UnsubscribeFromBrainEvents()
         {
+            Brain.OnBattleCursorMoved -= HandleBattleCursorMoved;
+
             if (_onStateChangedHandler != null)
             {
                 Brain.OnStateChanged -= _onStateChangedHandler;

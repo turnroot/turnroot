@@ -137,6 +137,9 @@ namespace Turnroot.Gameplay.Brain
             {
                 return;
             }
+
+            bool inputProcessed = false;
+
             // Process Unity Input System and publish Brain events
             if (_navigateAction?.WasPressedThisFrame() == true)
             {
@@ -144,21 +147,30 @@ namespace Turnroot.Gameplay.Brain
                 _brain?.Publish(
                     new BattleContext.BattleInputNavigateEvent { Direction = direction }
                 );
+                inputProcessed = true;
             }
 
             if (_confirmAction?.WasPressedThisFrame() == true)
             {
                 _brain?.Publish(new BattleContext.BattleInputConfirmEvent());
+                inputProcessed = true;
             }
 
             if (_cancelAction?.WasPressedThisFrame() == true)
             {
                 _brain?.Publish(new BattleContext.BattleInputCancelEvent());
+                inputProcessed = true;
             }
 
             if (_menuAction?.WasPressedThisFrame() == true)
             {
                 _brain?.Publish(new BattleContext.BattleInputMenuEvent());
+                inputProcessed = true;
+            }
+
+            if (inputProcessed)
+            {
+                _lastInputTime = Time.time;
             }
         }
 
@@ -395,10 +407,10 @@ namespace Turnroot.Gameplay.Brain
 
             // TODO: Navigation behavior depends on current battle state
             // NoUnitSelected: Move camera/cursor to select units
-            bool UnitSelected =
+            bool isNoUnitSelectedState =
                 _playerTurnFlow?.GetCurrentState() == PlayerTurnStates.NoUnitSelected;
 
-            if (!UnitSelected)
+            if (isNoUnitSelectedState)
             {
                 // Move the cursor on the grid based on input direction
                 // If the cursor goes near the edge of the screen, pan the camera
