@@ -359,6 +359,9 @@ namespace Turnroot.Gameplay.Brain
             BattleObject.ConnectToBrainEvents();
             BattleObject.ConnectBattleConditionsToContext();
 
+            // Invalidate cached unit positions
+            BattleObject.Context.InvalidateUnitPositionCache();
+
 #if UNITY_EDITOR
             Debug.Log($"BattleBrain: Connected to BattleGameObject");
 #endif

@@ -32,6 +32,8 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         /// </summary>
         public MapGrid mapGrid { get; private set; }
 
+        public BattleContextAIHelper AIHelper { get; private set; }
+
         /// <summary>
         /// Initialize the BattleContext with required dependencies. Throws if brain is null.
         /// </summary>
@@ -44,6 +46,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
             Brain = brain;
             this.mapGrid = mapGrid;
+            AIHelper = new BattleContextAIHelper(this);
         }
 
         #endregion
@@ -250,19 +253,19 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             bool invalidateCache = false
         )
         {
-            if (invalidateCache)
+            if (invalidateCache || currentUnitPositions.Count == 0)
             {
-                currentUnitPositions = null;
-            }
-            if (currentUnitPositions == null)
-            {
-                var allUnits = Participants.GetAllUnits(); // Add this helper
-                currentUnitPositions = allUnits.ToDictionary(u => u.MapGridPosition, u => u);
+                currentUnitPositions.Clear();
+                var allUnits = Participants.GetAllUnits();
+                foreach (var unit in allUnits)
+                {
+                    currentUnitPositions[unit.MapGridPosition] = unit;
+                }
             }
             return currentUnitPositions;
         }
 
-        public void InvalidateUnitPositionCache() => currentUnitPositions = null;
+        public void InvalidateUnitPositionCache() => currentUnitPositions.Clear();
 
         #endregion
 
