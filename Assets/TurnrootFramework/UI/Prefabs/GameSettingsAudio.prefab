@@ -1713,10 +1713,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   panelRows:
   - {fileID: 2617115806954460911}
-  - {fileID: 0}
   - {fileID: 5392713844408257117}
   - {fileID: 6616795697484019217}
-  - {fileID: 0}
   - {fileID: 2332911509587359019}
   currentRowIndex: 0
   navigateUpAction:
