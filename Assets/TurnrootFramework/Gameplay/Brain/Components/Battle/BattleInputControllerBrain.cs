@@ -402,6 +402,8 @@ namespace Turnroot.Gameplay.Brain
                 // Here, we  publish an event through the brain, PublishBattleCursorMoved
                 // so the CameraBrain can worry about that.
                 // UI will also take care of itself. Here it is JUST the logic of moving the cursor.
+                // TODO: Setup CameraBrain
+                // TODO: Setup cursor UI
                 var newCursorPos = CursorPosition;
                 // Get the MapGridPoint based on direction- BattleContext.mapGrid.GetGridPoint()
                 // move one tile in the direction indicated by input

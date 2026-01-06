@@ -311,5 +311,6 @@ namespace Turnroot.GameSettings
         public Sprite PathStraightSprite;
         public Sprite PathCornerSprite;
         public Sprite PathStartSprite;
+        public Sprite CursorSprite;
     }
 }
