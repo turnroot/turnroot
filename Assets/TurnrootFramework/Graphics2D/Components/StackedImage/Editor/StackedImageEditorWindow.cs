@@ -75,6 +75,13 @@ namespace Turnroot.Graphics2D.Editor
                 return;
             }
 
+            // Show validation status if there are any issues
+            if (_currentImage.HasValidationError)
+            {
+                EditorGUILayout.HelpBox(_currentImage.ValidationMessage, MessageType.Warning);
+                EditorGUILayout.Space(5);
+            }
+
             EditorGUILayout.Space(10);
             DrawMainLayout();
         }
@@ -444,14 +451,29 @@ namespace Turnroot.Graphics2D.Editor
                 Debug.Log($"Saving image with key: '{_currentImage.Key}'");
 #endif
                 _currentImage.Render();
-                EditorUtility.DisplayDialog(
-                    "Render Complete",
-                    $"Image has been rendered and saved to:\nAssets/Resources/GameContent/Graphics/Portraits/{_currentImage.Key}.png",
-                    "OK"
-                );
+
+                // Show appropriate message based on whether there were validation errors
+                if (_currentImage.HasValidationError)
+                {
+                    EditorUtility.DisplayDialog(
+                        "Render Complete - Warning",
+                        $"Image rendered but there were issues:\n{_currentImage.ValidationMessage}",
+                        "OK"
+                    );
+                }
+                else
+                {
+                    EditorUtility.DisplayDialog(
+                        "Render Complete",
+                        $"Image has been rendered and saved successfully.",
+                        "OK"
+                    );
+                }
+
                 EditorUtility.SetDirty(_currentOwner);
                 AssetDatabase.SaveAssets();
                 RefreshPreview();
+                Repaint(); // Force UI refresh to show any validation warnings
             }
         }
 
@@ -467,6 +489,9 @@ namespace Turnroot.Graphics2D.Editor
             if (images != null && _selectedImageIndex >= 0 && _selectedImageIndex < images.Length)
             {
                 _currentImage = images[_selectedImageIndex];
+
+                // Clear any previous validation status when switching images
+                _currentImage.ClearValidationStatus();
 
                 // Ensure mandatory layers are present before generating a preview
                 _ = _currentImage.Layers;

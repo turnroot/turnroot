@@ -1,30 +1,120 @@
+using System;
+using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using NaughtyAttributes;
 using UnityEngine;
 
 namespace Turnroot.GamePackage
 {
+    [System.Serializable]
+    public struct Credits
+    {
+        public string role;
+        public string name;
+    }
+
+    [System.Serializable]
+    public struct Studio
+    {
+        public string name;
+        public Sprite logo;
+    }
+
+    [System.Serializable]
+    public struct GraphicsPack
+    {
+        public string packName;
+        public string packCreator;
+    }
+
     [CreateAssetMenu(
         fileName = "GamePackageSettings",
         menuName = "Turnroot/Game Settings/Game Package Settings"
     )]
     public class GamePackageSettings : SingletonScriptableObject<GamePackageSettings>
     {
+        [Header("General Information"), HorizontalLine(color: EColor.Red)]
         public string gameName;
 
-        [ResizableTextArea]
-        public string gameDescription;
-        public string gameTagline;
+        [TextArea(3, 10)]
+        public string GameDescription;
+        public string GameTagline;
+        public string GameUrl;
+        public bool HasNsfwContent = false;
+        public bool ContainsAds = false;
 
-        public Color gameThemeColor;
-        public SerializableDictionary<string, string> credits = new();
+        [TextArea(3, 10)]
+        public string PregameDisclaimer;
+        public List<Credits> GameCredits = new();
 
+        [Header("Graphics"), HorizontalLine(color: EColor.Black)]
         [Label("Game Icon 1:1")]
-        public Sprite gameIcon;
+        public Sprite GameIcon;
 
         [Label("Game Banner 16:9")]
-        public Sprite gameBannerDesktop;
+        public Sprite GameBannerDesktop;
 
         [Label("Game Banner 4:1")]
-        public Sprite gameBannerWide;
+        public Sprite GameBannerWide;
+        public List<Sprite> Screenshots = new();
+        public string GameTrailerUrl;
+        public List<GraphicsPack> GraphicsPacksUsed = new();
+
+        [SerializeField, Header("Versioning"), HorizontalLine(color: EColor.Blue)]
+        public string VersionText = "1.0.0";
+
+        [Header("Platform Settings"), HorizontalLine(color: EColor.Gray)]
+        public List<RuntimePlatform> SupportedPlatforms = new();
+
+        [Header("Localization"), HorizontalLine(color: EColor.Green)]
+        public SystemLanguage DefaultLanguage = SystemLanguage.English;
+        public List<SystemLanguage> SupportedLanguages = new();
+
+        [Header("Accessibility"), HorizontalLine(color: EColor.Indigo)]
+        public bool ColorblindFriendly = false;
+        public bool NeedsFlashingLightsWarning = false;
+
+        [Header("Legal Information"), HorizontalLine(color: EColor.Orange)]
+        public List<Studio> Publishers = new();
+        public List<Studio> Studios = new();
+
+        [TextArea(3, 10)]
+        public string CopyrightInfo;
+
+        private void OnValidate()
+        {
+            // Validate URLs when changed in editor
+            if (!string.IsNullOrEmpty(GameUrl) && !ValidateUrl(GameUrl))
+            {
+                Debug.LogWarning($"Invalid Game URL: {GameUrl}");
+            }
+
+            if (!string.IsNullOrEmpty(GameTrailerUrl) && !ValidateUrl(GameTrailerUrl))
+            {
+                Debug.LogWarning($"Invalid Game Trailer URL: {GameTrailerUrl}");
+            }
+
+            // Validate version number format (semantic versioning: x.y.z or x.y.z-suffix)
+            if (!string.IsNullOrEmpty(VersionText))
+            {
+                VersionText = VersionText.Trim();
+                if (!ValidateVersion(VersionText))
+                {
+                    Debug.LogWarning(
+                        $"Invalid Version format: {VersionText}. Expected format: x.y.z (e.g., 1.2.3) or x.y.z-suffix (e.g., 1.2.3-beta)"
+                    );
+                }
+            }
+        }
+
+        private bool ValidateUrl(string url) => Uri.IsWellFormedUriString(url, UriKind.Absolute);
+
+        private bool ValidateVersion(string version)
+        {
+            // Semantic versioning regex: major.minor.patch with optional pre-release suffix
+            string pattern =
+                @"^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?$";
+            return Regex.IsMatch(version, pattern);
+        }
     }
 }
