@@ -26,15 +26,6 @@ namespace Turnroot.Gameplay.Brain
             PathStartSprite = UiSettings.PathStartSprite;
         }
 
-        /*
-                **Method:** `ShowPath(List<MapGridPoint> path)`
-        
-        **Needs:**
-        - Pathfinding from current pos to cursor (A*)
-        - Clear path when cursor moves or state changes
-        
-        **Integration:** Call from `UpdatePreviewsForCursorPosition()` when in move selection state. */
-
         public struct PathSprite
         {
             public Sprite sprite;

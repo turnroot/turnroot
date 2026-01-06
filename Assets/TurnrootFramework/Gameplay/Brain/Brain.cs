@@ -477,7 +477,6 @@ namespace Turnroot.Gameplay.Brain
         #endregion
 
         #region Battle Events
-
         public event Action OnBattleStarted;
         public event Action<BattleExitType> OnBattleCompleted;
         public event Action OnBattleContextInitialized;
@@ -485,6 +484,7 @@ namespace Turnroot.Gameplay.Brain
         public event Action OnPreBattleCompleted;
         public event Action OnTurnBegin;
         public event Action OnTurnEnded;
+        public event Action<Vector2Int> OnBattleCursorMoved;
         public event Action<CharacterInstance> OnPlayerTurnStarted;
         public event Action OnPlayerTurnEnded;
         public event Action OnEnemyTurnStarted;
@@ -517,6 +517,9 @@ namespace Turnroot.Gameplay.Brain
         public event Action<CharacterInstance, BattleEmotion> OnUnitEmotionChanged;
 
         public void PublishBattleStarted() => OnBattleStarted?.Invoke();
+
+        public void PublishBattleCursorMoved(Vector2Int cursorPosition) =>
+            OnBattleCursorMoved?.Invoke(cursorPosition);
 
         public void PublishBattleCompleted(BattleExitType exitType) =>
             OnBattleCompleted?.Invoke(exitType);

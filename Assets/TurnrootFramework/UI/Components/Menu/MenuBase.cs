@@ -29,8 +29,8 @@ namespace Turnroot.UI.Components.Menu
         public event Action<MenuItemBase> OnNavigate;
         public event Action<MenuItemBase> OnItemSelected;
 
-        protected readonly int _currentSelectedIndex = 0;
-        private int _actualCurrentSelectedIndex = 0;
+        protected readonly int _currentSelectedIndex = -1;
+        private int _actualCurrentSelectedIndex = -1;
         private int _previousSelectedIndex = -1;
 
         protected virtual void Awake()
@@ -39,20 +39,11 @@ namespace Turnroot.UI.Components.Menu
             RefreshMenuItems();
 
             // Set up input actions if they exist
-            if (navigateUpAction != null)
-            {
-                navigateUpAction.Enable();
-            }
+            navigateUpAction?.Enable();
 
-            if (navigateDownAction != null)
-            {
-                navigateDownAction.Enable();
-            }
+            navigateDownAction?.Enable();
 
-            if (selectAction != null)
-            {
-                selectAction.Enable();
-            }
+            selectAction?.Enable();
         }
 
         protected virtual void OnEnable()

@@ -34,6 +34,28 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         private bool UnitFinishesMovingAfterAction =>
             BattleBrain.BattleObject.Context.Flags.ActiveUnitFlags.CanFinishMovingAfterAction;
 
+        private void Awake()
+        {
+            _brain.OnPlayerTurnEnded += HandlePlayerTurnCompleted;
+        }
+
+        private void HandlePlayerTurnCompleted()
+        {
+            var currentUnit = GetActiveUnit();
+            if (currentUnit != null)
+            {
+                Progress();
+            }
+        }
+
+        private void OnDestroy()
+        {
+            if (_brain != null)
+            {
+                _brain.OnPlayerTurnEnded -= HandlePlayerTurnCompleted;
+            }
+        }
+
         public CharacterInstance GetActiveUnit()
         {
             var units = GetCurrentRosterUnits();

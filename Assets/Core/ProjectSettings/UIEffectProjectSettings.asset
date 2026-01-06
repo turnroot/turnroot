@@ -54,6 +54,8 @@ ShaderVariantCollection:
       variants:
       - keywords: 
         passType: 0
+      - keywords: COLOR_FILTER DETAIL_ADDITIVE
+        passType: 0
       - keywords: COLOR_FILTER SAMPLING_BLUR_FAST
         passType: 0
       - keywords: COLOR_FILTER TRANSITION_MELT
@@ -63,6 +65,8 @@ ShaderVariantCollection:
       - keywords: EDGE_SHINY
         passType: 0
       - keywords: EDGE_SHINY TRANSITION_MELT
+        passType: 0
+      - keywords: GRADATION_GRADIENT
         passType: 0
       - keywords: SAMPLING_EDGE_LUMINANCE
         passType: 0
