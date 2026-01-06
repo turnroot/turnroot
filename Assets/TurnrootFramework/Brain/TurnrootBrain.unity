@@ -140,6 +140,9 @@ GameObject:
   - component: {fileID: 1357883683}
   - component: {fileID: 1357883687}
   - component: {fileID: 1357883686}
+  - component: {fileID: 1357883690}
+  - component: {fileID: 1357883689}
+  - component: {fileID: 1357883688}
   m_Layer: 0
   m_Name: = Brain
   m_TagString: DoNotModify
@@ -167,6 +170,9 @@ MonoBehaviour:
   inventoryBrain: {fileID: 0}
   storehouseBrain: {fileID: 0}
   playerInputBrain: {fileID: 0}
+  uiBrain: {fileID: 0}
+  volumeBrain: {fileID: 0}
+  audioBrain: {fileID: 0}
   ltm: {fileID: 1357883675}
 --- !u!114 &1357883675
 MonoBehaviour:
@@ -321,6 +327,64 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 18ab6fc01e5a08d45b1ce17cda4530eb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &1357883688
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1357883673}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b3750edc6aae8614d892bde2e1b4cd7a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &1357883689
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1357883673}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cdf87bfe0fdf34c42a744b4b0265c09c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &1357883690
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1357883673}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b03ea8538cab64e45b164789848c21e0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  uiSettings: {fileID: 0}
+  settingsMenuLocation:
+    parentMenuName: 0
+    menuName: 0
+    style: 0
+    prefab: {fileID: 0}
+  gameSettingsGraphicsLocation:
+    parentMenuName: 0
+    menuName: 0
+    style: 0
+    prefab: {fileID: 0}
+  gameSettingsGameplayLocation:
+    parentMenuName: 0
+    menuName: 0
+    style: 0
+    prefab: {fileID: 0}
+  preBattleMenuLocation:
+    parentMenuName: 0
+    menuName: 0
+    style: 0
+    prefab: {fileID: 0}
+  CurrentMenuDepth: 0
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
