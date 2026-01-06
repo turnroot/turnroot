@@ -17,8 +17,9 @@ namespace Turnroot.Gameplay.Brain
             _brain.OnCriticalHit += HandleCriticalHit;
             _brain.OnWeaponUsesChanged += HandleWeaponUsesChanged;
             _brain.OnItemStolen += HandleItemStolen;
-            // Hook into turn end for status effect expiry handling
             _brain.OnTurnEnded += HandleTurnEndStatusEffects;
+            _brain.OnUnitDefeated += HandleUnitDefeated;
+            _brain.OnUnitMoved += HandleUnitMoved;
         }
 
         protected override void UnsubscribeFromBrainEvents()
@@ -30,12 +31,23 @@ namespace Turnroot.Gameplay.Brain
             _brain.OnCriticalHit -= HandleCriticalHit;
             _brain.OnWeaponUsesChanged -= HandleWeaponUsesChanged;
             _brain.OnItemStolen -= HandleItemStolen;
-            // Unhook turn end handler
             _brain.OnTurnEnded -= HandleTurnEndStatusEffects;
+            _brain.OnUnitDefeated -= HandleUnitDefeated;
+            _brain.OnUnitMoved -= HandleUnitMoved;
         }
 
         #region Event Handlers
 
+        private void HandleUnitMoved(CharacterInstance unit, Vector2Int targetPosition)
+        {
+            // Rebuild cached unit positions in BattleContext whenever a unit moves
+            BattleObject.Context.InvalidateUnitPositionCache();
+        }
+
+        private void HandleUnitDefeated(CharacterInstance unit)
+        {
+            BattleObject.Context.InvalidateUnitPositionCache();
+        }
 
         private void HandleUnitTakesAnotherTurn(CharacterInstance unit)
         {

@@ -4,6 +4,7 @@ using Turnroot.Gameplay.Brain.Components.Battle;
 using Turnroot.Gameplay.Brain.Events;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Locations;
+using Turnroot.Utilities;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -218,20 +219,64 @@ namespace Turnroot.Gameplay.Brain
             }
         }
 
-        private void CalculateValidTiles(CharacterInstance unit)
+        private OperationResult CalculateValidTiles(CharacterInstance unit)
         {
             if (unit == null || BattleContext?.mapGrid == null)
             {
-                return;
+                return OperationResult.Failure("No unit or BattleContext");
             }
 
             _validMoveTiles.Clear();
             _validAttackTiles.Clear();
 
-            // Get AI helper for pathfinding calculations
-            _aiHelper = BattleContext.GetCustomData<BattleContextAIHelper>("AIHelper");
+            _aiHelper = BattleContext.AIHelper;
 
-            // TODO: Tile validation using AI helper (movement/attack ranges, terrain costs, skill modifiers, caching)
+            // Get the unit's current position
+            var currentPos = unit.UnitPositionToMapGridPoint(
+                unit.MapGridPosition,
+                BattleContext.mapGrid
+            );
+
+            // Check if unit can heal (affects which method we call)
+            bool canHeal = unit.CurrentClass?.ClassData?.Identity?.CanHeal ?? false;
+
+            if (canHeal)
+            {
+                // For healers, we need movement, attack, AND heal ranges
+                var healTilesTemp = new Dictionary<MapGridPoint, float>();
+
+                bool success = _aiHelper.GetTilesForAIWithHealNonAlloc(
+                    currentPos,
+                    _validMoveTiles,
+                    _validAttackTiles,
+                    healTilesTemp
+                );
+
+                if (!success)
+                {
+#if UNITY_EDITOR
+                    Debug.LogError(
+                        $"BattleInputControllerBrain: Failed to calculate tiles for healer {unit.CharacterTemplate.DisplayName}"
+                    );
+#endif
+                }
+            }
+            else
+            {
+                // For non-healers, just movement and attack ranges
+                bool success = _aiHelper.GetTilesForAINonAlloc(
+                    currentPos,
+                    _validMoveTiles,
+                    _validAttackTiles
+                );
+                if (!success)
+                {
+                    return OperationResult.Failure(
+                        $"Failed to calculate tiles for unit {unit.CharacterTemplate.DisplayName}"
+                    );
+                }
+            }
+            return OperationResult.SuccessResult();
         }
 
         // TODO: Implement damage preview system (priorities.md Phase 4.1) - CalculateAttackPreview with hit%/crit%/counters
@@ -321,8 +366,8 @@ namespace Turnroot.Gameplay.Brain
 
         private CharacterInstance GetUnitAtPosition(MapGridPoint position)
         {
-            // TODO: Search battle participants efficiently, check position.CurrentInstance
-            return null;
+            var cache = BattleContext.GetCurrentUnitPositions();
+            return cache.TryGetValue(position.CoordinatesInt, out var unit) ? unit : null;
         }
 
         public void ChangeSelectedUnit(CharacterInstance unit)
@@ -374,7 +419,6 @@ namespace Turnroot.Gameplay.Brain
             {
                 case PlayerTurnStates.NoUnitSelected:
                     OpenActionMenu();
-                    // TODO: Handle multiple unit selection if needed
                     break;
                 case PlayerTurnStates.NoActionChosen:
                     // TODO: Open context-sensitive action menu

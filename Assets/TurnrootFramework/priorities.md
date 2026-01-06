@@ -1,421 +1,598 @@
-## Phase 1: Core Player Turn Infrastructure
+# Player Turn System: Consolidated Implementation Guide
 
-### Step 1.1: Create PlayerTurnFlow Component
-**Location:** `Assets/TurnrootFramework/Gameplay/Brain/Components/Battle/PlayerTurnFlow.cs`
+## Current State Assessment
 
-**Purpose:** State machine for player turn progression (parallel to how `TurnRotisserie` manages turn rotation).
+**✅ Solid Foundation:**
+- State machine architecture (`PlayerTurnState` with validation)
+- Command pattern integration (undo/redo ready)
+- Combat math layer (`DamageCalculator` - your most complete system)
+- Event-driven Brain architecture
+- Persistence layer with roster management
 
-```csharp
-public enum PlayerTurnState
-{
-    Inactive,                    // Not player's turn
-    AwaitingUnitSelection,      // Player can select a unit
-    UnitSelected,               // Unit selected, showing action menu
-    SelectingMoveDestination,   // Player picking where to move
-    SelectingAttackTarget,      // Player picking who to attack
-    SelectingItemTarget,        // Player picking item target
-    ConfirmingAction,           // Preview shown, awaiting confirmation
-    ExecutingAction,            // Animation/command execution
-    TurnComplete                // Player done, ready for next unit
-}
+**🚧 Partially Built:**
+- `BattleInputControllerBrain` (skeleton exists, needs implementation)
+- Turn rotation (missing player turn wait logic)
+- UI system (infrastructure exists, not wired to battle)
 
-[RequireComponent(typeof(BattleBrain))]
-public class PlayerTurnFlow : MonoBehaviour
-{
-    private PlayerTurnState _currentState;
-    private CharacterInstance _activePlayerUnit;
-    private MapGridPoint _selectedDestination;
-    private CharacterInstance _selectedTarget;
-    
-    // TODO: State transition methods
-    // TODO: Subscribe to relevant Brain events (unit activated, turn ended)
-    // TODO: Publish player-specific events (state changed, action confirmed)
-}
-```
-
-**Task:** Sketch out the state transition diagram on paper. Which states can transition to which? What triggers each transition?
+**❌ Missing Critical Pieces:**
+- Tile validation with actual pathfinding
+- Input-to-action translation
+- Combat/movement previews
+- Action menu system
 
 ---
 
-### Step 1.2: Extend PlayerInputBrain
-**Location:** `Assets/TurnrootFramework/Gameplay/Brain/Segments/PlayerInputBrain.cs`
+## Critical Path: What's Blocking You Now
 
-**Purpose:** Manages player turn logic, coordinates with `PlayerTurnFlow`, requests tile data from AI helper.
+### 1. GetUnitAtPosition() - **Start Here**
+**Location:** `BattleInputControllerBrain.cs`
 
+**Current:** Returns null, blocking everything.
+
+**Fix:**
 ```csharp
-public class PlayerInputBrain : BrainComponent
+private CharacterInstance GetUnitAtPosition(MapGridPoint position)
 {
-    private PlayerTurnFlow _playerTurnFlow;
-    private BattleContextAIHelper _aiHelper; // Reuse for pathfinding
+    // Option A: Simple linear search (fine for <50 units)
+    var allUnits = BattleContext.Participants.GetAllUnits(); // Add this helper
+    return allUnits.FirstOrDefault(u => u.MapGridPosition == position.CoordinatesInt);
     
-    // Cached data for current player unit
-    private Dictionary<MapGridPoint, float> _validMoveTiles = new();
-    private Dictionary<MapGridPoint, float> _validAttackTiles = new();
-    
-    protected override void Awake()
-    {
-        base.Awake();
-        _playerTurnFlow = GetComponent<PlayerTurnFlow>();
-        // TODO: Get reference to AI helper from BattleContext
-    }
-    
-    protected override void SubscribeToBrainEvents()
-    {
-        // TODO: Subscribe to PlayerControlledUnitActivated
-        // TODO: Subscribe to PlayerTurnFlow state changes
-    }
-    
-    // TODO: Method to calculate valid tiles for current player unit
-    // TODO: Method to validate if a tile/target selection is legal
-    // TODO: Methods to execute player actions via BattleContext commands
+    // Option B: Maintain Dictionary<Vector2Int, CharacterInstance> that updates on moves
+    // Better performance, but needs cache invalidation
 }
 ```
 
-**Task:** List out all the Brain events `PlayerInputBrain` should subscribe to. Think about what it needs to know (turn start, unit activation, turn end, etc.).
-
----
-
-### Step 1.3: Add Player Turn Events to Brain
-**Location:** `Assets/TurnrootFramework/Gameplay/Brain/Brain.cs`
-
-**Purpose:** Central event hub for player turn signals.
-
+**Add to BattleParticipants:**
 ```csharp
-// In Brain.cs, add to existing event regions:
-
-#region Player Turn Events
-
-public event Action<CharacterInstance> OnPlayerUnitActivated;
-public event Action<PlayerTurnState> OnPlayerTurnStateChanged;
-public event Action<CharacterInstance> OnPlayerTurnCompleted;
-public event Action OnPlayerUndoAction; // For timewheel tracking
-
-public void PublishPlayerUnitActivated(CharacterInstance unit) 
-    => OnPlayerUnitActivated?.Invoke(unit);
-
-public void PublishPlayerTurnStateChanged(PlayerTurnState newState) 
-    => OnPlayerTurnStateChanged?.Invoke(newState);
-
-public void PublishPlayerTurnCompleted(CharacterInstance unit) 
-    => OnPlayerTurnCompleted?.Invoke(unit);
-
-public void PublishPlayerUndoAction() 
-    => OnPlayerUndoAction?.Invoke();
-
-#endregion
-```
-
-**Task:** Think about where these events will be published *from*. `PlayerTurnFlow`? `PlayerInputBrain`? Both?
-
----
-
-## Phase 2: Input Controller Layer
-
-### Step 2.1: Create BattleInputController
-**Location:** `Assets/YourGame/Battle/Input/BattleInputController.cs` (your game layer, not framework)
-
-**Purpose:** Translates raw Unity Input System events into player turn requests.
-
-```csharp
-public class BattleInputController : MonoBehaviour
+public List<CharacterInstance> GetAllUnits()
 {
-    private Brain _brain;
-    private PlayerInputBrain _playerInputBrain;
-    
-    // Current cursor/selection state
-    private MapGridPoint _cursorPosition;
-    private CharacterInstance _hoveredUnit;
-    
-    void Update()
-    {
-        // TODO: Read input (arrow keys, gamepad stick)
-        // TODO: Move cursor on grid
-        // TODO: Handle confirm button (A/Enter)
-        // TODO: Handle cancel button (B/Escape)
-        // TODO: Handle menu button (X/Spacebar)
-    }
-    
-    // TODO: Method to handle tile confirmation
-    // TODO: Method to handle unit selection
-    // TODO: Method to handle action menu selection
-    // TODO: Method to request undo (calls Brain.UndoCommand + publishes undo event)
+    var result = new List<CharacterInstance>();
+    result.AddRange(Allies);
+    result.AddRange(Targets);
+    result.AddRange(ThirdParty);
+    return result;
 }
 ```
 
-**Task:** Map out your control scheme. What button does what in each `PlayerTurnState`? (e.g., "B" cancels in most states, but what about in `UnitSelected` vs `SelectingMoveDestination`?)
+---
+
+### 2. CalculateValidTiles() - Wire Up Pathfinding
+**Location:** `BattleInputControllerBrain.cs`
+
+**Current:** Empty with TODO.
+
+**What You Need:**
+- Movement range from unit stats (add `GetMovementRange()` to CharacterInstance)
+- Pathfinding via your existing `BattleContextAIHelper`
+- Attack range calculation from equipped weapon
+
+**Implementation Steps:**
+1. Get unit's movement stat → convert to tile range
+2. Call `_aiHelper.CalculateReachableTiles(unit, currentPos, movementRange)`
+   - If this method doesn't exist, check what pathfinding methods AIHelper exposes
+   - You likely have something like `GetReachableTilesForUnit()` already
+3. For attack tiles: iterate reachable tiles, project weapon range from each
+4. Cache results in `_validMoveTiles` and `_validAttackTiles`
+
+**Clear cache whenever:**
+- Unit changes
+- BattleContext changes
+- Player cancels back to NoUnitSelected
 
 ---
 
-### Step 2.2: Create Battle UI Controller
-**Location:** `Assets/YourGame/Battle/UI/BattleUIController.cs`
+### 3. Previous State Tracking
+**Location:** `PlayerTurnFlow.cs`
 
-**Purpose:** Visual representation of battle state - tile highlights, cursor, action menus, damage previews.
-
+**Add:**
 ```csharp
-public class BattleUIController : MonoBehaviour
-{
-    private Brain _brain;
-    private PlayerInputBrain _playerInputBrain;
-    
-    // UI References
-    // TODO: Cursor sprite/mesh
-    // TODO: Tile highlighter system (blue for move, red for attack, etc.)
-    // TODO: Action menu UI
-    // TODO: Damage preview panel
-    // TODO: Unit info panel
-    
-    void Start()
-    {
-        // TODO: Subscribe to PlayerTurnStateChanged
-        // TODO: Subscribe to relevant Brain events for updating displays
-    }
-    
-    // TODO: Method to highlight valid move tiles
-    // TODO: Method to highlight valid attack tiles
-    // TODO: Method to show damage preview for hovered target
-    // TODO: Method to show action menu at unit position
-    // TODO: Method to update cursor position
-}
+private PlayerTurnStates _previousState = PlayerTurnStates.Inactive;
+
+public PlayerTurnStates GetPreviousState() => _previousState;
+
+// In TransitionToState(), before changing CurrentState:
+_previousState = CurrentState;
 ```
 
-**Task:** Sketch the UI layout. What panels exist? What shows when? Draw it out or use a tool like Figma.
+This enables proper cancel/undo behavior.
 
 ---
 
-## Phase 3: Integration with Existing Systems
+### 4. Input Buffering
+**Location:** `BattleInputControllerBrain.Update()`
 
-### Step 3.1: Modify TurnRotisserie for Player Turns
-**Location:** `Assets/TurnrootFramework/Gameplay/Brain/Components/Battle/TurnRotisserie.cs`
+**Current:** Polls every frame, will cause double-inputs.
 
-**Changes needed:**
+**Add:**
 ```csharp
-// In ActivateCurrentUnit():
-private void ActivateCurrentUnit()
+private float _lastInputTime;
+private const float INPUT_COOLDOWN = 0.15f; // Tune this
+
+void Update()
 {
-    var activeUnit = units[_currentRosterIndex];
-    // ... existing code ...
+    if (Time.time - _lastInputTime < INPUT_COOLDOWN) return;
     
-    // NEW: Check if player-controlled
-    if (_currentTurnOrder is TurnOrder.PlayerStart or TurnOrder.PlayerEnd)
+    if (_navigateAction?.WasPressedThisFrame() == true)
     {
-        // Publish player activation event instead of AI
-        _brain?.PublishPlayerUnitActivated(activeUnit);
-        // DON'T call Progress() - wait for player input brain to signal completion
-    }
-    else
-    {
-        // Existing AI logic unchanged
-        ChangeBattleContextData(activeUnit);
+        _lastInputTime = Time.time;
+        // ... rest of logic
     }
 }
 ```
 
-**Task:** Trace through what happens after `PublishPlayerUnitActivated`. Who catches that event? What state transitions happen?
+---
+
+## Phase-by-Phase Roadmap
+
+### Phase 1: Basic Turn Flow (Week 1)
+
+**Goal:** Select unit → move → wait → turn ends
+
+#### Step 1.1: Complete Navigation
+**File:** `BattleInputControllerBrain.HandleNavigateInput()`
+
+**Tasks:**
+- Convert Vector2 input to grid direction (snap to cardinal/diagonal)
+- Calculate new cursor position
+- Validate against mapGrid bounds
+- Apply state-based constraints (only valid move tiles if in move selection)
+- Update cursor visual position
+
+**Test:** Cursor moves on grid, respects boundaries.
 
 ---
 
-### Step 3.2: Subscribe PlayerInputBrain to Turn Completion
-**Location:** Back in `PlayerInputBrain.cs`
+#### Step 1.2: Complete Confirm Input
+**File:** `BattleInputControllerBrain.HandleConfirmInput()`
 
+**State-by-State Logic:**
+
+**NoUnitSelected:**
+- Check if cursor over player unit → call `_playerTurnFlow.SelectUnit()`
+
+**NoActionChosen:**
+- Open action menu (see Phase 2)
+
+**MoveActionChosenChoosingDestination:**
+- Validate tile with `ValidateTileSelection()`
+- Store destination
+- Transition to `MoveActionChosenDestinationSelected`
+
+**MoveActionChosenDestinationSelected:**
+- Transition to `ConfirmAction`
+
+**ConfirmAction:**
+- Execute command via `BattleContext.MoveUnitToPoint()`
+- Transition to `ExecutingAction`
+- After animation (stub with delay), call `CompletePlayerTurn()`
+
+---
+
+#### Step 1.3: Complete Cancel Input
+**File:** `BattleInputControllerBrain.HandleCancelInput()`
+
+**Key Transitions:**
+- From ActionChosen states → back to NoActionChosen
+- From DestinationSelected → back to Choosing
+- From ConfirmAction → RequestUndo() and restore state
+
+**Don't forget:** Clear cached tile data on cancel.
+
+---
+
+#### Step 1.4: Wire Turn Completion
+**File:** `TurnRotisserie.cs`
+
+**Changes:**
 ```csharp
-protected override void SubscribeToBrainEvents()
+void Awake()
 {
     _brain.OnPlayerTurnCompleted += HandlePlayerTurnCompleted;
-    // ... other subscriptions
 }
 
 private void HandlePlayerTurnCompleted(CharacterInstance unit)
 {
-    // Clear cached tile data
-    _validMoveTiles.Clear();
-    _validAttackTiles.Clear();
-    
-    // Signal TurnRotisserie to continue
-    // TODO: Decide mechanism - direct call or event?
-    var turnRotisserie = _brain.battleBrain.GetComponent<TurnRotisserie>();
-    turnRotisserie.Progress(); // or publish event that TurnRotisserie subscribes to
-}
-```
-
-**Task:** Should this be a direct call or another Brain event? Justify your choice. (Hint: Think about what else might need to know when a player turn ends.)
-
----
-
-## Phase 4: Action Preview & Confirmation
-
-### Step 4.1: Damage Preview System
-**Location:** `PlayerInputBrain.cs` (logic) + `BattleUIController.cs` (display)
-
-```csharp
-// In PlayerInputBrain:
-public (int damageToTarget, int counterDamage, bool wouldKill, bool wouldBeKilled) 
-    CalculateAttackPreview(CharacterInstance attacker, CharacterInstance target)
-{
-    var context = _brain.battleBrain.BattleObject.Context;
-    var weaponItem = attacker.GetEquippedWeapon();
-    
-    int damage = DamageCalculator.CalculatePotentialDamage(attacker, target, weaponItem, context);
-    bool wouldKill = DamageCalculator.WouldKill(attacker, target, weaponItem, context);
-    
-    // TODO: Calculate counter damage if target can retaliate
-    // TODO: Check if counter would kill attacker
-    
-    return (damage, counterDamage, wouldKill, wouldBeKilled);
-}
-```
-
-**Task:** What formula should you use for hit/crit display? Your `DamageCalculator` already has `CalculateHitChance` and `CalculateCriticalChance` - wire those up.
-
----
-
-### Step 4.2: Movement Path Preview
-**Location:** You'll need a new component - `BattlePathVisualizer.cs`
-
-```csharp
-public class BattlePathVisualizer : MonoBehaviour
-{
-    // TODO: LineRenderer or sprite chain to show path
-    
-    public void ShowPath(MapGridPoint start, MapGridPoint end, MapGrid grid)
+    if (GetActiveUnit() == unit)
     {
-        // TODO: Use AStar to get actual path
-        // TODO: Visualize it with arrows or line
-    }
-    
-    public void ClearPath()
-    {
-        // TODO: Hide visualization
+        Progress(); // Continue rotation
     }
 }
 ```
 
-**Task:** Decide visual style. Will you use arrows on each tile (like FE), a continuous line, or something else?
+**File:** `BattleInputControllerBrain.cs`
 
----
-
-### Step 4.3: Implement Action Confirmation Flow
-**Location:** `PlayerTurnFlow.cs`
-
+**Add:**
 ```csharp
-// When entering ConfirmingAction state:
-private void EnterConfirmingActionState()
+private void CompletePlayerTurn()
 {
-    // Execute command as preview
-    var command = BuildCurrentActionCommand();
-    _brain.ExecuteCommand(command);
-    
-    // Take snapshot so we can undo if cancelled
-    _brain.TakeSnapshot();
-    
-    // UI shows "Confirm? Yes/No"
-    // Wait for player input...
-}
-
-private void OnPlayerConfirmsAction()
-{
-    // Command is already executed, just transition state
-    TransitionTo(PlayerTurnState.ExecutingAction);
-    // Play animations, then transition to TurnComplete
-}
-
-private void OnPlayerCancelsAction()
-{
-    // Restore snapshot to undo preview
-    _brain.RestoreSnapshot();
-    
-    // Track undo count for timewheel
-    _brain.PublishPlayerUndoAction();
-    
-    // Return to previous state
-    TransitionTo(PlayerTurnState.UnitSelected);
+    ClearCachedData();
+    _brain.PublishPlayerTurnCompleted(SelectedUnit);
+    _playerTurnFlow?.TransitionToState(PlayerTurnStates.Inactive);
 }
 ```
 
-**Task:** Think about edge cases. What if the player undoes, moves somewhere else, then confirms *that* action? Do you need to track a stack of actions, or is the snapshot system sufficient?
+**Test:** Two player units, first moves, second auto-activates.
 
 ---
 
-## Phase 5: Polish & Edge Cases
+### Phase 2: Action Menu (Week 2)
 
-### Step 5.1: Handle Invalid Inputs Gracefully
+#### Step 2.1: Create Menu Structure
+**New File:** `BattleActionMenu.cs`
+
+**Needs:**
+- Enum for actions (Attack, Item, Wait, Trade, etc.)
+- List of menu items with enable/disable state
+- Navigation methods (up/down)
+- Selection callback
+
+**New File:** `ActionMenuItemUI.cs`
+
+**Needs:**
+- Text display
+- Icon (optional)
+- Highlight visual
+- Disabled state visual
+
+---
+
+#### Step 2.2: Determine Available Actions
+**In BattleActionMenu:**
+
+**Logic:**
+- Attack: Has weapon AND enemies in range
+- Item: Has usable items in inventory
+- Wait: Always available
+- Trade/Rescue/Talk: Check for valid targets adjacent
+
+**Helper Methods:**
+- `HasEnemiesInRange(unit, weapon, context)` - check targets within weapon.UpperRange
+- `HasUsableItems(unit)` - filter inventory for IsUsable items
+- `HasAdjacentAllies(unit, context)` - for trade/rescue
+
+---
+
+#### Step 2.3: Wire to Input Controller
+**File:** `BattleInputControllerBrain.OpenActionMenu()`
+
+**Tasks:**
+- Instantiate menu prefab
+- Build menu with available actions
+- Subscribe to OnActionSelected
+- Position near unit
+
+**File:** `HandleActionSelected(BattleAction action)`
+
+**Switch on action:**
+- Attack → transition to `AttackActionChosenChoosingTarget`, calculate attack tiles
+- Item → transition to `UseItemActionChosenChoosingItem`, show item menu
+- Wait → call `_playerTurnFlow.WaitAndEndTurn()`, complete turn immediately
+
+**Test:** Menu shows, selecting Attack highlights valid targets, selecting Wait ends turn.
+
+---
+
+### Phase 3: Combat System (Week 3)
+
+#### Step 3.1: Attack Target Selection
+**File:** `BattleInputControllerBrain.HandleConfirmInput()`
+
+**Add case for AttackActionChosenChoosingTarget:**
+- Validate target with `ValidateTargetSelection()`
+- Store target
+- Transition to `AttackActionChosenTargetSelected`
+
+**File:** `ValidateTargetSelection()`
+
+**Checks:**
+- Target is CharacterInstance (not null)
+- Target is enemy (BattleContext.IsTarget())
+- Target is in weapon range
+- Line of sight (optional, depends on your rules)
+
+---
+
+#### Step 3.2: Combat Forecast
+**New File:** `CombatForecast.cs` (static helper)
+
+**Method:** `Calculate(attacker, defender, context) → CombatForecastData`
+
+**Data Structure:**
 ```csharp
-// In PlayerInputBrain or BattleInputController:
-private bool ValidateTargetSelection(CharacterInstance target)
+public class CombatForecastData
 {
-    // TODO: Is target in range?
-    // TODO: Is target on correct team (enemy for attack, ally for heal)?
-    // TODO: Does active unit have a weapon/item that can reach?
-    
-    if (!isValid)
-    {
-        // TODO: Play error sound, show message
-        return false;
-    }
-    return true;
+    public int AttackerDamage, DefenderDamage;
+    public float AttackerHit, DefenderHit;
+    public float AttackerCrit, DefenderCrit;
+    public int AttackerAttacks, DefenderAttacks; // 1 or 2
+    public bool DefenderCanCounter;
+    public bool AttackerDies, DefenderDies;
 }
+```
+
+**Use your existing DamageCalculator methods:**
+- CalculatePotentialDamage()
+- CalculateHitChance()
+- CalculateCriticalChance()
+- CalculateAttackCount()
+- CanCounterAttack()
+- WouldKill()
+
+---
+
+#### Step 3.3: Forecast UI
+**New Prefab:** CombatForecastPanel
+
+**Components:**
+- Two columns (attacker/defender)
+- Each shows: Portrait, Name, HP, Dmg, Hit%, Crit%
+- Color HP red if would die
+- Show "x2" if double attack
+- Show "--" if can't counter
+
+**File:** `CombatForecastPanel.cs`
+
+**Methods:**
+- `Display(attacker, defender, forecast)`
+- `Show()` / `Hide()`
+
+**Wire in:** `BattleInputControllerBrain.ShowCombatForecast()`
+- Call when cursor over valid target
+- Update on cursor move
+- Hide on cancel
+
+---
+
+#### Step 3.4: Execute Attack
+**File:** `BattleInputControllerBrain.ExecuteConfirmedAction()`
+
+**Logic:**
+```csharp
+if (previous state was AttackTargetSelected)
+{
+    var result = BattleContext.AttackTarget(SelectedUnit, _selectedTarget);
+    if (result.Success)
+    {
+        // Play animation (stub for now with delay)
+        StartCoroutine(WaitForAnimation(2f, CompletePlayerTurn));
+    }
+}
+```
+
+**Test:** Attack → see forecast → confirm → damage applies → turn ends.
+
+---
+
+### Phase 4: Preview Systems (Week 4)
+
+#### Step 4.1: Movement Path Visualization
+**New File:** `MovementPathVisualizer.cs`
+
+**Two Approaches:**
+1. **Line Renderer:** Simple, smooth, less FE-authentic
+2. **Arrow Sprites:** More work, looks like Fire Emblem
+
+**Method:** `ShowPath(List<MapGridPoint> path)`
+
+**Needs:**
+- Pathfinding from current pos to cursor (A*)
+- Clear path when cursor moves or state changes
+
+**Integration:** Call from `UpdatePreviewsForCursorPosition()` when in move selection state.
+
+---
+
+#### Step 4.2: Tile Highlighting
+**New Component:** `BattleTileHighlighter.cs`
+
+**Method:** `HighlightTiles(Dictionary<MapGridPoint, TileHighlightType>)`
+
+**Types:**
+- Blue: Valid move
+- Red: Valid attack (with enemy)
+- Yellow: Attack range (no enemy)
+- Green: Ally/heal target
+
+**Implementation:**
+- Sprite overlay on each tile
+- Pool sprite instances (don't create 100 every time)
+- Clear when changing states
+
+**Wire to:** `CalculateValidTiles()` completion
+
+---
+
+#### Step 4.3: Damage Numbers
+**New Prefab:** DamageNumber (TextMeshPro with animation)
+
+**Trigger:** When `DamageCommand` executes
+
+**Component:** `DamageNumberSpawner.cs`
+
+**Method:** `Spawn(position, damage, isCrit, isMiss)`
+
+**Animation:** Float up, fade out, destroy after 1.5s
+
+**Use:** Object pooling for performance
+
+---
+
+### Phase 5: Polish & Edge Cases
+
+#### Step 5.1: Undo System
+**File:** `PlayerTurnFlow.HandlePlayerUndoAction()`
+
+**Track undo count per turn:**
+```csharp
+private int _undoCountThisTurn = 0;
+
+private void HandlePlayerUndoAction()
+{
+    _undoCountThisTurn++;
+    _battleBrain.Brain.RestoreSnapshot();
+    
+    // Check limit (get from settings)
+    if (_undoCountThisTurn > MaxUndos)
+    {
+        // Apply penalty or disable
+    }
+}
+```
+
+**Reset on turn complete.**
+
+---
+
+#### Step 5.2: Canto Movement
+**File:** `BattleInputControllerBrain.ExecuteConfirmedAction()`
+
+**After attack animation:**
+```csharp
+if (SelectedUnit.HasCanto())
+{
+    int remainingMoves = CalculateRemainingMovement(SelectedUnit);
+    if (remainingMoves > 0)
+    {
+        _playerTurnFlow.SpecialTurnReset(); // Back to NoActionChosen
+        CalculateValidTiles(SelectedUnit); // With reduced range
+        return; // Don't complete turn
+    }
+}
+CompletePlayerTurn();
 ```
 
 ---
 
-### Step 5.2: Timewheel Undo Tracking
-**Location:** New component - `TimewheelTracker.cs` (or add to an existing system)
+#### Step 5.3: Item Usage
+**Similar to attack flow:**
 
+**States:**
+- UseItemActionChosenChoosingItem (show inventory menu)
+- UseItemActionChosenItemSelected (if item needs target)
+- If no target needed, use immediately
+
+**Menu:** List inventory, filter IsUsable, show effect description
+
+**Execute:** `BattleContext.UseItem(user, item, target)`
+
+---
+
+## Critical Architecture Notes
+
+### Performance
+
+**Tile Calculation:** Don't recalculate on every cursor move. Calculate once per unit activation, cache until state changes.
+
+**Unit Lookups:** If you have 40+ units, consider `Dictionary<Vector2Int, CharacterInstance>` instead of linear search. Update on moves.
+
+**Object Pooling:** Use for UI elements (damage numbers, tile highlights, arrows). You're already using pooled collections in DamageCalculator - extend this pattern.
+
+### Memory Management
+
+**Event Subscriptions:** You're correctly storing delegates and unsubscribing. Maintain this pattern everywhere.
+
+**Active Roster Tracking:** In `GamewideContextBrain._activeRosterInstances`, you add but never remove. Add cleanup when battles end:
 ```csharp
-public class TimewheelTracker : MonoBehaviour
+public void ClearBattleRosters()
 {
-    private int _undoCount = 0;
-    
-    void Start()
-    {
-        var brain = FindObjectOfType<Brain>();
-        brain.OnPlayerUndoAction += IncrementUndoCount;
-    }
-    
-    private void IncrementUndoCount()
-    {
-        _undoCount++;
-        // TODO: UI update, check against timewheel limit
-    }
+    _activeRosterInstances.Clear();
+    // ... rest of cleanup
 }
 ```
 
-**Task:** What's the gameplay consequence of too many undos? Does the timewheel penalize the player? Design that system before implementing.
+### State Machine Integrity
+
+**Always validate transitions.** Your `PlayerTurnState.TransitionToState()` switch is correct - don't bypass it.
+
+**Track previous state** for cancel operations.
+
+**Clear cached data** when returning to NoUnitSelected or NoActionChosen.
 
 ---
 
-### Step 5.3: Handle Special Cases
-Things to think about now (implement later):
+## Testing Strategy
 
-- **Canto movement** (FE units that can move after attacking) - how does that fit into your state machine?
-- **Wait command** (end turn without moving) - trivial, but needs a menu option
-- **Item use** - very similar to attack flow, might share a state
-- **Trading items between units** - new state or separate menu flow?
-- **Rescue/Drop** (if you have that mechanic) - requires target selection like attack
+### Unit Tests (Priority)
 
-**Task:** For each, write one sentence describing how it fits into `PlayerTurnState`. Example: "Canto: After `ExecutingAction` for an attack, if unit has canto, transition to `SelectingMoveDestination` again with reduced movement range."
+**Add Unity Test Framework to project.**
+
+**Critical Tests:**
+1. State transitions (can't skip states)
+2. Damage formulas (weapon triangle, crits)
+3. Command execution/undo
+4. Tile validity (out of bounds, occupied, etc.)
+
+**Example:**
+```csharp
+[Test]
+public void WeaponTriangleAdvantage()
+{
+    // Setup: Sword vs Axe
+    var damage = DamageCalculator.CalculatePotentialDamage(...);
+    Assert.Greater(damage, baseDamage);
+}
+```
+
+### Integration Tests
+
+**Manually test each flow:**
+- [ ] Select unit → move → wait → turn ends → next unit activates
+- [ ] Select unit → attack → confirm → damage applies
+- [ ] Cancel at each state → returns to correct previous state
+- [ ] Undo after confirmation → state restored
+- [ ] Multiple player units in sequence
+- [ ] Enemy turn still works (don't break existing AI)
 
 ---
 
-## Implementation Order Recommendation
+## Implementation Priority Order
 
-**Week 1:** Phase 1 (Steps 1.1-1.3) - Core infrastructure, get state machine working with debug logs
+**Week 1 - Make It Work:**
+1. Fix GetUnitAtPosition() ✅
+2. Wire CalculateValidTiles() to pathfinding ✅
+3. Add previous state tracking ✅
+4. Complete HandleNavigateInput() ✅
+5. Complete HandleConfirmInput() for basic movement ✅
+6. Wire turn completion to TurnRotisserie ✅
 
-**Week 2:** Phase 2 (Steps 2.1-2.2) - Input handling and basic UI, even if ugly
+**Week 2 - Add Interactions:**
+7. Build action menu system ✅
+8. Implement attack target selection ✅
+9. Calculate combat forecast ✅
+10. Execute attack commands ✅
 
-**Week 3:** Phase 3 (Steps 3.1-3.2) - Integration with turn flow, get one full player turn working end-to-end
+**Week 3 - Visual Feedback:**
+11. Combat forecast UI ✅
+12. Movement path preview ✅
+13. Tile highlighting ✅
+14. Damage numbers ✅
 
-**Week 4:** Phase 4 (Steps 4.1-4.3) - Previews and confirmation, make it feel good
-
-**Week 5:** Phase 5 - Polish, edge cases, playtesting
+**Week 4 - Refinement:**
+15. Undo/redo system ✅
+16. Item usage flow ✅
+17. Canto movement ✅
+18. Edge case handling ✅
 
 ---
 
-## Your Next Immediate Actions
+## Your Immediate Next Steps
 
-1. **Design Session:** Spend 30 minutes with pen and paper drawing the state machine. Every state, every transition, every trigger.
+**Today:** Pick ONE task from Week 1 and complete it end-to-end. I recommend starting with #1 (GetUnitAtPosition) since everything depends on it.
 
-2. **Control Scheme Doc:** Write down your input mapping for every state. This will guide `BattleInputController` implementation.
+**This Week:** Get the basic turn flow working. One unit, move and wait only. No combat yet.
 
-3. **Create Skeletons:** Make the three main files (`PlayerTurnFlow.cs`, extend `PlayerInputBrain.cs`, add events to `Brain.cs`) with just method signatures and TODOs.
+**Test Scene Setup:**
+- 10x10 grid
+- 2 player units
+- Basic terrain
+- BattleContext initialized
+- Debug logging everywhere
 
-4. **First Test:** Get `PlayerTurnFlow` to log "Player unit activated" when it's the player's turn.
+**Success Criteria for Week 1:**
+- Click unit → cursor appears
+- Arrow keys move cursor
+- Press confirm on valid tile → unit moves
+- Press wait → turn ends
+- Next unit activates automatically
+
+Once that works, everything else is just adding more cases to the switch statements you've already structured.
