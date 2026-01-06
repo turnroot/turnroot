@@ -417,8 +417,6 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         ) => DamageCalculator.CalculatePotentialDamage(unitInstance, target, weaponItem, this);
         #endregion
 
-        // Input handling moved to BattleInputControllerBrain
-
         // Input event definitions
         public class BattleInputNavigateEvent
         {
