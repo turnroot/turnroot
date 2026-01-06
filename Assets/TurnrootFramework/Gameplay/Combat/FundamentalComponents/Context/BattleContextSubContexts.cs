@@ -25,6 +25,15 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         public List<CharacterInstance> Allies { get; set; }
         public List<CharacterInstance> ThirdParty { get; set; }
         public Adjacency AdjacentUnits { get; set; }
+
+        public List<CharacterInstance> GetAllUnits()
+        {
+            var result = new List<CharacterInstance>();
+            result.AddRange(Allies);
+            result.AddRange(Targets);
+            result.AddRange(ThirdParty);
+            return result;
+        }
     }
 
     public class UnitFlag

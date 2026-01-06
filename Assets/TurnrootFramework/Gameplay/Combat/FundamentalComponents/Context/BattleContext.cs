@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Turnroot.Characters;
 using Turnroot.Gameplay.Brain.Commands;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Environment;
@@ -17,6 +18,8 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
     /// </summary>
     public class BattleContext : MonoBehaviour
     {
+        #region Core Properties and Initialization
+
         /// <summary>
         /// Reference to the Brain for publishing events.
         /// Set this when creating the BattleContext. Use Initialize() to assign.
@@ -42,21 +45,28 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             this.mapGrid = mapGrid;
         }
 
+        #endregion
+
+        #region Sub-Contexts and State
+
         // Sub-contexts for clearer separation
         public UnitContext Unit { get; private set; }
         public SkillContext Skill { get; private set; }
         public BattleParticipants Participants { get; private set; }
         public CombatFlags Flags { get; private set; }
 
-        // Backwards-compatible accessors will follow
-
-        // Currently executing skill graph (if any)
+        // Cached unit positions so we don't have to query each unit every time
+        public Dictionary<Vector2Int, CharacterInstance> currentUnitPositions = new();
 
         public EnvironmentalConditions EnvironmentalConditions { get; set; }
         public Dictionary<string, object> CustomData { get; private set; }
 
         // Track last attacker per target for the current battle
         private readonly Dictionary<string, CharacterInstance> _lastAttackerByTarget = new();
+
+        #endregion
+
+        #region Last Attacker Tracking
 
         /// <summary>
         /// Returns the last attacker who attacked the specified target during this battle, or null.
@@ -89,6 +99,10 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         /// Clears last-attacker tracking for this battle.
         /// </summary>
         public void ClearLastAttackHistory() => _lastAttackerByTarget.Clear();
+
+        #endregion
+
+        #region Combat State and Effectiveness
 
         // Combat state flags (backward-compatible wrappers)
 
@@ -198,6 +212,10 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             return totalCost <= targetAttackRange;
         }
 
+        #endregion
+
+        #region Constructor and Utilities
+
         public BattleContext()
         {
             CustomData = new Dictionary<string, object>();
@@ -226,6 +244,26 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
         // Set a custom data value
         public void SetCustomData(string key, object value) => CustomData[key] = value;
+
+        public Dictionary<Vector2Int, CharacterInstance> GetCurrentUnitPositions(
+            bool invalidateCache = false
+        )
+        {
+            if (invalidateCache)
+            {
+                currentUnitPositions = null;
+            }
+            if (currentUnitPositions == null)
+            {
+                var allUnits = Participants.GetAllUnits(); // Add this helper
+                currentUnitPositions = allUnits.ToDictionary(u => u.MapGridPosition, u => u);
+            }
+            return currentUnitPositions;
+        }
+
+        public void InvalidateUnitPositionCache() => currentUnitPositions = null;
+
+        #endregion
 
         #region Command-Based Actions
 
@@ -376,6 +414,24 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             CharacterInstance target,
             ObjectItemInstance weaponItem
         ) => DamageCalculator.CalculatePotentialDamage(unitInstance, target, weaponItem, this);
+        #endregion
+
+        #region Input Event Definitions
+
+        // Input handling moved to BattleInputControllerBrain
+
+        // Input event definitions
+        public class BattleInputNavigateEvent
+        {
+            public Vector2 Direction { get; set; }
+        }
+
+        public class BattleInputConfirmEvent { }
+
+        public class BattleInputCancelEvent { }
+
+        public class BattleInputMenuEvent { }
+
         #endregion
     }
 }

@@ -316,6 +316,9 @@ namespace Turnroot.Gameplay.Brain
                 _brain?.PublishCharacterMoveCompleted(unit, newPoint);
                 _brain?.PublishUnitMoved(unit, target);
                 _brain?.Publish(new Events.UnitMovedEvent(unit, from, target));
+
+                // Rebuild cached unit positions in BattleContext whenever a unit moves
+                BattleObject.Context.InvalidateUnitPositionCache();
             }
             return result.Success;
         }
