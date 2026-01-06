@@ -212,6 +212,10 @@ namespace Turnroot.GameSettings
 
         public MenuLocation GetGameSettingsMenu() => GetMenuLocation(MenuName.GameSettingsMenu);
 
+        public MenuLocation GetGameSettingsAudioMenu() => GetMenuLocation(MenuName.AudioMenu);
+
+        public MenuLocation GetGameSettingsControlsMenu() => GetMenuLocation(MenuName.ControlsMenu);
+
         public void ResolveParentReferences()
         {
             if (allPossibleMenuLocations == null)
