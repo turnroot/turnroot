@@ -60,6 +60,58 @@ namespace Turnroot.GamePackage
         public string GameTrailerUrl;
         public List<GraphicsPack> GraphicsPacksUsed = new();
 
+        [Button]
+        public void GetModules() => Application.OpenURL("https://"); // TODO: link to asset store
+
+        [Header("Modules"), HorizontalLine(color: EColor.Yellow)]
+        [field: ReadOnly]
+        public bool HubModule =
+#if TURNROOT_HUB_MODULE
+            true;
+#else
+            false;
+#endif
+
+        [field: ReadOnly]
+        public bool BloodlinesModule =
+#if TURNROOT_BLOODLINES_MODULE
+            true;
+#else
+            false;
+#endif
+
+        [field: ReadOnly]
+        public bool RetroModule =
+#if TURNROOT_RETRO_MODULE
+            true;
+#else
+            false;
+#endif
+
+        [field: ReadOnly]
+        public bool UnwindModule =
+#if TURNROOT_UNWIND_MODULE
+            true;
+#else
+            false;
+#endif
+
+        [field: ReadOnly]
+        public bool TroopsModule =
+#if TURNROOT_TROOPS_MODULE
+            true;
+#else
+            false;
+#endif
+
+        [field: ReadOnly]
+        public bool MonstersModule =
+#if TURNROOT_MONSTERS_MODULE
+            true;
+#else
+            false;
+#endif
+
         [SerializeField, Header("Versioning"), HorizontalLine(color: EColor.Blue)]
         public string VersionText = "1.0.0";
 

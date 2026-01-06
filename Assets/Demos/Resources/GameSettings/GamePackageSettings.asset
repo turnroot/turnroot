@@ -16,9 +16,6 @@ MonoBehaviour:
   GameDescription: 
   GameTagline: 
   GameUrl: 
-  GameTrailerUrl: 
-  GameThemeColor: {r: 0, g: 0, b: 0, a: 0}
-  Keywords: []
   HasNsfwContent: 0
   ContainsAds: 0
   PregameDisclaimer: 
@@ -27,7 +24,14 @@ MonoBehaviour:
   GameBannerDesktop: {fileID: 0}
   GameBannerWide: {fileID: 0}
   Screenshots: []
+  GameTrailerUrl: 
   GraphicsPacksUsed: []
+  HubModule: 0
+  BloodlinesModule: 0
+  RetroModule: 0
+  UnwindModule: 0
+  TroopsModule: 0
+  MonstersModule: 0
   VersionText: 1.0.0
   SupportedPlatforms: 0200000007000000
   DefaultLanguage: 10
