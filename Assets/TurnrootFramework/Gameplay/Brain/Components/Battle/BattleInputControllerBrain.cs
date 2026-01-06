@@ -45,6 +45,9 @@ namespace Turnroot.Gameplay.Brain
         private InputAction _cancelAction;
         private InputAction _menuAction;
 
+        private float _lastInputTime;
+        private const float INPUT_COOLDOWN = 0.1f;
+
         protected override EventPriority GetSubscriptionPriority() => EventPriority.High;
 
         protected override void SubscribeToBrainEvents()
@@ -127,6 +130,10 @@ namespace Turnroot.Gameplay.Brain
 
         private void Update()
         {
+            if (Time.time - _lastInputTime < INPUT_COOLDOWN)
+            {
+                return;
+            }
             // Process Unity Input System and publish Brain events
             if (_navigateAction?.WasPressedThisFrame() == true)
             {
@@ -164,25 +171,16 @@ namespace Turnroot.Gameplay.Brain
         }
 
         // Event handlers for input events from BattleContext
-        private void HandleNavigateEvent(BattleContext.BattleInputNavigateEvent navEvent)
-        {
+        private void HandleNavigateEvent(BattleContext.BattleInputNavigateEvent navEvent) =>
             HandleNavigateInput(navEvent.Direction);
-        }
 
-        private void HandleConfirmEvent(BattleContext.BattleInputConfirmEvent confirmEvent)
-        {
+        private void HandleConfirmEvent(BattleContext.BattleInputConfirmEvent confirmEvent) =>
             HandleConfirmInput();
-        }
 
-        private void HandleCancelEvent(BattleContext.BattleInputCancelEvent cancelEvent)
-        {
+        private void HandleCancelEvent(BattleContext.BattleInputCancelEvent cancelEvent) =>
             HandleCancelInput();
-        }
 
-        private void HandleMenuEvent(BattleContext.BattleInputMenuEvent menuEvent)
-        {
-            OpenMenu();
-        }
+        private void HandleMenuEvent(BattleContext.BattleInputMenuEvent menuEvent) => OpenMenu();
 
         // Player turn event handlers
         private void HandlePlayerUnitActivated(CharacterInstance unit)
@@ -325,11 +323,7 @@ namespace Turnroot.Gameplay.Brain
 
         // Additional detailed damage/movement preview implementations already planned above
 
-        public void MoveCursorToPoint(MapGridPoint point)
-        {
-            CursorPosition = point;
-            // TODO: Cursor UI updates (visuals, sound, previews, constraints)
-        }
+        public void MoveCursorToPoint(MapGridPoint point) => CursorPosition = point; // TODO: Cursor UI updates (visuals, sound, previews, constraints)
 
         public void ConfirmTileSelection()
         {
@@ -378,15 +372,9 @@ namespace Turnroot.Gameplay.Brain
         // TODO: Special battle actions (Wait, Item, Trade, Rescue/Drop, Talk, Steal, Dance/Refresh, Canto movement)
         // TODO: Advanced input validation (range, teams, weapons, action points, error feedback)
 
-        public void OpenActionMenu()
-        {
-            _playerTurnFlow?.SelectUnit();
-        }
+        public void OpenActionMenu() => _playerTurnFlow?.SelectUnit();
 
-        public void RequestUndo()
-        {
-            _brain?.PublishPlayerUndoAction();
-        }
+        public void RequestUndo() => _brain?.PublishPlayerUndoAction();
 
         public void OpenMenu()
         {

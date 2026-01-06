@@ -27,6 +27,8 @@ public class PlayerTurnState
 {
     public PlayerTurnStates CurrentState { get; set; } = PlayerTurnStates.Inactive;
 
+    public PlayerTurnStates PreviousState { get; private set; } = PlayerTurnStates.Inactive;
+
     public OperationResult TransitionToState(PlayerTurnStates newState)
     {
         // Valid transitions:
@@ -45,6 +47,7 @@ public class PlayerTurnState
         // 11. ExecutingAction -> NoActionChosen. Action complete but player can act again (e.g., canto/follow-up).
         // 12. ConfirmAction -> NoActionChosen. This allows for skills that grant moving after attacking, or attacking a second enemy (shortcut flows).
         // 13. Wait ActionChosen -> TurnEnded. The player has chosen to wait and end their turn.
+        PreviousState = CurrentState;
         bool allowed = (CurrentState, newState) switch
         {
             (PlayerTurnStates.Inactive, PlayerTurnStates.NoUnitSelected) => true,
