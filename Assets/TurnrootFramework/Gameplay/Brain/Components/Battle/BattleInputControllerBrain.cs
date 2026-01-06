@@ -141,7 +141,9 @@ namespace Turnroot.Gameplay.Brain
         private void CalculateValidTiles(CharacterInstance unit)
         {
             if (unit == null || BattleContext?.mapGrid == null)
+            {
                 return;
+            }
 
             _validMoveTiles.Clear();
             _validAttackTiles.Clear();
@@ -177,7 +179,9 @@ namespace Turnroot.Gameplay.Brain
         public bool ValidateTargetSelection(CharacterInstance target)
         {
             if (target == null)
+            {
                 return false;
+            }
 
             var currentState = _playerTurnFlow?.GetCurrentState() ?? PlayerTurnStates.Inactive;
 
@@ -269,7 +273,9 @@ namespace Turnroot.Gameplay.Brain
         public void HandleNavigateInput(Vector2 direction)
         {
             if (direction.magnitude < 0.1f)
+            {
                 return;
+            }
 
             // Convert direction to grid movement
             var gridDirection = Vector2Int.zero;
