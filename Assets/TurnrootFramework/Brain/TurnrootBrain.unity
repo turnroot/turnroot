@@ -169,7 +169,7 @@ MonoBehaviour:
   battleBrain: {fileID: 0}
   inventoryBrain: {fileID: 0}
   storehouseBrain: {fileID: 0}
-  playerInputBrain: {fileID: 0}
+  battleInputControllerBrain: {fileID: 0}
   uiBrain: {fileID: 0}
   volumeBrain: {fileID: 0}
   audioBrain: {fileID: 0}
