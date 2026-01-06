@@ -8,6 +8,7 @@ using Turnroot.Gameplay.Objects;
 using Turnroot.Skills.Nodes;
 using Turnroot.Utilities;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 {
@@ -41,6 +42,14 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             Brain = brain;
             this.mapGrid = mapGrid;
         }
+
+        // Input actions for battle control
+        // these pass down to the BattleInputControllerBrain
+        public InputAction NavigateAction;
+
+        public InputAction ConfirmAction;
+        public InputAction CancelAction;
+        public InputAction MenuAction;
 
         // Sub-contexts for clearer separation
         public UnitContext Unit { get; private set; }
@@ -377,5 +386,62 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             ObjectItemInstance weaponItem
         ) => DamageCalculator.CalculatePotentialDamage(unitInstance, target, weaponItem, this);
         #endregion
+
+        private void Update()
+        {
+            // Handle input actions and publish events
+            if (NavigateAction?.WasPressedThisFrame() == true)
+            {
+                var direction = NavigateAction.ReadValue<Vector2>();
+                HandleNavigateInput(direction);
+            }
+
+            if (ConfirmAction?.WasPressedThisFrame() == true)
+            {
+                HandleConfirmInput();
+            }
+
+            if (CancelAction?.WasPressedThisFrame() == true)
+            {
+                HandleCancelInput();
+            }
+
+            if (MenuAction?.WasPressedThisFrame() == true)
+            {
+                HandleMenuInput();
+            }
+        }
+
+        private void HandleNavigateInput(Vector2 direction)
+        {
+            Brain?.Publish(new BattleInputNavigateEvent { Direction = direction });
+        }
+
+        private void HandleConfirmInput()
+        {
+            Brain?.Publish(new BattleInputConfirmEvent());
+        }
+
+        private void HandleCancelInput()
+        {
+            Brain?.Publish(new BattleInputCancelEvent());
+        }
+
+        private void HandleMenuInput()
+        {
+            Brain?.Publish(new BattleInputMenuEvent());
+        }
+
+        // Input event definitions
+        public class BattleInputNavigateEvent
+        {
+            public Vector2 Direction { get; set; }
+        }
+
+        public class BattleInputConfirmEvent { }
+
+        public class BattleInputCancelEvent { }
+
+        public class BattleInputMenuEvent { }
     }
 }

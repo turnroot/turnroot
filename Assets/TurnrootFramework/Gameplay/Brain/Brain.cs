@@ -40,7 +40,7 @@ namespace Turnroot.Gameplay.Brain
     [RequireComponent(typeof(BattleBrain))]
     [RequireComponent(typeof(InventoryBrain))]
     [RequireComponent(typeof(StorehouseBrain))]
-    [RequireComponent(typeof(PlayerInputBrain))]
+    [RequireComponent(typeof(BattleInputControllerBrain))]
     [RequireComponent(typeof(UiBrain))]
     [RequireComponent(typeof(VolumeBrain))]
     [RequireComponent(typeof(AudioBrain))]
@@ -69,7 +69,7 @@ namespace Turnroot.Gameplay.Brain
         public StorehouseBrain storehouseBrain;
 
         [HideInInspector]
-        public PlayerInputBrain playerInputBrain;
+        public BattleInputControllerBrain battleInputControllerBrain;
 
         [HideInInspector]
         public UiBrain uiBrain;
@@ -684,7 +684,7 @@ namespace Turnroot.Gameplay.Brain
             charactersBrain = GetComponent<CharactersBrain>();
             inventoryBrain = GetComponent<InventoryBrain>();
             storehouseBrain = GetComponent<StorehouseBrain>();
-            playerInputBrain = GetComponent<PlayerInputBrain>();
+            battleInputControllerBrain = GetComponent<BattleInputControllerBrain>();
             uiBrain = GetComponent<UiBrain>();
             volumeBrain = GetComponent<VolumeBrain>();
             audioBrain = GetComponent<AudioBrain>();
