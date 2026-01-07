@@ -55,6 +55,13 @@ namespace Turnroot.Gameplay.PlayerSettings
             LowestHpUnit,
         }
 
+        public enum InputControlType
+        {
+            Auto, // Automatically detect based on last input
+            Keyboard,
+            Gamepad,
+        }
+
         // gameplay
         public bool Permadeath;
         public bool TutorialPrompts = true;
@@ -64,6 +71,7 @@ namespace Turnroot.Gameplay.PlayerSettings
         public bool AutoEndTurn = true;
 
         public StartTurnUnit StartUnitSetting = StartTurnUnit.Avatar;
+        public InputControlType PreferredInputControl = InputControlType.Auto;
         public bool DisableTurnwheel = false;
         public bool DisableTacticalLens = false;
         public BattleGridDisplay BattleGridSetting = BattleGridDisplay.AlwaysOn;

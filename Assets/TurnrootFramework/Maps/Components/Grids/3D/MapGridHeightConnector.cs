@@ -7,9 +7,7 @@ public class MapGridHeightConnector
     public Vector3[] RaycastPointsDownTo3DMap(
         GameObject mapObject,
         Dictionary<Vector2Int, GameObject> gridPoints,
-        LayerMask layerMask,
-        bool flipX = false,
-        bool flipY = false
+        LayerMask layerMask
     )
     {
         Vector3[] raycastPoints = new Vector3[gridPoints.Count];
@@ -18,15 +16,9 @@ public class MapGridHeightConnector
         // If the provided 3D map object is null, simply return original positions
         if (mapObject == null)
         {
-            // Return original positions in a deterministic order
-            var orderedNull = gridPoints.AsEnumerable();
-            var orderedX = flipX
-                ? orderedNull.OrderByDescending(kv => kv.Key.x)
-                : orderedNull.OrderBy(kv => kv.Key.x);
-            var orderedXY = flipY
-                ? orderedX.ThenByDescending(kv => kv.Key.y)
-                : orderedX.ThenBy(kv => kv.Key.y);
-            foreach (var kv in orderedXY)
+            // Return original positions in consistent order
+            var ordered = gridPoints.OrderBy(kv => kv.Key.x).ThenBy(kv => kv.Key.y);
+            foreach (var kv in ordered)
             {
                 var point = kv.Value;
                 raycastPoints[index++] = point.transform.position;
@@ -37,16 +29,9 @@ public class MapGridHeightConnector
         // Cache the transform for hierarchy checks
         var targetRoot = mapObject.transform;
 
-        // Iterate the provided grid points in a deterministic order so the output
-        // array corresponds predictably to row/column indices.
-        var ordered = gridPoints.AsEnumerable();
-        var orderedByX = flipX
-            ? ordered.OrderByDescending(kv => kv.Key.x)
-            : ordered.OrderBy(kv => kv.Key.x);
-        var orderedFinal = flipY
-            ? orderedByX.ThenByDescending(kv => kv.Key.y)
-            : orderedByX.ThenBy(kv => kv.Key.y);
-        foreach (var kv in orderedFinal)
+        // Iterate the provided grid points in consistent order
+        var ordered = gridPoints.OrderBy(kv => kv.Key.x).ThenBy(kv => kv.Key.y);
+        foreach (var kv in ordered)
         {
             var point = kv.Value;
             Vector3 rayOrigin = point.transform.position + Vector3.up * 50f; // Start the ray well above the grid point
