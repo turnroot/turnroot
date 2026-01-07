@@ -34,7 +34,7 @@ namespace Turnroot.GamePackage
     public class GamePackageSettings : SingletonScriptableObject<GamePackageSettings>
     {
         [Header("General Information"), HorizontalLine(color: EColor.Red)]
-        public string gameName;
+        public string GameName;
 
         [TextArea(3, 10)]
         public string GameDescription;
