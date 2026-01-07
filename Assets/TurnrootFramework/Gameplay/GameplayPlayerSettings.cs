@@ -57,7 +57,6 @@ namespace Turnroot.Gameplay.PlayerSettings
 
         public enum InputControlType
         {
-            Auto, // Automatically detect based on last input
             Keyboard,
             Gamepad,
         }
@@ -71,7 +70,7 @@ namespace Turnroot.Gameplay.PlayerSettings
         public bool AutoEndTurn = true;
 
         public StartTurnUnit StartUnitSetting = StartTurnUnit.Avatar;
-        public InputControlType PreferredInputControl = InputControlType.Auto;
+        public InputControlType PreferredInputControl = InputControlType.Keyboard;
         public bool DisableTurnwheel = false;
         public bool DisableTacticalLens = false;
         public BattleGridDisplay BattleGridSetting = BattleGridDisplay.AlwaysOn;

@@ -56,10 +56,6 @@ namespace Turnroot.Gameplay.Brain
         private const float KEYBOARD_INPUT_COOLDOWN = 0.025f; // Faster for keyboard
         private const float GAMEPAD_INPUT_COOLDOWN = 0.1f; // Slower for gamepad
 
-        // Input device tracking
-        private bool _isGamepadInput;
-        private bool _hasDetectedInputDevice;
-
         // Cached cooldown to avoid recalculating every frame
         private float _cachedInputCooldown = KEYBOARD_INPUT_COOLDOWN;
         #endregion
@@ -136,7 +132,6 @@ namespace Turnroot.Gameplay.Brain
             // Process Unity Input System and publish Brain events
             if (_navigateAction?.WasPressedThisFrame() == true)
             {
-                DetectInputDeviceIfNeeded(_navigateAction);
                 var direction = _navigateAction.ReadValue<Vector2>();
                 HandleNavigateInput(direction);
                 _brain?.Publish(
@@ -147,21 +142,18 @@ namespace Turnroot.Gameplay.Brain
 
             if (_confirmAction?.WasPressedThisFrame() == true)
             {
-                DetectInputDeviceIfNeeded(_confirmAction);
                 _brain?.Publish(new BattleContext.BattleInputConfirmEvent());
                 inputProcessed = true;
             }
 
             if (_cancelAction?.WasPressedThisFrame() == true)
             {
-                DetectInputDeviceIfNeeded(_cancelAction);
                 _brain?.Publish(new BattleContext.BattleInputCancelEvent());
                 inputProcessed = true;
             }
 
             if (_menuAction?.WasPressedThisFrame() == true)
             {
-                DetectInputDeviceIfNeeded(_menuAction);
                 _brain?.Publish(new BattleContext.BattleInputMenuEvent());
                 inputProcessed = true;
             }
@@ -185,7 +177,7 @@ namespace Turnroot.Gameplay.Brain
         #region Input Source Detection
 
         /// <summary>
-        /// Updates the cached input cooldown based on player settings or detected device
+        /// Updates the cached input cooldown based on player settings
         /// </summary>
         private void UpdateCachedInputCooldown()
         {
@@ -208,12 +200,8 @@ namespace Turnroot.Gameplay.Brain
                     case GameplayPlayerSettings.InputControlType.Gamepad:
                         _cachedInputCooldown = GAMEPAD_INPUT_COOLDOWN;
                         break;
-                    case GameplayPlayerSettings.InputControlType.Auto:
                     default:
-                        // Only use detected device for Auto mode
-                        _cachedInputCooldown = _isGamepadInput
-                            ? GAMEPAD_INPUT_COOLDOWN
-                            : KEYBOARD_INPUT_COOLDOWN;
+                        _cachedInputCooldown = KEYBOARD_INPUT_COOLDOWN;
                         break;
                 }
             }
@@ -225,44 +213,6 @@ namespace Turnroot.Gameplay.Brain
                 );
 #endif
                 _cachedInputCooldown = KEYBOARD_INPUT_COOLDOWN;
-            }
-        }
-
-        /// <summary>
-        /// Detects input device only when needed (Auto mode)
-        /// </summary>
-        private void DetectInputDeviceIfNeeded(InputAction action)
-        {
-            try
-            {
-                var playerSettings = GameSettingsLoader.LoadFirst<GameplayPlayerSettings>(
-                    "GameSettings"
-                );
-                // Only detect device if user chose Auto mode
-                if (
-                    playerSettings?.PreferredInputControl
-                    == GameplayPlayerSettings.InputControlType.Auto
-                )
-                {
-                    if (action?.activeControl?.device != null)
-                    {
-                        bool wasGamepadInput = action.activeControl.device is Gamepad;
-                        if (_isGamepadInput != wasGamepadInput || !_hasDetectedInputDevice)
-                        {
-                            _isGamepadInput = wasGamepadInput;
-                            _hasDetectedInputDevice = true;
-                            UpdateCachedInputCooldown();
-                        }
-                    }
-                }
-            }
-            catch (System.Exception ex)
-            {
-#if UNITY_EDITOR
-                Debug.LogWarning(
-                    $"BattleInputControllerBrain: Error in device detection: {ex.Message}"
-                );
-#endif
             }
         }
 
