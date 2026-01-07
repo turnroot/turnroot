@@ -17,15 +17,9 @@ public class SineMaterialColors : MonoBehaviour
     {
         if (TargetMaterial != null)
         {
-            // sine between startColor.r,g,b,a and endColor.r,g,b,a
-            for (int i = 0; i < 4; i++)
-            {
-                float sineValue = (Mathf.Sin(Time.time * Speed) + 1) / 2; // Normalize sine to [0,1]
-                float newValue = Mathf.Lerp(startColor[i], endColor[i], sineValue);
-                Color color = TargetMaterial.color;
-                color[i] = newValue;
-                TargetMaterial.color = color;
-            }
+            float sineValue = (Mathf.Sin(Time.time * Speed) + 1) / 2; // Normalize sine to [0,1]
+            Color newColor = Color.Lerp(startColor, endColor, sineValue);
+            TargetMaterial.color = newColor;
         }
     }
 }
