@@ -89,6 +89,8 @@ public class MapGrid : MonoBehaviour
     public int GridHeight => _gridHeight;
     public float GridScale => _gridScale;
     public Vector3 GridOffset => _gridOffset;
+    public bool FlipRaycastX => _flipRaycastX;
+    public bool FlipRaycastY => _flipRaycastY;
 
     private void Awake()
     {
@@ -99,7 +101,7 @@ public class MapGrid : MonoBehaviour
             {
                 RebuildGridDictionary();
             }
-            _single3dHeightMesh.SetActive(false);
+            // _single3dHeightMesh.SetActive(false);
         }
 
         // Ensure cache is built
@@ -555,6 +557,36 @@ public class MapGrid : MonoBehaviour
         return _gridPoints.TryGetValue(key, out var point) && point != null
             ? point.transform.position
             : Vector3.zero;
+    }
+
+    /// <summary>
+    /// Gets the world position for a grid coordinate, taking into account terrain height from raycast data
+    /// </summary>
+    public Vector3 GetTerrainAdjustedWorldPosition(Vector2Int gridCoordinates)
+    {
+        // Try to get terrain-adjusted position from raycast data
+        if (
+            _single3dHeightMeshRaycastPoints != null
+            && _single3dHeightMeshRaycastIndices != null
+            && _single3dHeightMeshRaycastPoints.Length == _single3dHeightMeshRaycastIndices.Length
+        )
+        {
+            // Find the index that matches our grid coordinates
+            for (int i = 0; i < _single3dHeightMeshRaycastIndices.Length; i++)
+            {
+                if (
+                    _single3dHeightMeshRaycastIndices[i].x == gridCoordinates.x
+                    && _single3dHeightMeshRaycastIndices[i].y == gridCoordinates.y
+                )
+                {
+                    return _single3dHeightMeshRaycastPoints[i];
+                }
+            }
+        }
+
+        // Fallback to regular grid point position if raycast data is not available
+        var gridPoint = GetGridPoint(gridCoordinates.x, gridCoordinates.y);
+        return gridPoint != null ? GetMapGridPointWorldLocation(gridPoint) : Vector3.zero;
     }
 
     public List<MapGridPoint> GetAllGridPoints()
