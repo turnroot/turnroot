@@ -262,7 +262,7 @@ namespace Turnroot.GameSettings
         public Color RadialMenuNormalColor = Color.white;
 
         [Tooltip("Default selected color for radial menu segments")]
-        public Color RadialMenuSelectedColor = new Color(1f, 0.8f, 0f);
+        public Color RadialMenuSelectedColor = new(1f, 0.8f, 0f);
 
         [Range(0f, 1f), Tooltip("Inner radius for radial menus (0-1, percent of total radius)")]
         public float RadialMenuInnerRadius = 0.3f;
@@ -313,5 +313,14 @@ namespace Turnroot.GameSettings
         public Sprite PathStartSprite;
         public Sprite CursorSprite;
         public GameObject BattleCursorPrefab;
+
+        [MinValue(0), MaxValue(1)]
+        public Vector2 CameraPanSafeZone = new(.25f, .25f);
+
+        [Range(0.1f, 1f)]
+        public float CameraPanSpeed = 0.6f;
+
+        [Range(.01f, .3f)]
+        public float CameraPanStopDistance = 0.01f;
     }
 }

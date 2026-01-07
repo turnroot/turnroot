@@ -1,4 +1,5 @@
 using Turnroot.Gameplay.Brain;
+using Turnroot.Utilities;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -31,10 +32,20 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                 InitializeBattleCursor();
                 _battleCursorInitialized = true;
             }
+
+            if (_battleCursorInstance == null)
+            {
+                return;
+            }
+
             var mapGrid = _brain.battleBrain.BattleObject.Context.mapGrid;
+            if (mapGrid == null)
+            {
+                return;
+            }
+
             var worldPosition = mapGrid.GetTerrainAdjustedWorldPosition(newPosition);
             _battleCursorInstance.transform.position = worldPosition + new Vector3(0, 1f, -2f); // Slightly above the ground
-            Debug.Log($"Battle cursor world position: {_battleCursorInstance.transform.position}");
         }
         #endregion
     }

@@ -55,6 +55,12 @@ namespace Turnroot.Gameplay.PlayerSettings
             LowestHpUnit,
         }
 
+        public enum InputControlType
+        {
+            Keyboard,
+            Gamepad,
+        }
+
         // gameplay
         public bool Permadeath;
         public bool TutorialPrompts = true;
@@ -64,6 +70,7 @@ namespace Turnroot.Gameplay.PlayerSettings
         public bool AutoEndTurn = true;
 
         public StartTurnUnit StartUnitSetting = StartTurnUnit.Avatar;
+        public InputControlType PreferredInputControl = InputControlType.Keyboard;
         public bool DisableTurnwheel = false;
         public bool DisableTacticalLens = false;
         public BattleGridDisplay BattleGridSetting = BattleGridDisplay.AlwaysOn;

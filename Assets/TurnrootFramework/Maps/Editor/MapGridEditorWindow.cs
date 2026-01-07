@@ -30,7 +30,6 @@ public class MapGridEditorWindow : EditorWindow
     private Mode _mode = Mode.Paint;
 
     private Dictionary<MapGridPoint, Color> _cellColorCache = new();
-    private bool _needsGridRedraw = true;
 
     // Dimension tracking
     private int _lastKnownWidth = 0,
@@ -159,7 +158,6 @@ public class MapGridEditorWindow : EditorWindow
     private void InvalidateColorCache()
     {
         _cellColorCache.Clear();
-        _needsGridRedraw = true;
     }
 
     private void InitializeHotkeys()

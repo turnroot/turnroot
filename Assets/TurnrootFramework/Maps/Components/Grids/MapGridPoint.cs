@@ -504,7 +504,32 @@ public class MapGridPoint : MonoBehaviour
             return;
         }
 
-        var allDefaults = Resources.LoadAll<MapGridFeatureProperties>("GameSettings");
+        // Avoid calling Resources.LoadAll during OnValidate to prevent SendMessage errors
+#if UNITY_EDITOR
+        if (
+            UnityEditor.EditorApplication.isPlayingOrWillChangePlaymode
+            || UnityEditor.EditorApplication.isCompiling
+            || UnityEditor.EditorApplication.isUpdating
+        )
+        {
+            return;
+        }
+#endif
+
+        MapGridFeatureProperties[] allDefaults = null;
+
+        try
+        {
+            allDefaults = Resources.LoadAll<MapGridFeatureProperties>("GameSettings");
+        }
+        catch (System.Exception ex)
+        {
+#if UNITY_EDITOR
+            Debug.LogWarning($"MapGridPoint: Failed to load feature properties: {ex.Message}");
+#endif
+            return;
+        }
+
         if (allDefaults == null || allDefaults.Length == 0)
         {
             return;

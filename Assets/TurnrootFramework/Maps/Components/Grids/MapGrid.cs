@@ -58,6 +58,9 @@ public class MapGrid : MonoBehaviour
     [SerializeField, HideInInspector]
     private Vector2Int[] _single3dHeightMeshRaycastIndices;
 
+    // Lookup dictionary for O(1) terrain position access
+    private Dictionary<Vector2Int, Vector3> _terrainPositionLookup;
+
     [SerializeField]
     [Tooltip("Show gizmo spheres for computed raycast points in the Scene view")]
     private bool _showRaycastGizmos = true;
@@ -66,13 +69,23 @@ public class MapGrid : MonoBehaviour
     [Tooltip("Show coordinate labels for raycast points in the Scene view")]
     private bool _showRaycastCoordinates = true;
 
-    [SerializeField]
-    [Tooltip("Flip the X ordering used when mapping raycast points to grid indices")]
-    private bool _flipRaycastX = false;
+    [Button("Reset Mesh Scale")]
+    private void ResetMeshScale()
+    {
+        if (_single3dHeightMesh == null)
+        {
+#if UNITY_EDITOR
+            Debug.LogWarning("MapGrid: No 3D height mesh assigned. Please assign a mesh to reset.");
+#endif
+            return;
+        }
 
-    [SerializeField]
-    [Tooltip("Flip the Y ordering used when mapping raycast points to grid indices")]
-    private bool _flipRaycastY = false;
+        _single3dHeightMesh.transform.localScale = Vector3.one;
+
+#if UNITY_EDITOR
+        Debug.Log("MapGrid: Reset mesh scale to (1, 1, 1)");
+#endif
+    }
 
     [SerializeField]
     [Tooltip(
@@ -84,13 +97,12 @@ public class MapGrid : MonoBehaviour
     private Vector2Int[] _traversableAreaCorners = new Vector2Int[4];
 
     public Vector2Int[] TraversableAreaCorners => _traversableAreaCorners;
+    public LayerMask RaycastLayerMask => _raycastLayerMask;
 
     public int GridWidth => _gridWidth;
     public int GridHeight => _gridHeight;
     public float GridScale => _gridScale;
     public Vector3 GridOffset => _gridOffset;
-    public bool FlipRaycastX => _flipRaycastX;
-    public bool FlipRaycastY => _flipRaycastY;
 
     private void Awake()
     {
@@ -229,9 +241,7 @@ public class MapGrid : MonoBehaviour
         var points = connector.RaycastPointsDownTo3DMap(
             _single3dHeightMesh,
             _gridPoints,
-            _raycastLayerMask,
-            _flipRaycastX,
-            _flipRaycastY
+            _raycastLayerMask
         );
 
         if (points == null || points.Length == 0)
@@ -241,6 +251,7 @@ public class MapGrid : MonoBehaviour
 
         _single3dHeightMeshRaycastPoints = points;
         RebuildRaycastColors();
+        BuildTerrainPositionLookup();
         MarkDirty();
     }
 
@@ -564,24 +575,13 @@ public class MapGrid : MonoBehaviour
     /// </summary>
     public Vector3 GetTerrainAdjustedWorldPosition(Vector2Int gridCoordinates)
     {
-        // Try to get terrain-adjusted position from raycast data
+        // Try to get terrain-adjusted position from raycast data using O(1) lookup
         if (
-            _single3dHeightMeshRaycastPoints != null
-            && _single3dHeightMeshRaycastIndices != null
-            && _single3dHeightMeshRaycastPoints.Length == _single3dHeightMeshRaycastIndices.Length
+            _terrainPositionLookup != null
+            && _terrainPositionLookup.TryGetValue(gridCoordinates, out var terrainAdjustedPosition)
         )
         {
-            // Find the index that matches our grid coordinates
-            for (int i = 0; i < _single3dHeightMeshRaycastIndices.Length; i++)
-            {
-                if (
-                    _single3dHeightMeshRaycastIndices[i].x == gridCoordinates.x
-                    && _single3dHeightMeshRaycastIndices[i].y == gridCoordinates.y
-                )
-                {
-                    return _single3dHeightMeshRaycastPoints[i];
-                }
-            }
+            return terrainAdjustedPosition;
         }
 
         // Fallback to regular grid point position if raycast data is not available
@@ -748,18 +748,43 @@ public class MapGrid : MonoBehaviour
 
         _single3dHeightMeshRaycastColors = colors;
         _single3dHeightMeshRaycastIndices = indices;
+
+        // Build lookup dictionary for O(1) terrain position access
+        BuildTerrainPositionLookup();
     }
 
     private IOrderedEnumerable<KeyValuePair<Vector2Int, TValue>> OrderGridPoints<TValue>(
         IEnumerable<KeyValuePair<Vector2Int, TValue>> points
     )
     {
-        var orderedByX = _flipRaycastX
-            ? points.OrderByDescending(kv => kv.Key.x)
-            : points.OrderBy(kv => kv.Key.x);
-        return _flipRaycastY
-            ? orderedByX.ThenByDescending(kv => kv.Key.y)
-            : orderedByX.ThenBy(kv => kv.Key.y);
+        // Use consistent ordering without flipping
+        return points.OrderBy(kv => kv.Key.x).ThenBy(kv => kv.Key.y);
+    }
+
+    /// <summary>
+    /// Builds the terrain position lookup dictionary for O(1) access to raycast points
+    /// </summary>
+    private void BuildTerrainPositionLookup()
+    {
+        if (
+            _single3dHeightMeshRaycastPoints == null
+            || _single3dHeightMeshRaycastIndices == null
+            || _single3dHeightMeshRaycastPoints.Length != _single3dHeightMeshRaycastIndices.Length
+        )
+        {
+            _terrainPositionLookup?.Clear();
+            return;
+        }
+
+        _terrainPositionLookup = new Dictionary<Vector2Int, Vector3>(
+            _single3dHeightMeshRaycastIndices.Length
+        );
+        for (int i = 0; i < _single3dHeightMeshRaycastIndices.Length; i++)
+        {
+            var key = _single3dHeightMeshRaycastIndices[i];
+            // In case of duplicate keys, last one wins (matches previous linear search semantics)
+            _terrainPositionLookup[key] = _single3dHeightMeshRaycastPoints[i];
+        }
     }
 
     private void MarkDirty()
