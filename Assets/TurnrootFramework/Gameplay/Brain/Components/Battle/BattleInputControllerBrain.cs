@@ -1,7 +1,9 @@
+using System.Collections;
 using System.Collections.Generic;
 using Turnroot.Characters;
 using Turnroot.Gameplay.Brain.Components.Battle;
 using Turnroot.Gameplay.Brain.Events;
+using Turnroot.Gameplay.Combat;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Locations;
 using Turnroot.Utilities;
@@ -17,6 +19,8 @@ namespace Turnroot.Gameplay.Brain
     // TODO: Add advanced input features (buffering, accessibility, custom mappings, replay)
     public class BattleInputControllerBrain : BrainComponent
     {
+        #region Fields and Properties
+
         [HideInInspector]
         public MapGridPoint CursorPosition; // TODO: Initialize with constraints
 
@@ -48,6 +52,10 @@ namespace Turnroot.Gameplay.Brain
         private float _lastInputTime;
         private const float INPUT_COOLDOWN = 0.1f;
 
+        #endregion
+
+        #region Brain Event Management
+
         protected override EventPriority GetSubscriptionPriority() => EventPriority.High;
 
         protected override void SubscribeToBrainEvents()
@@ -70,6 +78,10 @@ namespace Turnroot.Gameplay.Brain
                 EventPriority.High
             );
 
+            // Subscribe to battle lifecycle events
+            _brain.OnBattleStarted += HandleBattleStarted;
+            _brain.OnBattleCompleted += HandleBattleCompleted;
+
             // Subscribe to player turn events
             _brain.OnPlayerControlledUnitActivated += HandlePlayerUnitActivated;
             _brain.OnPlayerTurnStateChanged += HandlePlayerTurnStateChanged;
@@ -82,53 +94,23 @@ namespace Turnroot.Gameplay.Brain
             _brain.Unsubscribe<BattleContext.BattleInputCancelEvent>(HandleCancelEvent);
             _brain.Unsubscribe<BattleContext.BattleInputMenuEvent>(HandleMenuEvent);
 
+            _brain.OnBattleStarted -= HandleBattleStarted;
+            _brain.OnBattleCompleted -= HandleBattleCompleted;
             _brain.OnPlayerControlledUnitActivated -= HandlePlayerUnitActivated;
             _brain.OnPlayerTurnStateChanged -= HandlePlayerTurnStateChanged;
         }
+
+        #endregion
+
+        #region Unity Lifecycle
 
         protected override void Awake()
         {
             base.Awake();
             _playerTurnFlow = _brain?.battleBrain?.playerTurnFlow;
 
-            CursorPosition = BattleContext?.mapGrid?.GetGridPoint(0, 0);
-            // TODO: Set this to the correct unit based on gameplay settings and unit positions
-
-            // Initialize Unity Input System actions
-            _navigateAction = new InputAction(
-                "Navigate",
-                InputActionType.Value,
-                "<Gamepad>/leftStick"
-            );
-            _navigateAction.AddBinding("<Keyboard>/wasd");
-            _navigateAction.AddBinding("<Keyboard>/upDownLeftRight");
-            _navigateAction.AddBinding("<Gamepad>/dpad");
-
-            _confirmAction = new InputAction(
-                "Confirm",
-                InputActionType.Button,
-                "<Gamepad>/buttonSouth"
-            );
-            _confirmAction.AddBinding("<Keyboard>/enter");
-            _confirmAction.AddBinding("<Keyboard>/space");
-
-            _cancelAction = new InputAction(
-                "Cancel",
-                InputActionType.Button,
-                "<Gamepad>/buttonEast"
-            );
-            _cancelAction.AddBinding("<Keyboard>/escape");
-
-            _menuAction = new InputAction("Menu", InputActionType.Button, "<Gamepad>/start");
-            _menuAction.AddBinding("<Keyboard>/tab");
-
-            // Enable actions
-            _navigateAction.Enable();
-            _confirmAction.Enable();
-            _cancelAction.Enable();
-            _menuAction.Enable();
-
-            Brain.PublishBattleCursorMoved(CursorPosition.CoordinatesInt);
+            // Note: Input actions will be initialized when battle starts
+            // Note: CursorPosition will be initialized when battle starts
         }
 
         private void Update()
@@ -144,6 +126,7 @@ namespace Turnroot.Gameplay.Brain
             if (_navigateAction?.WasPressedThisFrame() == true)
             {
                 var direction = _navigateAction.ReadValue<Vector2>();
+                HandleNavigateInput(direction);
                 _brain?.Publish(
                     new BattleContext.BattleInputNavigateEvent { Direction = direction }
                 );
@@ -177,12 +160,168 @@ namespace Turnroot.Gameplay.Brain
         protected override void OnDestroy()
         {
             // Clean up input actions
+            CleanupInputActions();
+
+            base.OnDestroy();
+        }
+
+        #endregion
+
+        #region Event Handlers
+
+        /// <summary>
+        /// Initialize input actions and cursor when the battle starts - with retry logic for timing
+        /// </summary>
+        private void HandleBattleStarted()
+        {
+            // Start a coroutine to wait for battle context to be ready
+            StartCoroutine(WaitForBattleContextAndInitialize());
+        }
+
+        /// <summary>
+        /// Wait for battle context to be fully initialized, then setup input and cursor
+        /// </summary>
+        private System.Collections.IEnumerator WaitForBattleContextAndInitialize()
+        {
+            // Wait until the battle context is fully set up
+            while (_brain?.battleBrain?.BattleObject?.Context?.mapGrid == null)
+            {
+                yield return new WaitForSeconds(0.05f); // Check every 50ms
+            }
+
+            // Capture references after the context is ready and validate them
+            var brain = _brain;
+            if (brain == null)
+            {
+                yield break;
+            }
+
+            var battleBrain = brain.battleBrain;
+            if (battleBrain == null)
+            {
+                yield break;
+            }
+
+            // Try to update PlayerTurnFlow reference since it should be available now
+            _playerTurnFlow = battleBrain.playerTurnFlow;
+            // Now that battle context is ready, set up input actions and cursor
+            SetupInputActions();
+            InitializeCursor();
+        }
+
+        /// <summary>
+        /// Setup and enable input actions for battle
+        /// </summary>
+        private void SetupInputActions()
+        {
+            // Create navigation action with 2D Vector composite for keyboard input
+            _navigateAction = new InputAction("Navigate", InputActionType.Value);
+
+            // Add WASD composite
+            _navigateAction
+                .AddCompositeBinding("2DVector")
+                .With("Up", "<Keyboard>/w")
+                .With("Down", "<Keyboard>/s")
+                .With("Left", "<Keyboard>/a")
+                .With("Right", "<Keyboard>/d");
+
+            // Add Arrow Keys composite
+            _navigateAction
+                .AddCompositeBinding("2DVector")
+                .With("Up", "<Keyboard>/upArrow")
+                .With("Down", "<Keyboard>/downArrow")
+                .With("Left", "<Keyboard>/leftArrow")
+                .With("Right", "<Keyboard>/rightArrow");
+
+            // Add gamepad bindings
+            _navigateAction.AddBinding("<Gamepad>/leftStick");
+            _navigateAction.AddBinding("<Gamepad>/dpad");
+
+            _confirmAction = new InputAction(
+                "Confirm",
+                InputActionType.Button,
+                "<Gamepad>/buttonSouth"
+            );
+            _confirmAction.AddBinding("<Keyboard>/enter");
+            _confirmAction.AddBinding("<Keyboard>/space");
+
+            _cancelAction = new InputAction(
+                "Cancel",
+                InputActionType.Button,
+                "<Gamepad>/buttonEast"
+            );
+            _cancelAction.AddBinding("<Keyboard>/escape");
+
+            _menuAction = new InputAction("Menu", InputActionType.Button, "<Gamepad>/start");
+            _menuAction.AddBinding("<Keyboard>/tab");
+
+            // Enable actions
+            _navigateAction.Enable();
+            _confirmAction.Enable();
+            _cancelAction.Enable();
+            _menuAction.Enable();
+        }
+
+        /// <summary>
+        /// Clean up input actions when battle ends
+        /// </summary>
+        private void HandleBattleCompleted(BattleExitType exitType)
+        {
+            CleanupInputActions();
+        }
+
+        /// <summary>
+        /// Disable and cleanup input actions
+        /// </summary>
+        private void CleanupInputActions()
+        {
             _navigateAction?.Disable();
             _confirmAction?.Disable();
             _cancelAction?.Disable();
             _menuAction?.Disable();
 
-            base.OnDestroy();
+            _navigateAction?.Dispose();
+            _confirmAction?.Dispose();
+            _cancelAction?.Dispose();
+            _menuAction?.Dispose();
+
+            _navigateAction = null;
+            _confirmAction = null;
+            _cancelAction = null;
+            _menuAction = null;
+        }
+
+        /// <summary>
+        /// Initialize cursor position and publish initial cursor moved event
+        /// </summary>
+        private void InitializeCursor()
+        {
+            // Check each part of the BattleContext chain for null
+            if (_brain?.battleBrain?.BattleObject?.Context?.mapGrid != null)
+            {
+                var battleContext = _brain.battleBrain.BattleObject.Context;
+                // Initialize cursor at origin (0,0) or first valid position
+                CursorPosition = battleContext.mapGrid.GetGridPoint(0, 0);
+
+                // TODO: Set this to the correct unit based on gameplay settings and unit positions
+
+                // Now it's safe to publish the cursor moved event
+                Brain.PublishBattleCursorMoved(CursorPosition.CoordinatesInt);
+            }
+            else
+            {
+                // Retry initialization after a short delay
+                StartCoroutine(RetryInitializeCursorAfterDelay());
+            }
+        }
+
+        /// <summary>
+        /// Retry cursor initialization after a short delay to allow BattleContext to be fully set up
+        /// </summary>
+        private System.Collections.IEnumerator RetryInitializeCursorAfterDelay()
+        {
+            yield return new WaitForSeconds(0.1f); // Wait 100ms for battle context to be set up
+            InitializeCursor(); // Try again
         }
 
         // Event handlers for input events from BattleContext
@@ -196,6 +335,10 @@ namespace Turnroot.Gameplay.Brain
             HandleCancelInput();
 
         private void HandleMenuEvent(BattleContext.BattleInputMenuEvent menuEvent) => OpenMenu();
+
+        #endregion
+
+        #region Player Turn Management
 
         // Player turn event handlers
         private void HandlePlayerUnitActivated(CharacterInstance unit)
@@ -231,6 +374,18 @@ namespace Turnroot.Gameplay.Brain
                 // TODO: Complete state handling
             }
         }
+
+        private void CompletePlayerTurn()
+        {
+            _validMoveTiles.Clear();
+            _validAttackTiles.Clear();
+            _brain.PublishPlayerTurnEnded();
+            _playerTurnFlow?.EndTurn();
+        }
+
+        #endregion
+
+        #region Tile Calculation and Validation
 
         private OperationResult CalculateValidTiles(CharacterInstance unit)
         {
@@ -336,6 +491,10 @@ namespace Turnroot.Gameplay.Brain
             }
         }
 
+        #endregion
+
+        #region Action Methods
+
         // Additional detailed damage/movement preview implementations already planned above
 
         public void MoveCursorToPoint(MapGridPoint point) => CursorPosition = point; // TODO: Cursor UI updates (visuals, sound, previews, constraints)
@@ -373,12 +532,6 @@ namespace Turnroot.Gameplay.Brain
             }
         }
 
-        private CharacterInstance GetUnitAtPosition(MapGridPoint position)
-        {
-            var cache = BattleContext.GetCurrentUnitPositions();
-            return cache.TryGetValue(position.CoordinatesInt, out var unit) ? unit : null;
-        }
-
         public void ChangeSelectedUnit(CharacterInstance unit)
         {
             // TODO: Validate player control, update flow, recalculate tiles, update UI
@@ -398,6 +551,10 @@ namespace Turnroot.Gameplay.Brain
 
         // TODO: Advanced input features (buffering, platform-specific controls, recording/replay, accessibility)
 
+        #endregion
+
+        #region Input Handling
+
         public void HandleNavigateInput(Vector2 direction)
         {
             if (direction.magnitude < 0.1f)
@@ -405,12 +562,32 @@ namespace Turnroot.Gameplay.Brain
                 return;
             }
 
-            // TODO: Navigation behavior depends on current battle state
-            // NoUnitSelected: Move camera/cursor to select units
-            bool isNoUnitSelectedState =
-                _playerTurnFlow?.GetCurrentState() == PlayerTurnStates.NoUnitSelected;
+            // Safety check: ensure cursor and battle context are initialized
+            if (
+                CursorPosition == null
+                || _brain?.battleBrain?.BattleObject?.Context?.mapGrid == null
+            )
+            {
+#if UNITY_EDITOR
+                Debug.LogWarning(
+                    "BattleInputControllerBrain: Cannot navigate - cursor or battle context not initialized"
+                );
+                Debug.LogWarning(
+                    $"BattleInputControllerBrain: CursorPosition null: {CursorPosition == null}, BattleContext chain incomplete: {_brain?.battleBrain?.BattleObject?.Context?.mapGrid == null}"
+                );
+#endif
+                return;
+            }
 
-            if (isNoUnitSelectedState)
+            var battleContext = _brain.battleBrain.BattleObject.Context;
+
+            // TODO: Navigation behavior depends on current battle state
+            // NoUnitSelected or Inactive: Move camera/cursor to select units
+            bool isNoUnitSelectedOrInactiveState =
+                _playerTurnFlow?.GetCurrentState() == PlayerTurnStates.NoUnitSelected
+                || _playerTurnFlow?.GetCurrentState() == PlayerTurnStates.Inactive;
+
+            if (isNoUnitSelectedOrInactiveState)
             {
                 // Move the cursor on the grid based on input direction
                 // If the cursor goes near the edge of the screen, pan the camera
@@ -428,12 +605,12 @@ namespace Turnroot.Gameplay.Brain
                     if (direction.x > 0)
                     {
                         var targetPos = CursorPosition.CoordinatesInt + Vector2Int.right;
-                        newCursorPos = BattleContext.mapGrid.GetGridPoint(targetPos.y, targetPos.x);
+                        newCursorPos = battleContext.mapGrid.GetGridPoint(targetPos.x, targetPos.y);
                     }
                     else
                     {
                         var targetPos = CursorPosition.CoordinatesInt + Vector2Int.left;
-                        newCursorPos = BattleContext.mapGrid.GetGridPoint(targetPos.y, targetPos.x);
+                        newCursorPos = battleContext.mapGrid.GetGridPoint(targetPos.x, targetPos.y);
                     }
                 }
                 else
@@ -442,12 +619,12 @@ namespace Turnroot.Gameplay.Brain
                     if (direction.y > 0)
                     {
                         var targetPos = CursorPosition.CoordinatesInt + Vector2Int.up;
-                        newCursorPos = BattleContext.mapGrid.GetGridPoint(targetPos.y, targetPos.x);
+                        newCursorPos = battleContext.mapGrid.GetGridPoint(targetPos.x, targetPos.y);
                     }
                     else
                     {
                         var targetPos = CursorPosition.CoordinatesInt + Vector2Int.down;
-                        newCursorPos = BattleContext.mapGrid.GetGridPoint(targetPos.y, targetPos.x);
+                        newCursorPos = battleContext.mapGrid.GetGridPoint(targetPos.x, targetPos.y);
                     }
                 }
 
@@ -520,5 +697,17 @@ namespace Turnroot.Gameplay.Brain
                 // TODO: Handle all other action cancellation states
             }
         }
+
+        #endregion
+
+        #region Utility Methods
+
+        private CharacterInstance GetUnitAtPosition(MapGridPoint position)
+        {
+            var cache = BattleContext.GetCurrentUnitPositions();
+            return cache.TryGetValue(position.CoordinatesInt, out var unit) ? unit : null;
+        }
+
+        #endregion
     }
 }

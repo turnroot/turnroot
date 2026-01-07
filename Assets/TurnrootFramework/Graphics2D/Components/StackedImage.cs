@@ -40,6 +40,13 @@ namespace Turnroot.Graphics2D
         [SerializeField, HideInInspector]
         protected Color[] _tintColors = new Color[3] { Color.white, Color.white, Color.white };
 
+        // Validation status for editor UI
+        [NonSerialized]
+        private string _validationMessage = "";
+
+        [NonSerialized]
+        private bool _hasValidationError = false;
+
         private Guid _id;
 
         // Editor-only fallback for Graphics2DSettings to avoid creating multiple temporary instances
@@ -67,6 +74,10 @@ namespace Turnroot.Graphics2D
         public Guid Id => _id;
         public Color[] TintColors => _tintColors;
 
+        // Editor UI validation status
+        public string ValidationMessage => _validationMessage;
+        public bool HasValidationError => _hasValidationError;
+
         public void SetOwner(TOwner owner)
         {
             _owner = owner;
@@ -90,6 +101,21 @@ namespace Turnroot.Graphics2D
                 Debug.Log($"Generated new stackedImage key: {_key}");
 #endif
             }
+        }
+
+        public void ClearValidationStatus()
+        {
+            _validationMessage = "";
+            _hasValidationError = false;
+        }
+
+        private void SetValidationError(string message)
+        {
+            _validationMessage = message;
+            _hasValidationError = true;
+#if UNITY_EDITOR
+            Debug.LogError(message);
+#endif
         }
 
         private void EnsureKeyInitialized()
@@ -188,7 +214,8 @@ namespace Turnroot.Graphics2D
             SortLayers();
         }
 
-        private void SortLayers() => _layers.Sort((a, b) => GetLayerOrder(a).CompareTo(GetLayerOrder(b)));
+        private void SortLayers() =>
+            _layers.Sort((a, b) => GetLayerOrder(a).CompareTo(GetLayerOrder(b)));
 
         // Subclasses must provide the subdirectory name for saving files
         // e.g., "Portraits" for Portrait class, "ItemIcons" for ItemIcon class
@@ -398,25 +425,63 @@ namespace Turnroot.Graphics2D
 
         private void SaveToFile(Texture2D texture)
         {
-            // Use Application.dataPath to get the correct project path
-            // Subclass provides the subdirectory name (e.g., "Portraits", "ItemIcons")
-            string subdirectory = GetSaveSubdirectory();
-            string directoryPath = System.IO.Path.Combine(
-                Application.dataPath,
-                "Resources",
-                "GameContent",
-                "Graphics",
-                subdirectory
+            ClearValidationStatus();
+
+            // Find GamePackageSettings to determine the correct save location
+            var gamePackageSettings =
+                Turnroot.Utilities.GameSettingsLoader.LoadFirst<Turnroot.GamePackage.GamePackageSettings>();
+            if (gamePackageSettings == null)
+            {
+                SetValidationError(
+                    "Portrait rendering failed: Could not find GamePackageSettings in Resources. Please create a GamePackageSettings asset in your project."
+                );
+                return;
+            }
+
+#if UNITY_EDITOR
+            // Get the asset path of the GamePackageSettings to determine the project structure
+            string gamePackageSettingsPath = UnityEditor.AssetDatabase.GetAssetPath(
+                gamePackageSettings
             );
+            if (string.IsNullOrEmpty(gamePackageSettingsPath))
+            {
+                SetValidationError(
+                    "Portrait rendering failed: Could not determine GamePackageSettings location."
+                );
+                return;
+            }
+
+            // Extract the base path (e.g., "Assets/Demos/Resources/GameSettings" -> "Assets/Demos/Resources")
+            string resourcesPath = gamePackageSettingsPath.Substring(
+                0,
+                gamePackageSettingsPath.LastIndexOf("/GameSettings")
+            );
+            if (!resourcesPath.EndsWith("/Resources"))
+            {
+                SetValidationError(
+                    $"Portrait rendering failed: GamePackageSettings is not in a Resources folder. Expected path ending with '/Resources/GameSettings/', but found: {gamePackageSettingsPath}"
+                );
+                return;
+            }
+
+            // Build the image save path: {ResourcesPath}/Components/Characters/Portraits
+            string portraitSavePath = System.IO.Path.Combine(
+                resourcesPath.Replace("/", System.IO.Path.DirectorySeparatorChar.ToString()),
+                "Components",
+                "Characters",
+                "Portraits"
+            );
+#endif
+
             string fileName = $"{_key}.png";
-            string fullPath = System.IO.Path.Combine(directoryPath, fileName);
+            string fullPath = System.IO.Path.Combine(portraitSavePath, fileName);
 
             // Create directory if it doesn't exist
-            if (!System.IO.Directory.Exists(directoryPath))
+            if (!System.IO.Directory.Exists(portraitSavePath))
             {
-                System.IO.Directory.CreateDirectory(directoryPath);
+                System.IO.Directory.CreateDirectory(portraitSavePath);
 #if UNITY_EDITOR
-                Debug.Log($"Created directory: {directoryPath}");
+                Debug.Log($"Created directory: {portraitSavePath}");
 #endif
             }
 
@@ -424,7 +489,7 @@ namespace Turnroot.Graphics2D
             byte[] pngData = texture.EncodeToPNG();
             System.IO.File.WriteAllBytes(fullPath, pngData);
 #if UNITY_EDITOR
-            Debug.Log($"Successfully saved stackedImage texture: {fileName} to {fullPath}");
+            Debug.Log($"Successfully saved stacked image texture: {fileName} to {fullPath}");
 #endif
 
 #if UNITY_EDITOR
@@ -432,22 +497,61 @@ namespace Turnroot.Graphics2D
             UnityEditor.AssetDatabase.Refresh();
 
             // Force Unity to import the asset immediately
-            string assetImportPath =
-                $"Assets/Resources/GameContent/Graphics/{subdirectory}/{fileName}";
+            string assetImportPath = fullPath
+                .Replace(Application.dataPath, "Assets")
+                .Replace("\\", "/");
             UnityEditor.AssetDatabase.ImportAsset(assetImportPath);
+#endif
         }
 
         private void LoadSavedSprite()
         {
+            ClearValidationStatus();
+
+            // Find GamePackageSettings to determine the correct load location
+            var gamePackageSettings =
+                Turnroot.Utilities.GameSettingsLoader.LoadFirst<Turnroot.GamePackage.GamePackageSettings>();
+            if (gamePackageSettings == null)
+            {
+                SetValidationError(
+                    "Portrait loading failed: Could not find GamePackageSettings in Resources."
+                );
+                return;
+            }
+
+#if UNITY_EDITOR
             // Wait for asset database to finish importing
             UnityEditor.AssetDatabase.Refresh();
 
-            string subdirectory = GetSaveSubdirectory();
-            string assetPath = $"Assets/Resources/GameContent/Graphics/{subdirectory}/{_key}.png";
+            // Get the asset path of the GamePackageSettings to determine the project structure
+            string gamePackageSettingsPath = UnityEditor.AssetDatabase.GetAssetPath(
+                gamePackageSettings
+            );
+            if (string.IsNullOrEmpty(gamePackageSettingsPath))
+            {
+                SetValidationError(
+                    "Portrait loading failed: Could not determine GamePackageSettings location."
+                );
+                return;
+            }
 
-#if UNITY_EDITOR
+            // Extract the base path (e.g., "Assets/Demos/Resources/GameSettings" -> "Assets/Demos/Resources")
+            string resourcesPath = gamePackageSettingsPath.Substring(
+                0,
+                gamePackageSettingsPath.LastIndexOf("/GameSettings")
+            );
+            if (!resourcesPath.EndsWith("/Resources"))
+            {
+                SetValidationError(
+                    $"Portrait loading failed: GamePackageSettings is not in a Resources folder. Expected path ending with '/Resources/GameSettings/', but found: {gamePackageSettingsPath}"
+                );
+                return;
+            }
+
+            // Build the portrait load path: {ResourcesPath}/Components/Characters/Portraits
+            string assetPath = $"{resourcesPath}/Components/Characters/Portraits/{_key}.png";
+
             Debug.Log($"Attempting to load sprite from: {assetPath}");
-#endif
 
             // Import the texture with sprite settings
             UnityEditor.TextureImporter importer =
@@ -455,9 +559,7 @@ namespace Turnroot.Graphics2D
 
             if (importer == null)
             {
-#if UNITY_EDITOR
                 Debug.LogError($"Could not get TextureImporter for: {assetPath}");
-#endif
                 return;
             }
 
@@ -476,9 +578,7 @@ namespace Turnroot.Graphics2D
                 );
                 UnityEditor.AssetDatabase.SaveAssets();
 
-#if UNITY_EDITOR
                 Debug.Log($"Configured texture as sprite: {assetPath}");
-#endif
             }
 
             // Load the sprite
@@ -486,9 +586,7 @@ namespace Turnroot.Graphics2D
 
             if (_savedSprite != null)
             {
-#if UNITY_EDITOR
                 Debug.Log($"Successfully loaded saved sprite: {_savedSprite.name}");
-#endif
 
                 if (_owner != null)
                 {
@@ -504,9 +602,7 @@ namespace Turnroot.Graphics2D
             }
             else
             {
-#if UNITY_EDITOR
                 Debug.LogError($"Failed to load sprite from: {assetPath}");
-#endif
             }
 #endif
         }

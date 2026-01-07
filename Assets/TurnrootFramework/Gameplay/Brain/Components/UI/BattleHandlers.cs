@@ -18,6 +18,7 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                 _battleCursorInstance = Instantiate(BattleCursorPrefab);
                 _battleCursorInstance.name = "BattleCursor";
                 // TODO: Figure out scale and positioning
+                // For now, the scale is hardcoded, I'll figure it out later
                 // TODO: Set Camera on prefab canvas to the battle camera
             }
         }

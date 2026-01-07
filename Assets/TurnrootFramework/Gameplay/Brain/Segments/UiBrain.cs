@@ -119,6 +119,9 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                     case BrainStateNames.PreBattle:
                         HandlePreBattleUi();
                         break;
+                    case BrainStateNames.Battle:
+                        HandleBattleUi();
+                        break;
                 }
             };
 
@@ -244,6 +247,19 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             {
                 // TODO: Set up grid prebattle menu handling
             }
+        }
+
+        #endregion
+
+        #region Battle UI Management
+
+        public void HandleBattleUi()
+        {
+#if UNITY_EDITOR
+            Debug.Log("UiBrain: Handling battle UI setup");
+#endif
+            // Battle UI initialization logic will be added here
+            // For now, just log that we're in battle state
         }
 
         #endregion
