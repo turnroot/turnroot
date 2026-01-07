@@ -25,7 +25,7 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             }
         }
 
-        public OperationResult HandleBattleCursorMoved(Vector2Int newPosition)
+        public void HandleBattleCursorMoved(Vector2Int newPosition)
         {
             if (!_battleCursorInitialized)
             {
@@ -35,15 +35,13 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
 
             if (_battleCursorInstance == null)
             {
-                return OperationResult.Failure("Battle cursor instance is null");
+                return;
             }
 
             var mapGrid = _brain.battleBrain.BattleObject.Context.mapGrid;
             if (mapGrid == null)
             {
-                return OperationResult.Failure(
-                    "UiBrain: MapGrid is null in HandleBattleCursorMoved"
-                );
+                return;
             }
 
             var worldPosition = mapGrid.GetTerrainAdjustedWorldPosition(newPosition);
@@ -53,7 +51,6 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                 $"Battle cursor moved to grid {newPosition}, world position: {_battleCursorInstance.transform.position}"
             );
 #endif
-            return OperationResult.SuccessResult();
         }
         #endregion
     }

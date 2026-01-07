@@ -262,7 +262,7 @@ namespace Turnroot.GameSettings
         public Color RadialMenuNormalColor = Color.white;
 
         [Tooltip("Default selected color for radial menu segments")]
-        public Color RadialMenuSelectedColor = new Color(1f, 0.8f, 0f);
+        public Color RadialMenuSelectedColor = new(1f, 0.8f, 0f);
 
         [Range(0f, 1f), Tooltip("Inner radius for radial menus (0-1, percent of total radius)")]
         public float RadialMenuInnerRadius = 0.3f;
@@ -313,5 +313,21 @@ namespace Turnroot.GameSettings
         public Sprite PathStartSprite;
         public Sprite CursorSprite;
         public GameObject BattleCursorPrefab;
+
+        [InfoBox(
+            "Distance from camera neutral (in grid units) to trigger camera panning when cursor approaches edge. The higher the number, the less often the camera wil move. Set to 0 to lock the camera to the cursor (center the cursor at all times)"
+        )]
+        public Vector2Int DistanceFromCenterCameraPan = new(6, 4);
+
+        [InfoBox(
+            "If true, the camera will try to center itself on the cursor when panning. If false, the camera will pan half of the DistanceFromCenterCameraPan value (to prevent overshoot oscillation)"
+        )]
+        public bool CameraPanTriesToCenterItself = false;
+
+        [Range(0.1f, 3f), Tooltip("Duration of camera pan in seconds")]
+        public float CameraPanSpeed = 0.6f;
+
+        [Tooltip("Easing curve for camera movement (should start and end at same values)")]
+        public AnimationCurve CameraPanEasingCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
     }
 }
