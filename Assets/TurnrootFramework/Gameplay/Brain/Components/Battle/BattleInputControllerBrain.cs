@@ -517,6 +517,7 @@ namespace Turnroot.Gameplay.Brain
 
         private void CompletePlayerTurn()
         {
+            // TODO: Find where this is supposed to be called
             _validMoveTiles.Clear();
             _validAttackTiles.Clear();
             _brain.PublishPlayerTurnEnded();
