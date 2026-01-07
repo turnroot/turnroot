@@ -46,11 +46,6 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
 
             var worldPosition = mapGrid.GetTerrainAdjustedWorldPosition(newPosition);
             _battleCursorInstance.transform.position = worldPosition + new Vector3(0, 1f, -2f); // Slightly above the ground
-#if UNITY_EDITOR
-            Debug.Log(
-                $"Battle cursor moved to grid {newPosition}, world position: {_battleCursorInstance.transform.position}"
-            );
-#endif
         }
         #endregion
     }

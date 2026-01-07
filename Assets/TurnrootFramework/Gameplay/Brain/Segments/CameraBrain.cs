@@ -229,13 +229,6 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                 Vector3 currentPos = Vector3.Lerp(worldStartPosition, worldEndPosition, easedTime);
                 _battleMapCamera.transform.position = currentPos;
 
-#if UNITY_EDITOR
-                if (elapsedTime < 0.1f || elapsedTime > duration - 0.1f) // Log first and last frames
-                {
-                    Debug.Log($"[CAMERA] Pan progress: {normalizedTime:F2}, pos: {currentPos}");
-                }
-#endif
-
                 elapsedTime += Time.deltaTime;
                 yield return null;
             }

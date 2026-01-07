@@ -41,13 +41,17 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
         {
             var terrainAdjustedPos = MapGrid.GetTerrainAdjustedWorldPosition(gridCoordinates);
 
-            // Preserve camera's current Y position, only use X and Z from terrain
+            // Apply the same offset as the cursor to match visual positioning
+            // Cursor uses: worldPosition + new Vector3(0, 1f, -2f)
+            var cursorVisualPos = terrainAdjustedPos + new Vector3(0, 1f, -2f);
+
+            // Preserve camera's current Y position, use cursor's visual X and Z
             var cameraY = _battleMapCamera?.transform.position.y ?? terrainAdjustedPos.y;
-            var worldPos = new Vector3(terrainAdjustedPos.x, cameraY, terrainAdjustedPos.z);
+            var worldPos = new Vector3(cursorVisualPos.x, cameraY, cursorVisualPos.z);
 
 #if UNITY_EDITOR
             Debug.Log(
-                $"[CAMERA] Grid {gridCoordinates} → World3D {worldPos} (preserved Y: {cameraY})"
+                $"[CAMERA] Grid {gridCoordinates} → Terrain {terrainAdjustedPos} → CursorVisual {cursorVisualPos} → CameraTarget {worldPos}"
             );
 #endif
             return worldPos;
