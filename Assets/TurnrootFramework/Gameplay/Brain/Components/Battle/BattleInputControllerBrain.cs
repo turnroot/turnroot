@@ -9,6 +9,7 @@ using Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Locations;
 using Turnroot.Utilities;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.LowLevel;
 
 namespace Turnroot.Gameplay.Brain
 {
@@ -50,8 +51,8 @@ namespace Turnroot.Gameplay.Brain
         private InputAction _menuAction;
 
         private float _lastInputTime;
-        private const float INPUT_COOLDOWN = 0.1f;
-
+        private const float KEYBOARD_INPUT_COOLDOWN = 0.025f; // Faster for keyboard
+        private const float GAMEPAD_INPUT_COOLDOWN = 0.1f; // Slower for gamepad
         #endregion
 
         #region Brain Event Management
@@ -108,14 +109,15 @@ namespace Turnroot.Gameplay.Brain
         {
             base.Awake();
             _playerTurnFlow = _brain?.battleBrain?.playerTurnFlow;
-
-            // Note: Input actions will be initialized when battle starts
-            // Note: CursorPosition will be initialized when battle starts
         }
 
         private void Update()
         {
-            if (Time.time - _lastInputTime < INPUT_COOLDOWN)
+            // Determine input source and apply appropriate cooldown
+            bool isGamepadInput = IsCurrentInputFromGamepad();
+            float cooldown = isGamepadInput ? GAMEPAD_INPUT_COOLDOWN : KEYBOARD_INPUT_COOLDOWN;
+
+            if (Time.time - _lastInputTime < cooldown)
             {
                 return;
             }
@@ -163,6 +165,55 @@ namespace Turnroot.Gameplay.Brain
             CleanupInputActions();
 
             base.OnDestroy();
+        }
+
+        #endregion
+
+        #region Input Source Detection
+
+        /// <summary>
+        /// Determines if the current input is coming from a gamepad
+        /// </summary>
+        private bool IsCurrentInputFromGamepad()
+        {
+            // Check if any gamepad action was pressed this frame
+            if (_navigateAction != null)
+            {
+                var lastControl = _navigateAction.activeControl;
+                if (lastControl != null && lastControl.device is Gamepad)
+                {
+                    return true;
+                }
+            }
+
+            if (_confirmAction != null)
+            {
+                var lastControl = _confirmAction.activeControl;
+                if (lastControl != null && lastControl.device is Gamepad)
+                {
+                    return true;
+                }
+            }
+
+            if (_cancelAction != null)
+            {
+                var lastControl = _cancelAction.activeControl;
+                if (lastControl != null && lastControl.device is Gamepad)
+                {
+                    return true;
+                }
+            }
+
+            if (_menuAction != null)
+            {
+                var lastControl = _menuAction.activeControl;
+                if (lastControl != null && lastControl.device is Gamepad)
+                {
+                    return true;
+                }
+            }
+
+            return false; // Default to keyboard
         }
 
         #endregion
@@ -599,10 +650,20 @@ namespace Turnroot.Gameplay.Brain
                 var newCursorPos = CursorPosition;
                 // Get the MapGridPoint based on direction- BattleContext.mapGrid.GetGridPoint()
                 // move one tile in the direction indicated by input
+                // Check MapGrid flip settings to determine if we need to invert movement directions
+                var mapGrid = battleContext.mapGrid;
+                bool flipX = mapGrid.FlipRaycastX;
+                bool flipY = mapGrid.FlipRaycastY;
+
                 if (Mathf.Abs(direction.x) > Mathf.Abs(direction.y))
                 {
                     // Horizontal movement
-                    if (direction.x > 0)
+                    bool moveRight = direction.x > 0;
+                    // Invert direction if flip X is enabled
+                    if (flipX)
+                        moveRight = !moveRight;
+
+                    if (moveRight)
                     {
                         var targetPos = CursorPosition.CoordinatesInt + Vector2Int.right;
                         newCursorPos = battleContext.mapGrid.GetGridPoint(targetPos.x, targetPos.y);
@@ -616,7 +677,12 @@ namespace Turnroot.Gameplay.Brain
                 else
                 {
                     // Vertical movement
-                    if (direction.y > 0)
+                    bool moveUp = direction.y > 0;
+                    // Invert direction if flip Y is enabled
+                    if (flipY)
+                        moveUp = !moveUp;
+
+                    if (moveUp)
                     {
                         var targetPos = CursorPosition.CoordinatesInt + Vector2Int.up;
                         newCursorPos = battleContext.mapGrid.GetGridPoint(targetPos.x, targetPos.y);

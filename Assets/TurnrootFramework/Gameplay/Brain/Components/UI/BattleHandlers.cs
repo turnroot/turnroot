@@ -17,8 +17,9 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             {
                 _battleCursorInstance = Instantiate(BattleCursorPrefab);
                 _battleCursorInstance.name = "BattleCursor";
-                // TODO: Figure out scale and positioning
+                // TODO: Figure out scale
                 // For now, the scale is hardcoded, I'll figure it out later
+                _battleCursorInstance.transform.localScale = new Vector3(.5f, .5f, .5f);
                 // TODO: Set Camera on prefab canvas to the battle camera
             }
         }
@@ -30,8 +31,10 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                 InitializeBattleCursor();
                 _battleCursorInitialized = true;
             }
-            // TODO: Update the UI representation of the battle cursor
-            Debug.Log($"Battle cursor moved to: {newPosition}");
+            var mapGrid = _brain.battleBrain.BattleObject.Context.mapGrid;
+            var worldPosition = mapGrid.GetTerrainAdjustedWorldPosition(newPosition);
+            _battleCursorInstance.transform.position = worldPosition + new Vector3(0, 1f, -2f); // Slightly above the ground
+            Debug.Log($"Battle cursor world position: {_battleCursorInstance.transform.position}");
         }
         #endregion
     }
