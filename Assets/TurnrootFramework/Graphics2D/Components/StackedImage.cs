@@ -464,7 +464,7 @@ namespace Turnroot.Graphics2D
                 return;
             }
 
-            // Build the portrait save path: {ResourcesPath}/Components/Characters/Portraits
+            // Build the image save path: {ResourcesPath}/Components/Characters/Portraits
             string portraitSavePath = System.IO.Path.Combine(
                 resourcesPath.Replace("/", System.IO.Path.DirectorySeparatorChar.ToString()),
                 "Components",
