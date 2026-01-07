@@ -21,7 +21,6 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                 // TODO: Figure out scale
                 // For now, the scale is hardcoded, I'll figure it out later
                 _battleCursorInstance.transform.localScale = new Vector3(.5f, .5f, .5f);
-                // TODO: Set Camera on prefab canvas to the battle camera
             }
         }
 
