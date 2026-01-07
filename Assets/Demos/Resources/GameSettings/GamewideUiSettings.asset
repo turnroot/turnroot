@@ -104,4 +104,4 @@ MonoBehaviour:
   PathCornerSprite: {fileID: 267533991, guid: 55938e87ee80ffa4fa46d8e00d3564f7, type: 3}
   PathStartSprite: {fileID: -238641338, guid: 55938e87ee80ffa4fa46d8e00d3564f7, type: 3}
   CursorSprite: {fileID: -1492100927, guid: 55938e87ee80ffa4fa46d8e00d3564f7, type: 3}
-  BattleCursorPrefab: {fileID: 232714807464217856, guid: 862fd89fc081b064794294287187cae4, type: 3}
+  BattleCursorPrefab: {fileID: 4417507937948770518, guid: 862fd89fc081b064794294287187cae4, type: 3}

@@ -242,6 +242,12 @@ namespace Turnroot.Gameplay.Brain
 #if UNITY_EDITOR
             Debug.Log($"StateBrain: SetCurrentState -> {_currentState.Name}");
 #endif
+            // Trigger specific events for certain states
+            if (_currentState.Name == BrainStateNames.Battle)
+            {
+                _brain?.PublishBattleStarted();
+            }
+
             _brain?.PublishStateChanged(_currentState);
         }
 
