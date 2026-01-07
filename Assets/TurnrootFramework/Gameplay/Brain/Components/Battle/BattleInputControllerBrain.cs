@@ -352,7 +352,7 @@ namespace Turnroot.Gameplay.Brain
                 // Initialize cursor at origin (0,0) or first valid position
                 // After initializing, we can move the cursor to the correct unit, but we must have
                 // this camera center
-                var neutralCentralPoint = _brain.cameraBrain.SetCameraNeutralCenter();
+                var neutralCentralPoint = _brain.cameraBrain.SetBattleGridCameraNeutralCenter();
 
                 CursorPosition = battleContext.mapGrid.GetGridPoint(
                     neutralCentralPoint.x,

@@ -107,4 +107,4 @@ MonoBehaviour:
   BattleCursorPrefab: {fileID: 4417507937948770518, guid: 862fd89fc081b064794294287187cae4, type: 3}
   CameraPanSafeZone: {x: 0.25, y: 0.25}
   CameraPanSpeed: 0.8
-  CameraPanOvershoot: 0.1
+  CameraPanStopDistance: 0.2
