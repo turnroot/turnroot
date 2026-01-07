@@ -314,20 +314,13 @@ namespace Turnroot.GameSettings
         public Sprite CursorSprite;
         public GameObject BattleCursorPrefab;
 
-        [InfoBox(
-            "Distance from camera neutral (in grid units) to trigger camera panning when cursor approaches edge. The higher the number, the less often the camera wil move. Set to 0 to lock the camera to the cursor (center the cursor at all times)"
-        )]
-        public Vector2Int DistanceFromCenterCameraPan = new(6, 4);
+        [MinValue(0), MaxValue(1)]
+        public Vector2 CameraPanSafeZone = new(.25f, .25f);
 
-        [InfoBox(
-            "If true, the camera will try to center itself on the cursor when panning. If false, the camera will pan half of the DistanceFromCenterCameraPan value (to prevent overshoot oscillation)"
-        )]
-        public bool CameraPanTriesToCenterItself = false;
-
-        [Range(0.1f, 3f), Tooltip("Duration of camera pan in seconds")]
+        [Range(0.1f, 1f)]
         public float CameraPanSpeed = 0.6f;
 
-        [Tooltip("Easing curve for camera movement (should start and end at same values)")]
-        public AnimationCurve CameraPanEasingCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
+        [Range(.01f, .3f)]
+        public float CameraPanStopDistance = 0.01f;
     }
 }
