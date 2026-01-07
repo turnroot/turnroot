@@ -1,5 +1,6 @@
 using Turnroot.Gameplay.Brain;
 using Turnroot.Gameplay.Combat;
+using Turnroot.Gameplay.PlayerSettings;
 using Turnroot.GameSettings;
 using Turnroot.Utilities;
 using UnityEngine;
@@ -24,6 +25,15 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             {
                 float smoothTime = UiSettings?.CameraPanSpeed ?? 0.3f;
                 smoothTime = 1.005f - smoothTime;
+                switch (gameSpeed)
+                {
+                    case GameplayPlayerSettings.GameSpeed.Fast:
+                        smoothTime *= 0.85f;
+                        break;
+                    case GameplayPlayerSettings.GameSpeed.VeryFast:
+                        smoothTime *= 0.7f;
+                        break;
+                }
 
                 Vector3 newPos = Vector3.SmoothDamp(
                     currentPos,

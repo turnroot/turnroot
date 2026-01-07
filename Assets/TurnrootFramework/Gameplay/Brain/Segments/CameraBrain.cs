@@ -1,5 +1,6 @@
 using Turnroot.Gameplay.Brain;
 using Turnroot.Gameplay.Combat;
+using Turnroot.Gameplay.PlayerSettings;
 using Turnroot.GameSettings;
 using Turnroot.Utilities;
 using UnityEngine;
@@ -15,6 +16,12 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
 
         private MapGrid MapGrid => Brain?.battleBrain?.BattleObject?.Context?.mapGrid;
         private GamewideUiSettings UiSettings => Brain?.uiBrain?.uiSettings;
+
+        private GameplayPlayerSettings gameplayPlayerSettings =>
+            GameSettingsLoader.LoadFirst<GameplayPlayerSettings>();
+
+        private GameplayPlayerSettings.GameSpeed gameSpeed =>
+            gameplayPlayerSettings?.SpeedSetting ?? GameplayPlayerSettings.GameSpeed.Normal;
         private BattleGameObject BattleObject => Brain?.battleBrain?.BattleObject;
 
         protected override void SubscribeToBrainEvents()
