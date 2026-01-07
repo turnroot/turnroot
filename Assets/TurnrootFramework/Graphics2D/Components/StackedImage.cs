@@ -464,7 +464,7 @@ namespace Turnroot.Graphics2D
                 return;
             }
 
-            // Build the portrait save path: {ResourcesPath}/Components/Characters/Portraits
+            // Build the image save path: {ResourcesPath}/Components/Characters/Portraits
             string portraitSavePath = System.IO.Path.Combine(
                 resourcesPath.Replace("/", System.IO.Path.DirectorySeparatorChar.ToString()),
                 "Components",
@@ -489,7 +489,7 @@ namespace Turnroot.Graphics2D
             byte[] pngData = texture.EncodeToPNG();
             System.IO.File.WriteAllBytes(fullPath, pngData);
 #if UNITY_EDITOR
-            Debug.Log($"Successfully saved portrait texture: {fileName} to {fullPath}");
+            Debug.Log($"Successfully saved stacked image texture: {fileName} to {fullPath}");
 #endif
 
 #if UNITY_EDITOR
