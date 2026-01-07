@@ -1,4 +1,5 @@
 using Turnroot.Gameplay.Brain;
+using Turnroot.Utilities;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -24,17 +25,35 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             }
         }
 
-        public void HandleBattleCursorMoved(Vector2Int newPosition)
+        public OperationResult HandleBattleCursorMoved(Vector2Int newPosition)
         {
             if (!_battleCursorInitialized)
             {
                 InitializeBattleCursor();
                 _battleCursorInitialized = true;
             }
+
+            if (_battleCursorInstance == null)
+            {
+                return OperationResult.Failure("Battle cursor instance is null");
+            }
+
             var mapGrid = _brain.battleBrain.BattleObject.Context.mapGrid;
+            if (mapGrid == null)
+            {
+                return OperationResult.Failure(
+                    "UiBrain: MapGrid is null in HandleBattleCursorMoved"
+                );
+            }
+
             var worldPosition = mapGrid.GetTerrainAdjustedWorldPosition(newPosition);
             _battleCursorInstance.transform.position = worldPosition + new Vector3(0, 1f, -2f); // Slightly above the ground
-            Debug.Log($"Battle cursor world position: {_battleCursorInstance.transform.position}");
+#if UNITY_EDITOR
+            Debug.Log(
+                $"Battle cursor moved to grid {newPosition}, world position: {_battleCursorInstance.transform.position}"
+            );
+#endif
+            return OperationResult.SuccessResult();
         }
         #endregion
     }

@@ -60,6 +60,8 @@ namespace Turnroot.Gameplay.Combat
         public GenericRosterInstance EnemyTeamRoster { get; private set; }
         public GenericRosterInstance ThirdPartyTeamRoster { get; private set; }
 
+        public LayerMask GroundLayerMask;
+
         #region Unity Lifecycle
 
         public void Awake()

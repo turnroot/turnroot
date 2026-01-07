@@ -69,56 +69,6 @@ public class MapGrid : MonoBehaviour
     [Tooltip("Show coordinate labels for raycast points in the Scene view")]
     private bool _showRaycastCoordinates = true;
 
-    [Button("Flip Mesh X")]
-    private void FlipMeshX()
-    {
-        if (_single3dHeightMesh == null)
-        {
-#if UNITY_EDITOR
-            Debug.LogWarning("MapGrid: No 3D height mesh assigned. Please assign a mesh to flip.");
-#endif
-            return;
-        }
-
-        var currentScale = _single3dHeightMesh.transform.localScale;
-        _single3dHeightMesh.transform.localScale = new Vector3(
-            -currentScale.x,
-            currentScale.y,
-            currentScale.z
-        );
-
-#if UNITY_EDITOR
-        Debug.Log(
-            $"MapGrid: Flipped mesh X axis. New scale: {_single3dHeightMesh.transform.localScale}"
-        );
-#endif
-    }
-
-    [Button("Flip Mesh Y")]
-    private void FlipMeshY()
-    {
-        if (_single3dHeightMesh == null)
-        {
-#if UNITY_EDITOR
-            Debug.LogWarning("MapGrid: No 3D height mesh assigned. Please assign a mesh to flip.");
-#endif
-            return;
-        }
-
-        var currentScale = _single3dHeightMesh.transform.localScale;
-        _single3dHeightMesh.transform.localScale = new Vector3(
-            currentScale.x,
-            -currentScale.y,
-            currentScale.z
-        );
-
-#if UNITY_EDITOR
-        Debug.Log(
-            $"MapGrid: Flipped mesh Y axis. New scale: {_single3dHeightMesh.transform.localScale}"
-        );
-#endif
-    }
-
     [Button("Reset Mesh Scale")]
     private void ResetMeshScale()
     {
@@ -147,6 +97,7 @@ public class MapGrid : MonoBehaviour
     private Vector2Int[] _traversableAreaCorners = new Vector2Int[4];
 
     public Vector2Int[] TraversableAreaCorners => _traversableAreaCorners;
+    public LayerMask RaycastLayerMask => _raycastLayerMask;
 
     public int GridWidth => _gridWidth;
     public int GridHeight => _gridHeight;

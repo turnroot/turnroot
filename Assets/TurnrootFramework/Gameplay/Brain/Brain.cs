@@ -44,6 +44,7 @@ namespace Turnroot.Gameplay.Brain
     [RequireComponent(typeof(UiBrain))]
     [RequireComponent(typeof(VolumeBrain))]
     [RequireComponent(typeof(AudioBrain))]
+    [RequireComponent(typeof(CameraBrain))]
     public partial class Brain : MonoBehaviour
     {
         // Core components
@@ -79,6 +80,9 @@ namespace Turnroot.Gameplay.Brain
 
         [HideInInspector]
         public AudioBrain audioBrain;
+
+        [HideInInspector]
+        public CameraBrain cameraBrain;
 
         [HideInInspector]
         public LongTermMemory ltm;
@@ -691,6 +695,7 @@ namespace Turnroot.Gameplay.Brain
             uiBrain = GetComponent<UiBrain>();
             volumeBrain = GetComponent<VolumeBrain>();
             audioBrain = GetComponent<AudioBrain>();
+            cameraBrain = GetComponent<CameraBrain>();
 
             // Find all DynamicSceneFlows in other scenes and set their .brain to this
             var allSceneFlows = FindObjectsByType<DynamicSceneFlow>(FindObjectsSortMode.None);

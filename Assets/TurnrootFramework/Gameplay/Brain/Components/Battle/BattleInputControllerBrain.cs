@@ -1,17 +1,13 @@
-using System.Collections;
 using System.Collections.Generic;
 using Turnroot.Characters;
 using Turnroot.Gameplay.Brain.Components.Battle;
 using Turnroot.Gameplay.Brain.Events;
 using Turnroot.Gameplay.Combat;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
-using Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Locations;
 using Turnroot.Gameplay.PlayerSettings;
-using Turnroot.GameSettings;
 using Turnroot.Utilities;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.InputSystem.LowLevel;
 
 namespace Turnroot.Gameplay.Brain
 {
@@ -351,8 +347,17 @@ namespace Turnroot.Gameplay.Brain
             if (_brain?.battleBrain?.BattleObject?.Context?.mapGrid != null)
             {
                 var battleContext = _brain.battleBrain.BattleObject.Context;
+                // Use CameraBrain to raycast from battle camera center, find closest map grid point,
+                // and set cursor position there. Set this as Camera Center
                 // Initialize cursor at origin (0,0) or first valid position
-                CursorPosition = battleContext.mapGrid.GetGridPoint(0, 0);
+                // After initializing, we can move the cursor to the correct unit, but we must have
+                // this camera center
+                var neutralCentralPoint = _brain.cameraBrain.SetCameraNeutralCenter();
+
+                CursorPosition = battleContext.mapGrid.GetGridPoint(
+                    neutralCentralPoint.x,
+                    neutralCentralPoint.y
+                );
 
                 // TODO: Set this to the correct unit based on gameplay settings and unit positions
 
@@ -506,15 +511,16 @@ namespace Turnroot.Gameplay.Brain
             // Check if the selected point is valid for current action
             var currentState = _playerTurnFlow?.GetCurrentState() ?? PlayerTurnStates.Inactive;
 
-            switch (currentState)
+            return currentState switch
             {
-                case PlayerTurnStates.MoveActionChosenChoosingDestination:
-                    return _validMoveTiles.ContainsKey(point);
-                case PlayerTurnStates.AttackActionChosenChoosingTarget:
-                    return _validAttackTiles.ContainsKey(point);
-                default:
-                    return false;
-            }
+                PlayerTurnStates.MoveActionChosenChoosingDestination => _validMoveTiles.ContainsKey(
+                    point
+                ),
+                PlayerTurnStates.AttackActionChosenChoosingTarget => _validAttackTiles.ContainsKey(
+                    point
+                ),
+                _ => false,
+            };
             // TODO: Comprehensive action validation (weapons, skills, rescue/trade requirements, audio/visual feedback)
         }
 

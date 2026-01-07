@@ -17,8 +17,8 @@ public class MapGridHeightConnector
         if (mapObject == null)
         {
             // Return original positions in consistent order
-            var ordered = gridPoints.OrderBy(kv => kv.Key.x).ThenBy(kv => kv.Key.y);
-            foreach (var kv in ordered)
+            var orderedGridPoints = gridPoints.OrderBy(kv => kv.Key.x).ThenBy(kv => kv.Key.y);
+            foreach (var kv in orderedGridPoints)
             {
                 var point = kv.Value;
                 raycastPoints[index++] = point.transform.position;
@@ -34,7 +34,7 @@ public class MapGridHeightConnector
         foreach (var kv in ordered)
         {
             var point = kv.Value;
-            Vector3 rayOrigin = point.transform.position + Vector3.up * 50f; // Start the ray well above the grid point
+            Vector3 rayOrigin = point.transform.position + (Vector3.up * 50f); // Start the ray well above the grid point
             Ray ray = new Ray(rayOrigin, Vector3.down);
 
             int mask = layerMask.value;
