@@ -189,9 +189,21 @@ namespace Turnroot.Gameplay.Brain
                 yield return new WaitForSeconds(0.05f); // Check every 50ms
             }
 
-            // Try to update PlayerTurnFlow reference since it might be available now
-            _playerTurnFlow = _brain?.battleBrain?.playerTurnFlow;
+            // Capture references after the context is ready and validate them
+            var brain = _brain;
+            if (brain == null)
+            {
+                yield break;
+            }
 
+            var battleBrain = brain.battleBrain;
+            if (battleBrain == null)
+            {
+                yield break;
+            }
+
+            // Try to update PlayerTurnFlow reference since it should be available now
+            _playerTurnFlow = battleBrain.playerTurnFlow;
             // Now that battle context is ready, set up input actions and cursor
             SetupInputActions();
             InitializeCursor();
