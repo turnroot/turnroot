@@ -11,15 +11,18 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
     {
         #region Settings Menu Opening and Core Operations
 
-        public void OpenMainGameSettingsMenu()
+        private void OpenPrebattleSubmenu(
+            System.Func<MenuLocation> getMenuLocation,
+            string menuTypeName
+        )
         {
             if (_isTransitioning)
             {
                 return;
             }
 
-            var settingsMenuLocation = uiSettings?.GetGameSettingsMenu();
-            if (settingsMenuLocation == null)
+            var submenuLocation = getMenuLocation?.Invoke();
+            if (submenuLocation == null)
             {
                 return;
             }
@@ -33,15 +36,15 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             }
 
             // Guard: Return early if activeInstance already exists to prevent duplicates
-            if (settingsMenuLocation.activeInstance != null)
+            if (submenuLocation.activeInstance != null)
             {
                 return;
             }
 
-            if (settingsMenuLocation.prefab == null)
+            if (submenuLocation.prefab == null)
             {
 #if UNITY_EDITOR
-                Debug.LogError("UiBrain: No prefab set for game settings menu location");
+                Debug.LogError($"UiBrain: No prefab set for {menuTypeName} menu location");
 #endif
                 return;
             }
@@ -49,49 +52,12 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             _isTransitioning = true;
 
             // Start the transition coroutine
-            StartCoroutine(TransitionToSettingsMenu(preBattleMenuLocation, settingsMenuLocation));
+            StartCoroutine(TransitionToSettingsMenu(preBattleMenuLocation, submenuLocation));
         }
 
-        public void OpenPreBattleMapOverview()
-        {
-            if (_isTransitioning)
-            {
-                return;
-            }
+        public void OpenMainGameSettingsMenu() => OpenPrebattleSubmenu(() => uiSettings?.GetGameSettingsMenu(), "game settings");
 
-            var mapMenuLocation = uiSettings?.GetPrebattleMapMenu();
-            if (mapMenuLocation == null)
-            {
-                return;
-            }
-
-            if (preBattleMenuLocation?.activeInstance == null)
-            {
-#if UNITY_EDITOR
-                Debug.LogError("UiBrain: Pre-battle menu instance not found");
-#endif
-                return;
-            }
-
-            // Guard: Return early if activeInstance already exists to prevent duplicates
-            if (mapMenuLocation.activeInstance != null)
-            {
-                return;
-            }
-
-            if (mapMenuLocation.prefab == null)
-            {
-#if UNITY_EDITOR
-                Debug.LogError("UiBrain: No prefab set for pre-battle map menu location");
-#endif
-                return;
-            }
-
-            _isTransitioning = true;
-
-            // Start the transition coroutine
-            StartCoroutine(TransitionToSettingsMenu(preBattleMenuLocation, mapMenuLocation));
-        }
+        public void OpenPreBattleMapOverview() => OpenPrebattleSubmenu(() => uiSettings?.GetPrebattleMapMenu(), "pre-battle map");
 
         #endregion
 
