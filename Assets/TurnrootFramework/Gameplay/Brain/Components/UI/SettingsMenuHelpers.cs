@@ -52,6 +52,47 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             StartCoroutine(TransitionToSettingsMenu(preBattleMenuLocation, settingsMenuLocation));
         }
 
+        public void OpenPreBattleMapOverview()
+        {
+            if (_isTransitioning)
+            {
+                return;
+            }
+
+            var mapMenuLocation = uiSettings?.GetPrebattleMapMenu();
+            if (mapMenuLocation == null)
+            {
+                return;
+            }
+
+            if (preBattleMenuLocation?.activeInstance == null)
+            {
+#if UNITY_EDITOR
+                Debug.LogError("UiBrain: Pre-battle menu instance not found");
+#endif
+                return;
+            }
+
+            // Guard: Return early if activeInstance already exists to prevent duplicates
+            if (mapMenuLocation.activeInstance != null)
+            {
+                return;
+            }
+
+            if (mapMenuLocation.prefab == null)
+            {
+#if UNITY_EDITOR
+                Debug.LogError("UiBrain: No prefab set for pre-battle map menu location");
+#endif
+                return;
+            }
+
+            _isTransitioning = true;
+
+            // Start the transition coroutine
+            StartCoroutine(TransitionToSettingsMenu(preBattleMenuLocation, mapMenuLocation));
+        }
+
         #endregion
 
         #region Settings Menu Event Handlers

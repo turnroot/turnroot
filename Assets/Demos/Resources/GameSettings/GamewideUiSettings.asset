@@ -67,8 +67,8 @@ MonoBehaviour:
     prefab: {fileID: 0}
   - parentMenuName: 10
     menuName: 15
-    style: 1
-    prefab: {fileID: 0}
+    style: 2
+    prefab: {fileID: 25012695618156106, guid: f62aebd898aee8f4ab1084d09a36ea18, type: 3}
   - parentMenuName: 10
     menuName: 16
     style: 1

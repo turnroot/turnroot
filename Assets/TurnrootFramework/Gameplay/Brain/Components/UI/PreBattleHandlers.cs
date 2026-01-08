@@ -53,7 +53,7 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                             // TODO: skills UI
                             break;
                         case PrebattleOptions.Map:
-                            // TODO: map UI
+                            HandlePreBattleMenuMap();
                             break;
                         case PrebattleOptions.Support:
                             // TODO: support UI
@@ -71,6 +71,8 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
         #region PreBattle Settings and Helpers
 
         private void HandlePreBattleMenuSettings() => OpenMainGameSettingsMenu();
+
+        private void HandlePreBattleMenuMap() => OpenPreBattleMapOverview();
 
         private void SetPreBattleMenuFadeSpeed(float fadeTime)
         {

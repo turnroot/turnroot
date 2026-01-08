@@ -10,7 +10,7 @@ namespace Turnroot.UI.Components.Menu.Submenu
         {
             Slider,
             Toggles,
-            Button,
+            SimpleButton,
             Carousel,
         }
 
@@ -33,11 +33,12 @@ namespace Turnroot.UI.Components.Menu.Submenu
         [ShowIf("rowType", RowType.Toggles)]
         public SimpleToggle[] toggleComponents;
 
-        [ShowIf("rowType", RowType.Button)]
-        public Button[] buttonComponents;
+        [ShowIf("rowType", RowType.SimpleButton)]
+        public SimpleButton.SimpleButton[] buttonComponents;
 
         [ShowIf("rowType", RowType.Carousel)]
         public MenuCarousel carouselComponent;
+
         public void SetFocused(bool focused)
         {
             if (focused)
@@ -65,7 +66,8 @@ namespace Turnroot.UI.Components.Menu.Submenu
             return rowType switch
             {
                 RowType.Toggles when HasElements(toggleComponents) => toggleComponents.Length - 1,
-                RowType.Button when HasElements(buttonComponents) => buttonComponents.Length - 1,
+                RowType.SimpleButton when HasElements(buttonComponents) => buttonComponents.Length
+                    - 1,
                 RowType.Carousel when carouselComponent != null => carouselComponent.Options.Count
                     - 1,
                 _ => 0,
@@ -79,7 +81,7 @@ namespace Turnroot.UI.Components.Menu.Submenu
                 case RowType.Toggles:
                     UpdateToggleVisuals();
                     break;
-                case RowType.Button:
+                case RowType.SimpleButton:
                     UpdateButtonVisuals();
                     break;
                 case RowType.Carousel:
@@ -95,7 +97,7 @@ namespace Turnroot.UI.Components.Menu.Submenu
                 case RowType.Toggles:
                     ClearToggleVisuals();
                     break;
-                case RowType.Button:
+                case RowType.SimpleButton:
                     ClearButtonVisuals();
                     break;
                 case RowType.Carousel:
@@ -141,6 +143,7 @@ namespace Turnroot.UI.Components.Menu.Submenu
 
             for (int i = 0; i < buttonComponents.Length; i++)
             {
+                buttonComponents[i]?.OnPointerExit(null);
                 var textComponent = buttonComponents[i]
                     ?.GetComponentInChildren<TMPro.TextMeshProUGUI>();
                 if (textComponent != null)
@@ -149,6 +152,10 @@ namespace Turnroot.UI.Components.Menu.Submenu
                         (i == currentSelectionIndex)
                             ? TMPro.FontStyles.Bold
                             : TMPro.FontStyles.Normal;
+                }
+                if (i == currentSelectionIndex)
+                {
+                    buttonComponents[i]?.OnPointerEnter(null);
                 }
             }
         }
@@ -238,7 +245,7 @@ namespace Turnroot.UI.Components.Menu.Submenu
                 case RowType.Toggles:
                     return NavigateElements(toggleComponents, delta, UpdateToggleVisuals);
 
-                case RowType.Button:
+                case RowType.SimpleButton:
                     return NavigateElements(buttonComponents, delta, UpdateButtonVisuals);
 
                 case RowType.Carousel:
@@ -304,13 +311,13 @@ namespace Turnroot.UI.Components.Menu.Submenu
                     toggleComponents[currentSelectionIndex]?.Toggle();
                     return true;
 
-                case RowType.Button:
+                case RowType.SimpleButton:
                     if (!HasElements(buttonComponents))
                     {
                         return false;
                     }
 
-                    buttonComponents[currentSelectionIndex]?.onClick.Invoke();
+                    buttonComponents[currentSelectionIndex]?.Select();
                     return true;
 
                 case RowType.Carousel:
