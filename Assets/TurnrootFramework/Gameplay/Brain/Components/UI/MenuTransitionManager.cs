@@ -3,6 +3,7 @@ using Turnroot.GameSettings;
 using Turnroot.UI.Components;
 using Turnroot.UI.Components.Menu;
 using Turnroot.UI.Components.RadialMenu;
+using Turnroot.UI.Components.SimpleButton;
 using UnityEngine;
 
 namespace TurnrootFramework.Gameplay.Brain.Segments
@@ -66,6 +67,9 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
         )
         {
             var fromInstance = from?.activeInstance;
+            Debug.Log(
+                $"MenuTransitionManager: TransitionBetween from={from?.menuName} hasFromInstance={fromInstance != null} to={to?.menuName} destroyFrom={destroyFrom}"
+            );
 
             // Update current menu type
             _currentMenuType = DetectMenuType(to);
@@ -80,10 +84,16 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             // Handle source cleanup - always disable/hide source menu to prevent overlap
             if (fromInstance != null)
             {
+                Debug.Log(
+                    $"MenuTransitionManager: Cleaning up source menu {from.menuName} (instance={fromInstance.name})"
+                );
                 CleanupMenuEvents(fromInstance);
 
                 if (destroyFrom)
                 {
+                    Debug.Log(
+                        $"MenuTransitionManager: Destroying source instance {fromInstance.name}"
+                    );
                     Object.Destroy(fromInstance);
                     from.activeInstance = null;
                 }
@@ -95,12 +105,14 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                         menu.enabled = false;
                     }
                     fromInstance.SetActive(false);
+                    from.activeInstance = null; // Clear active instance since it's hidden and not reusable for submenus
                 }
             }
 
             // Instantiate target menu if needed or re-enable if it exists
             if (to.activeInstance == null && to.prefab != null)
             {
+                Debug.Log($"MenuTransitionManager: Instantiating target menu {to.menuName}");
                 to.activeInstance = Object.Instantiate(to.prefab);
                 SetupMenu(to);
             }
@@ -108,6 +120,9 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             {
                 // Re-enable existing menu for back navigation
                 // Ensure event handlers and input actions are re-attached
+                Debug.Log(
+                    $"MenuTransitionManager: Reattaching and cleaning events for existing instance {to.activeInstance?.name} of menu {to.menuName}"
+                );
                 CleanupMenuEvents(to.activeInstance);
                 SetupMenu(to);
 
@@ -198,19 +213,49 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             // Setup events based on menu type - use specific handlers based on context
             if (instance.TryGetComponent<MenuBase>(out var menu))
             {
+                Debug.Log(
+                    $"MenuTransitionManager.SetupMenu: setting up MenuBase for {location.menuName} instance={instance.name}"
+                );
                 menu.uiBrain = _brain;
                 // For settings menus, use settings handlers
                 menu.OnNavigate += _brain.HandleGameSettingsMenuNavigate;
                 menu.OnItemSelected += _brain.HandleGameSettingsMenuSelect;
                 _brain.SetupMenuInputActions(menu);
+
+                // Ensure child SimpleButton components use the menu's select action so keyboard 'Select'
+                // works consistently even after menu destroy/restore cycles.
+                var simpleButtons =
+                    instance.GetComponentsInChildren<Turnroot.UI.Components.SimpleButton.SimpleButton>();
+                foreach (var sb in simpleButtons)
+                {
+                    // Assign the menu select action to each button and enable it
+                    sb.SelectAction = menu.selectAction;
+                    sb.SelectAction?.Enable();
+                }
             }
 
             if (instance.TryGetComponent<RadialMenu>(out var radial))
             {
+                Debug.Log(
+                    $"MenuTransitionManager.SetupMenu: setting up RadialMenu for {location.menuName} instance={instance.name}"
+                );
                 radial.uiBrain = _brain;
                 // For radial menus, use settings handlers (these are typically settings menus)
                 radial.OnNavigate += _brain.HandleGameSettingsMenuNavigate;
                 radial.OnItemSelected += _brain.HandleGameSettingsMenuSelect;
+
+                radial.navigateAction.Enable();
+
+                if (radial.selectAction == null || radial.selectAction.bindings.Count == 0)
+                {
+                    radial.selectAction?.Disable();
+                    radial.selectAction?.Dispose();
+                    radial.selectAction = InputActionFactory.CreateSelect();
+                }
+                else
+                {
+                    radial.selectAction.Enable();
+                }
             }
 
             _brain.SetupSettingsUIBindings(instance);
@@ -221,6 +266,9 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
         {
             var instance = preBattleLocation.activeInstance;
             var menuStyle = preBattleLocation.style;
+            Debug.Log(
+                $"MenuTransitionManager.SetupPreBattleMenu: menu={preBattleLocation.menuName} instance={instance?.name} style={menuStyle}"
+            );
 
             if (menuStyle == MenuStyle.Pie)
             {
@@ -229,6 +277,22 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                     radialMenu.uiBrain = _brain;
                     radialMenu.OnNavigate += _brain.HandlePreBattleMenuNavigate;
                     radialMenu.OnItemSelected += _brain.HandlePreBattleMenuSelect;
+
+                    radialMenu.navigateAction.Enable();
+
+                    if (
+                        radialMenu.selectAction == null
+                        || radialMenu.selectAction.bindings.Count == 0
+                    )
+                    {
+                        radialMenu.selectAction?.Disable();
+                        radialMenu.selectAction?.Dispose();
+                        radialMenu.selectAction = InputActionFactory.CreateSelect();
+                    }
+                    else
+                    {
+                        radialMenu.selectAction.Enable();
+                    }
                 }
             }
             else if (menuStyle == MenuStyle.List || menuStyle == MenuStyle.Grid)
@@ -239,6 +303,15 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                     listMenu.OnNavigate += _brain.HandlePreBattleMenuNavigate;
                     listMenu.OnItemSelected += _brain.HandlePreBattleMenuSelect;
                     _brain.SetupMenuInputActions(listMenu);
+
+                    // Ensure child SimpleButton components get the list menu's select action
+                    var simpleButtons =
+                        instance.GetComponentsInChildren<Turnroot.UI.Components.SimpleButton.SimpleButton>();
+                    foreach (var sb in simpleButtons)
+                    {
+                        sb.SelectAction = listMenu.selectAction;
+                        sb.SelectAction?.Enable();
+                    }
                 }
             }
 
@@ -247,6 +320,7 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
 
         private void CleanupMenuEvents(GameObject instance)
         {
+            Debug.Log($"MenuTransitionManager.CleanupMenuEvents: instance={instance?.name}");
             if (instance.TryGetComponent<MenuBase>(out var menu))
             {
                 // Clean up all possible event handlers
@@ -258,6 +332,9 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
 
             if (instance.TryGetComponent<RadialMenu>(out var radial))
             {
+                Debug.Log(
+                    $"MenuTransitionManager: Removing RadialMenu event handlers from {instance.name}"
+                );
                 radial.OnNavigate -= _brain.HandlePreBattleMenuNavigate;
                 radial.OnItemSelected -= _brain.HandlePreBattleMenuSelect;
                 radial.OnNavigate -= _brain.HandleGameSettingsMenuNavigate;

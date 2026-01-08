@@ -47,6 +47,10 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             if (item == null)
                 return;
 
+#if UNITY_EDITOR
+            Debug.Log($"MenuRouteHandler: HandleMenuSelect item: {item?.ItemName}");
+#endif
+
             if (item.IsCenter)
             {
                 _brain.SetPreBattleMenuFadeSpeed(_brain.uiSettings.MenuFadeTime);

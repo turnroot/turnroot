@@ -258,7 +258,13 @@ namespace Turnroot.UI.Components.RadialMenu
             }
         }
 
-        private void OnSelectPerformed(InputAction.CallbackContext context) => ConfirmSelection();
+        private void OnSelectPerformed(InputAction.CallbackContext context)
+        {
+#if UNITY_EDITOR
+            Debug.Log($"[RadialMenu] SelectAction performed (control: {context.control})");
+#endif
+            ConfirmSelection();
+        }
 
         private void Update()
         {
@@ -590,6 +596,18 @@ namespace Turnroot.UI.Components.RadialMenu
 
         private void ConfirmSelection()
         {
+#if UNITY_EDITOR
+            if (_centerSelected && centerItem != null)
+            {
+                Debug.Log($"[RadialMenu] ConfirmSelection center: {centerItem.ItemName}");
+            }
+            else if (_selectedIndex >= 0 && _selectedIndex < menuItems.Count)
+            {
+                Debug.Log(
+                    $"[RadialMenu] ConfirmSelection item: {menuItems[_selectedIndex].ItemName}"
+                );
+            }
+#endif
             if (_centerSelected && centerItem != null)
             {
                 OnItemSelected?.Invoke(centerItem);

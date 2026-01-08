@@ -345,7 +345,13 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                 return;
             }
 
+            Debug.Log(
+                $"UiBrain: Creating pre-battle menu instance from prefab {preBattleMenuLocation.prefab?.name}"
+            );
             preBattleMenuLocation.activeInstance = Instantiate(preBattleMenuLocation.prefab);
+            Debug.Log(
+                $"UiBrain: Created pre-battle instance {preBattleMenuLocation.activeInstance?.name}"
+            );
             if (!preBattleMenuLocation.activeInstance.TryGetComponent<UIFade>(out var uiFade))
             {
                 uiFade = preBattleMenuLocation.activeInstance.AddComponent<UIFade>();
@@ -364,6 +370,9 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                     radialMenu.uiBrain = this;
                     radialMenu.OnNavigate += HandlePreBattleMenuNavigate;
                     radialMenu.OnItemSelected += HandlePreBattleMenuSelect;
+                    Debug.Log(
+                        $"UiBrain: Attached prebattle handlers to radial instance {preBattleMenuLocation.activeInstance?.name}"
+                    );
                 }
             }
             else if (menuStyle == MenuStyle.Filmstrip)
