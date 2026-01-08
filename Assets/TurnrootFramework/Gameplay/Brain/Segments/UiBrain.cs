@@ -34,8 +34,15 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
         [HideInInspector]
         public MenuLocation preBattleMenuLocation;
 
-        private bool _isTransitioning = false;
+        [HideInInspector]
+        public bool _isTransitioning = false;
         private GameObject _currentMenuCanvasPrefab;
+
+        // New component instances
+        public MenuTransitionManager _transitionManager;
+        public SettingsBindingManager _settingsBindingManager;
+        public MenuDepthTracker _menuTracker;
+        public MenuRouteHandler _routeHandler;
 
         // Public property to access current pre-battle menu instance through MenuLocation system
         public GameObject CurrentPreBattleMenuInstance =>
@@ -43,11 +50,40 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
 
         protected override EventPriority GetSubscriptionPriority() => EventPriority.Low;
 
-        [HideInInspector]
-        public int CurrentMenuDepth = 0;
+        // Use MenuDepthTracker instead of manual tracking
+        public int CurrentMenuDepth => _menuTracker?.CurrentDepth ?? 0;
+        public bool IsInSubMenu => _menuTracker?.IsInSubMenu ?? false;
 
-        [HideInInspector]
-        public bool IsInSubMenu => CurrentMenuDepth > 0;
+        // Public method for MenuRouteHandler and MenuTransitionManager
+        public void PublishPreBattleCompleted() => _brain.PublishPreBattleCompleted();
+
+        // Public methods for MenuTransitionManager and MenuRouteHandler to access
+        public void SetupMenuInputActions(MenuBase menu) =>
+            InputActionFactory.SetupMenuNavigation(menu);
+
+        public void SetupSettingsUIBindings(GameObject instance) =>
+            _settingsBindingManager?.BindSettings(
+                instance,
+                _brain.GetComponent<GamewideContextBrain>()
+            );
+
+        public void ApplyMenuColors(GameObject instance, MenuStyle style) =>
+            ApplyMenuColorsImpl(instance, style);
+
+        public void StartTransitionToSettingsMenu(MenuLocation from, MenuLocation to) =>
+            StartCoroutine(_transitionManager.TransitionBetween(from, to));
+
+        public void SetPreBattleMenuFadeSpeed(float fadeTime) =>
+            SetPreBattleMenuFadeSpeedImpl(fadeTime);
+
+        public void HandleStartBattleClick() => HandleStartBattleClickImpl();
+
+        // Menu event handlers for route system
+        public void HandleMenuNavigate(Turnroot.UI.Components.MenuItemBase item) =>
+            _routeHandler?.HandleMenuNavigate(item);
+
+        public void HandleMenuSelect(Turnroot.UI.Components.MenuItemBase item) =>
+            _routeHandler?.HandleMenuSelect(item);
 
         #endregion
 
@@ -65,6 +101,12 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                 gameSettingsGameplayLocation = uiSettings.GetGameSettingsGameplayMenu();
                 gameSettingsAudioLocation = uiSettings.GetGameSettingsAudioMenu();
                 gameSettingsControlsLocation = uiSettings.GetGameSettingsControlsMenu();
+
+                // Initialize new components
+                _transitionManager = new MenuTransitionManager(this, uiSettings);
+                _settingsBindingManager = new SettingsBindingManager();
+                _menuTracker = new MenuDepthTracker();
+                _routeHandler = new MenuRouteHandler(this);
             }
 
 #if UNITY_EDITOR
@@ -399,8 +441,8 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                 }
             }
 
-            // Fallback for unhandled cases - just decrement depth
-            CurrentMenuDepth = Mathf.Max(0, CurrentMenuDepth - 1);
+            // Fallback for unhandled cases - just pop from tracker
+            _menuTracker?.Pop();
 
 #if UNITY_EDITOR
             Debug.Log($"UiBrain: Navigated to parent menu. New depth: {CurrentMenuDepth}");
