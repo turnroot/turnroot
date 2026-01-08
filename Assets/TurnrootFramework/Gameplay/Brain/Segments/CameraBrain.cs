@@ -36,10 +36,7 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             Brain.OnStateChanged -= HandleStateChanged;
         }
 
-        private void HandleStateChanged(BrainState newState)
-        {
-            _inCombat = newState?.Name == BrainStateNames.Battle;
-        }
+        private void HandleStateChanged(BrainState newState) => _inCombat = newState?.Name == BrainStateNames.Battle;
 
         private void Update()
         {

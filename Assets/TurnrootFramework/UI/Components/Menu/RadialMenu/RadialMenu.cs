@@ -160,10 +160,6 @@ namespace Turnroot.UI.Components.RadialMenu
             }
             else
             {
-                // Fallback values if settings can't be loaded
-                Debug.LogWarning(
-                    "GamewideUiSettings not found, using fallback values for RadialMenu"
-                );
                 innerRadiusPercent = 0.3f;
                 segmentGap = 0.02f;
                 showFadeTime = 0.75f;

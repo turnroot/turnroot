@@ -1,3 +1,4 @@
+using System.Collections;
 using Turnroot.Gameplay.Brain;
 using Turnroot.Gameplay.Brain.Events;
 using Turnroot.GameSettings;
@@ -34,8 +35,15 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
         [HideInInspector]
         public MenuLocation preBattleMenuLocation;
 
-        private bool _isTransitioning = false;
+        [HideInInspector]
+        public bool _isTransitioning = false;
         private GameObject _currentMenuCanvasPrefab;
+
+        // New component instances - made private for better encapsulation
+        private MenuTransitionManager _transitionManager;
+        private SettingsBindingManager _settingsBindingManager;
+        private MenuDepthTracker _menuTracker;
+        private MenuRouteHandler _routeHandler;
 
         // Public property to access current pre-battle menu instance through MenuLocation system
         public GameObject CurrentPreBattleMenuInstance =>
@@ -43,11 +51,137 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
 
         protected override EventPriority GetSubscriptionPriority() => EventPriority.Low;
 
-        [HideInInspector]
-        public int CurrentMenuDepth = 0;
+        // Use MenuDepthTracker instead of manual tracking
+        public int CurrentMenuDepth => _menuTracker?.CurrentDepth ?? 0;
+        public bool IsInSubMenu => _menuTracker?.IsInSubMenu ?? false;
 
-        [HideInInspector]
-        public bool IsInSubMenu => CurrentMenuDepth > 0;
+        // Public method for MenuRouteHandler and MenuTransitionManager
+        public void PublishPreBattleCompleted() => _brain.PublishPreBattleCompleted();
+
+        // Internal interface for service classes
+        internal bool IsTransitioning => _isTransitioning;
+
+        internal void SetTransitioning(bool value) => _isTransitioning = value;
+
+        internal MonoBehaviour GetMonoBehaviour() => this;
+
+        internal Turnroot.Gameplay.Brain.Brain GetBrain() => _brain;
+
+        internal MenuDepthTracker GetMenuTracker() => _menuTracker;
+
+        internal MenuTransitionManager GetTransitionManager() => _transitionManager;
+
+        // Public methods for MenuTransitionManager and MenuRouteHandler to access
+        public void SetupMenuInputActions(MenuBase menu) =>
+            InputActionFactory.SetupMenuNavigation(menu);
+
+        public void SetupSettingsUIBindings(GameObject instance) =>
+            _settingsBindingManager?.BindSettings(
+                instance,
+                _brain.GetComponent<GamewideContextBrain>()
+            );
+
+        public void ApplyMenuColors(GameObject instance, MenuStyle style)
+        {
+            if (uiSettings == null)
+            {
+                return;
+            }
+
+            if (style == MenuStyle.Pie)
+            {
+                // Radial menus pull colors automatically
+                return;
+            }
+
+            // Apply grid/list/filmstrip colors
+            var buttons = instance.GetComponentsInChildren<UnityEngine.UI.Button>();
+            foreach (var button in buttons)
+            {
+                var colorBlock = button.colors;
+                colorBlock.normalColor = uiSettings.GridListFilmstripButtonNormalColor;
+                colorBlock.highlightedColor = uiSettings.GridListFilmstripButtonHoveredColor;
+                colorBlock.selectedColor = uiSettings.GridListFilmstripButtonSelectedColor;
+                colorBlock.fadeDuration = uiSettings.ButtonTransitionDuration;
+                button.colors = colorBlock;
+            }
+        }
+
+        public void TransitionToSubmenu(MenuLocation from, MenuLocation to) =>
+            TransitionToSubmenu(from, to, isBackNavigation: false);
+
+        public void TransitionToSubmenu(MenuLocation from, MenuLocation to, bool isBackNavigation)
+        {
+            if (_isTransitioning)
+            {
+                return;
+            }
+
+            _isTransitioning = true;
+            StartCoroutine(TransitionToSubmenuCoroutine(from, to, isBackNavigation));
+        }
+
+        private IEnumerator TransitionToSubmenuCoroutine(
+            MenuLocation from,
+            MenuLocation to,
+            bool isBackNavigation = false
+        )
+        {
+            if (!isBackNavigation)
+            {
+                _menuTracker?.TrackTransition(from, to);
+            }
+
+            // For back navigation, don't destroy the 'from' menu so we can return to it later
+            // For forward navigation, we can destroy sub-menus but preserve main menus
+            bool destroyFrom =
+                !isBackNavigation
+                && (
+                    from == gameSettingsGraphicsLocation
+                    || from == gameSettingsGameplayLocation
+                    || from == gameSettingsAudioLocation
+                    || from == gameSettingsControlsLocation
+                );
+
+            yield return _transitionManager.TransitionBetween(from, to, destroyFrom);
+            _isTransitioning = false;
+        }
+
+        public void SetPreBattleMenuFadeSpeed(float fadeTime)
+        {
+            var preBattleMenuLocation = uiSettings?.GetPreBattleMenu();
+            if (
+                preBattleMenuLocation?.activeInstance != null
+                && preBattleMenuLocation.activeInstance.TryGetComponent<UIFade>(out var uiFade)
+            )
+            {
+                uiFade.lerpTime = fadeTime;
+            }
+        }
+
+        public void HandleStartBattleClick()
+        {
+            var preBattleMenuLocation = uiSettings?.GetPreBattleMenu();
+            if (preBattleMenuLocation?.activeInstance == null || _isTransitioning)
+            {
+                return;
+            }
+
+            // Play any center item effects (UITweener/UIEffect/etc.) before starting transition
+            float effectDelay = PlayEffectsOnSelectedPrebattleCenter(
+                preBattleMenuLocation.activeInstance
+            );
+
+            // Start a coroutine that waits for effect to play then transitions to battle
+            StartCoroutine(StartBattleCoroutine(preBattleMenuLocation, effectDelay));
+        }
+
+        // Menu event handlers for route system
+        public void HandleMenuNavigate(Turnroot.UI.Components.MenuItemBase item) =>
+            _routeHandler?.HandleMenuNavigate(item);
+
+        public void HandleMenuSelect(Turnroot.UI.Components.MenuItemBase item) =>
+            _routeHandler?.HandleMenuSelect(item);
 
         #endregion
 
@@ -65,6 +199,12 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                 gameSettingsGameplayLocation = uiSettings.GetGameSettingsGameplayMenu();
                 gameSettingsAudioLocation = uiSettings.GetGameSettingsAudioMenu();
                 gameSettingsControlsLocation = uiSettings.GetGameSettingsControlsMenu();
+
+                // Initialize new components
+                _transitionManager = new MenuTransitionManager(this, uiSettings);
+                _settingsBindingManager = new SettingsBindingManager();
+                _menuTracker = new MenuDepthTracker();
+                _routeHandler = new MenuRouteHandler(this);
             }
 
 #if UNITY_EDITOR
@@ -72,28 +212,35 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
 #endif
         }
 
-        protected void WarnPrefabs()
+        private MenuLocation GetValidatedMenuLocation(
+            System.Func<MenuLocation> getter,
+            string menuName
+        )
         {
             if (uiSettings == null)
             {
                 Debug.LogError("UiBrain: GamewideUiSettings not found!");
-                return; // Don't check other things if uiSettings is null
+                return null;
             }
 
-            if (settingsMenuLocation == null)
+            var location = getter();
+            if (location == null)
             {
-                Debug.LogError("UiBrain: Game settings menu location not found!");
+                Debug.LogError($"UiBrain: {menuName} menu location not found!");
             }
 
-            if (gameSettingsGraphicsLocation == null)
-            {
-                Debug.LogError("UiBrain: Game settings graphics menu location not found!");
-            }
+            return location;
+        }
 
-            if (preBattleMenuLocation == null)
-            {
-                Debug.LogError("UiBrain: Pre-battle menu location not found!");
-            }
+        protected void WarnPrefabs()
+        {
+            // Validate all menu locations
+            GetValidatedMenuLocation(() => settingsMenuLocation, "Game settings");
+            GetValidatedMenuLocation(() => gameSettingsGraphicsLocation, "Game settings graphics");
+            GetValidatedMenuLocation(() => gameSettingsGameplayLocation, "Game settings gameplay");
+            GetValidatedMenuLocation(() => gameSettingsAudioLocation, "Game settings audio");
+            GetValidatedMenuLocation(() => gameSettingsControlsLocation, "Game settings controls");
+            GetValidatedMenuLocation(() => preBattleMenuLocation, "Pre-battle");
         }
 
         #endregion
@@ -108,9 +255,7 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             _onStateChangedHandler = (state) =>
             {
                 var name = state?.Name ?? string.Empty;
-#if UNITY_EDITOR
-                Debug.Log($"UiBrain: Brain state changed to {name}");
-#endif
+
                 // Handle back button based on state
                 HandleBackButtonForState(name);
 
@@ -176,20 +321,12 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
 
         public void HandlePreBattleUi()
         {
-            if (uiSettings == null)
-            {
-#if UNITY_EDITOR
-                Debug.LogError("UiBrain: Cannot create pre-battle UI - uiSettings is null");
-#endif
-                return;
-            }
-
-            var preBattleMenuLocation = uiSettings.GetPreBattleMenu();
+            var preBattleMenuLocation = GetValidatedMenuLocation(
+                () => uiSettings?.GetPreBattleMenu(),
+                "Pre-battle"
+            );
             if (preBattleMenuLocation == null)
             {
-#if UNITY_EDITOR
-                Debug.LogError("UiBrain: Pre-battle menu location not found");
-#endif
                 return;
             }
 
@@ -207,7 +344,13 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                 return;
             }
 
+            Debug.Log(
+                $"UiBrain: Creating pre-battle menu instance from prefab {preBattleMenuLocation.prefab?.name}"
+            );
             preBattleMenuLocation.activeInstance = Instantiate(preBattleMenuLocation.prefab);
+            Debug.Log(
+                $"UiBrain: Created pre-battle instance {preBattleMenuLocation.activeInstance?.name}"
+            );
             if (!preBattleMenuLocation.activeInstance.TryGetComponent<UIFade>(out var uiFade))
             {
                 uiFade = preBattleMenuLocation.activeInstance.AddComponent<UIFade>();
@@ -226,6 +369,9 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                     radialMenu.uiBrain = this;
                     radialMenu.OnNavigate += HandlePreBattleMenuNavigate;
                     radialMenu.OnItemSelected += HandlePreBattleMenuSelect;
+                    Debug.Log(
+                        $"UiBrain: Attached prebattle handlers to radial instance {preBattleMenuLocation.activeInstance?.name}"
+                    );
                 }
             }
             else if (menuStyle == MenuStyle.Filmstrip)
@@ -305,25 +451,7 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             else
             {
                 // TODO: Handle other button types
-#if UNITY_EDITOR
-                if (simpleButton == null)
-                {
-                    Debug.LogWarning(
-                        "UiBrain: MenuCanvasPrefab doesn't have SimpleButton component in children"
-                    );
-                }
-                else
-                {
-                    Debug.LogWarning(
-                        $"UiBrain: SimpleButton found but Role is {simpleButton.Role}, expected Back"
-                    );
-                }
-#endif
             }
-
-#if UNITY_EDITOR
-            Debug.Log("UiBrain: Back button created and wired up");
-#endif
         }
 
         private void DestroyBackButton()
@@ -339,9 +467,6 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
 
                 Destroy(_currentMenuCanvasPrefab);
                 _currentMenuCanvasPrefab = null;
-#if UNITY_EDITOR
-                Debug.Log("UiBrain: Back button destroyed and events cleaned up");
-#endif
             }
         }
 
@@ -351,79 +476,24 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
 
         private void HandleBackButtonPressed()
         {
-            if (CurrentMenuDepth > 0)
+            if (_isTransitioning)
             {
-                // Navigate up one level in menu hierarchy
-                NavigateToParentMenu();
+                return;
+            }
+
+            if (_menuTracker?.CanGoBack() == true)
+            {
+                var (fromLocation, toLocation) = _menuTracker.PopTransition();
+                if (fromLocation != null && toLocation != null)
+                {
+                    TransitionToSubmenu(fromLocation, toLocation, isBackNavigation: true);
+                }
             }
             else
             {
                 // At root level, handle based on current state
                 HandleRootLevelBack();
             }
-        }
-
-        private void NavigateToParentMenu()
-        {
-            // If we're at depth 2 or higher, we're in a submenu and should go back to its parent
-            if (CurrentMenuDepth >= 2)
-            {
-                // Find which submenu is currently active and transition back to settings menu
-                var activeSubMenu = FindActiveSettingsSubmenu();
-                if (activeSubMenu != null)
-                {
-                    _isTransitioning = true;
-                    StartCoroutine(
-                        TransitionBackToSettingsMenu(activeSubMenu, settingsMenuLocation)
-                    );
-                    return;
-                }
-            }
-
-            // If we're at depth 1, check if we're in the main settings menu
-            if (CurrentMenuDepth == 1 && settingsMenuLocation?.activeInstance != null)
-            {
-                // Transition from main settings back to prebattle menu
-                BackToPreBattleMenu();
-                return;
-            }
-
-            // Fallback for unhandled cases - just decrement depth
-            CurrentMenuDepth = Mathf.Max(0, CurrentMenuDepth - 1);
-
-#if UNITY_EDITOR
-            Debug.Log($"UiBrain: Navigated to parent menu. New depth: {CurrentMenuDepth}");
-#endif
-        }
-
-        private MenuLocation FindActiveSettingsSubmenu()
-        {
-            // Check all possible settings submenus to find which one is active
-            if (gameSettingsGraphicsLocation?.activeInstance != null)
-            {
-                return gameSettingsGraphicsLocation;
-            }
-
-            // Add other submenu locations as they're created
-            var audioMenuLocation = uiSettings?.GetMenuLocation(MenuName.AudioMenu);
-            if (audioMenuLocation?.activeInstance != null)
-            {
-                return audioMenuLocation;
-            }
-
-            var controlsMenuLocation = uiSettings?.GetMenuLocation(MenuName.ControlsMenu);
-            if (controlsMenuLocation?.activeInstance != null)
-            {
-                return controlsMenuLocation;
-            }
-
-            var gameplayMenuLocation = uiSettings?.GetMenuLocation(MenuName.GameplayMenu);
-            if (gameplayMenuLocation?.activeInstance != null)
-            {
-                return gameplayMenuLocation;
-            }
-
-            return null;
         }
 
         private void HandleRootLevelBack()

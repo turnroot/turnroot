@@ -1,5 +1,6 @@
 using Turnroot.Gameplay.Brain;
 using Turnroot.Gameplay.Brain.UI;
+using Turnroot.GameSettings;
 using Turnroot.UI.Components;
 using Turnroot.UI.Components.Menu;
 using Turnroot.UI.Components.RadialMenu;
@@ -14,119 +15,17 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
     {
         #region PreBattle Menu Event Handlers
 
-        public void HandlePreBattleMenuNavigate(MenuItemBase item)
-        {
-            // Handle navigation to item
-        }
+        public void HandlePreBattleMenuNavigate(MenuItemBase item) =>
+            // Delegate to the route handler for unified menu handling
+            _routeHandler?.HandleMenuNavigate(item);
 
-        public void HandlePreBattleMenuSelect(MenuItemBase item)
-        {
-            // Handle selection of item
-            if (item.IsCenter)
-            {
-                // Center selection should use slow fade speed for dramatic effect
-                SetPreBattleMenuFadeSpeed(uiSettings.MenuFadeTime);
-                HandleStartBattleClick();
-            }
-            else
-            {
-                // Segment selection should use fast fade speed for responsive UI
-                SetPreBattleMenuFadeSpeed(uiSettings.MenuInternalTransitionTime);
-
-                var preBattleMenuLocation = uiSettings?.GetPreBattleMenu();
-                var radialMenu = preBattleMenuLocation?.activeInstance?.GetComponent<RadialMenu>();
-                if (radialMenu != null)
-                {
-                    var selectedOption = radialMenu.FindPreBattleOptionByName(item.ItemName);
-                    switch (selectedOption)
-                    {
-                        case PrebattleOptions.Items:
-                            // TODO: inventory UI
-                            break;
-                        case PrebattleOptions.Team:
-                            // TODO: team management UI
-                            break;
-                        case PrebattleOptions.Settings:
-                            HandlePreBattleMenuSettings();
-                            break;
-                        case PrebattleOptions.Skills:
-                            // TODO: skills UI
-                            break;
-                        case PrebattleOptions.Map:
-                            // TODO: map UI
-                            break;
-                        case PrebattleOptions.Support:
-                            // TODO: support UI
-                            break;
-                        case PrebattleOptions.Withdraw:
-                            // TODO: Handle withdraw action
-                            break;
-                    }
-                }
-            }
-        }
-
-        #endregion
-
-        #region PreBattle Settings and Helpers
-
-        private void HandlePreBattleMenuSettings() => OpenMainGameSettingsMenu();
-
-        private void SetPreBattleMenuFadeSpeed(float fadeTime)
-        {
-            var preBattleMenuLocation = uiSettings?.GetPreBattleMenu();
-            if (
-                preBattleMenuLocation?.activeInstance != null
-                && preBattleMenuLocation.activeInstance.TryGetComponent<UIFade>(out var uiFade)
-            )
-            {
-                uiFade.lerpTime = fadeTime;
-            }
-        }
+        public void HandlePreBattleMenuSelect(MenuItemBase item) =>
+            // Delegate to the route handler for unified menu handling
+            _routeHandler?.HandleMenuSelect(item);
 
         #endregion
 
         #region Battle Transition Management
-
-        private void HandleStartBattleClick()
-        {
-            var preBattleMenuLocation = uiSettings?.GetPreBattleMenu();
-            if (preBattleMenuLocation?.activeInstance == null || _isTransitioning)
-            {
-                return;
-            }
-
-            _isTransitioning = true;
-            var menuInstance = preBattleMenuLocation.activeInstance;
-
-            if (!menuInstance.TryGetComponent<UIFade>(out var uiFade))
-            {
-                // No fade component, proceed directly
-                if (menuInstance.TryGetComponent<RadialMenu>(out var menu))
-                {
-                    menu.OnNavigate -= HandlePreBattleMenuNavigate;
-                    menu.OnItemSelected -= HandlePreBattleMenuSelect;
-                }
-
-                _brain.PublishPreBattleCompleted();
-                Destroy(menuInstance);
-                preBattleMenuLocation.activeInstance = null;
-                _isTransitioning = false;
-                return;
-            }
-
-#if COFFEE_UIEFFECTS
-            var menuForEffect = menuInstance.GetComponent<RadialMenu>();
-            var effectTweener = menuForEffect?.centerItem?.GetComponent<UIEffectTweener>();
-#endif
-
-            // Use coroutine approach since OnHidden callback wasn't working reliably
-            StartCoroutine(HandleFadeAndTransition(menuInstance, uiFade));
-
-#if COFFEE_UIEFFECTS
-            effectTweener?.Play();
-#endif
-        }
 
         private System.Collections.IEnumerator HandleFadeAndTransition(
             GameObject menuInstance,
@@ -170,5 +69,83 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
         }
 
         #endregion
+
+        private float PlayEffectsOnSelectedPrebattleCenter(GameObject preBattleInstance)
+        {
+            if (preBattleInstance == null)
+            {
+                return 0f;
+            }
+
+            if (!preBattleInstance.TryGetComponent<RadialMenu>(out var radialMenu))
+            {
+                return 0f;
+            }
+
+            var center = radialMenu.centerItem;
+            if (center == null)
+            {
+                return 0f;
+            }
+
+#if COFFEE_UIEFFECTS
+            var effectTweener =
+                center.GetComponent<UIEffectTweener>()
+                ?? center.GetComponentInChildren<UIEffectTweener>();
+            if (effectTweener != null)
+            {
+                effectTweener.Play();
+                // Do not block; play effect concurrently with fade
+                return 0f;
+            }
+#endif
+
+            return 0f;
+        }
+
+        private System.Collections.IEnumerator StartBattleCoroutine(
+            MenuLocation preBattleMenuLocation,
+            float delay
+        )
+        {
+            _isTransitioning = true;
+
+            if (delay > 0f)
+            {
+                yield return new WaitForSeconds(delay);
+            }
+
+            var menuInstance = preBattleMenuLocation?.activeInstance;
+            if (menuInstance == null)
+            {
+                _isTransitioning = false;
+                yield break;
+            }
+
+            if (!menuInstance.TryGetComponent<UIFade>(out var uiFade))
+            {
+                // No fade component, proceed directly
+                if (menuInstance.TryGetComponent<RadialMenu>(out var menu))
+                {
+                    menu.OnNavigate -= HandlePreBattleMenuNavigate;
+                    menu.OnItemSelected -= HandlePreBattleMenuSelect;
+                }
+
+                if (menuInstance.TryGetComponent<MenuBase>(out var baseMenu))
+                {
+                    baseMenu.OnNavigate -= HandlePreBattleMenuNavigate;
+                    baseMenu.OnItemSelected -= HandlePreBattleMenuSelect;
+                }
+
+                _brain.PublishPreBattleCompleted();
+                Destroy(menuInstance);
+                preBattleMenuLocation.activeInstance = null;
+                _isTransitioning = false;
+                yield break;
+            }
+
+            // Use existing coroutine for fade and cleanup
+            yield return StartCoroutine(HandleFadeAndTransition(menuInstance, uiFade));
+        }
     }
 }

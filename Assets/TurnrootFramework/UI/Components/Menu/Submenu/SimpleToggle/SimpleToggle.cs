@@ -56,10 +56,7 @@ namespace Turnroot.UI.Components.Menu.Submenu
             }
         }
 
-        public void Toggle()
-        {
-            isOn = !isOn;
-        }
+        public void Toggle() => isOn = !isOn;
 
         private void UpdateCheckmark()
         {

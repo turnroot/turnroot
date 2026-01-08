@@ -16,10 +16,7 @@ namespace Turnroot.UI.Components.Menu.Submenu
 
         public event System.Action<int> onValueChanged;
 
-        private void Start()
-        {
-            UpdateDisplay();
-        }
+        private void Start() => UpdateDisplay();
 
         public void InitializeCarousel<T>(T currentValue = default)
             where T : System.Enum
@@ -69,10 +66,7 @@ namespace Turnroot.UI.Components.Menu.Submenu
         }
 
         public void GetCurrentEnumValue<T>(out T enumValue)
-            where T : System.Enum
-        {
-            enumValue = (T)OptionStringToEnumValue[Options[CurrentIndex]];
-        }
+            where T : System.Enum => enumValue = (T)OptionStringToEnumValue[Options[CurrentIndex]];
 
         public void UpdateDisplay()
         {

@@ -755,11 +755,9 @@ public class MapGrid : MonoBehaviour
 
     private IOrderedEnumerable<KeyValuePair<Vector2Int, TValue>> OrderGridPoints<TValue>(
         IEnumerable<KeyValuePair<Vector2Int, TValue>> points
-    )
-    {
+    ) =>
         // Use consistent ordering without flipping
-        return points.OrderBy(kv => kv.Key.x).ThenBy(kv => kv.Key.y);
-    }
+        points.OrderBy(kv => kv.Key.x).ThenBy(kv => kv.Key.y);
 
     /// <summary>
     /// Builds the terrain position lookup dictionary for O(1) access to raycast points
