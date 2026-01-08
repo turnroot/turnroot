@@ -235,26 +235,51 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             var instance = location.activeInstance;
 
             // Setup events based on menu type - use specific handlers based on context
-            if (instance.TryGetComponent<MenuBase>(out var menu))
+            // Bind every MenuBase inside the instance (handles nested lists like 'Right')
+            var menuBases = instance.GetComponentsInChildren<MenuBase>(true);
+            foreach (var menu in menuBases)
             {
                 Debug.Log(
-                    $"MenuTransitionManager.SetupMenu: setting up MenuBase for {location.menuName} instance={instance.name}"
+                    $"MenuTransitionManager.SetupMenu: setting up MenuBase for {location.menuName} menu={menu.name} instance={instance.name}"
                 );
                 menu.uiBrain = _brain;
-                // For settings menus, use settings handlers
-                menu.OnNavigate += _brain.HandleGameSettingsMenuNavigate;
-                menu.OnItemSelected += _brain.HandleGameSettingsMenuSelect;
+
+                var menuType = DetectMenuType(location);
+                if (menuType == MenuType.PreBattle || menuType == MenuType.Map)
+                {
+                    // Pre-battle context (map submenus etc.)
+                    menu.OnNavigate += _brain.HandlePreBattleMenuNavigate;
+                    menu.OnItemSelected += _brain.HandlePreBattleMenuSelect;
+                }
+                else if (
+                    menuType == MenuType.Settings
+                    || menuType == MenuType.Graphics
+                    || menuType == MenuType.Gameplay
+                    || menuType == MenuType.Audio
+                    || menuType == MenuType.Controls
+                )
+                {
+                    // Settings-related menus
+                    menu.OnNavigate += _brain.HandleGameSettingsMenuNavigate;
+                    menu.OnItemSelected += _brain.HandleGameSettingsMenuSelect;
+                }
+                else
+                {
+                    // Standalone / other menus: route through general handlers
+                    menu.OnNavigate += _brain.HandleMenuNavigate;
+                    menu.OnItemSelected += _brain.HandleMenuSelect;
+                }
+
                 _brain.SetupMenuInputActions(menu);
 
-                // Ensure child SimpleButton components use the menu's select action so keyboard 'Select'
-                // works consistently even after menu destroy/restore cycles.
+                // Ensure child SimpleButton components use the menu's select action and are wired
                 var simpleButtons =
-                    instance.GetComponentsInChildren<Turnroot.UI.Components.SimpleButton.SimpleButton>();
+                    menu.GetComponentsInChildren<Turnroot.UI.Components.SimpleButton.SimpleButton>(
+                        true
+                    );
                 foreach (var sb in simpleButtons)
                 {
-                    // Assign the menu select action to each button and enable it
-                    sb.SelectAction = menu.selectAction;
-                    sb.SelectAction?.Enable();
+                    sb.AssignSelectAction(menu.selectAction);
                 }
             }
 
@@ -321,8 +346,14 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             }
             else if (menuStyle == MenuStyle.List || menuStyle == MenuStyle.Grid)
             {
-                if (instance.TryGetComponent<MenuBase>(out var listMenu))
+                // Bind every MenuBase found inside the prebattle prefab (handles 'Right' or other sub-panels)
+                var listMenus = instance.GetComponentsInChildren<MenuBase>(true);
+                foreach (var listMenu in listMenus)
                 {
+                    Debug.Log(
+                        $"MenuTransitionManager.SetupPreBattleMenu: binding prebattle list menu {listMenu.name} in {preBattleLocation.menuName}"
+                    );
+
                     listMenu.uiBrain = _brain;
                     listMenu.OnNavigate += _brain.HandlePreBattleMenuNavigate;
                     listMenu.OnItemSelected += _brain.HandlePreBattleMenuSelect;
@@ -330,11 +361,12 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
 
                     // Ensure child SimpleButton components get the list menu's select action
                     var simpleButtons =
-                        instance.GetComponentsInChildren<Turnroot.UI.Components.SimpleButton.SimpleButton>();
+                        listMenu.GetComponentsInChildren<Turnroot.UI.Components.SimpleButton.SimpleButton>(
+                            true
+                        );
                     foreach (var sb in simpleButtons)
                     {
-                        sb.SelectAction = listMenu.selectAction;
-                        sb.SelectAction?.Enable();
+                        sb.AssignSelectAction(listMenu.selectAction);
                     }
                 }
             }
@@ -345,7 +377,9 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
         private void CleanupMenuEvents(GameObject instance)
         {
             Debug.Log($"MenuTransitionManager.CleanupMenuEvents: instance={instance?.name}");
-            if (instance.TryGetComponent<MenuBase>(out var menu))
+            // Clean up MenuBase handlers on all nested menus
+            var menus = instance.GetComponentsInChildren<MenuBase>(true);
+            foreach (var menu in menus)
             {
                 // Clean up all possible event handlers
                 menu.OnNavigate -= _brain.HandlePreBattleMenuNavigate;
@@ -354,7 +388,9 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                 menu.OnItemSelected -= _brain.HandleGameSettingsMenuSelect;
             }
 
-            if (instance.TryGetComponent<RadialMenu>(out var radial))
+            // Clean up any nested RadialMenu handlers too
+            var radials = instance.GetComponentsInChildren<RadialMenu>(true);
+            foreach (var radial in radials)
             {
                 Debug.Log(
                     $"MenuTransitionManager: Removing RadialMenu event handlers from {instance.name}"

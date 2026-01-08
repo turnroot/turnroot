@@ -31,6 +31,7 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             _menuActionRoutes["Map"] = _ => _brain.OpenPreBattleMapOverview();
             _menuActionRoutes["Support"] = _ => OpenSupport();
             _menuActionRoutes["Withdraw"] = _ => HandleWithdraw();
+            _menuActionRoutes["StartBattle"] = _ => _brain.HandleStartBattleClick();
 
             // Settings menu routes
             _menuActionRoutes["Graphics"] = _ =>

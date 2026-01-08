@@ -88,15 +88,21 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                 // TODO: Set up grid prebattle menu handling
             }
         }
+
         #region PreBattle Menu Event Handlers
 
         public void HandlePreBattleMenuNavigate(MenuItemBase item) =>
             // Delegate to the route handler for unified menu handling
             _routeHandler?.HandleMenuNavigate(item);
 
-        public void HandlePreBattleMenuSelect(MenuItemBase item) =>
+        public void HandlePreBattleMenuSelect(MenuItemBase item)
+        {
+#if UNITY_EDITOR
+            Debug.Log($"UiBrain: HandlePreBattleMenuSelect received item: {item?.ItemName}");
+#endif
             // Delegate to the route handler for unified menu handling
             _routeHandler?.HandleMenuSelect(item);
+        }
 
         #endregion
 
@@ -104,7 +110,32 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
         public void HandleStartBattleClick()
         {
             var preBattleMenuLocation = uiSettings?.GetPreBattleMenu();
-            if (preBattleMenuLocation?.activeInstance == null || _isTransitioning)
+            if (preBattleMenuLocation?.activeInstance == null)
+            {
+#if UNITY_EDITOR
+                Debug.Log("UiBrain: Start battle called outside of pre-battle radial menu");
+#endif
+                // Handle transition from submenu (e.g., Map menu)
+                var currentMenuInstance = _menuTracker?.CurrentMenu?.activeInstance;
+                if (currentMenuInstance != null)
+                {
+                    // Fade out the current submenu
+                    if (!currentMenuInstance.TryGetComponent<UIFade>(out var uiFade))
+                    {
+                        uiFade = currentMenuInstance.AddComponent<UIFade>();
+                        uiFade.lerpTime = uiSettings.MenuFadeTime;
+                    }
+                    StartCoroutine(HandleFadeAndTransitionForSubmenu(currentMenuInstance, uiFade));
+                }
+                else
+                {
+                    // No menu to fade, transition directly
+                    _brain.PublishPreBattleCompleted();
+                }
+                return;
+            }
+
+            if (_isTransitioning)
             {
                 return;
             }
@@ -153,6 +184,34 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                     preBattleMenuLocation.activeInstance = null;
                 }
             }
+
+            // Publish battle completion to transition states
+            _brain.PublishPreBattleCompleted();
+            _isTransitioning = false;
+        }
+
+        private System.Collections.IEnumerator HandleFadeAndTransitionForSubmenu(
+            GameObject menuInstance,
+            UIFade uiFade
+        )
+        {
+            _isTransitioning = true;
+
+            // Start the fade
+            uiFade.Hide();
+
+            // Wait for fade duration (plus a small buffer) - use lerpTime property
+            var fadeDuration = uiFade.lerpTime + 0.1f;
+            yield return new WaitForSeconds(fadeDuration);
+
+            // Clean up menu
+            if (menuInstance != null)
+            {
+                Destroy(menuInstance);
+            }
+
+            // Clear the menu tracker since we're leaving the menu system
+            _menuTracker?.Clear();
 
             // Publish battle completion to transition states
             _brain.PublishPreBattleCompleted();

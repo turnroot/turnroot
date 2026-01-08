@@ -69,9 +69,14 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             // Delegate to the route handler for unified menu handling
             _routeHandler?.HandleMenuNavigate(item);
 
-        public void HandleGameSettingsMenuSelect(MenuItemBase item) =>
+        public void HandleGameSettingsMenuSelect(MenuItemBase item)
+        {
+#if UNITY_EDITOR
+            Debug.Log($"UiBrain: HandleGameSettingsMenuSelect received item: {item?.ItemName}");
+#endif
             // Delegate to the route handler for unified menu handling
             _routeHandler?.HandleMenuSelect(item);
+        }
 
         #endregion
 

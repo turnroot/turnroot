@@ -3021,9 +3021,37 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.x
       value: 150
       objectReference: {fileID: 0}
+    - target: {fileID: 1267070467776096812, guid: fba0a1dd7fa670b4abac785c8cffdff8, type: 3}
+      propertyPath: SelectAction.m_SingletonActionBindings.Array.size
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 1267070467776096812, guid: fba0a1dd7fa670b4abac785c8cffdff8, type: 3}
+      propertyPath: SelectAction.m_SingletonActionBindings.Array.data[0].m_Id
+      value: affa6580-e2b5-4069-a817-ed49a0bfb801
+      objectReference: {fileID: 0}
+    - target: {fileID: 1267070467776096812, guid: fba0a1dd7fa670b4abac785c8cffdff8, type: 3}
+      propertyPath: SelectAction.m_SingletonActionBindings.Array.data[1].m_Id
+      value: 21f63e01-219e-4fca-8bbf-0383b3f1aa78
+      objectReference: {fileID: 0}
+    - target: {fileID: 1267070467776096812, guid: fba0a1dd7fa670b4abac785c8cffdff8, type: 3}
+      propertyPath: SelectAction.m_SingletonActionBindings.Array.data[0].m_Path
+      value: <Keyboard>/enter
+      objectReference: {fileID: 0}
+    - target: {fileID: 1267070467776096812, guid: fba0a1dd7fa670b4abac785c8cffdff8, type: 3}
+      propertyPath: SelectAction.m_SingletonActionBindings.Array.data[1].m_Path
+      value: <Gamepad>/{Submit}
+      objectReference: {fileID: 0}
+    - target: {fileID: 1267070467776096812, guid: fba0a1dd7fa670b4abac785c8cffdff8, type: 3}
+      propertyPath: SelectAction.m_SingletonActionBindings.Array.data[0].m_Action
+      value: Select
+      objectReference: {fileID: 0}
+    - target: {fileID: 1267070467776096812, guid: fba0a1dd7fa670b4abac785c8cffdff8, type: 3}
+      propertyPath: SelectAction.m_SingletonActionBindings.Array.data[1].m_Action
+      value: Select
+      objectReference: {fileID: 0}
     - target: {fileID: 4599566067716129147, guid: fba0a1dd7fa670b4abac785c8cffdff8, type: 3}
       propertyPath: itemName
-      value: Units
+      value: StartBattle
       objectReference: {fileID: 0}
     - target: {fileID: 5384228931254951182, guid: fba0a1dd7fa670b4abac785c8cffdff8, type: 3}
       propertyPath: m_PreserveAspect

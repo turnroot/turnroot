@@ -27,6 +27,42 @@ namespace Turnroot.UI.Components.SimpleButton
 
         public SimpleButtonRole Role;
 
+        /// <summary>
+        /// Assigns the input action to use for selection and ensures the performed
+        /// callback is hooked up immediately. This avoids missing the subscription
+        /// when the action is assigned after Unity's OnEnable is called on the component.
+        /// </summary>
+        public void AssignSelectAction(InputAction action)
+        {
+            // Remove any previous subscription to avoid duplicates
+            if (SelectAction != null)
+            {
+                try
+                {
+                    SelectAction.performed -= OnSelectActionPerformed;
+                }
+                catch { }
+            }
+
+            SelectAction = action;
+
+            if (SelectAction != null)
+            {
+                // Ensure callback is attached and action is enabled if component is active
+                try
+                {
+                    SelectAction.performed -= OnSelectActionPerformed;
+                }
+                catch { }
+                SelectAction.performed += OnSelectActionPerformed;
+
+                if (gameObject.activeInHierarchy)
+                {
+                    SelectAction.Enable();
+                }
+            }
+        }
+
         public void Select() => StartCoroutine(SelectCoroutine());
 
         private System.Collections.IEnumerator SelectCoroutine()
@@ -129,8 +165,15 @@ namespace Turnroot.UI.Components.SimpleButton
         {
             if (SelectAction != null)
             {
-                SelectAction.Enable();
+                // Always remove first to avoid duplicate subscriptions
+                try
+                {
+                    SelectAction.performed -= OnSelectActionPerformed;
+                }
+                catch { }
+
                 SelectAction.performed += OnSelectActionPerformed;
+                SelectAction.Enable();
             }
         }
 
@@ -138,7 +181,11 @@ namespace Turnroot.UI.Components.SimpleButton
         {
             if (SelectAction != null)
             {
-                SelectAction.performed -= OnSelectActionPerformed;
+                try
+                {
+                    SelectAction.performed -= OnSelectActionPerformed;
+                }
+                catch { }
                 SelectAction.Disable();
             }
         }
