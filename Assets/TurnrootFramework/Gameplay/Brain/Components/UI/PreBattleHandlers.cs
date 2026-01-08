@@ -13,6 +13,81 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
 {
     public partial class UiBrain : BrainComponent
     {
+        public void HandlePreBattleUi()
+        {
+            var preBattleMenuLocation = GetValidatedMenuLocation(
+                () => uiSettings?.GetPreBattleMenu(),
+                "Pre-battle"
+            );
+            if (preBattleMenuLocation == null)
+            {
+                return;
+            }
+
+            // Guard: Return early if activeInstance already exists to prevent duplicates
+            if (preBattleMenuLocation.activeInstance != null)
+            {
+                return;
+            }
+
+            if (preBattleMenuLocation.prefab == null)
+            {
+#if UNITY_EDITOR
+                Debug.LogError("UiBrain: No prefab set for pre-battle menu location");
+#endif
+                return;
+            }
+
+            Debug.Log(
+                $"UiBrain: Creating pre-battle menu instance from prefab {preBattleMenuLocation.prefab?.name}"
+            );
+            preBattleMenuLocation.activeInstance = Instantiate(preBattleMenuLocation.prefab);
+            Debug.Log(
+                $"UiBrain: Created pre-battle instance {preBattleMenuLocation.activeInstance?.name}"
+            );
+            if (!preBattleMenuLocation.activeInstance.TryGetComponent<UIFade>(out var uiFade))
+            {
+                uiFade = preBattleMenuLocation.activeInstance.AddComponent<UIFade>();
+                uiFade.lerpTime = uiSettings.MenuFadeTime;
+            }
+
+            var menuStyle = preBattleMenuLocation.style;
+            if (menuStyle == MenuStyle.Pie)
+            {
+                if (
+                    preBattleMenuLocation.activeInstance.TryGetComponent<RadialMenu>(
+                        out var radialMenu
+                    )
+                )
+                {
+                    radialMenu.uiBrain = this;
+                    radialMenu.OnNavigate += HandlePreBattleMenuNavigate;
+                    radialMenu.OnItemSelected += HandlePreBattleMenuSelect;
+                    Debug.Log(
+                        $"UiBrain: Attached prebattle handlers to radial instance {preBattleMenuLocation.activeInstance?.name}"
+                    );
+                }
+            }
+            else if (menuStyle == MenuStyle.Filmstrip)
+            {
+                // TODO: Set up filmstrip prebattle menu handling
+            }
+            else if (menuStyle == MenuStyle.List)
+            {
+                if (
+                    preBattleMenuLocation.activeInstance.TryGetComponent<MenuBase>(out var listMenu)
+                )
+                {
+                    listMenu.uiBrain = this;
+                    listMenu.OnNavigate += HandlePreBattleMenuNavigate;
+                    listMenu.OnItemSelected += HandlePreBattleMenuSelect;
+                }
+            }
+            else if (menuStyle == MenuStyle.Grid)
+            {
+                // TODO: Set up grid prebattle menu handling
+            }
+        }
         #region PreBattle Menu Event Handlers
 
         public void HandlePreBattleMenuNavigate(MenuItemBase item) =>
@@ -26,6 +101,22 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
         #endregion
 
         #region Battle Transition Management
+        public void HandleStartBattleClick()
+        {
+            var preBattleMenuLocation = uiSettings?.GetPreBattleMenu();
+            if (preBattleMenuLocation?.activeInstance == null || _isTransitioning)
+            {
+                return;
+            }
+
+            // Play any center item effects (UITweener/UIEffect/etc.) before starting transition
+            float effectDelay = PlayEffectsOnSelectedPrebattleCenter(
+                preBattleMenuLocation.activeInstance
+            );
+
+            // Start a coroutine that waits for effect to play then transitions to battle
+            StartCoroutine(StartBattleCoroutine(preBattleMenuLocation, effectDelay));
+        }
 
         private System.Collections.IEnumerator HandleFadeAndTransition(
             GameObject menuInstance,

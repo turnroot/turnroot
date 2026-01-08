@@ -1,7 +1,5 @@
 using Turnroot.Gameplay.Brain;
-using Turnroot.Utilities;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace TurnrootFramework.Gameplay.Brain.Segments
 {
@@ -11,6 +9,15 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
         public GameObject BattleCursorPrefab => uiSettings.BattleCursorPrefab;
         private bool _battleCursorInitialized = false;
         private GameObject _battleCursorInstance;
+
+        public void HandleBattleUi()
+        {
+#if UNITY_EDITOR
+            Debug.Log("UiBrain: Handling battle UI setup");
+#endif
+            // Battle UI initialization logic will be added here
+            // For now, just log that we're in battle state
+        }
 
         public void InitializeBattleCursor()
         {
