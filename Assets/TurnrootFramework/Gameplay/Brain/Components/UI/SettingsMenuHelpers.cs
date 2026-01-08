@@ -222,26 +222,6 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             }
         }
 
-        public void ApplyMenuColorsImpl(GameObject menuInstance, MenuStyle style)
-        {
-            if (uiSettings == null)
-            {
-                return;
-            }
-
-            // Apply colors based on menu style
-            if (style == MenuStyle.Pie)
-            {
-                // Radial menus already pull colors from GamewideUiSettings automatically
-                return;
-            }
-            else
-            {
-                // Apply grid/list/filmstrip colors for other menu types
-                ApplyGridListFilmstripColors(menuInstance);
-            }
-        }
-
         private void ApplyGridListFilmstripColors(GameObject menuInstance)
         {
             // Apply grid/list/filmstrip colors to button components
@@ -255,35 +235,6 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                 colorBlock.fadeDuration = uiSettings.ButtonTransitionDuration;
                 button.colors = colorBlock;
             }
-        }
-
-        #endregion
-
-        #region Public Interface Implementation Methods
-
-        public void SetPreBattleMenuFadeSpeedImpl(float fadeTime)
-        {
-            var preBattleMenuLocation = uiSettings?.GetPreBattleMenu();
-            if (
-                preBattleMenuLocation?.activeInstance != null
-                && preBattleMenuLocation.activeInstance.TryGetComponent<UIFade>(out var uiFade)
-            )
-            {
-                uiFade.lerpTime = fadeTime;
-            }
-        }
-
-        public void HandleStartBattleClickImpl()
-        {
-            var preBattleMenuLocation = uiSettings?.GetPreBattleMenu();
-            if (preBattleMenuLocation?.activeInstance == null || _isTransitioning)
-            {
-                return;
-            }
-
-            _isTransitioning = true;
-            StartCoroutine(_transitionManager.TransitionToBattle(preBattleMenuLocation));
-            _isTransitioning = false;
         }
 
         #endregion

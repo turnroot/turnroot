@@ -7,15 +7,56 @@ using UnityEngine;
 
 namespace TurnrootFramework.Gameplay.Brain.Segments
 {
+    public enum MenuType
+    {
+        Unknown,
+        PreBattle,
+        Settings,
+        Graphics,
+        Gameplay,
+        Audio,
+        Controls,
+        Battle,
+        Map,
+    }
+
     public class MenuTransitionManager
     {
         private readonly UiBrain _brain;
         private readonly GamewideUiSettings _settings;
 
+        // Track menu types for better cleanup
+        private MenuType _currentMenuType = MenuType.Unknown;
+
         public MenuTransitionManager(UiBrain brain, GamewideUiSettings settings)
         {
             _brain = brain;
             _settings = settings;
+        }
+
+        public MenuType CurrentMenuType => _currentMenuType;
+
+        private MenuType DetectMenuType(MenuLocation location)
+        {
+            if (location == null)
+                return MenuType.Unknown;
+
+            if (location == _settings?.GetPreBattleMenu())
+                return MenuType.PreBattle;
+            if (location == _settings?.GetGameSettingsMenu())
+                return MenuType.Settings;
+            if (location == _settings?.GetGameSettingsGraphicsMenu())
+                return MenuType.Graphics;
+            if (location == _settings?.GetGameSettingsGameplayMenu())
+                return MenuType.Gameplay;
+            if (location == _settings?.GetGameSettingsAudioMenu())
+                return MenuType.Audio;
+            if (location == _settings?.GetGameSettingsControlsMenu())
+                return MenuType.Controls;
+            if (location == _settings?.GetPrebattleMapMenu())
+                return MenuType.Map;
+
+            return MenuType.Unknown;
         }
 
         public IEnumerator TransitionBetween(
@@ -26,6 +67,9 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
         {
             var fromInstance = from?.activeInstance;
 
+            // Update current menu type
+            _currentMenuType = DetectMenuType(to);
+
             // Hide source menu if it exists
             if (fromInstance != null && fromInstance.TryGetComponent<UIFade>(out var fromFade))
             {
@@ -33,18 +77,19 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                 yield return new WaitForSeconds(fromFade.lerpTime + 0.1f);
             }
 
-            // Handle source cleanup
+            // Handle source cleanup - always disable/hide source menu to prevent overlap
             if (fromInstance != null)
             {
+                CleanupMenuEvents(fromInstance);
+
                 if (destroyFrom)
                 {
-                    CleanupMenuEvents(fromInstance);
                     Object.Destroy(fromInstance);
                     from.activeInstance = null;
                 }
                 else
                 {
-                    // Disable for reuse later
+                    // Disable and hide for potential reuse during back navigation
                     if (fromInstance.TryGetComponent<MenuBase>(out var menu))
                     {
                         menu.enabled = false;
@@ -53,17 +98,28 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                 }
             }
 
-            // Instantiate target menu if needed
+            // Instantiate target menu if needed or re-enable if it exists
             if (to.activeInstance == null && to.prefab != null)
             {
                 to.activeInstance = Object.Instantiate(to.prefab);
+                SetupMenu(to);
+            }
+            else if (to.activeInstance != null)
+            {
+                // Re-enable existing menu for back navigation
+                // Ensure event handlers and input actions are re-attached
+                CleanupMenuEvents(to.activeInstance);
+                SetupMenu(to);
+
+                to.activeInstance.SetActive(true);
+                if (to.activeInstance.TryGetComponent<MenuBase>(out var existingMenu))
+                {
+                    existingMenu.enabled = true;
+                }
             }
 
             if (to.activeInstance != null)
             {
-                // Setup target menu
-                SetupMenu(to);
-
                 // Show target menu
                 var targetFade = EnsureUIFade(
                     to.activeInstance,
@@ -75,6 +131,9 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
 
         public IEnumerator TransitionToPreBattle(MenuLocation from, MenuLocation preBattle)
         {
+            // Update current menu type
+            _currentMenuType = MenuType.PreBattle;
+
             // Hide current menu
             if (
                 from?.activeInstance != null
@@ -109,6 +168,9 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
 
         public IEnumerator TransitionToBattle(MenuLocation preBattle)
         {
+            // Update current menu type
+            _currentMenuType = MenuType.Battle;
+
             var menuInstance = preBattle?.activeInstance;
             if (menuInstance == null)
                 yield break;

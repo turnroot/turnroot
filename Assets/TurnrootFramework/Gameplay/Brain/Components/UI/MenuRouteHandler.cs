@@ -127,23 +127,31 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                 return;
             }
 
-            if (_brain._isTransitioning)
+            // Find the currently active menu as the source
+            MenuLocation sourceMenu = null;
+            var allMenus = _brain.uiSettings?.allPossibleMenuLocations;
+            if (allMenus != null)
+            {
+                foreach (var menu in allMenus)
+                {
+                    if (menu?.activeInstance != null)
+                    {
+                        sourceMenu = menu;
+                        break;
+                    }
+                }
+            }
+
+            if (sourceMenu == null)
+            {
+#if UNITY_EDITOR
+                Debug.LogError("MenuRouteHandler: No active source menu found for transition");
+#endif
                 return;
+            }
 
-            _brain._isTransitioning = true;
-            _brain.StartCoroutine(
-                TransitionCoroutine(_brain.settingsMenuLocation, submenuLocation)
-            );
-        }
-
-        private System.Collections.IEnumerator TransitionCoroutine(
-            MenuLocation from,
-            MenuLocation to
-        )
-        {
-            _brain._menuTracker?.TrackTransition(from, to);
-            yield return _brain._transitionManager.TransitionBetween(from, to);
-            _brain._isTransitioning = false;
+            // Use UiBrain's public method with proper source menu
+            _brain.TransitionToSubmenu(sourceMenu, submenuLocation);
         }
 
         public void AddRoute(string itemName, Action<Turnroot.UI.Components.MenuItemBase> action)

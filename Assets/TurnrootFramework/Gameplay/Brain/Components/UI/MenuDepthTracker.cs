@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Turnroot.GameSettings;
 using UnityEngine;
 
@@ -87,21 +88,92 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
 
         public void TrackTransition(MenuLocation from, MenuLocation to)
         {
-            // Remove the 'from' menu if it's on the stack
-            if (_menuStack.Count > 0 && _menuStack.Peek() == from)
+            if (to == null)
+                return;
+
+            // If stack is empty, initialize with 'from' (if present), then push 'to'
+            if (_menuStack.Count == 0)
             {
-                _menuStack.Pop();
+                if (from != null)
+                {
+                    _menuStack.Push(from);
+                }
+
+                _menuStack.Push(to);
+#if UNITY_EDITOR
+                Debug.Log($"MenuDepthTracker: Tracked transition. New depth: {CurrentDepth}");
+#endif
+                return;
             }
 
-            // Add the 'to' menu to the stack
-            if (to != null)
+            // If the current top is 'from', this is a forward navigation: just push 'to'
+            if (_menuStack.Peek() == from)
             {
                 _menuStack.Push(to);
+#if UNITY_EDITOR
+                Debug.Log(
+                    $"MenuDepthTracker: Tracked forward transition. New depth: {CurrentDepth}"
+                );
+#endif
+                return;
             }
 
+            // If 'from' exists somewhere in the stack, pop back to it then push 'to'
+            if (_menuStack.Contains(from))
+            {
+                while (_menuStack.Count > 0 && _menuStack.Peek() != from)
+                {
+                    _menuStack.Pop();
+                }
+
+                _menuStack.Push(to);
+#if UNITY_EDITOR
+                Debug.Log(
+                    $"MenuDepthTracker: Tracked rewind transition. New depth: {CurrentDepth}"
+                );
+#endif
+                return;
+            }
+
+            // Otherwise, this is an unexpected transition - push both from and to to preserve path
+            if (from != null)
+            {
+                _menuStack.Push(from);
+            }
+
+            _menuStack.Push(to);
 #if UNITY_EDITOR
             Debug.Log($"MenuDepthTracker: Tracked transition. New depth: {CurrentDepth}");
 #endif
+        }
+
+        public bool CanGoBack()
+        {
+            bool canGoBack = _menuStack.Count > 1;
+#if UNITY_EDITOR
+            Debug.Log($"MenuDepthTracker: CanGoBack = {canGoBack}");
+#endif
+            return canGoBack;
+        }
+
+        public (MenuLocation fromLocation, MenuLocation toLocation) PopTransition()
+        {
+            if (!CanGoBack())
+            {
+#if UNITY_EDITOR
+                Debug.Log($"MenuDepthTracker: Cannot go back. Stack count: {_menuStack.Count}");
+#endif
+                return (null, null);
+            }
+
+            var currentMenu = _menuStack.Pop();
+            var previousMenu = _menuStack.Count > 0 ? _menuStack.Peek() : null;
+
+#if UNITY_EDITOR
+            Debug.Log($"MenuDepthTracker: PopTransition. New depth: {CurrentDepth}");
+#endif
+
+            return (currentMenu, previousMenu);
         }
     }
 }

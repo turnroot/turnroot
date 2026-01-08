@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using Turnroot.Gameplay.Brain;
 using Turnroot.Gameplay.PlayerSettings;
 using Turnroot.UI.Components.Menu.Submenu;
@@ -208,27 +209,39 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                 return; // Unknown setting
             }
 
-            // Set initial value
+            // Set initial value - must verify it's an enum type before calling InitializeCarousel
             var currentValue = getter(context.PlayerSettings);
-            if (currentValue is System.Enum enumValue)
+            if (currentValue != null && currentValue.GetType().IsEnum)
             {
-                carousel.InitializeCarousel(enumValue);
+                // Use reflection to call the generic method with the correct enum type
+                var carouselType = typeof(MenuCarousel);
+                var initMethod = carouselType.GetMethod("InitializeCarousel");
+                var genericMethod = initMethod.MakeGenericMethod(currentValue.GetType());
+                genericMethod.Invoke(carousel, new object[] { currentValue });
                 carousel.UpdateDisplay();
-            }
 
-            // Set up change listener
-            carousel.onValueChanged += index =>
-            {
-                if (
-                    carousel.OptionStringToEnumValue.TryGetValue(
-                        carousel.Options[index],
-                        out var enumValue
-                    )
-                )
+                // Set up change listener
+                carousel.onValueChanged += index =>
                 {
-                    context.UpdatePlayerSetting(carousel.gameObject.name, enumValue);
-                }
-            };
+                    if (
+                        carousel.OptionStringToEnumValue.TryGetValue(
+                            carousel.Options[index],
+                            out var enumValue
+                        )
+                    )
+                    {
+                        context.UpdatePlayerSetting(carousel.gameObject.name, enumValue);
+                    }
+                };
+            }
+#if UNITY_EDITOR
+            else
+            {
+                Debug.LogWarning(
+                    $"SettingsBindingManager: Setting '{settingName}' is not an enum type. Carousel binding skipped."
+                );
+            }
+#endif
         }
     }
 }
