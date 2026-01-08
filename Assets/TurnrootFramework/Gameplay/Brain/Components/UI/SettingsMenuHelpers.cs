@@ -55,9 +55,11 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             StartCoroutine(TransitionToSettingsMenu(preBattleMenuLocation, submenuLocation));
         }
 
-        public void OpenMainGameSettingsMenu() => OpenPrebattleSubmenu(() => uiSettings?.GetGameSettingsMenu(), "game settings");
+        public void OpenMainGameSettingsMenu() =>
+            OpenPrebattleSubmenu(() => uiSettings?.GetGameSettingsMenu(), "game settings");
 
-        public void OpenPreBattleMapOverview() => OpenPrebattleSubmenu(() => uiSettings?.GetPrebattleMapMenu(), "pre-battle map");
+        public void OpenPreBattleMapOverview() =>
+            OpenPrebattleSubmenu(() => uiSettings?.GetPrebattleMapMenu(), "pre-battle map");
 
         #endregion
 
@@ -113,15 +115,27 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
 
         public void BackToPreBattleMenu()
         {
+            BackToPreBattleMenuFromActiveSubmenu();
+        }
+
+        public void BackToPreBattleMenuFromMap()
+        {
+            BackToPreBattleMenuFromActiveSubmenu();
+        }
+
+        private void BackToPreBattleMenuFromActiveSubmenu()
+        {
             if (_isTransitioning)
             {
                 return;
             }
 
-            if (settingsMenuLocation?.activeInstance == null)
+            // Find which submenu is currently active
+            var activeSubmenu = GetActivePrebattleSubmenu();
+            if (activeSubmenu == null)
             {
 #if UNITY_EDITOR
-                Debug.LogError("UiBrain: Settings menu instance not found");
+                Debug.LogError("UiBrain: No active prebattle submenu found");
 #endif
                 return;
             }
@@ -145,9 +159,27 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             _isTransitioning = true;
 
             // Start the transition coroutine back to prebattle
-            StartCoroutine(
-                TransitionBackToPreBattleMenu(settingsMenuLocation, preBattleMenuLocation)
-            );
+            StartCoroutine(TransitionBackToPreBattleMenu(activeSubmenu, preBattleMenuLocation));
+        }
+
+        private MenuLocation GetActivePrebattleSubmenu()
+        {
+            // Check all possible prebattle submenus
+            var possibleSubmenus = new MenuLocation[]
+            {
+                settingsMenuLocation,
+                uiSettings?.GetPrebattleMapMenu(),
+            };
+
+            foreach (var submenu in possibleSubmenus)
+            {
+                if (submenu?.activeInstance != null)
+                {
+                    return submenu;
+                }
+            }
+
+            return null;
         }
 
         private System.Collections.IEnumerator TransitionToSettingsMenu(

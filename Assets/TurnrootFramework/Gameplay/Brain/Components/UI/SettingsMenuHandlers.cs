@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Turnroot.Gameplay.Brain;
 using Turnroot.Gameplay.PlayerSettings;
 using Turnroot.UI.Components.Menu;
@@ -58,6 +59,37 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
 
         #region Settings UI Bindings
 
+        private static readonly Dictionary<
+            string,
+            System.Func<GameplayPlayerSettings, object>
+        > SettingsGetters = new()
+        {
+            { "brightness", settings => settings.Brightness },
+            { "gamma", settings => settings.Gamma },
+            { "quality", settings => settings.Quality },
+            { "musicvolume", settings => settings.MusicVolume },
+            { "sfxvolume", settings => settings.SfxVolume },
+            { "voicevolume", settings => settings.VoiceVolume },
+            { "tutorialprompts", settings => settings.TutorialPrompts },
+            { "subtitles", settings => settings.Subtitles },
+            { "bloom", settings => settings.Bloom },
+            { "depthoffield", settings => settings.DepthOfField },
+            { "lensflare", settings => settings.LensFlare },
+            { "animatedcameramovement", settings => settings.AnimatedCameraMovement },
+            { "autoendturn", settings => settings.AutoEndTurn },
+            { "permadeath", settings => settings.Permadeath },
+            { "disableturnwheel", settings => settings.DisableTurnwheel },
+            { "disabletacticallens", settings => settings.DisableTacticalLens },
+            { "musicwhenpaused", settings => settings.MusicWhenPaused },
+            { "gamedifficulty", settings => settings.GameDifficulty },
+            { "speedsetting", settings => settings.SpeedSetting },
+            { "skipenemyturnanimations", settings => settings.SkipEnemyTurnAnimations },
+            { "battlegridsetting", settings => settings.BattleGridSetting },
+            { "battlegridstyle", settings => settings.BattleGridStyle },
+            { "startunitsetting", settings => settings.StartUnitSetting },
+            { "preferredbattlemusic", settings => settings.PreferredBattleMusic },
+        };
+
         private void SetupSettingsUIBindings(GameObject menuInstance)
         {
             if (menuInstance == null)
@@ -82,14 +114,14 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             var directToggles = menuInstance.GetComponentsInChildren<SimpleToggle>();
             foreach (var toggle in directToggles)
             {
-                SetupDirectToggleBinding(toggle, gamewideContext);
+                SetupGenericToggleBinding(toggle, gamewideContext);
             }
 
             // Also look for Slider components directly (not in PanelRows)
             var directSliders = menuInstance.GetComponentsInChildren<Slider>();
             foreach (var slider in directSliders)
             {
-                SetupDirectSliderBinding(slider, gamewideContext);
+                SetupGenericSliderBinding(slider, gamewideContext);
             }
         }
 
@@ -103,21 +135,10 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                 return;
             }
 
-            var settings = gamewideContext.PlayerSettings;
-
             // Handle sliders in the panel row
             if (panelRow.rowType == PanelRow.RowType.Slider && panelRow.sliderComponent != null)
             {
-                string settingName = panelRow.sliderComponent.gameObject.name;
-                if (!string.IsNullOrEmpty(settingName))
-                {
-                    SetupSliderBinding(
-                        panelRow.sliderComponent,
-                        settingName,
-                        settings,
-                        gamewideContext
-                    );
-                }
+                SetupGenericSliderBinding(panelRow.sliderComponent, gamewideContext);
             }
 
             // Handle ALL toggles in the panel row independently
@@ -127,7 +148,7 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                 {
                     if (toggle != null)
                     {
-                        SetupDirectToggleBinding(toggle, gamewideContext);
+                        SetupGenericToggleBinding(toggle, gamewideContext);
                     }
                 }
             }
@@ -135,65 +156,43 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             // Handle carousels in the panel row
             if (panelRow.rowType == PanelRow.RowType.Carousel && panelRow.carouselComponent != null)
             {
-                string settingName = panelRow.carouselComponent.gameObject.name;
-                if (!string.IsNullOrEmpty(settingName))
-                {
-                    SetupCarouselBinding(
-                        panelRow.carouselComponent,
-                        settingName,
-                        settings,
-                        gamewideContext
-                    );
-                }
+                SetupGenericCarouselBinding(panelRow.carouselComponent, gamewideContext);
             }
         }
 
-        private void SetupSliderBinding(
-            Slider slider,
-            string settingName,
-            GameplayPlayerSettings settings,
-            GamewideContextBrain gamewideContext
-        )
+        private void SetupGenericSliderBinding(Slider slider, GamewideContextBrain gamewideContext)
         {
-            if (slider == null)
+            if (slider == null || gamewideContext?.PlayerSettings == null)
             {
                 return;
             }
 
-            // Initialize slider value from settings
-            switch (settingName.ToLower())
+            string settingName = slider.gameObject.name.ToLower();
+
+            if (!SettingsGetters.TryGetValue(settingName, out var getter))
             {
-                case "brightness":
-                    slider.value = settings.Brightness;
-                    break;
-                case "gamma":
-                    slider.value = settings.Gamma;
-                    break;
-                case "quality":
-                    slider.value = settings.Quality;
-                    break;
-                case "musicvolume":
-                    slider.value = settings.MusicVolume;
-                    break;
-                case "sfxvolume":
-                    slider.value = settings.SfxVolume;
-                    break;
-                case "voicevolume":
-                    slider.value = settings.VoiceVolume;
-                    break;
-                default:
-                    return; // Unknown slider setting
+                return; // Unknown setting
+            }
+
+            // Set initial value
+            if (getter(gamewideContext.PlayerSettings) is float floatValue)
+            {
+                slider.value = floatValue;
+            }
+            else if (getter(gamewideContext.PlayerSettings) is int intValue)
+            {
+                slider.value = intValue;
             }
 
             // Set up change listener
             slider.onValueChanged.RemoveAllListeners();
             slider.onValueChanged.AddListener(value =>
             {
-                gamewideContext.UpdatePlayerSetting(settingName, value);
+                gamewideContext.UpdatePlayerSetting(slider.gameObject.name, value);
             });
         }
 
-        private void SetupDirectToggleBinding(
+        private void SetupGenericToggleBinding(
             SimpleToggle toggle,
             GamewideContextBrain gamewideContext
         )
@@ -203,143 +202,51 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                 return;
             }
 
-            // Get the setting name from the GameObject name
-            string settingName = toggle.gameObject.name;
-            var settings = gamewideContext.PlayerSettings;
+            string settingName = toggle.gameObject.name.ToLower();
 
-            // Initialize toggle value from settings
-            switch (settingName.ToLower())
+            if (!SettingsGetters.TryGetValue(settingName, out var getter))
             {
-                case "tutorialprompts":
-                    toggle.isOn = settings.TutorialPrompts;
-                    break;
-                case "subtitles":
-                    toggle.isOn = settings.Subtitles;
-                    break;
-                case "bloom":
-                    toggle.isOn = settings.Bloom;
-                    break;
-                case "depthoffield":
-                    toggle.isOn = settings.DepthOfField;
-                    break;
-                case "lensflare":
-                    toggle.isOn = settings.LensFlare;
-                    break;
-                case "animatedcameramovement":
-                    toggle.isOn = settings.AnimatedCameraMovement;
-                    break;
-                case "autoendturn":
-                    toggle.isOn = settings.AutoEndTurn;
-                    break;
-                case "permadeath":
-                    toggle.isOn = settings.Permadeath;
-                    break;
-                case "disableturnwheel":
-                    toggle.isOn = settings.DisableTurnwheel;
-                    break;
-                case "disabletacticallens":
-                    toggle.isOn = settings.DisableTacticalLens;
-                    break;
-                case "musicwhenpaused":
-                    toggle.isOn = settings.MusicWhenPaused;
-                    break;
-                default:
-                    return; // Unknown toggle setting
+                return; // Unknown setting
+            }
+
+            // Set initial value
+            if (getter(gamewideContext.PlayerSettings) is bool boolValue)
+            {
+                toggle.isOn = boolValue;
             }
 
             // Set up change listener
             toggle.onValueChanged.RemoveAllListeners();
             toggle.onValueChanged.AddListener(value =>
             {
-                gamewideContext.UpdatePlayerSetting(settingName, value);
+                gamewideContext.UpdatePlayerSetting(toggle.gameObject.name, value);
             });
         }
 
-        private void SetupDirectSliderBinding(Slider slider, GamewideContextBrain gamewideContext)
-        {
-            if (slider == null || gamewideContext?.PlayerSettings == null)
-            {
-                return;
-            }
-
-            // Get the setting name from the GameObject name
-            string settingName = slider.gameObject.name;
-            var settings = gamewideContext.PlayerSettings;
-
-            // Initialize slider value from settings
-            switch (settingName.ToLower())
-            {
-                case "brightness":
-                    slider.value = settings.Brightness;
-                    break;
-                case "gamma":
-                    slider.value = settings.Gamma;
-                    break;
-                case "quality":
-                    slider.value = settings.Quality;
-                    break;
-                case "musicvolume":
-                    slider.value = settings.MusicVolume;
-                    break;
-                case "sfxvolume":
-                    slider.value = settings.SfxVolume;
-                    break;
-                case "voicevolume":
-                    slider.value = settings.VoiceVolume;
-                    break;
-                default:
-                    return; // Unknown slider setting
-            }
-
-            // Set up change listener
-            slider.onValueChanged.RemoveAllListeners();
-            slider.onValueChanged.AddListener(value =>
-            {
-                gamewideContext.UpdatePlayerSetting(settingName, value);
-            });
-        }
-
-        private void SetupCarouselBinding(
+        private void SetupGenericCarouselBinding(
             MenuCarousel carousel,
-            string settingName,
-            GameplayPlayerSettings settings,
             GamewideContextBrain gamewideContext
         )
         {
-            if (carousel == null)
+            if (carousel == null || gamewideContext?.PlayerSettings == null)
             {
                 return;
             }
 
-            // Initialize carousel value from settings
-            switch (settingName.ToLower())
+            string settingName = carousel.gameObject.name.ToLower();
+
+            if (!SettingsGetters.TryGetValue(settingName, out var getter))
             {
-                case "gamedifficulty":
-                    carousel.InitializeCarousel(settings.GameDifficulty);
-                    break;
-                case "speedsetting":
-                    carousel.InitializeCarousel(settings.SpeedSetting);
-                    break;
-                case "skipenemyturnanimations":
-                    carousel.InitializeCarousel(settings.SkipEnemyTurnAnimations);
-                    break;
-                case "battlegridsetting":
-                    carousel.InitializeCarousel(settings.BattleGridSetting);
-                    break;
-                case "battlegridstyle":
-                    carousel.InitializeCarousel(settings.BattleGridStyle);
-                    break;
-                case "startunitsetting":
-                    carousel.InitializeCarousel(settings.StartUnitSetting);
-                    break;
-                case "preferredbattlemusic":
-                    carousel.InitializeCarousel(settings.PreferredBattleMusic);
-                    break;
-                default:
-                    return; // Unknown carousel setting
+                return; // Unknown setting
             }
 
-            carousel.UpdateDisplay();
+            // Set initial value
+            var currentValue = getter(gamewideContext.PlayerSettings);
+            if (currentValue is System.Enum enumValue)
+            {
+                carousel.InitializeCarousel(enumValue);
+                carousel.UpdateDisplay();
+            }
 
             // Set up change listener
             carousel.onValueChanged += index =>
@@ -351,33 +258,7 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                     )
                 )
                 {
-                    switch (settingName.ToLower())
-                    {
-                        case "gamedifficulty":
-                            gamewideContext.UpdatePlayerSetting("GameDifficulty", enumValue);
-                            break;
-                        case "speedsetting":
-                            gamewideContext.UpdatePlayerSetting("SpeedSetting", enumValue);
-                            break;
-                        case "skipenemyturnanimations":
-                            gamewideContext.UpdatePlayerSetting(
-                                "SkipEnemyTurnAnimations",
-                                enumValue
-                            );
-                            break;
-                        case "battlegridsetting":
-                            gamewideContext.UpdatePlayerSetting("BattleGridSetting", enumValue);
-                            break;
-                        case "battlegridstyle":
-                            gamewideContext.UpdatePlayerSetting("BattleGridStyle", enumValue);
-                            break;
-                        case "startunitsetting":
-                            gamewideContext.UpdatePlayerSetting("StartUnitSetting", enumValue);
-                            break;
-                        case "preferredbattlemusic":
-                            gamewideContext.UpdatePlayerSetting("PreferredBattleMusic", enumValue);
-                            break;
-                    }
+                    gamewideContext.UpdatePlayerSetting(carousel.gameObject.name, enumValue);
                 }
             };
         }

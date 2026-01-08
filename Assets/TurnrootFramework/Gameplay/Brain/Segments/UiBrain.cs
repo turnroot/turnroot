@@ -380,12 +380,23 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                 }
             }
 
-            // If we're at depth 1, check if we're in the main settings menu
-            if (CurrentMenuDepth == 1 && settingsMenuLocation?.activeInstance != null)
+            // If we're at depth 1, check if we're in the main settings menu or map menu
+            if (CurrentMenuDepth == 1)
             {
-                // Transition from main settings back to prebattle menu
-                BackToPreBattleMenu();
-                return;
+                if (settingsMenuLocation?.activeInstance != null)
+                {
+                    // Transition from main settings back to prebattle menu
+                    BackToPreBattleMenu();
+                    return;
+                }
+
+                var mapMenuLocation = uiSettings?.GetPrebattleMapMenu();
+                if (mapMenuLocation?.activeInstance != null)
+                {
+                    // Transition from map menu back to prebattle menu
+                    BackToPreBattleMenuFromMap();
+                    return;
+                }
             }
 
             // Fallback for unhandled cases - just decrement depth
