@@ -43,12 +43,25 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                 TransitionToSubmenu(_brain.gameSettingsControlsLocation);
         }
 
+        private float _lastSelectTime = -10f;
+        private const float SelectDebounceSeconds = 0.2f;
+
         public void HandleMenuSelect(Turnroot.UI.Components.MenuItemBase item)
         {
             if (item == null)
             {
                 return;
             }
+
+            // Debounce rapid repeated selections to avoid accidental double-activation
+            if (UnityEngine.Time.time - _lastSelectTime < SelectDebounceSeconds)
+            {
+#if UNITY_EDITOR
+                Debug.Log($"MenuRouteHandler: Ignored rapid selection of {item?.ItemName}");
+#endif
+                return;
+            }
+            _lastSelectTime = UnityEngine.Time.time;
 
 #if UNITY_EDITOR
             Debug.Log($"MenuRouteHandler: HandleMenuSelect item: {item?.ItemName}");
@@ -161,7 +174,8 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             _brain.TransitionToSubmenu(sourceMenu, submenuLocation);
         }
 
-        public void AddRoute(string itemName, Action<Turnroot.UI.Components.MenuItemBase> action) => _menuActionRoutes[itemName] = action;
+        public void AddRoute(string itemName, Action<Turnroot.UI.Components.MenuItemBase> action) =>
+            _menuActionRoutes[itemName] = action;
 
         public void RemoveRoute(string itemName) => _menuActionRoutes.Remove(itemName);
     }

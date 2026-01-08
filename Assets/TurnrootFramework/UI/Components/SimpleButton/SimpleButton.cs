@@ -112,13 +112,17 @@ namespace Turnroot.UI.Components.SimpleButton
             }
         }
 
+        private bool _isHovered = false;
+
         public void OnPointerEnter(PointerEventData eventData)
         {
+            _isHovered = true;
             var coroutine = StartCoroutine(TweenColors(NormalColor, HoveredColor));
         }
 
         public void OnPointerExit(PointerEventData eventData)
         {
+            _isHovered = false;
             var coroutine = StartCoroutine(TweenColors(HoveredColor, NormalColor));
         }
 
@@ -190,6 +194,24 @@ namespace Turnroot.UI.Components.SimpleButton
             }
         }
 
-        private void OnSelectActionPerformed(InputAction.CallbackContext context) => Select();
+        private void OnSelectActionPerformed(InputAction.CallbackContext context)
+        {
+            // If this button belongs to a list menu, only allow select when it is hovered
+            var listItem = GetComponent<Turnroot.UI.Components.ListMenu.ListMenuItem>();
+            if (listItem != null && listItem.parentMenu != null)
+            {
+                if (!_isHovered)
+                {
+#if UNITY_EDITOR
+                    Debug.Log(
+                        $"SimpleButton: Ignored select input for {gameObject.name} because it is not hovered"
+                    );
+#endif
+                    return;
+                }
+            }
+
+            Select();
+        }
     }
 }

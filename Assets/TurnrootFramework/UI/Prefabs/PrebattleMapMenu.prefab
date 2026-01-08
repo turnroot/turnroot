@@ -2739,7 +2739,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4599566067716129147, guid: fba0a1dd7fa670b4abac785c8cffdff8, type: 3}
       propertyPath: itemName
-      value: Units
+      value: Team
       objectReference: {fileID: 0}
     - target: {fileID: 7260415001225367835, guid: fba0a1dd7fa670b4abac785c8cffdff8, type: 3}
       propertyPath: m_text
@@ -3023,7 +3023,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1267070467776096812, guid: fba0a1dd7fa670b4abac785c8cffdff8, type: 3}
       propertyPath: SelectAction.m_SingletonActionBindings.Array.size
-      value: 2
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1267070467776096812, guid: fba0a1dd7fa670b4abac785c8cffdff8, type: 3}
       propertyPath: SelectAction.m_SingletonActionBindings.Array.data[0].m_Id
