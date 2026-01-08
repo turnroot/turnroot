@@ -30,9 +30,14 @@ namespace Turnroot.Gameplay.Brain
                 var scene = SceneManager.GetSceneAt(i);
                 foreach (var rootGameObject in scene.GetRootGameObjects())
                 {
-                    var globalVolume = rootGameObject.GetComponentInChildren<Volume>();
+                    var globalVolume = rootGameObject.GetComponentInChildren<Volume>(true);
                     if (globalVolume != null && globalVolume.profile != null)
                     {
+#if UNITY_EDITOR
+                        Debug.Log(
+                            $"VolumeBrain: Found global volume in scene '{scene.name}' on root '{rootGameObject.name}' (profile: {globalVolume.profile.name})"
+                        );
+#endif
                         ApplyGraphicsSettings(globalVolume, settings);
                         break;
                     }
@@ -68,32 +73,45 @@ namespace Turnroot.Gameplay.Brain
             // Apply Brightness and Gamma via Lift Gamma Gain
             if (profile.TryGet<LiftGammaGain>(out var liftGammaGain))
             {
-                // Keep existing lift, modify gamma and gain
-                var currentLift = liftGammaGain.lift.value;
+                // Preserve existing alpha/w components where applicable
                 var currentGamma = liftGammaGain.gamma.value;
                 var currentGain = liftGammaGain.gain.value;
 
-                // Apply gamma and brightness (gain) together
+                // Defensive mapping: gamma must be > 0; brightness uses 1.0 as neutral
+                var gamma = Mathf.Max(0.01f, settings.Gamma);
+                var brightness = settings.Brightness;
+
+                var gammaW = settings.Gamma - 1f; // neutral = 0
+                var gainW = settings.Brightness - 1f; // neutral = 0
+
                 liftGammaGain.gamma.value = new Vector4(
-                    settings.Gamma,
-                    settings.Gamma,
-                    settings.Gamma,
-                    currentGamma.w
+                    currentGamma.x,
+                    currentGamma.y,
+                    currentGamma.z,
+                    gammaW
                 );
 
                 liftGammaGain.gain.value = new Vector4(
-                    settings.Brightness - 1f,
-                    settings.Brightness - 1f,
-                    settings.Brightness - 1f,
-                    currentGain.w
+                    currentGain.x,
+                    currentGain.y,
+                    currentGain.z,
+                    gainW
                 );
-            }
 
-#if UNITY_EDITOR
-            Debug.Log(
-                $"VolumeBrain: Applied graphics settings - Bloom: {settings.Bloom}, DepthOfField: {settings.DepthOfField}, Brightness: {settings.Brightness}, Gamma: {settings.Gamma}, LensFlare: {settings.LensFlare}"
-            );
-#endif
+                // Ensure the parameter overrides are set so the volume system uses our values
+                try
+                {
+                    // Explicitly set override state for lift/gamma/gain where possible
+                    liftGammaGain.lift.overrideState = liftGammaGain.lift.overrideState || false;
+                    liftGammaGain.gamma.overrideState = true;
+                    liftGammaGain.gain.overrideState = true;
+                }
+                catch { }
+
+                // Enable the effect only if settings modify it from neutral (using W components)
+                bool isModified = Mathf.Abs(gainW) > 0.000001f || Mathf.Abs(gammaW) > 0.000001f;
+                liftGammaGain.active = isModified;
+            }
         }
     }
 }

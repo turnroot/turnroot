@@ -92,6 +92,7 @@ namespace Turnroot.Gameplay.Brain
             PlayerSettings.Subtitles = data.Subtitles;
             PlayerSettings.Bloom = data.Bloom;
             PlayerSettings.DepthOfField = data.DepthOfField;
+            PlayerSettings.LensFlare = data.LensFlare;
             PlayerSettings.AnimatedCameraMovement = data.AnimatedCameraMovement;
             PlayerSettings.AutoEndTurn = data.AutoEndTurn;
             PlayerSettings.Permadeath = data.Permadeath;
@@ -130,6 +131,7 @@ namespace Turnroot.Gameplay.Brain
                     Quality = PlayerSettings.Quality,
                     Subtitles = PlayerSettings.Subtitles,
                     Bloom = PlayerSettings.Bloom,
+                    LensFlare = PlayerSettings.LensFlare,
                     DepthOfField = PlayerSettings.DepthOfField,
                     AnimatedCameraMovement = PlayerSettings.AnimatedCameraMovement,
                     AutoEndTurn = PlayerSettings.AutoEndTurn,
@@ -249,6 +251,12 @@ namespace Turnroot.Gameplay.Brain
                         if (value is bool bloom)
                         {
                             PlayerSettings.Bloom = bloom;
+                        }
+                        break;
+                    case "lensflare":
+                        if (value is bool lensFlare)
+                        {
+                            PlayerSettings.LensFlare = lensFlare;
                         }
                         break;
                     case "depthoffield":
@@ -375,6 +383,7 @@ namespace Turnroot.Gameplay.Brain
         public float Quality = 0.3f;
         public bool Subtitles = true;
         public bool Bloom = true;
+        public bool LensFlare = false;
         public bool DepthOfField = true;
         public bool AnimatedCameraMovement = true;
         public bool AutoEndTurn = true;

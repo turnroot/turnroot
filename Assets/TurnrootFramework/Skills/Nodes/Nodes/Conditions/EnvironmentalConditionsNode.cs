@@ -13,13 +13,7 @@ namespace Turnroot.Skills.Nodes.Conditions
         IsFoggy,
         IsStormy,
         IsWindy,
-        IsSunny,
-        IsCloudy,
-        IsSnowing,
-        IsIndoors,
-        IsSmoky,
-        IsUnderground,
-        IsUnderwater,
+        HasSunlight,
         IsRocky,
         IsSwampy,
         IsVolcanic,
@@ -72,26 +66,8 @@ namespace Turnroot.Skills.Nodes.Conditions
                         case EnvironmentalCondition.IsWindy:
                             result.value = envConditions.IsWindy;
                             break;
-                        case EnvironmentalCondition.IsSunny:
-                            result.value = envConditions.IsSunny;
-                            break;
-                        case EnvironmentalCondition.IsCloudy:
-                            result.value = envConditions.IsCloudy;
-                            break;
-                        case EnvironmentalCondition.IsSnowing:
-                            result.value = envConditions.IsSnowing;
-                            break;
-                        case EnvironmentalCondition.IsIndoors:
-                            result.value = envConditions.IsIndoors;
-                            break;
-                        case EnvironmentalCondition.IsSmoky:
-                            result.value = envConditions.IsSmoky;
-                            break;
-                        case EnvironmentalCondition.IsUnderground:
-                            result.value = envConditions.IsUnderground;
-                            break;
-                        case EnvironmentalCondition.IsUnderwater:
-                            result.value = envConditions.IsUnderwater;
+                        case EnvironmentalCondition.HasSunlight:
+                            result.value = envConditions.HasSunlight;
                             break;
                         case EnvironmentalCondition.IsRocky:
                             result.value = envConditions.IsRocky;

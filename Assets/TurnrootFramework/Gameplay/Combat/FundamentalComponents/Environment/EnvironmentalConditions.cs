@@ -33,22 +33,10 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Environment
         public bool IsWindy;
 
         [Foldout("Weather")]
-        public bool IsSunny = true;
-
-        [Foldout("Weather")]
-        public bool IsCloudy;
+        public bool HasSunlight = true;
 
         [Foldout("Weather")]
         public bool IsSnowing;
-
-        [Foldout("Environment")]
-        public bool IsIndoors;
-
-        [Foldout("Environment")]
-        public bool IsSmoky;
-
-        [Foldout("Environment")]
-        public bool IsUnderground;
 
         [Foldout("Environment")]
         public bool IsUnderwater;
