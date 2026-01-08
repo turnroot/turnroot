@@ -38,16 +38,11 @@ namespace Turnroot.Gameplay.Brain
 
         #region Event Handlers
 
-        private void HandleUnitMoved(CharacterInstance unit, Vector2Int targetPosition)
-        {
+        private void HandleUnitMoved(CharacterInstance unit, Vector2Int targetPosition) =>
             // Rebuild cached unit positions in BattleContext whenever a unit moves
             BattleObject.Context.InvalidateUnitPositionCache();
-        }
 
-        private void HandleUnitDefeated(CharacterInstance unit)
-        {
-            BattleObject.Context.InvalidateUnitPositionCache();
-        }
+        private void HandleUnitDefeated(CharacterInstance unit) => BattleObject.Context.InvalidateUnitPositionCache();
 
         private void HandleUnitTakesAnotherTurn(CharacterInstance unit)
         {

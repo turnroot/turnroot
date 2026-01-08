@@ -160,10 +160,6 @@ namespace Turnroot.UI.Components.RadialMenu
             }
             else
             {
-                // Fallback values if settings can't be loaded
-                Debug.LogWarning(
-                    "GamewideUiSettings not found, using fallback values for RadialMenu"
-                );
                 innerRadiusPercent = 0.3f;
                 segmentGap = 0.02f;
                 showFadeTime = 0.75f;
@@ -258,13 +254,7 @@ namespace Turnroot.UI.Components.RadialMenu
             }
         }
 
-        private void OnSelectPerformed(InputAction.CallbackContext context)
-        {
-#if UNITY_EDITOR
-            Debug.Log($"[RadialMenu] SelectAction performed (control: {context.control})");
-#endif
-            ConfirmSelection();
-        }
+        private void OnSelectPerformed(InputAction.CallbackContext context) => ConfirmSelection();
 
         private void Update()
         {
@@ -596,18 +586,6 @@ namespace Turnroot.UI.Components.RadialMenu
 
         private void ConfirmSelection()
         {
-#if UNITY_EDITOR
-            if (_centerSelected && centerItem != null)
-            {
-                Debug.Log($"[RadialMenu] ConfirmSelection center: {centerItem.ItemName}");
-            }
-            else if (_selectedIndex >= 0 && _selectedIndex < menuItems.Count)
-            {
-                Debug.Log(
-                    $"[RadialMenu] ConfirmSelection item: {menuItems[_selectedIndex].ItemName}"
-                );
-            }
-#endif
             if (_centerSelected && centerItem != null)
             {
                 OnItemSelected?.Invoke(centerItem);

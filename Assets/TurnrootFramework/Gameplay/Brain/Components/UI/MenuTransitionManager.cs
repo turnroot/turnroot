@@ -40,22 +40,44 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
         private MenuType DetectMenuType(MenuLocation location)
         {
             if (location == null)
+            {
                 return MenuType.Unknown;
+            }
 
             if (location == _settings?.GetPreBattleMenu())
+            {
                 return MenuType.PreBattle;
+            }
+
             if (location == _settings?.GetGameSettingsMenu())
+            {
                 return MenuType.Settings;
+            }
+
             if (location == _settings?.GetGameSettingsGraphicsMenu())
+            {
                 return MenuType.Graphics;
+            }
+
             if (location == _settings?.GetGameSettingsGameplayMenu())
+            {
                 return MenuType.Gameplay;
+            }
+
             if (location == _settings?.GetGameSettingsAudioMenu())
+            {
                 return MenuType.Audio;
+            }
+
             if (location == _settings?.GetGameSettingsControlsMenu())
+            {
                 return MenuType.Controls;
+            }
+
             if (location == _settings?.GetPrebattleMapMenu())
+            {
                 return MenuType.Map;
+            }
 
             return MenuType.Unknown;
         }
@@ -188,7 +210,9 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
 
             var menuInstance = preBattle?.activeInstance;
             if (menuInstance == null)
+            {
                 yield break;
+            }
 
             // Start fade out
             if (menuInstance.TryGetComponent<UIFade>(out var uiFade))

@@ -45,7 +45,9 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
         public void HandleMenuSelect(Turnroot.UI.Components.MenuItemBase item)
         {
             if (item == null)
+            {
                 return;
+            }
 
 #if UNITY_EDITOR
             Debug.Log($"MenuRouteHandler: HandleMenuSelect item: {item?.ItemName}");
@@ -158,14 +160,8 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             _brain.TransitionToSubmenu(sourceMenu, submenuLocation);
         }
 
-        public void AddRoute(string itemName, Action<Turnroot.UI.Components.MenuItemBase> action)
-        {
-            _menuActionRoutes[itemName] = action;
-        }
+        public void AddRoute(string itemName, Action<Turnroot.UI.Components.MenuItemBase> action) => _menuActionRoutes[itemName] = action;
 
-        public void RemoveRoute(string itemName)
-        {
-            _menuActionRoutes.Remove(itemName);
-        }
+        public void RemoveRoute(string itemName) => _menuActionRoutes.Remove(itemName);
     }
 }

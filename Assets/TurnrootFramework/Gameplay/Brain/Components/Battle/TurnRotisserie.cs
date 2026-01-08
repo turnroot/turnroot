@@ -34,10 +34,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         private bool UnitFinishesMovingAfterAction =>
             BattleBrain.BattleObject.Context.Flags.ActiveUnitFlags.CanFinishMovingAfterAction;
 
-        private void Awake()
-        {
-            _brain.OnPlayerTurnEnded += HandlePlayerTurnCompleted;
-        }
+        private void Awake() => _brain.OnPlayerTurnEnded += HandlePlayerTurnCompleted;
 
         private void HandlePlayerTurnCompleted()
         {

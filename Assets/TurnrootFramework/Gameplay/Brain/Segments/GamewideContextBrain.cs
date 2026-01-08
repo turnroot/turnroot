@@ -69,16 +69,11 @@ namespace Turnroot.Gameplay.Brain
             volumeBrain.ApplySettingsToVolumes(PlayerSettings);
         }
 
-        protected override void SubscribeToBrainEvents()
-        {
+        protected override void SubscribeToBrainEvents() =>
             // Subscribe to save requests so we can persist roster changes triggered at runtime
             _brain.OnSavePlayerRosterRequested += HandleSavePlayerRosterRequested;
-        }
 
-        protected override void UnsubscribeFromBrainEvents()
-        {
-            _brain.OnSavePlayerRosterRequested -= HandleSavePlayerRosterRequested;
-        }
+        protected override void UnsubscribeFromBrainEvents() => _brain.OnSavePlayerRosterRequested -= HandleSavePlayerRosterRequested;
 
         #region Persistent Player Roster
 
@@ -341,10 +336,7 @@ namespace Turnroot.Gameplay.Brain
 
         #region Player Settings Delegation
 
-        public void UpdatePlayerSetting(string settingName, object value)
-        {
-            _playerSettingsPersistence?.UpdatePlayerSetting(settingName, value);
-        }
+        public void UpdatePlayerSetting(string settingName, object value) => _playerSettingsPersistence?.UpdatePlayerSetting(settingName, value);
 
         #endregion
     }

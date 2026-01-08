@@ -45,10 +45,7 @@ namespace Turnroot.UI.Components.Menu.Submenu
             selectAction?.Disable();
         }
 
-        private void Update()
-        {
-            HandleInput();
-        }
+        private void Update() => HandleInput();
 
         private void HandleInput()
         {

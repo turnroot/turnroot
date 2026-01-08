@@ -316,10 +316,7 @@ namespace Turnroot.Gameplay.Brain
 
         #region Battle Lifecycle Event Handlers
 
-        private void HandleBattleStarted()
-        {
-            StartCoroutine(InitializeWhenReady());
-        }
+        private void HandleBattleStarted() => StartCoroutine(InitializeWhenReady());
 
         private IEnumerator InitializeWhenReady()
         {
@@ -333,10 +330,7 @@ namespace Turnroot.Gameplay.Brain
             InitializeCursor();
         }
 
-        private void HandleBattleCompleted(BattleExitType exitType)
-        {
-            CleanupInputActions();
-        }
+        private void HandleBattleCompleted(BattleExitType exitType) => CleanupInputActions();
 
         private void InitializeCursor()
         {

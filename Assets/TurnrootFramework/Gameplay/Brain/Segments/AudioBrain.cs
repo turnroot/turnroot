@@ -10,9 +10,6 @@ namespace Turnroot.Gameplay.Brain
 
         protected override void UnsubscribeFromBrainEvents() { }
 
-        protected override void Awake()
-        {
-            base.Awake();
-        }
+        protected override void Awake() => base.Awake();
     }
 }

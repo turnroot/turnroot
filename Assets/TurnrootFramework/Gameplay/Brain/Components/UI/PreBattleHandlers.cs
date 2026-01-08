@@ -15,17 +15,13 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
     {
         #region PreBattle Menu Event Handlers
 
-        public void HandlePreBattleMenuNavigate(MenuItemBase item)
-        {
+        public void HandlePreBattleMenuNavigate(MenuItemBase item) =>
             // Delegate to the route handler for unified menu handling
             _routeHandler?.HandleMenuNavigate(item);
-        }
 
-        public void HandlePreBattleMenuSelect(MenuItemBase item)
-        {
+        public void HandlePreBattleMenuSelect(MenuItemBase item) =>
             // Delegate to the route handler for unified menu handling
             _routeHandler?.HandleMenuSelect(item);
-        }
 
         #endregion
 

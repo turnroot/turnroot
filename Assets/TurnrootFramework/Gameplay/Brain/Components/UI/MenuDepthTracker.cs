@@ -48,7 +48,9 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
         public MenuLocation GetParent()
         {
             if (_menuStack.Count < 2)
+            {
                 return null;
+            }
 
             // Temporarily pop current to peek at parent
             var current = _menuStack.Pop();
@@ -81,15 +83,14 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             return null;
         }
 
-        public bool HasActiveMenu()
-        {
-            return CurrentMenu?.activeInstance != null;
-        }
+        public bool HasActiveMenu() => CurrentMenu?.activeInstance != null;
 
         public void TrackTransition(MenuLocation from, MenuLocation to)
         {
             if (to == null)
+            {
                 return;
+            }
 
             // If stack is empty, initialize with 'from' (if present), then push 'to'
             if (_menuStack.Count == 0)

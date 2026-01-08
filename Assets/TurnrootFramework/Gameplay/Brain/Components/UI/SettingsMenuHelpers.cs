@@ -65,31 +65,21 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
 
         #region Settings Menu Event Handlers
 
-        public void HandleGameSettingsMenuNavigate(MenuItemBase item)
-        {
+        public void HandleGameSettingsMenuNavigate(MenuItemBase item) =>
             // Delegate to the route handler for unified menu handling
             _routeHandler?.HandleMenuNavigate(item);
-        }
 
-        public void HandleGameSettingsMenuSelect(MenuItemBase item)
-        {
+        public void HandleGameSettingsMenuSelect(MenuItemBase item) =>
             // Delegate to the route handler for unified menu handling
             _routeHandler?.HandleMenuSelect(item);
-        }
 
         #endregion
 
         #region Settings Menu Navigation and Transitions
 
-        public void BackToPreBattleMenu()
-        {
-            BackToPreBattleMenuFromActiveSubmenu();
-        }
+        public void BackToPreBattleMenu() => BackToPreBattleMenuFromActiveSubmenu();
 
-        public void BackToPreBattleMenuFromMap()
-        {
-            BackToPreBattleMenuFromActiveSubmenu();
-        }
+        public void BackToPreBattleMenuFromMap() => BackToPreBattleMenuFromActiveSubmenu();
 
         private void BackToPreBattleMenuFromActiveSubmenu()
         {
