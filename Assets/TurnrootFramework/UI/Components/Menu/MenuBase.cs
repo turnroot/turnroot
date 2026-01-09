@@ -13,7 +13,7 @@ namespace Turnroot.UI.Components.Menu
     public abstract class MenuBase : MonoBehaviour
     {
         [HideInInspector]
-        public List<ListMenuItem> menuItems = new();
+        public List<MenuItemBase> menuItems = new();
 
         public GameObject BackButtonPrefab;
 
@@ -69,17 +69,17 @@ namespace Turnroot.UI.Components.Menu
         public virtual void RefreshMenuItems()
         {
             menuItems.Clear();
-            var items = GetComponentsInChildren<ListMenuItem>();
+            var items = GetComponentsInChildren<MenuItemBase>();
             foreach (var item in items)
             {
-                item.parentMenu = this;
+                item.SetParentMenu(this);
                 menuItems.Add(item);
             }
         }
 
-        public virtual void NavigateToItem(ListMenuItem item) => OnNavigate?.Invoke(item);
+        public virtual void NavigateToItem(MenuItemBase item) => OnNavigate?.Invoke(item);
 
-        public virtual void SelectItem(ListMenuItem item)
+        public virtual void SelectItem(MenuItemBase item)
         {
 #if UNITY_EDITOR
             Debug.Log($"MenuBase: SelectItem called on {name} for item {item?.ItemName}");

@@ -3,10 +3,10 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using SimpleButtonComponent = Turnroot.UI.Components.SimpleButton.SimpleButton;
 
-namespace Turnroot.UI.Components.ListMenu
+namespace Turnroot.UI.Components.GridMenu
 {
     [RequireComponent(typeof(SimpleButtonComponent))]
-    public class ListMenuItem
+    public class GridMenuItem
         : MenuItemBase,
             IPointerEnterHandler,
             IPointerExitHandler,
@@ -14,6 +14,13 @@ namespace Turnroot.UI.Components.ListMenu
     {
         [HideInInspector]
         public MenuBase parentMenu;
+
+
+        [SerializeField]
+        public int Row;
+
+        [SerializeField]
+        public int Column;
 
         public override string ItemName => itemName;
 
@@ -24,20 +31,16 @@ namespace Turnroot.UI.Components.ListMenu
 
         private void Awake()
         {
-            // Get or add SimpleButton component for visual feedback
             _simpleButton = GetComponent<SimpleButtonComponent>();
             if (_simpleButton == null)
             {
                 _simpleButton = gameObject.AddComponent<SimpleButtonComponent>();
             }
-
-            // Subscribe to SimpleButton's OnSelected event to trigger menu selection
             _simpleButton.OnSelected += HandleSimpleButtonSelection;
         }
 
         private void OnDestroy()
         {
-            // Clean up event subscription
             if (_simpleButton != null)
             {
                 _simpleButton.OnSelected -= HandleSimpleButtonSelection;
@@ -46,25 +49,14 @@ namespace Turnroot.UI.Components.ListMenu
 
         public void OnPointerEnter(PointerEventData eventData)
         {
-            // Delegate to SimpleButton for visual feedback
             _simpleButton.OnPointerEnter(eventData);
-
-            // Handle menu navigation
             parentMenu?.NavigateToItem(this);
-
             RaiseHoverEnter();
-        }
-
-        public override void SetParentMenu(MenuBase parent)
-        {
-            base.SetParentMenu(parent);
-            parentMenu = parent;
         }
 
         public void OnPointerExit(PointerEventData eventData)
         {
             _simpleButton.OnPointerExit(eventData);
-
             RaiseHoverExit();
         }
 
@@ -75,24 +67,19 @@ namespace Turnroot.UI.Components.ListMenu
         {
 #if UNITY_EDITOR
             Debug.Log(
-                $"ListMenuItem: Select called for {ItemName} parentMenu={(parentMenu == null ? "null" : parentMenu.name)}"
+                $"GridMenuItem: Select called for {ItemName} parentMenu={(parentMenu == null ? "null" : parentMenu.name)} Row={Row} Col={Column}"
             );
 #endif
             base.Select();
-            if (parentMenu != null)
-            {
-                parentMenu.SelectItem(this);
-            }
+            parentMenu?.SelectItem(this);
         }
 
-        private void HandleSimpleButtonSelection()
+        private void HandleSimpleButtonSelection() => Select();
+
+        public override void SetParentMenu(MenuBase parent)
         {
-#if UNITY_EDITOR
-            Debug.Log(
-                $"ListMenuItem: HandleSimpleButtonSelection itemName={ItemName} parentMenu={(parentMenu == null ? "null" : parentMenu.name)}"
-            );
-#endif
-            Select();
+            base.SetParentMenu(parent);
+            parentMenu = parent;
         }
 
         public override void SetItemName(string name) => itemName = name;

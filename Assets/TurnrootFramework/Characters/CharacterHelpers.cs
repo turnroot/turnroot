@@ -91,5 +91,26 @@ namespace Turnroot.Characters
                 }
             }
         }
+
+        public static Portrait GetDefaultPortrait(
+            SerializableDictionary<string, Portrait> portraits
+        )
+        {
+            if (portraits == null)
+            {
+                return null;
+            }
+
+            if (portraits.TryGetValue("default", out var portrait))
+            {
+                return portrait;
+            }
+
+            foreach (var p in portraits.Values)
+            {
+                return p;
+            }
+            return null;
+        }
     }
 }

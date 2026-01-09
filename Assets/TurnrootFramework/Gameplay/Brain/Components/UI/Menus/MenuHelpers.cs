@@ -37,6 +37,8 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             GetValidatedMenuLocation(() => gameSettingsAudioLocation, "Game settings audio");
             GetValidatedMenuLocation(() => gameSettingsControlsLocation, "Game settings controls");
             GetValidatedMenuLocation(() => preBattleMenuLocation, "Pre-battle");
+            GetValidatedMenuLocation(() => prebattleMapMenuLocation, "Pre-battle map");
+            GetValidatedMenuLocation(() => prebattleUnitsMenuLocation, "Pre-battle units");
         }
 
         public void SetupMenuInputActions(MenuBase menu) =>

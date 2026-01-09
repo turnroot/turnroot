@@ -6,6 +6,12 @@ TagManager:
   tags:
   - DoNotModify
   - BattleMapCamera
+  - BattleMapEnvironment
+  - UnitCellUnitName
+  - UnitCellUnitClass
+  - UnitCellUnitPortrait
+  - UnitCellSelected
+  - UnitColumnsUnitCount
   layers:
   - Default
   - TransparentFX

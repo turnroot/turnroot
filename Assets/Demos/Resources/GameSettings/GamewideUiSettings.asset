@@ -55,8 +55,8 @@ MonoBehaviour:
     prefab: {fileID: 312688979984975295, guid: ce54cc1f4ce2a624f8d2665af9d2b92a, type: 3}
   - parentMenuName: 10
     menuName: 11
-    style: 1
-    prefab: {fileID: 0}
+    style: 3
+    prefab: {fileID: 7814703603592663220, guid: 1258ee1acde92134ba8f47618d89a204, type: 3}
   - parentMenuName: 10
     menuName: 12
     style: 1

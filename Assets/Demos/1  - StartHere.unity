@@ -159227,6 +159227,8 @@ MonoBehaviour:
   _hasSunlight: 1
   _isSnowing: 0
   IsUnderwater: 0
+  IsUnderground: 0
+  IsDesert: 0
   IsRocky: 0
   IsSwampy: 0
   IsVolcanic: 0

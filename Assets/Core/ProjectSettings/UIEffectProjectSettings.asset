@@ -74,6 +74,8 @@ ShaderVariantCollection:
         passType: 0
       - keywords: TRANSITION_MELT
         passType: 0
+      - keywords: TRANSITION_PATTERN
+        passType: 0
       - keywords: TRANSITION_SHINY
         passType: 0
   - first: {fileID: 4800000, guid: 935b7be1c88464d2eb87204fdfab5a38, type: 3}

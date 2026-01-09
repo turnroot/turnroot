@@ -53,6 +53,10 @@ namespace Turnroot.Gameplay.Brain
 
         #endregion
 
+        #region BattleBrain Keys
+        public const string UnitSelectedForBattlePrefix = "BattleBrain.UnitSelectedForBattle.";
+        #endregion
+
         #region Helper Methods
 
         public static string ConversationCompleted(string conversationId) =>

@@ -104,15 +104,19 @@ public class PopulateMapPrefabEnviromentConditions : MonoBehaviour
         _brain = brain;
         var gamewideUiSettings = _brain.uiBrain.uiSettings;
         Debug.Log("PopulateMapPrefabEnviromentConditions: Initializing with brain " + brain.name);
-        var scriptTarget = GetComponentInChildren<ScriptTarget>(true);
-        if (scriptTarget == null)
+        // Find the child GameObject tagged 'BattleMapEnvironment' and use it directly
+        var uf = new UtilityFunctions();
+        var c = uf.FindChildByTag(this.gameObject, "BattleMapEnvironment");
+        GameObject envRoot = c != null ? c.gameObject : null;
+        if (envRoot == null)
         {
-            return OperationResult.Failure("ScriptTarget not found in children");
+            return OperationResult.Failure("BattleMapEnvironment GameObject not found");
         }
-        var timeRow = scriptTarget.transform.Find("TimeRow");
-        var temperatureRow = scriptTarget.transform.Find("TemperatureRow");
-        var weatherRow = scriptTarget.transform.Find("WeatherRow");
-        var specialRow = scriptTarget.transform.Find("SpecialRow");
+
+        var timeRow = envRoot.transform.Find("TimeRow");
+        var temperatureRow = envRoot.transform.Find("TemperatureRow");
+        var weatherRow = envRoot.transform.Find("WeatherRow");
+        var specialRow = envRoot.transform.Find("SpecialRow");
 
         // Resolve EnvironmentalConditions for this brain (BattleGameObject -> PreparationObject -> scene fallback)
         var env = ResolveEnvironmentalConditions(_brain);

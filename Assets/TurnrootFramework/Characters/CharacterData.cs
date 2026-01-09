@@ -180,6 +180,8 @@ namespace Turnroot.Characters
         [field: Foldout("Visual"), SerializeField, HideInInspector]
         public SerializableDictionary<string, Portrait> Portraits { get; private set; }
 
+        public Portrait DefaultPortrait => CharacterHelpers.GetDefaultPortrait(Portraits);
+
         [field: Foldout("Visual"), HideInInspector]
         public SerializableDictionary<string, TaggedLayerDefault> TaggedLayerDefaults
         {

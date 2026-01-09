@@ -1,4 +1,5 @@
 using System;
+using Turnroot.UI.Components.Menu;
 using UnityEngine;
 
 namespace Turnroot.UI.Components
@@ -54,6 +55,12 @@ namespace Turnroot.UI.Components
         public virtual void EnsureContentOnTop() { }
 
         public virtual void SetItemName(string name) { }
+
+        // Parent menu reference
+        public MenuBase ParentMenu { get; private set; }
+
+        // Menu parent setter used by MenuBase to wire up child items generically
+        public virtual void SetParentMenu(MenuBase parent) => ParentMenu = parent;
 
         public virtual void SetContentPrefab(GameObject prefab) { }
 
