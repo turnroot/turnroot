@@ -154,7 +154,6 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                     )
                 )
                 {
-                    radialMenu.OnNavigate -= HandlePreBattleMenuNavigate;
                     radialMenu.OnItemSelected -= HandlePreBattleMenuSelect;
                 }
 
@@ -162,7 +161,6 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                     preBattleMenuLocation.activeInstance.TryGetComponent<MenuBase>(out var listMenu)
                 )
                 {
-                    listMenu.OnNavigate -= HandlePreBattleMenuNavigate;
                     listMenu.OnItemSelected -= HandlePreBattleMenuSelect;
                 }
             }

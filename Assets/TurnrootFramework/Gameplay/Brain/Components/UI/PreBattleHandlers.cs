@@ -66,7 +66,6 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                 )
                 {
                     radialMenu.uiBrain = this;
-                    radialMenu.OnNavigate += HandlePreBattleMenuNavigate;
                     radialMenu.OnItemSelected += HandlePreBattleMenuSelect;
                     Debug.Log(
                         $"UiBrain: Attached prebattle handlers to radial instance {preBattleMenuLocation.activeInstance?.name}"
@@ -84,7 +83,6 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                 )
                 {
                     listMenu.uiBrain = this;
-                    listMenu.OnNavigate += HandlePreBattleMenuNavigate;
                     listMenu.OnItemSelected += HandlePreBattleMenuSelect;
                 }
             }
@@ -95,10 +93,6 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
         }
 
         #region PreBattle Menu Event Handlers
-
-        public void HandlePreBattleMenuNavigate(MenuItemBase item) =>
-            // Delegate to the route handler for unified menu handling
-            _routeHandler?.HandleMenuNavigate(item);
 
         public void HandlePreBattleMenuSelect(MenuItemBase item)
         {
@@ -171,13 +165,11 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             {
                 if (menuInstance.TryGetComponent<RadialMenu>(out var radialMenu))
                 {
-                    radialMenu.OnNavigate -= HandlePreBattleMenuNavigate;
                     radialMenu.OnItemSelected -= HandlePreBattleMenuSelect;
                 }
 
                 if (menuInstance.TryGetComponent<MenuBase>(out var menu))
                 {
-                    menu.OnNavigate -= HandlePreBattleMenuNavigate;
                     menu.OnItemSelected -= HandlePreBattleMenuSelect;
                 }
                 Destroy(menuInstance);
@@ -282,13 +274,11 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                 // No fade component, proceed directly
                 if (menuInstance.TryGetComponent<RadialMenu>(out var menu))
                 {
-                    menu.OnNavigate -= HandlePreBattleMenuNavigate;
                     menu.OnItemSelected -= HandlePreBattleMenuSelect;
                 }
 
                 if (menuInstance.TryGetComponent<MenuBase>(out var baseMenu))
                 {
-                    baseMenu.OnNavigate -= HandlePreBattleMenuNavigate;
                     baseMenu.OnItemSelected -= HandlePreBattleMenuSelect;
                 }
 

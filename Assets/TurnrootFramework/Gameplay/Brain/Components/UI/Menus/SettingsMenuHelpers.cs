@@ -89,9 +89,7 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
 
         #region Settings Menu Event Handlers
 
-        public void HandleGameSettingsMenuNavigate(MenuItemBase item) =>
-            // Delegate to the route handler for unified menu handling
-            _routeHandler?.HandleMenuNavigate(item);
+
 
         public void HandleGameSettingsMenuSelect(MenuItemBase item)
         {

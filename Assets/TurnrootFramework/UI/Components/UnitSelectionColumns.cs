@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Coffee.UIEffects;
 using TMPro;
 using Turnroot.Gameplay.Brain;
@@ -16,7 +17,10 @@ namespace Turnroot.UI.Components
         public GameObject UnitCountText;
         public GameObject[] Columns;
 
-        public int MaxSelectedUnits = 6; // TODO: Get this from BattlePreparationObject
+        public int MaxSelectedUnits;
+
+        [HideInInspector]
+        public Dictionary<Characters.Roster.UnitPlacement, bool> unitCanBeSelected = new();
 
         public void Initialize(Brain brain)
         {
@@ -28,6 +32,7 @@ namespace Turnroot.UI.Components
             int unitCount = units.Length;
             var u = LtmKeys.UnitSelectedForBattlePrefix;
             var keys = LongTermMemory.RecallKeysByPrefix(u);
+            MaxSelectedUnits = _brain.battleBrain.PreparationObject.MaxPlayerTeamUnits;
 
 #if UNITY_EDITOR
             Debug.Log(
@@ -122,6 +127,24 @@ namespace Turnroot.UI.Components
                         {
                             isSelected = false;
                             ltm.RememberBool(key, false);
+                        }
+                    }
+
+                    // If the unit is required for this battle, enable them but don't save it to LTM
+                    var requiredUnits = _brain.battleBrain.PreparationObject.RequiredPlayerUnits;
+                    if (requiredUnits.Contains(unit.CharacterData))
+                    {
+                        isSelected = true;
+                        // Turn on the required indicator
+                        var requiredT = uf.FindChildByTag(unitCell, "UnitCellRequiredIndicator");
+                        if (requiredT != null)
+                        {
+                            requiredT.gameObject.SetActive(true);
+                            unitCanBeSelected[unit] = false;
+                        }
+                        else
+                        {
+                            unitCanBeSelected[unit] = true;
                         }
                     }
 

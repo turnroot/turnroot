@@ -12,6 +12,7 @@ TagManager:
   - UnitCellUnitPortrait
   - UnitCellSelected
   - UnitColumnsUnitCount
+  - UnitCellRequiredIndicator
   layers:
   - Default
   - TransparentFX

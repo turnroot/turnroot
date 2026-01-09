@@ -265,7 +265,6 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                 if (menuType is MenuType.PreBattle or MenuType.Map)
                 {
                     // Pre-battle context (map submenus etc.)
-                    menu.OnNavigate += _brain.HandlePreBattleMenuNavigate;
                     menu.OnItemSelected += _brain.HandlePreBattleMenuSelect;
                 }
                 else if (
@@ -278,13 +277,11 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                 )
                 {
                     // Settings-related menus
-                    menu.OnNavigate += _brain.HandleGameSettingsMenuNavigate;
                     menu.OnItemSelected += _brain.HandleGameSettingsMenuSelect;
                 }
                 else
                 {
                     // Standalone / other menus: route through general handlers
-                    menu.OnNavigate += _brain.HandleMenuNavigate;
                     menu.OnItemSelected += _brain.HandleMenuSelect;
                 }
 
@@ -305,7 +302,6 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                 );
                 radial.uiBrain = _brain;
                 // For radial menus, use settings handlers (these are typically settings menus)
-                radial.OnNavigate += _brain.HandleGameSettingsMenuNavigate;
                 radial.OnItemSelected += _brain.HandleGameSettingsMenuSelect;
 
                 radial.navigateAction.Enable();
@@ -339,7 +335,6 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                 if (instance.TryGetComponent<RadialMenu>(out var radialMenu))
                 {
                     radialMenu.uiBrain = _brain;
-                    radialMenu.OnNavigate += _brain.HandlePreBattleMenuNavigate;
                     radialMenu.OnItemSelected += _brain.HandlePreBattleMenuSelect;
 
                     radialMenu.navigateAction.Enable();
@@ -370,7 +365,6 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                     );
 
                     listMenu.uiBrain = _brain;
-                    listMenu.OnNavigate += _brain.HandlePreBattleMenuNavigate;
                     listMenu.OnItemSelected += _brain.HandlePreBattleMenuSelect;
                     _brain.SetupMenuInputActions(listMenu);
 
@@ -417,15 +411,12 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
 
         private void CleanupMenuEvents(GameObject instance)
         {
-            Debug.Log($"MenuTransitionManager.CleanupMenuEvents: instance={instance?.name}");
             // Clean up MenuBase handlers on all nested menus
             var menus = instance.GetComponentsInChildren<MenuBase>(true);
             foreach (var menu in menus)
             {
                 // Clean up all possible event handlers
-                menu.OnNavigate -= _brain.HandlePreBattleMenuNavigate;
                 menu.OnItemSelected -= _brain.HandlePreBattleMenuSelect;
-                menu.OnNavigate -= _brain.HandleGameSettingsMenuNavigate;
                 menu.OnItemSelected -= _brain.HandleGameSettingsMenuSelect;
             }
 
@@ -433,12 +424,7 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             var radials = instance.GetComponentsInChildren<RadialMenu>(true);
             foreach (var radial in radials)
             {
-                Debug.Log(
-                    $"MenuTransitionManager: Removing RadialMenu event handlers from {instance.name}"
-                );
-                radial.OnNavigate -= _brain.HandlePreBattleMenuNavigate;
                 radial.OnItemSelected -= _brain.HandlePreBattleMenuSelect;
-                radial.OnNavigate -= _brain.HandleGameSettingsMenuNavigate;
                 radial.OnItemSelected -= _brain.HandleGameSettingsMenuSelect;
             }
         }

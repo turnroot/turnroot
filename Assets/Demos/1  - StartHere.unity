@@ -159157,9 +159157,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   <Context>k__BackingField: {fileID: 1742232837}
-  HasThirdParty: 0
+  _hasThirdParty: 0
   ThirdPartyFightsAllies: 0
   ThirdPartyFightsEnemies: 0
+  MaxPlayerTeamUnits: 12
+  _requiredPlayerUnits:
+  - {fileID: 11400000, guid: 0f8b79eeaffbfbc4aab491112cae2ddd, type: 2}
   _battleConditions:
   - rid: 2236981316757225553
   _mapGrid: {fileID: 1882290950}
@@ -159191,6 +159194,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c2a5f85963ca35e48872ec6b867357fb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  MaxPlayerTeamUnits: 0
+  _requiredPlayerUnits: []
 --- !u!114 &1742232837
 MonoBehaviour:
   m_ObjectHideFlags: 0
