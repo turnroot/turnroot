@@ -13,6 +13,7 @@ namespace Turnroot.UI.Components.SimpleButton
         Confirm,
         Back,
         Next,
+        Details,
     }
 
     public class SimpleButton
@@ -196,9 +197,9 @@ namespace Turnroot.UI.Components.SimpleButton
 
         private void OnSelectActionPerformed(InputAction.CallbackContext context)
         {
-            // If this button belongs to a list menu, only allow select when it is hovered
-            var listItem = GetComponent<Turnroot.UI.Components.ListMenu.ListMenuItem>();
-            if (listItem != null && listItem.parentMenu != null)
+            // If this button belongs to a menu, only allow select when it is hovered
+            var menuItem = GetComponent<Turnroot.UI.Components.MenuItemBase>();
+            if (menuItem != null && menuItem.ParentMenu != null)
             {
                 if (!_isHovered)
                 {

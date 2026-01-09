@@ -58,8 +58,8 @@ Canvas:
   m_OverrideSorting: 0
   m_OverridePixelPerfect: 0
   m_SortingBucketNormalizedSize: 0
-  m_VertexColorAlwaysGammaSpace: 0
-  m_AdditionalShaderChannelsFlag: 25
+  m_VertexColorAlwaysGammaSpace: 1
+  m_AdditionalShaderChannelsFlag: 1
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
   m_SortingOrder: 0
@@ -116,20 +116,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 25e9ac881ec3b7a4286b846272f7a0bd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  timeDayImage: {fileID: 21300000, guid: a13cc21dceb9dab48a4bc901075c7fb5, type: 3}
-  timeNightImage: {fileID: 21300000, guid: 596cc94d446724047b635597bc2ab5d4, type: 3}
-  timeDawnImage: {fileID: 21300000, guid: 38ec76bd70b393c4b87ea5b4ce4a65d3, type: 3}
-  timeSunsetImage: {fileID: 21300000, guid: 2ef9a2e1aaf16d5499a6089be4a42d44, type: 3}
-  temperatureVeryColdImage: {fileID: 21300000, guid: d1c57f2cd214133449425f9e216638c2, type: 3}
-  temperatureVeryHotImage: {fileID: 21300000, guid: 3d36c04c64a89e441af1c68aa7b492ed, type: 3}
-  IsRainingImage: {fileID: 21300000, guid: 1a7d133acc38df247abcfd79e2bf9a3e, type: 3}
-  IsSnowingImage: {fileID: 21300000, guid: 39814627aba65b6499159f45c3957896, type: 3}
-  IsFoggyImage: {fileID: 21300000, guid: d82a393fc0a46024c84afe6344ffece9, type: 3}
-  IsStormyImage: {fileID: 21300000, guid: a15cabcd6aced0443af1547c9075382c, type: 3}
-  IsWindyImage: {fileID: 21300000, guid: d0a6b3c2a6b55624c92d6ddf778a4b76, type: 3}
-  ClearImage: {fileID: 21300000, guid: e9aad0d2c801264418181b2558a8649e, type: 3}
-  isUnderwaterImage: {fileID: 21300000, guid: 9aa303709418ac148aef0763af8db1c9, type: 3}
-  isSwampyImage: {fileID: 21300000, guid: eabc9419507cc1d42896515355aa8664, type: 3}
 --- !u!1 &308152091734433783
 GameObject:
   m_ObjectHideFlags: 0
