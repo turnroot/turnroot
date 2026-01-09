@@ -505,13 +505,15 @@ namespace Turnroot.Gameplay.Brain
                 case PlayerTurnStates.MoveActionChosenChoosingDestination:
                 case PlayerTurnStates.AttackActionChosenChoosingTarget:
                     break;
+                case PlayerTurnStates.TurnEnded:
+                    CompletePlayerTurn();
+                    break;
                 // TODO: Complete state handling
             }
         }
 
         private void CompletePlayerTurn()
         {
-            // TODO: Find where this is supposed to be called
             _validMoveTiles.Clear();
             _validAttackTiles.Clear();
             _brain.PublishPlayerTurnEnded();
