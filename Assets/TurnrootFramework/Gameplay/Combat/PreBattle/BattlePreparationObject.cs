@@ -9,6 +9,7 @@ namespace Turnroot.Gameplay.Combat.PreBattle
     {
         public Brain.Brain Brain { get; private set; }
         public EnvironmentalConditions EnvironmentalConditions { get; private set; }
+
         public OperationResult Initialize(Brain.Brain brain)
         {
             Brain = brain;
