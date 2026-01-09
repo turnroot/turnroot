@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using System.Linq;
+using NaughtyAttributes;
 using Turnroot.Characters;
 using Turnroot.Gameplay.Brain.Events;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
@@ -23,13 +25,35 @@ namespace Turnroot.Gameplay.Combat
     [RequireComponent(typeof(BattlePreparationObject))]
     public class BattleGameObject : MonoBehaviour
     {
-        [field: Header("Battle Components")]
         [field: SerializeField, HideInInspector]
         public BattleContext Context { get; private set; }
 
-        public bool HasThirdParty;
+        [Header("Battle Teams"), HorizontalLine(color: EColor.Indigo)]
+        [SerializeField]
+        private bool _hasThirdParty;
+
+        public bool HasThirdParty
+        {
+            get => _hasThirdParty;
+            set => _hasThirdParty = value;
+        }
+
+        [ShowIf(nameof(HasThirdParty))]
         public bool ThirdPartyFightsAllies;
+
+        [ShowIf(nameof(HasThirdParty))]
         public bool ThirdPartyFightsEnemies;
+
+        [Range(1, 16)]
+        public int MaxPlayerTeamUnits;
+
+        [SerializeField]
+        private List<CharacterData> _requiredPlayerUnits = new List<CharacterData>();
+        public List<CharacterData> RequiredPlayerUnits
+        {
+            get => _requiredPlayerUnits;
+            set => _requiredPlayerUnits = value;
+        }
 
         public EnvironmentalConditions EnvironmentalConditions =>
             GetComponent<EnvironmentalConditions>();
@@ -42,14 +66,14 @@ namespace Turnroot.Gameplay.Combat
         [SerializeField]
         private MapGrid _mapGrid;
 
-        [Header("Roster Templates")]
+        [Header("Roster Templates"), HorizontalLine(color: EColor.Blue)]
         [SerializeField]
         private GenericRoster _enemyRoster;
 
         [SerializeField]
         private GenericRoster _thirdPartyRoster;
 
-        [SerializeField, NaughtyAttributes.ReadOnly]
+        [SerializeField, ReadOnly]
         private int _currentTurnCount;
 
         [field: HideInInspector]
@@ -66,7 +90,6 @@ namespace Turnroot.Gameplay.Combat
         public LayerMask GroundLayerMask;
 
         #region Unity Lifecycle
-
         public void Awake()
         {
             ResetTurnCount();

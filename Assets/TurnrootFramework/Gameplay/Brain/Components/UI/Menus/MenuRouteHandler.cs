@@ -88,14 +88,6 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             }
         }
 
-        public void HandleMenuNavigate(Turnroot.UI.Components.MenuItemBase item)
-        {
-#if UNITY_EDITOR
-            Debug.Log($"MenuRouteHandler: Navigated to item: {item?.ItemName}");
-#endif
-            // TODO: Handle navigation (highlighting, audio feedback, etc.)
-        }
-
         // Route implementations
         private void OpenInventory()
         {

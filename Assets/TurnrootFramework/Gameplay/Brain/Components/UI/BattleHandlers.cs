@@ -25,9 +25,13 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             {
                 _battleCursorInstance = Instantiate(BattleCursorPrefab);
                 _battleCursorInstance.name = "BattleCursor";
-                // TODO: Figure out scale
-                // For now, the scale is hardcoded, I'll figure it out later
-                _battleCursorInstance.transform.localScale = new Vector3(.5f, .5f, .5f);
+                var mapGridScale = _brain.battleBrain.BattleObject.Context.mapGrid.GridScale;
+                var scaleFactor = mapGridScale / 10f;
+                _battleCursorInstance.transform.localScale = new Vector3(
+                    scaleFactor,
+                    scaleFactor,
+                    scaleFactor
+                );
             }
         }
 

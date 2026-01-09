@@ -126,7 +126,6 @@ namespace Turnroot.GameSettings
 
         private void InitializeDefaultMenuLocations()
         {
-            // TODO: Verify these are correctly hierarchically organized
             allPossibleMenuLocations = new List<MenuLocation>();
 
             // Main menu
@@ -151,7 +150,6 @@ namespace Turnroot.GameSettings
             var avatarSettingsMenu = new MenuLocation(newGameMenu, MenuName.AvatarSettingsMenu);
             allPossibleMenuLocations.Add(avatarSettingsMenu);
 
-            // TODO: Fill out world map, hub, etc
             // Pre-battle
             var preBattleMenu = new MenuLocation(
                 menuName: MenuName.PreBattleMenu,

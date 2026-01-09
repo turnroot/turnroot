@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Turnroot.Characters;
 using Turnroot.Gameplay.Combat;
+using Turnroot.Gameplay.Roster;
 using UnityEditor;
 using UnityEngine;
 
@@ -11,17 +13,131 @@ public class BattleGameObjectEditor : Editor
     private SerializedProperty _battleConditionsProp;
     private Dictionary<string, bool> _eventsFoldouts = new Dictionary<string, bool>();
 
+    private SerializedProperty _requiredPlayerUnitsProp;
+
     private void OnEnable()
     {
-        _battleConditionsProp = serializedObject.FindProperty("_battleConditions");
+        _battleConditionsProp = serializedObject.FindProperty("_battle_conditions");
+        // try both common names to be robust in case of reformatting
+        _battleConditionsProp ??= serializedObject.FindProperty("_battleConditions");
+        _requiredPlayerUnitsProp = serializedObject.FindProperty("_requiredPlayerUnits");
     }
 
     public override void OnInspectorGUI()
     {
         serializedObject.Update();
 
-        // Draw everything except the _battleConditions field so we can provide a custom UI for it
-        DrawPropertiesExcluding(serializedObject, "_battleConditions");
+        // Draw everything except the _battleConditions and _requiredPlayerUnits fields so we can provide a custom UI for them
+        DrawPropertiesExcluding(serializedObject, "_battleConditions", "_requiredPlayerUnits");
+
+        // --- Required Player Units custom UI ---
+        EditorGUILayout.Space();
+        EditorGUILayout.LabelField("Required Player Units", EditorStyles.boldLabel);
+
+        // Try resolve gamewide persistent player roster characters
+        var persistent = PersistentPlayerRoster.Instance;
+        var rosterAsset = persistent?.PlayerRoster;
+        var characterOptions = new CharacterData[0];
+        var characterOptionNames = new string[0];
+
+        if (rosterAsset != null)
+        {
+            var placements =
+                rosterAsset.characters
+                ?? System.Array.Empty<Turnroot.Characters.Roster.UnitPlacement>();
+            var chars = new System.Collections.Generic.List<CharacterData>();
+            foreach (var p in placements)
+            {
+                if (p?.CharacterData != null)
+                    chars.Add(p.CharacterData);
+            }
+            characterOptions = chars.ToArray();
+            characterOptionNames = characterOptions
+                .Select(c => c?.DisplayName ?? "(unknown)")
+                .ToArray();
+        }
+        else
+        {
+            EditorGUILayout.HelpBox(
+                "No Gamewide persistent player roster found. Assign a PersistentPlayerRoster asset or add characters manually.",
+                MessageType.Warning
+            );
+        }
+
+        if (_requiredPlayerUnitsProp != null)
+        {
+            // Ensure array size control
+            EditorGUILayout.BeginHorizontal();
+            if (GUILayout.Button("Add"))
+            {
+                _requiredPlayerUnitsProp.arraySize++;
+                _requiredPlayerUnitsProp
+                    .GetArrayElementAtIndex(_requiredPlayerUnitsProp.arraySize - 1)
+                    .objectReferenceValue = null;
+            }
+
+            if (GUILayout.Button("Clear"))
+            {
+                _requiredPlayerUnitsProp.ClearArray();
+            }
+            EditorGUILayout.EndHorizontal();
+
+            // Draw each element as a popup sourced from roster characters (or object field fallback)
+            for (int i = 0; i < _requiredPlayerUnitsProp.arraySize; i++)
+            {
+                var elem = _requiredPlayerUnitsProp.GetArrayElementAtIndex(i);
+                EditorGUILayout.BeginHorizontal(GUI.skin.box);
+
+                var current = elem.objectReferenceValue as CharacterData;
+                int currentIndex = -1;
+                if (characterOptions.Length > 0 && current != null)
+                {
+                    currentIndex = System.Array.IndexOf(characterOptions, current);
+                }
+
+                int selected = -1;
+                if (characterOptions.Length > 0)
+                {
+                    var names = new string[characterOptionNames.Length + 1];
+                    names[0] = "(None)";
+                    for (int n = 0; n < characterOptionNames.Length; n++)
+                        names[n + 1] = characterOptionNames[n];
+                    selected = EditorGUILayout.Popup($"{i + 1}", currentIndex + 1, names) - 1;
+                    if (selected != currentIndex)
+                    {
+                        elem.objectReferenceValue =
+                            selected >= 0 ? characterOptions[selected] : null;
+                    }
+                }
+                else
+                {
+                    // fallback to object field when roster not available
+                    elem.objectReferenceValue = (CharacterData)
+                        EditorGUILayout.ObjectField(
+                            $"{i + 1}",
+                            elem.objectReferenceValue,
+                            typeof(CharacterData),
+                            false
+                        );
+                }
+
+                if (GUILayout.Button("Remove", GUILayout.Width(80)))
+                {
+                    _requiredPlayerUnitsProp.DeleteArrayElementAtIndex(i);
+                    EditorGUILayout.EndHorizontal();
+                    break; // stop to avoid enumerator invalidation
+                }
+
+                EditorGUILayout.EndHorizontal();
+            }
+        }
+        else
+        {
+            EditorGUILayout.HelpBox(
+                "Required Player Units property not found (ensure field exists and is serialized).",
+                MessageType.Warning
+            );
+        }
 
         EditorGUILayout.Space();
         EditorGUILayout.LabelField("Battle Conditions", EditorStyles.boldLabel);
