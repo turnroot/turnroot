@@ -1933,6 +1933,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   TotalColumns: 2
   UnitCellPrefab: {fileID: 542936960687533465, guid: 09a6310f54cb68c4e982d188deaad53f, type: 3}
+  UnitCountText: {fileID: 8146178502202117056}
   Columns:
   - {fileID: 6706353390031748323}
   - {fileID: 8867920105633577472}
@@ -1949,8 +1950,8 @@ GameObject:
   - component: {fileID: 4833148764882237656}
   - component: {fileID: 1757855830606529380}
   m_Layer: 5
-  m_Name: Text (TMP)
-  m_TagString: Untagged
+  m_Name: UnitCount
+  m_TagString: UnitColumnsUnitCount
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -2149,6 +2150,7 @@ GameObject:
   - component: {fileID: 6994889562655150644}
   - component: {fileID: 8054573221023079445}
   - component: {fileID: 5037208157193595834}
+  - component: {fileID: 5423598255151360934}
   m_Layer: 5
   m_Name: Right
   m_TagString: Untagged
@@ -2223,6 +2225,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8591278986896836510}
   m_CullTransparentMesh: 1
+--- !u!114 &5423598255151360934
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8591278986896836510}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 25e9ac881ec3b7a4286b846272f7a0bd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &8640058204974778419
 GameObject:
   m_ObjectHideFlags: 0

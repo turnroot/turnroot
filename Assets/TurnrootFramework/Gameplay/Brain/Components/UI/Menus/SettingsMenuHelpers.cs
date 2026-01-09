@@ -27,12 +27,33 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                 return;
             }
 
+            // If the pre-battle menu instance doesn't exist, fall back to the currently active menu as source
+            MenuLocation sourceMenu = preBattleMenuLocation;
             if (preBattleMenuLocation?.activeInstance == null)
             {
+                // Find any active menu to use as the source for the transition
+                var all = uiSettings?.allPossibleMenuLocations;
+                if (all != null)
+                {
+                    foreach (var m in all)
+                    {
+                        if (m?.activeInstance != null)
+                        {
+                            sourceMenu = m;
+                            break;
+                        }
+                    }
+                }
+
+                if (sourceMenu?.activeInstance == null)
+                {
 #if UNITY_EDITOR
-                Debug.LogError("UiBrain: Pre-battle menu instance not found");
+                    Debug.LogError(
+                        "UiBrain: No active menu instance found to use as transition source"
+                    );
 #endif
-                return;
+                    return;
+                }
             }
 
             // Guard: Return early if activeInstance already exists to prevent duplicates
@@ -51,8 +72,8 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
 
             _isTransitioning = true;
 
-            // Start the transition coroutine
-            StartCoroutine(TransitionToSettingsMenu(preBattleMenuLocation, submenuLocation));
+            // Start the transition coroutine using the resolved source
+            StartCoroutine(TransitionToSettingsMenu(sourceMenu, submenuLocation));
         }
 
         public void OpenMainGameSettingsMenu() =>
@@ -60,6 +81,9 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
 
         public void OpenPreBattleMapOverview() =>
             OpenPrebattleSubmenu(() => uiSettings?.GetPrebattleMapMenu(), "pre-battle map");
+
+        public void OpenPreBattleUnitsMenu() =>
+            OpenPrebattleSubmenu(() => uiSettings?.GetPrebattleUnitsMenu(), "pre-battle units");
 
         #endregion
 
@@ -179,59 +203,6 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
 
             _isTransitioning = false;
         }
-
-        protected System.Collections.IEnumerator TransitionBackToSettingsMenu(
-            MenuLocation currentMenuLocation,
-            MenuLocation parentMenuLocation
-        )
-        {
-            // Track the transition for depth management
-            _menuTracker?.TrackTransition(currentMenuLocation, parentMenuLocation);
-
-            // Use the transition manager for consistent behavior
-            yield return _transitionManager.TransitionBetween(
-                currentMenuLocation,
-                parentMenuLocation,
-                destroyFrom: true
-            );
-
-            _isTransitioning = false;
-        }
-
-        #endregion
-
-        #region Menu Cleanup and Styling
-
-        private void CleanupPreBattleMenu(GameObject preBattleInstance)
-        {
-            if (preBattleInstance.TryGetComponent<RadialMenu>(out var radialMenu))
-            {
-                radialMenu.OnNavigate -= HandlePreBattleMenuNavigate;
-                radialMenu.OnItemSelected -= HandlePreBattleMenuSelect;
-            }
-
-            if (preBattleInstance.TryGetComponent<MenuBase>(out var menu))
-            {
-                menu.OnNavigate -= HandlePreBattleMenuNavigate;
-                menu.OnItemSelected -= HandlePreBattleMenuSelect;
-            }
-        }
-
-        private void ApplyGridListFilmstripColors(GameObject menuInstance)
-        {
-            // Apply grid/list/filmstrip colors to button components
-            var buttons = menuInstance.GetComponentsInChildren<UnityEngine.UI.Button>();
-            foreach (var button in buttons)
-            {
-                var colorBlock = button.colors;
-                colorBlock.normalColor = uiSettings.GridListFilmstripButtonNormalColor;
-                colorBlock.highlightedColor = uiSettings.GridListFilmstripButtonHoveredColor;
-                colorBlock.selectedColor = uiSettings.GridListFilmstripButtonSelectedColor;
-                colorBlock.fadeDuration = uiSettings.ButtonTransitionDuration;
-                button.colors = colorBlock;
-            }
-        }
-
         #endregion
     }
 }

@@ -24,7 +24,7 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
         private void InitializeRoutes()
         {
             // Pre-battle menu routes
-            _menuActionRoutes["Team"] = _ => OpenTeamManagement();
+            _menuActionRoutes["Team"] = _ => _brain.OpenPreBattleUnitsMenu();
             _menuActionRoutes["Items"] = _ => OpenInventory();
             _menuActionRoutes["Settings"] = _ => _brain.OpenMainGameSettingsMenu();
             _menuActionRoutes["Skills"] = _ => OpenSkills();
@@ -97,14 +97,6 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
         }
 
         // Route implementations
-        private void OpenTeamManagement()
-        {
-#if UNITY_EDITOR
-            Debug.Log("Opening Team Management - TODO: Implement");
-#endif
-            // TODO: Implement team management UI
-        }
-
         private void OpenInventory()
         {
 #if UNITY_EDITOR

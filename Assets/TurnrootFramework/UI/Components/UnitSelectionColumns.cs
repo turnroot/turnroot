@@ -9,9 +9,11 @@ namespace Turnroot.UI.Components
     public class UnitSelectionColumns : MonoBehaviour
     {
         private Brain _brain;
-        public int TotalColumns = 2;
+        private int TotalColumns => Columns.Length;
 
         public GameObject UnitCellPrefab;
+
+        public GameObject UnitCountText;
         public GameObject[] Columns;
 
         public int MaxSelectedUnits = 6; // TODO: Get this from BattlePreparationObject
@@ -26,6 +28,12 @@ namespace Turnroot.UI.Components
             int unitCount = units.Length;
             var u = LtmKeys.UnitSelectedForBattlePrefix;
             var keys = LongTermMemory.RecallKeysByPrefix(u);
+
+#if UNITY_EDITOR
+            Debug.Log(
+                $"UnitSelectionColumns: Initializing with {unitCount} units, {keys.Count} selection keys in LTM"
+            );
+#endif
             var keysSet = new System.Collections.Generic.HashSet<string>(keys);
 
             // Count currently selected units so we can fill up to MaxSelectedUnits when necessary
@@ -53,6 +61,7 @@ namespace Turnroot.UI.Components
                     ref currentlySelectedCount
                 );
             }
+            UpdateUnitCountText(currentlySelectedCount);
         }
 
         private void ConfigureUnitCell(
@@ -71,11 +80,14 @@ namespace Turnroot.UI.Components
                 nameLbl.text = unit.CharacterData.DisplayName;
             }
 
-            var portraitT = uf.FindChildByTag(unitCell, "UnitCellPortrait");
+            var portraitT = uf.FindChildByTag(unitCell, "UnitCellUnitPortrait");
             if (portraitT != null && portraitT.TryGetComponent<UnityEngine.UI.Image>(out var img))
             {
-                var portrait = unit.CharacterData.Portraits["default"]; // TODO: Make a Potraits.GetCurrentDefault()
-                img.sprite = portrait.RuntimeSprite;
+                var portrait = unit.CharacterData.DefaultPortrait?.RuntimeSprite;
+                if (portrait != null)
+                {
+                    img.sprite = portrait;
+                }
             }
 
             var classT = uf.FindChildByTag(unitCell, "UnitCellUnitClass");
@@ -124,6 +136,22 @@ namespace Turnroot.UI.Components
 #endif
                     }
                 }
+            }
+        }
+
+        private void UpdateUnitCountText(int selectedCount)
+        {
+            if (UnitCountText == null)
+            {
+                return;
+            }
+
+            if (
+                UnitCountText != null
+                && UnitCountText.TryGetComponent<TextMeshProUGUI>(out var textLbl)
+            )
+            {
+                textLbl.text = $"{selectedCount} / {MaxSelectedUnits} Units";
             }
         }
     }

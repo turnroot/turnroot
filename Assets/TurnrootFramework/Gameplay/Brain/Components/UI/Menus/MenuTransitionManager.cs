@@ -19,6 +19,7 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
         Controls,
         Battle,
         Map,
+        Team,
     }
 
     public class MenuTransitionManager
@@ -78,6 +79,10 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             {
                 return MenuType.Map;
             }
+            if (location == _settings?.GetPrebattleUnitsMenu())
+            {
+                return MenuType.Team;
+            }
 
             return MenuType.Unknown;
         }
@@ -132,24 +137,12 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             }
 
             // Instantiate target menu if needed or re-enable if it exists
+            bool instantiated = false;
             if (to.activeInstance == null && to.prefab != null)
             {
                 Debug.Log($"MenuTransitionManager: Instantiating target menu {to.menuName}");
                 to.activeInstance = Object.Instantiate(to.prefab);
-                SetupMenu(to);
-
-                // If this is the pre-battle map submenu, wire up PopulateMapPrefabEnviromentConditions with the brain
-                if (DetectMenuType(to) == MenuType.Map)
-                {
-                    var environmentalConditionsPopulator =
-                        to.activeInstance.GetComponentInChildren<PopulateMapPrefabEnviromentConditions>(
-                            true
-                        );
-                    if (environmentalConditionsPopulator != null)
-                    {
-                        environmentalConditionsPopulator.Initialize(_brain.GetBrain());
-                    }
-                }
+                instantiated = true;
             }
             else if (to.activeInstance != null)
             {
@@ -159,25 +152,23 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                     $"MenuTransitionManager: Reattaching and cleaning events for existing instance {to.activeInstance?.name} of menu {to.menuName}"
                 );
                 CleanupMenuEvents(to.activeInstance);
+            }
+
+            // If an instance now exists (either newly instantiated or pre-existing), set it up and initialize
+            if (to.activeInstance != null)
+            {
                 SetupMenu(to);
 
-                // If this is the pre-battle map submenu, ensure the environment-population component has the brain assigned
-                if (DetectMenuType(to) == MenuType.Map)
-                {
-                    var environmentalConditionsPopulator =
-                        to.activeInstance.GetComponentInChildren<PopulateMapPrefabEnviromentConditions>(
-                            true
-                        );
-                    if (environmentalConditionsPopulator != null)
-                    {
-                        environmentalConditionsPopulator.Initialize(_brain.GetBrain());
-                    }
-                }
+                HandleCreatedMenuInstance(to);
 
-                to.activeInstance.SetActive(true);
-                if (to.activeInstance.TryGetComponent<MenuBase>(out var existingMenu))
+                // If we re-enabled a previously existing instance, ensure it's active and enabled
+                if (!instantiated)
                 {
-                    existingMenu.enabled = true;
+                    to.activeInstance.SetActive(true);
+                    if (to.activeInstance.TryGetComponent<MenuBase>(out var existingMenu))
+                    {
+                        existingMenu.enabled = true;
+                    }
                 }
             }
 
@@ -300,10 +291,7 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                 _brain.SetupMenuInputActions(menu);
 
                 // Ensure child SimpleButton components use the menu's select action and are wired
-                var simpleButtons =
-                    menu.GetComponentsInChildren<Turnroot.UI.Components.SimpleButton.SimpleButton>(
-                        true
-                    );
+                var simpleButtons = menu.GetComponentsInChildren<SimpleButton>(true);
                 foreach (var sb in simpleButtons)
                 {
                     sb.AssignSelectAction(menu.selectAction);
@@ -396,9 +384,35 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                         sb.AssignSelectAction(listMenu.selectAction);
                     }
                 }
+
+                // Initialize team menu components if present (no-op when not a team prefab)
+                InitializeTeamMenu(instance);
             }
 
             _brain.ApplyMenuColors(instance, menuStyle);
+        }
+
+        private void HandleCreatedMenuInstance(MenuLocation to)
+        {
+            var instance = to.activeInstance;
+
+            // Initialize components for known special menus (no-op when component not present)
+            InitializeMapPopulator(instance);
+            InitializeTeamMenu(instance);
+        }
+
+        private void InitializeMapPopulator(GameObject instance)
+        {
+            var environmentalConditionsPopulator =
+                instance.GetComponentInChildren<PopulateMapPrefabEnviromentConditions>(true);
+            environmentalConditionsPopulator?.Initialize(_brain.GetBrain());
+        }
+
+        private void InitializeTeamMenu(GameObject instance)
+        {
+            var unitColumns = instance.GetComponentInChildren<UnitSelectionColumns>(true);
+            unitColumns?.Initialize(_brain.GetBrain());
+            InitializeMapPopulator(instance);
         }
 
         private void CleanupMenuEvents(GameObject instance)

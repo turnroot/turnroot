@@ -24,8 +24,6 @@ namespace Turnroot.UI.Components.SimpleButton
     {
         public InputAction SelectAction;
         public event Action OnSelected;
-        public UnityEvent OnSelectedInspector;
-
         public SimpleButtonRole Role;
 
         /// <summary>
@@ -73,7 +71,6 @@ namespace Turnroot.UI.Components.SimpleButton
 
             // After the coroutine finished, and if it's a selection
             OnSelected?.Invoke();
-            OnSelectedInspector?.Invoke();
 
             // Transition back to normal color after action is invoked
             yield return StartCoroutine(TweenColors(SelectedColor, NormalColor));
@@ -95,10 +92,6 @@ namespace Turnroot.UI.Components.SimpleButton
                 {
                     ButtonImage.color = Color.Lerp(initialButtonColor, endColor, t);
                 }
-                if (ButtonText != null)
-                {
-                    ButtonText.color = Color.Lerp(initialTextColor, endColor, t);
-                }
 
                 yield return null;
             }
@@ -106,10 +99,6 @@ namespace Turnroot.UI.Components.SimpleButton
             if (ButtonImage != null)
             {
                 ButtonImage.color = endColor;
-            }
-            if (ButtonText != null)
-            {
-                ButtonText.color = endColor;
             }
         }
 
@@ -136,7 +125,6 @@ namespace Turnroot.UI.Components.SimpleButton
         }
 
         public Image ButtonImage;
-        public TMPro.TextMeshProUGUI ButtonText;
 
         private GamewideUiSettings _uiSettings;
 
@@ -158,10 +146,6 @@ namespace Turnroot.UI.Components.SimpleButton
             if (ButtonImage == null)
             {
                 Debug.LogWarning("SimpleButton: ButtonImage is not assigned!");
-            }
-            if (ButtonText == null)
-            {
-                Debug.LogWarning("SimpleButton: ButtonText is not assigned!");
             }
 #endif
         }

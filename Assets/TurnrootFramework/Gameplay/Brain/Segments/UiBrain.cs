@@ -34,6 +34,12 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
         public MenuLocation preBattleMenuLocation;
 
         [HideInInspector]
+        public MenuLocation prebattleMapMenuLocation;
+
+        [HideInInspector]
+        public MenuLocation prebattleUnitsMenuLocation;
+
+        [HideInInspector]
         public bool _isTransitioning = false;
         private GameObject _currentMenuCanvasPrefab;
         private MenuTransitionManager _transitionManager;
@@ -78,6 +84,8 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                 gameSettingsGameplayLocation = uiSettings.GetGameSettingsGameplayMenu();
                 gameSettingsAudioLocation = uiSettings.GetGameSettingsAudioMenu();
                 gameSettingsControlsLocation = uiSettings.GetGameSettingsControlsMenu();
+                prebattleMapMenuLocation = uiSettings.GetPrebattleMapMenu();
+                prebattleUnitsMenuLocation = uiSettings.GetPrebattleUnitsMenu();
 
                 // Initialize new components
                 _transitionManager = new MenuTransitionManager(this, uiSettings);
