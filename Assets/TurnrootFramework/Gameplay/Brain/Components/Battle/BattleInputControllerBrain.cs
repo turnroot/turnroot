@@ -386,8 +386,8 @@ namespace Turnroot.Gameplay.Brain
 
             var currentState = _playerTurnFlow?.GetCurrentState();
             if (
-                currentState != PlayerTurnStates.NoUnitSelected
-                && currentState != PlayerTurnStates.Inactive
+                currentState is not PlayerTurnStates.NoUnitSelected
+                and not PlayerTurnStates.Inactive
             )
             {
                 return;

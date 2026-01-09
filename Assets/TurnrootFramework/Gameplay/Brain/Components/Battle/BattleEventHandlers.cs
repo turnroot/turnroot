@@ -10,6 +10,7 @@ namespace Turnroot.Gameplay.Brain
 
         protected override void SubscribeToBrainEvents()
         {
+            _brain.OnPreBattlePrepare += HandlePreBattlePrepare;
             _brain.OnBattleStarted += HandleStartBattle;
             _brain.OnBattleCompleted += HandleExitBattle;
             _brain.OnUnitTakesAnotherTurn += HandleUnitTakesAnotherTurn;
@@ -24,6 +25,7 @@ namespace Turnroot.Gameplay.Brain
 
         protected override void UnsubscribeFromBrainEvents()
         {
+            _brain.OnPreBattlePrepare -= HandlePreBattlePrepare;
             _brain.OnBattleStarted -= HandleStartBattle;
             _brain.OnBattleCompleted -= HandleExitBattle;
             _brain.OnUnitTakesAnotherTurn -= HandleUnitTakesAnotherTurn;
@@ -38,11 +40,45 @@ namespace Turnroot.Gameplay.Brain
 
         #region Event Handlers
 
+        private void HandlePreBattlePrepare()
+        {
+            // Find a preparation object in the scene and cache it for pre-battle UI access
+            var prep =
+                Object.FindFirstObjectByType<Turnroot.Gameplay.Combat.PreBattle.BattlePreparationObject>();
+            if (prep == null)
+            {
+                var all =
+                    Resources.FindObjectsOfTypeAll<Turnroot.Gameplay.Combat.PreBattle.BattlePreparationObject>();
+                foreach (var p in all)
+                {
+                    if (p != null && p.gameObject != null && p.gameObject.scene.isLoaded)
+                    {
+                        prep = p;
+                        break;
+                    }
+                }
+            }
+            if (prep == null)
+            {
+                Debug.LogWarning(
+                    "BattleBrain: No BattlePreparationObject found in scene when PreBattle prepare event fired."
+                );
+                return;
+            }
+
+            PreparationObject = prep;
+            PreparationObject.Initialize(_brain);
+            Debug.Log(
+                $"BattleBrain: Connected to BattlePreparationObject '{prep.name}' for pre-battle."
+            );
+        }
+
         private void HandleUnitMoved(CharacterInstance unit, Vector2Int targetPosition) =>
             // Rebuild cached unit positions in BattleContext whenever a unit moves
             BattleObject.Context.InvalidateUnitPositionCache();
 
-        private void HandleUnitDefeated(CharacterInstance unit) => BattleObject.Context.InvalidateUnitPositionCache();
+        private void HandleUnitDefeated(CharacterInstance unit) =>
+            BattleObject.Context.InvalidateUnitPositionCache();
 
         private void HandleUnitTakesAnotherTurn(CharacterInstance unit)
         {

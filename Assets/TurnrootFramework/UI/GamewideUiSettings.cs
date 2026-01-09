@@ -324,5 +324,25 @@ namespace Turnroot.GameSettings
 
         [Range(.01f, .3f)]
         public float CameraPanStopDistance = 0.01f;
+
+        [Header("Map Conditions"), HorizontalLine(color: EColor.Blue)]
+        public Sprite timeDayImage;
+        public Sprite timeNightImage;
+        public Sprite timeDawnImage;
+        public Sprite timeSunsetImage;
+        public Sprite temperatureVeryColdImage;
+        public Sprite temperatureVeryHotImage;
+        public Sprite isRainingImage;
+        public Sprite isSnowingImage;
+        public Sprite isFoggyImage;
+        public Sprite isStormyImage;
+        public Sprite isWindyImage;
+        public Sprite clearImage;
+        public Sprite isUnderwaterImage;
+        public Sprite isSwampyImage;
+        public Sprite isUndergroundImage;
+        public Sprite isDesertImage;
+        public Sprite isRockyImage;
+        public Sprite isVolcanicImage;
     }
 }

@@ -530,6 +530,14 @@ namespace Turnroot.Gameplay.Brain
 
         public void PublishBattleContextInitialized() => OnBattleContextInitialized?.Invoke();
 
+        // NOTE: Pre-battle has two phases: a preparation phase (UI/menu created, pre-battle
+        // objects available) and a completion phase (pre-battle finished, transitioning to battle).
+        // PublishPreBattlePrepare is intended for systems that need access to pre-battle scene
+        // objects (e.g., BattlePreparationObject) before the full PreBattleStarted event is used.
+        public event System.Action OnPreBattlePrepare;
+
+        public void PublishPreBattlePrepare() => OnPreBattlePrepare?.Invoke();
+
         public void PublishPreBattleStarted() => OnPreBattleStarted?.Invoke();
 
         public void PublishPreBattleCompleted() => OnPreBattleCompleted?.Invoke();

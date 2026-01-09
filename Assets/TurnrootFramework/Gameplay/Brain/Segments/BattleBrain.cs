@@ -29,6 +29,16 @@ namespace Turnroot.Gameplay.Brain
 
         public BattleGameObject BattleObject { get; private set; }
 
+        /// <summary>
+        /// During pre-battle this points to the scene's BattlePreparationObject so UI can query
+        /// pre-battle environmental conditions and setup without a full BattleGameObject.
+        /// </summary>
+        public Turnroot.Gameplay.Combat.PreBattle.BattlePreparationObject PreparationObject
+        {
+            get;
+            private set;
+        }
+
         // Roster accessors through BattleGameObject
         public PlayerTeamRosterInstance PlayerTeamRoster =>
             BattleObject != null ? BattleObject.PlayerTeamRoster : null;

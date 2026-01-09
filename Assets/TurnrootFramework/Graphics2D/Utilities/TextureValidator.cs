@@ -134,7 +134,7 @@ namespace Turnroot.Graphics2D.Utilities
                     if (type == "IHDR" && length >= 13)
                     {
                         int colorType = data[pos + 17];
-                        return colorType == 0 || colorType == 4; // grayscale or grayscale+alpha
+                        return colorType is 0 or 4; // grayscale or grayscale+alpha
                     }
 
                     pos += length + 12;

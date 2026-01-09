@@ -45,6 +45,11 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             Debug.Log(
                 $"UiBrain: Created pre-battle instance {preBattleMenuLocation.activeInstance?.name}"
             );
+
+            // Notify subscribers that pre-battle prepare phase is occurring so systems like BattleBrain
+            // can initialize pre-battle objects (e.g., BattlePreparationObject) before UI populates.
+            Debug.Log("UiBrain: Publishing PreBattlePrepare event");
+            _brain.PublishPreBattlePrepare();
             if (!preBattleMenuLocation.activeInstance.TryGetComponent<UIFade>(out var uiFade))
             {
                 uiFade = preBattleMenuLocation.activeInstance.AddComponent<UIFade>();

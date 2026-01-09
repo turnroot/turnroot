@@ -1,13 +1,21 @@
+using Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Environment;
+using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.Combat.PreBattle
 {
-    /// <summary>
-    /// Handles battle preparation logic before combat starts.
-    /// </summary>
+    [RequireComponent(typeof(EnvironmentalConditions))]
     public class BattlePreparationObject : MonoBehaviour
     {
-        // This is a sister of BattleGameObject, a battle scene needs both a BattlePreparationObject
-        // to handle pre-battle setup and a BattleGameObject to handle in-battle logic.
+        public Brain.Brain Brain { get; private set; }
+        public EnvironmentalConditions EnvironmentalConditions { get; private set; }
+        public OperationResult Initialize(Brain.Brain brain)
+        {
+            Brain = brain;
+            EnvironmentalConditions = GetComponentInChildren<EnvironmentalConditions>(true);
+            return EnvironmentalConditions == null
+                ? OperationResult.Failure("EnvironmentalConditions not found")
+                : OperationResult.SuccessResult();
+        }
     }
 }

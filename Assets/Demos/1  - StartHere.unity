@@ -159215,17 +159215,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e5e951d0b7ce5664f964cbfff33910f0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  IsVeryHot: 0
-  IsVeryCold: 0
-  IsNight: 0
-  IsSunset: 0
-  IsDawn: 0
+  _isVeryHot: 0
+  _isVeryCold: 0
+  _isNight: 0
+  _isSunset: 0
+  _isDawn: 0
   IsRaining: 0
   IsFoggy: 0
   IsStormy: 0
-  IsWindy: 0
-  HasSunlight: 1
-  IsSnowing: 0
+  IsWindy: 1
+  _hasSunlight: 1
+  _isSnowing: 0
   IsUnderwater: 0
   IsRocky: 0
   IsSwampy: 0

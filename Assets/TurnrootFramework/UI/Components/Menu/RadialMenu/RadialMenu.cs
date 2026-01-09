@@ -538,7 +538,7 @@ namespace Turnroot.UI.Components.RadialMenu
         private void SetupCenterItem()
         {
             // Do not resize or reposition a minimal sprite-only center item
-            if (centerItem == null || centerItem is RadialMenuItemSprite)
+            if (centerItem is null or RadialMenuItemSprite)
             {
                 return;
             }

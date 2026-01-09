@@ -31,6 +31,9 @@ namespace Turnroot.Gameplay.Combat
         public bool ThirdPartyFightsAllies;
         public bool ThirdPartyFightsEnemies;
 
+        public EnvironmentalConditions EnvironmentalConditions =>
+            GetComponent<EnvironmentalConditions>();
+
         [SerializeField, SerializeReference]
         private BattleCondition[] _battleConditions;
 

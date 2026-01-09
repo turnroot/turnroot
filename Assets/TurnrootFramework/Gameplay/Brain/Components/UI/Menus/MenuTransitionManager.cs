@@ -137,6 +137,19 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                 Debug.Log($"MenuTransitionManager: Instantiating target menu {to.menuName}");
                 to.activeInstance = Object.Instantiate(to.prefab);
                 SetupMenu(to);
+
+                // If this is the pre-battle map submenu, wire up PopulateMapPrefabEnviromentConditions with the brain
+                if (DetectMenuType(to) == MenuType.Map)
+                {
+                    var environmentalConditionsPopulator =
+                        to.activeInstance.GetComponentInChildren<PopulateMapPrefabEnviromentConditions>(
+                            true
+                        );
+                    if (environmentalConditionsPopulator != null)
+                    {
+                        environmentalConditionsPopulator.Initialize(_brain.GetBrain());
+                    }
+                }
             }
             else if (to.activeInstance != null)
             {
@@ -147,6 +160,19 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                 );
                 CleanupMenuEvents(to.activeInstance);
                 SetupMenu(to);
+
+                // If this is the pre-battle map submenu, ensure the environment-population component has the brain assigned
+                if (DetectMenuType(to) == MenuType.Map)
+                {
+                    var environmentalConditionsPopulator =
+                        to.activeInstance.GetComponentInChildren<PopulateMapPrefabEnviromentConditions>(
+                            true
+                        );
+                    if (environmentalConditionsPopulator != null)
+                    {
+                        environmentalConditionsPopulator.Initialize(_brain.GetBrain());
+                    }
+                }
 
                 to.activeInstance.SetActive(true);
                 if (to.activeInstance.TryGetComponent<MenuBase>(out var existingMenu))
@@ -245,18 +271,19 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                 menu.uiBrain = _brain;
 
                 var menuType = DetectMenuType(location);
-                if (menuType == MenuType.PreBattle || menuType == MenuType.Map)
+                if (menuType is MenuType.PreBattle or MenuType.Map)
                 {
                     // Pre-battle context (map submenus etc.)
                     menu.OnNavigate += _brain.HandlePreBattleMenuNavigate;
                     menu.OnItemSelected += _brain.HandlePreBattleMenuSelect;
                 }
                 else if (
-                    menuType == MenuType.Settings
-                    || menuType == MenuType.Graphics
-                    || menuType == MenuType.Gameplay
-                    || menuType == MenuType.Audio
-                    || menuType == MenuType.Controls
+                    menuType
+                    is MenuType.Settings
+                        or MenuType.Graphics
+                        or MenuType.Gameplay
+                        or MenuType.Audio
+                        or MenuType.Controls
                 )
                 {
                     // Settings-related menus
@@ -344,7 +371,7 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                     }
                 }
             }
-            else if (menuStyle == MenuStyle.List || menuStyle == MenuStyle.Grid)
+            else if (menuStyle is MenuStyle.List or MenuStyle.Grid)
             {
                 // Bind every MenuBase found inside the prebattle prefab (handles 'Right' or other sub-panels)
                 var listMenus = instance.GetComponentsInChildren<MenuBase>(true);
