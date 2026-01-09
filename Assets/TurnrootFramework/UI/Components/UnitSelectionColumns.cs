@@ -1,6 +1,7 @@
 using Coffee.UIEffects;
 using TMPro;
 using Turnroot.Gameplay.Brain;
+using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.UI.Components
@@ -54,47 +55,36 @@ namespace Turnroot.UI.Components
             }
         }
 
-        private Transform FindChildByTag(GameObject root, string tag)
-        {
-            foreach (Transform t in root.GetComponentsInChildren<Transform>(true))
-            {
-                if (t.CompareTag(tag))
-                {
-                    return t;
-                }
-            }
-            return null;
-        }
-
         private void ConfigureUnitCell(
             GameObject unitCell,
-            Turnroot.Characters.Roster.UnitPlacement unit,
+            Characters.Roster.UnitPlacement unit,
             string prefix,
             System.Collections.Generic.HashSet<string> keySet,
             LongTermMemory ltm,
             ref int currentlySelectedCount
         )
         {
-            var nameT = FindChildByTag(unitCell, "UnitCellUnitName");
+            var uf = new UtilityFunctions();
+            var nameT = uf.FindChildByTag(unitCell, "UnitCellUnitName");
             if (nameT != null && nameT.TryGetComponent<TextMeshProUGUI>(out var nameLbl))
             {
                 nameLbl.text = unit.CharacterData.DisplayName;
             }
 
-            var portraitT = FindChildByTag(unitCell, "UnitCellPortrait");
+            var portraitT = uf.FindChildByTag(unitCell, "UnitCellPortrait");
             if (portraitT != null && portraitT.TryGetComponent<UnityEngine.UI.Image>(out var img))
             {
                 var portrait = unit.CharacterData.Portraits["default"]; // TODO: Make a Potraits.GetCurrentDefault()
                 img.sprite = portrait.RuntimeSprite;
             }
 
-            var classT = FindChildByTag(unitCell, "UnitCellUnitClass");
+            var classT = uf.FindChildByTag(unitCell, "UnitCellUnitClass");
             if (classT != null && classT.TryGetComponent<TextMeshProUGUI>(out var classLbl))
             {
                 classLbl.text = "n/a"; // TODO: Get current class name from roster instance?
             }
 
-            var selectedT = FindChildByTag(unitCell, "UnitCellSelected");
+            var selectedT = uf.FindChildByTag(unitCell, "UnitCellSelected");
             if (selectedT != null)
             {
                 var selectionIndicator = selectedT.gameObject;

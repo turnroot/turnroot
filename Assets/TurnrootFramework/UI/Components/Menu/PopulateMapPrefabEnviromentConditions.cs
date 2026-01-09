@@ -105,18 +105,12 @@ public class PopulateMapPrefabEnviromentConditions : MonoBehaviour
         var gamewideUiSettings = _brain.uiBrain.uiSettings;
         Debug.Log("PopulateMapPrefabEnviromentConditions: Initializing with brain " + brain.name);
         // Find the child GameObject tagged 'BattleMapEnvironment' and use it directly
-        GameObject envRoot = null;
-        foreach (var t in GetComponentsInChildren<Transform>(true))
-        {
-            if (t.gameObject.CompareTag("BattleMapEnvironment"))
-            {
-                envRoot = t.gameObject;
-                break;
-            }
-        }
+        var uf = new UtilityFunctions();
+        var c = uf.FindChildByTag(this.gameObject, "BattleMapEnvironment");
+        GameObject envRoot = c != null ? c.gameObject : null;
         if (envRoot == null)
         {
-            return OperationResult.Failure("Child with tag 'BattleMapEnvironment' not found");
+            return OperationResult.Failure("BattleMapEnvironment GameObject not found");
         }
 
         var timeRow = envRoot.transform.Find("TimeRow");
