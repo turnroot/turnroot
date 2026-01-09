@@ -112,6 +112,53 @@ namespace Turnroot.Gameplay.Brain
                 bool isModified = Mathf.Abs(gainW) > 0.000001f || Mathf.Abs(gammaW) > 0.000001f;
                 liftGammaGain.active = isModified;
             }
+
+            // Apply URP quality settings (shadows, cascades, etc.)
+            ApplyQualitySettings(settings);
+        }
+
+        private void ApplyQualitySettings(PlayerSettings.GameplayPlayerSettings settings)
+        {
+            var rpAsset =
+                UnityEngine.Rendering.GraphicsSettings.defaultRenderPipeline
+                as UniversalRenderPipelineAsset;
+            if (rpAsset == null)
+                return;
+
+            // Map float quality to 4 discrete steps (0..3)
+            int step = settings.QualityStep;
+
+            switch (step)
+            {
+                case 0: // Low
+                    rpAsset.mainLightShadowmapResolution = 512;
+                    rpAsset.additionalLightsShadowmapResolution = 256;
+                    rpAsset.shadowDistance = 30f;
+                    rpAsset.shadowCascadeCount = 1;
+                    break;
+                case 1: // Medium
+                    rpAsset.mainLightShadowmapResolution = 1024;
+                    rpAsset.additionalLightsShadowmapResolution = 512;
+                    rpAsset.shadowDistance = 80f;
+                    rpAsset.shadowCascadeCount = 2;
+                    break;
+                case 2: // High
+                    rpAsset.mainLightShadowmapResolution = 2048;
+                    rpAsset.additionalLightsShadowmapResolution = 1024;
+                    rpAsset.shadowDistance = 150f;
+                    rpAsset.shadowCascadeCount = 4;
+                    break;
+                case 3: // Ultra
+                    rpAsset.mainLightShadowmapResolution = 4096;
+                    rpAsset.additionalLightsShadowmapResolution = 4096;
+                    rpAsset.shadowDistance = 300f;
+                    rpAsset.shadowCascadeCount = 4;
+                    break;
+            }
+
+#if UNITY_EDITOR
+            Debug.Log($"VolumeBrain: Applied Quality step {step} to URP asset.");
+#endif
         }
     }
 }

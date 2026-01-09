@@ -80,6 +80,11 @@ namespace Turnroot.Gameplay.PlayerSettings
         public float Brightness = 1.0f;
         public float Gamma = 1.0f;
         public float Quality = 0.3f;
+
+        /// <summary>
+        /// Discrete quality step (0..3) mapped from the Quality slider (0..1)
+        /// </summary>
+        public int QualityStep => Mathf.Clamp(Mathf.RoundToInt(Mathf.Clamp01(Quality) * 3f), 0, 3);
         public bool Subtitles = true;
         public bool Bloom = true;
         public bool LensFlare = false;
