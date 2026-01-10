@@ -46,18 +46,6 @@ namespace Turnroot.GamePackage
         [TextArea(3, 10)]
         public string PregameDisclaimer;
         public List<Credits> GameCredits = new();
-
-        [Header("Graphics"), HorizontalLine(color: EColor.Black)]
-        [Label("Game Icon 1:1")]
-        public Sprite GameIcon;
-
-        [Label("Game Banner 16:9")]
-        public Sprite GameBannerDesktop;
-
-        [Label("Game Banner 4:1")]
-        public Sprite GameBannerWide;
-        public List<Sprite> Screenshots = new();
-        public string GameTrailerUrl;
         public List<GraphicsPack> GraphicsPacksUsed = new();
 
         [Button]
@@ -139,11 +127,6 @@ namespace Turnroot.GamePackage
             if (!string.IsNullOrEmpty(GameUrl) && !ValidateUrl(GameUrl))
             {
                 Debug.LogWarning($"Invalid Game URL: {GameUrl}");
-            }
-
-            if (!string.IsNullOrEmpty(GameTrailerUrl) && !ValidateUrl(GameTrailerUrl))
-            {
-                Debug.LogWarning($"Invalid Game Trailer URL: {GameTrailerUrl}");
             }
 
             // Validate version number format (semantic versioning: x.y.z or x.y.z-suffix)

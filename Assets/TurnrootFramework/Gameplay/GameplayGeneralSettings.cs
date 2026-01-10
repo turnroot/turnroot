@@ -115,30 +115,30 @@ namespace Turnroot.GameSettings
             Custom, // Manual multiplier
         }
 
-        [SerializeField, BoxGroup("General Gameplay"), HorizontalLine(color: EColor.Blue)]
-        private ClassSelectionMode ClassSelection = ClassSelectionMode.PromotionBased;
+        [BoxGroup("General Gameplay"), HorizontalLine(color: EColor.Blue)]
+        public ClassSelectionMode ClassSelection = ClassSelectionMode.PromotionBased;
 
         public ClassSelectionMode GetClassSelectionMode() => ClassSelection;
 
-        [SerializeField, BoxGroup("General Gameplay")]
-        private CharacterClassData DefaultStartingClass;
+        [BoxGroup("General Gameplay")]
+        public CharacterClassData DefaultStartingClass;
 
         public CharacterClassData GetDefaultStartingClass() => DefaultStartingClass;
 
-        [SerializeField, BoxGroup("General Gameplay")]
+        [BoxGroup("General Gameplay")]
         public WeaponType[] WeaponTypes;
 
-        [SerializeField, BoxGroup("General Gameplay")]
+        [BoxGroup("General Gameplay")]
         public SpeciesType[] SpeciesTypes;
 
-        [SerializeField, BoxGroup("General Gameplay")]
-        private bool WeaponsCanBeForged;
+        [BoxGroup("General Gameplay")]
+        public bool WeaponsCanBeForged;
 
-        [SerializeField, BoxGroup("General Gameplay")]
-        private bool WeaponsCanBeRepaired;
+        [BoxGroup("General Gameplay")]
+        public bool WeaponsCanBeRepaired;
 
-        [SerializeField, BoxGroup("General Gameplay")]
-        private bool WeaponsHaveDurability;
+        [BoxGroup("General Gameplay")]
+        public bool WeaponsHaveDurability;
 
         public bool GetWeaponsCanBeForged() => WeaponsCanBeForged;
 
@@ -146,89 +146,93 @@ namespace Turnroot.GameSettings
 
         public bool GetWeaponsHaveDurability() => WeaponsHaveDurability;
 
-        [SerializeField, BoxGroup("General Gameplay")]
-        private bool UseExperienceAptitudes;
+        [BoxGroup("General Gameplay")]
+        public bool UseExperienceAptitudes;
 
-        [SerializeField, BoxGroup("UI"), HorizontalLine(color: EColor.Green)]
+        [BoxGroup("UI"), HorizontalLine(color: EColor.Green)]
         public GoldDisplay GoldDisplayNames = new() { OneLetter = "G", FullName = "gold" };
 
-        [SerializeField, BoxGroup("Combat Mechanics"), HorizontalLine(color: EColor.Yellow)]
-        private bool CombatArts;
+        [BoxGroup("Maps"), HorizontalLine(color: EColor.Green)]
+        public bool UnexploredMaps;
 
-        [SerializeField, BoxGroup("Combat Mechanics")]
-        private int CombatArtLimit = 3;
+        [ShowIf("UnexploredMaps"), BoxGroup("Maps"), Range(1, 3)]
+        public int MaxNumberOfExplorers = 2;
 
-        [SerializeField, BoxGroup("Combat Mechanics")]
-        private int MaxEquippedSkills = 0;
+        [ShowIf("UnexploredMaps"), BoxGroup("Maps")]
+        public bool RidersAndFliersAreBetterExplorers = true;
 
-        [SerializeField, BoxGroup("Combat Mechanics")]
+        [ShowIf("UnexploredMaps"), BoxGroup("Maps")]
+        public bool ExplorersFailIfInjured = false;
+
+        [BoxGroup("Combat Mechanics"), HorizontalLine(color: EColor.Yellow)]
+        public bool CombatArts;
+
+        [BoxGroup("Combat Mechanics")]
+        public int CombatArtLimit = 3;
+
+        [BoxGroup("Combat Mechanics")]
+        public int MaxEquippedSkills = 0;
+
+        [BoxGroup("Combat Mechanics")]
         public bool WeaponTriangle;
 
-        [SerializeField, BoxGroup("Combat Mechanics"), ShowIf("WeaponTriangle")]
-        private bool ExpandedWeaponTriangle;
+        [BoxGroup("Combat Mechanics"), ShowIf("WeaponTriangle")]
+        public bool ExpandedWeaponTriangle;
 
-        [SerializeField, BoxGroup("Combat Mechanics"), ShowIf("WeaponTriangle")]
-        private bool WeaponTriangleAffectsDamage = true;
+        [BoxGroup("Combat Mechanics"), ShowIf("WeaponTriangle")]
+        public bool WeaponTriangleAffectsDamage = true;
 
-        [SerializeField, BoxGroup("Combat Mechanics"), ShowIf("WeaponTriangle")]
-        private bool WeaponTriangleAffectsHit = true;
+        [BoxGroup("Combat Mechanics"), ShowIf("WeaponTriangle")]
+        public bool WeaponTriangleAffectsHit = true;
 
-        [SerializeField, BoxGroup("Combat Mechanics"), ShowIf("WeaponTriangle")]
+        [BoxGroup("Combat Mechanics"), ShowIf("WeaponTriangle")]
         public int WeaponTriangleAdvantage = 20;
 
-        [SerializeField, BoxGroup("Combat Mechanics"), ShowIf("WeaponTriangle")]
+        [BoxGroup("Combat Mechanics"), ShowIf("WeaponTriangle")]
         public int WeaponTriangleDisadvantage = -20;
 
-        [SerializeField, BoxGroup("Combat Mechanics")]
+        [BoxGroup("Combat Mechanics")]
         public bool MagicTriangle;
 
-        [SerializeField, BoxGroup("Combat Mechanics"), ShowIf("MagicTriangle")]
+        [BoxGroup("Combat Mechanics"), ShowIf("MagicTriangle")]
         public int MagicTriangleAdvantage = 20;
 
-        [SerializeField, BoxGroup("Combat Mechanics"), ShowIf("MagicTriangle")]
+        [BoxGroup("Combat Mechanics"), ShowIf("MagicTriangle")]
         public int MagicTriangleDisadvantage = -20;
 
         // Combat formula configuration
-        [SerializeField, BoxGroup("Combat Formulas"), HorizontalLine(color: EColor.Red)]
-        private HitFormulaType HitFormula = HitFormulaType.ClassicDouble;
+        [BoxGroup("Combat Formulas"), HorizontalLine(color: EColor.Red)]
+        public HitFormulaType HitFormula = HitFormulaType.ClassicDouble;
 
-        [SerializeField, BoxGroup("Combat Formulas"), ShowIf("HitFormula", HitFormulaType.Custom)]
-        private float CustomSkillMultiplierForHit = 2f;
+        [BoxGroup("Combat Formulas"), ShowIf("HitFormula", HitFormulaType.Custom)]
+        public float CustomSkillMultiplierForHit = 2f;
 
-        [SerializeField, BoxGroup("Combat Formulas"), ShowIf("HitFormula", HitFormulaType.Custom)]
-        private float CustomDexMultiplierForHit = 1f;
+        [BoxGroup("Combat Formulas"), ShowIf("HitFormula", HitFormulaType.Custom)]
+        public float CustomDexMultiplierForHit = 1f;
 
-        [SerializeField, BoxGroup("Combat Formulas"), ShowIf("HitFormula", HitFormulaType.Custom)]
-        private float CustomLuckMultiplierForHit = 0.5f;
+        [BoxGroup("Combat Formulas"), ShowIf("HitFormula", HitFormulaType.Custom)]
+        public float CustomLuckMultiplierForHit = 0.5f;
 
-        [SerializeField, BoxGroup("Combat Formulas")]
-        private CritFormulaType CritFormula = CritFormulaType.SkillHalf;
+        [BoxGroup("Combat Formulas")]
+        public CritFormulaType CritFormula = CritFormulaType.SkillHalf;
 
-        [SerializeField, BoxGroup("Combat Formulas"), ShowIf("CritFormula", CritFormulaType.Custom)]
-        private float CustomSkillMultiplierForCrit = 0.5f;
+        [BoxGroup("Combat Formulas"), ShowIf("CritFormula", CritFormulaType.Custom)]
+        public float CustomSkillMultiplierForCrit = 0.5f;
 
-        [SerializeField, BoxGroup("Combat Formulas"), ShowIf("CritFormula", CritFormulaType.Custom)]
-        private float CustomLuckMultiplierForCrit = 0f;
+        [BoxGroup("Combat Formulas"), ShowIf("CritFormula", CritFormulaType.Custom)]
+        public float CustomLuckMultiplierForCrit = 0f;
 
-        [SerializeField, BoxGroup("Combat Formulas")]
-        private AvoidFormulaType AvoidFormula = AvoidFormulaType.ClassicDouble;
+        [BoxGroup("Combat Formulas")]
+        public AvoidFormulaType AvoidFormula = AvoidFormulaType.ClassicDouble;
 
-        [
-            SerializeField,
-            BoxGroup("Combat Formulas"),
-            ShowIf("AvoidFormula", AvoidFormulaType.Custom)
-        ]
-        private float CustomSpeedMultiplierForAvoid = 2f;
+        [BoxGroup("Combat Formulas"), ShowIf("AvoidFormula", AvoidFormulaType.Custom)]
+        public float CustomSpeedMultiplierForAvoid = 2f;
 
-        [
-            SerializeField,
-            BoxGroup("Combat Formulas"),
-            ShowIf("AvoidFormula", AvoidFormulaType.Custom)
-        ]
-        private float CustomLuckMultiplierForAvoid = 1f;
+        [BoxGroup("Combat Formulas"), ShowIf("AvoidFormula", AvoidFormulaType.Custom)]
+        public float CustomLuckMultiplierForAvoid = 1f;
 
-        [SerializeField, BoxGroup("Combat Formulas"), ShowIf("ShowWeaponTriangleHitBonus")]
-        private float WeaponTriangleHitBonus = 15f;
+        [BoxGroup("Combat Formulas"), ShowIf("ShowWeaponTriangleHitBonus")]
+        public float WeaponTriangleHitBonus = 15f;
 
         // Combat tuning: effectiveness, crit multiplier, double-attack speed threshold, and support bonuses
 
@@ -241,15 +245,15 @@ namespace Turnroot.GameSettings
             public int Dodge;
         }
 
-        [SerializeField, BoxGroup("Combat Mechanics")]
-        private float EffectivenessMultiplier = 1.5f;
+        [BoxGroup("Combat Mechanics")]
+        public float EffectivenessMultiplier = 1.5f;
 
-        [SerializeField, BoxGroup("Combat Mechanics")]
-        private int DoubleAttackSpeedThreshold = 4; // speed threshold for double attacks
+        [BoxGroup("Combat Mechanics")]
+        public int DoubleAttackSpeedThreshold = 4; // speed threshold for double attacks
 
         // Support bonuses per rank (C/B/A/S). D/E default to zero.
-        [SerializeField, BoxGroup("Combat Mechanics")]
-        private SupportBonus SupportBonusC = new SupportBonus
+        [BoxGroup("Combat Mechanics")]
+        public SupportBonus SupportBonusC = new SupportBonus
         {
             Hit = 2,
             Avoid = 1,
@@ -257,8 +261,8 @@ namespace Turnroot.GameSettings
             Dodge = 0,
         };
 
-        [SerializeField, BoxGroup("Combat Mechanics")]
-        private SupportBonus SupportBonusB = new SupportBonus
+        [BoxGroup("Combat Mechanics")]
+        public SupportBonus SupportBonusB = new SupportBonus
         {
             Hit = 3,
             Avoid = 2,
@@ -266,8 +270,8 @@ namespace Turnroot.GameSettings
             Dodge = 1,
         };
 
-        [SerializeField, BoxGroup("Combat Mechanics")]
-        private SupportBonus SupportBonusA = new SupportBonus
+        [BoxGroup("Combat Mechanics")]
+        public SupportBonus SupportBonusA = new SupportBonus
         {
             Hit = 4,
             Avoid = 3,
@@ -275,8 +279,8 @@ namespace Turnroot.GameSettings
             Dodge = 2,
         };
 
-        [SerializeField, BoxGroup("Combat Mechanics")]
-        private SupportBonus SupportBonusD = new SupportBonus
+        [BoxGroup("Combat Mechanics")]
+        public SupportBonus SupportBonusD = new SupportBonus
         {
             Hit = 1,
             Avoid = 0,
@@ -284,8 +288,8 @@ namespace Turnroot.GameSettings
             Dodge = 0,
         };
 
-        [SerializeField, BoxGroup("Combat Mechanics")]
-        private SupportBonus SupportBonusE = new SupportBonus
+        [BoxGroup("Combat Mechanics")]
+        public SupportBonus SupportBonusE = new SupportBonus
         {
             Hit = 0,
             Avoid = 0,
@@ -293,8 +297,8 @@ namespace Turnroot.GameSettings
             Dodge = 0,
         };
 
-        [SerializeField, BoxGroup("Combat Mechanics")]
-        private SupportBonus SupportBonusS = new SupportBonus
+        [BoxGroup("Combat Mechanics")]
+        public SupportBonus SupportBonusS = new SupportBonus
         {
             Hit = 5,
             Avoid = 4,
@@ -320,140 +324,140 @@ namespace Turnroot.GameSettings
             };
         }
 
-        [SerializeField, BoxGroup("Combat Mechanics")]
-        private bool Battalions;
+        [BoxGroup("Combat Mechanics")]
+        public bool Battalions;
 
-        [SerializeField, BoxGroup("Combat Mechanics")]
-        private int BattalionLimit = 1;
+        [BoxGroup("Combat Mechanics")]
+        public int BattalionLimit = 1;
 
-        [SerializeField, BoxGroup("Combat Mechanics")]
-        private bool BattalionEndurance;
+        [BoxGroup("Combat Mechanics")]
+        public bool BattalionEndurance;
 
-        [SerializeField, BoxGroup("Combat Mechanics")]
-        private bool PairUp;
+        [BoxGroup("Combat Mechanics")]
+        public bool PairUp;
 
-        [SerializeField, BoxGroup("Combat Mechanics")]
-        private bool Adjutants;
+        [BoxGroup("Combat Mechanics")]
+        public bool Adjutants;
 
-        [SerializeField, BoxGroup("Combat Mechanics")]
-        private bool AdjutantHeal;
+        [BoxGroup("Combat Mechanics")]
+        public bool AdjutantHeal;
 
-        [SerializeField, BoxGroup("Combat Mechanics")]
-        private bool AdjutantGuard;
+        [BoxGroup("Combat Mechanics")]
+        public bool AdjutantGuard;
 
-        [SerializeField, BoxGroup("Combat Mechanics")]
-        private bool AdjutantAttack;
+        [BoxGroup("Combat Mechanics")]
+        public bool AdjutantAttack;
 
-        [SerializeField, BoxGroup("Combat Mechanics")]
-        private float CriticalHitMultiplier = 3f;
+        [BoxGroup("Combat Mechanics")]
+        public float CriticalHitMultiplier = 3f;
 
-        [SerializeField, BoxGroup("Combat Mechanics")]
-        private int MaxWarpDistance = 20;
+        [BoxGroup("Combat Mechanics")]
+        public int MaxWarpDistance = 20;
 
-        [SerializeField, BoxGroup("Combat Mechanics"), Range(0.5f, 1.1f)]
-        private float TerrainBonusMultiplier = 0.8f;
+        [BoxGroup("Combat Mechanics"), Range(0.5f, 1.1f)]
+        public float TerrainBonusMultiplier = 0.8f;
 
-        [SerializeField, BoxGroup("Default Stat Values"), HorizontalLine(color: EColor.Blue)]
-        private float DefaultMaxHealth = 100f;
+        [BoxGroup("Default Stat Values"), HorizontalLine(color: EColor.Blue)]
+        public float DefaultMaxHealth = 100f;
 
-        [SerializeField, BoxGroup("Default Stat Values")]
-        private float DefaultCurrentHealth = 100f;
+        [BoxGroup("Default Stat Values")]
+        public float DefaultCurrentHealth = 100f;
 
-        [SerializeField, BoxGroup("Default Stat Values")]
-        private float DefaultMinHealth = 0f;
+        [BoxGroup("Default Stat Values")]
+        public float DefaultMinHealth = 0f;
 
-        [SerializeField, BoxGroup("Default Stat Values")]
-        private float DefaultMaxLevel = 99f;
+        [BoxGroup("Default Stat Values")]
+        public float DefaultMaxLevel = 99f;
 
-        [SerializeField, BoxGroup("Default Stat Values")]
-        private float DefaultStartingLevel = 1f;
+        [BoxGroup("Default Stat Values")]
+        public float DefaultStartingLevel = 1f;
 
-        [SerializeField, BoxGroup("Default Stat Values")]
-        private float DefaultMinLevel = 1f;
+        [BoxGroup("Default Stat Values")]
+        public float DefaultMinLevel = 1f;
 
-        [SerializeField, BoxGroup("Default Stat Values")]
-        private float DefaultMaxExperience = 100f;
+        [BoxGroup("Default Stat Values")]
+        public float DefaultMaxExperience = 100f;
 
-        [SerializeField, BoxGroup("Default Stat Values")]
-        private float DefaultStartingExperience = 0f;
+        [BoxGroup("Default Stat Values")]
+        public float DefaultStartingExperience = 0f;
 
-        [SerializeField, BoxGroup("Default Stat Values")]
-        private float DefaultMinExperience = 0f;
+        [BoxGroup("Default Stat Values")]
+        public float DefaultMinExperience = 0f;
 
-        [SerializeField, BoxGroup("Default Stat Values")]
-        private float DefaultCoreStatValue = 10f;
+        [BoxGroup("Default Stat Values")]
+        public float DefaultCoreStatValue = 10f;
 
-        [SerializeField, BoxGroup("Default Stat Values")]
-        private float DefaultLuckValue = 5f;
+        [BoxGroup("Default Stat Values")]
+        public float DefaultLuckValue = 5f;
 
-        [SerializeField, BoxGroup("Default Stat Values")]
-        private float DefaultAuthorityValue = 5f;
+        [BoxGroup("Default Stat Values")]
+        public float DefaultAuthorityValue = 5f;
 
-        [SerializeField, BoxGroup("Default Stat Values")]
-        private float DefaultCriticalAvoidanceValue = 0f;
+        [BoxGroup("Default Stat Values")]
+        public float DefaultCriticalAvoidanceValue = 0f;
 
-        [SerializeField, BoxGroup("Range Constants"), HorizontalLine(color: EColor.Pink)]
-        private int UnlimitedRange = 0;
+        [BoxGroup("Range Constants"), HorizontalLine(color: EColor.Pink)]
+        public int UnlimitedRange = 0;
 
-        [SerializeField, BoxGroup("Range Constants")]
-        private int DefaultMinRange = 0;
+        [BoxGroup("Range Constants")]
+        public int DefaultMinRange = 0;
 
-        [SerializeField, BoxGroup("Range Constants")]
-        private int DefaultMaxRange = 0;
+        [BoxGroup("Range Constants")]
+        public int DefaultMaxRange = 0;
 
-        [SerializeField, BoxGroup("Extra Unit Stats"), HorizontalLine(color: EColor.Green)]
-        private bool Weight;
+        [BoxGroup("Extra Unit Stats"), HorizontalLine(color: EColor.Green)]
+        public bool Weight;
 
-        [SerializeField, BoxGroup("Extra Unit Stats"), ShowIf("Weight")]
-        private bool WeightAffectsMovement;
+        [BoxGroup("Extra Unit Stats"), ShowIf("Weight")]
+        public bool WeightAffectsMovement;
 
-        [SerializeField, BoxGroup("Extra Unit Stats")]
-        private bool Luck;
+        [BoxGroup("Extra Unit Stats")]
+        public bool Luck;
 
-        [SerializeField, BoxGroup("Extra Unit Stats")]
-        private bool SeparateCriticalAvoidance;
+        [BoxGroup("Extra Unit Stats")]
+        public bool SeparateCriticalAvoidance;
 
-        [SerializeField, BoxGroup("Extra Unit Stats")]
-        private bool Authority;
+        [BoxGroup("Extra Unit Stats")]
+        public bool Authority;
 
-        [SerializeField, BoxGroup("Items"), HorizontalLine(color: EColor.Violet)]
-        private readonly int MaxEquippedNonWeaponItems = 2;
+        [BoxGroup("Items"), HorizontalLine(color: EColor.Violet)]
+        public readonly int MaxEquippedNonWeaponItems = 2;
 
-        [SerializeField, BoxGroup("Items")]
-        private bool EquippableOutfits;
+        [BoxGroup("Items")]
+        public bool EquippableOutfits;
 
-        [SerializeField, BoxGroup("Items")]
-        private bool ItemsCanBeLostItems = true;
+        [BoxGroup("Items")]
+        public bool ItemsCanBeLostItems = true;
 
-        [SerializeField, BoxGroup("Items")]
-        private bool ItemsCanBeGifts = true;
+        [BoxGroup("Items")]
+        public bool ItemsCanBeGifts = true;
 
-        [SerializeField, BoxGroup("Extra Experience Types"), HorizontalLine(color: EColor.Orange)]
-        private ExperienceType RidingExperienceType = new()
+        [BoxGroup("Extra Experience Types"), HorizontalLine(color: EColor.Orange)]
+        public ExperienceType RidingExperienceType = new()
         {
             Name = "Riding",
             Enabled = false,
             HasWeaponType = false,
         };
 
-        [SerializeField, BoxGroup("Extra Experience Types")]
-        private ExperienceType FlyingExperienceType = new()
+        [BoxGroup("Extra Experience Types")]
+        public ExperienceType FlyingExperienceType = new()
         {
             Name = "Flying",
             Enabled = false,
             HasWeaponType = false,
         };
 
-        [SerializeField, BoxGroup("Extra Experience Types")]
-        private ExperienceType ArmorExperienceType = new()
+        [BoxGroup("Extra Experience Types")]
+        public ExperienceType ArmorExperienceType = new()
         {
             Name = "Armor",
             Enabled = false,
             HasWeaponType = false,
         };
 
-        [SerializeField, BoxGroup("Extra Experience Types")]
-        private ExperienceType AuthorityExperienceType = new()
+        [BoxGroup("Extra Experience Types")]
+        public ExperienceType AuthorityExperienceType = new()
         {
             Name = "Authority",
             Enabled = false,
@@ -589,40 +593,6 @@ namespace Turnroot.GameSettings
             }
         }
 
-        // Public accessors for Default Stat Values
-        public float GetDefaultMaxHealth() => DefaultMaxHealth;
-
-        public float GetDefaultCurrentHealth() => DefaultCurrentHealth;
-
-        public float GetDefaultMinHealth() => DefaultMinHealth;
-
-        public float GetDefaultMaxLevel() => DefaultMaxLevel;
-
-        public float GetDefaultStartingLevel() => DefaultStartingLevel;
-
-        public float GetDefaultMinLevel() => DefaultMinLevel;
-
-        public float GetDefaultMaxExperience() => DefaultMaxExperience;
-
-        public float GetDefaultStartingExperience() => DefaultStartingExperience;
-
-        public float GetDefaultMinExperience() => DefaultMinExperience;
-
-        public float GetDefaultCoreStatValue() => DefaultCoreStatValue;
-
-        public float GetDefaultLuckValue() => DefaultLuckValue;
-
-        public float GetDefaultAuthorityValue() => DefaultAuthorityValue;
-
-        public float GetDefaultCriticalAvoidanceValue() => DefaultCriticalAvoidanceValue;
-
-        // Public accessors for Range Constants
-        public int GetUnlimitedRange() => UnlimitedRange;
-
-        public int GetDefaultMinRange() => DefaultMinRange;
-
-        public int GetDefaultMaxRange() => DefaultMaxRange;
-
         // Public accessors for Extra Unit Stats
         public bool UseWeight => Weight;
         public bool UseLuck => Luck;
@@ -641,7 +611,7 @@ namespace Turnroot.GameSettings
         public bool GetUseExperienceAptitudes() => UseExperienceAptitudes;
 
         // Helper method for ShowIf condition
-        private bool ShowWeaponTriangleHitBonus()
+        public bool ShowWeaponTriangleHitBonus()
         {
             return (WeaponTriangle && WeaponTriangleAffectsHit)
                 || (MagicTriangle && WeaponTriangleAffectsHit);
@@ -695,7 +665,7 @@ namespace Turnroot.GameSettings
         }
 
 #if UNITY_EDITOR
-        private void OnValidate()
+        public void OnValidate()
         {
             // When gameplay toggles change, refresh related assets so their
             // OnValidate/OnEnable handlers can re-apply defaults (ObjectItem, etc.)

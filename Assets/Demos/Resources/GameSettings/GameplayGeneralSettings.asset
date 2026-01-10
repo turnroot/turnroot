@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: GameplayGeneralSettings
   m_EditorClassIdentifier: 
   ClassSelection: 1
+  DefaultStartingClass: {fileID: 0}
   WeaponTypes:
   - {fileID: 11400000, guid: 030efab55c186fa4ead5d556dc84fdd5, type: 2}
   SpeciesTypes:
@@ -24,6 +25,10 @@ MonoBehaviour:
   GoldDisplayNames:
     OneLetter: G
     FullName: gold
+  UnexploredMaps: 1
+  MaxNumberOfExplorers: 2
+  RidersAndFliersAreBetterExplorers: 1
+  ExplorersFailIfInjured: 1
   CombatArts: 0
   CombatArtLimit: 3
   MaxEquippedSkills: 0
