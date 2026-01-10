@@ -98,28 +98,32 @@ MonoBehaviour:
     m_Interactions: 
     m_SingletonActionBindings:
     - m_Name: 
-      m_Id: 6247d749-4288-49d5-b2b0-1b1417f94a29
-      m_Path: '*/{Back}'
+      m_Id: 7d7b0230-fc45-4ee2-a6b2-0eef4daad3e3
+      m_Path: <Gamepad>/buttonNorth
       m_Interactions: 
       m_Processors: 
       m_Groups: 
       m_Action: Select
       m_Flags: 0
     - m_Name: 
-      m_Id: f6cb6089-d79f-4e97-9f04-51260228e8f8
-      m_Path: '*/{Cancel}'
+      m_Id: cc9e8317-3bb0-439c-951f-2ec2d61c3a2c
+      m_Path: <Keyboard>/x
+      m_Interactions: 
+      m_Processors: 
+      m_Groups: 
+      m_Action: Select
+      m_Flags: 0
+    - m_Name: 
+      m_Id: a22ccb39-ceb8-47d8-8a10-cf9d7dc81de1
+      m_Path: <Gamepad>/rightShoulder
       m_Interactions: 
       m_Processors: 
       m_Groups: 
       m_Action: Select
       m_Flags: 0
     m_Flags: 0
-  OnSelectedInspector:
-    m_PersistentCalls:
-      m_Calls: []
   Role: 3
   ButtonImage: {fileID: 630378151330695086}
-  ButtonText: {fileID: 8220362511364760467}
 --- !u!1 &2117720194569930238
 GameObject:
   m_ObjectHideFlags: 0

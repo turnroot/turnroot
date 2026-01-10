@@ -11,6 +11,8 @@ GameObject:
   - component: {fileID: 2753815446672243863}
   - component: {fileID: 1473719024651533556}
   - component: {fileID: 3348220022770639136}
+  - component: {fileID: 5527768501118664618}
+  - component: {fileID: 9001701456142478997}
   m_Layer: 5
   m_Name: UnitCellSelectable
   m_TagString: Untagged
@@ -79,6 +81,50 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &5527768501118664618
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 542936960687533465}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 53df4ed04e4256a4cbe6038cd8afc089, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  SelectAction:
+    m_Name: Select
+    m_Type: 0
+    m_ExpectedControlType: 
+    m_Id: 565b1248-c173-41fd-9ce7-3710fd3f3764
+    m_Processors: 
+    m_Interactions: 
+    m_SingletonActionBindings: []
+    m_Flags: 0
+  Role: 0
+  ButtonImage: {fileID: 3348220022770639136}
+--- !u!114 &9001701456142478997
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 542936960687533465}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fd256ec160fd76442a937a82074cdbf5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  isCenter: 0
+  parentMenu: {fileID: 0}
+  Row: 0
+  Column: 0
+  itemName: 
+  IsSelectedForBattle: 0
+  CanBeSelectedForBattle: 1
+  IsGettingDetailsShown: 0
+  IsSelectedToBeExplorer: 0
 --- !u!1 &3169206692921955253
 GameObject:
   m_ObjectHideFlags: 0

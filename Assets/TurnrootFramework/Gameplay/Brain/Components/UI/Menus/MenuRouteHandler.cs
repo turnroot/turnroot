@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Turnroot.Gameplay.Brain.UI;
 using Turnroot.GameSettings;
+using Turnroot.UI.Components.GridMenu;
 using Turnroot.UI.Components.Menu;
 using UnityEngine;
 
@@ -79,6 +80,23 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             if (_menuActionRoutes.TryGetValue(item.ItemName, out var action))
             {
                 action(item);
+            }
+            else if (item.ItemName.StartsWith("UnitCell")) // Unit cell in a grid; special case
+            {
+                // TODO: Use a tag instead of string matching
+                // Try to cast to UnitCellGridMenuItem
+                if (item is UnitCellGridMenuItem unitCellItem)
+                {
+                    _brain.HandleUnitCellSelectionToggle(unitCellItem);
+                }
+                else
+                {
+#if UNITY_EDITOR
+                    Debug.LogWarning(
+                        $"MenuRouteHandler: UnitCell selected but item is not a UnitCellGridMenuItem: {item?.ItemName}"
+                    );
+#endif
+                }
             }
             else
             {

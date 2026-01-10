@@ -2,6 +2,8 @@ using System.Collections.Generic;
 using Coffee.UIEffects;
 using TMPro;
 using Turnroot.Gameplay.Brain;
+using Turnroot.UI.Components.GridMenu;
+using Turnroot.UI.Components.Menu;
 using Turnroot.Utilities;
 using UnityEngine;
 
@@ -19,8 +21,7 @@ namespace Turnroot.UI.Components
 
         public int MaxSelectedUnits;
 
-        [HideInInspector]
-        public Dictionary<Characters.Roster.UnitPlacement, bool> unitCanBeSelected = new();
+        public int SelectedCount;
 
         public void Initialize(Brain brain)
         {
@@ -39,7 +40,7 @@ namespace Turnroot.UI.Components
                 $"UnitSelectionColumns: Initializing with {unitCount} units, {keys.Count} selection keys in LTM"
             );
 #endif
-            var keysSet = new System.Collections.Generic.HashSet<string>(keys);
+            var keysSet = new HashSet<string>(keys);
 
             // Count currently selected units so we can fill up to MaxSelectedUnits when necessary
             int currentlySelectedCount = 0;
@@ -57,6 +58,19 @@ namespace Turnroot.UI.Components
                 var whichColumn = i % TotalColumns;
                 var unitCell = Instantiate(UnitCellPrefab, Columns[whichColumn].transform);
 
+                // Ensure the instantiated unit cell has a GridMenuItem so it appears in the MenuBase menuItems
+                if (!unitCell.TryGetComponent<UnitCellGridMenuItem>(out var gridMenuItem))
+                {
+                    gridMenuItem = unitCell.AddComponent<UnitCellGridMenuItem>();
+                    gridMenuItem.IsSelectedForBattle = false;
+                    gridMenuItem.CanBeSelectedForBattle = true;
+                }
+
+                // Column and Row are used by GridMenu navigation; Row is integer division (floor)
+                gridMenuItem.Column = whichColumn;
+                gridMenuItem.Row = i / TotalColumns;
+                gridMenuItem.SetItemNamePublic($"UnitCell_{unit.CharacterData.FullName}");
+
                 ConfigureUnitCell(
                     unitCell,
                     unit,
@@ -66,20 +80,57 @@ namespace Turnroot.UI.Components
                     ref currentlySelectedCount
                 );
             }
-            UpdateUnitCountText(currentlySelectedCount);
+
+            // After instantiating unit cells, refresh parent menu so newly added GridMenuItems are registered
+            var parentMenu = GetComponentInParent<MenuBase>(true);
+            parentMenu?.RefreshMenuItems();
+
+            // Initialize the displayed selected count from computed selections
+            SelectedCount = currentlySelectedCount;
+
+            RecomputeSelectedCount();
+
+#if UNITY_EDITOR
+            Debug.Log($"UnitSelectionColumns: Initialized SelectedCount = {SelectedCount}");
+#endif
+            UpdateUnitCountText();
+        }
+
+        public void RecomputeSelectedCount()
+        {
+            int count = 0;
+            foreach (var col in Columns)
+            {
+                if (col == null)
+                {
+                    continue;
+                }
+
+                var cells = col.GetComponentsInChildren<UnitCellGridMenuItem>(true);
+                foreach (var c in cells)
+                {
+                    if (c.IsSelectedForBattle)
+                    {
+                        count++;
+                    }
+                }
+            }
+            SelectedCount = Mathf.Clamp(count, 0, MaxSelectedUnits);
+            UpdateUnitCountText();
         }
 
         private void ConfigureUnitCell(
             GameObject unitCell,
             Characters.Roster.UnitPlacement unit,
             string prefix,
-            System.Collections.Generic.HashSet<string> keySet,
+            HashSet<string> keySet,
             LongTermMemory ltm,
             ref int currentlySelectedCount
         )
         {
             var uf = new UtilityFunctions();
             var nameT = uf.FindChildByTag(unitCell, "UnitCellUnitName");
+            var gridMenuItem = unitCell.GetComponent<UnitCellGridMenuItem>();
             if (nameT != null && nameT.TryGetComponent<TextMeshProUGUI>(out var nameLbl))
             {
                 nameLbl.text = unit.CharacterData.DisplayName;
@@ -134,21 +185,28 @@ namespace Turnroot.UI.Components
                     var requiredUnits = _brain.battleBrain.PreparationObject.RequiredPlayerUnits;
                     if (requiredUnits.Contains(unit.CharacterData))
                     {
-                        isSelected = true;
+                        // If not already selected via LTM or auto-fill, count them now
+                        if (!isSelected)
+                        {
+                            isSelected = true;
+                            currentlySelectedCount++;
+                        }
+
                         // Turn on the required indicator
                         var requiredT = uf.FindChildByTag(unitCell, "UnitCellRequiredIndicator");
                         if (requiredT != null)
                         {
                             requiredT.gameObject.SetActive(true);
-                            unitCanBeSelected[unit] = false;
+                            gridMenuItem.CanBeSelectedForBattle = false;
                         }
                         else
                         {
-                            unitCanBeSelected[unit] = true;
+                            gridMenuItem.CanBeSelectedForBattle = true;
                         }
                     }
 
                     selectionIndicator.SetActive(isSelected);
+                    gridMenuItem.IsSelectedForBattle = isSelected;
                     if (isSelected)
                     {
 #if COFFEE_UIEFFECTS
@@ -162,7 +220,7 @@ namespace Turnroot.UI.Components
             }
         }
 
-        private void UpdateUnitCountText(int selectedCount)
+        public void UpdateUnitCountText()
         {
             if (UnitCountText == null)
             {
@@ -174,7 +232,7 @@ namespace Turnroot.UI.Components
                 && UnitCountText.TryGetComponent<TextMeshProUGUI>(out var textLbl)
             )
             {
-                textLbl.text = $"{selectedCount} / {MaxSelectedUnits} Units";
+                textLbl.text = $"{SelectedCount} / {MaxSelectedUnits} Units";
             }
         }
     }

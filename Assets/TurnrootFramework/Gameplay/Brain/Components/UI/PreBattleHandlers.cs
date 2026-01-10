@@ -2,6 +2,7 @@ using Turnroot.Gameplay.Brain;
 using Turnroot.Gameplay.Brain.UI;
 using Turnroot.GameSettings;
 using Turnroot.UI.Components;
+using Turnroot.UI.Components.GridMenu;
 using Turnroot.UI.Components.Menu;
 using Turnroot.UI.Components.RadialMenu;
 using UnityEngine;
@@ -57,6 +58,10 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             }
 
             var menuStyle = preBattleMenuLocation.style;
+            if (menuStyle is not MenuStyle.Pie and not MenuStyle.Grid)
+            {
+                menuStyle = MenuStyle.Grid;
+            }
             if (menuStyle == MenuStyle.Pie)
             {
                 if (
@@ -72,27 +77,87 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                     );
                 }
             }
-            else if (menuStyle == MenuStyle.Filmstrip)
-            {
-                // TODO: Set up filmstrip prebattle menu handling
-            }
-            else if (menuStyle == MenuStyle.List)
-            {
-                if (
-                    preBattleMenuLocation.activeInstance.TryGetComponent<MenuBase>(out var listMenu)
-                )
-                {
-                    listMenu.uiBrain = this;
-                    listMenu.OnItemSelected += HandlePreBattleMenuSelect;
-                }
-            }
             else if (menuStyle == MenuStyle.Grid)
             {
-                // TODO: Set up grid prebattle menu handling
+                if (
+                    preBattleMenuLocation.activeInstance.TryGetComponent<MenuBase>(out var gridMenu)
+                )
+                {
+                    gridMenu.uiBrain = this;
+                    gridMenu.OnItemSelected += HandlePreBattleMenuSelect;
+                }
             }
         }
 
         #region PreBattle Menu Event Handlers
+
+        public void HandleUnitCellSelectionToggle(UnitCellGridMenuItem item)
+        {
+            // TODO: Handle explorer selection
+            if (!item.CanBeSelectedForBattle)
+            {
+                return;
+            }
+
+            var unitCell = item.gameObject;
+
+            var unitColumns = unitCell.GetComponentInParent<UnitSelectionColumns>(true);
+
+            // Determine whether this toggle would select or deselect
+            var willSelect = !item.IsSelectedForBattle;
+
+            // If attempting to select but we've reached the maximum, ignore
+            if (
+                willSelect
+                && unitColumns != null
+                && unitColumns.SelectedCount >= unitColumns.MaxSelectedUnits
+            )
+            {
+#if UNITY_EDITOR
+                Debug.Log("UiBrain: Cannot select more units - max reached");
+#endif
+                return;
+            }
+
+            // Apply toggle
+            item.IsSelectedForBattle = willSelect;
+
+            var uf = new Turnroot.Utilities.UtilityFunctions();
+            var selectedT = uf.FindChildByTag(unitCell, "UnitCellSelected");
+            if (selectedT != null)
+            {
+                var selectionIndicator = selectedT.gameObject;
+                if (selectionIndicator != null)
+                {
+                    selectionIndicator.SetActive(item.IsSelectedForBattle);
+                    if (item.IsSelectedForBattle)
+                    {
+#if COFFEE_UIEFFECTS
+                        if (selectionIndicator.TryGetComponent<UIEffect>(out var uiEffect))
+                        {
+                            uiEffect.transitionRate = Random.Range(0, 1f);
+                        }
+#endif
+                    }
+                }
+            }
+
+            // Update SelectedCount on parent columns and persist selection to LTM
+            if (unitColumns != null)
+            {
+                // Recompute authoritative count to avoid drift
+                unitColumns.RecomputeSelectedCount();
+            }
+
+            // Persist choice in LTM so it survives across menu opens
+            var unitName =
+                item?.ItemName?.StartsWith("UnitCell_") == true
+                    ? item.ItemName.Substring("UnitCell_".Length)
+                    : item?.ItemName ?? "";
+            var key = LtmKeys.UnitSelectedForBattlePrefix + unitName;
+
+            _brain.ltm.RememberBool(key, item.IsSelectedForBattle);
+        }
 
         public void HandlePreBattleMenuSelect(MenuItemBase item)
         {

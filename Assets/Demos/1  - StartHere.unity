@@ -159164,7 +159164,7 @@ MonoBehaviour:
   _requiredPlayerUnits:
   - {fileID: 11400000, guid: 0f8b79eeaffbfbc4aab491112cae2ddd, type: 2}
   _battleConditions:
-  - rid: 2236981316757225553
+  - rid: 8686261932845432925
   _mapGrid: {fileID: 1882290950}
   _enemyRoster: {fileID: 0}
   _thirdPartyRoster: {fileID: 0}
@@ -159175,7 +159175,7 @@ MonoBehaviour:
   references:
     version: 2
     RefIds:
-    - rid: 2236981316757225553
+    - rid: 8686261932845432925
       type: {class: DefeatAllEnemiesBattleCondition, ns: Turnroot.Gameplay.Combat.FundamentalComponents.Conditions.Specific, asm: Assembly-CSharp}
       data:
         battleContext: {fileID: 1742232837}
