@@ -15,23 +15,41 @@ public class MapGridRenderer
 
     private readonly Color GRID_LINE_COLOR = new Color(0.3f, 0.3f, 0.3f, 1f);
     private readonly Color BLACK_CELL_COLOR = Color.black;
-    private readonly Color DARK_GRAY_TERRAIN_COLOR = new Color(0.3f, 0.3f, 0.3f, 1f);
+    private readonly Color DARK_GRAY_TERRAIN_COLOR = new Color(0.3f, 0.3f, 0.3f, 1f); // For wall, deep water, mountain
+    private readonly Color LIGHT_GRAY_TERRAIN_COLOR = new Color(0.2f, 0.2f, 0.2f, 1f); // For tall wall, void
     private readonly Color BLUE_SPAWN_COLOR = new Color(0.2f, 0.5f, 1f, 1f);
 
     private readonly Dictionary<string, Texture2D> _iconCache = new();
 
-    // Terrain types that should show as dark gray on minimap
-    private readonly HashSet<string> _impassableTerrainTypes = new HashSet<string>(
+    // Terrain types that should show as dark gray (30%) on minimap
+    private readonly HashSet<string> _darkGrayTerrainTypes = new HashSet<string>(
         System.StringComparer.OrdinalIgnoreCase
     )
     {
         "wall",
-        "tall wall",
-        "tallwall",
         "deep water",
         "deepwater",
-        "void",
         "mountain",
+    };
+
+    // Terrain types that should show as light gray (20%) on minimap
+    private readonly HashSet<string> _lightGrayTerrainTypes = new HashSet<string>(
+        System.StringComparer.OrdinalIgnoreCase
+    )
+    {
+        "tall wall",
+        "tallwall",
+        "void",
+    };
+
+    // Feature types to skip rendering
+    private readonly HashSet<string> _skipFeatureTypes = new HashSet<string>(
+        System.StringComparer.OrdinalIgnoreCase
+    )
+    {
+        "undergrounditem",
+        "underground",
+        "shelter",
     };
 
     public void RenderAndSaveMapImages(
@@ -140,7 +158,11 @@ public class MapGridRenderer
                     DrawCell(texture, texRow, texCol, cellColor);
 
                     // Draw feature icon if present (black icons on colored terrain)
-                    if (point != null && !string.IsNullOrEmpty(point.FeatureTypeId))
+                    if (
+                        point != null
+                        && !string.IsNullOrEmpty(point.FeatureTypeId)
+                        && !ShouldSkipFeature(point.FeatureTypeId)
+                    )
                     {
                         DrawFeatureIcon(texture, texRow, texCol, point.FeatureTypeId, Color.black);
                     }
@@ -189,14 +211,17 @@ public class MapGridRenderer
                 {
                     MapGridPoint point = grid.GetGridPoint(row, col);
 
-                    // Check if this is an impassable terrain type
-                    bool isImpassable = IsImpassableTerrain(point, terrainAsset);
-                    Color cellColor = isImpassable ? DARK_GRAY_TERRAIN_COLOR : BLACK_CELL_COLOR;
+                    // Check terrain type and assign appropriate color
+                    Color cellColor = GetMinimapTerrainColor(point, terrainAsset);
 
                     DrawCell(texture, texRow, texCol, cellColor);
 
-                    // Draw feature icon if present (white icons on black/dark gray background)
-                    if (point != null && !string.IsNullOrEmpty(point.FeatureTypeId))
+                    // Draw feature icon if present (white icons on black/gray background)
+                    if (
+                        point != null
+                        && !string.IsNullOrEmpty(point.FeatureTypeId)
+                        && !ShouldSkipFeature(point.FeatureTypeId)
+                    )
                     {
                         DrawFeatureIcon(texture, texRow, texCol, point.FeatureTypeId, Color.white);
                     }
@@ -264,7 +289,47 @@ public class MapGridRenderer
             return false;
         }
 
-        return _impassableTerrainTypes.Contains(terrainType.Name);
+        return _darkGrayTerrainTypes.Contains(terrainType.Name)
+            || _lightGrayTerrainTypes.Contains(terrainType.Name);
+    }
+
+    private Color GetMinimapTerrainColor(MapGridPoint point, TerrainTypes terrainAsset)
+    {
+        if (point == null)
+        {
+            return BLACK_CELL_COLOR;
+        }
+
+        TerrainType terrainType = terrainAsset?.GetTypeById(point.TerrainTypeId);
+        if (terrainType == null)
+        {
+            terrainType = point.GetCachedTerrainType();
+        }
+
+        if (terrainType == null || string.IsNullOrEmpty(terrainType.Name))
+        {
+            return BLACK_CELL_COLOR;
+        }
+
+        // Check for light gray terrains (20%)
+        if (_lightGrayTerrainTypes.Contains(terrainType.Name))
+        {
+            return LIGHT_GRAY_TERRAIN_COLOR;
+        }
+
+        // Check for dark gray terrains (30%)
+        if (_darkGrayTerrainTypes.Contains(terrainType.Name))
+        {
+            return DARK_GRAY_TERRAIN_COLOR;
+        }
+
+        // Default to black
+        return BLACK_CELL_COLOR;
+    }
+
+    private bool ShouldSkipFeature(string featureTypeId)
+    {
+        return !string.IsNullOrEmpty(featureTypeId) && _skipFeatureTypes.Contains(featureTypeId);
     }
 
     private (
@@ -338,7 +403,7 @@ public class MapGridRenderer
         int startY = col * CELL_SIZE;
         int lineThickness = 1;
 
-        // Draw top edge
+        // Always draw top edge
         for (int x = 0; x < CELL_SIZE; x++)
         {
             for (int t = 0; t < lineThickness; t++)
@@ -347,7 +412,7 @@ public class MapGridRenderer
             }
         }
 
-        // Draw left edge
+        // Always draw left edge
         for (int y = 0; y < CELL_SIZE; y++)
         {
             for (int t = 0; t < lineThickness; t++)
@@ -356,27 +421,21 @@ public class MapGridRenderer
             }
         }
 
-        // Draw bottom edge (for last row)
-        if (col == gridHeight - 1)
+        // Always draw bottom edge
+        for (int x = 0; x < CELL_SIZE; x++)
         {
-            for (int x = 0; x < CELL_SIZE; x++)
+            for (int t = 0; t < lineThickness; t++)
             {
-                for (int t = 0; t < lineThickness; t++)
-                {
-                    texture.SetPixel(startX + x, startY + CELL_SIZE - 1 - t, GRID_LINE_COLOR);
-                }
+                texture.SetPixel(startX + x, startY + CELL_SIZE - 1 - t, GRID_LINE_COLOR);
             }
         }
 
-        // Draw right edge (for last column)
-        if (row == gridWidth - 1)
+        // Always draw right edge
+        for (int y = 0; y < CELL_SIZE; y++)
         {
-            for (int y = 0; y < CELL_SIZE; y++)
+            for (int t = 0; t < lineThickness; t++)
             {
-                for (int t = 0; t < lineThickness; t++)
-                {
-                    texture.SetPixel(startX + CELL_SIZE - 1 - t, startY + y, GRID_LINE_COLOR);
-                }
+                texture.SetPixel(startX + CELL_SIZE - 1 - t, startY + y, GRID_LINE_COLOR);
             }
         }
     }
