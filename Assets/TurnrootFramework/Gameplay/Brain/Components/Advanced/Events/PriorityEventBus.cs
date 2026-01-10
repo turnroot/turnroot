@@ -19,8 +19,11 @@ namespace Turnroot.Gameplay.Brain.Events
         // Lock for thread safety during handler modification
         private readonly object _lock = new();
 
-        // Tracking for event coalescing
-        private readonly Dictionary<Type, HashSet<int>> _coalescedEvents = new();
+        // Tracking for event coalescing (string keys produced by selectors)
+        private readonly Dictionary<Type, HashSet<string>> _coalescedEvents = new();
+
+        // Optional per-event-type selector to generate a deterministic coalescing key
+        private readonly Dictionary<Type, Func<object, string>> _coalescingKeySelectors = new();
 
         // Current frame for coalescing checks
         private int _currentFrame;
@@ -225,14 +228,22 @@ namespace Turnroot.Gameplay.Brain.Events
         /// </summary>
         /// <typeparam name="T">The type of event to queue.</typeparam>
         /// <param name="eventData">The event data to queue.</param>
-        public void PublishDeferred<T>(T eventData)
+        /// <summary>
+        /// Queues an event for deferred processing. Events are coalesced if identical.
+        /// You may optionally provide a key selector to control coalescing behavior for complex event types.
+        /// Call ProcessDeferredEvents at frame end to dispatch all queued events.
+        /// </summary>
+        public void PublishDeferred<T>(T eventData, Func<T, string> keySelector = null)
         {
             lock (_lock)
             {
                 var type = typeof(T);
 
-                // Check for coalescing - skip if we already have this exact event queued this frame
-                if (ShouldCoalesce(eventData))
+                // Build coalescing key (override takes precedence)
+                var coalesceKey = GetCoalescingKey(eventData, keySelector);
+
+                // Check for coalescing - skip if we already have this key queued this frame
+                if (ShouldCoalesceKey(type, coalesceKey))
                 {
                     return;
                 }
@@ -241,7 +252,7 @@ namespace Turnroot.Gameplay.Brain.Events
                 queue.Enqueue(eventData, _currentFrame);
 
                 // Track for coalescing
-                TrackForCoalescing(eventData);
+                TrackForCoalescingKey(type, coalesceKey);
             }
         }
 
@@ -332,32 +343,73 @@ namespace Turnroot.Gameplay.Brain.Events
         }
 
         /// <summary>
-        /// Checks if an event should be coalesced (deduplicated) based on its hash.
-        /// Note: Uses GetHashCode() which may have collisions.
+        /// Gets a coalescing key for the event using the provided override, a registered selector, or
+        /// by falling back to GetHashCode().ToString() for backward compatibility.
         /// </summary>
-        // TODO: Improve coalescing mechanism if needed
-        private bool ShouldCoalesce<T>(T eventData)
+        private string GetCoalescingKey<T>(T eventData, Func<T, string> overrideSelector)
         {
-            if (!_coalescedEvents.TryGetValue(typeof(T), out var hashes))
+            if (overrideSelector != null)
+            {
+                return overrideSelector(eventData) ?? string.Empty;
+            }
+
+            if (_coalescingKeySelectors.TryGetValue(typeof(T), out var sel))
+            {
+                try
+                {
+                    return sel(eventData) ?? string.Empty;
+                }
+                catch
+                {
+                    return string.Empty;
+                }
+            }
+
+            return (eventData?.GetHashCode() ?? 0).ToString();
+        }
+
+        private bool ShouldCoalesceKey(Type type, string key)
+        {
+            if (key == null)
+                key = string.Empty;
+            if (!_coalescedEvents.TryGetValue(type, out var keys))
             {
                 return false;
             }
 
-            var hash = eventData?.GetHashCode() ?? 0;
-            return hashes.Contains(hash);
+            return keys.Contains(key);
         }
 
-        private void TrackForCoalescing<T>(T eventData)
+        private void TrackForCoalescingKey(Type type, string key)
         {
-            var type = typeof(T);
-            if (!_coalescedEvents.TryGetValue(type, out var hashes))
+            if (key == null)
+                key = string.Empty;
+            if (!_coalescedEvents.TryGetValue(type, out var keys))
             {
-                hashes = new HashSet<int>();
-                _coalescedEvents[type] = hashes;
+                keys = new HashSet<string>();
+                _coalescedEvents[type] = keys;
             }
 
-            var hash = eventData?.GetHashCode() ?? 0;
-            hashes.Add(hash);
+            keys.Add(key);
+        }
+
+        /// <summary>
+        /// Register a default coalescing key selector for an event type. If not registered,
+        /// the bus falls back to using GetHashCode().ToString().
+        /// </summary>
+        public void RegisterCoalescingKey<T>(Func<T, string> selector)
+        {
+            lock (_lock)
+            {
+                if (selector == null)
+                {
+                    _coalescingKeySelectors.Remove(typeof(T));
+                }
+                else
+                {
+                    _coalescingKeySelectors[typeof(T)] = o => selector((T)o);
+                }
+            }
         }
 
         #endregion

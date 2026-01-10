@@ -11,7 +11,6 @@ namespace Turnroot.UI.Components.SimpleButton
     {
         Confirm,
         Back,
-        Next,
         Details,
     }
 
@@ -80,7 +79,6 @@ namespace Turnroot.UI.Components.SimpleButton
             float elapsed = 0f;
 
             Color initialButtonColor = startColor;
-            Color initialTextColor = startColor;
 
             while (elapsed < Duration)
             {
@@ -180,11 +178,17 @@ namespace Turnroot.UI.Components.SimpleButton
 
         private void OnSelectActionPerformed(InputAction.CallbackContext context)
         {
-            // If this button belongs to a menu, only allow select when it is hovered
+            // If this button belongs to a menu, only allow select when it is hovered.
+            // Back/Details roles should respond to Back/Details input even when not hovered so
+            // pressing Escape/X works regardless of current menu hover state.
             var menuItem = GetComponent<Turnroot.UI.Components.MenuItemBase>();
             if (menuItem != null && menuItem.ParentMenu != null)
             {
-                if (!_isHovered)
+                // Allow Back and Details role to bypass hover requirement.
+                if (
+                    !_isHovered
+                    && (Role != SimpleButtonRole.Back && Role != SimpleButtonRole.Details)
+                )
                 {
 #if UNITY_EDITOR
                     Debug.Log(
