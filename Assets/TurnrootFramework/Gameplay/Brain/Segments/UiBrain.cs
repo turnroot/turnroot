@@ -1,8 +1,10 @@
 using Turnroot.Gameplay.Brain;
 using Turnroot.Gameplay.Brain.Events;
+using Turnroot.Gameplay.PlayerSettings;
 using Turnroot.GameSettings;
 using Turnroot.UI.Components.Menu;
 using Turnroot.UI.Components.RadialMenu;
+using Turnroot.UI.Components.SimpleButton;
 using Turnroot.Utilities;
 using UnityEngine;
 
@@ -42,10 +44,12 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
         [HideInInspector]
         public bool _isTransitioning = false;
         private GameObject _currentMenuCanvasPrefab;
+        private GameObject _currentDetailsCanvasPrefab;
         private MenuTransitionManager _transitionManager;
         private SettingsBindingManager _settingsBindingManager;
         private MenuDepthTracker _menuTracker;
         private MenuRouteHandler _routeHandler;
+        private GameplayPlayerSettings _playerSettings;
         public GameObject CurrentPreBattleMenuInstance =>
             uiSettings?.GetPreBattleMenu()?.activeInstance;
 
@@ -92,6 +96,13 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                 _settingsBindingManager = new SettingsBindingManager();
                 _menuTracker = new MenuDepthTracker();
                 _routeHandler = new MenuRouteHandler(this);
+
+                // Subscribe to binding changes so we can rewire inputs at runtime
+                _playerSettings = GameSettingsLoader.LoadFirst<GameplayPlayerSettings>();
+                if (_playerSettings != null)
+                {
+                    _playerSettings.BindingsChanged += OnBindingsChanged;
+                }
             }
 
 #if UNITY_EDITOR
@@ -103,6 +114,84 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
 
         #region Brain Events and State Management
 
+        private void OnBindingsChanged()
+        {
+            // Rewire inputs for all menus and role buttons when bindings change
+            try
+            {
+                // Rebind every MenuBase found in the scene
+                var menus = UnityEngine.Object.FindObjectsByType<MenuBase>(
+                    FindObjectsInactive.Include,
+                    FindObjectsSortMode.None
+                );
+                foreach (var menu in menus)
+                {
+                    // Recreate the input actions for the menu
+                    SetupMenuInputActions(menu);
+
+                    // Reassign select actions for child SimpleButton components to the new menu.selectAction
+                    var simpleButtons = menu.GetComponentsInChildren<SimpleButton>(true);
+                    foreach (var sb in simpleButtons)
+                    {
+                        try
+                        {
+                            if (sb.SelectAction != null)
+                            {
+                                sb.SelectAction.Disable();
+                                sb.SelectAction.Dispose();
+                            }
+                        }
+                        catch { }
+
+                        sb.AssignSelectAction(menu.selectAction);
+                    }
+                }
+
+                // Reassign Back/Details buttons instantiated on menu canvases
+                ReassignRoleButton(_currentMenuCanvasPrefab);
+                ReassignRoleButton(_currentDetailsCanvasPrefab);
+            }
+            catch (System.Exception ex)
+            {
+#if UNITY_EDITOR
+                Debug.LogError($"UiBrain: Error rebinding inputs: {ex.Message}");
+#endif
+            }
+        }
+
+        private void ReassignRoleButton(GameObject canvas)
+        {
+            if (canvas == null)
+            {
+                return;
+            }
+
+            var sb = canvas.GetComponentInChildren<SimpleButton>();
+            if (sb == null)
+            {
+                return;
+            }
+
+            try
+            {
+                if (sb.SelectAction != null)
+                {
+                    sb.SelectAction.Disable();
+                    sb.SelectAction.Dispose();
+                }
+            }
+            catch { }
+
+            if (sb.Role == SimpleButtonRole.Back)
+            {
+                sb.AssignSelectAction(InputActionFactory.CreateBack());
+            }
+            else if (sb.Role == SimpleButtonRole.Details)
+            {
+                sb.AssignSelectAction(InputActionFactory.CreateDetails());
+            }
+        }
+
         private System.Action<BrainState> _onStateChangedHandler;
 
         protected override void SubscribeToBrainEvents()
@@ -112,8 +201,8 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             {
                 var name = state?.Name ?? string.Empty;
 
-                // Handle back button based on state
-                HandleBackButtonForState(name);
+                // Handle back and details buttons based on state
+                HandleButtonsForState(name);
 
                 switch (name)
                 {
@@ -165,8 +254,9 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                 }
             }
 
-            // Clean up back button
+            // Clean up back and details buttons
             DestroyBackButton();
+            DestroyDetailsButton();
         }
 
         #endregion
