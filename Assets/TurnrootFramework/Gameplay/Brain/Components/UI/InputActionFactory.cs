@@ -1,4 +1,3 @@
-using Turnroot.Gameplay.PlayerSettings;
 using Turnroot.UI.Components.Menu;
 using UnityEngine.InputSystem;
 
@@ -9,19 +8,9 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
         public static InputAction CreateNavigateUp()
         {
             var action = new InputAction("NavigateUp", InputActionType.Button);
-            // Default keyboard bindings
             action.AddBinding("<Keyboard>/w");
             action.AddBinding("<Keyboard>/upArrow");
-
-            var settings =
-                Turnroot.Utilities.GameSettingsLoader.LoadFirst<GameplayPlayerSettings>();
-            var selected = settings?.GetSelectedOptionForAction(
-                GameplayPlayerSettings.LogicalAction.NavigateUp
-            );
-            if (selected != null)
-            {
-                action.AddBinding(settings.GetBinding(selected.Value));
-            }
+            action.AddBinding("<Gamepad>/dpad/up");
             action.Enable();
             return action;
         }
@@ -29,19 +18,9 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
         public static InputAction CreateNavigateDown()
         {
             var action = new InputAction("NavigateDown", InputActionType.Button);
-            // Default keyboard bindings
             action.AddBinding("<Keyboard>/s");
             action.AddBinding("<Keyboard>/downArrow");
-
-            var settings =
-                Turnroot.Utilities.GameSettingsLoader.LoadFirst<GameplayPlayerSettings>();
-            var selected = settings?.GetSelectedOptionForAction(
-                GameplayPlayerSettings.LogicalAction.NavigateDown
-            );
-            if (selected != null)
-            {
-                action.AddBinding(settings.GetBinding(selected.Value));
-            }
+            action.AddBinding("<Gamepad>/dpad/down");
             action.Enable();
             return action;
         }
@@ -49,20 +28,9 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
         public static InputAction CreateSelect()
         {
             var action = new InputAction("Select", InputActionType.Button);
-            // Default keyboard bindings
             action.AddBinding("<Keyboard>/enter");
             action.AddBinding("<Keyboard>/space");
-
-            var settings =
-                Turnroot.Utilities.GameSettingsLoader.LoadFirst<GameplayPlayerSettings>();
-            var selected = settings?.GetSelectedOptionForAction(
-                GameplayPlayerSettings.LogicalAction.Select
-            );
-            if (selected != null)
-            {
-                action.AddBinding(settings.GetBinding(selected.Value));
-            }
-
+            action.AddBinding("<Gamepad>/submit");
             action.Enable();
             return action;
         }
@@ -70,19 +38,9 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
         public static InputAction CreateNavigateLeft()
         {
             var action = new InputAction("NavigateLeft", InputActionType.Button);
-            // Default keyboard bindings
             action.AddBinding("<Keyboard>/a");
             action.AddBinding("<Keyboard>/leftArrow");
-
-            var settings =
-                Turnroot.Utilities.GameSettingsLoader.LoadFirst<GameplayPlayerSettings>();
-            var selected = settings?.GetSelectedOptionForAction(
-                GameplayPlayerSettings.LogicalAction.NavigateLeft
-            );
-            if (selected != null)
-            {
-                action.AddBinding(settings.GetBinding(selected.Value));
-            }
+            action.AddBinding("<Gamepad>/dpad/left");
             action.Enable();
             return action;
         }
@@ -90,19 +48,9 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
         public static InputAction CreateNavigateRight()
         {
             var action = new InputAction("NavigateRight", InputActionType.Button);
-            // Default keyboard bindings
             action.AddBinding("<Keyboard>/d");
             action.AddBinding("<Keyboard>/rightArrow");
-
-            var settings =
-                Turnroot.Utilities.GameSettingsLoader.LoadFirst<GameplayPlayerSettings>();
-            var selected = settings?.GetSelectedOptionForAction(
-                GameplayPlayerSettings.LogicalAction.NavigateRight
-            );
-            if (selected != null)
-            {
-                action.AddBinding(settings.GetBinding(selected.Value));
-            }
+            action.AddBinding("<Gamepad>/dpad/right");
             action.Enable();
             return action;
         }
@@ -110,38 +58,9 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
         public static InputAction CreateBack()
         {
             var action = new InputAction("Back", InputActionType.Button);
-            // Default keyboard bindings
             action.AddBinding("<Keyboard>/escape");
             action.AddBinding("<Keyboard>/backspace");
-
-            var settings =
-                Turnroot.Utilities.GameSettingsLoader.LoadFirst<GameplayPlayerSettings>();
-            var selected = settings?.GetSelectedOptionForAction(
-                GameplayPlayerSettings.LogicalAction.Back
-            );
-            if (selected != null)
-            {
-                action.AddBinding(settings.GetBinding(selected.Value));
-            }
-            action.Enable();
-            return action;
-        }
-
-        public static InputAction CreateDetails()
-        {
-            var action = new InputAction("Details", InputActionType.Button);
-            // Default keyboard binding
-            action.AddBinding("<Keyboard>/x");
-
-            var settings =
-                Turnroot.Utilities.GameSettingsLoader.LoadFirst<GameplayPlayerSettings>();
-            var selected = settings?.GetSelectedOptionForAction(
-                GameplayPlayerSettings.LogicalAction.Details
-            );
-            if (selected != null)
-            {
-                action.AddBinding(settings.GetBinding(selected.Value));
-            }
+            action.AddBinding("<Gamepad>/cancel");
             action.Enable();
             return action;
         }
@@ -150,48 +69,10 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
         {
             var action = new InputAction("NavigateVector", InputActionType.Value);
             action.expectedControlType = "Vector2";
-
-            // Default keyboard bindings
+            action.AddBinding("<Gamepad>/leftStick");
+            action.AddBinding("<Gamepad>/dpad");
             action.AddBinding("<Keyboard>/wASD");
             action.AddBinding("<Keyboard>/arrowKeys");
-
-            var settings =
-                Turnroot.Utilities.GameSettingsLoader.LoadFirst<GameplayPlayerSettings>();
-            var selected = settings?.GetSelectedOptionForAction(
-                GameplayPlayerSettings.LogicalAction.NavigateVector
-            );
-
-            if (selected == GameplayPlayerSettings.InputBindingKey.NavigateVector_GamepadLeftStick)
-            {
-                action.AddBinding(
-                    settings.GetBinding(
-                        GameplayPlayerSettings.InputBindingKey.NavigateVector_GamepadLeftStick
-                    )
-                );
-            }
-            else if (selected == GameplayPlayerSettings.InputBindingKey.NavigateVector_GamepadDpad)
-            {
-                action.AddBinding(
-                    settings.GetBinding(
-                        GameplayPlayerSettings.InputBindingKey.NavigateVector_GamepadDpad
-                    )
-                );
-            }
-            else
-            {
-                // Fallback: add both gamepad sources
-                action.AddBinding(
-                    settings?.GetBinding(
-                        GameplayPlayerSettings.InputBindingKey.NavigateVector_GamepadLeftStick
-                    ) ?? "<Gamepad>/leftStick"
-                );
-                action.AddBinding(
-                    settings?.GetBinding(
-                        GameplayPlayerSettings.InputBindingKey.NavigateVector_GamepadDpad
-                    ) ?? "<Gamepad>/dpad"
-                );
-            }
-
             action.Enable();
             return action;
         }

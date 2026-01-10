@@ -12,6 +12,7 @@ namespace Turnroot.UI.Components.SimpleButton
     {
         Confirm,
         Back,
+        Next,
         Details,
     }
 
@@ -80,6 +81,7 @@ namespace Turnroot.UI.Components.SimpleButton
             float elapsed = 0f;
 
             Color initialButtonColor = startColor;
+            Color initialTextColor = startColor;
 
             while (elapsed < Duration)
             {

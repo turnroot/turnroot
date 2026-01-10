@@ -81,8 +81,9 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             {
                 action(item);
             }
-            else if (item.gameObject.CompareTag("UnitCell")) // Unit cell in a grid; special case
+            else if (item.ItemName.StartsWith("UnitCell")) // Unit cell in a grid; special case
             {
+                // TODO: Use a tag instead of string matching
                 // Try to cast to UnitCellGridMenuItem
                 if (item is UnitCellGridMenuItem unitCellItem)
                 {
