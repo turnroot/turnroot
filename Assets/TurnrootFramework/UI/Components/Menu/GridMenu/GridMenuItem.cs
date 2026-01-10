@@ -15,7 +15,6 @@ namespace Turnroot.UI.Components.GridMenu
         [HideInInspector]
         public MenuBase parentMenu;
 
-
         [SerializeField]
         public int Row;
 

@@ -13,8 +13,6 @@ namespace Turnroot.UI.Components.GridMenu
 
         public InputAction NavigateLeftAction;
         public InputAction NavigateRightAction;
-        public InputAction DetailsAction;
-
         private int _selectedIndex = -1;
 
         protected override void Awake()
@@ -22,8 +20,6 @@ namespace Turnroot.UI.Components.GridMenu
             base.Awake();
             NavigateLeftAction?.Enable();
             NavigateRightAction?.Enable();
-            DetailsAction?.Enable();
-
             // Keep MenuBase informed when pointer hovers items so we can track hover-based selection
             OnNavigate += HandleNavigateTo;
         }
@@ -33,7 +29,6 @@ namespace Turnroot.UI.Components.GridMenu
             base.OnEnable();
             NavigateLeftAction?.Enable();
             NavigateRightAction?.Enable();
-            DetailsAction?.Enable();
         }
 
         protected override void OnDisable()
@@ -41,7 +36,6 @@ namespace Turnroot.UI.Components.GridMenu
             base.OnDisable();
             NavigateLeftAction?.Disable();
             NavigateRightAction?.Disable();
-            DetailsAction?.Disable();
 
             OnNavigate -= HandleNavigateTo;
         }
@@ -99,12 +93,6 @@ namespace Turnroot.UI.Components.GridMenu
             if (NavigateRightAction != null && NavigateRightAction.WasPressedThisFrame())
             {
                 NavigateRight();
-            }
-
-            if (DetailsAction != null && DetailsAction.WasPressedThisFrame())
-            {
-                // Map details action to select for now
-                SelectCurrentItem();
             }
         }
 

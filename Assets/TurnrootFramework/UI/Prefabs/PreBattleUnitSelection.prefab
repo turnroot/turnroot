@@ -1877,25 +1877,10 @@ MonoBehaviour:
     m_Id: 2988cafe-6b3b-4a96-9517-121a376c4d78
     m_Processors: 
     m_Interactions: 
-    m_SingletonActionBindings:
-    - m_Name: 
-      m_Id: 1c7b9105-3ff4-415d-99d4-63a438e595c8
-      m_Path: <Keyboard>/x
-      m_Interactions: 
-      m_Processors: 
-      m_Groups: 
-      m_Action: Details
-      m_Flags: 0
-    - m_Name: 
-      m_Id: 167eb86d-eb93-4cdf-be19-3241c40a1d5b
-      m_Path: <Gamepad>/buttonNorth
-      m_Interactions: 
-      m_Processors: 
-      m_Groups: 
-      m_Action: Details
-      m_Flags: 0
+    m_SingletonActionBindings: []
     m_Flags: 0
   RowGroupingTolerance: 2
+  ColumnGroupingTolerance: 20
   DebugDumpGrid: 1
 --- !u!1 &8069454060303783182
 GameObject:
@@ -1994,6 +1979,7 @@ MonoBehaviour:
   - {fileID: 6706353390031748323}
   - {fileID: 8867920105633577472}
   MaxSelectedUnits: 6
+  SelectedCount: 0
 --- !u!1 &8146178502202117056
 GameObject:
   m_ObjectHideFlags: 0
@@ -2769,18 +2755,6 @@ PrefabInstance:
     - target: {fileID: 1551417459137271937, guid: 5b5fa6e13695fc946b81226494ee0c38, type: 3}
       propertyPath: m_Name
       value: DetailsButton
-      objectReference: {fileID: 0}
-    - target: {fileID: 2593191793554375880, guid: 5b5fa6e13695fc946b81226494ee0c38, type: 3}
-      propertyPath: SelectAction.m_SingletonActionBindings.Array.size
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 2593191793554375880, guid: 5b5fa6e13695fc946b81226494ee0c38, type: 3}
-      propertyPath: SelectAction.m_SingletonActionBindings.Array.data[0].m_Id
-      value: f6cb6089-d79f-4e97-9f04-51260228e8f8
-      objectReference: {fileID: 0}
-    - target: {fileID: 2593191793554375880, guid: 5b5fa6e13695fc946b81226494ee0c38, type: 3}
-      propertyPath: SelectAction.m_SingletonActionBindings.Array.data[0].m_Path
-      value: '*/{Cancel}'
       objectReference: {fileID: 0}
     - target: {fileID: 7477554287779708752, guid: 5b5fa6e13695fc946b81226494ee0c38, type: 3}
       propertyPath: m_Pivot.x
