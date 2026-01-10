@@ -1665,6 +1665,8 @@ GameObject:
   - component: {fileID: 7906355799431142656}
   - component: {fileID: 3694866467269209848}
   - component: {fileID: 2460807709486240096}
+  - component: {fileID: 8203749403968062786}
+  - component: {fileID: 2437610994001734864}
   m_Layer: 5
   m_Name: PreBattleUnitSelection
   m_TagString: Untagged
@@ -1873,6 +1875,31 @@ MonoBehaviour:
   RowGroupingTolerance: 2
   ColumnGroupingTolerance: 20
   DebugDumpGrid: 1
+--- !u!114 &8203749403968062786
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7814703603592663220}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 22d4c7e6af05d2f4a913be827634c1d6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  PreparationObject: {fileID: 0}
+--- !u!114 &2437610994001734864
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7814703603592663220}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 25e9ac881ec3b7a4286b846272f7a0bd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &8069454060303783182
 GameObject:
   m_ObjectHideFlags: 0

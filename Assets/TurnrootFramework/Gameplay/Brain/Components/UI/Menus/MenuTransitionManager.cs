@@ -397,9 +397,9 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
 
         private void InitializeMapPopulator(GameObject instance)
         {
-            var environmentalConditionsPopulator =
-                instance.GetComponentInChildren<PopulateMapPrefabEnviromentConditions>(true);
-            environmentalConditionsPopulator?.Initialize(_brain.GetBrain());
+            var preparationObjectResolver =
+                instance.GetComponentInChildren<PreparationObjectResolver>(true);
+            preparationObjectResolver?.Initialize(_brain.GetBrain());
         }
 
         private void InitializeTeamMenu(GameObject instance)
