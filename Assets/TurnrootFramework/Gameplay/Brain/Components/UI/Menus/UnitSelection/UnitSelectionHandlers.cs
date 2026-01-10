@@ -77,6 +77,11 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             _brain.ltm.RememberBool(key, item.IsSelectedForBattle);
         }
 
+        private void HandleUnitCellSelectionPreBattlePositioning(UnitCellGridMenuItem item)
+        {
+            
+        }
+
         public void HandlePreBattleMenuSelect(MenuItemBase item)
         {
 #if UNITY_EDITOR

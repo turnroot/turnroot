@@ -98,6 +98,9 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                 case MenuLocation loc when loc == uiSettings.GetPrebattleUnitsMenu():
                     HandleUnitCellSelectionPreBattle(item);
                     break;
+                case MenuLocation loc when loc == uiSettings.GetPrebattleUnitPositionsMenu():
+                    HandleUnitCellSelectionPreBattlePositioning(item);
+                    break;
             }
         }
 
