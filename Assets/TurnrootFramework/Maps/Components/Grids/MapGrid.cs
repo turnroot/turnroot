@@ -13,6 +13,9 @@ public class MapGrid : MonoBehaviour
     [Header("Player Team Spawn Points"), HorizontalLine(color: EColor.Yellow)]
     public List<Vector2Int> PlayerTeamSpawnPoints = new();
 
+    [HideInInspector]
+    public BattleGameObject battleGameObject;
+
     [Header("Grid Settings")]
     [HorizontalLine(color: EColor.Green)]
     [SerializeField]
@@ -813,7 +816,7 @@ public class MapGrid : MonoBehaviour
         }
 
         // get the BattleGameObject in the parent (includes self)
-        var battleGameObject = GetComponentInParent<BattleGameObject>();
+        battleGameObject = GetComponentInParent<BattleGameObject>();
         if (PlayerTeamSpawnPoints.Count > battleGameObject.MaxPlayerTeamUnits)
         {
             Debug.LogWarning(
