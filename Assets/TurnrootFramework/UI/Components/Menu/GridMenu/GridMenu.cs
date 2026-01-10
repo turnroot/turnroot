@@ -15,10 +15,6 @@ namespace Turnroot.UI.Components.GridMenu
         public InputAction NavigateRightAction;
         private int _selectedIndex = -1;
 
-        // Binding edit mode state
-        private bool _isEditingBinding = false;
-        private ActionBindableGridMenuItem _editingItem = null;
-
         protected override void Awake()
         {
             base.Awake();
@@ -87,31 +83,6 @@ namespace Turnroot.UI.Components.GridMenu
 
         protected override void HandleKeyboardNavigation()
         {
-            // If in binding edit mode, handle navigation as edit commands
-            if (_isEditingBinding && _editingItem != null)
-            {
-                if (NavigateLeftAction != null && NavigateLeftAction.WasPressedThisFrame())
-                {
-                    _editingItem.CycleLogicalAction(-1);
-                }
-
-                if (NavigateRightAction != null && NavigateRightAction.WasPressedThisFrame())
-                {
-                    _editingItem.CycleLogicalAction(1);
-                }
-
-                if (navigateUpAction != null && navigateUpAction.WasPressedThisFrame())
-                {
-                    _editingItem.CycleGamepadBinding(-1);
-                }
-
-                if (navigateDownAction != null && navigateDownAction.WasPressedThisFrame())
-                {
-                    _editingItem.CycleGamepadBinding(1);
-                }
-                return; // consume inputs
-            }
-
             base.HandleKeyboardNavigation(); // handles up/down via base
 
             if (NavigateLeftAction != null && NavigateLeftAction.WasPressedThisFrame())
@@ -560,28 +531,7 @@ namespace Turnroot.UI.Components.GridMenu
 
             if (_selectedIndex >= 0 && _selectedIndex < menuItems.Count)
             {
-                var currentItem = menuItems[_selectedIndex];
-
-                // If the current item is an ActionBindableGridMenuItem, toggle edit mode instead of normal selection
-                if (!_isEditingBinding && currentItem is ActionBindableGridMenuItem bindable)
-                {
-                    _isEditingBinding = true;
-                    _editingItem = bindable;
-                    bindable.EnterEditMode();
-                    return;
-                }
-
-                // If already editing and the current is the editing item, exit edit mode
-                if (_isEditingBinding && currentItem == _editingItem)
-                {
-                    _editingItem.ExitEditMode();
-                    _editingItem = null;
-                    _isEditingBinding = false;
-                    return;
-                }
-
-                // Otherwise fall back to normal behavior
-                SelectItem(currentItem);
+                SelectItem(menuItems[_selectedIndex]);
             }
         }
     }
