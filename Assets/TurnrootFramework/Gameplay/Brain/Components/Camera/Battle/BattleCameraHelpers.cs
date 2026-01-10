@@ -1,8 +1,6 @@
 using Turnroot.Gameplay.Brain;
 using Turnroot.Gameplay.Combat;
 using Turnroot.Gameplay.PlayerSettings;
-using Turnroot.GameSettings;
-using Turnroot.Utilities;
 using UnityEngine;
 
 namespace TurnrootFramework.Gameplay.Brain.Segments

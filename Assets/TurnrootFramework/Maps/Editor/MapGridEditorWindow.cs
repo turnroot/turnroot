@@ -1,3 +1,33 @@
+/*                                                  /===-_---~~~~~~~~~------____
+                                                |===-~___                _,-'
+                 -==\\                         `//~\\   ~~~~`---.___.-~~
+             ______-==|                         | |  \\           _-~`
+       __--~~~  ,-/-==\\                        | |   `\        ,'
+    _-~       /'    |  \\                      / /      \      /
+  .'        /       |   \\                   /' /        \   /'
+ /  ____  /         |    \`\.__/-~~ ~ \ _ _/'  /          \/'
+/-'~    ~~~~~---__  |     ~-/~         ( )   /'        _--~`
+                  \_|      /        _)   ;  ),   __--~~
+                    '~~--_/      _-~/-  / \   '-~ \
+                   {\__--_/}    / \\_>- )<__\      \
+                   /'   (_/  _-~  | |__>--<__|      |
+                  |0  0 _/) )-~     | |__>--<__|      |
+                  / /~ ,_/       / /__>---<__/      |
+                 o o _//        /-~_>---<__-~      /
+                 (^(~          /~_>---<__-      _-~
+                ,/|           /__>--<__/     _-~
+             ,//('(          |__>--<__|     /                  .----_
+            ( ( '))          |__>--<__|    |                 /' _---_~\
+         `-)) )) (           |__>--<__|    |               /'  /     ~\`\
+        ,/,'//( (             \__>--<__\    \            /'  //        ||
+      ,( ( ((, ))              ~-__>--<_~-_  ~--____---~' _/'/        /'
+    `~/  )` ) ,/|                 ~-_~>--<_/-__       __-~ _/
+  ._-~//( )/ )) `                    ~~-'_/_/ /~~~~~~~__--~
+   ;'( ')/ ,)(                              ~~~~~~~~~~
+  ' ') '( (/
+    '   '  ` */
+/* ----------------------------- Here be dragons ---------------------------- */
+
 #if UNITY_EDITOR
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -9,6 +39,7 @@ using System.Linq;
 using Turnroot.Characters;
 using Turnroot.Gameplay.Objects;
 using UnityEngine.Events;
+using Turnroot.Gameplay.Combat;
 
 public class MapGridEditorWindow : EditorWindow
 {
@@ -112,6 +143,7 @@ public class MapGridEditorWindow : EditorWindow
     {
         Paint = 0,
         TestMovement = 1,
+        SetStartingPositions = 2,
     }
 
     private class ToolSet
@@ -341,7 +373,10 @@ public class MapGridEditorWindow : EditorWindow
     {
         var prevMode = _mode;
         _mode = (Mode)
-            GUILayout.Toolbar((int)_mode, new[] { "Paint Terrain Types", "Test Movement" });
+            GUILayout.Toolbar(
+                (int)_mode,
+                new[] { "Paint Terrain Types", "Test Movement", "Set Starting Positions" }
+            );
 
         if (prevMode != _mode)
         {
@@ -566,6 +601,10 @@ public class MapGridEditorWindow : EditorWindow
         {
             DrawTestMovementControls();
         }
+        else if (_mode == Mode.SetStartingPositions)
+        {
+            DrawStartingPositionsControls();
+        }
 
         DrawZoomControls();
 
@@ -575,7 +614,7 @@ public class MapGridEditorWindow : EditorWindow
         EditorGUILayout.EndVertical();
 
         // Right panel
-        if (_mode != Mode.TestMovement)
+        if (_mode != Mode.TestMovement && _mode != Mode.SetStartingPositions)
         {
             DrawRightPanel();
         }
@@ -583,6 +622,32 @@ public class MapGridEditorWindow : EditorWindow
         EditorGUILayout.EndHorizontal();
         EditorGUILayout.EndVertical();
         EditorGUILayout.EndHorizontal();
+    }
+
+    private void DrawStartingPositionsControls()
+    {
+        EditorGUILayout.BeginHorizontal();
+        GUILayout.Label("Starting Positions Mode", EditorStyles.boldLabel);
+
+        if (_grid != null)
+        {
+            GUILayout.Label($"Selected: {_grid.PlayerTeamSpawnPoints.Count}", GUILayout.Width(100));
+
+            if (GUILayout.Button("Clear All", GUILayout.Width(90)))
+            {
+                Undo.RecordObject(_grid, "Clear Starting Positions");
+                _grid.PlayerTeamSpawnPoints.Clear();
+                MarkDirty();
+                Repaint();
+            }
+        }
+
+        EditorGUILayout.EndHorizontal();
+
+        EditorGUILayout.HelpBox(
+            "Click on grid cells to toggle them as player team spawn points. A thick blue border indicates selected positions.",
+            MessageType.Info
+        );
     }
 
     private void DrawRightPanel()
@@ -1332,13 +1397,9 @@ public class MapGridEditorWindow : EditorWindow
     {
         EditorGUILayout.BeginHorizontal(EditorStyles.helpBox);
         string leftAction =
-            _mode == Mode.TestMovement
-                ? "Left click: Start test"
-                : (
-                    _selectedSecondTool >= 0
-                        ? "Left click: Add/Select feature"
-                        : "Left click: Paint"
-                );
+            _mode == Mode.TestMovement ? "Left click: Start test"
+            : _mode == Mode.SetStartingPositions ? "Left click: Toggle spawn point"
+            : (_selectedSecondTool >= 0 ? "Left click: Add/Select feature" : "Left click: Paint");
 
         string controls =
             $"Ctrl +/- : Zoom | Space + Drag : Pan | {leftAction} | Left click + drag: Paint Area | [`, 1-0, -, =, Q, A] : Terrain | Shift+[`, 1-0, -, =] : Feature";
@@ -1617,13 +1678,20 @@ public class MapGridEditorWindow : EditorWindow
                 Color fill = GetCellColor(point);
                 EditorGUI.DrawRect(cellRect, fill);
 
-                DrawCellOverlays(cellRect, point, fill, cellSize);
+                DrawCellOverlays(cellRect, point, fill, cellSize, r, c);
                 DrawCellBorders(cellRect);
             }
         }
     }
 
-    private void DrawCellOverlays(Rect cellRect, MapGridPoint point, Color fill, float cellSize)
+    private void DrawCellOverlays(
+        Rect cellRect,
+        MapGridPoint point,
+        Color fill,
+        float cellSize,
+        int row,
+        int col
+    )
     {
         if (point == null)
         {
@@ -1647,6 +1715,12 @@ public class MapGridEditorWindow : EditorWindow
         if (_mode == Mode.TestMovement && _testMovementResults?.TryGetValue(point, out _) == true)
         {
             EditorGUI.DrawRect(cellRect, new Color(.8f, 0f, 0.8f, .65f));
+        }
+
+        // Starting position overlay - draw thick blue border
+        if (_grid != null && _grid.PlayerTeamSpawnPoints.Contains(new Vector2Int(row, col)))
+        {
+            DrawThickBorder(cellRect, cellSize, new Color(0.2f, 0.5f, 1f, 1f), 4f);
         }
 
         // Feature overlay
@@ -1713,6 +1787,30 @@ public class MapGridEditorWindow : EditorWindow
                 _editorSettings?.modifiedPropertyBorderColor ?? new Color(1f, 0.75f, 1f, 0.6f);
             DrawSelectionBorder(cellRect, cellSize, lightCol);
         }
+    }
+
+    private void DrawThickBorder(
+        Rect cellRect,
+        float cellSize,
+        Color borderCol,
+        float thicknessMultiplier
+    )
+    {
+        float t = Mathf.Max(3f, Mathf.Round(cellSize * 0.08f * thicknessMultiplier));
+        // Top
+        EditorGUI.DrawRect(new Rect(cellRect.x, cellRect.y, cellRect.width, t), borderCol);
+        // Bottom
+        EditorGUI.DrawRect(
+            new Rect(cellRect.x, cellRect.y + cellRect.height - t, cellRect.width, t),
+            borderCol
+        );
+        // Left
+        EditorGUI.DrawRect(new Rect(cellRect.x, cellRect.y, t, cellRect.height), borderCol);
+        // Right
+        EditorGUI.DrawRect(
+            new Rect(cellRect.x + cellRect.width - t, cellRect.y, t, cellRect.height),
+            borderCol
+        );
     }
 
     private bool HasModifiedProperties(MapGridPoint point)
@@ -1838,6 +1936,61 @@ public class MapGridEditorWindow : EditorWindow
         else if (_mode == Mode.TestMovement)
         {
             HandleTestMovementMode(e, localMouse, cellSize, width, height, inside);
+        }
+        else if (_mode == Mode.SetStartingPositions)
+        {
+            HandleStartingPositionsMode(e, localMouse, cellSize, width, height, inside);
+        }
+    }
+
+    private void HandleStartingPositionsMode(
+        Event e,
+        Vector2 localMouse,
+        float cellSize,
+        int width,
+        int height,
+        bool inside
+    )
+    {
+        if (e.type == EventType.MouseDown && e.button == 0)
+        {
+            if (!inside)
+            {
+                e.Use();
+                return;
+            }
+
+            var cell = ClampCell(MouseToCell(localMouse, cellSize), width, height);
+            var pos = new Vector2Int(cell.x, cell.y);
+
+            Undo.RecordObject(_grid, "Toggle Starting Position");
+
+            if (_grid.PlayerTeamSpawnPoints.Contains(pos))
+            {
+                _grid.PlayerTeamSpawnPoints.Remove(pos);
+            }
+            else
+            {
+                var max = _grid.battleGameObject.MaxPlayerTeamUnits;
+                if (max > 0 && _grid.PlayerTeamSpawnPoints.Count >= max)
+                {
+                    EditorUtility.DisplayDialog(
+                        "Maximum Starting Positions Reached",
+                        $"You can only set up to {max} starting positions for player team units.",
+                        "OK"
+                    );
+                    e.Use();
+                    return;
+                }
+                else
+                {
+                    _grid.PlayerTeamSpawnPoints.Add(pos);
+                }
+            }
+
+            MarkDirty();
+            Repaint();
+            e.Use();
         }
     }
 
@@ -2392,7 +2545,8 @@ public class MapGridEditorWindow : EditorWindow
                     + "2. Choose a terrain type or feature tool from the left palette\n"
                     + "3. Click or drag on the grid to paint\n"
                     + "4. Right-click features to edit their properties in the right panel\n"
-                    + "5. Use the Test Movement mode to preview pathfinding",
+                    + "5. Use the Test Movement mode to preview pathfinding\n"
+                    + "6. Use Set Starting Positions to mark player spawn points",
                 MessageType.Info
             );
 

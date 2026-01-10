@@ -10,6 +10,8 @@ namespace Turnroot.Gameplay.Combat.PreBattle
     {
         public Brain.Brain Brain { get; private set; }
 
+        public MapGrid MapGrid { get; private set; }
+
         [HideInInspector]
         public EnvironmentalConditions EnvironmentalConditions { get; private set; }
 
@@ -26,6 +28,7 @@ namespace Turnroot.Gameplay.Combat.PreBattle
         {
             Brain = brain;
             EnvironmentalConditions = GetComponentInChildren<EnvironmentalConditions>(true);
+            MapGrid = GetComponentInChildren<MapGrid>(true);
 
             // Copy MaxPlayerTeamUnits and RequiredPlayerUnits from a BattleGameObject when available.
             if (brain?.battleBrain?.BattleObject != null)

@@ -1,5 +1,6 @@
 using TMPro;
 using Turnroot.Gameplay.Brain;
+using Turnroot.Gameplay.Combat.PreBattle;
 using Turnroot.Utilities;
 using UnityEngine;
 using UnityEngine.UI;
@@ -8,6 +9,9 @@ public class PopulateMapPrefabEnviromentConditions : MonoBehaviour
 {
     private Brain _brain;
 
+    public BattlePreparationObject PreparationObject;
+    public static BattlePreparationObject ResolvedPreparationObject { get; private set; }
+
     // Resolve EnvironmentalConditions for a Brain (prefer PreparationObject; fall back to scene)
     private static Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Environment.EnvironmentalConditions ResolveEnvironmentalConditions(
         Brain b
@@ -15,9 +19,35 @@ public class PopulateMapPrefabEnviromentConditions : MonoBehaviour
     {
         // Prefer an explicitly-assigned PreparationObject on the BattleBrain
         var prep = b?.battleBrain?.PreparationObject;
-        return prep.GetComponentInChildren<Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Environment.EnvironmentalConditions>(
-            true
-        );
+        if (prep != null)
+        {
+            ResolvedPreparationObject = prep;
+            return prep.GetComponentInChildren<Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Environment.EnvironmentalConditions>(
+                true
+            );
+        }
+        // Fallback: use PreparationObject assigned to this component, if available
+        var component = FindFirstObjectByType<PopulateMapPrefabEnviromentConditions>();
+        if (component != null && component.PreparationObject != null)
+        {
+            ResolvedPreparationObject = component.PreparationObject;
+            return component.PreparationObject.GetComponentInChildren<Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Environment.EnvironmentalConditions>(
+                true
+            );
+        }
+        // Fallback: try to find a BattlePreparationObject in the scene
+        var scenePrep = FindFirstObjectByType<BattlePreparationObject>();
+        if (scenePrep != null)
+        {
+            ResolvedPreparationObject = scenePrep;
+            return scenePrep.GetComponentInChildren<Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Environment.EnvironmentalConditions>(
+                true
+            );
+        }
+        // No BattlePreparationObject found; clear cached resolved value
+        ResolvedPreparationObject = null;
+        // Final fallback: try to find EnvironmentalConditions in scene directly
+        return FindFirstObjectByType<Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Environment.EnvironmentalConditions>();
     }
 
     private static class RowHelpers
@@ -120,6 +150,14 @@ public class PopulateMapPrefabEnviromentConditions : MonoBehaviour
 
         // Resolve EnvironmentalConditions for this brain (BattleGameObject -> PreparationObject -> scene fallback)
         var env = ResolveEnvironmentalConditions(_brain);
+        if (
+            TryGetComponent(out PopulateBattleMapPreview battleMapPreview)
+            && battleMapPreview != null
+            && ResolvedPreparationObject != null
+        )
+        {
+            battleMapPreview.Initialize(ResolvedPreparationObject);
+        }
         if (env == null)
         {
             return OperationResult.Failure("EnvironmentalConditions not found");

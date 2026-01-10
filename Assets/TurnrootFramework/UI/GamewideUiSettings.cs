@@ -31,6 +31,7 @@ namespace Turnroot.GameSettings
         PreBattleSettingsMenu,
         PreBattleMapMenu,
         PreBattleSupportMenu,
+        PrebattleUnitPositionsMenu,
     }
 
     [System.Serializable]
@@ -217,6 +218,9 @@ namespace Turnroot.GameSettings
         public MenuLocation GetPrebattleMapMenu() => GetMenuLocation(MenuName.PreBattleMapMenu);
 
         public MenuLocation GetPrebattleUnitsMenu() => GetMenuLocation(MenuName.PreBattleTeamMenu);
+
+        public MenuLocation GetPrebattleUnitPositionsMenu() =>
+            GetMenuLocation(MenuName.PrebattleUnitPositionsMenu);
 
         public void ResolveParentReferences()
         {

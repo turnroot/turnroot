@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using NaughtyAttributes;
 using Turnroot.Characters;
+using Turnroot.Gameplay.Combat;
 using Turnroot.Gameplay.Objects;
 using Turnroot.Utilities;
 using UnityEngine;
@@ -9,6 +10,27 @@ using UnityEngine.Events;
 
 public class MapGrid : MonoBehaviour
 {
+    [Header("Player Team Spawn Points"), HorizontalLine(color: EColor.Yellow)]
+    public List<Vector2Int> PlayerTeamSpawnPoints = new();
+
+    [HideInInspector]
+    public BattleGameObject battleGameObject;
+
+    [Header("Rendered Map Images")]
+    [SerializeField, ReadOnly]
+    private Sprite _fullMapImage;
+
+    [SerializeField, ReadOnly]
+    private Sprite _standardMapImage;
+
+    [SerializeField, ReadOnly]
+    private Sprite _unexploredMapImage;
+
+    // Public accessors
+    public Sprite FullMapImage => _fullMapImage;
+    public Sprite StandardMapImage => _standardMapImage;
+    public Sprite UnexploredMapImage => _unexploredMapImage;
+
     [Header("Grid Settings")]
     [HorizontalLine(color: EColor.Green)]
     [SerializeField]
@@ -253,6 +275,21 @@ public class MapGrid : MonoBehaviour
         RebuildRaycastColors();
         BuildTerrainPositionLookup();
         MarkDirty();
+    }
+
+    [Button("Render Map Images")]
+    public void RenderMapImages()
+    {
+#if UNITY_EDITOR
+        var renderer = new MapGridRenderer();
+        renderer.RenderAndSaveMapImages(
+            this,
+            out _fullMapImage,
+            out _standardMapImage,
+            out _unexploredMapImage
+        );
+        UnityEditor.EditorUtility.SetDirty(this);
+#endif
     }
 
     private void CreateGridPoint(int row, int col)
@@ -806,6 +843,18 @@ public class MapGrid : MonoBehaviour
         if (UnityEditor.EditorApplication.isPlayingOrWillChangePlaymode)
         {
             return;
+        }
+
+        // get the BattleGameObject in the parent (includes self)
+        battleGameObject = GetComponentInParent<BattleGameObject>();
+        if (PlayerTeamSpawnPoints.Count > battleGameObject.MaxPlayerTeamUnits)
+        {
+            Debug.LogWarning(
+                $"MapGrid: Trimming PlayerTeamSpawnPoints to max allowed units ({battleGameObject.MaxPlayerTeamUnits})"
+            );
+            PlayerTeamSpawnPoints = PlayerTeamSpawnPoints
+                .Take(battleGameObject.MaxPlayerTeamUnits)
+                .ToList();
         }
 
         if (_gridPoints == null || _gridPoints.Count == 0)
