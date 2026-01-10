@@ -63,8 +63,8 @@ namespace Turnroot.Gameplay.Combat
 
         public BattleCondition[] BattleConditions => _battleConditions;
 
-        [SerializeField]
-        private MapGrid _mapGrid;
+        [field: SerializeField]
+        public MapGrid MapGrid { get; private set; }
 
         [Header("Roster Templates"), HorizontalLine(color: EColor.Blue)]
         [SerializeField]
@@ -94,9 +94,9 @@ namespace Turnroot.Gameplay.Combat
         {
             ResetTurnCount();
             Context ??= GetComponent<BattleContext>();
-            _mapGrid = _mapGrid != null ? _mapGrid : GetComponentInChildren<MapGrid>();
+            MapGrid = MapGrid != null ? MapGrid : GetComponentInChildren<MapGrid>();
 
-            if (_mapGrid == null)
+            if (MapGrid == null)
             {
 #if UNITY_EDITOR
                 Debug.LogError("BattleGameObject requires a MapGrid child");
@@ -224,9 +224,9 @@ namespace Turnroot.Gameplay.Combat
             // Unsubscribe from map state changes if any
             try
             {
-                if (_mapGrid != null)
+                if (MapGrid != null)
                 {
-                    _mapGrid.OnStateVersionChanged -= HandleMapStateChanged;
+                    MapGrid.OnStateVersionChanged -= HandleMapStateChanged;
                 }
             }
             catch (System.Exception ex)
@@ -346,14 +346,14 @@ namespace Turnroot.Gameplay.Combat
             // Use explicit initialization so the Context has non-null Brain guaranteed
             try
             {
-                Context.Initialize(Brain, _mapGrid);
+                Context.Initialize(Brain, MapGrid);
 #if UNITY_EDITOR
                 Debug.Log("BattleGameObject: Context initialized via Initialize(brain, mapGrid)");
 #endif
                 // Subscribe to map state changes to invalidate AI caches when terrain/occupancy changes
                 try
                 {
-                    _mapGrid.OnStateVersionChanged += HandleMapStateChanged;
+                    MapGrid.OnStateVersionChanged += HandleMapStateChanged;
                 }
                 catch (System.Exception ex)
                 {
