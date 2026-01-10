@@ -1,7 +1,4 @@
-using System.Collections;
 using Turnroot.Gameplay.Brain;
-using Turnroot.GameSettings;
-using Turnroot.UI.Components.Menu;
 using Turnroot.UI.Components.SimpleButton;
 using UnityEngine;
 

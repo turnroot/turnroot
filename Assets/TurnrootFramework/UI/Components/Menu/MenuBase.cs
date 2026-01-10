@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using Turnroot.GameSettings;
-using Turnroot.UI.Components.ListMenu;
 using TurnrootFramework.Gameplay.Brain.Segments;
 using UnityEngine;
 using UnityEngine.InputSystem;

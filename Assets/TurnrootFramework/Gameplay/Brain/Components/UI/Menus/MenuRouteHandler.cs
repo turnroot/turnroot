@@ -1,9 +1,7 @@
 using System;
 using System.Collections.Generic;
-using Turnroot.Gameplay.Brain.UI;
 using Turnroot.GameSettings;
 using Turnroot.UI.Components.GridMenu;
-using Turnroot.UI.Components.Menu;
 using UnityEngine;
 
 namespace TurnrootFramework.Gameplay.Brain.Segments
@@ -87,7 +85,13 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                 // Try to cast to UnitCellGridMenuItem
                 if (item is UnitCellGridMenuItem unitCellItem)
                 {
-                    _brain.HandleUnitCellSelectionToggle(unitCellItem);
+                    // Get the MenuLocation type of the currently open menu
+                    var currentMenu = _brain.GetMenuTracker()?.CurrentMenu;
+#if UNITY_EDITOR
+                    Debug.Log($"MenuRouteHandler: Current source menu: {currentMenu?.menuName}");
+#endif
+                    // Existing behavior: delegate to UiBrain's handler (which contains the selection logic)
+                    _brain.HandleUnitCellSelectionToggle(unitCellItem, currentMenu);
                 }
                 else
                 {

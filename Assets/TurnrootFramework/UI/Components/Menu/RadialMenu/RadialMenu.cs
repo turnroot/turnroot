@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using Turnroot.Gameplay.Brain.UI;
 using Turnroot.GameSettings;
 using Turnroot.Utilities;
 using TurnrootFramework.Gameplay.Brain.Segments;
@@ -109,29 +108,6 @@ namespace Turnroot.UI.Components.RadialMenu
         private bool _centerSelected = false;
         private float _rotStep;
         private Vector2 _lastNavigateInput;
-
-        public PrebattleOptions FindPreBattleOptionByName(string name)
-        {
-            switch (name)
-            {
-                case "Team":
-                    return PrebattleOptions.Team;
-                case "Items":
-                    return PrebattleOptions.Items;
-                case "Settings":
-                    return PrebattleOptions.Settings;
-                case "Skills":
-                    return PrebattleOptions.Skills;
-                case "Withdraw":
-                    return PrebattleOptions.Withdraw;
-                case "Map":
-                    return PrebattleOptions.Map;
-                case "Support":
-                    return PrebattleOptions.Support;
-                default:
-                    throw new Exception($"No PrebattleOption found for segment name: {name}");
-            }
-        }
 
         public UiBrain uiBrain;
 
