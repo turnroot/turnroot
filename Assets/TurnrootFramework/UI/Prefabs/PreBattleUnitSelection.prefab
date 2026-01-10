@@ -1870,15 +1870,6 @@ MonoBehaviour:
       m_Action: Navigate Right
       m_Flags: 0
     m_Flags: 0
-  DetailsAction:
-    m_Name: Details
-    m_Type: 0
-    m_ExpectedControlType: 
-    m_Id: 2988cafe-6b3b-4a96-9517-121a376c4d78
-    m_Processors: 
-    m_Interactions: 
-    m_SingletonActionBindings: []
-    m_Flags: 0
   RowGroupingTolerance: 2
   ColumnGroupingTolerance: 20
   DebugDumpGrid: 1
@@ -2839,8 +2830,33 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 1551417459137271937, guid: 5b5fa6e13695fc946b81226494ee0c38, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 5519150944551021517}
   m_SourcePrefab: {fileID: 100100000, guid: 5b5fa6e13695fc946b81226494ee0c38, type: 3}
+--- !u!1 &946262998911203063 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1551417459137271937, guid: 5b5fa6e13695fc946b81226494ee0c38, type: 3}
+  m_PrefabInstance: {fileID: 1776231186998619766}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &5519150944551021517
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 946262998911203063}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1786c09f7fde6eb47b013219a47ea97c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  isCenter: 0
+  parentMenu: {fileID: 0}
+  Row: 0
+  Column: 3
+  itemName: 
 --- !u!224 &9179440892124795174 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 7477554287779708752, guid: 5b5fa6e13695fc946b81226494ee0c38, type: 3}
