@@ -73,7 +73,7 @@ namespace Turnroot.Gameplay.Combat
         [SerializeField]
         private GenericRoster _thirdPartyRoster;
 
-        [SerializeField, ReadOnly]
+        [SerializeField, HideInInspector]
         private int _currentTurnCount;
 
         [field: HideInInspector]

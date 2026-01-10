@@ -21,6 +21,7 @@ namespace Turnroot.UI.Components
 
         public int MaxSelectedUnits;
 
+        public int SelectedCount;
 
         public void Initialize(Brain brain)
         {
@@ -39,7 +40,7 @@ namespace Turnroot.UI.Components
                 $"UnitSelectionColumns: Initializing with {unitCount} units, {keys.Count} selection keys in LTM"
             );
 #endif
-            var keysSet = new System.Collections.Generic.HashSet<string>(keys);
+            var keysSet = new HashSet<string>(keys);
 
             // Count currently selected units so we can fill up to MaxSelectedUnits when necessary
             int currentlySelectedCount = 0;
@@ -84,7 +85,38 @@ namespace Turnroot.UI.Components
             var parentMenu = GetComponentInParent<MenuBase>(true);
             parentMenu?.RefreshMenuItems();
 
-            UpdateUnitCountText(currentlySelectedCount);
+            // Initialize the displayed selected count from computed selections
+            SelectedCount = currentlySelectedCount;
+
+            RecomputeSelectedCount();
+
+#if UNITY_EDITOR
+            Debug.Log($"UnitSelectionColumns: Initialized SelectedCount = {SelectedCount}");
+#endif
+            UpdateUnitCountText();
+        }
+
+        public void RecomputeSelectedCount()
+        {
+            int count = 0;
+            foreach (var col in Columns)
+            {
+                if (col == null)
+                {
+                    continue;
+                }
+
+                var cells = col.GetComponentsInChildren<UnitCellGridMenuItem>(true);
+                foreach (var c in cells)
+                {
+                    if (c.IsSelectedForBattle)
+                    {
+                        count++;
+                    }
+                }
+            }
+            SelectedCount = Mathf.Clamp(count, 0, MaxSelectedUnits);
+            UpdateUnitCountText();
         }
 
         private void ConfigureUnitCell(
@@ -153,7 +185,13 @@ namespace Turnroot.UI.Components
                     var requiredUnits = _brain.battleBrain.PreparationObject.RequiredPlayerUnits;
                     if (requiredUnits.Contains(unit.CharacterData))
                     {
-                        isSelected = true;
+                        // If not already selected via LTM or auto-fill, count them now
+                        if (!isSelected)
+                        {
+                            isSelected = true;
+                            currentlySelectedCount++;
+                        }
+
                         // Turn on the required indicator
                         var requiredT = uf.FindChildByTag(unitCell, "UnitCellRequiredIndicator");
                         if (requiredT != null)
@@ -182,7 +220,7 @@ namespace Turnroot.UI.Components
             }
         }
 
-        private void UpdateUnitCountText(int selectedCount)
+        public void UpdateUnitCountText()
         {
             if (UnitCountText == null)
             {
@@ -194,7 +232,7 @@ namespace Turnroot.UI.Components
                 && UnitCountText.TryGetComponent<TextMeshProUGUI>(out var textLbl)
             )
             {
-                textLbl.text = $"{selectedCount} / {MaxSelectedUnits} Units";
+                textLbl.text = $"{SelectedCount} / {MaxSelectedUnits} Units";
             }
         }
     }
