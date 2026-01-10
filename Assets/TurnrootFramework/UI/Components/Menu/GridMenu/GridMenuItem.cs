@@ -24,6 +24,8 @@ namespace Turnroot.UI.Components.GridMenu
 
         public override string ItemName => itemName;
 
+        public void SetItemNamePublic(string name) => itemName = name;
+
         [SerializeField]
         private string itemName;
 

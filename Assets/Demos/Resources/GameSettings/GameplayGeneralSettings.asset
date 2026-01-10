@@ -48,7 +48,7 @@ MonoBehaviour:
   CritFormula: 1
   CustomSkillMultiplierForCrit: 0.5
   CustomLuckMultiplierForCrit: 0
-  AvoidFormula: 0
+  AvoidFormula: 1
   CustomSpeedMultiplierForAvoid: 2
   CustomLuckMultiplierForAvoid: 1
   WeaponTriangleHitBonus: 15

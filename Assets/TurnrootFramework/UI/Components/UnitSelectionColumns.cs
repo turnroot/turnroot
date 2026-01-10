@@ -2,6 +2,8 @@ using System.Collections.Generic;
 using Coffee.UIEffects;
 using TMPro;
 using Turnroot.Gameplay.Brain;
+using Turnroot.UI.Components.GridMenu;
+using Turnroot.UI.Components.Menu;
 using Turnroot.Utilities;
 using UnityEngine;
 
@@ -19,8 +21,6 @@ namespace Turnroot.UI.Components
 
         public int MaxSelectedUnits;
 
-        [HideInInspector]
-        public Dictionary<Characters.Roster.UnitPlacement, bool> unitCanBeSelected = new();
 
         public void Initialize(Brain brain)
         {
@@ -57,6 +57,19 @@ namespace Turnroot.UI.Components
                 var whichColumn = i % TotalColumns;
                 var unitCell = Instantiate(UnitCellPrefab, Columns[whichColumn].transform);
 
+                // Ensure the instantiated unit cell has a GridMenuItem so it appears in the MenuBase menuItems
+                if (!unitCell.TryGetComponent<UnitCellGridMenuItem>(out var gridMenuItem))
+                {
+                    gridMenuItem = unitCell.AddComponent<UnitCellGridMenuItem>();
+                    gridMenuItem.IsSelectedForBattle = false;
+                    gridMenuItem.CanBeSelectedForBattle = true;
+                }
+
+                // Column and Row are used by GridMenu navigation; Row is integer division (floor)
+                gridMenuItem.Column = whichColumn;
+                gridMenuItem.Row = i / TotalColumns;
+                gridMenuItem.SetItemNamePublic($"UnitCell_{unit.CharacterData.FullName}");
+
                 ConfigureUnitCell(
                     unitCell,
                     unit,
@@ -66,6 +79,11 @@ namespace Turnroot.UI.Components
                     ref currentlySelectedCount
                 );
             }
+
+            // After instantiating unit cells, refresh parent menu so newly added GridMenuItems are registered
+            var parentMenu = GetComponentInParent<MenuBase>(true);
+            parentMenu?.RefreshMenuItems();
+
             UpdateUnitCountText(currentlySelectedCount);
         }
 
@@ -73,13 +91,14 @@ namespace Turnroot.UI.Components
             GameObject unitCell,
             Characters.Roster.UnitPlacement unit,
             string prefix,
-            System.Collections.Generic.HashSet<string> keySet,
+            HashSet<string> keySet,
             LongTermMemory ltm,
             ref int currentlySelectedCount
         )
         {
             var uf = new UtilityFunctions();
             var nameT = uf.FindChildByTag(unitCell, "UnitCellUnitName");
+            var gridMenuItem = unitCell.GetComponent<UnitCellGridMenuItem>();
             if (nameT != null && nameT.TryGetComponent<TextMeshProUGUI>(out var nameLbl))
             {
                 nameLbl.text = unit.CharacterData.DisplayName;
@@ -140,15 +159,16 @@ namespace Turnroot.UI.Components
                         if (requiredT != null)
                         {
                             requiredT.gameObject.SetActive(true);
-                            unitCanBeSelected[unit] = false;
+                            gridMenuItem.CanBeSelectedForBattle = false;
                         }
                         else
                         {
-                            unitCanBeSelected[unit] = true;
+                            gridMenuItem.CanBeSelectedForBattle = true;
                         }
                     }
 
                     selectionIndicator.SetActive(isSelected);
+                    gridMenuItem.IsSelectedForBattle = isSelected;
                     if (isSelected)
                     {
 #if COFFEE_UIEFFECTS

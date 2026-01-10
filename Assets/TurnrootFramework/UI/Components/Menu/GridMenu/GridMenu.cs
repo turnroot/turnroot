@@ -50,8 +50,20 @@ namespace Turnroot.UI.Components.GridMenu
         private System.Collections.Generic.List<System.Collections.Generic.List<int>> _rows = new();
         private System.Collections.Generic.Dictionary<int, (int row, int col)> _indexToRc = new();
 
-        // Tolerance for grouping items into the same row (in local space units)
-        public float RowGroupingTolerance = 2f;
+        // Column-oriented structure (columns of indices) used for left/right/up/down navigation
+        private System.Collections.Generic.List<System.Collections.Generic.List<int>> _cols = new();
+        private System.Collections.Generic.Dictionary<int, (int col, int row)> _indexToCr = new();
+
+        // Tolerance for grouping items into the same row (in world-space units)
+        // Increased default so small vertical offsets between column parents still group into the same row.
+        public float RowGroupingTolerance = 20f;
+
+        // Tolerance for grouping items into the same column (in world-space units)
+        public float ColumnGroupingTolerance = 20f;
+
+        [Header("Debug")]
+        [Tooltip("Dump internal grid rows/columns mapping to the console when building rows")]
+        public bool DebugDumpGrid = false;
 
         public override void RefreshMenuItems()
         {
@@ -63,7 +75,10 @@ namespace Turnroot.UI.Components.GridMenu
             if (menuItems.Count > 0)
             {
                 if (_selectedIndex < 0 || _selectedIndex >= menuItems.Count)
+                {
                     _selectedIndex = 0;
+                }
+
                 UpdateSelectionTo(_selectedIndex);
             }
             else
@@ -98,15 +113,22 @@ namespace Turnroot.UI.Components.GridMenu
             // Mouse hover calls NavigateToItem; update our internal index
             var index = menuItems.IndexOf(item);
             if (index >= 0)
+            {
                 UpdateSelectionTo(index);
+            }
         }
 
         private void UpdateSelectionTo(int index)
         {
             if (index < 0 || index >= menuItems.Count)
+            {
                 return;
+            }
+
             if (_selectedIndex == index)
+            {
                 return;
+            }
 
             // Simulate pointer exit on previous
             if (_selectedIndex >= 0 && _selectedIndex < menuItems.Count)
@@ -156,7 +178,9 @@ namespace Turnroot.UI.Components.GridMenu
             _indexToRc.Clear();
 
             if (menuItems.Count == 0)
+            {
                 return;
+            }
 
             var entries = new System.Collections.Generic.List<(int idx, float y, float x)>();
             for (int i = 0; i < menuItems.Count; i++)
@@ -167,15 +191,17 @@ namespace Turnroot.UI.Components.GridMenu
                 var rt = t as RectTransform;
                 if (rt != null)
                 {
-                    var ap = rt.anchoredPosition;
-                    y = ap.y;
-                    x = ap.x;
+                    // Use world-space positions so items under different parent columns
+                    // are compared in the same coordinate space when grouping rows.
+                    var wp = rt.position;
+                    y = wp.y;
+                    x = wp.x;
                 }
                 else
                 {
-                    var lp = t.localPosition;
-                    y = lp.y;
-                    x = lp.x;
+                    var wp = t.position;
+                    y = wp.y;
+                    x = wp.x;
                 }
 
                 entries.Add((i, y, x));
@@ -207,7 +233,10 @@ namespace Turnroot.UI.Components.GridMenu
                     currentRow.Sort((p, q) => p.x.CompareTo(q.x));
                     var rowIndices = new System.Collections.Generic.List<int>();
                     foreach (var it in currentRow)
+                    {
                         rowIndices.Add(it.idx);
+                    }
+
                     _rows.Add(rowIndices);
 
                     currentRow.Clear();
@@ -221,7 +250,10 @@ namespace Turnroot.UI.Components.GridMenu
                 currentRow.Sort((p, q) => p.x.CompareTo(q.x));
                 var rowIndices = new System.Collections.Generic.List<int>();
                 foreach (var it in currentRow)
+                {
                     rowIndices.Add(it.idx);
+                }
+
                 _rows.Add(rowIndices);
             }
 
@@ -232,65 +264,209 @@ namespace Turnroot.UI.Components.GridMenu
                     _indexToRc[_rows[r][c]] = (r, c);
                 }
             }
+
+            // Build column groups (group by x position then sort by y descending inside each column)
+            _cols.Clear();
+            _indexToCr.Clear();
+
+            var entriesByX = new System.Collections.Generic.List<(int idx, float x, float y)>();
+            for (int i = 0; i < menuItems.Count; i++)
+            {
+                var t = menuItems[i].transform;
+                float y,
+                    x;
+                var rt = t as RectTransform;
+                if (rt != null)
+                {
+                    var wp = rt.position;
+                    y = wp.y;
+                    x = wp.x;
+                }
+                else
+                {
+                    var p = t.position;
+                    y = p.y;
+                    x = p.x;
+                }
+                entriesByX.Add((i, x, y));
+            }
+
+            // sort by x ascending (left to right)
+            entriesByX.Sort((a, b) => a.x.CompareTo(b.x));
+
+            float xTol = Mathf.Abs(ColumnGroupingTolerance);
+            var currentCol = new System.Collections.Generic.List<(int idx, float x, float y)>();
+            float? colX = null;
+
+            foreach (var e in entriesByX)
+            {
+                if (colX == null)
+                {
+                    colX = e.x;
+                    currentCol.Add(e);
+                    continue;
+                }
+
+                if (Mathf.Abs(e.x - colX.Value) <= xTol)
+                {
+                    currentCol.Add(e);
+                }
+                else
+                {
+                    // finalize column: sort by y descending (top to bottom)
+                    currentCol.Sort((p, q) => q.y.CompareTo(p.y));
+                    var colIndices = new System.Collections.Generic.List<int>();
+                    foreach (var it in currentCol)
+                    {
+                        colIndices.Add(it.idx);
+                    }
+
+                    _cols.Add(colIndices);
+
+                    currentCol.Clear();
+                    colX = e.x;
+                    currentCol.Add(e);
+                }
+            }
+
+            if (currentCol.Count > 0)
+            {
+                currentCol.Sort((p, q) => q.y.CompareTo(p.y));
+                var colIndices = new System.Collections.Generic.List<int>();
+                foreach (var it in currentCol)
+                {
+                    colIndices.Add(it.idx);
+                }
+
+                _cols.Add(colIndices);
+            }
+
+            for (int c = 0; c < _cols.Count; c++)
+            {
+                for (int r = 0; r < _cols[c].Count; r++)
+                {
+                    _indexToCr[_cols[c][r]] = (c, r);
+                }
+            }
+
+#if UNITY_EDITOR
+            if (DebugDumpGrid)
+            {
+                var sb = new System.Text.StringBuilder();
+                sb.AppendLine("GridMenu: BuildGridRows dump (rows):");
+                for (int r = 0; r < _rows.Count; r++)
+                {
+                    sb.Append($"Row {r}: ");
+                    foreach (var idx in _rows[r])
+                    {
+                        var t = menuItems[idx].transform;
+                        var pos =
+                            (t as RectTransform) != null ? ((RectTransform)t).position : t.position;
+                        sb.Append($"{idx}({menuItems[idx].ItemName}@y={pos.y:F1},x={pos.x:F1}) ");
+                    }
+                    sb.AppendLine();
+                }
+
+                sb.AppendLine("GridMenu: BuildGridRows dump (cols):");
+                for (int c = 0; c < _cols.Count; c++)
+                {
+                    sb.Append($"Col {c}: ");
+                    foreach (var idx in _cols[c])
+                    {
+                        var t = menuItems[idx].transform;
+                        var pos =
+                            (t as RectTransform) != null ? ((RectTransform)t).position : t.position;
+                        sb.Append($"{idx}({menuItems[idx].ItemName}@y={pos.y:F1},x={pos.x:F1}) ");
+                    }
+                    sb.AppendLine();
+                }
+                Debug.Log(sb.ToString());
+            }
+#endif
         }
 
         protected override void NavigateToNextItem()
         {
-            // Move down one visual row keeping the same column where possible
+            // Move down one item within the same column (if possible)
             if (menuItems.Count == 0)
+            {
                 return;
-            if (_rows == null || _rows.Count == 0)
-            { /* fallback */
+            }
+
+            if (_cols == null || _cols.Count == 0)
+            { /* fallback to row-based behavior */
                 var newIndex = (_selectedIndex < 0 ? 0 : _selectedIndex) + Columns;
                 if (newIndex >= menuItems.Count)
+                {
                     newIndex = menuItems.Count - 1;
+                }
+
                 UpdateSelectionTo(newIndex);
                 return;
             }
 
             var idx = _selectedIndex < 0 ? 0 : _selectedIndex;
-            if (!_indexToRc.TryGetValue(idx, out var rc))
+            if (!_indexToCr.TryGetValue(idx, out var cr))
+            {
                 return;
-            var row = rc.row;
-            var col = rc.col;
+            }
+
+            var col = cr.col;
+            var row = cr.row;
             var targetRow = row + 1;
-            if (targetRow >= _rows.Count)
+            if (targetRow >= _cols[col].Count)
+            {
                 return;
-            var targetCol = Mathf.Min(col, _rows[targetRow].Count - 1);
-            UpdateSelectionTo(_rows[targetRow][targetCol]);
+            }
+
+            UpdateSelectionTo(_cols[col][targetRow]);
         }
 
         protected override void NavigateToPreviousItem()
         {
-            // Move up one visual row keeping the same column where possible
+            // Move up one item within the same column (if possible)
             if (menuItems.Count == 0)
+            {
                 return;
-            if (_rows == null || _rows.Count == 0)
-            { /* fallback */
+            }
+
+            if (_cols == null || _cols.Count == 0)
+            { /* fallback to row-based behavior */
                 var newIndex = (_selectedIndex < 0 ? 0 : _selectedIndex) - Columns;
                 if (newIndex < 0)
+                {
                     newIndex = 0;
+                }
+
                 UpdateSelectionTo(newIndex);
                 return;
             }
 
             var idx = _selectedIndex < 0 ? 0 : _selectedIndex;
-            if (!_indexToRc.TryGetValue(idx, out var rc))
+            if (!_indexToCr.TryGetValue(idx, out var cr))
+            {
                 return;
-            var row = rc.row;
-            var col = rc.col;
+            }
+
+            var col = cr.col;
+            var row = cr.row;
             var targetRow = row - 1;
             if (targetRow < 0)
+            {
                 return;
-            var targetCol = Mathf.Min(col, _rows[targetRow].Count - 1);
-            UpdateSelectionTo(_rows[targetRow][targetCol]);
+            }
+
+            UpdateSelectionTo(_cols[col][targetRow]);
         }
 
         private void NavigateLeft()
         {
             if (menuItems.Count == 0)
+            {
                 return;
-            if (_rows == null || _rows.Count == 0)
+            }
+
+            if (_cols == null || _cols.Count == 0)
             { /* fallback to old behavior */
                 _selectedIndex = Mathf.Max(0, _selectedIndex - 1);
                 UpdateSelectionTo(_selectedIndex);
@@ -298,10 +474,13 @@ namespace Turnroot.UI.Components.GridMenu
             }
 
             var idx = _selectedIndex < 0 ? 0 : _selectedIndex;
-            if (!_indexToRc.TryGetValue(idx, out var rc))
+            if (!_indexToCr.TryGetValue(idx, out var cr))
+            {
                 return;
-            var row = rc.row;
-            var col = rc.col;
+            }
+
+            var col = cr.col;
+            var row = cr.row;
 
             if (col > 0)
             {
@@ -309,28 +488,23 @@ namespace Turnroot.UI.Components.GridMenu
             }
             else
             {
-                // wrap to end of previous row if exists
-                if (row > 0)
-                {
-                    row--;
-                    col = _rows[row].Count - 1;
-                }
-                else
-                {
-                    // stay
-                    return;
-                }
+                // wrap to rightmost column
+                col = _cols.Count - 1;
             }
 
-            var newIndex = _rows[row][Mathf.Min(col, _rows[row].Count - 1)];
+            var targetRow = Mathf.Min(row, _cols[col].Count - 1);
+            var newIndex = _cols[col][targetRow];
             UpdateSelectionTo(newIndex);
         }
 
         private void NavigateRight()
         {
             if (menuItems.Count == 0)
+            {
                 return;
-            if (_rows == null || _rows.Count == 0)
+            }
+
+            if (_cols == null || _cols.Count == 0)
             { /* fallback to old behavior */
                 _selectedIndex = Mathf.Min(menuItems.Count - 1, _selectedIndex + 1);
                 UpdateSelectionTo(_selectedIndex);
@@ -338,33 +512,35 @@ namespace Turnroot.UI.Components.GridMenu
             }
 
             var idx = _selectedIndex < 0 ? 0 : _selectedIndex;
-            if (!_indexToRc.TryGetValue(idx, out var rc))
+            if (!_indexToCr.TryGetValue(idx, out var cr))
+            {
                 return;
-            var row = rc.row;
-            var col = rc.col;
+            }
 
-            if (col < _rows[row].Count - 1)
+            var col = cr.col;
+            var row = cr.row;
+
+            if (col < _cols.Count - 1)
             {
                 col++;
-                UpdateSelectionTo(_rows[row][col]);
-                return;
             }
-
-            // move to first element of next row if exists
-            if (row + 1 < _rows.Count && _rows[row + 1].Count > 0)
+            else
             {
-                var targetCol = Mathf.Min(col, _rows[row + 1].Count - 1);
-                UpdateSelectionTo(_rows[row + 1][targetCol]);
-                return;
+                // wrap to leftmost column
+                col = 0;
             }
 
-            // otherwise stay at last item
+            var targetRow = Mathf.Min(row, _cols[col].Count - 1);
+            UpdateSelectionTo(_cols[col][targetRow]);
         }
 
         protected override void SelectCurrentItem()
         {
             if (_selectedIndex < 0 && menuItems.Count > 0)
+            {
                 _selectedIndex = 0;
+            }
+
             if (_selectedIndex >= 0 && _selectedIndex < menuItems.Count)
             {
                 SelectItem(menuItems[_selectedIndex]);

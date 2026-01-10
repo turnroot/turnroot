@@ -2,6 +2,7 @@ using Turnroot.Gameplay.Brain;
 using Turnroot.Gameplay.Brain.UI;
 using Turnroot.GameSettings;
 using Turnroot.UI.Components;
+using Turnroot.UI.Components.GridMenu;
 using Turnroot.UI.Components.Menu;
 using Turnroot.UI.Components.RadialMenu;
 using UnityEngine;
@@ -93,6 +94,35 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
         }
 
         #region PreBattle Menu Event Handlers
+
+        public void HandleUnitCellSelectionToggle(UnitCellGridMenuItem item)
+        {
+            // TODO: Handle explorer selection
+            if (item.CanBeSelectedForBattle)
+            {
+                item.IsSelectedForBattle = !item.IsSelectedForBattle;
+                var unitCell = item.gameObject;
+                var uf = new Turnroot.Utilities.UtilityFunctions();
+                var selectedT = uf.FindChildByTag(unitCell, "UnitCellSelected");
+                if (selectedT != null)
+                {
+                    var selectionIndicator = selectedT.gameObject;
+                    if (selectionIndicator != null)
+                    {
+                        selectionIndicator.SetActive(item.IsSelectedForBattle);
+                        if (item.IsSelectedForBattle)
+                        {
+#if COFFEE_UIEFFECTS
+                            if (selectionIndicator.TryGetComponent<UIEffect>(out var uiEffect))
+                            {
+                                uiEffect.transitionRate = Random.Range(0, 1f);
+                            }
+#endif
+                        }
+                    }
+                }
+            }
+        }
 
         public void HandlePreBattleMenuSelect(MenuItemBase item)
         {

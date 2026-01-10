@@ -1790,7 +1790,15 @@ MonoBehaviour:
     m_Id: caee811c-bf41-4bba-8ca9-4b8106200ce3
     m_Processors: 
     m_Interactions: 
-    m_SingletonActionBindings: []
+    m_SingletonActionBindings:
+    - m_Name: 
+      m_Id: 71ac7d37-be2c-4ca1-b22d-9da2df025d3c
+      m_Path: <Gamepad>/{Submit}
+      m_Interactions: 
+      m_Processors: 
+      m_Groups: 
+      m_Action: Select
+      m_Flags: 0
     m_Flags: 0
   navigateUpAction:
     m_Name: Navigate Up
@@ -1799,7 +1807,15 @@ MonoBehaviour:
     m_Id: eaf9d9ec-4e62-4492-a739-66dea4f1b662
     m_Processors: 
     m_Interactions: 
-    m_SingletonActionBindings: []
+    m_SingletonActionBindings:
+    - m_Name: 
+      m_Id: 77ba8b3f-96c0-4045-8dac-e39f906b86ac
+      m_Path: <Keyboard>/w
+      m_Interactions: 
+      m_Processors: 
+      m_Groups: 
+      m_Action: Navigate Up
+      m_Flags: 0
     m_Flags: 0
   navigateDownAction:
     m_Name: Navigate Down
@@ -1808,7 +1824,15 @@ MonoBehaviour:
     m_Id: b3aa47ab-7fa7-4134-85cd-8867c47817f2
     m_Processors: 
     m_Interactions: 
-    m_SingletonActionBindings: []
+    m_SingletonActionBindings:
+    - m_Name: 
+      m_Id: e5c25782-76f4-4441-84f2-1f560da8f2ca
+      m_Path: <Keyboard>/s
+      m_Interactions: 
+      m_Processors: 
+      m_Groups: 
+      m_Action: Navigate Down
+      m_Flags: 0
     m_Flags: 0
   uiBrain: {fileID: 0}
   Columns: 3
@@ -1819,7 +1843,15 @@ MonoBehaviour:
     m_Id: e3b4023f-6961-41e6-a079-e4359826f06a
     m_Processors: 
     m_Interactions: 
-    m_SingletonActionBindings: []
+    m_SingletonActionBindings:
+    - m_Name: 
+      m_Id: 0c03176f-4450-4d66-8bf1-a0205812e1fd
+      m_Path: <Keyboard>/a
+      m_Interactions: 
+      m_Processors: 
+      m_Groups: 
+      m_Action: Navigate Left
+      m_Flags: 0
     m_Flags: 0
   NavigateRightAction:
     m_Name: Navigate Right
@@ -1828,7 +1860,15 @@ MonoBehaviour:
     m_Id: b1d96e53-ef41-49eb-ad19-881e3d0b97c9
     m_Processors: 
     m_Interactions: 
-    m_SingletonActionBindings: []
+    m_SingletonActionBindings:
+    - m_Name: 
+      m_Id: a00a5658-6751-49f4-989d-865faae1b4ab
+      m_Path: <Keyboard>/d
+      m_Interactions: 
+      m_Processors: 
+      m_Groups: 
+      m_Action: Navigate Right
+      m_Flags: 0
     m_Flags: 0
   DetailsAction:
     m_Name: Details
@@ -1837,9 +1877,26 @@ MonoBehaviour:
     m_Id: 2988cafe-6b3b-4a96-9517-121a376c4d78
     m_Processors: 
     m_Interactions: 
-    m_SingletonActionBindings: []
+    m_SingletonActionBindings:
+    - m_Name: 
+      m_Id: 1c7b9105-3ff4-415d-99d4-63a438e595c8
+      m_Path: <Keyboard>/x
+      m_Interactions: 
+      m_Processors: 
+      m_Groups: 
+      m_Action: Details
+      m_Flags: 0
+    - m_Name: 
+      m_Id: 167eb86d-eb93-4cdf-be19-3241c40a1d5b
+      m_Path: <Gamepad>/buttonNorth
+      m_Interactions: 
+      m_Processors: 
+      m_Groups: 
+      m_Action: Details
+      m_Flags: 0
     m_Flags: 0
   RowGroupingTolerance: 2
+  DebugDumpGrid: 1
 --- !u!1 &8069454060303783182
 GameObject:
   m_ObjectHideFlags: 0
@@ -1931,7 +1988,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ea798785d5745f14bbdd29f2d0f1c998, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  TotalColumns: 2
   UnitCellPrefab: {fileID: 542936960687533465, guid: 09a6310f54cb68c4e982d188deaad53f, type: 3}
   UnitCountText: {fileID: 8146178502202117056}
   Columns:
@@ -2694,9 +2750,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   isCenter: 0
   parentMenu: {fileID: 0}
-  Row: 0
-  Column: 0
-  itemName: 
+  Row: 2
+  Column: 2
+  itemName: Items
 --- !u!224 &7204303935908037943 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 8150981421155501211, guid: fba0a1dd7fa670b4abac785c8cffdff8, type: 3}
@@ -2713,6 +2769,18 @@ PrefabInstance:
     - target: {fileID: 1551417459137271937, guid: 5b5fa6e13695fc946b81226494ee0c38, type: 3}
       propertyPath: m_Name
       value: DetailsButton
+      objectReference: {fileID: 0}
+    - target: {fileID: 2593191793554375880, guid: 5b5fa6e13695fc946b81226494ee0c38, type: 3}
+      propertyPath: SelectAction.m_SingletonActionBindings.Array.size
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2593191793554375880, guid: 5b5fa6e13695fc946b81226494ee0c38, type: 3}
+      propertyPath: SelectAction.m_SingletonActionBindings.Array.data[0].m_Id
+      value: f6cb6089-d79f-4e97-9f04-51260228e8f8
+      objectReference: {fileID: 0}
+    - target: {fileID: 2593191793554375880, guid: 5b5fa6e13695fc946b81226494ee0c38, type: 3}
+      propertyPath: SelectAction.m_SingletonActionBindings.Array.data[0].m_Path
+      value: '*/{Cancel}'
       objectReference: {fileID: 0}
     - target: {fileID: 7477554287779708752, guid: 5b5fa6e13695fc946b81226494ee0c38, type: 3}
       propertyPath: m_Pivot.x
@@ -2797,33 +2865,8 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 1551417459137271937, guid: 5b5fa6e13695fc946b81226494ee0c38, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 236162226452704271}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 5b5fa6e13695fc946b81226494ee0c38, type: 3}
---- !u!1 &946262998911203063 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 1551417459137271937, guid: 5b5fa6e13695fc946b81226494ee0c38, type: 3}
-  m_PrefabInstance: {fileID: 1776231186998619766}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &236162226452704271
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 946262998911203063}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1786c09f7fde6eb47b013219a47ea97c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  isCenter: 0
-  parentMenu: {fileID: 0}
-  Row: 0
-  Column: 0
-  itemName: 
 --- !u!224 &9179440892124795174 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 7477554287779708752, guid: 5b5fa6e13695fc946b81226494ee0c38, type: 3}
@@ -3033,9 +3076,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   isCenter: 0
   parentMenu: {fileID: 0}
-  Row: 0
-  Column: 0
-  itemName: 
+  Row: 3
+  Column: 2
+  itemName: StartBattle
 --- !u!224 &2767609473426107512 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 8150981421155501211, guid: fba0a1dd7fa670b4abac785c8cffdff8, type: 3}
@@ -3215,8 +3258,8 @@ MonoBehaviour:
   isCenter: 0
   parentMenu: {fileID: 0}
   Row: 0
-  Column: 0
-  itemName: 
+  Column: 2
+  itemName: StartingPositions
 --- !u!1001 &8693830119458060358
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3390,6 +3433,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   isCenter: 0
   parentMenu: {fileID: 0}
-  Row: 0
-  Column: 0
-  itemName: 
+  Row: 1
+  Column: 2
+  itemName: Map

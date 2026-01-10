@@ -92,9 +92,9 @@ namespace Turnroot.GameSettings
 
         public enum HitFormulaType
         {
-            ClassicDouble, // Skill*2 + Dex + Luck/2
-            RadiantDouble, // Skill*2.5 + Dex + Luck/2
-            Modern, // Skill + Dex + Luck/2
+            ClassicSkillHeavy, // Skill*2 + Dex + Luck/2
+            ExtraSkillHeavy, // Skill*2.5 + Dex + Luck/2
+            ModernBalanced, // Skill + Dex + Luck/2
             WeaponOnly, // Just weapon hit (no stat bonuses)
             Custom, // Manual multipliers
         }
@@ -109,8 +109,8 @@ namespace Turnroot.GameSettings
 
         public enum AvoidFormulaType
         {
-            ClassicDouble, // Speed*2 + Luck
-            Modern, // Speed + Luck
+            ClassicSpeedHeavy, // Speed*2 + Luck
+            ModernBalanced, // Speed + Luck
             SpeedOnly, // Just Speed
             Custom, // Manual multiplier
         }
@@ -120,24 +120,30 @@ namespace Turnroot.GameSettings
 
         public ClassSelectionMode GetClassSelectionMode() => ClassSelection;
 
-        [BoxGroup("General Gameplay")]
+        [
+            BoxGroup("General Gameplay"),
+            InfoBox("Units without a class assigned will use this class")
+        ]
         public CharacterClassData DefaultStartingClass;
 
         public CharacterClassData GetDefaultStartingClass() => DefaultStartingClass;
 
-        [BoxGroup("General Gameplay")]
+        [BoxGroup("General Gameplay"), InfoBox("Put all of the weapon types your game uses here")]
         public WeaponType[] WeaponTypes;
 
-        [BoxGroup("General Gameplay")]
+        [BoxGroup("General Gameplay"), InfoBox("Put all of the species types your game uses here")]
         public SpeciesType[] SpeciesTypes;
 
-        [BoxGroup("General Gameplay")]
+        [
+            BoxGroup("General Gameplay"),
+            InfoBox("If true, weapons can be forged into higher-tier weapons")
+        ]
         public bool WeaponsCanBeForged;
 
-        [BoxGroup("General Gameplay")]
+        [BoxGroup("General Gameplay"), InfoBox("If true, weapons can be repaired to renew uses")]
         public bool WeaponsCanBeRepaired;
 
-        [BoxGroup("General Gameplay")]
+        [BoxGroup("General Gameplay"), InfoBox("If true, weapons have a set number of uses")]
         public bool WeaponsHaveDurability;
 
         public bool GetWeaponsCanBeForged() => WeaponsCanBeForged;
@@ -202,7 +208,7 @@ namespace Turnroot.GameSettings
 
         // Combat formula configuration
         [BoxGroup("Combat Formulas"), HorizontalLine(color: EColor.Red)]
-        public HitFormulaType HitFormula = HitFormulaType.ClassicDouble;
+        public HitFormulaType HitFormula = HitFormulaType.ModernBalanced;
 
         [BoxGroup("Combat Formulas"), ShowIf("HitFormula", HitFormulaType.Custom)]
         public float CustomSkillMultiplierForHit = 2f;
@@ -223,7 +229,7 @@ namespace Turnroot.GameSettings
         public float CustomLuckMultiplierForCrit = 0f;
 
         [BoxGroup("Combat Formulas")]
-        public AvoidFormulaType AvoidFormula = AvoidFormulaType.ClassicDouble;
+        public AvoidFormulaType AvoidFormula = AvoidFormulaType.ModernBalanced;
 
         [BoxGroup("Combat Formulas"), ShowIf("AvoidFormula", AvoidFormulaType.Custom)]
         public float CustomSpeedMultiplierForAvoid = 2f;
@@ -502,17 +508,17 @@ namespace Turnroot.GameSettings
         {
             switch (HitFormula)
             {
-                case HitFormulaType.ClassicDouble:
+                case HitFormulaType.ClassicSkillHeavy:
                     skillMult = 2f;
                     dexMult = 1f;
                     luckMult = 0.5f;
                     break;
-                case HitFormulaType.RadiantDouble:
+                case HitFormulaType.ExtraSkillHeavy:
                     skillMult = 2.5f;
                     dexMult = 1f;
                     luckMult = 0.5f;
                     break;
-                case HitFormulaType.Modern:
+                case HitFormulaType.ModernBalanced:
                     skillMult = 1f;
                     dexMult = 1f;
                     luckMult = 0.5f;
@@ -570,11 +576,11 @@ namespace Turnroot.GameSettings
         {
             switch (AvoidFormula)
             {
-                case AvoidFormulaType.ClassicDouble:
+                case AvoidFormulaType.ClassicSpeedHeavy:
                     speedMult = 2f;
                     luckMult = 1f;
                     break;
-                case AvoidFormulaType.Modern:
+                case AvoidFormulaType.ModernBalanced:
                     speedMult = 1f;
                     luckMult = 1f;
                     break;
