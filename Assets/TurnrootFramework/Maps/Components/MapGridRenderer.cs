@@ -1,0 +1,632 @@
+#if UNITY_EDITOR
+using UnityEngine;
+using UnityEditor;
+using System.IO;
+using System.Collections.Generic;
+using System.Linq;
+
+/// <summary>
+/// Renders MapGrid to image files - full map, standard minimap, and unexplored map
+/// </summary>
+public class MapGridRenderer
+{
+    private const int CELL_SIZE = 32; // Size of each cell in pixels
+    private const string ICON_PATH = "EditorSettings/MapGridEditorIcons/";
+
+    private readonly Color GRID_LINE_COLOR = new Color(0.3f, 0.3f, 0.3f, 1f);
+    private readonly Color BLACK_CELL_COLOR = Color.black;
+    private readonly Color DARK_GRAY_TERRAIN_COLOR = new Color(0.3f, 0.3f, 0.3f, 1f);
+    private readonly Color BLUE_SPAWN_COLOR = new Color(0.2f, 0.5f, 1f, 1f);
+
+    private readonly Dictionary<string, Texture2D> _iconCache = new();
+
+    // Terrain types that should show as dark gray on minimap
+    private readonly HashSet<string> _impassableTerrainTypes = new HashSet<string>(
+        System.StringComparer.OrdinalIgnoreCase
+    )
+    {
+        "wall",
+        "tall wall",
+        "tallwall",
+        "deep water",
+        "deepwater",
+        "void",
+        "mountain",
+    };
+
+    public void RenderAndSaveMapImages(
+        MapGrid grid,
+        out Sprite fullMapSprite,
+        out Sprite standardMapSprite,
+        out Sprite unexploredMapSprite
+    )
+    {
+        // Initialize out parameters
+        fullMapSprite = null;
+        standardMapSprite = null;
+        unexploredMapSprite = null;
+
+        if (grid == null)
+        {
+            Debug.LogError("MapGridRenderer: Cannot render null grid");
+            return;
+        }
+
+        // Ensure grid points exist
+        grid.EnsureGridPoints();
+
+        // Find the save path using GamePackageSettings
+        string savePath = GetMapSavePath();
+        if (string.IsNullOrEmpty(savePath))
+        {
+            Debug.LogError("MapGridRenderer: Could not determine save path");
+            return;
+        }
+
+        // Create directory if it doesn't exist
+        if (!Directory.Exists(savePath))
+        {
+            Directory.CreateDirectory(savePath);
+            Debug.Log($"Created directory: {savePath}");
+        }
+
+        // Generate map name (sanitize for file system)
+        string mapName = string.IsNullOrEmpty(grid.MapName)
+            ? "untitled_map"
+            : SanitizeFileName(grid.MapName);
+
+        // Render and save full map (colored terrain + black icons + blue spawn points)
+        Texture2D fullMap = RenderFullMap(grid);
+        if (fullMap != null)
+        {
+            fullMapSprite = SaveTexture(fullMap, savePath, $"{mapName}_full");
+            Object.DestroyImmediate(fullMap);
+        }
+
+        // Render and save standard minimap (black/dark gray terrain + white icons + blue spawn points)
+        Texture2D standardMap = RenderStandardMinimap(grid);
+        if (standardMap != null)
+        {
+            standardMapSprite = SaveTexture(standardMap, savePath, $"{mapName}_standard");
+            Object.DestroyImmediate(standardMap);
+        }
+
+        // Render and save unexplored map (just black + blue spawn points, no features/terrain)
+        Texture2D unexploredMap = RenderUnexploredMap(grid);
+        if (unexploredMap != null)
+        {
+            unexploredMapSprite = SaveTexture(unexploredMap, savePath, $"{mapName}_unexplored");
+            Object.DestroyImmediate(unexploredMap);
+        }
+
+        Debug.Log($"MapGridRenderer: Successfully rendered map images for '{mapName}'");
+    }
+
+    private Texture2D RenderFullMap(MapGrid grid)
+    {
+        // Get traversable area bounds
+        var bounds = GetTraversableBounds(grid);
+        int width = bounds.width * CELL_SIZE;
+        int height = bounds.height * CELL_SIZE;
+
+        Texture2D texture = new Texture2D(width, height, TextureFormat.RGBA32, false);
+        texture.filterMode = FilterMode.Point; // Crisp pixel art style
+
+        // Load terrain asset for colors
+        TerrainTypes terrainAsset = TerrainTypes.LoadDefault();
+
+        // Draw each cell within traversable area
+        for (int row = bounds.minRow; row <= bounds.maxRow; row++)
+        {
+            for (int col = bounds.minCol; col <= bounds.maxCol; col++)
+            {
+                // Calculate position in the texture (offset by bounds)
+                int texRow = row - bounds.minRow;
+                int texCol = col - bounds.minCol;
+
+                Vector2Int cellPos = new Vector2Int(row, col);
+                bool isSpawnPoint = grid.PlayerTeamSpawnPoints.Contains(cellPos);
+
+                if (isSpawnPoint)
+                {
+                    // Draw solid blue for spawn points
+                    DrawCell(texture, texRow, texCol, BLUE_SPAWN_COLOR);
+                }
+                else
+                {
+                    // Get terrain color
+                    MapGridPoint point = grid.GetGridPoint(row, col);
+                    Color cellColor = GetTerrainColor(point, terrainAsset);
+                    DrawCell(texture, texRow, texCol, cellColor);
+
+                    // Draw feature icon if present (black icons on colored terrain)
+                    if (point != null && !string.IsNullOrEmpty(point.FeatureTypeId))
+                    {
+                        DrawFeatureIcon(texture, texRow, texCol, point.FeatureTypeId, Color.black);
+                    }
+                }
+
+                // Draw grid lines
+                DrawGridLines(texture, texRow, texCol, bounds.width, bounds.height);
+            }
+        }
+
+        texture.Apply();
+        return texture;
+    }
+
+    private Texture2D RenderStandardMinimap(MapGrid grid)
+    {
+        // Get traversable area bounds
+        var bounds = GetTraversableBounds(grid);
+        int width = bounds.width * CELL_SIZE;
+        int height = bounds.height * CELL_SIZE;
+
+        Texture2D texture = new Texture2D(width, height, TextureFormat.RGBA32, false);
+        texture.filterMode = FilterMode.Point;
+
+        // Load terrain asset to check terrain types
+        TerrainTypes terrainAsset = TerrainTypes.LoadDefault();
+
+        // Draw each cell within traversable area
+        for (int row = bounds.minRow; row <= bounds.maxRow; row++)
+        {
+            for (int col = bounds.minCol; col <= bounds.maxCol; col++)
+            {
+                // Calculate position in the texture (offset by bounds)
+                int texRow = row - bounds.minRow;
+                int texCol = col - bounds.minCol;
+
+                Vector2Int cellPos = new Vector2Int(row, col);
+                bool isSpawnPoint = grid.PlayerTeamSpawnPoints.Contains(cellPos);
+
+                if (isSpawnPoint)
+                {
+                    // Draw solid blue for spawn points
+                    DrawCell(texture, texRow, texCol, BLUE_SPAWN_COLOR);
+                }
+                else
+                {
+                    MapGridPoint point = grid.GetGridPoint(row, col);
+
+                    // Check if this is an impassable terrain type
+                    bool isImpassable = IsImpassableTerrain(point, terrainAsset);
+                    Color cellColor = isImpassable ? DARK_GRAY_TERRAIN_COLOR : BLACK_CELL_COLOR;
+
+                    DrawCell(texture, texRow, texCol, cellColor);
+
+                    // Draw feature icon if present (white icons on black/dark gray background)
+                    if (point != null && !string.IsNullOrEmpty(point.FeatureTypeId))
+                    {
+                        DrawFeatureIcon(texture, texRow, texCol, point.FeatureTypeId, Color.white);
+                    }
+                }
+
+                // Draw grid lines
+                DrawGridLines(texture, texRow, texCol, bounds.width, bounds.height);
+            }
+        }
+
+        texture.Apply();
+        return texture;
+    }
+
+    private Texture2D RenderUnexploredMap(MapGrid grid)
+    {
+        // Get traversable area bounds
+        var bounds = GetTraversableBounds(grid);
+        int width = bounds.width * CELL_SIZE;
+        int height = bounds.height * CELL_SIZE;
+
+        Texture2D texture = new Texture2D(width, height, TextureFormat.RGBA32, false);
+        texture.filterMode = FilterMode.Point;
+
+        // Draw each cell within traversable area
+        for (int row = bounds.minRow; row <= bounds.maxRow; row++)
+        {
+            for (int col = bounds.minCol; col <= bounds.maxCol; col++)
+            {
+                // Calculate position in the texture (offset by bounds)
+                int texRow = row - bounds.minRow;
+                int texCol = col - bounds.minCol;
+
+                Vector2Int cellPos = new Vector2Int(row, col);
+                bool isSpawnPoint = grid.PlayerTeamSpawnPoints.Contains(cellPos);
+
+                // Just black and blue spawn points - no features, no terrain differences
+                Color cellColor = isSpawnPoint ? BLUE_SPAWN_COLOR : BLACK_CELL_COLOR;
+                DrawCell(texture, texRow, texCol, cellColor);
+
+                // Draw grid lines
+                DrawGridLines(texture, texRow, texCol, bounds.width, bounds.height);
+            }
+        }
+
+        texture.Apply();
+        return texture;
+    }
+
+    private bool IsImpassableTerrain(MapGridPoint point, TerrainTypes terrainAsset)
+    {
+        if (point == null)
+        {
+            return false;
+        }
+
+        TerrainType terrainType = terrainAsset?.GetTypeById(point.TerrainTypeId);
+        if (terrainType == null)
+        {
+            terrainType = point.GetCachedTerrainType();
+        }
+
+        if (terrainType == null || string.IsNullOrEmpty(terrainType.Name))
+        {
+            return false;
+        }
+
+        return _impassableTerrainTypes.Contains(terrainType.Name);
+    }
+
+    private (
+        int minRow,
+        int maxRow,
+        int minCol,
+        int maxCol,
+        int width,
+        int height
+    ) GetTraversableBounds(MapGrid grid)
+    {
+        // Get the traversable area corners
+        var corners = grid.TraversableAreaCorners;
+
+        if (corners == null || corners.Length != 4)
+        {
+            // Fallback to entire grid if corners not set
+            Debug.LogWarning(
+                "MapGridRenderer: Traversable area corners not set, using entire grid"
+            );
+            return (0, grid.GridWidth - 1, 0, grid.GridHeight - 1, grid.GridWidth, grid.GridHeight);
+        }
+
+        // Find the bounding box of the four corners
+        int minRow = int.MaxValue;
+        int maxRow = int.MinValue;
+        int minCol = int.MaxValue;
+        int maxCol = int.MinValue;
+
+        foreach (var corner in corners)
+        {
+            minRow = Mathf.Min(minRow, corner.x);
+            maxRow = Mathf.Max(maxRow, corner.x);
+            minCol = Mathf.Min(minCol, corner.y);
+            maxCol = Mathf.Max(maxCol, corner.y);
+        }
+
+        // Ensure bounds are within grid
+        minRow = Mathf.Clamp(minRow, 0, grid.GridWidth - 1);
+        maxRow = Mathf.Clamp(maxRow, 0, grid.GridWidth - 1);
+        minCol = Mathf.Clamp(minCol, 0, grid.GridHeight - 1);
+        maxCol = Mathf.Clamp(maxCol, 0, grid.GridHeight - 1);
+
+        int width = maxRow - minRow + 1;
+        int height = maxCol - minCol + 1;
+
+        Debug.Log(
+            $"MapGridRenderer: Rendering traversable area - Rows [{minRow}-{maxRow}], Cols [{minCol}-{maxCol}], Size: {width}x{height}"
+        );
+
+        return (minRow, maxRow, minCol, maxCol, width, height);
+    }
+
+    private void DrawCell(Texture2D texture, int row, int col, Color color)
+    {
+        int startX = row * CELL_SIZE;
+        int startY = col * CELL_SIZE;
+
+        for (int x = 0; x < CELL_SIZE; x++)
+        {
+            for (int y = 0; y < CELL_SIZE; y++)
+            {
+                texture.SetPixel(startX + x, startY + y, color);
+            }
+        }
+    }
+
+    private void DrawGridLines(Texture2D texture, int row, int col, int gridWidth, int gridHeight)
+    {
+        int startX = row * CELL_SIZE;
+        int startY = col * CELL_SIZE;
+        int lineThickness = 1;
+
+        // Draw top edge
+        for (int x = 0; x < CELL_SIZE; x++)
+        {
+            for (int t = 0; t < lineThickness; t++)
+            {
+                texture.SetPixel(startX + x, startY + t, GRID_LINE_COLOR);
+            }
+        }
+
+        // Draw left edge
+        for (int y = 0; y < CELL_SIZE; y++)
+        {
+            for (int t = 0; t < lineThickness; t++)
+            {
+                texture.SetPixel(startX + t, startY + y, GRID_LINE_COLOR);
+            }
+        }
+
+        // Draw bottom edge (for last row)
+        if (col == gridHeight - 1)
+        {
+            for (int x = 0; x < CELL_SIZE; x++)
+            {
+                for (int t = 0; t < lineThickness; t++)
+                {
+                    texture.SetPixel(startX + x, startY + CELL_SIZE - 1 - t, GRID_LINE_COLOR);
+                }
+            }
+        }
+
+        // Draw right edge (for last column)
+        if (row == gridWidth - 1)
+        {
+            for (int y = 0; y < CELL_SIZE; y++)
+            {
+                for (int t = 0; t < lineThickness; t++)
+                {
+                    texture.SetPixel(startX + CELL_SIZE - 1 - t, startY + y, GRID_LINE_COLOR);
+                }
+            }
+        }
+    }
+
+    private void DrawFeatureIcon(
+        Texture2D texture,
+        int row,
+        int col,
+        string featureTypeId,
+        Color tint
+    )
+    {
+        // Try to load the icon texture
+        Texture2D icon = GetToolIcon(featureTypeId);
+
+        if (icon != null)
+        {
+            // Draw the icon with the specified tint color
+            int startX = row * CELL_SIZE;
+            int startY = col * CELL_SIZE;
+
+            // Scale icon to fit in cell with some padding
+            int padding = 4;
+            int iconSize = CELL_SIZE - (padding * 2);
+
+            for (int x = 0; x < iconSize; x++)
+            {
+                for (int y = 0; y < iconSize; y++)
+                {
+                    // Sample from icon texture
+                    float u = (float)x / iconSize;
+                    float v = (float)y / iconSize;
+                    Color iconPixel = icon.GetPixelBilinear(u, v);
+
+                    // Only draw if icon pixel has some alpha
+                    if (iconPixel.a > 0.1f)
+                    {
+                        // Apply tint color
+                        Color tintedPixel = new Color(tint.r, tint.g, tint.b, iconPixel.a);
+                        texture.SetPixel(startX + padding + x, startY + padding + y, tintedPixel);
+                    }
+                }
+            }
+        }
+        else
+        {
+            // Fallback: draw letter if no icon found
+            string letter = MapGridPointFeature.GetFeatureLetter(featureTypeId);
+            if (string.IsNullOrEmpty(letter))
+            {
+                letter = featureTypeId.Length > 0 ? featureTypeId.Substring(0, 1).ToUpper() : "?";
+            }
+            // For now, just draw a small square as placeholder
+            // You could implement text rendering here if needed
+            int startX = row * CELL_SIZE + CELL_SIZE / 3;
+            int startY = col * CELL_SIZE + CELL_SIZE / 3;
+            int size = CELL_SIZE / 3;
+
+            for (int x = 0; x < size; x++)
+            {
+                for (int y = 0; y < size; y++)
+                {
+                    texture.SetPixel(startX + x, startY + y, tint);
+                }
+            }
+        }
+    }
+
+    private Texture2D GetToolIcon(string featureId)
+    {
+        if (string.IsNullOrEmpty(featureId))
+        {
+            return null;
+        }
+
+        string cacheKey = "feature_" + featureId;
+
+        if (_iconCache.TryGetValue(cacheKey, out var cached))
+        {
+            return cached;
+        }
+
+        // Build variant list (same logic as MapGridEditorWindow)
+        var variants = new List<string>();
+
+        // Map featureId to friendly names (matching the editor's ToolSet)
+        var friendlyNameMap = new Dictionary<string, string>
+        {
+            { "treasure", "Treasure" },
+            { "door", "Door" },
+            { "warp", "Warp" },
+            { "healing", "Healing" },
+            { "ranged", "Ranged" },
+            { "mechanism", "Mechanism" },
+            { "control", "Control" },
+            { "breakable", "BreakableWall" },
+            { "shelter", "Shelter" },
+            { "village", "Village" },
+            { "fortress", "Fortress" },
+            { "underground", "UndergroundItem" },
+        };
+
+        string friendlyName = null;
+        friendlyNameMap.TryGetValue(featureId.ToLower(), out friendlyName);
+
+        if (!string.IsNullOrEmpty(friendlyName))
+        {
+            variants.Add(friendlyName);
+            variants.Add(friendlyName.Replace(" ", ""));
+        }
+
+        variants.Add(featureId);
+        variants.Add(featureId.Replace(" ", "").ToLower());
+        variants.Add(featureId.ToLower());
+
+        if (featureId.Length > 0)
+        {
+            variants.Add(char.ToUpper(featureId[0]) + featureId.Substring(1));
+        }
+
+        // Try to load icon from Resources
+        Texture2D tex = null;
+        foreach (var variant in variants.Where(v => !string.IsNullOrEmpty(v)))
+        {
+            string path = ICON_PATH + variant;
+            tex = Resources.Load<Texture2D>(path);
+            if (tex != null)
+            {
+                break;
+            }
+
+            var spr = Resources.Load<Sprite>(path);
+            if (spr?.texture != null)
+            {
+                tex = spr.texture;
+                break;
+            }
+        }
+
+        _iconCache[cacheKey] = tex;
+        return tex;
+    }
+
+    private Color GetTerrainColor(MapGridPoint point, TerrainTypes terrainAsset)
+    {
+        if (point == null)
+        {
+            return Color.white;
+        }
+
+        TerrainType terrainType = terrainAsset?.GetTypeById(point.TerrainTypeId);
+        if (terrainType == null)
+        {
+            terrainType = point.GetCachedTerrainType();
+        }
+
+        return terrainType?.EditorColor ?? Color.white;
+    }
+
+    private Sprite SaveTexture(Texture2D texture, string path, string fileName)
+    {
+        string fullPath = Path.Combine(path, $"{fileName}.png");
+
+        byte[] pngData = texture.EncodeToPNG();
+        File.WriteAllBytes(fullPath, pngData);
+
+        Debug.Log($"Saved map image: {fullPath}");
+
+        // Refresh AssetDatabase and import
+        AssetDatabase.Refresh();
+        string assetPath = fullPath.Replace(Application.dataPath, "Assets").Replace("\\", "/");
+        AssetDatabase.ImportAsset(assetPath);
+
+        // Configure as sprite
+        TextureImporter importer = AssetImporter.GetAtPath(assetPath) as TextureImporter;
+        if (importer != null)
+        {
+            importer.textureType = TextureImporterType.Sprite;
+            importer.spriteImportMode = SpriteImportMode.Single;
+            importer.spritePixelsPerUnit = CELL_SIZE;
+            importer.filterMode = FilterMode.Point;
+            importer.textureCompression = TextureImporterCompression.Uncompressed;
+            AssetDatabase.ImportAsset(assetPath, ImportAssetOptions.ForceUpdate);
+            AssetDatabase.SaveAssets();
+        }
+
+        // Load and return the sprite
+        Sprite sprite = AssetDatabase.LoadAssetAtPath<Sprite>(assetPath);
+        if (sprite != null)
+        {
+            Debug.Log($"Loaded sprite reference for: {fileName}");
+        }
+        else
+        {
+            Debug.LogError($"Failed to load sprite from: {assetPath}");
+        }
+
+        return sprite;
+    }
+
+    private string GetMapSavePath()
+    {
+        var gamePackageSettings =
+            Turnroot.Utilities.GameSettingsLoader.LoadFirst<Turnroot.GamePackage.GamePackageSettings>();
+        if (gamePackageSettings == null)
+        {
+            Debug.LogError("Could not find GamePackageSettings in Resources");
+            return null;
+        }
+
+        string gamePackageSettingsPath = AssetDatabase.GetAssetPath(gamePackageSettings);
+        if (string.IsNullOrEmpty(gamePackageSettingsPath))
+        {
+            Debug.LogError("Could not determine GamePackageSettings location");
+            return null;
+        }
+
+        // Extract base Resources path
+        string resourcesPath = gamePackageSettingsPath.Substring(
+            0,
+            gamePackageSettingsPath.LastIndexOf("/GameSettings")
+        );
+
+        if (!resourcesPath.EndsWith("/Resources"))
+        {
+            Debug.LogError(
+                $"GamePackageSettings is not in a Resources folder: {gamePackageSettingsPath}"
+            );
+            return null;
+        }
+
+        // Build map save path: {ResourcesPath}/Components/Maps
+        string mapSavePath = Path.Combine(
+            resourcesPath.Replace("/", Path.DirectorySeparatorChar.ToString()),
+            "Components",
+            "Maps"
+        );
+
+        return mapSavePath;
+    }
+
+    private string SanitizeFileName(string fileName)
+    {
+        // Remove invalid file name characters
+        char[] invalids = Path.GetInvalidFileNameChars();
+        string sanitized = string.Join(
+            "_",
+            fileName.Split(invalids, System.StringSplitOptions.RemoveEmptyEntries)
+        );
+        return sanitized.Trim().Replace(" ", "_").ToLower();
+    }
+}
+#endif

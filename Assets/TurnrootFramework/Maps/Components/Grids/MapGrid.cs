@@ -16,6 +16,21 @@ public class MapGrid : MonoBehaviour
     [HideInInspector]
     public BattleGameObject battleGameObject;
 
+    [Header("Rendered Map Images")]
+    [SerializeField, ReadOnly]
+    private Sprite _fullMapImage;
+
+    [SerializeField, ReadOnly]
+    private Sprite _standardMapImage;
+
+    [SerializeField, ReadOnly]
+    private Sprite _unexploredMapImage;
+
+    // Public accessors
+    public Sprite FullMapImage => _fullMapImage;
+    public Sprite StandardMapImage => _standardMapImage;
+    public Sprite UnexploredMapImage => _unexploredMapImage;
+
     [Header("Grid Settings")]
     [HorizontalLine(color: EColor.Green)]
     [SerializeField]
@@ -260,6 +275,21 @@ public class MapGrid : MonoBehaviour
         RebuildRaycastColors();
         BuildTerrainPositionLookup();
         MarkDirty();
+    }
+
+    [Button("Render Map Images")]
+    public void RenderMapImages()
+    {
+#if UNITY_EDITOR
+        var renderer = new MapGridRenderer();
+        renderer.RenderAndSaveMapImages(
+            this,
+            out _fullMapImage,
+            out _standardMapImage,
+            out _unexploredMapImage
+        );
+        UnityEditor.EditorUtility.SetDirty(this);
+#endif
     }
 
     private void CreateGridPoint(int row, int col)
@@ -826,7 +856,6 @@ public class MapGrid : MonoBehaviour
                 .Take(battleGameObject.MaxPlayerTeamUnits)
                 .ToList();
         }
-
 
         if (_gridPoints == null || _gridPoints.Count == 0)
         {

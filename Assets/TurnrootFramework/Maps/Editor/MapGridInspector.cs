@@ -206,6 +206,17 @@ public class MapGridInspector : Editor
                 EditorUtility.SetDirty(mg);
             }
         }
+
+        // Render Map Images button (added so this appears in the custom inspector)
+        if (GUILayout.Button("Render Map Images"))
+        {
+            if (mg != null)
+            {
+                Undo.RecordObject(mg, "Render Map Images");
+                mg.RenderMapImages();
+                EditorUtility.SetDirty(mg);
+            }
+        }
     }
 }
 #endif

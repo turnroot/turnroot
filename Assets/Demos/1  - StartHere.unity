@@ -173120,7 +173120,7 @@ GameObject:
   - component: {fileID: 1882290951}
   - component: {fileID: 1882290950}
   m_Layer: 0
-  m_Name: '- Map Grid'
+  m_Name: MapGrid
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -173138,6 +173138,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 92de5083d17c4334496fe457b4be09ef, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  PlayerTeamSpawnPoints:
+  - {x: 19, y: 10}
+  - {x: 19, y: 12}
+  - {x: 19, y: 11}
+  - {x: 19, y: 13}
+  - {x: 20, y: 12}
+  - {x: 18, y: 12}
+  - {x: 18, y: 11}
+  - {x: 18, y: 10}
+  - {x: 21, y: 12}
+  - {x: 20, y: 11}
+  - {x: 19, y: 9}
+  - {x: 17, y: 11}
+  battleGameObject: {fileID: 1742232835}
+  _fullMapImage: {fileID: 21300000, guid: 57112a83484233b458e5823c82ac8a49, type: 3}
+  _standardMapImage: {fileID: 21300000, guid: 2724ceadcd516a74ea0fdbef5e84d524, type: 3}
+  _unexploredMapImage: {fileID: 21300000, guid: 1361c6a31f38ae94aba8b2b74b822981, type: 3}
   _gridScale: 5
   _gridOffset: {x: -78, y: 0, z: -71}
   _gridWidth: 44
@@ -176560,7 +176577,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1882290949}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
