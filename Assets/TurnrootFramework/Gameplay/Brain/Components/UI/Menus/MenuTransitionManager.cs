@@ -122,7 +122,7 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                         $"MenuTransitionManager: Destroying source instance {fromInstance.name}"
                     );
                     Object.Destroy(fromInstance);
-                    from.activeInstance = null;
+                    // from.activeInstance = null; this should fix the back issue?
                 }
                 else
                 {

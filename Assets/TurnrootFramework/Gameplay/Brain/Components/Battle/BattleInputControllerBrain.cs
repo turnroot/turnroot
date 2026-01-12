@@ -386,8 +386,9 @@ namespace Turnroot.Gameplay.Brain
 
             var currentState = _playerTurnFlow?.GetCurrentState();
             if (
-                currentState is not PlayerTurnStates.NoUnitSelected
-                and not PlayerTurnStates.Inactive
+                currentState
+                is not PlayerTurnStates.NoUnitSelected
+                    and not PlayerTurnStates.Inactive
             )
             {
                 return;
@@ -397,27 +398,6 @@ namespace Turnroot.Gameplay.Brain
             // MoveActionChosenChoosingDestination: Navigate valid movement tiles with path preview
             // AttackActionChosenChoosingTarget: Navigate valid attack targets with damage preview
             // MenuOpen: Navigate menu options
-
-            var battleContext = _brain.battleBrain.BattleObject.Context;
-            var mapGrid = battleContext.mapGrid;
-            var gridMovement = GetGridMovementFromDirection(direction);
-
-            if (gridMovement == Vector2Int.zero)
-            {
-                return;
-            }
-
-            var targetPos = CursorPosition.CoordinatesInt + gridMovement;
-
-            if (IsPositionWithinTraversableArea(targetPos, mapGrid))
-            {
-                var newCursorPos = mapGrid.GetGridPoint(targetPos.x, targetPos.y);
-                if (newCursorPos != null)
-                {
-                    CursorPosition = newCursorPos;
-                    _brain?.PublishBattleCursorMoved(CursorPosition.CoordinatesInt);
-                }
-            }
         }
 
         public void HandleConfirmInput()
@@ -598,6 +578,58 @@ namespace Turnroot.Gameplay.Brain
         public void OpenMenu()
         {
             // TODO: Battle pause menu (settings, speed, animation toggles, save/resume, battle info)
+        }
+
+        private OperationResult CalculateValidTiles(CharacterInstance unit)
+        {
+            if (unit == null || BattleContext?.mapGrid == null)
+            {
+                return OperationResult.Failure("No unit or BattleContext");
+            }
+
+            _validMoveTiles.Clear();
+            _validAttackTiles.Clear();
+            _aiHelper = BattleContext.AIHelper;
+
+            var currentPos = unit.UnitPositionToMapGridPoint(
+                unit.MapGridPosition,
+                BattleContext.mapGrid
+            );
+            bool canHeal = unit.CurrentClass?.ClassData?.Identity?.CanHeal ?? false;
+
+            bool success;
+            if (canHeal)
+            {
+                var healTilesTemp = new Dictionary<MapGridPoint, float>();
+                success = _aiHelper.GetTilesForAIWithHealNonAlloc(
+                    currentPos,
+                    _validMoveTiles,
+                    _validAttackTiles,
+                    healTilesTemp
+                );
+            }
+            else
+            {
+                success = _aiHelper.GetTilesForAINonAlloc(
+                    currentPos,
+                    _validMoveTiles,
+                    _validAttackTiles
+                );
+            }
+
+            if (!success)
+            {
+#if UNITY_EDITOR
+                Debug.LogError(
+                    $"BattleInputControllerBrain: Failed to calculate tiles for {unit.CharacterTemplate.DisplayName}"
+                );
+#endif
+                return OperationResult.Failure(
+                    $"Failed to calculate tiles for unit {unit.CharacterTemplate.DisplayName}"
+                );
+            }
+
+            return OperationResult.SuccessResult();
         }
 
         // TODO: Advanced input features (buffering, platform-specific controls, recording/replay, accessibility)
