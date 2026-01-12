@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Turnroot.Characters;
 using Turnroot.Characters.Components.Support;
@@ -45,6 +46,7 @@ namespace Turnroot.Gameplay.Brain
     [RequireComponent(typeof(VolumeBrain))]
     [RequireComponent(typeof(AudioBrain))]
     [RequireComponent(typeof(CameraBrain))]
+    [RequireComponent(typeof(CursorBrain))]
     public partial class Brain : MonoBehaviour
     {
         // Core components
@@ -83,6 +85,9 @@ namespace Turnroot.Gameplay.Brain
 
         [HideInInspector]
         public CameraBrain cameraBrain;
+
+        [HideInInspector]
+        public CursorBrain cursorBrain;
 
         [HideInInspector]
         public LongTermMemory ltm;
@@ -197,6 +202,60 @@ namespace Turnroot.Gameplay.Brain
         public void PublishRostersReady() => OnRostersReady?.Invoke();
 
         public void PublishRostersFailed() => OnRostersFailed?.Invoke();
+
+        #endregion
+        #region Cursor Events
+        public event Action<MapGrid, List<Vector2Int>> OnCursorInitializeRequested;
+        public event Action<Vector2Int> OnCursorMoveRequested;
+
+        public event Action<List<Vector2Int>> OnCursorRestrictionsRequested;
+
+        public event Action OnCursorRestrictionsClearRequested;
+        public event Action OnCursorHideRequested;
+
+        public event Action OnCursorShowRequested;
+
+        public event Action<Vector2Int, MapGrid> OnCursorPositionChanged;
+
+        public void PublishCursorInitializeRequested(
+            MapGrid mapGrid,
+            List<Vector2Int> allowedPositions = null
+        ) => OnCursorInitializeRequested?.Invoke(mapGrid, allowedPositions);
+
+        public void PublishCursorMoveRequested(Vector2Int position) =>
+            OnCursorMoveRequested?.Invoke(position);
+
+        public void PublishCursorRestrictionsRequested(List<Vector2Int> allowedPositions) =>
+            OnCursorRestrictionsRequested?.Invoke(allowedPositions);
+
+        public void PublishCursorRestrictionsClearRequested() =>
+            OnCursorRestrictionsClearRequested?.Invoke();
+
+        public void PublishCursorHideRequested() => OnCursorHideRequested?.Invoke();
+
+        public void PublishCursorShowRequested() => OnCursorShowRequested?.Invoke();
+
+        public void PublishCursorPositionChanged(Vector2Int position, MapGrid mapGrid) =>
+            OnCursorPositionChanged?.Invoke(position, mapGrid);
+
+        #endregion
+
+        #region Pre-Battle Map Events
+        public event Action<MapGrid> OnPreBattleMapReady;
+
+        public event Action<Vector2Int, CharacterInstance> OnPreBattleSpawnPositionSelected;
+        public event Action<CharacterInstance> OnPreBattleSpawnPositionCanceled;
+
+        public void PublishPreBattleMapReady(MapGrid mapGrid) =>
+            OnPreBattleMapReady?.Invoke(mapGrid);
+
+        public void PublishPreBattleSpawnPositionSelected(
+            Vector2Int position,
+            CharacterInstance unit
+        ) => OnPreBattleSpawnPositionSelected?.Invoke(position, unit);
+
+        public void PublishPreBattleSpawnPositionCanceled(CharacterInstance unit) =>
+            OnPreBattleSpawnPositionCanceled?.Invoke(unit);
 
         #endregion
 
