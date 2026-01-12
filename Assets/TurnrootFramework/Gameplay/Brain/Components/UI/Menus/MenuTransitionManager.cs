@@ -108,7 +108,7 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                 yield return new WaitForSeconds(fromFade.lerpTime + 0.1f);
             }
 
-            // Handle source cleanup - always disable/hide source menu to prevent overlap
+            // Handle source cleanup
             if (fromInstance != null)
             {
                 Debug.Log(
@@ -122,17 +122,16 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                         $"MenuTransitionManager: Destroying source instance {fromInstance.name}"
                     );
                     Object.Destroy(fromInstance);
-                    // from.activeInstance = null; this should fix the back issue?
+                    from.activeInstance = null;
                 }
                 else
                 {
-                    // Disable and hide for potential reuse during back navigation
+                    // For back navigation: keep instance but hide it
                     if (fromInstance.TryGetComponent<MenuBase>(out var menu))
                     {
                         menu.enabled = false;
                     }
                     fromInstance.SetActive(false);
-                    from.activeInstance = null; // Clear active instance since it's hidden and not reusable for submenus
                 }
             }
 
@@ -146,35 +145,29 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             }
             else if (to.activeInstance != null)
             {
-                // Re-enable existing menu for back navigation
-                // Ensure event handlers and input actions are re-attached
-                Debug.Log(
-                    $"MenuTransitionManager: Reattaching and cleaning events for existing instance {to.activeInstance?.name} of menu {to.menuName}"
-                );
-                CleanupMenuEvents(to.activeInstance);
+                // IMPORTANT: When going back, the instance exists but is disabled
+                Debug.Log($"MenuTransitionManager: Reactivating existing menu {to.menuName}");
+                to.activeInstance.SetActive(true);
+
+                if (to.activeInstance.TryGetComponent<MenuBase>(out var menu))
+                {
+                    menu.enabled = true;
+                }
+
+                // Re-setup events since they were cleaned up
+                SetupMenu(to);
             }
 
-            // If an instance now exists (either newly instantiated or pre-existing), set it up and initialize
-            if (to.activeInstance != null)
+            // If newly instantiated, do full setup
+            if (instantiated && to.activeInstance != null)
             {
                 SetupMenu(to);
-
                 HandleCreatedMenuInstance(to);
-
-                // If we re-enabled a previously existing instance, ensure it's active and enabled
-                if (!instantiated)
-                {
-                    to.activeInstance.SetActive(true);
-                    if (to.activeInstance.TryGetComponent<MenuBase>(out var existingMenu))
-                    {
-                        existingMenu.enabled = true;
-                    }
-                }
             }
 
+            // Show target menu
             if (to.activeInstance != null)
             {
-                // Show target menu
                 var targetFade = EnsureUIFade(
                     to.activeInstance,
                     _settings.MenuInternalTransitionTime

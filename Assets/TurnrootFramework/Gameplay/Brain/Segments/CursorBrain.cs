@@ -50,12 +50,6 @@ namespace Turnroot.Gameplay.Brain
         protected override void Awake()
         {
             base.Awake();
-            SetUiSettingsReference(Brain.uiBrain.uiSettings);
-            inputThreshold =
-                Brain.gamewideContextBrain.PlayerSettings.PreferredInputControl
-                == PlayerSettings.GameplayPlayerSettings.InputControlType.Keyboard
-                    ? .1f
-                    : .5f;
         }
 
         protected override void OnDestroy()
@@ -92,6 +86,24 @@ namespace Turnroot.Gameplay.Brain
 
             // Player unit activation
             _brain.OnPlayerControlledUnitActivated += HandlePlayerUnitActivated;
+
+            if (Brain?.uiBrain?.uiSettings != null)
+            {
+                SetUiSettingsReference(Brain.uiBrain.uiSettings);
+            }
+
+            if (Brain?.gamewideContextBrain?.PlayerSettings != null)
+            {
+                inputThreshold =
+                    Brain.gamewideContextBrain.PlayerSettings.PreferredInputControl
+                    == PlayerSettings.GameplayPlayerSettings.InputControlType.Keyboard
+                        ? .1f
+                        : .5f;
+            }
+            else
+            {
+                inputThreshold = 0.3f; // Safe default
+            }
         }
 
         protected override void UnsubscribeFromBrainEvents()
@@ -151,12 +163,35 @@ namespace Turnroot.Gameplay.Brain
             }
         }
 
+        // In CursorBrain.cs - replace HandleBattleStarted
         private void HandleBattleStarted()
         {
-            if (!IsInitialized || _currentContext != CursorContext.Battle)
+            if (_currentContext != CursorContext.Battle)
             {
                 _currentContext = CursorContext.Battle;
+                // Don't initialize immediately - wait for map to be confirmed ready
+                StartCoroutine(WaitForBattleMapReady());
+            }
+        }
+
+        private System.Collections.IEnumerator WaitForBattleMapReady()
+        {
+            int retries = 0;
+            while (_brain?.battleBrain?.BattleObject?.Context?.mapGrid == null && retries < 20)
+            {
+                retries++;
+                yield return new WaitForSeconds(0.1f);
+            }
+
+            if (_brain?.battleBrain?.BattleObject?.Context?.mapGrid != null)
+            {
                 InitializeBattleCursor();
+            }
+            else
+            {
+#if UNITY_EDITOR
+                Debug.LogError("CursorBrain: Battle map never became ready");
+#endif
             }
         }
 
