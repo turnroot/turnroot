@@ -10,6 +10,7 @@ using UnityEngine;
 
 namespace TurnrootFramework.Gameplay.Brain.Segments
 {
+    [RequireComponent(typeof(CursorBrain))]
     public partial class UiBrain : BrainComponent
     {
         #region Fields and Properties
@@ -103,6 +104,8 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                 {
                     _playerSettings.BindingsChanged += OnBindingsChanged;
                 }
+                var CursorBrain = GetComponent<CursorBrain>();
+                CursorBrain.SetUiSettingsReference(uiSettings);
             }
 
 #if UNITY_EDITOR

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using Turnroot.Characters;
 using Turnroot.Gameplay.Brain.Events;
@@ -11,6 +12,14 @@ namespace Turnroot.Gameplay.Brain
     public class GamewideContextBrain : BrainComponent
     {
         public Brain CentralBrain => _brain;
+
+        private LongTermMemory _ltm;
+
+        public List<GamewideContextBrainHelpers.ExploredPartial> MapExplorationStatuses
+        {
+            get;
+            private set;
+        }
 
         private RosterPersistence _rosterPersistence;
 
@@ -67,6 +76,8 @@ namespace Turnroot.Gameplay.Brain
             TryLoadAndRecallPersistentPlayerRoster();
             var volumeBrain = _brain.volumeBrain;
             volumeBrain.ApplySettingsToVolumes(PlayerSettings);
+
+            _ltm = GetComponent<LongTermMemory>();
         }
 
         protected override void SubscribeToBrainEvents() =>
@@ -349,6 +360,62 @@ namespace Turnroot.Gameplay.Brain
             }
         }
 
+        #endregion
+        #region Map Exploration
+        public void RegisterMapExplorationPartial(
+            GamewideContextBrainHelpers.ExploredPartial partial
+        )
+        {
+            var key = BuildExplorationPartialKey(partial.map.MapName);
+            var existing = _ltm.Recall(key);
+
+            if (!string.IsNullOrEmpty(existing))
+            {
+                return;
+            }
+
+            var hash = ComputeExploredPartialHash(partial);
+            _ltm.Remember(key, hash);
+        }
+
+        private string ComputeExploredPartialHash(
+            GamewideContextBrainHelpers.ExploredPartial partial
+        )
+        {
+            var data = partial.statuses;
+            var s = $"map_{partial.map.MapName}";
+            var keys = data.Keys;
+            foreach (GamewideContextBrainHelpers.ExploredQuadrant q in keys)
+            {
+                s += $"_quadrant_{q}_state_{data[q]}|";
+            }
+
+            // Simple djb2 hash for performance
+            uint hash = 5381;
+            foreach (char c in s)
+            {
+                hash = ((hash << 5) + hash) + c; // hash * 33 + c
+            }
+            return hash.ToString();
+        }
+
+        private string BuildExplorationPartialKey(string mapId) =>
+            $"{LtmKeys.ExploredPartial}.{mapId}";
+
+        public void PopulateMapExplorationStatusesFromLtm()
+        {
+            var keys = _ltm.RecallKeysByPrefix(LtmKeys.ExploredPartial);
+            if (keys != null)
+            {
+                for (int i = 0; i < keys.Count; i++)
+                {
+                    var recalledMapExplorationStatus = keys[i];
+                    GamewideContextBrainHelpers.ExploredPartial partial = new();
+                    // TODO: De-hash and set partial data
+                    MapExplorationStatuses.Append(partial);
+                }
+            }
+        }
         #endregion
     }
 

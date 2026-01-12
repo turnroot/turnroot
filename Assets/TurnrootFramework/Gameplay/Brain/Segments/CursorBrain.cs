@@ -87,11 +87,6 @@ namespace Turnroot.Gameplay.Brain
             // Player unit activation
             _brain.OnPlayerControlledUnitActivated += HandlePlayerUnitActivated;
 
-            if (Brain?.uiBrain?.uiSettings != null)
-            {
-                SetUiSettingsReference(Brain.uiBrain.uiSettings);
-            }
-
             if (Brain?.gamewideContextBrain?.PlayerSettings != null)
             {
                 inputThreshold =
@@ -351,29 +346,7 @@ namespace Turnroot.Gameplay.Brain
                 );
             }
 
-            // Set initial cursor position
-            Vector2Int startPos;
-            if (allowedPositions != null && allowedPositions.Count > 0)
-            {
-                // Start at first allowed position
-                startPos = allowedPositions[0];
-                _currentPositionIndex = 0;
-            }
-            else
-            {
-                // Start at center of traversable area
-                var corners = _currentMap.TraversableAreaCorners;
-                if (corners != null && corners.Length == 4)
-                {
-                    int centerX = (corners[0].x + corners[2].x) / 2;
-                    int centerY = (corners[0].y + corners[2].y) / 2;
-                    startPos = new Vector2Int(centerX, centerY);
-                }
-                else
-                {
-                    startPos = Vector2Int.zero;
-                }
-            }
+            Vector2Int startPos = GetInitialCursorPosition(allowedPositions);
 
             var startPoint = _currentMap.GetGridPoint(startPos.x, startPos.y);
             if (startPoint != null)
@@ -382,9 +355,37 @@ namespace Turnroot.Gameplay.Brain
                 UpdateCursorVisualPosition(startPos);
                 IsInitialized = true;
 
-                // Publish initialization complete
                 _brain?.PublishCursorPositionChanged(startPos, _currentMap);
             }
+        }
+
+        private Vector2Int GetInitialCursorPosition(List<Vector2Int> allowedPositions)
+        {
+            // If we have restricted positions, start at the first one
+            if (allowedPositions != null && allowedPositions.Count > 0)
+            {
+                _currentPositionIndex = 0;
+                return allowedPositions[0];
+            }
+
+            // Otherwise, get camera center from CameraBrain
+            if (_brain?.cameraBrain != null)
+            {
+                var neutralCenter = _brain.cameraBrain.SetBattleGridCameraNeutralCenter();
+                var startPos = new Vector2Int(
+                    Mathf.RoundToInt(neutralCenter.x),
+                    Mathf.RoundToInt(neutralCenter.y)
+                );
+
+#if UNITY_EDITOR
+                Debug.Log(
+                    $"CursorBrain: Using camera neutral center as start position: {startPos}"
+                );
+
+                return startPos;
+#endif
+            }
+            return Vector2Int.zero;
         }
 
         /// <summary>
@@ -732,6 +733,24 @@ namespace Turnroot.Gameplay.Brain
         public bool IsVisible { get; private set; } = true;
 
         public string GetCurrentContext() => _currentContext.ToString();
+
+#if UNITY_EDITOR
+        private void Update()
+        {
+            if (Input.GetKeyDown(KeyCode.P))
+            {
+                Debug.Log($"=== CursorBrain Debug ===");
+                Debug.Log($"IsInitialized: {IsInitialized}");
+                Debug.Log($"Context: {_currentContext}");
+                Debug.Log($"CursorInstance: {(_cursorInstance != null ? "EXISTS" : "NULL")}");
+                Debug.Log($"CurrentMap: {(_currentMap != null ? _currentMap.name : "NULL")}");
+                Debug.Log($"CursorPosition: {CursorPosition?.CoordinatesInt}");
+                Debug.Log(
+                    $"BattleContext.mapGrid: {(_brain?.battleBrain?.BattleObject?.Context?.mapGrid != null ? "EXISTS" : "NULL")}"
+                );
+            }
+        }
+#endif
 
         #endregion
     }

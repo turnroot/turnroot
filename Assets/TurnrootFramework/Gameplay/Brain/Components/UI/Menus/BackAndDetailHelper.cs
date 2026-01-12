@@ -154,22 +154,51 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
 
         private void HandleBackButtonPressed()
         {
+#if UNITY_EDITOR
+            Debug.Log(
+                $"UiBrain: Back button pressed. Transitioning: {_isTransitioning}, CanGoBack: {_menuTracker?.CanGoBack()}"
+            );
+#endif
+
             if (_isTransitioning)
             {
+#if UNITY_EDITOR
+                Debug.Log("UiBrain: Ignoring back - currently transitioning");
+#endif
                 return;
             }
 
             if (_menuTracker?.CanGoBack() == true)
             {
                 var (fromLocation, toLocation) = _menuTracker.PopTransition();
+
+#if UNITY_EDITOR
+                Debug.Log(
+                    $"UiBrain: Back navigation from {fromLocation?.menuName} to {toLocation?.menuName}"
+                );
+                Debug.Log(
+                    $"  from.activeInstance: {(fromLocation?.activeInstance != null ? "EXISTS" : "NULL")}"
+                );
+                Debug.Log(
+                    $"  to.activeInstance: {(toLocation?.activeInstance != null ? "EXISTS" : "NULL")}"
+                );
+#endif
                 if (fromLocation != null && toLocation != null)
                 {
                     TransitionToSubmenu(fromLocation, toLocation, isBackNavigation: true);
                 }
+                else
+                {
+#if UNITY_EDITOR
+                    Debug.LogWarning("UiBrain: Back navigation failed - null locations");
+#endif
+                }
             }
             else
             {
-                // At root level, handle based on current state
+#if UNITY_EDITOR
+                Debug.Log("UiBrain: At root level, handling root back");
+#endif
                 HandleRootLevelBack();
             }
         }

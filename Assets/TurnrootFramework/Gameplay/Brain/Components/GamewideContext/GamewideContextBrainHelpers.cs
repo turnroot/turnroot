@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
 using Newtonsoft.Json;
@@ -17,6 +18,30 @@ namespace Turnroot.Gameplay.Brain
     /// </summary>
     public static class GamewideContextBrainHelpers
     {
+        public enum ExploredState
+        {
+            NotExplored,
+            PartiallyExplored,
+            FullyExplored,
+        }
+
+        public enum ExploredQuadrant
+        {
+            LeftHalf,
+            RightHalf,
+            TopLeft,
+            BottomLeft,
+            TopRight,
+            BottomRight,
+        }
+
+        [System.Serializable]
+        public struct ExploredPartial
+        {
+            public Dictionary<ExploredQuadrant, ExploredState> statuses;
+            public MapGrid map;
+        }
+
         public static JsonSerializerSettings GetJsonSerializerSettings()
         {
             var settings = new JsonSerializerSettings
