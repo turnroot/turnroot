@@ -391,11 +391,11 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             var instance = to.activeInstance;
 
             // Initialize components for known special menus (no-op when component not present)
-            InitializeMapPopulator(instance);
+            InitializePreparationObjectResolver(instance);
             InitializeTeamMenu(instance);
         }
 
-        private void InitializeMapPopulator(GameObject instance)
+        private void InitializePreparationObjectResolver(GameObject instance)
         {
             var preparationObjectResolver =
                 instance.GetComponentInChildren<PreparationObjectResolver>(true);
@@ -406,7 +406,6 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
         {
             var unitColumns = instance.GetComponentInChildren<UnitSelectionColumns>(true);
             unitColumns?.Initialize(_brain.GetBrain());
-            InitializeMapPopulator(instance);
         }
 
         private void CleanupMenuEvents(GameObject instance)

@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 5383852574066700234}
   - component: {fileID: 3866663137000884557}
+  - component: {fileID: 1266184162806076265}
   m_Layer: 0
   m_Name: StartingPositions
   m_TagString: Untagged
@@ -60,6 +61,19 @@ MonoBehaviour:
   - {fileID: 3610274608473887491}
   - {fileID: 2218263260594684553}
   ActiveTileProjector: {fileID: 9096277903394420589}
+--- !u!114 &1266184162806076265
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 141776796358925404}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 22d4c7e6af05d2f4a913be827634c1d6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  PreparationObject: {fileID: 0}
 --- !u!1 &630615325523472415
 GameObject:
   m_ObjectHideFlags: 0

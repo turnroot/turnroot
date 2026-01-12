@@ -1,24 +1,29 @@
 using Turnroot.Gameplay.Brain;
-using Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Environment;
 using Turnroot.Gameplay.Combat.PreBattle;
+using Turnroot.UI.Components;
+using Turnroot.Utilities;
 using UnityEngine;
 
 /// <summary>
 /// Resolves which BattlePreparationObject should be used for UI / preview components and notifies
 /// interested components when a preparation object is chosen.
+/// Any instance of:
+///     - PopulateBattleMapName
+///     - PopulateBattleMapPreview
+///     - PopulateMapPrefabEnvironmentCondtions
+///     - StartingPositions
+/// Needs to have one of these
 /// </summary>
 public class PreparationObjectResolver : MonoBehaviour
 {
-    [Tooltip("Optional explicit PreparationObject to prefer when resolving.")]
-    public BattlePreparationObject PreparationObject;
     public static BattlePreparationObject ResolvedPreparationObject { get; private set; }
-
     public delegate void PreparationResolvedHandler(BattlePreparationObject prep);
     public static event PreparationResolvedHandler OnPreparationResolved;
 
-    public void Initialize(Brain brain)
+    public OperationResult Initialize(Brain brain)
     {
         var prep = ResolveForBrain(brain);
+        var count = 0;
         SetResolved(prep);
 
         if (prep != null)
@@ -26,11 +31,18 @@ public class PreparationObjectResolver : MonoBehaviour
             if (TryGetComponent(out PopulateBattleMapPreview preview) && preview != null)
             {
                 preview.Initialize(prep);
+                count++;
             }
 
             if (TryGetComponent(out PopulateBattleMapName name) && name != null)
             {
                 name.Initialize(prep);
+                count++;
+            }
+            if (TryGetComponent(out StartingPositions p) && p != null)
+            {
+                p.Initialize(prep);
+                count++;
             }
         }
 
@@ -43,8 +55,12 @@ public class PreparationObjectResolver : MonoBehaviour
             if (env != null)
             {
                 env.Initialize(prep);
+                count++;
             }
         }
+        return count <= 0
+            ? OperationResult.Failure("PreparationObjectResolver: Nothing to initialize")
+            : OperationResult.SuccessResult();
     }
 
     public BattlePreparationObject ResolveForBrain(Brain brain)
@@ -53,11 +69,6 @@ public class PreparationObjectResolver : MonoBehaviour
         if (prep != null)
         {
             return prep;
-        }
-
-        if (PreparationObject != null)
-        {
-            return PreparationObject;
         }
 
         var scenePrep = FindFirstObjectByType<BattlePreparationObject>();

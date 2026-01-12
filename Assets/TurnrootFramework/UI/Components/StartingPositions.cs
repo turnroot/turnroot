@@ -12,9 +12,7 @@ namespace Turnroot.UI.Components
 
         private MapGrid mapGrid;
 
-        public OperationResult InitializeProjectorPositions(
-            BattlePreparationObject battlePreparationObject
-        )
+        public OperationResult Initialize(BattlePreparationObject battlePreparationObject)
         {
             mapGrid = battlePreparationObject.MapGrid;
             var StartingPositions = mapGrid.PlayerTeamSpawnPoints;
