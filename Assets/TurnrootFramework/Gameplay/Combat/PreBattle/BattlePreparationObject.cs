@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Turnroot.Characters;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Environment;
 using Turnroot.Utilities;
@@ -24,11 +25,15 @@ namespace Turnroot.Gameplay.Combat.PreBattle
         public System.Collections.Generic.List<CharacterData> RequiredPlayerUnits =>
             _requiredPlayerUnits;
 
+        [HideInInspector]
+        public List<Vector2Int> PlayerTeamSpawnPoints;
+
         public OperationResult Initialize(Brain.Brain brain)
         {
             Brain = brain;
             EnvironmentalConditions = GetComponentInChildren<EnvironmentalConditions>(true);
             MapGrid = GetComponentInChildren<MapGrid>(true);
+            PlayerTeamSpawnPoints = MapGrid.PlayerTeamSpawnPoints;
 
             // Copy MaxPlayerTeamUnits and RequiredPlayerUnits from a BattleGameObject when available.
             if (brain?.battleBrain?.BattleObject != null)

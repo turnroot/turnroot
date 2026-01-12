@@ -77,6 +77,10 @@ MonoBehaviour:
     menuName: 14
     style: 1
     prefab: {fileID: 0}
+  - parentMenuName: 10
+    menuName: 17
+    style: 4
+    prefab: {fileID: 0}
   MenuButtonSpacing: 2
   MenuFadeTime: 0.75
   MenuInternalTransitionTime: 0.15

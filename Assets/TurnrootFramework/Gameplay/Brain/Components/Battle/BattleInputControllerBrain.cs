@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Turnroot.Characters;
 using Turnroot.Gameplay.Brain.Components.Battle;
 using Turnroot.Gameplay.Brain.Events;
@@ -15,21 +16,18 @@ namespace Turnroot.Gameplay.Brain
     /// <summary>
     /// Handles player input during battle phases and translates input events
     /// into player turn actions through the Brain event system.
+    /// Delegates cursor management to CursorBrain for decoupled state handling.
     /// </summary>
-    // TODO: Add advanced input features (buffering, accessibility, custom mappings, replay)
     public partial class BattleInputControllerBrain : BrainComponent
     {
         #region Properties
 
-        [HideInInspector]
-        public MapGridPoint CursorPosition; // TODO: Initialize with constraints
-
-        [HideInInspector]
-        public MapGridPoint PotentialCursorPosition; // TODO: Use for preview effects
-
         public CharacterInstance SelectedUnit =>
             _brain.battleBrain.BattleObject.Context.Unit.UnitInstance;
         public BattleContext BattleContext => _brain.battleBrain.BattleObject.Context;
+
+        // Cursor position now comes from CursorBrain
+        public MapGridPoint CursorPosition => _brain.cursorBrain?.CursorPosition;
 
         #endregion
 
@@ -41,8 +39,6 @@ namespace Turnroot.Gameplay.Brain
         // Cached data for current player unit
         private Dictionary<MapGridPoint, float> _validMoveTiles = new();
         private Dictionary<MapGridPoint, float> _validAttackTiles = new();
-
-        // TODO: Add caching for all action types, movement costs, and performance optimization
 
         // Input system
         private InputAction _navigateAction;
@@ -327,36 +323,11 @@ namespace Turnroot.Gameplay.Brain
 
             _playerTurnFlow = _brain.battleBrain.playerTurnFlow;
             SetupInputActions();
-            InitializeCursor();
+
+            // CursorBrain will initialize itself through its own event subscriptions
         }
 
         private void HandleBattleCompleted(BattleExitType exitType) => CleanupInputActions();
-
-        private void InitializeCursor()
-        {
-            if (_brain?.battleBrain?.BattleObject?.Context?.mapGrid == null)
-            {
-                StartCoroutine(RetryInitializeCursor());
-                return;
-            }
-
-            var battleContext = _brain.battleBrain.BattleObject.Context;
-            var neutralCentralPoint = _brain.cameraBrain.SetBattleGridCameraNeutralCenter();
-
-            CursorPosition = battleContext.mapGrid.GetGridPoint(
-                neutralCentralPoint.x,
-                neutralCentralPoint.y
-            );
-            Brain.PublishBattleCursorMoved(CursorPosition.CoordinatesInt);
-
-            // TODO: Set this to the correct unit based on gameplay settings and unit positions
-        }
-
-        private IEnumerator RetryInitializeCursor()
-        {
-            yield return new WaitForSeconds(0.1f);
-            InitializeCursor();
-        }
 
         #endregion
 
@@ -375,48 +346,31 @@ namespace Turnroot.Gameplay.Brain
 
         public void HandleNavigateInput(Vector2 direction)
         {
-            if (
-                direction.magnitude < 0.1f
-                || CursorPosition == null
-                || _brain?.battleBrain?.BattleObject?.Context?.mapGrid == null
-            )
+            if (direction.magnitude < 0.1f || _brain?.cursorBrain == null)
             {
                 return;
             }
 
             var currentState = _playerTurnFlow?.GetCurrentState();
-            if (
-                currentState is not PlayerTurnStates.NoUnitSelected
-                and not PlayerTurnStates.Inactive
-            )
+
+            // Only handle navigation in certain states
+            if (currentState is PlayerTurnStates.Inactive)
             {
                 return;
             }
 
-            // TODO: Navigation behavior depends on current battle state
-            // MoveActionChosenChoosingDestination: Navigate valid movement tiles with path preview
-            // AttackActionChosenChoosingTarget: Navigate valid attack targets with damage preview
-            // MenuOpen: Navigate menu options
+            // Delegate cursor movement to CursorBrain
+            _brain.cursorBrain.NavigateCursor(direction);
 
-            var battleContext = _brain.battleBrain.BattleObject.Context;
-            var mapGrid = battleContext.mapGrid;
-            var gridMovement = GetGridMovementFromDirection(direction);
-
-            if (gridMovement == Vector2Int.zero)
+            // TODO: Update UI based on cursor position (damage preview, path preview, etc.)
+            switch (currentState)
             {
-                return;
-            }
-
-            var targetPos = CursorPosition.CoordinatesInt + gridMovement;
-
-            if (IsPositionWithinTraversableArea(targetPos, mapGrid))
-            {
-                var newCursorPos = mapGrid.GetGridPoint(targetPos.x, targetPos.y);
-                if (newCursorPos != null)
-                {
-                    CursorPosition = newCursorPos;
-                    _brain?.PublishBattleCursorMoved(CursorPosition.CoordinatesInt);
-                }
+                case PlayerTurnStates.MoveActionChosenChoosingDestination:
+                    // Update movement path preview
+                    break;
+                case PlayerTurnStates.AttackActionChosenChoosingTarget:
+                    // Update damage preview
+                    break;
             }
         }
 
@@ -438,9 +392,7 @@ namespace Turnroot.Gameplay.Brain
                     break;
                 case PlayerTurnStates.ConfirmAction:
                     _playerTurnFlow?.ConfirmAction();
-                    // TODO: Play confirmation sound and start animation
                     break;
-                // TODO: Handle all other action confirmation states
             }
         }
 
@@ -452,25 +404,24 @@ namespace Turnroot.Gameplay.Brain
             {
                 case PlayerTurnStates.NoActionChosen:
                     _playerTurnFlow?.DeselectUnit();
-                    // TODO: Play cancel sound
                     break;
                 case PlayerTurnStates.MoveActionChosenChoosingDestination:
                     _playerTurnFlow?.CancelTargetOrDestinationChoice(
                         PlayerTurnStates.NoActionChosen
                     );
-                    // TODO: Clear movement visualization
+                    // Clear movement restrictions from cursor
+                    _brain.cursorBrain?.ClearAllowedPositions();
                     break;
                 case PlayerTurnStates.AttackActionChosenChoosingTarget:
                     _playerTurnFlow?.CancelTargetOrDestinationChoice(
                         PlayerTurnStates.NoActionChosen
                     );
-                    // TODO: Clear attack visualization and damage preview
+                    // Clear attack range restrictions from cursor
+                    _brain.cursorBrain?.ClearAllowedPositions();
                     break;
                 case PlayerTurnStates.ConfirmAction:
                     RequestUndo();
-                    // TODO: Clear action preview
                     break;
-                // TODO: Handle all other action cancellation states
             }
         }
 
@@ -495,20 +446,34 @@ namespace Turnroot.Gameplay.Brain
             Debug.Log($"BattleInputControllerBrain: Player turn state changed to {newState}");
 #endif
 
-            // TODO: UI updates for each turn phase (cursor, previews, range indicators)
+            // Update cursor restrictions based on state
             switch (newState)
             {
                 case PlayerTurnStates.NoUnitSelected:
                     _validMoveTiles.Clear();
                     _validAttackTiles.Clear();
+                    _brain.cursorBrain?.ClearAllowedPositions();
                     break;
+
                 case PlayerTurnStates.MoveActionChosenChoosingDestination:
-                case PlayerTurnStates.AttackActionChosenChoosingTarget:
+                    // Restrict cursor to valid movement tiles
+                    var movePositions = new List<Vector2Int>(
+                        _validMoveTiles.Keys.Select(k => k.CoordinatesInt)
+                    );
+                    _brain.cursorBrain?.SetAllowedPositions(movePositions);
                     break;
+
+                case PlayerTurnStates.AttackActionChosenChoosingTarget:
+                    // Restrict cursor to valid attack tiles
+                    var attackPositions = new List<Vector2Int>(
+                        _validAttackTiles.Keys.Select(k => k.CoordinatesInt)
+                    );
+                    _brain.cursorBrain?.SetAllowedPositions(attackPositions);
+                    break;
+
                 case PlayerTurnStates.TurnEnded:
                     CompletePlayerTurn();
                     break;
-                // TODO: Complete state handling
             }
         }
 
@@ -516,6 +481,7 @@ namespace Turnroot.Gameplay.Brain
         {
             _validMoveTiles.Clear();
             _validAttackTiles.Clear();
+            _brain.cursorBrain?.ClearAllowedPositions();
             _brain.PublishPlayerTurnEnded();
             _playerTurnFlow?.EndTurn();
         }
@@ -524,7 +490,22 @@ namespace Turnroot.Gameplay.Brain
 
         #region Validation
 
-        // TODO: Action confirmation flow (priorities.md 4.3) - BuildCommand, ExecutePreview, Snapshot/Restore, undo tracking
+        public bool ValidateTileSelection(MapGridPoint point)
+        {
+            var currentState = _playerTurnFlow?.GetCurrentState() ?? PlayerTurnStates.Inactive;
+
+            return currentState switch
+            {
+                PlayerTurnStates.MoveActionChosenChoosingDestination => _validMoveTiles.ContainsKey(
+                    point
+                ),
+                PlayerTurnStates.AttackActionChosenChoosingTarget => _validAttackTiles.ContainsKey(
+                    point
+                ),
+                _ => false,
+            };
+            // TODO: Comprehensive action validation (weapons, skills, rescue/trade requirements, audio/visual feedback)
+        }
 
         public bool ValidateTargetSelection(CharacterInstance target)
         {
@@ -547,13 +528,9 @@ namespace Turnroot.Gameplay.Brain
 
         #region Action Methods
 
-        public void MoveCursorToPoint(MapGridPoint point) => CursorPosition = point;
-
-        // TODO: Cursor UI updates (visuals, sound, previews, constraints)
-
         public void ConfirmTileSelection()
         {
-            if (!ValidateTileSelection(CursorPosition))
+            if (CursorPosition == null || !ValidateTileSelection(CursorPosition))
             {
                 // TODO: Error feedback for invalid selections
                 return;
@@ -567,19 +544,19 @@ namespace Turnroot.Gameplay.Brain
                     _playerTurnFlow.SelectTargetOrDestination(
                         PlayerTurnStates.MoveActionChosenDestinationSelected
                     );
-                    // TODO: Movement visualization
                     break;
                 case PlayerTurnStates.AttackActionChosenChoosingTarget:
-                    var targetUnit = GetUnitAtPosition(CursorPosition);
-                    if (ValidateTargetSelection(targetUnit))
+                    // Get unit at cursor using CursorBrain's helper
+                    if (_brain.cursorBrain.IsCursorOnUnit(out var targetUnit))
                     {
-                        _playerTurnFlow.SelectTargetOrDestination(
-                            PlayerTurnStates.AttackActionChosenTargetSelected
-                        );
-                        // TODO: Attack preview UI
+                        if (ValidateTargetSelection(targetUnit))
+                        {
+                            _playerTurnFlow.SelectTargetOrDestination(
+                                PlayerTurnStates.AttackActionChosenTargetSelected
+                            );
+                        }
                     }
                     break;
-                // TODO: Cases for other action confirmations
             }
         }
 
@@ -588,19 +565,66 @@ namespace Turnroot.Gameplay.Brain
             // TODO: Validate player control, update flow, recalculate tiles, update UI
         }
 
-        // TODO: Special battle actions (Wait, Item, Trade, Rescue/Drop, Talk, Steal, Dance/Refresh, Canto movement)
-        // TODO: Advanced input validation (range, teams, weapons, action points, error feedback)
-
         public void OpenActionMenu() => _playerTurnFlow?.SelectUnit();
 
         public void RequestUndo() => _brain?.PublishPlayerUndoAction();
 
         public void OpenMenu()
         {
-            // TODO: Battle pause menu (settings, speed, animation toggles, save/resume, battle info)
+            // TODO: Battle pause menu
         }
 
-        // TODO: Advanced input features (buffering, platform-specific controls, recording/replay, accessibility)
+        private OperationResult CalculateValidTiles(CharacterInstance unit)
+        {
+            if (unit == null || BattleContext?.mapGrid == null)
+            {
+                return OperationResult.Failure("No unit or BattleContext");
+            }
+
+            _validMoveTiles.Clear();
+            _validAttackTiles.Clear();
+            _aiHelper = BattleContext.AIHelper;
+
+            var currentPos = unit.UnitPositionToMapGridPoint(
+                unit.MapGridPosition,
+                BattleContext.mapGrid
+            );
+            bool canHeal = unit.CurrentClass?.ClassData?.Identity?.CanHeal ?? false;
+
+            bool success;
+            if (canHeal)
+            {
+                var healTilesTemp = new Dictionary<MapGridPoint, float>();
+                success = _aiHelper.GetTilesForAIWithHealNonAlloc(
+                    currentPos,
+                    _validMoveTiles,
+                    _validAttackTiles,
+                    healTilesTemp
+                );
+            }
+            else
+            {
+                success = _aiHelper.GetTilesForAINonAlloc(
+                    currentPos,
+                    _validMoveTiles,
+                    _validAttackTiles
+                );
+            }
+
+            if (!success)
+            {
+#if UNITY_EDITOR
+                Debug.LogError(
+                    $"BattleInputControllerBrain: Failed to calculate tiles for {unit.CharacterTemplate.DisplayName}"
+                );
+#endif
+                return OperationResult.Failure(
+                    $"Failed to calculate tiles for unit {unit.CharacterTemplate.DisplayName}"
+                );
+            }
+
+            return OperationResult.SuccessResult();
+        }
 
         #endregion
     }

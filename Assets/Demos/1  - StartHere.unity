@@ -159196,6 +159196,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   MaxPlayerTeamUnits: 0
   _requiredPlayerUnits: []
+  PlayerTeamSpawnPoints: []
 --- !u!114 &1742232837
 MonoBehaviour:
   m_ObjectHideFlags: 0
