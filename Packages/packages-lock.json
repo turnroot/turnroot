@@ -14,7 +14,7 @@
       "dependencies": {
         "com.unity.ugui": "1.0.0"
       },
-      "hash": "ef7ac0aaad7e8d60415e9348c9d84b32cc3a6437"
+      "hash": "815162eab9760a7567423deb47fd9d3437eb26d8"
     },
     "com.coffee.ui-particle": {
       "version": "5.0.0-preview.16",
