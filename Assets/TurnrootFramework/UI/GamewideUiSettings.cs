@@ -10,6 +10,7 @@ namespace Turnroot.GameSettings
         List,
         Filmstrip,
         Grid,
+        None,
     }
 
     public enum MenuName
