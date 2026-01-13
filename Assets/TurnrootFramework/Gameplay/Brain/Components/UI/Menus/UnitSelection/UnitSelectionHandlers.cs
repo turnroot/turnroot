@@ -79,16 +79,11 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
 
         private void HandleUnitCellSelectionPreBattlePositioning(UnitCellGridMenuItem item)
         {
-            
+            // TODO: Set up unit cell selection for pre-battle positioning
         }
 
-        public void HandlePreBattleMenuSelect(MenuItemBase item)
-        {
-#if UNITY_EDITOR
-            Debug.Log($"UiBrain: HandlePreBattleMenuSelect received item: {item?.ItemName}");
-#endif
+        public void HandlePreBattleMenuSelect(MenuItemBase item) =>
             // Delegate to the route handler for unified menu handling
             _routeHandler?.HandleMenuSelect(item);
-        }
     }
 }

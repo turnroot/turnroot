@@ -47,10 +47,7 @@ namespace Turnroot.Gameplay.Brain
                 : OperationResult.Failure("Invalid gamewideUiSettings");
         }
 
-        protected override void Awake()
-        {
-            base.Awake();
-        }
+        protected override void Awake() => base.Awake();
 
         protected override void OnDestroy()
         {

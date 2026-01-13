@@ -13,10 +13,14 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
         private void OpenSubmenu(MenuLocation targetMenu, string menuTypeName)
         {
             if (_isTransitioning || targetMenu == null || targetMenu.prefab == null)
+            {
                 return;
+            }
 
             if (targetMenu.activeInstance != null)
+            {
                 return;
+            }
 
             var sourceMenu = FindActiveMenu();
             if (sourceMenu?.activeInstance == null)
@@ -35,7 +39,9 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
         private MenuLocation FindActiveMenu()
         {
             if (preBattleMenuLocation?.activeInstance != null)
+            {
                 return preBattleMenuLocation;
+            }
 
             var allMenus = uiSettings?.allPossibleMenuLocations;
             if (allMenus != null)
@@ -43,7 +49,9 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                 foreach (var menu in allMenus)
                 {
                     if (menu?.activeInstance != null)
+                    {
                         return menu;
+                    }
                 }
             }
             return null;
@@ -70,25 +78,6 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
 #endif
             // Delegate to the route handler for unified menu handling
             _routeHandler?.HandleMenuSelect(item);
-        }
-
-        #endregion
-
-        #region Settings Menu Navigation and Transitions
-
-
-        // Back navigation moved to centralized handlers; legacy helper removed.
-        // Use MenuDepthTracker.PopTransition() and start TransitionToSubmenuCoroutine(from, to) directly.
-
-        private System.Collections.IEnumerator TransitionToSettingsMenu(
-            MenuLocation fromMenuLocation,
-            MenuLocation toMenuLocation
-        )
-        {
-            // Use the transition manager - always destroy and recreate
-            yield return _transitionManager.TransitionBetween(fromMenuLocation, toMenuLocation);
-
-            _isTransitioning = false;
         }
 
         #endregion

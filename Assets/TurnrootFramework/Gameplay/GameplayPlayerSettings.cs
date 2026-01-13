@@ -79,15 +79,9 @@ namespace Turnroot.Gameplay.PlayerSettings
                 this.defaultPath = defaultPath;
             }
 
-            public string GetStorageName(Option _)
-            {
-                return storageName;
-            }
+            public string GetStorageName(Option _) => storageName;
 
-            public string GetDefaultPath(Option _)
-            {
-                return defaultPath;
-            }
+            public string GetDefaultPath(Option _) => defaultPath;
         }
 
         public enum InputBindingKey
@@ -240,10 +234,7 @@ namespace Turnroot.Gameplay.PlayerSettings
         public void NotifyBindingsChanged() => BindingsChanged?.Invoke();
 
         // Convenience: return the binding path for the chosen option for an action
-        public string GetBindingForSelectedOption(LogicalAction action)
-        {
-            return GetBinding(GetSelectedOptionForAction(action));
-        }
+        public string GetBindingForSelectedOption(LogicalAction action) => GetBinding(GetSelectedOptionForAction(action));
 
         // Return all available options for a logical action (for UI dropdowns)
         public InputBindingKey[] GetOptionsForAction(LogicalAction action)

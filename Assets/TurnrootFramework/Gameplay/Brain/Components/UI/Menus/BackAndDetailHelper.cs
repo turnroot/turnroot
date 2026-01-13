@@ -7,7 +7,6 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
 {
     public partial class UiBrain : BrainComponent
     {
-        // TODO: Back button isn't working!!!
         // Handle both Back and Details button presence based on state
         private void HandleButtonsForState(string stateName)
         {
@@ -33,41 +32,21 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
 
             bool needsBackButton = stateNeedsMenus || inSubmenu;
 
-#if UNITY_EDITOR
-            Debug.Log(
-                $"  stateNeedsMenus: {stateNeedsMenus}, inSubmenu: {inSubmenu}, needsBackButton: {needsBackButton}"
-            );
-            Debug.Log($"  _currentMenuCanvasPrefab is null? {_currentMenuCanvasPrefab == null}");
-#endif
-
             if (needsBackButton)
             {
                 if (_currentMenuCanvasPrefab == null)
                 {
-#if UNITY_EDITOR
-                    Debug.Log("  -> Creating NEW back button");
-#endif
                     CreateBackButton();
-                }
-                else
-                {
-#if UNITY_EDITOR
-                    Debug.Log("  -> Back button already exists, skipping creation");
-#endif
                 }
             }
             else if (!needsBackButton && _currentMenuCanvasPrefab != null)
             {
-#if UNITY_EDITOR
-                Debug.Log("  -> Destroying back button (not needed)");
-#endif
                 DestroyBackButton();
             }
         }
 
         private void HandleDetailsButtonForState(string stateName)
         {
-            // For now, mirror the Back button behavior (appear when menus are active)
             bool needsDetailsButton = System.Array.Exists(
                 StateBrain.StatesThatNeedMenus,
                 state => state == stateName
@@ -155,7 +134,6 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                 simpleButton.AssignSelectAction(InputActionFactory.CreateDetails());
             }
 
-            // Wire the handler - THIS IS THE CRITICAL PART
             if (handler != null)
             {
                 // Remove any existing subscription first to prevent duplicates
@@ -209,35 +187,14 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
 
         private void HandleBackButtonPressed()
         {
-#if UNITY_EDITOR
-            Debug.Log(
-                $"UiBrain: Back button pressed. Transitioning: {_isTransitioning}, CanGoBack: {_menuTracker?.CanGoBack()}"
-            );
-#endif
-
             if (_isTransitioning)
             {
-#if UNITY_EDITOR
-                Debug.Log("UiBrain: Ignoring back - currently transitioning");
-#endif
                 return;
             }
 
             if (_menuTracker?.CanGoBack() == true)
             {
                 var (fromLocation, toLocation) = _menuTracker.PopTransition();
-
-#if UNITY_EDITOR
-                Debug.Log(
-                    $"UiBrain: Back navigation from {fromLocation?.menuName} to {toLocation?.menuName}"
-                );
-                Debug.Log(
-                    $"  from.activeInstance: {(fromLocation?.activeInstance != null ? "EXISTS" : "NULL")}"
-                );
-                Debug.Log(
-                    $"  to.activeInstance: {(toLocation?.activeInstance != null ? "EXISTS" : "NULL")}"
-                );
-#endif
                 if (fromLocation != null && toLocation != null)
                 {
                     // Start coroutine directly to avoid re-tracking depth on back navigation
@@ -267,9 +224,6 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             }
 
             // TODO: Implement details behavior when a details button is pressed
-#if UNITY_EDITOR
-            Debug.Log("UiBrain: Details button pressed - TODO: implement behavior");
-#endif
         }
 
         private void HandleRootLevelBack()
@@ -291,10 +245,6 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                 default:
                     break;
             }
-
-#if UNITY_EDITOR
-            Debug.Log($"UiBrain: Root level back pressed in state: {currentState}");
-#endif
         }
     }
 }

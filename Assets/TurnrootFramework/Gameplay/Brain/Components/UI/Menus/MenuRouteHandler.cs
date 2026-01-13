@@ -55,9 +55,6 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             // Debounce rapid repeated selections to avoid accidental double-activation
             if (UnityEngine.Time.time - _lastSelectTime < SelectDebounceSeconds)
             {
-#if UNITY_EDITOR
-                Debug.Log($"MenuRouteHandler: Ignored rapid selection of {item?.ItemName}");
-#endif
                 return;
             }
             _lastSelectTime = UnityEngine.Time.time;
@@ -86,19 +83,8 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                 {
                     // Get the MenuLocation type of the currently open menu
                     var currentMenu = _brain.GetMenuTracker()?.CurrentMenu;
-#if UNITY_EDITOR
-                    Debug.Log($"MenuRouteHandler: Current source menu: {currentMenu?.menuName}");
-#endif
                     // Existing behavior: delegate to UiBrain's handler (which contains the selection logic)
                     _brain.HandleUnitCellSelectionToggle(unitCellItem, currentMenu);
-                }
-                else
-                {
-#if UNITY_EDITOR
-                    Debug.LogWarning(
-                        $"MenuRouteHandler: UnitCell selected but item is not a UnitCellGridMenuItem: {item?.ItemName}"
-                    );
-#endif
                 }
             }
             else

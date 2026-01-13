@@ -327,10 +327,7 @@ public class MapGridRenderer
         return BLACK_CELL_COLOR;
     }
 
-    private bool ShouldSkipFeature(string featureTypeId)
-    {
-        return !string.IsNullOrEmpty(featureTypeId) && _skipFeatureTypes.Contains(featureTypeId);
-    }
+    private bool ShouldSkipFeature(string featureTypeId) => !string.IsNullOrEmpty(featureTypeId) && _skipFeatureTypes.Contains(featureTypeId);
 
     private (
         int minRow,

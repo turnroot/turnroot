@@ -93,14 +93,41 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             MenuLocation currentMenu
         )
         {
-            switch (currentMenu)
+#if UNITY_EDITOR
+            Debug.Log($"HandleUnitCellSelectionToggle: item={item?.ItemName}");
+            Debug.Log($"  currentMenu: {currentMenu?.menuName}");
+            Debug.Log($"  prebattleUnitsMenuLocation: {prebattleUnitsMenuLocation?.menuName}");
+            Debug.Log($"  Are they equal? {currentMenu == prebattleUnitsMenuLocation}");
+#endif
+
+            // Compare by menu name rather than instance reference to avoid false negatives
+            var currentMenuName = currentMenu?.menuName;
+            if (
+                currentMenuName != null
+                && currentMenuName == uiSettings?.GetPrebattleUnitsMenu()?.menuName
+            )
             {
-                case MenuLocation loc when loc == uiSettings.GetPrebattleUnitsMenu():
-                    HandleUnitCellSelectionPreBattle(item);
-                    break;
-                case MenuLocation loc when loc == uiSettings.GetPrebattleUnitPositionsMenu():
-                    HandleUnitCellSelectionPreBattlePositioning(item);
-                    break;
+                HandleUnitCellSelectionPreBattle(item);
+                return;
+            }
+
+            if (
+                currentMenuName != null
+                && currentMenuName == uiSettings?.GetPrebattleUnitPositionsMenu()?.menuName
+            )
+            {
+                HandleUnitCellSelectionPreBattlePositioning(item);
+                return;
+            }
+
+            // Fallback: if the transition manager indicates we're in Team menu context, treat as Units menu
+            var menuType = _transitionManager?.CurrentMenuType;
+#if UNITY_EDITOR
+            Debug.Log($"HandleUnitCellSelectionToggle: menuType={menuType}");
+#endif
+            if (menuType == MenuType.Team)
+            {
+                HandleUnitCellSelectionPreBattle(item);
             }
         }
 

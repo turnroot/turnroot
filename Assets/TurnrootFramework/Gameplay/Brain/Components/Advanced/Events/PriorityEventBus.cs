@@ -371,7 +371,10 @@ namespace Turnroot.Gameplay.Brain.Events
         private bool ShouldCoalesceKey(Type type, string key)
         {
             if (key == null)
+            {
                 key = string.Empty;
+            }
+
             if (!_coalescedEvents.TryGetValue(type, out var keys))
             {
                 return false;
@@ -383,7 +386,10 @@ namespace Turnroot.Gameplay.Brain.Events
         private void TrackForCoalescingKey(Type type, string key)
         {
             if (key == null)
+            {
                 key = string.Empty;
+            }
+
             if (!_coalescedEvents.TryGetValue(type, out var keys))
             {
                 keys = new HashSet<string>();

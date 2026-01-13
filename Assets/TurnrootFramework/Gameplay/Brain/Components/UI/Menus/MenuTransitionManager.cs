@@ -91,9 +91,11 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
         public IEnumerator TransitionBetween(MenuLocation from, MenuLocation to)
         {
             var fromInstance = from?.activeInstance;
+#if UNITY_EDITOR
             Debug.Log(
                 $"MenuTransitionManager: Transitioning from {from?.menuName} to {to?.menuName}"
             );
+#endif
 
             _currentMenuType = DetectMenuType(to);
 

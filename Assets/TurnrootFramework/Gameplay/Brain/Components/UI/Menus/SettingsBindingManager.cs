@@ -233,14 +233,6 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                     }
                 };
             }
-#if UNITY_EDITOR
-            else
-            {
-                Debug.LogWarning(
-                    $"SettingsBindingManager: Setting '{settingName}' is not an enum type. Carousel binding skipped."
-                );
-            }
-#endif
         }
     }
 }

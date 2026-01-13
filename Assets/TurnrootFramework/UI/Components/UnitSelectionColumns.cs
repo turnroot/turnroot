@@ -34,12 +34,6 @@ namespace Turnroot.UI.Components
             var u = LtmKeys.UnitSelectedForBattlePrefix;
             var keys = LongTermMemory.RecallKeysByPrefix(u);
             MaxSelectedUnits = _brain.battleBrain.PreparationObject.MaxPlayerTeamUnits;
-
-#if UNITY_EDITOR
-            Debug.Log(
-                $"UnitSelectionColumns: Initializing with {unitCount} units, {keys.Count} selection keys in LTM"
-            );
-#endif
             var keysSet = new HashSet<string>(keys);
 
             // Count currently selected units so we can fill up to MaxSelectedUnits when necessary
@@ -89,10 +83,6 @@ namespace Turnroot.UI.Components
             SelectedCount = currentlySelectedCount;
 
             RecomputeSelectedCount();
-
-#if UNITY_EDITOR
-            Debug.Log($"UnitSelectionColumns: Initialized SelectedCount = {SelectedCount}");
-#endif
             UpdateUnitCountText();
         }
 

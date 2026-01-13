@@ -79,7 +79,9 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
         public void TransitionToSubmenu(MenuLocation from, MenuLocation to)
         {
             if (_isTransitioning)
+            {
                 return;
+            }
 
             _isTransitioning = true;
             _menuTracker?.TrackTransition(from, to);
