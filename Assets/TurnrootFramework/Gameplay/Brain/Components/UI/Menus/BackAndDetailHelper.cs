@@ -1,5 +1,6 @@
 using System;
 using Turnroot.Gameplay.Brain;
+using Turnroot.GameSettings;
 using Turnroot.UI.Components.SimpleButton;
 using UnityEngine;
 
@@ -52,13 +53,16 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                 state => state == stateName
             );
 
-            if (needsDetailsButton && _currentDetailsCanvasPrefab == null)
-            {
-                CreateDetailsButton();
-            }
-            else if (!needsDetailsButton && _currentDetailsCanvasPrefab != null)
-            {
-                DestroyDetailsButton();
+        // If the pre-battle menu (radial/pie) is the current active menu, hide Details button
+        var preBattleMenu = uiSettings?.GetPreBattleMenu();
+        if (preBattleMenu?.activeInstance != null && _menuTracker?.CurrentMenu == preBattleMenu && preBattleMenu.style == MenuStyle.Pie)
+        {
+#if UNITY_EDITOR
+            Debug.Log("UiBrain: Hiding Details button because pre-battle radial menu is active.");
+#endif
+            needsDetailsButton = false;
+        }
+
             }
         }
 
@@ -109,9 +113,9 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             targetPrefabField.transform.SetParent(null);
             targetPrefabField.name = $"{targetPrefabField.name}_{role}";
 
-            // Find the SimpleButton component
-            var simpleButton = targetPrefabField.GetComponentInChildren<SimpleButton>();
-            if (simpleButton == null)
+            // Find all SimpleButton components in the prefab and pick the most appropriate one
+            var simpleButtons = targetPrefabField.GetComponentsInChildren<SimpleButton>(true);
+            if (simpleButtons == null || simpleButtons.Length == 0)
             {
 #if UNITY_EDITOR
                 Debug.LogError(
@@ -121,17 +125,48 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                 return;
             }
 
-            // CRITICAL: Set the role BEFORE doing anything else
-            simpleButton.Role = role;
+            // Prefer an existing button that already matches the desired role
+            SimpleButton chosen = null;
+            foreach (var sb in simpleButtons)
+            {
+                if (sb.Role == role)
+                {
+                    chosen = sb;
+                    break;
+                }
+            }
 
-            // Assign input action
+            // If none matched by role, avoid overwriting an existing Back button when creating Details
+            if (chosen == null)
+            {
+                foreach (var sb in simpleButtons)
+                {
+                    if (role == SimpleButtonRole.Details && sb.Role == SimpleButtonRole.Back)
+                    {
+                        // skip back buttons when creating details
+                        continue;
+                    }
+
+                    // choose the first sensible candidate
+                    chosen = sb;
+                    break;
+                }
+            }
+
+            // Fallback to first button if still nothing chosen (shouldn't happen)
+            chosen ??= simpleButtons[0];
+
+            // Ensure chosen button is marked with the correct role
+            chosen.Role = role;
+
+            // Assign the correct input action for the chosen button
             if (role == SimpleButtonRole.Back)
             {
-                simpleButton.AssignSelectAction(InputActionFactory.CreateBack());
+                chosen.AssignSelectAction(InputActionFactory.CreateBack());
             }
             else if (role == SimpleButtonRole.Details)
             {
-                simpleButton.AssignSelectAction(InputActionFactory.CreateDetails());
+                chosen.AssignSelectAction(InputActionFactory.CreateDetails());
             }
 
             if (handler != null)
@@ -139,14 +174,14 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                 // Remove any existing subscription first to prevent duplicates
                 try
                 {
-                    simpleButton.OnSelected -= handler;
+                    chosen.OnSelected -= handler;
                 }
                 catch { }
                 // Now add it
-                simpleButton.OnSelected += handler;
+                chosen.OnSelected += handler;
 
 #if UNITY_EDITOR
-                Debug.Log($"UiBrain: Subscribed {role} handler.");
+                Debug.Log($"UiBrain: Subscribed {role} handler on {chosen.gameObject.name}.");
 #endif
             }
         }
@@ -222,8 +257,9 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             {
                 return;
             }
-
-            // TODO: Implement details behavior when a details button is pressed
+#if UNITY_EDITOR
+            Debug.Log("UiBrain: Details button pressed - TODO: Implement details view");
+#endif
         }
 
         private void HandleRootLevelBack()
