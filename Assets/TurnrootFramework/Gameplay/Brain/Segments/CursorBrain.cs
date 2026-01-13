@@ -157,6 +157,7 @@ namespace Turnroot.Gameplay.Brain
                     break;
             }
         }
+
         private void HandleBattleStarted()
         {
             if (_currentContext != CursorContext.Battle)

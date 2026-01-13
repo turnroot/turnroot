@@ -452,7 +452,7 @@ namespace Turnroot.Gameplay.Brain
 
         private void HandlePlayerUnitActivated(CharacterInstance unit)
         {
-            CalculateValidTiles(unit);
+            ComputeValidTiles(unit);
 
 #if UNITY_EDITOR
             Debug.Log(
@@ -595,7 +595,7 @@ namespace Turnroot.Gameplay.Brain
             // TODO: Battle pause menu
         }
 
-        private OperationResult CalculateValidTiles(CharacterInstance unit)
+        private OperationResult ComputeValidTiles(CharacterInstance unit)
         {
             if (unit == null || BattleContext?.mapGrid == null)
             {

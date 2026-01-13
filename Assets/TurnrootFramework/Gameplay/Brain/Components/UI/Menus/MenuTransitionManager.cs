@@ -87,129 +87,42 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             return MenuType.Unknown;
         }
 
-        public IEnumerator TransitionBetween(
-            MenuLocation from,
-            MenuLocation to,
-            bool destroyFrom = false
-        )
+        // Simplified TransitionBetween - always destroys source and creates target fresh
+        public IEnumerator TransitionBetween(MenuLocation from, MenuLocation to)
         {
             var fromInstance = from?.activeInstance;
             Debug.Log(
-                $"MenuTransitionManager: TransitionBetween from={from?.menuName} hasFromInstance={fromInstance != null} to={to?.menuName} destroyFrom={destroyFrom}"
+                $"MenuTransitionManager: Transitioning from {from?.menuName} to {to?.menuName}"
             );
 
-            // Update current menu type
             _currentMenuType = DetectMenuType(to);
 
-            // Hide source menu if it exists
-            if (fromInstance != null && fromInstance.TryGetComponent<UIFade>(out var fromFade))
-            {
-                fromFade.Hide();
-                yield return new WaitForSeconds(fromFade.lerpTime + 0.1f);
-            }
-
-            // Handle source cleanup
+            // Hide and destroy source menu
             if (fromInstance != null)
             {
-                Debug.Log(
-                    $"MenuTransitionManager: Cleaning up source menu {from.menuName} (instance={fromInstance.name})"
-                );
+                if (fromInstance.TryGetComponent<UIFade>(out var fromFade))
+                {
+                    fromFade.Hide();
+                    yield return new WaitForSeconds(fromFade.lerpTime + 0.1f);
+                }
+
                 CleanupMenuEvents(fromInstance);
-
-                if (destroyFrom)
-                {
-                    Debug.Log(
-                        $"MenuTransitionManager: Destroying source instance {fromInstance.name}"
-                    );
-                    Object.Destroy(fromInstance);
-                    from.activeInstance = null;
-                }
-                else
-                {
-                    // For back navigation: keep instance but hide it
-                    if (fromInstance.TryGetComponent<MenuBase>(out var menu))
-                    {
-                        menu.enabled = false;
-                    }
-                    fromInstance.SetActive(false);
-                }
+                Object.Destroy(fromInstance);
+                from.activeInstance = null;
             }
 
-            // Instantiate target menu if needed or re-enable if it exists
-            bool instantiated = false;
-            if (to.activeInstance == null && to.prefab != null)
+            // Create and show target menu fresh
+            if (to.prefab != null)
             {
-                Debug.Log($"MenuTransitionManager: Instantiating target menu {to.menuName}");
                 to.activeInstance = Object.Instantiate(to.prefab);
-                instantiated = true;
-            }
-            else if (to.activeInstance != null)
-            {
-                // IMPORTANT: When going back, the instance exists but is disabled
-                Debug.Log($"MenuTransitionManager: Reactivating existing menu {to.menuName}");
-                to.activeInstance.SetActive(true);
-
-                if (to.activeInstance.TryGetComponent<MenuBase>(out var menu))
-                {
-                    menu.enabled = true;
-                }
-
-                // Re-setup events since they were cleaned up
-                SetupMenu(to);
-            }
-
-            // If newly instantiated, do full setup
-            if (instantiated && to.activeInstance != null)
-            {
                 SetupMenu(to);
                 HandleCreatedMenuInstance(to);
-            }
 
-            // Show target menu
-            if (to.activeInstance != null)
-            {
                 var targetFade = EnsureUIFade(
                     to.activeInstance,
                     _settings.MenuInternalTransitionTime
                 );
                 targetFade.Show();
-            }
-        }
-
-        public IEnumerator TransitionToPreBattle(MenuLocation from, MenuLocation preBattle)
-        {
-            // Update current menu type
-            _currentMenuType = MenuType.PreBattle;
-
-            // Hide current menu
-            if (
-                from?.activeInstance != null
-                && from.activeInstance.TryGetComponent<UIFade>(out var fromFade)
-            )
-            {
-                fromFade.Hide();
-                yield return new WaitForSeconds(fromFade.lerpTime + 0.1f);
-            }
-
-            // Clean up and destroy current menu
-            if (from?.activeInstance != null)
-            {
-                CleanupMenuEvents(from.activeInstance);
-                Object.Destroy(from.activeInstance);
-                from.activeInstance = null;
-            }
-
-            // Create and setup prebattle menu
-            if (preBattle.prefab != null)
-            {
-                preBattle.activeInstance = Object.Instantiate(preBattle.prefab);
-                SetupPreBattleMenu(preBattle);
-
-                var fade = EnsureUIFade(
-                    preBattle.activeInstance,
-                    _settings.MenuInternalTransitionTime
-                );
-                fade.Show();
             }
         }
 
@@ -243,44 +156,26 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
         private void SetupMenu(MenuLocation location)
         {
             var instance = location.activeInstance;
+            var menuType = DetectMenuType(location);
+            System.Action<Turnroot.UI.Components.MenuItemBase> itemHandler = menuType switch
+            {
+                MenuType.PreBattle or MenuType.Map or MenuType.Team =>
+                    _brain.HandlePreBattleMenuSelect,
+                MenuType.Settings
+                or MenuType.Graphics
+                or MenuType.Gameplay
+                or MenuType.Audio
+                or MenuType.Controls => _brain.HandleGameSettingsMenuSelect,
+                _ => _brain.HandleMenuSelect,
+            };
 
-            // Setup events based on menu type - use specific handlers based on context
-            // Bind every MenuBase inside the instance (handles nested lists like 'Right')
             var menuBases = instance.GetComponentsInChildren<MenuBase>(true);
             foreach (var menu in menuBases)
             {
-                Debug.Log(
-                    $"MenuTransitionManager.SetupMenu: setting up MenuBase for {location.menuName} menu={menu.name} instance={instance.name}"
-                );
                 menu.uiBrain = _brain;
-
-                var menuType = DetectMenuType(location);
-                if (menuType is MenuType.PreBattle or MenuType.Map)
-                {
-                    // Pre-battle context (map submenus etc.)
-                    menu.OnItemSelected += _brain.HandlePreBattleMenuSelect;
-                }
-                else if (
-                    menuType
-                    is MenuType.Settings
-                        or MenuType.Graphics
-                        or MenuType.Gameplay
-                        or MenuType.Audio
-                        or MenuType.Controls
-                )
-                {
-                    // Settings-related menus
-                    menu.OnItemSelected += _brain.HandleGameSettingsMenuSelect;
-                }
-                else
-                {
-                    // Standalone / other menus: route through general handlers
-                    menu.OnItemSelected += _brain.HandleMenuSelect;
-                }
-
+                menu.OnItemSelected += itemHandler;
                 _brain.SetupMenuInputActions(menu);
 
-                // Ensure child SimpleButton components use the menu's select action and are wired
                 var simpleButtons = menu.GetComponentsInChildren<SimpleButton>(true);
                 foreach (var sb in simpleButtons)
                 {
@@ -290,32 +185,8 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
 
             if (instance.TryGetComponent<RadialMenu>(out var radial))
             {
-                Debug.Log(
-                    $"MenuTransitionManager.SetupMenu: setting up RadialMenu for {location.menuName} instance={instance.name}"
-                );
                 radial.uiBrain = _brain;
-                // Choose the correct handler based on menu type (radials can appear in different contexts)
-                var radialMenuType = DetectMenuType(location);
-                if (radialMenuType is MenuType.PreBattle or MenuType.Map or MenuType.Team)
-                {
-                    radial.OnItemSelected += _brain.HandlePreBattleMenuSelect;
-                }
-                else if (
-                    radialMenuType
-                    is MenuType.Settings
-                        or MenuType.Graphics
-                        or MenuType.Gameplay
-                        or MenuType.Audio
-                        or MenuType.Controls
-                )
-                {
-                    radial.OnItemSelected += _brain.HandleGameSettingsMenuSelect;
-                }
-                else
-                {
-                    radial.OnItemSelected += _brain.HandleMenuSelect;
-                }
-
+                radial.OnItemSelected += itemHandler;
                 radial.navigateAction.Enable();
 
                 if (radial.selectAction == null || radial.selectAction.bindings.Count == 0)
@@ -332,70 +203,6 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
 
             _brain.SetupSettingsUIBindings(instance);
             _brain.ApplyMenuColors(instance, location.style);
-        }
-
-        private void SetupPreBattleMenu(MenuLocation preBattleLocation)
-        {
-            var instance = preBattleLocation.activeInstance;
-            var menuStyle = preBattleLocation.style;
-            Debug.Log(
-                $"MenuTransitionManager.SetupPreBattleMenu: menu={preBattleLocation.menuName} instance={instance?.name} style={menuStyle}"
-            );
-
-            if (menuStyle == MenuStyle.Pie)
-            {
-                if (instance.TryGetComponent<RadialMenu>(out var radialMenu))
-                {
-                    radialMenu.uiBrain = _brain;
-                    radialMenu.OnItemSelected += _brain.HandlePreBattleMenuSelect;
-
-                    radialMenu.navigateAction.Enable();
-
-                    if (
-                        radialMenu.selectAction == null
-                        || radialMenu.selectAction.bindings.Count == 0
-                    )
-                    {
-                        radialMenu.selectAction?.Disable();
-                        radialMenu.selectAction?.Dispose();
-                        radialMenu.selectAction = InputActionFactory.CreateSelect();
-                    }
-                    else
-                    {
-                        radialMenu.selectAction.Enable();
-                    }
-                }
-            }
-            else if (menuStyle is MenuStyle.List or MenuStyle.Grid)
-            {
-                // Bind every MenuBase found inside the prebattle prefab (handles 'Right' or other sub-panels)
-                var listMenus = instance.GetComponentsInChildren<MenuBase>(true);
-                foreach (var listMenu in listMenus)
-                {
-                    Debug.Log(
-                        $"MenuTransitionManager.SetupPreBattleMenu: binding prebattle list menu {listMenu.name} in {preBattleLocation.menuName}"
-                    );
-
-                    listMenu.uiBrain = _brain;
-                    listMenu.OnItemSelected += _brain.HandlePreBattleMenuSelect;
-                    _brain.SetupMenuInputActions(listMenu);
-
-                    // Ensure child SimpleButton components get the list menu's select action
-                    var simpleButtons =
-                        listMenu.GetComponentsInChildren<Turnroot.UI.Components.SimpleButton.SimpleButton>(
-                            true
-                        );
-                    foreach (var sb in simpleButtons)
-                    {
-                        sb.AssignSelectAction(listMenu.selectAction);
-                    }
-                }
-
-                // Initialize team menu components if present (no-op when not a team prefab)
-                InitializeTeamMenu(instance);
-            }
-
-            _brain.ApplyMenuColors(instance, menuStyle);
         }
 
         private void HandleCreatedMenuInstance(MenuLocation to)

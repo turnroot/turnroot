@@ -76,43 +76,20 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             }
         }
 
-        public void TransitionToSubmenu(MenuLocation from, MenuLocation to) =>
-            TransitionToSubmenu(from, to, isBackNavigation: false);
-
-        public void TransitionToSubmenu(MenuLocation from, MenuLocation to, bool isBackNavigation)
+        public void TransitionToSubmenu(MenuLocation from, MenuLocation to)
         {
             if (_isTransitioning)
-            {
                 return;
-            }
 
             _isTransitioning = true;
-            StartCoroutine(TransitionToSubmenuCoroutine(from, to, isBackNavigation));
+            _menuTracker?.TrackTransition(from, to);
+            StartCoroutine(TransitionToSubmenuCoroutine(from, to));
         }
 
-        private IEnumerator TransitionToSubmenuCoroutine(
-            MenuLocation from,
-            MenuLocation to,
-            bool isBackNavigation = false
-        )
+        private IEnumerator TransitionToSubmenuCoroutine(MenuLocation from, MenuLocation to)
         {
-            if (!isBackNavigation)
-            {
-                _menuTracker?.TrackTransition(from, to);
-            }
-
-            // For back navigation, don't destroy the 'from' menu so we can return to it later
-            // For forward navigation, we can destroy sub-menus but preserve main menus
-            bool destroyFrom =
-                !isBackNavigation
-                && (
-                    from == gameSettingsGraphicsLocation
-                    || from == gameSettingsGameplayLocation
-                    || from == gameSettingsAudioLocation
-                    || from == gameSettingsControlsLocation
-                );
-
-            yield return _transitionManager.TransitionBetween(from, to, destroyFrom);
+            // Depth already tracked at navigation start; do not re-track here to avoid duplicates
+            yield return _transitionManager.TransitionBetween(from, to);
             _isTransitioning = false;
         }
 

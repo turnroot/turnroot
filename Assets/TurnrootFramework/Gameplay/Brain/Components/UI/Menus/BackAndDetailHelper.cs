@@ -240,7 +240,8 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
 #endif
                 if (fromLocation != null && toLocation != null)
                 {
-                    TransitionToSubmenu(fromLocation, toLocation, isBackNavigation: true);
+                    // Start coroutine directly to avoid re-tracking depth on back navigation
+                    StartCoroutine(TransitionToSubmenuCoroutine(fromLocation, toLocation));
                 }
                 else
                 {

@@ -7,6 +7,7 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
     public class MenuDepthTracker
     {
         private Stack<MenuLocation> _menuStack = new();
+
         // Event raised whenever depth changes (push/pop/clear/transition)
         public event System.Action OnDepthChanged;
 
