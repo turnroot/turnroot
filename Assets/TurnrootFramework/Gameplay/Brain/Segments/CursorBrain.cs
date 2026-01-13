@@ -157,8 +157,6 @@ namespace Turnroot.Gameplay.Brain
                     break;
             }
         }
-
-        // In CursorBrain.cs - replace HandleBattleStarted
         private void HandleBattleStarted()
         {
             if (_currentContext != CursorContext.Battle)

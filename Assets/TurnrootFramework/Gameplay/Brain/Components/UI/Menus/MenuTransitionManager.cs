@@ -403,13 +403,16 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
 
         private void CleanupMenuEvents(GameObject instance)
         {
-            // Clean up MenuBase handlers on all nested menus
+            // Clean up MenuBase handlers on all nested menus. NOTE: Keep this limited to
+            // menu-related handlers only; do not touch unrelated UI elements such as
+            // standalone SimpleButton instances which may live outside of menus.
             var menus = instance.GetComponentsInChildren<MenuBase>(true);
             foreach (var menu in menus)
             {
-                // Clean up all possible event handlers
+                // Clean up all possible event handlers that may have been wired in SetupMenu()/SetupPreBattleMenu()
                 menu.OnItemSelected -= _brain.HandlePreBattleMenuSelect;
                 menu.OnItemSelected -= _brain.HandleGameSettingsMenuSelect;
+                menu.OnItemSelected -= _brain.HandleMenuSelect; // ensure general handlers are removed as well
             }
 
             // Clean up any nested RadialMenu handlers too

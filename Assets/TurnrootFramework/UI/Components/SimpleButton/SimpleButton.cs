@@ -60,12 +60,24 @@ namespace Turnroot.UI.Components.SimpleButton
             }
         }
 
-        public void Select() => StartCoroutine(SelectCoroutine());
+        public void Select()
+        {
+#if UNITY_EDITOR
+            Debug.Log($"SimpleButton.Select() called on {gameObject.name}, Role: {Role}");
+#endif
+            StartCoroutine(SelectCoroutine());
+        }
 
         private System.Collections.IEnumerator SelectCoroutine()
         {
             Color currentColor = ButtonImage != null ? ButtonImage.color : NormalColor;
             yield return StartCoroutine(TweenColors(currentColor, SelectedColor));
+
+#if UNITY_EDITOR
+            Debug.Log(
+                $"SimpleButton: About to invoke OnSelected. Subscribers: {OnSelected?.GetInvocationList()?.Length ?? 0}"
+            );
+#endif
 
             // After the coroutine finished, and if it's a selection
             OnSelected?.Invoke();

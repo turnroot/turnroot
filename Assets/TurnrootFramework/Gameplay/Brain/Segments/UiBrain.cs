@@ -188,10 +188,23 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             if (sb.Role == SimpleButtonRole.Back)
             {
                 sb.AssignSelectAction(InputActionFactory.CreateBack());
+                // Ensure the Back handler is present (rebinding may have caused subscriptions to be lost)
+                try
+                {
+                    sb.OnSelected -= HandleBackButtonPressed;
+                }
+                catch { }
+                sb.OnSelected += HandleBackButtonPressed;
             }
             else if (sb.Role == SimpleButtonRole.Details)
             {
                 sb.AssignSelectAction(InputActionFactory.CreateDetails());
+                try
+                {
+                    sb.OnSelected -= HandleDetailsButtonPressed;
+                }
+                catch { }
+                sb.OnSelected += HandleDetailsButtonPressed;
             }
         }
 

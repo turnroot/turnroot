@@ -18,17 +18,40 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
 
         private void HandleBackButtonForState(string stateName)
         {
+#if UNITY_EDITOR
+            Debug.Log($"HandleBackButtonForState: state={stateName}");
+            Debug.Log(
+                $"  StatesThatNeedMenus contains this state? {System.Array.Exists(StateBrain.StatesThatNeedMenus, s => s == stateName)}"
+            );
+            Debug.Log($"  _currentMenuCanvasPrefab is null? {_currentMenuCanvasPrefab == null}");
+#endif
+
             bool needsBackButton = System.Array.Exists(
                 StateBrain.StatesThatNeedMenus,
                 state => state == stateName
             );
 
-            if (needsBackButton && _currentMenuCanvasPrefab == null)
+            if (needsBackButton)
             {
-                CreateBackButton();
+                if (_currentMenuCanvasPrefab == null)
+                {
+#if UNITY_EDITOR
+                    Debug.Log("  -> Creating NEW back button");
+#endif
+                    CreateBackButton();
+                }
+                else
+                {
+#if UNITY_EDITOR
+                    Debug.Log("  -> Back button already exists, skipping creation");
+#endif
+                }
             }
             else if (!needsBackButton && _currentMenuCanvasPrefab != null)
             {
+#if UNITY_EDITOR
+                Debug.Log("  -> Destroying back button (not needed in this state)");
+#endif
                 DestroyBackButton();
             }
         }
@@ -95,6 +118,9 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             }
 
             targetPrefabField = Instantiate(uiSettings.MenuCanvasPrefab);
+            // Ensure the role button is a top-level sibling (not parented under any menu instance)
+            targetPrefabField.transform.SetParent(null);
+            targetPrefabField.name = $"{targetPrefabField.name}_{role}";
 
             // Find the SimpleButton component in children since it's a child of the canvas
             var simpleButton = targetPrefabField.GetComponentInChildren<SimpleButton>();
@@ -104,6 +130,7 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                 if (role == SimpleButtonRole.Back)
                 {
                     simpleButton.AssignSelectAction(InputActionFactory.CreateBack());
+                    Debug.Log(">>> Assigned BACK action to SimpleButton <<<");
                 }
                 else if (role == SimpleButtonRole.Details)
                 {
