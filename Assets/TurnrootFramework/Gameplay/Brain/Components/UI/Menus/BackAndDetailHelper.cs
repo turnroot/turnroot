@@ -53,16 +53,29 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                 state => state == stateName
             );
 
-        // If the pre-battle menu (radial/pie) is the current active menu, hide Details button
-        var preBattleMenu = uiSettings?.GetPreBattleMenu();
-        if (preBattleMenu?.activeInstance != null && _menuTracker?.CurrentMenu == preBattleMenu && preBattleMenu.style == MenuStyle.Pie)
-        {
+            // If the pre-battle menu (radial/pie) is the current active menu, hide Details button
+            var preBattleMenu = uiSettings?.GetPreBattleMenu();
+            if (
+                preBattleMenu?.activeInstance != null
+                && _menuTracker?.CurrentMenu == preBattleMenu
+                && preBattleMenu.style == MenuStyle.Pie
+            )
+            {
 #if UNITY_EDITOR
-            Debug.Log("UiBrain: Hiding Details button because pre-battle radial menu is active.");
+                Debug.Log(
+                    "UiBrain: Hiding Details button because pre-battle radial menu is active."
+                );
 #endif
-            needsDetailsButton = false;
-        }
+                needsDetailsButton = false;
+            }
 
+            if (needsDetailsButton && _currentDetailsCanvasPrefab == null)
+            {
+                CreateDetailsButton();
+            }
+            else if (!needsDetailsButton && _currentDetailsCanvasPrefab != null)
+            {
+                DestroyDetailsButton();
             }
         }
 
