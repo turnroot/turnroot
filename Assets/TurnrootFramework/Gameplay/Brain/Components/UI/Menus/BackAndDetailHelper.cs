@@ -1,4 +1,3 @@
-// Deprecated: Back and Details helpers were merged into BackHelper.cs. This file intentionally left blank to avoid duplicate definitions.
 using System;
 using Turnroot.Gameplay.Brain;
 using Turnroot.UI.Components.SimpleButton;
@@ -20,16 +19,26 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
         {
 #if UNITY_EDITOR
             Debug.Log($"HandleBackButtonForState: state={stateName}");
-            Debug.Log(
-                $"  StatesThatNeedMenus contains this state? {System.Array.Exists(StateBrain.StatesThatNeedMenus, s => s == stateName)}"
-            );
-            Debug.Log($"  _currentMenuCanvasPrefab is null? {_currentMenuCanvasPrefab == null}");
 #endif
 
-            bool needsBackButton = System.Array.Exists(
+            // Check if we need a back button based on:
+            // 1. The current state needs menus, OR
+            // 2. We're currently in a submenu (depth > 1)
+            bool stateNeedsMenus = System.Array.Exists(
                 StateBrain.StatesThatNeedMenus,
                 state => state == stateName
             );
+
+            bool inSubmenu = (_menuTracker?.CurrentDepth ?? 0) > 1;
+
+            bool needsBackButton = stateNeedsMenus || inSubmenu;
+
+#if UNITY_EDITOR
+            Debug.Log(
+                $"  stateNeedsMenus: {stateNeedsMenus}, inSubmenu: {inSubmenu}, needsBackButton: {needsBackButton}"
+            );
+            Debug.Log($"  _currentMenuCanvasPrefab is null? {_currentMenuCanvasPrefab == null}");
+#endif
 
             if (needsBackButton)
             {
@@ -50,7 +59,7 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             else if (!needsBackButton && _currentMenuCanvasPrefab != null)
             {
 #if UNITY_EDITOR
-                Debug.Log("  -> Destroying back button (not needed in this state)");
+                Debug.Log("  -> Destroying back button (not needed)");
 #endif
                 DestroyBackButton();
             }
@@ -118,30 +127,49 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             }
 
             targetPrefabField = Instantiate(uiSettings.MenuCanvasPrefab);
-            // Ensure the role button is a top-level sibling (not parented under any menu instance)
             targetPrefabField.transform.SetParent(null);
             targetPrefabField.name = $"{targetPrefabField.name}_{role}";
 
-            // Find the SimpleButton component in children since it's a child of the canvas
+            // Find the SimpleButton component
             var simpleButton = targetPrefabField.GetComponentInChildren<SimpleButton>();
-            if (simpleButton != null && simpleButton.Role == role)
+            if (simpleButton == null)
             {
-                // Assign a role-appropriate input action
-                if (role == SimpleButtonRole.Back)
-                {
-                    simpleButton.AssignSelectAction(InputActionFactory.CreateBack());
-                    Debug.Log(">>> Assigned BACK action to SimpleButton <<<");
-                }
-                else if (role == SimpleButtonRole.Details)
-                {
-                    simpleButton.AssignSelectAction(InputActionFactory.CreateDetails());
-                }
+#if UNITY_EDITOR
+                Debug.LogError(
+                    $"UiBrain: No SimpleButton found in MenuCanvasPrefab for role {role}"
+                );
+#endif
+                return;
+            }
 
-                // Wire the selection handler
-                if (handler != null)
+            // CRITICAL: Set the role BEFORE doing anything else
+            simpleButton.Role = role;
+
+            // Assign input action
+            if (role == SimpleButtonRole.Back)
+            {
+                simpleButton.AssignSelectAction(InputActionFactory.CreateBack());
+            }
+            else if (role == SimpleButtonRole.Details)
+            {
+                simpleButton.AssignSelectAction(InputActionFactory.CreateDetails());
+            }
+
+            // Wire the handler - THIS IS THE CRITICAL PART
+            if (handler != null)
+            {
+                // Remove any existing subscription first to prevent duplicates
+                try
                 {
-                    simpleButton.OnSelected += handler;
+                    simpleButton.OnSelected -= handler;
                 }
+                catch { }
+                // Now add it
+                simpleButton.OnSelected += handler;
+
+#if UNITY_EDITOR
+                Debug.Log($"UiBrain: Subscribed {role} handler.");
+#endif
             }
         }
 

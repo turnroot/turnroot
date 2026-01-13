@@ -326,7 +326,9 @@ namespace Turnroot.Gameplay.Brain
         private void HandleBattleStarted()
         {
 #if UNITY_EDITOR
-            Debug.Log("BattleInputControllerBrain.HandleBattleStarted called - initializing input timer");
+            Debug.Log(
+                "BattleInputControllerBrain.HandleBattleStarted called - initializing input timer"
+            );
 #endif
             // Use current time to avoid misleading negative cooldown log values and provide a clean start point
             _lastInputTime = Time.time;

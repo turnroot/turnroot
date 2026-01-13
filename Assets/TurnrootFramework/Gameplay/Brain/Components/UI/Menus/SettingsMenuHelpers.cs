@@ -88,7 +88,6 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
         #region Settings Menu Event Handlers
 
 
-
         public void HandleGameSettingsMenuSelect(MenuItemBase item)
         {
 #if UNITY_EDITOR
@@ -174,10 +173,11 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             _menuTracker?.TrackTransition(fromMenuLocation, toMenuLocation);
 
             // Use the transition manager instead of duplicate code
+            // DON'T destroy the prebattle radial menu - we need to navigate back to it
             yield return _transitionManager.TransitionBetween(
                 fromMenuLocation,
                 toMenuLocation,
-                destroyFrom: fromMenuLocation == preBattleMenuLocation
+                destroyFrom: false
             );
 
             _isTransitioning = false;

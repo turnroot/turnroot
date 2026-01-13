@@ -98,6 +98,12 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                 _menuTracker = new MenuDepthTracker();
                 _routeHandler = new MenuRouteHandler(this);
 
+                // Subscribe to depth changes so the Back button follows submenu navigation
+                if (_menuTracker != null)
+                {
+                    _menuTracker.OnDepthChanged += OnMenuDepthChanged;
+                }
+
                 // Subscribe to binding changes so we can rewire inputs at runtime
                 _playerSettings = GameSettingsLoader.LoadFirst<GameplayPlayerSettings>();
                 if (_playerSettings != null)
@@ -240,6 +246,12 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             }
         }
 
+        private void OnMenuDepthChanged()
+        {
+            var currentState = Brain?.stateBrain?.CurrentState?.Name ?? string.Empty;
+            HandleButtonsForState(currentState);
+        }
+
         protected override void UnsubscribeFromBrainEvents()
         {
             Brain.OnBattleCursorMoved -= HandleBattleCursorMoved;
@@ -271,6 +283,11 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             }
 
             // Clean up back and details buttons
+            if (_menuTracker != null)
+            {
+                _menuTracker.OnDepthChanged -= OnMenuDepthChanged;
+            }
+
             DestroyBackButton();
             DestroyDetailsButton();
         }

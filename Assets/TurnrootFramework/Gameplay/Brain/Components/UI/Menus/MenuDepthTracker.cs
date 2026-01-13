@@ -7,6 +7,8 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
     public class MenuDepthTracker
     {
         private Stack<MenuLocation> _menuStack = new();
+        // Event raised whenever depth changes (push/pop/clear/transition)
+        public event System.Action OnDepthChanged;
 
         public int CurrentDepth => _menuStack.Count;
         public MenuLocation CurrentMenu => _menuStack.Count > 0 ? _menuStack.Peek() : null;
@@ -20,6 +22,7 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
 #if UNITY_EDITOR
                 Debug.Log($"MenuDepthTracker: Pushed menu. New depth: {CurrentDepth}");
 #endif
+                OnDepthChanged?.Invoke();
             }
         }
 
@@ -31,6 +34,7 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
 #if UNITY_EDITOR
                 Debug.Log($"MenuDepthTracker: Popped menu. New depth: {CurrentDepth}");
 #endif
+                OnDepthChanged?.Invoke();
                 return popped;
             }
             return null;
@@ -42,6 +46,7 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
 #if UNITY_EDITOR
             Debug.Log("MenuDepthTracker: Cleared all menus");
 #endif
+            OnDepthChanged?.Invoke();
         }
 
         public MenuLocation GetParent()
@@ -98,11 +103,11 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                 {
                     _menuStack.Push(from);
                 }
-
                 _menuStack.Push(to);
 #if UNITY_EDITOR
                 Debug.Log($"MenuDepthTracker: Tracked transition. New depth: {CurrentDepth}");
 #endif
+                OnDepthChanged?.Invoke();
                 return;
             }
 
@@ -115,6 +120,7 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                     $"MenuDepthTracker: Tracked forward transition. New depth: {CurrentDepth}"
                 );
 #endif
+                OnDepthChanged?.Invoke();
                 return;
             }
 
@@ -125,13 +131,13 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                 {
                     _menuStack.Pop();
                 }
-
                 _menuStack.Push(to);
 #if UNITY_EDITOR
                 Debug.Log(
                     $"MenuDepthTracker: Tracked rewind transition. New depth: {CurrentDepth}"
                 );
 #endif
+                OnDepthChanged?.Invoke();
                 return;
             }
 
@@ -145,6 +151,7 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
 #if UNITY_EDITOR
             Debug.Log($"MenuDepthTracker: Tracked transition. New depth: {CurrentDepth}");
 #endif
+            OnDepthChanged?.Invoke();
         }
 
         public bool CanGoBack()

@@ -294,8 +294,27 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                     $"MenuTransitionManager.SetupMenu: setting up RadialMenu for {location.menuName} instance={instance.name}"
                 );
                 radial.uiBrain = _brain;
-                // For radial menus, use settings handlers (these are typically settings menus)
-                radial.OnItemSelected += _brain.HandleGameSettingsMenuSelect;
+                // Choose the correct handler based on menu type (radials can appear in different contexts)
+                var radialMenuType = DetectMenuType(location);
+                if (radialMenuType is MenuType.PreBattle or MenuType.Map or MenuType.Team)
+                {
+                    radial.OnItemSelected += _brain.HandlePreBattleMenuSelect;
+                }
+                else if (
+                    radialMenuType
+                    is MenuType.Settings
+                        or MenuType.Graphics
+                        or MenuType.Gameplay
+                        or MenuType.Audio
+                        or MenuType.Controls
+                )
+                {
+                    radial.OnItemSelected += _brain.HandleGameSettingsMenuSelect;
+                }
+                else
+                {
+                    radial.OnItemSelected += _brain.HandleMenuSelect;
+                }
 
                 radial.navigateAction.Enable();
 
@@ -421,6 +440,7 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             {
                 radial.OnItemSelected -= _brain.HandlePreBattleMenuSelect;
                 radial.OnItemSelected -= _brain.HandleGameSettingsMenuSelect;
+                radial.OnItemSelected -= _brain.HandleMenuSelect;
             }
         }
 

@@ -190,22 +190,21 @@ namespace Turnroot.UI.Components.SimpleButton
 
         private void OnSelectActionPerformed(InputAction.CallbackContext context)
         {
-            // If this button belongs to a menu, only allow select when it is hovered.
-            // Back/Details roles should respond to Back/Details input even when not hovered so
-            // pressing Escape/X works regardless of current menu hover state.
+            // Back and Details buttons should ALWAYS work regardless of hover state
+            if (Role == SimpleButtonRole.Back || Role == SimpleButtonRole.Details)
+            {
+                Select();
+                return;
+            }
+
+            // For menu items, only respond if hovered
             var menuItem = GetComponent<Turnroot.UI.Components.MenuItemBase>();
             if (menuItem != null && menuItem.ParentMenu != null)
             {
-                // Allow Back and Details role to bypass hover requirement.
-                if (
-                    !_isHovered
-                    && (Role != SimpleButtonRole.Back && Role != SimpleButtonRole.Details)
-                )
+                if (!_isHovered)
                 {
 #if UNITY_EDITOR
-                    Debug.Log(
-                        $"SimpleButton: Ignored select input for {gameObject.name} because it is not hovered"
-                    );
+                    Debug.Log($"SimpleButton: Ignored select for {gameObject.name} (not hovered)");
 #endif
                     return;
                 }
