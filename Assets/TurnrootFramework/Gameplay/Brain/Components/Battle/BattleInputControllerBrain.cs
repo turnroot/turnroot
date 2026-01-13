@@ -13,11 +13,6 @@ using UnityEngine.InputSystem;
 
 namespace Turnroot.Gameplay.Brain
 {
-    /// <summary>
-    /// Handles player input during battle phases and translates input events
-    /// into player turn actions through the Brain event system.
-    /// Delegates cursor management to CursorBrain for decoupled state handling.
-    /// </summary>
     public partial class BattleInputControllerBrain : BrainComponent
     {
         #region Properties
@@ -25,8 +20,6 @@ namespace Turnroot.Gameplay.Brain
         public CharacterInstance SelectedUnit =>
             _brain.battleBrain.BattleObject.Context.Unit.UnitInstance;
         public BattleContext BattleContext => _brain.battleBrain.BattleObject.Context;
-
-        // Cursor position now comes from CursorBrain
         public MapGridPoint CursorPosition => _brain.cursorBrain?.CursorPosition;
 
         #endregion
@@ -36,22 +29,22 @@ namespace Turnroot.Gameplay.Brain
         private PlayerTurnFlow _playerTurnFlow;
         private BattleContextAIHelper _aiHelper;
 
-        // Cached data for current player unit
         private Dictionary<MapGridPoint, float> _validMoveTiles = new();
         private Dictionary<MapGridPoint, float> _validAttackTiles = new();
 
-        // Input system
         private InputAction _navigateAction;
         private InputAction _confirmAction;
         private InputAction _cancelAction;
         private InputAction _menuAction;
 
-        // Input cooldown management
         private float _lastInputTime;
         private float _cachedInputCooldown;
         private bool _cachedIsKeyboard = true;
         private const float KEYBOARD_BASE_COOLDOWN = 0.1f;
         private const float GAMEPAD_COOLDOWN = 0.15f;
+
+        // Add flag to prevent input processing before ready
+        private bool _inputEnabled = false;
 
         #endregion
 
@@ -60,23 +53,42 @@ namespace Turnroot.Gameplay.Brain
         protected override void Awake()
         {
             base.Awake();
+#if UNITY_EDITOR
+            Debug.Log("BattleInputController: Awake called");
+#endif
             _playerTurnFlow = _brain?.battleBrain?.playerTurnFlow;
-            // Initialize input timer to a sentinel so early Update logs aren't misleading
             _lastInputTime = -999f;
             UpdateInputCooldown();
         }
 
+        private void Start()
+        {
+#if UNITY_EDITOR
+            Debug.Log(
+                $"BattleInputController: Start called. Brain: {(_brain != null ? "exists" : "null")}"
+            );
+#endif
+            // Check if we're already in battle state (can happen if component loads late)
+            if (_brain?.stateBrain?.CurrentState?.Name == BrainStateNames.Battle)
+            {
+#if UNITY_EDITOR
+                Debug.Log("BattleInputController: Already in Battle state, initializing now");
+#endif
+                // Battle already started before we subscribed, initialize manually
+                _lastInputTime = Time.time;
+                _inputEnabled = false;
+                StartCoroutine(InitializeWhenReady());
+            }
+        }
+
         private void Update()
         {
-            if (Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow))
+            // Don't process input until battle is fully ready
+            if (!_inputEnabled)
             {
-                Debug.Log(
-                    $"RAW INPUT DETECTED: W/Up pressed. _navigateAction: {(_navigateAction != null ? "exists" : "null")}, enabled: {_navigateAction?.enabled}"
-                );
-                Debug.Log(
-                    $"RAW INPUT. cooldown remaining: {_cachedInputCooldown - (Time.time - _lastInputTime)}"
-                );
+                return;
             }
+
             if (Time.time - _lastInputTime < _cachedInputCooldown)
             {
                 return;
@@ -102,7 +114,9 @@ namespace Turnroot.Gameplay.Brain
 
         protected override void SubscribeToBrainEvents()
         {
-            // Input events
+#if UNITY_EDITOR
+            Debug.Log("BattleInputController: SubscribeToBrainEvents called");
+#endif
             _brain.Subscribe<BattleContext.BattleInputNavigateEvent>(
                 HandleNavigateEvent,
                 EventPriority.High
@@ -120,13 +134,14 @@ namespace Turnroot.Gameplay.Brain
                 EventPriority.High
             );
 
-            // Battle lifecycle events
             _brain.OnBattleStarted += HandleBattleStarted;
             _brain.OnBattleCompleted += HandleBattleCompleted;
-
-            // Player turn events
             _brain.OnPlayerControlledUnitActivated += HandlePlayerUnitActivated;
             _brain.OnPlayerTurnStateChanged += HandlePlayerTurnStateChanged;
+
+#if UNITY_EDITOR
+            Debug.Log("BattleInputController: Event subscriptions complete");
+#endif
         }
 
         protected override void UnsubscribeFromBrainEvents()
@@ -153,6 +168,9 @@ namespace Turnroot.Gameplay.Brain
                 var direction = _navigateAction.ReadValue<Vector2>();
                 if (direction.magnitude > 0.1f)
                 {
+#if UNITY_EDITOR
+                    Debug.Log($"BattleInputController: Processing navigate input: {direction}");
+#endif
                     HandleNavigateInput(direction);
                     _brain?.Publish(
                         new BattleContext.BattleInputNavigateEvent { Direction = direction }
@@ -163,18 +181,27 @@ namespace Turnroot.Gameplay.Brain
 
             if (_confirmAction?.WasPressedThisFrame() == true)
             {
+#if UNITY_EDITOR
+                Debug.Log("BattleInputController: Confirm pressed");
+#endif
                 _brain?.Publish(new BattleContext.BattleInputConfirmEvent());
                 return true;
             }
 
             if (_cancelAction?.WasPressedThisFrame() == true)
             {
+#if UNITY_EDITOR
+                Debug.Log("BattleInputController: Cancel pressed");
+#endif
                 _brain?.Publish(new BattleContext.BattleInputCancelEvent());
                 return true;
             }
 
             if (_menuAction?.WasPressedThisFrame() == true)
             {
+#if UNITY_EDITOR
+                Debug.Log("BattleInputController: Menu pressed");
+#endif
                 _brain?.Publish(new BattleContext.BattleInputMenuEvent());
                 return true;
             }
@@ -246,13 +273,16 @@ namespace Turnroot.Gameplay.Brain
             _confirmAction.Enable();
             _cancelAction.Enable();
             _menuAction.Enable();
+
+#if UNITY_EDITOR
+            Debug.Log("BattleInputController: Input actions created and enabled");
+#endif
         }
 
         private InputAction CreateNavigateAction()
         {
             var action = new InputAction("Navigate", InputActionType.Value);
 
-            // WASD composite
             action
                 .AddCompositeBinding("2DVector")
                 .With("Up", "<Keyboard>/w")
@@ -260,7 +290,6 @@ namespace Turnroot.Gameplay.Brain
                 .With("Left", "<Keyboard>/a")
                 .With("Right", "<Keyboard>/d");
 
-            // Arrow keys composite
             action
                 .AddCompositeBinding("2DVector")
                 .With("Up", "<Keyboard>/upArrow")
@@ -268,7 +297,6 @@ namespace Turnroot.Gameplay.Brain
                 .With("Left", "<Keyboard>/leftArrow")
                 .With("Right", "<Keyboard>/rightArrow");
 
-            // Gamepad
             action.AddBinding("<Gamepad>/leftStick");
             action.AddBinding("<Gamepad>/dpad");
 
@@ -303,6 +331,8 @@ namespace Turnroot.Gameplay.Brain
 
         private void CleanupInputActions()
         {
+            _inputEnabled = false;
+
             _navigateAction?.Disable();
             _confirmAction?.Disable();
             _cancelAction?.Disable();
@@ -317,6 +347,10 @@ namespace Turnroot.Gameplay.Brain
             _confirmAction = null;
             _cancelAction = null;
             _menuAction = null;
+
+#if UNITY_EDITOR
+            Debug.Log("BattleInputController: Input actions cleaned up");
+#endif
         }
 
         #endregion
@@ -326,29 +360,92 @@ namespace Turnroot.Gameplay.Brain
         private void HandleBattleStarted()
         {
 #if UNITY_EDITOR
-            Debug.Log(
-                "BattleInputControllerBrain.HandleBattleStarted called - initializing input timer"
-            );
+            Debug.Log("BattleInputController: HandleBattleStarted called!");
 #endif
-            // Use current time to avoid misleading negative cooldown log values and provide a clean start point
             _lastInputTime = Time.time;
+            _inputEnabled = false; // Explicitly disable until ready
             StartCoroutine(InitializeWhenReady());
         }
 
         private IEnumerator InitializeWhenReady()
         {
+#if UNITY_EDITOR
+            Debug.Log("BattleInputController: InitializeWhenReady coroutine started");
+#endif
+
+            // Wait for battle context and map grid
+            int waitCount = 0;
             while (_brain?.battleBrain?.BattleObject?.Context?.mapGrid == null)
             {
+                waitCount++;
+#if UNITY_EDITOR
+                if (waitCount % 20 == 0) // Log every second
+                {
+                    Debug.Log(
+                        $"BattleInputController: Still waiting for battle context... ({waitCount * 0.05f}s)"
+                    );
+                }
+#endif
                 yield return new WaitForSeconds(0.05f);
             }
+
+#if UNITY_EDITOR
+            Debug.Log("BattleInputController: Battle context ready");
+#endif
+
+            // Wait for cursor brain to be initialized
+            waitCount = 0;
+            while (_brain?.cursorBrain?.IsInitialized != true)
+            {
+                waitCount++;
+#if UNITY_EDITOR
+                // Check every single iteration for first few, then every 20
+                if (waitCount <= 5 || waitCount % 20 == 0)
+                {
+                    Debug.Log(
+                        $"BattleInputController: Still waiting for cursor brain... (attempt {waitCount}, {waitCount * 0.05f}s)"
+                    );
+                    Debug.Log($"  - _brain exists: {_brain != null}");
+                    Debug.Log($"  - _brain.cursorBrain exists: {_brain?.cursorBrain != null}");
+                    Debug.Log(
+                        $"  - _brain.cursorBrain.IsInitialized: {_brain?.cursorBrain?.IsInitialized}"
+                    );
+                    Debug.Log(
+                        $"  - _brain.cursorBrain.CursorPosition: {_brain?.cursorBrain?.CursorPosition?.CoordinatesInt}"
+                    );
+
+                    // Also check if we're checking the right reference
+                    if (_brain?.cursorBrain != null)
+                    {
+                        Debug.Log($"  - CursorBrain instance: {_brain.cursorBrain.GetHashCode()}");
+                    }
+                }
+#endif
+                yield return new WaitForSeconds(0.05f);
+            }
+
+#if UNITY_EDITOR
+            Debug.Log("BattleInputController: Cursor brain ready");
+#endif
 
             _playerTurnFlow = _brain.battleBrain.playerTurnFlow;
             SetupInputActions();
 
-            // CursorBrain will initialize itself through its own event subscriptions
+            // Wait one more frame to ensure everything is settled
+            yield return null;
+
+            // Now enable input processing
+            _inputEnabled = true;
+            _lastInputTime = Time.time; // Reset cooldown timer
+#if UNITY_EDITOR
+            Debug.Log("BattleInputController: Initialization complete - INPUT ENABLED!");
+#endif
         }
 
-        private void HandleBattleCompleted(BattleExitType exitType) => CleanupInputActions();
+        private void HandleBattleCompleted(BattleExitType exitType)
+        {
+            CleanupInputActions();
+        }
 
         #endregion
 
@@ -367,23 +464,41 @@ namespace Turnroot.Gameplay.Brain
 
         public void HandleNavigateInput(Vector2 direction)
         {
-            if (direction.magnitude < 0.1f || _brain?.cursorBrain == null)
+            if (direction.magnitude < 0.1f)
             {
+                Debug.LogWarning("BattleInputController: Ignoring negligible navigate input");
+                return;
+            }
+
+            if (_brain?.cursorBrain == null)
+            {
+#if UNITY_EDITOR
+                Debug.LogWarning("BattleInputController: CursorBrain is null, cannot navigate");
+#endif
+                return;
+            }
+
+            if (!_brain.cursorBrain.IsInitialized)
+            {
+#if UNITY_EDITOR
+                Debug.LogWarning("BattleInputController: CursorBrain not initialized yet");
+#endif
                 return;
             }
 
             var currentState = _playerTurnFlow?.GetCurrentState();
-
-            // Only handle navigation in certain states
-            if (currentState is PlayerTurnStates.Inactive)
-            {
-                return;
-            }
+            Debug.Log(
+                $"BattleInputController: Navigate input received in state {currentState}, direction: {direction}"
+            );
 
             // Delegate cursor movement to CursorBrain
-            _brain.cursorBrain.NavigateCursor(direction);
+            bool moved = _brain.cursorBrain.NavigateCursor(direction);
 
-            // TODO: Update UI based on cursor position (damage preview, path preview, etc.)
+#if UNITY_EDITOR
+            Debug.Log($"BattleInputController: Cursor navigation attempted, result: {moved}");
+#endif
+
+            // TODO: Update UI based on cursor position
             switch (currentState)
             {
                 case PlayerTurnStates.MoveActionChosenChoosingDestination:
@@ -398,6 +513,8 @@ namespace Turnroot.Gameplay.Brain
         public void HandleConfirmInput()
         {
             var currentState = _playerTurnFlow?.GetCurrentState() ?? PlayerTurnStates.Inactive;
+
+            Debug.Log($"BattleInputController: Confirm input in state {currentState}");
 
             switch (currentState)
             {
@@ -430,14 +547,12 @@ namespace Turnroot.Gameplay.Brain
                     _playerTurnFlow?.CancelTargetOrDestinationChoice(
                         PlayerTurnStates.NoActionChosen
                     );
-                    // Clear movement restrictions from cursor
                     _brain.cursorBrain?.ClearAllowedPositions();
                     break;
                 case PlayerTurnStates.AttackActionChosenChoosingTarget:
                     _playerTurnFlow?.CancelTargetOrDestinationChoice(
                         PlayerTurnStates.NoActionChosen
                     );
-                    // Clear attack range restrictions from cursor
                     _brain.cursorBrain?.ClearAllowedPositions();
                     break;
                 case PlayerTurnStates.ConfirmAction:
@@ -456,7 +571,7 @@ namespace Turnroot.Gameplay.Brain
 
 #if UNITY_EDITOR
             Debug.Log(
-                $"BattleInputControllerBrain: Player unit activated - {unit.CharacterTemplate.DisplayName}"
+                $"BattleInputController: Player unit activated - {unit.CharacterTemplate.DisplayName}"
             );
 #endif
         }
@@ -464,10 +579,9 @@ namespace Turnroot.Gameplay.Brain
         private void HandlePlayerTurnStateChanged(PlayerTurnStates newState)
         {
 #if UNITY_EDITOR
-            Debug.Log($"BattleInputControllerBrain: Player turn state changed to {newState}");
+            Debug.Log($"BattleInputController: Player turn state changed to {newState}");
 #endif
 
-            // Update cursor restrictions based on state
             switch (newState)
             {
                 case PlayerTurnStates.NoUnitSelected:
@@ -477,7 +591,6 @@ namespace Turnroot.Gameplay.Brain
                     break;
 
                 case PlayerTurnStates.MoveActionChosenChoosingDestination:
-                    // Restrict cursor to valid movement tiles
                     var movePositions = new List<Vector2Int>(
                         _validMoveTiles.Keys.Select(k => k.CoordinatesInt)
                     );
@@ -485,7 +598,6 @@ namespace Turnroot.Gameplay.Brain
                     break;
 
                 case PlayerTurnStates.AttackActionChosenChoosingTarget:
-                    // Restrict cursor to valid attack tiles
                     var attackPositions = new List<Vector2Int>(
                         _validAttackTiles.Keys.Select(k => k.CoordinatesInt)
                     );
@@ -525,7 +637,6 @@ namespace Turnroot.Gameplay.Brain
                 ),
                 _ => false,
             };
-            // TODO: Comprehensive action validation (weapons, skills, rescue/trade requirements, audio/visual feedback)
         }
 
         public bool ValidateTargetSelection(CharacterInstance target)
@@ -553,7 +664,7 @@ namespace Turnroot.Gameplay.Brain
         {
             if (CursorPosition == null || !ValidateTileSelection(CursorPosition))
             {
-                // TODO: Error feedback for invalid selections
+                // TODO: Error feedback
                 return;
             }
 
@@ -567,7 +678,6 @@ namespace Turnroot.Gameplay.Brain
                     );
                     break;
                 case PlayerTurnStates.AttackActionChosenChoosingTarget:
-                    // Get unit at cursor using CursorBrain's helper
                     if (_brain.cursorBrain.IsCursorOnUnit(out var targetUnit))
                     {
                         if (ValidateTargetSelection(targetUnit))
@@ -636,7 +746,7 @@ namespace Turnroot.Gameplay.Brain
             {
 #if UNITY_EDITOR
                 Debug.LogError(
-                    $"BattleInputControllerBrain: Failed to calculate tiles for {unit.CharacterTemplate.DisplayName}"
+                    $"BattleInputController: Failed to calculate tiles for {unit.CharacterTemplate.DisplayName}"
                 );
 #endif
                 return OperationResult.Failure(

@@ -763,6 +763,7 @@ namespace Turnroot.Gameplay.Brain
             volumeBrain = GetComponent<VolumeBrain>();
             audioBrain = GetComponent<AudioBrain>();
             cameraBrain = GetComponent<CameraBrain>();
+            cursorBrain = GetComponent<CursorBrain>();
 
             // Find all DynamicSceneFlows in other scenes and set their .brain to this
             var allSceneFlows = FindObjectsByType<DynamicSceneFlow>(FindObjectsSortMode.None);

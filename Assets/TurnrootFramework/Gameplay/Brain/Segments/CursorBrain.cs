@@ -324,6 +324,12 @@ namespace Turnroot.Gameplay.Brain
         /// </summary>
         public void InitializeCursor(MapGrid mapGrid, List<Vector2Int> allowedPositions = null)
         {
+#if UNITY_EDITOR
+            Debug.Log(
+                $"CursorBrain.InitializeCursor: Starting initialization. IsInitialized was: {IsInitialized}"
+            );
+#endif
+
             _currentMap = mapGrid;
             _allowedPositions = allowedPositions;
 
@@ -340,6 +346,9 @@ namespace Turnroot.Gameplay.Brain
                     scaleFactor,
                     scaleFactor
                 );
+#if UNITY_EDITOR
+                Debug.Log($"CursorBrain: Created cursor instance with scale {scaleFactor}");
+#endif
             }
 
             Vector2Int startPos = GetInitialCursorPosition(allowedPositions);
@@ -351,7 +360,19 @@ namespace Turnroot.Gameplay.Brain
                 UpdateCursorVisualPosition(startPos);
                 IsInitialized = true;
 
+#if UNITY_EDITOR
+                Debug.Log($"CursorBrain: IsInitialized set to TRUE. Cursor at {startPos}");
+#endif
+
                 _brain?.PublishCursorPositionChanged(startPos, _currentMap);
+            }
+            else
+            {
+#if UNITY_EDITOR
+                Debug.LogError(
+                    $"CursorBrain: Could not get grid point for position {startPos}! IsInitialized remains: {IsInitialized}"
+                );
+#endif
             }
         }
 
