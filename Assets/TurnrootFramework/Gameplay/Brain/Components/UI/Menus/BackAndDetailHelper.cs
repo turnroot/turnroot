@@ -1,6 +1,6 @@
-// Deprecated: Back and Details helpers were merged into BackHelper.cs. This file intentionally left blank to avoid duplicate definitions.
 using System;
 using Turnroot.Gameplay.Brain;
+using Turnroot.GameSettings;
 using Turnroot.UI.Components.SimpleButton;
 using UnityEngine;
 
@@ -8,7 +8,6 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
 {
     public partial class UiBrain : BrainComponent
     {
-        // TODO: Back button isn't working!!!
         // Handle both Back and Details button presence based on state
         private void HandleButtonsForState(string stateName)
         {
@@ -18,14 +17,28 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
 
         private void HandleBackButtonForState(string stateName)
         {
-            bool needsBackButton = System.Array.Exists(
+#if UNITY_EDITOR
+            Debug.Log($"HandleBackButtonForState: state={stateName}");
+#endif
+
+            // Check if we need a back button based on:
+            // 1. The current state needs menus, OR
+            // 2. We're currently in a submenu (depth > 1)
+            bool stateNeedsMenus = System.Array.Exists(
                 StateBrain.StatesThatNeedMenus,
                 state => state == stateName
             );
 
-            if (needsBackButton && _currentMenuCanvasPrefab == null)
+            bool inSubmenu = (_menuTracker?.CurrentDepth ?? 0) > 1;
+
+            bool needsBackButton = stateNeedsMenus || inSubmenu;
+
+            if (needsBackButton)
             {
-                CreateBackButton();
+                if (_currentMenuCanvasPrefab == null)
+                {
+                    CreateBackButton();
+                }
             }
             else if (!needsBackButton && _currentMenuCanvasPrefab != null)
             {
@@ -35,11 +48,26 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
 
         private void HandleDetailsButtonForState(string stateName)
         {
-            // For now, mirror the Back button behavior (appear when menus are active)
             bool needsDetailsButton = System.Array.Exists(
                 StateBrain.StatesThatNeedMenus,
                 state => state == stateName
             );
+
+            // If the pre-battle menu (radial/pie) is the current active menu, hide Details button
+            var preBattleMenu = uiSettings?.GetPreBattleMenu();
+            if (
+                preBattleMenu?.activeInstance != null
+                && _menuTracker?.CurrentMenu == preBattleMenu
+                && preBattleMenu.style == MenuStyle.Pie
+            )
+            {
+#if UNITY_EDITOR
+                Debug.Log(
+                    "UiBrain: Hiding Details button because pre-battle radial menu is active."
+                );
+#endif
+                needsDetailsButton = false;
+            }
 
             if (needsDetailsButton && _currentDetailsCanvasPrefab == null)
             {
@@ -95,26 +123,79 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             }
 
             targetPrefabField = Instantiate(uiSettings.MenuCanvasPrefab);
+            targetPrefabField.transform.SetParent(null);
+            targetPrefabField.name = $"{targetPrefabField.name}_{role}";
 
-            // Find the SimpleButton component in children since it's a child of the canvas
-            var simpleButton = targetPrefabField.GetComponentInChildren<SimpleButton>();
-            if (simpleButton != null && simpleButton.Role == role)
+            // Find all SimpleButton components in the prefab and pick the most appropriate one
+            var simpleButtons = targetPrefabField.GetComponentsInChildren<SimpleButton>(true);
+            if (simpleButtons == null || simpleButtons.Length == 0)
             {
-                // Assign a role-appropriate input action
-                if (role == SimpleButtonRole.Back)
-                {
-                    simpleButton.AssignSelectAction(InputActionFactory.CreateBack());
-                }
-                else if (role == SimpleButtonRole.Details)
-                {
-                    simpleButton.AssignSelectAction(InputActionFactory.CreateDetails());
-                }
+#if UNITY_EDITOR
+                Debug.LogError(
+                    $"UiBrain: No SimpleButton found in MenuCanvasPrefab for role {role}"
+                );
+#endif
+                return;
+            }
 
-                // Wire the selection handler
-                if (handler != null)
+            // Prefer an existing button that already matches the desired role
+            SimpleButton chosen = null;
+            foreach (var sb in simpleButtons)
+            {
+                if (sb.Role == role)
                 {
-                    simpleButton.OnSelected += handler;
+                    chosen = sb;
+                    break;
                 }
+            }
+
+            // If none matched by role, avoid overwriting an existing Back button when creating Details
+            if (chosen == null)
+            {
+                foreach (var sb in simpleButtons)
+                {
+                    if (role == SimpleButtonRole.Details && sb.Role == SimpleButtonRole.Back)
+                    {
+                        // skip back buttons when creating details
+                        continue;
+                    }
+
+                    // choose the first sensible candidate
+                    chosen = sb;
+                    break;
+                }
+            }
+
+            // Fallback to first button if still nothing chosen (shouldn't happen)
+            chosen ??= simpleButtons[0];
+
+            // Ensure chosen button is marked with the correct role
+            chosen.Role = role;
+
+            // Assign the correct input action for the chosen button
+            if (role == SimpleButtonRole.Back)
+            {
+                chosen.AssignSelectAction(InputActionFactory.CreateBack());
+            }
+            else if (role == SimpleButtonRole.Details)
+            {
+                chosen.AssignSelectAction(InputActionFactory.CreateDetails());
+            }
+
+            if (handler != null)
+            {
+                // Remove any existing subscription first to prevent duplicates
+                try
+                {
+                    chosen.OnSelected -= handler;
+                }
+                catch { }
+                // Now add it
+                chosen.OnSelected += handler;
+
+#if UNITY_EDITOR
+                Debug.Log($"UiBrain: Subscribed {role} handler on {chosen.gameObject.name}.");
+#endif
             }
         }
 
@@ -164,12 +245,21 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                 var (fromLocation, toLocation) = _menuTracker.PopTransition();
                 if (fromLocation != null && toLocation != null)
                 {
-                    TransitionToSubmenu(fromLocation, toLocation, isBackNavigation: true);
+                    // Start coroutine directly to avoid re-tracking depth on back navigation
+                    StartCoroutine(TransitionToSubmenuCoroutine(fromLocation, toLocation));
+                }
+                else
+                {
+#if UNITY_EDITOR
+                    Debug.LogWarning("UiBrain: Back navigation failed - null locations");
+#endif
                 }
             }
             else
             {
-                // At root level, handle based on current state
+#if UNITY_EDITOR
+                Debug.Log("UiBrain: At root level, handling root back");
+#endif
                 HandleRootLevelBack();
             }
         }
@@ -180,10 +270,8 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             {
                 return;
             }
-
-            // TODO: Implement details behavior when a details button is pressed
 #if UNITY_EDITOR
-            Debug.Log("UiBrain: Details button pressed - TODO: implement behavior");
+            Debug.Log("UiBrain: Details button pressed - TODO: Implement details view");
 #endif
         }
 
@@ -206,10 +294,6 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                 default:
                     break;
             }
-
-#if UNITY_EDITOR
-            Debug.Log($"UiBrain: Root level back pressed in state: {currentState}");
-#endif
         }
     }
 }

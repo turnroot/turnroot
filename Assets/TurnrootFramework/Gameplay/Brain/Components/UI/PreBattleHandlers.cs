@@ -31,23 +31,14 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
 
             if (preBattleMenuLocation.prefab == null)
             {
-#if UNITY_EDITOR
-                Debug.LogError("UiBrain: No prefab set for pre-battle menu location");
-#endif
                 return;
             }
 
-            Debug.Log(
-                $"UiBrain: Creating pre-battle menu instance from prefab {preBattleMenuLocation.prefab?.name}"
-            );
             preBattleMenuLocation.activeInstance = Instantiate(preBattleMenuLocation.prefab);
-            Debug.Log(
-                $"UiBrain: Created pre-battle instance {preBattleMenuLocation.activeInstance?.name}"
-            );
 
             // Notify subscribers that pre-battle prepare phase is occurring so systems like BattleBrain
             // can initialize pre-battle objects (e.g., BattlePreparationObject) before UI populates.
-            Debug.Log("UiBrain: Publishing PreBattlePrepare event");
+
             _brain.PublishPreBattlePrepare();
             if (!preBattleMenuLocation.activeInstance.TryGetComponent<UIFade>(out var uiFade))
             {
@@ -70,9 +61,6 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                 {
                     radialMenu.uiBrain = this;
                     radialMenu.OnItemSelected += HandlePreBattleMenuSelect;
-                    Debug.Log(
-                        $"UiBrain: Attached prebattle handlers to radial instance {preBattleMenuLocation.activeInstance?.name}"
-                    );
                 }
             }
             else if (menuStyle == MenuStyle.Grid)
@@ -93,14 +81,31 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             MenuLocation currentMenu
         )
         {
-            switch (currentMenu)
+            // Compare by menu name rather than instance reference to avoid false negatives
+            var currentMenuName = currentMenu?.menuName;
+            if (
+                currentMenuName != null
+                && currentMenuName == uiSettings?.GetPrebattleUnitsMenu()?.menuName
+            )
             {
-                case MenuLocation loc when loc == uiSettings.GetPrebattleUnitsMenu():
-                    HandleUnitCellSelectionPreBattle(item);
-                    break;
-                case MenuLocation loc when loc == uiSettings.GetPrebattleUnitPositionsMenu():
-                    HandleUnitCellSelectionPreBattlePositioning(item);
-                    break;
+                HandleUnitCellSelectionPreBattle(item);
+                return;
+            }
+
+            if (
+                currentMenuName != null
+                && currentMenuName == uiSettings?.GetPrebattleUnitPositionsMenu()?.menuName
+            )
+            {
+                HandleUnitCellSelectionPreBattlePositioning(item);
+                return;
+            }
+
+            // Fallback: if the transition manager indicates we're in Team menu context, treat as Units menu
+            var menuType = _transitionManager?.CurrentMenuType;
+            if (menuType == MenuType.Team)
+            {
+                HandleUnitCellSelectionPreBattle(item);
             }
         }
 
@@ -112,9 +117,6 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             var preBattleMenuLocation = uiSettings?.GetPreBattleMenu();
             if (preBattleMenuLocation?.activeInstance == null)
             {
-#if UNITY_EDITOR
-                Debug.Log("UiBrain: Start battle called outside of pre-battle radial menu");
-#endif
                 // Handle transition from submenu (e.g., Map menu)
                 var currentMenuInstance = _menuTracker?.CurrentMenu?.activeInstance;
                 if (currentMenuInstance != null)

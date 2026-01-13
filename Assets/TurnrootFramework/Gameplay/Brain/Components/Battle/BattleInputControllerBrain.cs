@@ -61,11 +61,22 @@ namespace Turnroot.Gameplay.Brain
         {
             base.Awake();
             _playerTurnFlow = _brain?.battleBrain?.playerTurnFlow;
+            // Initialize input timer to a sentinel so early Update logs aren't misleading
+            _lastInputTime = -999f;
             UpdateInputCooldown();
         }
 
         private void Update()
         {
+            if (Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow))
+            {
+                Debug.Log(
+                    $"RAW INPUT DETECTED: W/Up pressed. _navigateAction: {(_navigateAction != null ? "exists" : "null")}, enabled: {_navigateAction?.enabled}"
+                );
+                Debug.Log(
+                    $"RAW INPUT. cooldown remaining: {_cachedInputCooldown - (Time.time - _lastInputTime)}"
+                );
+            }
             if (Time.time - _lastInputTime < _cachedInputCooldown)
             {
                 return;
@@ -312,7 +323,17 @@ namespace Turnroot.Gameplay.Brain
 
         #region Battle Lifecycle Event Handlers
 
-        private void HandleBattleStarted() => StartCoroutine(InitializeWhenReady());
+        private void HandleBattleStarted()
+        {
+#if UNITY_EDITOR
+            Debug.Log(
+                "BattleInputControllerBrain.HandleBattleStarted called - initializing input timer"
+            );
+#endif
+            // Use current time to avoid misleading negative cooldown log values and provide a clean start point
+            _lastInputTime = Time.time;
+            StartCoroutine(InitializeWhenReady());
+        }
 
         private IEnumerator InitializeWhenReady()
         {
@@ -431,7 +452,7 @@ namespace Turnroot.Gameplay.Brain
 
         private void HandlePlayerUnitActivated(CharacterInstance unit)
         {
-            CalculateValidTiles(unit);
+            ComputeValidTiles(unit);
 
 #if UNITY_EDITOR
             Debug.Log(
@@ -574,7 +595,7 @@ namespace Turnroot.Gameplay.Brain
             // TODO: Battle pause menu
         }
 
-        private OperationResult CalculateValidTiles(CharacterInstance unit)
+        private OperationResult ComputeValidTiles(CharacterInstance unit)
         {
             if (unit == null || BattleContext?.mapGrid == null)
             {

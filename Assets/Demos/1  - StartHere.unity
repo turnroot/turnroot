@@ -159160,9 +159160,8 @@ MonoBehaviour:
   _hasThirdParty: 0
   ThirdPartyFightsAllies: 0
   ThirdPartyFightsEnemies: 0
-  MaxPlayerTeamUnits: 12
-  _requiredPlayerUnits:
-  - {fileID: 11400000, guid: 0f8b79eeaffbfbc4aab491112cae2ddd, type: 2}
+  MaxPlayerTeamUnits: 8
+  _requiredPlayerUnits: []
   _battleConditions:
   - rid: 8686261932845432925
   <MapGrid>k__BackingField: {fileID: 0}
@@ -159230,7 +159229,7 @@ MonoBehaviour:
   IsFoggy: 0
   IsStormy: 0
   IsWindy: 1
-  _hasSunlight: 1
+  _hasSunlight: 0
   _isSnowing: 0
   IsUnderwater: 0
   IsUnderground: 0
@@ -173139,23 +173138,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 92de5083d17c4334496fe457b4be09ef, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  PlayerTeamSpawnPoints:
-  - {x: 19, y: 10}
-  - {x: 19, y: 12}
-  - {x: 19, y: 11}
-  - {x: 19, y: 13}
-  - {x: 20, y: 12}
-  - {x: 18, y: 12}
-  - {x: 18, y: 11}
-  - {x: 18, y: 10}
-  - {x: 21, y: 12}
-  - {x: 20, y: 11}
-  - {x: 19, y: 9}
-  - {x: 17, y: 11}
+  PlayerTeamSpawnPoints: []
   battleGameObject: {fileID: 1742232835}
-  _fullMapImage: {fileID: 21300000, guid: 57112a83484233b458e5823c82ac8a49, type: 3}
-  _standardMapImage: {fileID: 21300000, guid: 2724ceadcd516a74ea0fdbef5e84d524, type: 3}
-  _unexploredMapImage: {fileID: 21300000, guid: 1361c6a31f38ae94aba8b2b74b822981, type: 3}
+  _fullMapImage: {fileID: 0}
+  _standardMapImage: {fileID: 0}
+  _unexploredMapImage: {fileID: 0}
   _gridScale: 5
   _gridOffset: {x: -78, y: 0, z: -71}
   _gridWidth: 44
@@ -176560,7 +176547,7 @@ MonoBehaviour:
   - {x: 43, y: 31}
   - {x: 43, y: 32}
   - {x: 43, y: 33}
-  _showRaycastGizmos: 1
+  _showRaycastGizmos: 0
   _showRaycastCoordinates: 0
   _raycastLayerMask:
     serializedVersion: 2

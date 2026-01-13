@@ -70,10 +70,7 @@ namespace Turnroot.UI.Components.GridMenu
             }
         }
 
-        private void OnSettingsBindingsChanged()
-        {
-            SetupCustomBinding();
-        }
+        private void OnSettingsBindingsChanged() => SetupCustomBinding();
 
         // Edit-mode API used by GridMenu
         private bool _isInEditMode = false;
@@ -82,7 +79,9 @@ namespace Turnroot.UI.Components.GridMenu
         public void EnterEditMode()
         {
             if (_isInEditMode)
+            {
                 return;
+            }
 
             _isInEditMode = true;
             _savedItemName = ItemName;
@@ -92,7 +91,9 @@ namespace Turnroot.UI.Components.GridMenu
         public void ExitEditMode()
         {
             if (!_isInEditMode)
+            {
                 return;
+            }
 
             _isInEditMode = false;
             SetItemNamePublic(_savedItemName);
@@ -146,7 +147,10 @@ namespace Turnroot.UI.Components.GridMenu
 
             int current = System.Array.IndexOf(opts, gamepadBinding);
             if (current < 0)
+            {
                 current = 0;
+            }
+
             int next = (current + delta + opts.Length) % opts.Length;
             gamepadBinding = opts[next];
 

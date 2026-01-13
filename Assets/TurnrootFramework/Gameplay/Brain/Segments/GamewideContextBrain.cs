@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using Turnroot.Characters;
 using Turnroot.Gameplay.Brain.Events;
@@ -11,6 +12,14 @@ namespace Turnroot.Gameplay.Brain
     public class GamewideContextBrain : BrainComponent
     {
         public Brain CentralBrain => _brain;
+
+        private LongTermMemory _ltm;
+
+        public List<GamewideContextBrainHelpers.ExploredPartial> MapExplorationStatuses
+        {
+            get;
+            private set;
+        }
 
         private RosterPersistence _rosterPersistence;
 
@@ -67,6 +76,13 @@ namespace Turnroot.Gameplay.Brain
             TryLoadAndRecallPersistentPlayerRoster();
             var volumeBrain = _brain.volumeBrain;
             volumeBrain.ApplySettingsToVolumes(PlayerSettings);
+
+            _ltm = GetComponent<LongTermMemory>();
+
+            // Initialize in-memory map exploration list and populate from LTM
+            MapExplorationStatuses =
+                new System.Collections.Generic.List<GamewideContextBrainHelpers.ExploredPartial>();
+            PopulateMapExplorationStatusesFromLtm();
         }
 
         protected override void SubscribeToBrainEvents() =>
@@ -349,6 +365,163 @@ namespace Turnroot.Gameplay.Brain
             }
         }
 
+        #endregion
+        #region Map Exploration
+        /// <summary>
+        /// Register or update an in-memory exploration partial. This does NOT persist to LTM—
+        /// call SaveMapExplorationStatus() or SaveMapExplorationStatus(partial) to persist.
+        /// </summary>
+        public void RegisterMapExplorationPartial(
+            GamewideContextBrainHelpers.ExploredPartial partial
+        )
+        {
+            if (partial.map == null || string.IsNullOrEmpty(partial.map.MapName))
+            {
+#if UNITY_EDITOR
+                Debug.LogWarning(
+                    "RegisterMapExplorationPartial: partial must have a valid map and MapName."
+                );
+#endif
+                return;
+            }
+
+            if (MapExplorationStatuses == null)
+            {
+                MapExplorationStatuses =
+                    new System.Collections.Generic.List<GamewideContextBrainHelpers.ExploredPartial>();
+            }
+
+            // Replace existing entry for same map if present, otherwise add
+            var existingIndex = MapExplorationStatuses.FindIndex(p =>
+                p.map != null && p.map.MapName == partial.map.MapName
+            );
+            if (existingIndex >= 0)
+            {
+                MapExplorationStatuses[existingIndex] = partial;
+            }
+            else
+            {
+                MapExplorationStatuses.Add(partial);
+            }
+        }
+
+        private string BuildExplorationPartialKey(string mapId) =>
+            $"{LtmKeys.ExploredPartial}.{mapId}";
+
+        /// <summary>
+        /// Persist all in-memory exploration partials to LTM. Use the single-argument overload to persist one.
+        /// </summary>
+        public void SaveMapExplorationStatus()
+        {
+            if (_ltm == null || MapExplorationStatuses == null)
+            {
+#if UNITY_EDITOR
+                Debug.LogWarning(
+                    "SaveMapExplorationStatus: No LTM available or no statuses to save."
+                );
+#endif
+                return;
+            }
+
+            for (int i = 0; i < MapExplorationStatuses.Count; i++)
+            {
+                SaveMapExplorationStatus(MapExplorationStatuses[i]);
+            }
+        }
+
+        /// <summary>
+        /// Persist a single exploration partial to LTM.
+        /// </summary>
+        public void SaveMapExplorationStatus(GamewideContextBrainHelpers.ExploredPartial partial)
+        {
+            if (partial.map == null || string.IsNullOrEmpty(partial.map.MapName))
+            {
+#if UNITY_EDITOR
+                Debug.LogWarning(
+                    "SaveMapExplorationStatus: partial must have a valid map with MapName."
+                );
+#endif
+                return;
+            }
+
+            if (_ltm == null)
+            {
+#if UNITY_EDITOR
+                Debug.LogWarning(
+                    "SaveMapExplorationStatus: No LongTermMemory component available."
+                );
+#endif
+                return;
+            }
+
+            var encode = GamewideContextBrainHelpers.EncodeInstanceToString(this, partial);
+            if (!encode.Success)
+            {
+                Debug.LogError(
+                    $"GamewideContextBrain: Failed to encode exploration partial for map {partial.map.MapName}: {encode.Error}"
+                );
+                return;
+            }
+
+            var key = BuildExplorationPartialKey(partial.map.MapName);
+            _ltm.Remember(key, encode.Value);
+        }
+
+        public void PopulateMapExplorationStatusesFromLtm()
+        {
+            if (_ltm == null)
+            {
+                return;
+            }
+
+            var keys = _ltm.RecallKeysByPrefix(LtmKeys.ExploredPartial);
+            if (keys == null)
+            {
+                return;
+            }
+
+            if (MapExplorationStatuses == null)
+            {
+                MapExplorationStatuses =
+                    new System.Collections.Generic.List<GamewideContextBrainHelpers.ExploredPartial>();
+            }
+
+            for (int i = 0; i < keys.Count; i++)
+            {
+                var key = keys[i];
+                var encoded = _ltm.Recall(key);
+
+                if (!string.IsNullOrEmpty(encoded))
+                {
+                    var decoded =
+                        GamewideContextBrainHelpers.DecodeInstanceFromString<GamewideContextBrainHelpers.ExploredPartial>(
+                            this,
+                            encoded
+                        );
+                    if (decoded.Success)
+                    {
+                        MapExplorationStatuses.Add(decoded.Value);
+                        continue;
+                    }
+                }
+
+                // Fallback: legacy value (e.g. stored hash) - attempt to construct a minimal partial
+                var suffix =
+                    key.Length > LtmKeys.ExploredPartial.Length + 1
+                        ? key.Substring(LtmKeys.ExploredPartial.Length + 1)
+                        : string.Empty;
+
+                var fallbackPartial = new GamewideContextBrainHelpers.ExploredPartial();
+                fallbackPartial.statuses = new System.Collections.Generic.Dictionary<
+                    GamewideContextBrainHelpers.ExploredQuadrant,
+                    GamewideContextBrainHelpers.ExploredState
+                >();
+                fallbackPartial.map = string.IsNullOrEmpty(suffix)
+                    ? null
+                    : Resources.Load<MapGrid>(suffix);
+                MapExplorationStatuses.Add(fallbackPartial);
+            }
+        }
         #endregion
     }
 

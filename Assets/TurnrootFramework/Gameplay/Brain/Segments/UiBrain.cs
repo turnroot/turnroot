@@ -10,6 +10,7 @@ using UnityEngine;
 
 namespace TurnrootFramework.Gameplay.Brain.Segments
 {
+    [RequireComponent(typeof(CursorBrain))]
     public partial class UiBrain : BrainComponent
     {
         #region Fields and Properties
@@ -97,12 +98,20 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                 _menuTracker = new MenuDepthTracker();
                 _routeHandler = new MenuRouteHandler(this);
 
+                // Subscribe to depth changes so the Back button follows submenu navigation
+                if (_menuTracker != null)
+                {
+                    _menuTracker.OnDepthChanged += OnMenuDepthChanged;
+                }
+
                 // Subscribe to binding changes so we can rewire inputs at runtime
                 _playerSettings = GameSettingsLoader.LoadFirst<GameplayPlayerSettings>();
                 if (_playerSettings != null)
                 {
                     _playerSettings.BindingsChanged += OnBindingsChanged;
                 }
+                var CursorBrain = GetComponent<CursorBrain>();
+                CursorBrain.SetUiSettingsReference(uiSettings);
             }
 
 #if UNITY_EDITOR
@@ -185,10 +194,23 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             if (sb.Role == SimpleButtonRole.Back)
             {
                 sb.AssignSelectAction(InputActionFactory.CreateBack());
+                // Ensure the Back handler is present (rebinding may have caused subscriptions to be lost)
+                try
+                {
+                    sb.OnSelected -= HandleBackButtonPressed;
+                }
+                catch { }
+                sb.OnSelected += HandleBackButtonPressed;
             }
             else if (sb.Role == SimpleButtonRole.Details)
             {
                 sb.AssignSelectAction(InputActionFactory.CreateDetails());
+                try
+                {
+                    sb.OnSelected -= HandleDetailsButtonPressed;
+                }
+                catch { }
+                sb.OnSelected += HandleDetailsButtonPressed;
             }
         }
 
@@ -224,6 +246,12 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             }
         }
 
+        private void OnMenuDepthChanged()
+        {
+            var currentState = Brain?.stateBrain?.CurrentState?.Name ?? string.Empty;
+            HandleButtonsForState(currentState);
+        }
+
         protected override void UnsubscribeFromBrainEvents()
         {
             Brain.OnBattleCursorMoved -= HandleBattleCursorMoved;
@@ -255,6 +283,11 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             }
 
             // Clean up back and details buttons
+            if (_menuTracker != null)
+            {
+                _menuTracker.OnDepthChanged -= OnMenuDepthChanged;
+            }
+
             DestroyBackButton();
             DestroyDetailsButton();
         }

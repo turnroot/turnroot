@@ -38,6 +38,8 @@ namespace Turnroot.Gameplay.Brain
 
         public const string CharacterKey = "GamewideContextBrain.UniqueCharacter";
 
+        public const string ExploredPartial = "GamewideContextBrain.ExploredMapStatus";
+
         #endregion
 
         #region StorehouseBrain Keys

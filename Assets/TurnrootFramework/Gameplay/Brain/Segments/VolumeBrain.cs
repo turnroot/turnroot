@@ -123,7 +123,9 @@ namespace Turnroot.Gameplay.Brain
                 UnityEngine.Rendering.GraphicsSettings.defaultRenderPipeline
                 as UniversalRenderPipelineAsset;
             if (rpAsset == null)
+            {
                 return;
+            }
 
             // Map float quality to 4 discrete steps (0..3)
             int step = settings.QualityStep;

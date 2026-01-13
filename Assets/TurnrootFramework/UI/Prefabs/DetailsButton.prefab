@@ -122,7 +122,7 @@ MonoBehaviour:
       m_Action: Select
       m_Flags: 0
     m_Flags: 0
-  Role: 3
+  Role: 2
   ButtonImage: {fileID: 630378151330695086}
 --- !u!1 &2117720194569930238
 GameObject:
