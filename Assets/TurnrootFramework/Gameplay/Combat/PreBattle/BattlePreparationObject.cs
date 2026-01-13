@@ -159,5 +159,3 @@ namespace Turnroot.Gameplay.Combat.PreBattle
         }
     }
 }
-
-
