@@ -9,6 +9,8 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
 {
     public partial class CameraBrain : BrainComponent
     {
+
+        // TODO: Reset camera and allowed positions on battle start, end, etc
         private Camera _battleMapCamera;
         private Vector3 _targetCameraPosition;
         private Vector3 _currentVelocity;
