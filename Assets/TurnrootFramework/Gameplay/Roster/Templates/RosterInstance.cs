@@ -91,7 +91,10 @@ namespace Turnroot.Characters
         /// <summary>
         /// Returns the current placements for this instance: runtime copy if present, otherwise the template placements.
         /// </summary>
-        public UnitPlacement[] GetPlacements() => _runtimePlacements != null ? _runtimePlacements : roster?.characters ?? new UnitPlacement[0];
+        public UnitPlacement[] GetPlacements() =>
+            _runtimePlacements != null
+                ? _runtimePlacements
+                : roster?.characters ?? new UnitPlacement[0];
 
         public UnitPlacement GetPlacementFor(CharacterData data)
         {

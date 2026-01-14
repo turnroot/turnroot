@@ -28,8 +28,24 @@ namespace Turnroot.UI.Components
             _brain = brain;
             var playerTeamRoster =
                 _brain.gamewideContextBrain.CreateOrRecallGamewidePersistentPlayerRoster();
+            var playerTeamRosterInstance = _brain.gamewideContextBrain.GetOrCreatePlayerTeamRoster(
+                playerTeamRoster
+            );
             var LongTermMemory = _brain.ltm;
-            var units = playerTeamRoster.characters;
+            var units =
+                playerTeamRosterInstance != null
+                    ? playerTeamRosterInstance.GetPlacements()
+                    : playerTeamRoster?.characters ?? new Characters.Roster.UnitPlacement[0];
+
+            // Ensure default selection state (adds required units, applies LTM selections, fills to max)
+            PreBattleSelectionHelper.EnsureDefaultPreBattleSelections(
+                _brain,
+                playerTeamRoster,
+                playerTeamRosterInstance,
+                MaxSelectedUnits,
+                _brain?.battleBrain?.PreparationObject?.RequiredPlayerUnits
+            );
+
             int unitCount = units.Length;
             var u = LtmKeys.UnitSelectedForBattlePrefix;
             var keys = LongTermMemory.RecallKeysByPrefix(u);
@@ -59,6 +75,12 @@ namespace Turnroot.UI.Components
                     gridMenuItem.IsSelectedForBattle = false;
                     gridMenuItem.CanBeSelectedForBattle = true;
                 }
+
+                // Associate the UI item with the runtime CharacterInstance for this unit (if available)
+                var matchedInstance =
+                    playerTeamRosterInstance?.GetInstanceFor(unit.CharacterData)
+                    ?? _brain.gamewideContextBrain.FindInstanceByTemplate(unit.CharacterData);
+                gridMenuItem.CharacterInstanceData = matchedInstance;
 
                 // Column and Row are used by GridMenu navigation; Row is integer division (floor)
                 gridMenuItem.Column = whichColumn;
@@ -151,24 +173,14 @@ namespace Turnroot.UI.Components
                     var key = prefix + unit.CharacterData.FullName;
                     bool isSelected = false;
 
-                    if (keySet.Contains(key))
+                    // Prefer runtime instance selection state when available; otherwise fall back to LTM.
+                    if (gridMenuItem.CharacterInstanceData != null)
                     {
-                        isSelected = ltm.RecallBool(key);
+                        isSelected = gridMenuItem.CharacterInstanceData.IsSelectedForBattle;
                     }
                     else
                     {
-                        // Select up to MaxSelectedUnits if not present in LTM
-                        if (currentlySelectedCount < MaxSelectedUnits)
-                        {
-                            isSelected = true;
-                            ltm.RememberBool(key, true);
-                            currentlySelectedCount++;
-                        }
-                        else
-                        {
-                            isSelected = false;
-                            ltm.RememberBool(key, false);
-                        }
+                        isSelected = ltm?.RecallBool(key) ?? false;
                     }
 
                     // If the unit is required for this battle, enable them but don't save it to LTM

@@ -1,3 +1,4 @@
+using Turnroot.Characters;
 using UnityEngine;
 
 namespace Turnroot.UI.Components.GridMenu
@@ -16,5 +17,7 @@ namespace Turnroot.UI.Components.GridMenu
 
         [HideInInspector]
         public bool IsSelectedToBeExplorer = false;
+
+        public CharacterInstance CharacterInstanceData;
     }
 }

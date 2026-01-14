@@ -177,6 +177,14 @@ namespace Turnroot.GameSettings
                 MenuName.PreBattleSettingsMenu
             );
             allPossibleMenuLocations.Add(preBattleSettingsMenu);
+
+            // Pre-battle unit positions menu (Starting Positions). Use Grid style by default.
+            var preBattlePositionsMenu = new MenuLocation(
+                preBattleMenu,
+                MenuName.PrebattleUnitPositionsMenu,
+                MenuStyle.None
+            );
+            allPossibleMenuLocations.Add(preBattlePositionsMenu);
         }
 
 #if UNITY_EDITOR

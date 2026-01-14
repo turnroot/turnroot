@@ -86,6 +86,7 @@ namespace Turnroot.Characters
             get => _wasSpawnedDuringBattle;
             set => _wasSpawnedDuringBattle = value;
         }
+        public bool IsSelectedForBattle { get; set; } = false;
 
         [SerializeField]
         private string _id;

@@ -28,10 +28,7 @@ namespace Turnroot.Gameplay.Brain
         private CharacterPersistence _characterPersistence;
 
         // Track all active runtime roster instances by roster id
-        private readonly System.Collections.Generic.Dictionary<
-            string,
-            object
-        > _activeRosterInstances = new();
+        private readonly Dictionary<string, object> _activeRosterInstances = new();
 
         private PlayerSettingsPersistence _playerSettingsPersistence;
 
@@ -80,8 +77,7 @@ namespace Turnroot.Gameplay.Brain
             _ltm = GetComponent<LongTermMemory>();
 
             // Initialize in-memory map exploration list and populate from LTM
-            MapExplorationStatuses =
-                new System.Collections.Generic.List<GamewideContextBrainHelpers.ExploredPartial>();
+            MapExplorationStatuses = new List<GamewideContextBrainHelpers.ExploredPartial>();
             PopulateMapExplorationStatusesFromLtm();
         }
 
@@ -327,9 +323,8 @@ namespace Turnroot.Gameplay.Brain
         /// <summary>
         /// Return all active CharacterInstances from all tracked rosters.
         /// </summary>
-        public System.Collections.Generic.List<CharacterInstance> GetAllActiveInstances() =>
-            _rosterManager?.GetAllActiveInstances()
-            ?? new System.Collections.Generic.List<CharacterInstance>();
+        public List<CharacterInstance> GetAllActiveInstances() =>
+            _rosterManager?.GetAllActiveInstances() ?? new List<CharacterInstance>();
 
         /// <summary>
         /// Persist a unique character's state via the centralized character persistence.
@@ -340,7 +335,7 @@ namespace Turnroot.Gameplay.Brain
         /// <summary>
         /// Delegates to roster manager to recall generic rosters from a list.
         /// </summary>
-        public void RecallGenericRosters(System.Collections.Generic.List<GenericRoster> rosters) =>
+        public void RecallGenericRosters(List<GenericRoster> rosters) =>
             _rosterManager?.RecallGenericRosters(rosters);
 
         /// <summary>
@@ -348,6 +343,40 @@ namespace Turnroot.Gameplay.Brain
         /// </summary>
         public PlayerTeamRosterInstance RecallPlayerTeamRoster(PlayerTeamRoster roster) =>
             _rosterManager?.RecallPlayerTeamRoster(roster);
+
+        /// <summary>
+        /// Returns the current runtime persistent player roster instance, if any.
+        /// </summary>
+        public PlayerTeamRosterInstance GetPersistentPlayerTeamRosterInstance() =>
+            _rosterManager?.GetPersistentPlayerRosterInstance();
+
+        /// <summary>
+        /// Returns selected CharacterInstances from the persistent player roster.
+        /// </summary>
+        public List<CharacterInstance> GetSelectedForBattlePlayerTeamUnits() =>
+            RosterFilters.FilterUnitsSelectedForBattle(GetPersistentPlayerTeamRosterInstance());
+
+        /// <summary>
+        /// Returns placements (UnitPlacement[]) corresponding to currently selected units.
+        /// </summary>
+        public Characters.Roster.UnitPlacement[] GetSelectedForBattlePlayerTeamPlacements()
+        {
+            var instance = GetPersistentPlayerTeamRosterInstance();
+            var placements =
+                instance != null
+                    ? instance.GetPlacements()
+                    : GamewidePersistentPlayerRoster?.characters
+                        ?? new Characters.Roster.UnitPlacement[0];
+
+            var selectedInstances = GetSelectedForBattlePlayerTeamUnits();
+            var selectedTemplates = new HashSet<CharacterData>(
+                selectedInstances.Select(i => i.CharacterTemplate)
+            );
+
+            return placements
+                .Where(p => p.CharacterData != null && selectedTemplates.Contains(p.CharacterData))
+                .ToArray();
+        }
 
         #endregion
 
@@ -385,11 +414,7 @@ namespace Turnroot.Gameplay.Brain
                 return;
             }
 
-            if (MapExplorationStatuses == null)
-            {
-                MapExplorationStatuses =
-                    new System.Collections.Generic.List<GamewideContextBrainHelpers.ExploredPartial>();
-            }
+            MapExplorationStatuses ??= new List<GamewideContextBrainHelpers.ExploredPartial>();
 
             // Replace existing entry for same map if present, otherwise add
             var existingIndex = MapExplorationStatuses.FindIndex(p =>
@@ -480,11 +505,7 @@ namespace Turnroot.Gameplay.Brain
                 return;
             }
 
-            if (MapExplorationStatuses == null)
-            {
-                MapExplorationStatuses =
-                    new System.Collections.Generic.List<GamewideContextBrainHelpers.ExploredPartial>();
-            }
+            MapExplorationStatuses ??= new List<GamewideContextBrainHelpers.ExploredPartial>();
 
             for (int i = 0; i < keys.Count; i++)
             {
@@ -512,10 +533,11 @@ namespace Turnroot.Gameplay.Brain
                         : string.Empty;
 
                 var fallbackPartial = new GamewideContextBrainHelpers.ExploredPartial();
-                fallbackPartial.statuses = new System.Collections.Generic.Dictionary<
-                    GamewideContextBrainHelpers.ExploredQuadrant,
-                    GamewideContextBrainHelpers.ExploredState
-                >();
+                fallbackPartial.statuses =
+                    new Dictionary<
+                        GamewideContextBrainHelpers.ExploredQuadrant,
+                        GamewideContextBrainHelpers.ExploredState
+                    >();
                 fallbackPartial.map = string.IsNullOrEmpty(suffix)
                     ? null
                     : Resources.Load<MapGrid>(suffix);

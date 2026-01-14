@@ -7,9 +7,65 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
 {
     public partial class CameraBrain : BrainComponent
     {
+        public void MoveCameraToPosition(Vector2Int gridPosition)
+        {
+            Debug.Log($"[CAMERA] MoveCameraToPosition called with gridPosition {gridPosition}");
+
+            Vector3 targetWorldPos = mapGrid.GetTerrainAdjustedWorldPosition(gridPosition);
+
+            // Compute desired camera position so that the target world position appears at the camera's center.
+            // We try to preserve the camera's Y (height) and compute the correct scalar along the camera forward
+            // vector so that the line from camera to target is colinear with the camera forward direction.
+            var cam = _battleMapCamera.transform;
+            Vector3 f = cam.forward;
+            Vector3 camPos = cam.position;
+            const float eps = 1e-4f;
+            float k;
+
+            // Prefer solving using the Y component so we can keep camera height unchanged.
+            if (Mathf.Abs(f.y) > eps)
+            {
+                // k is chosen so that (targetWorldPos - (targetWorldPos - k*f)).y == camPos.y
+                // i.e., targetWorldPos.y - k*f.y == camPos.y => k = (targetWorldPos.y - camPos.y) / f.y
+                k = (targetWorldPos.y - camPos.y) / f.y;
+            }
+            else if (Mathf.Abs(f.x) > eps)
+            {
+                // Fallback to X component if forward is nearly horizontal in Y.
+                k = (targetWorldPos.x - camPos.x) / f.x;
+            }
+            else if (Mathf.Abs(f.z) > eps)
+            {
+                // Last fallback to Z component.
+                k = (targetWorldPos.z - camPos.z) / f.z;
+            }
+            else
+            {
+                // Degenerate forward vector; fall back to previous origin-based approach.
+                var originWorldPos = mapGrid.GetTerrainAdjustedWorldPosition(Vector2Int.zero);
+                Vector3 cameraToOrigin = camPos - originWorldPos;
+                k = Vector3.Dot(cameraToOrigin, f);
+                if (Mathf.Abs(k) < 0.001f)
+                {
+                    k = cameraToOrigin.magnitude;
+                }
+            }
+
+            Vector3 newPos = targetWorldPos - f * k;
+
+            // Preserve camera height when possible (prevents camera dropping through terrain).
+            newPos.y = camPos.y;
+
+            _targetCameraPosition = newPos;
+            Debug.Log(
+                $"[CAMERA] Moving camera to target world position {_targetCameraPosition} (k={k})"
+            );
+            _shouldMove = true;
+        }
+
         private void HandleBattleMapCameraPan()
         {
-            if (_battleMapCamera == null || MapGrid == null)
+            if (_battleMapCamera == null || mapGrid == null)
             {
                 return;
             }
@@ -55,9 +111,22 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
 
         public void InitializeBattleMapCamera(BattleGameObject battleObject)
         {
+            if (battleObject == null)
+            {
+#if UNITY_EDITOR
+                Debug.LogWarning(
+                    "[CAMERA] InitializeBattleMapCamera called with null BattleObject"
+                );
+#endif
+                return;
+            }
+
             var battleObjectCameras = battleObject.GetComponentsInChildren<Camera>();
             foreach (var cam in battleObjectCameras)
             {
+                if (cam == null)
+                    continue;
+
                 if (cam.CompareTag("BattleMapCamera"))
                 {
                     SetBattleMapCamera(cam);
@@ -70,15 +139,29 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
         {
             Debug.Log($"[CAMERA] SetCameraNeutralCenter() called");
 
-            if (MapGrid == null)
+            // Prefer the battle context map grid, but fall back to the pre-battle preparation map if available.
+            var mapGridToUse = mapGrid ?? Brain?.battleBrain?.PreparationObject?.MapGrid;
+            if (mapGridToUse == null)
             {
-                Debug.LogError("[CAMERA] MapGrid is null");
+                Debug.LogError("[CAMERA] MapGrid is null (no battle or preparation map)");
                 return Vector2Int.zero;
             }
 
             if (_battleMapCamera == null)
             {
-                InitializeBattleMapCamera(BattleObject);
+                if (BattleObject != null)
+                {
+                    InitializeBattleMapCamera(BattleObject);
+                }
+                else
+                {
+#if UNITY_EDITOR
+                    Debug.LogWarning(
+                        "[CAMERA] BattleObject is null; cannot initialize BattleMapCamera"
+                    );
+#endif
+                }
+
                 if (_battleMapCamera == null)
                 {
                     Debug.LogError("[CAMERA] BattleMapCamera is null");
@@ -105,7 +188,7 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                 $"[CAMERA] Current camera is at {_battleMapCamera.transform.position}, target point: {targetPoint}"
             );
 
-            var allGridPoints = MapGrid.GetAllGridPoints();
+            var allGridPoints = mapGridToUse.GetAllGridPoints();
             if (allGridPoints == null || allGridPoints.Count == 0)
             {
                 Debug.LogWarning("[CAMERA] No grid points found");
@@ -117,7 +200,7 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
 
             foreach (var gridPoint in allGridPoints)
             {
-                Vector3 gridWorldPos = MapGrid.GetTerrainAdjustedWorldPosition(
+                Vector3 gridWorldPos = mapGridToUse.GetTerrainAdjustedWorldPosition(
                     gridPoint.CoordinatesInt
                 );
                 float distance = Vector3.Distance(targetPoint, gridWorldPos);
@@ -143,15 +226,15 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
 
         private void HandleCursorMoved(Vector2Int gridPos)
         {
-            if (MapGrid == null || UiSettings == null || _battleMapCamera == null)
+            if (mapGrid == null || UiSettings == null || _battleMapCamera == null)
             {
                 return;
             }
 
-            if (_inCombat)
+            if (_shouldMove)
             {
                 // Get the world position of the cursor
-                Vector3 cursorWorldPos = MapGrid.GetTerrainAdjustedWorldPosition(gridPos);
+                Vector3 cursorWorldPos = mapGrid.GetTerrainAdjustedWorldPosition(gridPos);
 
                 // Calculate where the cursor appears on screen in viewport space (0-1)
                 Vector3 cursorViewportPos = _battleMapCamera.WorldToViewportPoint(cursorWorldPos);

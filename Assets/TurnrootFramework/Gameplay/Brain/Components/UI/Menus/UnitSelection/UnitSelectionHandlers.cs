@@ -24,6 +24,13 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             // Determine whether this toggle would select or deselect
             var willSelect = !item.IsSelectedForBattle;
 
+            // Prevent unselecting the only selected unit
+            if (!willSelect && unitColumns != null && unitColumns.SelectedCount <= 1)
+            {
+                // TODO: Fire brain event, provide UI feedback
+                return;
+            }
+
             // If attempting to select but we've reached the maximum, ignore
             if (
                 willSelect
@@ -39,6 +46,7 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
 
             // Apply toggle
             item.IsSelectedForBattle = willSelect;
+            item.CharacterInstanceData.IsSelectedForBattle = willSelect;
 
             var uf = new Turnroot.Utilities.UtilityFunctions();
             var selectedT = uf.FindChildByTag(unitCell, "UnitCellSelected");
@@ -77,10 +85,8 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             _brain.ltm.RememberBool(key, item.IsSelectedForBattle);
         }
 
-        private void HandleUnitCellSelectionPreBattlePositioning(UnitCellGridMenuItem item)
-        {
-            // TODO: Set up unit cell selection for pre-battle positioning
-        }
+        // Removed unit cell handling for positioning, not actually using
+        // unit cells for this
 
         public void HandlePreBattleMenuSelect(MenuItemBase item) =>
             // Delegate to the route handler for unified menu handling

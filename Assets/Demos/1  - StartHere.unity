@@ -2357,7 +2357,7 @@ MonoBehaviour:
   _row: 6
   _col: 0
   _gizmoRadius: 0.15
-  _terrainTypeId: 
+  _terrainTypeId: e8a7f118-4d40-4240-8eaa-dc2e0ab48630
   _featureTypeId: 
   _featureName: 
   _pointEventProperties:
@@ -159194,8 +159194,71 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   MaxPlayerTeamUnits: 0
-  _requiredPlayerUnits: []
+  <RequiredPlayerUnits>k__BackingField: []
   PlayerTeamSpawnPoints: []
+  CurrentPlacementState: 0
+  selectedUnit:
+    _mapGridPosition: {x: 0, y: 0}
+    _isDefeatedInCurrentBattle: 0
+    _wasSpawnedDuringBattle: 0
+    _id: 
+    _characterTemplate: {fileID: 0}
+    _currentLevel: 0
+    _currentExp: 0
+    _runtimeBoundedStats: []
+    _runtimeUnboundedStats: []
+    _inventoryInstance:
+      _inventoryItems: []
+      _capacity: 6
+      _equippedItemIndices: ffffffffffffffffffffffff
+      _isWeaponEquipped: 0
+      _nonWeaponEquippedFlags: 0000
+    _skillInstances: []
+    _supportRelationships: []
+    _experienceRanks: []
+    _currentClass:
+      _characterData: {fileID: 0}
+      _classData: {fileID: 0}
+      _meshRenderer: {fileID: 0}
+      _isFirstTimeEquipped: 1
+      _battlesCompleted: 0
+      _levelWhenEquipped: 1
+      _masteredSkills: []
+    _equippedClassHistory: []
+    _activeStatusEffects: []
+    _totalKills: 0
+    _totalBattles: 0
+  potentialSwapUnit:
+    _mapGridPosition: {x: 0, y: 0}
+    _isDefeatedInCurrentBattle: 0
+    _wasSpawnedDuringBattle: 0
+    _id: 
+    _characterTemplate: {fileID: 0}
+    _currentLevel: 0
+    _currentExp: 0
+    _runtimeBoundedStats: []
+    _runtimeUnboundedStats: []
+    _inventoryInstance:
+      _inventoryItems: []
+      _capacity: 6
+      _equippedItemIndices: ffffffffffffffffffffffff
+      _isWeaponEquipped: 0
+      _nonWeaponEquippedFlags: 0000
+    _skillInstances: []
+    _supportRelationships: []
+    _experienceRanks: []
+    _currentClass:
+      _characterData: {fileID: 0}
+      _classData: {fileID: 0}
+      _meshRenderer: {fileID: 0}
+      _isFirstTimeEquipped: 1
+      _battlesCompleted: 0
+      _levelWhenEquipped: 1
+      _masteredSkills: []
+    _equippedClassHistory: []
+    _activeStatusEffects: []
+    _totalKills: 0
+    _totalBattles: 0
 --- !u!114 &1742232837
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -173138,7 +173201,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 92de5083d17c4334496fe457b4be09ef, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  PlayerTeamSpawnPoints: []
+  PlayerTeamSpawnPoints:
+  - {x: 19, y: 10}
+  - {x: 18, y: 11}
+  - {x: 19, y: 11}
+  - {x: 19, y: 12}
+  - {x: 18, y: 12}
+  - {x: 20, y: 11}
+  - {x: 20, y: 10}
+  - {x: 20, y: 12}
   battleGameObject: {fileID: 1742232835}
   _fullMapImage: {fileID: 0}
   _standardMapImage: {fileID: 0}
