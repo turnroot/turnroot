@@ -33,6 +33,8 @@ namespace Turnroot.Gameplay.Brain
             // Player unit activation
             _brain.OnPlayerControlledUnitActivated += HandlePlayerUnitActivated;
 
+            _brain.OnPlacementsInitialized += HandlePlacementsInitialized;
+
             if (Brain?.gamewideContextBrain?.PlayerSettings != null)
             {
                 inputThreshold =
@@ -62,11 +64,34 @@ namespace Turnroot.Gameplay.Brain
             _brain.OnPreBattleMapReady -= HandlePreBattleMapReady;
             _brain.OnPreBattleCompleted -= HandlePreBattleCompleted;
             _brain.OnPlayerControlledUnitActivated -= HandlePlayerUnitActivated;
+            _brain.OnPlacementsInitialized -= HandlePlacementsInitialized;
         }
 
         #endregion
 
-        #region Event Handlers (moved)
+        #region Event Handlers
+
+        private void HandlePlacementsInitialized()
+        {
+            if (_currentContext != CursorContext.PreBattle)
+            {
+                return;
+            }
+
+            var mapGrid = _brain?.battleBrain?.PreparationObject?.MapGrid;
+
+            if (mapGrid == null)
+            {
+                Debug.LogError("CursorBrain: Cannot initialize - MapGrid not found");
+                return;
+            }
+
+            InitializePreBattleCursor(mapGrid);
+
+#if UNITY_EDITOR
+            Debug.Log("CursorBrain: Initialized for positioning mode");
+#endif
+        }
 
         private void HandleStateChanged(BrainState newState)
         {
