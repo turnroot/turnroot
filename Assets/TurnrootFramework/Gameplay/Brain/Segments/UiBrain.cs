@@ -214,6 +214,92 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             }
         }
 
+        // Ensure a UIFade exists on the target object and set a sensible lerp time based on UI settings.
+        private UIFade EnsureUIFadeOnObject(GameObject obj)
+        {
+            if (obj == null)
+                return null;
+            if (!obj.TryGetComponent<UIFade>(out var fade))
+            {
+                fade = obj.AddComponent<UIFade>();
+            }
+            if (uiSettings != null)
+            {
+                fade.lerpTime = uiSettings.MenuInternalTransitionTime;
+            }
+            return fade;
+        }
+
+        // Attempt to find a panel object on a MenuCanvas instance. We prefer a child named "Panel",
+        // otherwise fall back to any child with a CanvasGroup or an Image component.
+        private GameObject FindMenuCanvasPanel(GameObject canvas)
+        {
+            if (canvas == null)
+                return null;
+
+            foreach (Transform t in canvas.GetComponentsInChildren<Transform>(true))
+            {
+                if (
+                    string.Equals(
+                        t.gameObject.name,
+                        "Panel",
+                        System.StringComparison.OrdinalIgnoreCase
+                    )
+                )
+                {
+                    return t.gameObject;
+                }
+            }
+
+            // Look for CanvasGroup first
+            var cg = canvas.GetComponentInChildren<CanvasGroup>(true);
+            if (cg != null)
+                return cg.gameObject;
+
+            // Fall back to an Image-based panel
+            var img = canvas.GetComponentInChildren<UnityEngine.UI.Image>(true);
+            if (img != null)
+                return img.gameObject;
+            // As a final fallback, return the canvas root itself so we can still fade something
+            return canvas;
+        }
+
+        private void HandlePositioningModeEntered()
+        {
+            // Fade out the Details role button if present
+            if (_currentDetailsCanvasPrefab != null)
+            {
+                var detailsFade = EnsureUIFadeOnObject(_currentDetailsCanvasPrefab);
+                detailsFade?.Hide();
+            }
+
+            // Fade out the panel on the menu canvas so it doesn't obstruct the map
+            if (_currentMenuCanvasPrefab != null)
+            {
+                var panel = FindMenuCanvasPanel(_currentMenuCanvasPrefab);
+                var panelFade = EnsureUIFadeOnObject(panel);
+                panelFade?.Hide();
+            }
+        }
+
+        private void HandlePositioningModeExited()
+        {
+            // Fade details back in
+            if (_currentDetailsCanvasPrefab != null)
+            {
+                var detailsFade = EnsureUIFadeOnObject(_currentDetailsCanvasPrefab);
+                detailsFade?.Show();
+            }
+
+            // Fade menu panel back in
+            if (_currentMenuCanvasPrefab != null)
+            {
+                var panel = FindMenuCanvasPanel(_currentMenuCanvasPrefab);
+                var panelFade = EnsureUIFadeOnObject(panel);
+                panelFade?.Show();
+            }
+        }
+
         private System.Action<BrainState> _onStateChangedHandler;
 
         protected override void SubscribeToBrainEvents()
@@ -238,6 +324,9 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             };
 
             Brain.OnStateChanged += _onStateChangedHandler;
+            Brain.OnPositioningModeEntered += HandlePositioningModeEntered;
+            Brain.OnPositioningModeExited += HandlePositioningModeExited;
+
             // If the Brain already has an active state, invoke handler immediately so UI can react to the current state
             var current = Brain?.stateBrain?.CurrentState;
             if (current != null)
@@ -255,6 +344,8 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
         protected override void UnsubscribeFromBrainEvents()
         {
             Brain.OnBattleCursorMoved -= HandleBattleCursorMoved;
+            Brain.OnPositioningModeEntered -= HandlePositioningModeEntered;
+            Brain.OnPositioningModeExited -= HandlePositioningModeExited;
 
             if (_onStateChangedHandler != null)
             {

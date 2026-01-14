@@ -102,6 +102,12 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             // Hide and destroy source menu
             if (fromInstance != null)
             {
+                // If we're leaving the pre-battle unit positions menu, notify listeners (exit positioning mode)
+                if (from == _settings?.GetPrebattleUnitPositionsMenu())
+                {
+                    _brain.GetBrain()?.PublishPositioningModeExited();
+                }
+
                 if (fromInstance.TryGetComponent<UIFade>(out var fromFade))
                 {
                     fromFade.Hide();

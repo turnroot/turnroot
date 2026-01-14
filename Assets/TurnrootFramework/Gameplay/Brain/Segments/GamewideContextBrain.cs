@@ -414,10 +414,7 @@ namespace Turnroot.Gameplay.Brain
                 return;
             }
 
-            if (MapExplorationStatuses == null)
-            {
-                MapExplorationStatuses = new List<GamewideContextBrainHelpers.ExploredPartial>();
-            }
+            MapExplorationStatuses ??= new List<GamewideContextBrainHelpers.ExploredPartial>();
 
             // Replace existing entry for same map if present, otherwise add
             var existingIndex = MapExplorationStatuses.FindIndex(p =>
@@ -508,10 +505,7 @@ namespace Turnroot.Gameplay.Brain
                 return;
             }
 
-            if (MapExplorationStatuses == null)
-            {
-                MapExplorationStatuses = new List<GamewideContextBrainHelpers.ExploredPartial>();
-            }
+            MapExplorationStatuses ??= new List<GamewideContextBrainHelpers.ExploredPartial>();
 
             for (int i = 0; i < keys.Count; i++)
             {

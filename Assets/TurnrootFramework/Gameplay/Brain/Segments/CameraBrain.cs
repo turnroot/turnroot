@@ -12,9 +12,9 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
         private Camera _battleMapCamera;
         private Vector3 _targetCameraPosition;
         private Vector3 _currentVelocity;
-        private bool _inCombat;
+        private bool _shouldMove;
 
-        private MapGrid MapGrid => Brain?.battleBrain?.BattleObject?.Context?.mapGrid;
+        private MapGrid mapGrid;
         private GamewideUiSettings UiSettings => Brain?.uiBrain?.uiSettings;
 
         private GameplayPlayerSettings gameplayPlayerSettings =>
@@ -28,19 +28,36 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
         {
             Brain.OnBattleCursorMoved += HandleCursorMoved;
             Brain.OnStateChanged += HandleStateChanged;
+            Brain.OnBattleStarted += InitializeMapGrid;
         }
 
         protected override void UnsubscribeFromBrainEvents()
         {
             Brain.OnBattleCursorMoved -= HandleCursorMoved;
             Brain.OnStateChanged -= HandleStateChanged;
+            Brain.OnBattleStarted -= InitializeMapGrid;
         }
 
-        private void HandleStateChanged(BrainState newState) => _inCombat = newState?.Name == BrainStateNames.Battle;
+        public void InitializeMapGrid() =>
+            SetMapGrid(BattleObject != null ? BattleObject.MapGrid : null);
+
+        public OperationResult SetMapGrid(MapGrid grid)
+        {
+            if (grid == null)
+            {
+                return OperationResult.Failure("MapGrid is null");
+            }
+
+            mapGrid = grid;
+            return OperationResult.SuccessResult();
+        }
+
+        private void HandleStateChanged(BrainState newState) =>
+            _shouldMove = newState?.Name == BrainStateNames.Battle;
 
         private void Update()
         {
-            if (_inCombat)
+            if (_shouldMove)
             {
                 HandleBattleMapCameraPan();
             }

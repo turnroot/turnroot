@@ -1,7 +1,8 @@
 using System.Collections.Generic;
+using System.Linq;
 using Turnroot.Characters;
+using Turnroot.Gameplay.Brain;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Environment;
-using Turnroot.Gameplay.Roster;
 using Turnroot.Utilities;
 using UnityEngine;
 
@@ -40,6 +41,11 @@ namespace Turnroot.Gameplay.Combat.PreBattle
             EnvironmentalConditions = GetComponentInChildren<EnvironmentalConditions>(true);
             MapGrid = GetComponentInChildren<MapGrid>(true);
             PlayerTeamSpawnPoints = MapGrid.PlayerTeamSpawnPoints;
+#if UNITY_EDITOR
+            Debug.Log(
+                $"BattlePreparationObject.Initialize: MapGrid={MapGrid?.name}, PlayerTeamSpawnPoints.Count={PlayerTeamSpawnPoints?.Count ?? 0}"
+            );
+#endif
 
             // Copy MaxPlayerTeamUnits and RequiredPlayerUnits from a BattleGameObject when available.
             if (brain?.battleBrain?.BattleObject != null)
@@ -73,6 +79,10 @@ namespace Turnroot.Gameplay.Combat.PreBattle
 
             // Initialize placements from the current gamewide selection.
             _ = InitializePlacements();
+
+            // Set the map grid for Camera Brain
+            var cameraBrain = brain?.cameraBrain;
+            cameraBrain.SetMapGrid(MapGrid);
 
             return EnvironmentalConditions == null
                 ? OperationResult.Failure("EnvironmentalConditions not found")
@@ -218,10 +228,64 @@ namespace Turnroot.Gameplay.Combat.PreBattle
 
         private void HandlePositioningModeEntered()
         {
-            // Called when UI enters positioning mode; ensure the prep object reflects the current
-            // selected roster. Reinitialize placements from the gamewide selection and publish
-            // the placements-initialized event (InitializePlacements already publishes it).
-            _ = InitializePlacements();
+            // Ensure there is a runtime player roster instance so selection queries work.
+            var gw = Brain?.gamewideContextBrain;
+            if (gw != null)
+            {
+                // Ensure the persistent player roster asset is present and has a runtime instance.
+                var persistent =
+                    gw.GamewidePersistentPlayerRoster
+                    ?? gw.CreateOrRecallGamewidePersistentPlayerRoster();
+                if (persistent != null)
+                {
+                    var rosterInstance = gw.GetOrCreatePlayerTeamRoster(persistent);
+                    PreBattleSelectionHelper.EnsureDefaultPreBattleSelections(
+                        Brain,
+                        persistent,
+                        rosterInstance,
+                        MaxPlayerTeamUnits,
+                        RequiredPlayerUnits
+                    );
+                }
+
+                // Set the "battle" camera  (at this point, it behaves like a battle camera)
+                // in camerabrain, and move the camera to the first player spawn point
+                // TODO: Possibly refactor this to use a "prebattle camera"?
+                var cameraBrain = Brain?.cameraBrain;
+                var cameraChildren = GetComponentsInChildren<Camera>();
+                foreach (var cam in cameraChildren)
+                {
+                    if (cam != null && cam.CompareTag("BattleMapCamera"))
+                    {
+                        cameraBrain.SetBattleMapCamera(cam);
+                        break;
+                    }
+                }
+                cameraBrain.MoveCameraToPosition(PlayerTeamSpawnPoints.FirstOrDefault());
+
+                var result = InitializePlacements();
+                if (!result.Success)
+                {
+#if UNITY_EDITOR
+                    Debug.LogWarning(
+                        $"BattlePreparationObject: InitializePlacements failed: {result.ErrorMessage}"
+                    );
+                    var selectedUnits =
+                        Brain?.gamewideContextBrain?.GetSelectedForBattlePlayerTeamUnits();
+                    var count = selectedUnits?.Count ?? 0;
+                    Debug.Log($"BattlePreparationObject: Selected units count: {count}");
+                    var persistentChars =
+                        Brain
+                            ?.gamewideContextBrain
+                            ?.GamewidePersistentPlayerRoster
+                            ?.characters
+                            ?.Length ?? 0;
+                    Debug.Log(
+                        $"BattlePreparationObject: Persistent roster template placements: {persistentChars}"
+                    );
+#endif
+                }
+            }
         }
 
         private void OnDestroy()

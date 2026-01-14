@@ -43,6 +43,11 @@ namespace Turnroot.Gameplay.Brain
             {
                 // Get player spawn positions from preparation object
                 var spawnPoints = prepObject.PlayerTeamSpawnPoints;
+#if UNITY_EDITOR
+                Debug.Log(
+                    $"CursorBrain.InitializePreBattleCursor: prep={prepObject.name}, spawnPoints.Count={spawnPoints?.Count ?? 0}"
+                );
+#endif
                 if (spawnPoints != null && spawnPoints.Count > 0)
                 {
                     validSpawnPositions = spawnPoints;

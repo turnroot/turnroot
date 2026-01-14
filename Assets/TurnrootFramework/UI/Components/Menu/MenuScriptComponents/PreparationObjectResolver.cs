@@ -28,6 +28,12 @@ public class PreparationObjectResolver : MonoBehaviour
 
         if (prep != null)
         {
+            // Ensure the preparation object is initialized with the Brain so MapGrid and related data exist.
+            if (prep.Brain == null)
+            {
+                prep.Initialize(brain);
+            }
+
             if (TryGetComponent(out PopulateBattleMapPreview preview) && preview != null)
             {
                 preview.Initialize(prep);
@@ -41,8 +47,19 @@ public class PreparationObjectResolver : MonoBehaviour
             }
             if (TryGetComponent(out StartingPositions p) && p != null)
             {
-                p.Initialize(prep);
-                count++;
+                var result = p.Initialize(prep);
+                if (!result.Success)
+                {
+#if UNITY_EDITOR
+                    Debug.LogWarning(
+                        $"StartingPositions initialization failed: {result.ErrorMessage}"
+                    );
+#endif
+                }
+                else
+                {
+                    count++;
+                }
             }
         }
 
