@@ -70,9 +70,7 @@ namespace Turnroot.Gameplay.Combat.PreBattle
 
         /* --------------------------- Starting Positions --------------------------- */
         [HideInInspector]
-        // In BattlePreparationObject.cs
-
-        public Dictionary<Vector2Int, CharacterInstance> placements; // Changed from CharacterData
+        public Dictionary<Vector2Int, CharacterInstance> placements;
 
         public OperationResult InitializePlacements()
         {
@@ -141,21 +139,63 @@ namespace Turnroot.Gameplay.Combat.PreBattle
             }
         }
 
-        public OperationResult SwapUnits()
+        public OperationResult SelectPosition(Vector2Int pos)
         {
-            if (!CanSwap || selectedPosition == null || potentialSwapPosition == null)
+            if (!PlayerTeamSpawnPoints.Contains(pos))
             {
-                return OperationResult.Failure("Cannot swap units: selection incomplete");
+                return OperationResult.Failure("Invalid position");
+            }
+
+            if (!placements.ContainsKey(pos))
+            {
+                return OperationResult.Failure("Cannot select empty position");
+            }
+
+            selectedPosition = pos;
+            selectedUnit = placements[pos];
+
+            return OperationResult.SuccessResult();
+        }
+
+        public OperationResult ClearSelection()
+        {
+            selectedPosition = null;
+            potentialSwapPosition = null;
+            selectedUnit = null;
+            potentialSwapUnit = null;
+            return OperationResult.SuccessResult();
+        }
+
+        public OperationResult ExecutePositionAction()
+        {
+            // Called when second Confirm happens
+            if (selectedPosition == null || potentialSwapPosition == null)
+            {
+                return OperationResult.Failure("Invalid action state");
+            }
+
+            // Determine if target is occupied
+            bool targetOccupied = placements.ContainsKey(potentialSwapPosition.Value);
+
+            if (targetOccupied)
+            {
+                // Swap
+                (placements[selectedPosition.Value], placements[potentialSwapPosition.Value]) = (
+                    placements[potentialSwapPosition.Value],
+                    placements[selectedPosition.Value]
+                );
             }
             else
             {
-                (placements[potentialSwapPosition.Value], placements[selectedPosition.Value]) = (
-                    placements[selectedPosition.Value],
-                    placements[potentialSwapPosition.Value]
-                );
-                // TODO: Call a brain event to trigger visual changes
-                return OperationResult.SuccessResult();
+                // Move
+                placements[potentialSwapPosition.Value] = placements[selectedPosition.Value];
+                placements.Remove(selectedPosition.Value);
             }
+
+            ClearSelection();
+            CurrentPlacementState = PlacementState.PlayerPlaced; // Mark as modified
+
+            return OperationResult.SuccessResult();
         }
     }
 }

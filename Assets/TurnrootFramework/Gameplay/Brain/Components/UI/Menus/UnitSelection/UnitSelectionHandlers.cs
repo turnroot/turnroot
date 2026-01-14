@@ -24,6 +24,13 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             // Determine whether this toggle would select or deselect
             var willSelect = !item.IsSelectedForBattle;
 
+            // Prevent unselecting the only selected unit
+            if (!willSelect && unitColumns != null && unitColumns.SelectedCount <= 1)
+            {
+                // TODO: Fire brain event, provide UI feedback
+                return;
+            }
+
             // If attempting to select but we've reached the maximum, ignore
             if (
                 willSelect
@@ -39,6 +46,7 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
 
             // Apply toggle
             item.IsSelectedForBattle = willSelect;
+            item.CharacterInstanceData.IsSelectedForBattle = willSelect;
 
             var uf = new Turnroot.Utilities.UtilityFunctions();
             var selectedT = uf.FindChildByTag(unitCell, "UnitCellSelected");
