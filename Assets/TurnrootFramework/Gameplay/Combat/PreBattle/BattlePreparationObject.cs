@@ -59,9 +59,20 @@ namespace Turnroot.Gameplay.Combat.PreBattle
                 }
             }
 
-            var gamewideContextBrain = brain.gamewideContextBrain;
-            PlayerTeamRosterAllUnits = gamewideContextBrain?.GamewidePersistentPlayerRoster;
-            InitializePlacements();
+            // Keep placement view in sync with gamewide selection. When selection changes we
+            // will reinitialize placements, but we avoid overwriting user edits.
+            if (brain != null)
+            {
+                brain.OnUnitSelectionChanged -= HandleUnitSelectionChanged;
+                brain.OnUnitSelectionChanged += HandleUnitSelectionChanged;
+
+                // When UI enters positioning mode, ensure roster is filtered and placements are set
+                brain.OnPositioningModeEntered -= HandlePositioningModeEntered;
+                brain.OnPositioningModeEntered += HandlePositioningModeEntered;
+            }
+
+            // Initialize placements from the current gamewide selection.
+            _ = InitializePlacements();
 
             return EnvironmentalConditions == null
                 ? OperationResult.Failure("EnvironmentalConditions not found")
@@ -74,8 +85,8 @@ namespace Turnroot.Gameplay.Combat.PreBattle
 
         public OperationResult InitializePlacements()
         {
-            // Get the FILTERED roster from BattleBrain
-            var selectedUnits = Brain?.battleBrain?.PlayerTeamRoster?.Instances;
+            // Use gamewide selection as the single source of truth for which units are selected.
+            var selectedUnits = Brain?.gamewideContextBrain?.GetSelectedForBattlePlayerTeamUnits();
 
             if (selectedUnits == null || selectedUnits.Count == 0)
             {
@@ -99,6 +110,7 @@ namespace Turnroot.Gameplay.Combat.PreBattle
             }
 
             CurrentPlacementState = PlacementState.DefaultPlaced;
+            Brain?.PublishPlacementsInitialized();
             return OperationResult.SuccessResult();
         }
 
@@ -119,12 +131,6 @@ namespace Turnroot.Gameplay.Combat.PreBattle
 
         [HideInInspector]
         public bool CanSwap => selectedUnit != null && potentialSwapUnit != null;
-
-        [HideInInspector]
-        public PlayerTeamRoster PlayerTeamRosterSelectedForBattle;
-
-        [HideInInspector]
-        public PlayerTeamRoster PlayerTeamRosterAllUnits;
 
         public OperationResult PlaceUnit(Vector2Int pos, CharacterInstance unit)
         {
@@ -196,6 +202,35 @@ namespace Turnroot.Gameplay.Combat.PreBattle
             CurrentPlacementState = PlacementState.PlayerPlaced; // Mark as modified
 
             return OperationResult.SuccessResult();
+        }
+
+        private void HandleUnitSelectionChanged(CharacterInstance unit, bool selected)
+        {
+            // Recompute placements when selection changes
+            if (
+                CurrentPlacementState == PlacementState.NonePlaced
+                || CurrentPlacementState == PlacementState.DefaultPlaced
+            )
+            {
+                InitializePlacements();
+            }
+        }
+
+        private void HandlePositioningModeEntered()
+        {
+            // Called when UI enters positioning mode; ensure the prep object reflects the current
+            // selected roster. Reinitialize placements from the gamewide selection and publish
+            // the placements-initialized event (InitializePlacements already publishes it).
+            _ = InitializePlacements();
+        }
+
+        private void OnDestroy()
+        {
+            if (Brain != null)
+            {
+                Brain.OnUnitSelectionChanged -= HandleUnitSelectionChanged;
+                Brain.OnPositioningModeEntered -= HandlePositioningModeEntered;
+            }
         }
     }
 }

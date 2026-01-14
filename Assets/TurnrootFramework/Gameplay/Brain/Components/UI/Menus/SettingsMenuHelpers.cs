@@ -66,6 +66,9 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
         public void OpenPreBattleUnitsMenu() =>
             OpenSubmenu(uiSettings?.GetPrebattleUnitsMenu(), "pre-battle units");
 
+        public void OpenPreBattleUnitPositionsMenu() =>
+            OpenSubmenu(uiSettings?.GetPrebattleUnitPositionsMenu(), "pre-battle unit positions");
+
         #endregion
 
         #region Settings Menu Event Handlers

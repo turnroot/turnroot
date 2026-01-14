@@ -92,15 +92,6 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                 return;
             }
 
-            if (
-                currentMenuName != null
-                && currentMenuName == uiSettings?.GetPrebattleUnitPositionsMenu()?.menuName
-            )
-            {
-                HandleUnitCellSelectionPreBattlePositioning(item);
-                return;
-            }
-
             // Fallback: if the transition manager indicates we're in Team menu context, treat as Units menu
             var menuType = _transitionManager?.CurrentMenuType;
             if (menuType == MenuType.Team)

@@ -15,8 +15,6 @@ namespace Turnroot.Gameplay.Brain
 
         private LongTermMemory _ltm;
 
-        private RosterFilters _rosterFilters = new RosterFilters();
-
         public List<GamewideContextBrainHelpers.ExploredPartial> MapExplorationStatuses
         {
             get;
@@ -30,10 +28,7 @@ namespace Turnroot.Gameplay.Brain
         private CharacterPersistence _characterPersistence;
 
         // Track all active runtime roster instances by roster id
-        private readonly Dictionary<
-            string,
-            object
-        > _activeRosterInstances = new();
+        private readonly Dictionary<string, object> _activeRosterInstances = new();
 
         private PlayerSettingsPersistence _playerSettingsPersistence;
 
@@ -82,8 +77,7 @@ namespace Turnroot.Gameplay.Brain
             _ltm = GetComponent<LongTermMemory>();
 
             // Initialize in-memory map exploration list and populate from LTM
-            MapExplorationStatuses =
-                new List<GamewideContextBrainHelpers.ExploredPartial>();
+            MapExplorationStatuses = new List<GamewideContextBrainHelpers.ExploredPartial>();
             PopulateMapExplorationStatusesFromLtm();
         }
 
@@ -330,8 +324,7 @@ namespace Turnroot.Gameplay.Brain
         /// Return all active CharacterInstances from all tracked rosters.
         /// </summary>
         public List<CharacterInstance> GetAllActiveInstances() =>
-            _rosterManager?.GetAllActiveInstances()
-            ?? new List<CharacterInstance>();
+            _rosterManager?.GetAllActiveInstances() ?? new List<CharacterInstance>();
 
         /// <summary>
         /// Persist a unique character's state via the centralized character persistence.
@@ -423,8 +416,7 @@ namespace Turnroot.Gameplay.Brain
 
             if (MapExplorationStatuses == null)
             {
-                MapExplorationStatuses =
-                    new List<GamewideContextBrainHelpers.ExploredPartial>();
+                MapExplorationStatuses = new List<GamewideContextBrainHelpers.ExploredPartial>();
             }
 
             // Replace existing entry for same map if present, otherwise add
@@ -518,8 +510,7 @@ namespace Turnroot.Gameplay.Brain
 
             if (MapExplorationStatuses == null)
             {
-                MapExplorationStatuses =
-                    new List<GamewideContextBrainHelpers.ExploredPartial>();
+                MapExplorationStatuses = new List<GamewideContextBrainHelpers.ExploredPartial>();
             }
 
             for (int i = 0; i < keys.Count; i++)
@@ -548,10 +539,11 @@ namespace Turnroot.Gameplay.Brain
                         : string.Empty;
 
                 var fallbackPartial = new GamewideContextBrainHelpers.ExploredPartial();
-                fallbackPartial.statuses = new Dictionary<
-                    GamewideContextBrainHelpers.ExploredQuadrant,
-                    GamewideContextBrainHelpers.ExploredState
-                >();
+                fallbackPartial.statuses =
+                    new Dictionary<
+                        GamewideContextBrainHelpers.ExploredQuadrant,
+                        GamewideContextBrainHelpers.ExploredState
+                    >();
                 fallbackPartial.map = string.IsNullOrEmpty(suffix)
                     ? null
                     : Resources.Load<MapGrid>(suffix);

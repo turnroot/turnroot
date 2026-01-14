@@ -120,6 +120,12 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                 SetupMenu(to);
                 HandleCreatedMenuInstance(to);
 
+                // If the created menu is the unit positions menu, notify systems that positioning mode entered
+                if (to == _settings?.GetPrebattleUnitPositionsMenu())
+                {
+                    _brain.GetBrain()?.PublishPositioningModeEntered();
+                }
+
                 var targetFade = EnsureUIFade(
                     to.activeInstance,
                     _settings.MenuInternalTransitionTime

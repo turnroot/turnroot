@@ -258,6 +258,20 @@ namespace Turnroot.Gameplay.Brain
             OnPreBattleSpawnPositionCanceled?.Invoke(unit);
 
         #endregion
+        #region Placement Events
+        public event Action OnPositioningModeEntered;
+
+        public void PublishPositioningModeEntered() => OnPositioningModeEntered?.Invoke();
+
+        public event Action OnPlacementsInitialized;
+
+        public void PublishPlacementsInitialized() => OnPlacementsInitialized?.Invoke();
+
+        public event Action<CharacterInstance, bool> OnUnitSelectionChanged;
+
+        public void PublishUnitSelectionChanged(CharacterInstance unit, bool selected) =>
+            OnUnitSelectionChanged?.Invoke(unit, selected);
+        #endregion
 
         #region Character Movement Events
         public event Action<CharacterInstance, MapGridPoint> OnCharacterMoveStarted;

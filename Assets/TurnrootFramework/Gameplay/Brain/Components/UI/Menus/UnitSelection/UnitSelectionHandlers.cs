@@ -85,10 +85,8 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             _brain.ltm.RememberBool(key, item.IsSelectedForBattle);
         }
 
-        private void HandleUnitCellSelectionPreBattlePositioning(UnitCellGridMenuItem item)
-        {
-            // TODO: Set up unit cell selection for pre-battle positioning
-        }
+        // Removed unit cell handling for positioning, not actually using
+        // unit cells for this
 
         public void HandlePreBattleMenuSelect(MenuItemBase item) =>
             // Delegate to the route handler for unified menu handling
