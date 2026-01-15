@@ -142,10 +142,10 @@ namespace Turnroot.Gameplay.Brain
         public event Action<string> OnIllegallyModifiedFileDetected;
         public event Action<int> OnLtmKeyCacheUpdated;
 
-        public void PublishLtmKeyCacheUpdated(int version) => OnLtmKeyCacheUpdated?.Invoke(version);
-
-        public void NotifyIllegalModification(string message) =>
+        public void PublishIllegalModification(string message) =>
             OnIllegallyModifiedFileDetected?.Invoke(message);
+
+        public void PublishLtmKeyCacheUpdated(int version) => OnLtmKeyCacheUpdated?.Invoke(version);
 
         #endregion
 
@@ -208,17 +208,15 @@ namespace Turnroot.Gameplay.Brain
         public void PublishRostersFailed() => OnRostersFailed?.Invoke();
 
         #endregion
+
         #region Cursor Events
+
         public event Action<MapGrid, List<Vector2Int>> OnCursorInitializeRequested;
         public event Action<Vector2Int> OnCursorMoveRequested;
-
         public event Action<List<Vector2Int>> OnCursorRestrictionsRequested;
-
         public event Action OnCursorRestrictionsClearRequested;
         public event Action OnCursorHideRequested;
-
         public event Action OnCursorShowRequested;
-
         public event Action<Vector2Int, MapGrid> OnCursorPositionChanged;
 
         public void PublishCursorInitializeRequested(
@@ -245,8 +243,8 @@ namespace Turnroot.Gameplay.Brain
         #endregion
 
         #region Pre-Battle Map Events
-        public event Action<MapGrid> OnPreBattleMapReady;
 
+        public event Action<MapGrid> OnPreBattleMapReady;
         public event Action<Vector2Int, CharacterInstance> OnPreBattleSpawnPositionSelected;
         public event Action<CharacterInstance> OnPreBattleSpawnPositionCanceled;
 
@@ -262,31 +260,43 @@ namespace Turnroot.Gameplay.Brain
             OnPreBattleSpawnPositionCanceled?.Invoke(unit);
 
         #endregion
+
+        #region Character Model Events
+
+        public event Action<CharacterInstance> OnUnitModelSpawnRequested;
+        public event Action<CharacterInstance> OnUnitModelChangeRequested;
+
+        public void PublishUnitModelSpawnRequested(CharacterInstance unit) =>
+            OnUnitModelSpawnRequested?.Invoke(unit);
+
+        public void PublishUnitModelChangeRequested(CharacterInstance unit) =>
+            OnUnitModelChangeRequested?.Invoke(unit);
+
+        #endregion
+
         #region Placement Events
+
         public event Action OnPositioningModeEntered;
         public event Action OnPositioningModeExited;
+        public event Action OnPlacementsInitialized;
+        public event Action<CharacterInstance, bool> OnUnitSelectionChanged;
 
         public void PublishPositioningModeEntered() => OnPositioningModeEntered?.Invoke();
 
         public void PublishPositioningModeExited() => OnPositioningModeExited?.Invoke();
 
-        public event Action OnPlacementsInitialized;
-
         public void PublishPlacementsInitialized() => OnPlacementsInitialized?.Invoke();
-
-        public event Action<CharacterInstance, bool> OnUnitSelectionChanged;
 
         public void PublishUnitSelectionChanged(CharacterInstance unit, bool selected) =>
             OnUnitSelectionChanged?.Invoke(unit, selected);
+
         #endregion
 
         #region Character Movement Events
+
         public event Action<CharacterInstance, MapGridPoint> OnCharacterMoveStarted;
-
         public event Action<CharacterInstance, MapGridPoint> OnCharacterMoveCompleted;
-
         public event Action<CharacterInstance> OnPlayerMovePreviewStarted;
-
         public event Action<CharacterInstance, MapGridPoint> OnPlayerChoseMoveTile;
 
         public void PublishCharacterMoveStarted(
@@ -319,28 +329,6 @@ namespace Turnroot.Gameplay.Brain
         public event Action<CharacterInstance, string, int> OnExperienceGained;
         public event Action<CharacterInstance, CharacterData, int> OnSupportIncreased;
 
-        // Recruitment-related events (published when runtime recruitment overrides change)
-        public event Action<CharacterInstance, CharacterData, bool> OnCharacterRecruitableChanged;
-        public event Action<
-            CharacterInstance,
-            CharacterData,
-            float
-        > OnCharacterRecruitmentChanceChanged;
-        public event Action<
-            CharacterInstance,
-            CharacterData,
-            float
-        > OnCharacterRecruitmentChanceIncreaseChanged;
-        public event Action<
-            CharacterInstance,
-            CharacterData,
-            bool
-        > OnCharacterRequiresMinSupportLevelChanged;
-        public event Action<
-            CharacterInstance,
-            CharacterData
-        > OnCharacterRecruitmentOverridesCleared;
-
         public void PublishCharacterLevelUp(CharacterInstance character) =>
             OnCharacterLevelUp?.Invoke(character);
 
@@ -368,7 +356,31 @@ namespace Turnroot.Gameplay.Brain
             int amount
         ) => OnSupportIncreased?.Invoke(character, targetCharacter, amount);
 
-        // Publication helpers for recruitment-related events
+        #endregion
+
+        #region Character Recruitment Events
+
+        public event Action<CharacterInstance, CharacterData, bool> OnCharacterRecruitableChanged;
+        public event Action<
+            CharacterInstance,
+            CharacterData,
+            float
+        > OnCharacterRecruitmentChanceChanged;
+        public event Action<
+            CharacterInstance,
+            CharacterData,
+            float
+        > OnCharacterRecruitmentChanceIncreaseChanged;
+        public event Action<
+            CharacterInstance,
+            CharacterData,
+            bool
+        > OnCharacterRequiresMinSupportLevelChanged;
+        public event Action<
+            CharacterInstance,
+            CharacterData
+        > OnCharacterRecruitmentOverridesCleared;
+
         public void PublishCharacterRecruitableChanged(
             CharacterInstance sourceCharacter,
             CharacterData targetCharacter,
@@ -408,25 +420,9 @@ namespace Turnroot.Gameplay.Brain
             CharacterData targetCharacter
         ) => OnCharacterRecruitmentOverridesCleared?.Invoke(sourceCharacter, targetCharacter);
 
-        /// <summary>
-        /// Request that all unique player roster characters be saved.
-        /// This is an event-based request; subscribers should perform the save.
-        /// </summary>
-        public event Action OnSavePlayerRosterRequested;
-
-        public void PublishSavePlayerRosterRequested() => OnSavePlayerRosterRequested?.Invoke();
-
-        /// <summary>
-        /// Request that player settings be saved to long term memory.
-        /// This is an event-based request; subscribers should perform the save.
-        /// </summary>
-        public event Action OnSavePlayerSettingsRequested;
-
-        public void PublishSavePlayerSettingsRequested() => OnSavePlayerSettingsRequested?.Invoke();
-
         #endregion
 
-        #region Spawn Events
+        #region Character Spawn Events
 
         public event Action<CharacterInstance, Vector2Int> OnCharacterSpawned;
         public event Action<CharacterInstance, Vector2Int> OnCharacterRemovedFromSpawn;
@@ -438,6 +434,17 @@ namespace Turnroot.Gameplay.Brain
             CharacterInstance character,
             Vector2Int position
         ) => OnCharacterRemovedFromSpawn?.Invoke(character, position);
+
+        #endregion
+
+        #region Save/Persistence Events
+
+        public event Action OnSavePlayerRosterRequested;
+        public event Action OnSavePlayerSettingsRequested;
+
+        public void PublishSavePlayerRosterRequested() => OnSavePlayerRosterRequested?.Invoke();
+
+        public void PublishSavePlayerSettingsRequested() => OnSavePlayerSettingsRequested?.Invoke();
 
         #endregion
 
@@ -453,6 +460,8 @@ namespace Turnroot.Gameplay.Brain
         public event Action<ObjectItemInstance, ObjectItem> OnItemForged;
         public event Action<ObjectItemInstance> OnItemDeposited;
         public event Action<ObjectItemInstance, CharacterInventoryInstance> OnItemWithdrawn;
+        public event Action<CharacterInstance, ObjectItemInstance> OnItemEquipped;
+        public event Action<CharacterInstance, ObjectItemInstance> OnItemUnequipped;
 
         public void PublishItemUsed(ObjectItemInstance item, int remainingUses) =>
             OnItemUsed?.Invoke(item, remainingUses);
@@ -485,10 +494,6 @@ namespace Turnroot.Gameplay.Brain
             ObjectItemInstance item,
             CharacterInventoryInstance targetInventory
         ) => OnItemWithdrawn?.Invoke(item, targetInventory);
-
-        // Equip/Unequip events for inventory items
-        public event Action<CharacterInstance, ObjectItemInstance> OnItemEquipped;
-        public event Action<CharacterInstance, ObjectItemInstance> OnItemUnequipped;
 
         public void PublishItemEquipped(CharacterInstance character, ObjectItemInstance item) =>
             OnItemEquipped?.Invoke(character, item);
@@ -541,7 +546,10 @@ namespace Turnroot.Gameplay.Brain
         public void PublishConversationLayerEnded(ConversationLayer layer) =>
             OnConversationLayerEnded?.Invoke(layer);
 
-        // Support relationship added/removed events
+        #endregion
+
+        #region Support Relationship Events
+
         public event Action<
             CharacterInstance,
             SupportRelationshipInstance
@@ -560,67 +568,43 @@ namespace Turnroot.Gameplay.Brain
 
         #endregion
 
-        #region Battle Events
+        #region Battle Lifecycle Events
+
         public event Action OnBattleStarted;
         public event Action<BattleExitType> OnBattleCompleted;
         public event Action OnBattleContextInitialized;
+        public event Action OnPreBattlePrepare;
         public event Action OnPreBattleStarted;
         public event Action OnPreBattleCompleted;
-        public event Action OnTurnBegin;
-        public event Action OnTurnEnded;
-        public event Action<Vector2Int> OnBattleCursorMoved;
-        public event Action<CharacterInstance> OnPlayerTurnStarted;
-        public event Action OnPlayerTurnEnded;
-        public event Action OnEnemyTurnStarted;
-        public event Action OnEnemyTurnEnded;
-        public event Action OnThirdPartyTurnStarted;
-        public event Action OnThirdPartyTurnEnded;
-
-        public event Action<CharacterInstance> OnPlayerControlledUnitActivated;
-        public event Action<CharacterInstance, int> OnAllyDamaged;
-        public event Action<CharacterInstance, int> OnEnemyDamaged;
-        public event Action<CharacterInstance> OnUnitDefeated;
-        public event Action<CharacterInstance, Vector2Int> OnUnitMoved;
-        public event Action<CharacterInstance> OnUnitTakesAnotherTurn;
-
-        public event Action<CharacterInstance> OnUnitFinishedMovingAfterAction;
-        public event Action<CharacterInstance> OnCriticalHit;
-        public event Action<CharacterInstance, int> OnWeaponUsesChanged;
-
-        // Last-attacker change events (per-target)
-        public event Action<CharacterInstance, CharacterInstance> OnLastAttackerSet;
-        public event Action<CharacterInstance> OnLastAttackerCleared;
-
-        public void PublishLastAttackerSet(CharacterInstance target, CharacterInstance attacker) =>
-            OnLastAttackerSet?.Invoke(target, attacker);
-
-        public void PublishLastAttackerCleared(CharacterInstance target) =>
-            OnLastAttackerCleared?.Invoke(target);
-
-        public event Action<CharacterInstance, CharacterInstance> OnItemStolen;
-        public event Action<CharacterInstance, BattleEmotion> OnUnitEmotionChanged;
 
         public void PublishBattleStarted() => OnBattleStarted?.Invoke();
-
-        public void PublishBattleCursorMoved(Vector2Int cursorPosition) =>
-            OnBattleCursorMoved?.Invoke(cursorPosition);
 
         public void PublishBattleCompleted(BattleExitType exitType) =>
             OnBattleCompleted?.Invoke(exitType);
 
         public void PublishBattleContextInitialized() => OnBattleContextInitialized?.Invoke();
 
-        // NOTE: Pre-battle has two phases: a preparation phase (UI/menu created, pre-battle
-        // objects available) and a completion phase (pre-battle finished, transitioning to battle).
-        // PublishPreBattlePrepare is intended for systems that need access to pre-battle scene
-        // objects (e.g., BattlePreparationObject) before the full PreBattleStarted event is used.
-        public event System.Action OnPreBattlePrepare;
-
         public void PublishPreBattlePrepare() => OnPreBattlePrepare?.Invoke();
 
         public void PublishPreBattleStarted() => OnPreBattleStarted?.Invoke();
 
         public void PublishPreBattleCompleted() => OnPreBattleCompleted?.Invoke();
+
+        #endregion
+
+        #region Battle Turn Events
+
+        public event Action OnTurnBegin;
+        public event Action OnTurnEnded;
+        public event Action<CharacterInstance> OnPlayerTurnStarted;
+        public event Action OnPlayerTurnEnded;
+        public event Action<PlayerTurnStates> OnPlayerTurnStateChanged;
+        public event Action OnPlayerUndoAction;
+        public event Action OnEnemyTurnStarted;
+        public event Action OnEnemyTurnEnded;
+        public event Action OnThirdPartyTurnStarted;
+        public event Action OnThirdPartyTurnEnded;
+        public event Action<CharacterInstance> OnUnitTurnEnded;
 
         public void PublishTurnBegin() => OnTurnBegin?.Invoke();
 
@@ -631,12 +615,8 @@ namespace Turnroot.Gameplay.Brain
 
         public void PublishPlayerTurnEnded() => OnPlayerTurnEnded?.Invoke();
 
-        public event Action<PlayerTurnStates> OnPlayerTurnStateChanged;
-
         public void PublishPlayerTurnStateChanged(PlayerTurnStates newState) =>
             OnPlayerTurnStateChanged?.Invoke(newState);
-
-        public event Action OnPlayerUndoAction;
 
         public void PublishPlayerUndoAction() => OnPlayerUndoAction?.Invoke();
 
@@ -647,6 +627,35 @@ namespace Turnroot.Gameplay.Brain
         public void PublishThirdPartyTurnStarted() => OnThirdPartyTurnStarted?.Invoke();
 
         public void PublishThirdPartyTurnEnded() => OnThirdPartyTurnEnded?.Invoke();
+
+        public void PublishUnitTurnEnded(CharacterInstance unit) => OnUnitTurnEnded?.Invoke(unit);
+
+        #endregion
+
+        #region Battle Cursor Events
+
+        public event Action<Vector2Int> OnBattleCursorMoved;
+
+        public void PublishBattleCursorMoved(Vector2Int cursorPosition) =>
+            OnBattleCursorMoved?.Invoke(cursorPosition);
+
+        #endregion
+
+        #region Battle Unit Action Events
+
+        public event Action<CharacterInstance> OnPlayerControlledUnitActivated;
+        public event Action<CharacterInstance, int> OnAllyDamaged;
+        public event Action<CharacterInstance, int> OnEnemyDamaged;
+        public event Action<CharacterInstance> OnUnitDefeated;
+        public event Action<CharacterInstance, Vector2Int> OnUnitMoved;
+        public event Action<CharacterInstance> OnUnitTakesAnotherTurn;
+        public event Action<CharacterInstance> OnUnitFinishedMovingAfterAction;
+        public event Action<CharacterInstance> OnCriticalHit;
+        public event Action<CharacterInstance, int> OnWeaponUsesChanged;
+        public event Action<CharacterInstance, CharacterInstance> OnLastAttackerSet;
+        public event Action<CharacterInstance> OnLastAttackerCleared;
+        public event Action<CharacterInstance, CharacterInstance> OnItemStolen;
+        public event Action<CharacterInstance, BattleEmotion> OnUnitEmotionChanged;
 
         public void PublishPlayerControlledUnitActivated(CharacterInstance unit) =>
             OnPlayerControlledUnitActivated?.Invoke(unit);
@@ -659,31 +668,33 @@ namespace Turnroot.Gameplay.Brain
 
         public void PublishUnitDefeated(CharacterInstance unit) => OnUnitDefeated?.Invoke(unit);
 
-        public void PublishUnitBattleEmotionChanged(
-            CharacterInstance unit,
-            BattleEmotion emotion
-        ) => OnUnitEmotionChanged?.Invoke(unit, emotion);
-
         public void PublishUnitMoved(CharacterInstance unit, Vector2Int pos) =>
             OnUnitMoved?.Invoke(unit, pos);
 
         public void PublishUnitTakesAnotherTurn(CharacterInstance unit) =>
             OnUnitTakesAnotherTurn?.Invoke(unit);
 
-        public event Action<CharacterInstance> OnUnitTurnEnded;
-
-        public void PublishUnitTurnEnded(CharacterInstance unit) => OnUnitTurnEnded?.Invoke(unit);
-
-        public void PublishCriticalHit(CharacterInstance unit) => OnCriticalHit?.Invoke(unit);
-
         public void PublishUnitFinishedMovingAfterAction(CharacterInstance unit) =>
             OnUnitFinishedMovingAfterAction?.Invoke(unit);
+
+        public void PublishCriticalHit(CharacterInstance unit) => OnCriticalHit?.Invoke(unit);
 
         public void PublishWeaponUsesChanged(CharacterInstance unit, int change) =>
             OnWeaponUsesChanged?.Invoke(unit, change);
 
+        public void PublishLastAttackerSet(CharacterInstance target, CharacterInstance attacker) =>
+            OnLastAttackerSet?.Invoke(target, attacker);
+
+        public void PublishLastAttackerCleared(CharacterInstance target) =>
+            OnLastAttackerCleared?.Invoke(target);
+
         public void PublishItemStolen(CharacterInstance thief, CharacterInstance target) =>
             OnItemStolen?.Invoke(thief, target);
+
+        public void PublishUnitBattleEmotionChanged(
+            CharacterInstance unit,
+            BattleEmotion emotion
+        ) => OnUnitEmotionChanged?.Invoke(unit, emotion);
 
         #endregion
 
@@ -705,6 +716,7 @@ namespace Turnroot.Gameplay.Brain
             CharacterInstance,
             Characters.StatusEffects.StatusEffectInstance
         > OnStatusEffectExpired;
+        public event Action<CharacterInstance> OnAllStatusEffectsCleared;
 
         public void PublishStatusEffectApplied(
             CharacterInstance character,
@@ -725,9 +737,6 @@ namespace Turnroot.Gameplay.Brain
             CharacterInstance character,
             Characters.StatusEffects.StatusEffectInstance effect
         ) => OnStatusEffectExpired?.Invoke(character, effect);
-
-        // Notification that all status effects were cleared from a character (explicit clear)
-        public event Action<CharacterInstance> OnAllStatusEffectsCleared;
 
         public void PublishAllStatusEffectsCleared(CharacterInstance character) =>
             OnAllStatusEffectsCleared?.Invoke(character);
