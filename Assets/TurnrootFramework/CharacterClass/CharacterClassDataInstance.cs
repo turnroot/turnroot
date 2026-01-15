@@ -35,7 +35,6 @@ namespace Turnroot.Characters.CharacterClass
         [SerializeField]
         private List<Skill> _masteredSkills = new();
 
-        private Material _materialInstance;
         private bool _disposed = false;
 
         #endregion
@@ -75,7 +74,7 @@ namespace Turnroot.Characters.CharacterClass
         public CharacterClassDataInstance() { }
 
         /// <summary>
-        /// Initialize visual representation by creating and configuring material.
+        /// Initialize visual representation by applying class textures to an existing material (created by UnitAppearanceBrain).
         /// </summary>
         public bool Initialize()
         {
@@ -104,33 +103,39 @@ namespace Turnroot.Characters.CharacterClass
                 return false;
             }
 
-            if (_classData.Identity.ShaderGraph == null)
+            // Material creation and shader assignment is handled by UnitAppearanceBrain.
+            // Ensure a material exists on the MeshRenderer before calling Initialize.
+
+            // Apply class textures to existing material (material should be created by UnitAppearanceBrain)
+            var mat = _meshRenderer.material;
+            if (mat == null)
             {
 #if UNITY_EDITOR
                 Debug.LogWarning(
-                    $"CharacterClassDataInstance.Initialize: ShaderGraph is null for class '{_classData.Identity.ClassName}'"
+                    "CharacterClassDataInstance.Initialize: meshRenderer.material is null"
                 );
 #endif
                 return false;
             }
 
-            // Cleanup existing material to prevent memory leak
-            CleanupMaterial();
+            // Copy class textures onto the existing material
+            if (_classData?.Identity != null)
+            {
+                if (_classData.Identity.Base != null)
+                {
+                    mat.SetTexture("_Base", _classData.Identity.Base);
+                }
 
-            // Create new material instance
-            _materialInstance = new Material(_classData.Identity.ShaderGraph);
-            _meshRenderer.material = _materialInstance;
+                if (_classData.Identity.MSE != null)
+                {
+                    mat.SetTexture("_MSE", _classData.Identity.MSE);
+                }
 
-            // Apply character colors
-            _materialInstance.SetColor("_Skin_Color", _characterData.SkinColor);
-            _materialInstance.SetColor("_Accent_Color_1", _characterData.AccentColor1);
-            _materialInstance.SetColor("_Accent_Color_2", _characterData.AccentColor2);
-            _materialInstance.SetColor("_Accent_Color_3", _characterData.AccentColor3);
-
-            // Apply class textures
-            _materialInstance.SetTexture("_Base", _classData.Identity.Base);
-            _materialInstance.SetTexture("_MSE", _classData.Identity.MSE);
-            _materialInstance.SetTexture("_Tint_Mask", _classData.Identity.TintMask);
+                if (_classData.Identity.TintMask != null)
+                {
+                    mat.SetTexture("_Tint_Mask", _classData.Identity.TintMask);
+                }
+            }
 
             return true;
         }
@@ -147,6 +152,22 @@ namespace Turnroot.Characters.CharacterClass
             {
                 Initialize();
             }
+        }
+
+        /// <summary>
+        /// Ensure the instance has a MeshRenderer and initialize visuals.
+        /// External systems (e.g., UnitAppearanceBrain) can provide the renderer and trigger initialization
+        /// with a single call by using this method.
+        /// </summary>
+        public void InitializeWithRenderer(MeshRenderer meshRenderer)
+        {
+            if (meshRenderer == null)
+            {
+                return;
+            }
+
+            _meshRenderer = meshRenderer;
+            Initialize();
         }
 
         #endregion
@@ -319,19 +340,7 @@ namespace Turnroot.Characters.CharacterClass
         /// </summary>
         public void CleanupMaterial()
         {
-            if (_materialInstance != null)
-            {
-                // Use DestroyImmediate in editor, Destroy at runtime
-                if (Application.isPlaying)
-                {
-                    UnityEngine.Object.Destroy(_materialInstance);
-                }
-                else
-                {
-                    UnityEngine.Object.DestroyImmediate(_materialInstance);
-                }
-                _materialInstance = null;
-            }
+            // Material lifecycle is managed by UnitAppearanceBrain. No-op here.
         }
 
         /// <summary>

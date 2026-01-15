@@ -11,6 +11,8 @@ namespace Turnroot.Characters
     /// </summary>
     public partial class CharacterInstance
     {
+        public Dictionary<string, Material> classNameToOutfitMaterials = new();
+
         #region Battle Helpers
 
         public ObjectItemInstance GetEquippedWeapon()
@@ -119,13 +121,14 @@ namespace Turnroot.Characters
 
         #region Class Management
 
+        public CharacterClassDataInstance GetCurrentClass() => _currentClass;
+
         /// <summary>
         /// Change to a new class. Applies all class bonuses, enforces minimums/caps.
         /// Removes bonuses from old class if present.
         /// </summary>
         public bool ChangeClass(
             CharacterClassData newClassData,
-            MeshRenderer meshRenderer = null,
             bool applyClassChangeBonuses = true
         )
         {
@@ -150,19 +153,20 @@ namespace Turnroot.Characters
             // Check if this class has been equipped before (compare by reference, not name)
             bool isFirstTime = !_equippedClassHistory.Contains(newClassData);
 
-            // Create new class instance, passing the isFirstTime flag to maintain consistency
-            // between mechanical state (bonuses) and visual state (materials)
+            var effectiveRenderer = _meshRenderer;
+
+            // Create new class instance, passing the isFirstTime flag and the character's renderer.
             _currentClass = new CharacterClassDataInstance(
                 _characterTemplate,
                 newClassData,
-                meshRenderer,
+                effectiveRenderer,
                 isFirstTime
             );
 
-            // Initialize visual representation if mesh renderer provided
-            if (meshRenderer != null)
+            // Initialize visual representation if we have an effective renderer
+            if (effectiveRenderer != null)
             {
-                _currentClass.Initialize();
+                _currentClass.InitializeWithRenderer(effectiveRenderer);
             }
 
             // Apply class bonuses

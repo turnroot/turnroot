@@ -14,6 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ClassSelection: 1
   DefaultStartingClass: {fileID: 0}
+  UnitOutfitMaterialTemplate: {fileID: -876546973899608171, guid: 093e7ff1692846d4aba2a1553c45044b, type: 3}
   WeaponTypes:
   - {fileID: 11400000, guid: 030efab55c186fa4ead5d556dc84fdd5, type: 2}
   SpeciesTypes:

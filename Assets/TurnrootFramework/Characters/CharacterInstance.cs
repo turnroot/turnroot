@@ -94,6 +94,14 @@ namespace Turnroot.Characters
         [SerializeField]
         private CharacterData _characterTemplate;
 
+        [SerializeField]
+        private MeshRenderer _meshRenderer;
+
+        /// <summary>
+        /// Renderer used to display this character's model. Should be set when the character is spawned.
+        /// </summary>
+        public MeshRenderer Renderer => _meshRenderer;
+
         #endregion
 
         #region Stats & Progression State
@@ -320,11 +328,7 @@ namespace Turnroot.Characters
             // If a starting class is defined on the template, equip it without applying one-time change bonuses
             if (_characterTemplate.StartingClass != null)
             {
-                ChangeClass(
-                    _characterTemplate.StartingClass,
-                    meshRenderer: null,
-                    applyClassChangeBonuses: false
-                );
+                ChangeClass(_characterTemplate.StartingClass, applyClassChangeBonuses: false);
 #if UNITY_EDITOR
                 Debug.Log(
                     $"Character {Id} initialized with starting class {_characterTemplate.StartingClass.Identity.ClassName}"
@@ -342,11 +346,7 @@ namespace Turnroot.Characters
                     var defaultClass = settings?.GetDefaultStartingClass();
                     if (defaultClass != null)
                     {
-                        var changed = ChangeClass(
-                            defaultClass,
-                            meshRenderer: null,
-                            applyClassChangeBonuses: false
-                        );
+                        var changed = ChangeClass(defaultClass, applyClassChangeBonuses: false);
                         if (changed)
                         {
 #if UNITY_EDITOR
