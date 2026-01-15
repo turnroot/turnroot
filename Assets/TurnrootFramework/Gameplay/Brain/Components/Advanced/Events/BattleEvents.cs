@@ -1,5 +1,7 @@
 using Turnroot.Characters;
 using Turnroot.Gameplay.Objects;
+using Turnroot.GameSettings;
+using Turnroot.Utilities;
 using UnityEngine;
 using static Turnroot.Characters.CharacterInstance;
 
@@ -249,10 +251,19 @@ namespace Turnroot.Gameplay.Brain.Events
         public CharacterInstance Target { get; }
         public float DamageMultiplier { get; }
 
+        // Use configured multiplier from GameplayGeneralSettings when not explicitly provided.
+        public CriticalHitEvent(CharacterInstance attacker, CharacterInstance target)
+        {
+            Attacker = attacker;
+            Target = target;
+            var settings = GameSettingsLoader.LoadFirst<GameplayGeneralSettings>("GameSettings");
+            DamageMultiplier = settings != null ? settings.GetCriticalHitMultiplier() : 2f;
+        }
+
         public CriticalHitEvent(
             CharacterInstance attacker,
             CharacterInstance target,
-            float multiplier = 2f
+            float multiplier
         )
         {
             Attacker = attacker;

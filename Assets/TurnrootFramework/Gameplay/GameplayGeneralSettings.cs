@@ -330,6 +330,8 @@ namespace Turnroot.GameSettings
             };
         }
 
+
+
         [BoxGroup("Combat Mechanics")]
         public bool Battalions;
 

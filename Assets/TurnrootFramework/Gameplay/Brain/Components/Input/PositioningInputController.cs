@@ -77,7 +77,21 @@ namespace Turnroot.Gameplay.Brain
             if (_inputActions?.Navigate?.enabled == true)
             {
                 var direction = _inputActions.Navigate.ReadValue<Vector2>();
-                if (direction.magnitude > 0.1f)
+                float inputThreshold;
+                if (Brain?.gamewideContextBrain?.PlayerSettings != null)
+                {
+                    inputThreshold =
+                        Brain.gamewideContextBrain.PlayerSettings.PreferredInputControl
+                        == PlayerSettings.GameplayPlayerSettings.InputControlType.Keyboard
+                            ? 0.1f
+                            : 0.5f;
+                }
+                else
+                {
+                    inputThreshold = 0.3f; // Safe default
+                }
+
+                if (direction.magnitude > inputThreshold)
                 {
                     _brain.cursorBrain?.NavigateCursor(direction);
 

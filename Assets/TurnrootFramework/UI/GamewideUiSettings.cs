@@ -373,5 +373,33 @@ namespace Turnroot.GameSettings
         public Sprite isDesertImage;
         public Sprite isRockyImage;
         public Sprite isVolcanicImage;
+
+        [Header("Map Rendering"), HorizontalLine(color: EColor.Blue)]
+        [Tooltip("Cell size in pixels used when rendering map images and minimaps")]
+        public int MapCellSize = 32;
+
+        [Tooltip("Resources-relative path where map icons are stored (trailing slash optional)")]
+        public string MapIconPath = "EditorSettings/MapGridEditorIcons/";
+
+        public Color MapGridLineColor = new Color(0.3f, 0.3f, 0.3f, 1f);
+        public Color MapBlackCellColor = Color.black;
+        public Color MapDarkGrayTerrainColor = new Color(0.3f, 0.3f, 0.3f, 1f);
+        public Color MapLightGrayTerrainColor = new Color(0.2f, 0.2f, 0.2f, 1f);
+        public Color MapBlueSpawnColor = new Color(0.2f, 0.5f, 1f, 1f);
+
+        // Map rendering getters for external consumers
+        public int GetMapCellSize() => MapCellSize;
+
+        public string GetMapIconPath() => MapIconPath;
+
+        public Color GetMapGridLineColor() => MapGridLineColor;
+
+        public Color GetMapBlackCellColor() => MapBlackCellColor;
+
+        public Color GetMapDarkGrayTerrainColor() => MapDarkGrayTerrainColor;
+
+        public Color GetMapLightGrayTerrainColor() => MapLightGrayTerrainColor;
+
+        public Color GetMapBlueSpawnColor() => MapBlueSpawnColor;
     }
 }
