@@ -95,12 +95,12 @@ namespace Turnroot.Characters
         private CharacterData _characterTemplate;
 
         [SerializeField]
-        private MeshRenderer _meshRenderer;
+        private SkinnedMeshRenderer _meshRenderer;
 
         /// <summary>
         /// Renderer used to display this character's model. Should be set when the character is spawned.
         /// </summary>
-        public MeshRenderer Renderer => _meshRenderer;
+        public SkinnedMeshRenderer Renderer => _meshRenderer;
 
         #endregion
 

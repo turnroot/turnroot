@@ -32,6 +32,31 @@ public struct CharacterModelBlendshapeSet
 
     [Range(0f, 100f)]
     public float neckThickness;
+
+    public readonly string[] BlendshapeNames =>
+        new string[]
+        {
+            "ChestSize",
+            "WaistSize",
+            "HipSize",
+            "ThighThickness",
+            "ArmThickness",
+            "NeckThickness",
+        };
+
+    public readonly float GetBlendshapeByName(string name)
+    {
+        return name switch
+        {
+            "ChestSize" => chestSize,
+            "WaistSize" => waistSize,
+            "HipSize" => hipSize,
+            "ThighThickness" => thighThickness,
+            "ArmThickness" => armThickness,
+            "NeckThickness" => neckThickness,
+            _ => 0f,
+        };
+    }
 }
 
 namespace Turnroot.Characters
@@ -550,6 +575,70 @@ namespace Turnroot.Characters
 #endif
                 }
             }
+
+#if UNITY_EDITOR
+            // Validate that assigned skinned meshes contain required blendshapes; if not, clear the assignment and log an error.
+            ValidateRendererBlendshapes(CharacterDefaultModel, nameof(CharacterDefaultModel));
+            ValidateRendererBlendshapes(
+                CharacterHeadHandsAndHair,
+                nameof(CharacterHeadHandsAndHair)
+            );
+#endif
         }
+
+#if UNITY_EDITOR
+        private void ValidateRendererBlendshapes(SkinnedMeshRenderer renderer, string propertyName)
+        {
+            if (renderer == null)
+            {
+                return;
+            }
+
+            var mesh = renderer.sharedMesh;
+            if (mesh == null)
+            {
+                Debug.LogError(
+                    $"{name}: Assigned {propertyName} has no sharedMesh. Clearing assignment."
+                );
+                if (propertyName == nameof(CharacterDefaultModel))
+                {
+                    CharacterDefaultModel = null;
+                }
+                else if (propertyName == nameof(CharacterHeadHandsAndHair))
+                {
+                    CharacterHeadHandsAndHair = null;
+                }
+                return;
+            }
+
+            var required = Blendshapes.BlendshapeNames;
+            var missing = new List<string>();
+            if (required != null)
+            {
+                foreach (var name in required)
+                {
+                    if (mesh.GetBlendShapeIndex(name) < 0)
+                    {
+                        missing.Add(name);
+                    }
+                }
+            }
+
+            if (missing.Count > 0)
+            {
+                Debug.LogError(
+                    $"{name}: Assigned {propertyName} mesh '{mesh.name}' is missing blendshapes: {string.Join(", ", missing)}. Clearing assignment."
+                );
+                if (propertyName == nameof(CharacterDefaultModel))
+                {
+                    CharacterDefaultModel = null;
+                }
+                else if (propertyName == nameof(CharacterHeadHandsAndHair))
+                {
+                    CharacterHeadHandsAndHair = null;
+                }
+            }
+        }
+#endif
     }
 }

@@ -11,8 +11,11 @@ namespace Turnroot.Characters.CharacterClass
     public class ClassIdentity
     {
         [Header("Visuals")]
-        [Tooltip("3D mesh outfit for this class")]
+        [Tooltip("3D mesh outfit for this class (legacy). Prefer assigning a prefab with a SkinnedMeshRenderer in 'Class Model Prefab'.")]
         public Mesh ClassOutfit;
+
+        [Tooltip("Optional prefab containing a SkinnedMeshRenderer for this class outfit (recommended)")]
+        public GameObject ClassModelPrefab;
 
         [Tooltip("Shader used for rendering")]
         public Shader ShaderGraph;

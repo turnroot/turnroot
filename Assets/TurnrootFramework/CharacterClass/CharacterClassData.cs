@@ -131,6 +131,9 @@ namespace Turnroot.Characters.CharacterClass
             ValidatePromotionPaths();
             ForceInspectorRefresh();
             EnsureUniqueClassName();
+
+            // Validate class visuals (mesh/prefab contain required blendshapes)
+            ValidateClassVisuals();
         }
 
         private void ValidateStatLists()
@@ -352,6 +355,70 @@ namespace Turnroot.Characters.CharacterClass
 
         #endregion
 
+#if UNITY_EDITOR
+        /// <summary>
+        /// Validate that the class visual assets (mesh or prefab) include the required blendshapes.
+        /// </summary>
+        private void ValidateClassVisuals()
+        {
+            if (Identity == null)
+                return;
+
+n            // Required blendshape names must match CharacterModelBlendshapeSet.BlendshapeNames
+            var required = new string[]
+            {
+                "ChestSize",
+                "WaistSize",
+                "HipSize",
+                "ThighThickness",
+                "ArmThickness",
+                "NeckThickness",
+            };
+
+n            // Helper to validate a mesh for required blendshapes
+            void ValidateMesh(UnityEngine.Mesh mesh, string source)
+            {
+                if (mesh == null)
+                {
+                    Debug.LogError($"{name}: {source} has no mesh assigned.");
+                    return;
+                }
+
+n                var missing = new List<string>();
+                foreach (var b in required)
+                {
+                    if (mesh.GetBlendShapeIndex(b) < 0)
+                    {
+                        missing.Add(b);
+                    }
+                }
+
+n                if (missing.Count > 0)
+                {
+                    Debug.LogError($"{name}: {source} is missing blendshapes: {string.Join(", ", missing)}");
+                }
+            }
+
+n            // Validate Mesh if assigned (legacy)
+            if (Identity.ClassOutfit != null)
+            {
+                ValidateMesh(Identity.ClassOutfit, nameof(Identity.ClassOutfit));
+            }
+
+n            // Validate prefab if assigned (prefab should contain a SkinnedMeshRenderer)
+            if (Identity.ClassModelPrefab != null)
+            {
+                var smr = Identity.ClassModelPrefab.GetComponentInChildren<SkinnedMeshRenderer>(true);
+                if (smr == null)
+                {
+                    Debug.LogError($"{name}: ClassModelPrefab '{Identity.ClassModelPrefab.name}' does not contain a SkinnedMeshRenderer.");
+                }
+                else
+                {
+                    ValidateMesh(smr.sharedMesh, $"ClassModelPrefab '{Identity.ClassModelPrefab.name}'");
+                }
+            }
+        }
 #endif
 
         #region Public API

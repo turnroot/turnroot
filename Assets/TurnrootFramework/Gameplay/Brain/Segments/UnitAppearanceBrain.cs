@@ -1,5 +1,7 @@
+using System.Collections.Generic;
 using System.Linq;
 using Turnroot.Characters;
+using Turnroot.Characters.CharacterClass;
 using Turnroot.Gameplay.Brain.Events;
 using Turnroot.GameSettings;
 using Turnroot.Utilities;
@@ -26,6 +28,7 @@ namespace Turnroot.Gameplay.Brain
         /// <summary>
         /// Get the material for the given unit given their class. If it doesn't exist, create it.
         /// Uses a cached dictionary on the CharacterInstance to avoid recreating materials.
+        /// Applies material to all relevant SkinnedMeshRenderers (root + children + class renderer).
         /// </summary>
         /// <param name="unit"></param>
         /// <returns></returns>
@@ -47,18 +50,38 @@ namespace Turnroot.Gameplay.Brain
                 unit.classNameToOutfitMaterials[className] = material;
             }
 
-            // Assign material to the character's renderer and initialize visuals via the class instance
-            var renderer = unit.Renderer;
-            if (renderer != null)
-            {
-                renderer.material = material;
-                classInstance?.InitializeWithRenderer(renderer);
-            }
-            else
+            // Gather renderers (root renderer + children + class renderer if present)
+            var renderers = GetRelevantRenderers(unit, classInstance).ToArray();
+
+            if (renderers.Length == 0)
             {
 #if UNITY_EDITOR
-                Debug.LogWarning("GetUnitOutfitMaterial: unit has no Renderer assigned.");
+                Debug.LogWarning(
+                    "GetUnitOutfitMaterial: unit has no SkinnedMeshRenderer assigned."
+                );
 #endif
+                return material;
+            }
+
+            // Assign material to all renderers so textures/colors are consistent across meshes
+            foreach (var r in renderers)
+            {
+                if (r == null)
+                    continue;
+                r.material = material;
+            }
+
+            // Initialize class visuals on the preferred renderer (prefer class renderer when available)
+            if (classInstance != null)
+            {
+                if (classInstance.MeshRenderer != null)
+                {
+                    classInstance.InitializeWithRenderer(classInstance.MeshRenderer);
+                }
+                else if (unit.Renderer != null)
+                {
+                    classInstance.InitializeWithRenderer(unit.Renderer);
+                }
             }
 
             material.SetColor("_Accent_Color_1", unit.CharacterTemplate.AccentColor1);
@@ -87,6 +110,76 @@ namespace Turnroot.Gameplay.Brain
             }
 
             return material;
+        }
+
+        public OperationResult SetBlendshapes(CharacterInstance unit)
+        {
+            var weights = unit.CharacterTemplate.Blendshapes;
+            var names = weights.BlendshapeNames ?? new string[0];
+            var classInst = unit.GetCurrentClass();
+            var renderers = GetRelevantRenderers(unit, classInst).ToArray();
+
+            if (renderers.Length == 0)
+            {
+                return OperationResult.Failure(
+                    "SetBlendshapes: unit has no SkinnedMeshRenderer assigned."
+                );
+            }
+
+            foreach (var shapeName in names)
+            {
+                bool applied = false;
+                var shapeWeight = weights.GetBlendshapeByName(shapeName);
+
+                foreach (var r in renderers)
+                {
+                    if (r == null)
+                        continue;
+                    var mesh = r.sharedMesh;
+                    if (mesh == null)
+                        continue;
+                    int shapeIndex = mesh.GetBlendShapeIndex(shapeName);
+                    if (shapeIndex >= 0)
+                    {
+                        r.SetBlendShapeWeight(shapeIndex, shapeWeight);
+                        applied = true;
+                    }
+                }
+
+                if (!applied)
+                {
+                    return OperationResult.Failure(
+                        $"Could not set blendshape weight for {shapeName}: shape not found on any renderer. Fix the mesh to include the blendshape(s)."
+                    );
+                }
+            }
+
+            return OperationResult.SuccessResult();
+        }
+
+        /// <summary>
+        /// Returns all SkinnedMeshRenderers relevant for a unit's visual (root renderer, its children, and the class renderer if different).
+        /// </summary>
+        private IEnumerable<SkinnedMeshRenderer> GetRelevantRenderers(
+            CharacterInstance unit,
+            CharacterClassDataInstance classInstance
+        )
+        {
+            var list = new List<SkinnedMeshRenderer>();
+            if (unit?.Renderer != null)
+            {
+                // include the root renderer and any child renderers (e.g., head/hands separated on another renderer)
+                var root = unit.Renderer.gameObject;
+                list.AddRange(root.GetComponentsInChildren<SkinnedMeshRenderer>(true));
+            }
+
+            // include class-specific renderer if it's on a different object than the root
+            if (classInstance?.MeshRenderer != null && !list.Contains(classInstance.MeshRenderer))
+            {
+                list.Add(classInstance.MeshRenderer);
+            }
+
+            return list.Distinct();
         }
     }
 }

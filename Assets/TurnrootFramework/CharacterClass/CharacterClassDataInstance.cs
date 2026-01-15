@@ -21,7 +21,7 @@ namespace Turnroot.Characters.CharacterClass
         private CharacterClassData _classData;
 
         [SerializeField]
-        private MeshRenderer _meshRenderer;
+        private SkinnedMeshRenderer _meshRenderer;
 
         [SerializeField]
         private bool _isFirstTimeEquipped = true;
@@ -43,7 +43,7 @@ namespace Turnroot.Characters.CharacterClass
 
         public CharacterData CharacterData => _characterData;
         public CharacterClassData ClassData => _classData;
-        public MeshRenderer MeshRenderer => _meshRenderer;
+        public SkinnedMeshRenderer MeshRenderer => _meshRenderer;
         public bool IsFirstTimeEquipped => _isFirstTimeEquipped;
         public int BattlesCompleted => _battlesCompleted;
         public int LevelWhenEquipped => _levelWhenEquipped;
@@ -58,7 +58,7 @@ namespace Turnroot.Characters.CharacterClass
         public CharacterClassDataInstance(
             CharacterData characterData,
             CharacterClassData classData,
-            MeshRenderer meshRenderer = null,
+            SkinnedMeshRenderer meshRenderer = null,
             bool isFirstTimeEquipped = true
         )
         {
@@ -159,7 +159,7 @@ namespace Turnroot.Characters.CharacterClass
         /// External systems (e.g., UnitAppearanceBrain) can provide the renderer and trigger initialization
         /// with a single call by using this method.
         /// </summary>
-        public void InitializeWithRenderer(MeshRenderer meshRenderer)
+        public void InitializeWithRenderer(SkinnedMeshRenderer meshRenderer)
         {
             if (meshRenderer == null)
             {
