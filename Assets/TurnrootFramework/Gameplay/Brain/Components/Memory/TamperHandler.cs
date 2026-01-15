@@ -62,7 +62,7 @@ namespace Turnroot.Gameplay.Brain.Components
             var message = $"Tampering detected ({reason}): type={typeName}, id={id}";
 
             var parentBrain = brain.GetComponent<Brain>();
-            parentBrain?.NotifyIllegalModification(message);
+            parentBrain?.PublishIllegalModification(message);
 
 #if UNITY_EDITOR
             Debug.LogWarning(message);

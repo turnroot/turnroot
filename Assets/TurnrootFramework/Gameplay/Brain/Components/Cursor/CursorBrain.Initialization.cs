@@ -6,6 +6,8 @@ namespace Turnroot.Gameplay.Brain
     public partial class CursorBrain
     {
         #region Cursor Initialization
+
+        [HideInInspector]
         public Vector3 CursorOffset;
 
         private void InitializeBattleCursor()

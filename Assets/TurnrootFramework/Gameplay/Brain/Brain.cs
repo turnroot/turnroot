@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Turnroot.Characters;
 using Turnroot.Characters.Components.Support;
 using Turnroot.Conversations;
@@ -48,6 +47,7 @@ namespace Turnroot.Gameplay.Brain
     [RequireComponent(typeof(AudioBrain))]
     [RequireComponent(typeof(CameraBrain))]
     [RequireComponent(typeof(CursorBrain))]
+    [RequireComponent(typeof(UnitAppearanceBrain))]
     public partial class Brain : MonoBehaviour
     {
         // Core components
@@ -92,6 +92,9 @@ namespace Turnroot.Gameplay.Brain
 
         [HideInInspector]
         public PositioningInputController positioningInputControllerBrain;
+
+        [HideInInspector]
+        public UnitAppearanceBrain unitAppearanceBrain;
 
         [HideInInspector]
         public LongTermMemory ltm;
