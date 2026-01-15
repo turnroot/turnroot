@@ -11,26 +11,7 @@ namespace Turnroot.Gameplay.Brain
     [RequireComponent(typeof(Brain))]
     public class GamewideContextBrain : BrainComponent
     {
-        public Brain CentralBrain => _brain;
-
-        private LongTermMemory _ltm;
-
-        public List<GamewideContextBrainHelpers.ExploredPartial> MapExplorationStatuses
-        {
-            get;
-            private set;
-        }
-
-        private RosterPersistence _rosterPersistence;
-
-        private RosterManager _rosterManager;
-
-        private CharacterPersistence _characterPersistence;
-
-        // Track all active runtime roster instances by roster id
-        private readonly Dictionary<string, object> _activeRosterInstances = new();
-
-        private PlayerSettingsPersistence _playerSettingsPersistence;
+        #region Configuration
 
         public enum TamperPolicy
         {
@@ -42,8 +23,40 @@ namespace Turnroot.Gameplay.Brain
         [field: SerializeField]
         public TamperPolicy Policy { get; } = TamperPolicy.Replace;
 
+        #endregion
+
+        #region Dependencies
+
+        public Brain CentralBrain => _brain;
+
+        private LongTermMemory _ltm;
+        private RosterPersistence _rosterPersistence;
+        private RosterManager _rosterManager;
+        private CharacterPersistence _characterPersistence;
+        private PlayerSettingsPersistence _playerSettingsPersistence;
+
+        #endregion
+
+        #region State
+
+        // Track all active runtime roster instances by roster id
+        private readonly Dictionary<string, object> _activeRosterInstances = new();
+
+        [HideInInspector]
+        public PlayerTeamRoster GamewidePersistentPlayerRoster { get; set; }
+
+        public List<GamewideContextBrainHelpers.ExploredPartial> MapExplorationStatuses
+        {
+            get;
+            private set;
+        }
+
         [HideInInspector]
         public GameplayPlayerSettings PlayerSettings => _playerSettingsPersistence?.PlayerSettings;
+
+        #endregion
+
+        #region Initialization
 
         protected override EventPriority GetSubscriptionPriority() => EventPriority.High;
 
@@ -81,6 +94,10 @@ namespace Turnroot.Gameplay.Brain
             PopulateMapExplorationStatusesFromLtm();
         }
 
+        #endregion
+
+        #region Event Subscription
+
         protected override void SubscribeToBrainEvents() =>
             // Subscribe to save requests so we can persist roster changes triggered at runtime
             _brain.OnSavePlayerRosterRequested += HandleSavePlayerRosterRequested;
@@ -88,10 +105,9 @@ namespace Turnroot.Gameplay.Brain
         protected override void UnsubscribeFromBrainEvents() =>
             _brain.OnSavePlayerRosterRequested -= HandleSavePlayerRosterRequested;
 
-        #region Persistent Player Roster
+        #endregion
 
-        [HideInInspector]
-        public PlayerTeamRoster GamewidePersistentPlayerRoster { get; set; }
+        #region Persistent Player Roster Management
 
         public PlayerTeamRoster CreateOrRecallGamewidePersistentPlayerRoster()
         {
@@ -253,7 +269,7 @@ namespace Turnroot.Gameplay.Brain
 
         #endregion
 
-        #region Roster Manager Facade
+        #region Roster Management API
 
         /// <summary>
         /// Returns a runtime GenericRosterInstance for the provided template. GamewideContextBrain
@@ -315,24 +331,6 @@ namespace Turnroot.Gameplay.Brain
         }
 
         /// <summary>
-        /// Find an active CharacterInstance by template across all tracked rosters.
-        /// </summary>
-        public CharacterInstance FindInstanceByTemplate(CharacterData template) =>
-            _rosterManager?.FindInstanceByTemplate(template);
-
-        /// <summary>
-        /// Return all active CharacterInstances from all tracked rosters.
-        /// </summary>
-        public List<CharacterInstance> GetAllActiveInstances() =>
-            _rosterManager?.GetAllActiveInstances() ?? new List<CharacterInstance>();
-
-        /// <summary>
-        /// Persist a unique character's state via the centralized character persistence.
-        /// </summary>
-        public void SaveUniqueCharacterProgress(CharacterInstance instance) =>
-            _characterPersistence?.SaveCharacter(instance, updateIndex: false);
-
-        /// <summary>
         /// Delegates to roster manager to recall generic rosters from a list.
         /// </summary>
         public void RecallGenericRosters(List<GenericRoster> rosters) =>
@@ -380,7 +378,29 @@ namespace Turnroot.Gameplay.Brain
 
         #endregion
 
-        #region Player Settings Delegation
+        #region Character Management API
+
+        /// <summary>
+        /// Find an active CharacterInstance by template across all tracked rosters.
+        /// </summary>
+        public CharacterInstance FindInstanceByTemplate(CharacterData template) =>
+            _rosterManager?.FindInstanceByTemplate(template);
+
+        /// <summary>
+        /// Return all active CharacterInstances from all tracked rosters.
+        /// </summary>
+        public List<CharacterInstance> GetAllActiveInstances() =>
+            _rosterManager?.GetAllActiveInstances() ?? new List<CharacterInstance>();
+
+        /// <summary>
+        /// Persist a unique character's state via the centralized character persistence.
+        /// </summary>
+        public void SaveUniqueCharacterProgress(CharacterInstance instance) =>
+            _characterPersistence?.SaveCharacter(instance, updateIndex: false);
+
+        #endregion
+
+        #region Player Settings Management
 
         public void UpdatePlayerSetting(string settingName, object value)
         {
@@ -395,7 +415,9 @@ namespace Turnroot.Gameplay.Brain
         }
 
         #endregion
-        #region Map Exploration
+
+        #region Map Exploration Management
+
         /// <summary>
         /// Register or update an in-memory exploration partial. This does NOT persist to LTM—
         /// call SaveMapExplorationStatus() or SaveMapExplorationStatus(partial) to persist.
@@ -429,9 +451,6 @@ namespace Turnroot.Gameplay.Brain
                 MapExplorationStatuses.Add(partial);
             }
         }
-
-        private string BuildExplorationPartialKey(string mapId) =>
-            $"{LtmKeys.ExploredPartial}.{mapId}";
 
         /// <summary>
         /// Persist all in-memory exploration partials to LTM. Use the single-argument overload to persist one.
@@ -544,10 +563,18 @@ namespace Turnroot.Gameplay.Brain
                 MapExplorationStatuses.Add(fallbackPartial);
             }
         }
+
+        private string BuildExplorationPartialKey(string mapId) =>
+            $"{LtmKeys.ExploredPartial}.{mapId}";
+
         #endregion
     }
 
-    // Serializable DTO for player roster saves
+    #region Data Transfer Objects
+
+    /// <summary>
+    /// Serializable DTO for player roster saves.
+    /// </summary>
     [System.Serializable]
     public class PlayerRosterSaveData
     {
@@ -555,4 +582,6 @@ namespace Turnroot.Gameplay.Brain
         public Characters.Roster.UnitPlacement[] Placements;
         public CharacterInstance[] CharacterInstances;
     }
+
+    #endregion
 }

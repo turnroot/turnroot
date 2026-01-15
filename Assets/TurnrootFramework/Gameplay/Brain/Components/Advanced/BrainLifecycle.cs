@@ -1,15 +1,8 @@
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using Turnroot.Characters;
-using Turnroot.Characters.Components.Support;
 using Turnroot.Conversations;
-using Turnroot.Gameplay.Combat;
-using Turnroot.Gameplay.Objects;
 using Turnroot.Utilities;
 using TurnrootFramework.Gameplay.Brain.Segments;
 using UnityEngine;
-using static Turnroot.Characters.CharacterInstance;
 
 namespace Turnroot.Gameplay.Brain
 {
@@ -37,6 +30,7 @@ namespace Turnroot.Gameplay.Brain
             cameraBrain = GetComponent<CameraBrain>();
             cursorBrain = GetComponent<CursorBrain>();
             positioningInputControllerBrain = GetComponent<PositioningInputController>();
+            unitAppearanceBrain = GetComponent<UnitAppearanceBrain>();
 
             // Find all DynamicSceneFlows in other scenes and set their .brain to this
             var allSceneFlows = FindObjectsByType<DynamicSceneFlow>(FindObjectsSortMode.None);

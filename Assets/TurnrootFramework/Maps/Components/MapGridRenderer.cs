@@ -10,14 +10,49 @@ using System.Linq;
 /// </summary>
 public class MapGridRenderer
 {
-    private const int CELL_SIZE = 32; // Size of each cell in pixels
-    private const string ICON_PATH = "EditorSettings/MapGridEditorIcons/";
+    // These values are configurable via GamewideUiSettings (Map Rendering)
+    private int _cellSize = 32; // Default fallback
+    private string _iconPath = "EditorSettings/MapGridEditorIcons/"; // Resources-relative path
 
-    private readonly Color GRID_LINE_COLOR = new Color(0.3f, 0.3f, 0.3f, 1f);
-    private readonly Color BLACK_CELL_COLOR = Color.black;
-    private readonly Color DARK_GRAY_TERRAIN_COLOR = new Color(0.3f, 0.3f, 0.3f, 1f); // For wall, deep water, mountain
-    private readonly Color LIGHT_GRAY_TERRAIN_COLOR = new Color(0.2f, 0.2f, 0.2f, 1f); // For tall wall, void
-    private readonly Color BLUE_SPAWN_COLOR = new Color(0.2f, 0.5f, 1f, 1f);
+    private Color _gridLineColor = new Color(0.3f, 0.3f, 0.3f, 1f);
+    private Color _blackCellColor = Color.black;
+    private Color _darkGrayTerrainColor = new Color(0.3f, 0.3f, 0.3f, 1f); // For wall, deep water, mountain
+    private Color _lightGrayTerrainColor = new Color(0.2f, 0.2f, 0.2f, 1f); // For tall wall, void
+    private Color _blueSpawnColor = new Color(0.2f, 0.5f, 1f, 1f);
+
+    private void InitializeFromSettings()
+    {
+        var settings =
+            Turnroot.Utilities.GameSettingsLoader.LoadFirst<Turnroot.GameSettings.GamewideUiSettings>(
+                "GameSettings"
+            );
+        if (settings == null)
+        {
+            return;
+        }
+
+        _cellSize = Mathf.Max(4, settings.GetMapCellSize());
+
+        var path = settings.GetMapIconPath() ?? string.Empty;
+        path = path.Trim();
+        if (path.Length == 0)
+        {
+            // Keep default
+        }
+        else
+        {
+            // Ensure trailing slash for Resource loading
+            if (!path.EndsWith("/"))
+                path += "/";
+            _iconPath = path;
+        }
+
+        _gridLineColor = settings.GetMapGridLineColor();
+        _blackCellColor = settings.GetMapBlackCellColor();
+        _darkGrayTerrainColor = settings.GetMapDarkGrayTerrainColor();
+        _lightGrayTerrainColor = settings.GetMapLightGrayTerrainColor();
+        _blueSpawnColor = settings.GetMapBlueSpawnColor();
+    }
 
     private readonly Dictionary<string, Texture2D> _iconCache = new();
 
@@ -69,6 +104,9 @@ public class MapGridRenderer
             Debug.LogError("MapGridRenderer: Cannot render null grid");
             return;
         }
+
+        // Load rendering overrides from settings
+        InitializeFromSettings();
 
         // Ensure grid points exist
         grid.EnsureGridPoints();
@@ -124,8 +162,8 @@ public class MapGridRenderer
     {
         // Get traversable area bounds
         var bounds = GetTraversableBounds(grid);
-        int width = bounds.width * CELL_SIZE;
-        int height = bounds.height * CELL_SIZE;
+        int width = bounds.width * _cellSize;
+        int height = bounds.height * _cellSize;
 
         Texture2D texture = new Texture2D(width, height, TextureFormat.RGBA32, false);
         texture.filterMode = FilterMode.Point; // Crisp pixel art style
@@ -148,7 +186,7 @@ public class MapGridRenderer
                 if (isSpawnPoint)
                 {
                     // Draw solid blue for spawn points
-                    DrawCell(texture, texRow, texCol, BLUE_SPAWN_COLOR);
+                    DrawCell(texture, texRow, texCol, _blueSpawnColor);
                 }
                 else
                 {
@@ -181,8 +219,8 @@ public class MapGridRenderer
     {
         // Get traversable area bounds
         var bounds = GetTraversableBounds(grid);
-        int width = bounds.width * CELL_SIZE;
-        int height = bounds.height * CELL_SIZE;
+        int width = bounds.width * _cellSize;
+        int height = bounds.height * _cellSize;
 
         Texture2D texture = new Texture2D(width, height, TextureFormat.RGBA32, false);
         texture.filterMode = FilterMode.Point;
@@ -205,7 +243,7 @@ public class MapGridRenderer
                 if (isSpawnPoint)
                 {
                     // Draw solid blue for spawn points
-                    DrawCell(texture, texRow, texCol, BLUE_SPAWN_COLOR);
+                    DrawCell(texture, texRow, texCol, _blueSpawnColor);
                 }
                 else
                 {
@@ -240,8 +278,8 @@ public class MapGridRenderer
     {
         // Get traversable area bounds
         var bounds = GetTraversableBounds(grid);
-        int width = bounds.width * CELL_SIZE;
-        int height = bounds.height * CELL_SIZE;
+        int width = bounds.width * _cellSize;
+        int height = bounds.height * _cellSize;
 
         Texture2D texture = new Texture2D(width, height, TextureFormat.RGBA32, false);
         texture.filterMode = FilterMode.Point;
@@ -259,7 +297,7 @@ public class MapGridRenderer
                 bool isSpawnPoint = grid.PlayerTeamSpawnPoints.Contains(cellPos);
 
                 // Just black and blue spawn points - no features, no terrain differences
-                Color cellColor = isSpawnPoint ? BLUE_SPAWN_COLOR : BLACK_CELL_COLOR;
+                Color cellColor = isSpawnPoint ? _blueSpawnColor : _blackCellColor;
                 DrawCell(texture, texRow, texCol, cellColor);
 
                 // Draw grid lines
@@ -297,7 +335,7 @@ public class MapGridRenderer
     {
         if (point == null)
         {
-            return BLACK_CELL_COLOR;
+            return _blackCellColor;
         }
 
         TerrainType terrainType = terrainAsset?.GetTypeById(point.TerrainTypeId);
@@ -308,26 +346,27 @@ public class MapGridRenderer
 
         if (terrainType == null || string.IsNullOrEmpty(terrainType.Name))
         {
-            return BLACK_CELL_COLOR;
+            return _blackCellColor;
         }
 
         // Check for light gray terrains (20%)
         if (_lightGrayTerrainTypes.Contains(terrainType.Name))
         {
-            return LIGHT_GRAY_TERRAIN_COLOR;
+            return _lightGrayTerrainColor;
         }
 
         // Check for dark gray terrains (30%)
         if (_darkGrayTerrainTypes.Contains(terrainType.Name))
         {
-            return DARK_GRAY_TERRAIN_COLOR;
+            return _darkGrayTerrainColor;
         }
 
         // Default to black
-        return BLACK_CELL_COLOR;
+        return _blackCellColor;
     }
 
-    private bool ShouldSkipFeature(string featureTypeId) => !string.IsNullOrEmpty(featureTypeId) && _skipFeatureTypes.Contains(featureTypeId);
+    private bool ShouldSkipFeature(string featureTypeId) =>
+        !string.IsNullOrEmpty(featureTypeId) && _skipFeatureTypes.Contains(featureTypeId);
 
     private (
         int minRow,
@@ -382,12 +421,12 @@ public class MapGridRenderer
 
     private void DrawCell(Texture2D texture, int row, int col, Color color)
     {
-        int startX = row * CELL_SIZE;
-        int startY = col * CELL_SIZE;
+        int startX = row * _cellSize;
+        int startY = col * _cellSize;
 
-        for (int x = 0; x < CELL_SIZE; x++)
+        for (int x = 0; x < _cellSize; x++)
         {
-            for (int y = 0; y < CELL_SIZE; y++)
+            for (int y = 0; y < _cellSize; y++)
             {
                 texture.SetPixel(startX + x, startY + y, color);
             }
@@ -396,43 +435,43 @@ public class MapGridRenderer
 
     private void DrawGridLines(Texture2D texture, int row, int col, int gridWidth, int gridHeight)
     {
-        int startX = row * CELL_SIZE;
-        int startY = col * CELL_SIZE;
+        int startX = row * _cellSize;
+        int startY = col * _cellSize;
         int lineThickness = 1;
 
         // Always draw top edge
-        for (int x = 0; x < CELL_SIZE; x++)
+        for (int x = 0; x < _cellSize; x++)
         {
             for (int t = 0; t < lineThickness; t++)
             {
-                texture.SetPixel(startX + x, startY + t, GRID_LINE_COLOR);
+                texture.SetPixel(startX + x, startY + t, _gridLineColor);
             }
         }
 
         // Always draw left edge
-        for (int y = 0; y < CELL_SIZE; y++)
+        for (int y = 0; y < _cellSize; y++)
         {
             for (int t = 0; t < lineThickness; t++)
             {
-                texture.SetPixel(startX + t, startY + y, GRID_LINE_COLOR);
+                texture.SetPixel(startX + t, startY + y, _gridLineColor);
             }
         }
 
         // Always draw bottom edge
-        for (int x = 0; x < CELL_SIZE; x++)
+        for (int x = 0; x < _cellSize; x++)
         {
             for (int t = 0; t < lineThickness; t++)
             {
-                texture.SetPixel(startX + x, startY + CELL_SIZE - 1 - t, GRID_LINE_COLOR);
+                texture.SetPixel(startX + x, startY + _cellSize - 1 - t, _gridLineColor);
             }
         }
 
         // Always draw right edge
-        for (int y = 0; y < CELL_SIZE; y++)
+        for (int y = 0; y < _cellSize; y++)
         {
             for (int t = 0; t < lineThickness; t++)
             {
-                texture.SetPixel(startX + CELL_SIZE - 1 - t, startY + y, GRID_LINE_COLOR);
+                texture.SetPixel(startX + _cellSize - 1 - t, startY + y, _gridLineColor);
             }
         }
     }
@@ -451,12 +490,12 @@ public class MapGridRenderer
         if (icon != null)
         {
             // Draw the icon with the specified tint color
-            int startX = row * CELL_SIZE;
-            int startY = col * CELL_SIZE;
+            int startX = row * _cellSize;
+            int startY = col * _cellSize;
 
             // Scale icon to fit in cell with some padding
             int padding = 4;
-            int iconSize = CELL_SIZE - (padding * 2);
+            int iconSize = _cellSize - (padding * 2);
 
             for (int x = 0; x < iconSize; x++)
             {
@@ -487,9 +526,9 @@ public class MapGridRenderer
             }
             // For now, just draw a small square as placeholder
             // You could implement text rendering here if needed
-            int startX = row * CELL_SIZE + CELL_SIZE / 3;
-            int startY = col * CELL_SIZE + CELL_SIZE / 3;
-            int size = CELL_SIZE / 3;
+            int startX = row * _cellSize + _cellSize / 3;
+            int startY = col * _cellSize + _cellSize / 3;
+            int size = _cellSize / 3;
 
             for (int x = 0; x < size; x++)
             {
@@ -557,7 +596,7 @@ public class MapGridRenderer
         Texture2D tex = null;
         foreach (var variant in variants.Where(v => !string.IsNullOrEmpty(v)))
         {
-            string path = ICON_PATH + variant;
+            string path = _iconPath + variant;
             tex = Resources.Load<Texture2D>(path);
             if (tex != null)
             {
@@ -612,7 +651,7 @@ public class MapGridRenderer
         {
             importer.textureType = TextureImporterType.Sprite;
             importer.spriteImportMode = SpriteImportMode.Single;
-            importer.spritePixelsPerUnit = CELL_SIZE;
+            importer.spritePixelsPerUnit = _cellSize;
             importer.filterMode = FilterMode.Point;
             importer.textureCompression = TextureImporterCompression.Uncompressed;
             AssetDatabase.ImportAsset(assetPath, ImportAssetOptions.ForceUpdate);

@@ -26,6 +26,8 @@ GameObject:
   - component: {fileID: 3308389706091850478}
   - component: {fileID: 7598112156665871920}
   - component: {fileID: 4070221477181776680}
+  - component: {fileID: 624479621289483355}
+  - component: {fileID: 3417725110630260230}
   m_Layer: 0
   m_Name: = Brain
   m_TagString: DoNotModify
@@ -109,6 +111,8 @@ MonoBehaviour:
   audioBrain: {fileID: 0}
   cameraBrain: {fileID: 0}
   cursorBrain: {fileID: 0}
+  positioningInputControllerBrain: {fileID: 0}
+  unitAppearanceBrain: {fileID: 0}
   ltm: {fileID: 1338044930430952168}
 --- !u!114 &6714252794289964538
 MonoBehaviour:
@@ -290,6 +294,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4bd425956cf3d20459d7896dc2584fa3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  CursorOffset: {x: 0, y: 0, z: 0}
   CursorPosition: {fileID: 0}
   uiSettings: {fileID: 0}
 --- !u!114 &7598112156665871920
@@ -314,5 +319,29 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2f5fddd625117a54396ff70a38acfd31, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &624479621289483355
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7008609217747025589}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 513ec83bc0f10434ba06b39109179fa2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &3417725110630260230
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7008609217747025589}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7c8fd3db60fe88247a79eacb56b2ed7f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 

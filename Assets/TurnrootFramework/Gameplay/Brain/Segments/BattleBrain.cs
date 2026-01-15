@@ -8,24 +8,29 @@ using UnityEngine.SceneManagement;
 
 namespace Turnroot.Gameplay.Brain
 {
-    [RequireComponent(typeof(TurnRotisserie))]
-    [RequireComponent(typeof(PlayerTurnFlow))]
     /// <summary>
     /// The battle brain manages one battle at a time.
     /// Responsible for initializing battles and managing turn order.
     /// </summary>
+    [RequireComponent(typeof(TurnRotisserie))]
+    [RequireComponent(typeof(PlayerTurnFlow))]
     public partial class BattleBrain : BrainComponent
     {
+        #region Dependencies
+
         [SerializeField, HideInInspector]
         private PlayerTeamRoster _playerTeamRoster;
+
         private TurnRotisserie _turnRotisserie;
 
         [HideInInspector]
         public PlayerTurnFlow playerTurnFlow;
 
-        public CharacterInstance ActiveUnit => _turnRotisserie.GetActiveUnit();
-
         private BattleContextAIHelper _aiHelper;
+
+        #endregion
+
+        #region State
 
         public BattleGameObject BattleObject { get; private set; }
 
@@ -35,15 +40,25 @@ namespace Turnroot.Gameplay.Brain
         /// </summary>
         public Combat.PreBattle.BattlePreparationObject PreparationObject { get; private set; }
 
+        public CharacterInstance ActiveUnit => _turnRotisserie.GetActiveUnit();
+
+        #endregion
+
+        #region Roster Accessors
+
         // Roster accessors through BattleGameObject
         public PlayerTeamRosterInstance PlayerTeamRoster =>
             BattleObject != null ? BattleObject.PlayerTeamRoster : null;
+
         public GenericRosterInstance EnemyTeamRoster =>
             BattleObject != null ? BattleObject.EnemyTeamRoster : null;
+
         public GenericRosterInstance ThirdPartyTeamRoster =>
             BattleObject != null ? BattleObject.ThirdPartyTeamRoster : null;
 
-        // Roster lifecycle and character persistence are delegated to GamewideContextBrain
+        #endregion
+
+        #region Initialization
 
         protected override void Awake()
         {
@@ -76,18 +91,240 @@ namespace Turnroot.Gameplay.Brain
             _brain?.gamewideContextBrain?.GetOrCreatePlayerTeamRoster(_playerTeamRoster);
         }
 
+        #endregion
+
+        #region Battle Lifecycle
+
+        public void HandleStartBattle()
+        {
+#if UNITY_EDITOR
+            Debug.Log("BattleBrain: Handling StartBattle event");
+#endif
+
+            BattleObject = FindBattleGameObjectInScene();
+
+            if (BattleObject == null)
+            {
+#if UNITY_EDITOR
+                Debug.LogError("BattleBrain: No BattleGameObject found in any loaded scene!");
+#endif
+                return;
+            }
+
+            // Connect systems
+            BattleObject.Brain = _brain;
+            BattleObject.ConnectToBrainEvents();
+            BattleObject.ConnectBattleConditionsToContext();
+
+            // Invalidate cached unit positions
+            BattleObject.Context.InvalidateUnitPositionCache();
+
+#if UNITY_EDITOR
+            Debug.Log($"BattleBrain: Connected to BattleGameObject");
+#endif
+
+            // Initialize battle using roster system
+            InitializeBattleRosters();
+
+            // Clear last-attacked per-character so we start fresh for this battle
+            var allInstances = GetAllActiveInstances();
+            foreach (var inst in allInstances)
+            {
+                if (inst != null)
+                {
+                    inst.LastAttackedTarget = null;
+                    ClearLastAttacker(BattleObject?.Context, inst);
+                }
+            }
+
+            // Clear central last-attacker mapping in the context
+            BattleObject?.Context?.ClearLastAttackHistory();
+
+            // Initialize advanced systems (commands, snapshots)
+            // Clear any previous battle's command history
+            _brain.Commands?.Clear();
+            // Take initial snapshot of battle state
+            _brain.TakeSnapshot();
+
+#if UNITY_EDITOR
+            Debug.Log("BattleBrain: Battle initialization complete");
+#endif
+        }
+
+        private void HandleExitBattle(BattleExitType exitType)
+        {
+#if UNITY_EDITOR
+            Debug.Log($"BattleBrain: Handling ExitBattle event with type: {exitType}");
+#endif
+            if (exitType != BattleExitType.Bookmark)
+            {
+                _brain.Commands?.Clear();
+                _brain.Snapshots?.Clear();
+            }
+            _brain.battleBrain.BattleObject.ClearBattleRosters();
+
+            // Clear transient per-battle data on characters
+            var allInstances = GetAllActiveInstances();
+            foreach (var inst in allInstances)
+            {
+                if (inst != null)
+                {
+                    inst.LastAttackedTarget = null;
+                    ClearLastAttacker(BattleObject?.Context, inst);
+                }
+            }
+
+            // Clear central last-attacker mapping in the context
+            _brain?.battleBrain?.BattleObject?.Context?.ClearLastAttackHistory();
+#if UNITY_EDITOR
+            Debug.Log("BattleBrain: Battle cleanup complete");
+#endif
+        }
+
+        private BattleGameObject FindBattleGameObjectInScene()
+        {
+            for (int i = 0; i < SceneManager.sceneCount; i++)
+            {
+                Scene scene = SceneManager.GetSceneAt(i);
+                if (!scene.isLoaded)
+                {
+                    continue;
+                }
+
+                foreach (GameObject rootObject in scene.GetRootGameObjects())
+                {
+                    var battleObj = rootObject.GetComponentInChildren<BattleGameObject>();
+                    if (battleObj != null)
+                    {
+#if UNITY_EDITOR
+                        Debug.Log($"BattleBrain: Found BattleGameObject in scene '{scene.name}'");
+#endif
+                        return battleObj;
+                    }
+                }
+            }
+
+#if UNITY_EDITOR
+            Debug.LogWarning("BattleBrain: No BattleGameObject found in loaded scenes");
+#endif
+            return null;
+        }
+
+        #endregion
+
+        #region Battle Roster Initialization
+
+        private void InitializeBattleRosters()
+        {
+            // 1. Create empty runtime roster instances
+            BattleObject.InitializeBattleRosters();
+
+            // 2. Populate rosters from templates and persistent data
+            var result = BattleObject.PopulateBattleRostersFromTemplates();
+            if (!result.Success)
+            {
+#if UNITY_EDITOR
+                Debug.LogError($"Failed to populate battle rosters: {result.ErrorMessage}");
+#endif
+            }
+
+            SpawnRosterUnitsOntoGrid();
+
+            _aiHelper = new BattleContextAIHelper(BattleObject.Context);
+        }
+
+        private void SpawnRosterUnitsOntoGrid()
+        {
+            var enemyRoster = BattleObject.EnemyTeamRoster;
+            if (BattleObject.HasThirdParty)
+            {
+                var thirdPartyRoster = BattleObject.ThirdPartyTeamRoster;
+            }
+            var playerTeamRoster = BattleObject.PlayerTeamRoster;
+
+            // 1. Spawn enemy units (iterate runtime placements)
+            foreach (var p in enemyRoster.GetPlacements())
+            {
+                var characterData = p.CharacterData;
+                var characterInstance = enemyRoster.GetInstanceFor(characterData);
+                var placement = p;
+                BattleObject.Context.SpawnAtPosition(characterInstance, placement.SpawnPosition);
+                enemyRoster.SetOrder(characterData, placement.Order);
+            }
+
+            // 2. Spawn third-party units, if needed
+            if (BattleObject.HasThirdParty)
+            {
+                var thirdPartyRoster = BattleObject.ThirdPartyTeamRoster;
+                foreach (var p in thirdPartyRoster.GetPlacements())
+                {
+                    var characterData = p.CharacterData;
+                    var characterInstance = thirdPartyRoster.GetInstanceFor(characterData);
+                    var placement = p;
+                    BattleObject.Context.SpawnAtPosition(
+                        characterInstance,
+                        placement.SpawnPosition
+                    );
+                    thirdPartyRoster.SetOrder(characterData, placement.Order);
+                }
+            }
+
+            // 3. Spawn player team units
+            foreach (var p in playerTeamRoster.GetPlacements())
+            {
+                var characterData = p.CharacterData;
+                var characterInstance = playerTeamRoster.GetInstanceFor(characterData);
+                var placement = p;
+                BattleObject.Context.SpawnAtPosition(characterInstance, placement.SpawnPosition);
+                playerTeamRoster.SetOrder(characterData, placement.Order);
+            }
+
+            BattleObject.Context.InvalidateUnitPositionCache();
+        }
+
+        #endregion
+
+        #region Turn Management
+
+        public void ProgressTurnOrder()
+        {
+            if (!_turnRotisserie.Progress())
+            {
+#if UNITY_EDITOR
+                Debug.LogError("BattleBrain: Failed to progress turn order!");
+#endif
+                Debug.Break();
+            }
+        }
+
+        private void HandleTurnEndStatusEffects()
+        {
+            var allInstances = GetAllActiveInstances();
+            foreach (var inst in allInstances)
+            {
+                if (inst == null)
+                {
+                    continue;
+                }
+
+                var expired = inst.TickStatusEffects();
+                foreach (var e in expired)
+                {
+                    _brain?.PublishStatusEffectExpired(inst, e);
+                }
+            }
+        }
+
+        #endregion
+
         #region Roster Management API
+
+        // Roster lifecycle and character persistence are delegated to GamewideContextBrain
 
         public GenericRosterInstance InstantiateGenericRoster(
             GenericRoster roster,
             bool register = false
         ) => _brain?.gamewideContextBrain?.GetOrCreateGenericRoster(roster, register);
-
-        public CharacterInstance FindInstanceByTemplate(CharacterData template) =>
-            _brain?.gamewideContextBrain?.FindInstanceByTemplate(template);
-
-        public List<CharacterInstance> GetAllActiveInstances() =>
-            _brain?.gamewideContextBrain?.GetAllActiveInstances();
 
         public PlayerTeamRosterInstance InstantiatePlayerTeamRoster() =>
             _brain?.gamewideContextBrain?.GetOrCreatePlayerTeamRoster(_playerTeamRoster);
@@ -95,12 +332,100 @@ namespace Turnroot.Gameplay.Brain
         public void RecallGenericRosters(List<GenericRoster> rosters) =>
             _brain?.gamewideContextBrain?.RecallGenericRosters(rosters);
 
+        public CharacterInstance FindInstanceByTemplate(CharacterData template) =>
+            _brain?.gamewideContextBrain?.FindInstanceByTemplate(template);
+
+        public List<CharacterInstance> GetAllActiveInstances() =>
+            _brain?.gamewideContextBrain?.GetAllActiveInstances();
+
         public void SaveUniqueCharacterProgress(CharacterInstance instance) =>
             _brain?.gamewideContextBrain?.SaveUniqueCharacterProgress(instance);
 
         #endregion
 
-        #region Status Effect & Last-Attacker API
+        #region Unit Movement
+
+        /// <summary>
+        /// Internal helper to move a unit on the grid and publish movement events.
+        /// This should only be called by command implementations (e.g., MoveCommand) so that movement is undoable/redoable.
+        /// Use <see cref="Turnroot.Gameplay.Combat.FundamentalComponents.Battles.BattleContext.MoveUnitToPoint"/> to perform a commanded move.
+        /// </summary>
+        internal bool MoveUnit(CharacterInstance unit, Vector2Int target, MapGrid mapGrid)
+        {
+            if (unit == null || mapGrid == null)
+            {
+                return false;
+            }
+
+            var from = unit.MapGridPosition;
+            var oldPoint = unit.UnitPositionToMapGridPoint(from, mapGrid);
+            var result = unit.MoveToPosition(target, mapGrid);
+            if (result.Success)
+            {
+                var newPoint = unit.UnitPositionToMapGridPoint(target, mapGrid);
+                mapGrid.RemoveOccupied(oldPoint);
+                mapGrid.SetOccupied(newPoint, unit);
+                unit.MapGridPosition = target;
+                // publish both simple event and the advanced UnitMovedEvent for subscribers
+                _brain?.PublishCharacterMoveCompleted(unit, newPoint);
+                _brain?.PublishUnitMoved(unit, target);
+                _brain?.Publish(new Events.UnitMovedEvent(unit, from, target));
+            }
+            return result.Success;
+        }
+
+        #endregion
+
+        #region Status Effect Management
+
+        /// <summary>
+        /// Apply a status effect to a character via the BattleBrain so events are published consistently.
+        /// </summary>
+        public Characters.StatusEffects.StatusEffectInstance ApplyStatusEffect(
+            CharacterInstance character,
+            Characters.StatusEffects.StatusEffectType effectType,
+            string sourceCharacterId = null,
+            string sourceSkillId = null,
+            int? duration = null,
+            float intensity = 1f
+        )
+        {
+            if (character == null || effectType == null)
+            {
+                return null;
+            }
+
+            var previous = character.GetActiveStatusEffects().Find(e => e.EffectType == effectType);
+            var prevStacks = previous?.CurrentStacks ?? 0;
+
+            var result = character.ApplyStatusEffect(
+                effectType,
+                sourceCharacterId,
+                sourceSkillId,
+                duration,
+                intensity
+            );
+            if (result == null)
+            {
+                return null;
+            }
+
+            if (previous == null)
+            {
+                _brain?.PublishStatusEffectApplied(character, result);
+            }
+            else if (result.CurrentStacks > prevStacks)
+            {
+                _brain?.PublishStatusEffectStacked(character, result);
+            }
+            else
+            {
+                // Refreshed or updated duration without stacking
+                _brain?.PublishStatusEffectApplied(character, result);
+            }
+
+            return result;
+        }
 
         public bool RemoveStatusEffect(
             CharacterInstance character,
@@ -193,6 +518,10 @@ namespace Turnroot.Gameplay.Brain
             _brain?.PublishAllStatusEffectsCleared(character);
         }
 
+        #endregion
+
+        #region Last Attacker Management
+
         public void SetLastAttacker(
             BattleContext context,
             CharacterInstance target,
@@ -230,302 +559,12 @@ namespace Turnroot.Gameplay.Brain
 
         #endregion
 
-        private void HandleTurnEndStatusEffects()
-        {
-            var allInstances = GetAllActiveInstances();
-            foreach (var inst in allInstances)
-            {
-                if (inst == null)
-                {
-                    continue;
-                }
-
-                var expired = inst.TickStatusEffects();
-                foreach (var e in expired)
-                {
-                    _brain?.PublishStatusEffectExpired(inst, e);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Apply a status effect to a character via the BattleBrain so events are published consistently.
-        /// </summary>
-        public Characters.StatusEffects.StatusEffectInstance ApplyStatusEffect(
-            CharacterInstance character,
-            Characters.StatusEffects.StatusEffectType effectType,
-            string sourceCharacterId = null,
-            string sourceSkillId = null,
-            int? duration = null,
-            float intensity = 1f
-        )
-        {
-            if (character == null || effectType == null)
-            {
-                return null;
-            }
-
-            var previous = character.GetActiveStatusEffects().Find(e => e.EffectType == effectType);
-            var prevStacks = previous?.CurrentStacks ?? 0;
-
-            var result = character.ApplyStatusEffect(
-                effectType,
-                sourceCharacterId,
-                sourceSkillId,
-                duration,
-                intensity
-            );
-            if (result == null)
-            {
-                return null;
-            }
-
-            if (previous == null)
-            {
-                _brain?.PublishStatusEffectApplied(character, result);
-            }
-            else if (result.CurrentStacks > prevStacks)
-            {
-                _brain?.PublishStatusEffectStacked(character, result);
-            }
-            else
-            {
-                // Refreshed or updated duration without stacking
-                _brain?.PublishStatusEffectApplied(character, result);
-            }
-
-            return result;
-        }
-
-        /// <summary>
-        /// Internal helper to move a unit on the grid and publish movement events.
-        /// This should only be called by command implementations (e.g., MoveCommand) so that movement is undoable/redoable.
-        /// Use <see cref="Turnroot.Gameplay.Combat.FundamentalComponents.Battles.BattleContext.MoveUnitToPoint"/> to perform a commanded move.
-        /// </summary>
-        internal bool MoveUnit(CharacterInstance unit, Vector2Int target, MapGrid mapGrid)
-        {
-            if (unit == null || mapGrid == null)
-            {
-                return false;
-            }
-
-            var from = unit.MapGridPosition;
-            var oldPoint = unit.UnitPositionToMapGridPoint(from, mapGrid);
-            var result = unit.MoveToPosition(target, mapGrid);
-            if (result.Success)
-            {
-                var newPoint = unit.UnitPositionToMapGridPoint(target, mapGrid);
-                mapGrid.RemoveOccupied(oldPoint);
-                mapGrid.SetOccupied(newPoint, unit);
-                unit.MapGridPosition = target;
-                // publish both simple event and the advanced UnitMovedEvent for subscribers
-                _brain?.PublishCharacterMoveCompleted(unit, newPoint);
-                _brain?.PublishUnitMoved(unit, target);
-                _brain?.Publish(new Events.UnitMovedEvent(unit, from, target));
-            }
-            return result.Success;
-        }
-
-        public void ProgressTurnOrder()
-        {
-            if (!_turnRotisserie.Progress())
-            {
-#if UNITY_EDITOR
-                Debug.LogError("BattleBrain: Failed to progress turn order!");
-#endif
-                Debug.Break();
-            }
-        }
+        #region AI Management
 
         /// <summary>
         /// Clears AI helper's reusable caches (move/attack tiles) and reachability caches.
         /// </summary>
         public void ClearAICache() => _aiHelper?.InvalidateAllCaches();
-
-        #region Battle Initialization
-
-        public void HandleStartBattle()
-        {
-#if UNITY_EDITOR
-            Debug.Log("BattleBrain: Handling StartBattle event");
-#endif
-
-            BattleObject = FindBattleGameObjectInScene();
-
-            if (BattleObject == null)
-            {
-#if UNITY_EDITOR
-                Debug.LogError("BattleBrain: No BattleGameObject found in any loaded scene!");
-#endif
-                return;
-            }
-
-            // Connect systems
-            BattleObject.Brain = _brain;
-            BattleObject.ConnectToBrainEvents();
-            BattleObject.ConnectBattleConditionsToContext();
-
-            // Invalidate cached unit positions
-            BattleObject.Context.InvalidateUnitPositionCache();
-
-#if UNITY_EDITOR
-            Debug.Log($"BattleBrain: Connected to BattleGameObject");
-#endif
-
-            // Initialize battle using roster system
-            InitializeBattleRosters();
-
-            // Clear last-attacked per-character so we start fresh for this battle
-            var allInstances = GetAllActiveInstances();
-            foreach (var inst in allInstances)
-            {
-                if (inst != null)
-                {
-                    inst.LastAttackedTarget = null;
-                    ClearLastAttacker(BattleObject?.Context, inst);
-                }
-            }
-
-            // Clear central last-attacker mapping in the context
-            BattleObject?.Context?.ClearLastAttackHistory();
-
-            // Initialize advanced systems (commands, snapshots)
-            // Clear any previous battle's command history
-            _brain.Commands?.Clear();
-            // Take initial snapshot of battle state
-            _brain.TakeSnapshot();
-
-#if UNITY_EDITOR
-            Debug.Log("BattleBrain: Battle initialization complete");
-#endif
-        }
-
-        private BattleGameObject FindBattleGameObjectInScene()
-        {
-            for (int i = 0; i < SceneManager.sceneCount; i++)
-            {
-                Scene scene = SceneManager.GetSceneAt(i);
-                if (!scene.isLoaded)
-                {
-                    continue;
-                }
-
-                foreach (GameObject rootObject in scene.GetRootGameObjects())
-                {
-                    var battleObj = rootObject.GetComponentInChildren<BattleGameObject>();
-                    if (battleObj != null)
-                    {
-#if UNITY_EDITOR
-                        Debug.Log($"BattleBrain: Found BattleGameObject in scene '{scene.name}'");
-#endif
-                        return battleObj;
-                    }
-                }
-            }
-
-#if UNITY_EDITOR
-            Debug.LogWarning("BattleBrain: No BattleGameObject found in loaded scenes");
-#endif
-            return null;
-        }
-
-        private void InitializeBattleRosters()
-        {
-            // 1. Create empty runtime roster instances
-            BattleObject.InitializeBattleRosters();
-
-            // 2. Populate rosters from templates and persistent data
-            var result = BattleObject.PopulateBattleRostersFromTemplates();
-            if (!result.Success)
-            {
-#if UNITY_EDITOR
-                Debug.LogError($"Failed to populate battle rosters: {result.ErrorMessage}");
-#endif
-            }
-
-            SpawnRosterUnitsOntoGrid();
-
-            _aiHelper = new BattleContextAIHelper(BattleObject.Context);
-        }
-
-        private void SpawnRosterUnitsOntoGrid()
-        {
-            var enemyRoster = BattleObject.EnemyTeamRoster;
-            if (BattleObject.HasThirdParty)
-            {
-                var thirdPartyRoster = BattleObject.ThirdPartyTeamRoster;
-            }
-            var playerTeamRoster = BattleObject.PlayerTeamRoster;
-            // 1. Spawn enemy units (iterate runtime placements)
-            foreach (var p in enemyRoster.GetPlacements())
-            {
-                var characterData = p.CharacterData;
-                var characterInstance = enemyRoster.GetInstanceFor(characterData);
-                var placement = p;
-                BattleObject.Context.SpawnAtPosition(characterInstance, placement.SpawnPosition);
-                enemyRoster.SetOrder(characterData, placement.Order);
-            }
-            // 2. Spawn third-party units, if needed
-            if (BattleObject.HasThirdParty)
-            {
-                var thirdPartyRoster = BattleObject.ThirdPartyTeamRoster;
-                foreach (var p in thirdPartyRoster.GetPlacements())
-                {
-                    var characterData = p.CharacterData;
-                    var characterInstance = thirdPartyRoster.GetInstanceFor(characterData);
-                    var placement = p;
-                    BattleObject.Context.SpawnAtPosition(
-                        characterInstance,
-                        placement.SpawnPosition
-                    );
-                    thirdPartyRoster.SetOrder(characterData, placement.Order);
-                }
-            }
-            // 3. Spawn player team units
-            foreach (var p in playerTeamRoster.GetPlacements())
-            {
-                var characterData = p.CharacterData;
-                var characterInstance = playerTeamRoster.GetInstanceFor(characterData);
-                var placement = p;
-                BattleObject.Context.SpawnAtPosition(characterInstance, placement.SpawnPosition);
-                playerTeamRoster.SetOrder(characterData, placement.Order);
-            }
-            BattleObject.Context.InvalidateUnitPositionCache();
-        }
-
-        #endregion
-
-        #region Battle Cleanup
-
-        private void HandleExitBattle(BattleExitType exitType)
-        {
-#if UNITY_EDITOR
-            Debug.Log($"BattleBrain: Handling ExitBattle event with type: {exitType}");
-#endif
-            if (exitType != BattleExitType.Bookmark)
-            {
-                _brain.Commands?.Clear();
-                _brain.Snapshots?.Clear();
-            }
-            _brain.battleBrain.BattleObject.ClearBattleRosters();
-
-            // Clear transient per-battle data on characters
-            var allInstances = GetAllActiveInstances();
-            foreach (var inst in allInstances)
-            {
-                if (inst != null)
-                {
-                    inst.LastAttackedTarget = null;
-                    ClearLastAttacker(BattleObject?.Context, inst);
-                }
-            }
-
-            // Clear central last-attacker mapping in the context
-            _brain?.battleBrain?.BattleObject?.Context?.ClearLastAttackHistory();
-#if UNITY_EDITOR
-            Debug.Log("BattleBrain: Battle cleanup complete");
-#endif
-        }
 
         #endregion
     }
