@@ -355,7 +355,6 @@ namespace Turnroot.Characters.CharacterClass
 
         #endregion
 
-#if UNITY_EDITOR
         /// <summary>
         /// Validate that the class visual assets (mesh or prefab) include the required blendshapes.
         /// </summary>
@@ -364,7 +363,7 @@ namespace Turnroot.Characters.CharacterClass
             if (Identity == null)
                 return;
 
-n            // Required blendshape names must match CharacterModelBlendshapeSet.BlendshapeNames
+            // Required blendshape names must match CharacterModelBlendshapeSet.BlendshapeNames
             var required = new string[]
             {
                 "ChestSize",
@@ -375,16 +374,16 @@ n            // Required blendshape names must match CharacterModelBlendshapeSet
                 "NeckThickness",
             };
 
-n            // Helper to validate a mesh for required blendshapes
-            void ValidateMesh(UnityEngine.Mesh mesh, string source)
+            // Helper to validate a mesh for required blendshapes. Returns list of missing blendshape names (empty => ok)
+            List<string> ValidateMesh(UnityEngine.Mesh mesh, string source)
             {
+                var missing = new List<string>();
                 if (mesh == null)
                 {
                     Debug.LogError($"{name}: {source} has no mesh assigned.");
-                    return;
+                    return missing;
                 }
 
-n                var missing = new List<string>();
                 foreach (var b in required)
                 {
                     if (mesh.GetBlendShapeIndex(b) < 0)
@@ -393,29 +392,41 @@ n                var missing = new List<string>();
                     }
                 }
 
-n                if (missing.Count > 0)
+                if (missing.Count > 0)
                 {
-                    Debug.LogError($"{name}: {source} is missing blendshapes: {string.Join(", ", missing)}");
+                    Debug.LogError(
+                        $"{name}: {source} is missing blendshapes: {string.Join(", ", missing)}"
+                    );
                 }
+                return missing;
             }
 
-n            // Validate Mesh if assigned (legacy)
-            if (Identity.ClassOutfit != null)
-            {
-                ValidateMesh(Identity.ClassOutfit, nameof(Identity.ClassOutfit));
-            }
-
-n            // Validate prefab if assigned (prefab should contain a SkinnedMeshRenderer)
+            // Validate prefab if assigned (prefab should contain a SkinnedMeshRenderer)
             if (Identity.ClassModelPrefab != null)
             {
-                var smr = Identity.ClassModelPrefab.GetComponentInChildren<SkinnedMeshRenderer>(true);
+                var prefab = Identity.ClassModelPrefab;
+                var smr = prefab.GetComponentInChildren<SkinnedMeshRenderer>(true);
                 if (smr == null)
                 {
-                    Debug.LogError($"{name}: ClassModelPrefab '{Identity.ClassModelPrefab.name}' does not contain a SkinnedMeshRenderer.");
+                    Debug.LogError(
+                        $"{name}: ClassModelPrefab '{prefab.name}' does not contain a SkinnedMeshRenderer. Clearing assignment."
+                    );
+                    UnityEditor.Undo.RecordObject(this, "Clear invalid ClassModelPrefab");
+                    Identity.ClassModelPrefab = null;
+                    UnityEditor.EditorUtility.SetDirty(this);
                 }
                 else
                 {
-                    ValidateMesh(smr.sharedMesh, $"ClassModelPrefab '{Identity.ClassModelPrefab.name}'");
+                    var missing = ValidateMesh(smr.sharedMesh, $"ClassModelPrefab '{prefab.name}'");
+                    if (missing.Count > 0)
+                    {
+                        Debug.LogError(
+                            $"{name}: ClassModelPrefab '{prefab.name}' is missing required blendshapes. Clearing assignment."
+                        );
+                        UnityEditor.Undo.RecordObject(this, "Clear invalid ClassModelPrefab");
+                        Identity.ClassModelPrefab = null;
+                        UnityEditor.EditorUtility.SetDirty(this);
+                    }
                 }
             }
         }

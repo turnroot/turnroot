@@ -181,5 +181,135 @@ namespace Turnroot.Gameplay.Brain
 
             return list.Distinct();
         }
+
+        public GameObject CreateModelForUnit(CharacterInstance unit)
+        {
+            // Create a parent container for the complete character
+            var characterRoot = new GameObject($"{unit.CharacterTemplate.DisplayName}_Root");
+
+            // === PART 1: Body/Outfit Mesh ===
+            GameObject outfitObject = null;
+            SkinnedMeshRenderer outfitRenderer = null;
+
+            // Priority 1: Use class-specific prefab if available
+            var classInstance = unit.GetCurrentClass();
+            if (classInstance?.ClassData?.Identity?.ClassModelPrefab != null)
+            {
+                outfitObject = Instantiate(
+                    classInstance.ClassData.Identity.ClassModelPrefab,
+                    characterRoot.transform
+                );
+                outfitObject.name = "ClassOutfit";
+                outfitRenderer = outfitObject.GetComponentInChildren<SkinnedMeshRenderer>();
+            }
+            // Priority 2: Use character's default model
+            else if (unit.CharacterTemplate.CharacterDefaultModel != null)
+            {
+                outfitObject = new GameObject("DefaultOutfit");
+                outfitObject.transform.SetParent(characterRoot.transform);
+                outfitRenderer = outfitObject.AddComponent<SkinnedMeshRenderer>();
+
+                var sourceRenderer = unit.CharacterTemplate.CharacterDefaultModel;
+                outfitRenderer.sharedMesh = sourceRenderer.sharedMesh;
+                outfitRenderer.rootBone = sourceRenderer.rootBone;
+                outfitRenderer.bones = sourceRenderer.bones;
+            }
+
+            // === PART 2: Head/Hands/Hair Mesh ===
+            GameObject headObject = null;
+            SkinnedMeshRenderer headRenderer = null;
+
+            if (unit.CharacterTemplate.CharacterHeadHandsAndHair != null)
+            {
+                headObject = new GameObject("HeadHandsHair");
+                headObject.transform.SetParent(characterRoot.transform);
+                headRenderer = headObject.AddComponent<SkinnedMeshRenderer>();
+
+                var sourceRenderer = unit.CharacterTemplate.CharacterHeadHandsAndHair;
+                headRenderer.sharedMesh = sourceRenderer.sharedMesh;
+                headRenderer.rootBone = sourceRenderer.rootBone;
+                headRenderer.bones = sourceRenderer.bones;
+            }
+
+            // === PART 3: Set the primary renderer on the unit ===
+            // The "main" renderer is the outfit renderer - UnitAppearanceBrain uses this as the primary reference
+            if (outfitRenderer != null)
+            {
+                unit.SetRenderer(outfitRenderer);
+            }
+            else if (headRenderer != null)
+            {
+                // Fallback: if somehow there's no outfit but there's a head
+                unit.SetRenderer(headRenderer);
+            }
+            else
+            {
+                // No renderers at all - create placeholder
+                Debug.LogWarning(
+                    $"No renderers found for {unit.CharacterTemplate.DisplayName}, creating placeholder"
+                );
+                var placeholder = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                placeholder.transform.SetParent(characterRoot.transform);
+                placeholder.transform.localScale = Vector3.one * 0.5f;
+                placeholder.GetComponent<Renderer>().material.color =
+                    unit.CharacterTemplate.AccentColor1;
+            }
+
+            return characterRoot;
+        }
+
+        public OperationResult SpawnUnitModelOnGrid(
+            Vector2Int position,
+            CharacterInstance unit,
+            Dictionary<Vector2Int, GameObject> _unitModels,
+            bool prebattle = false
+        )
+        {
+            // TODO: Add brain events
+            if (unit == null)
+            {
+                return OperationResult.Failure("Unit is null");
+            }
+
+            // Clean up existing model at this position
+            if (_unitModels.TryGetValue(position, out var oldModel))
+            {
+                Destroy(oldModel);
+                _unitModels.Remove(position);
+            }
+
+            // Determine which prefab/mesh to instantiate
+            GameObject modelInstance = CreateModelForUnit(unit);
+
+            if (modelInstance == null)
+            {
+                return OperationResult.Failure("Failed to create model instance");
+            }
+
+            var worldPos = Vector3.zero;
+
+            // Position the model
+            worldPos = prebattle
+                ? _brain.battleBrain.PreparationObject.MapGrid.GetTerrainAdjustedWorldPosition(
+                    position
+                )
+                : _brain.battleBrain.BattleObject.MapGrid.GetTerrainAdjustedWorldPosition(position);
+
+            modelInstance.transform.SetPositionAndRotation(worldPos, Quaternion.identity);
+            modelInstance.name =
+                $"{unit.CharacterTemplate.DisplayName}_Model_{position.x}_{position.y}";
+
+            // Get the SkinnedMeshRenderer and set it on the unit
+            var renderer = modelInstance.GetComponentInChildren<SkinnedMeshRenderer>();
+            if (renderer != null)
+            {
+                unit.SetRenderer(renderer);
+                GetUnitOutfitMaterial(unit);
+                SetBlendshapes(unit);
+            }
+
+            _unitModels[position] = modelInstance;
+            return OperationResult.SuccessResult();
+        }
     }
 }

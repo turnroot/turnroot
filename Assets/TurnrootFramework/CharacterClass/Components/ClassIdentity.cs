@@ -11,10 +11,7 @@ namespace Turnroot.Characters.CharacterClass
     public class ClassIdentity
     {
         [Header("Visuals")]
-        [Tooltip("3D mesh outfit for this class (legacy). Prefer assigning a prefab with a SkinnedMeshRenderer in 'Class Model Prefab'.")]
-        public Mesh ClassOutfit;
-
-        [Tooltip("Optional prefab containing a SkinnedMeshRenderer for this class outfit (recommended)")]
+        [Tooltip("Prefab containing a SkinnedMeshRenderer for this class outfit (required)")]
         public GameObject ClassModelPrefab;
 
         [Tooltip("Shader used for rendering")]
@@ -56,7 +53,8 @@ namespace Turnroot.Characters.CharacterClass
         [Tooltip("Movement type for this class")]
         public MovementType MovementType = MovementType.Infantry;
 
-        public bool HasRequiredVisuals() => ClassOutfit != null && !string.IsNullOrEmpty(ClassName);
+        public bool HasRequiredVisuals() =>
+            ClassModelPrefab != null && !string.IsNullOrEmpty(ClassName);
 
         public string GetTierDisplayName()
         {

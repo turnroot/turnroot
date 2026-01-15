@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Turnroot.Characters;
 using Turnroot.Gameplay.Combat.PreBattle;
 using Turnroot.Utilities;
 using UnityEngine;
@@ -15,6 +16,9 @@ namespace Turnroot.UI.Components
         public GameObject SwapGraphic;
         public UnitCellDataOnly SwapUnit;
         private MapGrid mapGrid;
+        private Dictionary<Vector2Int, GameObject> _unitModels = new();
+
+        private BattlePreparationObject _prepObject;
 
         public OperationResult Initialize(BattlePreparationObject battlePreparationObject)
         {
@@ -39,6 +43,23 @@ namespace Turnroot.UI.Components
             SwapGraphic.SetActive(false);
             SelectedUnit.gameObject.SetActive(false);
             SwapUnit.gameObject.SetActive(false);
+
+            // Store reference to prep object before spawning models so SpawnAllUnitModels can access placements.
+            _prepObject = battlePreparationObject;
+
+            // If placements were not initialized yet, attempt to initialize them now.
+            if (_prepObject.placements == null || _prepObject.placements.Count == 0)
+            {
+                var initResult = _prepObject.InitializePlacements();
+                if (!initResult.Success)
+                {
+                    Debug.LogWarning(
+                        $"StartingPositions.Initialize: InitializePlacements failed: {initResult.ErrorMessage}"
+                    );
+                }
+            }
+
+            SpawnAllUnitModels();
             return OperationResult.SuccessResult();
         }
 
@@ -150,6 +171,27 @@ namespace Turnroot.UI.Components
                 // No UIFade present, disable immediately
                 go.SetActive(false);
                 yield break;
+            }
+        }
+
+        /* ------------------------------ Spawn models ------------------------------ */
+        private void SpawnAllUnitModels()
+        {
+            Debug.Log("Starting SpawnAllUnitModels");
+            if (_prepObject?.placements == null)
+            {
+                Debug.Log("No placements found, aborting SpawnAllUnitModels");
+                return;
+            }
+
+            foreach (var placement in _prepObject.placements)
+            {
+                Debug.Log($"Spawning unit model for {placement.Key} at {placement.Value}");
+                _prepObject.Brain.unitAppearanceBrain.SpawnUnitModelOnGrid(
+                    placement.Key,
+                    placement.Value,
+                    _unitModels
+                );
             }
         }
     }
