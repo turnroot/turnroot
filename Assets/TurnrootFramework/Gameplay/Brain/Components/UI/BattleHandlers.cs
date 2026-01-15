@@ -5,11 +5,6 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
 {
     public partial class UiBrain : BrainComponent
     {
-        #region Battle Cursor Event Handlers
-        public GameObject BattleCursorPrefab => uiSettings.BattleCursorPrefab;
-        private bool _battleCursorInitialized = false;
-        private GameObject _battleCursorInstance;
-
         public void HandleBattleUi()
         {
 #if UNITY_EDITOR
@@ -18,45 +13,5 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             // Battle UI initialization logic will be added here
             // For now, just log that we're in battle state
         }
-
-        public void InitializeBattleCursor()
-        {
-            if (_battleCursorInstance == null)
-            {
-                _battleCursorInstance = Instantiate(BattleCursorPrefab);
-                _battleCursorInstance.name = "BattleCursor";
-                var mapGridScale = _brain.battleBrain.BattleObject.Context.mapGrid.GridScale;
-                var scaleFactor = mapGridScale / 10f;
-                _battleCursorInstance.transform.localScale = new Vector3(
-                    scaleFactor,
-                    scaleFactor,
-                    scaleFactor
-                );
-            }
-        }
-
-        public void HandleBattleCursorMoved(Vector2Int newPosition)
-        {
-            if (!_battleCursorInitialized)
-            {
-                InitializeBattleCursor();
-                _battleCursorInitialized = true;
-            }
-
-            if (_battleCursorInstance == null)
-            {
-                return;
-            }
-
-            var mapGrid = _brain.battleBrain.BattleObject.Context.mapGrid;
-            if (mapGrid == null)
-            {
-                return;
-            }
-
-            var worldPosition = mapGrid.GetTerrainAdjustedWorldPosition(newPosition);
-            _battleCursorInstance.transform.position = worldPosition + new Vector3(0, 1f, -2f); // Slightly above the ground
-        }
-        #endregion
     }
 }

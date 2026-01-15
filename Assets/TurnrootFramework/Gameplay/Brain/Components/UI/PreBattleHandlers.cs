@@ -151,7 +151,7 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             uiFade.Hide();
 
             // Wait for fade duration (plus a small buffer) - use lerpTime property
-            var fadeDuration = uiFade.lerpTime + 0.1f;
+            var fadeDuration = uiFade.lerpTime + (uiSettings?.MenuFadeBuffer ?? 0.1f);
             yield return new WaitForSeconds(fadeDuration);
 
             // Clean up menu
@@ -192,7 +192,7 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             uiFade.Hide();
 
             // Wait for fade duration (plus a small buffer) - use lerpTime property
-            var fadeDuration = uiFade.lerpTime + 0.1f;
+            var fadeDuration = uiFade.lerpTime + (uiSettings?.MenuFadeBuffer ?? 0.1f);
             yield return new WaitForSeconds(fadeDuration);
 
             // Clean up menu

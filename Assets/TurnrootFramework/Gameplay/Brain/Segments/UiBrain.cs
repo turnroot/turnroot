@@ -304,7 +304,6 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
 
         protected override void SubscribeToBrainEvents()
         {
-            Brain.OnBattleCursorMoved += HandleBattleCursorMoved;
             _onStateChangedHandler = (state) =>
             {
                 var name = state?.Name ?? string.Empty;
@@ -343,7 +342,6 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
 
         protected override void UnsubscribeFromBrainEvents()
         {
-            Brain.OnBattleCursorMoved -= HandleBattleCursorMoved;
             Brain.OnPositioningModeEntered -= HandlePositioningModeEntered;
             Brain.OnPositioningModeExited -= HandlePositioningModeExited;
 

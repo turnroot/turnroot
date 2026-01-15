@@ -42,6 +42,7 @@ namespace Turnroot.Gameplay.Brain
     [RequireComponent(typeof(InventoryBrain))]
     [RequireComponent(typeof(StorehouseBrain))]
     [RequireComponent(typeof(BattleInputControllerBrain))]
+    [RequireComponent(typeof(PositioningInputController))]
     [RequireComponent(typeof(UiBrain))]
     [RequireComponent(typeof(VolumeBrain))]
     [RequireComponent(typeof(AudioBrain))]
@@ -88,6 +89,9 @@ namespace Turnroot.Gameplay.Brain
 
         [HideInInspector]
         public CursorBrain cursorBrain;
+
+        [HideInInspector]
+        public PositioningInputController positioningInputControllerBrain;
 
         [HideInInspector]
         public LongTermMemory ltm;

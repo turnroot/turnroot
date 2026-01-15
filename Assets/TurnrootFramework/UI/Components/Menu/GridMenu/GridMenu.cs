@@ -58,10 +58,6 @@ namespace Turnroot.UI.Components.GridMenu
         // Tolerance for grouping items into the same column (in world-space units)
         public float ColumnGroupingTolerance = 20f;
 
-        [Header("Debug")]
-        [Tooltip("Dump internal grid rows/columns mapping to the console when building rows")]
-        public bool DebugDumpGrid = false;
-
         public override void RefreshMenuItems()
         {
             base.RefreshMenuItems();
@@ -364,41 +360,6 @@ namespace Turnroot.UI.Components.GridMenu
                     _indexToCr[_cols[c][r]] = (c, r);
                 }
             }
-
-#if UNITY_EDITOR
-            if (DebugDumpGrid)
-            {
-                var sb = new System.Text.StringBuilder();
-                sb.AppendLine("GridMenu: BuildGridRows dump (rows):");
-                for (int r = 0; r < _rows.Count; r++)
-                {
-                    sb.Append($"Row {r}: ");
-                    foreach (var idx in _rows[r])
-                    {
-                        var t = menuItems[idx].transform;
-                        var pos =
-                            (t as RectTransform) != null ? ((RectTransform)t).position : t.position;
-                        sb.Append($"{idx}({menuItems[idx].ItemName}@y={pos.y:F1},x={pos.x:F1}) ");
-                    }
-                    sb.AppendLine();
-                }
-
-                sb.AppendLine("GridMenu: BuildGridRows dump (cols):");
-                for (int c = 0; c < _cols.Count; c++)
-                {
-                    sb.Append($"Col {c}: ");
-                    foreach (var idx in _cols[c])
-                    {
-                        var t = menuItems[idx].transform;
-                        var pos =
-                            (t as RectTransform) != null ? ((RectTransform)t).position : t.position;
-                        sb.Append($"{idx}({menuItems[idx].ItemName}@y={pos.y:F1},x={pos.x:F1}) ");
-                    }
-                    sb.AppendLine();
-                }
-                Debug.Log(sb.ToString());
-            }
-#endif
         }
 
         protected override void NavigateToNextItem()
