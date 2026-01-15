@@ -3,6 +3,8 @@ using System.Linq;
 using Turnroot.Characters;
 using Turnroot.Gameplay.Brain;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Environment;
+using Turnroot.GameSettings;
+using Turnroot.UI.Components;
 using Turnroot.Utilities;
 using UnityEngine;
 
@@ -34,6 +36,9 @@ namespace Turnroot.Gameplay.Combat.PreBattle
 
         [HideInInspector]
         public List<Vector2Int> PlayerTeamSpawnPoints;
+
+        [HideInInspector]
+        public StartingPositions StartingPositionsComponent;
 
         public OperationResult Initialize(Brain.Brain brain)
         {
@@ -169,6 +174,25 @@ namespace Turnroot.Gameplay.Combat.PreBattle
 
             selectedPosition = pos;
             selectedUnit = placements[pos];
+            Debug.Log($"Selected unit: {selectedUnit.CharacterTemplate.DisplayName} at {pos}");
+
+            // Update visuals: position the selected projector and show unit data immediately
+            StartingPositionsComponent?.SetSelected(pos);
+
+            if (StartingPositionsComponent != null && selectedUnit != null)
+            {
+                var name = selectedUnit?.CharacterTemplate?.DisplayName ?? "";
+                var className = ""; // TODO: Get current class from instance
+                var portrait =
+                    selectedUnit?.CharacterTemplate?.DefaultPortrait?.RuntimeSprite
+                    ?? (
+                        selectedUnit?.CharacterTemplate?.Sprites?.Length > 0
+                            ? selectedUnit.CharacterTemplate.Sprites[0]
+                            : null
+                    );
+
+                StartingPositionsComponent.SetSelectedUnit(name, className, portrait);
+            }
 
             return OperationResult.SuccessResult();
         }
@@ -179,6 +203,7 @@ namespace Turnroot.Gameplay.Combat.PreBattle
             potentialSwapPosition = null;
             selectedUnit = null;
             potentialSwapUnit = null;
+            StartingPositionsComponent.Clears();
             return OperationResult.SuccessResult();
         }
 
@@ -196,6 +221,7 @@ namespace Turnroot.Gameplay.Combat.PreBattle
             if (targetOccupied)
             {
                 // Swap
+                StartingPositionsComponent.SetSwap(potentialSwapPosition.Value);
                 (placements[selectedPosition.Value], placements[potentialSwapPosition.Value]) = (
                     placements[potentialSwapPosition.Value],
                     placements[selectedPosition.Value]
@@ -204,12 +230,91 @@ namespace Turnroot.Gameplay.Combat.PreBattle
             else
             {
                 // Move
+                StartingPositionsComponent.SetSelected(potentialSwapPosition.Value);
                 placements[potentialSwapPosition.Value] = placements[selectedPosition.Value];
                 placements.Remove(selectedPosition.Value);
             }
 
             ClearSelection();
             CurrentPlacementState = PlacementState.PlayerPlaced; // Mark as modified
+
+            return OperationResult.SuccessResult();
+        }
+
+        /// <summary>
+        /// Preview a potential swap/move to <paramref name="pos"/>. This updates
+        /// swap projector and swap unit UI immediately without committing the action.
+        /// If the target tile is empty, swap unit data is cleared. If the cursor
+        /// is on the selected unit, the swap preview is cleared.
+        /// </summary>
+        public OperationResult PreviewPotentialSwap(Vector2Int pos)
+        {
+            if (selectedPosition == null)
+            {
+                return OperationResult.Failure("No selected unit to preview against");
+            }
+
+            // Invalid positions (not a player spawn point) should clear preview
+            if (PlayerTeamSpawnPoints == null || !PlayerTeamSpawnPoints.Contains(pos))
+            {
+                potentialSwapPosition = null;
+                potentialSwapUnit = null;
+                StartingPositionsComponent?.ClearSwapPreview();
+                return OperationResult.Failure("Invalid position");
+            }
+
+            // If cursor is on the same tile as the selected unit, clear swap preview
+            if (pos == selectedPosition.Value)
+            {
+                potentialSwapPosition = null;
+                potentialSwapUnit = null;
+                StartingPositionsComponent?.SetSelected(selectedPosition.Value);
+                StartingPositionsComponent?.ClearSwapPreview();
+#if UNITY_EDITOR
+                Debug.Log(
+                    $"PreviewPotentialSwap: cursor is on selected tile {pos}, cleared swap preview"
+                );
+#endif
+                return OperationResult.SuccessResult();
+            }
+
+            potentialSwapPosition = pos;
+
+            // Show swap projector at the target
+            StartingPositionsComponent?.SetSwap(pos);
+
+            if (placements.ContainsKey(pos))
+            {
+                var unit = placements[pos];
+                potentialSwapUnit = unit;
+
+                // Prepare display data
+                var name = unit?.CharacterTemplate?.DisplayName ?? "";
+                var className =
+                    unit?.CurrentClassTemplate?.Identity?.ClassName
+                    ?? unit?.CharacterTemplate?.StartingClass?.Identity?.ClassName
+                    ?? "";
+                var portrait =
+                    unit?.CharacterTemplate?.DefaultPortrait?.RuntimeSprite
+                    ?? (
+                        unit?.CharacterTemplate?.Sprites?.Length > 0
+                            ? unit.CharacterTemplate.Sprites[0]
+                            : null
+                    );
+
+                StartingPositionsComponent?.SetSwapUnit(name, className, portrait);
+#if UNITY_EDITOR
+                Debug.Log($"PreviewPotentialSwap: target occupied by '{name}' at {pos}");
+#endif
+            }
+            else
+            {
+                potentialSwapUnit = null;
+                StartingPositionsComponent?.ClearSwapUnit();
+#if UNITY_EDITOR
+                Debug.Log($"PreviewPotentialSwap: target empty at {pos} (cleared swap unit)");
+#endif
+            }
 
             return OperationResult.SuccessResult();
         }

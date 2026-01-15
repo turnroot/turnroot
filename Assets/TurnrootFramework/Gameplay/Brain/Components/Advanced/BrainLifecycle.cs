@@ -13,20 +13,6 @@ using static Turnroot.Characters.CharacterInstance;
 
 namespace Turnroot.Gameplay.Brain
 {
-    [RequireComponent(typeof(StateBrain))]
-    [RequireComponent(typeof(ConversationalBrain))]
-    [RequireComponent(typeof(LongTermMemory))]
-    [RequireComponent(typeof(GamewideContextBrain))]
-    [RequireComponent(typeof(CharactersBrain))]
-    [RequireComponent(typeof(BattleBrain))]
-    [RequireComponent(typeof(InventoryBrain))]
-    [RequireComponent(typeof(StorehouseBrain))]
-    [RequireComponent(typeof(BattleInputControllerBrain))]
-    [RequireComponent(typeof(UiBrain))]
-    [RequireComponent(typeof(VolumeBrain))]
-    [RequireComponent(typeof(AudioBrain))]
-    [RequireComponent(typeof(CameraBrain))]
-    [RequireComponent(typeof(CursorBrain))]
     public partial class Brain : MonoBehaviour
     {
         public void Awake()
@@ -50,6 +36,7 @@ namespace Turnroot.Gameplay.Brain
             audioBrain = GetComponent<AudioBrain>();
             cameraBrain = GetComponent<CameraBrain>();
             cursorBrain = GetComponent<CursorBrain>();
+            positioningInputControllerBrain = GetComponent<PositioningInputController>();
 
             // Find all DynamicSceneFlows in other scenes and set their .brain to this
             var allSceneFlows = FindObjectsByType<DynamicSceneFlow>(FindObjectsSortMode.None);

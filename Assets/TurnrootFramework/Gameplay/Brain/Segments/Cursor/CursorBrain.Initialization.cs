@@ -5,7 +5,8 @@ namespace Turnroot.Gameplay.Brain
 {
     public partial class CursorBrain
     {
-        #region Cursor Initialization (moved)
+        #region Cursor Initialization
+        public Vector3 CursorOffset;
 
         private void InitializeBattleCursor()
         {
@@ -16,6 +17,7 @@ namespace Turnroot.Gameplay.Brain
             }
 
             var battleContext = _brain.battleBrain.BattleObject.Context;
+            CursorOffset = _brain.uiBrain?.uiSettings?.BattleCursorOffset ?? Vector3.zero;
             InitializeCursor(battleContext.mapGrid);
 
 #if UNITY_EDITOR
@@ -53,6 +55,7 @@ namespace Turnroot.Gameplay.Brain
                     validSpawnPositions = spawnPoints;
                 }
             }
+            CursorOffset = _brain.uiBrain?.uiSettings?.BattleCursorOffset ?? Vector3.zero;
 
             InitializeCursor(mapGrid, validSpawnPositions);
 

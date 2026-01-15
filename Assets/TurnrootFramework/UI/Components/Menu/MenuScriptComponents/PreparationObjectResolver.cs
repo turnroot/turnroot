@@ -47,6 +47,7 @@ public class PreparationObjectResolver : MonoBehaviour
             }
             if (TryGetComponent(out StartingPositions p) && p != null)
             {
+                ResolvedPreparationObject.StartingPositionsComponent = p;
                 var result = p.Initialize(prep);
                 if (!result.Success)
                 {

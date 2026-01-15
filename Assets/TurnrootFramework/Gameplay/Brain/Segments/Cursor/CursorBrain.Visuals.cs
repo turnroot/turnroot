@@ -4,7 +4,7 @@ namespace Turnroot.Gameplay.Brain
 {
     public partial class CursorBrain
     {
-        #region Visual Updates (moved)
+        #region Visual Updates
 
         private void UpdateCursorVisualPosition(Vector2Int position)
         {
@@ -14,7 +14,7 @@ namespace Turnroot.Gameplay.Brain
             }
 
             var worldPosition = _currentMap.GetTerrainAdjustedWorldPosition(position);
-            _cursorInstance.transform.position = worldPosition + new Vector3(0, 1f, -2f);
+            _cursorInstance.transform.position = worldPosition + CursorOffset;
         }
 
         private void CleanupCursor()

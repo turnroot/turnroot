@@ -115,6 +115,13 @@ namespace Turnroot.GameSettings
         [Header("Menus"), HorizontalLine(color: EColor.Blue), SerializeField]
         public List<MenuLocation> allPossibleMenuLocations;
 
+        [
+            Header("Portraits"),
+            SerializeField,
+            Tooltip("Sprite to use when a unit portrait is missing")
+        ]
+        public Sprite NoPortraitSprite;
+
         protected override void OnEnable()
         {
             base.OnEnable();
@@ -328,6 +335,7 @@ namespace Turnroot.GameSettings
         public Sprite PathStartSprite;
         public Sprite CursorSprite;
         public GameObject BattleCursorPrefab;
+        public Vector3 BattleCursorOffset = new(0f, 1f, 0.2f);
 
         [MinValue(0), MaxValue(1)]
         public Vector2 CameraPanSafeZone = new(.25f, .25f);
