@@ -180,12 +180,16 @@ namespace Turnroot.Gameplay.Combat.PreBattle
 
             if (StartingPositionsComponent != null && selectedUnit != null)
             {
-                var name = selectedUnit.CharacterTemplate.DisplayName ?? "";
-                var className = selectedUnit.GetCurrentClass().ClassData.GetClassName();
+                var name = selectedUnit.CharacterTemplate?.DisplayName ?? "";
+                var currentClassInstance = selectedUnit.GetCurrentClass();
+                var className =
+                    currentClassInstance?.ClassData?.GetClassName()
+                    ?? selectedUnit.CharacterTemplate?.StartingClass?.Identity?.ClassName
+                    ?? "";
                 var portrait =
-                    selectedUnit.CharacterTemplate.DefaultPortrait?.RuntimeSprite
+                    selectedUnit.CharacterTemplate?.DefaultPortrait?.RuntimeSprite
                     ?? (
-                        selectedUnit.CharacterTemplate.Sprites?.Length > 0
+                        selectedUnit.CharacterTemplate?.Sprites?.Length > 0
                             ? selectedUnit.CharacterTemplate.Sprites[0]
                             : null
                     );
