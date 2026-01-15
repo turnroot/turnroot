@@ -279,6 +279,14 @@ namespace Turnroot.GameSettings
         ]
         public float MenuInternalTransitionTime = .15f;
 
+        [Tooltip(
+            "Additional buffer (seconds) to wait after UIFade.lerpTime when doing menu fade transitions"
+        )]
+        public float MenuFadeBuffer = 0.1f;
+
+        [Tooltip("Small buffer (seconds) used for brief UI fade hide/show operations")]
+        public float UiFadeSmallBuffer = 0.02f;
+
         [Header("Radial Menu"), HorizontalLine(color: EColor.Yellow)]
         [Tooltip("Default normal color for radial menu segments")]
         public Color RadialMenuNormalColor = Color.white;

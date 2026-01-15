@@ -1601,7 +1601,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e098fbdb6ab736f4d894bc75743cfe7d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  lerpTime: 0.1
+  lerpTime: 0.12
   OnVisible:
     m_PersistentCalls:
       m_Calls: []
@@ -1812,7 +1812,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e098fbdb6ab736f4d894bc75743cfe7d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  lerpTime: 0.1
+  lerpTime: 0.12
   OnVisible:
     m_PersistentCalls:
       m_Calls: []

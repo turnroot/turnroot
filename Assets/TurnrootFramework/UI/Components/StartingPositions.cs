@@ -36,6 +36,9 @@ namespace Turnroot.UI.Components
             }
             Selected.SetActive(false);
             Swap.SetActive(false);
+            SwapGraphic.SetActive(false);
+            SelectedUnit.gameObject.SetActive(false);
+            SwapUnit.gameObject.SetActive(false);
             return OperationResult.SuccessResult();
         }
 
@@ -44,25 +47,31 @@ namespace Turnroot.UI.Components
             var projector = TileProjectors[index];
             var worldPosition = mapGrid.GetTerrainAdjustedWorldPosition(tileCoordinates);
 
-            projector.transform.position = worldPosition + new Vector3(0, 1f, 0f);
+            projector.transform.position =
+                worldPosition + new Vector3(0, mapGrid.GridScale / 2f, 0f);
         }
 
         public void SetSelected(Vector2Int tileCoordinates)
         {
             var worldPosition = mapGrid.GetTerrainAdjustedWorldPosition(tileCoordinates);
-            Selected.transform.position = worldPosition + new Vector3(0, 1f, 0f);
+            Selected.transform.position =
+                worldPosition + new Vector3(0, mapGrid.GridScale / 2f, 0f);
             // Ensure object is active for fade and call Show if a UIFade component exists
             Selected.SetActive(true);
             if (Selected.TryGetComponent<UIFade>(out var selectedFade))
             {
                 selectedFade.Show();
             }
+
+            // When a unit becomes selected, ensure swap visuals are hidden until a hover occurs
+            StartCoroutine(HideAfterFade(Swap));
+            StartCoroutine(HideAfterFade(SwapGraphic));
         }
 
         public void SetSwap(Vector2Int tileCoordinates)
         {
             var worldPosition = mapGrid.GetTerrainAdjustedWorldPosition(tileCoordinates);
-            Swap.transform.position = worldPosition + new Vector3(0, 1f, 0f);
+            Swap.transform.position = worldPosition + new Vector3(0, mapGrid.GridScale / 2f, 0f);
             Swap.SetActive(true);
             if (Swap.TryGetComponent<UIFade>(out var swapFade))
             {
@@ -72,8 +81,12 @@ namespace Turnroot.UI.Components
 
         public void Clears()
         {
+            // No selection: hide all preview visuals via UIFade
             StartCoroutine(HideAfterFade(Selected));
             StartCoroutine(HideAfterFade(Swap));
+            StartCoroutine(HideAfterFade(SwapGraphic));
+            StartCoroutine(HideAfterFade(SelectedUnit.gameObject));
+            StartCoroutine(HideAfterFade(SwapUnit.gameObject));
             SelectedUnit.ClearData();
             SwapUnit.ClearData();
         }
@@ -81,11 +94,21 @@ namespace Turnroot.UI.Components
         public void SetSelectedUnit(string name, string className, Sprite portrait)
         {
             SelectedUnit.SetData(name, className, portrait);
+            SelectedUnit.gameObject.SetActive(true);
+            if (SelectedUnit.gameObject.TryGetComponent<UIFade>(out var selUnitFade))
+            {
+                selUnitFade.Show();
+            }
         }
 
         public void SetSwapUnit(string name, string className, Sprite portrait)
         {
             SwapUnit.SetData(name, className, portrait);
+            SwapUnit.gameObject.SetActive(true);
+            if (SwapUnit.gameObject.TryGetComponent<UIFade>(out var swapUnitFade))
+            {
+                swapUnitFade.Show();
+            }
             SwapGraphic.SetActive(true);
             if (SwapGraphic.TryGetComponent<UIFade>(out var swapGraphicFade))
             {
@@ -98,6 +121,7 @@ namespace Turnroot.UI.Components
         public void ClearSwapUnit()
         {
             SwapUnit.ClearData();
+            StartCoroutine(HideAfterFade(SwapUnit.gameObject));
             StartCoroutine(HideAfterFade(SwapGraphic));
         }
 
@@ -109,6 +133,7 @@ namespace Turnroot.UI.Components
         {
             StartCoroutine(HideAfterFade(Swap));
             SwapUnit.ClearData();
+            StartCoroutine(HideAfterFade(SwapUnit.gameObject));
             StartCoroutine(HideAfterFade(SwapGraphic));
         }
 
