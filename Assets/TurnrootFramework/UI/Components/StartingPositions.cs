@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Turnroot.Characters;
 using Turnroot.Gameplay.Brain;
 using Turnroot.Gameplay.Combat.PreBattle;
@@ -15,136 +16,130 @@ namespace Turnroot.UI.Components
         public UnitCellDataOnly SelectedUnit;
         public GameObject SwapGraphic;
         public UnitCellDataOnly SwapUnit;
-        private MapGrid mapGrid;
+
+        private MapGrid _mapGrid;
         private Dictionary<Vector2Int, GameObject> _unitModels = new();
-
         private BattlePreparationObject _prepObject;
-
-        // If this instance has been superseded by a newer StartingPositions instance,
-        // avoid spawning any further models (prevents duplicate visible models when multiple UI instances exist).
         private bool _replaced = false;
 
-        public OperationResult Initialize(BattlePreparationObject battlePreparationObject)
+        public OperationResult Initialize(BattlePreparationObject battlePrep)
         {
-            mapGrid = battlePreparationObject.MapGrid;
+            _mapGrid = battlePrep.MapGrid;
 
-            // If this instance was replaced by a newer StartingPositions, skip initialization to avoid duplicate models.
             if (_replaced)
             {
                 return OperationResult.SuccessResult();
             }
 
-            var StartingPositions = mapGrid.PlayerTeamSpawnPoints;
-            if (StartingPositions == null || StartingPositions.Count <= 0)
+            var spawnPoints = _mapGrid.PlayerTeamSpawnPoints;
+            if (spawnPoints == null || spawnPoints.Count == 0)
             {
                 return OperationResult.Failure("Improper starting positions");
             }
-            for (var i = 0; i < StartingPositions.Count; i++)
-            {
-                var coordinates = StartingPositions[i];
-                SetUpDecalProjector(i, coordinates);
-            }
-            var DecalCount = TileProjectors.Count;
-            for (var j = StartingPositions.Count; j < DecalCount; j++)
-            {
-                TileProjectors[j].SetActive(false);
-            }
-            Selected.SetActive(false);
-            Swap.SetActive(false);
-            SwapGraphic.SetActive(false);
-            SelectedUnit.gameObject.SetActive(false);
-            SwapUnit.gameObject.SetActive(false);
 
-            _prepObject = battlePreparationObject;
+            SetupProjectors(spawnPoints);
+            HideAllVisuals();
 
-            // If another StartingPositions already exists in the scene, ask it to despawn its models
-            // and unsubscribe so we don't end up with duplicate spawned models across multiple UI instances.
-            var all = FindObjectsByType<StartingPositions>(
-                FindObjectsInactive.Include,
-                FindObjectsSortMode.None
-            );
-            foreach (var other in all)
+            _prepObject = battlePrep;
+            ReplaceOtherInstances();
+
+            if (ShouldWaitForPlacements())
             {
-                if (other == null || other == this)
-                {
-                    continue;
-                }
-
-                other.ReplaceBy(this);
-            }
-
-            // If placements were not initialized yet, attempt to initialize them now.
-            if (_prepObject.placements == null || _prepObject.placements.Count == 0)
-            {
-                _prepObject.InitializePlacements();
-                // If placements still not available, subscribe to placements-initialized and wait to spawn models.
-                if (_prepObject.placements == null || _prepObject.placements.Count == 0)
-                {
-                    if (
-                        ValidationHelper.ValidateNotNull(
-                            _prepObject.Brain,
-                            nameof(_prepObject.Brain),
-                            "StartingPositions.Initialize"
-                        )
-                    )
-                    {
-                        _prepObject.Brain.OnPlacementsInitialized += HandlePlacementsInitialized;
-                        // Subscribe to unit selection changes so we can refresh spawned models when selections change
-                        _prepObject.Brain.OnUnitSelectionChanged += HandleUnitSelectionChanged;
-#if UNITY_EDITOR
-                        Debug.Log(
-                            "StartingPositions.Initialize: Subscribed to placement and selection events to wait for placements and update models."
-                        );
-#endif
-                    }
-                    return OperationResult.SuccessResult();
-                }
+                SubscribeToEvents();
+                return OperationResult.SuccessResult();
             }
 
             SpawnAllUnitModels();
             return OperationResult.SuccessResult();
         }
 
-        private void SetUpDecalProjector(int index, Vector2Int tileCoordinates)
+        private void SetupProjectors(List<Vector2Int> positions)
         {
-            var projector = TileProjectors[index];
-            var worldPosition = mapGrid.GetTerrainAdjustedWorldPosition(tileCoordinates);
-
-            projector.transform.position =
-                worldPosition + new Vector3(0, mapGrid.GridScale / 2f, 0f);
-        }
-
-        public void SetSelected(Vector2Int tileCoordinates)
-        {
-            var worldPosition = mapGrid.GetTerrainAdjustedWorldPosition(tileCoordinates);
-            Selected.transform.position =
-                worldPosition + new Vector3(0, mapGrid.GridScale / 2f, 0f);
-            // Ensure object is active for fade and call Show if a UIFade component exists
-            Selected.SetActive(true);
-            if (Selected.TryGetComponent<UIFade>(out var selectedFade))
+            for (int i = 0; i < positions.Count; i++)
             {
-                selectedFade.Show();
+                SetProjectorPosition(i, positions[i]);
             }
 
-            // When a unit becomes selected, ensure swap visuals are hidden until a hover occurs
+            for (int i = positions.Count; i < TileProjectors.Count; i++)
+            {
+                TileProjectors[i].SetActive(false);
+            }
+        }
+
+        private void SetProjectorPosition(int index, Vector2Int coords)
+        {
+            var worldPos = _mapGrid.GetTerrainAdjustedWorldPosition(coords);
+            TileProjectors[index].transform.position =
+                worldPos + Vector3.up * (_mapGrid.GridScale / 2f);
+        }
+
+        private void HideAllVisuals()
+        {
+            Selected.SetActive(false);
+            Swap.SetActive(false);
+            SwapGraphic.SetActive(false);
+            SelectedUnit.gameObject.SetActive(false);
+            SwapUnit.gameObject.SetActive(false);
+        }
+
+        private bool ShouldWaitForPlacements() =>
+            _prepObject.placements == null || _prepObject.placements.Count == 0;
+
+        private void SubscribeToEvents()
+        {
+            if (_prepObject.Brain == null)
+            {
+                return;
+            }
+
+            _prepObject.Brain.OnPlacementsInitialized += HandlePlacementsInitialized;
+            _prepObject.Brain.OnUnitSelectionChanged += HandleUnitSelectionChanged;
+        }
+
+        private void UnsubscribeFromEvents()
+        {
+            if (_prepObject?.Brain == null)
+            {
+                return;
+            }
+
+            _prepObject.Brain.OnPlacementsInitialized -= HandlePlacementsInitialized;
+            _prepObject.Brain.OnUnitSelectionChanged -= HandleUnitSelectionChanged;
+        }
+
+        private void ReplaceOtherInstances()
+        {
+            var others = FindObjectsByType<StartingPositions>(
+                FindObjectsInactive.Include,
+                FindObjectsSortMode.None
+            );
+            foreach (var other in others)
+            {
+                if (other != null && other != this)
+                {
+                    other.ReplaceBy(this);
+                }
+            }
+        }
+
+        public void SetSelected(Vector2Int coords)
+        {
+            var worldPos = _mapGrid.GetTerrainAdjustedWorldPosition(coords);
+            Selected.transform.position = worldPos + Vector3.up * (_mapGrid.GridScale / 2f);
+            ShowWithFade(Selected);
             HideWithFade(Swap);
             HideWithFade(SwapGraphic);
         }
 
-        public void SetSwap(Vector2Int tileCoordinates)
+        public void SetSwap(Vector2Int coords)
         {
-            var worldPosition = mapGrid.GetTerrainAdjustedWorldPosition(tileCoordinates);
-            Swap.transform.position = worldPosition + new Vector3(0, mapGrid.GridScale / 2f, 0f);
-            Swap.SetActive(true);
-            if (Swap.TryGetComponent<UIFade>(out var swapFade))
-            {
-                swapFade.Show();
-            }
+            var worldPos = _mapGrid.GetTerrainAdjustedWorldPosition(coords);
+            Swap.transform.position = worldPos + Vector3.up * (_mapGrid.GridScale / 2f);
+            ShowWithFade(Swap);
         }
 
         public void Clears()
         {
-            // No selection: hide all preview visuals via UIFade
             HideWithFade(Selected);
             HideWithFade(Swap);
             HideWithFade(SwapGraphic);
@@ -157,26 +152,14 @@ namespace Turnroot.UI.Components
         public void SetSelectedUnit(string name, string className, Sprite portrait)
         {
             SelectedUnit.SetData(name, className, portrait);
-            SelectedUnit.gameObject.SetActive(true);
-            if (SelectedUnit.gameObject.TryGetComponent<UIFade>(out var selUnitFade))
-            {
-                selUnitFade.Show();
-            }
+            ShowWithFade(SelectedUnit.gameObject);
         }
 
         public void SetSwapUnit(string name, string className, Sprite portrait)
         {
             SwapUnit.SetData(name, className, portrait);
-            SwapUnit.gameObject.SetActive(true);
-            if (SwapUnit.gameObject.TryGetComponent<UIFade>(out var swapUnitFade))
-            {
-                swapUnitFade.Show();
-            }
-            SwapGraphic.SetActive(true);
-            if (SwapGraphic.TryGetComponent<UIFade>(out var swapGraphicFade))
-            {
-                swapGraphicFade.Show();
-            }
+            ShowWithFade(SwapUnit.gameObject);
+            ShowWithFade(SwapGraphic);
         }
 
         public void ClearSelectedUnit() => SelectedUnit.ClearData();
@@ -188,16 +171,26 @@ namespace Turnroot.UI.Components
             HideWithFade(SwapGraphic);
         }
 
-        /// <summary>
-        /// Clears swap preview visuals (swap projector and swap unit data) without
-        /// affecting the selected unit visuals.
-        /// </summary>
         public void ClearSwapPreview()
         {
             HideWithFade(Swap);
             SwapUnit.ClearData();
             HideWithFade(SwapUnit.gameObject);
             HideWithFade(SwapGraphic);
+        }
+
+        private void ShowWithFade(GameObject go)
+        {
+            if (go == null)
+            {
+                return;
+            }
+
+            go.SetActive(true);
+            if (go.TryGetComponent<UIFade>(out var fade))
+            {
+                fade.Show();
+            }
         }
 
         private void HideWithFade(GameObject go)
@@ -210,7 +203,6 @@ namespace Turnroot.UI.Components
             if (go.TryGetComponent<UIFade>(out var fade))
             {
                 fade.Hide();
-                // Let UIFade handle disabling the object when done
             }
             else
             {
@@ -218,27 +210,34 @@ namespace Turnroot.UI.Components
             }
         }
 
-        /* ------------------------------ Spawn models ------------------------------ */
         private void SpawnAllUnitModels()
         {
-            if (_replaced)
+            if (_replaced || _prepObject?.placements == null)
             {
                 return;
             }
 
-            // Destroy any orphaned unit model objects in the scene that are not part of the current placements.
-            // This handles cases where models were created outside of our mapping (leftover duplicates etc).
-            var keepIds = new HashSet<string>();
-            if (_prepObject?.placements != null)
+            CleanupOrphanedModels();
+            DespawnExistingModels();
+
+            foreach (var placement in _prepObject.placements)
             {
-                foreach (var p in _prepObject.placements)
-                {
-                    if (p.Value != null && !string.IsNullOrEmpty(p.Value.Id))
-                    {
-                        keepIds.Add(p.Value.Id);
-                    }
-                }
+                _prepObject.Brain.unitAppearanceBrain.SpawnUnitModelOnGrid(
+                    placement.Key,
+                    placement.Value,
+                    _unitModels,
+                    prebattle: true
+                );
             }
+        }
+
+        private void CleanupOrphanedModels()
+        {
+            var validIds = new HashSet<string>(
+                _prepObject
+                    .placements.Values.Where(p => p != null && !string.IsNullOrEmpty(p.Id))
+                    .Select(p => p.Id)
+            );
 
             var ownerships = FindObjectsByType<UnitModelOwnership>(
                 FindObjectsInactive.Include,
@@ -251,79 +250,52 @@ namespace Turnroot.UI.Components
                     continue;
                 }
 
-                if (!keepIds.Contains(own.UnitId))
+                if (validIds.Contains(own.UnitId))
                 {
-                    try
-                    {
-                        own.gameObject.SetActive(false);
-                    }
-                    catch { }
-                    Destroy(own.gameObject);
-
-                    // Also remove any mapping referencing this object
-                    var keys = new List<Vector2Int>(_unitModels.Keys);
-                    foreach (var k in keys)
-                    {
-                        if (_unitModels.TryGetValue(k, out var obj) && obj == own.gameObject)
-                        {
-                            _unitModels.Remove(k);
-                        }
-                    }
+                    continue;
                 }
-            }
 
-            if (_unitModels.Count > 0)
-            {
-                // Despawn existing models first; take a snapshot of keys to avoid modifying the dictionary while iterating.
-                var keys = new List<Vector2Int>(_unitModels.Keys);
-                foreach (var pos in keys)
-                {
-                    if (
-                        ValidationHelper.ValidateNotNull(
-                            "StartingPositions.SpawnAllUnitModels",
-                            (_prepObject, nameof(_prepObject)),
-                            (_prepObject.Brain, nameof(_prepObject.Brain))
-                        )
-                    )
-                    {
-                        _prepObject.Brain.unitAppearanceBrain.DespawnUnitModelFromGrid(
-                            pos,
-                            _unitModels
-                        );
-                    }
-                }
+                DestroyModel(own.gameObject);
+                RemoveModelMapping(own.gameObject);
             }
+        }
 
-            if (_prepObject?.placements == null || _prepObject.placements.Count == 0)
+        private void DespawnExistingModels()
+        {
+            if (_unitModels.Count == 0 || _prepObject?.Brain == null)
             {
                 return;
             }
 
-#if UNITY_EDITOR
-            Debug.Log($"SpawnAllUnitModels: spawning {_prepObject.placements.Count} unit models.");
-#endif
-            foreach (var placement in _prepObject.placements)
+            var positions = _unitModels.Keys.ToList();
+            foreach (var pos in positions)
             {
-                // We're in the pre-battle/roster positioning UI, so tell the appearance brain to spawn prebattle models.
-                _prepObject.Brain.unitAppearanceBrain.SpawnUnitModelOnGrid(
-                    placement.Key,
-                    placement.Value,
-                    _unitModels,
-                    prebattle: true
-                );
+                _prepObject.Brain.unitAppearanceBrain.DespawnUnitModelFromGrid(pos, _unitModels);
+            }
+        }
+
+        private void DestroyModel(GameObject model)
+        {
+            try
+            {
+                model.SetActive(false);
+            }
+            catch { }
+            Destroy(model);
+        }
+
+        private void RemoveModelMapping(GameObject model)
+        {
+            var keys = _unitModels.Where(kvp => kvp.Value == model).Select(kvp => kvp.Key).ToList();
+            foreach (var key in keys)
+            {
+                _unitModels.Remove(key);
             }
         }
 
         private void HandlePlacementsInitialized()
         {
-            // Unsubscribe to avoid duplicate handling
-            if (
-                !ValidationHelper.ValidateNotNull(
-                    "StartingPositions.HandlePlacementsInitialized",
-                    (_prepObject, nameof(_prepObject)),
-                    (_prepObject.Brain, nameof(_prepObject.Brain))
-                )
-            )
+            if (_prepObject?.Brain == null)
             {
                 return;
             }
@@ -332,82 +304,34 @@ namespace Turnroot.UI.Components
 
             if (_prepObject.placements != null && _prepObject.placements.Count > 0)
             {
-#if UNITY_EDITOR
-                Debug.Log(
-                    "HandlePlacementsInitialized: placements are now available, spawning unit models."
-                );
-#endif
                 SpawnAllUnitModels();
-            }
-            else
-            {
-#if UNITY_EDITOR
-                Debug.LogWarning(
-                    "HandlePlacementsInitialized: placements still empty after initialization."
-                );
-#endif
             }
         }
 
         private void HandleUnitSelectionChanged(CharacterInstance unit, bool selected)
         {
-            if (
-                !ValidationHelper.ValidateNotNull(
-                    "StartingPositions.HandleUnitSelectionChanged",
-                    (_prepObject, nameof(_prepObject)),
-                    (_prepObject.Brain, nameof(_prepObject.Brain))
-                )
-            )
+            if (_prepObject?.Brain == null)
             {
                 return;
             }
 
-            // Recompute placements and refresh models when selection changes in the brain
             _prepObject.InitializePlacements();
             SpawnAllUnitModels();
         }
 
-        /// <summary>
-        /// Instructs this instance to despawn all models and unsubscribe from events.
-        /// Called by newer StartingPositions instances that replace this one to avoid duplicate spawns.
-        /// </summary>
         public void ReplaceBy(StartingPositions newOwner)
         {
-            // Prevent this instance from spawning further models
             _replaced = true;
 
-            // Try to update the preparation object to point at the new owner's starting positions
             if (_prepObject != null)
             {
                 _prepObject.StartingPositionsComponent = newOwner;
             }
 
-            // Unsubscribe from brain events if applicable
-            if (
-                ValidationHelper.ValidateNotNull(
-                    "StartingPositions.ReplaceBy",
-                    (_prepObject, nameof(_prepObject)),
-                    (_prepObject.Brain, nameof(_prepObject.Brain))
-                )
-            )
-            {
-                _prepObject.Brain.OnPlacementsInitialized -= HandlePlacementsInitialized;
-                _prepObject.Brain.OnUnitSelectionChanged -= HandleUnitSelectionChanged;
-            }
-
-#if UNITY_EDITOR
-            Debug.Log(
-                $"StartingPositions.ReplaceBy: {name} was replaced by {newOwner.name}, despawning {_unitModels.Count} models and unsubscribing."
-            );
-#endif
-
-            // Despawn any existing models spawned by this instance
+            UnsubscribeFromEvents();
             DespawnAllModels();
         }
 
-        /// <summary>
-        /// Remove all models spawned by this StartingPositions instance.
-        /// </summary>
         public void DespawnAllModels()
         {
             if (_unitModels == null || _unitModels.Count == 0)
@@ -415,42 +339,20 @@ namespace Turnroot.UI.Components
                 return;
             }
 
-#if UNITY_EDITOR
-            Debug.Log(
-                $"StartingPositions.DespawnAllModels: {name} despawning {_unitModels.Count} models."
-            );
-#endif
-
-            var keys = new List<Vector2Int>(_unitModels.Keys);
-            foreach (var pos in keys)
+            var positions = _unitModels.Keys.ToList();
+            foreach (var pos in positions)
             {
-                // Use the brain associated with this prep object, if available
-                if (
-                    ValidationHelper.ValidateNotNull(
-                        "StartingPositions.DespawnAllModels",
-                        (_prepObject, nameof(_prepObject)),
-                        (_prepObject.Brain, nameof(_prepObject.Brain))
-                    )
-                )
+                if (_prepObject?.Brain != null)
                 {
                     _prepObject.Brain.unitAppearanceBrain.DespawnUnitModelFromGrid(
                         pos,
                         _unitModels
                     );
                 }
-                else
+                else if (_unitModels.TryGetValue(pos, out var model) && model != null)
                 {
-                    // Fallback: directly remove/destroy local model entries
-                    if (_unitModels.TryGetValue(pos, out var m) && m != null)
-                    {
-                        try
-                        {
-                            m.SetActive(false);
-                        }
-                        catch { }
-                        Destroy(m);
-                        _unitModels.Remove(pos);
-                    }
+                    DestroyModel(model);
+                    _unitModels.Remove(pos);
                 }
             }
         }
@@ -470,77 +372,104 @@ namespace Turnroot.UI.Components
                 return OperationResult.Failure("One or both positions do not have unit models");
             }
 
-            _unitModels[posA] = modelB;
-            _unitModels[posB] = modelA;
-
-            if (
-                !ValidationHelper.ValidateNotNull(
-                    "StartingPositions.SwapModels",
-                    (modelA, nameof(modelA)),
-                    (modelB, nameof(modelB))
-                )
-            )
+            if (modelA == null || modelB == null)
             {
                 return OperationResult.Failure("One or both unit models are null");
             }
 
-            // Update model positions in world space
-            var worldPosA = mapGrid.GetTerrainAdjustedWorldPosition(posA);
-            var worldPosB = mapGrid.GetTerrainAdjustedWorldPosition(posB);
+            _unitModels[posA] = modelB;
+            _unitModels[posB] = modelA;
 
-            modelA.transform.position = worldPosB + new Vector3(0, mapGrid.GridScale / 2f, 0f);
+            UpdateModelPosition(modelA, posB);
+            UpdateModelPosition(modelB, posA);
+            PublishSwapEvent(modelA, modelB, posA, posB);
 
-            modelB.transform.position = worldPosA + new Vector3(0, mapGrid.GridScale / 2f, 0f);
             return OperationResult.SuccessResult();
         }
 
-        public OperationResult MoveModel(Vector2Int fromPos, Vector2Int toPos)
+        public OperationResult MoveModel(Vector2Int from, Vector2Int to)
         {
             if (_unitModels == null)
             {
                 return OperationResult.Failure("No unit models to move");
             }
 
-            if (!_unitModels.TryGetValue(fromPos, out var model))
+            if (!_unitModels.TryGetValue(from, out var model))
             {
                 return OperationResult.Failure("Source position does not have a unit model");
             }
 
-            _unitModels.Remove(fromPos);
-            _unitModels[toPos] = model;
-
-            if (
-                !ValidationHelper.ValidateNotNull(
-                    "StartingPositions.MoveModel",
-                    (model, nameof(model))
-                )
-            )
+            if (model == null)
             {
                 return OperationResult.Failure("Unit model is null");
             }
 
-            // Update model position in world space
-            var worldPos = mapGrid.GetTerrainAdjustedWorldPosition(toPos);
-            model.transform.position = worldPos + new Vector3(0, mapGrid.GridScale / 2f, 0f);
+            _unitModels.Remove(from);
+            _unitModels[to] = model;
+
+            UpdateModelPosition(model, to);
+            PublishMoveEvent(model, from, to);
+
             return OperationResult.SuccessResult();
+        }
+
+        private void UpdateModelPosition(GameObject model, Vector2Int pos)
+        {
+            var worldPos = _mapGrid.GetTerrainAdjustedWorldPosition(pos);
+            model.transform.position = worldPos + Vector3.up * (_mapGrid.GridScale / 2f);
+        }
+
+        private void PublishSwapEvent(
+            GameObject modelA,
+            GameObject modelB,
+            Vector2Int posA,
+            Vector2Int posB
+        )
+        {
+            try
+            {
+                var idA = modelA.GetComponent<UnitModelOwnership>()?.UnitId;
+                var idB = modelB.GetComponent<UnitModelOwnership>()?.UnitId;
+
+                _prepObject.Brain?.Publish(
+                    new Turnroot.Gameplay.Brain.Events.ModelSwappedEvent(
+                        idA,
+                        idB,
+                        posA,
+                        posB,
+                        modelA,
+                        modelB
+                    )
+                );
+            }
+            catch { }
+        }
+
+        private void PublishMoveEvent(GameObject model, Vector2Int from, Vector2Int to)
+        {
+            try
+            {
+                var owner = model.GetComponent<UnitModelOwnership>();
+                var id = owner?.UnitId;
+                CharacterInstance inst = null;
+
+                if (!string.IsNullOrEmpty(id))
+                {
+                    var all = _prepObject.Brain?.gamewideContextBrain?.GetAllActiveInstances();
+                    inst = all?.FirstOrDefault(u => u != null && u.Id == id);
+                }
+
+                _prepObject.Brain?.Publish(
+                    new Gameplay.Brain.Events.ModelMovedEvent(inst, id, from, to, model)
+                );
+            }
+            catch { }
         }
 
         private void OnDestroy()
         {
-            // Ensure we remove any models we own when this object goes away
             DespawnAllModels();
-
-            if (
-                ValidationHelper.ValidateNotNull(
-                    "StartingPositions.OnDestroy",
-                    (_prepObject, nameof(_prepObject)),
-                    (_prepObject.Brain, nameof(_prepObject.Brain))
-                )
-            )
-            {
-                _prepObject.Brain.OnPlacementsInitialized -= HandlePlacementsInitialized;
-                _prepObject.Brain.OnUnitSelectionChanged -= HandleUnitSelectionChanged;
-            }
+            UnsubscribeFromEvents();
         }
     }
 }

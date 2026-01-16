@@ -95,7 +95,7 @@ namespace Turnroot.Gameplay.Brain
 #endif
         }
 
-        private void TryLinkConversationController()
+        private OperationResult TryLinkConversationController()
         {
             var controller = _conversationControllerCache.GetOrCompute(() =>
             {
@@ -108,7 +108,9 @@ namespace Turnroot.Gameplay.Brain
             if (controller != null)
             {
                 _sceneConversationController = controller;
+                return OperationResult.SuccessResult();
             }
+            return OperationResult.Failure("No ConversationController found in scene.");
         }
 
         #endregion

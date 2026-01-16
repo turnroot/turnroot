@@ -64,6 +64,100 @@ namespace Turnroot.Gameplay.Brain.Events
         }
     }
 
+    // Visual/model events - published when Models are spawned/despawned/moved/swapped in the scene.
+    public class ModelSpawnedEvent : BattleEvent
+    {
+        public string UnitId { get; }
+        public CharacterInstance Unit { get; }
+        public Vector2Int Position { get; }
+        public GameObject Model { get; }
+
+        public ModelSpawnedEvent(
+            CharacterInstance unit,
+            string unitId,
+            Vector2Int position,
+            GameObject model
+        )
+        {
+            Unit = unit;
+            UnitId = unitId;
+            Position = position;
+            Model = model;
+        }
+    }
+
+    public class ModelDespawnedEvent : BattleEvent
+    {
+        public string UnitId { get; }
+        public CharacterInstance Unit { get; }
+        public Vector2Int Position { get; }
+        public GameObject Model { get; }
+
+        public ModelDespawnedEvent(
+            CharacterInstance unit,
+            string unitId,
+            Vector2Int position,
+            GameObject model
+        )
+        {
+            Unit = unit;
+            UnitId = unitId;
+            Position = position;
+            Model = model;
+        }
+    }
+
+    public class ModelMovedEvent : BattleEvent
+    {
+        public string UnitId { get; }
+        public CharacterInstance Unit { get; }
+        public Vector2Int From { get; }
+        public Vector2Int To { get; }
+        public GameObject Model { get; }
+
+        public ModelMovedEvent(
+            CharacterInstance unit,
+            string unitId,
+            Vector2Int from,
+            Vector2Int to,
+            GameObject model
+        )
+        {
+            Unit = unit;
+            UnitId = unitId;
+            From = from;
+            To = to;
+            Model = model;
+        }
+    }
+
+    public class ModelSwappedEvent : BattleEvent
+    {
+        public string UnitIdA { get; }
+        public string UnitIdB { get; }
+        public Vector2Int PosA { get; }
+        public Vector2Int PosB { get; }
+        public GameObject ModelA { get; }
+        public GameObject ModelB { get; }
+
+        public ModelSwappedEvent(
+            string unitIdA,
+            string unitIdB,
+            Vector2Int posA,
+            Vector2Int posB,
+            GameObject modelA,
+            GameObject modelB
+        )
+        {
+            UnitIdA = unitIdA;
+            UnitIdB = unitIdB;
+            PosA = posA;
+            PosB = posB;
+            ModelA = modelA;
+            ModelB = modelB;
+        }
+    }
+
     public class UnitEmotionChangesEvent : BattleEvent
     {
         public CharacterInstance Unit { get; }
