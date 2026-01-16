@@ -34,9 +34,6 @@ namespace Turnroot.Gameplay.Brain
                     scaleFactor,
                     scaleFactor
                 );
-#if UNITY_EDITOR
-                Debug.Log($"CursorBrain: Created cursor instance with scale {scaleFactor}");
-#endif
             }
 
             Vector2Int startPos = GetInitialCursorPosition(allowedPositions);

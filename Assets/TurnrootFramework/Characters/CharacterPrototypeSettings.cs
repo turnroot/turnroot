@@ -40,9 +40,6 @@ namespace Turnroot.Characters
 
             // Save all marked assets
             UnityEditor.AssetDatabase.SaveAssets();
-#if UNITY_EDITOR
-            Debug.Log($"Updated {guids.Length} Character assets with new settings.");
-#endif
         }
 #endif
     }

@@ -103,11 +103,6 @@ namespace Turnroot.Gameplay.Combat.PreBattle
             var gw = Brain?.gamewideContextBrain;
             var selectedUnits = gw?.GetSelectedForBattlePlayerTeamUnits();
 
-            // Debug: log counts to help diagnose placement issues
-            Debug.Log(
-                $"InitializePlacements: selectedUnits={selectedUnits?.Count ?? 0}, PlayerTeamSpawnPoints={PlayerTeamSpawnPoints?.Count ?? 0}, MaxPlayerTeamUnits={MaxPlayerTeamUnits}"
-            );
-
             // If no runtime selections are present, attempt to compute default selections from roster/templates.
             if (selectedUnits == null || selectedUnits.Count == 0)
             {
@@ -136,7 +131,10 @@ namespace Turnroot.Gameplay.Combat.PreBattle
                     foreach (var p in placementsArr)
                     {
                         if (p == null || p.CharacterData == null)
+                        {
                             continue;
+                        }
+
                         if (selectedTemplates.Contains(p.CharacterData))
                         {
                             var inst =
@@ -145,7 +143,9 @@ namespace Turnroot.Gameplay.Combat.PreBattle
                                     : null;
                             inst ??= gw?.FindInstanceByTemplate(p.CharacterData);
                             if (inst != null)
+                            {
                                 tempList.Add(inst);
+                            }
                         }
                     }
 
@@ -421,29 +421,7 @@ namespace Turnroot.Gameplay.Combat.PreBattle
                     }
                 }
                 cameraBrain.MoveCameraToPosition(PlayerTeamSpawnPoints.FirstOrDefault());
-
-                var result = InitializePlacements();
-                if (!result.Success)
-                {
-#if UNITY_EDITOR
-                    Debug.LogWarning(
-                        $"BattlePreparationObject: InitializePlacements failed: {result.ErrorMessage}"
-                    );
-                    var selectedUnits =
-                        Brain?.gamewideContextBrain?.GetSelectedForBattlePlayerTeamUnits();
-                    var count = selectedUnits?.Count ?? 0;
-                    Debug.Log($"BattlePreparationObject: Selected units count: {count}");
-                    var persistentChars =
-                        Brain
-                            ?.gamewideContextBrain
-                            ?.GamewidePersistentPlayerRoster
-                            ?.characters
-                            ?.Length ?? 0;
-                    Debug.Log(
-                        $"BattlePreparationObject: Persistent roster template placements: {persistentChars}"
-                    );
-#endif
-                }
+                InitializePlacements();
             }
         }
 
