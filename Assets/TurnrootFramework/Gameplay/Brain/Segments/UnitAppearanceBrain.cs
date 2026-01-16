@@ -3,6 +3,7 @@ using System.Linq;
 using Turnroot.Characters;
 using Turnroot.Characters.CharacterClass;
 using Turnroot.Gameplay.Brain.Events;
+using Turnroot.Gameplay.Combat;
 using Turnroot.GameSettings;
 using Turnroot.Utilities;
 using UnityEngine;
@@ -11,145 +12,150 @@ namespace Turnroot.Gameplay.Brain
 {
     public class UnitAppearanceBrain : BrainComponent
     {
-        private GameplayGeneralSettings generalSettings;
+        private GameplayGeneralSettings _settings;
+        private Dictionary<Vector2Int, GameObject> _activeUnitModels = new();
 
         protected override EventPriority GetSubscriptionPriority() => EventPriority.Low;
-
-        protected override void SubscribeToBrainEvents() { }
-
-        protected override void UnsubscribeFromBrainEvents() { }
 
         protected override void Awake()
         {
             base.Awake();
-            generalSettings = GameSettingsLoader.LoadFirst<GameplayGeneralSettings>();
+            _settings = GameSettingsLoader.LoadFirst<GameplayGeneralSettings>();
         }
 
-        /// <summary>
-        /// Get the material for the given unit given their class. If it doesn't exist, create it.
-        /// Uses a cached dictionary on the CharacterInstance to avoid recreating materials.
-        /// Applies material to all relevant SkinnedMeshRenderers (root + children + class renderer).
-        /// </summary>
-        /// <param name="unit"></param>
-        /// <returns></returns>
+        protected override void SubscribeToBrainEvents()
+        {
+            Brain.OnBattleObjectSet += HandleBattleObjectSet;
+
+            if (Brain.battleBrain?.BattleObject != null)
+            {
+                HandleBattleObjectSet(Brain.battleBrain.BattleObject);
+            }
+        }
+
+        protected override void UnsubscribeFromBrainEvents()
+        {
+            if (Brain != null)
+            {
+                Brain.OnBattleObjectSet -= HandleBattleObjectSet;
+            }
+        }
+
         public Material GetUnitOutfitMaterial(CharacterInstance unit)
         {
-            Material material;
-            var classInstance = unit.GetCurrentClass();
-            var className = classInstance?.ClassData?.GetClassName() ?? "";
-            if (unit.classNameToOutfitMaterials.ContainsKey(className))
-            {
-                material = unit.classNameToOutfitMaterials[className];
-            }
-            else
-            {
-                material = new Material(generalSettings.UnitOutfitMaterialTemplate)
-                {
-                    name = $"{unit.CharacterTemplate.DisplayName}_OutfitMaterial",
-                };
-                unit.classNameToOutfitMaterials[className] = material;
-            }
+            var classInst = unit.GetCurrentClass();
+            var className = classInst?.ClassData?.GetClassName() ?? "";
 
-            // Gather renderers (root renderer + children + class renderer if present)
-            var renderers = GetRelevantRenderers(unit, classInstance).ToArray();
+            var material = GetOrCreateMaterial(unit, className);
+            var renderers = GetRelevantRenderers(unit, classInst).ToArray();
 
             if (renderers.Length == 0)
             {
-#if UNITY_EDITOR
-                Debug.LogWarning(
-                    "GetUnitOutfitMaterial: unit has no SkinnedMeshRenderer assigned."
-                );
-#endif
+                Debug.LogWarning("GetUnitOutfitMaterial: unit has no SkinnedMeshRenderer");
                 return material;
             }
 
-            // Assign material to all renderers so textures/colors are consistent across meshes
+            ApplyMaterialToRenderers(renderers, material);
+            InitializeClassVisuals(classInst, unit);
+            ApplyColorSettings(material, unit);
+            ApplyClassTextures(material, classInst);
+
+            return material;
+        }
+
+        private Material GetOrCreateMaterial(CharacterInstance unit, string className)
+        {
+            if (unit.classNameToOutfitMaterials.TryGetValue(className, out var existing))
+            {
+                return existing;
+            }
+
+            var material = new Material(_settings.UnitOutfitMaterialTemplate)
+            {
+                name = $"{unit.CharacterTemplate.DisplayName}_OutfitMaterial",
+            };
+            unit.classNameToOutfitMaterials[className] = material;
+            return material;
+        }
+
+        private void ApplyMaterialToRenderers(SkinnedMeshRenderer[] renderers, Material material)
+        {
             foreach (var r in renderers)
             {
-                if (r == null)
-                    continue;
-                r.material = material;
+                if (r != null)
+                {
+                    r.material = material;
+                }
             }
+        }
 
-            // Initialize class visuals on the preferred renderer (prefer class renderer when available)
-            if (classInstance != null)
+        private void InitializeClassVisuals(
+            CharacterClassDataInstance classInst,
+            CharacterInstance unit
+        )
+        {
+            if (classInst == null)
             {
-                if (classInstance.MeshRenderer != null)
-                {
-                    classInstance.InitializeWithRenderer(classInstance.MeshRenderer);
-                }
-                else if (unit.Renderer != null)
-                {
-                    classInstance.InitializeWithRenderer(unit.Renderer);
-                }
+                return;
             }
 
+            var renderer = classInst.MeshRenderer ?? unit.Renderer;
+            if (renderer != null)
+            {
+                classInst.InitializeWithRenderer(renderer);
+            }
+        }
+
+        private void ApplyColorSettings(Material material, CharacterInstance unit)
+        {
             material.SetColor("_Accent_Color_1", unit.CharacterTemplate.AccentColor1);
             material.SetColor("_Accent_Color_2", unit.CharacterTemplate.AccentColor2);
             material.SetColor("_Accent_Color_3", unit.CharacterTemplate.AccentColor3);
             material.SetColor("_Skin_Color", unit.CharacterTemplate.SkinColor);
+        }
 
-            // Apply class textures if available on the current class
-            var identity = classInstance?.ClassData?.Identity;
-            if (identity != null)
+        private void ApplyClassTextures(Material material, CharacterClassDataInstance classInst)
+        {
+            var identity = classInst?.ClassData?.Identity;
+            if (identity == null)
             {
-                if (identity.Base != null)
-                {
-                    material.SetTexture("_Base", identity.Base);
-                }
-
-                if (identity.MSE != null)
-                {
-                    material.SetTexture("_MSE", identity.MSE);
-                }
-
-                if (identity.TintMask != null)
-                {
-                    material.SetTexture("_Tint_Mask", identity.TintMask);
-                }
+                return;
             }
 
-            return material;
+            if (identity.Base != null)
+            {
+                material.SetTexture("_Base", identity.Base);
+            }
+
+            if (identity.MSE != null)
+            {
+                material.SetTexture("_MSE", identity.MSE);
+            }
+
+            if (identity.TintMask != null)
+            {
+                material.SetTexture("_Tint_Mask", identity.TintMask);
+            }
         }
 
         public OperationResult SetBlendshapes(CharacterInstance unit)
         {
             var weights = unit.CharacterTemplate.Blendshapes;
             var names = weights.BlendshapeNames ?? new string[0];
-            var classInst = unit.GetCurrentClass();
-            var renderers = GetRelevantRenderers(unit, classInst).ToArray();
+            var renderers = GetRelevantRenderers(unit, unit.GetCurrentClass()).ToArray();
 
             if (renderers.Length == 0)
             {
-                return OperationResult.Failure(
-                    "SetBlendshapes: unit has no SkinnedMeshRenderer assigned."
-                );
+                return OperationResult.Failure("SetBlendshapes: unit has no SkinnedMeshRenderer");
             }
 
             foreach (var shapeName in names)
             {
-                bool applied = false;
-                var shapeWeight = weights.GetBlendshapeByName(shapeName);
-
-                foreach (var r in renderers)
-                {
-                    if (r == null)
-                        continue;
-                    var mesh = r.sharedMesh;
-                    if (mesh == null)
-                        continue;
-                    int shapeIndex = mesh.GetBlendShapeIndex(shapeName);
-                    if (shapeIndex >= 0)
-                    {
-                        r.SetBlendShapeWeight(shapeIndex, shapeWeight);
-                        applied = true;
-                    }
-                }
-
-                if (!applied)
+                var weight = weights.GetBlendshapeByName(shapeName);
+                if (!ApplyBlendshapeToRenderers(renderers, shapeName, weight))
                 {
                     return OperationResult.Failure(
-                        $"Could not set blendshape weight for {shapeName}: shape not found on any renderer. Fix the mesh to include the blendshape(s)."
+                        $"Could not set blendshape weight for {shapeName}: shape not found on any renderer"
                     );
                 }
             }
@@ -157,26 +163,47 @@ namespace Turnroot.Gameplay.Brain
             return OperationResult.SuccessResult();
         }
 
-        /// <summary>
-        /// Returns all SkinnedMeshRenderers relevant for a unit's visual (root renderer, its children, and the class renderer if different).
-        /// </summary>
+        private bool ApplyBlendshapeToRenderers(
+            SkinnedMeshRenderer[] renderers,
+            string name,
+            float weight
+        )
+        {
+            bool applied = false;
+            foreach (var r in renderers)
+            {
+                if (r?.sharedMesh == null)
+                {
+                    continue;
+                }
+
+                int index = r.sharedMesh.GetBlendShapeIndex(name);
+                if (index >= 0)
+                {
+                    r.SetBlendShapeWeight(index, weight);
+                    applied = true;
+                }
+            }
+            return applied;
+        }
+
         private IEnumerable<SkinnedMeshRenderer> GetRelevantRenderers(
             CharacterInstance unit,
-            CharacterClassDataInstance classInstance
+            CharacterClassDataInstance classInst
         )
         {
             var list = new List<SkinnedMeshRenderer>();
+
             if (unit?.Renderer != null)
             {
-                // include the root renderer and any child renderers (e.g., head/hands separated on another renderer)
-                var root = unit.Renderer.gameObject;
-                list.AddRange(root.GetComponentsInChildren<SkinnedMeshRenderer>(true));
+                list.AddRange(
+                    unit.Renderer.gameObject.GetComponentsInChildren<SkinnedMeshRenderer>(true)
+                );
             }
 
-            // include class-specific renderer if it's on a different object than the root
-            if (classInstance?.MeshRenderer != null && !list.Contains(classInstance.MeshRenderer))
+            if (classInst?.MeshRenderer != null && !list.Contains(classInst.MeshRenderer))
             {
-                list.Add(classInstance.MeshRenderer);
+                list.Add(classInst.MeshRenderer);
             }
 
             return list.Distinct();
@@ -184,226 +211,338 @@ namespace Turnroot.Gameplay.Brain
 
         public GameObject CreateModelForUnit(CharacterInstance unit)
         {
-            // Create a parent container for the complete character
-            var characterRoot = new GameObject($"{unit.CharacterTemplate.DisplayName}_Root");
+            var root = new GameObject($"{unit.CharacterTemplate.DisplayName}_Root");
+            var outfitRenderer = CreateOutfitMesh(unit, root);
+            var headRenderer = CreateHeadMesh(unit, root);
 
-            // === PART 1: Body/Outfit Mesh ===
-            GameObject outfitObject = null;
-            SkinnedMeshRenderer outfitRenderer = null;
+            SetPrimaryRenderer(unit, outfitRenderer, headRenderer, root);
+            return root;
+        }
 
-            // Priority 1: Use class-specific prefab if available
-            var classInstance = unit.GetCurrentClass();
-            if (classInstance?.ClassData?.Identity?.ClassModelPrefab != null)
+        private SkinnedMeshRenderer CreateOutfitMesh(CharacterInstance unit, GameObject parent)
+        {
+            var classInst = unit.GetCurrentClass();
+            var prefab = classInst?.ClassData?.Identity?.ClassModelPrefab;
+
+            if (prefab != null)
             {
-                outfitObject = Instantiate(
-                    classInstance.ClassData.Identity.ClassModelPrefab,
-                    characterRoot.transform
-                );
-                outfitObject.name = "ClassOutfit";
-                outfitRenderer = outfitObject.GetComponentInChildren<SkinnedMeshRenderer>();
-            }
-            // Priority 2: Use character's default model
-            else if (unit.CharacterTemplate.CharacterDefaultModel != null)
-            {
-                outfitObject = new GameObject("DefaultOutfit");
-                outfitObject.transform.SetParent(characterRoot.transform);
-                outfitRenderer = outfitObject.AddComponent<SkinnedMeshRenderer>();
-
-                var sourceRenderer = unit.CharacterTemplate.CharacterDefaultModel;
-                outfitRenderer.sharedMesh = sourceRenderer.sharedMesh;
-                outfitRenderer.rootBone = sourceRenderer.rootBone;
-                outfitRenderer.bones = sourceRenderer.bones;
+                var obj = Instantiate(prefab, parent.transform);
+                obj.name = "ClassOutfit";
+                return obj.GetComponentInChildren<SkinnedMeshRenderer>();
             }
 
-            // === PART 2: Head/Hands/Hair Mesh ===
-            GameObject headObject = null;
-            SkinnedMeshRenderer headRenderer = null;
-
-            if (unit.CharacterTemplate.CharacterHeadHandsAndHair != null)
+            if (unit.CharacterTemplate.CharacterDefaultModel != null)
             {
-                headObject = new GameObject("HeadHandsHair");
-                headObject.transform.SetParent(characterRoot.transform);
-                headRenderer = headObject.AddComponent<SkinnedMeshRenderer>();
-
-                var sourceRenderer = unit.CharacterTemplate.CharacterHeadHandsAndHair;
-                headRenderer.sharedMesh = sourceRenderer.sharedMesh;
-                headRenderer.rootBone = sourceRenderer.rootBone;
-                headRenderer.bones = sourceRenderer.bones;
+                var obj = new GameObject("DefaultOutfit");
+                obj.transform.SetParent(parent.transform);
+                return CopyRenderer(obj, unit.CharacterTemplate.CharacterDefaultModel);
             }
 
-            // === PART 3: Set the primary renderer on the unit ===
-            // The "main" renderer is the outfit renderer - UnitAppearanceBrain uses this as the primary reference
-            if (outfitRenderer != null)
+            return null;
+        }
+
+        private SkinnedMeshRenderer CreateHeadMesh(CharacterInstance unit, GameObject parent)
+        {
+            if (unit.CharacterTemplate.CharacterHeadHandsAndHair == null)
             {
-                unit.SetRenderer(outfitRenderer);
+                return null;
             }
-            else if (headRenderer != null)
+
+            var obj = new GameObject("HeadHandsHair");
+            obj.transform.SetParent(parent.transform);
+            return CopyRenderer(obj, unit.CharacterTemplate.CharacterHeadHandsAndHair);
+        }
+
+        private SkinnedMeshRenderer CopyRenderer(GameObject target, SkinnedMeshRenderer source)
+        {
+            var renderer = target.AddComponent<SkinnedMeshRenderer>();
+            renderer.sharedMesh = source.sharedMesh;
+            renderer.rootBone = source.rootBone;
+            renderer.bones = source.bones;
+            return renderer;
+        }
+
+        private void SetPrimaryRenderer(
+            CharacterInstance unit,
+            SkinnedMeshRenderer outfit,
+            SkinnedMeshRenderer head,
+            GameObject root
+        )
+        {
+            if (outfit != null)
             {
-                // Fallback: if somehow there's no outfit but there's a head
-                unit.SetRenderer(headRenderer);
+                unit.SetRenderer(outfit);
+            }
+            else if (head != null)
+            {
+                unit.SetRenderer(head);
             }
             else
             {
-                // No renderers at all - create placeholder
-                Debug.LogWarning(
-                    $"No renderers found for {unit.CharacterTemplate.DisplayName}, creating placeholder"
-                );
-                var placeholder = GameObject.CreatePrimitive(PrimitiveType.Cube);
-                placeholder.transform.SetParent(characterRoot.transform);
-                placeholder.GetComponent<Renderer>().material.color =
-                    unit.CharacterTemplate.AccentColor1;
-                var smr = placeholder.AddComponent<SkinnedMeshRenderer>();
-                unit.SetRenderer(smr);
+                unit.SetRenderer(CreatePlaceholderRenderer(unit, root));
             }
+        }
 
-            return characterRoot;
+        private SkinnedMeshRenderer CreatePlaceholderRenderer(
+            CharacterInstance unit,
+            GameObject parent
+        )
+        {
+            Debug.LogWarning(
+                $"No renderers for {unit.CharacterTemplate.DisplayName}, creating placeholder"
+            );
+            var placeholder = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            placeholder.transform.SetParent(parent.transform);
+            placeholder.GetComponent<Renderer>().material.color =
+                unit.CharacterTemplate.AccentColor1;
+            return placeholder.AddComponent<SkinnedMeshRenderer>();
         }
 
         public OperationResult SpawnUnitModelOnGrid(
-            Vector2Int position,
+            Vector2Int pos,
             CharacterInstance unit,
-            Dictionary<Vector2Int, GameObject> _unitModels,
+            Dictionary<Vector2Int, GameObject> models,
             bool prebattle = false
         )
         {
-            // TODO: Add brain events
             if (unit == null)
             {
                 return OperationResult.Failure("Unit is null");
             }
 
-            // Determine world position for the model
-            var worldPos = prebattle
-                ? _brain.battleBrain.PreparationObject.MapGrid.GetTerrainAdjustedWorldPosition(
-                    position
-                )
-                : _brain.battleBrain.BattleObject.MapGrid.GetTerrainAdjustedWorldPosition(position);
+            var worldPos = GetWorldPosition(pos, prebattle);
+            var existing = TryReuseExistingModel(unit, worldPos, pos, models);
 
-            // Use ownership component to find an existing model for this unit (robust, avoids name parsing)
-            var existingOwners = FindObjectsByType<UnitModelOwnership>(
-                FindObjectsInactive.Include,
-                FindObjectsSortMode.None
-            );
-            var existingOwner = existingOwners.FirstOrDefault(o =>
-                o != null && !string.IsNullOrEmpty(o.UnitId) && o.UnitId == unit.Id
-            );
-            if (existingOwner != null)
+            if (existing != null)
             {
-                var existing = existingOwner.gameObject;
-#if UNITY_EDITOR
-                Debug.Log(
-                    "SpawnUnitModelOnGrid: reusing model for unit id '"
-                        + unit.Id
-                        + "' ; moving to "
-                        + position
-                );
-#endif
-                // Move and rescale existing model to the requested position
-                existing.transform.SetPositionAndRotation(worldPos, Quaternion.identity);
-                existing.transform.localScale = Vector3.one * _brain.uiBrain.uiSettings.ModelsScale;
-
-                // Update debug display name
-                existingOwner.DisplayName = unit.CharacterTemplate.DisplayName;
-
-                // Ensure renderer visuals are applied
-                var existingRenderer = existing.GetComponentInChildren<SkinnedMeshRenderer>();
-                if (existingRenderer != null)
-                {
-                    unit.SetRenderer(existingRenderer);
-                    GetUnitOutfitMaterial(unit);
-                    SetBlendshapes(unit);
-                }
-
-                // Remove any prior mapping in this dictionary that referenced the same GameObject
-                var keys = new List<Vector2Int>(_unitModels.Keys);
-                foreach (var k in keys)
-                {
-                    if (_unitModels.TryGetValue(k, out var obj) && obj == existing)
-                    {
-                        _unitModels.Remove(k);
-                        break;
-                    }
-                }
-
-                // Register existing model at the new position
-                _unitModels[position] = existing;
                 return OperationResult.SuccessResult();
             }
 
-            // Clean up existing model at this position before spawning a new one
-            if (_unitModels.TryGetValue(position, out var oldModel))
+            CleanupOldModel(pos, models);
+            return CreateNewModel(unit, worldPos, pos, models);
+        }
+
+        private Vector3 GetWorldPosition(Vector2Int pos, bool prebattle)
+        {
+            return prebattle
+                ? _brain.battleBrain.PreparationObject.MapGrid.GetTerrainAdjustedWorldPosition(pos)
+                : _brain.battleBrain.BattleObject.MapGrid.GetTerrainAdjustedWorldPosition(pos);
+        }
+
+        private GameObject TryReuseExistingModel(
+            CharacterInstance unit,
+            Vector3 worldPos,
+            Vector2Int pos,
+            Dictionary<Vector2Int, GameObject> models
+        )
+        {
+            var ownerships = FindObjectsByType<UnitModelOwnership>(
+                FindObjectsInactive.Include,
+                FindObjectsSortMode.None
+            );
+            var owner = ownerships.FirstOrDefault(o => o != null && o.UnitId == unit.Id);
+
+            if (owner == null)
             {
-                try
-                {
-                    oldModel.SetActive(false);
-                }
-                catch { }
-                Destroy(oldModel);
-                _unitModels.Remove(position);
+                return null;
             }
 
-            // Instantiate model now that we know we won't reuse an existing one
-            GameObject modelInstance = CreateModelForUnit(unit);
+            var model = owner.gameObject;
+            model.transform.SetPositionAndRotation(worldPos, Quaternion.identity);
+            model.transform.localScale = Vector3.one * _brain.uiBrain.uiSettings.ModelsScale;
+            owner.DisplayName = unit.CharacterTemplate.DisplayName;
 
-            if (modelInstance == null)
-            {
-                return OperationResult.Failure("Failed to create model instance");
-            }
+            ApplyVisuals(unit, model);
+            RemovePreviousMapping(models, model);
+            models[pos] = model;
 
-            modelInstance.transform.SetPositionAndRotation(worldPos, Quaternion.identity);
-            modelInstance.transform.localScale =
-                Vector3.one * _brain.uiBrain.uiSettings.ModelsScale;
+            _brain?.Publish(new ModelSpawnedEvent(unit, unit.Id, pos, model));
+            return model;
+        }
 
-            // Attach ownership info and name model for debugging
-            var ownership = modelInstance.AddComponent<UnitModelOwnership>();
-            ownership.UnitId = unit.Id;
-            ownership.DisplayName = unit.CharacterTemplate.DisplayName;
-            modelInstance.name = $"{unit.CharacterTemplate.DisplayName}_Model_{unit.Id}";
-
-            // Get the SkinnedMeshRenderer and set it on the unit
-            var renderer = modelInstance.GetComponentInChildren<SkinnedMeshRenderer>();
+        private void ApplyVisuals(CharacterInstance unit, GameObject model)
+        {
+            var renderer = model.GetComponentInChildren<SkinnedMeshRenderer>();
             if (renderer != null)
             {
                 unit.SetRenderer(renderer);
                 GetUnitOutfitMaterial(unit);
                 SetBlendshapes(unit);
             }
+        }
 
-            _unitModels[position] = modelInstance;
+        private void RemovePreviousMapping(
+            Dictionary<Vector2Int, GameObject> models,
+            GameObject target
+        )
+        {
+            var key = models.FirstOrDefault(kvp => kvp.Value == target).Key;
+            if (key != default)
+            {
+                models.Remove(key);
+            }
+        }
+
+        private void CleanupOldModel(Vector2Int pos, Dictionary<Vector2Int, GameObject> models)
+        {
+            if (models.TryGetValue(pos, out var old) && old != null)
+            {
+                try
+                {
+                    old.SetActive(false);
+                }
+                catch { }
+                Destroy(old);
+                models.Remove(pos);
+            }
+        }
+
+        private OperationResult CreateNewModel(
+            CharacterInstance unit,
+            Vector3 worldPos,
+            Vector2Int pos,
+            Dictionary<Vector2Int, GameObject> models
+        )
+        {
+            var model = CreateModelForUnit(unit);
+            if (model == null)
+            {
+                return OperationResult.Failure("Failed to create model instance");
+            }
+
+            model.transform.SetPositionAndRotation(worldPos, Quaternion.identity);
+            model.transform.localScale = Vector3.one * _brain.uiBrain.uiSettings.ModelsScale;
+
+            var ownership = model.AddComponent<UnitModelOwnership>();
+            ownership.UnitId = unit.Id;
+            ownership.DisplayName = unit.CharacterTemplate.DisplayName;
+            model.name = $"{unit.CharacterTemplate.DisplayName}_Model_{unit.Id}";
+
+            ApplyVisuals(unit, model);
+            models[pos] = model;
+
+            _brain?.Publish(new ModelSpawnedEvent(unit, unit.Id, pos, model));
             return OperationResult.SuccessResult();
         }
 
         public OperationResult DespawnUnitModelFromGrid(
-            Vector2Int position,
-            Dictionary<Vector2Int, GameObject> _unitModels
+            Vector2Int pos,
+            Dictionary<Vector2Int, GameObject> models
         )
         {
-            if (_unitModels == null)
+            if (models == null)
             {
                 return OperationResult.Failure("Model dictionary is null");
             }
 
-            if (_unitModels.TryGetValue(position, out var model) && model != null)
+            if (!models.TryGetValue(pos, out var model) || model == null)
             {
-                // Hide immediately to avoid visible duplicates until Destroy executes
-                try
-                {
-                    model.SetActive(false);
-                }
-                catch { }
-
-                // Destroy and remove mapping
-                Destroy(model);
-                _unitModels.Remove(position);
-#if UNITY_EDITOR
-                Debug.Log($"DespawnUnitModelFromGrid: removed model for {position}");
-#endif
-                return OperationResult.SuccessResult();
+                return OperationResult.Failure("No model found at given position");
             }
-#if UNITY_EDITOR
-            Debug.LogWarning($"DespawnUnitModelFromGrid: no model found at {position}");
-#endif
-            return OperationResult.Failure("No model found at given position");
+
+            try
+            {
+                model.SetActive(false);
+            }
+            catch { }
+
+            PublishDespawnEvent(model, pos);
+            Destroy(model);
+            models.Remove(pos);
+
+            return OperationResult.SuccessResult();
         }
+
+        private void PublishDespawnEvent(GameObject model, Vector2Int pos)
+        {
+            var owner = model.GetComponent<UnitModelOwnership>();
+            var unitId = owner?.UnitId;
+            var unit = !string.IsNullOrEmpty(unitId)
+                ? _brain
+                    ?.gamewideContextBrain?.GetAllActiveInstances()
+                    ?.FirstOrDefault(u => u?.Id == unitId)
+                : null;
+
+            _brain?.Publish(new ModelDespawnedEvent(unit, unitId, pos, model));
+        }
+
+        private void HandleBattleStarted()
+        {
+            Debug.Log("UnitAppearanceBrain: Handling battle started - spawning unit models");
+
+            ClearExistingModels();
+
+            var roster = _brain.battleBrain.PlayerTeamRoster;
+
+            if (roster == null)
+            {
+                Debug.LogWarning(
+                    $"UnitAppearanceBrain: PlayerTeamRoster is null. BattleObject: {_brain?.battleBrain?.BattleObject?.name ?? "null"}"
+                );
+                roster = _brain?.battleBrain?.BattleObject?.PlayerTeamRoster;
+            }
+
+            if (roster == null)
+            {
+                Debug.LogWarning(
+                    "UnitAppearanceBrain: No player roster available to spawn models."
+                );
+                return;
+            }
+
+            var placements = roster.GetPlacements();
+            Debug.Log(
+                $"UnitAppearanceBrain: PlayerTeamRoster has {placements?.Count() ?? 0} placements."
+            );
+
+            foreach (var placement in placements)
+            {
+                var instance = roster.GetInstanceFor(placement.CharacterData);
+                if (instance == null)
+                {
+                    Debug.LogWarning(
+                        $"UnitAppearanceBrain: No instance for template {placement.CharacterData?.DisplayName}"
+                    );
+                    continue;
+                }
+
+                Debug.Log(
+                    $"Spawning model for {instance.CharacterTemplate.DisplayName} at {placement.SpawnPosition}"
+                );
+                var spawnResult = SpawnUnitModelOnGrid(
+                    placement.SpawnPosition,
+                    instance,
+                    _activeUnitModels,
+                    prebattle: false
+                );
+#if UNITY_EDITOR
+                if (!spawnResult.Success)
+                {
+                    Debug.LogWarning(
+                        $"UnitAppearanceBrain: Failed to spawn model for {instance.Id} at {placement.SpawnPosition}: {spawnResult.ErrorMessage}"
+                    );
+                }
+#endif
+            }
+        }
+
+        private void ClearExistingModels()
+        {
+            foreach (var kvp in _activeUnitModels.ToList())
+            {
+                if (kvp.Value != null)
+                {
+                    try
+                    {
+                        kvp.Value.SetActive(false);
+                    }
+                    catch { }
+                    Destroy(kvp.Value);
+                }
+            }
+            _activeUnitModels.Clear();
+        }
+
+        private void HandleBattleObjectSet(BattleGameObject battleObject) => HandleBattleStarted();
     }
 }

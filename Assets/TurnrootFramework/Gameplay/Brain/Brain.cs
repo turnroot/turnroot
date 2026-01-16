@@ -593,6 +593,14 @@ namespace Turnroot.Gameplay.Brain
 
         public void PublishPreBattleCompleted() => OnPreBattleCompleted?.Invoke();
 
+        // Emitted when a BattleGameObject has been located and initialized for the upcoming battle.
+        // Subscribers can use this to access the BattleGameObject safely before the battle-start event.
+        public event System.Action<Turnroot.Gameplay.Combat.BattleGameObject> OnBattleObjectSet;
+
+        public void PublishBattleObjectSet(
+            Turnroot.Gameplay.Combat.BattleGameObject battleObject
+        ) => OnBattleObjectSet?.Invoke(battleObject);
+
         #endregion
 
         #region Battle Turn Events

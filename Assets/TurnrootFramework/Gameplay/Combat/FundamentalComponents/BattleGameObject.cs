@@ -31,7 +31,6 @@ namespace Turnroot.Gameplay.Combat
         [Header("Battle Teams"), HorizontalLine(color: EColor.Indigo)]
         [SerializeField]
         private bool _hasThirdParty;
-
         public bool HasThirdParty
         {
             get => _hasThirdParty;
@@ -48,7 +47,7 @@ namespace Turnroot.Gameplay.Combat
         public int MaxPlayerTeamUnits;
 
         [SerializeField]
-        private List<CharacterData> _requiredPlayerUnits = new List<CharacterData>();
+        private List<CharacterData> _requiredPlayerUnits = new();
         public List<CharacterData> RequiredPlayerUnits
         {
             get => _requiredPlayerUnits;
@@ -60,7 +59,6 @@ namespace Turnroot.Gameplay.Combat
 
         [SerializeField, SerializeReference]
         private BattleCondition[] _battleConditions;
-
         public BattleCondition[] BattleConditions => _battleConditions;
 
         [field: SerializeField]
@@ -79,49 +77,44 @@ namespace Turnroot.Gameplay.Combat
         [field: HideInInspector]
         public Brain.Brain Brain { get; set; }
 
-        // Track connection state to prevent duplicate subscriptions
-        private bool _isConnectedToBrain;
-
-        // Battle rosters - typed for their specific roles
         public PlayerTeamRosterInstance PlayerTeamRoster { get; private set; }
         public GenericRosterInstance EnemyTeamRoster { get; private set; }
         public GenericRosterInstance ThirdPartyTeamRoster { get; private set; }
 
         public LayerMask GroundLayerMask;
 
+        private bool _isConnectedToBrain;
+
         #region Unity Lifecycle
+
         public void Awake()
         {
             ResetTurnCount();
             Context ??= GetComponent<BattleContext>();
-            MapGrid = MapGrid != null ? MapGrid : GetComponentInChildren<MapGrid>();
+            MapGrid ??= GetComponentInChildren<MapGrid>();
 
+            ValidateRequiredComponents();
+        }
+
+        private void ValidateRequiredComponents()
+        {
             if (MapGrid == null)
             {
-#if UNITY_EDITOR
                 Debug.LogError("BattleGameObject requires a MapGrid child");
-#endif
                 Debug.Break();
             }
 
             if (_battleConditions == null)
             {
-#if UNITY_EDITOR
                 Debug.LogError("BattleGameObject requires BattleConditions to be set");
-#endif
                 Debug.Break();
             }
-
-            // MapGrid will be set during context initialization when the Brain is connected.
-            // Context.mapGrid will be initialized in InitializeContextWithBrain().
         }
 
 #if UNITY_EDITOR
         private void OnValidate()
         {
-            // Ensure the Context reference is set in the editor so condition assets can reference it.
             Context ??= GetComponent<BattleContext>();
-
             if (_battleConditions == null)
             {
                 return;
@@ -134,10 +127,8 @@ namespace Turnroot.Gameplay.Combat
                     continue;
                 }
 
-                // Auto-assign the context so conditions edited in the inspector can use it
                 condition.battleContext = Context;
 
-                // Attempt to resolve references so configured conditions immediately have valid links
                 try
                 {
                     condition.ResolveRequiredConditions(_battleConditions);
@@ -149,7 +140,7 @@ namespace Turnroot.Gameplay.Combat
                 catch (System.Exception ex)
                 {
                     Debug.LogWarning(
-                        $"BattleGameObject OnValidate: Failed to resolve condition {condition?.Name}: {ex.Message}"
+                        $"Failed to resolve condition {condition?.Name}: {ex.Message}"
                     );
                 }
             }
@@ -158,33 +149,29 @@ namespace Turnroot.Gameplay.Combat
 
         #endregion
 
-        #region Brain Event Connection
+        #region Brain Connection
 
         public OperationResult ConnectToBrainEvents()
         {
             if (Brain == null)
             {
-                return OperationResult.Failure(
-                    "BattleGameObject ConnectToBrainEvents failed: Brain reference is null."
-                );
+                return OperationResult.Failure("Brain reference is null");
             }
 
-            // Guard against duplicate subscriptions
             if (_isConnectedToBrain)
             {
-                return OperationResult.Failure(
-                    "BattleGameObject ConnectToBrainEvents failed: Already connected to Brain events."
-                );
+                return OperationResult.Failure("Already connected to Brain events");
             }
 
-#if UNITY_EDITOR
-            Debug.Log("BattleGameObject connecting to Brain events");
-#endif
-
-            // Initialize context with Brain reference for command pattern
             InitializeContextWithBrain();
+            SubscribeToBrainEvents();
 
-            // Subscribe to battle events
+            _isConnectedToBrain = true;
+            return OperationResult.SuccessResult();
+        }
+
+        private void SubscribeToBrainEvents()
+        {
             Brain.OnTurnEnded += HandleTurnEnded;
             Brain.OnAllyDamaged += HandleAllyDamaged;
             Brain.OnEnemyDamaged += HandleEnemyDamaged;
@@ -192,15 +179,8 @@ namespace Turnroot.Gameplay.Combat
             Brain.OnUnitMoved += HandleUnitMoved;
             Brain.OnBattleCompleted += HandleExitBattle;
 
-            // Subscribe to advanced priority events for spawn/defeat to invalidate condition caches
             Brain.Subscribe<UnitSpawnedEvent>(HandleUnitSpawnedEvent, EventPriority.Normal);
             Brain.Subscribe<UnitDefeatedEvent>(HandleUnitDefeatedEvent, EventPriority.Normal);
-
-            // Also subscribe to Brain's advanced PriorityEventBus for basic unit events in case commands publish them
-            // (handlers above will take care of cache invalidation and checks)
-
-            _isConnectedToBrain = true;
-            return OperationResult.SuccessResult();
         }
 
         public void DisconnectFromBrainEvents()
@@ -217,11 +197,15 @@ namespace Turnroot.Gameplay.Combat
             Brain.OnUnitMoved -= HandleUnitMoved;
             Brain.OnBattleCompleted -= HandleExitBattle;
 
-            // Unsubscribe from advanced events
             Brain.Unsubscribe<UnitSpawnedEvent>(HandleUnitSpawnedEvent);
             Brain.Unsubscribe<UnitDefeatedEvent>(HandleUnitDefeatedEvent);
 
-            // Unsubscribe from map state changes if any
+            UnsubscribeFromMapChanges();
+            _isConnectedToBrain = false;
+        }
+
+        private void UnsubscribeFromMapChanges()
+        {
             try
             {
                 if (MapGrid != null)
@@ -229,14 +213,7 @@ namespace Turnroot.Gameplay.Combat
                     MapGrid.OnStateVersionChanged -= HandleMapStateChanged;
                 }
             }
-            catch (System.Exception ex)
-            {
-#if UNITY_EDITOR
-                Debug.LogWarning($"Failed to unsubscribe from map state changes: {ex.Message}");
-#endif
-            }
-
-            _isConnectedToBrain = false;
+            catch { }
         }
 
         public OperationResult ConnectBattleConditionsToContext()
@@ -246,51 +223,35 @@ namespace Turnroot.Gameplay.Combat
                 foreach (var condition in _battleConditions)
                 {
                     condition.battleContext = Context;
-                }
-
-                // Resolve any required-condition references (by name) so conditions can query requirements
-                foreach (var condition in _battleConditions)
-                {
-                    try
-                    {
-                        condition.ResolveRequiredConditions(_battleConditions);
-
-                        // Resolve ConditionalGroup children if applicable
-                        if (condition is ConditionalGroupBattleCondition group)
-                        {
-                            try
-                            {
-                                group.ResolveChildConditions(_battleConditions);
-                            }
-                            catch (System.Exception ex2)
-                            {
-                                Debug.LogWarning(
-                                    $"Failed to resolve group children for {condition?.Name}: {ex2.Message}"
-                                );
-                            }
-                        }
-                    }
-                    catch (System.Exception ex)
-                    {
-                        Debug.LogWarning(
-                            $"Failed to resolve required conditions for {condition?.Name}: {ex.Message}"
-                        );
-                    }
+                    ResolveConditionReferences(condition);
                 }
                 return OperationResult.SuccessResult();
             }
             catch (System.Exception ex)
             {
-                return OperationResult.Failure(
-                    $"BattleGameObject ConnectBattleConditionsToContext failed: {ex.Message}"
+                return OperationResult.Failure($"Failed to connect conditions: {ex.Message}");
+            }
+        }
+
+        private void ResolveConditionReferences(BattleCondition condition)
+        {
+            try
+            {
+                condition.ResolveRequiredConditions(_battleConditions);
+
+                if (condition is ConditionalGroupBattleCondition group)
+                {
+                    group.ResolveChildConditions(_battleConditions);
+                }
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogWarning(
+                    $"Failed to resolve references for {condition?.Name}: {ex.Message}"
                 );
             }
         }
 
-        /// <summary>
-        /// Adds a new BattleCondition instance to this BattleGameObject at runtime.
-        /// Resolves its context and any named references and returns an OperationResult.
-        /// </summary>
         public OperationResult AddConditionAtRuntime(BattleCondition condition)
         {
             if (condition == null)
@@ -300,21 +261,14 @@ namespace Turnroot.Gameplay.Combat
 
             try
             {
-                var list = new System.Collections.Generic.List<BattleCondition>(
+                var list = new List<BattleCondition>(
                     _battleConditions ?? System.Array.Empty<BattleCondition>()
                 );
                 list.Add(condition);
                 _battleConditions = list.ToArray();
 
-                // Connect new condition to context and resolve its references
                 condition.battleContext = Context;
-                condition.ResolveRequiredConditions(_battleConditions);
-                if (condition is ConditionalGroupBattleCondition group)
-                {
-                    group.ResolveChildConditions(_battleConditions);
-                }
-
-                // Invalidate caches in case the new condition depends on unit lists
+                ResolveConditionReferences(condition);
                 condition?.InvalidateCache();
 
                 return OperationResult.SuccessResult();
@@ -327,47 +281,30 @@ namespace Turnroot.Gameplay.Combat
 
         private void InitializeContextWithBrain()
         {
-            if (Context == null)
+            if (Context == null || Brain == null)
             {
-#if UNITY_EDITOR
-                Debug.LogError("BattleGameObject: Context is null during initialization!");
-#endif
+                Debug.LogError("Cannot initialize context: Context or Brain is null");
                 return;
             }
 
-            if (Brain == null)
-            {
-                Debug.LogError(
-                    "BattleGameObject: Brain is null - context will not function correctly!"
-                );
-                return;
-            }
-
-            // Use explicit initialization so the Context has non-null Brain guaranteed
             try
             {
                 Context.Initialize(Brain, MapGrid);
-#if UNITY_EDITOR
-                Debug.Log("BattleGameObject: Context initialized via Initialize(brain, mapGrid)");
-#endif
-                // Subscribe to map state changes to invalidate AI caches when terrain/occupancy changes
-                try
-                {
-                    MapGrid.OnStateVersionChanged += HandleMapStateChanged;
-                }
-                catch (System.Exception ex)
-                {
-#if UNITY_EDITOR
-                    Debug.LogWarning($"Failed to subscribe to map state changes: {ex.Message}");
-#endif
-                }
+                SubscribeToMapChanges();
             }
             catch (System.Exception ex)
             {
-#if UNITY_EDITOR
-                Debug.LogError($"BattleGameObject: Failed to initialize context: {ex.Message}");
-#endif
+                Debug.LogError($"Failed to initialize context: {ex.Message}");
             }
+        }
+
+        private void SubscribeToMapChanges()
+        {
+            try
+            {
+                MapGrid.OnStateVersionChanged += HandleMapStateChanged;
+            }
+            catch { }
         }
 
         #endregion
@@ -378,86 +315,81 @@ namespace Turnroot.Gameplay.Combat
         {
             IncrementTurnCount();
 
-            // Propagate to conditions that need turn end notifications
-            foreach (var surviveTurns in _battleConditions.OfType<SurviveTurnsBattleCondition>())
+            foreach (var condition in _battleConditions.OfType<SurviveTurnsBattleCondition>())
             {
-                surviveTurns.OnTurnEnd();
+                condition.OnTurnEnd();
             }
-            foreach (var timeLimit in _battleConditions.OfType<TimeLimitBattleCondition>())
+
+            foreach (var condition in _battleConditions.OfType<TimeLimitBattleCondition>())
             {
-                timeLimit.OnTurnEnd();
+                condition.OnTurnEnd();
             }
         }
 
-        private void HandleAllyDamaged(CharacterInstance unit, int damageAmount)
+        private void HandleAllyDamaged(CharacterInstance unit, int damage)
         {
-            // Propagate to conditions that track ally damage
             foreach (
-                var allyDamageCondition in _battleConditions.OfType<LimitTotalAllyDamageBattleCondition>()
+                var condition in _battleConditions.OfType<LimitTotalAllyDamageBattleCondition>()
             )
             {
-                allyDamageCondition.OnAllyDamaged(damageAmount);
+                condition.OnAllyDamaged(damage);
             }
         }
 
-        private void HandleEnemyDamaged(CharacterInstance unit, int damageAmount)
+        private void HandleEnemyDamaged(CharacterInstance unit, int damage)
         {
-            // Propagate to conditions that track enemy damage
             foreach (
-                var enemyDamageCondition in _battleConditions.OfType<DealMinimumTotalEnemyDamageBattleCondition>()
+                var condition in _battleConditions.OfType<DealMinimumTotalEnemyDamageBattleCondition>()
             )
             {
-                enemyDamageCondition.OnEnemyDamaged(damageAmount);
+                condition.OnEnemyDamaged(damage);
             }
         }
 
         private void HandleUnitDefeated(CharacterInstance unit)
         {
-            // Invalidate caches for all conditions (unit lists changed)
             InvalidateAllConditionCaches();
+            ClearAICache();
 
-            // Also clear AI helper caches to avoid stale pathfinding tiles and reachability results
-            try
+            CheckDefeatConditions();
+        }
+
+        private void CheckDefeatConditions()
+        {
+            foreach (var condition in _battleConditions.OfType<DefeatAllEnemiesBattleCondition>())
             {
-                Brain?.battleBrain?.ClearAICache();
-            }
-            catch (System.Exception ex)
-            {
-#if UNITY_EDITOR
-                Debug.LogWarning($"Failed to clear AI cache on unit defeated: {ex.Message}");
-#endif
+                condition.CheckCondition();
             }
 
-            // Check defeat-related conditions
-            foreach (var defeatAll in _battleConditions.OfType<DefeatAllEnemiesBattleCondition>())
+            foreach (var condition in _battleConditions.OfType<DefeatEnemyBattleCondition>())
             {
-                defeatAll.CheckCondition();
+                condition.CheckCondition();
             }
-            foreach (var defeatSpecific in _battleConditions.OfType<DefeatEnemyBattleCondition>())
+
+            foreach (var condition in _battleConditions.OfType<ProtectNPCsBattleCondition>())
             {
-                defeatSpecific.CheckCondition();
+                condition.CheckCondition();
             }
-            foreach (var protectNPCs in _battleConditions.OfType<ProtectNPCsBattleCondition>())
-            {
-                protectNPCs.CheckCondition();
-            }
+
 #if TURNROOT_MONSTERS_MODULE
-            foreach (
-                var defeatAllMonsters in _battleConditions.OfType<DefeatAllMonstersBattleCondition>()
-            )
+            foreach (var condition in _battleConditions.OfType<DefeatAllMonstersBattleCondition>())
             {
-                //TODO: defeatAllMonsters.CheckCondition();
+                // TODO: condition.CheckCondition();
             }
-            foreach (var defeatMonster in _battleConditions.OfType<DefeatMonsterBattleCondition>())
-            {
-                defeatMonster.CheckCondition();
-            }
+
+            foreach (var condition in _battleConditions.OfType<DefeatMonsterBattleCondition>())
+                condition.CheckCondition();
 #endif
         }
 
-        private void HandleUnitMoved(CharacterInstance unit, Vector2Int newPosition)
+        private void HandleUnitMoved(CharacterInstance unit, Vector2Int newPos)
         {
-            // Check movement-related conditions
+            CheckMovementConditions(unit, newPos);
+            ClearAICache();
+        }
+
+        private void CheckMovementConditions(CharacterInstance unit, Vector2Int pos)
+        {
             foreach (var condition in _battleConditions)
             {
                 if (condition is SurviveUntilAllyReachesTileBattleCondition reachTile)
@@ -465,28 +397,14 @@ namespace Turnroot.Gameplay.Combat
                     reachTile.CheckCondition();
                 }
 
-                // Track reached tiles for ReachTilesBattleCondition
-                if (condition is ReachTilesBattleCondition reachTilesCondition)
+                if (condition is ReachTilesBattleCondition reachTiles)
                 {
-                    // Check if this unit is on the player team
                     bool isPlayerUnit = PlayerTeamRoster?.Instances?.Contains(unit) ?? false;
                     if (isPlayerUnit)
                     {
-                        reachTilesCondition.OnUnitReachedTile(newPosition);
+                        reachTiles.OnUnitReachedTile(pos);
                     }
                 }
-            }
-
-            // Clear AI caches when a unit moves as occupancy changed
-            try
-            {
-                Brain?.battleBrain?.ClearAICache();
-            }
-            catch (System.Exception ex)
-            {
-#if UNITY_EDITOR
-                Debug.LogWarning($"Failed to clear AI cache on unit moved: {ex.Message}");
-#endif
             }
         }
 
@@ -494,38 +412,21 @@ namespace Turnroot.Gameplay.Combat
 
         private void HandleUnitSpawnedEvent(UnitSpawnedEvent evt)
         {
-            // Unit spawned into battle - invalidate caches that rely on unit lists
             InvalidateAllConditionCaches();
-            // Also clear AI helper caches to avoid stale pathfinding tiles and reachability results
-            try
+            ClearAICache();
+
+            foreach (var condition in _battleConditions.OfType<DefeatEnemyBattleCondition>())
             {
-                Brain?.battleBrain?.ClearAICache();
-            }
-            catch (System.Exception ex)
-            {
-#if UNITY_EDITOR
-                Debug.LogWarning($"Failed to clear AI cache on unit spawned: {ex.Message}");
-#endif
+                condition.CheckCondition();
             }
 
-            // Optionally check conditions that may be affected by new unit presence
-            foreach (var condition in _battleConditions)
+            foreach (var condition in _battleConditions.OfType<DefeatAllEnemiesBattleCondition>())
             {
-                // Some conditions may react to increased ally/enemy counts; call CheckCondition when available
-                if (condition is DefeatEnemyBattleCondition defeatSpecific)
-                {
-                    defeatSpecific.CheckCondition();
-                }
-                if (condition is DefeatAllEnemiesBattleCondition defeatAll)
-                {
-                    defeatAll.CheckCondition();
-                }
+                condition.CheckCondition();
             }
         }
 
-        private void HandleUnitDefeatedEvent(UnitDefeatedEvent evt) =>
-            // Delegate to existing handler for defeated units to reuse logic
-            HandleUnitDefeated(evt.Unit);
+        private void HandleUnitDefeatedEvent(UnitDefeatedEvent evt) => HandleUnitDefeated(evt.Unit);
 
         private void InvalidateAllConditionCaches()
         {
@@ -538,31 +439,28 @@ namespace Turnroot.Gameplay.Combat
                 catch (System.Exception ex)
                 {
                     Debug.LogWarning(
-                        $"Failed to invalidate cache for condition {condition?.Name ?? condition?.GetType().Name}: {ex.Message}"
+                        $"Failed to invalidate cache for {condition?.Name}: {ex.Message}"
                     );
                 }
             }
         }
 
-        private void HandleMapStateChanged()
+        private void ClearAICache()
         {
             try
             {
                 Brain?.battleBrain?.ClearAICache();
             }
-            catch (System.Exception ex)
-            {
-#if UNITY_EDITOR
-                Debug.LogWarning($"Failed to clear AI cache on map change: {ex.Message}");
-#endif
-            }
+            catch { }
         }
+
+        private void HandleMapStateChanged() => ClearAICache();
 
         private void OnDestroy() => DisconnectFromBrainEvents();
 
         #endregion
 
-        #region Turn Count Management
+        #region Turn Management
 
         public void IncrementTurnCount() => _currentTurnCount++;
 
@@ -572,90 +470,183 @@ namespace Turnroot.Gameplay.Combat
 
         #endregion
 
-        #region Battle Roster Management
+        #region Roster Management
 
-        /// <summary>
-        /// Initialize the three temporary battle rosters.
-        /// Creates empty instances ready to be populated.
-        /// </summary>
         public void InitializeBattleRosters()
         {
-            // Create or clear player roster
-            if (PlayerTeamRoster == null)
+            var res = EnsureRostersExist();
+            if (!res.Success)
             {
-                var go = new GameObject("BattleRoster - Player Team");
-                go.transform.SetParent(transform);
-                PlayerTeamRoster = go.AddComponent<PlayerTeamRosterInstance>();
-            }
-            else
-            {
-                PlayerTeamRoster.Clear();
-            }
-
-            // Create or clear enemy roster
-            if (EnemyTeamRoster == null)
-            {
-                var go = new GameObject("BattleRoster - Enemy Team");
-                go.transform.SetParent(transform);
-                EnemyTeamRoster = go.AddComponent<GenericRosterInstance>();
-            }
-            else
-            {
-                EnemyTeamRoster.Clear();
-            }
-
-            // Create or clear third party roster (if there is one)
-            if (ThirdPartyTeamRoster == null && HasThirdParty)
-            {
-                var go = new GameObject("BattleRoster - Third Party Team");
-                go.transform.SetParent(transform);
-                ThirdPartyTeamRoster = go.AddComponent<GenericRosterInstance>();
-            }
-            else if (HasThirdParty)
-            {
-                ThirdPartyTeamRoster.Clear();
-            }
-
 #if UNITY_EDITOR
-            Debug.Log("BattleGameObject: Initialized three temporary battle rosters");
+                Debug.LogError(
+                    $"BattleGameObject.InitializeBattleRosters failed: {res.ErrorMessage}"
+                );
 #endif
+                return;
+            }
+
+            res = InitializeRuntimePlacements();
+            if (!res.Success)
+            {
+#if UNITY_EDITOR
+                Debug.LogWarning($"BattleGameObject.InitializeBattleRosters: {res.ErrorMessage}");
+#endif
+                // Not fatal; continue to try apply prebattle placements
+            }
+
+            res = ApplyPreBattlePlacements();
+            if (!res.Success)
+            {
+#if UNITY_EDITOR
+                Debug.LogWarning($"BattleGameObject.InitializeBattleRosters: {res.ErrorMessage}");
+#endif
+            }
         }
 
-        /// <summary>
-        /// Populate rosters from templates and persistent data.
-        /// </summary>
-        public OperationResult PopulateBattleRostersFromTemplates()
+        private OperationResult EnsureRostersExist()
         {
-            var battleBrain = Brain?.battleBrain;
-            if (battleBrain != null)
+            try
             {
-                var playerTeamRosterInstance = battleBrain.InstantiatePlayerTeamRoster();
-                if (playerTeamRosterInstance != null)
+                if (PlayerTeamRoster == null)
                 {
-                    PlayerTeamRoster.AddInstances(playerTeamRosterInstance.Instances);
+                    var go = new GameObject("BattleRoster - Player Team");
+                    go.transform.SetParent(transform);
+                    PlayerTeamRoster = go.AddComponent<PlayerTeamRosterInstance>();
                 }
                 else
                 {
-                    return OperationResult.Failure(
-                        "PopulateBattleRostersFromTemplates failed: Could not instantiate player team roster from GamewideContextBrain."
-                    );
+                    PlayerTeamRoster.Clear();
                 }
+
+                if (EnemyTeamRoster == null)
+                {
+                    var go = new GameObject("BattleRoster - Enemy Team");
+                    go.transform.SetParent(transform);
+                    EnemyTeamRoster = go.AddComponent<GenericRosterInstance>();
+                }
+                else
+                {
+                    EnemyTeamRoster.Clear();
+                }
+
+                if (HasThirdParty)
+                {
+                    if (ThirdPartyTeamRoster == null)
+                    {
+                        var go = new GameObject("BattleRoster - Third Party Team");
+                        go.transform.SetParent(transform);
+                        ThirdPartyTeamRoster = go.AddComponent<GenericRosterInstance>();
+                    }
+                    else
+                    {
+                        ThirdPartyTeamRoster.Clear();
+                    }
+                }
+
+                return OperationResult.SuccessResult();
             }
-            else
+            catch (System.Exception ex)
             {
-                return OperationResult.Failure(
-                    "PopulateBattleRostersFromTemplates failed: Brain or GamewideContextBrain is null."
-                );
+                return OperationResult.Failure($"EnsureRostersExist failed: {ex.Message}");
+            }
+        }
+
+        private OperationResult InitializeRuntimePlacements()
+        {
+            try
+            {
+                var persistentPlayer =
+                    Brain?.gamewideContextBrain?.GetPersistentPlayerTeamRosterInstance();
+                if (persistentPlayer != null)
+                {
+                    PlayerTeamRoster.ApplyDecodedPlacements(persistentPlayer.GetPlacements());
+                }
+                else
+                {
+                    PlayerTeamRoster.InitializeRuntimePlacementsFromTemplate();
+                }
+
+                EnemyTeamRoster?.InitializeRuntimePlacementsFromTemplate();
+                ThirdPartyTeamRoster?.InitializeRuntimePlacementsFromTemplate();
+
+                return OperationResult.SuccessResult();
+            }
+            catch (System.Exception ex)
+            {
+                return OperationResult.Failure($"InitializeRuntimePlacements failed: {ex.Message}");
+            }
+        }
+
+        private OperationResult ApplyPreBattlePlacements()
+        {
+            try
+            {
+                var prep = Brain?.battleBrain?.PreparationObject;
+                if (prep?.placements != null && prep.placements.Count > 0)
+                {
+                    var list = new List<Characters.Roster.UnitPlacement>();
+                    foreach (var kvp in prep.placements)
+                    {
+                        var pos = kvp.Key;
+                        var inst = kvp.Value;
+                        if (inst == null || inst.CharacterTemplate == null)
+                        {
+                            continue;
+                        }
+
+                        var up = new Characters.Roster.UnitPlacement
+                        {
+                            CharacterData = inst.CharacterTemplate,
+                            SpawnPosition = pos,
+                            Order = list.Count,
+                        };
+                        up.SetStatus(Turnroot.Characters.Roster.UnitStatus.NotSpawned);
+                        up.SetActiveRightNow(true);
+
+                        list.Add(up);
+                    }
+
+                    if (list.Count > 0)
+                    {
+                        PlayerTeamRoster.ApplyDecodedPlacements(list.ToArray());
+#if UNITY_EDITOR
+                        Debug.Log(
+                            $"BattleGameObject: Applied PreBattle placements to PlayerTeamRoster ({list.Count})"
+                        );
+#endif
+                    }
+                }
+
+                return OperationResult.SuccessResult();
+            }
+            catch (System.Exception ex)
+            {
+                return OperationResult.Failure($"ApplyPreBattlePlacements failed: {ex.Message}");
+            }
+        }
+
+        public OperationResult PopulateBattleRostersFromTemplates()
+        {
+            var battleBrain = Brain?.battleBrain;
+            if (battleBrain == null)
+            {
+                return OperationResult.Failure("Brain or battleBrain is null");
             }
 
-            // Load enemy roster from this battle's enemy template
+            var playerInstance = battleBrain.InstantiatePlayerTeamRoster();
+            if (playerInstance == null)
+            {
+                return OperationResult.Failure("Could not instantiate player team roster");
+            }
+
+            PlayerTeamRoster.AddInstances(playerInstance.Instances);
+
             if (_enemyRoster != null)
             {
                 var enemyInstance = battleBrain.InstantiateGenericRoster(_enemyRoster);
                 EnemyTeamRoster.AddInstances(enemyInstance.Instances);
             }
 
-            // Load third party roster from this battle's NPC template (if any)
             if (HasThirdParty && _thirdPartyRoster != null)
             {
                 var thirdPartyInstance = battleBrain.InstantiateGenericRoster(_thirdPartyRoster);
@@ -665,27 +656,18 @@ namespace Turnroot.Gameplay.Combat
             return OperationResult.SuccessResult();
         }
 
-        /// <summary>
-        /// Clear all three temporary battle rosters.
-        /// </summary>
         public OperationResult ClearBattleRosters()
         {
             try
             {
-                PlayerTeamRoster.Clear();
-                EnemyTeamRoster.Clear();
-                ThirdPartyTeamRoster.Clear();
-
-#if UNITY_EDITOR
-                Debug.Log("BattleGameObject: Cleared all temporary battle rosters");
-#endif
+                PlayerTeamRoster?.Clear();
+                EnemyTeamRoster?.Clear();
+                ThirdPartyTeamRoster?.Clear();
                 return OperationResult.SuccessResult();
             }
             catch (System.Exception ex)
             {
-                return OperationResult.Failure(
-                    $"BattleGameObject ClearBattleRosters failed: {ex.Message}"
-                );
+                return OperationResult.Failure($"ClearBattleRosters failed: {ex.Message}");
             }
         }
 
