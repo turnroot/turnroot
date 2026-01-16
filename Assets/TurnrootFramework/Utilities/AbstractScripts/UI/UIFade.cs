@@ -32,7 +32,16 @@ public class UIFade : MonoBehaviour
             _visible = value;
             float targetAlpha = value ? visibleAlpha : 0f;
             StopAllCoroutines();
-            StartCoroutine(LerpAlpha(canvasGroup.alpha, targetAlpha));
+            try
+            {
+                StartCoroutine(LerpAlpha(canvasGroup.alpha, targetAlpha));
+            }
+            catch
+            {
+#if UNITY_EDITOR
+                Debug.LogWarning("UIFade: Failed to start coroutine for LerpAlpha.");
+#endif
+            }
         }
     }
 

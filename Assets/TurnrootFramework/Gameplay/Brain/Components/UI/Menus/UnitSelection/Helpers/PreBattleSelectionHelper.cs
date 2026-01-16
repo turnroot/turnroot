@@ -52,38 +52,60 @@ namespace Turnroot.Gameplay.Brain
                 foreach (var p in placements)
                 {
                     if (p == null || p.CharacterData == null)
+                    {
                         continue;
-                    var key = LtmKeys.UnitSelectedForBattlePrefix + p.CharacterData.FullName;
-                    if (ltm.RecallBool(key))
+                    }
+
+                    var key = LtmKeys.UnitSelectedForBattlePrefix + p.CharacterData.name;
+                    bool selected = ltm.RecallBool(key);
+                    if (selected)
                     {
                         result.Add(p.CharacterData);
                     }
                 }
             }
 
-            // 3) Fill to max using roster order
-            foreach (var p in placements)
+            // 3) Fill to max using roster order — ONLY on the first initialization. Subsequent runs respect player choices.
+            var autoFillAlreadyDone =
+                ltm != null && ltm.RecallBool(LtmKeys.UnitSelectionsAutoFilled);
+
+            if (!autoFillAlreadyDone)
             {
-                if (result.Count >= maxPlayerTeamUnits)
-                    break;
-                if (p == null || p.CharacterData == null)
-                    continue;
-                if (!result.Contains(p.CharacterData))
-                    result.Add(p.CharacterData);
+                foreach (var p in placements)
+                {
+                    if (result.Count >= maxPlayerTeamUnits)
+                    {
+                        break;
+                    }
+
+                    if (p == null || p.CharacterData == null)
+                    {
+                        continue;
+                    }
+
+                    if (!result.Contains(p.CharacterData))
+                    {
+                        result.Add(p.CharacterData);
+                    }
+                }
             }
 
             // Apply selections: persist non-required choices into LTM and set runtime instance flags
             foreach (var p in placements)
             {
                 if (p == null || p.CharacterData == null)
+                {
                     continue;
+                }
+
                 var template = p.CharacterData;
                 var desired = result.Contains(template);
 
                 // Persist desired selection for non-required units
                 if (ltm != null)
                 {
-                    var key = LtmKeys.UnitSelectedForBattlePrefix + template.FullName;
+                    // Persist using asset name (stable identifier)
+                    var key = LtmKeys.UnitSelectedForBattlePrefix + template.name;
                     if (requiredPlayerUnits == null || !requiredPlayerUnits.Contains(template))
                     {
                         ltm.RememberBool(key, desired);
@@ -110,9 +132,15 @@ namespace Turnroot.Gameplay.Brain
                 }
             }
 
+            // If we performed the one-time auto-fill, mark it in LTM so future inits respect player choices.
+            if (!autoFillAlreadyDone && ltm != null)
+            {
+                ltm.RememberBool(LtmKeys.UnitSelectionsAutoFilled, true);
+            }
+
 #if UNITY_EDITOR
             Debug.Log(
-                $"PreBattleSelectionHelper: Ensured {result.Count} selected units (required={requiredPlayerUnits?.Count ?? 0})."
+                $"PreBattleSelectionHelper: Ensured {result.Count} selected units (required={requiredPlayerUnits?.Count ?? 0}, autoFilled={!autoFillAlreadyDone})."
             );
 #endif
 

@@ -55,6 +55,8 @@ namespace Turnroot.Characters.CharacterClass
     [CreateAssetMenu(fileName = "New Character Class", menuName = "Turnroot/Characters/Class Data")]
     public class CharacterClassData : ScriptableObject
     {
+        public string GetClassName() => Identity.ClassName;
+
         // Hidden field to cache the ClassSelectionMode for ShowIf evaluation
         [HideInInspector, SerializeField]
         private GameplayGeneralSettings.ClassSelectionMode _cachedClassSelectionMode;
@@ -128,6 +130,10 @@ namespace Turnroot.Characters.CharacterClass
             ValidateStatLists();
             ValidatePromotionPaths();
             ForceInspectorRefresh();
+            EnsureUniqueClassName();
+
+            // Validate class visuals (mesh/prefab contain required blendshapes)
+            ValidateClassVisuals();
         }
 
         private void ValidateStatLists()
@@ -273,8 +279,157 @@ namespace Turnroot.Characters.CharacterClass
             };
         }
 
+        /// <summary>
+        /// Ensure the identity.ClassName is unique across all CharacterClassData assets.
+        /// If a duplicate name is found, this asset will be renamed to a unique variant (e.g. "Name (1)").
+        /// </summary>
+        private void EnsureUniqueClassName()
+        {
+            if (string.IsNullOrWhiteSpace(Identity?.ClassName))
+            {
+                return;
+            }
+
+            var original = Identity.ClassName.Trim();
+
+            // Search project for other CharacterClassData assets
+            var guids = UnityEditor.AssetDatabase.FindAssets("t:CharacterClassData");
+            foreach (var g in guids)
+            {
+                var path = UnityEditor.AssetDatabase.GUIDToAssetPath(g);
+                var other = UnityEditor.AssetDatabase.LoadAssetAtPath<CharacterClassData>(path);
+                if (other == null || other == this)
+                {
+                    continue;
+                }
+
+                var otherName = other.Identity?.ClassName;
+                if (string.IsNullOrWhiteSpace(otherName))
+                {
+                    continue;
+                }
+
+                if (string.Equals(otherName.Trim(), original, StringComparison.OrdinalIgnoreCase))
+                {
+                    // Found a conflict. Find a unique candidate by appending an incrementing suffix.
+                    int suffix = 1;
+                    string candidate;
+                    bool exists;
+                    do
+                    {
+                        candidate = $"{original} ({suffix})";
+                        exists = false;
+                        foreach (var gg in guids)
+                        {
+                            var p = UnityEditor.AssetDatabase.GUIDToAssetPath(gg);
+                            var o = UnityEditor.AssetDatabase.LoadAssetAtPath<CharacterClassData>(
+                                p
+                            );
+                            if (o == null)
+                                continue;
+                            var n = o.Identity?.ClassName;
+                            if (
+                                string.Equals(
+                                    n?.Trim(),
+                                    candidate,
+                                    StringComparison.OrdinalIgnoreCase
+                                )
+                            )
+                            {
+                                exists = true;
+                                break;
+                            }
+                        }
+                        suffix++;
+                    } while (exists);
+
+                    Identity.ClassName = candidate;
+                    UnityEditor.EditorUtility.SetDirty(this);
+                    Debug.LogWarning(
+                        $"{name}: ClassName '{original}' already exists. Renamed to '{candidate}' to ensure uniqueness."
+                    );
+                    return;
+                }
+            }
+        }
+
         #endregion
 
+        /// <summary>
+        /// Validate that the class visual assets (mesh or prefab) include the required blendshapes.
+        /// </summary>
+        private void ValidateClassVisuals()
+        {
+            if (Identity == null)
+                return;
+
+            // Required blendshape names must match CharacterModelBlendshapeSet.BlendshapeNames
+            var required = new string[]
+            {
+                "ChestSize",
+                "WaistSize",
+                "HipSize",
+                "ThighThickness",
+                "ArmThickness",
+                "NeckThickness",
+            };
+
+            // Helper to validate a mesh for required blendshapes. Returns list of missing blendshape names (empty => ok)
+            List<string> ValidateMesh(UnityEngine.Mesh mesh, string source)
+            {
+                var missing = new List<string>();
+                if (mesh == null)
+                {
+                    Debug.LogError($"{name}: {source} has no mesh assigned.");
+                    return missing;
+                }
+
+                foreach (var b in required)
+                {
+                    if (mesh.GetBlendShapeIndex(b) < 0)
+                    {
+                        missing.Add(b);
+                    }
+                }
+
+                if (missing.Count > 0)
+                {
+                    Debug.LogError(
+                        $"{name}: {source} is missing blendshapes: {string.Join(", ", missing)}"
+                    );
+                }
+                return missing;
+            }
+
+            // Validate prefab if assigned (prefab should contain a SkinnedMeshRenderer)
+            if (Identity.ClassModelPrefab != null)
+            {
+                var prefab = Identity.ClassModelPrefab;
+                var smr = prefab.GetComponentInChildren<SkinnedMeshRenderer>(true);
+                if (smr == null)
+                {
+                    Debug.LogError(
+                        $"{name}: ClassModelPrefab '{prefab.name}' does not contain a SkinnedMeshRenderer. Clearing assignment."
+                    );
+                    UnityEditor.Undo.RecordObject(this, "Clear invalid ClassModelPrefab");
+                    Identity.ClassModelPrefab = null;
+                    UnityEditor.EditorUtility.SetDirty(this);
+                }
+                else
+                {
+                    var missing = ValidateMesh(smr.sharedMesh, $"ClassModelPrefab '{prefab.name}'");
+                    if (missing.Count > 0)
+                    {
+                        Debug.LogError(
+                            $"{name}: ClassModelPrefab '{prefab.name}' is missing required blendshapes. Clearing assignment."
+                        );
+                        UnityEditor.Undo.RecordObject(this, "Clear invalid ClassModelPrefab");
+                        Identity.ClassModelPrefab = null;
+                        UnityEditor.EditorUtility.SetDirty(this);
+                    }
+                }
+            }
+        }
 #endif
 
         #region Public API

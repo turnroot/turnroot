@@ -176619,7 +176619,7 @@ MonoBehaviour:
   - {x: 43, y: 31}
   - {x: 43, y: 32}
   - {x: 43, y: 33}
-  _showRaycastGizmos: 0
+  _showRaycastGizmos: 1
   _showRaycastCoordinates: 0
   _raycastLayerMask:
     serializedVersion: 2

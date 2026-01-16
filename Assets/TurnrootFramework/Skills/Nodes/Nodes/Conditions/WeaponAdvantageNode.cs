@@ -48,19 +48,6 @@ namespace Turnroot.Skills.Nodes.Conditions
         [Output]
         public WeaponMatchupValue Matchup;
 
-        // Legacy bool outputs maintained for backwards compatibility
-        [Output]
-        public BoolValue UnitAdvantage;
-
-        [Output]
-        public BoolValue EnemyAdvantage;
-
-        [Output]
-        public BoolValue SameType;
-
-        [Output]
-        public BoolValue NeitherOnTriangle;
-
         public override object GetValue(NodePort port)
         {
             var skillGraph = graph as SkillGraph;

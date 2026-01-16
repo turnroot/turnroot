@@ -5,6 +5,8 @@ namespace Turnroot.Gameplay.Brain
 {
     public partial class CursorBrain
     {
+        private static WaitForSeconds _waitForSeconds0_1 = new WaitForSeconds(0.1f);
+
         #region Cursor Initialization
 
         [HideInInspector]
@@ -47,11 +49,6 @@ namespace Turnroot.Gameplay.Brain
             {
                 // Get player spawn positions from preparation object
                 var spawnPoints = prepObject.PlayerTeamSpawnPoints;
-#if UNITY_EDITOR
-                Debug.Log(
-                    $"CursorBrain.InitializePreBattleCursor: prep={prepObject.name}, spawnPoints.Count={spawnPoints?.Count ?? 0}"
-                );
-#endif
                 if (spawnPoints != null && spawnPoints.Count > 0)
                 {
                     validSpawnPositions = spawnPoints;
@@ -70,7 +67,7 @@ namespace Turnroot.Gameplay.Brain
 
         private System.Collections.IEnumerator RetryInitializeBattleCursor()
         {
-            yield return new WaitForSeconds(0.1f);
+            yield return _waitForSeconds0_1;
             InitializeBattleCursor();
         }
 

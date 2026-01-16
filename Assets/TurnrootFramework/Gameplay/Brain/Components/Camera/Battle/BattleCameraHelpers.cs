@@ -9,8 +9,6 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
     {
         public void MoveCameraToPosition(Vector2Int gridPosition)
         {
-            Debug.Log($"[CAMERA] MoveCameraToPosition called with gridPosition {gridPosition}");
-
             Vector3 targetWorldPos = mapGrid.GetTerrainAdjustedWorldPosition(gridPosition);
 
             // Compute desired camera position so that the target world position appears at the camera's center.
@@ -57,9 +55,6 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             newPos.y = camPos.y;
 
             _targetCameraPosition = newPos;
-            Debug.Log(
-                $"[CAMERA] Moving camera to target world position {_targetCameraPosition} (k={k})"
-            );
             _shouldMove = true;
         }
 
@@ -125,7 +120,9 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             foreach (var cam in battleObjectCameras)
             {
                 if (cam == null)
+                {
                     continue;
+                }
 
                 if (cam.CompareTag("BattleMapCamera"))
                 {
@@ -137,13 +134,10 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
 
         public Vector2Int SetBattleGridCameraNeutralCenter()
         {
-            Debug.Log($"[CAMERA] SetCameraNeutralCenter() called");
-
             // Prefer the battle context map grid, but fall back to the pre-battle preparation map if available.
             var mapGridToUse = mapGrid ?? Brain?.battleBrain?.PreparationObject?.MapGrid;
             if (mapGridToUse == null)
             {
-                Debug.LogError("[CAMERA] MapGrid is null (no battle or preparation map)");
                 return Vector2Int.zero;
             }
 
@@ -164,7 +158,6 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
 
                 if (_battleMapCamera == null)
                 {
-                    Debug.LogError("[CAMERA] BattleMapCamera is null");
                     return Vector2Int.zero;
                 }
             }
@@ -184,14 +177,9 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                 ? hit.point
                 : cameraCenter;
 
-            Debug.Log(
-                $"[CAMERA] Current camera is at {_battleMapCamera.transform.position}, target point: {targetPoint}"
-            );
-
             var allGridPoints = mapGridToUse.GetAllGridPoints();
             if (allGridPoints == null || allGridPoints.Count == 0)
             {
-                Debug.LogWarning("[CAMERA] No grid points found");
                 return Vector2Int.zero;
             }
 
@@ -214,13 +202,13 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
 
             if (closestPoint == null)
             {
-                Debug.LogWarning("[CAMERA] SetCameraNeutralCenter: No closest point found");
                 return Vector2Int.zero;
             }
-
+#if UNITY_EDITOR
             Debug.Log(
                 $"[CAMERA] SetCameraNeutralCenter: Found closest grid point {closestPoint.CoordinatesInt} at distance {closestDistance}"
             );
+#endif
             return closestPoint.CoordinatesInt;
         }
 
@@ -295,9 +283,11 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
 
                     _targetCameraPosition += worldDisplacement;
 
+#if UNITY_EDITOR
                     Debug.Log(
                         $"[CAMERA] Cursor at viewport {cursorViewportPos}, moving camera by {worldDisplacement}"
                     );
+#endif
                 }
             }
         }

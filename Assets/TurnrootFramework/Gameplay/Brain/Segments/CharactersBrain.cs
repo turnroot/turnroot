@@ -426,8 +426,7 @@ namespace Turnroot.Gameplay.Brain
         /// </summary>
         public bool ChangeCharacterClass(
             CharacterInstance character,
-            CharacterClassData newClassData,
-            MeshRenderer meshRenderer = null
+            CharacterClassData newClassData
         )
         {
             if (character == null || newClassData == null)
@@ -435,7 +434,7 @@ namespace Turnroot.Gameplay.Brain
                 return false;
             }
 
-            bool success = character.ChangeClass(newClassData, meshRenderer);
+            bool success = character.ChangeClass(newClassData);
             if (success)
             {
                 // Publish through Brain (centralized event system)

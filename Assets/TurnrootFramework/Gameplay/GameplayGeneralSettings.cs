@@ -115,16 +115,22 @@ namespace Turnroot.GameSettings
             Custom, // Manual multiplier
         }
 
-        [BoxGroup("General Gameplay"), HorizontalLine(color: EColor.Blue)]
+        [BoxGroup("Uni Classes"), HorizontalLine(color: EColor.Blue)]
         public ClassSelectionMode ClassSelection = ClassSelectionMode.PromotionBased;
 
         public ClassSelectionMode GetClassSelectionMode() => ClassSelection;
 
-        [
-            BoxGroup("General Gameplay"),
-            InfoBox("Units without a class assigned will use this class")
-        ]
+        [BoxGroup("Unit Classes"), InfoBox("Units without a class assigned will use this class")]
         public CharacterClassData DefaultStartingClass;
+
+        [
+            BoxGroup("Unit Classes"),
+            InfoBox(
+                "Don't change this unless you're making your own shader graph system to handle unit appearance!",
+                EInfoBoxType.Warning
+            )
+        ]
+        public Material UnitOutfitMaterialTemplate;
 
         public CharacterClassData GetDefaultStartingClass() => DefaultStartingClass;
 
@@ -329,8 +335,6 @@ namespace Turnroot.GameSettings
                 _ => new SupportBonus(),
             };
         }
-
-
 
         [BoxGroup("Combat Mechanics")]
         public bool Battalions;

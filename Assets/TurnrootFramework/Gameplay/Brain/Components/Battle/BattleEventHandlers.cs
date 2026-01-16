@@ -60,17 +60,21 @@ namespace Turnroot.Gameplay.Brain
             }
             if (prep == null)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning(
                     "BattleBrain: No BattlePreparationObject found in scene when PreBattle prepare event fired."
                 );
+#endif
                 return;
             }
 
             PreparationObject = prep;
             PreparationObject.Initialize(_brain);
+#if UNITY_EDITOR
             Debug.Log(
                 $"BattleBrain: Connected to BattlePreparationObject '{prep.name}' for pre-battle."
             );
+#endif
         }
 
         private void HandleUnitMoved(CharacterInstance unit, Vector2Int targetPosition) =>

@@ -85,6 +85,8 @@ MonoBehaviour:
   MenuButtonSpacing: 2
   MenuFadeTime: 0.75
   MenuInternalTransitionTime: 0.15
+  MenuFadeBuffer: 0.1
+  UiFadeSmallBuffer: 0.02
   RadialMenuNormalColor: {r: 0.1882353, g: 0.14509805, b: 0.2, a: 0.6509804}
   RadialMenuSelectedColor: {r: 0.355, g: 0.22151999, b: 0.28603536, a: 0.8}
   RadialMenuInnerRadius: 0.35
@@ -103,6 +105,7 @@ MonoBehaviour:
   GridListFilmstripButtonSelectedColor: {r: 0.67058825, g: 0.4117647, b: 0.5372549, a: 1}
   ButtonTransitionDuration: 0.12
   MenuCanvasPrefab: {fileID: 6717558390753289932, guid: 015cf6f2a44a8fd48872b6635c3ca360, type: 3}
+  ModelsScale: 3
   PathTipSprite: {fileID: 585487291, guid: 55938e87ee80ffa4fa46d8e00d3564f7, type: 3}
   PathPreTipSprite: {fileID: 1325149353, guid: 55938e87ee80ffa4fa46d8e00d3564f7, type: 3}
   PathStraightSprite: {fileID: 158355938, guid: 55938e87ee80ffa4fa46d8e00d3564f7, type: 3}
@@ -132,3 +135,10 @@ MonoBehaviour:
   isDesertImage: {fileID: 0}
   isRockyImage: {fileID: -155485183, guid: 0a23fc6fd2c659c46a49bad52b7ac5d8, type: 3}
   isVolcanicImage: {fileID: 12440129, guid: 0a23fc6fd2c659c46a49bad52b7ac5d8, type: 3}
+  MapCellSize: 32
+  MapIconPath: EditorSettings/MapGridEditorIcons/
+  MapGridLineColor: {r: 0.3, g: 0.3, b: 0.3, a: 1}
+  MapBlackCellColor: {r: 0, g: 0, b: 0, a: 1}
+  MapDarkGrayTerrainColor: {r: 0.3, g: 0.3, b: 0.3, a: 1}
+  MapLightGrayTerrainColor: {r: 0.2, g: 0.2, b: 0.2, a: 1}
+  MapBlueSpawnColor: {r: 0.2, g: 0.5, b: 1, a: 1}

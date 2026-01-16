@@ -51,7 +51,7 @@ MonoBehaviour:
   m_EndAngleFade: 180
   m_UVScale: {x: 0.25, y: 0.33333334}
   m_UVBias: {x: 0.5, y: 0.33333}
-  m_DecalLayerMask: 1
+  m_DecalLayerMask: 255
   m_ScaleMode: 1
   m_Offset: {x: 0, y: 0, z: 10}
   m_Size: {x: 5, y: 5, z: 20}
@@ -107,7 +107,7 @@ MonoBehaviour:
   m_EndAngleFade: 180
   m_UVScale: {x: 0.25, y: 0.33333334}
   m_UVBias: {x: 0.5, y: 0.33333}
-  m_DecalLayerMask: 1
+  m_DecalLayerMask: 255
   m_ScaleMode: 1
   m_Offset: {x: 0, y: 0, z: 10}
   m_Size: {x: 5, y: 5, z: 20}
@@ -163,7 +163,7 @@ MonoBehaviour:
   m_EndAngleFade: 180
   m_UVScale: {x: 0.25, y: 0.33333334}
   m_UVBias: {x: 0.5, y: 0.6666666}
-  m_DecalLayerMask: 1
+  m_DecalLayerMask: 255
   m_ScaleMode: 1
   m_Offset: {x: 0, y: 0, z: 10}
   m_Size: {x: 5, y: 5, z: 20}
@@ -219,7 +219,7 @@ MonoBehaviour:
   m_EndAngleFade: 180
   m_UVScale: {x: 0.25, y: 0.33333334}
   m_UVBias: {x: 0.5, y: 0.33333}
-  m_DecalLayerMask: 1
+  m_DecalLayerMask: 255
   m_ScaleMode: 1
   m_Offset: {x: 0, y: 0, z: 10}
   m_Size: {x: 5, y: 5, z: 20}
@@ -275,7 +275,7 @@ MonoBehaviour:
   m_EndAngleFade: 180
   m_UVScale: {x: 0.25, y: 0.33333334}
   m_UVBias: {x: 0.5, y: 0.33333}
-  m_DecalLayerMask: 1
+  m_DecalLayerMask: 255
   m_ScaleMode: 1
   m_Offset: {x: 0, y: 0, z: 10}
   m_Size: {x: 5, y: 5, z: 20}
@@ -331,7 +331,7 @@ MonoBehaviour:
   m_EndAngleFade: 180
   m_UVScale: {x: 0.25, y: 0.33333334}
   m_UVBias: {x: 0.5, y: 0.33333}
-  m_DecalLayerMask: 1
+  m_DecalLayerMask: 255
   m_ScaleMode: 1
   m_Offset: {x: 0, y: 0, z: 10}
   m_Size: {x: 5, y: 5, z: 20}
@@ -387,7 +387,7 @@ MonoBehaviour:
   m_EndAngleFade: 180
   m_UVScale: {x: 0.25, y: 0.33333334}
   m_UVBias: {x: 0.5, y: 0.6666666}
-  m_DecalLayerMask: 1
+  m_DecalLayerMask: 255
   m_ScaleMode: 1
   m_Offset: {x: 0, y: 0, z: 10}
   m_Size: {x: 5, y: 5, z: 20}
@@ -443,7 +443,7 @@ MonoBehaviour:
   m_EndAngleFade: 180
   m_UVScale: {x: 0.25, y: 0.33333334}
   m_UVBias: {x: 0.5, y: 0.33333}
-  m_DecalLayerMask: 1
+  m_DecalLayerMask: 255
   m_ScaleMode: 1
   m_Offset: {x: 0, y: 0, z: 10}
   m_Size: {x: 5, y: 5, z: 20}
@@ -499,7 +499,7 @@ MonoBehaviour:
   m_EndAngleFade: 180
   m_UVScale: {x: 0.25, y: 0.33333334}
   m_UVBias: {x: 0.5, y: 0.33333}
-  m_DecalLayerMask: 1
+  m_DecalLayerMask: 255
   m_ScaleMode: 1
   m_Offset: {x: 0, y: 0, z: 10}
   m_Size: {x: 5, y: 5, z: 20}
@@ -815,7 +815,7 @@ MonoBehaviour:
   m_EndAngleFade: 180
   m_UVScale: {x: 0.25, y: 0.33333334}
   m_UVBias: {x: 0.5, y: 0.33333}
-  m_DecalLayerMask: 1
+  m_DecalLayerMask: 255
   m_ScaleMode: 1
   m_Offset: {x: 0, y: 0, z: 10}
   m_Size: {x: 5, y: 5, z: 20}
@@ -916,7 +916,7 @@ MonoBehaviour:
   m_EndAngleFade: 180
   m_UVScale: {x: 0.25, y: 0.33333334}
   m_UVBias: {x: 0.5, y: 0.33333}
-  m_DecalLayerMask: 1
+  m_DecalLayerMask: 255
   m_ScaleMode: 1
   m_Offset: {x: 0, y: 0, z: 10}
   m_Size: {x: 5, y: 5, z: 20}
@@ -972,7 +972,7 @@ MonoBehaviour:
   m_EndAngleFade: 180
   m_UVScale: {x: 0.25, y: 0.33333334}
   m_UVBias: {x: 0.5, y: 0.33333}
-  m_DecalLayerMask: 1
+  m_DecalLayerMask: 255
   m_ScaleMode: 1
   m_Offset: {x: 0, y: 0, z: 10}
   m_Size: {x: 5, y: 5, z: 20}
@@ -1292,7 +1292,7 @@ MonoBehaviour:
   m_EndAngleFade: 180
   m_UVScale: {x: 0.25, y: 0.33333334}
   m_UVBias: {x: 0.5, y: 0.33333}
-  m_DecalLayerMask: 1
+  m_DecalLayerMask: 255
   m_ScaleMode: 1
   m_Offset: {x: 0, y: 0, z: 10}
   m_Size: {x: 5, y: 5, z: 20}
@@ -1348,7 +1348,7 @@ MonoBehaviour:
   m_EndAngleFade: 180
   m_UVScale: {x: 0.25, y: 0.33333334}
   m_UVBias: {x: 0.5, y: 0.33333}
-  m_DecalLayerMask: 1
+  m_DecalLayerMask: 255
   m_ScaleMode: 1
   m_Offset: {x: 0, y: 0, z: 10}
   m_Size: {x: 5, y: 5, z: 20}

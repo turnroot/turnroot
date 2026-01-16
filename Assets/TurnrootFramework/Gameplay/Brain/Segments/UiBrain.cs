@@ -1,3 +1,4 @@
+using Turnroot.Characters;
 using Turnroot.Gameplay.Brain;
 using Turnroot.Gameplay.Brain.Events;
 using Turnroot.Gameplay.PlayerSettings;
@@ -114,6 +115,13 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                 CursorBrain.SetUiSettingsReference(uiSettings);
             }
 
+            // Subscribe to selection changes so they are persisted to LTM centrally
+            if (_brain != null)
+            {
+                _brain.OnUnitSelectionChanged -= HandleUnitSelectionChangedPersist;
+                _brain.OnUnitSelectionChanged += HandleUnitSelectionChangedPersist;
+            }
+
 #if UNITY_EDITOR
             WarnPrefabs();
 #endif
@@ -212,6 +220,22 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                 catch { }
                 sb.OnSelected += HandleDetailsButtonPressed;
             }
+        }
+
+        private void HandleUnitSelectionChangedPersist(CharacterInstance unit, bool selected)
+        {
+            if (unit == null || unit.CharacterTemplate == null || _brain?.ltm == null)
+            {
+                return;
+            }
+
+            var key = LtmKeys.UnitSelectedForBattlePrefix + unit.CharacterTemplate.name;
+            _brain.ltm.RememberBool(key, selected);
+#if UNITY_EDITOR
+            Debug.Log(
+                $"UiBrain: persisted selection change for {unit.CharacterTemplate.name} = {selected}"
+            );
+#endif
         }
 
         // Ensure a UIFade exists on the target object and set a sensible lerp time based on UI settings.

@@ -335,7 +335,15 @@ namespace Turnroot.GameSettings
         [Space, Tooltip("Prefab for menu canvas with back button that appears in menu states")]
         public GameObject MenuCanvasPrefab;
 
-        [Header("Battle Graphics"), HorizontalLine(color: EColor.Pink)]
+        [
+            Header("Battle Graphics"),
+            HorizontalLine(color: EColor.Pink),
+            Range(0.1f, 10f),
+            InfoBox(
+                "Scale applied to models on the battle map- units, weapons, objects, effects, all of it.You'll want to adjust this based on the size of your map grids. Obviously, you need to keep your scale consistent in your 3DCC program!"
+            )
+        ]
+        public float ModelsScale = 5f;
         public Sprite PathTipSprite; // the end of the path
         public Sprite PathPreTipSprite; // end -1 of the path
         public Sprite PathStraightSprite;

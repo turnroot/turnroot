@@ -100,7 +100,58 @@ namespace Turnroot.Gameplay.Combat.PreBattle
         public OperationResult InitializePlacements()
         {
             // Use gamewide selection as the single source of truth for which units are selected.
-            var selectedUnits = Brain?.gamewideContextBrain?.GetSelectedForBattlePlayerTeamUnits();
+            var gw = Brain?.gamewideContextBrain;
+            var selectedUnits = gw?.GetSelectedForBattlePlayerTeamUnits();
+
+            // If no runtime selections are present, attempt to compute default selections from roster/templates.
+            if (selectedUnits == null || selectedUnits.Count == 0)
+            {
+                var persistent =
+                    gw?.GamewidePersistentPlayerRoster
+                    ?? gw?.CreateOrRecallGamewidePersistentPlayerRoster();
+                var runtimeInstance =
+                    persistent != null ? gw.GetOrCreatePlayerTeamRoster(persistent) : null;
+                var selectedTemplates = PreBattleSelectionHelper.EnsureDefaultPreBattleSelections(
+                    Brain,
+                    persistent,
+                    runtimeInstance,
+                    MaxPlayerTeamUnits,
+                    RequiredPlayerUnits
+                );
+
+                if (selectedTemplates != null && selectedTemplates.Count > 0)
+                {
+                    // Build selected units from templates by finding runtime instances.
+                    var tempList = new List<CharacterInstance>();
+                    var placementsArr =
+                        runtimeInstance != null
+                            ? runtimeInstance.GetPlacements()
+                            : persistent?.characters
+                                ?? new Turnroot.Characters.Roster.UnitPlacement[0];
+                    foreach (var p in placementsArr)
+                    {
+                        if (p == null || p.CharacterData == null)
+                        {
+                            continue;
+                        }
+
+                        if (selectedTemplates.Contains(p.CharacterData))
+                        {
+                            var inst =
+                                runtimeInstance != null
+                                    ? runtimeInstance.GetInstanceFor(p.CharacterData)
+                                    : null;
+                            inst ??= gw?.FindInstanceByTemplate(p.CharacterData);
+                            if (inst != null)
+                            {
+                                tempList.Add(inst);
+                            }
+                        }
+                    }
+
+                    selectedUnits = tempList;
+                }
+            }
 
             if (selectedUnits == null || selectedUnits.Count == 0)
             {
@@ -180,12 +231,16 @@ namespace Turnroot.Gameplay.Combat.PreBattle
 
             if (StartingPositionsComponent != null && selectedUnit != null)
             {
-                var name = selectedUnit?.CharacterTemplate?.DisplayName ?? "";
-                var className = ""; // TODO: Get current class from instance
+                var name = selectedUnit.CharacterTemplate?.DisplayName ?? "";
+                var currentClassInstance = selectedUnit.GetCurrentClass();
+                var className =
+                    currentClassInstance?.ClassData?.GetClassName()
+                    ?? selectedUnit.CharacterTemplate?.StartingClass?.Identity?.ClassName
+                    ?? "";
                 var portrait =
-                    selectedUnit?.CharacterTemplate?.DefaultPortrait?.RuntimeSprite
+                    selectedUnit.CharacterTemplate?.DefaultPortrait?.RuntimeSprite
                     ?? (
-                        selectedUnit?.CharacterTemplate?.Sprites?.Length > 0
+                        selectedUnit.CharacterTemplate?.Sprites?.Length > 0
                             ? selectedUnit.CharacterTemplate.Sprites[0]
                             : null
                     );
@@ -366,29 +421,7 @@ namespace Turnroot.Gameplay.Combat.PreBattle
                     }
                 }
                 cameraBrain.MoveCameraToPosition(PlayerTeamSpawnPoints.FirstOrDefault());
-
-                var result = InitializePlacements();
-                if (!result.Success)
-                {
-#if UNITY_EDITOR
-                    Debug.LogWarning(
-                        $"BattlePreparationObject: InitializePlacements failed: {result.ErrorMessage}"
-                    );
-                    var selectedUnits =
-                        Brain?.gamewideContextBrain?.GetSelectedForBattlePlayerTeamUnits();
-                    var count = selectedUnits?.Count ?? 0;
-                    Debug.Log($"BattlePreparationObject: Selected units count: {count}");
-                    var persistentChars =
-                        Brain
-                            ?.gamewideContextBrain
-                            ?.GamewidePersistentPlayerRoster
-                            ?.characters
-                            ?.Length ?? 0;
-                    Debug.Log(
-                        $"BattlePreparationObject: Persistent roster template placements: {persistentChars}"
-                    );
-#endif
-                }
+                InitializePlacements();
             }
         }
 
