@@ -236,21 +236,11 @@ namespace Turnroot.Gameplay.Brain
             if (outfitRenderer != null)
             {
                 unit.SetRenderer(outfitRenderer);
-                outfitRenderer.renderingLayerMask = (uint)
-                    ~(1 << LayerMask.NameToLayer("NoMapGridDecals"));
-                if (headRenderer != null)
-                {
-                    // If there's also a head renderer, set its layer mask too
-                    headRenderer.renderingLayerMask = (uint)
-                        ~(1 << LayerMask.NameToLayer("NoMapGridDecals"));
-                }
             }
             else if (headRenderer != null)
             {
                 // Fallback: if somehow there's no outfit but there's a head
                 unit.SetRenderer(headRenderer);
-                headRenderer.renderingLayerMask = (uint)
-                    ~(1 << LayerMask.NameToLayer("NoMapGridDecals"));
             }
             else
             {
@@ -263,7 +253,6 @@ namespace Turnroot.Gameplay.Brain
                 placeholder.GetComponent<Renderer>().material.color =
                     unit.CharacterTemplate.AccentColor1;
                 var smr = placeholder.AddComponent<SkinnedMeshRenderer>();
-                smr.renderingLayerMask = (uint)~(1 << LayerMask.NameToLayer("NoMapGridDecals"));
                 unit.SetRenderer(smr);
             }
 
