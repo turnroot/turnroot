@@ -67,27 +67,17 @@ namespace Turnroot.UI.Components
             foreach (var other in all)
             {
                 if (other == null || other == this)
+                {
                     continue;
+                }
+
                 other.ReplaceBy(this);
             }
 
             // If placements were not initialized yet, attempt to initialize them now.
             if (_prepObject.placements == null || _prepObject.placements.Count == 0)
             {
-                var initResult = _prepObject.InitializePlacements();
-                if (!initResult.Success)
-                {
-                    Debug.LogWarning(
-                        $"StartingPositions.Initialize: InitializePlacements failed: {initResult.ErrorMessage}"
-                    );
-                }
-                else if (_prepObject.placements != null)
-                {
-                    Debug.Log(
-                        $"StartingPositions.Initialize: Placements initialized with {_prepObject.placements.Count} entries."
-                    );
-                }
-
+                _prepObject.InitializePlacements();
                 // If placements still not available, subscribe to placements-initialized and wait to spawn models.
                 if (_prepObject.placements == null || _prepObject.placements.Count == 0)
                 {
@@ -102,13 +92,6 @@ namespace Turnroot.UI.Components
                         );
 #endif
                     }
-                    else
-                    {
-                        Debug.LogWarning(
-                            "StartingPositions.Initialize: No Brain available to subscribe for placements updates."
-                        );
-                    }
-
                     return OperationResult.SuccessResult();
                 }
             }
@@ -233,22 +216,8 @@ namespace Turnroot.UI.Components
         /* ------------------------------ Spawn models ------------------------------ */
         private void SpawnAllUnitModels()
         {
-#if UNITY_EDITOR
-            var allInstances = FindObjectsByType<StartingPositions>(
-                FindObjectsInactive.Include,
-                FindObjectsSortMode.None
-            );
-            Debug.Log(
-                $"SpawnAllUnitModels: found {allInstances.Length} StartingPositions instances. (this={name})"
-            );
-#endif
             if (_replaced)
             {
-#if UNITY_EDITOR
-                Debug.Log(
-                    "SpawnAllUnitModels: this StartingPositions instance was replaced; aborting spawn to avoid duplicates."
-                );
-#endif
                 return;
             }
 
@@ -266,12 +235,6 @@ namespace Turnroot.UI.Components
                 }
             }
 
-#if UNITY_EDITOR
-            Debug.Log(
-                $"SpawnAllUnitModels: keeping {keepIds.Count} unit models by id, scanning for orphaned scene models..."
-            );
-#endif
-
             var ownerships = FindObjectsByType<UnitModelOwnership>(
                 FindObjectsInactive.Include,
                 FindObjectsSortMode.None
@@ -279,15 +242,12 @@ namespace Turnroot.UI.Components
             foreach (var own in ownerships)
             {
                 if (own == null || string.IsNullOrEmpty(own.UnitId))
+                {
                     continue;
+                }
 
                 if (!keepIds.Contains(own.UnitId))
                 {
-#if UNITY_EDITOR
-                    Debug.Log(
-                        $"SpawnAllUnitModels: destroying orphan model {own.gameObject.name} (id={own.UnitId})"
-                    );
-#endif
                     try
                     {
                         own.gameObject.SetActive(false);
@@ -320,19 +280,16 @@ namespace Turnroot.UI.Components
                 }
             }
 
-            Debug.Log("Starting SpawnAllUnitModels");
             if (_prepObject?.placements == null || _prepObject.placements.Count == 0)
             {
-                Debug.Log("No placements found, aborting SpawnAllUnitModels");
                 return;
             }
 
+#if UNITY_EDITOR
             Debug.Log($"SpawnAllUnitModels: spawning {_prepObject.placements.Count} unit models.");
+#endif
             foreach (var placement in _prepObject.placements)
             {
-                Debug.Log(
-                    $"Spawning unit model for {placement.Key} at {placement.Value?.CharacterTemplate?.DisplayName}"
-                );
                 // We're in the pre-battle/roster positioning UI, so tell the appearance brain to spawn prebattle models.
                 _prepObject.Brain.unitAppearanceBrain.SpawnUnitModelOnGrid(
                     placement.Key,
@@ -355,16 +312,20 @@ namespace Turnroot.UI.Components
 
             if (_prepObject.placements != null && _prepObject.placements.Count > 0)
             {
+#if UNITY_EDITOR
                 Debug.Log(
                     "HandlePlacementsInitialized: placements are now available, spawning unit models."
                 );
+#endif
                 SpawnAllUnitModels();
             }
             else
             {
+#if UNITY_EDITOR
                 Debug.LogWarning(
                     "HandlePlacementsInitialized: placements still empty after initialization."
                 );
+#endif
             }
         }
 
@@ -376,14 +337,7 @@ namespace Turnroot.UI.Components
             }
 
             // Recompute placements and refresh models when selection changes in the brain
-            var result = _prepObject.InitializePlacements();
-            if (!result.Success)
-            {
-                Debug.LogWarning(
-                    $"StartingPositions.HandleUnitSelectionChanged: InitializePlacements failed: {result.ErrorMessage}"
-                );
-            }
-
+            _prepObject.InitializePlacements();
             SpawnAllUnitModels();
         }
 
