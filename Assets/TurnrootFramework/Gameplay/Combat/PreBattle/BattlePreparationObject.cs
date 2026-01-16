@@ -264,7 +264,13 @@ namespace Turnroot.Gameplay.Combat.PreBattle
         public OperationResult ExecutePositionAction()
         {
             // Called when second Confirm happens
-            if (selectedPosition == null || potentialSwapPosition == null)
+            if (
+                !ValidationHelper.ValidateNotNull(
+                    "BattlePreparationObject.ExecutePositionAction",
+                    (selectedPosition, nameof(selectedPosition)),
+                    (potentialSwapPosition, nameof(potentialSwapPosition))
+                )
+            )
             {
                 return OperationResult.Failure("Invalid action state");
             }
@@ -280,6 +286,10 @@ namespace Turnroot.Gameplay.Combat.PreBattle
                     placements[potentialSwapPosition.Value],
                     placements[selectedPosition.Value]
                 );
+                StartingPositionsComponent.SwapModels(
+                    selectedPosition.Value,
+                    potentialSwapPosition.Value
+                );
             }
             else
             {
@@ -287,6 +297,10 @@ namespace Turnroot.Gameplay.Combat.PreBattle
                 StartingPositionsComponent.SetSelected(potentialSwapPosition.Value);
                 placements[potentialSwapPosition.Value] = placements[selectedPosition.Value];
                 placements.Remove(selectedPosition.Value);
+                StartingPositionsComponent.MoveModel(
+                    selectedPosition.Value,
+                    potentialSwapPosition.Value
+                );
             }
 
             ClearSelection();

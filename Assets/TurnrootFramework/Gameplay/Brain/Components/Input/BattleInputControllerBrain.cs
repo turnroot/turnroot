@@ -258,21 +258,13 @@ namespace Turnroot.Gameplay.Brain
 
         public void HandleNavigateInput(Vector2 direction)
         {
-            if (direction.magnitude < 0.1f)
+            if (
+                direction.magnitude < 0.1f
+                || _brain == null
+                || _brain.cursorBrain == null
+                || !_brain.cursorBrain.IsInitialized
+            )
             {
-                Debug.LogWarning("BattleInputController: Ignoring negligible navigate input");
-                return;
-            }
-
-            if (_brain?.cursorBrain == null)
-            {
-                Debug.LogWarning("BattleInputController: CursorBrain is null, cannot navigate");
-                return;
-            }
-
-            if (!_brain.cursorBrain.IsInitialized)
-            {
-                Debug.LogWarning("BattleInputController: CursorBrain not initialized yet");
                 return;
             }
 
@@ -512,9 +504,6 @@ namespace Turnroot.Gameplay.Brain
 
             if (!success)
             {
-                Debug.LogError(
-                    $"BattleInputController: Failed to calculate tiles for {unit.CharacterTemplate.DisplayName}"
-                );
                 return OperationResult.Failure(
                     $"Failed to calculate tiles for unit {unit.CharacterTemplate.DisplayName}"
                 );
