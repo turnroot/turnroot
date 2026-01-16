@@ -100,7 +100,58 @@ namespace Turnroot.Gameplay.Combat.PreBattle
         public OperationResult InitializePlacements()
         {
             // Use gamewide selection as the single source of truth for which units are selected.
-            var selectedUnits = Brain?.gamewideContextBrain?.GetSelectedForBattlePlayerTeamUnits();
+            var gw = Brain?.gamewideContextBrain;
+            var selectedUnits = gw?.GetSelectedForBattlePlayerTeamUnits();
+
+            // Debug: log counts to help diagnose placement issues
+            Debug.Log(
+                $"InitializePlacements: selectedUnits={selectedUnits?.Count ?? 0}, PlayerTeamSpawnPoints={PlayerTeamSpawnPoints?.Count ?? 0}, MaxPlayerTeamUnits={MaxPlayerTeamUnits}"
+            );
+
+            // If no runtime selections are present, attempt to compute default selections from roster/templates.
+            if (selectedUnits == null || selectedUnits.Count == 0)
+            {
+                var persistent =
+                    gw?.GamewidePersistentPlayerRoster
+                    ?? gw?.CreateOrRecallGamewidePersistentPlayerRoster();
+                var runtimeInstance =
+                    persistent != null ? gw.GetOrCreatePlayerTeamRoster(persistent) : null;
+                var selectedTemplates = PreBattleSelectionHelper.EnsureDefaultPreBattleSelections(
+                    Brain,
+                    persistent,
+                    runtimeInstance,
+                    MaxPlayerTeamUnits,
+                    RequiredPlayerUnits
+                );
+
+                if (selectedTemplates != null && selectedTemplates.Count > 0)
+                {
+                    // Build selected units from templates by finding runtime instances.
+                    var tempList = new List<CharacterInstance>();
+                    var placementsArr =
+                        runtimeInstance != null
+                            ? runtimeInstance.GetPlacements()
+                            : persistent?.characters
+                                ?? new Turnroot.Characters.Roster.UnitPlacement[0];
+                    foreach (var p in placementsArr)
+                    {
+                        if (p == null || p.CharacterData == null)
+                            continue;
+                        if (selectedTemplates.Contains(p.CharacterData))
+                        {
+                            var inst =
+                                runtimeInstance != null
+                                    ? runtimeInstance.GetInstanceFor(p.CharacterData)
+                                    : null;
+                            inst ??= gw?.FindInstanceByTemplate(p.CharacterData);
+                            if (inst != null)
+                                tempList.Add(inst);
+                        }
+                    }
+
+                    selectedUnits = tempList;
+                }
+            }
 
             if (selectedUnits == null || selectedUnits.Count == 0)
             {

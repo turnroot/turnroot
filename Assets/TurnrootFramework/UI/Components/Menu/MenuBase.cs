@@ -78,13 +78,7 @@ namespace Turnroot.UI.Components.Menu
 
         public virtual void NavigateToItem(MenuItemBase item) => OnNavigate?.Invoke(item);
 
-        public virtual void SelectItem(MenuItemBase item)
-        {
-#if UNITY_EDITOR
-            Debug.Log($"MenuBase: SelectItem called on {name} for item {item?.ItemName}");
-#endif
-            OnItemSelected?.Invoke(item);
-        }
+        public virtual void SelectItem(MenuItemBase item) => OnItemSelected?.Invoke(item);
 
         protected virtual void HandleKeyboardNavigation()
         {

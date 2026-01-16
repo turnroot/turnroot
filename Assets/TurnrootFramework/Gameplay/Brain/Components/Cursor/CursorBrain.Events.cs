@@ -170,17 +170,11 @@ namespace Turnroot.Gameplay.Brain
 
         private void HandlePreBattlePrepare()
         {
-#if UNITY_EDITOR
-            Debug.Log("CursorBrain: Pre-battle prepare event received");
-#endif
             _currentContext = CursorContext.PreBattle;
         }
 
         private void HandlePreBattleMapReady(MapGrid mapGrid)
         {
-#if UNITY_EDITOR
-            Debug.Log($"CursorBrain: Pre-battle map ready with grid {mapGrid?.name}");
-#endif
             if (_currentContext == CursorContext.PreBattle && mapGrid != null)
             {
                 InitializePreBattleCursor(mapGrid);

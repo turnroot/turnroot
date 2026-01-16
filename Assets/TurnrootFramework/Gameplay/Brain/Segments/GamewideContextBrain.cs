@@ -545,7 +545,7 @@ namespace Turnroot.Gameplay.Brain
                     }
                 }
 
-                // Fallback: legacy value (e.g. stored hash) - attempt to construct a minimal partial
+                // Fallback: older key format - attempt to construct a minimal partial
                 var suffix =
                     key.Length > LtmKeys.ExploredPartial.Length + 1
                         ? key.Substring(LtmKeys.ExploredPartial.Length + 1)

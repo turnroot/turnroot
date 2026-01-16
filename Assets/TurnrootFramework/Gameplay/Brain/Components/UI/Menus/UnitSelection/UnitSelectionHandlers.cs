@@ -76,13 +76,22 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             }
 
             // Persist choice in LTM so it survives across menu opens
-            var unitName =
-                item?.ItemName?.StartsWith("UnitCell_") == true
-                    ? item.ItemName.Substring("UnitCell_".Length)
-                    : item?.ItemName ?? "";
-            var key = LtmKeys.UnitSelectedForBattlePrefix + unitName;
+            // Use asset name as stable LTM key.
+            var template = item?.CharacterInstanceData?.CharacterTemplate;
+            var key = template != null ? LtmKeys.UnitSelectedForBattlePrefix + template.name : null;
+            if (key != null)
+            {
+                _brain.ltm.RememberBool(key, item.IsSelectedForBattle);
+            }
 
-            _brain.ltm.RememberBool(key, item.IsSelectedForBattle);
+            // Propagate selection change to Brain so listeners can react (pre-battle UI, etc.)
+            if (item.CharacterInstanceData != null)
+            {
+                _brain.PublishUnitSelectionChanged(
+                    item.CharacterInstanceData,
+                    item.IsSelectedForBattle
+                );
+            }
         }
 
         // Removed unit cell handling for positioning, not actually using

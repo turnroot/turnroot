@@ -24,11 +24,6 @@ public class PopulateMapPrefabEnviromentConditions : MonoBehaviour
             return OperationResult.Failure("UI settings not found on Brain");
         }
 
-        Debug.Log(
-            "PopulateMapPrefabEnviromentConditions: Initializing with preparation object "
-                + (preparationObject.name ?? "(unnamed)")
-        );
-
         // Find the child GameObject tagged 'BattleMapEnvironment' and use it directly
         var uf = new UtilityFunctions();
         var c = uf.FindChildByTag(this.gameObject, "BattleMapEnvironment");

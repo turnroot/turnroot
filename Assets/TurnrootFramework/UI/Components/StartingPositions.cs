@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using Turnroot.Characters;
+using Turnroot.Gameplay.Brain;
 using Turnroot.Gameplay.Combat.PreBattle;
 using Turnroot.Utilities;
 using UnityEngine;
@@ -20,9 +21,20 @@ namespace Turnroot.UI.Components
 
         private BattlePreparationObject _prepObject;
 
+        // If this instance has been superseded by a newer StartingPositions instance,
+        // avoid spawning any further models (prevents duplicate visible models when multiple UI instances exist).
+        private bool _replaced = false;
+
         public OperationResult Initialize(BattlePreparationObject battlePreparationObject)
         {
             mapGrid = battlePreparationObject.MapGrid;
+
+            // If this instance was replaced by a newer StartingPositions, skip initialization to avoid duplicate models.
+            if (_replaced)
+            {
+                return OperationResult.SuccessResult();
+            }
+
             var StartingPositions = mapGrid.PlayerTeamSpawnPoints;
             if (StartingPositions == null || StartingPositions.Count <= 0)
             {
@@ -45,6 +57,19 @@ namespace Turnroot.UI.Components
             SwapUnit.gameObject.SetActive(false);
 
             _prepObject = battlePreparationObject;
+
+            // If another StartingPositions already exists in the scene, ask it to despawn its models
+            // and unsubscribe so we don't end up with duplicate spawned models across multiple UI instances.
+            var all = FindObjectsByType<StartingPositions>(
+                FindObjectsInactive.Include,
+                FindObjectsSortMode.None
+            );
+            foreach (var other in all)
+            {
+                if (other == null || other == this)
+                    continue;
+                other.ReplaceBy(this);
+            }
 
             // If placements were not initialized yet, attempt to initialize them now.
             if (_prepObject.placements == null || _prepObject.placements.Count == 0)
@@ -69,9 +94,11 @@ namespace Turnroot.UI.Components
                     if (_prepObject.Brain != null)
                     {
                         _prepObject.Brain.OnPlacementsInitialized += HandlePlacementsInitialized;
+                        // Subscribe to unit selection changes so we can refresh spawned models when selections change
+                        _prepObject.Brain.OnUnitSelectionChanged += HandleUnitSelectionChanged;
 #if UNITY_EDITOR
                         Debug.Log(
-                            "StartingPositions.Initialize: Subscribed to OnPlacementsInitialized event to wait for placements."
+                            "StartingPositions.Initialize: Subscribed to placement and selection events to wait for placements and update models."
                         );
 #endif
                     }
@@ -112,8 +139,8 @@ namespace Turnroot.UI.Components
             }
 
             // When a unit becomes selected, ensure swap visuals are hidden until a hover occurs
-            StartCoroutine(HideAfterFade(Swap));
-            StartCoroutine(HideAfterFade(SwapGraphic));
+            HideWithFade(Swap);
+            HideWithFade(SwapGraphic);
         }
 
         public void SetSwap(Vector2Int tileCoordinates)
@@ -130,11 +157,11 @@ namespace Turnroot.UI.Components
         public void Clears()
         {
             // No selection: hide all preview visuals via UIFade
-            StartCoroutine(HideAfterFade(Selected));
-            StartCoroutine(HideAfterFade(Swap));
-            StartCoroutine(HideAfterFade(SwapGraphic));
-            StartCoroutine(HideAfterFade(SelectedUnit.gameObject));
-            StartCoroutine(HideAfterFade(SwapUnit.gameObject));
+            HideWithFade(Selected);
+            HideWithFade(Swap);
+            HideWithFade(SwapGraphic);
+            HideWithFade(SelectedUnit.gameObject);
+            HideWithFade(SwapUnit.gameObject);
             SelectedUnit.ClearData();
             SwapUnit.ClearData();
         }
@@ -169,8 +196,8 @@ namespace Turnroot.UI.Components
         public void ClearSwapUnit()
         {
             SwapUnit.ClearData();
-            StartCoroutine(HideAfterFade(SwapUnit.gameObject));
-            StartCoroutine(HideAfterFade(SwapGraphic));
+            HideWithFade(SwapUnit.gameObject);
+            HideWithFade(SwapGraphic);
         }
 
         /// <summary>
@@ -179,31 +206,120 @@ namespace Turnroot.UI.Components
         /// </summary>
         public void ClearSwapPreview()
         {
-            StartCoroutine(HideAfterFade(Swap));
+            HideWithFade(Swap);
             SwapUnit.ClearData();
-            StartCoroutine(HideAfterFade(SwapUnit.gameObject));
-            StartCoroutine(HideAfterFade(SwapGraphic));
+            HideWithFade(SwapUnit.gameObject);
+            HideWithFade(SwapGraphic);
         }
 
-        private IEnumerator HideAfterFade(GameObject go)
+        private void HideWithFade(GameObject go)
         {
+            if (go == null || !go.activeInHierarchy)
+            {
+                return;
+            }
+
             if (go.TryGetComponent<UIFade>(out var fade))
             {
                 fade.Hide();
-                yield return new WaitForSeconds(fade.lerpTime + 0.02f);
-                go.SetActive(false);
+                // Let UIFade handle disabling the object when done
             }
             else
             {
-                // No UIFade present, disable immediately
                 go.SetActive(false);
-                yield break;
             }
         }
 
         /* ------------------------------ Spawn models ------------------------------ */
         private void SpawnAllUnitModels()
         {
+#if UNITY_EDITOR
+            var allInstances = FindObjectsByType<StartingPositions>(
+                FindObjectsInactive.Include,
+                FindObjectsSortMode.None
+            );
+            Debug.Log(
+                $"SpawnAllUnitModels: found {allInstances.Length} StartingPositions instances. (this={name})"
+            );
+#endif
+            if (_replaced)
+            {
+#if UNITY_EDITOR
+                Debug.Log(
+                    "SpawnAllUnitModels: this StartingPositions instance was replaced; aborting spawn to avoid duplicates."
+                );
+#endif
+                return;
+            }
+
+            // Destroy any orphaned unit model objects in the scene that are not part of the current placements.
+            // This handles cases where models were created outside of our mapping (leftover duplicates etc).
+            var keepIds = new HashSet<string>();
+            if (_prepObject?.placements != null)
+            {
+                foreach (var p in _prepObject.placements)
+                {
+                    if (p.Value != null && !string.IsNullOrEmpty(p.Value.Id))
+                    {
+                        keepIds.Add(p.Value.Id);
+                    }
+                }
+            }
+
+#if UNITY_EDITOR
+            Debug.Log(
+                $"SpawnAllUnitModels: keeping {keepIds.Count} unit models by id, scanning for orphaned scene models..."
+            );
+#endif
+
+            var ownerships = FindObjectsByType<UnitModelOwnership>(
+                FindObjectsInactive.Include,
+                FindObjectsSortMode.None
+            );
+            foreach (var own in ownerships)
+            {
+                if (own == null || string.IsNullOrEmpty(own.UnitId))
+                    continue;
+
+                if (!keepIds.Contains(own.UnitId))
+                {
+#if UNITY_EDITOR
+                    Debug.Log(
+                        $"SpawnAllUnitModels: destroying orphan model {own.gameObject.name} (id={own.UnitId})"
+                    );
+#endif
+                    try
+                    {
+                        own.gameObject.SetActive(false);
+                    }
+                    catch { }
+                    Destroy(own.gameObject);
+
+                    // Also remove any mapping referencing this object
+                    var keys = new List<Vector2Int>(_unitModels.Keys);
+                    foreach (var k in keys)
+                    {
+                        if (_unitModels.TryGetValue(k, out var obj) && obj == own.gameObject)
+                        {
+                            _unitModels.Remove(k);
+                        }
+                    }
+                }
+            }
+
+            if (_unitModels.Count > 0)
+            {
+                // Despawn existing models first; take a snapshot of keys to avoid modifying the dictionary while iterating.
+                var keys = new List<Vector2Int>(_unitModels.Keys);
+                foreach (var pos in keys)
+                {
+                    _prepObject.Brain.unitAppearanceBrain.DespawnUnitModelFromGrid(
+                        pos,
+                        _unitModels
+                    );
+                }
+            }
+
             Debug.Log("Starting SpawnAllUnitModels");
             if (_prepObject?.placements == null || _prepObject.placements.Count == 0)
             {
@@ -252,11 +368,110 @@ namespace Turnroot.UI.Components
             }
         }
 
-        private void OnDestroy()
+        private void HandleUnitSelectionChanged(CharacterInstance unit, bool selected)
         {
+            if (_prepObject == null || _prepObject.Brain == null)
+            {
+                return;
+            }
+
+            // Recompute placements and refresh models when selection changes in the brain
+            var result = _prepObject.InitializePlacements();
+            if (!result.Success)
+            {
+                Debug.LogWarning(
+                    $"StartingPositions.HandleUnitSelectionChanged: InitializePlacements failed: {result.ErrorMessage}"
+                );
+            }
+
+            SpawnAllUnitModels();
+        }
+
+        /// <summary>
+        /// Instructs this instance to despawn all models and unsubscribe from events.
+        /// Called by newer StartingPositions instances that replace this one to avoid duplicate spawns.
+        /// </summary>
+        public void ReplaceBy(StartingPositions newOwner)
+        {
+            // Prevent this instance from spawning further models
+            _replaced = true;
+
+            // Try to update the preparation object to point at the new owner's starting positions
+            if (_prepObject != null)
+            {
+                _prepObject.StartingPositionsComponent = newOwner;
+            }
+
+            // Unsubscribe from brain events if applicable
             if (_prepObject != null && _prepObject.Brain != null)
             {
                 _prepObject.Brain.OnPlacementsInitialized -= HandlePlacementsInitialized;
+                _prepObject.Brain.OnUnitSelectionChanged -= HandleUnitSelectionChanged;
+            }
+
+#if UNITY_EDITOR
+            Debug.Log(
+                $"StartingPositions.ReplaceBy: {name} was replaced by {newOwner.name}, despawning {_unitModels.Count} models and unsubscribing."
+            );
+#endif
+
+            // Despawn any existing models spawned by this instance
+            DespawnAllModels();
+        }
+
+        /// <summary>
+        /// Remove all models spawned by this StartingPositions instance.
+        /// </summary>
+        public void DespawnAllModels()
+        {
+            if (_unitModels == null || _unitModels.Count == 0)
+            {
+                return;
+            }
+
+#if UNITY_EDITOR
+            Debug.Log(
+                $"StartingPositions.DespawnAllModels: {name} despawning {_unitModels.Count} models."
+            );
+#endif
+
+            var keys = new List<Vector2Int>(_unitModels.Keys);
+            foreach (var pos in keys)
+            {
+                // Use the brain associated with this prep object, if available
+                if (_prepObject != null && _prepObject.Brain != null)
+                {
+                    _prepObject.Brain.unitAppearanceBrain.DespawnUnitModelFromGrid(
+                        pos,
+                        _unitModels
+                    );
+                }
+                else
+                {
+                    // Fallback: directly remove/destroy local model entries
+                    if (_unitModels.TryGetValue(pos, out var m) && m != null)
+                    {
+                        try
+                        {
+                            m.SetActive(false);
+                        }
+                        catch { }
+                        Destroy(m);
+                        _unitModels.Remove(pos);
+                    }
+                }
+            }
+        }
+
+        private void OnDestroy()
+        {
+            // Ensure we remove any models we own when this object goes away
+            DespawnAllModels();
+
+            if (_prepObject != null && _prepObject.Brain != null)
+            {
+                _prepObject.Brain.OnPlacementsInitialized -= HandlePlacementsInitialized;
+                _prepObject.Brain.OnUnitSelectionChanged -= HandleUnitSelectionChanged;
             }
         }
     }

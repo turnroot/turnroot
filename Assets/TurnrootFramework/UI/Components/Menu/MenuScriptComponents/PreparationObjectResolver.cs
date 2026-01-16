@@ -48,6 +48,19 @@ public class PreparationObjectResolver : MonoBehaviour
             if (TryGetComponent(out StartingPositions p) && p != null)
             {
                 ResolvedPreparationObject.StartingPositionsComponent = p;
+
+                // Ensure any other StartingPositions instances are replaced to avoid duplicates
+                var others = FindObjectsByType<StartingPositions>(
+                    FindObjectsInactive.Include,
+                    FindObjectsSortMode.None
+                );
+                foreach (var other in others)
+                {
+                    if (other == null || other == p)
+                        continue;
+                    other.ReplaceBy(p);
+                }
+
                 var result = p.Initialize(prep);
                 if (!result.Success)
                 {

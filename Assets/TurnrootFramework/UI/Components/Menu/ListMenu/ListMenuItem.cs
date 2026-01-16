@@ -73,11 +73,6 @@ namespace Turnroot.UI.Components.ListMenu
 
         public override void Select()
         {
-#if UNITY_EDITOR
-            Debug.Log(
-                $"ListMenuItem: Select called for {ItemName} parentMenu={(parentMenu == null ? "null" : parentMenu.name)}"
-            );
-#endif
             base.Select();
             if (parentMenu != null)
             {
@@ -85,15 +80,7 @@ namespace Turnroot.UI.Components.ListMenu
             }
         }
 
-        private void HandleSimpleButtonSelection()
-        {
-#if UNITY_EDITOR
-            Debug.Log(
-                $"ListMenuItem: HandleSimpleButtonSelection itemName={ItemName} parentMenu={(parentMenu == null ? "null" : parentMenu.name)}"
-            );
-#endif
-            Select();
-        }
+        private void HandleSimpleButtonSelection() => Select();
 
         public override void SetItemName(string name) => itemName = name;
     }

@@ -283,14 +283,77 @@ namespace Turnroot.Gameplay.Brain
                 return OperationResult.Failure("Unit is null");
             }
 
-            // Clean up existing model at this position
+            // Determine world position for the model
+            var worldPos = prebattle
+                ? _brain.battleBrain.PreparationObject.MapGrid.GetTerrainAdjustedWorldPosition(
+                    position
+                )
+                : _brain.battleBrain.BattleObject.MapGrid.GetTerrainAdjustedWorldPosition(position);
+
+            // Use ownership component to find an existing model for this unit (robust, avoids name parsing)
+            var existingOwners = FindObjectsByType<UnitModelOwnership>(
+                FindObjectsInactive.Include,
+                FindObjectsSortMode.None
+            );
+            var existingOwner = existingOwners.FirstOrDefault(o =>
+                o != null && !string.IsNullOrEmpty(o.UnitId) && o.UnitId == unit.Id
+            );
+            if (existingOwner != null)
+            {
+                var existing = existingOwner.gameObject;
+#if UNITY_EDITOR
+                Debug.Log(
+                    "SpawnUnitModelOnGrid: reusing model for unit id '"
+                        + unit.Id
+                        + "' ; moving to "
+                        + position
+                );
+#endif
+                // Move and rescale existing model to the requested position
+                existing.transform.SetPositionAndRotation(worldPos, Quaternion.identity);
+                existing.transform.localScale = Vector3.one * _brain.uiBrain.uiSettings.ModelsScale;
+
+                // Update debug display name
+                existingOwner.DisplayName = unit.CharacterTemplate.DisplayName;
+
+                // Ensure renderer visuals are applied
+                var existingRenderer = existing.GetComponentInChildren<SkinnedMeshRenderer>();
+                if (existingRenderer != null)
+                {
+                    unit.SetRenderer(existingRenderer);
+                    GetUnitOutfitMaterial(unit);
+                    SetBlendshapes(unit);
+                }
+
+                // Remove any prior mapping in this dictionary that referenced the same GameObject
+                var keys = new List<Vector2Int>(_unitModels.Keys);
+                foreach (var k in keys)
+                {
+                    if (_unitModels.TryGetValue(k, out var obj) && obj == existing)
+                    {
+                        _unitModels.Remove(k);
+                        break;
+                    }
+                }
+
+                // Register existing model at the new position
+                _unitModels[position] = existing;
+                return OperationResult.SuccessResult();
+            }
+
+            // Clean up existing model at this position before spawning a new one
             if (_unitModels.TryGetValue(position, out var oldModel))
             {
+                try
+                {
+                    oldModel.SetActive(false);
+                }
+                catch { }
                 Destroy(oldModel);
                 _unitModels.Remove(position);
             }
 
-            // Determine which prefab/mesh to instantiate
+            // Instantiate model now that we know we won't reuse an existing one
             GameObject modelInstance = CreateModelForUnit(unit);
 
             if (modelInstance == null)
@@ -298,20 +361,15 @@ namespace Turnroot.Gameplay.Brain
                 return OperationResult.Failure("Failed to create model instance");
             }
 
-            var worldPos = Vector3.zero;
-
-            // Position the model
-            worldPos = prebattle
-                ? _brain.battleBrain.PreparationObject.MapGrid.GetTerrainAdjustedWorldPosition(
-                    position
-                )
-                : _brain.battleBrain.BattleObject.MapGrid.GetTerrainAdjustedWorldPosition(position);
-
             modelInstance.transform.SetPositionAndRotation(worldPos, Quaternion.identity);
-            modelInstance.name =
-                $"{unit.CharacterTemplate.DisplayName}_Model_{position.x}_{position.y}";
             modelInstance.transform.localScale =
                 Vector3.one * _brain.uiBrain.uiSettings.ModelsScale;
+
+            // Attach ownership info and name model for debugging
+            var ownership = modelInstance.AddComponent<UnitModelOwnership>();
+            ownership.UnitId = unit.Id;
+            ownership.DisplayName = unit.CharacterTemplate.DisplayName;
+            modelInstance.name = $"{unit.CharacterTemplate.DisplayName}_Model_{unit.Id}";
 
             // Get the SkinnedMeshRenderer and set it on the unit
             var renderer = modelInstance.GetComponentInChildren<SkinnedMeshRenderer>();
@@ -324,6 +382,39 @@ namespace Turnroot.Gameplay.Brain
 
             _unitModels[position] = modelInstance;
             return OperationResult.SuccessResult();
+        }
+
+        public OperationResult DespawnUnitModelFromGrid(
+            Vector2Int position,
+            Dictionary<Vector2Int, GameObject> _unitModels
+        )
+        {
+            if (_unitModels == null)
+            {
+                return OperationResult.Failure("Model dictionary is null");
+            }
+
+            if (_unitModels.TryGetValue(position, out var model) && model != null)
+            {
+                // Hide immediately to avoid visible duplicates until Destroy executes
+                try
+                {
+                    model.SetActive(false);
+                }
+                catch { }
+
+                // Destroy and remove mapping
+                Destroy(model);
+                _unitModels.Remove(position);
+#if UNITY_EDITOR
+                Debug.Log($"DespawnUnitModelFromGrid: removed model for {position}");
+#endif
+                return OperationResult.SuccessResult();
+            }
+#if UNITY_EDITOR
+            Debug.LogWarning($"DespawnUnitModelFromGrid: no model found at {position}");
+#endif
+            return OperationResult.Failure("No model found at given position");
         }
     }
 }

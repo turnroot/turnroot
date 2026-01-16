@@ -52,19 +52,28 @@ namespace Turnroot.UI.Components
             MaxSelectedUnits = _brain.battleBrain.PreparationObject.MaxPlayerTeamUnits;
             var keysSet = new HashSet<string>(keys);
 
-            // Count currently selected units so we can fill up to MaxSelectedUnits when necessary
+            // Count currently selected units only among units present in this roster (prefer runtime instance state, fall back to LTM)
             int currentlySelectedCount = 0;
-            foreach (var k in keys)
-            {
-                if (LongTermMemory.RecallBool(k))
-                {
-                    currentlySelectedCount++;
-                }
-            }
 
             for (int i = 0; i < unitCount; i++)
             {
                 var unit = units[i];
+
+                // Pre-compute an initial selection state for counting purposes. Prefer runtime instance when available.
+                var matchedInstance =
+                    playerTeamRosterInstance?.GetInstanceFor(unit.CharacterData)
+                    ?? _brain.gamewideContextBrain.FindInstanceByTemplate(unit.CharacterData);
+
+                var keyForUnit = u + unit.CharacterData.name;
+                var isSelectedForCount = matchedInstance != null
+                    ? matchedInstance.IsSelectedForBattle
+                    : LongTermMemory.RecallBool(keyForUnit);
+
+                if (isSelectedForCount)
+                {
+                    currentlySelectedCount++;
+                }
+
                 var whichColumn = i % TotalColumns;
                 var unitCell = Instantiate(UnitCellPrefab, Columns[whichColumn].transform);
 
@@ -77,7 +86,7 @@ namespace Turnroot.UI.Components
                 }
 
                 // Associate the UI item with the runtime CharacterInstance for this unit (if available)
-                var matchedInstance =
+                matchedInstance =
                     playerTeamRosterInstance?.GetInstanceFor(unit.CharacterData)
                     ?? _brain.gamewideContextBrain.FindInstanceByTemplate(unit.CharacterData);
                 gridMenuItem.CharacterInstanceData = matchedInstance;
@@ -85,7 +94,7 @@ namespace Turnroot.UI.Components
                 // Column and Row are used by GridMenu navigation; Row is integer division (floor)
                 gridMenuItem.Column = whichColumn;
                 gridMenuItem.Row = i / TotalColumns;
-                gridMenuItem.SetItemNamePublic($"UnitCell_{unit.CharacterData.FullName}");
+                gridMenuItem.SetItemNamePublic($"UnitCell_{unit.CharacterData.name}");
 
                 ConfigureUnitCell(
                     unitCell,
@@ -170,18 +179,13 @@ namespace Turnroot.UI.Components
                 var selectionIndicator = selectedT.gameObject;
                 if (selectionIndicator != null)
                 {
-                    var key = prefix + unit.CharacterData.FullName;
-                    bool isSelected = false;
+                    var key = prefix + unit.CharacterData.name;
+                    var isSelected =
+                        gridMenuItem.CharacterInstanceData != null
+                            ? gridMenuItem.CharacterInstanceData.IsSelectedForBattle
+                            : ltm?.RecallBool(key) ?? false;
 
                     // Prefer runtime instance selection state when available; otherwise fall back to LTM.
-                    if (gridMenuItem.CharacterInstanceData != null)
-                    {
-                        isSelected = gridMenuItem.CharacterInstanceData.IsSelectedForBattle;
-                    }
-                    else
-                    {
-                        isSelected = ltm?.RecallBool(key) ?? false;
-                    }
 
                     // If the unit is required for this battle, enable them but don't save it to LTM
                     var requiredUnits = _brain.battleBrain.PreparationObject.RequiredPlayerUnits;

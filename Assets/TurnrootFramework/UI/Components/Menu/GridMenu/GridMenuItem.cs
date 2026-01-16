@@ -66,11 +66,6 @@ namespace Turnroot.UI.Components.GridMenu
 
         public override void Select()
         {
-#if UNITY_EDITOR
-            Debug.Log(
-                $"GridMenuItem: Select called for {ItemName} parentMenu={(parentMenu == null ? "null" : parentMenu.name)} Row={Row} Col={Column}"
-            );
-#endif
             base.Select();
             parentMenu?.SelectItem(this);
         }
