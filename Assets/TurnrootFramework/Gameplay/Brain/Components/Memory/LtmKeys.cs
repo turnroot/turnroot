@@ -57,6 +57,7 @@ namespace Turnroot.Gameplay.Brain
 
         #region BattleBrain Keys
         public const string UnitSelectedForBattlePrefix = "BattleBrain.UnitSelectedForBattle.";
+        public const string UnitSelectionsAutoFilled = "BattleBrain.UnitSelectionsAutoFilled";
         #endregion
 
         #region Helper Methods
