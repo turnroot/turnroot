@@ -231,11 +231,6 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
 
             var key = LtmKeys.UnitSelectedForBattlePrefix + unit.CharacterTemplate.name;
             _brain.ltm.RememberBool(key, selected);
-#if UNITY_EDITOR
-            Debug.Log(
-                $"UiBrain: persisted selection change for {unit.CharacterTemplate.name} = {selected}"
-            );
-#endif
         }
 
         // Ensure a UIFade exists on the target object and set a sensible lerp time based on UI settings.
@@ -308,17 +303,31 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
 
         private void HandlePositioningModeExited()
         {
-            // Fade details back in
+            // Fade details back in (ensure the details canvas is active first)
             if (_currentDetailsCanvasPrefab != null)
             {
+                if (!_currentDetailsCanvasPrefab.activeInHierarchy)
+                {
+#if UNITY_EDITOR
+                    Debug.Log(
+                        $"UiBrain: Reactivating details canvas '{_currentDetailsCanvasPrefab.name}' on positioning mode exit."
+                    );
+#endif
+                    _currentDetailsCanvasPrefab.SetActive(true);
+                }
+
                 var detailsFade = EnsureUIFadeOnObject(_currentDetailsCanvasPrefab);
                 detailsFade?.Show();
             }
 
-            // Fade menu panel back in
+            // Fade menu panel back in (ensure panel is active first)
             if (_currentMenuCanvasPrefab != null)
             {
                 var panel = FindMenuCanvasPanel(_currentMenuCanvasPrefab);
+                if (panel != null && !panel.activeInHierarchy)
+                {
+                    panel.SetActive(true);
+                }
                 var panelFade = EnsureUIFadeOnObject(panel);
                 panelFade?.Show();
             }

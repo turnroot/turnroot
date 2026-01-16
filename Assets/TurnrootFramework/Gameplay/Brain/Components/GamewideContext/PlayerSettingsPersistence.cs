@@ -146,14 +146,6 @@ namespace Turnroot.Gameplay.Brain
                 };
 
                 var encode = GamewideContextBrainHelpers.EncodeInstanceToString(_brain, saveData);
-                if (!encode.Success)
-                {
-                    Debug.LogError(
-                        $"PlayerSettingsPersistence: Failed to encode player settings: {encode.Error}"
-                    );
-                    return;
-                }
-
                 _longTermMemory?.Remember("PlayerSettings", encode.Value);
 
 #if UNITY_EDITOR

@@ -10,6 +10,21 @@ using UnityEngine.Events;
 
 public class MapGrid : MonoBehaviour
 {
+    [Header("Appearance"), HorizontalLine(color: EColor.Orange)]
+    [InfoBox("If enabled, the height mesh will be used as the visual terrain also")]
+    public bool UseHeightMeshAsTerrainModel = false;
+
+    [
+        InfoBox("The main terrain level model for this map"),
+        HideIf(nameof(UseHeightMeshAsTerrainModel))
+    ]
+    public GameObject TerrainLevelModel;
+
+    [InfoBox(
+        "Optional decorative layers (buildings, foliage). These cover the whole map. For smaller or dynamic effects like birds, water, etc, don't use this, add those objects directly to the scene."
+    )]
+    public GameObject[] AdditionalDecorativeModels;
+
     [Header("Player Team Spawn Points"), HorizontalLine(color: EColor.Yellow)]
     public List<Vector2Int> PlayerTeamSpawnPoints = new();
 
@@ -145,6 +160,21 @@ public class MapGrid : MonoBehaviour
         if (_single3dHeightMeshRaycastPoints != null && _single3dHeightMeshRaycastPoints.Length > 0)
         {
             RebuildRaycastColors();
+        }
+
+        TerrainLevelModel?.SetActive(!UseHeightMeshAsTerrainModel);
+
+        if (_single3dHeightMesh != null)
+        {
+            _single3dHeightMesh.SetActive(UseHeightMeshAsTerrainModel);
+        }
+        else if (UseHeightMeshAsTerrainModel)
+        {
+#if UNITY_EDITOR
+            Debug.LogError(
+                "MapGrid: Neither a 3D height mesh nor a terrain level model is assigned."
+            );
+#endif
         }
     }
 
@@ -843,6 +873,11 @@ public class MapGrid : MonoBehaviour
         if (UnityEditor.EditorApplication.isPlayingOrWillChangePlaymode)
         {
             return;
+        }
+
+        if (UseHeightMeshAsTerrainModel)
+        {
+            TerrainLevelModel = _single3dHeightMesh;
         }
 
         // get the BattleGameObject in the parent (includes self)
