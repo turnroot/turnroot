@@ -44,7 +44,6 @@ namespace Turnroot.UI.Components
             SelectedUnit.gameObject.SetActive(false);
             SwapUnit.gameObject.SetActive(false);
 
-            // Store reference to prep object before spawning models so SpawnAllUnitModels can access placements.
             _prepObject = battlePreparationObject;
 
             // If placements were not initialized yet, attempt to initialize them now.
@@ -56,6 +55,34 @@ namespace Turnroot.UI.Components
                     Debug.LogWarning(
                         $"StartingPositions.Initialize: InitializePlacements failed: {initResult.ErrorMessage}"
                     );
+                }
+                else if (_prepObject.placements != null)
+                {
+                    Debug.Log(
+                        $"StartingPositions.Initialize: Placements initialized with {_prepObject.placements.Count} entries."
+                    );
+                }
+
+                // If placements still not available, subscribe to placements-initialized and wait to spawn models.
+                if (_prepObject.placements == null || _prepObject.placements.Count == 0)
+                {
+                    if (_prepObject.Brain != null)
+                    {
+                        _prepObject.Brain.OnPlacementsInitialized += HandlePlacementsInitialized;
+#if UNITY_EDITOR
+                        Debug.Log(
+                            "StartingPositions.Initialize: Subscribed to OnPlacementsInitialized event to wait for placements."
+                        );
+#endif
+                    }
+                    else
+                    {
+                        Debug.LogWarning(
+                            "StartingPositions.Initialize: No Brain available to subscribe for placements updates."
+                        );
+                    }
+
+                    return OperationResult.SuccessResult();
                 }
             }
 
@@ -178,20 +205,58 @@ namespace Turnroot.UI.Components
         private void SpawnAllUnitModels()
         {
             Debug.Log("Starting SpawnAllUnitModels");
-            if (_prepObject?.placements == null)
+            if (_prepObject?.placements == null || _prepObject.placements.Count == 0)
             {
                 Debug.Log("No placements found, aborting SpawnAllUnitModels");
                 return;
             }
 
+            Debug.Log($"SpawnAllUnitModels: spawning {_prepObject.placements.Count} unit models.");
             foreach (var placement in _prepObject.placements)
             {
-                Debug.Log($"Spawning unit model for {placement.Key} at {placement.Value}");
+                Debug.Log(
+                    $"Spawning unit model for {placement.Key} at {placement.Value?.CharacterTemplate?.DisplayName}"
+                );
+                // We're in the pre-battle/roster positioning UI, so tell the appearance brain to spawn prebattle models.
                 _prepObject.Brain.unitAppearanceBrain.SpawnUnitModelOnGrid(
                     placement.Key,
                     placement.Value,
-                    _unitModels
+                    _unitModels,
+                    prebattle: true
                 );
+            }
+        }
+
+        private void HandlePlacementsInitialized()
+        {
+            // Unsubscribe to avoid duplicate handling
+            if (_prepObject == null || _prepObject.Brain == null)
+            {
+                return;
+            }
+
+            _prepObject.Brain.OnPlacementsInitialized -= HandlePlacementsInitialized;
+
+            if (_prepObject.placements != null && _prepObject.placements.Count > 0)
+            {
+                Debug.Log(
+                    "HandlePlacementsInitialized: placements are now available, spawning unit models."
+                );
+                SpawnAllUnitModels();
+            }
+            else
+            {
+                Debug.LogWarning(
+                    "HandlePlacementsInitialized: placements still empty after initialization."
+                );
+            }
+        }
+
+        private void OnDestroy()
+        {
+            if (_prepObject != null && _prepObject.Brain != null)
+            {
+                _prepObject.Brain.OnPlacementsInitialized -= HandlePlacementsInitialized;
             }
         }
     }
