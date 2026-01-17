@@ -205,7 +205,8 @@ namespace Turnroot.Gameplay.Brain.Events
             if (nonCriticalExceptions != null && nonCriticalExceptions.Count > 0)
             {
                 TurnrootLogger.Log(
-                    $"[PriorityEventBus] {nonCriticalExceptions.Count} exception(s) occurred during event {typeof(T).Name} processing.", TurnrootLogger.LogLevel.Warning
+                    $"[PriorityEventBus] {nonCriticalExceptions.Count} exception(s) occurred during event {typeof(T).Name} processing.",
+                    TurnrootLogger.LogLevel.Warning
                 );
             }
         }
