@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain
@@ -10,13 +11,14 @@ namespace Turnroot.Gameplay.Brain
         /// <summary>
         /// Initialize cursor with optional movement restrictions.
         /// </summary>
-        public void InitializeCursor(MapGrid mapGrid, List<Vector2Int> allowedPositions = null)
+        public OperationResult InitializeCursor(
+            MapGrid mapGrid,
+            List<Vector2Int> allowedPositions = null
+        )
         {
-#if UNITY_EDITOR
-            Debug.Log(
+            TurnrootLogger.Log(
                 $"CursorBrain.InitializeCursor: Starting initialization. IsInitialized was: {IsInitialized}"
             );
-#endif
 
             _currentMap = mapGrid;
             _allowedPositions = allowedPositions;
@@ -45,20 +47,17 @@ namespace Turnroot.Gameplay.Brain
                 UpdateCursorVisualPosition(startPos);
                 IsInitialized = true;
 
-#if UNITY_EDITOR
-                Debug.Log($"CursorBrain: IsInitialized set to TRUE. Cursor at {startPos}");
-#endif
+                TurnrootLogger.Log($"CursorBrain: IsInitialized set to TRUE. Cursor at {startPos}");
 
                 _brain?.PublishCursorPositionChanged(startPos, _currentMap);
             }
             else
             {
-#if UNITY_EDITOR
-                Debug.LogError(
-                    $"CursorBrain: Could not get grid point for position {startPos}! IsInitialized remains: {IsInitialized}"
+                return OperationResult.Failure(
+                    $"InitializeCursor: Could not find valid start grid point at {startPos}."
                 );
-#endif
             }
+            return OperationResult.SuccessResult();
         }
 
         /// <summary>
@@ -68,10 +67,9 @@ namespace Turnroot.Gameplay.Brain
         {
             if (!IsPositionValid(position))
             {
-#if UNITY_EDITOR
-                Debug.Log($"CursorBrain: Position {position} is not valid for cursor movement");
-#endif
-                return false;
+                return OperationResult
+                    .Failure($"CursorBrain: Position {position} is not valid for cursor movement")
+                    .Success;
             }
 
             // Update position index if using restricted movement
@@ -164,9 +162,8 @@ namespace Turnroot.Gameplay.Brain
                 }
             }
 
-#if UNITY_EDITOR
-            Debug.Log($"CursorBrain: Set {positions?.Count ?? 0} allowed positions");
-#endif
+            TurnrootLogger.Log($"CursorBrain: Set {positions?.Count ?? 0} allowed positions");
+
         }
 
         /// <summary>
@@ -177,9 +174,7 @@ namespace Turnroot.Gameplay.Brain
             _allowedPositions = null;
             _currentPositionIndex = -1;
 
-#if UNITY_EDITOR
-            Debug.Log("CursorBrain: Cleared position restrictions");
-#endif
+                TurnrootLogger.Log("CursorBrain: Cleared position restrictions");
         }
 
         /// <summary>

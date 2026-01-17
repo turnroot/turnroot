@@ -44,17 +44,11 @@ namespace Turnroot.Gameplay.Brain
                 _gameplaySettings != null
                     ? _gameplaySettings.GoldDisplayNames
                     : new GoldDisplay { OneLetter = "G", FullName = "gold" };
-#if UNITY_EDITOR
-            Debug.Log("StorehouseBrain is ready.");
-#endif
 
             // Load saved gold amount
             int tryLoadGold = GetGoldFromLTM();
             if (tryLoadGold <= 0)
             {
-#if UNITY_EDITOR
-                Debug.Log("No saved gold found, initializing to 0.");
-#endif
                 PlayerGold = 0;
                 SaveGoldToLTM();
                 SaveCurrentStorehouse();

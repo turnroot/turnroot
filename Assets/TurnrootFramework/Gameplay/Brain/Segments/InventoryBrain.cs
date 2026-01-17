@@ -17,13 +17,7 @@ namespace Turnroot.Gameplay.Brain
     {
         protected override EventPriority GetSubscriptionPriority() => EventPriority.Normal;
 
-        protected override void Awake()
-        {
-            base.Awake();
-#if UNITY_EDITOR
-            Debug.Log("InventoryBrain is ready.");
-#endif
-        }
+        protected override void Awake() => base.Awake();
 
         protected override void SubscribeToBrainEvents()
         {

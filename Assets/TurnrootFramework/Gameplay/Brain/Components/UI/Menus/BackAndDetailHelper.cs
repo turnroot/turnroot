@@ -2,6 +2,7 @@ using System;
 using Turnroot.Gameplay.Brain;
 using Turnroot.GameSettings;
 using Turnroot.UI.Components.SimpleButton;
+using Turnroot.Utilities;
 using UnityEngine;
 
 namespace TurnrootFramework.Gameplay.Brain.Segments
@@ -193,9 +194,9 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                 // Now add it
                 chosen.OnSelected += handler;
 
-#if UNITY_EDITOR
-                Debug.Log($"UiBrain: Subscribed {role} handler on {chosen.gameObject.name}.");
-#endif
+                TurnrootLogger.Log(
+                    $"UiBrain: Subscribed {role} handler on {chosen.gameObject.name}."
+                );
             }
         }
 

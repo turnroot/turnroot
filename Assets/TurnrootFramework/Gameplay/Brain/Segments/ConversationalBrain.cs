@@ -21,9 +21,6 @@ namespace Turnroot.Gameplay.Brain
         {
             base.Awake();
             _ltm = GetComponent<LongTermMemory>();
-#if UNITY_EDITOR
-            Debug.Log("ConversationalBrain is ready.");
-#endif
         }
 
         protected override void SubscribeToBrainEvents() =>

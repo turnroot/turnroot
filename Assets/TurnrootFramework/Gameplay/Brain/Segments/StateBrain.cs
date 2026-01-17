@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using Turnroot.Gameplay.Brain.Events;
+using Turnroot.Utilities;
 using UnityEngine;
 
 public class BrainState
@@ -95,10 +96,7 @@ namespace Turnroot.Gameplay.Brain
 
         protected override void Awake()
         {
-            base.Awake(); // Calls parent Awake
-#if UNITY_EDITOR
-            Debug.Log("StateBrain Awake called.");
-#endif
+            base.Awake();
             InitializeHighLevelStates();
             InitializeBattleChildStates();
         }
@@ -164,15 +162,14 @@ namespace Turnroot.Gameplay.Brain
             SetBattleChildStates();
         }
 
-        public void SetBattleChildStates()
+        public OperationResult SetBattleChildStates()
         {
             var combatState = FindHighLevelState(BrainStateNames.Combat);
             if (combatState == null)
             {
-                Debug.LogError(
+                return OperationResult.Failure(
                     "StateBrain: Combat state not found during child state initialization."
                 );
-                return;
             }
 
             var childStates = new BrainState[]
@@ -183,6 +180,7 @@ namespace Turnroot.Gameplay.Brain
             };
 
             combatState.Children = childStates;
+            return OperationResult.SuccessResult();
         }
 
         public void SetHighLevelStates()
@@ -239,9 +237,8 @@ namespace Turnroot.Gameplay.Brain
             _currentState = newState;
             _currentState.IsActive = true;
 
-#if UNITY_EDITOR
-            Debug.Log($"StateBrain: SetCurrentState -> {_currentState.Name}");
-#endif
+            TurnrootLogger.Log($"StateBrain: SetCurrentState -> {_currentState.Name}");
+
             // Trigger specific events for certain states
             if (_currentState.Name == BrainStateNames.Battle)
             {
@@ -256,9 +253,9 @@ namespace Turnroot.Gameplay.Brain
             var newState = FindHighLevelState(stateName);
             if (newState == null)
             {
-#if UNITY_EDITOR
-                Debug.LogError($"State '{stateName}' not found.");
-#endif
+                _ = OperationResult.Failure(
+                    $"StateBrain: High-level state '{stateName}' not found."
+                );
                 return null;
             }
 
@@ -270,7 +267,7 @@ namespace Turnroot.Gameplay.Brain
         {
             if (_currentState == null)
             {
-                Debug.LogError("StateBrain: No active high-level state.");
+                _ = OperationResult.Failure("No active state.");
                 return;
             }
 
@@ -282,7 +279,7 @@ namespace Turnroot.Gameplay.Brain
 
             if (parentState?.Children == null || parentState.Children.Length == 0)
             {
-                Debug.LogError(
+                _ = OperationResult.Failure(
                     $"StateBrain: Cannot find child state '{childStateName}' from '{_currentState.Name}'."
                 );
                 return;
@@ -295,27 +292,33 @@ namespace Turnroot.Gameplay.Brain
             }
             else
             {
-                Debug.LogError(
-                    $"StateBrain: Child state '{childStateName}' not found in '{parentState.Name}'."
+                TurnrootLogger.Log(
+                    $"StateBrain: Child state '{childStateName}' not found in '{parentState.Name}'.",
+                    TurnrootLogger.LogLevel.Error
                 );
             }
         }
 
-        public void ActivateChildStateByFullPath(string parentStateName, string childStateName)
+        public OperationResult ActivateChildStateByFullPath(
+            string parentStateName,
+            string childStateName
+        )
         {
             // Find the parent state among high-level states
             var parentState = FindHighLevelState(parentStateName);
             if (parentState == null)
             {
-                Debug.LogError($"StateBrain: Parent state '{parentStateName}' not found.");
-                return;
+                return OperationResult.Failure(
+                    $"StateBrain: Parent state '{parentStateName}' not found."
+                );
             }
 
             // Validate that the parent state has children
             if (parentState.Children == null || parentState.Children.Length == 0)
             {
-                Debug.LogError($"StateBrain: Parent state '{parentStateName}' has no children.");
-                return;
+                return OperationResult.Failure(
+                    $"StateBrain: Parent state '{parentStateName}' has no child states."
+                );
             }
 
             // Find the child state within the parent
@@ -327,18 +330,18 @@ namespace Turnroot.Gameplay.Brain
             }
             else
             {
-                Debug.LogError(
-                    $"StateBrain: Child state '{childStateName}' not found in parent '{parentStateName}'."
+                return OperationResult.Failure(
+                    $"StateBrain: Child state '{childStateName}' not found in parent state '{parentStateName}'."
                 );
             }
+            return OperationResult.SuccessResult();
         }
 
         public bool GetChildStates()
         {
             if (_currentState == null)
             {
-                Debug.LogError("StateBrain: No active high-level state.");
-                return false;
+                return OperationResult.Failure("No active state.").Success;
             }
 
             return _currentState.Children != null && _currentState.Children.Length != 0;
@@ -357,8 +360,7 @@ namespace Turnroot.Gameplay.Brain
             var pausedState = FindHighLevelState(BrainStateNames.Paused);
             if (pausedState == null)
             {
-                Debug.LogError("StateBrain: Paused state not found.");
-                return false;
+                return OperationResult.Failure("Paused state not found.").Success;
             }
 
             if (isPaused)

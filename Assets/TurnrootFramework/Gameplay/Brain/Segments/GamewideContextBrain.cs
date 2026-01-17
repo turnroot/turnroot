@@ -63,11 +63,6 @@ namespace Turnroot.Gameplay.Brain
         protected override void Awake()
         {
             _brain = GetComponent<Brain>();
-
-            // Now subscribe to brain events
-            Debug.Log(
-                $"{GetType().Name} Awake - subscribing to brain events with priority {GetSubscriptionPriority()}."
-            );
             SubscribeToBrainEvents();
 
             _rosterPersistence = new RosterPersistence(GetComponent<LongTermMemory>());
