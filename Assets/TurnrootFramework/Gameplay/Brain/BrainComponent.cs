@@ -1,4 +1,5 @@
 using Turnroot.Gameplay.Brain.Events;
+using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain
@@ -26,17 +27,17 @@ namespace Turnroot.Gameplay.Brain
 
             if (_brain == null)
             {
-#if UNITY_EDITOR
-                Debug.LogError($"{GetType().Name}: Brain component not found!");
-#endif
+                TurnrootLogger.Log(
+                    $"{GetType().Name}: Brain component not found!",
+                    TurnrootLogger.LogLevel.Error
+                );
                 return;
             }
 
-#if UNITY_EDITOR
-            Debug.Log(
+            TurnrootLogger.Log(
                 $"{GetType().Name} Awake - subscribing to brain events with priority {GetSubscriptionPriority()}."
             );
-#endif
+
             SubscribeToBrainEvents();
         }
 
@@ -44,9 +45,9 @@ namespace Turnroot.Gameplay.Brain
         {
             if (_brain != null)
             {
-#if UNITY_EDITOR
-                Debug.Log($"{GetType().Name} OnDestroy - unsubscribing from brain events.");
-#endif
+                TurnrootLogger.Log(
+                    $"{GetType().Name} OnDestroy - unsubscribing from brain events."
+                );
                 UnsubscribeFromBrainEvents();
             }
         }

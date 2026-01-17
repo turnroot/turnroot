@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Turnroot.Characters;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
+using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain.Snapshots
@@ -179,9 +180,7 @@ namespace Turnroot.Gameplay.Brain.Snapshots
             Push(snapshot);
             OnSnapshotTaken?.Invoke(snapshot);
 
-#if UNITY_EDITOR
-            Debug.Log($"[Snapshot] Captured turn {turnNumber}, ID: {snapshot.Id}");
-#endif
+            TurnrootLogger.Log($"[Snapshot] Captured turn {turnNumber}, ID: {snapshot.Id}");
             return snapshot;
         }
 
@@ -231,11 +230,9 @@ namespace Turnroot.Gameplay.Brain.Snapshots
                 else
                 {
                     // Unit was captured previously but is missing now (was removed); skip to avoid null refs.
-#if UNITY_EDITOR
-                    Debug.LogWarning(
-                        $"[Snapshot] Skipping restore for unit {unitId} - not present in current battle"
+                    TurnrootLogger.Log(
+                        $"[Snapshot] Skipping restore for unit {unitId} - not present in current battle", TurnrootLogger.LogLevel.Warning
                     );
-#endif
                 }
             }
 
@@ -267,20 +264,16 @@ namespace Turnroot.Gameplay.Brain.Snapshots
                         }
                         catch (System.Exception ex)
                         {
-#if UNITY_EDITOR
-                            Debug.LogWarning(
-                                $"[Snapshot] Failed to remove spawned unit {u.Id}: {ex.Message}"
+                            TurnrootLogger.Log(
+                                $"[Snapshot] Failed to remove spawned unit {u.Id}: {ex.Message}", TurnrootLogger.LogLevel.Warning
                             );
-#endif
                         }
                     }
                 }
             }
 
             OnSnapshotRestored?.Invoke(snapshot);
-#if UNITY_EDITOR
-            Debug.Log($"[Snapshot] Restored turn {snapshot.TurnNumber}, ID: {snapshot.Id}");
-#endif
+            TurnrootLogger.Log($"[Snapshot] Restored turn {snapshot.TurnNumber}, ID: {snapshot.Id}");
             return true;
         }
 

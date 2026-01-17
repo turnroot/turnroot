@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Turnroot.Characters;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
+using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain.Commands
@@ -227,11 +228,9 @@ namespace Turnroot.Gameplay.Brain.Commands
                 unit.UnitPositionToMapGridPoint(SpawnPosition, context.mapGrid),
                 unit
             );
-#if UNITY_EDITOR
-            Debug.Log(
+            TurnrootLogger.Log(
                 $"[SpawnCommand] Spawning Unit {UnitId} at {SpawnPosition}: Success={result.Success}"
             );
-#endif
             if (result.Success)
             {
                 // Mark unit as spawned during this battle so snapshot restore can identify reinforcements
@@ -418,19 +417,19 @@ namespace Turnroot.Gameplay.Brain.Commands
 
         public override bool Execute(BattleContext context)
         {
-            // Item use is typically not undoable in most games
-            // This is a placeholder - implement based on your item system
-#if UNITY_EDITOR
-            Debug.Log($"[UseItemCommand] {UserId} used item {ItemId} on {TargetId ?? "self"}");
-#endif
+            TurnrootLogger.Log(
+                $"[UseItemCommand] {UserId} used item {ItemId} on {TargetId ?? "self"}"
+            );
+            // TODO: Use item command
             return true;
         }
 
         public override bool Undo(BattleContext context)
         {
-#if UNITY_EDITOR
-            Debug.LogWarning("[UseItemCommand] Item use cannot be undone");
-#endif
+            TurnrootLogger.Log(
+                "[UseItemCommand] Item use cannot be undone",
+                TurnrootLogger.LogLevel.Warning
+            );
             return false;
         }
     }
@@ -517,9 +516,10 @@ namespace Turnroot.Gameplay.Brain.Commands
         public override bool Undo(BattleContext context)
         {
             // Skill effects are undone through their individual commands (damage, buffs, etc.)
-#if UNITY_EDITOR
-            Debug.LogWarning("[SkillCommand] Skill activation record cannot be undone");
-#endif
+            TurnrootLogger.Log(
+                "[SkillCommand] Skill activation record cannot be undone",
+                TurnrootLogger.LogLevel.Warning
+            );
             return false;
         }
     }
@@ -544,9 +544,7 @@ namespace Turnroot.Gameplay.Brain.Commands
 
         public override bool Undo(BattleContext context)
         {
-#if UNITY_EDITOR
-            Debug.LogWarning("[EndTurnCommand] Turn end cannot be undone");
-#endif
+            // TODO: Turn undo command
             return false;
         }
     }

@@ -4,6 +4,7 @@ using Turnroot.Characters;
 using Turnroot.Gameplay.Brain.Commands;
 using Turnroot.Gameplay.Brain.Events;
 using Turnroot.Gameplay.Brain.Snapshots;
+using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain
@@ -58,14 +59,9 @@ namespace Turnroot.Gameplay.Brain
         public bool ExecuteCommand(ICommand command)
         {
             var context = battleBrain?.BattleObject?.Context;
-            if (context == null)
-            {
-#if UNITY_EDITOR
-                Debug.LogWarning("[Brain] Cannot execute command: No active battle context.");
-#endif
-                return false;
-            }
-            return Commands.Execute(command, context);
+            return context == null
+                ? OperationResult.Failure("No active battle context.").Success
+                : Commands.Execute(command, context);
         }
 
         /// <summary>Undo the last executed command.</summary>
@@ -97,9 +93,7 @@ namespace Turnroot.Gameplay.Brain
             var context = battleBrain?.BattleObject?.Context;
             if (context == null)
             {
-#if UNITY_EDITOR
-                Debug.LogWarning("[Brain] Cannot take snapshot: No active battle context.");
-#endif
+                _ = OperationResult.Failure("No active battle context.");
                 return null;
             }
             return Snapshots.Take(context, GetAllBattleCharacters(), _currentTurnNumber);
@@ -146,9 +140,9 @@ namespace Turnroot.Gameplay.Brain
             OnTurnBegin += HandleTurnBegin;
             OnTurnEnded += HandleTurnEnd;
 
-#if UNITY_EDITOR
-            Debug.Log("[Brain] Advanced systems initialized: EventBus, Commands, Snapshots");
-#endif
+            TurnrootLogger.Log(
+                "[Brain] Advanced systems initialized: EventBus, Commands, Snapshots"
+            );
         }
 
         private void HandleTurnBegin()

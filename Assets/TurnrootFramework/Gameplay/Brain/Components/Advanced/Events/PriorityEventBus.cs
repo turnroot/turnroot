@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain.Events
@@ -193,11 +194,9 @@ namespace Turnroot.Gameplay.Brain.Events
                     {
                         nonCriticalExceptions ??= new List<Exception>();
                         nonCriticalExceptions.Add(ex);
-#if UNITY_EDITOR
-                        Debug.LogError(
-                            $"[PriorityEventBus] Exception in handler for {typeof(T).Name} at priority {handler.Priority}: {ex}"
+                        _ = OperationResult.Failure(
+                            $"Exception in handler for {typeof(T).Name} at priority {handler.Priority}: {ex.Message}"
                         );
-#endif
                     }
                 }
             }
@@ -205,11 +204,9 @@ namespace Turnroot.Gameplay.Brain.Events
             // Log summary if there were exceptions
             if (nonCriticalExceptions != null && nonCriticalExceptions.Count > 0)
             {
-#if UNITY_EDITOR
-                Debug.LogWarning(
-                    $"[PriorityEventBus] {nonCriticalExceptions.Count} exception(s) occurred during event {typeof(T).Name} processing."
+                TurnrootLogger.Log(
+                    $"[PriorityEventBus] {nonCriticalExceptions.Count} exception(s) occurred during event {typeof(T).Name} processing.", TurnrootLogger.LogLevel.Warning
                 );
-#endif
             }
         }
 

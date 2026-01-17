@@ -43,7 +43,7 @@ namespace Turnroot.Gameplay.Brain
             }
         }
 
-        public void InitializeLongTermMemory()
+        public OperationResult InitializeLongTermMemory()
         {
             ltm =
                 gameObject.GetComponent<LongTermMemory>()
@@ -51,20 +51,16 @@ namespace Turnroot.Gameplay.Brain
 
             if (ltm == null)
             {
-#if UNITY_EDITOR
-                Debug.LogError("Brain failed to initialize LongTermMemory.");
-#endif
-                Debug.Break();
+                return OperationResult.Failure("Failed to initialize LongTermMemory.");
             }
             else
             {
-#if UNITY_EDITOR
-                Debug.Log("Brain initialized LongTermMemory.");
-#endif
+                TurnrootLogger.Log("LongTermMemory initialized.");
+                return OperationResult.SuccessResult();
             }
         }
 
-        public void InitializeModules()
+        public OperationResult InitializeModules()
         {
             var modules = new[]
             {
@@ -76,9 +72,10 @@ namespace Turnroot.Gameplay.Brain
                 (RetroModuleEnabled, "Retro"),
             };
             var enabled = string.Join(", ", modules.Where(m => m.Item1).Select(m => m.Item2));
-#if UNITY_EDITOR
-            Debug.Log($"Turnroot modules: {(string.IsNullOrEmpty(enabled) ? "None" : enabled)}");
-#endif
+            TurnrootLogger.Log(
+                $"Turnroot modules: {(string.IsNullOrEmpty(enabled) ? "None" : enabled)}"
+            );
+            return OperationResult.SuccessResult();
         }
 
         #region Conversation Controller Management
@@ -90,9 +87,7 @@ namespace Turnroot.Gameplay.Brain
         {
             _sceneConversationController = controller;
             _conversationControllerCache.Invalidate(); // Invalidate cache when manually set
-#if UNITY_EDITOR
-            Debug.Log("Brain populated scene ConversationController.");
-#endif
+            TurnrootLogger.Log("Brain populated scene ConversationController.");
         }
 
         private OperationResult TryLinkConversationController()
