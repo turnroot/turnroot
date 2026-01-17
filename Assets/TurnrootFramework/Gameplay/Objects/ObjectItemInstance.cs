@@ -125,8 +125,20 @@ namespace Turnroot.Gameplay.Objects
                 return OperationResult.Failure("Target inventory is full. Cannot transfer item.");
             }
 
-            _ownerInventory.RemoveFromInventory(this);
-            targetInventory.AddToInventory(this);
+            var resRemove = _ownerInventory.RemoveFromInventory(this);
+            if (!resRemove.Success)
+            {
+                return resRemove;
+            }
+
+            var resAdd = targetInventory.AddToInventory(this);
+            if (!resAdd.Success)
+            {
+                // Try to restore to owner on failure (best-effort)
+                _ownerInventory.AddToInventory(this);
+                return resAdd;
+            }
+
             // owner & slot set by CharacterInventoryInstance.AddToInventory
             InventoryBrain?.TransferItem(this, targetInventory);
             return OperationResult.SuccessResult();
@@ -141,7 +153,11 @@ namespace Turnroot.Gameplay.Objects
                 return OperationResult.Failure("Cannot discard an unequippable item.");
             }
 
-            _ownerInventory.RemoveFromInventory(this);
+            var res = _ownerInventory.RemoveFromInventory(this);
+            if (!res.Success)
+            {
+                return res;
+            }
             InventoryBrain?.DiscardItem(this);
             return OperationResult.SuccessResult();
         }
@@ -157,7 +173,11 @@ namespace Turnroot.Gameplay.Objects
 
             int deduction = _template.SellPriceDeductedPerUse * currentUses;
             int finalPrice = Math.Max(0, _template.BasePrice - deduction);
-            _ownerInventory.RemoveFromInventory(this);
+            var res = _ownerInventory.RemoveFromInventory(this);
+            if (!res.Success)
+            {
+                return res;
+            }
             StorehouseBrain?.AddGold(finalPrice);
             InventoryBrain?.SellItem(this);
             return OperationResult.SuccessResult();
@@ -186,7 +206,11 @@ namespace Turnroot.Gameplay.Objects
                 return OperationResult.Failure("Insufficient gold to buy item.");
             }
 
-            buyerInventory.AddToInventory(this);
+            var res = buyerInventory.AddToInventory(this);
+            if (!res.Success)
+            {
+                return res;
+            }
             // owner & slot set by CharacterInventoryInstance.AddToInventory
             StorehouseBrain?.SpendGold(_template.BasePrice);
             InventoryBrain?.BuyItem(this, buyerInventory);

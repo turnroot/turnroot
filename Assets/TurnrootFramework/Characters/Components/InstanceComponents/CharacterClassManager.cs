@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Turnroot.Characters.CharacterClass;
 using Turnroot.Gameplay.Objects;
+using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Characters
@@ -127,17 +128,14 @@ namespace Turnroot.Characters
         /// Change to a new class. Applies all class bonuses, enforces minimums/caps.
         /// Removes bonuses from old class if present.
         /// </summary>
-        public bool ChangeClass(
+        public OperationResult ChangeClass(
             CharacterClassData newClassData,
             bool applyClassChangeBonuses = true
         )
         {
             if (newClassData == null)
             {
-#if UNITY_EDITOR
-                Debug.LogWarning("ChangeClass: newClassData is null");
-#endif
-                return false;
+                return OperationResult.Failure("newClassData is null");
             }
 
             // Validate class requirements if needed
@@ -187,12 +185,7 @@ namespace Turnroot.Characters
             _currentClass.EnforceStatMinimums(this);
             _currentClass.ApplyStatCaps(this);
 
-#if UNITY_EDITOR
-            Debug.Log(
-                $"{_characterTemplate.DisplayName} changed to class: {newClassData.Identity.ClassName}"
-            );
-#endif
-            return true;
+            return OperationResult.SuccessResult();
         }
 
         /// <summary>

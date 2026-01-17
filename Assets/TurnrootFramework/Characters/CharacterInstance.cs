@@ -277,15 +277,12 @@ namespace Turnroot.Characters
             }
         }
 
-        private void Initialize()
+        private OperationResult Initialize()
         {
             // Copy initial values from template
             if (_characterTemplate == null)
             {
-#if UNITY_EDITOR
-                Debug.LogWarning("CharacterInstance has null CharacterData template.");
-#endif
-                return;
+                return OperationResult.Failure("CharacterTemplate is null.");
             }
             _currentLevel = _characterTemplate.Level;
             _currentExp = _characterTemplate.Exp;
@@ -304,7 +301,11 @@ namespace Turnroot.Characters
             {
                 foreach (var slot in _characterTemplate.StartingInventory)
                 {
-                    _inventoryInstance.AddToInventory(new ObjectItemInstance(slot.Item));
+                    var res = _inventoryInstance.AddToInventory(new ObjectItemInstance(slot.Item));
+                    if (!res.Success)
+                    {
+                        return res;
+                    }
                 }
             }
 
@@ -346,50 +347,32 @@ namespace Turnroot.Characters
             else
             {
                 // get the default class from GameplayGeneralSettings, use that
-                try
-                {
-                    var settings = GameSettingsLoader.LoadFirst<GameplayGeneralSettings>(
-                        "GameSettings"
-                    );
-                    var defaultClass = settings?.GetDefaultStartingClass();
-                    if (defaultClass != null)
-                    {
-                        var changed = ChangeClass(defaultClass, applyClassChangeBonuses: false);
-                        if (changed)
-                        {
-#if UNITY_EDITOR
-                            Debug.Log(
-                                $"Character {Id} initialized with default starting class {defaultClass.Identity.ClassName}"
-                            );
-#endif
-                        }
-                        else
-                        {
-#if UNITY_EDITOR
-                            Debug.LogWarning(
-                                $"Character {Id}: failed to apply default starting class {defaultClass.Identity.ClassName}."
-                            );
-#endif
-                        }
-                    }
-                    else
-                    {
-#if UNITY_EDITOR
-                        Debug.LogWarning(
+
+                var settings = GameSettingsLoader.LoadFirst<GameplayGeneralSettings>(
+                    "GameSettings"
+                );
+                var defaultClass = settings?.GetDefaultStartingClass();
+                // Attempt to apply default starting class, returning any failure from ChangeClass
+                var changedRes =
+                    defaultClass != null
+                        ? ChangeClass(defaultClass, applyClassChangeBonuses: false)
+                        : OperationResult.Failure(
                             $"Character {Id} has no starting class and GameplayGeneralSettings.DefaultStartingClass is not set."
                         );
-#endif
-                    }
-                }
-                catch (System.Exception ex)
+
+                if (!changedRes.Success)
                 {
-#if UNITY_EDITOR
-                    Debug.LogWarning(
-                        $"Character {Id}: error loading default class from settings: {ex.Message}"
-                    );
-#endif
+                    return changedRes;
                 }
+
+#if UNITY_EDITOR
+                Debug.Log(
+                    $"Character {Id} initialized with default starting class {defaultClass.Identity.ClassName}"
+                );
+#endif
             }
+
+            return OperationResult.SuccessResult();
         }
 
         /// <summary>
@@ -448,7 +431,7 @@ namespace Turnroot.Characters
         private int _experiencePoints = 0;
 
         public string ExperienceTypeId => _experienceTypeId;
-        public CommonAncestors.LeveledLetteredField Rank => _rank;
+        public Turnroot.CommonAncestors.LeveledLetteredField Rank => _rank;
         public int ExperiencePoints => _experiencePoints;
 
         /// <summary>
@@ -457,7 +440,7 @@ namespace Turnroot.Characters
         public ExperienceRankInstance(string experienceTypeId, string rankLetter)
         {
             _experienceTypeId = experienceTypeId;
-            _rank = new CommonAncestors.LeveledLetteredField(rankLetter);
+            _rank = new Turnroot.CommonAncestors.LeveledLetteredField(rankLetter);
             _experiencePoints = 0;
         }
 
@@ -467,7 +450,7 @@ namespace Turnroot.Characters
         public ExperienceRankInstance(CharacterData.ExperienceRank template)
         {
             _experienceTypeId = template.ExperienceTypeId;
-            _rank = new CommonAncestors.LeveledLetteredField(template.Rank.Value);
+            _rank = new Turnroot.CommonAncestors.LeveledLetteredField(template.Rank.Value);
             _experiencePoints = 0;
         }
 

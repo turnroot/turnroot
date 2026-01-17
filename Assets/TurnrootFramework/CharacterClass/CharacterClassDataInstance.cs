@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Turnroot.Serialization;
+using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Characters.CharacterClass
@@ -76,66 +77,50 @@ namespace Turnroot.Characters.CharacterClass
         /// <summary>
         /// Initialize visual representation by applying class textures to an existing material (created by UnitAppearanceBrain).
         /// </summary>
+        public OperationResult Validate()
+        {
+            var checks = new (object obj, string name)[]
+            {
+                (_characterData, nameof(_characterData)),
+                (_meshRenderer, nameof(_meshRenderer)),
+                (_meshRenderer?.material, "meshRenderer.material"),
+                (_classData, nameof(_classData)),
+                (_classData?.Identity, "classData.Identity"),
+                (_classData?.Identity?.Base, "classData.Identity.Base"),
+                (_classData?.Identity?.MSE, "classData.Identity.MSE"),
+                (_classData?.Identity?.TintMask, "classData.Identity.TintMask"),
+            };
+
+            bool ok = ValidationHelper.ValidateNotNull(
+                "CharacterClassDataInstance",
+                out var missing,
+                checks
+            );
+
+            if (!ok)
+            {
+                var msg =
+                    $"{nameof(CharacterClassDataInstance)} validation failed: missing {string.Join(", ", missing)}";
+                return OperationResult.Failure(msg);
+            }
+
+            return OperationResult.SuccessResult();
+        }
+
         public bool Initialize()
         {
-            // Validate required references
-            if (_characterData == null)
+            var validation = Validate();
+            if (!validation.Success)
             {
-#if UNITY_EDITOR
-                Debug.LogWarning("CharacterClassDataInstance.Initialize: characterData is null");
-#endif
                 return false;
             }
 
-            if (_meshRenderer == null)
-            {
-#if UNITY_EDITOR
-                Debug.LogWarning("CharacterClassDataInstance.Initialize: meshRenderer is null");
-#endif
-                return false;
-            }
-
-            if (_classData == null)
-            {
-#if UNITY_EDITOR
-                Debug.LogWarning("CharacterClassDataInstance.Initialize: classData is null");
-#endif
-                return false;
-            }
-
-            // Material creation and shader assignment is handled by UnitAppearanceBrain.
-            // Ensure a material exists on the MeshRenderer before calling Initialize.
-
-            // Apply class textures to existing material (material should be created by UnitAppearanceBrain)
             var mat = _meshRenderer.material;
-            if (mat == null)
-            {
-#if UNITY_EDITOR
-                Debug.LogWarning(
-                    "CharacterClassDataInstance.Initialize: meshRenderer.material is null"
-                );
-#endif
-                return false;
-            }
 
-            // Copy class textures onto the existing material
-            if (_classData?.Identity != null)
-            {
-                if (_classData.Identity.Base != null)
-                {
-                    mat.SetTexture("_Base", _classData.Identity.Base);
-                }
-
-                if (_classData.Identity.MSE != null)
-                {
-                    mat.SetTexture("_MSE", _classData.Identity.MSE);
-                }
-
-                if (_classData.Identity.TintMask != null)
-                {
-                    mat.SetTexture("_Tint_Mask", _classData.Identity.TintMask);
-                }
-            }
+            var identity = _classData.Identity;
+            mat.SetTexture("_Base", identity.Base);
+            mat.SetTexture("_MSE", identity.MSE);
+            mat.SetTexture("_Tint_Mask", identity.TintMask);
 
             return true;
         }
@@ -154,20 +139,16 @@ namespace Turnroot.Characters.CharacterClass
             }
         }
 
-        /// <summary>
-        /// Ensure the instance has a MeshRenderer and initialize visuals.
-        /// External systems (e.g., UnitAppearanceBrain) can provide the renderer and trigger initialization
-        /// with a single call by using this method.
-        /// </summary>
-        public void InitializeWithRenderer(SkinnedMeshRenderer meshRenderer)
+        public OperationResult InitializeWithRenderer(SkinnedMeshRenderer meshRenderer)
         {
             if (meshRenderer == null)
             {
-                return;
+                return OperationResult.Failure("meshRenderer is null");
             }
 
             _meshRenderer = meshRenderer;
             Initialize();
+            return OperationResult.SuccessResult();
         }
 
         #endregion
@@ -180,13 +161,12 @@ namespace Turnroot.Characters.CharacterClass
         /// </summary>
         public void ApplyClassBonuses(CharacterInstance character)
         {
-            if (
-                !StatApplicationHelper.ValidateReferences(
-                    character,
-                    _classData,
-                    "CharacterClassDataInstance.ApplyClassBonuses"
-                )
-            )
+            var _res_applyBonuses = StatApplicationHelper.ValidateReferences(
+                character,
+                _classData,
+                "CharacterClassDataInstance.ApplyClassBonuses"
+            );
+            if (!_res_applyBonuses.Success)
             {
                 return;
             }
@@ -204,13 +184,12 @@ namespace Turnroot.Characters.CharacterClass
         /// </summary>
         public void RemoveClassBonuses(CharacterInstance character)
         {
-            if (
-                !StatApplicationHelper.ValidateReferences(
-                    character,
-                    _classData,
-                    "CharacterClassDataInstance.RemoveClassBonuses"
-                )
-            )
+            var _res_removeBonuses = StatApplicationHelper.ValidateReferences(
+                character,
+                _classData,
+                "CharacterClassDataInstance.RemoveClassBonuses"
+            );
+            if (!_res_removeBonuses.Success)
             {
                 return;
             }
@@ -233,13 +212,12 @@ namespace Turnroot.Characters.CharacterClass
                 return;
             }
 
-            if (
-                !StatApplicationHelper.ValidateReferences(
-                    character,
-                    _classData,
-                    "CharacterClassDataInstance.ApplyClassChangeBonuses"
-                )
-            )
+            var _res_applyChange = StatApplicationHelper.ValidateReferences(
+                character,
+                _classData,
+                "CharacterClassDataInstance.ApplyClassChangeBonuses"
+            );
+            if (!_res_applyChange.Success)
             {
                 return;
             }
@@ -258,19 +236,14 @@ namespace Turnroot.Characters.CharacterClass
             _isFirstTimeEquipped = false;
         }
 
-        /// <summary>
-        /// Enforce stat minimums for this class.
-        /// If character stats are below class minimums, raise them to the minimum.
-        /// </summary>
         public void EnforceStatMinimums(CharacterInstance character)
         {
-            if (
-                !StatApplicationHelper.ValidateReferences(
-                    character,
-                    _classData,
-                    "CharacterClassDataInstance.EnforceStatMinimums"
-                )
-            )
+            var _res_enforce = StatApplicationHelper.ValidateReferences(
+                character,
+                _classData,
+                "CharacterClassDataInstance.EnforceStatMinimums"
+            );
+            if (!_res_enforce.Success)
             {
                 return;
             }
@@ -287,19 +260,14 @@ namespace Turnroot.Characters.CharacterClass
             );
         }
 
-        /// <summary>
-        /// Apply stat caps for this class.
-        /// Sets the maximum values for bounded stats based on class caps.
-        /// </summary>
         public void ApplyStatCaps(CharacterInstance character)
         {
-            if (
-                !StatApplicationHelper.ValidateReferences(
-                    character,
-                    _classData,
-                    "CharacterClassDataInstance.ApplyStatCaps"
-                )
-            )
+            var _res_caps = StatApplicationHelper.ValidateReferences(
+                character,
+                _classData,
+                "CharacterClassDataInstance.ApplyStatCaps"
+            );
+            if (!_res_caps.Success)
             {
                 return;
             }
@@ -307,45 +275,27 @@ namespace Turnroot.Characters.CharacterClass
             StatApplicationHelper.ApplyBoundedCaps(_classData.Stats.StatCaps, character);
         }
 
-        /// <summary>
-        /// Check if character stats are above class caps.
-        /// Returns true if any stat exceeds the cap.
-        /// </summary>
         public bool IsAboveCaps(CharacterInstance character)
         {
-            return StatApplicationHelper.ValidateReferences(character, _classData, "")
-                && StatApplicationHelper.IsAboveUnboundedCaps(
-                    _classData.Stats.UnboundedStatCaps,
-                    character
-                );
+            var _res_isAbove = StatApplicationHelper.ValidateReferences(character, _classData, "");
+            if (!_res_isAbove.Success)
+            {
+                return false;
+            }
+            return StatApplicationHelper.IsAboveUnboundedCaps(
+                _classData.Stats.UnboundedStatCaps,
+                character
+            );
         }
 
         #endregion
 
         #region Mastery Tracking
-
-        /// <summary>
-        /// Increment battle count for mastery tracking.
-        /// Call this after each battle where the character uses this class.
-        /// </summary>
         public void IncrementBattleCount() => _battlesCompleted++;
 
         #endregion
 
         #region Material Management
-
-        /// <summary>
-        /// Cleanup dynamically created material to prevent memory leaks.
-        /// Should be called before destroying this instance or re-initializing.
-        /// </summary>
-        public void CleanupMaterial()
-        {
-            // Material lifecycle is managed by UnitAppearanceBrain. No-op here.
-        }
-
-        /// <summary>
-        /// Dispose of resources properly.
-        /// </summary>
         public void Dispose()
         {
             Dispose(true);
@@ -357,11 +307,6 @@ namespace Turnroot.Characters.CharacterClass
             if (_disposed)
             {
                 return;
-            }
-
-            if (disposing)
-            {
-                CleanupMaterial();
             }
 
             _disposed = true;

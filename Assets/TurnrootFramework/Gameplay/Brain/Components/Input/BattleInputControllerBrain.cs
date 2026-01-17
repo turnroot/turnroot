@@ -502,14 +502,11 @@ namespace Turnroot.Gameplay.Brain
                 );
             }
 
-            if (!success)
-            {
-                return OperationResult.Failure(
+            return !success
+                ? OperationResult.Failure(
                     $"Failed to calculate tiles for unit {unit.CharacterTemplate.DisplayName}"
-                );
-            }
-
-            return OperationResult.SuccessResult();
+                )
+                : OperationResult.SuccessResult();
         }
 
         #endregion

@@ -322,12 +322,9 @@ public class MapGridRenderer
             terrainType = point.GetCachedTerrainType();
         }
 
-        if (terrainType == null || string.IsNullOrEmpty(terrainType.Name))
-        {
-            return false;
-        }
-
-        return _darkGrayTerrainTypes.Contains(terrainType.Name)
+        return terrainType == null || string.IsNullOrEmpty(terrainType.Name)
+            ? false
+            : _darkGrayTerrainTypes.Contains(terrainType.Name)
             || _lightGrayTerrainTypes.Contains(terrainType.Name);
     }
 

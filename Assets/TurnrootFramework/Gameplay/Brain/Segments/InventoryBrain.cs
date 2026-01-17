@@ -276,7 +276,12 @@ namespace Turnroot.Gameplay.Brain
                 return OperationResult.Failure("Invalid inventory index.");
             }
 
-            character.InventoryInstance.EquipItem(inventoryIndex);
+            var res = character.InventoryInstance.EquipItem(inventoryIndex);
+            if (!res.Success)
+            {
+                return res;
+            }
+
             var item = character.InventoryInstance.InventoryItems[inventoryIndex];
             _brain?.PublishItemEquipped(character, item);
             return OperationResult.SuccessResult();
@@ -301,7 +306,12 @@ namespace Turnroot.Gameplay.Brain
             }
 
             var item = character.InventoryInstance.InventoryItems[inventoryIndex];
-            character.InventoryInstance.UnequipItem(inventoryIndex);
+            var res = character.InventoryInstance.UnequipItem(inventoryIndex);
+            if (!res.Success)
+            {
+                return res;
+            }
+
             _brain?.PublishItemUnequipped(character, item);
             return OperationResult.SuccessResult();
         }

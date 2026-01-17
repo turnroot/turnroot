@@ -79,20 +79,9 @@ namespace Turnroot.Characters.CharacterClass
         /// </summary>
         public OperationResult ValidateMasteryConfiguration()
         {
-            if (!UsesMasterySystem)
-            {
-                return OperationResult.SuccessResult();
-            }
-
-            if (MasteryTargets.Count == 0)
-            {
-#if UNITY_EDITOR
-                Debug.LogWarning("Class uses mastery system but has no MasteryTargets defined.");
-#endif
-                return OperationResult.Failure("No MasteryTargets defined.");
-            }
-
-            return OperationResult.SuccessResult();
+            return !UsesMasterySystem ? OperationResult.SuccessResult()
+                : MasteryTargets.Count == 0 ? OperationResult.Failure("No MasteryTargets defined.")
+                : OperationResult.SuccessResult();
         }
     }
 

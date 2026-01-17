@@ -31,6 +31,7 @@ namespace Turnroot.Utilities
 
         /// <summary>
         /// Validates multiple objects are not null. Logs a warning for any that are null.
+        /// Backwards-compatible wrapper that returns bool.
         /// </summary>
         /// <param name="context">Context for where the validation occurred.</param>
         /// <param name="validations">Tuples of (object, name) to validate.</param>
@@ -38,13 +39,34 @@ namespace Turnroot.Utilities
         public static bool ValidateNotNull(
             string context,
             params (object obj, string name)[] validations
+        ) => ValidateNotNull(context, out _, validations);
+
+        /// <summary>
+        /// Validates multiple objects are not null and returns the missing names.
+        /// </summary>
+        /// <param name="context">Context for where the validation occurred.</param>
+        /// <param name="missing">Out list of names that were null.</param>
+        /// <param name="validations">Tuples of (object, name) to validate.</param>
+        /// <returns>True if all objects are not null, false if any are null.</returns>
+        public static bool ValidateNotNull(
+            string context,
+            out System.Collections.Generic.List<string> missing,
+            params (object obj, string name)[] validations
         )
         {
+            missing = new System.Collections.Generic.List<string>();
             bool allValid = true;
             foreach (var (obj, name) in validations)
             {
-                if (!ValidateNotNull(obj, name, context))
+                if (obj == null)
                 {
+                    var message = string.IsNullOrEmpty(context)
+                        ? $"{name} is null"
+                        : $"{context}: {name} is null";
+#if UNITY_EDITOR
+                    Debug.LogWarning(message);
+#endif
+                    missing.Add(name);
                     allValid = false;
                 }
             }

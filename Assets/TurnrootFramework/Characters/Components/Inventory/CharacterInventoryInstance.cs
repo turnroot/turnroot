@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Turnroot.Gameplay.Objects;
 using Turnroot.GameSettings;
 using Turnroot.Serialization;
+using Turnroot.Utilities;
 using UnityEngine;
 
 /// <summary>
@@ -269,14 +270,11 @@ public class CharacterInventoryInstance : IPostDeserialize
 
     public bool CanAddItem() => _inventoryItems.Count < _capacity;
 
-    public void AddToInventory(ObjectItemInstance item)
+    public OperationResult AddToInventory(ObjectItemInstance item)
     {
         if (!CanAddItem())
         {
-#if UNITY_EDITOR
-            Debug.LogWarning("Inventory is full. Cannot add item.");
-#endif
-            return;
+            return OperationResult.Failure("Inventory is full. Cannot add item.");
         }
 
         _inventoryItems.Add(item);
@@ -284,17 +282,15 @@ public class CharacterInventoryInstance : IPostDeserialize
         int newIndex = _inventoryItems.Count - 1;
         item.Slot = newIndex;
         item.SetOwnerInventory(this);
+        return OperationResult.SuccessResult();
     }
 
-    public void RemoveFromInventory(ObjectItemInstance item)
+    public OperationResult RemoveFromInventory(ObjectItemInstance item)
     {
         int index = _inventoryItems.IndexOf(item);
         if (index < 0)
         {
-#if UNITY_EDITOR
-            Debug.LogWarning("Item not found in inventory. Cannot remove item.");
-#endif
-            return;
+            return OperationResult.Failure("Item not found in inventory. Cannot remove item.");
         }
 
         // Clear ownership on the item being removed
@@ -323,16 +319,15 @@ public class CharacterInventoryInstance : IPostDeserialize
                 _equippedItemIndices[i]--;
             }
         }
+
+        return OperationResult.SuccessResult();
     }
 
-    public void EquipItem(int index)
+    public OperationResult EquipItem(int index)
     {
         if (index < 0 || index >= _inventoryItems.Count)
         {
-#if UNITY_EDITOR
-            Debug.LogWarning("Invalid inventory index. Cannot equip item.");
-#endif
-            return;
+            return OperationResult.Failure("Invalid inventory index. Cannot equip item.");
         }
 
         ObjectItemInstance itemToEquip = _inventoryItems[index];
@@ -341,55 +336,50 @@ public class CharacterInventoryInstance : IPostDeserialize
 
         if (slotIndex == -1)
         {
-#if UNITY_EDITOR
-            Debug.LogWarning("Item type cannot be equipped.");
-#endif
-            return;
+            return OperationResult.Failure("Item type cannot be equipped.");
         }
 
         // Unequip currently equipped item in this slot if any
         if (_equippedItemIndices[slotIndex] != -1)
         {
-            UnequipItemFromSlot(slotIndex);
+            var res = UnequipItemFromSlot(slotIndex);
+            if (!res.Success)
+                return res;
         }
 
         _equippedItemIndices[slotIndex] = index;
         SetEquippedFlag(slotIndex, true);
+        return OperationResult.SuccessResult();
     }
 
-    public void UnequipItem(int inventoryIndex)
+    public OperationResult UnequipItem(int inventoryIndex)
     {
         if (inventoryIndex < 0 || inventoryIndex >= _inventoryItems.Count)
         {
-#if UNITY_EDITOR
-            Debug.LogWarning("Invalid inventory index. Cannot unequip item.");
-#endif
-            return;
+            return OperationResult.Failure("Invalid inventory index. Cannot unequip item.");
         }
 
         for (int i = 0; i < _equippedItemIndices.Length; i++)
         {
             if (_equippedItemIndices[i] == inventoryIndex)
             {
-                UnequipItemFromSlot(i);
-                return;
+                return UnequipItemFromSlot(i);
             }
         }
 
-#if UNITY_EDITOR
-        Debug.LogWarning("Item is not currently equipped.");
-#endif
+        return OperationResult.Failure("Item is not currently equipped.");
     }
 
-    private void UnequipItemFromSlot(int slotIndex)
+    private OperationResult UnequipItemFromSlot(int slotIndex)
     {
         if (slotIndex < 0 || slotIndex >= _equippedItemIndices.Length)
         {
-            return;
+            return OperationResult.Failure("Invalid slot index for unequip.");
         }
 
         _equippedItemIndices[slotIndex] = -1;
         SetEquippedFlag(slotIndex, false);
+        return OperationResult.SuccessResult();
     }
 
     public void UnequipAllItems()

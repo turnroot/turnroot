@@ -38,17 +38,11 @@ public class MapGridPointFeature
             return FeatureType.Treasure;
         }
 
-        if (fid.StartsWith("door"))
-        {
-            return FeatureType.Door;
-        }
-
-        if (fid.StartsWith("warp"))
-        {
-            return FeatureType.Warp;
-        }
-
-        return fid.StartsWith("healing")
+        return fid.StartsWith("door")
+            ? FeatureType.Door
+            : fid.StartsWith("warp")
+            ? FeatureType.Warp
+            : fid.StartsWith("healing")
             ? FeatureType.Healing
             : fid.StartsWith("ranged")
             ? FeatureType.Ranged

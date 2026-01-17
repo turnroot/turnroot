@@ -268,8 +268,27 @@ namespace Turnroot.Gameplay.Brain
             }
 
             // Perform the steal
-            targetInventory.RemoveFromInventory(bestItem);
-            thiefInventory.AddToInventory(bestItem);
+            var resRemove = targetInventory.RemoveFromInventory(bestItem);
+            if (!resRemove.Success)
+            {
+#if UNITY_EDITOR
+                Debug.LogWarning(
+                    $"Failed to remove stolen item from target: {resRemove.ErrorMessage}"
+                );
+#endif
+                return;
+            }
+
+            var resAdd = thiefInventory.AddToInventory(bestItem);
+            if (!resAdd.Success)
+            {
+#if UNITY_EDITOR
+                Debug.LogWarning($"Failed to add stolen item to thief: {resAdd.ErrorMessage}");
+#endif
+                // Try to restore to target inventory
+                targetInventory.AddToInventory(bestItem);
+                return;
+            }
 
 #if UNITY_EDITOR
             Debug.Log(

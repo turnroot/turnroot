@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using NaughtyAttributes;
 using Turnroot.Characters;
+using Turnroot.Gameplay.Brain.Components.Battle;
 using Turnroot.Gameplay.Brain.Events;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Environment;
@@ -23,6 +24,7 @@ namespace Turnroot.Gameplay.Combat
     [RequireComponent(typeof(EnvironmentalConditions))]
     [RequireComponent(typeof(BattleContext))]
     [RequireComponent(typeof(BattlePreparationObject))]
+    [RequireComponent(typeof(TileHighlighter))]
     public class BattleGameObject : MonoBehaviour
     {
         [field: SerializeField, HideInInspector]
@@ -291,6 +293,9 @@ namespace Turnroot.Gameplay.Combat
             {
                 Context.Initialize(Brain, MapGrid);
                 SubscribeToMapChanges();
+                // Notify any subscribers that the battle map is ready
+                Brain?.PublishBattleMapReady(MapGrid);
+                GetComponent<TileHighlighter>().Initialize(Brain);
             }
             catch (System.Exception ex)
             {

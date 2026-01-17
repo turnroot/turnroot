@@ -237,9 +237,17 @@ namespace Turnroot.Gameplay.Brain
                 return OperationResult.Failure("Target inventory is full.");
             }
 
-            _ = _storedItems.Remove(item);
+            // Attempt to add to target inventory first to ensure transfer succeeds
+            if (targetInventory != null)
+            {
+                var addRes = targetInventory.AddToInventory(item);
+                if (!addRes.Success)
+                {
+                    return addRes;
+                }
+            }
 
-            targetInventory?.AddToInventory(item);
+            _ = _storedItems.Remove(item);
             SaveCurrentStorehouse();
 
             _brain?.PublishItemWithdrawn(item, targetInventory);

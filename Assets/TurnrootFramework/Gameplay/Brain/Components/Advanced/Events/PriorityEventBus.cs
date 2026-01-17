@@ -375,12 +375,7 @@ namespace Turnroot.Gameplay.Brain.Events
                 key = string.Empty;
             }
 
-            if (!_coalescedEvents.TryGetValue(type, out var keys))
-            {
-                return false;
-            }
-
-            return keys.Contains(key);
+            return !_coalescedEvents.TryGetValue(type, out var keys) ? false : keys.Contains(key);
         }
 
         private void TrackForCoalescingKey(Type type, string key)

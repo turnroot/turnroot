@@ -30,34 +30,14 @@ namespace Turnroot.Gameplay.Brain
         private int _battlesWon;
         private int _battlesLost;
         private int _battlesRetreated;
-
-        /// <summary>
-        /// Total battles won this playthrough.
-        /// </summary>
         public int BattlesWon => _battlesWon;
-
-        /// <summary>
-        /// Total battles lost this playthrough.
-        /// </summary>
         public int BattlesLost => _battlesLost;
-
-        /// <summary>
-        /// Total battles retreated from this playthrough.
-        /// </summary>
         public int BattlesRetreated => _battlesRetreated;
-
-        /// <summary>
-        /// Total battles fought this playthrough.
-        /// </summary>
         public int TotalBattles => _battlesWon + _battlesLost + _battlesRetreated;
 
         #endregion
 
         #region Initialization
-
-        /// <summary>
-        /// Constructor for dependency injection (used in tests).
-        /// </summary>
         public void Initialize(GamewideContextBrain gamewideContextBrain, BattleBrain battleBrain)
         {
             _gamewideContextBrain = gamewideContextBrain;
@@ -66,9 +46,7 @@ namespace Turnroot.Gameplay.Brain
 
         protected override void Awake()
         {
-            base.Awake(); // Calls parent Awake which gets Brain and subscribes
-
-            // Use injected dependencies if available, otherwise get from components (Unity default)
+            base.Awake();
             _gamewideContextBrain ??= GetComponent<GamewideContextBrain>();
             _battleBrain ??= GetComponent<BattleBrain>();
             _ltm = GetComponent<LongTermMemory>();
@@ -77,10 +55,6 @@ namespace Turnroot.Gameplay.Brain
             LoadBattleOutcomeStatistics();
         }
 
-        /// <summary>
-        /// CharactersBrain uses Highest priority because it manages critical character state.
-        /// This ensures character data is saved before UI tries to read it.
-        /// </summary>
         protected override EventPriority GetSubscriptionPriority() => EventPriority.Highest;
 
         #endregion
@@ -94,8 +68,6 @@ namespace Turnroot.Gameplay.Brain
             _brain.OnPlayerTurnStarted += HandlePlayerTurnStarted;
             _brain.OnEnemyTurnStarted += HandleEnemyTurnStarted;
             _brain.OnThirdPartyTurnStarted += HandleThirdPartyTurnStarted;
-
-            // Respond to save requests triggered by roster mutations
             _brain.OnSavePlayerRosterRequested += SavePlayerRosterProgress;
         }
 
@@ -106,7 +78,6 @@ namespace Turnroot.Gameplay.Brain
             _brain.OnPlayerTurnStarted -= HandlePlayerTurnStarted;
             _brain.OnEnemyTurnStarted -= HandleEnemyTurnStarted;
             _brain.OnThirdPartyTurnStarted -= HandleThirdPartyTurnStarted;
-
             _brain.OnSavePlayerRosterRequested -= SavePlayerRosterProgress;
         }
 
@@ -139,7 +110,7 @@ namespace Turnroot.Gameplay.Brain
                 _battlesRetreated = 0;
             }
 
-            Debug.Log(
+            TurnrootLogger.Log(
                 $"CharactersBrain: Loaded battle statistics - Won: {_battlesWon}, Lost: {_battlesLost}, Retreated: {_battlesRetreated}"
             );
         }
@@ -174,7 +145,7 @@ namespace Turnroot.Gameplay.Brain
             }
 
             SaveBattleOutcomeStatistics();
-            Debug.Log(
+            TurnrootLogger.Log(
                 $"CharactersBrain: Recorded battle outcome {exitType}. Total: W{_battlesWon}/L{_battlesLost}/R{_battlesRetreated}"
             );
         }
@@ -186,7 +157,9 @@ namespace Turnroot.Gameplay.Brain
         private void HandleStartBattle()
         {
 #if UNITY_EDITOR
-            Debug.Log("CharactersBrain: Initializing battle statistics for all characters.");
+            TurnrootLogger.Log(
+                "CharactersBrain: Initializing battle statistics for all characters."
+            );
 #endif
             InitializeBattleStatistics();
         }
@@ -194,7 +167,7 @@ namespace Turnroot.Gameplay.Brain
         private void HandleExitBattle(Combat.BattleExitType exitType)
         {
 #if UNITY_EDITOR
-            Debug.Log($"CharactersBrain: Handling battle exit with type: {exitType}");
+            TurnrootLogger.Log($"CharactersBrain: Handling battle exit with type: {exitType}");
 #endif
 
             // Record the battle outcome
@@ -273,8 +246,9 @@ namespace Turnroot.Gameplay.Brain
         {
             if (_battleBrain == null)
             {
-                Debug.LogWarning(
-                    "CharactersBrain: BattleBrain not found, cannot initialize battle statistics."
+                TurnrootLogger.Log(
+                    "CharactersBrain: BattleBrain not found, cannot initialize battle statistics.",
+                    TurnrootLogger.LogLevel.Warning
                 );
                 return;
             }
@@ -285,7 +259,7 @@ namespace Turnroot.Gameplay.Brain
                 instance?.RecordBattleStart();
             }
 
-            Debug.Log(
+            TurnrootLogger.Log(
                 $"CharactersBrain: Initialized battle statistics for {allCharacters.Count} characters."
             );
         }
@@ -304,7 +278,7 @@ namespace Turnroot.Gameplay.Brain
             }
 
 #if UNITY_EDITOR
-            Debug.Log("CharactersBrain: Reset battle statistics for all characters.");
+            TurnrootLogger.Log("CharactersBrain: Reset battle statistics for all characters.");
 #endif
         }
 
@@ -312,8 +286,9 @@ namespace Turnroot.Gameplay.Brain
         {
             if (_gamewideContextBrain == null || _battleBrain == null)
             {
-                Debug.LogWarning(
-                    "CharactersBrain: Cannot save battle participants - required components not found."
+                TurnrootLogger.Log(
+                    "CharactersBrain: Cannot save battle participants - required components not found.",
+                    TurnrootLogger.LogLevel.Warning
                 );
                 return;
             }
@@ -338,16 +313,35 @@ namespace Turnroot.Gameplay.Brain
                 }
             }
 
-            Debug.Log(
+            TurnrootLogger.Log(
                 $"CharactersBrain: Saved {savedCount} unique characters. {masteryCount} new mastery skills learned."
             );
+        }
+
+        private OperationResult ValidateBattleBrainPresence()
+        {
+            bool ok = ValidationHelper.ValidateNotNull(
+                "CharactersBrain",
+                out var missing,
+                (_battleBrain, nameof(_battleBrain))
+            );
+
+            if (!ok)
+            {
+                var msg =
+                    $"CharactersBrain validation failed: missing {string.Join(", ", missing)}";
+                return OperationResult.Failure(msg);
+            }
+
+            return OperationResult.SuccessResult();
         }
 
         private List<CharacterInstance> GetAllBattleCharacters()
         {
             var characters = new List<CharacterInstance>();
 
-            if (_battleBrain == null)
+            var validateRes = ValidateBattleBrainPresence();
+            if (!validateRes.Success)
             {
                 return characters;
             }
@@ -374,9 +368,6 @@ namespace Turnroot.Gameplay.Brain
 
         #region Character Progression API
 
-        /// <summary>
-        /// Record a kill for a character and publish event.
-        /// </summary>
         public void RecordKill(CharacterInstance character)
         {
             if (character == null)
@@ -386,15 +377,8 @@ namespace Turnroot.Gameplay.Brain
 
             character.RecordKill();
             _brain?.PublishCharacterKill(character);
-
-            Debug.Log(
-                $"{character.CharacterTemplate?.DisplayName} recorded a kill. Total kills: {character.TotalKills}"
-            );
         }
 
-        /// <summary>
-        /// Increment combat count for a character (used for skill conditions).
-        /// </summary>
         public void IncrementCombatCount(CharacterInstance character)
         {
             if (character == null)
@@ -405,9 +389,6 @@ namespace Turnroot.Gameplay.Brain
             character.IncrementCombatCount();
         }
 
-        /// <summary>
-        /// Level up a character and publish the level up event.
-        /// </summary>
         public void LevelUpCharacter(CharacterInstance character)
         {
             if (character == null)
@@ -416,14 +397,9 @@ namespace Turnroot.Gameplay.Brain
             }
 
             character.LevelUp();
-
-            // Publish through Brain (centralized event system)
             _brain?.PublishCharacterLevelUp(character);
         }
 
-        /// <summary>
-        /// Change character's class and publish the class changed event.
-        /// </summary>
         public bool ChangeCharacterClass(
             CharacterInstance character,
             CharacterClassData newClassData
@@ -434,19 +410,15 @@ namespace Turnroot.Gameplay.Brain
                 return false;
             }
 
-            bool success = character.ChangeClass(newClassData);
+            bool success = character.ChangeClass(newClassData).Success;
             if (success)
             {
-                // Publish through Brain (centralized event system)
                 _brain?.PublishCharacterClassChanged(character);
             }
 
             return success;
         }
 
-        /// <summary>
-        /// Add experience to a character's experience rank and publish event.
-        /// </summary>
         public void AddExperience(CharacterInstance character, string experienceTypeId, int amount)
         {
             if (character == null || string.IsNullOrEmpty(experienceTypeId))
@@ -457,7 +429,7 @@ namespace Turnroot.Gameplay.Brain
             character.AddExperience(experienceTypeId, amount);
             _brain?.PublishExperienceGained(character, experienceTypeId, amount);
 
-            Debug.Log(
+            TurnrootLogger.Log(
                 $"{character.CharacterTemplate?.DisplayName} gained {amount} {experienceTypeId} experience"
             );
         }
@@ -465,10 +437,6 @@ namespace Turnroot.Gameplay.Brain
         #endregion
 
         #region Skill Management API
-
-        /// <summary>
-        /// Add a skill to a character and publish the learned skill event.
-        /// </summary>
         public void LearnSkill(CharacterInstance character, Skill skill)
         {
             if (character == null || skill == null)
@@ -478,17 +446,13 @@ namespace Turnroot.Gameplay.Brain
 
             character.AddSkill(skill);
 
-            // Publish through Brain (centralized event system)
             _brain?.PublishCharacterLearnedSkill(character, skill);
 
-            Debug.Log(
+            TurnrootLogger.Log(
                 $"{character.CharacterTemplate?.DisplayName} learned skill: {skill.SkillName}"
             );
         }
 
-        /// <summary>
-        /// Remove a skill from a character and publish the removed skill event.
-        /// </summary>
         public void RemoveSkill(CharacterInstance character, SkillInstance skill)
         {
             if (character == null || skill == null)
@@ -499,15 +463,11 @@ namespace Turnroot.Gameplay.Brain
             character.RemoveSkill(skill);
             _brain?.PublishCharacterRemovedSkill(character, skill.SkillTemplate);
 
-            Debug.Log(
+            TurnrootLogger.Log(
                 $"{character.CharacterTemplate?.DisplayName} removed skill: {skill.SkillTemplate?.SkillName}"
             );
         }
 
-        /// <summary>
-        /// Equip a skill on a character and publish the equip event via Brain.
-        /// This operation is not battle-specific and should go through CharactersBrain.
-        /// </summary>
         public OperationResult EquipSkill(CharacterInstance character, Skill skill)
         {
             if (character == null || skill == null)
@@ -524,13 +484,12 @@ namespace Turnroot.Gameplay.Brain
             instance.SetEquipped(true, character);
             _brain?.PublishSkillEquipped(character, skill);
 
-            Debug.Log($"CharactersBrain: Equipped skill {skill.SkillName} on {character.Id}");
+            TurnrootLogger.Log(
+                $"CharactersBrain: Equipped skill {skill.SkillName} on {character.Id}"
+            );
             return OperationResult.SuccessResult();
         }
 
-        /// <summary>
-        /// Unequip a skill on a character and publish the unequip event via Brain.
-        /// </summary>
         public OperationResult UnequipSkill(CharacterInstance character, Skill skill)
         {
             if (character == null || skill == null)
@@ -546,7 +505,9 @@ namespace Turnroot.Gameplay.Brain
 
             instance.SetEquipped(false, character);
             _brain?.PublishSkillUnequipped(character, skill);
-            Debug.Log($"CharactersBrain: Unequipped skill {skill.SkillName} on {character.Id}");
+            TurnrootLogger.Log(
+                $"CharactersBrain: Unequipped skill {skill.SkillName} on {character.Id}"
+            );
             return OperationResult.SuccessResult();
         }
 
@@ -554,9 +515,6 @@ namespace Turnroot.Gameplay.Brain
 
         #region Support System API
 
-        /// <summary>
-        /// Increase support level between two characters and publish event.
-        /// </summary>
         public void IncreaseSupport(
             CharacterInstance character,
             CharacterData targetCharacter,
@@ -571,14 +529,11 @@ namespace Turnroot.Gameplay.Brain
             character.IncreaseSupport(targetCharacter, amount);
             _brain?.PublishSupportIncreased(character, targetCharacter, amount);
 
-            Debug.Log(
+            TurnrootLogger.Log(
                 $"Support increased between {character.CharacterTemplate?.DisplayName} and {targetCharacter.DisplayName}"
             );
         }
 
-        /// <summary>
-        /// Add a support relationship to a character and publish event.
-        /// </summary>
         public void AddSupportRelationship(
             CharacterInstance character,
             Turnroot.Characters.Components.Support.SupportRelationship template
@@ -596,14 +551,11 @@ namespace Turnroot.Gameplay.Brain
                 _brain?.PublishSupportRelationshipAdded(character, added);
             }
 
-            Debug.Log(
+            TurnrootLogger.Log(
                 $"CharactersBrain: Added support relationship for {template.Character.DisplayName} on {character.Id}"
             );
         }
 
-        /// <summary>
-        /// Remove a support relationship from a character and publish event.
-        /// </summary>
         public void RemoveSupportRelationship(CharacterInstance character, CharacterData target)
         {
             if (character == null || target == null)
@@ -614,7 +566,7 @@ namespace Turnroot.Gameplay.Brain
             character.RemoveSupportRelationship(target);
             _brain?.PublishSupportRelationshipRemoved(character, target);
 
-            Debug.Log(
+            TurnrootLogger.Log(
                 $"CharactersBrain: Removed support relationship for {target.DisplayName} on {character.Id}"
             );
         }
@@ -622,10 +574,6 @@ namespace Turnroot.Gameplay.Brain
         #endregion
 
         #region Recruitment System API
-
-        /// <summary>
-        /// Set whether a target character is recruitable by the source character.
-        /// </summary>
         public void SetCharacterRecruitableOverride(
             CharacterInstance character,
             CharacterData targetCharacter,
@@ -640,14 +588,11 @@ namespace Turnroot.Gameplay.Brain
             character.SetCharacterRecruitable(targetCharacter, isRecruitable);
             _brain?.PublishCharacterRecruitableChanged(character, targetCharacter, isRecruitable);
 
-            Debug.Log(
+            TurnrootLogger.Log(
                 $"CharactersBrain: Set recruitable override for {targetCharacter.DisplayName} to {isRecruitable} on {character.Id}"
             );
         }
 
-        /// <summary>
-        /// Set the base recruitment chance for a target character.
-        /// </summary>
         public void SetCharacterRecruitmentChanceOverride(
             CharacterInstance character,
             CharacterData targetCharacter,
@@ -662,14 +607,11 @@ namespace Turnroot.Gameplay.Brain
             character.SetCharacterRecruitmentChance(targetCharacter, chance);
             _brain?.PublishCharacterRecruitmentChanceChanged(character, targetCharacter, chance);
 
-            Debug.Log(
+            TurnrootLogger.Log(
                 $"CharactersBrain: Set recruitment chance override for {targetCharacter.DisplayName} to {chance} on {character.Id}"
             );
         }
 
-        /// <summary>
-        /// Set the recruitment chance increase per conversation for a target character.
-        /// </summary>
         public void SetCharacterRecruitmentChanceIncreaseOverride(
             CharacterInstance character,
             CharacterData targetCharacter,
@@ -691,14 +633,11 @@ namespace Turnroot.Gameplay.Brain
                 increase
             );
 
-            Debug.Log(
+            TurnrootLogger.Log(
                 $"CharactersBrain: Set recruitment increase override for {targetCharacter.DisplayName} to {increase} on {character.Id}"
             );
         }
 
-        /// <summary>
-        /// Set whether a target character requires minimum support level for recruitment.
-        /// </summary>
         public void SetCharacterRequiresMinSupportLevelOverride(
             CharacterInstance character,
             CharacterData targetCharacter,
@@ -717,14 +656,11 @@ namespace Turnroot.Gameplay.Brain
                 requiresMinSupportLevel
             );
 
-            Debug.Log(
+            TurnrootLogger.Log(
                 $"CharactersBrain: Set requires-min-support override for {targetCharacter.DisplayName} to {requiresMinSupportLevel} on {character.Id}"
             );
         }
 
-        /// <summary>
-        /// Clear all recruitment overrides for a target character.
-        /// </summary>
         public void ClearCharacterRecruitmentOverrides(
             CharacterInstance character,
             CharacterData targetCharacter
@@ -738,14 +674,11 @@ namespace Turnroot.Gameplay.Brain
             character.ClearRecruitmentOverrides(targetCharacter);
             _brain?.PublishCharacterRecruitmentOverridesCleared(character, targetCharacter);
 
-            Debug.Log(
+            TurnrootLogger.Log(
                 $"CharactersBrain: Cleared recruitment overrides for {targetCharacter.DisplayName} on {character.Id}"
             );
         }
 
-        /// <summary>
-        /// Check if a target character is recruitable by the source character.
-        /// </summary>
         public bool IsCharacterRecruitable(
             CharacterInstance character,
             CharacterData targetCharacter
@@ -760,9 +693,6 @@ namespace Turnroot.Gameplay.Brain
             return result;
         }
 
-        /// <summary>
-        /// Get the recruitment chance for a target character.
-        /// </summary>
         public float GetCharacterRecruitmentChance(
             CharacterInstance character,
             CharacterData targetCharacter
@@ -773,9 +703,6 @@ namespace Turnroot.Gameplay.Brain
                 : character.GetCharacterRecruitmentChance(targetCharacter);
         }
 
-        /// <summary>
-        /// Get the recruitment chance increase per conversation for a target character.
-        /// </summary>
         public float GetCharacterRecruitmentChanceIncreasePerConversation(
             CharacterInstance character,
             CharacterData targetCharacter
@@ -786,9 +713,6 @@ namespace Turnroot.Gameplay.Brain
                 : character.GetCharacterRecruitmentChanceIncreasePerConversation(targetCharacter);
         }
 
-        /// <summary>
-        /// Check if a target character requires minimum support level for recruitment.
-        /// </summary>
         public bool GetCharacterRequiresMinSupportLevel(
             CharacterInstance character,
             CharacterData targetCharacter
@@ -803,32 +727,22 @@ namespace Turnroot.Gameplay.Brain
 
         #region Save/Load API
 
-        /// <summary>
-        /// Save a specific character's progress immediately.
-        /// </summary>
         public void SaveCharacterProgress(CharacterInstance character)
         {
             if (character?.CharacterTemplate?.IsUnique == true && _gamewideContextBrain != null)
             {
                 _battleBrain.SaveUniqueCharacterProgress(character);
-                Debug.Log(
+                TurnrootLogger.Log(
                     $"CharactersBrain: Manually saved {character.CharacterTemplate.DisplayName}"
                 );
             }
         }
 
-        /// <summary>
-        /// Saves all unique characters in the player roster.
-        /// Call this whenever roster state changes outside of battle.
-        /// </summary>
-        public void SavePlayerRosterProgress()
+        private OperationResult TrySavePlayerRosterProgress()
         {
             if (_battleBrain?.PlayerTeamRoster == null)
             {
-#if UNITY_EDITOR
-                Debug.LogWarning("CharactersBrain: No player roster to save");
-#endif
-                return;
+                return OperationResult.Failure("No player roster to save");
             }
 
             int savedCount = 0;
@@ -840,25 +754,17 @@ namespace Turnroot.Gameplay.Brain
                     savedCount++;
                 }
             }
-
-#if UNITY_EDITOR
-            Debug.Log($"CharactersBrain: Saved {savedCount} unique characters from player roster");
-#endif
+            return OperationResult.SuccessResult();
         }
+
+        public void SavePlayerRosterProgress() => TrySavePlayerRosterProgress();
 
         #endregion
 
         #region Character Query API
-
-        /// <summary>
-        /// Get all currently active character instances.
-        /// </summary>
         public List<CharacterInstance> GetAllActiveCharacters() =>
             _battleBrain?.GetAllActiveInstances() ?? new List<CharacterInstance>();
 
-        /// <summary>
-        /// Find a character instance by template.
-        /// </summary>
         public CharacterInstance FindCharacterByTemplate(CharacterData template) =>
             _battleBrain?.FindInstanceByTemplate(template);
 

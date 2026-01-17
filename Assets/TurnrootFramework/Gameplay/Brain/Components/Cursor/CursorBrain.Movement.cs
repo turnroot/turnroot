@@ -119,12 +119,7 @@ namespace Turnroot.Gameplay.Brain
 
             var targetPos = CursorPosition.CoordinatesInt + gridMovement;
 
-            if (IsPositionValid(targetPos))
-            {
-                return MoveCursorTo(targetPos);
-            }
-
-            return false;
+            return IsPositionValid(targetPos) ? MoveCursorTo(targetPos) : false;
         }
 
         /// <summary>

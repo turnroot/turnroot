@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Turnroot.Characters.Stats;
+using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Characters.CharacterClass
@@ -353,36 +354,35 @@ namespace Turnroot.Characters.CharacterClass
         #region Validation
 
         /// <summary>
-        /// Validate required references for stat operations.
-        /// Returns true if valid, false otherwise with warning logged.
+        /// Validate required references for stat operations and return an OperationResult.
+        /// Returns SuccessResult() when valid; Failure with missing fields otherwise.
         /// </summary>
         /// <param name="character">Character instance to validate</param>
         /// <param name="classData">Class data to validate</param>
         /// <param name="operationName">Name of operation for logging</param>
-        /// <returns>True if references are valid, false otherwise</returns>
-        public static bool ValidateReferences(
+        /// <returns>OperationResult indicating success or missing fields</returns>
+        public static OperationResult ValidateReferences(
             CharacterInstance character,
             CharacterClassData classData,
             string operationName
         )
         {
-            if (character == null)
+            var checks = new (object obj, string name)[]
             {
-#if UNITY_EDITOR
-                Debug.LogWarning($"{operationName}: character is null");
-#endif
-                return false;
+                (character, nameof(character)),
+                (classData, nameof(classData)),
+            };
+
+            bool ok = ValidationHelper.ValidateNotNull(operationName, out var missing, checks);
+            if (!ok)
+            {
+                var msg = string.IsNullOrEmpty(operationName)
+                    ? $"Missing required references: {string.Join(", ", missing)}"
+                    : $"{operationName}: missing required references: {string.Join(", ", missing)}";
+                return OperationResult.Failure(msg);
             }
 
-            if (classData == null)
-            {
-#if UNITY_EDITOR
-                Debug.LogWarning($"{operationName}: classData is null");
-#endif
-                return false;
-            }
-
-            return true;
+            return OperationResult.SuccessResult();
         }
 
         #endregion

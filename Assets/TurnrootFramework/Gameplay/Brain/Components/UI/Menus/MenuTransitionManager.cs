@@ -75,16 +75,9 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                 return MenuType.Controls;
             }
 
-            if (location == _settings?.GetPrebattleMapMenu())
-            {
-                return MenuType.Map;
-            }
-            if (location == _settings?.GetPrebattleUnitsMenu())
-            {
-                return MenuType.Team;
-            }
-
-            return MenuType.Unknown;
+            return location == _settings?.GetPrebattleMapMenu()
+                ? MenuType.Map
+                : location == _settings?.GetPrebattleUnitsMenu() ? MenuType.Team : MenuType.Unknown;
         }
 
         // Simplified TransitionBetween - always destroys source and creates target fresh

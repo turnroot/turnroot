@@ -26,17 +26,9 @@ namespace Turnroot.Gameplay.Brain
                     return GAMEPAD_COOLDOWN;
                 }
 
-                if (settings.SpeedSetting == GameplayPlayerSettings.GameSpeed.Fast)
-                {
-                    return 0.09f;
-                }
-
-                if (settings.SpeedSetting == GameplayPlayerSettings.GameSpeed.VeryFast)
-                {
-                    return 0.08f;
-                }
-
-                return KEYBOARD_BASE_COOLDOWN;
+                return settings.SpeedSetting == GameplayPlayerSettings.GameSpeed.Fast
+                    ? 0.09f
+                    : settings.SpeedSetting == GameplayPlayerSettings.GameSpeed.VeryFast ? 0.08f : KEYBOARD_BASE_COOLDOWN;
             }
             catch
             {
