@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Turnroot.Characters.CharacterClass;
 using Turnroot.Characters.Stats;
+using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Characters
@@ -16,22 +17,20 @@ namespace Turnroot.Characters
         /// Level up the character and apply random stat growth rolls.
         /// Internal method - use CharactersBrain.LevelUpCharacter() to publish events.
         /// </summary>
-        internal void LevelUp()
+        internal OperationResult LevelUp()
         {
-            // Ensure character has a class equipped before leveling up — fail fast if invariant is violated
-            if (_currentClass == null || _currentClass.ClassData == null)
+            // Ensure character has a class equipped before leveling up — validate and return clear diagnostics
+            bool ok = ValidationHelper.ValidateNotNull(
+                "CharacterInstance.LevelUp",
+                out var missing,
+                (_currentClass, nameof(_currentClass)),
+                (_currentClass?.ClassData, "classData")
+            );
+
+            if (!ok)
             {
-#if UNITY_EDITOR
-                Debug.LogError(
-                    "CharacterInstance.LevelUp: No class equipped — this is a critical invariant and must be fixed. Breaking into debugger."
-                );
-#endif
-#if UNITY_EDITOR
-                Debug.Break(); // Help developer catch this during debugging
-#endif
-                throw new System.InvalidOperationException(
-                    "CharacterInstance.LevelUp: Cannot level up without an equipped class."
-                );
+                var msg = $"CharacterInstance.LevelUp failed: missing {string.Join(", ", missing)}";
+                return OperationResult.Failure(msg);
             }
 
             _currentLevel++;
@@ -47,7 +46,7 @@ namespace Turnroot.Characters
 
             var increasedStats = StatApplicationHelper.ApplyStatGrowths(
                 growthRates,
-                new List<UnboundedStatModifier>(), // Already combined in GetEffectiveGrowthRates
+                new List<UnboundedStatModifier>(),
                 this,
                 caps
             );
@@ -56,23 +55,19 @@ namespace Turnroot.Characters
             {
                 hpStat.SetCurrent(hpStat.GetCurrent() + 1f);
             }
+
+            return OperationResult.SuccessResult();
         }
 
-        /// <summary>
-        /// Get effective growth rates combining personal and class growth rates.
-        /// Personal growth rates from CharacterData are added to class growth rate modifiers.
-        /// </summary>
         private List<UnboundedStatModifier> GetEffectiveGrowthRates()
         {
             var effectiveRates = new List<UnboundedStatModifier>();
 
-            // Start with personal growth rates from CharacterData
             if (_characterTemplate?.PersonalGrowthRates != null)
             {
                 effectiveRates.AddRange(_characterTemplate.PersonalGrowthRates);
             }
 
-            // Safely add class growth modifiers if a class is equipped
             var classMods = _currentClass?.ClassData?.Stats?.GrowthRateModifiers;
             if (classMods != null)
             {
@@ -83,7 +78,6 @@ namespace Turnroot.Characters
                     );
                     if (index != -1)
                     {
-                        // Combine with existing personal rate
                         var existing = effectiveRates[index];
                         effectiveRates[index] = new UnboundedStatModifier(
                             classMod.unboundedStatType,
@@ -92,7 +86,6 @@ namespace Turnroot.Characters
                     }
                     else
                     {
-                        // Add class modifier
                         effectiveRates.Add(classMod);
                     }
                 }
@@ -111,9 +104,6 @@ namespace Turnroot.Characters
         public ExperienceRankInstance GetExperienceRank(string experienceTypeId) =>
             _experienceRanks.Find(e => e.ExperienceTypeId == experienceTypeId);
 
-        /// <summary>
-        /// Add experience to a specific experience type.
-        /// </summary>
         internal void AddExperience(string experienceTypeId, int amount)
         {
             var rank = GetExperienceRank(experienceTypeId);
@@ -123,7 +113,6 @@ namespace Turnroot.Characters
             }
             else
             {
-                // Create new experience rank starting at E
                 var newRank = new ExperienceRankInstance(
                     experienceTypeId,
                     CommonAncestors.LeveledLetteredField.E
@@ -133,9 +122,6 @@ namespace Turnroot.Characters
             }
         }
 
-        /// <summary>
-        /// Check if character meets an experience rank requirement.
-        /// </summary>
         public bool MeetsExperienceRequirement(string experienceTypeId, string minRankLetter)
         {
             var rank = GetExperienceRank(experienceTypeId);

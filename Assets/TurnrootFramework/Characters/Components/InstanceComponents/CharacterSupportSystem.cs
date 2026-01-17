@@ -1,4 +1,5 @@
 using Turnroot.Characters.Components.Support;
+using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Characters
@@ -9,27 +10,30 @@ namespace Turnroot.Characters
     public partial class CharacterInstance
     {
         #region Support Relationships
-
-        /// <summary>
-        /// Get support relationship with a specific character.
-        /// </summary>
         public SupportRelationshipInstance GetSupportRelationship(CharacterData character) =>
             _supportRelationships.Find(s => s.Character == character);
-
-        /// <summary>
-        /// Add a new support relationship from a template.
-        /// </summary>
-        public void AddSupportRelationship(SupportRelationship template)
+        public OperationResult AddSupportRelationship(SupportRelationship template)
         {
+            bool ok = ValidationHelper.ValidateNotNull(
+                "CharacterInstance.AddSupportRelationship",
+                out var missing,
+                (template, nameof(template)),
+                (template?.Character, "template.Character")
+            );
+
+            if (!ok)
+            {
+                return OperationResult.Failure(
+                    $"AddSupportRelationship failed: missing {string.Join(", ", missing)}"
+                );
+            }
+
             // Validate that the support relationship is not with the same character
             if (template.Character == _characterTemplate)
             {
-#if UNITY_EDITOR
-                Debug.LogWarning(
+                return OperationResult.Failure(
                     $"Cannot add support relationship with the same character ({template.Character.name})"
                 );
-#endif
-                return;
             }
 
             // Check if relationship already exists
@@ -37,33 +41,61 @@ namespace Turnroot.Characters
             {
                 _supportRelationships.Add(new SupportRelationshipInstance(template));
             }
+
+            return OperationResult.SuccessResult();
         }
 
-        /// <summary>
-        /// Increase support level with another character.
-        /// </summary>
-        internal void IncreaseSupport(CharacterData character, int amount)
+        internal OperationResult IncreaseSupport(CharacterData character, int amount)
         {
+            bool ok = ValidationHelper.ValidateNotNull(
+                "CharacterInstance.IncreaseSupport",
+                out var missing,
+                (character, nameof(character))
+            );
+
+            if (!ok)
+            {
+                return OperationResult.Failure(
+                    $"IncreaseSupport failed: missing {string.Join(", ", missing)}"
+                );
+            }
+
             var relationship = GetSupportRelationship(character);
             if (relationship != null)
             {
                 relationship.Increase(amount);
+                return OperationResult.SuccessResult();
             }
-            else
-            {
-#if UNITY_EDITOR
-                Debug.LogWarning($"No support relationship found with {character.FullName}");
-#endif
-                AddSupportRelationship(new SupportRelationship { Character = character });
-                GetSupportRelationship(character)?.Increase(amount);
-            }
-        }
 
-        /// <summary>
-        /// Remove support relationship with a character.
-        /// </summary>
-        public void RemoveSupportRelationship(CharacterData character) =>
+            TurnrootLogger.Log(
+                $"Support relationship with {character.name} does not exist. Creating new relationship."
+            );
+            var res = AddSupportRelationship(new SupportRelationship { Character = character });
+            if (!res.Success)
+            {
+                return res;
+            }
+            GetSupportRelationship(character)?.Increase(amount);
+            return OperationResult.SuccessResult();
+        }
+        public OperationResult RemoveSupportRelationship(CharacterData character)
+        {
+            bool ok = ValidationHelper.ValidateNotNull(
+                "CharacterInstance.RemoveSupportRelationship",
+                out var missing,
+                (character, nameof(character))
+            );
+
+            if (!ok)
+            {
+                return OperationResult.Failure(
+                    $"RemoveSupportRelationship failed: missing {string.Join(", ", missing)}"
+                );
+            }
+
             _ = _supportRelationships.RemoveAll(s => s.Character == character);
+            return OperationResult.SuccessResult();
+        }
 
         /* ---------------------- Recruitment helpers ---------------------- */
         public bool IsCharacterRecruitable(CharacterData character)
@@ -77,20 +109,34 @@ namespace Turnroot.Characters
             return rel != null ? rel.GetIsRecruitable() : character.IsRecruitable;
         }
 
-        public void SetCharacterRecruitable(CharacterData character, bool isRecruitable)
+        public OperationResult SetCharacterRecruitable(CharacterData character, bool isRecruitable)
         {
-            if (character == null)
+            bool ok = ValidationHelper.ValidateNotNull(
+                "CharacterInstance.SetCharacterRecruitable",
+                out var missing,
+                (character, nameof(character))
+            );
+
+            if (!ok)
             {
-                return;
+                return OperationResult.Failure(
+                    $"SetCharacterRecruitable failed: missing {string.Join(", ", missing)}"
+                );
             }
 
             var rel = GetSupportRelationship(character);
             if (rel == null)
             {
-                AddSupportRelationship(new SupportRelationship { Character = character });
+                var res = AddSupportRelationship(new SupportRelationship { Character = character });
+                if (!res.Success)
+                {
+                    return res;
+                }
+
                 rel = GetSupportRelationship(character);
             }
             rel.SetIsRecruitableOverride(isRecruitable);
+            return OperationResult.SuccessResult();
         }
 
         public float GetCharacterRecruitmentChance(CharacterData character)
@@ -104,20 +150,34 @@ namespace Turnroot.Characters
             return rel != null ? rel.GetRecruitmentChance() : character.RecruitmentChance;
         }
 
-        public void SetCharacterRecruitmentChance(CharacterData character, float chance)
+        public OperationResult SetCharacterRecruitmentChance(CharacterData character, float chance)
         {
-            if (character == null)
+            bool ok = ValidationHelper.ValidateNotNull(
+                "CharacterInstance.SetCharacterRecruitmentChance",
+                out var missing,
+                (character, nameof(character))
+            );
+
+            if (!ok)
             {
-                return;
+                return OperationResult.Failure(
+                    $"SetCharacterRecruitmentChance failed: missing {string.Join(", ", missing)}"
+                );
             }
 
             var rel = GetSupportRelationship(character);
             if (rel == null)
             {
-                AddSupportRelationship(new SupportRelationship { Character = character });
+                var res = AddSupportRelationship(new SupportRelationship { Character = character });
+                if (!res.Success)
+                {
+                    return res;
+                }
+
                 rel = GetSupportRelationship(character);
             }
             rel.SetRecruitmentChanceOverride(Mathf.Clamp(chance, 0f, 100f));
+            return OperationResult.SuccessResult();
         }
 
         public float GetCharacterRecruitmentChanceIncreasePerConversation(CharacterData character)
@@ -133,25 +193,39 @@ namespace Turnroot.Characters
                 : character.RecruitmentChanceIncreasePerConversation;
         }
 
-        public void SetCharacterRecruitmentChanceIncreasePerConversation(
+        public OperationResult SetCharacterRecruitmentChanceIncreasePerConversation(
             CharacterData character,
             float increase
         )
         {
-            if (character == null)
+            bool ok = ValidationHelper.ValidateNotNull(
+                "CharacterInstance.SetCharacterRecruitmentChanceIncreasePerConversation",
+                out var missing,
+                (character, nameof(character))
+            );
+
+            if (!ok)
             {
-                return;
+                return OperationResult.Failure(
+                    $"SetCharacterRecruitmentChanceIncreasePerConversation failed: missing {string.Join(", ", missing)}"
+                );
             }
 
             var rel = GetSupportRelationship(character);
             if (rel == null)
             {
-                AddSupportRelationship(new SupportRelationship { Character = character });
+                var res = AddSupportRelationship(new SupportRelationship { Character = character });
+                if (!res.Success)
+                {
+                    return res;
+                }
+
                 rel = GetSupportRelationship(character);
             }
             rel.SetRecruitmentChanceIncreasePerConversationOverride(
                 Mathf.Clamp(increase, 0f, 100f)
             );
+            return OperationResult.SuccessResult();
         }
 
         public bool GetCharacterRequiresMinSupportLevel(CharacterData character)
@@ -167,39 +241,65 @@ namespace Turnroot.Characters
                 : character.RequiresMinSupportLevel;
         }
 
-        public void SetCharacterRequiresMinSupportLevel(CharacterData character, bool requires)
+        public OperationResult SetCharacterRequiresMinSupportLevel(
+            CharacterData character,
+            bool requires
+        )
         {
-            if (character == null)
+            bool ok = ValidationHelper.ValidateNotNull(
+                "CharacterInstance.SetCharacterRequiresMinSupportLevel",
+                out var missing,
+                (character, nameof(character))
+            );
+
+            if (!ok)
             {
-                return;
+                return OperationResult.Failure(
+                    $"SetCharacterRequiresMinSupportLevel failed: missing {string.Join(", ", missing)}"
+                );
             }
 
             var rel = GetSupportRelationship(character);
             if (rel == null)
             {
-                AddSupportRelationship(new SupportRelationship { Character = character });
+                var res = AddSupportRelationship(new SupportRelationship { Character = character });
+                if (!res.Success)
+                {
+                    return res;
+                }
+
                 rel = GetSupportRelationship(character);
             }
             rel.SetRequiresMinSupportLevelOverride(requires);
+            return OperationResult.SuccessResult();
         }
 
-        public void ClearRecruitmentOverrides(CharacterData character)
+        public OperationResult ClearRecruitmentOverrides(CharacterData character)
         {
-            if (character == null)
+            bool ok = ValidationHelper.ValidateNotNull(
+                "CharacterInstance.ClearRecruitmentOverrides",
+                out var missing,
+                (character, nameof(character))
+            );
+
+            if (!ok)
             {
-                return;
+                return OperationResult.Failure(
+                    $"ClearRecruitmentOverrides failed: missing {string.Join(", ", missing)}"
+                );
             }
 
             var rel = GetSupportRelationship(character);
             if (rel == null)
             {
-                return;
+                return OperationResult.Failure("No support relationship found for character.");
             }
 
             rel.ClearIsRecruitableOverride();
             rel.ClearRecruitmentChanceOverride();
             rel.ClearRecruitmentChanceIncreasePerConversationOverride();
             rel.ClearRequiresMinSupportLevelOverride();
+            return OperationResult.SuccessResult();
         }
 
         #endregion

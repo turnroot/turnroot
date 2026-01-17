@@ -1,3 +1,4 @@
+using Turnroot.Utilities;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -16,25 +17,22 @@ namespace Turnroot.Gameplay.Brain
 
         private void OnDestroy() => UnloadBrainScene();
 
-        private void LoadBrainScene()
+        private OperationResult LoadBrainScene()
         {
-#if UNITY_EDITOR
-            Debug.Log($"Loading {BrainSceneName} scene.");
-#endif
-
             try
             {
                 SceneManager.LoadScene(BrainSceneName, LoadSceneMode.Additive);
-#if UNITY_EDITOR
-                Debug.Log($"{BrainSceneName} scene loaded successfully.");
-#endif
+                return OperationResult.SuccessResult();
             }
             catch (System.Exception e)
             {
-#if UNITY_EDITOR
-                Debug.LogError($"Failed to load {BrainSceneName} scene: {e.Message}");
-#endif
+                TurnrootLogger.Log(
+                    $"Failed to load brain scene '{BrainSceneName}': {e.Message}", TurnrootLogger.LogLevel.Error
+                );
                 Debug.Break();
+                return OperationResult.Failure(
+                    $"Failed to load brain scene '{BrainSceneName}': {e.Message}"
+                );
             }
         }
 
