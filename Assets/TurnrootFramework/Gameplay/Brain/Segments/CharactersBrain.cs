@@ -156,20 +156,15 @@ namespace Turnroot.Gameplay.Brain
 
         private void HandleStartBattle()
         {
-#if UNITY_EDITOR
             TurnrootLogger.Log(
                 "CharactersBrain: Initializing battle statistics for all characters."
             );
-#endif
             InitializeBattleStatistics();
         }
 
         private void HandleExitBattle(Combat.BattleExitType exitType)
         {
-#if UNITY_EDITOR
             TurnrootLogger.Log($"CharactersBrain: Handling battle exit with type: {exitType}");
-#endif
-
             // Record the battle outcome
             RecordBattleOutcome(exitType);
 
@@ -276,10 +271,7 @@ namespace Turnroot.Gameplay.Brain
             {
                 instance?.ResetBattleStats();
             }
-
-#if UNITY_EDITOR
             TurnrootLogger.Log("CharactersBrain: Reset battle statistics for all characters.");
-#endif
         }
 
         private void SaveBattleParticipantsProgress()
