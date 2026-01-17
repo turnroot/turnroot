@@ -1,0 +1,175 @@
+using System.Collections.Generic;
+using System.Linq;
+using Turnroot.Characters;
+using Turnroot.Characters.CharacterClass;
+using Turnroot.Gameplay.Brain.Events;
+using Turnroot.Utilities;
+using UnityEngine;
+
+namespace Turnroot.Gameplay.Brain
+{
+    public partial class UnitAppearanceBrain : BrainComponent
+    {
+        public GameObject CreateModelForUnit(CharacterInstance unit)
+        {
+            var root = new GameObject($"{unit.CharacterTemplate.DisplayName}_Root");
+            var outfitRenderer = CreateOutfitMesh(unit, root);
+            var headRenderer = CreateHeadMesh(unit, root);
+
+            SetPrimaryRenderer(unit, outfitRenderer, headRenderer, root);
+            return root;
+        }
+
+        private SkinnedMeshRenderer CreateOutfitMesh(CharacterInstance unit, GameObject parent)
+        {
+            var classInst = unit.GetCurrentClass();
+            var prefab = classInst?.ClassData?.Identity?.ClassModelPrefab;
+
+            if (prefab != null)
+            {
+                var obj = Instantiate(prefab, parent.transform);
+                obj.name = "ClassOutfit";
+                return obj.GetComponentInChildren<SkinnedMeshRenderer>();
+            }
+
+            if (unit.CharacterTemplate.CharacterDefaultModel != null)
+            {
+                var obj = new GameObject("DefaultOutfit");
+                obj.transform.SetParent(parent.transform);
+                return CopyRenderer(obj, unit.CharacterTemplate.CharacterDefaultModel);
+            }
+
+            return null;
+        }
+
+        private GameObject TryReuseExistingModel(
+            CharacterInstance unit,
+            Vector3 worldPos,
+            Vector2Int pos,
+            Dictionary<Vector2Int, GameObject> models
+        )
+        {
+            var ownerships = FindObjectsByType<UnitModelOwnership>(
+                FindObjectsInactive.Include,
+                FindObjectsSortMode.None
+            );
+            var owner = ownerships.FirstOrDefault(o => o != null && o.UnitId == unit.Id);
+
+            if (owner == null)
+            {
+                return null;
+            }
+
+            var model = owner.gameObject;
+            model.transform.SetPositionAndRotation(worldPos, Quaternion.identity);
+            model.transform.localScale = Vector3.one * _brain.uiBrain.uiSettings.ModelsScale;
+            owner.DisplayName = unit.CharacterTemplate.DisplayName;
+
+            ApplyVisuals(unit, model);
+            RemovePreviousMapping(models, model);
+            models[pos] = model;
+
+            _brain?.Publish(new ModelSpawnedEvent(unit, unit.Id, pos, model));
+            return model;
+        }
+
+        private void RemovePreviousMapping(
+            Dictionary<Vector2Int, GameObject> models,
+            GameObject target
+        )
+        {
+            var key = models.FirstOrDefault(kvp => kvp.Value == target).Key;
+            if (key != default)
+            {
+                models.Remove(key);
+            }
+        }
+
+        private void CleanupOldModel(Vector2Int pos, Dictionary<Vector2Int, GameObject> models)
+        {
+            if (models.TryGetValue(pos, out var old) && old != null)
+            {
+                try
+                {
+                    old.SetActive(false);
+                }
+                catch { }
+                Destroy(old);
+                models.Remove(pos);
+            }
+        }
+
+        private OperationResult CreateNewModel(
+            CharacterInstance unit,
+            Vector3 worldPos,
+            Vector2Int pos,
+            Dictionary<Vector2Int, GameObject> models
+        )
+        {
+            var model = CreateModelForUnit(unit);
+            if (model == null)
+            {
+                return OperationResult.Failure("Failed to create model instance");
+            }
+
+            model.transform.SetPositionAndRotation(worldPos, Quaternion.identity);
+            model.transform.localScale = Vector3.one * _brain.uiBrain.uiSettings.ModelsScale;
+
+            var ownership = model.AddComponent<UnitModelOwnership>();
+            ownership.UnitId = unit.Id;
+            ownership.DisplayName = unit.CharacterTemplate.DisplayName;
+            model.name = $"{unit.CharacterTemplate.DisplayName}_Model_{unit.Id}";
+
+            ApplyVisuals(unit, model);
+            models[pos] = model;
+
+            _brain?.Publish(new ModelSpawnedEvent(unit, unit.Id, pos, model));
+            return OperationResult.SuccessResult();
+        }
+
+        public OperationResult DespawnUnitModelFromGrid(
+            Vector2Int pos,
+            Dictionary<Vector2Int, GameObject> models
+        )
+        {
+            if (models == null)
+            {
+                return OperationResult.Failure("Model dictionary is null");
+            }
+
+            if (!models.TryGetValue(pos, out var model) || model == null)
+            {
+                return OperationResult.Failure("No model found at given position");
+            }
+
+            try
+            {
+                model.SetActive(false);
+            }
+            catch { }
+
+            PublishDespawnEvent(model, pos);
+            Destroy(model);
+            models.Remove(pos);
+
+            return OperationResult.SuccessResult();
+        }
+
+        private void ClearExistingModels()
+        {
+            foreach (var kvp in _activeUnitModels.ToList())
+            {
+                if (kvp.Value != null)
+                {
+                    try
+                    {
+                        kvp.Value.SetActive(false);
+                    }
+                    catch { }
+                    Destroy(kvp.Value);
+                }
+            }
+            _activeUnitModels.Clear();
+        }
+    }
+}
