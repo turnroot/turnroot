@@ -33,12 +33,9 @@ public class MapGridPointFeature
         }
 
         string fid = id.ToLower();
-        if (fid.StartsWith("treasure"))
-        {
-            return FeatureType.Treasure;
-        }
-
-        return fid.StartsWith("door")
+        return fid.StartsWith("treasure")
+            ? FeatureType.Treasure
+            : fid.StartsWith("door")
             ? FeatureType.Door
             : fid.StartsWith("warp")
             ? FeatureType.Warp

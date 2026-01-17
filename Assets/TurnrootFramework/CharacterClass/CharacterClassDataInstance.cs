@@ -278,11 +278,9 @@ namespace Turnroot.Characters.CharacterClass
         public bool IsAboveCaps(CharacterInstance character)
         {
             var _res_isAbove = StatApplicationHelper.ValidateReferences(character, _classData, "");
-            if (!_res_isAbove.Success)
-            {
-                return false;
-            }
-            return StatApplicationHelper.IsAboveUnboundedCaps(
+            return !_res_isAbove.Success
+                ? false
+                : StatApplicationHelper.IsAboveUnboundedCaps(
                 _classData.Stats.UnboundedStatCaps,
                 character
             );

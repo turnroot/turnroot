@@ -339,12 +339,9 @@ namespace Turnroot.Gameplay.Brain
 
         public bool GetChildStates()
         {
-            if (_currentState == null)
-            {
-                return OperationResult.Failure("No active state.").Success;
-            }
-
-            return _currentState.Children != null && _currentState.Children.Length != 0;
+            return _currentState == null
+                ? OperationResult.Failure("No active state.").Success
+                : _currentState.Children != null && _currentState.Children.Length != 0;
         }
 
         #endregion

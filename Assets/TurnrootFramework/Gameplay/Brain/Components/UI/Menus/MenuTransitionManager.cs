@@ -70,12 +70,9 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                 return MenuType.Audio;
             }
 
-            if (location == _settings?.GetGameSettingsControlsMenu())
-            {
-                return MenuType.Controls;
-            }
-
-            return location == _settings?.GetPrebattleMapMenu()
+            return location == _settings?.GetGameSettingsControlsMenu()
+                ? MenuType.Controls
+                : location == _settings?.GetPrebattleMapMenu()
                 ? MenuType.Map
                 : location == _settings?.GetPrebattleUnitsMenu() ? MenuType.Team : MenuType.Unknown;
         }
