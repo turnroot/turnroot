@@ -4,6 +4,7 @@ using UnityEditor;
 using System.IO;
 using System.Collections.Generic;
 using System.Linq;
+using Turnroot.Gameplay.Maps;
 
 /// <summary>
 /// Renders MapGrid to image files - full map, standard minimap, and unexplored map
@@ -325,7 +326,7 @@ public class MapGridRenderer
         return terrainType == null || string.IsNullOrEmpty(terrainType.Name)
             ? false
             : _darkGrayTerrainTypes.Contains(terrainType.Name)
-            || _lightGrayTerrainTypes.Contains(terrainType.Name);
+                || _lightGrayTerrainTypes.Contains(terrainType.Name);
     }
 
     private Color GetMinimapTerrainColor(MapGridPoint point, TerrainTypes terrainAsset)

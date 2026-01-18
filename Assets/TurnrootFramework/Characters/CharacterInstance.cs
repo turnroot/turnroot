@@ -4,6 +4,7 @@ using Turnroot.Characters.CharacterClass;
 using Turnroot.Characters.Components.Support;
 using Turnroot.Characters.Stats;
 using Turnroot.Characters.StatusEffects;
+using Turnroot.Gameplay.Maps;
 using Turnroot.Gameplay.Objects;
 using Turnroot.GameSettings;
 using Turnroot.Utilities;

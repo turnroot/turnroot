@@ -1,5 +1,6 @@
 using Turnroot.Gameplay.Brain;
 using Turnroot.Gameplay.Combat;
+using Turnroot.Gameplay.Maps;
 using Turnroot.Gameplay.PlayerSettings;
 using Turnroot.GameSettings;
 using Turnroot.Utilities;

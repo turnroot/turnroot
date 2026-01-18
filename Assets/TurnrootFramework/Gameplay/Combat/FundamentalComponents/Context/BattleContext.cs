@@ -4,6 +4,7 @@ using Turnroot.Characters;
 using Turnroot.Gameplay.Brain.Commands;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Environment;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Locations;
+using Turnroot.Gameplay.Maps;
 using Turnroot.Gameplay.Objects;
 using Turnroot.Skills.Nodes;
 using Turnroot.Utilities;
@@ -187,11 +188,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 target.MapGridPosition,
                 mapGrid
             );
-            var parameters = Maps.PathfindingParameters.FromCharacter(
-                target,
-                mapGrid,
-                targetGridPoint
-            );
+            var parameters = PathfindingParameters.FromCharacter(target, mapGrid, targetGridPoint);
 
             if (parameters == null || projectedDestination == null)
             {

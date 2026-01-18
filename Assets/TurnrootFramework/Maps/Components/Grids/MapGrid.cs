@@ -8,1014 +8,549 @@ using Turnroot.Utilities;
 using UnityEngine;
 using UnityEngine.Events;
 
-public class MapGrid : MonoBehaviour
+namespace Turnroot.Gameplay.Maps
 {
-    [Header("Appearance"), HorizontalLine(color: EColor.Orange)]
-    [InfoBox("If enabled, the height mesh will be used as the visual terrain also")]
-    public bool UseHeightMeshAsTerrainModel = false;
-
-    [
-        InfoBox("The main terrain level model for this map"),
-        HideIf(nameof(UseHeightMeshAsTerrainModel))
-    ]
-    public GameObject TerrainLevelModel;
-
-    [InfoBox(
-        "Optional decorative layers (buildings, foliage). These cover the whole map. For smaller or dynamic effects like birds, water, etc, don't use this, add those objects directly to the scene."
-    )]
-    public GameObject[] AdditionalDecorativeModels;
-
-    [Header("Player Team Spawn Points"), HorizontalLine(color: EColor.Yellow)]
-    public List<Vector2Int> PlayerTeamSpawnPoints = new();
-
-    [HideInInspector]
-    public BattleGameObject battleGameObject;
-
-    [Header("Rendered Map Images")]
-    [SerializeField, ReadOnly]
-    private Sprite _fullMapImage;
-
-    [SerializeField, ReadOnly]
-    private Sprite _standardMapImage;
-
-    [SerializeField, ReadOnly]
-    private Sprite _unexploredMapImage;
-
-    // Public accessors
-    public Sprite FullMapImage => _fullMapImage;
-    public Sprite StandardMapImage => _standardMapImage;
-    public Sprite UnexploredMapImage => _unexploredMapImage;
-
-    [Header("Grid Settings")]
-    [HorizontalLine(color: EColor.Green)]
-    [SerializeField]
-    private float _gridScale = 1f;
-
-    [SerializeField]
-    private Vector3 _gridOffset = Vector3.zero;
-
-    [SerializeField]
-    private int _gridWidth = 10;
-
-    [SerializeField]
-    private int _gridHeight = 10;
-
-    [SerializeField]
-    private string _mapName = string.Empty;
-    public string MapName
+    public partial class MapGrid : MonoBehaviour
     {
-        get => _mapName;
-        set => _mapName = value;
-    }
+        [Header("Appearance"), HorizontalLine(color: EColor.Orange)]
+        [InfoBox("If enabled, the height mesh will be used as the visual terrain also")]
+        public bool UseHeightMeshAsTerrainModel = false;
 
-    [SerializeField, ReadOnly]
-    private Dictionary<Vector2Int, GameObject> _gridPoints = new();
+        [
+            InfoBox("The main terrain level model for this map"),
+            HideIf(nameof(UseHeightMeshAsTerrainModel))
+        ]
+        public GameObject TerrainLevelModel;
 
-    /// <summary>
-    /// Cached MapGridPoint components to avoid repeated GetComponent calls.
-    /// This is rebuilt whenever _gridPoints changes.
-    /// </summary>
-    private Dictionary<Vector2Int, MapGridPoint> _cachedGridPoints;
+        [InfoBox(
+            "Optional decorative layers (buildings, foliage). These cover the whole map. For smaller or dynamic effects like birds, water, etc, don't use this, add those objects directly to the scene."
+        )]
+        public GameObject[] AdditionalDecorativeModels;
 
-    [SerializeField, ReadOnly]
-    [Tooltip(
-        "Serialized feature layer records (second layer) for editor features such as chests, doors, etc."
-    )]
-    private List<FeatureRecord> _features = new();
+        [Header("Player Team Spawn Points"), HorizontalLine(color: EColor.Yellow)]
+        public List<Vector2Int> PlayerTeamSpawnPoints = new();
 
-    [Header("3D Map Height Connection")]
-    [HorizontalLine(color: EColor.Blue)]
-    [SerializeField]
-    private GameObject _single3dHeightMesh;
+        [HideInInspector]
+        public BattleGameObject battleGameObject;
 
-    [SerializeField, HideInInspector]
-    private Vector3[] _single3dHeightMeshRaycastPoints;
-    private Color[] _single3dHeightMeshRaycastColors;
+        [Header("Rendered Map Images")]
+        [SerializeField, ReadOnly]
+        private Sprite _fullMapImage;
 
-    [SerializeField, HideInInspector]
-    private Vector2Int[] _single3dHeightMeshRaycastIndices;
+        [SerializeField, ReadOnly]
+        private Sprite _standardMapImage;
 
-    // Lookup dictionary for O(1) terrain position access
-    private Dictionary<Vector2Int, Vector3> _terrainPositionLookup;
+        [SerializeField, ReadOnly]
+        private Sprite _unexploredMapImage;
 
-    [SerializeField]
-    [Tooltip("Show gizmo spheres for computed raycast points in the Scene view")]
-    private bool _showRaycastGizmos = true;
+        // Public accessors
+        public Sprite FullMapImage => _fullMapImage;
+        public Sprite StandardMapImage => _standardMapImage;
+        public Sprite UnexploredMapImage => _unexploredMapImage;
 
-    [SerializeField]
-    [Tooltip("Show coordinate labels for raycast points in the Scene view")]
-    private bool _showRaycastCoordinates = true;
+        [SerializeField]
+        private Vector3 _gridOffset = Vector3.zero;
 
-    [Button("Reset Mesh Scale")]
-    private void ResetMeshScale()
-    {
-        if (_single3dHeightMesh == null)
+        [field: SerializeField]
+        public string MapName { get; set; } = string.Empty;
+
+        [SerializeField, ReadOnly]
+        private Dictionary<Vector2Int, GameObject> _gridPoints = new();
+        private Dictionary<Vector2Int, MapGridPoint> _cachedGridPoints;
+
+        [SerializeField, ReadOnly]
+        [Tooltip(
+            "Serialized feature layer records (second layer) for editor features such as chests, doors, etc."
+        )]
+        private List<FeatureRecord> _features = new();
+
+        [Header("3D Map Height Connection")]
+        [HorizontalLine(color: EColor.Blue)]
+        [SerializeField]
+        private GameObject _single3dHeightMesh;
+
+        [SerializeField, HideInInspector]
+        private Vector3[] _single3dHeightMeshRaycastPoints;
+        private Color[] _single3dHeightMeshRaycastColors;
+
+        [SerializeField, HideInInspector]
+        private Vector2Int[] _single3dHeightMeshRaycastIndices;
+
+        // Lookup dictionary for O(1) terrain position access
+        private Dictionary<Vector2Int, Vector3> _terrainPositionLookup;
+
+        [SerializeField]
+        [Tooltip("Show gizmo spheres for computed raycast points in the Scene view")]
+        private bool _showRaycastGizmos = true;
+
+        [SerializeField]
+        [Tooltip("Show coordinate labels for raycast points in the Scene view")]
+        private bool _showRaycastCoordinates = true;
+
+        [Button("Reset Mesh Scale")]
+        private void ResetMeshScale()
         {
+            if (_single3dHeightMesh == null)
+            {
 #if UNITY_EDITOR
-            Debug.LogWarning("MapGrid: No 3D height mesh assigned. Please assign a mesh to reset.");
+                Debug.LogWarning(
+                    "MapGrid: No 3D height mesh assigned. Please assign a mesh to reset."
+                );
 #endif
-            return;
-        }
+                return;
+            }
 
-        _single3dHeightMesh.transform.localScale = Vector3.one;
+            _single3dHeightMesh.transform.localScale = Vector3.one;
 
 #if UNITY_EDITOR
-        Debug.Log("MapGrid: Reset mesh scale to (1, 1, 1)");
-#endif
-    }
-
-    [SerializeField]
-    [Tooltip(
-        "Layer mask used when raycasting to the 3D map. Use this to limit raycasts to the map's layer(s)."
-    )]
-    private LayerMask _raycastLayerMask = ~0;
-
-    [SerializeField]
-    private Vector2Int[] _traversableAreaCorners = new Vector2Int[4];
-
-    public Vector2Int[] TraversableAreaCorners => _traversableAreaCorners;
-    public LayerMask RaycastLayerMask => _raycastLayerMask;
-
-    public int GridWidth => _gridWidth;
-    public int GridHeight => _gridHeight;
-    public float GridScale => _gridScale;
-    public Vector3 GridOffset => _gridOffset;
-
-    private void Awake()
-    {
-        // Rebuild dictionaries from existing children at runtime
-        if (_gridPoints == null || _gridPoints.Count == 0)
-        {
-            if (transform.childCount > 0)
-            {
-                RebuildGridDictionary();
-            }
-            // _single3dHeightMesh.SetActive(false);
-        }
-
-        // Ensure cache is built
-        EnsureCachedGridPoints();
-
-        // Rebuild raycast colors for gizmos in play mode
-        if (_single3dHeightMeshRaycastPoints != null && _single3dHeightMeshRaycastPoints.Length > 0)
-        {
-            RebuildRaycastColors();
-        }
-
-        TerrainLevelModel?.SetActive(!UseHeightMeshAsTerrainModel);
-
-        if (_single3dHeightMesh != null)
-        {
-            _single3dHeightMesh.SetActive(UseHeightMeshAsTerrainModel);
-        }
-        else if (UseHeightMeshAsTerrainModel)
-        {
-#if UNITY_EDITOR
-            Debug.LogError(
-                "MapGrid: Neither a 3D height mesh nor a terrain level model is assigned."
-            );
+            Debug.Log("MapGrid: Reset mesh scale to (1, 1, 1)");
 #endif
         }
-    }
 
-    /* -------------------------- Buttons -------------------------- */
-    [Button("Create Grid Points")]
-    public void CreateChildrenPoints()
-    {
-        if (_gridPoints.Count > 0)
+        [SerializeField]
+        [Tooltip(
+            "Layer mask used when raycasting to the 3D map. Use this to limit raycasts to the map's layer(s)."
+        )]
+        private LayerMask _raycastLayerMask = ~0;
+
+        [field: SerializeField]
+        public Vector2Int[] TraversableAreaCorners { get; } = new Vector2Int[4];
+        public LayerMask RaycastLayerMask => _raycastLayerMask;
+
+        [field: SerializeField]
+        public int GridWidth { get; private set; } = 10;
+
+        [field: SerializeField]
+        public int GridHeight { get; private set; } = 10;
+
+        [field: Header("Grid Settings")]
+        [field: HorizontalLine(color: EColor.Green)]
+        [field: SerializeField]
+        public float GridScale { get; } = 1f;
+        public Vector3 GridOffset => _gridOffset;
+
+        /* -------------------------- Buttons -------------------------- */
+        [Button("Create Grid Points")]
+        public void CreateChildrenPoints()
         {
-            ClearGrid();
-        }
-
-        _cachedGridPoints = new Dictionary<Vector2Int, MapGridPoint>(_gridWidth * _gridHeight);
-
-        for (int x = 0; x < _gridWidth; x++)
-        {
-            for (int y = 0; y < _gridHeight; y++)
+            if (_gridPoints.Count > 0)
             {
-                CreateGridPoint(x, y);
-            }
-        }
-
-        LoadFeatureLayer();
-    }
-
-    [Button("Add Row")]
-    public void AddRow()
-    {
-        SaveFeatureLayer();
-        _gridHeight++;
-        int newRow = _gridHeight - 1;
-
-        for (int col = 0; col < _gridWidth; col++)
-        {
-            if (GetGridPoint(col, newRow) != null)
-            {
-                continue;
+                ClearGrid();
             }
 
-            CreateGridPoint(col, newRow);
-        }
+            _cachedGridPoints = new Dictionary<Vector2Int, MapGridPoint>(GridWidth * GridHeight);
 
-        LoadFeatureLayer();
-        MarkDirty();
-    }
-
-    [Button("Add Column")]
-    public void AddColumn()
-    {
-        SaveFeatureLayer();
-        _gridWidth++;
-        int newCol = _gridWidth - 1;
-
-        for (int row = 0; row < _gridHeight; row++)
-        {
-            if (GetGridPoint(newCol, row) != null)
+            for (int x = 0; x < GridWidth; x++)
             {
-                continue;
-            }
-
-            CreateGridPoint(newCol, row);
-        }
-
-        LoadFeatureLayer();
-        MarkDirty();
-    }
-
-    [Button("Remove Row")]
-    [Tooltip("Removes the last row from the grid. This doesn't remove the existing data.")]
-    public void RemoveRow()
-    {
-        if (_gridHeight <= 1)
-        {
-            return;
-        }
-
-        SaveFeatureLayer();
-        RemoveGridLine(_gridHeight - 1, true);
-        _gridHeight--;
-        LoadFeatureLayer();
-        MarkDirty();
-    }
-
-    [Button("Remove Column")]
-    public void RemoveColumn()
-    {
-        if (_gridWidth <= 1)
-        {
-            return;
-        }
-
-        SaveFeatureLayer();
-        RemoveGridLine(_gridWidth - 1, false);
-        _gridWidth--;
-        LoadFeatureLayer();
-        MarkDirty();
-    }
-
-    [Button("Connect to 3D Map Height")]
-    public void ConnectTo3DMapObject()
-    {
-        if (_single3dHeightMesh == null)
-        {
-            return;
-        }
-
-        EnsureGridPoints();
-
-        var colliders = _single3dHeightMesh.GetComponentsInChildren<Collider>(true);
-        if (colliders == null || colliders.Length == 0)
-        {
-            return;
-        }
-
-        var connector = new MapGridHeightConnector();
-        var points = connector.RaycastPointsDownTo3DMap(
-            _single3dHeightMesh,
-            _gridPoints,
-            _raycastLayerMask
-        );
-
-        if (points == null || points.Length == 0)
-        {
-            return;
-        }
-
-        _single3dHeightMeshRaycastPoints = points;
-        RebuildRaycastColors();
-        BuildTerrainPositionLookup();
-        MarkDirty();
-    }
-
-    [Button("Render Map Images")]
-    public void RenderMapImages()
-    {
-#if UNITY_EDITOR
-        var renderer = new MapGridRenderer();
-        renderer.RenderAndSaveMapImages(
-            this,
-            out _fullMapImage,
-            out _standardMapImage,
-            out _unexploredMapImage
-        );
-        UnityEditor.EditorUtility.SetDirty(this);
-#endif
-    }
-
-    private void CreateGridPoint(int row, int col)
-    {
-        var point = new GameObject($"Point_R{row}_C{col}");
-        var gridPoint = point.AddComponent<MapGridPoint>();
-        gridPoint.Initialize(row, col);
-        SetDefaultTerrainType(gridPoint);
-
-        point.transform.parent = transform;
-        point.transform.localPosition =
-            new Vector3(row * _gridScale, 0, col * _gridScale) + _gridOffset;
-
-        var key = new Vector2Int(row, col);
-        _gridPoints[key] = point;
-        _cachedGridPoints ??= new Dictionary<Vector2Int, MapGridPoint>();
-        _cachedGridPoints[key] = gridPoint;
-
-#if UNITY_EDITOR
-        UnityEditor.EditorUtility.SetDirty(point);
-        UnityEditor.EditorUtility.SetDirty(gridPoint);
-#endif
-    }
-
-    private void RemoveGridLine(int index, bool isRow)
-    {
-        int outerLimit = isRow ? _gridWidth : _gridHeight;
-
-        for (int i = 0; i < outerLimit; i++)
-        {
-            var key = isRow ? new Vector2Int(i, index) : new Vector2Int(index, i);
-            var mgp = GetGridPoint(key.x, key.y);
-            if (mgp == null)
-            {
-                continue;
-            }
-
-            _gridPoints.Remove(key);
-            DestroyImmediate(mgp.gameObject);
-        }
-    }
-
-    private void SetDefaultTerrainType(MapGridPoint gridPoint)
-    {
-        var terrainAsset = TerrainTypes.LoadDefault();
-        if (terrainAsset?.Types == null)
-        {
-            return;
-        }
-
-        var voidType = terrainAsset.Types.FirstOrDefault(t =>
-            t != null && t.Name.Equals("Void", System.StringComparison.OrdinalIgnoreCase)
-        );
-
-        if (voidType != null)
-        {
-            gridPoint.SetTerrainTypeId(voidType.Id);
-        }
-        else if (terrainAsset.Types.Length > 0 && terrainAsset.Types[0] != null)
-        {
-            gridPoint.SetTerrainTypeId(terrainAsset.Types[0].Id);
-        }
-    }
-
-    public void ClearGrid()
-    {
-        foreach (var point in _gridPoints.Values)
-        {
-            if (point != null)
-            {
-                DestroyImmediate(point);
-            }
-        }
-
-        _gridPoints.Clear();
-        _cachedGridPoints?.Clear();
-    }
-
-    public void RebuildGridDictionary()
-    {
-        var newDict = new Dictionary<Vector2Int, GameObject>();
-        var newCache = new Dictionary<Vector2Int, MapGridPoint>();
-
-        foreach (Transform child in transform)
-        {
-            if (child == null)
-            {
-                continue;
-            }
-
-            if (child.TryGetComponent<MapGridPoint>(out var mgp))
-            {
-                var key = new Vector2Int(mgp.Row, mgp.Col);
-                newDict[key] = child.gameObject;
-                newCache[key] = mgp;
-            }
-        }
-        _gridPoints = newDict;
-        _cachedGridPoints = newCache;
-
-        // Ensure each grid point has default properties applied. This helps
-        // when opening or importing older maps that were created before
-        // default point properties existed in the codebase.
-        foreach (var kv in _cachedGridPoints)
-        {
-            var mgp = kv.Value;
-            if (mgp == null)
-            {
-                continue;
-            }
-
-            mgp.Initialize(mgp.Row, mgp.Col);
-        }
-
-        LoadFeatureLayer();
-    }
-
-    public void SaveFeatureLayer()
-    {
-        EnsureCachedGridPoints();
-
-        _features.Clear();
-        foreach (var kv in _cachedGridPoints)
-        {
-            var mgp = kv.Value;
-            if (mgp == null || string.IsNullOrEmpty(mgp.FeatureTypeId))
-            {
-                continue;
-            }
-
-            _features.Add(
-                new FeatureRecord
+                for (int y = 0; y < GridHeight; y++)
                 {
-                    row = kv.Key.x,
-                    col = kv.Key.y,
-                    typeId = mgp.FeatureTypeId,
-                    name = mgp.FeatureName,
-                    // Only create property lists if there are properties to save
-                    boolProperties = ConvertPropertiesIfAny(
-                        mgp.GetAllBoolFeatureProperties(),
-                        p => new PropertyRecord<bool> { key = p.key, value = p.value }
-                    ),
-                    eventProperties = ConvertPropertiesIfAny(
-                        mgp.GetAllEventFeatureProperties(),
-                        p => new PropertyRecord<UnityEvent> { key = p.key, value = p.value }
-                    ),
-                    floatProperties = ConvertPropertiesIfAny(
-                        mgp.GetAllFloatFeatureProperties(),
-                        p => new PropertyRecord<float> { key = p.key, value = p.value }
-                    ),
-                    unitProperties = ConvertPropertiesIfAny(
-                        mgp.GetAllUnitFeatureProperties(),
-                        p => new PropertyRecord<CharacterInstance> { key = p.key, value = p.value }
-                    ),
-                    objectItemProperties = ConvertPropertiesIfAny(
-                        mgp.GetAllObjectItemFeatureProperties(),
-                        p => new PropertyRecord<ObjectItemInstance> { key = p.key, value = p.value }
-                    ),
+                    CreateGridPoint(x, y);
                 }
-            );
-        }
-#if UNITY_EDITOR
-        UnityEditor.EditorUtility.SetDirty(this);
-#endif
-    }
-
-    /// <summary>
-    /// Convert a list of properties to PropertyRecords, returning null if the source is empty.
-    /// This avoids allocating empty lists which saves memory and serialization overhead.
-    /// </summary>
-    private static List<PropertyRecord<TOut>> ConvertPropertiesIfAny<TIn, TOut>(
-        List<TIn> source,
-        System.Func<TIn, PropertyRecord<TOut>> converter
-    )
-    {
-        if (source == null || source.Count == 0)
-        {
-            return null;
-        }
-
-        var result = new List<PropertyRecord<TOut>>(source.Count);
-        foreach (var item in source)
-        {
-            result.Add(converter(item));
-        }
-        return result;
-    }
-
-    public void LoadFeatureLayer()
-    {
-        if (_features == null || _features.Count == 0)
-        {
-            return;
-        }
-
-        foreach (var rec in _features)
-        {
-            var mgp = GetGridPoint(rec.row, rec.col);
-            if (mgp == null)
-            {
-                continue;
             }
 
-            mgp.SetFeatureTypeId(rec.typeId);
-            mgp.FeatureName = rec.name ?? string.Empty;
-            mgp.ApplyDefaultsForFeature(rec.typeId);
-            ApplyPropertyList(rec.boolProperties, mgp.SetBoolFeatureProperty);
-            ApplyPropertyList(rec.eventProperties, mgp.SetEventFeatureProperty);
-            ApplyPropertyList(rec.floatProperties, mgp.SetFloatFeatureProperty);
-            ApplyPropertyList(rec.unitProperties, mgp.SetUnitFeatureProperty);
-            ApplyPropertyList(rec.objectItemProperties, mgp.SetObjectItemFeatureProperty);
-        }
-    }
-
-    private void ApplyPropertyList<T>(
-        List<PropertyRecord<T>> properties,
-        System.Action<string, T> setter
-    )
-    {
-        if (properties == null)
-        {
-            return;
-        }
-
-        foreach (var pr in properties)
-        {
-            if (!string.IsNullOrEmpty(pr.key))
-            {
-                setter(pr.key, pr.value);
-            }
-        }
-    }
-
-    public void EnsureGridPoints()
-    {
-        int expectedCount = _gridWidth * _gridHeight;
-        int actualCount = transform
-            .Cast<Transform>()
-            .Count(child => child != null && child.TryGetComponent<MapGridPoint>(out _));
-
-        bool needsRebuild =
-            actualCount > 0
-            && (actualCount != expectedCount || _gridPoints?.Count != expectedCount);
-        bool needsCreate = actualCount == 0;
-
-        if (needsRebuild)
-        {
-            RebuildGridDictionary();
-        }
-        else if (needsCreate)
-        {
-            CreateChildrenPoints();
-        }
-        else if (_gridPoints?.Count == 0 && transform.childCount > 0)
-        {
-            RebuildGridDictionary();
-        }
-
-        RepositionGridPoints();
-    }
-
-    private void RepositionGridPoints()
-    {
-        if (_gridPoints == null || _gridPoints.Count == 0)
-        {
-            return;
-        }
-
-        foreach (var kv in _gridPoints)
-        {
-            if (kv.Value == null)
-            {
-                continue;
-            }
-
-            kv.Value.transform.localPosition =
-                new Vector3(kv.Key.x * _gridScale, 0, kv.Key.y * _gridScale) + _gridOffset;
-        }
-    }
-
-    public MapGridPoint GetGridPoint(int row, int col)
-    {
-        var key = new Vector2Int(row, col);
-
-        // Try cached dictionary first (fast path)
-        if (
-            _cachedGridPoints != null
-            && _cachedGridPoints.TryGetValue(key, out var cached)
-            && cached != null
-        )
-        {
-            return cached;
-        }
-
-        // Fallback to GetComponent if cache miss (rebuilds cache entry)
-        if (_gridPoints.TryGetValue(key, out var point) && point != null)
-        {
-            if (point.TryGetComponent<MapGridPoint>(out var mgp))
-            {
-                _cachedGridPoints ??= new Dictionary<Vector2Int, MapGridPoint>();
-                _cachedGridPoints[key] = mgp;
-            }
-            return mgp;
-        }
-
-        return null;
-    }
-
-    public Vector3 GetMapGridPointWorldLocation(MapGridPoint gridPoint)
-    {
-        // _gridPoints has real GameObjects, so use their transform for world position
-        var key = new Vector2Int(gridPoint.Row, gridPoint.Col);
-        return _gridPoints.TryGetValue(key, out var point) && point != null
-            ? point.transform.position
-            : Vector3.zero;
-    }
-
-    /// <summary>
-    /// Gets the world position for a grid coordinate, taking into account terrain height from raycast data
-    /// </summary>
-    public Vector3 GetTerrainAdjustedWorldPosition(Vector2Int gridCoordinates)
-    {
-        // Try to get terrain-adjusted position from raycast data using O(1) lookup
-        if (
-            _terrainPositionLookup != null
-            && _terrainPositionLookup.TryGetValue(gridCoordinates, out var terrainAdjustedPosition)
-        )
-        {
-            return terrainAdjustedPosition;
-        }
-
-        // Fallback to regular grid point position if raycast data is not available
-        var gridPoint = GetGridPoint(gridCoordinates.x, gridCoordinates.y);
-        return gridPoint != null ? GetMapGridPointWorldLocation(gridPoint) : Vector3.zero;
-    }
-
-    public List<MapGridPoint> GetAllGridPoints()
-    {
-        EnsureCachedGridPoints();
-
-        var points = new List<MapGridPoint>(_cachedGridPoints.Count);
-        foreach (var mgp in _cachedGridPoints.Values)
-        {
-            if (mgp != null)
-            {
-                points.Add(mgp);
-            }
-        }
-        return points;
-    }
-
-    public List<MapGridPoint> GetAllGridPointsByFeatureType(
-        MapGridPointFeature.FeatureType featureType
-    )
-    {
-        EnsureCachedGridPoints();
-
-        var points = new List<MapGridPoint>();
-        foreach (var mgp in _cachedGridPoints.Values)
-        {
-            if (mgp != null && mgp.FeatureType == featureType)
-            {
-                points.Add(mgp);
-            }
-        }
-        return points.Count == 0 ? null : points;
-    }
-
-    public int GetManhattanDistance(MapGridPoint a, MapGridPoint b) =>
-        a == null || b == null ? -1 : Mathf.Abs(a.Row - b.Row) + Mathf.Abs(a.Col - b.Col);
-
-    public int StateVersion { get; private set; }
-
-    /// <summary>
-    /// Invoked whenever the map state version increments (terrain/occupancy/feature changes).
-    /// Subscribers can use this to invalidate caches dependent on map layout.
-    /// </summary>
-    public event System.Action OnStateVersionChanged;
-
-    public void IncrementStateVersion()
-    {
-        StateVersion++;
-        OnStateVersionChanged?.Invoke();
-    }
-
-    public OperationResult SetOccupied(MapGridPoint point, CharacterInstance occupier)
-    {
-        EnsureCachedGridPoints();
-
-        var key = new Vector2Int(point.Row, point.Col);
-        if (_cachedGridPoints != null && _cachedGridPoints.TryGetValue(key, out var mgp))
-        {
-            mgp.CurrentInstance = occupier;
-            IncrementStateVersion();
-            return OperationResult.SuccessResult();
-        }
-        return OperationResult.Failure($"Set occupied for point ({point.Row}, {point.Col}) failed");
-    }
-
-    public OperationResult RemoveOccupied(MapGridPoint point)
-    {
-        EnsureCachedGridPoints();
-
-        var key = new Vector2Int(point.Row, point.Col);
-        if (_cachedGridPoints != null && _cachedGridPoints.TryGetValue(key, out var mgp))
-        {
-            mgp.CurrentInstance = null;
-            IncrementStateVersion();
-            return OperationResult.SuccessResult();
-        }
-        return OperationResult.Failure(
-            $"Remove occupied for point ({point.Row}, {point.Col}) failed"
-        );
-    }
-
-    public void GetAllOccupiedPoints()
-    {
-        EnsureCachedGridPoints();
-
-        var occupiedPoints = new List<MapGridPoint>();
-        var occupyingInstances = new List<CharacterInstance>();
-
-        foreach (var mgp in _cachedGridPoints.Values)
-        {
-            if (mgp != null && mgp.IsOccupied && mgp.CurrentInstance != null)
-            {
-                occupiedPoints.Add(mgp);
-                occupyingInstances.Add(mgp.CurrentInstance);
-#if UNITY_EDITOR
-                Debug.Log($"Occupied Point: ({mgp.Row}, {mgp.Col}) by {mgp.CurrentInstance.Id}");
-#endif
-            }
-        }
-    }
-
-    /// <summary>
-    /// Ensures the cached MapGridPoint dictionary is populated.
-    /// Call this before iterating over grid points to avoid repeated GetComponent calls.
-    /// </summary>
-    private void EnsureCachedGridPoints()
-    {
-        if (_cachedGridPoints != null && _cachedGridPoints.Count == _gridPoints.Count)
-        {
-            return;
-        }
-
-        _cachedGridPoints = new Dictionary<Vector2Int, MapGridPoint>(_gridPoints.Count);
-        foreach (var kv in _gridPoints)
-        {
-            if (kv.Value != null && kv.Value.TryGetComponent<MapGridPoint>(out var mgp))
-            {
-                _cachedGridPoints[kv.Key] = mgp;
-            }
-        }
-    }
-
-    private void RebuildRaycastColors()
-    {
-        if (
-            _single3dHeightMeshRaycastPoints == null
-            || _single3dHeightMeshRaycastPoints.Length == 0
-        )
-        {
-            return;
-        }
-
-        EnsureCachedGridPoints();
-
-        var colors = new Color[_single3dHeightMeshRaycastPoints.Length];
-        var indices = new Vector2Int[_single3dHeightMeshRaycastPoints.Length];
-
-        var orderedFinal = OrderGridPoints(_cachedGridPoints);
-        int ci = 0;
-
-        foreach (var kv in orderedFinal)
-        {
-            if (ci >= colors.Length)
-            {
-                break;
-            }
-
-            var mgp = kv.Value;
-            var tt = mgp?.SelectedTerrainType;
-            colors[ci] = tt != null ? tt.EditorColor : Color.yellow;
-            indices[ci] = kv.Key;
-            ci++;
-        }
-
-        for (; ci < colors.Length; ci++)
-        {
-            colors[ci] = Color.yellow;
-        }
-
-        _single3dHeightMeshRaycastColors = colors;
-        _single3dHeightMeshRaycastIndices = indices;
-
-        // Build lookup dictionary for O(1) terrain position access
-        BuildTerrainPositionLookup();
-    }
-
-    private IOrderedEnumerable<KeyValuePair<Vector2Int, TValue>> OrderGridPoints<TValue>(
-        IEnumerable<KeyValuePair<Vector2Int, TValue>> points
-    ) =>
-        // Use consistent ordering without flipping
-        points.OrderBy(kv => kv.Key.x).ThenBy(kv => kv.Key.y);
-
-    /// <summary>
-    /// Builds the terrain position lookup dictionary for O(1) access to raycast points
-    /// </summary>
-    private void BuildTerrainPositionLookup()
-    {
-        if (
-            _single3dHeightMeshRaycastPoints == null
-            || _single3dHeightMeshRaycastIndices == null
-            || _single3dHeightMeshRaycastPoints.Length != _single3dHeightMeshRaycastIndices.Length
-        )
-        {
-            _terrainPositionLookup?.Clear();
-            return;
-        }
-
-        _terrainPositionLookup = new Dictionary<Vector2Int, Vector3>(
-            _single3dHeightMeshRaycastIndices.Length
-        );
-        for (int i = 0; i < _single3dHeightMeshRaycastIndices.Length; i++)
-        {
-            var key = _single3dHeightMeshRaycastIndices[i];
-            // In case of duplicate keys, last one wins (matches previous linear search semantics)
-            _terrainPositionLookup[key] = _single3dHeightMeshRaycastPoints[i];
-        }
-    }
-
-    private void MarkDirty()
-    {
-#if UNITY_EDITOR
-        if (
-            !UnityEditor.EditorApplication.isCompiling
-            && !UnityEditor.EditorApplication.isPlayingOrWillChangePlaymode
-            && !UnityEditor.EditorApplication.isUpdating
-        )
-        {
-            UnityEditor.EditorUtility.SetDirty(this);
-            UnityEditor.SceneView.RepaintAll();
-        }
-#endif
-    }
-
-#if UNITY_EDITOR
-    private void OnValidate()
-    {
-        if (UnityEditor.EditorApplication.isPlayingOrWillChangePlaymode)
-        {
-            return;
-        }
-
-        if (UseHeightMeshAsTerrainModel)
-        {
-            TerrainLevelModel = _single3dHeightMesh;
-        }
-
-        // get the BattleGameObject in the parent (includes self)
-        battleGameObject = GetComponentInParent<BattleGameObject>();
-        if (PlayerTeamSpawnPoints.Count > battleGameObject.MaxPlayerTeamUnits)
-        {
-            Debug.LogWarning(
-                $"MapGrid: Trimming PlayerTeamSpawnPoints to max allowed units ({battleGameObject.MaxPlayerTeamUnits})"
-            );
-            PlayerTeamSpawnPoints = PlayerTeamSpawnPoints
-                .Take(battleGameObject.MaxPlayerTeamUnits)
-                .ToList();
-        }
-
-        if (_gridPoints == null || _gridPoints.Count == 0)
-        {
-            if (transform.childCount > 0)
-            {
-                RebuildGridDictionary();
-            }
-        }
-
-        RepositionGridPoints();
-
-        if (_features != null && _features.Count > 0)
-        {
             LoadFeatureLayer();
         }
 
-        if (_single3dHeightMeshRaycastPoints != null && _single3dHeightMeshRaycastPoints.Length > 0)
+        [Button("Add Row")]
+        public void AddRow()
         {
-            RebuildRaycastColors();
-        }
+            SaveFeatureLayer();
+            GridHeight++;
+            int newRow = GridHeight - 1;
 
-        if (
-            !UnityEditor.EditorApplication.isCompiling
-            && !UnityEditor.EditorApplication.isPlayingOrWillChangePlaymode
-            && !UnityEditor.EditorApplication.isUpdating
-        )
-        {
-            UnityEditor.EditorUtility.SetDirty(this);
-        }
-    }
-
-    void OnDrawGizmos()
-    {
-        Vector3 getPos(int x, int y) =>
-            transform.position + new Vector3(x * _gridScale, 0, y * _gridScale) + _gridOffset;
-
-        Vector3 topLeft = getPos(0, 0);
-        Vector3 topRight = getPos(_gridWidth - 1, 0);
-        Vector3 bottomLeft = getPos(0, _gridHeight - 1);
-        Vector3 bottomRight = getPos(_gridWidth - 1, _gridHeight - 1);
-
-        Gizmos.color = Color.green;
-        Gizmos.DrawLine(topLeft, topRight);
-        Gizmos.DrawLine(topRight, bottomRight);
-        Gizmos.DrawLine(bottomRight, bottomLeft);
-        Gizmos.DrawLine(bottomLeft, topLeft);
-
-        var corners = new[] { topLeft, topRight, bottomLeft, bottomRight };
-        foreach (var corner in corners)
-        {
-            Gizmos.DrawSphere(corner, 1f);
-        }
-
-        if (
-            _showRaycastGizmos
-            && _single3dHeightMeshRaycastPoints != null
-            && _single3dHeightMeshRaycastPoints.Length > 0
-        )
-        {
-            float s = Mathf.Max(0.2f, _gridScale * 0.4f);
-            for (int i = 0; i < _single3dHeightMeshRaycastPoints.Length; i++)
+            for (int col = 0; col < GridWidth; col++)
             {
-                var p = _single3dHeightMeshRaycastPoints[i];
-                var c =
-                    (
-                        _single3dHeightMeshRaycastColors != null
-                        && i < _single3dHeightMeshRaycastColors.Length
-                    )
-                        ? _single3dHeightMeshRaycastColors[i]
-                        : Color.magenta;
-                c.a = 1f;
-                Gizmos.color = c;
-                Gizmos.DrawSphere(p, s * (_showRaycastCoordinates ? 0.5f : 1f));
-                // add a Handle Label with coordinates
-                if (!_showRaycastCoordinates)
+                if (GetGridPoint(col, newRow) != null)
                 {
                     continue;
                 }
 
-                Gizmos.color = Color.white;
-                UnityEditor.Handles.Label(
-                    p + (Vector3.up * s * 2f),
-                    _single3dHeightMeshRaycastIndices != null
-                    && i < _single3dHeightMeshRaycastIndices.Length
-                        ? $"({_single3dHeightMeshRaycastIndices[i].x}, {_single3dHeightMeshRaycastIndices[i].y})"
-                        : "(?, ?)"
+                CreateGridPoint(col, newRow);
+            }
+
+            LoadFeatureLayer();
+            MarkDirty();
+        }
+
+        [Button("Add Column")]
+        public void AddColumn()
+        {
+            SaveFeatureLayer();
+            GridWidth++;
+            int newCol = GridWidth - 1;
+
+            for (int row = 0; row < GridHeight; row++)
+            {
+                if (GetGridPoint(newCol, row) != null)
+                {
+                    continue;
+                }
+
+                CreateGridPoint(newCol, row);
+            }
+
+            LoadFeatureLayer();
+            MarkDirty();
+        }
+
+        [Button("Remove Row")]
+        [Tooltip("Removes the last row from the grid. This doesn't remove the existing data.")]
+        public void RemoveRow()
+        {
+            if (GridHeight <= 1)
+            {
+                return;
+            }
+
+            SaveFeatureLayer();
+            RemoveGridLine(GridHeight - 1, true);
+            GridHeight--;
+            LoadFeatureLayer();
+            MarkDirty();
+        }
+
+        [Button("Remove Column")]
+        public void RemoveColumn()
+        {
+            if (GridWidth <= 1)
+            {
+                return;
+            }
+
+            SaveFeatureLayer();
+            RemoveGridLine(GridWidth - 1, false);
+            GridWidth--;
+            LoadFeatureLayer();
+            MarkDirty();
+        }
+
+        [Button("Connect to 3D Map Height")]
+        public void ConnectTo3DMapObject()
+        {
+            if (_single3dHeightMesh == null)
+            {
+                return;
+            }
+
+            EnsureGridPoints();
+
+            var colliders = _single3dHeightMesh.GetComponentsInChildren<Collider>(true);
+            if (colliders == null || colliders.Length == 0)
+            {
+                return;
+            }
+
+            var connector = new MapGridHeightConnector();
+            var points = connector.RaycastPointsDownTo3DMap(
+                _single3dHeightMesh,
+                _gridPoints,
+                _raycastLayerMask
+            );
+
+            if (points == null || points.Length == 0)
+            {
+                return;
+            }
+
+            _single3dHeightMeshRaycastPoints = points;
+            RebuildRaycastColors();
+            BuildTerrainPositionLookup();
+            MarkDirty();
+        }
+
+        [Button("Render Map Images")]
+        public void RenderMapImages()
+        {
+#if UNITY_EDITOR
+            var renderer = new MapGridRenderer();
+            renderer.RenderAndSaveMapImages(
+                this,
+                out _fullMapImage,
+                out _standardMapImage,
+                out _unexploredMapImage
+            );
+            UnityEditor.EditorUtility.SetDirty(this);
+#endif
+        }
+
+        public MapGridPoint GetGridPoint(int row, int col)
+        {
+            var key = new Vector2Int(row, col);
+
+            // Try cached dictionary first (fast path)
+            if (
+                _cachedGridPoints != null
+                && _cachedGridPoints.TryGetValue(key, out var cached)
+                && cached != null
+            )
+            {
+                return cached;
+            }
+
+            // Fallback to GetComponent if cache miss (rebuilds cache entry)
+            if (_gridPoints.TryGetValue(key, out var point) && point != null)
+            {
+                if (point.TryGetComponent<MapGridPoint>(out var mgp))
+                {
+                    _cachedGridPoints ??= new Dictionary<Vector2Int, MapGridPoint>();
+                    _cachedGridPoints[key] = mgp;
+                }
+                return mgp;
+            }
+
+            return null;
+        }
+
+        public void ClearGrid()
+        {
+            foreach (var point in _gridPoints.Values)
+            {
+                if (point != null)
+                {
+                    DestroyImmediate(point);
+                }
+            }
+
+            _gridPoints.Clear();
+            _cachedGridPoints?.Clear();
+        }
+
+        public void RebuildGridDictionary()
+        {
+            var newDict = new Dictionary<Vector2Int, GameObject>();
+            var newCache = new Dictionary<Vector2Int, MapGridPoint>();
+
+            foreach (Transform child in transform)
+            {
+                if (child == null)
+                {
+                    continue;
+                }
+
+                if (child.TryGetComponent<MapGridPoint>(out var mgp))
+                {
+                    var key = new Vector2Int(mgp.Row, mgp.Col);
+                    newDict[key] = child.gameObject;
+                    newCache[key] = mgp;
+                }
+            }
+            _gridPoints = newDict;
+            _cachedGridPoints = newCache;
+
+            foreach (var kv in _cachedGridPoints)
+            {
+                var mgp = kv.Value;
+                if (mgp == null)
+                {
+                    continue;
+                }
+
+                mgp.Initialize(mgp.Row, mgp.Col);
+            }
+
+            LoadFeatureLayer();
+        }
+
+        public void SaveFeatureLayer()
+        {
+            EnsureCachedGridPoints();
+
+            _features.Clear();
+            foreach (var kv in _cachedGridPoints)
+            {
+                var mgp = kv.Value;
+                if (mgp == null || string.IsNullOrEmpty(mgp.FeatureTypeId))
+                {
+                    continue;
+                }
+
+                _features.Add(
+                    new FeatureRecord
+                    {
+                        row = kv.Key.x,
+                        col = kv.Key.y,
+                        typeId = mgp.FeatureTypeId,
+                        name = mgp.FeatureName,
+                        // Only create property lists if there are properties to save
+                        boolProperties = ConvertPropertiesIfAny(
+                            mgp.GetAllBoolFeatureProperties(),
+                            p => new PropertyRecord<bool> { key = p.key, value = p.value }
+                        ),
+                        eventProperties = ConvertPropertiesIfAny(
+                            mgp.GetAllEventFeatureProperties(),
+                            p => new PropertyRecord<UnityEvent> { key = p.key, value = p.value }
+                        ),
+                        floatProperties = ConvertPropertiesIfAny(
+                            mgp.GetAllFloatFeatureProperties(),
+                            p => new PropertyRecord<float> { key = p.key, value = p.value }
+                        ),
+                        unitProperties = ConvertPropertiesIfAny(
+                            mgp.GetAllUnitFeatureProperties(),
+                            p => new PropertyRecord<CharacterInstance>
+                            {
+                                key = p.key,
+                                value = p.value,
+                            }
+                        ),
+                        objectItemProperties = ConvertPropertiesIfAny(
+                            mgp.GetAllObjectItemFeatureProperties(),
+                            p => new PropertyRecord<ObjectItemInstance>
+                            {
+                                key = p.key,
+                                value = p.value,
+                            }
+                        ),
+                    }
                 );
             }
+#if UNITY_EDITOR
+            UnityEditor.EditorUtility.SetDirty(this);
+#endif
         }
-        // Draw a rectangle for the traversable area
-        if (_traversableAreaCorners != null && _traversableAreaCorners.Length == 4)
-        {
-            Vector3 c1 = getPos(_traversableAreaCorners[0].x, _traversableAreaCorners[0].y);
-            Vector3 c2 = getPos(_traversableAreaCorners[1].x, _traversableAreaCorners[1].y);
-            Vector3 c3 = getPos(_traversableAreaCorners[2].x, _traversableAreaCorners[2].y);
-            Vector3 c4 = getPos(_traversableAreaCorners[3].x, _traversableAreaCorners[3].y);
 
-            Gizmos.color = Color.cyan;
-            Gizmos.DrawLine(c1, c2);
-            Gizmos.DrawLine(c2, c4);
-            Gizmos.DrawLine(c4, c3);
-            Gizmos.DrawLine(c3, c1);
+        public Vector3 GetMapGridPointWorldLocation(MapGridPoint gridPoint)
+        {
+            var key = new Vector2Int(gridPoint.Row, gridPoint.Col);
+            return _gridPoints.TryGetValue(key, out var point) && point != null
+                ? point.transform.position
+                : Vector3.zero;
+        }
+
+        public Vector3 GetTerrainAdjustedWorldPosition(Vector2Int gridCoordinates)
+        {
+            if (
+                _terrainPositionLookup != null
+                && _terrainPositionLookup.TryGetValue(
+                    gridCoordinates,
+                    out var terrainAdjustedPosition
+                )
+            )
+            {
+                return terrainAdjustedPosition;
+            }
+
+            var gridPoint = GetGridPoint(gridCoordinates.x, gridCoordinates.y);
+            return gridPoint != null ? GetMapGridPointWorldLocation(gridPoint) : Vector3.zero;
+        }
+
+        public List<MapGridPoint> GetAllGridPoints()
+        {
+            EnsureCachedGridPoints();
+
+            var points = new List<MapGridPoint>(_cachedGridPoints.Count);
+            foreach (var mgp in _cachedGridPoints.Values)
+            {
+                if (mgp != null)
+                {
+                    points.Add(mgp);
+                }
+            }
+            return points;
+        }
+
+        public List<MapGridPoint> GetAllGridPointsByFeatureType(
+            MapGridPointFeature.FeatureType featureType
+        )
+        {
+            EnsureCachedGridPoints();
+
+            var points = new List<MapGridPoint>();
+            foreach (var mgp in _cachedGridPoints.Values)
+            {
+                if (mgp != null && mgp.FeatureType == featureType)
+                {
+                    points.Add(mgp);
+                }
+            }
+            return points.Count == 0 ? null : points;
+        }
+
+        public int GetManhattanDistance(MapGridPoint a, MapGridPoint b) =>
+            a == null || b == null ? -1 : Mathf.Abs(a.Row - b.Row) + Mathf.Abs(a.Col - b.Col);
+
+        public int StateVersion { get; private set; }
+        public event System.Action OnStateVersionChanged;
+
+        public void IncrementStateVersion()
+        {
+            StateVersion++;
+            OnStateVersionChanged?.Invoke();
+        }
+
+        public OperationResult SetOccupied(MapGridPoint point, CharacterInstance occupier)
+        {
+            EnsureCachedGridPoints();
+
+            var key = new Vector2Int(point.Row, point.Col);
+            if (_cachedGridPoints != null && _cachedGridPoints.TryGetValue(key, out var mgp))
+            {
+                mgp.CurrentInstance = occupier;
+                IncrementStateVersion();
+                return OperationResult.SuccessResult();
+            }
+            return OperationResult.Failure(
+                $"Set occupied for point ({point.Row}, {point.Col}) failed"
+            );
+        }
+
+        public OperationResult RemoveOccupied(MapGridPoint point)
+        {
+            EnsureCachedGridPoints();
+
+            var key = new Vector2Int(point.Row, point.Col);
+            if (_cachedGridPoints != null && _cachedGridPoints.TryGetValue(key, out var mgp))
+            {
+                mgp.CurrentInstance = null;
+                IncrementStateVersion();
+                return OperationResult.SuccessResult();
+            }
+            return OperationResult.Failure(
+                $"Remove occupied for point ({point.Row}, {point.Col}) failed"
+            );
+        }
+
+        public void GetAllOccupiedPoints()
+        {
+            EnsureCachedGridPoints();
+
+            var occupiedPoints = new List<MapGridPoint>();
+            var occupyingInstances = new List<CharacterInstance>();
+
+            foreach (var mgp in _cachedGridPoints.Values)
+            {
+                if (mgp != null && mgp.IsOccupied && mgp.CurrentInstance != null)
+                {
+                    occupiedPoints.Add(mgp);
+                    occupyingInstances.Add(mgp.CurrentInstance);
+#if UNITY_EDITOR
+                    Debug.Log(
+                        $"Occupied Point: ({mgp.Row}, {mgp.Col}) by {mgp.CurrentInstance.Id}"
+                    );
+#endif
+                }
+            }
         }
     }
-#endif
-}
 
-[System.Serializable]
-public struct PropertyRecord<T>
-{
-    public string key;
-    public T value;
-}
+    [System.Serializable]
+    public struct PropertyRecord<T>
+    {
+        public string key;
+        public T value;
+    }
 
-[System.Serializable]
-public class FeatureRecord
-{
-    public int row;
-    public int col;
-    public string typeId;
-    public string name;
-    public List<PropertyRecord<bool>> boolProperties = new();
-    public List<PropertyRecord<UnityEvent>> eventProperties = new();
-    public List<PropertyRecord<float>> floatProperties = new();
+    [System.Serializable]
+    public class FeatureRecord
+    {
+        public int row;
+        public int col;
+        public string typeId;
+        public string name;
+        public List<PropertyRecord<bool>> boolProperties = new();
+        public List<PropertyRecord<UnityEvent>> eventProperties = new();
+        public List<PropertyRecord<float>> floatProperties = new();
 
-    public List<PropertyRecord<CharacterInstance>> unitProperties = new();
-    public List<PropertyRecord<ObjectItemInstance>> objectItemProperties = new();
+        public List<PropertyRecord<CharacterInstance>> unitProperties = new();
+        public List<PropertyRecord<ObjectItemInstance>> objectItemProperties = new();
+    }
 }

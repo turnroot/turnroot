@@ -40,6 +40,7 @@ using Turnroot.Characters;
 using Turnroot.Gameplay.Objects;
 using UnityEngine.Events;
 using Turnroot.Gameplay.Combat;
+using Turnroot.Gameplay.Maps;
 
 public class MapGridEditorWindow : EditorWindow
 {
