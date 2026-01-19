@@ -42,7 +42,7 @@ namespace Turnroot.UI.Components
 
             var env =
                 preparationObject.EnvironmentalConditions
-                ?? preparationObject.GetComponentInChildren<Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Environment.EnvironmentalConditions>(
+                ?? preparationObject.GetComponentInChildren<Gameplay.Combat.FundamentalComponents.Battles.Environment.EnvironmentalConditions>(
                     true
                 );
 

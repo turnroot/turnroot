@@ -468,7 +468,7 @@ namespace Turnroot.Characters
 
             [Tooltip("Current rank/level (E=0, D=1, C=2, B=3, A=4, S=5)")]
             [SerializeField]
-            private CommonAncestors.LeveledLetteredField _rank = new(LeveledLetteredField.E);
+            private LeveledLetteredField _rank = new(LeveledLetteredField.E);
 
             public string ExperienceTypeId
             {
@@ -476,7 +476,7 @@ namespace Turnroot.Characters
                 set => _experienceTypeId = value;
             }
 
-            public CommonAncestors.LeveledLetteredField Rank
+            public LeveledLetteredField Rank
             {
                 get => _rank;
                 set => _rank = value;
@@ -487,7 +487,7 @@ namespace Turnroot.Characters
             public ExperienceRank(string experienceTypeId, string rankValue)
             {
                 _experienceTypeId = experienceTypeId;
-                _rank = new CommonAncestors.LeveledLetteredField(rankValue);
+                _rank = new LeveledLetteredField(rankValue);
             }
         }
 

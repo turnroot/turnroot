@@ -115,7 +115,7 @@ namespace Turnroot.Characters
         /// Catches UnityException (Resources.Load during serialization) and general exceptions.
         /// </summary>
         private static T GetOrDefault<T>(
-            System.Func<T> getter,
+            Func<T> getter,
             T defaultValue,
             string settingName = "Setting"
         )
@@ -124,7 +124,7 @@ namespace Turnroot.Characters
             {
                 return getter();
             }
-            catch (UnityEngine.UnityException)
+            catch (UnityException)
             {
                 // Resources.Load forbidden during Unity serialization - this is expected during
                 // deserialization/constructor calls. Silently use default without logging.

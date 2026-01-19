@@ -537,7 +537,7 @@ namespace Turnroot.Gameplay.Maps
             {
                 allDefaults = Resources.LoadAll<MapGridFeatureProperties>("GameSettings");
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
 #if UNITY_EDITOR
                 Debug.LogWarning($"MapGridPoint: Failed to load feature properties: {ex.Message}");

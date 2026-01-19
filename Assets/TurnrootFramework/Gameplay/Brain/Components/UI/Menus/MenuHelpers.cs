@@ -109,7 +109,7 @@ namespace Turnroot.Gameplay.Brain.Segments
 
         // Menu event handlers for route system
 
-        public void HandleMenuSelect(Turnroot.UI.Components.MenuItemBase item) =>
+        public void HandleMenuSelect(UI.Components.MenuItemBase item) =>
             _routeHandler?.HandleMenuSelect(item);
     }
 }

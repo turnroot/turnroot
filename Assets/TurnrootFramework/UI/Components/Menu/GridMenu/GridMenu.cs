@@ -148,7 +148,7 @@ namespace Turnroot.UI.Components.GridMenu
                 var prev = menuItems[_selectedIndex];
                 if (
                     prev.TryGetComponent(
-                        out Turnroot.UI.Components.SimpleButton.SimpleButton prevButton
+                        out SimpleButton.SimpleButton prevButton
                     )
                 )
                 {
@@ -161,7 +161,7 @@ namespace Turnroot.UI.Components.GridMenu
             var current = menuItems[index];
             if (
                 current.TryGetComponent(
-                    out Turnroot.UI.Components.SimpleButton.SimpleButton curButton
+                    out SimpleButton.SimpleButton curButton
                 )
             )
             {

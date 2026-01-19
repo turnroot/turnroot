@@ -125,7 +125,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             public float UtilityScore;
             public CharacterInstance Target; // Enemy or ally, if applicable
             public MapGridPoint Destination; // Store any extra info needed for execution
-            public Turnroot.Gameplay.Objects.ObjectItemInstance ChosenWeapon; // Optional chosen weapon for attack goals
+            public Objects.ObjectItemInstance ChosenWeapon; // Optional chosen weapon for attack goals
 
             public enum Action
             {

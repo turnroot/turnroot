@@ -161,7 +161,7 @@ namespace Turnroot.Gameplay.Brain.Segments
         {
             var instance = location.activeInstance;
             var menuType = DetectMenuType(location);
-            System.Action<Turnroot.UI.Components.MenuItemBase> itemHandler = menuType switch
+            System.Action<MenuItemBase> itemHandler = menuType switch
             {
                 MenuType.PreBattle or MenuType.Map or MenuType.Team =>
                     _brain.HandlePreBattleMenuSelect,

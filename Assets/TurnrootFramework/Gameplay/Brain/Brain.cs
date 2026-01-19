@@ -601,15 +601,14 @@ namespace Turnroot.Gameplay.Brain
 
         // Emitted when a BattleGameObject has been located and initialized for the upcoming battle.
         // Subscribers can use this to access the BattleGameObject safely before the battle-start event.
-        public event System.Action<Turnroot.Gameplay.Combat.BattleGameObject> OnBattleObjectSet;
+        public event Action<BattleGameObject> OnBattleObjectSet;
 
-        public void PublishBattleObjectSet(
-            Turnroot.Gameplay.Combat.BattleGameObject battleObject
-        ) => OnBattleObjectSet?.Invoke(battleObject);
+        public void PublishBattleObjectSet(BattleGameObject battleObject) =>
+            OnBattleObjectSet?.Invoke(battleObject);
 
         // Emitted when the battle map (MapGrid) has been initialized and is ready for use.
         // Provides the MapGrid instance to subscribers that need map-level data (UI, visualizers, etc.).
-        public event System.Action<MapGrid> OnBattleMapReady;
+        public event Action<MapGrid> OnBattleMapReady;
 
         public void PublishBattleMapReady(MapGrid mapGrid) => OnBattleMapReady?.Invoke(mapGrid);
 

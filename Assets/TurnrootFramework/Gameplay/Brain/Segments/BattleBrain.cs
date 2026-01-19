@@ -352,7 +352,7 @@ namespace Turnroot.Gameplay.Brain
         /// <summary>
         /// Internal helper to move a unit on the grid and publish movement events.
         /// This should only be called by command implementations (e.g., MoveCommand) so that movement is undoable/redoable.
-        /// Use <see cref="Turnroot.Gameplay.Combat.FundamentalComponents.Battles.BattleContext.MoveUnitToPoint"/> to perform a commanded move.
+        /// Use <see cref="BattleContext.MoveUnitToPoint"/> to perform a commanded move.
         /// </summary>
         internal bool MoveUnit(CharacterInstance unit, Vector2Int target, MapGrid mapGrid)
         {

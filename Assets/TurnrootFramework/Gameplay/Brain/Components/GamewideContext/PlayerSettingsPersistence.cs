@@ -315,7 +315,7 @@ namespace Turnroot.Gameplay.Brain
                     case "preferredbattlemusic":
                         if (
                             value
-                            is Turnroot.Audio.PreferredBattleMusic.SongChoice preferredBattleMusic
+                            is Audio.PreferredBattleMusic.SongChoice preferredBattleMusic
                         )
                         {
                             PlayerSettings.PreferredBattleMusic = preferredBattleMusic;
@@ -391,7 +391,7 @@ namespace Turnroot.Gameplay.Brain
         public float MusicVolume = 0.8f;
         public float SfxVolume = 0.8f;
         public float VoiceVolume = 0.8f;
-        public Turnroot.Audio.PreferredBattleMusic.SongChoice PreferredBattleMusic = Turnroot
+        public Audio.PreferredBattleMusic.SongChoice PreferredBattleMusic = Turnroot
             .Audio
             .PreferredBattleMusic
             .SongChoice

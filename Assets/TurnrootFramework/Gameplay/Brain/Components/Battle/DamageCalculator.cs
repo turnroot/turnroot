@@ -522,7 +522,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                     && context.Participants.AdjacentUnits.Center == unit
                 )
                     ? context.Participants.AdjacentUnits
-                    : new Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Locations.Adjacency(
+                    : new Locations.Adjacency(
                         unit
                     );
 

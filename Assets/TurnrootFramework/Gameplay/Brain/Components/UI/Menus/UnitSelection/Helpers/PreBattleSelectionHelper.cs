@@ -32,7 +32,7 @@ namespace Turnroot.Gameplay.Brain
                 runtimeInstance != null
                     ? runtimeInstance.GetPlacements()
                     : persistentRoster.characters
-                        ?? new Turnroot.Characters.Roster.UnitPlacement[0];
+                        ?? new Characters.Roster.UnitPlacement[0];
 
             // 1) Required units (always selected for this battle). Do NOT persist required units to LTM.
             if (requiredPlayerUnits != null)

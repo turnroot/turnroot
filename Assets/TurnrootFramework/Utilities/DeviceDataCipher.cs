@@ -7,7 +7,7 @@ namespace Turnroot.Utilities
 {
     /// <summary>
     /// Provides a minimal device-tied XOR cipher used to obfuscate saved data.
-    /// Key is derived deterministically from <see cref="UnityEngine.SystemInfo.deviceUniqueIdentifier"/>
+    /// Key is derived deterministically from <see cref="SystemInfo.deviceUniqueIdentifier"/>
     /// (hashed via SHA256) and never stored on disk.
     /// NOTE: This is obfuscation, not cryptographic encryption.
     /// </summary>

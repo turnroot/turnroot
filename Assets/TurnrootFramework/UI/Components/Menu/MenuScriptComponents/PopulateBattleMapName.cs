@@ -3,24 +3,27 @@ using Turnroot.Gameplay.Combat.PreBattle;
 using Turnroot.Utilities;
 using UnityEngine;
 
-public class PopulateBattleMapName : MonoBehaviour
+namespace Turnroot.UI.Components
 {
-    public TextMeshProUGUI[] BattleMapNameObjects;
-
-    public OperationResult Initialize(BattlePreparationObject battlePreparationObject)
+    public class PopulateBattleMapName : MonoBehaviour
     {
-        var mapGrid = battlePreparationObject.MapGrid;
-        if (mapGrid != null && BattleMapNameObjects != null)
+        public TextMeshProUGUI[] BattleMapNameObjects;
+
+        public OperationResult Initialize(BattlePreparationObject battlePreparationObject)
         {
-            foreach (var textObj in BattleMapNameObjects)
+            var mapGrid = battlePreparationObject.MapGrid;
+            if (mapGrid != null && BattleMapNameObjects != null)
             {
-                textObj.text = mapGrid.MapName;
+                foreach (var textObj in BattleMapNameObjects)
+                {
+                    textObj.text = mapGrid.MapName;
+                }
             }
+            else
+            {
+                return OperationResult.Failure("Invalid parameters for PopulateBattleMapName");
+            }
+            return OperationResult.SuccessResult();
         }
-        else
-        {
-            return OperationResult.Failure("Invalid parameters for PopulateBattleMapName");
-        }
-        return OperationResult.SuccessResult();
     }
 }

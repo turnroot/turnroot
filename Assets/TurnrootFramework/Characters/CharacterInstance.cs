@@ -434,7 +434,7 @@ namespace Turnroot.Characters
         private int _experiencePoints = 0;
 
         public string ExperienceTypeId => _experienceTypeId;
-        public Turnroot.CommonAncestors.LeveledLetteredField Rank => _rank;
+        public CommonAncestors.LeveledLetteredField Rank => _rank;
         public int ExperiencePoints => _experiencePoints;
 
         /// <summary>
@@ -443,7 +443,7 @@ namespace Turnroot.Characters
         public ExperienceRankInstance(string experienceTypeId, string rankLetter)
         {
             _experienceTypeId = experienceTypeId;
-            _rank = new Turnroot.CommonAncestors.LeveledLetteredField(rankLetter);
+            _rank = new CommonAncestors.LeveledLetteredField(rankLetter);
             _experiencePoints = 0;
         }
 
@@ -453,7 +453,7 @@ namespace Turnroot.Characters
         public ExperienceRankInstance(CharacterData.ExperienceRank template)
         {
             _experienceTypeId = template.ExperienceTypeId;
-            _rank = new Turnroot.CommonAncestors.LeveledLetteredField(template.Rank.Value);
+            _rank = new CommonAncestors.LeveledLetteredField(template.Rank.Value);
             _experiencePoints = 0;
         }
 

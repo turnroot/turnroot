@@ -320,7 +320,7 @@ namespace Turnroot.Gameplay.Brain
         {
             // Gather items from both an active battle and gamewide context to support both modes
             var items = new List<ObjectItemInstance>();
-            var seenCharacters = new System.Collections.Generic.HashSet<string>();
+            var seenCharacters = new HashSet<string>();
 
             // 1) From active BattleBrain (in-battle instances)
             var battleBrain = _brain.battleBrain;

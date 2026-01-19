@@ -36,7 +36,7 @@ namespace Turnroot.Gameplay.Brain
             BottomRight,
         }
 
-        [System.Serializable]
+        [Serializable]
         public struct ExploredPartial
         {
             public Dictionary<ExploredQuadrant, ExploredState> statuses;
@@ -298,7 +298,7 @@ namespace Turnroot.Gameplay.Brain
         /// </summary>
         public static string BuildRosterLedgerKey(string rosterId)
         {
-            var rosterType = typeof(Turnroot.Characters.Roster);
+            var rosterType = typeof(Characters.Roster);
             var rawKey = $"{LtmKeys.Roster}.{rosterType.FullName}.{rosterId}";
             var keyHash = ComputeFNV1a64Hex(rawKey);
             return $"{LtmKeys.Roster}.{rosterType.FullName}.{keyHash}";

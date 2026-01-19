@@ -376,7 +376,7 @@ namespace Turnroot.Characters.CharacterClass
             };
 
             // Helper to validate a mesh for required blendshapes. Returns list of missing blendshape names (empty => ok)
-            List<string> ValidateMesh(UnityEngine.Mesh mesh, string source)
+            List<string> ValidateMesh(Mesh mesh, string source)
             {
                 var missing = new List<string>();
                 if (mesh == null)

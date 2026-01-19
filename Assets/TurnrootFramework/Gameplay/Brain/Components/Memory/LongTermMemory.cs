@@ -43,7 +43,7 @@ namespace Turnroot.Gameplay.Brain.Components
         {
             OnKeySetChanged?.Invoke(version);
 
-            var brain = gameObject.GetComponent<Turnroot.Gameplay.Brain.Brain>();
+            var brain = gameObject.GetComponent<Brain>();
             brain?.PublishLtmKeyCacheUpdated(version);
         }
 

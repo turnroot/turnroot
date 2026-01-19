@@ -434,7 +434,7 @@ namespace Turnroot.UI.Components
                 var idB = modelB.GetComponent<UnitModelOwnership>()?.UnitId;
 
                 _prepObject.Brain?.Publish(
-                    new Turnroot.Gameplay.Brain.Events.ModelSwappedEvent(
+                    new Gameplay.Brain.Events.ModelSwappedEvent(
                         idA,
                         idB,
                         posA,

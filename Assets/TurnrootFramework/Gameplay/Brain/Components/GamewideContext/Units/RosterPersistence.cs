@@ -92,7 +92,7 @@ namespace Turnroot.Gameplay.Brain
 
         private string BuildRosterKey(string rosterId) => $"{LtmKeys.Roster}.{rosterId}";
 
-        private string ComputeRosterHash(Turnroot.Characters.Roster roster)
+        private string ComputeRosterHash(Characters.Roster roster)
         {
             var keys = new List<string>();
             foreach (var placement in roster.characters)

@@ -68,7 +68,7 @@ namespace Turnroot.Characters.Components
         /// <summary>
         /// Gets the maximum number of non-weapon items that can be equipped from centralized settings cache.
         /// </summary>
-        private int MaxNonWeaponSlots => Turnroot.Characters.CharacterSettings.MaxNonWeaponSlots;
+        private int MaxNonWeaponSlots => CharacterSettings.MaxNonWeaponSlots;
 
         /// <summary>
         /// Ensures equipment arrays are properly sized based on current settings.

@@ -47,7 +47,7 @@ namespace Turnroot.Gameplay.Brain.Segments
             item.IsSelectedForBattle = willSelect;
             item.CharacterInstanceData.IsSelectedForBattle = willSelect;
 
-            var uf = new Turnroot.Utilities.UtilityFunctions();
+            var uf = new Utilities.UtilityFunctions();
             var selectedT = uf.FindChildByTag(unitCell, "UnitCellSelected");
             if (selectedT != null)
             {

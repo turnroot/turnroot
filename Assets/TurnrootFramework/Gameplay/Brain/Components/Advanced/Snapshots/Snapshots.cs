@@ -264,7 +264,7 @@ namespace Turnroot.Gameplay.Brain.Snapshots
                             // Clear flag so repeated restores don't double-remove
                             u.WasSpawnedDuringBattle = false;
                         }
-                        catch (System.Exception ex)
+                        catch (Exception ex)
                         {
                             TurnrootLogger.Log(
                                 $"[Snapshot] Failed to remove spawned unit {u.Id}: {ex.Message}",

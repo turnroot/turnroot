@@ -7,21 +7,21 @@ using UnityEngine;
 
 namespace Turnroot.GamePackage
 {
-    [System.Serializable]
+    [Serializable]
     public struct Credits
     {
         public string role;
         public string name;
     }
 
-    [System.Serializable]
+    [Serializable]
     public struct Studio
     {
         public string name;
         public Sprite logo;
     }
 
-    [System.Serializable]
+    [Serializable]
     public struct GraphicsPack
     {
         public string packName;

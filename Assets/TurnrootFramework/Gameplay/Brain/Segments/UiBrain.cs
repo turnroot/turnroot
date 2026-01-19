@@ -68,7 +68,7 @@ namespace Turnroot.Gameplay.Brain.Segments
 
         internal MonoBehaviour GetMonoBehaviour() => this;
 
-        internal Turnroot.Gameplay.Brain.Brain GetBrain() => _brain;
+        internal Brain GetBrain() => _brain;
 
         internal MenuDepthTracker GetMenuTracker() => _menuTracker;
 
