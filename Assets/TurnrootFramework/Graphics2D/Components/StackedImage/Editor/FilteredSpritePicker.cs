@@ -166,7 +166,7 @@ public class FilteredSpritePicker : PopupWindowContent
 
                 ev.Use();
             }
-            else if (ev.keyCode == KeyCode.Return || ev.keyCode == KeyCode.KeypadEnter)
+            else if (ev.keyCode is KeyCode.Return or KeyCode.KeypadEnter)
             {
                 if (_selectedIndex >= 0 && _selectedIndex < _sprites.Length)
                 {

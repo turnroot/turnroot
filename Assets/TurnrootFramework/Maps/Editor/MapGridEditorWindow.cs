@@ -609,7 +609,7 @@ public class MapGridEditorWindow : EditorWindow
         EditorGUILayout.EndVertical();
 
         // Right panel
-        if (_mode != Mode.TestMovement && _mode != Mode.SetStartingPositions)
+        if (_mode is not Mode.TestMovement and not Mode.SetStartingPositions)
         {
             DrawRightPanel();
         }

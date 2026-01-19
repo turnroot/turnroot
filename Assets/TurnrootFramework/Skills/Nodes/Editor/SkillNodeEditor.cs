@@ -122,10 +122,10 @@ namespace Turnroot.Skills.Nodes.Editor
                 {
                     // Skip xNode internal fields and OnNodeExecute
                     if (
-                        iterator.name == "graph"
-                        || iterator.name == "position"
-                        || iterator.name == "ports"
-                        || iterator.name == "OnNodeExecute"
+                        iterator.name is "graph"
+                        or "position"
+                        or "ports"
+                        or "OnNodeExecute"
                     )
                     {
                         continue;
