@@ -20,6 +20,7 @@ namespace Turnroot.Gameplay.Brain
             _brain.battleBrain.BattleObject.Context.Unit.UnitInstance;
         public BattleContext BattleContext => _brain.battleBrain.BattleObject.Context;
         public MapGridPoint CursorPosition => _brain.cursorBrain?.CursorPosition;
+        public TileHighlighter _tileHighlighter;
 
         #endregion
 
@@ -242,6 +243,8 @@ namespace Turnroot.Gameplay.Brain
             // Now enable input processing
             _inputEnabled = true;
             _lastInputTime = Time.time; // Reset cooldown timer
+
+            _tileHighlighter = _brain.battleBrain.BattleObject.GetComponent<TileHighlighter>();
         }
 
         private void HandleBattleCompleted(BattleExitType exitType) => CleanupInputActions();
@@ -347,17 +350,26 @@ namespace Turnroot.Gameplay.Brain
 
         private void HandlePlayerTurnStateChanged(PlayerTurnStates newState)
         {
+            TurnrootLogger.Log(
+                $"BattleInputControllerBrain notes that Player turn state changed to {newState}"
+            );
+
             switch (newState)
             {
                 case PlayerTurnStates.NoUnitSelected:
                     _validMoveTiles.Clear();
                     _validAttackTiles.Clear();
                     _brain.cursorBrain?.ClearAllowedPositions();
+                    _tileHighlighter?.ClearAll();
                     break;
 
                 case PlayerTurnStates.MoveActionChosenChoosingDestination:
                     var movePositions = new List<Vector2Int>(
                         _validMoveTiles.Keys.Select(k => k.CoordinatesInt)
+                    );
+                    _tileHighlighter.HighlightTiles(
+                        movePositions,
+                        TileHighlighter.HighlightType.Move
                     );
                     _brain.cursorBrain?.SetAllowedPositions(movePositions);
                     break;
@@ -365,6 +377,10 @@ namespace Turnroot.Gameplay.Brain
                 case PlayerTurnStates.AttackActionChosenChoosingTarget:
                     var attackPositions = new List<Vector2Int>(
                         _validAttackTiles.Keys.Select(k => k.CoordinatesInt)
+                    );
+                    _tileHighlighter.HighlightTiles(
+                        attackPositions,
+                        TileHighlighter.HighlightType.Attack
                     );
                     _brain.cursorBrain?.SetAllowedPositions(attackPositions);
                     break;

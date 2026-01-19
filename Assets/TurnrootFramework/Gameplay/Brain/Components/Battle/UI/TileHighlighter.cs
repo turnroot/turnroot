@@ -24,22 +24,22 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
 
         [Header("UV Atlas Configuration")]
         [SerializeField]
-        private Vector2 _atlasGridSize = new Vector2(4, 4);
+        private Vector2 _atlasGridSize = new(4, 4);
 
         [SerializeField]
-        private Vector2Int _moveRangeAtlasPos = new Vector2Int(0, 0);
+        private Vector2Int _moveRangeAtlasPos = new(0, 0);
 
         [SerializeField]
-        private Vector2Int _attackRangeAtlasPos = new Vector2Int(1, 0);
+        private Vector2Int _attackRangeAtlasPos = new(1, 0);
 
         [SerializeField]
-        private Vector2Int _healRangeAtlasPos = new Vector2Int(2, 0);
+        private Vector2Int _healRangeAtlasPos = new(2, 0);
 
         [SerializeField]
-        private Vector2Int _dangerZoneAtlasPos = new Vector2Int(0, 1);
+        private Vector2Int _dangerZoneAtlasPos = new(0, 1);
 
         [SerializeField]
-        private Vector2Int _pathPreviewAtlasPos = new Vector2Int(1, 1);
+        private Vector2Int _pathPreviewAtlasPos = new(1, 1);
 
         [Header("Advanced")]
         [SerializeField]
@@ -57,13 +57,6 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
         private Vector4 _healRangeUVParams;
         private Vector4 _dangerZoneUVParams;
         private Vector4 _pathPreviewUVParams;
-
-        private Material _moveRangeMaterial;
-        private Material _attackRangeMaterial;
-        private Material _healRangeMaterial;
-        private Material _dangerZoneMaterial;
-        private Material _pathPreviewMaterial;
-
         private Dictionary<Vector2Int, DecalProjector> _decalCache = new();
         private HashSet<Vector2Int> _activeMoveTiles = new();
         private HashSet<Vector2Int> _activeAttackTiles = new();
@@ -86,14 +79,10 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
             _brain = brain;
             SubscribeToBrainEvents();
             CalculateUVParameters();
-            CreateMaterials();
+            EnsureBaseMaterial();
         }
 
-        private void OnDestroy()
-        {
-            UnsubscribeFromBrainEvents();
-            CleanupMaterials();
-        }
+        private void OnDestroy() => UnsubscribeFromBrainEvents();
 
         #endregion
 
@@ -143,55 +132,10 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
             return new Vector4(tileU, tileV, offsetU, offsetV);
         }
 
-        private OperationResult CreateMaterials()
-        {
-            if (_baseMaterial == null)
-            {
-                return OperationResult.Failure("Base material is not assigned");
-            }
-
-            _moveRangeMaterial = CreateMaterialWithUV(_moveRangeUVParams);
-            _attackRangeMaterial = CreateMaterialWithUV(_attackRangeUVParams);
-            _healRangeMaterial = CreateMaterialWithUV(_healRangeUVParams);
-            _dangerZoneMaterial = CreateMaterialWithUV(_dangerZoneUVParams);
-            _pathPreviewMaterial = CreateMaterialWithUV(_pathPreviewUVParams);
-            return OperationResult.SuccessResult();
-        }
-
-        private Material CreateMaterialWithUV(Vector4 uvParams)
-        {
-            Material mat = new Material(_baseMaterial);
-            mat.SetVector(UV_OFFSET_PROPERTY, uvParams);
-            return mat;
-        }
-
-        private void CleanupMaterials()
-        {
-            if (_moveRangeMaterial != null)
-            {
-                Destroy(_moveRangeMaterial);
-            }
-
-            if (_attackRangeMaterial != null)
-            {
-                Destroy(_attackRangeMaterial);
-            }
-
-            if (_healRangeMaterial != null)
-            {
-                Destroy(_healRangeMaterial);
-            }
-
-            if (_dangerZoneMaterial != null)
-            {
-                Destroy(_dangerZoneMaterial);
-            }
-
-            if (_pathPreviewMaterial != null)
-            {
-                Destroy(_pathPreviewMaterial);
-            }
-        }
+        private OperationResult EnsureBaseMaterial() =>
+            _baseMaterial == null
+                ? OperationResult.Failure("Base material is not assigned")
+                : OperationResult.SuccessResult();
 
         public void Initialize(MapGrid mapGrid)
         {
@@ -249,34 +193,40 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
 
         #region Public API
 
-        public void HighlightMoveTiles(IEnumerable<Vector2Int> tiles)
+        public enum HighlightType
         {
-            ClearMoveTiles();
-            BatchHighlightTiles(tiles, _moveRangeMaterial, _activeMoveTiles);
+            Move,
+            Attack,
+            Heal,
+            Danger,
+            PathPreview,
         }
 
-        public void HighlightAttackTiles(IEnumerable<Vector2Int> tiles)
+        public void HighlightTiles(IEnumerable<Vector2Int> tiles, HighlightType highlightType)
         {
-            ClearAttackTiles();
-            BatchHighlightTiles(tiles, _attackRangeMaterial, _activeAttackTiles);
-        }
-
-        public void HighlightHealTiles(IEnumerable<Vector2Int> tiles)
-        {
-            ClearHealTiles();
-            BatchHighlightTiles(tiles, _healRangeMaterial, _activeHealTiles);
-        }
-
-        public void HighlightDangerTiles(IEnumerable<Vector2Int> tiles)
-        {
-            ClearDangerTiles();
-            BatchHighlightTiles(tiles, _dangerZoneMaterial, _activeDangerTiles);
-        }
-
-        public void HighlightPathPreview(IEnumerable<Vector2Int> tiles)
-        {
-            ClearPathPreview();
-            BatchHighlightTiles(tiles, _pathPreviewMaterial, _activePathTiles);
+            switch (highlightType)
+            {
+                case HighlightType.Move:
+                    ClearMoveTiles();
+                    BatchHighlightTiles(tiles, _moveRangeUVParams, _activeMoveTiles);
+                    break;
+                case HighlightType.Attack:
+                    ClearAttackTiles();
+                    BatchHighlightTiles(tiles, _attackRangeUVParams, _activeAttackTiles);
+                    break;
+                case HighlightType.Heal:
+                    ClearHealTiles();
+                    BatchHighlightTiles(tiles, _healRangeUVParams, _activeHealTiles);
+                    break;
+                case HighlightType.Danger:
+                    ClearDangerTiles();
+                    BatchHighlightTiles(tiles, _dangerZoneUVParams, _activeDangerTiles);
+                    break;
+                case HighlightType.PathPreview:
+                    ClearPathPreview();
+                    BatchHighlightTiles(tiles, _pathPreviewUVParams, _activePathTiles);
+                    break;
+            }
         }
 
         public void ClearMoveTiles() => BatchClearTiles(_activeMoveTiles);
@@ -304,7 +254,7 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
 
         private void BatchHighlightTiles(
             IEnumerable<Vector2Int> tiles,
-            Material material,
+            Vector4 uvParams,
             HashSet<Vector2Int> activeSet
         )
         {
@@ -312,7 +262,7 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
             {
                 if (_decalCache.TryGetValue(tile, out var decal))
                 {
-                    decal.material = material;
+                    ApplyUVToDecal(decal, uvParams);
                     SetDecalActive(decal, true);
                     activeSet.Add(tile);
                 }
@@ -337,6 +287,19 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
             {
                 decal.gameObject.SetActive(active);
             }
+        }
+
+        private void ApplyUVToDecal(DecalProjector decal, Vector4 uvParams)
+        {
+            if (!decal.TryGetComponent<Renderer>(out var renderer))
+            {
+                return;
+            }
+
+            var props = new MaterialPropertyBlock();
+            renderer.GetPropertyBlock(props);
+            props.SetVector(UV_OFFSET_PROPERTY, uvParams);
+            renderer.SetPropertyBlock(props);
         }
 
         #endregion
@@ -367,7 +330,6 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
             if (Application.isPlaying)
             {
                 CalculateUVParameters();
-                CreateMaterials();
             }
         }
 #endif
