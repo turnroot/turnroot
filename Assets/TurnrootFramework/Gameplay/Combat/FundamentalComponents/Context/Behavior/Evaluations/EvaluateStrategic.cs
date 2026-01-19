@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using Turnroot.Characters.Components.Behavior;
 using Turnroot.Utilities;
 using UnityEngine;
-using static MapGridPointFeature;
+using static Turnroot.Gameplay.Maps.MapGridPointFeature;
 
 namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 {
