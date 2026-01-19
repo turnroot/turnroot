@@ -1,46 +1,57 @@
 using UnityEngine;
 
-public enum TrianglePositionEnum
+namespace Turnroot.Gameplay.Objects.Components
 {
-    Top,
-    Left,
-    Right,
-    NotOnTriangle,
-}
-
-[System.Serializable]
-public class TrianglePosition
-{
-    [SerializeField]
-    private TrianglePositionEnum _position;
-
-    public TrianglePositionEnum Position
+    public enum TrianglePositionEnum
     {
-        get => _position;
-        set => _position = value;
+        Top,
+        Left,
+        Right,
+        NotOnTriangle,
     }
 
-    public TrianglePosition(TrianglePositionEnum position)
+    [System.Serializable]
+    public class TrianglePosition
     {
-        _position = position;
+        [SerializeField]
+        private TrianglePositionEnum _position;
+
+        public TrianglePositionEnum Position
+        {
+            get => _position;
+            set => _position = value;
+        }
+
+        public TrianglePosition(TrianglePositionEnum position)
+        {
+            _position = position;
+        }
+
+        public TrianglePosition()
+        {
+            _position = TrianglePositionEnum.Top;
+        }
+
+        public override string ToString() => Position.ToString();
+
+        public bool WinsAgainst(TrianglePosition other) =>
+            (Position == TrianglePositionEnum.Top && other.Position == TrianglePositionEnum.Left)
+            || (
+                Position == TrianglePositionEnum.Left
+                && other.Position == TrianglePositionEnum.Right
+            )
+            || (
+                Position == TrianglePositionEnum.Right && other.Position == TrianglePositionEnum.Top
+            );
+
+        public bool LosesTo(TrianglePosition other) =>
+            (Position == TrianglePositionEnum.Top && other.Position == TrianglePositionEnum.Right)
+            || (Position == TrianglePositionEnum.Left && other.Position == TrianglePositionEnum.Top)
+            || (
+                Position == TrianglePositionEnum.Right
+                && other.Position == TrianglePositionEnum.Left
+            );
+
+        public bool Equals(TrianglePosition other) => Position == other.Position;
     }
-
-    public TrianglePosition()
-    {
-        _position = TrianglePositionEnum.Top;
-    }
-
-    public override string ToString() => Position.ToString();
-
-    public bool WinsAgainst(TrianglePosition other) =>
-        (Position == TrianglePositionEnum.Top && other.Position == TrianglePositionEnum.Left)
-        || (Position == TrianglePositionEnum.Left && other.Position == TrianglePositionEnum.Right)
-        || (Position == TrianglePositionEnum.Right && other.Position == TrianglePositionEnum.Top);
-
-    public bool LosesTo(TrianglePosition other) =>
-        (Position == TrianglePositionEnum.Top && other.Position == TrianglePositionEnum.Right)
-        || (Position == TrianglePositionEnum.Left && other.Position == TrianglePositionEnum.Top)
-        || (Position == TrianglePositionEnum.Right && other.Position == TrianglePositionEnum.Left);
-
-    public bool Equals(TrianglePosition other) => Position == other.Position;
 }

@@ -3,134 +3,141 @@ using System.Collections.Generic;
 using Turnroot.GameSettings;
 using UnityEngine;
 
-/// <summary>
-/// Represents the subtype of an item. Provides dynamic validation based on GameplayGeneralSettings.
-/// </summary>
-[Serializable]
-public class ObjectSubtype
+namespace Turnroot.Gameplay.Objects.Components
 {
-    // Enum values
-    public const string Weapon = "Weapon";
-    public const string Magic = "Magic";
-    public const string Consumable = "Consumable";
-    public const string Equipable = "Equipable";
-    public const string Gift = "Gift";
-    public const string LostItem = "LostItem";
-
-    [SerializeField]
-    private string _value = Weapon;
-
-    public ObjectSubtype() { }
-
-    public ObjectSubtype(string value)
+    /// <summary>
+    /// Represents the subtype of an item. Provides dynamic validation based on GameplayGeneralSettings.
+    /// </summary>
+    [Serializable]
+    public class ObjectSubtype
     {
-        _value = (IsValid(value) && IsEnabled(value)) ? value : Weapon;
-    }
+        // Enum values
+        public const string Weapon = "Weapon";
+        public const string Magic = "Magic";
+        public const string Consumable = "Consumable";
+        public const string Equipable = "Equipable";
+        public const string Gift = "Gift";
+        public const string LostItem = "LostItem";
 
-    public string Value
-    {
-        get => _value;
-        set
+        [SerializeField]
+        private string _value = Weapon;
+
+        public ObjectSubtype() { }
+
+        public ObjectSubtype(string value)
         {
-            if (IsValid(value) && IsEnabled(value))
+            _value = (IsValid(value) && IsEnabled(value)) ? value : Weapon;
+        }
+
+        public string Value
+        {
+            get => _value;
+            set
             {
-                _value = value;
+                if (IsValid(value) && IsEnabled(value))
+                {
+                    _value = value;
+                }
+                else
+                {
+                    Debug.LogWarning(
+                        $"Invalid or disabled ObjectSubtype value: {value}. Using Weapon as default."
+                    );
+                    _value = Weapon;
+                }
+            }
+        }
+
+        // Convenience properties for checking type
+        public bool IsWeapon => _value == Weapon;
+        public bool IsMagic => _value == Magic;
+        public bool IsConsumable => _value == Consumable;
+        public bool IsEquipable => _value == Equipable;
+        public bool IsGift => _value == Gift;
+        public bool IsLostItem => _value == LostItem;
+
+        /// <summary>
+        /// Gets all valid ObjectSubtype values based on current GameplayGeneralSettings.
+        /// </summary>
+        public static string[] GetValidValues()
+        {
+            var values = new List<string> { Weapon, Magic, Consumable, Equipable };
+
+            var settings = GameplayGeneralSettings.Instance;
+            if (settings != null)
+            {
+                if (settings.UseItemsCanBeGifts())
+                {
+                    values.Add(Gift);
+                }
+
+                if (settings.UseItemsCanBeLostItems())
+                {
+                    values.Add(LostItem);
+                }
             }
             else
             {
-                Debug.LogWarning(
-                    $"Invalid or disabled ObjectSubtype value: {value}. Using Weapon as default."
-                );
-                _value = Weapon;
-            }
-        }
-    }
-
-    // Convenience properties for checking type
-    public bool IsWeapon => _value == Weapon;
-    public bool IsMagic => _value == Magic;
-    public bool IsConsumable => _value == Consumable;
-    public bool IsEquipable => _value == Equipable;
-    public bool IsGift => _value == Gift;
-    public bool IsLostItem => _value == LostItem;
-
-    /// <summary>
-    /// Gets all valid ObjectSubtype values based on current GameplayGeneralSettings.
-    /// </summary>
-    public static string[] GetValidValues()
-    {
-        var values = new List<string> { Weapon, Magic, Consumable, Equipable };
-
-        var settings = GameplayGeneralSettings.Instance;
-        if (settings != null)
-        {
-            if (settings.UseItemsCanBeGifts())
-            {
+                // If settings not available, include all types
                 values.Add(Gift);
-            }
-
-            if (settings.UseItemsCanBeLostItems())
-            {
                 values.Add(LostItem);
             }
+
+            return values.ToArray();
         }
-        else
+
+        /// <summary>
+        /// Checks if a value is valid (exists in the defined constants).
+        /// </summary>
+        public static bool IsValid(string value) =>
+            value is Weapon or Magic or Consumable or Equipable or Gift or LostItem;
+
+        /// <summary>
+        /// Checks if a value is enabled based on GameplayGeneralSettings.
+        /// </summary>
+        public static bool IsEnabled(string value)
         {
-            // If settings not available, include all types
-            values.Add(Gift);
-            values.Add(LostItem);
+            if (value is Weapon or Magic or Consumable or Equipable)
+            {
+                return true;
+            }
+
+            var settings = GameplayGeneralSettings.Instance;
+            if (settings == null)
+            {
+                return true; // If no settings, allow all
+            }
+
+            return value == Gift
+                ? settings.UseItemsCanBeGifts()
+                : value == LostItem && settings.UseItemsCanBeLostItems();
         }
 
-        return values.ToArray();
-    }
+        // Implicit conversion to string
+        public static implicit operator string(ObjectSubtype subtype) => subtype._value;
 
-    /// <summary>
-    /// Checks if a value is valid (exists in the defined constants).
-    /// </summary>
-    public static bool IsValid(string value) => value is Weapon or Magic or Consumable or Equipable or Gift or LostItem;
+        // Explicit conversion from string
+        public static explicit operator ObjectSubtype(string value) => new(value);
 
-    /// <summary>
-    /// Checks if a value is enabled based on GameplayGeneralSettings.
-    /// </summary>
-    public static bool IsEnabled(string value)
-    {
-        if (value is Weapon or Magic or Consumable or Equipable)
+        public override string ToString() => _value;
+
+        public override bool Equals(object obj) =>
+            obj is ObjectSubtype other
+                ? _value == other._value
+                : obj is string str && _value == str;
+
+        public override int GetHashCode() => _value.GetHashCode();
+
+        public static bool operator ==(ObjectSubtype a, ObjectSubtype b)
         {
-            return true;
+            return ReferenceEquals(a, b)
+                || (a is not null && b is not null && a._value == b._value);
         }
 
-        var settings = GameplayGeneralSettings.Instance;
-        if (settings == null)
-        {
-            return true; // If no settings, allow all
-        }
+        public static bool operator !=(ObjectSubtype a, ObjectSubtype b) => !(a == b);
 
-        return value == Gift
-            ? settings.UseItemsCanBeGifts()
-            : value == LostItem && settings.UseItemsCanBeLostItems();
+        public static bool operator ==(ObjectSubtype a, string b) => a?._value == b;
+
+        public static bool operator !=(ObjectSubtype a, string b) => a?._value != b;
     }
-
-    // Implicit conversion to string
-    public static implicit operator string(ObjectSubtype subtype) => subtype._value;
-
-    // Explicit conversion from string
-    public static explicit operator ObjectSubtype(string value) => new(value);
-
-    public override string ToString() => _value;
-
-    public override bool Equals(object obj) =>
-        obj is ObjectSubtype other ? _value == other._value : obj is string str && _value == str;
-
-    public override int GetHashCode() => _value.GetHashCode();
-
-    public static bool operator ==(ObjectSubtype a, ObjectSubtype b)
-    {
-        return ReferenceEquals(a, b) || (a is not null && b is not null && a._value == b._value);
-    }
-
-    public static bool operator !=(ObjectSubtype a, ObjectSubtype b) => !(a == b);
-
-    public static bool operator ==(ObjectSubtype a, string b) => a?._value == b;
-
-    public static bool operator !=(ObjectSubtype a, string b) => a?._value != b;
 }

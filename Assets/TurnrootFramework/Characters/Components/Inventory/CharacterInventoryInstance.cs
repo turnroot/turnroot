@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Turnroot.Gameplay.Objects;
+using Turnroot.Gameplay.Objects.Components;
 using Turnroot.GameSettings;
 using Turnroot.Serialization;
 using Turnroot.Utilities;
