@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Turnroot.Characters;
 using Turnroot.Characters.CharacterClass;
 using Turnroot.Characters.Components;
+using Turnroot.Gameplay.Brain.Components;
 using Turnroot.Gameplay.Brain.Events;
 using Turnroot.Utilities;
 using UnityEngine;

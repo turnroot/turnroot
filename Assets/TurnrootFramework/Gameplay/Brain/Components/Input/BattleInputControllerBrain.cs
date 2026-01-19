@@ -117,7 +117,9 @@ namespace Turnroot.Gameplay.Brain
             _brain.OnBattleStarted += HandleBattleStarted;
             _brain.OnBattleCompleted += HandleBattleCompleted;
             _brain.OnPlayerControlledUnitActivated += HandlePlayerUnitActivated;
-            _brain.OnPlayerTurnStateChanged += HandlePlayerTurnStateChanged;
+            _brain.OnPlayerTurnStateChanged += new System.Action<PlayerTurnStates>(
+                HandlePlayerTurnStateChanged
+            );
         }
 
         protected override void UnsubscribeFromBrainEvents()
@@ -130,7 +132,9 @@ namespace Turnroot.Gameplay.Brain
             _brain.OnBattleStarted -= HandleBattleStarted;
             _brain.OnBattleCompleted -= HandleBattleCompleted;
             _brain.OnPlayerControlledUnitActivated -= HandlePlayerUnitActivated;
-            _brain.OnPlayerTurnStateChanged -= HandlePlayerTurnStateChanged;
+            _brain.OnPlayerTurnStateChanged -= new System.Action<PlayerTurnStates>(
+                HandlePlayerTurnStateChanged
+            );
         }
 
         #endregion

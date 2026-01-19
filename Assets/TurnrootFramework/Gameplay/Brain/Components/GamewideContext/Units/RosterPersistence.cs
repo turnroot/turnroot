@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Newtonsoft.Json;
 using Turnroot.Characters;
+using Turnroot.Gameplay.Brain.Components;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain

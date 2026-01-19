@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Turnroot.Characters;
 using Turnroot.Characters.Components;
+using Turnroot.Gameplay.Brain.Components;
 using Turnroot.Utilities;
 using UnityEngine;
 

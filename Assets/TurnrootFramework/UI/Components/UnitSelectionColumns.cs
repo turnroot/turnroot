@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Coffee.UIEffects;
 using TMPro;
 using Turnroot.Gameplay.Brain;
+using Turnroot.Gameplay.Brain.Components;
 using Turnroot.UI.Components.GridMenu;
 using Turnroot.UI.Components.Menu;
 using Turnroot.Utilities;
@@ -65,9 +66,10 @@ namespace Turnroot.UI.Components
                     ?? _brain.gamewideContextBrain.FindInstanceByTemplate(unit.CharacterData);
 
                 var keyForUnit = u + unit.CharacterData.name;
-                var isSelectedForCount = matchedInstance != null
-                    ? matchedInstance.IsSelectedForBattle
-                    : LongTermMemory.RecallBool(keyForUnit);
+                var isSelectedForCount =
+                    matchedInstance != null
+                        ? matchedInstance.IsSelectedForBattle
+                        : LongTermMemory.RecallBool(keyForUnit);
 
                 if (isSelectedForCount)
                 {

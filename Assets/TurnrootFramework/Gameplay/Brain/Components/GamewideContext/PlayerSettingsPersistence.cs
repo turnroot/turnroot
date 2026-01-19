@@ -1,3 +1,4 @@
+using Turnroot.Gameplay.Brain.Components;
 using Turnroot.Gameplay.PlayerSettings;
 using UnityEngine;
 

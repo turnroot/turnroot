@@ -4,6 +4,8 @@ using Turnroot.Characters;
 using Turnroot.Characters.Components;
 using Turnroot.Characters.Components.Support;
 using Turnroot.Conversations;
+using Turnroot.Gameplay.Brain.Components;
+using Turnroot.Gameplay.Brain.Components.Battle;
 using Turnroot.Gameplay.Brain.Segments;
 using Turnroot.Gameplay.Combat;
 using Turnroot.Gameplay.Maps;
