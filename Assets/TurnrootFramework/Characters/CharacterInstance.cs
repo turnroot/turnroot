@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Turnroot.Characters.CharacterClass;
+using Turnroot.Characters.Components;
 using Turnroot.Characters.Components.Support;
 using Turnroot.Characters.Stats;
 using Turnroot.Characters.StatusEffects;

@@ -1,4 +1,3 @@
-using Turnroot.Characters.Subclasses;
 using UnityEditor;
 using UnityEngine;
 
@@ -86,9 +85,6 @@ namespace Turnroot.Characters.Subclasses.Editor
             _ = property.serializedObject.ApplyModifiedProperties();
         }
 
-        public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
-        {
-            return EditorGUIUtility.singleLineHeight;
-        }
+        public override float GetPropertyHeight(SerializedProperty property, GUIContent label) => EditorGUIUtility.singleLineHeight;
     }
 }

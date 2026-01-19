@@ -1,6 +1,5 @@
 using Turnroot.Gameplay.Maps;
 using UnityEditor;
-using UnityEngine;
 
 [CustomEditor(typeof(MapGridPoint))]
 public class MapGridPointEditor : Editor

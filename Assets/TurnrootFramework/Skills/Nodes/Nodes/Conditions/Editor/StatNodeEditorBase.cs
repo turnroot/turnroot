@@ -1,9 +1,7 @@
 #if UNITY_EDITOR
 using Turnroot.Characters;
-using Turnroot.Characters.Stats;
 using Turnroot.Skills.Nodes.Editor;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using XNodeEditor;
@@ -14,15 +12,9 @@ using XNodeEditor;
 /// </summary>
 public abstract class StatNodeEditorBase : NodeEditor
 {
-    public override void OnHeaderGUI()
-    {
-        base.OnHeaderGUI();
-    }
+    public override void OnHeaderGUI() => base.OnHeaderGUI();
 
-    public override int GetWidth()
-    {
-        return 300;
-    }
+    public override int GetWidth() => 300;
 
     public override Color GetTint()
     {

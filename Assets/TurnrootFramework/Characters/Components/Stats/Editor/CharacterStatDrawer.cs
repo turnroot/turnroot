@@ -151,9 +151,6 @@ namespace Turnroot.Characters.Stats.Editor
             EditorGUI.EndProperty();
         }
 
-        public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
-        {
-            return EditorGUIUtility.singleLineHeight * 3 + 6; // Stat type dropdown + progress bar + fields + padding
-        }
+        public override float GetPropertyHeight(SerializedProperty property, GUIContent label) => EditorGUIUtility.singleLineHeight * 3 + 6; // Stat type dropdown + progress bar + fields + padding
     }
 }

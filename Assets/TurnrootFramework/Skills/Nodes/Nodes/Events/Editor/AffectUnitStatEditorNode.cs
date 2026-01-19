@@ -1,7 +1,6 @@
 #if UNITY_EDITOR
 using Turnroot.Skills.Nodes.Events;
 using Turnroot.Skills.Nodes.Events.Editor;
-using XNodeEditor;
 
 /// <summary>
 /// Custom editor for AffectUnitStat nodes.

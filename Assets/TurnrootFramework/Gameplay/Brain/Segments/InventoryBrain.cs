@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Turnroot.Characters;
+using Turnroot.Characters.Components;
 using Turnroot.Gameplay.Brain.Commands;
 using Turnroot.Gameplay.Brain.Events;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;

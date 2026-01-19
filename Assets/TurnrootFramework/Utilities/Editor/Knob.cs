@@ -145,65 +145,29 @@ namespace UnityEditor
                 return currentValue;
             }
 
-            private EventType CurrentEventType()
-            {
-                return CurrentEvent().type;
-            }
+            private EventType CurrentEventType() => CurrentEvent().type;
 
-            private bool IsEmptyKnob()
-            {
-                return start == end;
-            }
+            private bool IsEmptyKnob() => start == end;
 
-            private Event CurrentEvent()
-            {
-                return Event.current;
-            }
+            private Event CurrentEvent() => Event.current;
 
-            private float Clamp(float value)
-            {
-                return Mathf.Clamp(value, MinValue(), MaxValue());
-            }
+            private float Clamp(float value) => Mathf.Clamp(value, MinValue(), MaxValue());
 
-            private float ClampedCurrentValue()
-            {
-                return Clamp(currentValue);
-            }
+            private float ClampedCurrentValue() => Clamp(currentValue);
 
-            private float MaxValue()
-            {
-                return Mathf.Max(start, end);
-            }
+            private float MaxValue() => Mathf.Max(start, end);
 
-            private float MinValue()
-            {
-                return Mathf.Min(start, end);
-            }
+            private float MinValue() => Mathf.Min(start, end);
 
-            private float GetCurrentValuePercent()
-            {
-                return (ClampedCurrentValue() - MinValue()) / (MaxValue() - MinValue());
-            }
+            private float GetCurrentValuePercent() => (ClampedCurrentValue() - MinValue()) / (MaxValue() - MinValue());
 
-            private float MousePosition()
-            {
-                return CurrentEvent().mousePosition.y - position.y;
-            }
+            private float MousePosition() => CurrentEvent().mousePosition.y - position.y;
 
-            private bool WasDoubleClick()
-            {
-                return CurrentEventType() == EventType.MouseDown && CurrentEvent().clickCount == 2;
-            }
+            private bool WasDoubleClick() => CurrentEventType() == EventType.MouseDown && CurrentEvent().clickCount == 2;
 
-            private float ValuesPerPixel()
-            {
-                return kPixelRange / (MaxValue() - MinValue());
-            }
+            private float ValuesPerPixel() => kPixelRange / (MaxValue() - MinValue());
 
-            private KnobState KnobState()
-            {
-                return (KnobState)GUIUtility.GetStateObject(typeof(KnobState), id);
-            }
+            private KnobState KnobState() => (KnobState)GUIUtility.GetStateObject(typeof(KnobState), id);
 
             private void StartDraggingWithValue(float dragStartValue)
             {
@@ -471,10 +435,6 @@ namespace UnityEditor
             Color activeColor,
             GUIStyle knob,
             int id
-        )
-        {
-            ///@TODO Implement
-            return 0f;
-        }
+        ) => 0f;
     }
 }

@@ -1,9 +1,7 @@
 using System;
 using System.Collections.Generic;
-using Turnroot.Skills.Nodes;
 using UnityEditor;
 using UnityEngine;
-using XNode;
 using XNodeEditor;
 
 namespace Turnroot.Skills.Nodes.Editor
@@ -72,10 +70,7 @@ namespace Turnroot.Skills.Nodes.Editor
         /// <summary>
         /// Clear the cached instance to force reload.
         /// </summary>
-        public static void ClearCache()
-        {
-            _instance = null;
-        }
+        public static void ClearCache() => _instance = null;
 
         private void OnValidate()
         {

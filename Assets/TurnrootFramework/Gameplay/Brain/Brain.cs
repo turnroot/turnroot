@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Turnroot.Characters;
+using Turnroot.Characters.Components;
 using Turnroot.Characters.Components.Support;
 using Turnroot.Conversations;
 using Turnroot.Gameplay.Brain.Segments;

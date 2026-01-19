@@ -36,10 +36,7 @@ using System.IO;
 using System.Collections.Generic;
 using System;
 using System.Linq;
-using Turnroot.Characters;
-using Turnroot.Gameplay.Objects;
 using UnityEngine.Events;
-using Turnroot.Gameplay.Combat;
 using Turnroot.Gameplay.Maps;
 
 public class MapGridEditorWindow : EditorWindow
@@ -188,10 +185,7 @@ public class MapGridEditorWindow : EditorWindow
         InitializeHotkeys();
     }
 
-    private void InvalidateColorCache()
-    {
-        _cellColorCache.Clear();
-    }
+    private void InvalidateColorCache() => _cellColorCache.Clear();
 
     private void InitializeHotkeys()
     {

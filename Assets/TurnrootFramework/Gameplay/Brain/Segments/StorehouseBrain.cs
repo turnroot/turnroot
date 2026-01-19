@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Turnroot.Characters.Components;
 using Turnroot.Gameplay.Brain.Events;
 using Turnroot.Gameplay.Objects;
 using Turnroot.GameSettings;

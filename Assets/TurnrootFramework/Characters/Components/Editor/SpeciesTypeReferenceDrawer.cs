@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 using Turnroot.Characters;
-using Turnroot.Utilities;
 
 namespace Turnroot.Editor.PropertyDrawers
 {

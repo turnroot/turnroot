@@ -1,4 +1,5 @@
 using System;
+using Turnroot.Characters.Components;
 using Turnroot.Gameplay.Brain;
 using Turnroot.Gameplay.Objects.Components;
 using Turnroot.Serialization;

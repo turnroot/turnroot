@@ -1,4 +1,3 @@
-using Turnroot.Graphics2D;
 using UnityEditor;
 using UnityEngine;
 
@@ -25,15 +24,9 @@ namespace Turnroot.Graphics2D.Editor
 
         protected virtual void SetImagesToOwner(TOwner owner, TStackedImage[] images) { }
 
-        protected virtual void OnEnable()
-        {
-            Undo.undoRedoPerformed += OnUndoRedo;
-        }
+        protected virtual void OnEnable() => Undo.undoRedoPerformed += OnUndoRedo;
 
-        protected virtual void OnDisable()
-        {
-            Undo.undoRedoPerformed -= OnUndoRedo;
-        }
+        protected virtual void OnDisable() => Undo.undoRedoPerformed -= OnUndoRedo;
 
         private void OnUndoRedo()
         {
