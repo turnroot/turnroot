@@ -5,181 +5,184 @@ using Turnroot.Utilities;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class PopulateMapPrefabEnviromentConditions : MonoBehaviour
+namespace Turnroot.UI.Components
 {
-    private Brain _brain;
-
-    public OperationResult Initialize(BattlePreparationObject preparationObject)
+    public class PopulateMapPrefabEnviromentConditions : MonoBehaviour
     {
-        if (preparationObject == null)
+        private Brain _brain;
+
+        public OperationResult Initialize(BattlePreparationObject preparationObject)
         {
-            return OperationResult.Failure("PreparationObject is null");
-        }
-
-        // Cache brain for accessing UI settings (may be null in some edge cases)
-        _brain = preparationObject.Brain;
-        var gamewideUiSettings = _brain?.uiBrain?.uiSettings;
-        if (gamewideUiSettings == null)
-        {
-            return OperationResult.Failure("UI settings not found on Brain");
-        }
-
-        // Find the child GameObject tagged 'BattleMapEnvironment' and use it directly
-        var uf = new UtilityFunctions();
-        var c = uf.FindChildByTag(this.gameObject, "BattleMapEnvironment");
-        GameObject envRoot = c != null ? c.gameObject : null;
-        if (envRoot == null)
-        {
-            return OperationResult.Failure("BattleMapEnvironment GameObject not found");
-        }
-
-        var timeRow = envRoot.transform.Find("TimeRow");
-        var temperatureRow = envRoot.transform.Find("TemperatureRow");
-        var weatherRow = envRoot.transform.Find("WeatherRow");
-        var specialRow = envRoot.transform.Find("SpecialRow");
-
-        var env =
-            preparationObject.EnvironmentalConditions
-            ?? preparationObject.GetComponentInChildren<Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Environment.EnvironmentalConditions>(
-                true
-            );
-
-        if (env == null)
-        {
-            return OperationResult.Failure(
-                "EnvironmentalConditions not found on the provided PreparationObject"
-            );
-        }
-
-        RowHelpers.ApplyRowOrDisable(
-            timeRow,
-            "Time",
-            "TimeLabel",
-            new[]
+            if (preparationObject == null)
             {
-                (env.IsDawn, gamewideUiSettings.timeDawnImage, "Dawn"),
-                (env.IsSunset, gamewideUiSettings.timeSunsetImage, "Sunset"),
-                (env.IsNight, gamewideUiSettings.timeNightImage, "Night"),
-                (true, gamewideUiSettings.timeDayImage, "Day"),
+                return OperationResult.Failure("PreparationObject is null");
             }
-        );
-        RowHelpers.ApplyRowOrDisable(
-            temperatureRow,
-            "Temperature",
-            "TemperatureLabel",
-            new[]
+
+            // Cache brain for accessing UI settings (may be null in some edge cases)
+            _brain = preparationObject.Brain;
+            var gamewideUiSettings = _brain?.uiBrain?.uiSettings;
+            if (gamewideUiSettings == null)
             {
-                (env.IsVeryCold, gamewideUiSettings.temperatureVeryColdImage, "Very Cold!"),
-                (env.IsVeryHot, gamewideUiSettings.temperatureVeryHotImage, "Very Hot!"),
+                return OperationResult.Failure("UI settings not found on Brain");
             }
-        );
-        RowHelpers.ApplyRowOrDisable(
-            weatherRow,
-            "Weather",
-            "WeatherLabel",
-            new[]
+
+            // Find the child GameObject tagged 'BattleMapEnvironment' and use it directly
+            var uf = new UtilityFunctions();
+            var c = uf.FindChildByTag(this.gameObject, "BattleMapEnvironment");
+            GameObject envRoot = c != null ? c.gameObject : null;
+            if (envRoot == null)
             {
-                (env.IsRaining, gamewideUiSettings.isRainingImage, "Raining"),
-                (env.IsSnowing, gamewideUiSettings.isSnowingImage, "Snowing"),
-                (env.IsFoggy, gamewideUiSettings.isFoggyImage, "Foggy"),
-                (env.IsStormy, gamewideUiSettings.isStormyImage, "Stormy"),
-                (env.IsWindy, gamewideUiSettings.isWindyImage, "Windy"),
-            },
-            gamewideUiSettings.clearImage,
-            "Sunny"
-        );
-        RowHelpers.ApplyRowOrDisable(
-            specialRow,
-            "Special",
-            "SpecialLabel",
-            new[]
-            {
-                (env.IsUnderwater, gamewideUiSettings.isUnderwaterImage, "Underwater"),
-                (env.IsSwampy, gamewideUiSettings.isSwampyImage, "Swampy"),
-                (env.IsUnderground, gamewideUiSettings.isUndergroundImage, "Underground"),
-                (env.IsDesert, gamewideUiSettings.isDesertImage, "Desert"),
-                (env.IsRocky, gamewideUiSettings.isRockyImage, "Rocky"),
-                (env.IsVolcanic, gamewideUiSettings.isVolcanicImage, "Volcanic"),
+                return OperationResult.Failure("BattleMapEnvironment GameObject not found");
             }
-        );
-        return OperationResult.SuccessResult();
-    }
 
-    private static class RowHelpers
-    {
-        public static Image FindImage(Transform t, string childName) =>
-            t.Find(childName)?.GetComponent<Image>();
+            var timeRow = envRoot.transform.Find("TimeRow");
+            var temperatureRow = envRoot.transform.Find("TemperatureRow");
+            var weatherRow = envRoot.transform.Find("WeatherRow");
+            var specialRow = envRoot.transform.Find("SpecialRow");
 
-        public static TextMeshProUGUI FindLabel(Transform t, string childName) =>
-            t.Find(childName)?.GetComponent<TextMeshProUGUI>();
+            var env =
+                preparationObject.EnvironmentalConditions
+                ?? preparationObject.GetComponentInChildren<Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Environment.EnvironmentalConditions>(
+                    true
+                );
 
-        public static (Sprite sprite, string label) FirstMatch(
-            params (bool cond, Sprite sprite, string label)[] opts
-        )
-        {
-            foreach (var o in opts)
+            if (env == null)
             {
-                if (o.cond)
+                return OperationResult.Failure(
+                    "EnvironmentalConditions not found on the provided PreparationObject"
+                );
+            }
+
+            RowHelpers.ApplyRowOrDisable(
+                timeRow,
+                "Time",
+                "TimeLabel",
+                new[]
                 {
-                    return (o.sprite, o.label);
+                    (env.IsDawn, gamewideUiSettings.timeDawnImage, "Dawn"),
+                    (env.IsSunset, gamewideUiSettings.timeSunsetImage, "Sunset"),
+                    (env.IsNight, gamewideUiSettings.timeNightImage, "Night"),
+                    (true, gamewideUiSettings.timeDayImage, "Day"),
                 }
-            }
-            return (null, null);
+            );
+            RowHelpers.ApplyRowOrDisable(
+                temperatureRow,
+                "Temperature",
+                "TemperatureLabel",
+                new[]
+                {
+                    (env.IsVeryCold, gamewideUiSettings.temperatureVeryColdImage, "Very Cold!"),
+                    (env.IsVeryHot, gamewideUiSettings.temperatureVeryHotImage, "Very Hot!"),
+                }
+            );
+            RowHelpers.ApplyRowOrDisable(
+                weatherRow,
+                "Weather",
+                "WeatherLabel",
+                new[]
+                {
+                    (env.IsRaining, gamewideUiSettings.isRainingImage, "Raining"),
+                    (env.IsSnowing, gamewideUiSettings.isSnowingImage, "Snowing"),
+                    (env.IsFoggy, gamewideUiSettings.isFoggyImage, "Foggy"),
+                    (env.IsStormy, gamewideUiSettings.isStormyImage, "Stormy"),
+                    (env.IsWindy, gamewideUiSettings.isWindyImage, "Windy"),
+                },
+                gamewideUiSettings.clearImage,
+                "Sunny"
+            );
+            RowHelpers.ApplyRowOrDisable(
+                specialRow,
+                "Special",
+                "SpecialLabel",
+                new[]
+                {
+                    (env.IsUnderwater, gamewideUiSettings.isUnderwaterImage, "Underwater"),
+                    (env.IsSwampy, gamewideUiSettings.isSwampyImage, "Swampy"),
+                    (env.IsUnderground, gamewideUiSettings.isUndergroundImage, "Underground"),
+                    (env.IsDesert, gamewideUiSettings.isDesertImage, "Desert"),
+                    (env.IsRocky, gamewideUiSettings.isRockyImage, "Rocky"),
+                    (env.IsVolcanic, gamewideUiSettings.isVolcanicImage, "Volcanic"),
+                }
+            );
+            return OperationResult.SuccessResult();
         }
 
-        public static void ApplyRowOrDisable(
-            Transform row,
-            string imageChild,
-            string labelChild,
-            (bool cond, Sprite sprite, string label)[] opts,
-            Sprite defaultSprite = null,
-            string defaultLabel = null
-        )
+        private static class RowHelpers
         {
-            if (row == null)
-            {
-                return;
-            }
+            public static Image FindImage(Transform t, string childName) =>
+                t.Find(childName)?.GetComponent<Image>();
 
-            var (sprite, label) = FirstMatch(opts);
-            var img = FindImage(row, imageChild);
-            var lbl = FindLabel(row, labelChild);
+            public static TextMeshProUGUI FindLabel(Transform t, string childName) =>
+                t.Find(childName)?.GetComponent<TextMeshProUGUI>();
 
-            if (
-                sprite == null
-                && string.IsNullOrEmpty(label)
-                && defaultSprite == null
-                && string.IsNullOrEmpty(defaultLabel)
+            public static (Sprite sprite, string label) FirstMatch(
+                params (bool cond, Sprite sprite, string label)[] opts
             )
             {
-                row.gameObject.SetActive(false);
-                return;
-            }
-
-            if (sprite == null)
-            {
-                sprite = defaultSprite;
-            }
-
-            label ??= defaultLabel;
-
-            // Ensure the row is active when we have something to show
-            if (sprite != null || label != null)
-            {
-                if (!row.gameObject.activeSelf)
+                foreach (var o in opts)
                 {
-                    row.gameObject.SetActive(true);
+                    if (o.cond)
+                    {
+                        return (o.sprite, o.label);
+                    }
                 }
+                return (null, null);
             }
 
-            if (img != null && sprite != null)
+            public static void ApplyRowOrDisable(
+                Transform row,
+                string imageChild,
+                string labelChild,
+                (bool cond, Sprite sprite, string label)[] opts,
+                Sprite defaultSprite = null,
+                string defaultLabel = null
+            )
             {
-                img.sprite = sprite;
-            }
+                if (row == null)
+                {
+                    return;
+                }
 
-            if (lbl != null && label != null)
-            {
-                lbl.text = label;
+                var (sprite, label) = FirstMatch(opts);
+                var img = FindImage(row, imageChild);
+                var lbl = FindLabel(row, labelChild);
+
+                if (
+                    sprite == null
+                    && string.IsNullOrEmpty(label)
+                    && defaultSprite == null
+                    && string.IsNullOrEmpty(defaultLabel)
+                )
+                {
+                    row.gameObject.SetActive(false);
+                    return;
+                }
+
+                if (sprite == null)
+                {
+                    sprite = defaultSprite;
+                }
+
+                label ??= defaultLabel;
+
+                // Ensure the row is active when we have something to show
+                if (sprite != null || label != null)
+                {
+                    if (!row.gameObject.activeSelf)
+                    {
+                        row.gameObject.SetActive(true);
+                    }
+                }
+
+                if (img != null && sprite != null)
+                {
+                    img.sprite = sprite;
+                }
+
+                if (lbl != null && label != null)
+                {
+                    lbl.text = label;
+                }
             }
         }
     }

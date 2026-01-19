@@ -1,18 +1,22 @@
 #if UNITY_EDITOR
+using Turnroot.UI;
 using UnityEditor;
 using UnityEngine;
 
-[CustomEditor(typeof(Turnroot.GameSettings.GamewideUiSettings))]
-public class GamewideUiSettingsEditor : Editor
+namespace Turnroot.GameSettings
 {
-    public override void OnInspectorGUI()
+    [CustomEditor(typeof(GamewideUiSettings))]
+    public class GamewideUiSettingsEditor : UnityEditor.Editor
     {
-        DrawDefaultInspector();
-
-        GUILayout.Space(8);
-        if (GUILayout.Button("Apply Menu Button Spacing"))
+        public override void OnInspectorGUI()
         {
-            UiTools.ApplyMenuButtonSpacing();
+            DrawDefaultInspector();
+
+            GUILayout.Space(8);
+            if (GUILayout.Button("Apply Menu Button Spacing"))
+            {
+                UiTools.ApplyMenuButtonSpacing();
+            }
         }
     }
 }

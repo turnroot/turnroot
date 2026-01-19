@@ -1,17 +1,26 @@
 using Turnroot.Gameplay.Combat.PreBattle;
+using Turnroot.Utilities;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class PopulateBattleMapPreview : MonoBehaviour
+namespace Turnroot.UI.Components
 {
-    public Image BattleMapImage;
-
-    public void Initialize(BattlePreparationObject battlePreparationObject)
+    public class PopulateBattleMapPreview : MonoBehaviour
     {
-        var mapGrid = battlePreparationObject.MapGrid;
-        if (mapGrid != null && BattleMapImage != null)
+        public Image BattleMapImage;
+
+        public OperationResult Initialize(BattlePreparationObject battlePreparationObject)
         {
-            BattleMapImage.sprite = mapGrid.StandardMapImage;
+            var mapGrid = battlePreparationObject.MapGrid;
+            if (mapGrid != null && BattleMapImage != null)
+            {
+                BattleMapImage.sprite = mapGrid.StandardMapImage;
+            }
+            else
+            {
+                return OperationResult.Failure("Invalid parameters for PopulateBattleMapPreview");
+            }
+            return OperationResult.SuccessResult();
         }
     }
 }

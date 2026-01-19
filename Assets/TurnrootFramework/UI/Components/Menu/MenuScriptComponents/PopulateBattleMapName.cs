@@ -1,12 +1,13 @@
 using TMPro;
 using Turnroot.Gameplay.Combat.PreBattle;
+using Turnroot.Utilities;
 using UnityEngine;
 
 public class PopulateBattleMapName : MonoBehaviour
 {
     public TextMeshProUGUI[] BattleMapNameObjects;
 
-    public void Initialize(BattlePreparationObject battlePreparationObject)
+    public OperationResult Initialize(BattlePreparationObject battlePreparationObject)
     {
         var mapGrid = battlePreparationObject.MapGrid;
         if (mapGrid != null && BattleMapNameObjects != null)
@@ -16,5 +17,10 @@ public class PopulateBattleMapName : MonoBehaviour
                 textObj.text = mapGrid.MapName;
             }
         }
+        else
+        {
+            return OperationResult.Failure("Invalid parameters for PopulateBattleMapName");
+        }
+        return OperationResult.SuccessResult();
     }
 }
