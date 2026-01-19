@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Turnroot.Serialization;
+using Turnroot.Skills;
 using Turnroot.Utilities;
 using UnityEngine;
 
@@ -281,9 +282,9 @@ namespace Turnroot.Characters.CharacterClass
             return !_res_isAbove.Success
                 ? false
                 : StatApplicationHelper.IsAboveUnboundedCaps(
-                _classData.Stats.UnboundedStatCaps,
-                character
-            );
+                    _classData.Stats.UnboundedStatCaps,
+                    character
+                );
         }
 
         #endregion

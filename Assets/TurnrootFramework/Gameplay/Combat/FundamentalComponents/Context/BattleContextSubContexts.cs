@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Turnroot.Characters;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Locations;
+using Turnroot.Skills;
 using Turnroot.Skills.Nodes;
 
 namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
