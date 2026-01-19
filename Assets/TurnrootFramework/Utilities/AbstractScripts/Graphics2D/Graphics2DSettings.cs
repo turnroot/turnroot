@@ -1,5 +1,6 @@
 using DG.Tweening;
 using NaughtyAttributes;
+using Turnroot.Utilities.AbstractScripts;
 using UnityEngine;
 
 namespace Turnroot.AbstractScripts.Graphics2D

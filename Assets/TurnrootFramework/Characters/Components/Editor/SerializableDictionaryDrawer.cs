@@ -1,3 +1,4 @@
+using Turnroot.Utilities.AbstractScripts;
 using UnityEditor;
 using UnityEngine;
 
@@ -63,7 +64,7 @@ namespace Turnroot.Characters.Configuration.Editor
                         keyProp.objectReferenceValue = EditorGUI.ObjectField(
                             keyRect,
                             keyProp.objectReferenceValue,
-                            typeof(UnityEngine.Object),
+                            typeof(Object),
                             false
                         );
                     }

@@ -1,3 +1,4 @@
+using Turnroot.Utilities.AbstractScripts;
 using UnityEngine;
 
 namespace Turnroot.Characters

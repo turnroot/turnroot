@@ -488,13 +488,13 @@ namespace Turnroot.Skills.Nodes
         {
             if (context?.Brain == null)
             {
-                throw new System.InvalidOperationException(
+                throw new InvalidOperationException(
                     $"{GetType().Name}: BattleContext with Brain is required for combat operations."
                 );
             }
             if (context.Unit.UnitInstance == null)
             {
-                throw new System.InvalidOperationException(
+                throw new InvalidOperationException(
                     $"{GetType().Name}: Battlecontext.Unit.UnitInstance must be set for combat operations."
                 );
             }

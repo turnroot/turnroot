@@ -1,4 +1,3 @@
-using Turnroot.Gameplay.Brain;
 using Turnroot.UI.Components;
 using Turnroot.UI.Components.GridMenu;
 using UnityEngine;
@@ -6,7 +5,7 @@ using UnityEngine;
 using Coffee.UIEffects;
 #endif
 
-namespace TurnrootFramework.Gameplay.Brain.Segments
+namespace Turnroot.Gameplay.Brain.Segments
 {
     public partial class UiBrain : BrainComponent
     {
@@ -48,7 +47,7 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             item.IsSelectedForBattle = willSelect;
             item.CharacterInstanceData.IsSelectedForBattle = willSelect;
 
-            var uf = new Turnroot.Utilities.UtilityFunctions();
+            var uf = new Utilities.UtilityFunctions();
             var selectedT = uf.FindChildByTag(unitCell, "UnitCellSelected");
             if (selectedT != null)
             {

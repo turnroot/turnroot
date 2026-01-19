@@ -2,100 +2,104 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-/// <summary>
-/// Serializable dictionary for Unity Inspector
-/// </summary>
-[Serializable]
-public class SerializableDictionary<TKey, TValue>
+namespace Turnroot.Utilities.AbstractScripts
 {
-    [SerializeField]
-    private List<TKey> _keys = new();
-
-    [SerializeField, SerializeReference]
-    private List<TValue> _values = new();
-
-    private Dictionary<TKey, TValue> _dictionary;
-
-    public Dictionary<TKey, TValue> Dictionary
+    /// <summary>
+    /// Serializable dictionary for Unity Inspector
+    /// </summary>
+    [Serializable]
+    public class SerializableDictionary<TKey, TValue>
     {
-        get
+        [SerializeField]
+        private List<TKey> _keys = new();
+
+        [SerializeField, SerializeReference]
+        private List<TValue> _values = new();
+
+        private Dictionary<TKey, TValue> _dictionary;
+
+        public Dictionary<TKey, TValue> Dictionary
         {
-            if (_dictionary == null)
+            get
             {
-                _dictionary = new Dictionary<TKey, TValue>();
-                for (int i = 0; i < Mathf.Min(_keys.Count, _values.Count); i++)
+                if (_dictionary == null)
                 {
-                    if (!_dictionary.ContainsKey(_keys[i]))
+                    _dictionary = new Dictionary<TKey, TValue>();
+                    for (int i = 0; i < Mathf.Min(_keys.Count, _values.Count); i++)
                     {
-                        _dictionary[_keys[i]] = _values[i];
+                        if (!_dictionary.ContainsKey(_keys[i]))
+                        {
+                            _dictionary[_keys[i]] = _values[i];
+                        }
                     }
                 }
+                return _dictionary;
             }
-            return _dictionary;
         }
-    }
 
-    public TValue this[TKey key]
-    {
-        get => Dictionary.TryGetValue(key, out var value) ? value : default;
-        set
+        public TValue this[TKey key]
         {
-            if (Dictionary.TryGetValue(key, out _))
+            get => Dictionary.TryGetValue(key, out var value) ? value : default;
+            set
             {
-                Dictionary[key] = value;
-                int index = _keys.IndexOf(key);
-                if (index >= 0)
+                if (Dictionary.TryGetValue(key, out _))
                 {
-                    _values[index] = value;
+                    Dictionary[key] = value;
+                    int index = _keys.IndexOf(key);
+                    if (index >= 0)
+                    {
+                        _values[index] = value;
+                    }
+                }
+                else
+                {
+                    Dictionary[key] = value;
+                    _keys.Add(key);
+                    _values.Add(value);
                 }
             }
-            else
+        }
+
+        public bool ContainsKey(TKey key) => Dictionary.ContainsKey(key);
+
+        public bool TryGetValue(TKey key, out TValue value) =>
+            Dictionary.TryGetValue(key, out value);
+
+        public void Add(TKey key, TValue value)
+        {
+            if (!Dictionary.TryGetValue(key, out _))
             {
                 Dictionary[key] = value;
                 _keys.Add(key);
                 _values.Add(value);
             }
         }
-    }
 
-    public bool ContainsKey(TKey key) => Dictionary.ContainsKey(key);
-
-    public bool TryGetValue(TKey key, out TValue value) => Dictionary.TryGetValue(key, out value);
-
-    public void Add(TKey key, TValue value)
-    {
-        if (!Dictionary.TryGetValue(key, out _))
+        public bool Remove(TKey key)
         {
-            Dictionary[key] = value;
-            _keys.Add(key);
-            _values.Add(value);
-        }
-    }
-
-    public bool Remove(TKey key)
-    {
-        if (Dictionary.TryGetValue(key, out _))
-        {
-            int index = _keys.IndexOf(key);
-            if (index >= 0)
+            if (Dictionary.TryGetValue(key, out _))
             {
-                _keys.RemoveAt(index);
-                _values.RemoveAt(index);
+                int index = _keys.IndexOf(key);
+                if (index >= 0)
+                {
+                    _keys.RemoveAt(index);
+                    _values.RemoveAt(index);
+                }
+                return Dictionary.Remove(key);
             }
-            return Dictionary.Remove(key);
+            return false;
         }
-        return false;
+
+        public void Clear()
+        {
+            _dictionary?.Clear();
+            _keys.Clear();
+            _values.Clear();
+        }
+
+        public int Count => _keys.Count;
+
+        public IEnumerable<TKey> Keys => _keys;
+        public IEnumerable<TValue> Values => _values;
     }
-
-    public void Clear()
-    {
-        _dictionary?.Clear();
-        _keys.Clear();
-        _values.Clear();
-    }
-
-    public int Count => _keys.Count;
-
-    public IEnumerable<TKey> Keys => _keys;
-    public IEnumerable<TValue> Values => _values;
 }

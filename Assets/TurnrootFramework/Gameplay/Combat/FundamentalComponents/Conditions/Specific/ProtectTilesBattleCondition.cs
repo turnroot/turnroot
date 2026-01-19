@@ -2,44 +2,47 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-/// <summary>
-/// Condition to protect specific tiles from being captured or lost.
-/// </summary>
-[Serializable]
-public class ProtectTilesBattleCondition : BattleCondition
+namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 {
-    [SerializeField]
-    public Vector2Int[] TilesToProtect;
-
-    [SerializeField]
-    public int MustProtectCount = 0;
-
-    public ProtectTilesBattleCondition(
-        string name,
-        string description,
-        Vector2Int[] tilesToProtect,
-        int mustProtectCount = 0
-    )
-        : base(name, description)
+    /// <summary>
+    /// Condition to protect specific tiles from being captured or lost.
+    /// </summary>
+    [Serializable]
+    public class ProtectTilesBattleCondition : BattleCondition
     {
-        TilesToProtect = tilesToProtect ?? Array.Empty<Vector2Int>();
-        MustProtectCount = mustProtectCount;
-    }
+        [SerializeField]
+        public Vector2Int[] TilesToProtect;
 
-    public ProtectTilesBattleCondition()
-        : base("Protect Tiles", "Protect the listed tiles")
-    {
-        TilesToProtect = Array.Empty<Vector2Int>();
-    }
+        [SerializeField]
+        public int MustProtectCount = 0;
 
-    public void CheckCondition(Dictionary<Vector2Int, bool> tileStatus)
-    {
-        foreach (var tile in TilesToProtect)
+        public ProtectTilesBattleCondition(
+            string name,
+            string description,
+            Vector2Int[] tilesToProtect,
+            int mustProtectCount = 0
+        )
+            : base(name, description)
         {
-            // Use TryGetValue to avoid double lookup
-            if (tileStatus.TryGetValue(tile, out var isProtected) && isProtected == false)
+            TilesToProtect = tilesToProtect ?? Array.Empty<Vector2Int>();
+            MustProtectCount = mustProtectCount;
+        }
+
+        public ProtectTilesBattleCondition()
+            : base("Protect Tiles", "Protect the listed tiles")
+        {
+            TilesToProtect = Array.Empty<Vector2Int>();
+        }
+
+        public void CheckCondition(Dictionary<Vector2Int, bool> tileStatus)
+        {
+            foreach (var tile in TilesToProtect)
             {
-                ConditionFailed();
+                // Use TryGetValue to avoid double lookup
+                if (tileStatus.TryGetValue(tile, out var isProtected) && isProtected == false)
+                {
+                    ConditionFailed();
+                }
             }
         }
     }

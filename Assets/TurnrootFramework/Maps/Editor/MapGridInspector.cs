@@ -3,218 +3,226 @@ using System.Reflection;
 using UnityEditor;
 using UnityEngine;
 
-[CustomEditor(typeof(MapGrid))]
-public class MapGridInspector : Editor
+namespace Turnroot.Gameplay.Maps
 {
-    private string _filterRow = string.Empty;
-    private string _filterCol = string.Empty;
-
-    public override void OnInspectorGUI()
+    [CustomEditor(typeof(MapGrid))]
+    public class MapGridInspector : UnityEditor.Editor
     {
-        serializedObject.Update();
+        private string _filterRow = string.Empty;
+        private string _filterCol = string.Empty;
 
-        // Draw everything except the two raycast arrays so we can place our filter UI above them
-        DrawPropertiesExcluding(
-            serializedObject,
-            "_single3dHeightMeshRaycastPoints",
-            "_single3dHeightMeshRaycastIndices"
-        );
-
-        EditorGUILayout.Space();
-        EditorGUILayout.LabelField("Filter Point", EditorStyles.boldLabel);
-        EditorGUILayout.BeginVertical();
-        _filterRow = EditorGUILayout.TextField("Row", _filterRow, new GUILayoutOption[] { });
-        _filterCol = EditorGUILayout.TextField("Col", _filterCol, new GUILayoutOption[] { });
-        EditorGUILayout.EndVertical();
-
-        var mg = target as MapGrid;
-        Vector3[] points = null;
-        Vector2Int[] indices = null;
-        if (mg != null)
+        public override void OnInspectorGUI()
         {
-            var t = mg.GetType();
-            var fiPoints = t.GetField(
+            serializedObject.Update();
+
+            // Draw everything except the two raycast arrays so we can place our filter UI above them
+            DrawPropertiesExcluding(
+                serializedObject,
                 "_single3dHeightMeshRaycastPoints",
-                BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public
+                "_single3dHeightMeshRaycastIndices"
             );
-            var fiIndices = t.GetField(
-                "_single3dHeightMeshRaycastIndices",
-                BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public
-            );
-            points = fiPoints?.GetValue(mg) as Vector3[];
-            indices = fiIndices?.GetValue(mg) as Vector2Int[];
-        }
 
-        bool hasFilter = !string.IsNullOrEmpty(_filterRow) || !string.IsNullOrEmpty(_filterCol);
-        if (hasFilter && indices != null && points != null)
-        {
-            int parsedRow;
-            int parsedCol;
-            bool haveRow = int.TryParse(_filterRow, out parsedRow);
-            bool haveCol = int.TryParse(_filterCol, out parsedCol);
+            EditorGUILayout.Space();
+            EditorGUILayout.LabelField("Filter Point", EditorStyles.boldLabel);
+            EditorGUILayout.BeginVertical();
+            _filterRow = EditorGUILayout.TextField("Row", _filterRow, new GUILayoutOption[] { });
+            _filterCol = EditorGUILayout.TextField("Col", _filterCol, new GUILayoutOption[] { });
+            EditorGUILayout.EndVertical();
 
-            int found = -1;
-            for (int i = 0; i < indices.Length; i++)
+            var mg = target as MapGrid;
+            Vector3[] points = null;
+            Vector2Int[] indices = null;
+            if (mg != null)
             {
-                bool rowMatches = !haveRow || indices[i].x == parsedRow;
-                bool colMatches = !haveCol || indices[i].y == parsedCol;
-                if (rowMatches && colMatches)
-                {
-                    found = i;
-                    break;
-                }
+                var t = mg.GetType();
+                var fiPoints = t.GetField(
+                    "_single3dHeightMeshRaycastPoints",
+                    BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public
+                );
+                var fiIndices = t.GetField(
+                    "_single3dHeightMeshRaycastIndices",
+                    BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public
+                );
+                points = fiPoints?.GetValue(mg) as Vector3[];
+                indices = fiIndices?.GetValue(mg) as Vector2Int[];
             }
 
-            if (found >= 0)
+            bool hasFilter = !string.IsNullOrEmpty(_filterRow) || !string.IsNullOrEmpty(_filterCol);
+            if (hasFilter && indices != null && points != null)
             {
-                EditorGUILayout.Space();
-                EditorGUILayout.LabelField("Matched Raycast Point", EditorStyles.helpBox);
+                int parsedRow;
+                int parsedCol;
+                bool haveRow = int.TryParse(_filterRow, out parsedRow);
+                bool haveCol = int.TryParse(_filterCol, out parsedCol);
 
-                EditorGUILayout.LabelField("Element Number", found.ToString());
-                if (indices != null && found >= 0 && found < indices.Length)
+                int found = -1;
+                for (int i = 0; i < indices.Length; i++)
                 {
-                    var idx = indices[found];
-                    EditorGUILayout.LabelField("Index (row,col)", $"{idx.x},{idx.y}");
-                    string pointName = "(unknown)";
-                    if (mg != null)
+                    bool rowMatches = !haveRow || indices[i].x == parsedRow;
+                    bool colMatches = !haveCol || indices[i].y == parsedCol;
+                    if (rowMatches && colMatches)
                     {
-                        var mgp = mg.GetGridPoint(idx.x, idx.y);
-                        if (mgp != null && mgp.gameObject != null)
-                        {
-                            pointName = mgp.gameObject.name;
-                        }
-                        else
-                        {
-                            pointName = $"Point_R{idx.x}_C{idx.y}";
-                        }
+                        found = i;
+                        break;
                     }
-                    EditorGUILayout.LabelField("Point Name", pointName);
                 }
 
-                var pointsPropEditable = serializedObject.FindProperty(
-                    "_single3dHeightMeshRaycastPoints"
-                );
-                if (
-                    pointsPropEditable != null
-                    && found >= 0
-                    && found < pointsPropEditable.arraySize
-                )
+                if (found >= 0)
                 {
-                    var elem = pointsPropEditable.GetArrayElementAtIndex(found);
-                    EditorGUI.BeginChangeCheck();
-                    Vector3 newVal = EditorGUILayout.Vector3Field("Point", elem.vector3Value);
-                    if (EditorGUI.EndChangeCheck())
+                    EditorGUILayout.Space();
+                    EditorGUILayout.LabelField("Matched Raycast Point", EditorStyles.helpBox);
+
+                    EditorGUILayout.LabelField("Element Number", found.ToString());
+                    if (indices != null && found >= 0 && found < indices.Length)
                     {
+                        var idx = indices[found];
+                        EditorGUILayout.LabelField("Index (row,col)", $"{idx.x},{idx.y}");
+                        string pointName = "(unknown)";
                         if (mg != null)
+                        {
+                            var mgp = mg.GetGridPoint(idx.x, idx.y);
+                            if (mgp != null && mgp.gameObject != null)
+                            {
+                                pointName = mgp.gameObject.name;
+                            }
+                            else
+                            {
+                                pointName = $"Point_R{idx.x}_C{idx.y}";
+                            }
+                        }
+                        EditorGUILayout.LabelField("Point Name", pointName);
+                    }
+
+                    var pointsPropEditable = serializedObject.FindProperty(
+                        "_single3dHeightMeshRaycastPoints"
+                    );
+                    if (
+                        pointsPropEditable != null
+                        && found >= 0
+                        && found < pointsPropEditable.arraySize
+                    )
+                    {
+                        var elem = pointsPropEditable.GetArrayElementAtIndex(found);
+                        EditorGUI.BeginChangeCheck();
+                        Vector3 newVal = EditorGUILayout.Vector3Field("Point", elem.vector3Value);
+                        if (EditorGUI.EndChangeCheck())
+                        {
+                            if (mg != null)
+                            {
+                                Undo.RecordObject(mg, "Edit Raycast Point");
+                            }
+
+                            elem.vector3Value = newVal;
+                            serializedObject.ApplyModifiedProperties();
+                            if (mg != null)
+                            {
+                                EditorUtility.SetDirty(mg);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        EditorGUI.BeginChangeCheck();
+                        Vector3 newVal = EditorGUILayout.Vector3Field("Point", points[found]);
+                        if (EditorGUI.EndChangeCheck() && mg != null)
                         {
                             Undo.RecordObject(mg, "Edit Raycast Point");
-                        }
-
-                        elem.vector3Value = newVal;
-                        serializedObject.ApplyModifiedProperties();
-                        if (mg != null)
-                        {
+                            points[found] = newVal;
+                            var fiPoints = mg.GetType()
+                                .GetField(
+                                    "_single3dHeightMeshRaycastPoints",
+                                    BindingFlags.Instance
+                                        | BindingFlags.NonPublic
+                                        | BindingFlags.Public
+                                );
+                            fiPoints?.SetValue(mg, points);
                             EditorUtility.SetDirty(mg);
                         }
                     }
                 }
                 else
                 {
-                    EditorGUI.BeginChangeCheck();
-                    Vector3 newVal = EditorGUILayout.Vector3Field("Point", points[found]);
-                    if (EditorGUI.EndChangeCheck() && mg != null)
-                    {
-                        Undo.RecordObject(mg, "Edit Raycast Point");
-                        points[found] = newVal;
-                        var fiPoints = mg.GetType()
-                            .GetField(
-                                "_single3dHeightMeshRaycastPoints",
-                                BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public
-                            );
-                        fiPoints?.SetValue(mg, points);
-                        EditorUtility.SetDirty(mg);
-                    }
+                    EditorGUILayout.HelpBox(
+                        "No matching raycast point/index found.",
+                        MessageType.Info
+                    );
                 }
             }
-            else
-            {
-                EditorGUILayout.HelpBox("No matching raycast point/index found.", MessageType.Info);
-            }
-        }
-        serializedObject.ApplyModifiedProperties();
+            serializedObject.ApplyModifiedProperties();
 
-        if (GUILayout.Button("Create Grid Points"))
-        {
-            if (mg != null)
+            if (GUILayout.Button("Create Grid Points"))
             {
-                Undo.RecordObject(mg, "Create Grid Points");
-                mg.CreateChildrenPoints();
-                EditorUtility.SetDirty(mg);
+                if (mg != null)
+                {
+                    Undo.RecordObject(mg, "Create Grid Points");
+                    mg.CreateChildrenPoints();
+                    EditorUtility.SetDirty(mg);
+                }
             }
-        }
 
-        EditorGUILayout.BeginHorizontal();
-        if (GUILayout.Button("Add Row"))
-        {
-            if (mg != null)
+            EditorGUILayout.BeginHorizontal();
+            if (GUILayout.Button("Add Row"))
             {
-                Undo.RecordObject(mg, "Add Row");
-                mg.AddRow();
-                EditorUtility.SetDirty(mg);
+                if (mg != null)
+                {
+                    Undo.RecordObject(mg, "Add Row");
+                    mg.AddRow();
+                    EditorUtility.SetDirty(mg);
+                }
             }
-        }
 
-        if (GUILayout.Button("Add Column"))
-        {
-            if (mg != null)
+            if (GUILayout.Button("Add Column"))
             {
-                Undo.RecordObject(mg, "Add Column");
-                mg.AddColumn();
-                EditorUtility.SetDirty(mg);
+                if (mg != null)
+                {
+                    Undo.RecordObject(mg, "Add Column");
+                    mg.AddColumn();
+                    EditorUtility.SetDirty(mg);
+                }
             }
-        }
-        EditorGUILayout.EndHorizontal();
+            EditorGUILayout.EndHorizontal();
 
-        EditorGUILayout.BeginHorizontal();
-        if (GUILayout.Button("Remove Row"))
-        {
-            if (mg != null)
+            EditorGUILayout.BeginHorizontal();
+            if (GUILayout.Button("Remove Row"))
             {
-                Undo.RecordObject(mg, "Remove Row");
-                mg.RemoveRow();
-                EditorUtility.SetDirty(mg);
+                if (mg != null)
+                {
+                    Undo.RecordObject(mg, "Remove Row");
+                    mg.RemoveRow();
+                    EditorUtility.SetDirty(mg);
+                }
             }
-        }
 
-        if (GUILayout.Button("Remove Column"))
-        {
-            if (mg != null)
+            if (GUILayout.Button("Remove Column"))
             {
-                Undo.RecordObject(mg, "Remove Column");
-                mg.RemoveColumn();
-                EditorUtility.SetDirty(mg);
+                if (mg != null)
+                {
+                    Undo.RecordObject(mg, "Remove Column");
+                    mg.RemoveColumn();
+                    EditorUtility.SetDirty(mg);
+                }
             }
-        }
-        EditorGUILayout.EndHorizontal();
+            EditorGUILayout.EndHorizontal();
 
-        if (GUILayout.Button("Connect to 3D Map Height"))
-        {
-            if (mg != null)
+            if (GUILayout.Button("Connect to 3D Map Height"))
             {
-                Undo.RecordObject(mg, "Connect to 3D Map Height");
-                mg.ConnectTo3DMapObject();
-                EditorUtility.SetDirty(mg);
+                if (mg != null)
+                {
+                    Undo.RecordObject(mg, "Connect to 3D Map Height");
+                    mg.ConnectTo3DMapObject();
+                    EditorUtility.SetDirty(mg);
+                }
             }
-        }
 
-        // Render Map Images button (added so this appears in the custom inspector)
-        if (GUILayout.Button("Render Map Images"))
-        {
-            if (mg != null)
+            // Render Map Images button (added so this appears in the custom inspector)
+            if (GUILayout.Button("Render Map Images"))
             {
-                Undo.RecordObject(mg, "Render Map Images");
-                mg.RenderMapImages();
-                EditorUtility.SetDirty(mg);
+                if (mg != null)
+                {
+                    Undo.RecordObject(mg, "Render Map Images");
+                    mg.RenderMapImages();
+                    EditorUtility.SetDirty(mg);
+                }
             }
         }
     }

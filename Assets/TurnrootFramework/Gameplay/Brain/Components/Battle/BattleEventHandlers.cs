@@ -1,5 +1,7 @@
 using Turnroot.Characters;
 using Turnroot.Gameplay.Brain.Events;
+using Turnroot.Gameplay.Combat.PreBattle;
+using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain
@@ -40,15 +42,29 @@ namespace Turnroot.Gameplay.Brain
 
         #region Event Handlers
 
-        private void HandlePreBattlePrepare()
+        private void HandlePreBattlePrepare() => HandlePreBattlePrepareLogic();
+
+        private void HandleUnitTakesAnotherTurn(CharacterInstance unit) =>
+            HandleUnitTakesAnotherTurnLogic(unit);
+
+        private void HandleUnitFinishedMovingAfterAction(CharacterInstance unit) =>
+            HandleUnitFinishedMovingAfterActionLogic(unit);
+
+        private void HandleCriticalHit(CharacterInstance unit) => HandleCriticalHitLogic(unit);
+
+        private void HandleWeaponUsesChanged(CharacterInstance unit, int usesChange) =>
+            HandleWeaponUsesChangedLogic(unit, usesChange);
+
+        private void HandleItemStolen(CharacterInstance thief, CharacterInstance target) =>
+            HandleItemStolenLogic(thief, target);
+
+        private OperationResult HandlePreBattlePrepareLogic()
         {
             // Find a preparation object in the scene and cache it for pre-battle UI access
-            var prep =
-                Object.FindFirstObjectByType<Turnroot.Gameplay.Combat.PreBattle.BattlePreparationObject>();
+            var prep = FindFirstObjectByType<BattlePreparationObject>();
             if (prep == null)
             {
-                var all =
-                    Resources.FindObjectsOfTypeAll<Turnroot.Gameplay.Combat.PreBattle.BattlePreparationObject>();
+                var all = Resources.FindObjectsOfTypeAll<BattlePreparationObject>();
                 foreach (var p in all)
                 {
                     if (p != null && p.gameObject != null && p.gameObject.scene.isLoaded)
@@ -60,21 +76,16 @@ namespace Turnroot.Gameplay.Brain
             }
             if (prep == null)
             {
-#if UNITY_EDITOR
-                Debug.LogWarning(
-                    "BattleBrain: No BattlePreparationObject found in scene when PreBattle prepare event fired."
-                );
-#endif
-                return;
+                return OperationResult.Failure("No BattlePreparationObject found in scene");
             }
 
             PreparationObject = prep;
             PreparationObject.Initialize(_brain);
-#if UNITY_EDITOR
-            Debug.Log(
+
+            TurnrootLogger.Log(
                 $"BattleBrain: Connected to BattlePreparationObject '{prep.name}' for pre-battle."
             );
-#endif
+            return OperationResult.SuccessResult();
         }
 
         private void HandleUnitMoved(CharacterInstance unit, Vector2Int targetPosition) =>
@@ -84,105 +95,91 @@ namespace Turnroot.Gameplay.Brain
         private void HandleUnitDefeated(CharacterInstance unit) =>
             BattleObject.Context.InvalidateUnitPositionCache();
 
-        private void HandleUnitTakesAnotherTurn(CharacterInstance unit)
+        private OperationResult HandleUnitTakesAnotherTurnLogic(CharacterInstance unit)
         {
             if (BattleObject?.Context == null)
             {
-#if UNITY_EDITOR
-                Debug.LogWarning(
-                    "BattleBrain: Cannot grant another turn - BattleContext not available"
-                );
-#endif
-                return;
+                return OperationResult.Failure("BattleContext not available");
             }
 
             BattleObject.Context.Flags.ActiveUnitFlags.Unit = unit;
             BattleObject.Context.Flags.ActiveUnitFlags.AnotherTurnGranted = true;
+            TurnrootLogger.Log(
+                $"BattleBrain: {unit.CharacterTemplate.DisplayName} will take another turn"
+            );
 
-#if UNITY_EDITOR
-            Debug.Log($"BattleBrain: {unit.CharacterTemplate.DisplayName} will take another turn");
-#endif
+            return OperationResult.SuccessResult();
         }
 
-        private void HandleUnitFinishedMovingAfterAction(CharacterInstance unit)
+        private OperationResult HandleUnitFinishedMovingAfterActionLogic(CharacterInstance unit)
         {
             if (BattleObject?.Context == null)
             {
-#if UNITY_EDITOR
-                Debug.LogWarning(
-                    "BattleBrain: Cannot set finish moving after action - BattleContext not available"
+                return OperationResult.Failure(
+                    "BattleBrain: Cannot set finish moving after action: BattleContext not available"
                 );
-#endif
-                return;
             }
 
             BattleObject.Context.Flags.ActiveUnitFlags.Unit = unit;
             BattleObject.Context.Flags.ActiveUnitFlags.CanFinishMovingAfterAction = true;
-#if UNITY_EDITOR
-            Debug.Log(
+            TurnrootLogger.Log(
                 $"BattleBrain: {unit.CharacterTemplate.DisplayName} can finish moving after action"
             );
-#endif
+            return OperationResult.SuccessResult();
         }
 
-        private void HandleCriticalHit(CharacterInstance unit)
+        private OperationResult HandleCriticalHitLogic(CharacterInstance unit)
         {
             if (BattleObject?.Context == null)
             {
-#if UNITY_EDITOR
-                Debug.LogWarning(
+                return OperationResult.Failure(
                     "BattleBrain: Cannot set critical hit - BattleContext not available"
                 );
-#endif
-                return;
             }
 
             BattleObject.Context.Flags.ActiveUnitFlags.WillCriticalHit = true;
             BattleObject.Context.Flags.ActiveUnitFlags.Unit = unit;
-
-#if UNITY_EDITOR
-            Debug.Log($"BattleBrain: {unit.CharacterTemplate.DisplayName} triggered critical hit");
-#endif
+            TurnrootLogger.Log(
+                $"BattleBrain: {unit.CharacterTemplate.DisplayName} will perform a critical hit"
+            );
+            return OperationResult.SuccessResult();
         }
 
-        private void HandleWeaponUsesChanged(CharacterInstance unit, int usesChange)
+        private OperationResult HandleWeaponUsesChangedLogic(CharacterInstance unit, int usesChange)
         {
             var inventory = unit.InventoryInstance;
             if (inventory == null)
             {
-#if UNITY_EDITOR
-                Debug.LogWarning(
-                    $"BattleBrain: {unit.CharacterTemplate.DisplayName} has no inventory"
+                return OperationResult.Failure(
+                    "BattleBrain: Cannot change weapon uses - inventory not available"
                 );
-#endif
-                return;
             }
 
             int weaponIndex = inventory.GetEquippedWeaponIndex();
             if (weaponIndex == -1)
             {
-#if UNITY_EDITOR
-                Debug.LogWarning(
+                TurnrootLogger.Log(
                     $"BattleBrain: {unit.CharacterTemplate.DisplayName} has no equipped weapon"
                 );
-#endif
-                return;
+                return OperationResult.Failure(
+                    "BattleBrain: Cannot change weapon uses - no equipped weapon"
+                );
             }
 
             var equippedWeapon = inventory.Items()[weaponIndex];
             if (equippedWeapon == null)
             {
-                return;
+                return OperationResult.Failure(
+                    "BattleBrain: Cannot change weapon uses - equipped weapon is null"
+                );
             }
 
             if (usesChange > 0)
             {
                 equippedWeapon.Repair(usesChange);
-#if UNITY_EDITOR
-                Debug.Log(
+                TurnrootLogger.Log(
                     $"BattleBrain: Restored {usesChange} uses to {unit.CharacterTemplate.DisplayName}'s weapon"
                 );
-#endif
             }
             else if (usesChange < 0)
             {
@@ -190,21 +187,21 @@ namespace Turnroot.Gameplay.Brain
                 {
                     equippedWeapon.Use();
                 }
-#if UNITY_EDITOR
-                Debug.Log(
+                TurnrootLogger.Log(
                     $"BattleBrain: Reduced {Mathf.Abs(usesChange)} uses from {unit.CharacterTemplate.DisplayName}'s weapon"
                 );
-#endif
             }
+            return OperationResult.SuccessResult();
         }
 
-        private void HandleItemStolen(CharacterInstance thief, CharacterInstance target)
+        private OperationResult HandleItemStolenLogic(
+            CharacterInstance thief,
+            CharacterInstance target
+        )
         {
-#if UNITY_EDITOR
-            Debug.Log(
+            TurnrootLogger.Log(
                 $"BattleBrain: {thief.CharacterTemplate.DisplayName} attempts to steal from {target.CharacterTemplate.DisplayName}"
             );
-#endif
 
             // Get target's inventory
             var targetInventory = target.InventoryInstance;
@@ -214,20 +211,16 @@ namespace Turnroot.Gameplay.Brain
                 || targetInventory.InventoryItems.Count == 0
             )
             {
-#if UNITY_EDITOR
-                Debug.Log("BattleBrain: Target has no items to steal");
-#endif
-                return;
+                return OperationResult.Failure("BattleBrain: Target has no items to steal");
             }
 
             // Get thief's inventory
             var thiefInventory = thief.InventoryInstance;
             if (thiefInventory == null || thiefInventory.IsFull)
             {
-#if UNITY_EDITOR
-                Debug.Log("BattleBrain: Thief's inventory is full or unavailable");
-#endif
-                return;
+                return OperationResult.Failure(
+                    "BattleBrain: Thief's inventory is full or unavailable"
+                );
             }
 
             // Find most valuable stealable item
@@ -261,43 +254,33 @@ namespace Turnroot.Gameplay.Brain
 
             if (bestItem == null)
             {
-#if UNITY_EDITOR
-                Debug.Log("BattleBrain: No stealable items found on target");
-#endif
-                return;
+                return OperationResult.Failure("BattleBrain: No stealable items found on target");
             }
 
             // Perform the steal
             var resRemove = targetInventory.RemoveFromInventory(bestItem);
             if (!resRemove.Success)
             {
-#if UNITY_EDITOR
-                Debug.LogWarning(
-                    $"Failed to remove stolen item from target: {resRemove.ErrorMessage}"
-                );
-#endif
-                return;
+                return resRemove;
             }
 
             var resAdd = thiefInventory.AddToInventory(bestItem);
             if (!resAdd.Success)
             {
-#if UNITY_EDITOR
-                Debug.LogWarning($"Failed to add stolen item to thief: {resAdd.ErrorMessage}");
-#endif
-                // Try to restore to target inventory
                 targetInventory.AddToInventory(bestItem);
-                return;
+                return OperationResult.Failure(
+                    "BattleBrain: Failed to add stolen item to thief, restored to target"
+                );
             }
 
-#if UNITY_EDITOR
-            Debug.Log(
+            TurnrootLogger.Log(
                 $"BattleBrain: {thief.CharacterTemplate.DisplayName} stole {bestItem.Template.name} from {target.CharacterTemplate.DisplayName}!"
             );
-#endif
 
             // Publish transfer event
             _brain.inventoryBrain.TransferItem(bestItem, thiefInventory);
+
+            return OperationResult.SuccessResult();
         }
 
         #endregion

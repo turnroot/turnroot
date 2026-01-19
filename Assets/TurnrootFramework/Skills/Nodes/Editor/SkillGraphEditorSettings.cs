@@ -1,9 +1,7 @@
 using System;
 using System.Collections.Generic;
-using Turnroot.Skills.Nodes;
 using UnityEditor;
 using UnityEngine;
-using XNode;
 using XNodeEditor;
 
 namespace Turnroot.Skills.Nodes.Editor
@@ -72,10 +70,7 @@ namespace Turnroot.Skills.Nodes.Editor
         /// <summary>
         /// Clear the cached instance to force reload.
         /// </summary>
-        public static void ClearCache()
-        {
-            _instance = null;
-        }
+        public static void ClearCache() => _instance = null;
 
         private void OnValidate()
         {
@@ -114,7 +109,7 @@ namespace Turnroot.Skills.Nodes.Editor
                 EditorPrefs.SetString("xNode.Settings.typeColors", typeColorsJson);
 
                 // Clear the typeColors cache in NodeEditorPreferences to force reload
-                var typeColorsField = typeof(XNodeEditor.NodeEditorPreferences).GetField(
+                var typeColorsField = typeof(NodeEditorPreferences).GetField(
                     "typeColors",
                     System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static
                 );
@@ -137,7 +132,7 @@ namespace Turnroot.Skills.Nodes.Editor
         }
 
         // Helper class for serializing typeColors dictionary
-        [System.Serializable]
+        [Serializable]
         private class SerializableTypeColorDict
         {
             public List<string> keys = new();

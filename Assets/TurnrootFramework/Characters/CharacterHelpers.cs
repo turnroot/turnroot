@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using Turnroot.Characters.Components.Support;
 using Turnroot.Characters.Stats;
 using Turnroot.Characters.Subclasses;
+using Turnroot.Graphics2D;
+using Turnroot.Utilities.AbstractScripts;
 
 namespace Turnroot.Characters
 {

@@ -1,9 +1,5 @@
 using System;
-using System.Linq;
-using Turnroot.Conversations.Branching;
 using UnityEditor;
-using UnityEngine;
-using XNode;
 using XNodeEditor;
 
 namespace Turnroot.Conversations.Branching.Nodes.Editor
@@ -11,10 +7,7 @@ namespace Turnroot.Conversations.Branching.Nodes.Editor
     // Shared implementation used by all conversation node editors
     public abstract class ConversationBaseNodeEditor : NodeEditor
     {
-        public override int GetWidth()
-        {
-            return 350;
-        }
+        public override int GetWidth() => 350;
 
         public override void OnBodyGUI()
         {

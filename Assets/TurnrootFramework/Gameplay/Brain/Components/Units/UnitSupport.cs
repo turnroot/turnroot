@@ -1,4 +1,5 @@
 using Turnroot.Characters;
+using Turnroot.Gameplay.Brain.Components;
 using Turnroot.Utilities;
 using UnityEngine;
 
@@ -29,7 +30,7 @@ namespace Turnroot.Gameplay.Brain
 
         public void AddSupportRelationship(
             CharacterInstance character,
-            Turnroot.Characters.Components.Support.SupportRelationship template
+            Characters.Components.Support.SupportRelationship template
         )
         {
             if (!Validate(character, template) || template?.Character == null)

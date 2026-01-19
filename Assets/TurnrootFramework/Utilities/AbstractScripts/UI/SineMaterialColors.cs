@@ -1,47 +1,50 @@
 using UnityEngine;
 
-[RequireComponent(typeof(Renderer))]
-public class SineMaterialColors : MonoBehaviour
+namespace Turnroot.Utilities.AbstractScripts
 {
-    public float Speed = 1.0f;
-    public Material TargetMaterial;
-
-    public Color startColor;
-    public Color endColor;
-
-    private Material _materialInstance;
-    private Renderer _renderer;
-
-    private void Start()
+    [RequireComponent(typeof(Renderer))]
+    public class SineMaterialColors : MonoBehaviour
     {
-        _renderer = GetComponent<Renderer>();
+        public float Speed = 1.0f;
+        public Material TargetMaterial;
 
-        _materialInstance = _renderer.material;
-    }
+        public Color startColor;
+        public Color endColor;
 
-    private void OnDestroy()
-    {
-        if (_materialInstance != null)
+        private Material _materialInstance;
+        private Renderer _renderer;
+
+        private void Start()
         {
-            _materialInstance.color = startColor;
-            if (Application.isPlaying)
+            _renderer = GetComponent<Renderer>();
+
+            _materialInstance = _renderer.material;
+        }
+
+        private void OnDestroy()
+        {
+            if (_materialInstance != null)
             {
-                Destroy(_materialInstance);
-            }
-            else
-            {
-                DestroyImmediate(_materialInstance);
+                _materialInstance.color = startColor;
+                if (Application.isPlaying)
+                {
+                    Destroy(_materialInstance);
+                }
+                else
+                {
+                    DestroyImmediate(_materialInstance);
+                }
             }
         }
-    }
 
-    private void Update()
-    {
-        if (_materialInstance != null)
+        private void Update()
         {
-            float sineValue = (Mathf.Sin(Time.time * Speed) + 1) / 2; // Normalize sine to [0,1]
-            Color newColor = Color.Lerp(startColor, endColor, sineValue);
-            _materialInstance.color = newColor;
+            if (_materialInstance != null)
+            {
+                float sineValue = (Mathf.Sin(Time.time * Speed) + 1) / 2; // Normalize sine to [0,1]
+                Color newColor = Color.Lerp(startColor, endColor, sineValue);
+                _materialInstance.color = newColor;
+            }
         }
     }
 }

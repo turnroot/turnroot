@@ -1,9 +1,9 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Turnroot.Gameplay.Brain.Segments;
 using Turnroot.GameSettings;
 using Turnroot.Utilities;
-using TurnrootFramework.Gameplay.Brain.Segments;
 using UnityEngine;
 using UnityEngine.InputSystem;
 

@@ -1,10 +1,10 @@
 using System.Collections;
-using Turnroot.Gameplay.Brain;
 using Turnroot.GameSettings;
 using Turnroot.UI.Components.Menu;
+using Turnroot.Utilities.AbstractScripts;
 using UnityEngine;
 
-namespace TurnrootFramework.Gameplay.Brain.Segments
+namespace Turnroot.Gameplay.Brain.Segments
 {
     public partial class UiBrain : BrainComponent
     {
@@ -109,7 +109,7 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
 
         // Menu event handlers for route system
 
-        public void HandleMenuSelect(Turnroot.UI.Components.MenuItemBase item) =>
+        public void HandleMenuSelect(UI.Components.MenuItemBase item) =>
             _routeHandler?.HandleMenuSelect(item);
     }
 }

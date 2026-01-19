@@ -4,14 +4,14 @@ using Turnroot.GameSettings;
 using Turnroot.UI.Components.GridMenu;
 using UnityEngine;
 
-namespace TurnrootFramework.Gameplay.Brain.Segments
+namespace Turnroot.Gameplay.Brain.Segments
 {
     public class MenuRouteHandler
     {
         private readonly UiBrain _brain;
         private readonly Dictionary<
             string,
-            Action<Turnroot.UI.Components.MenuItemBase>
+            Action<UI.Components.MenuItemBase>
         > _menuActionRoutes = new();
 
         public MenuRouteHandler(UiBrain brain)
@@ -46,7 +46,7 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
         private float _lastSelectTime = -10f;
         private const float SelectDebounceSeconds = 0.2f;
 
-        public void HandleMenuSelect(Turnroot.UI.Components.MenuItemBase item)
+        public void HandleMenuSelect(UI.Components.MenuItemBase item)
         {
             if (item == null)
             {
@@ -166,7 +166,7 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             _brain.TransitionToSubmenu(sourceMenu, submenuLocation);
         }
 
-        public void AddRoute(string itemName, Action<Turnroot.UI.Components.MenuItemBase> action) =>
+        public void AddRoute(string itemName, Action<UI.Components.MenuItemBase> action) =>
             _menuActionRoutes[itemName] = action;
 
         public void RemoveRoute(string itemName) => _menuActionRoutes.Remove(itemName);

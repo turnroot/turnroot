@@ -1,12 +1,10 @@
 using System.Collections.Generic;
 using Turnroot.Characters;
 using Turnroot.Characters.Components.Behavior;
-using Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Locations;
-using Turnroot.Gameplay.Combat.FundamentalComponents.Conditions.Specific;
+using Turnroot.Gameplay.Maps;
 using Turnroot.GameSettings;
 using Turnroot.Utilities;
 using UnityEngine;
-using static MapGridPointFeature;
 
 namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 {

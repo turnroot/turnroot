@@ -51,7 +51,7 @@ namespace Turnroot.Graphics2D
 
         // Editor-only fallback for Graphics2DSettings to avoid creating multiple temporary instances
 #if UNITY_EDITOR
-        [System.NonSerialized]
+        [NonSerialized]
         private static Graphics2DSettings _editorFallbackGraphics2DSettings;
 #endif
 
@@ -429,7 +429,7 @@ namespace Turnroot.Graphics2D
 
             // Find GamePackageSettings to determine the correct save location
             var gamePackageSettings =
-                Turnroot.Utilities.GameSettingsLoader.LoadFirst<Turnroot.GamePackage.GamePackageSettings>();
+                Turnroot.Utilities.GameSettingsLoader.LoadFirst<GamePackage.GamePackageSettings>();
             if (gamePackageSettings == null)
             {
                 SetValidationError(
@@ -510,7 +510,7 @@ namespace Turnroot.Graphics2D
 
             // Find GamePackageSettings to determine the correct load location
             var gamePackageSettings =
-                Turnroot.Utilities.GameSettingsLoader.LoadFirst<Turnroot.GamePackage.GamePackageSettings>();
+                Turnroot.Utilities.GameSettingsLoader.LoadFirst<GamePackage.GamePackageSettings>();
             if (gamePackageSettings == null)
             {
                 SetValidationError(

@@ -1,4 +1,6 @@
 using Turnroot.Characters;
+using Turnroot.Gameplay.Brain.Components;
+using Turnroot.Skills;
 using Turnroot.Utilities;
 using UnityEngine;
 

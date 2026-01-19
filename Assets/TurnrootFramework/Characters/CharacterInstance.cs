@@ -1,11 +1,14 @@
 using System;
 using System.Collections.Generic;
 using Turnroot.Characters.CharacterClass;
+using Turnroot.Characters.Components;
 using Turnroot.Characters.Components.Support;
 using Turnroot.Characters.Stats;
 using Turnroot.Characters.StatusEffects;
+using Turnroot.Gameplay.Maps;
 using Turnroot.Gameplay.Objects;
 using Turnroot.GameSettings;
+using Turnroot.Skills;
 using Turnroot.Utilities;
 using UnityEngine;
 
@@ -431,7 +434,7 @@ namespace Turnroot.Characters
         private int _experiencePoints = 0;
 
         public string ExperienceTypeId => _experienceTypeId;
-        public Turnroot.CommonAncestors.LeveledLetteredField Rank => _rank;
+        public CommonAncestors.LeveledLetteredField Rank => _rank;
         public int ExperiencePoints => _experiencePoints;
 
         /// <summary>
@@ -440,7 +443,7 @@ namespace Turnroot.Characters
         public ExperienceRankInstance(string experienceTypeId, string rankLetter)
         {
             _experienceTypeId = experienceTypeId;
-            _rank = new Turnroot.CommonAncestors.LeveledLetteredField(rankLetter);
+            _rank = new CommonAncestors.LeveledLetteredField(rankLetter);
             _experiencePoints = 0;
         }
 
@@ -450,7 +453,7 @@ namespace Turnroot.Characters
         public ExperienceRankInstance(CharacterData.ExperienceRank template)
         {
             _experienceTypeId = template.ExperienceTypeId;
-            _rank = new Turnroot.CommonAncestors.LeveledLetteredField(template.Rank.Value);
+            _rank = new CommonAncestors.LeveledLetteredField(template.Rank.Value);
             _experiencePoints = 0;
         }
 

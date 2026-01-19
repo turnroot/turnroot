@@ -1,8 +1,5 @@
-using System;
-using System.IO;
 using UnityEditor;
 using UnityEngine;
-using XNode;
 using XNodeEditor;
 
 namespace Turnroot.Skills.Nodes.Editor
@@ -14,10 +11,7 @@ namespace Turnroot.Skills.Nodes.Editor
     [CustomNodeEditor(typeof(SkillNode))]
     public class SkillNodeEditor : NodeEditor
     {
-        public override int GetWidth()
-        {
-            return 300;
-        }
+        public override int GetWidth() => 300;
 
         public override void OnHeaderGUI()
         {
@@ -128,10 +122,10 @@ namespace Turnroot.Skills.Nodes.Editor
                 {
                     // Skip xNode internal fields and OnNodeExecute
                     if (
-                        iterator.name == "graph"
-                        || iterator.name == "position"
-                        || iterator.name == "ports"
-                        || iterator.name == "OnNodeExecute"
+                        iterator.name is "graph"
+                        or "position"
+                        or "ports"
+                        or "OnNodeExecute"
                     )
                     {
                         continue;

@@ -173,7 +173,7 @@ namespace Turnroot.UI.Components.GridMenu
                 return;
             }
 
-            var sb = GetComponent<Turnroot.UI.Components.SimpleButton.SimpleButton>();
+            var sb = GetComponent<SimpleButton.SimpleButton>();
             if (sb == null)
             {
                 return;

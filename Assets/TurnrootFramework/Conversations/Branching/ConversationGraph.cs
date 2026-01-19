@@ -23,7 +23,7 @@ namespace Turnroot.Conversations.Branching.Nodes
                 return false;
             }
 
-            var so = new SerializedObject(node as UnityEngine.Object);
+            var so = new SerializedObject(node as Object);
             var prop = so.GetIterator();
             var ignore = new HashSet<string> { "m_Script", "position", "xnode.graph", "graph" };
             while (prop.NextVisible(true))

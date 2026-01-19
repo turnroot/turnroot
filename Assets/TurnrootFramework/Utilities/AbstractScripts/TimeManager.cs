@@ -1,16 +1,22 @@
 using UnityEngine;
 
-public class TimeManager : Singleton<TimeManager>
+namespace Turnroot.Utilities.AbstractScripts
 {
-    private float _defaultTimeScale = 1.0f;
-
-    public static void SetTimeScale(float newScale) => Time.timeScale = Mathf.Max(0f, newScale);
-
-    public static void PauseGame()
+    /// <summary>
+    /// Manages global time settings
+    /// </summary>
+    public class TimeManager : Singleton<TimeManager>
     {
-        Instance._defaultTimeScale = Time.timeScale;
-        SetTimeScale(0f);
-    }
+        private float _defaultTimeScale = 1.0f;
 
-    public static void ResumeGame() => SetTimeScale(Instance._defaultTimeScale);
+        public static void SetTimeScale(float newScale) => Time.timeScale = Mathf.Max(0f, newScale);
+
+        public static void PauseGame()
+        {
+            Instance._defaultTimeScale = Time.timeScale;
+            SetTimeScale(0f);
+        }
+
+        public static void ResumeGame() => SetTimeScale(Instance._defaultTimeScale);
+    }
 }

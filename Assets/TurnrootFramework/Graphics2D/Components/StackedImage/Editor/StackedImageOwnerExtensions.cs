@@ -1,5 +1,4 @@
 using Turnroot.Characters;
-using UnityEngine;
 
 namespace Turnroot.Graphics2D.Editor
 {

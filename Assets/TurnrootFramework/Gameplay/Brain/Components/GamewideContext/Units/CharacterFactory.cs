@@ -1,4 +1,5 @@
 using Turnroot.Characters;
+using Turnroot.Gameplay.Brain.Components;
 
 namespace Turnroot.Gameplay.Brain
 {

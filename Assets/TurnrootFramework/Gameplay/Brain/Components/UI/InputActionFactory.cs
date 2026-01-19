@@ -2,7 +2,7 @@ using Turnroot.Gameplay.PlayerSettings;
 using Turnroot.UI.Components.Menu;
 using UnityEngine.InputSystem;
 
-namespace TurnrootFramework.Gameplay.Brain.Segments
+namespace Turnroot.Gameplay.Brain.Segments
 {
     public static class InputActionFactory
     {

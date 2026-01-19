@@ -1,39 +1,42 @@
 using System;
 using UnityEngine;
 
-/// <summary>
-/// Condition to limit the battle duration by a number of turns.
-/// </summary>
-[Serializable]
-public class TimeLimitBattleCondition : BattleCondition
+namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 {
-    [SerializeField]
-    public int TurnLimit;
-    private int currentTurn = 0;
-
-    public TimeLimitBattleCondition(string name, string description, int turnLimit)
-        : base(name, description)
+    /// <summary>
+    /// Condition to limit the battle duration by a number of turns.
+    /// </summary>
+    [Serializable]
+    public class TimeLimitBattleCondition : BattleCondition
     {
-        TurnLimit = turnLimit;
-    }
+        [SerializeField]
+        public int TurnLimit;
+        private int currentTurn = 0;
 
-    public TimeLimitBattleCondition()
-        : base("Time Limit", "Limit the battle duration")
-    {
-        TurnLimit = 1;
-    }
-
-    public void OnTurnEnd()
-    {
-        currentTurn++;
-        CheckCondition();
-    }
-
-    public void CheckCondition()
-    {
-        if (currentTurn >= TurnLimit)
+        public TimeLimitBattleCondition(string name, string description, int turnLimit)
+            : base(name, description)
         {
-            ConditionFailed();
+            TurnLimit = turnLimit;
+        }
+
+        public TimeLimitBattleCondition()
+            : base("Time Limit", "Limit the battle duration")
+        {
+            TurnLimit = 1;
+        }
+
+        public void OnTurnEnd()
+        {
+            currentTurn++;
+            CheckCondition();
+        }
+
+        public void CheckCondition()
+        {
+            if (currentTurn >= TurnLimit)
+            {
+                ConditionFailed();
+            }
         }
     }
 }

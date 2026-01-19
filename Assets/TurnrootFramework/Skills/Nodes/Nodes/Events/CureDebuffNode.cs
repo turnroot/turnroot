@@ -106,7 +106,7 @@ namespace Turnroot.Skills.Nodes.Events
             }
 
             int removed;
-            var battleBrain = context.Brain?.GetComponent<Turnroot.Gameplay.Brain.BattleBrain>();
+            var battleBrain = context.Brain?.GetComponent<Gameplay.Brain.BattleBrain>();
             if (cureMode == CureMode.AllDebuffs)
             {
                 removed = battleBrain?.RemoveAllDebuffs(character) ?? 0;

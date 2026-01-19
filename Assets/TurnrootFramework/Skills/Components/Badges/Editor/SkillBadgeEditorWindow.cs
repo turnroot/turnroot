@@ -1,4 +1,3 @@
-using Turnroot.Characters.Subclasses;
 using Turnroot.Graphics2D.Editor;
 using UnityEditor;
 
@@ -10,10 +9,7 @@ namespace Turnroot.Skills.Components.Badges.Editor
         protected override string OwnerFieldLabel => "Skill";
 
         [MenuItem("Turnroot/Editors/Skill Badge Editor")]
-        public static void ShowWindow()
-        {
-            GetWindow<SkillBadgeEditorWindow>("Skill Badge Editor");
-        }
+        public static void ShowWindow() => GetWindow<SkillBadgeEditorWindow>("Skill Badge Editor");
 
         public static void OpenSkillBadge(Skill skill, int badgeIndex = 0)
         {
@@ -27,9 +23,6 @@ namespace Turnroot.Skills.Components.Badges.Editor
             }
         }
 
-        protected override SkillBadge[] GetImagesFromOwner(Skill owner)
-        {
-            return owner != null ? new[] { owner.Badge } : null;
-        }
+        protected override SkillBadge[] GetImagesFromOwner(Skill owner) => owner != null ? new[] { owner.Badge } : null;
     }
 }

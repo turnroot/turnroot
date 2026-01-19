@@ -1,114 +1,119 @@
 using Turnroot.Gameplay.Brain;
 using Turnroot.Gameplay.Combat.PreBattle;
-using Turnroot.UI.Components;
 using Turnroot.Utilities;
 using UnityEngine;
 
-/// <summary>
-/// Resolves which BattlePreparationObject should be used for UI / preview components and notifies
-/// interested components when a preparation object is chosen.
-/// Any instance of:
-///     - PopulateBattleMapName
-///     - PopulateBattleMapPreview
-///     - PopulateMapPrefabEnvironmentCondtions
-///     - StartingPositions
-/// Needs to have one of these
-/// </summary>
-public class PreparationObjectResolver : MonoBehaviour
+namespace Turnroot.UI.Components
 {
-    public static BattlePreparationObject ResolvedPreparationObject { get; private set; }
-    public delegate void PreparationResolvedHandler(BattlePreparationObject prep);
-    public static event PreparationResolvedHandler OnPreparationResolved;
-
-    public OperationResult Initialize(Brain brain)
+    /// <summary>
+    /// Resolves which BattlePreparationObject should be used for UI / preview components and notifies
+    /// interested components when a preparation object is chosen.
+    /// Any instance of:
+    ///     - PopulateBattleMapName
+    ///     - PopulateBattleMapPreview
+    ///     - PopulateMapPrefabEnvironmentCondtions
+    ///     - StartingPositions
+    /// Needs to have one of these
+    /// </summary>
+    public class PreparationObjectResolver : MonoBehaviour
     {
-        var prep = ResolveForBrain(brain);
-        var count = 0;
-        SetResolved(prep);
+        public static BattlePreparationObject ResolvedPreparationObject { get; private set; }
+        public delegate void PreparationResolvedHandler(BattlePreparationObject prep);
+        public static event PreparationResolvedHandler OnPreparationResolved;
 
-        if (prep != null)
+        public OperationResult Initialize(Brain brain)
         {
-            // Ensure the preparation object is initialized with the Brain so MapGrid and related data exist.
-            if (prep.Brain == null)
-            {
-                prep.Initialize(brain);
-            }
+            var prep = ResolveForBrain(brain);
+            var count = 0;
+            SetResolved(prep);
 
-            if (TryGetComponent(out PopulateBattleMapPreview preview) && preview != null)
+            if (prep != null)
             {
-                preview.Initialize(prep);
-                count++;
-            }
-
-            if (TryGetComponent(out PopulateBattleMapName name) && name != null)
-            {
-                name.Initialize(prep);
-                count++;
-            }
-            if (TryGetComponent(out StartingPositions p) && p != null)
-            {
-                ResolvedPreparationObject.StartingPositionsComponent = p;
-
-                // Ensure any other StartingPositions instances are replaced to avoid duplicates
-                var others = FindObjectsByType<StartingPositions>(
-                    FindObjectsInactive.Include,
-                    FindObjectsSortMode.None
-                );
-                foreach (var other in others)
+                // Ensure the preparation object is initialized with the Brain so MapGrid and related data exist.
+                if (prep.Brain == null)
                 {
-                    if (other == null || other == p)
-                        continue;
-                    other.ReplaceBy(p);
+                    prep.Initialize(brain);
                 }
 
-                var result = p.Initialize(prep);
-                if (!result.Success)
+                if (TryGetComponent(out PopulateBattleMapPreview preview) && preview != null)
                 {
-#if UNITY_EDITOR
-                    Debug.LogWarning(
-                        $"StartingPositions initialization failed: {result.ErrorMessage}"
+                    preview.Initialize(prep);
+                    count++;
+                }
+
+                if (TryGetComponent(out PopulateBattleMapName name) && name != null)
+                {
+                    name.Initialize(prep);
+                    count++;
+                }
+                if (TryGetComponent(out StartingPositions p) && p != null)
+                {
+                    ResolvedPreparationObject.StartingPositionsComponent = p;
+
+                    // Ensure any other StartingPositions instances are replaced to avoid duplicates
+                    var others = FindObjectsByType<StartingPositions>(
+                        FindObjectsInactive.Include,
+                        FindObjectsSortMode.None
                     );
+                    foreach (var other in others)
+                    {
+                        if (other == null || other == p)
+                        {
+                            continue;
+                        }
+
+                        other.ReplaceBy(p);
+                    }
+
+                    var result = p.Initialize(prep);
+                    if (!result.Success)
+                    {
+#if UNITY_EDITOR
+                        Debug.LogWarning(
+                            $"StartingPositions initialization failed: {result.ErrorMessage}"
+                        );
 #endif
+                    }
+                    else
+                    {
+                        count++;
+                    }
                 }
-                else
+            }
+
+            var envPopulators = FindObjectsByType<PopulateMapPrefabEnviromentConditions>(
+                FindObjectsInactive.Include,
+                FindObjectsSortMode.None
+            );
+            foreach (var env in envPopulators)
+            {
+                if (env != null)
                 {
+                    env.Initialize(prep);
                     count++;
                 }
             }
+            return count <= 0
+                ? OperationResult.Failure("PreparationObjectResolver: Nothing to initialize")
+                : OperationResult.SuccessResult();
         }
 
-        var envPopulators = FindObjectsByType<PopulateMapPrefabEnviromentConditions>(
-            FindObjectsInactive.Include,
-            FindObjectsSortMode.None
-        );
-        foreach (var env in envPopulators)
+        public BattlePreparationObject ResolveForBrain(Brain brain)
         {
-            if (env != null)
+            var prep = brain?.battleBrain?.PreparationObject;
+            if (prep != null)
             {
-                env.Initialize(prep);
-                count++;
+                return prep;
             }
-        }
-        return count <= 0
-            ? OperationResult.Failure("PreparationObjectResolver: Nothing to initialize")
-            : OperationResult.SuccessResult();
-    }
 
-    public BattlePreparationObject ResolveForBrain(Brain brain)
-    {
-        var prep = brain?.battleBrain?.PreparationObject;
-        if (prep != null)
+            var scenePrep = FindFirstObjectByType<BattlePreparationObject>();
+            return scenePrep;
+        }
+
+        private void SetResolved(BattlePreparationObject prep)
         {
-            return prep;
+            ResolvedPreparationObject = prep;
+            OnPreparationResolved?.Invoke(prep);
         }
-
-        var scenePrep = FindFirstObjectByType<BattlePreparationObject>();
-        return scenePrep;
-    }
-
-    private void SetResolved(BattlePreparationObject prep)
-    {
-        ResolvedPreparationObject = prep;
-        OnPreparationResolved?.Invoke(prep);
     }
 }

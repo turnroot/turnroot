@@ -2,81 +2,84 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-[Serializable]
-public class ConditionalGroupBattleCondition : BattleCondition
+namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 {
-    public enum GroupMode
+    [Serializable]
+    public class ConditionalGroupBattleCondition : BattleCondition
     {
-        AllMustPass,
-        AnyCanPass,
-    }
-
-    [SerializeField]
-    public string[] ChildConditionNames;
-
-    [NonSerialized]
-    public BattleCondition[] ChildConditions;
-
-    [SerializeField]
-    public GroupMode Mode = GroupMode.AllMustPass;
-
-    public ConditionalGroupBattleCondition()
-        : base("Conditional Group", "Combine multiple conditions with AND/OR logic")
-    {
-        ChildConditionNames = Array.Empty<string>();
-        ChildConditions = Array.Empty<BattleCondition>();
-    }
-
-    public void ResolveChildConditions(BattleCondition[] allConditions)
-    {
-        if (ChildConditionNames == null || ChildConditionNames.Length == 0)
+        public enum GroupMode
         {
-            return;
+            AllMustPass,
+            AnyCanPass,
         }
 
-        var list = new List<BattleCondition>();
-        foreach (var name in ChildConditionNames)
+        [SerializeField]
+        public string[] ChildConditionNames;
+
+        [NonSerialized]
+        public BattleCondition[] ChildConditions;
+
+        [SerializeField]
+        public GroupMode Mode = GroupMode.AllMustPass;
+
+        public ConditionalGroupBattleCondition()
+            : base("Conditional Group", "Combine multiple conditions with AND/OR logic")
         {
-            var match = Array.Find(allConditions, c => c != null && c.Name == name);
-            if (match != null)
+            ChildConditionNames = Array.Empty<string>();
+            ChildConditions = Array.Empty<BattleCondition>();
+        }
+
+        public void ResolveChildConditions(BattleCondition[] allConditions)
+        {
+            if (ChildConditionNames == null || ChildConditionNames.Length == 0)
             {
-                list.Add(match);
+                return;
             }
-        }
-        ChildConditions = list.ToArray();
-    }
 
-    public void CheckCondition()
-    {
-        if (!AreRequirementsMet())
-        {
-            return;
-        }
-
-        if (ChildConditions == null || ChildConditions.Length == 0)
-        {
-            return;
-        }
-
-        if (Mode == GroupMode.AllMustPass)
-        {
-            foreach (var c in ChildConditions)
+            var list = new List<BattleCondition>();
+            foreach (var name in ChildConditionNames)
             {
-                if (c == null || !c.IsSatisfied)
+                var match = Array.Find(allConditions, c => c != null && c.Name == name);
+                if (match != null)
                 {
-                    return;
+                    list.Add(match);
                 }
             }
-            ConditionMet();
+            ChildConditions = list.ToArray();
         }
-        else // AnyCanPass
+
+        public void CheckCondition()
         {
-            foreach (var c in ChildConditions)
+            if (!AreRequirementsMet())
             {
-                if (c != null && c.IsSatisfied)
+                return;
+            }
+
+            if (ChildConditions == null || ChildConditions.Length == 0)
+            {
+                return;
+            }
+
+            if (Mode == GroupMode.AllMustPass)
+            {
+                foreach (var c in ChildConditions)
                 {
-                    ConditionMet();
-                    return;
+                    if (c == null || !c.IsSatisfied)
+                    {
+                        return;
+                    }
+                }
+                ConditionMet();
+            }
+            else // AnyCanPass
+            {
+                foreach (var c in ChildConditions)
+                {
+                    if (c != null && c.IsSatisfied)
+                    {
+                        ConditionMet();
+                        return;
+                    }
                 }
             }
         }

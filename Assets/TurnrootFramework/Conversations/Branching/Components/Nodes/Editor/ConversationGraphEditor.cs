@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using Turnroot.Skills.Nodes;
 using UnityEditor;
 using UnityEngine;
 using XNode;
@@ -15,9 +13,9 @@ namespace Turnroot.Conversations.Branching.Nodes
     {
         // OnEnable diagnostics removed.
 
-        private static bool IsSuspicious(XNode.Node node)
+        private static bool IsSuspicious(Node node)
         {
-            if (node is Turnroot.Conversations.Branching.ConversationNode conv)
+            if (node is ConversationNode conv)
             {
                 return conv.conversationLayer == null
                     && !node.Ports.Any(p =>
@@ -34,7 +32,7 @@ namespace Turnroot.Conversations.Branching.Nodes
                 return false;
             }
 
-            var so = new UnityEditor.SerializedObject(node as UnityEngine.Object);
+            var so = new SerializedObject(node as UnityEngine.Object);
             var prop = so.GetIterator();
             var ignore = new HashSet<string> { "m_Script", "position", "xnode.graph", "graph" };
             while (prop.NextVisible(true))
@@ -186,7 +184,7 @@ namespace Turnroot.Conversations.Branching.Nodes
                                             AssetDatabase.SaveAssets();
                                         }
                                     }
-                                    catch (System.Exception ex)
+                                    catch (Exception ex)
                                     {
                                         Debug.LogWarning(
                                             $"ConversationGraphEditor: failed to persist created node as subasset: {ex.Message}"
@@ -267,7 +265,7 @@ namespace Turnroot.Conversations.Branching.Nodes
                                 AssetDatabase.RemoveObjectFromAsset(xNode as UnityEngine.Object);
                             }
                         }
-                        catch (System.Exception ex)
+                        catch (Exception ex)
                         {
                             Debug.LogWarning(
                                 $"ConversationGraphEditor: failed to remove node subasset: {ex.Message}"
@@ -278,7 +276,7 @@ namespace Turnroot.Conversations.Branching.Nodes
                             UnityEditor.EditorUtility.SetDirty(target);
                             AssetDatabase.SaveAssets();
                         }
-                        catch (System.Exception ex)
+                        catch (Exception ex)
                         {
                             Debug.LogWarning(
                                 $"ConversationGraphEditor: failed to save graph after node removal: {ex.Message}"

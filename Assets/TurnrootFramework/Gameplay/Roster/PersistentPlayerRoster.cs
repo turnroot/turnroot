@@ -1,4 +1,5 @@
 using Turnroot.Characters;
+using Turnroot.Utilities.AbstractScripts;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.Roster

@@ -4,9 +4,10 @@ using Turnroot.UI.Components;
 using Turnroot.UI.Components.Menu;
 using Turnroot.UI.Components.RadialMenu;
 using Turnroot.UI.Components.SimpleButton;
+using Turnroot.Utilities.AbstractScripts;
 using UnityEngine;
 
-namespace TurnrootFramework.Gameplay.Brain.Segments
+namespace Turnroot.Gameplay.Brain.Segments
 {
     public enum MenuType
     {
@@ -70,14 +71,10 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
                 return MenuType.Audio;
             }
 
-            if (location == _settings?.GetGameSettingsControlsMenu())
-            {
-                return MenuType.Controls;
-            }
-
-            return location == _settings?.GetPrebattleMapMenu()
-                ? MenuType.Map
-                : location == _settings?.GetPrebattleUnitsMenu() ? MenuType.Team : MenuType.Unknown;
+            return location == _settings?.GetGameSettingsControlsMenu() ? MenuType.Controls
+                : location == _settings?.GetPrebattleMapMenu() ? MenuType.Map
+                : location == _settings?.GetPrebattleUnitsMenu() ? MenuType.Team
+                : MenuType.Unknown;
         }
 
         // Simplified TransitionBetween - always destroys source and creates target fresh
@@ -164,7 +161,7 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
         {
             var instance = location.activeInstance;
             var menuType = DetectMenuType(location);
-            System.Action<Turnroot.UI.Components.MenuItemBase> itemHandler = menuType switch
+            System.Action<MenuItemBase> itemHandler = menuType switch
             {
                 MenuType.PreBattle or MenuType.Map or MenuType.Team =>
                     _brain.HandlePreBattleMenuSelect,

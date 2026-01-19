@@ -91,7 +91,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         private List<CharacterInstance> GetCurrentRosterUnits()
         {
             IReadOnlyList<CharacterInstance> instances = null;
-            Turnroot.Characters.Roster roster = null;
+            Characters.Roster roster = null;
 
             switch (_currentTurnOrder)
             {
@@ -270,7 +270,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 PopulateContext(context);
 
                 context.Participants.AdjacentUnits =
-                    new Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Locations.Adjacency(
+                    new Locations.Adjacency(
                         activeUnit
                     );
 

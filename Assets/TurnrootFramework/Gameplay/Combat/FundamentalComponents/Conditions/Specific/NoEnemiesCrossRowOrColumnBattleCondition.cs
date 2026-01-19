@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace Turnroot.Gameplay.Combat.FundamentalComponents.Conditions.Specific
+namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 {
     /// <summary>
     /// Condition to have no enemies cross a specific row or column.

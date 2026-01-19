@@ -1,26 +1,29 @@
 using UnityEditor;
 using UnityEngine;
 
-[CustomPropertyDrawer(typeof(TrianglePosition))]
-public class TrianglePositionDrawer : PropertyDrawer
+namespace Turnroot.Gameplay.Objects.Components
 {
-    public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
+    [CustomPropertyDrawer(typeof(TrianglePosition))]
+    public class TrianglePositionDrawer : PropertyDrawer
     {
-        _ = EditorGUI.BeginProperty(position, label, property);
-
-        // Get the _position field
-        SerializedProperty positionProp = property.FindPropertyRelative("_position");
-
-        if (positionProp != null)
+        public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
-            // Draw the enum dropdown
-            _ = EditorGUI.PropertyField(position, positionProp, label);
-        }
-        else
-        {
-            EditorGUI.LabelField(position, label.text, "Error: _position field not found");
-        }
+            _ = EditorGUI.BeginProperty(position, label, property);
 
-        EditorGUI.EndProperty();
+            // Get the _position field
+            SerializedProperty positionProp = property.FindPropertyRelative("_position");
+
+            if (positionProp != null)
+            {
+                // Draw the enum dropdown
+                _ = EditorGUI.PropertyField(position, positionProp, label);
+            }
+            else
+            {
+                EditorGUI.LabelField(position, label.text, "Error: _position field not found");
+            }
+
+            EditorGUI.EndProperty();
+        }
     }
 }

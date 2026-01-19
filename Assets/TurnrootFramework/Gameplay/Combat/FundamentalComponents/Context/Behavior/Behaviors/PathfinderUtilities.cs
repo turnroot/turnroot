@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using Turnroot.Characters;
-using Turnroot.Maps;
+using Turnroot.Gameplay.Maps;
 using Turnroot.Services;
 using Turnroot.Utilities;
 using UnityEngine;

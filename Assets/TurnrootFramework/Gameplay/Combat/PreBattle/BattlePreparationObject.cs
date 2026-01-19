@@ -3,6 +3,7 @@ using System.Linq;
 using Turnroot.Characters;
 using Turnroot.Gameplay.Brain;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Environment;
+using Turnroot.Gameplay.Maps;
 using Turnroot.UI.Components;
 using Turnroot.Utilities;
 using UnityEngine;
@@ -127,7 +128,7 @@ namespace Turnroot.Gameplay.Combat.PreBattle
                         runtimeInstance != null
                             ? runtimeInstance.GetPlacements()
                             : persistent?.characters
-                                ?? new Turnroot.Characters.Roster.UnitPlacement[0];
+                                ?? new Characters.Roster.UnitPlacement[0];
                     foreach (var p in placementsArr)
                     {
                         if (p == null || p.CharacterData == null)

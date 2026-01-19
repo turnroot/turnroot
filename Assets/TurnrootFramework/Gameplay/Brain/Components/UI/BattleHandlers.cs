@@ -1,7 +1,6 @@
-using Turnroot.Gameplay.Brain;
 using UnityEngine;
 
-namespace TurnrootFramework.Gameplay.Brain.Segments
+namespace Turnroot.Gameplay.Brain.Segments
 {
     public partial class UiBrain : BrainComponent
     {

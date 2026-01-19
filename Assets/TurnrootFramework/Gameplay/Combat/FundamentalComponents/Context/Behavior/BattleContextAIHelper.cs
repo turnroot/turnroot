@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Turnroot.Characters;
 using Turnroot.Characters.Components.Behavior;
-using Turnroot.Gameplay.Combat.FundamentalComponents.Conditions.Specific;
+using Turnroot.Gameplay.Maps;
 using Turnroot.Utilities;
 using UnityEngine;
 
@@ -125,7 +125,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             public float UtilityScore;
             public CharacterInstance Target; // Enemy or ally, if applicable
             public MapGridPoint Destination; // Store any extra info needed for execution
-            public Turnroot.Gameplay.Objects.ObjectItemInstance ChosenWeapon; // Optional chosen weapon for attack goals
+            public Objects.ObjectItemInstance ChosenWeapon; // Optional chosen weapon for attack goals
 
             public enum Action
             {

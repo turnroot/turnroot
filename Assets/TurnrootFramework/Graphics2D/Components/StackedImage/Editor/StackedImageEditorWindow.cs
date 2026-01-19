@@ -1,11 +1,10 @@
-using Turnroot.Graphics2D;
 using UnityEditor;
 using UnityEngine;
 
 namespace Turnroot.Graphics2D.Editor
 {
     public abstract class StackedImageEditorWindow<TOwner, TStackedImage> : EditorWindow
-        where TOwner : UnityEngine.Object
+        where TOwner : Object
         where TStackedImage : StackedImage<TOwner>
     {
         protected TOwner _currentOwner;
@@ -25,15 +24,9 @@ namespace Turnroot.Graphics2D.Editor
 
         protected virtual void SetImagesToOwner(TOwner owner, TStackedImage[] images) { }
 
-        protected virtual void OnEnable()
-        {
-            Undo.undoRedoPerformed += OnUndoRedo;
-        }
+        protected virtual void OnEnable() => Undo.undoRedoPerformed += OnUndoRedo;
 
-        protected virtual void OnDisable()
-        {
-            Undo.undoRedoPerformed -= OnUndoRedo;
-        }
+        protected virtual void OnDisable() => Undo.undoRedoPerformed -= OnUndoRedo;
 
         private void OnUndoRedo()
         {

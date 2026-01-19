@@ -176,7 +176,7 @@ namespace Turnroot.UI.Components.SimpleButton
             }
 
             // For menu items, only respond if hovered
-            var menuItem = GetComponent<Turnroot.UI.Components.MenuItemBase>();
+            var menuItem = GetComponent<MenuItemBase>();
             if (menuItem != null && menuItem.ParentMenu != null)
             {
                 if (!_isHovered)

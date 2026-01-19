@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Turnroot.Gameplay.Maps;
 using Turnroot.Utilities;
 using UnityEngine;
 
@@ -163,7 +164,6 @@ namespace Turnroot.Gameplay.Brain
             }
 
             TurnrootLogger.Log($"CursorBrain: Set {positions?.Count ?? 0} allowed positions");
-
         }
 
         /// <summary>
@@ -174,7 +174,7 @@ namespace Turnroot.Gameplay.Brain
             _allowedPositions = null;
             _currentPositionIndex = -1;
 
-                TurnrootLogger.Log("CursorBrain: Cleared position restrictions");
+            TurnrootLogger.Log("CursorBrain: Cleared position restrictions");
         }
 
         /// <summary>

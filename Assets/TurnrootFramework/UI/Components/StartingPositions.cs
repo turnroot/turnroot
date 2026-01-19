@@ -3,7 +3,9 @@ using System.Linq;
 using Turnroot.Characters;
 using Turnroot.Gameplay.Brain;
 using Turnroot.Gameplay.Combat.PreBattle;
+using Turnroot.Gameplay.Maps;
 using Turnroot.Utilities;
+using Turnroot.Utilities.AbstractScripts;
 using UnityEngine;
 
 namespace Turnroot.UI.Components
@@ -432,7 +434,7 @@ namespace Turnroot.UI.Components
                 var idB = modelB.GetComponent<UnitModelOwnership>()?.UnitId;
 
                 _prepObject.Brain?.Publish(
-                    new Turnroot.Gameplay.Brain.Events.ModelSwappedEvent(
+                    new Gameplay.Brain.Events.ModelSwappedEvent(
                         idA,
                         idB,
                         posA,

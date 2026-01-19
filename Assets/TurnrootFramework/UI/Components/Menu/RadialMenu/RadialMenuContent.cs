@@ -1,44 +1,46 @@
 using TMPro;
-using Turnroot.UI.Components.RadialMenu;
 using UnityEngine;
 using UnityEngine.UI;
 
-[RequireComponent(typeof(RectTransform))]
-public class RadialMenuContent : MonoBehaviour, IRadialMenuContent
+namespace Turnroot.UI.Components.RadialMenu
 {
-    [SerializeField]
-    private Image iconImage;
-
-    [SerializeField]
-    private TMP_Text labelText;
-
-    public void SetLabel(string text)
+    [RequireComponent(typeof(RectTransform))]
+    public class RadialMenuContent : MonoBehaviour, IRadialMenuContent
     {
-        if (labelText != null)
-        {
-            labelText.text = text ?? "Segment";
-        }
-    }
+        [SerializeField]
+        private Image iconImage;
 
-    public void SetIcon(Sprite icon)
-    {
-        if (iconImage != null)
-        {
-            iconImage.sprite = icon;
-            iconImage.enabled = icon != null;
-        }
-    }
+        [SerializeField]
+        private TMP_Text labelText;
 
-    public void ApplyVisibility(bool showIcon, bool showLabel)
-    {
-        if (iconImage != null)
+        public void SetLabel(string text)
         {
-            iconImage.gameObject.SetActive(showIcon);
+            if (labelText != null)
+            {
+                labelText.text = text ?? "Segment";
+            }
         }
 
-        if (labelText != null)
+        public void SetIcon(Sprite icon)
         {
-            labelText.gameObject.SetActive(showLabel);
+            if (iconImage != null)
+            {
+                iconImage.sprite = icon;
+                iconImage.enabled = icon != null;
+            }
+        }
+
+        public void ApplyVisibility(bool showIcon, bool showLabel)
+        {
+            if (iconImage != null)
+            {
+                iconImage.gameObject.SetActive(showIcon);
+            }
+
+            if (labelText != null)
+            {
+                labelText.gameObject.SetActive(showLabel);
+            }
         }
     }
 }

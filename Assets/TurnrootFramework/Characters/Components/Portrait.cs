@@ -13,7 +13,7 @@ namespace Turnroot.Characters.Subclasses
 
         // Ensure portrait-specific mandatory tags are applied at the object level
         protected override IEnumerable<ILayerTag> MandatoryTags() =>
-            Turnroot.Graphics2D.Tags.PortraitLayerTags.MandatoryTags();
+            PortraitLayerTags.MandatoryTags();
 
         public override void UpdateTintColorsFromOwner()
         {

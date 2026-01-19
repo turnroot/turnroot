@@ -1,106 +1,99 @@
-[System.Serializable]
-public class MapGridPointFeature
+namespace Turnroot.Gameplay.Maps
 {
-    public string typeId = string.Empty;
-    public string name = string.Empty;
-    public MapGridPointFeatureProperties properties = new();
-
-    public MapGridPointFeature() { }
-
-    public enum FeatureType
+    [System.Serializable]
+    public class MapGridPointFeature
     {
-        None = 0,
-        Treasure,
-        Door,
-        Warp,
-        Healing,
-        Ranged,
-        Mechanism,
-        Control,
-        Breakable,
-        Shelter,
-        Village,
-        Fortress,
-        Underground,
-        Eraser,
-    }
+        public string typeId = string.Empty;
+        public string name = string.Empty;
+        public MapGridPointFeatureProperties properties = new();
 
-    public static FeatureType TypeFromId(string id)
-    {
-        if (string.IsNullOrEmpty(id))
+        public MapGridPointFeature() { }
+
+        public enum FeatureType
         {
-            return FeatureType.None;
+            None = 0,
+            Treasure,
+            Door,
+            Warp,
+            Healing,
+            Ranged,
+            Mechanism,
+            Control,
+            Breakable,
+            Shelter,
+            Village,
+            Fortress,
+            Underground,
+            Eraser,
         }
 
-        string fid = id.ToLower();
-        if (fid.StartsWith("treasure"))
+        public static FeatureType TypeFromId(string id)
         {
-            return FeatureType.Treasure;
+            if (string.IsNullOrEmpty(id))
+            {
+                return FeatureType.None;
+            }
+
+            string fid = id.ToLower();
+            return fid.StartsWith("treasure") ? FeatureType.Treasure
+                : fid.StartsWith("door") ? FeatureType.Door
+                : fid.StartsWith("warp") ? FeatureType.Warp
+                : fid.StartsWith("healing") ? FeatureType.Healing
+                : fid.StartsWith("ranged") ? FeatureType.Ranged
+                : fid.StartsWith("mechanism") ? FeatureType.Mechanism
+                : fid.StartsWith("control") ? FeatureType.Control
+                : fid.StartsWith("breakable") ? FeatureType.Breakable
+                : fid.StartsWith("shelter") ? FeatureType.Shelter
+                : fid.StartsWith("village") ? FeatureType.Village
+                : fid.StartsWith("fortress") ? FeatureType.Fortress
+                : fid.StartsWith("underground") ? FeatureType.Underground
+                : fid.StartsWith("eraser") ? FeatureType.Eraser
+                : FeatureType.None;
         }
 
-        return fid.StartsWith("door")
-            ? FeatureType.Door
-            : fid.StartsWith("warp")
-            ? FeatureType.Warp
-            : fid.StartsWith("healing")
-            ? FeatureType.Healing
-            : fid.StartsWith("ranged")
-            ? FeatureType.Ranged
-            : fid.StartsWith("mechanism")
-            ? FeatureType.Mechanism
-            : fid.StartsWith("control")
-            ? FeatureType.Control
-            : fid.StartsWith("breakable") ? FeatureType.Breakable
-            : fid.StartsWith("shelter") ? FeatureType.Shelter
-            : fid.StartsWith("village") ? FeatureType.Village
-            : fid.StartsWith("fortress") ? FeatureType.Fortress
-            : fid.StartsWith("underground") ? FeatureType.Underground
-            : fid.StartsWith("eraser") ? FeatureType.Eraser
-            : FeatureType.None;
-    }
-
-    public static string IdFromType(FeatureType t)
-    {
-        return t switch
+        public static string IdFromType(FeatureType t)
         {
-            FeatureType.Treasure => "treasure",
-            FeatureType.Door => "door",
-            FeatureType.Warp => "warp",
-            FeatureType.Healing => "healing",
-            FeatureType.Ranged => "ranged",
-            FeatureType.Mechanism => "mechanism",
-            FeatureType.Control => "control",
-            FeatureType.Breakable => "breakable",
-            FeatureType.Shelter => "shelter",
-            FeatureType.Village => "village",
-            FeatureType.Fortress => "fortress",
-            FeatureType.Underground => "underground",
-            FeatureType.Eraser => "eraser",
-            _ => string.Empty,
-        };
-    }
-
-    // Helper: map a feature type id string to a single-letter marker used by the editor overlay.
-    public static string GetFeatureLetter(string typeId)
-    {
-        if (string.IsNullOrEmpty(typeId))
-        {
-            return null;
+            return t switch
+            {
+                FeatureType.Treasure => "treasure",
+                FeatureType.Door => "door",
+                FeatureType.Warp => "warp",
+                FeatureType.Healing => "healing",
+                FeatureType.Ranged => "ranged",
+                FeatureType.Mechanism => "mechanism",
+                FeatureType.Control => "control",
+                FeatureType.Breakable => "breakable",
+                FeatureType.Shelter => "shelter",
+                FeatureType.Village => "village",
+                FeatureType.Fortress => "fortress",
+                FeatureType.Underground => "underground",
+                FeatureType.Eraser => "eraser",
+                _ => string.Empty,
+            };
         }
 
-        string fid = typeId.ToLower();
-        return fid.StartsWith("treasure") ? "T"
-            : fid.StartsWith("door") ? "D"
-            : fid.StartsWith("warp") ? "W"
-            : fid.StartsWith("healing") ? "H"
-            : fid.StartsWith("ranged") ? "R"
-            : fid.StartsWith("mechanism") ? "M"
-            : fid.StartsWith("control") ? "C"
-            : fid.StartsWith("breakable") ? "B"
-            : fid.StartsWith("shelter") ? "S"
-            : fid.StartsWith("underground") ? "U"
-            : fid.StartsWith("village") ? "V"
-            : fid.StartsWith("fortress") ? "F"
-            : "?";
+        // Helper: map a feature type id string to a single-letter marker used by the editor overlay.
+        public static string GetFeatureLetter(string typeId)
+        {
+            if (string.IsNullOrEmpty(typeId))
+            {
+                return null;
+            }
+
+            string fid = typeId.ToLower();
+            return fid.StartsWith("treasure") ? "T"
+                : fid.StartsWith("door") ? "D"
+                : fid.StartsWith("warp") ? "W"
+                : fid.StartsWith("healing") ? "H"
+                : fid.StartsWith("ranged") ? "R"
+                : fid.StartsWith("mechanism") ? "M"
+                : fid.StartsWith("control") ? "C"
+                : fid.StartsWith("breakable") ? "B"
+                : fid.StartsWith("shelter") ? "S"
+                : fid.StartsWith("underground") ? "U"
+                : fid.StartsWith("village") ? "V"
+                : fid.StartsWith("fortress") ? "F"
+                : "?";
+        }
     }
 }

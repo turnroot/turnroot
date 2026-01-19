@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Turnroot.GameSettings;
 
-namespace TurnrootFramework.Gameplay.Brain.Segments
+namespace Turnroot.Gameplay.Brain.Segments
 {
     public class MenuDepthTracker
     {

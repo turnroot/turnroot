@@ -1,6 +1,7 @@
 using Turnroot.Characters;
 using Turnroot.Characters.Components.Support;
 using Turnroot.Conversations;
+using Turnroot.Gameplay.Brain.Components;
 using Turnroot.Gameplay.Brain.Events;
 using UnityEngine;
 

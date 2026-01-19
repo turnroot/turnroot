@@ -1,6 +1,6 @@
 using Turnroot.GameSettings;
 
-namespace Turnroot.Maps
+namespace Turnroot.Gameplay.Maps
 {
     /// <summary>
     /// Parameter object for pathfinding queries to reduce long parameter lists.

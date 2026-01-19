@@ -1,7 +1,9 @@
 using System.Linq;
 using Turnroot.Conversations;
+using Turnroot.Gameplay.Brain.Components;
+using Turnroot.Gameplay.Brain.Segments;
 using Turnroot.Utilities;
-using TurnrootFramework.Gameplay.Brain.Segments;
+using Turnroot.Utilities.AbstractScripts;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain
