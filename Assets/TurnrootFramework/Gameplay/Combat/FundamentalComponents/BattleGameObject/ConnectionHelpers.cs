@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Turnroot.Gameplay.Brain.Components.Battle;
 using Turnroot.Gameplay.Brain.Events;
+using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
 using Turnroot.Gameplay.Maps;
 using Turnroot.Utilities;
 using UnityEngine;

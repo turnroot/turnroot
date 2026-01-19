@@ -1,6 +1,4 @@
 using System.Collections.Generic;
-using Turnroot.Gameplay.Brain;
-using Turnroot.Gameplay.Combat;
 using Turnroot.Gameplay.Maps;
 using Turnroot.Utilities;
 using UnityEngine;

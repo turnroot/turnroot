@@ -1,10 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
-using Turnroot.Characters;
 using Turnroot.Gameplay.Combat;
-using Turnroot.Gameplay.Objects;
 using UnityEngine;
-using UnityEngine.Events;
 
 namespace Turnroot.Gameplay.Maps
 {

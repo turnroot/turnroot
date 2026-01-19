@@ -4,69 +4,72 @@ using Turnroot.Characters;
 using Turnroot.Utilities;
 using UnityEngine;
 
-/// <summary>
-/// Condition to survive until a specific ally reaches a target tile.
-/// </summary>
-[Serializable]
-public class SurviveUntilAllyReachesTileBattleCondition : BattleCondition
+namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 {
-    [SerializeField]
-    public CharacterData AllyToReachTile;
-
-    [SerializeField]
-    public Vector2Int TargetTile;
-
-    private readonly SingleValueCache<CharacterInstance> _allyCache = new();
-
-    public SurviveUntilAllyReachesTileBattleCondition(
-        string name,
-        string description,
-        CharacterData allyToReachTile,
-        Vector2Int targetTile
-    )
-        : base(name, description)
+    /// <summary>
+    /// Condition to survive until a specific ally reaches a target tile.
+    /// </summary>
+    [Serializable]
+    public class SurviveUntilAllyReachesTileBattleCondition : BattleCondition
     {
-        AllyToReachTile = allyToReachTile;
-        TargetTile = targetTile;
-    }
+        [SerializeField]
+        public CharacterData AllyToReachTile;
 
-    public SurviveUntilAllyReachesTileBattleCondition()
-        : base(
-            "Survive Until Ally Reaches Tile",
-            "Survive until the specified ally reaches the target tile"
+        [SerializeField]
+        public Vector2Int TargetTile;
+
+        private readonly SingleValueCache<CharacterInstance> _allyCache = new();
+
+        public SurviveUntilAllyReachesTileBattleCondition(
+            string name,
+            string description,
+            CharacterData allyToReachTile,
+            Vector2Int targetTile
         )
-    {
-        AllyToReachTile = null;
-        TargetTile = Vector2Int.zero;
-    }
+            : base(name, description)
+        {
+            AllyToReachTile = allyToReachTile;
+            TargetTile = targetTile;
+        }
 
-    public override void InvalidateCache() => _allyCache.Invalidate();
-
-    private CharacterInstance GetTargetAlly()
-    {
-        return _allyCache.GetOrCompute(() =>
-            battleContext.Participants.Allies.FirstOrDefault(a =>
-                a.CharacterTemplate == AllyToReachTile
+        public SurviveUntilAllyReachesTileBattleCondition()
+            : base(
+                "Survive Until Ally Reaches Tile",
+                "Survive until the specified ally reaches the target tile"
             )
-        );
-    }
-
-    public void CheckCondition()
-    {
-        if (!AreRequirementsMet())
         {
-            return;
+            AllyToReachTile = null;
+            TargetTile = Vector2Int.zero;
         }
 
-        if (!ValidateBattleContext(nameof(SurviveUntilAllyReachesTileBattleCondition)))
+        public override void InvalidateCache() => _allyCache.Invalidate();
+
+        private CharacterInstance GetTargetAlly()
         {
-            return;
+            return _allyCache.GetOrCompute(() =>
+                battleContext.Participants.Allies.FirstOrDefault(a =>
+                    a.CharacterTemplate == AllyToReachTile
+                )
+            );
         }
 
-        var ally = GetTargetAlly();
-        if (ally != null && ally.MapGridPosition == TargetTile)
+        public void CheckCondition()
         {
-            ConditionMet();
+            if (!AreRequirementsMet())
+            {
+                return;
+            }
+
+            if (!ValidateBattleContext(nameof(SurviveUntilAllyReachesTileBattleCondition)))
+            {
+                return;
+            }
+
+            var ally = GetTargetAlly();
+            if (ally != null && ally.MapGridPosition == TargetTile)
+            {
+                ConditionMet();
+            }
         }
     }
 }

@@ -3,7 +3,7 @@ using UnityEditor;
 using UnityEngine;
 
 [CustomEditor(typeof(Turnroot.GameSettings.GamewideUiSettings))]
-public class GamewideUiSettingsEditor : UnityEditor.Editor
+public class GamewideUiSettingsEditor : Editor
 {
     public override void OnInspectorGUI()
     {

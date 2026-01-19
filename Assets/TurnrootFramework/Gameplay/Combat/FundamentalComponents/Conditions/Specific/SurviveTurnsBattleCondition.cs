@@ -1,39 +1,42 @@
 using System;
 using UnityEngine;
 
-/// <summary>
-/// Condition to survive a certain number of turns.
-/// </summary>
-[Serializable]
-public class SurviveTurnsBattleCondition : BattleCondition
+namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 {
-    [SerializeField]
-    public int TurnsToSurvive;
-    private int turnsSurvived = 0;
-
-    public SurviveTurnsBattleCondition(string name, string description, int turnsToSurvive)
-        : base(name, description)
+    /// <summary>
+    /// Condition to survive a certain number of turns.
+    /// </summary>
+    [Serializable]
+    public class SurviveTurnsBattleCondition : BattleCondition
     {
-        TurnsToSurvive = turnsToSurvive;
-    }
+        [SerializeField]
+        public int TurnsToSurvive;
+        private int turnsSurvived = 0;
 
-    public SurviveTurnsBattleCondition()
-        : base("Survive Turns", "Survive the specified number of turns")
-    {
-        TurnsToSurvive = 1;
-    }
-
-    public void OnTurnEnd()
-    {
-        turnsSurvived++;
-        CheckCondition();
-    }
-
-    public void CheckCondition()
-    {
-        if (turnsSurvived >= TurnsToSurvive)
+        public SurviveTurnsBattleCondition(string name, string description, int turnsToSurvive)
+            : base(name, description)
         {
-            ConditionMet();
+            TurnsToSurvive = turnsToSurvive;
+        }
+
+        public SurviveTurnsBattleCondition()
+            : base("Survive Turns", "Survive the specified number of turns")
+        {
+            TurnsToSurvive = 1;
+        }
+
+        public void OnTurnEnd()
+        {
+            turnsSurvived++;
+            CheckCondition();
+        }
+
+        public void CheckCondition()
+        {
+            if (turnsSurvived >= TurnsToSurvive)
+            {
+                ConditionMet();
+            }
         }
     }
 }

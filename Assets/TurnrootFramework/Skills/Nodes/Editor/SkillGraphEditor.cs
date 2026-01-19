@@ -78,7 +78,7 @@ namespace Turnroot.Skills.Nodes.Editor
                                 AssetDatabase.RemoveObjectFromAsset(xNode as UnityEngine.Object);
                             }
                         }
-                        catch (System.Exception ex)
+                        catch (Exception ex)
                         {
                             Debug.LogWarning(
                                 $"SkillGraphEditor: failed to remove node subasset: {ex.Message}"

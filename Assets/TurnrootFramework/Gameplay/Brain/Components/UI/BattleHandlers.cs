@@ -1,4 +1,3 @@
-using Turnroot.Gameplay.Brain;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain.Segments

@@ -5,72 +5,78 @@ using Turnroot.Characters;
 using Turnroot.Utilities;
 using UnityEngine;
 
-/// <summary>
-/// Condition to protect specific NPCs from being defeated.
-/// </summary>
-[Serializable]
-public class ProtectNPCsBattleCondition : BattleCondition
+namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 {
-    [SerializeField]
-    public CharacterData[] NPCsToProtect;
-
-    [SerializeField]
-    public int MustSurviveCount = 0;
-
-    private readonly SingleValueCache<List<CharacterInstance>> _npcsCache = new();
-
-    public ProtectNPCsBattleCondition(
-        string name,
-        string description,
-        int mustSurviveCount,
-        CharacterData[] npcsToProtect
-    )
-        : base(name, description)
+    /// <summary>
+    /// Condition to protect specific NPCs from being defeated.
+    /// </summary>
+    [Serializable]
+    public class ProtectNPCsBattleCondition : BattleCondition
     {
-        NPCsToProtect = npcsToProtect ?? Array.Empty<CharacterData>();
-    }
+        [SerializeField]
+        public CharacterData[] NPCsToProtect;
 
-    public ProtectNPCsBattleCondition()
-        : base("Protect NPCs", "Prevent listed NPCs from being defeated")
-    {
-        NPCsToProtect = Array.Empty<CharacterData>();
-    }
+        [SerializeField]
+        public int MustSurviveCount = 0;
 
-    public override void InvalidateCache() => _npcsCache.Invalidate();
+        private readonly SingleValueCache<List<CharacterInstance>> _npcsCache = new();
 
-    private List<CharacterInstance> GetTrackedNPCs() =>
-        _npcsCache.GetOrCompute(() => GetMatchingAlliesAndThirdParty(NPCsToProtect));
-
-    public void CheckCondition()
-    {
-        if (!AreRequirementsMet())
+        public ProtectNPCsBattleCondition(
+            string name,
+            string description,
+            int mustSurviveCount,
+            CharacterData[] npcsToProtect
+        )
+            : base(name, description)
         {
-            return;
+            NPCsToProtect = npcsToProtect ?? Array.Empty<CharacterData>();
         }
 
-        if (!ValidateBattleContext(nameof(ProtectNPCsBattleCondition)))
+        public ProtectNPCsBattleCondition()
+            : base("Protect NPCs", "Prevent listed NPCs from being defeated")
         {
-            return;
+            NPCsToProtect = Array.Empty<CharacterData>();
         }
 
-        if (!ValidationHelper.ValidateNotNullOrEmpty(NPCsToProtect, nameof(NPCsToProtect)))
+        public override void InvalidateCache() => _npcsCache.Invalidate();
+
+        private List<CharacterInstance> GetTrackedNPCs() =>
+            _npcsCache.GetOrCompute(() => GetMatchingAlliesAndThirdParty(NPCsToProtect));
+
+        public void CheckCondition()
         {
-            return;
-        }
+            if (!AreRequirementsMet())
+            {
+                return;
+            }
 
-        var allPotentialNPCs = GetTrackedNPCs();
+            if (!ValidateBattleContext(nameof(ProtectNPCsBattleCondition)))
+            {
+                return;
+            }
 
-        if (!ValidationHelper.ValidateNotNullOrEmpty(allPotentialNPCs, nameof(allPotentialNPCs)))
-        {
-            return;
-        }
+            if (!ValidationHelper.ValidateNotNullOrEmpty(NPCsToProtect, nameof(NPCsToProtect)))
+            {
+                return;
+            }
 
-        int aliveCount = allPotentialNPCs.Count(npc => !npc.IsDefeatedInCurrentBattle);
-        int requiredSurvivors = MustSurviveCount > 0 ? MustSurviveCount : allPotentialNPCs.Count;
+            var allPotentialNPCs = GetTrackedNPCs();
 
-        if (aliveCount < requiredSurvivors)
-        {
-            ConditionFailed();
+            if (
+                !ValidationHelper.ValidateNotNullOrEmpty(allPotentialNPCs, nameof(allPotentialNPCs))
+            )
+            {
+                return;
+            }
+
+            int aliveCount = allPotentialNPCs.Count(npc => !npc.IsDefeatedInCurrentBattle);
+            int requiredSurvivors =
+                MustSurviveCount > 0 ? MustSurviveCount : allPotentialNPCs.Count;
+
+            if (aliveCount < requiredSurvivors)
+            {
+                ConditionFailed();
+            }
         }
     }
 }

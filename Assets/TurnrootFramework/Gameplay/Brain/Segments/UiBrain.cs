@@ -1,5 +1,4 @@
 using Turnroot.Characters;
-using Turnroot.Gameplay.Brain;
 using Turnroot.Gameplay.Brain.Events;
 using Turnroot.Gameplay.PlayerSettings;
 using Turnroot.GameSettings;

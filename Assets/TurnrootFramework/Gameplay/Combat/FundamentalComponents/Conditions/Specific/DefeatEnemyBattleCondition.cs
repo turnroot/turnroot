@@ -5,7 +5,7 @@ using Turnroot.Characters;
 using Turnroot.Utilities;
 using UnityEngine;
 
-namespace Turnroot.Gameplay.Combat.FundamentalComponents.Conditions.Specific
+namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 {
     /// <summary>
     /// Condition to defeat specific enemies.

@@ -11,7 +11,7 @@ namespace Turnroot.Characters.Stats
     {
         public static void RefreshStats(
             DefaultCharacterStats defaultStats,
-            Turnroot.GameSettings.GameplayGeneralSettings gameplaySettings
+            GameSettings.GameplayGeneralSettings gameplaySettings
         )
         {
             // Get the serialized object to access private fields

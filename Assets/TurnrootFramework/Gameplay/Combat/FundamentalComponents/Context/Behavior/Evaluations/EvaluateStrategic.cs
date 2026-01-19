@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using Turnroot.Characters.Components.Behavior;
-using Turnroot.Gameplay.Combat.FundamentalComponents.Conditions.Specific;
 using Turnroot.Utilities;
 using UnityEngine;
 using static MapGridPointFeature;

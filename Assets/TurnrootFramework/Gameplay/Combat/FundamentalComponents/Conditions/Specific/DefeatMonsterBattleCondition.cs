@@ -3,7 +3,7 @@ using System;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
 using UnityEngine;
 
-namespace Turnroot.Gameplay.Combat.FundamentalComponents.Conditions.Specific
+namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 {
     /// <summary>
     /// Condition to defeat specific monsters.

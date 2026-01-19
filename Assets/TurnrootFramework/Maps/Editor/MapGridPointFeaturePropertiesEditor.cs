@@ -60,7 +60,7 @@ public class MapGridPointFeaturePropertiesEditor : Editor
                 "Add Bool Property",
                 () =>
                     src.boolProperties.Add(
-                        new MapGridPointFeatureProperties.BoolProperty
+                        new MapGridPropertyBase.BoolProperty
                         {
                             key = "new_bool",
                             value = false,
@@ -121,7 +121,7 @@ public class MapGridPointFeaturePropertiesEditor : Editor
                 "Add Float Property",
                 () =>
                     src.floatProperties.Add(
-                        new MapGridPointFeatureProperties.FloatProperty
+                        new MapGridPropertyBase.FloatProperty
                         {
                             key = "new_float",
                             value = 0f,

@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using Turnroot.Characters;
 using Turnroot.Characters.Components.Behavior;
-using Turnroot.Gameplay.Combat.FundamentalComponents.Conditions.Specific;
 using Turnroot.Gameplay.Maps;
 using Turnroot.Utilities;
 using UnityEngine;

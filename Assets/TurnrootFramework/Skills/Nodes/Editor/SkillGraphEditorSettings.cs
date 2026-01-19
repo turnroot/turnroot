@@ -109,7 +109,7 @@ namespace Turnroot.Skills.Nodes.Editor
                 EditorPrefs.SetString("xNode.Settings.typeColors", typeColorsJson);
 
                 // Clear the typeColors cache in NodeEditorPreferences to force reload
-                var typeColorsField = typeof(XNodeEditor.NodeEditorPreferences).GetField(
+                var typeColorsField = typeof(NodeEditorPreferences).GetField(
                     "typeColors",
                     System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static
                 );
@@ -132,7 +132,7 @@ namespace Turnroot.Skills.Nodes.Editor
         }
 
         // Helper class for serializing typeColors dictionary
-        [System.Serializable]
+        [Serializable]
         private class SerializableTypeColorDict
         {
             public List<string> keys = new();

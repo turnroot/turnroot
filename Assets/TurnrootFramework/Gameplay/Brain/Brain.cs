@@ -8,6 +8,7 @@ using Turnroot.Gameplay.Brain.Components;
 using Turnroot.Gameplay.Brain.Components.Battle;
 using Turnroot.Gameplay.Brain.Segments;
 using Turnroot.Gameplay.Combat;
+using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
 using Turnroot.Gameplay.Maps;
 using Turnroot.Gameplay.Objects;
 using Turnroot.Utilities;

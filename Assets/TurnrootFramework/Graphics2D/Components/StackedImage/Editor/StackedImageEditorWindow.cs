@@ -4,7 +4,7 @@ using UnityEngine;
 namespace Turnroot.Graphics2D.Editor
 {
     public abstract class StackedImageEditorWindow<TOwner, TStackedImage> : EditorWindow
-        where TOwner : UnityEngine.Object
+        where TOwner : Object
         where TStackedImage : StackedImage<TOwner>
     {
         protected TOwner _currentOwner;
