@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
+using Turnroot.Gameplay.Brain.Segments;
 using Turnroot.GameSettings;
-using TurnrootFramework.Gameplay.Brain.Segments;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using SimpleButtonComponent = Turnroot.UI.Components.SimpleButton.SimpleButton;

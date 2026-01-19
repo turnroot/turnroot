@@ -4,7 +4,7 @@ using Turnroot.GameSettings;
 using Turnroot.UI.Components.GridMenu;
 using UnityEngine;
 
-namespace TurnrootFramework.Gameplay.Brain.Segments
+namespace Turnroot.Gameplay.Brain.Segments
 {
     public class MenuRouteHandler
     {

@@ -3,12 +3,13 @@ using Turnroot.GameSettings;
 using Turnroot.UI.Components.GridMenu;
 using Turnroot.UI.Components.Menu;
 using Turnroot.UI.Components.RadialMenu;
+using Turnroot.Utilities.AbstractScripts;
 using UnityEngine;
 #if COFFEE_UIEFFECTS
 using Coffee.UIEffects;
 #endif
 
-namespace TurnrootFramework.Gameplay.Brain.Segments
+namespace Turnroot.Gameplay.Brain.Segments
 {
     public partial class UiBrain : BrainComponent
     {

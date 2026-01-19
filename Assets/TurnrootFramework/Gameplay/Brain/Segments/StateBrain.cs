@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using Turnroot.Gameplay.Brain.Events;
 using Turnroot.Utilities;
+using Turnroot.Utilities.AbstractScripts;
 using UnityEngine;
 
 public class BrainState

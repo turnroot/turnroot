@@ -4,6 +4,7 @@ using Turnroot.Characters.CharacterClass;
 using Turnroot.CommonAncestors;
 using Turnroot.Gameplay.Combat.FundamentalComponents;
 using Turnroot.Gameplay.Objects.Components;
+using Turnroot.Utilities.AbstractScripts;
 using UnityEngine;
 
 namespace Turnroot.GameSettings

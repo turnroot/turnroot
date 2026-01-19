@@ -6,7 +6,7 @@ using Turnroot.UI.Components.Menu.Submenu;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace TurnrootFramework.Gameplay.Brain.Segments
+namespace Turnroot.Gameplay.Brain.Segments
 {
     public class SettingsBindingManager
     {

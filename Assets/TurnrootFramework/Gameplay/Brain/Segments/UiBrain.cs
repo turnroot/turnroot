@@ -7,9 +7,10 @@ using Turnroot.UI.Components.Menu;
 using Turnroot.UI.Components.RadialMenu;
 using Turnroot.UI.Components.SimpleButton;
 using Turnroot.Utilities;
+using Turnroot.Utilities.AbstractScripts;
 using UnityEngine;
 
-namespace TurnrootFramework.Gameplay.Brain.Segments
+namespace Turnroot.Gameplay.Brain.Segments
 {
     [RequireComponent(typeof(CursorBrain))]
     public partial class UiBrain : BrainComponent
@@ -233,11 +234,13 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             _brain.ltm.RememberBool(key, selected);
         }
 
-        // Ensure a UIFade exists on the target object and set a sensible lerp time based on UI settings.
         private UIFade EnsureUIFadeOnObject(GameObject obj)
         {
             if (obj == null)
+            {
                 return null;
+            }
+
             if (!obj.TryGetComponent<UIFade>(out var fade))
             {
                 fade = obj.AddComponent<UIFade>();
@@ -254,7 +257,9 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
         private GameObject FindMenuCanvasPanel(GameObject canvas)
         {
             if (canvas == null)
+            {
                 return null;
+            }
 
             foreach (Transform t in canvas.GetComponentsInChildren<Transform>(true))
             {
@@ -273,12 +278,16 @@ namespace TurnrootFramework.Gameplay.Brain.Segments
             // Look for CanvasGroup first
             var cg = canvas.GetComponentInChildren<CanvasGroup>(true);
             if (cg != null)
+            {
                 return cg.gameObject;
+            }
 
             // Fall back to an Image-based panel
             var img = canvas.GetComponentInChildren<UnityEngine.UI.Image>(true);
             if (img != null)
+            {
                 return img.gameObject;
+            }
             // As a final fallback, return the canvas root itself so we can still fade something
             return canvas;
         }

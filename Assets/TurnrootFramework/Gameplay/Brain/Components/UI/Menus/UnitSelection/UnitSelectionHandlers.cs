@@ -6,7 +6,7 @@ using UnityEngine;
 using Coffee.UIEffects;
 #endif
 
-namespace TurnrootFramework.Gameplay.Brain.Segments
+namespace Turnroot.Gameplay.Brain.Segments
 {
     public partial class UiBrain : BrainComponent
     {

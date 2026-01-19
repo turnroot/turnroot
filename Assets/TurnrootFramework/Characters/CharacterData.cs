@@ -10,6 +10,7 @@ using Turnroot.Characters.Stats;
 using Turnroot.Characters.Subclasses;
 using Turnroot.CommonAncestors;
 using Turnroot.Gameplay.Objects;
+using Turnroot.Utilities.AbstractScripts;
 using UnityEngine;
 
 [Serializable]

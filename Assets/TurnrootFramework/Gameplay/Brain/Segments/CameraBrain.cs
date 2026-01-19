@@ -6,7 +6,7 @@ using Turnroot.GameSettings;
 using Turnroot.Utilities;
 using UnityEngine;
 
-namespace TurnrootFramework.Gameplay.Brain.Segments
+namespace Turnroot.Gameplay.Brain.Segments
 {
     public partial class CameraBrain : BrainComponent
     {

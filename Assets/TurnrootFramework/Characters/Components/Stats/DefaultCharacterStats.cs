@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Turnroot.Characters.Stats;
+using Turnroot.Utilities.AbstractScripts;
 using UnityEngine;
 
 namespace Turnroot.Characters

@@ -1,4 +1,5 @@
 using Turnroot.Audio.PreferredBattleMusic;
+using Turnroot.Utilities.AbstractScripts;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.PlayerSettings
@@ -234,7 +235,8 @@ namespace Turnroot.Gameplay.PlayerSettings
         public void NotifyBindingsChanged() => BindingsChanged?.Invoke();
 
         // Convenience: return the binding path for the chosen option for an action
-        public string GetBindingForSelectedOption(LogicalAction action) => GetBinding(GetSelectedOptionForAction(action));
+        public string GetBindingForSelectedOption(LogicalAction action) =>
+            GetBinding(GetSelectedOptionForAction(action));
 
         // Return all available options for a logical action (for UI dropdowns)
         public InputBindingKey[] GetOptionsForAction(LogicalAction action)
