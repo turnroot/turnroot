@@ -78,7 +78,6 @@ namespace Turnroot.Gameplay.Maps
         private Dictionary<Vector2Int, Vector3> _terrainPositionLookup;
 
 #if UNITY_EDITOR
-        // Cache of editor colors per grid cell to avoid TryGetComponent/allocs in OnDrawGizmos.
         private Dictionary<Vector2Int, Color> _gridPointColorCache = new();
 #endif
 

@@ -4,6 +4,7 @@ using Turnroot.UI.Components;
 using Turnroot.UI.Components.Menu;
 using Turnroot.UI.Components.RadialMenu;
 using Turnroot.UI.Components.SimpleButton;
+using Turnroot.Utilities;
 using Turnroot.Utilities.AbstractScripts;
 using UnityEngine;
 
@@ -98,7 +99,8 @@ namespace Turnroot.Gameplay.Brain.Segments
                     _brain.GetBrain()?.PublishPositioningModeExited();
                 }
 
-                if (fromInstance.TryGetComponent<UIFade>(out var fromFade))
+                var fromFade = UIFadeCache.Get(fromInstance);
+                if (fromFade != null)
                 {
                     fromFade.Hide();
                     yield return new WaitForSeconds(fromFade.lerpTime + 0.1f);
@@ -107,6 +109,7 @@ namespace Turnroot.Gameplay.Brain.Segments
                 CleanupMenuEvents(fromInstance);
                 Object.Destroy(fromInstance);
                 from.activeInstance = null;
+                UIFadeCache.Remove(fromInstance);
             }
 
             // Create and show target menu fresh
@@ -142,7 +145,8 @@ namespace Turnroot.Gameplay.Brain.Segments
             }
 
             // Start fade out
-            if (menuInstance.TryGetComponent<UIFade>(out var uiFade))
+            var uiFade = UIFadeCache.Get(menuInstance);
+            if (uiFade != null)
             {
                 uiFade.Hide();
                 yield return new WaitForSeconds(uiFade.lerpTime + 0.1f);
@@ -152,6 +156,7 @@ namespace Turnroot.Gameplay.Brain.Segments
             CleanupMenuEvents(menuInstance);
             Object.Destroy(menuInstance);
             preBattle.activeInstance = null;
+            UIFadeCache.Remove(menuInstance);
 
             // Notify brain of completion
             _brain.Brain.PublishPreBattleCompleted();
@@ -257,12 +262,7 @@ namespace Turnroot.Gameplay.Brain.Segments
 
         private UIFade EnsureUIFade(GameObject instance, float lerpTime)
         {
-            if (!instance.TryGetComponent<UIFade>(out var uiFade))
-            {
-                uiFade = instance.AddComponent<UIFade>();
-            }
-            uiFade.lerpTime = lerpTime;
-            return uiFade;
+            return UIFadeCache.GetOrCreate(instance, lerpTime);
         }
     }
 }

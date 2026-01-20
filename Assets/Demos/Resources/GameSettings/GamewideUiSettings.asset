@@ -105,7 +105,7 @@ MonoBehaviour:
   GridListFilmstripButtonSelectedColor: {r: 0.67058825, g: 0.4117647, b: 0.5372549, a: 1}
   ButtonTransitionDuration: 0.12
   MenuCanvasPrefab: {fileID: 6717558390753289932, guid: 015cf6f2a44a8fd48872b6635c3ca360, type: 3}
-  ModelsScale: 3
+  ModelsScale: 1
   PathTipSprite: {fileID: 585487291, guid: 55938e87ee80ffa4fa46d8e00d3564f7, type: 3}
   PathPreTipSprite: {fileID: 1325149353, guid: 55938e87ee80ffa4fa46d8e00d3564f7, type: 3}
   PathStraightSprite: {fileID: 158355938, guid: 55938e87ee80ffa4fa46d8e00d3564f7, type: 3}

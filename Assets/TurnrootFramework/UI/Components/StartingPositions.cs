@@ -181,28 +181,31 @@ namespace Turnroot.UI.Components
             HideWithFade(SwapGraphic);
         }
 
-        private void ShowWithFade(GameObject go)
+        private OperationResult ShowWithFade(GameObject go)
         {
             if (go == null)
             {
-                return;
+                return OperationResult.Failure("ShowWithFade: GameObject is null.");
             }
 
             go.SetActive(true);
-            if (go.TryGetComponent<UIFade>(out var fade))
+            var fade = UIFadeCache.Get(go);
+            if (fade != null)
             {
                 fade.Show();
             }
+            return OperationResult.SuccessResult();
         }
 
-        private void HideWithFade(GameObject go)
+        private OperationResult HideWithFade(GameObject go)
         {
             if (go == null || !go.activeInHierarchy)
             {
-                return;
+                return OperationResult.Failure("HideWithFade: GameObject is null or not active.");
             }
 
-            if (go.TryGetComponent<UIFade>(out var fade))
+            var fade = UIFadeCache.Get(go);
+            if (fade != null)
             {
                 fade.Hide();
             }
@@ -210,6 +213,7 @@ namespace Turnroot.UI.Components
             {
                 go.SetActive(false);
             }
+            return OperationResult.SuccessResult();
         }
 
         private void SpawnAllUnitModels()

@@ -7,63 +7,7 @@ namespace Turnroot.Gameplay.Brain
 {
     public partial class CursorBrain
     {
-        #region Cursor Movement API (moved)
-
-        /// <summary>
-        /// Initialize cursor with optional movement restrictions.
-        /// </summary>
-        public OperationResult InitializeCursor(
-            MapGrid mapGrid,
-            List<Vector2Int> allowedPositions = null
-        )
-        {
-            TurnrootLogger.Log(
-                $"CursorBrain.InitializeCursor: Starting initialization. IsInitialized was: {IsInitialized}"
-            );
-
-            _currentMap = mapGrid;
-            _allowedPositions = allowedPositions;
-
-            // Create cursor instance if needed
-            if (_cursorInstance == null && uiSettings?.BattleCursorPrefab != null)
-            {
-                _cursorInstance = Instantiate(uiSettings.BattleCursorPrefab);
-                _cursorInstance.name = "BattleCursor";
-
-                var mapGridScale = _currentMap.GridScale;
-                var scaleFactor = mapGridScale / 10f;
-                _cursorInstance.transform.localScale = new Vector3(
-                    scaleFactor,
-                    scaleFactor,
-                    scaleFactor
-                );
-            }
-
-            Vector2Int startPos = GetInitialCursorPosition(allowedPositions);
-
-            var startPoint = _currentMap.GetGridPoint(startPos.x, startPos.y);
-            if (startPoint != null)
-            {
-                CursorPosition = startPoint;
-                UpdateCursorVisualPosition(startPos);
-                IsInitialized = true;
-
-                TurnrootLogger.Log($"CursorBrain: IsInitialized set to TRUE. Cursor at {startPos}");
-
-                _brain?.PublishCursorPositionChanged(startPos, _currentMap);
-            }
-            else
-            {
-                return OperationResult.Failure(
-                    $"InitializeCursor: Could not find valid start grid point at {startPos}."
-                );
-            }
-            return OperationResult.SuccessResult();
-        }
-
-        /// <summary>
-        /// Move cursor to specific position (validates against restrictions).
-        /// </summary>
+        #region Cursor Movement API
         public bool MoveCursorTo(Vector2Int position, bool updateBrain = true)
         {
             if (!IsPositionValid(position))

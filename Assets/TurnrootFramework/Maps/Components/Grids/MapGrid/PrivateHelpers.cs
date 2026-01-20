@@ -32,19 +32,28 @@ namespace Turnroot.Gameplay.Maps
                 RebuildRaycastColors();
             }
 
-            TerrainLevelModel?.SetActive(!UseHeightMeshAsTerrainModel);
-
-            if (_single3dHeightMesh != null)
+            if (UseHeightMeshAsTerrainModel)
             {
-                _single3dHeightMesh.SetActive(UseHeightMeshAsTerrainModel);
+                if (_single3dHeightMesh != null)
+                {
+                    _single3dHeightMesh.SetActive(UseHeightMeshAsTerrainModel);
+                    // _single3dHeightMesh.GetComponent<Renderer>().renderingLayerMask = (uint)GetRenderingLayerMask.Get("Receive Map Grid Decals").value;
+                }
             }
-            else if (UseHeightMeshAsTerrainModel)
+            else
             {
-#if UNITY_EDITOR
-                Debug.LogError(
-                    "MapGrid: Neither a 3D height mesh nor a terrain level model is assigned."
-                );
-#endif
+                if (TerrainLevelModel != null)
+                {
+                    TerrainLevelModel.SetActive(!UseHeightMeshAsTerrainModel);
+                    // TerrainLevelModel.GetComponent<Renderer>().renderingLayerMask = (uint)GetRenderingLayerMask.Get("Receive Map Grid Decals").value;
+                }
+                else
+                {
+                    TurnrootLogger.Log(
+                        "MapGrid: No TerrainLevelModel assigned while UseHeightMeshAsTerrainModel is false.",
+                        TurnrootLogger.LogLevel.Error
+                    );
+                }
             }
         }
 
@@ -198,17 +207,21 @@ namespace Turnroot.Gameplay.Maps
             if (needsRebuild)
             {
                 RebuildGridDictionary();
+                TurnrootLogger.Log("MapGrid: Rebuilt grid dictionary from existing children.");
             }
             else if (needsCreate)
             {
                 CreateChildrenPoints();
+                TurnrootLogger.Log("MapGrid: Created missing grid points.");
             }
             else if (_gridPoints?.Count == 0 && transform.childCount > 0)
             {
                 RebuildGridDictionary();
+                TurnrootLogger.Log("MapGrid: Rebuilt grid dictionary from existing children.");
             }
 
             RepositionGridPoints();
+            TurnrootLogger.Log("MapGrid: Grid points ensured.");
         }
 
         private void RepositionGridPoints()
@@ -477,7 +490,7 @@ namespace Turnroot.Gameplay.Maps
                         // Small visual indicator when full labeling is suppressed for performance.
                         Gizmos.color = Color.gray;
                         Gizmos.DrawSphere(
-                            transform.position + Vector3.up * 0.1f,
+                            transform.position + (Vector3.up * 0.1f),
                             0.02f * GridScale
                         );
                     }

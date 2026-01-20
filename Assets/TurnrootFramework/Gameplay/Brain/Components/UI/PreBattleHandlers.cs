@@ -2,6 +2,7 @@ using Turnroot.GameSettings;
 using Turnroot.UI.Components.GridMenu;
 using Turnroot.UI.Components.Menu;
 using Turnroot.UI.Components.RadialMenu;
+using Turnroot.Utilities;
 using Turnroot.Utilities.AbstractScripts;
 using UnityEngine;
 #if COFFEE_UIEFFECTS
@@ -12,26 +13,21 @@ namespace Turnroot.Gameplay.Brain.Segments
 {
     public partial class UiBrain : BrainComponent
     {
-        public void HandlePreBattleUi()
+        public OperationResult HandlePreBattleUi()
         {
             var preBattleMenuLocation = GetValidatedMenuLocation(
                 () => uiSettings?.GetPreBattleMenu(),
                 "Pre-battle"
             );
-            if (preBattleMenuLocation == null)
+            if (
+                !ValidationHelper.ValidateNotNull(
+                    "Pre-battle UI",
+                    (preBattleMenuLocation, nameof(preBattleMenuLocation)),
+                    (preBattleMenuLocation?.prefab, "preBattleMenuLocation.prefab")
+                )
+            )
             {
-                return;
-            }
-
-            // Guard: Return early if activeInstance already exists to prevent duplicates
-            if (preBattleMenuLocation.activeInstance != null)
-            {
-                return;
-            }
-
-            if (preBattleMenuLocation.prefab == null)
-            {
-                return;
+                return OperationResult.Failure("Pre-battle UI validation failed.");
             }
 
             preBattleMenuLocation.activeInstance = Instantiate(preBattleMenuLocation.prefab);
@@ -40,11 +36,10 @@ namespace Turnroot.Gameplay.Brain.Segments
             // can initialize pre-battle objects (e.g., BattlePreparationObject) before UI populates.
 
             _brain.PublishPreBattlePrepare();
-            if (!preBattleMenuLocation.activeInstance.TryGetComponent<UIFade>(out var uiFade))
-            {
-                uiFade = preBattleMenuLocation.activeInstance.AddComponent<UIFade>();
-                uiFade.lerpTime = uiSettings.MenuFadeTime;
-            }
+            var uiFade = UIFadeCache.GetOrCreate(
+                preBattleMenuLocation.activeInstance,
+                uiSettings.MenuFadeTime
+            );
 
             var menuStyle = preBattleMenuLocation.style;
             if (menuStyle is not MenuStyle.Pie and not MenuStyle.Grid)
@@ -73,6 +68,7 @@ namespace Turnroot.Gameplay.Brain.Segments
                     gridMenu.OnItemSelected += HandlePreBattleMenuSelect;
                 }
             }
+            return OperationResult.SuccessResult();
         }
 
         #region PreBattle Menu Event Handlers
@@ -113,11 +109,10 @@ namespace Turnroot.Gameplay.Brain.Segments
                 if (currentMenuInstance != null)
                 {
                     // Fade out the current submenu
-                    if (!currentMenuInstance.TryGetComponent<UIFade>(out var uiFade))
-                    {
-                        uiFade = currentMenuInstance.AddComponent<UIFade>();
-                        uiFade.lerpTime = uiSettings.MenuFadeTime;
-                    }
+                    var uiFade = UIFadeCache.GetOrCreate(
+                        currentMenuInstance,
+                        uiSettings.MenuFadeTime
+                    );
                     StartCoroutine(HandleFadeAndTransitionForSubmenu(currentMenuInstance, uiFade));
                 }
                 else
@@ -263,7 +258,8 @@ namespace Turnroot.Gameplay.Brain.Segments
                 yield break;
             }
 
-            if (!menuInstance.TryGetComponent<UIFade>(out var uiFade))
+            var uiFade = UIFadeCache.Get(menuInstance);
+            if (uiFade == null)
             {
                 // No fade component, proceed directly
                 if (menuInstance.TryGetComponent<RadialMenu>(out var menu))

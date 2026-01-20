@@ -1,6 +1,7 @@
 using System.Collections;
 using Turnroot.GameSettings;
 using Turnroot.UI.Components.Menu;
+using Turnroot.Utilities;
 using Turnroot.Utilities.AbstractScripts;
 using UnityEngine;
 
@@ -95,15 +96,20 @@ namespace Turnroot.Gameplay.Brain.Segments
             _isTransitioning = false;
         }
 
-        public void SetPreBattleMenuFadeSpeed(float fadeTime)
+        public OperationResult SetPreBattleMenuFadeSpeed(float fadeTime)
         {
             var preBattleMenuLocation = uiSettings?.GetPreBattleMenu();
-            if (
-                preBattleMenuLocation?.activeInstance != null
-                && preBattleMenuLocation.activeInstance.TryGetComponent<UIFade>(out var uiFade)
-            )
+            var uiFade = UIFadeCache.Get(preBattleMenuLocation?.activeInstance);
+            if (uiFade != null)
             {
                 uiFade.lerpTime = fadeTime;
+                return OperationResult.SuccessResult();
+            }
+            else
+            {
+                return OperationResult.Failure(
+                    "SetPreBattleMenuFadeSpeed: Pre-battle menu or UIFade component not found."
+                );
             }
         }
 

@@ -54,7 +54,7 @@ MonoBehaviour:
   m_DecalLayerMask: 256
   m_ScaleMode: 1
   m_Offset: {x: 0, y: 0, z: 10}
-  m_Size: {x: 5, y: 5, z: 20}
+  m_Size: {x: 2.5, y: 2.5, z: 20}
   m_FadeFactor: 1
 --- !u!1 &2224353841365024746
 GameObject:
@@ -110,7 +110,7 @@ MonoBehaviour:
   m_DecalLayerMask: 256
   m_ScaleMode: 1
   m_Offset: {x: 0, y: 0, z: 10}
-  m_Size: {x: 5, y: 5, z: 20}
+  m_Size: {x: 2.5, y: 2.5, z: 20}
   m_FadeFactor: 1
 --- !u!1 &2664970061210029652
 GameObject:
@@ -222,7 +222,7 @@ MonoBehaviour:
   m_DecalLayerMask: 256
   m_ScaleMode: 1
   m_Offset: {x: 0, y: 0, z: 10}
-  m_Size: {x: 5, y: 5, z: 20}
+  m_Size: {x: 2.5, y: 2.5, z: 20}
   m_FadeFactor: 1
 --- !u!1 &2991977810981696646
 GameObject:
@@ -278,7 +278,7 @@ MonoBehaviour:
   m_DecalLayerMask: 256
   m_ScaleMode: 1
   m_Offset: {x: 0, y: 0, z: 10}
-  m_Size: {x: 5, y: 5, z: 20}
+  m_Size: {x: 2.5, y: 2.5, z: 20}
   m_FadeFactor: 1
 --- !u!1 &3643338501967835881
 GameObject:
@@ -334,7 +334,7 @@ MonoBehaviour:
   m_DecalLayerMask: 256
   m_ScaleMode: 1
   m_Offset: {x: 0, y: 0, z: 10}
-  m_Size: {x: 5, y: 5, z: 20}
+  m_Size: {x: 2.5, y: 2.5, z: 20}
   m_FadeFactor: 1
 --- !u!1 &3893651240511618531
 GameObject:
@@ -446,7 +446,7 @@ MonoBehaviour:
   m_DecalLayerMask: 256
   m_ScaleMode: 1
   m_Offset: {x: 0, y: 0, z: 10}
-  m_Size: {x: 5, y: 5, z: 20}
+  m_Size: {x: 2.5, y: 2.5, z: 20}
   m_FadeFactor: 1
 --- !u!1 &4693679918943600710
 GameObject:
@@ -502,7 +502,7 @@ MonoBehaviour:
   m_DecalLayerMask: 256
   m_ScaleMode: 1
   m_Offset: {x: 0, y: 0, z: 10}
-  m_Size: {x: 5, y: 5, z: 20}
+  m_Size: {x: 2.5, y: 2.5, z: 20}
   m_FadeFactor: 1
 --- !u!1 &5364069094556400689
 GameObject:
@@ -818,7 +818,7 @@ MonoBehaviour:
   m_DecalLayerMask: 256
   m_ScaleMode: 1
   m_Offset: {x: 0, y: 0, z: 10}
-  m_Size: {x: 5, y: 5, z: 20}
+  m_Size: {x: 2.5, y: 2.5, z: 20}
   m_FadeFactor: 1
 --- !u!1 &5715932509615782743
 GameObject:
@@ -919,7 +919,7 @@ MonoBehaviour:
   m_DecalLayerMask: 256
   m_ScaleMode: 1
   m_Offset: {x: 0, y: 0, z: 10}
-  m_Size: {x: 5, y: 5, z: 20}
+  m_Size: {x: 2.5, y: 2.5, z: 20}
   m_FadeFactor: 1
 --- !u!1 &7548809077967325009
 GameObject:
@@ -975,7 +975,7 @@ MonoBehaviour:
   m_DecalLayerMask: 256
   m_ScaleMode: 1
   m_Offset: {x: 0, y: 0, z: 10}
-  m_Size: {x: 5, y: 5, z: 20}
+  m_Size: {x: 2.5, y: 2.5, z: 20}
   m_FadeFactor: 1
 --- !u!1 &7814703603592663220
 GameObject:
@@ -1295,7 +1295,7 @@ MonoBehaviour:
   m_DecalLayerMask: 256
   m_ScaleMode: 1
   m_Offset: {x: 0, y: 0, z: 10}
-  m_Size: {x: 5, y: 5, z: 20}
+  m_Size: {x: 2.5, y: 2.5, z: 20}
   m_FadeFactor: 1
 --- !u!1 &8586004341739131487
 GameObject:
@@ -1351,7 +1351,7 @@ MonoBehaviour:
   m_DecalLayerMask: 256
   m_ScaleMode: 1
   m_Offset: {x: 0, y: 0, z: 10}
-  m_Size: {x: 5, y: 5, z: 20}
+  m_Size: {x: 2.5, y: 2.5, z: 20}
   m_FadeFactor: 1
 --- !u!1 &8591278986896836510
 GameObject:

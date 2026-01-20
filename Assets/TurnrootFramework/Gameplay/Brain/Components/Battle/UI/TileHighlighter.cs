@@ -289,17 +289,18 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
             }
         }
 
-        private void ApplyUVToDecal(DecalProjector decal, Vector4 uvParams)
+        private OperationResult ApplyUVToDecal(DecalProjector decal, Vector4 uvParams)
         {
             if (!decal.TryGetComponent<Renderer>(out var renderer))
             {
-                return;
+                return OperationResult.Failure("Decal projector is missing Renderer component");
             }
 
             var props = new MaterialPropertyBlock();
             renderer.GetPropertyBlock(props);
             props.SetVector(UV_OFFSET_PROPERTY, uvParams);
             renderer.SetPropertyBlock(props);
+            return OperationResult.SuccessResult();
         }
 
         #endregion

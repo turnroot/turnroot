@@ -1,6 +1,7 @@
 using Turnroot.Gameplay.Combat;
 using Turnroot.Gameplay.Maps;
 using Turnroot.Gameplay.PlayerSettings;
+using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain.Segments
@@ -104,16 +105,13 @@ namespace Turnroot.Gameplay.Brain.Segments
             }
         }
 
-        public void InitializeBattleMapCamera(BattleGameObject battleObject)
+        public OperationResult InitializeBattleMapCamera(BattleGameObject battleObject)
         {
             if (battleObject == null)
             {
-#if UNITY_EDITOR
-                Debug.LogWarning(
-                    "[CAMERA] InitializeBattleMapCamera called with null BattleObject"
+                return OperationResult.Failure(
+                    "Cannot initialize BattleMapCamera because BattleObject is null"
                 );
-#endif
-                return;
             }
 
             var battleObjectCameras = battleObject.GetComponentsInChildren<Camera>();
@@ -127,9 +125,12 @@ namespace Turnroot.Gameplay.Brain.Segments
                 if (cam.CompareTag("BattleMapCamera"))
                 {
                     SetBattleMapCamera(cam);
-                    break;
+                    return OperationResult.SuccessResult();
                 }
             }
+            return OperationResult.Failure(
+                "No camera with tag 'BattleMapCamera' found in BattleObject"
+            );
         }
 
         public Vector2Int SetBattleGridCameraNeutralCenter()
@@ -149,11 +150,10 @@ namespace Turnroot.Gameplay.Brain.Segments
                 }
                 else
                 {
-#if UNITY_EDITOR
-                    Debug.LogWarning(
-                        "[CAMERA] BattleObject is null; cannot initialize BattleMapCamera"
+                    TurnrootLogger.Log(
+                        "[CAMERA] BattleObject is null; cannot initialize BattleMapCamera neutral center",
+                        TurnrootLogger.LogLevel.Warning
                     );
-#endif
                 }
 
                 if (_battleMapCamera == null)
@@ -204,11 +204,11 @@ namespace Turnroot.Gameplay.Brain.Segments
             {
                 return Vector2Int.zero;
             }
-#if UNITY_EDITOR
-            Debug.Log(
+
+            TurnrootLogger.Log(
                 $"[CAMERA] SetCameraNeutralCenter: Found closest grid point {closestPoint.CoordinatesInt} at distance {closestDistance}"
             );
-#endif
+
             return closestPoint.CoordinatesInt;
         }
 
@@ -283,11 +283,9 @@ namespace Turnroot.Gameplay.Brain.Segments
 
                     _targetCameraPosition += worldDisplacement;
 
-#if UNITY_EDITOR
-                    Debug.Log(
+                    TurnrootLogger.Log(
                         $"[CAMERA] Cursor at viewport {cursorViewportPos}, moving camera by {worldDisplacement}"
                     );
-#endif
                 }
             }
         }

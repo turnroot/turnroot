@@ -53,10 +53,6 @@ namespace Turnroot.Characters.CharacterClass
         #endregion
 
         #region Initialization
-
-        /// <summary>
-        /// Creates a new runtime instance of a character class.
-        /// </summary>
         public CharacterClassDataInstance(
             CharacterData characterData,
             CharacterClassData classData,
@@ -75,9 +71,6 @@ namespace Turnroot.Characters.CharacterClass
 
         public CharacterClassDataInstance() { }
 
-        /// <summary>
-        /// Initialize visual representation by applying class textures to an existing material (created by UnitAppearanceBrain).
-        /// </summary>
         public OperationResult Validate()
         {
             var checks = new (object obj, string name)[]
@@ -126,14 +119,8 @@ namespace Turnroot.Characters.CharacterClass
             return true;
         }
 
-        /// <summary>
-        /// Handle post-deserialization initialization.
-        /// Reinitializes material if needed after loading from save.
-        /// </summary>
         public void OnAfterDeserialize()
         {
-            // Re-initialize material after deserialization
-            // This ensures materials are properly recreated when loading from save
             if (_characterData != null && _classData != null && _meshRenderer != null)
             {
                 Initialize();
@@ -160,7 +147,7 @@ namespace Turnroot.Characters.CharacterClass
         /// Apply class stat bonuses to a character instance.
         /// These are persistent bonuses while the class is equipped.
         /// </summary>
-        public void ApplyClassBonuses(CharacterInstance character)
+        public OperationResult ApplyClassBonuses(CharacterInstance character)
         {
             var _res_applyBonuses = StatApplicationHelper.ValidateReferences(
                 character,
@@ -169,7 +156,7 @@ namespace Turnroot.Characters.CharacterClass
             );
             if (!_res_applyBonuses.Success)
             {
-                return;
+                return _res_applyBonuses;
             }
 
             StatApplicationHelper.ApplyBoundedBonuses(_classData.Stats.StatBonuses, character);
@@ -177,13 +164,14 @@ namespace Turnroot.Characters.CharacterClass
                 _classData.Stats.UnboundedStatBonuses,
                 character
             );
+            return OperationResult.SuccessResult();
         }
 
         /// <summary>
         /// Remove class stat bonuses from a character instance.
         /// Call when changing classes to remove old class bonuses.
         /// </summary>
-        public void RemoveClassBonuses(CharacterInstance character)
+        public OperationResult RemoveClassBonuses(CharacterInstance character)
         {
             var _res_removeBonuses = StatApplicationHelper.ValidateReferences(
                 character,
@@ -192,7 +180,7 @@ namespace Turnroot.Characters.CharacterClass
             );
             if (!_res_removeBonuses.Success)
             {
-                return;
+                return _res_removeBonuses;
             }
 
             StatApplicationHelper.RemoveBoundedBonuses(_classData.Stats.StatBonuses, character);
@@ -200,17 +188,18 @@ namespace Turnroot.Characters.CharacterClass
                 _classData.Stats.UnboundedStatBonuses,
                 character
             );
+            return OperationResult.SuccessResult();
         }
 
         /// <summary>
         /// Apply one-time class change bonuses (permanent stat increases).
         /// Only applied the first time a character equips this class.
         /// </summary>
-        public void ApplyClassChangeBonuses(CharacterInstance character)
+        public OperationResult ApplyClassChangeBonuses(CharacterInstance character)
         {
             if (!_isFirstTimeEquipped)
             {
-                return;
+                return OperationResult.SuccessResult();
             }
 
             var _res_applyChange = StatApplicationHelper.ValidateReferences(
@@ -220,7 +209,7 @@ namespace Turnroot.Characters.CharacterClass
             );
             if (!_res_applyChange.Success)
             {
-                return;
+                return _res_applyChange;
             }
 
             StatApplicationHelper.ApplyBoundedPermanentBonuses(
@@ -235,6 +224,7 @@ namespace Turnroot.Characters.CharacterClass
             );
 
             _isFirstTimeEquipped = false;
+            return OperationResult.SuccessResult();
         }
 
         public void EnforceStatMinimums(CharacterInstance character)

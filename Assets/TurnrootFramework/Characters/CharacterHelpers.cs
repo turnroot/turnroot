@@ -4,6 +4,7 @@ using Turnroot.Characters.Components.Support;
 using Turnroot.Characters.Stats;
 using Turnroot.Characters.Subclasses;
 using Turnroot.Graphics2D;
+using Turnroot.Utilities;
 using Turnroot.Utilities.AbstractScripts;
 
 namespace Turnroot.Characters
@@ -100,6 +101,10 @@ namespace Turnroot.Characters
         {
             if (portraits == null)
             {
+                TurnrootLogger.Log(
+                    "CharacterHelpers: No default portrait because no portraits found",
+                    TurnrootLogger.LogLevel.Warning
+                );
                 return null;
             }
 
