@@ -75,8 +75,11 @@ namespace Turnroot.Gameplay.Maps
         [SerializeField, HideInInspector]
         private Vector2Int[] _single3dHeightMeshRaycastIndices;
 
-        // Lookup dictionary for O(1) terrain position access
         private Dictionary<Vector2Int, Vector3> _terrainPositionLookup;
+
+#if UNITY_EDITOR
+        private Dictionary<Vector2Int, Color> _gridPointColorCache = new();
+#endif
 
         [SerializeField]
         [Tooltip("Show gizmo spheres for computed raycast points in the Scene view")]
@@ -116,16 +119,27 @@ namespace Turnroot.Gameplay.Maps
         public Vector2Int[] TraversableAreaCorners { get; } = new Vector2Int[4];
         public LayerMask RaycastLayerMask => _raycastLayerMask;
 
-        [field: SerializeField]
+        [field:
+            SerializeField,
+            InfoBox(
+                "Changing the width/height will not create new points- you need to Create New Points after changing these values. Or, you can Add a Row or a Column, whch will add a single line of points."
+            )
+        ]
         public int GridWidth { get; private set; } = 10;
 
         [field: SerializeField]
         public int GridHeight { get; private set; } = 10;
 
-        [field: Header("Grid Settings")]
-        [field: HorizontalLine(color: EColor.Green)]
-        [field: SerializeField]
-        public float GridScale { get; } = 1f;
+        [Header("Grid Settings")]
+        [HorizontalLine(color: EColor.Green)]
+        [SerializeField]
+        [field: InfoBox(
+            "Grid scale adjusts the size of each grid cell. If your models are at real world scale, 1 gives you about 8x8 feet per cell."
+        )]
+        private float _gridScale = 1f;
+        public float GridScale => _gridScale * 2.5f; // Multiply by 2.5 to match real-world scale better;
+
+        // this makes each grid cell about 8x8 feet at scale 1, which gives a good amount of arm room and room for a paired unit
         public Vector3 GridOffset => _gridOffset;
 
         /* -------------------------- Buttons -------------------------- */
@@ -148,6 +162,10 @@ namespace Turnroot.Gameplay.Maps
             }
 
             LoadFeatureLayer();
+#if UNITY_EDITOR
+            // Ensure editor cache is populated after grid creation so OnDrawGizmos uses correct colors
+            RebuildEditorPointColorCache();
+#endif
         }
 
         [Button("Add Row")]
@@ -168,6 +186,9 @@ namespace Turnroot.Gameplay.Maps
             }
 
             LoadFeatureLayer();
+#if UNITY_EDITOR
+            RebuildEditorPointColorCache();
+#endif
             MarkDirty();
         }
 
@@ -189,6 +210,9 @@ namespace Turnroot.Gameplay.Maps
             }
 
             LoadFeatureLayer();
+#if UNITY_EDITOR
+            RebuildEditorPointColorCache();
+#endif
             MarkDirty();
         }
 
@@ -205,6 +229,9 @@ namespace Turnroot.Gameplay.Maps
             RemoveGridLine(GridHeight - 1, true);
             GridHeight--;
             LoadFeatureLayer();
+#if UNITY_EDITOR
+            RebuildEditorPointColorCache();
+#endif
             MarkDirty();
         }
 
@@ -220,15 +247,19 @@ namespace Turnroot.Gameplay.Maps
             RemoveGridLine(GridWidth - 1, false);
             GridWidth--;
             LoadFeatureLayer();
+#if UNITY_EDITOR
+            RebuildEditorPointColorCache();
+#endif
             MarkDirty();
         }
 
         [Button("Connect to 3D Map Height")]
-        public void ConnectTo3DMapObject()
+        public OperationResult ConnectTo3DMapObject()
         {
+            TurnrootLogger.Log("MapGrid: Connecting to 3D map object for height adjustment.");
             if (_single3dHeightMesh == null)
             {
-                return;
+                return OperationResult.Failure("No 3D height mesh assigned.");
             }
 
             EnsureGridPoints();
@@ -236,7 +267,7 @@ namespace Turnroot.Gameplay.Maps
             var colliders = _single3dHeightMesh.GetComponentsInChildren<Collider>(true);
             if (colliders == null || colliders.Length == 0)
             {
-                return;
+                return OperationResult.Failure("No colliders found on the 3D height mesh object.");
             }
 
             var connector = new MapGridHeightConnector();
@@ -248,10 +279,36 @@ namespace Turnroot.Gameplay.Maps
 
             if (points == null || points.Length == 0)
             {
-                return;
+                return OperationResult.Failure(
+                    "Failed to compute raycast points on the 3D height mesh."
+                );
             }
 
             _single3dHeightMeshRaycastPoints = points;
+            RebuildRaycastColors();
+            BuildTerrainPositionLookup();
+            MarkDirty();
+            return OperationResult.SuccessResult();
+        }
+
+        [Button("Remove Height Connection")]
+        public void RemoveHeightConnection()
+        {
+            TurnrootLogger.Log(
+                "MapGrid: Removing 3D height mesh connection and clearing computed data."
+            );
+
+            if (_single3dHeightMesh != null)
+            {
+                _single3dHeightMesh.SetActive(false);
+                _single3dHeightMesh = null;
+            }
+
+            _single3dHeightMeshRaycastPoints = null;
+            _single3dHeightMeshRaycastIndices = null;
+            _single3dHeightMeshRaycastColors = null;
+
+            UseHeightMeshAsTerrainModel = false;
             RebuildRaycastColors();
             BuildTerrainPositionLookup();
             MarkDirty();
@@ -463,6 +520,41 @@ namespace Turnroot.Gameplay.Maps
             }
             return points.Count == 0 ? null : points;
         }
+
+#if UNITY_EDITOR
+        /// <summary>
+        /// Editor API: set cached color for a specific grid cell. Used by editor tools to keep gizmo colors in sync.
+        /// </summary>
+        public void SetEditorPointColor(Vector2Int cell, Color color)
+        {
+            _gridPointColorCache[cell] = color;
+        }
+
+        /// <summary>
+        /// Rebuilds the entire editor color cache from current grid points.
+        /// </summary>
+        public void RebuildEditorPointColorCache()
+        {
+            _gridPointColorCache.Clear();
+            EnsureCachedGridPoints();
+            foreach (var kv in _cachedGridPoints ?? new Dictionary<Vector2Int, MapGridPoint>())
+            {
+                var mgp = kv.Value;
+                Color c = Color.yellow;
+                if (mgp != null)
+                {
+                    var tt = mgp.GetCachedTerrainType();
+                    c = tt?.EditorColor ?? Color.yellow;
+                }
+                _gridPointColorCache[kv.Key] = c;
+            }
+        }
+
+        public bool TryGetEditorPointColor(Vector2Int cell, out Color color) =>
+            _gridPointColorCache.TryGetValue(cell, out color);
+
+        public void ClearEditorPointColorCache() => _gridPointColorCache.Clear();
+#endif
 
         public int GetManhattanDistance(MapGridPoint a, MapGridPoint b) =>
             a == null || b == null ? -1 : Mathf.Abs(a.Row - b.Row) + Mathf.Abs(a.Col - b.Col);

@@ -84,11 +84,9 @@ namespace Turnroot.Characters.CharacterClass
                         stat.SetCurrent(stat.Current + modifier.value);
                         if (logChanges)
                         {
-#if UNITY_EDITOR
-                            Debug.Log(
+                            TurnrootLogger.Log(
                                 $"Class change bonus: {modifier.boundedStatType} +{modifier.value} (now {stat.Current})"
                             );
-#endif
                         }
                     }
                 }
@@ -122,11 +120,9 @@ namespace Turnroot.Characters.CharacterClass
                         stat.SetCurrent(stat.Current + modifier.value);
                         if (logChanges)
                         {
-#if UNITY_EDITOR
-                            Debug.Log(
+                            TurnrootLogger.Log(
                                 $"Class change bonus: {modifier.unboundedStatType} +{modifier.value} (now {stat.Current})"
                             );
-#endif
                         }
                     }
                 }
@@ -164,11 +160,9 @@ namespace Turnroot.Characters.CharacterClass
                         stat.SetCurrent(minimum.value);
                         if (logChanges)
                         {
-#if UNITY_EDITOR
-                            Debug.Log(
+                            TurnrootLogger.Log(
                                 $"Enforced minimum: {minimum.boundedStatType} raised to {minimum.value}"
                             );
-#endif
                         }
                     }
                 }
@@ -181,7 +175,7 @@ namespace Turnroot.Characters.CharacterClass
         /// <param name="minimums">List of minimum stat values</param>
         /// <param name="character">Target character instance</param>
         /// <param name="logChanges">Whether to log changes to console</param>
-        public static void EnforceUnboundedMinimums(
+        public static OperationResult EnforceUnboundedMinimums(
             List<UnboundedStatModifier> minimums,
             CharacterInstance character,
             bool logChanges = false
@@ -189,7 +183,9 @@ namespace Turnroot.Characters.CharacterClass
         {
             if (character == null || minimums == null)
             {
-                return;
+                return OperationResult.Failure(
+                    "EnforceUnboundedMinimums: character or minimums is null."
+                );
             }
 
             foreach (var minimum in minimums)
@@ -202,15 +198,14 @@ namespace Turnroot.Characters.CharacterClass
                         stat.SetCurrent(minimum.value);
                         if (logChanges)
                         {
-#if UNITY_EDITOR
-                            Debug.Log(
+                            TurnrootLogger.Log(
                                 $"Enforced minimum: {minimum.unboundedStatType} raised to {minimum.value}"
                             );
-#endif
                         }
                     }
                 }
             }
+            return OperationResult.SuccessResult();
         }
 
         /// <summary>

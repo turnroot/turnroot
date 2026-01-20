@@ -146,11 +146,7 @@ namespace Turnroot.UI.Components.GridMenu
             if (_selectedIndex >= 0 && _selectedIndex < menuItems.Count)
             {
                 var prev = menuItems[_selectedIndex];
-                if (
-                    prev.TryGetComponent(
-                        out SimpleButton.SimpleButton prevButton
-                    )
-                )
+                if (prev.TryGetComponent(out SimpleButton.SimpleButton prevButton))
                 {
                     var fakeExit = new PointerEventData(EventSystem.current);
                     prevButton.OnPointerExit(fakeExit);
@@ -159,11 +155,7 @@ namespace Turnroot.UI.Components.GridMenu
 
             // Simulate pointer enter on new
             var current = menuItems[index];
-            if (
-                current.TryGetComponent(
-                    out SimpleButton.SimpleButton curButton
-                )
-            )
+            if (current.TryGetComponent(out SimpleButton.SimpleButton curButton))
             {
                 var fakeEnter = new PointerEventData(EventSystem.current);
                 curButton.OnPointerEnter(fakeEnter);

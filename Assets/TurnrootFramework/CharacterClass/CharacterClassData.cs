@@ -137,12 +137,14 @@ namespace Turnroot.Characters.CharacterClass
             ValidateClassVisuals();
         }
 
-        private void ValidateStatLists()
+        private OperationResult ValidateStatLists()
         {
             var defaultStats = GameSettingsLoader.LoadFirst<DefaultCharacterStats>("GameSettings");
             if (defaultStats == null)
             {
-                return;
+                return OperationResult.Failure(
+                    $"{name}: Cannot validate stat lists - DefaultCharacterStats not found in GameSettings."
+                );
             }
 
             // Define all bounded stat lists to validate in one place
@@ -188,6 +190,7 @@ namespace Turnroot.Characters.CharacterClass
                     (stat) => new UnboundedStatModifier(stat.StatType, 0)
                 );
             }
+            return OperationResult.SuccessResult();
         }
 
         private void ValidateBoundedStatList(
@@ -206,8 +209,9 @@ namespace Turnroot.Characters.CharacterClass
             }
             else if (list.Count != defaults.Count)
             {
-                Debug.LogWarning(
-                    $"{name}: {listName} count ({list.Count}) doesn't match DefaultCharacterStats count ({defaults.Count}). This may cause issues."
+                TurnrootLogger.Log(
+                    $"{name}: {listName} count ({list.Count}) doesn't match DefaultCharacterStats count ({defaults.Count}). This may cause issues.",
+                    TurnrootLogger.LogLevel.Warning
                 );
             }
         }
@@ -228,8 +232,9 @@ namespace Turnroot.Characters.CharacterClass
             }
             else if (list.Count != defaults.Count)
             {
-                Debug.LogWarning(
-                    $"{name}: {listName} count ({list.Count}) doesn't match DefaultCharacterStats count ({defaults.Count}). This may cause issues."
+                TurnrootLogger.Log(
+                    $"{name}: {listName} count ({list.Count}) doesn't match DefaultCharacterStats count ({defaults.Count}). This may cause issues.",
+                    TurnrootLogger.LogLevel.Warning
                 );
             }
         }
@@ -243,8 +248,9 @@ namespace Turnroot.Characters.CharacterClass
 
             if (Requirements.PromotionPaths.Contains(this))
             {
-                Debug.LogError(
-                    $"{name}: Class cannot have itself in its promotion paths. This creates a cycle."
+                TurnrootLogger.Log(
+                    $"{name}: Class cannot have itself in its promotion paths. This creates a cycle.",
+                    TurnrootLogger.LogLevel.Warning
                 );
             }
 
@@ -257,8 +263,9 @@ namespace Turnroot.Characters.CharacterClass
                     && promotion.Requirements.PromotionPaths.Contains(this)
                 )
                 {
-                    Debug.LogWarning(
-                        $"{name}: Detected circular promotion path with {promotion.Identity.ClassName}. This may cause issues."
+                    TurnrootLogger.Log(
+                        $"{name}: Detected circular promotion path with {promotion.Identity.ClassName}. This may cause issues.",
+                        TurnrootLogger.LogLevel.Warning
                     );
                 }
             }
@@ -346,8 +353,9 @@ namespace Turnroot.Characters.CharacterClass
 
                     Identity.ClassName = candidate;
                     UnityEditor.EditorUtility.SetDirty(this);
-                    Debug.LogWarning(
-                        $"{name}: ClassName '{original}' already exists. Renamed to '{candidate}' to ensure uniqueness."
+                    TurnrootLogger.Log(
+                        $"{name}: ClassName '{original}' already exists. Renamed to '{candidate}' to ensure uniqueness.",
+                        TurnrootLogger.LogLevel.Warning
                     );
                     return;
                 }
@@ -381,7 +389,10 @@ namespace Turnroot.Characters.CharacterClass
                 var missing = new List<string>();
                 if (mesh == null)
                 {
-                    Debug.LogError($"{name}: {source} has no mesh assigned.");
+                    TurnrootLogger.Log(
+                        $"{name}: {source} has no mesh assigned.",
+                        TurnrootLogger.LogLevel.Error
+                    );
                     return missing;
                 }
 
@@ -395,8 +406,9 @@ namespace Turnroot.Characters.CharacterClass
 
                 if (missing.Count > 0)
                 {
-                    Debug.LogError(
-                        $"{name}: {source} is missing blendshapes: {string.Join(", ", missing)}"
+                    TurnrootLogger.Log(
+                        $"{name}: {source} is missing blendshapes: {string.Join(", ", missing)}",
+                        TurnrootLogger.LogLevel.Error
                     );
                 }
                 return missing;
@@ -409,8 +421,9 @@ namespace Turnroot.Characters.CharacterClass
                 var smr = prefab.GetComponentInChildren<SkinnedMeshRenderer>(true);
                 if (smr == null)
                 {
-                    Debug.LogError(
-                        $"{name}: ClassModelPrefab '{prefab.name}' does not contain a SkinnedMeshRenderer. Clearing assignment."
+                    TurnrootLogger.Log(
+                        $"{name}: ClassModelPrefab '{prefab.name}' does not contain a SkinnedMeshRenderer. Clearing assignment.",
+                        TurnrootLogger.LogLevel.Error
                     );
                     UnityEditor.Undo.RecordObject(this, "Clear invalid ClassModelPrefab");
                     Identity.ClassModelPrefab = null;
@@ -421,8 +434,9 @@ namespace Turnroot.Characters.CharacterClass
                     var missing = ValidateMesh(smr.sharedMesh, $"ClassModelPrefab '{prefab.name}'");
                     if (missing.Count > 0)
                     {
-                        Debug.LogError(
-                            $"{name}: ClassModelPrefab '{prefab.name}' is missing required blendshapes. Clearing assignment."
+                        TurnrootLogger.Log(
+                            $"{name}: ClassModelPrefab '{prefab.name}' is missing required blendshapes. Clearing assignment.",
+                            TurnrootLogger.LogLevel.Error
                         );
                         UnityEditor.Undo.RecordObject(this, "Clear invalid ClassModelPrefab");
                         Identity.ClassModelPrefab = null;

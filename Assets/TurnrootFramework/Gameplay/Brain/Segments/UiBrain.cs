@@ -240,14 +240,7 @@ namespace Turnroot.Gameplay.Brain.Segments
                 return null;
             }
 
-            if (!obj.TryGetComponent<UIFade>(out var fade))
-            {
-                fade = obj.AddComponent<UIFade>();
-            }
-            if (uiSettings != null)
-            {
-                fade.lerpTime = uiSettings.MenuInternalTransitionTime;
-            }
+            var fade = UIFadeCache.GetOrCreate(obj, uiSettings?.MenuInternalTransitionTime ?? 0f);
             return fade;
         }
 

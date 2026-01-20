@@ -1,5 +1,6 @@
 using System;
 using Turnroot.Characters;
+using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain.Components
@@ -61,12 +62,10 @@ namespace Turnroot.Gameplay.Brain.Components
             var id = ExtractInstanceId(instance);
             var message = $"Tampering detected ({reason}): type={typeName}, id={id}";
 
-            var parentBrain = brain.GetComponent<Brain>();
-            parentBrain?.PublishIllegalModification(message);
+            var parentBrain = brain.Brain;
+            parentBrain.PublishIllegalModification(message);
 
-#if UNITY_EDITOR
-            Debug.LogWarning(message);
-#endif
+            TurnrootLogger.Log(message, TurnrootLogger.LogLevel.Warning);
         }
 
         private static string ExtractInstanceId<T>(T instance)
@@ -143,11 +142,6 @@ namespace Turnroot.Gameplay.Brain.Components
         {
             try
             {
-                if (!brain.TryGetComponent<LongTermMemory>(out var ltm))
-                {
-                    return;
-                }
-
                 var key = GamewideContextBrainHelpers.BuildHashLedgerKey(
                     instance,
                     replacementWrapper ?? originalWrapper
@@ -161,7 +155,7 @@ namespace Turnroot.Gameplay.Brain.Components
                 var baseHash = replacementWrapper?.Hash ?? originalWrapper?.Hash ?? string.Empty;
                 var replacementMarker = baseHash + "|r:" + Guid.NewGuid().ToString("N");
 
-                ltm.Remember(key, replacementMarker);
+                brain.Brain.ltm.Remember(key, replacementMarker);
             }
             catch (Exception ex)
             {
