@@ -337,11 +337,7 @@ namespace Turnroot.Gameplay.Combat.PreBattle
                 potentialSwapUnit = null;
                 StartingPositionsComponent?.SetSelected(selectedPosition.Value);
                 StartingPositionsComponent?.ClearSwapPreview();
-#if UNITY_EDITOR
-                Debug.Log(
-                    $"PreviewPotentialSwap: cursor is on selected tile {pos}, cleared swap preview"
-                );
-#endif
+                TurnrootLogger.Log($"PreviewPotentialSwap: cursor is on selected tile {pos}, cleared swap preview");
                 return OperationResult.SuccessResult();
             }
 
@@ -370,17 +366,13 @@ namespace Turnroot.Gameplay.Combat.PreBattle
                     );
 
                 StartingPositionsComponent?.SetSwapUnit(name, className, portrait);
-#if UNITY_EDITOR
-                Debug.Log($"PreviewPotentialSwap: target occupied by '{name}' at {pos}");
-#endif
+                TurnrootLogger.Log($"PreviewPotentialSwap: target occupied by '{name}' at {pos}");
             }
             else
             {
                 potentialSwapUnit = null;
                 StartingPositionsComponent?.ClearSwapUnit();
-#if UNITY_EDITOR
-                Debug.Log($"PreviewPotentialSwap: target empty at {pos} (cleared swap unit)");
-#endif
+                TurnrootLogger.Log($"PreviewPotentialSwap: target empty at {pos} (cleared swap unit)");
             }
 
             return OperationResult.SuccessResult();
@@ -389,10 +381,7 @@ namespace Turnroot.Gameplay.Combat.PreBattle
         private void HandleUnitSelectionChanged(CharacterInstance unit, bool selected)
         {
             // Recompute placements when selection changes
-            if (
-                CurrentPlacementState == PlacementState.NonePlaced
-                || CurrentPlacementState == PlacementState.DefaultPlaced
-            )
+            if (CurrentPlacementState is PlacementState.NonePlaced or PlacementState.DefaultPlaced)
             {
                 InitializePlacements();
             }

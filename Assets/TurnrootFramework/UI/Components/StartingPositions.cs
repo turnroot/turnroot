@@ -199,9 +199,10 @@ namespace Turnroot.UI.Components
 
         private OperationResult HideWithFade(GameObject go)
         {
+            // Be tolerant: if object is null or already inactive, silently succeed (no log spam)
             if (go == null || !go.activeInHierarchy)
             {
-                return OperationResult.Failure("HideWithFade: GameObject is null or not active.");
+                return OperationResult.SuccessResult();
             }
 
             var fade = UIFadeCache.Get(go);
@@ -375,12 +376,28 @@ namespace Turnroot.UI.Components
                 || !_unitModels.TryGetValue(posB, out var modelB)
             )
             {
-                return OperationResult.Failure("One or both positions do not have unit models");
+                TurnrootLogger.Log(
+                    "StartingPositions: One or both positions do not have unit models",
+                    TurnrootLogger.LogLevel.Warning
+                );
+                return new OperationResult
+                {
+                    Success = false,
+                    ErrorMessage = "One or both positions do not have unit models",
+                };
             }
 
             if (modelA == null || modelB == null)
             {
-                return OperationResult.Failure("One or both unit models are null");
+                TurnrootLogger.Log(
+                    "StartingPositions: One or both unit models are null",
+                    TurnrootLogger.LogLevel.Warning
+                );
+                return new OperationResult
+                {
+                    Success = false,
+                    ErrorMessage = "One or both unit models are null",
+                };
             }
 
             _unitModels[posA] = modelB;
