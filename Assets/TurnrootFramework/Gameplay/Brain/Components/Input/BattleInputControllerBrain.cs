@@ -20,8 +20,6 @@ namespace Turnroot.Gameplay.Brain
             _brain.battleBrain.BattleObject.Context.Unit.UnitInstance;
         public BattleContext BattleContext => _brain.battleBrain.BattleObject.Context;
         public MapGridPoint CursorPosition => _brain.cursorBrain?.CursorPosition;
-        public TileHighlighter _tileHighlighter;
-
         [HideInInspector]
         public TileHighlighter _tileHighlighter;
 
