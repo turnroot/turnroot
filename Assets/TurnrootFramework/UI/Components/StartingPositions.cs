@@ -439,7 +439,7 @@ namespace Turnroot.UI.Components
         private void UpdateModelPosition(GameObject model, Vector2Int pos)
         {
             var worldPos = _mapGrid.GetTerrainAdjustedWorldPosition(pos);
-            model.transform.position = worldPos + Vector3.up * (_mapGrid.GridScale / 2f);
+            model.transform.position = worldPos;
         }
 
         private void PublishSwapEvent(

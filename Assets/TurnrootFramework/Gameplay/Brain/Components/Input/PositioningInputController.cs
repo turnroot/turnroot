@@ -107,18 +107,18 @@ namespace Turnroot.Gameplay.Brain
                     bool navigated = false;
                     if (Mathf.Abs(direction.x) > Mathf.Abs(direction.y))
                     {
-                        // Horizontal navigation
+                        // Horizontal navigation (find nearest allowed tile on same row)
                         int dir = direction.x > 0 ? 1 : -1;
-                        navigated = _brain.cursorBrain?.NavigateWithWrapping(dir) ?? false;
+                        navigated = _brain.cursorBrain?.NavigateHorizontal(dir) ?? false;
 #if UNITY_EDITOR
                         Debug.Log($"Positioning: Navigate horizontal {dir}, success={navigated}");
 #endif
                     }
                     else
                     {
-                        // Vertical navigation (treat as forward/backward in list)
+                        // Vertical navigation (find nearest allowed tile on same column)
                         int dir = direction.y > 0 ? 1 : -1;
-                        navigated = _brain.cursorBrain?.NavigateWithWrapping(dir) ?? false;
+                        navigated = _brain.cursorBrain?.NavigateVertical(dir) ?? false;
 #if UNITY_EDITOR
                         Debug.Log($"Positioning: Navigate vertical {dir}, success={navigated}");
 #endif
@@ -189,40 +189,14 @@ namespace Turnroot.Gameplay.Brain
             if (prepObject.selectedPosition == null)
             {
                 var result = prepObject.SelectPosition(cursorPos.Value);
-                if (result.Success)
-                {
-#if UNITY_EDITOR
-                    Debug.Log($"Selected unit at {cursorPos.Value}");
-#endif
-                    // TODO: Show visual feedback (highlight selected tile)
-                }
-                else
-                {
-#if UNITY_EDITOR
-                    Debug.Log($"Cannot select position: {result.ErrorMessage}");
-#endif
-                    // TODO: Play error sound/show error feedback
-                }
+                // TODO: Add SFX if Result.Success
             }
             // Second confirm: Execute swap/move
             else
             {
                 prepObject.potentialSwapPosition = cursorPos.Value;
                 var result = prepObject.ExecutePositionAction();
-
-                if (result.Success)
-                {
-#if UNITY_EDITOR
-                    Debug.Log($"Executed position action (swap/move)");
-#endif
-                    // TODO: Update visuals, play sound
-                }
-                else
-                {
-#if UNITY_EDITOR
-                    Debug.Log($"Cannot execute action: {result.ErrorMessage}");
-#endif
-                }
+                // TODO: Add SFX if Result.Success
             }
         }
 
@@ -238,10 +212,6 @@ namespace Turnroot.Gameplay.Brain
             if (prepObject.selectedPosition != null)
             {
                 prepObject.ClearSelection();
-#if UNITY_EDITOR
-                Debug.Log("Cleared selection");
-#endif
-                // TODO: Clear visual feedback
             }
             // Otherwise, return to previous menu
         }

@@ -34,10 +34,6 @@ namespace Turnroot.Gameplay.Brain
             _battlesWon = Mathf.Max(0, _ltm.RecallInt(LtmKeys.BattlesWon));
             _battlesLost = Mathf.Max(0, _ltm.RecallInt(LtmKeys.BattlesLost));
             _battlesRetreated = Mathf.Max(0, _ltm.RecallInt(LtmKeys.BattlesRetreated));
-
-            TurnrootLogger.Log(
-                $"CharactersBrain: Loaded battle statistics - Won: {_battlesWon}, Lost: {_battlesLost}, Retreated: {_battlesRetreated}"
-            );
         }
 
         private void SaveBattleOutcomeStatistics()
@@ -78,11 +74,7 @@ namespace Turnroot.Gameplay.Brain
 
         #region Battle Lifecycle
 
-        private void HandleStartBattle()
-        {
-            TurnrootLogger.Log("CharactersBrain: Initializing battle statistics");
-            InitializeBattleStatistics();
-        }
+        private void HandleStartBattle() => InitializeBattleStatistics();
 
         private void HandleExitBattle(Combat.BattleExitType exitType)
         {

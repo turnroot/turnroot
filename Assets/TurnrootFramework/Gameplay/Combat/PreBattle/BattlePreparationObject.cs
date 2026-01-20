@@ -337,7 +337,11 @@ namespace Turnroot.Gameplay.Combat.PreBattle
                 potentialSwapUnit = null;
                 StartingPositionsComponent?.SetSelected(selectedPosition.Value);
                 StartingPositionsComponent?.ClearSwapPreview();
-                TurnrootLogger.Log($"PreviewPotentialSwap: cursor is on selected tile {pos}, cleared swap preview");
+                TurnrootLogger.Log(
+                    "PreviewPotentialSwap: cursor is on selected tile "
+                        + pos
+                        + ", cleared swap preview"
+                );
                 return OperationResult.SuccessResult();
             }
 
@@ -372,7 +376,9 @@ namespace Turnroot.Gameplay.Combat.PreBattle
             {
                 potentialSwapUnit = null;
                 StartingPositionsComponent?.ClearSwapUnit();
-                TurnrootLogger.Log($"PreviewPotentialSwap: target empty at {pos} (cleared swap unit)");
+                TurnrootLogger.Log(
+                    $"PreviewPotentialSwap: target empty at {pos} (cleared swap unit)"
+                );
             }
 
             return OperationResult.SuccessResult();

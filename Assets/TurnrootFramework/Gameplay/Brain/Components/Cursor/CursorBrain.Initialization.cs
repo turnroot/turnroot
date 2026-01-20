@@ -33,18 +33,6 @@ namespace Turnroot.Gameplay.Brain
                 _cursorInstance.name = "BattleCursor";
             }
 
-            // ALWAYS update scale based on current map, not just on creation
-            if (_cursorInstance != null && _currentMap != null)
-            {
-                var mapGridScale = _currentMap.GridScale;
-                var scaleFactor = mapGridScale;
-                _cursorInstance.transform.localScale = new Vector3(
-                    scaleFactor,
-                    scaleFactor,
-                    scaleFactor
-                );
-            }
-
             Vector2Int startPos = GetInitialCursorPosition(allowedPositions);
 
             var startPoint = _currentMap.GetGridPoint(startPos.x, startPos.y);
@@ -75,6 +63,12 @@ namespace Turnroot.Gameplay.Brain
                 return;
             }
 
+            if (_cursorInstance != null)
+            {
+                // No need to re-initialize if already done
+                return;
+            }
+
             var battleContext = _brain.battleBrain.BattleObject.Context;
             CursorOffset = _brain.uiBrain?.uiSettings?.BattleCursorOffset ?? Vector3.zero;
             InitializeCursor(battleContext.mapGrid);
@@ -87,6 +81,12 @@ namespace Turnroot.Gameplay.Brain
                 return OperationResult.Failure(
                     "CursorBrain: Cannot initialize pre-battle cursor - no MapGrid"
                 );
+            }
+
+            if (_cursorInstance != null)
+            {
+                // No need to re-initialize if already done
+                return OperationResult.SuccessResult();
             }
 
             // Get valid spawn positions from BattlePreparationObject

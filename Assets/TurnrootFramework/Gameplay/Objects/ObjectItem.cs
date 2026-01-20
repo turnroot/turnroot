@@ -278,7 +278,7 @@ namespace Turnroot.Gameplay.Objects
         public bool IsUnequippable => _isUnequippable;
 
         public bool IsEquippable =>
-            _subtype is (ObjectSubtype)ObjectSubtype.Weapon or (ObjectSubtype)ObjectSubtype.Equipable;
+            _subtype == ObjectSubtype.Weapon || _subtype == ObjectSubtype.Equipable;
 
         public EquipableObjectType EquipableType => _equipableType;
 

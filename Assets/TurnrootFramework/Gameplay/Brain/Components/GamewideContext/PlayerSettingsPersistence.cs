@@ -1,5 +1,6 @@
 using Turnroot.Gameplay.Brain.Components;
 using Turnroot.Gameplay.PlayerSettings;
+using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain
@@ -37,17 +38,21 @@ namespace Turnroot.Gameplay.Brain
             LoadPlayerSettingsFromLTM();
         }
 
-        private void LoadPlayerSettingsFromLTM()
+        private OperationResult LoadPlayerSettingsFromLTM()
         {
             if (_longTermMemory == null)
             {
-                return;
+                return OperationResult.Failure(
+                    "PlayerSettingsPersistence: No LongTermMemory available for loading settings"
+                );
             }
 
             var settingsData = _longTermMemory.Recall("PlayerSettings");
             if (string.IsNullOrEmpty(settingsData))
             {
-                return;
+                return OperationResult.Failure(
+                    "PlayerSettingsPersistence: No saved player settings found in LTM"
+                );
             }
 
             try
@@ -60,17 +65,18 @@ namespace Turnroot.Gameplay.Brain
                 if (decode.Success && decode.Value != null)
                 {
                     ApplySettingsData(decode.Value);
-#if UNITY_EDITOR
-                    Debug.Log("PlayerSettingsPersistence: Loaded player settings from LTM");
-#endif
+                    return OperationResult.SuccessResult();
                 }
             }
             catch (System.Exception ex)
             {
-#if UNITY_EDITOR
-                Debug.LogError($"Failed to load player settings: {ex.Message}");
-#endif
+                return OperationResult.Failure(
+                    $"PlayerSettingsPersistence: Load player settings failed: {ex.Message}"
+                );
             }
+            return OperationResult.Failure(
+                "PlayerSettingsPersistence: Failed to decode player settings from LTM"
+            );
         }
 
         private void ApplySettingsData(PlayerSettingsSaveData data)
@@ -106,14 +112,13 @@ namespace Turnroot.Gameplay.Brain
             PlayerSettings.PreferredBattleMusic = data.PreferredBattleMusic;
         }
 
-        public void SavePlayerSettings()
+        public OperationResult SavePlayerSettings()
         {
             if (PlayerSettings == null)
             {
-#if UNITY_EDITOR
-                Debug.LogWarning("PlayerSettingsPersistence: No player settings to save");
-#endif
-                return;
+                return OperationResult.Failure(
+                    "PlayerSettingsPersistence: No player settings to save"
+                );
             }
 
             try
@@ -148,18 +153,13 @@ namespace Turnroot.Gameplay.Brain
 
                 var encode = GamewideContextBrainHelpers.EncodeInstanceToString(_brain, saveData);
                 _longTermMemory?.Remember("PlayerSettings", encode.Value);
-
-#if UNITY_EDITOR
-                Debug.Log("PlayerSettingsPersistence: Saved player settings to LTM");
-#endif
+                return OperationResult.SuccessResult();
             }
             catch (System.Exception ex)
             {
-#if UNITY_EDITOR
-                Debug.LogError(
+                return OperationResult.Failure(
                     $"PlayerSettingsPersistence: Save player settings failed: {ex.Message}"
                 );
-#endif
             }
         }
 
@@ -313,33 +313,26 @@ namespace Turnroot.Gameplay.Brain
                         }
                         break;
                     case "preferredbattlemusic":
-                        if (
-                            value
-                            is Audio.PreferredBattleMusic.SongChoice preferredBattleMusic
-                        )
+                        if (value is Audio.PreferredBattleMusic.SongChoice preferredBattleMusic)
                         {
                             PlayerSettings.PreferredBattleMusic = preferredBattleMusic;
                         }
                         break;
                     default:
-#if UNITY_EDITOR
-                        Debug.LogWarning($"Unknown setting: {settingName}");
-#endif
                         return;
                 }
 
                 // Auto-save after each setting change
                 SavePlayerSettings();
 
-#if UNITY_EDITOR
-                Debug.Log($"Updated setting {settingName} to {value}");
-#endif
+                TurnrootLogger.Log($"Updated setting {settingName} to {value}");
             }
             catch (System.Exception ex)
             {
-#if UNITY_EDITOR
-                Debug.LogError($"Failed to update setting {settingName}: {ex.Message}");
-#endif
+                TurnrootLogger.Log(
+                    $"Failed to update setting {settingName}: {ex.Message}",
+                    TurnrootLogger.LogLevel.Error
+                );
             }
         }
     }

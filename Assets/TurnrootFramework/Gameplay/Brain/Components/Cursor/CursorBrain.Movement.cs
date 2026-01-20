@@ -47,9 +47,6 @@ namespace Turnroot.Gameplay.Brain
             return false;
         }
 
-        /// <summary>
-        /// Navigate cursor by directional input (e.g., from input systems).
-        /// </summary>
         public bool NavigateCursor(Vector2 direction)
         {
             if (_currentMap == null || CursorPosition == null)
@@ -69,14 +66,17 @@ namespace Turnroot.Gameplay.Brain
             return IsPositionValid(targetPos) && MoveCursorTo(targetPos);
         }
 
-        /// <summary>
-        /// Navigate with wrapping (for restricted tile lists).
-        /// </summary>
         public bool NavigateWithWrapping(int direction)
         {
-            TurnrootLogger.Log(
-                $"CursorBrain: NavigateWithWrapping: direction={direction}, _allowedPositions null? {_allowedPositions == null}, count={_allowedPositions?.Count ?? 0}, currentIndex={_currentPositionIndex}"
-            );
+            if (_currentPositionIndex < 0 && _allowedPositions != null && CursorPosition != null)
+            {
+                _currentPositionIndex = _allowedPositions.IndexOf(CursorPosition.CoordinatesInt);
+                if (_currentPositionIndex < 0)
+                {
+                    _currentPositionIndex = 0;
+                }
+            }
+
             if (_allowedPositions == null || _allowedPositions.Count == 0)
             {
                 TurnrootLogger.Log(
@@ -93,10 +93,6 @@ namespace Turnroot.Gameplay.Brain
                 newIndex += _allowedPositions.Count;
             }
 
-            TurnrootLogger.Log(
-                $"CursorBrain: NavigateWithWrapping: trying to move from index {_currentPositionIndex} to {newIndex}, position={_allowedPositions[newIndex]}"
-            );
-
             // Try to move - if it fails, don't update the index
             bool success = MoveCursorTo(_allowedPositions[newIndex]);
 
@@ -104,17 +100,176 @@ namespace Turnroot.Gameplay.Brain
             {
                 TurnrootLogger.Log(
                     $"NavigateWithWrapping: MoveCursorTo failed, NOT updating currentPositionIndex (stays at {_currentPositionIndex})",
-                    TurnrootLogger.LogLevel.Error
+                    TurnrootLogger.LogLevel.Warning
                 );
-                // DON'T update the index if the move failed
             }
             else
             {
-                // Only update if successful
                 _currentPositionIndex = newIndex;
             }
 
             return success;
+        }
+
+        public bool NavigateHorizontal(int dir)
+        {
+            if (_allowedPositions == null || _allowedPositions.Count == 0)
+            {
+                return false;
+            }
+
+            var cur = CursorPosition?.CoordinatesInt;
+            if (cur == null)
+            {
+                // If cursor not initialized, fallback to wrapping behavior
+                return NavigateWithWrapping(dir);
+            }
+
+            var candidates = new System.Collections.Generic.List<Vector2Int>();
+            foreach (var p in _allowedPositions)
+            {
+                if (p.y == cur.Value.y)
+                {
+                    candidates.Add(p);
+                }
+            }
+
+            if (candidates.Count == 0)
+            {
+                return NavigateWithWrapping(dir);
+            }
+
+            candidates.Sort((a, b) => a.x.CompareTo(b.x));
+            if (dir < 0)
+            {
+                // Move left: find the largest x < cur.x
+                Vector2Int? target = null;
+                for (int i = candidates.Count - 1; i >= 0; i--)
+                {
+                    if (candidates[i].x < cur.Value.x)
+                    {
+                        target = candidates[i];
+                        break;
+                    }
+                }
+
+                if (!target.HasValue)
+                {
+                    // wrap to the rightmost in row
+                    target = candidates[candidates.Count - 1];
+                }
+
+                bool success = MoveCursorTo(target.Value);
+                if (success)
+                {
+                    _currentPositionIndex = _allowedPositions.IndexOf(target.Value);
+                }
+                return success;
+            }
+
+            // Move right: find smallest x > cur.x
+            Vector2Int? rightTarget = null;
+            for (int i = 0; i < candidates.Count; i++)
+            {
+                if (candidates[i].x > cur.Value.x)
+                {
+                    rightTarget = candidates[i];
+                    break;
+                }
+            }
+
+            if (!rightTarget.HasValue)
+            {
+                // wrap to leftmost
+                rightTarget = candidates[0];
+            }
+
+            bool successR = MoveCursorTo(rightTarget.Value);
+            if (successR)
+            {
+                _currentPositionIndex = _allowedPositions.IndexOf(rightTarget.Value);
+            }
+            return successR;
+        }
+
+        public bool NavigateVertical(int dir)
+        {
+            if (_allowedPositions == null || _allowedPositions.Count == 0)
+            {
+                return false;
+            }
+
+            var cur = CursorPosition?.CoordinatesInt;
+            if (cur == null)
+            {
+                return NavigateWithWrapping(dir);
+            }
+
+            var candidates = new System.Collections.Generic.List<Vector2Int>();
+            foreach (var p in _allowedPositions)
+            {
+                if (p.x == cur.Value.x)
+                {
+                    candidates.Add(p);
+                }
+            }
+
+            if (candidates.Count == 0)
+            {
+                return NavigateWithWrapping(dir);
+            }
+
+            candidates.Sort((a, b) => a.y.CompareTo(b.y));
+            if (dir < 0)
+            {
+                // Move down (smaller y)
+                Vector2Int? target = null;
+                for (int i = candidates.Count - 1; i >= 0; i--)
+                {
+                    if (candidates[i].y < cur.Value.y)
+                    {
+                        target = candidates[i];
+                        break;
+                    }
+                }
+
+                if (!target.HasValue)
+                {
+                    // wrap to bottommost
+                    target = candidates[candidates.Count - 1];
+                }
+
+                bool success = MoveCursorTo(target.Value);
+                if (success)
+                {
+                    _currentPositionIndex = _allowedPositions.IndexOf(target.Value);
+                }
+                return success;
+            }
+
+            // Move up (larger y)
+            Vector2Int? upTarget = null;
+            for (int i = 0; i < candidates.Count; i++)
+            {
+                if (candidates[i].y > cur.Value.y)
+                {
+                    upTarget = candidates[i];
+                    break;
+                }
+            }
+
+            if (!upTarget.HasValue)
+            {
+                // wrap to topmost
+                upTarget = candidates[0];
+            }
+
+            bool successUp = MoveCursorTo(upTarget.Value);
+            if (successUp)
+            {
+                _currentPositionIndex = _allowedPositions.IndexOf(upTarget.Value);
+            }
+            return successUp;
         }
 
         /// <summary>
@@ -125,13 +280,17 @@ namespace Turnroot.Gameplay.Brain
             TurnrootLogger.Log(
                 $"CursorBrain: SetAllowedPositions called with {positions?.Count ?? 0} positions"
             );
-            if (positions != null && positions.Count > 0)
-            {
-                TurnrootLogger.Log($"CursorBrain: Positions: {string.Join(", ", positions)}");
-            }
-            TurnrootLogger.Log($"CursorBrain: Stack trace: {System.Environment.StackTrace}");
             _allowedPositions = positions;
+            // Initialize current index from existing cursor position when possible to avoid skipping the starting tile
             _currentPositionIndex = -1;
+            if (_allowedPositions != null && CursorPosition != null)
+            {
+                var idx = _allowedPositions.IndexOf(CursorPosition.CoordinatesInt);
+                if (idx >= 0)
+                {
+                    _currentPositionIndex = idx;
+                }
+            }
 
             // If current position is no longer valid, snap to nearest valid position
             if (
@@ -144,30 +303,25 @@ namespace Turnroot.Gameplay.Brain
                 if (nearest.HasValue)
                 {
                     MoveCursorTo(nearest.Value);
+                    // Update current index to the snapped position so wrapping navigation starts from it
+                    _currentPositionIndex = _allowedPositions.IndexOf(nearest.Value);
+                    TurnrootLogger.Log(
+                        $"CursorBrain: Snapped cursor to nearest allowed position {nearest.Value} at index {_currentPositionIndex}"
+                    );
                 }
             }
 
             TurnrootLogger.Log($"CursorBrain: Set {positions?.Count ?? 0} allowed positions");
         }
 
-        /// <summary>
-        /// Clear movement restrictions (allow cursor to move anywhere on map).
-        /// </summary>
         public void ClearAllowedPositions()
         {
-            TurnrootLogger.Log(
-                $"ClearAllowedPositions called! Stack trace: {System.Environment.StackTrace}",
-                TurnrootLogger.LogLevel.Warning
-            );
             _allowedPositions = null;
             _currentPositionIndex = -1;
 
             TurnrootLogger.Log("CursorBrain: Cleared position restrictions");
         }
 
-        /// <summary>
-        /// Show or hide the cursor visual.
-        /// </summary>
         public void SetCursorVisibility(bool visible)
         {
             IsVisible = visible;
