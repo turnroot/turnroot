@@ -166,7 +166,7 @@ MonoBehaviour:
   m_DecalLayerMask: 256
   m_ScaleMode: 1
   m_Offset: {x: 0, y: 0, z: 10}
-  m_Size: {x: 5, y: 5, z: 20}
+  m_Size: {x: 2.5, y: 2.5, z: 20}
   m_FadeFactor: 0.901
 --- !u!1 &2774541456820448258
 GameObject:
@@ -390,7 +390,7 @@ MonoBehaviour:
   m_DecalLayerMask: 256
   m_ScaleMode: 1
   m_Offset: {x: 0, y: 0, z: 10}
-  m_Size: {x: 5, y: 5, z: 20}
+  m_Size: {x: 2.5, y: 2.5, z: 20}
   m_FadeFactor: 0.901
 --- !u!1 &4503108105750657963
 GameObject:

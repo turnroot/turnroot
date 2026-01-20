@@ -22,6 +22,9 @@ namespace Turnroot.Gameplay.Brain
         public MapGridPoint CursorPosition => _brain.cursorBrain?.CursorPosition;
         public TileHighlighter _tileHighlighter;
 
+        [HideInInspector]
+        public TileHighlighter _tileHighlighter;
+
         #endregion
 
         #region Fields

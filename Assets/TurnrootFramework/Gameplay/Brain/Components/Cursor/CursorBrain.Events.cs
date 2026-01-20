@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using Turnroot.Gameplay.Maps;
+using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain
@@ -83,15 +84,13 @@ namespace Turnroot.Gameplay.Brain
 
             if (mapGrid == null)
             {
-                Debug.LogError("CursorBrain: Cannot initialize - MapGrid not found");
+                TurnrootLogger.Log(
+                    "CursorBrain: HandlePlacementsInitialized: No MapGrid found in PreparationObject"
+                );
                 return;
             }
 
             InitializePreBattleCursor(mapGrid);
-
-#if UNITY_EDITOR
-            Debug.Log("CursorBrain: Initialized for positioning mode");
-#endif
         }
 
         private void HandleStateChanged(BrainState newState)

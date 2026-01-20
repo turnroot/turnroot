@@ -114,9 +114,6 @@ namespace Turnroot.Gameplay.Maps
             "Layer mask used when raycasting to the 3D map. Use this to limit raycasts to the map's layer(s)."
         )]
         private LayerMask _raycastLayerMask = ~0;
-
-        [field: SerializeField]
-        public Vector2Int[] TraversableAreaCorners { get; } = new Vector2Int[4];
         public LayerMask RaycastLayerMask => _raycastLayerMask;
 
         [field:

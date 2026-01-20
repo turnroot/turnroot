@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Turnroot.Characters;
 using Turnroot.Gameplay.Brain.Components;
+using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain
@@ -103,18 +104,16 @@ namespace Turnroot.Gameplay.Brain
         {
             if (roster == null)
             {
-#if UNITY_EDITOR
-                Debug.LogWarning("Cannot instantiate null player team roster");
-#endif
+                TurnrootLogger.Log(
+                    "Cannot instantiate null player team roster",
+                    TurnrootLogger.LogLevel.Warning
+                );
                 _brain?.PublishRostersFailed();
                 return null;
             }
 
             if (_persistentPlayerRoster != null && _persistentPlayerRoster.roster == roster)
             {
-#if UNITY_EDITOR
-                Debug.Log($"Player team roster '{roster.name}' already exists, returning");
-#endif
                 return _persistentPlayerRoster;
             }
 
@@ -170,9 +169,7 @@ namespace Turnroot.Gameplay.Brain
             }
 
             instance.AddInstances(characters);
-#if UNITY_EDITOR
-            Debug.Log($"Populated '{instance.name}' with {characters.Count} characters");
-#endif
+            TurnrootLogger.Log($"Populated '{instance.name}' with {characters.Count} characters");
         }
 
         private void PopulatePlayerTeamRoster(
@@ -206,9 +203,9 @@ namespace Turnroot.Gameplay.Brain
             }
 
             instance.AddInstances(characters);
-#if UNITY_EDITOR
-            Debug.Log($"Populated '{instance.name}' with {characters.Count} player characters");
-#endif
+            TurnrootLogger.Log(
+                $"Populated '{instance.name}' with {characters.Count} player characters"
+            );
         }
 
         /// <summary>
@@ -248,9 +245,10 @@ namespace Turnroot.Gameplay.Brain
         {
             if (rosters == null || rosters.Count == 0)
             {
-#if UNITY_EDITOR
-                Debug.LogWarning("No rosters configured to recall");
-#endif
+                TurnrootLogger.Log(
+                    "No rosters configured to recall",
+                    TurnrootLogger.LogLevel.Warning
+                );
                 return;
             }
 
@@ -277,9 +275,10 @@ namespace Turnroot.Gameplay.Brain
         {
             if (roster == null)
             {
-#if UNITY_EDITOR
-                Debug.LogWarning("No player team roster configured to recall");
-#endif
+                TurnrootLogger.Log(
+                    "No player team roster configured to recall",
+                    TurnrootLogger.LogLevel.Warning
+                );
                 return null;
             }
 

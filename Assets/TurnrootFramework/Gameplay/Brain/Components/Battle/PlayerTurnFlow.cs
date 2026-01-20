@@ -24,9 +24,6 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
             {
                 _battleBrain.Brain.OnPlayerUndoAction += HandlePlayerUndoAction;
             }
-#if UNITY_EDITOR
-            Debug.Log("PlayerTurnFlow: Initialized and subscribed to Brain events");
-#endif
         }
 
         private void OnDestroy()

@@ -496,20 +496,6 @@ namespace Turnroot.Gameplay.Maps
                     }
                 }
             }
-            // Draw a rectangle for the traversable area
-            if (TraversableAreaCorners != null && TraversableAreaCorners.Length == 4)
-            {
-                Vector3 c1 = getPos(TraversableAreaCorners[0].x, TraversableAreaCorners[0].y);
-                Vector3 c2 = getPos(TraversableAreaCorners[1].x, TraversableAreaCorners[1].y);
-                Vector3 c3 = getPos(TraversableAreaCorners[2].x, TraversableAreaCorners[2].y);
-                Vector3 c4 = getPos(TraversableAreaCorners[3].x, TraversableAreaCorners[3].y);
-
-                Gizmos.color = Color.cyan;
-                Gizmos.DrawLine(c1, c2);
-                Gizmos.DrawLine(c2, c4);
-                Gizmos.DrawLine(c4, c3);
-                Gizmos.DrawLine(c3, c1);
-            }
         }
 
         private void OnValidate()

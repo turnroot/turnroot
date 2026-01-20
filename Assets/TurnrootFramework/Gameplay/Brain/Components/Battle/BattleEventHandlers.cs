@@ -81,10 +81,6 @@ namespace Turnroot.Gameplay.Brain
 
             PreparationObject = prep;
             PreparationObject.Initialize(_brain);
-
-            TurnrootLogger.Log(
-                $"BattleBrain: Connected to BattlePreparationObject '{prep.name}' for pre-battle."
-            );
             return OperationResult.SuccessResult();
         }
 

@@ -10,6 +10,8 @@ namespace Turnroot.Gameplay.Brain
         private float _cachedInputCooldown;
         private bool _cachedIsKeyboard = true;
 
+        private Vector2 _lastDirection = Vector2.zero;
+
         protected override void Awake()
         {
             base.Awake();
@@ -73,7 +75,7 @@ namespace Turnroot.Gameplay.Brain
 
         private bool ProcessInput()
         {
-            // Navigation
+            // Navigation - CHANGED to use wrapping navigation for spawn points
             if (_inputActions?.Navigate?.enabled == true)
             {
                 var direction = _inputActions.Navigate.ReadValue<Vector2>();
@@ -88,26 +90,61 @@ namespace Turnroot.Gameplay.Brain
                 }
                 else
                 {
-                    inputThreshold = 0.3f; // Safe default
+                    inputThreshold = 0.3f;
                 }
 
                 if (direction.magnitude > inputThreshold)
                 {
-                    _brain.cursorBrain?.NavigateCursor(direction);
-
-                    // If a unit is already selected, preview swap/move to the new cursor position
-                    var prepObject = _brain?.battleBrain?.PreparationObject;
-                    var cursorPos = _brain.cursorBrain?.CursorPosition?.CoordinatesInt;
-                    if (
-                        prepObject != null
-                        && prepObject.selectedPosition != null
-                        && cursorPos != null
-                    )
+                    // Prevent repeat inputs when stick/key is held
+                    if (direction == _lastDirection)
                     {
-                        _ = prepObject.PreviewPotentialSwap(cursorPos.Value);
+                        return false;
+                    }
+                    _lastDirection = direction;
+
+                    // CRITICAL FIX: Use NavigateWithWrapping for spawn points
+                    // Determine primary direction (horizontal or vertical)
+                    bool navigated = false;
+                    if (Mathf.Abs(direction.x) > Mathf.Abs(direction.y))
+                    {
+                        // Horizontal navigation (find nearest allowed tile on same row)
+                        int dir = direction.x > 0 ? 1 : -1;
+                        navigated = _brain.cursorBrain?.NavigateHorizontal(dir) ?? false;
+#if UNITY_EDITOR
+                        Debug.Log($"Positioning: Navigate horizontal {dir}, success={navigated}");
+#endif
+                    }
+                    else
+                    {
+                        // Vertical navigation (find nearest allowed tile on same column)
+                        int dir = direction.y > 0 ? 1 : -1;
+                        navigated = _brain.cursorBrain?.NavigateVertical(dir) ?? false;
+#if UNITY_EDITOR
+                        Debug.Log($"Positioning: Navigate vertical {dir}, success={navigated}");
+#endif
                     }
 
-                    return true;
+                    // If navigation succeeded, preview swap
+                    if (navigated)
+                    {
+                        var prepObject = _brain?.battleBrain?.PreparationObject;
+                        var cursorPos = _brain.cursorBrain?.CursorPosition?.CoordinatesInt;
+                        if (
+                            prepObject != null
+                            && prepObject.selectedPosition != null
+                            && cursorPos != null
+                        )
+                        {
+                            _ = prepObject.PreviewPotentialSwap(cursorPos.Value);
+                        }
+                    }
+
+                    return navigated;
+                }
+                else
+                {
+                    // Input below threshold - reset direction tracking
+                    _lastDirection = Vector2.zero;
                 }
             }
 
@@ -152,40 +189,14 @@ namespace Turnroot.Gameplay.Brain
             if (prepObject.selectedPosition == null)
             {
                 var result = prepObject.SelectPosition(cursorPos.Value);
-                if (result.Success)
-                {
-#if UNITY_EDITOR
-                    Debug.Log($"Selected unit at {cursorPos.Value}");
-#endif
-                    // TODO: Show visual feedback (highlight selected tile)
-                }
-                else
-                {
-#if UNITY_EDITOR
-                    Debug.Log($"Cannot select position: {result.ErrorMessage}");
-#endif
-                    // TODO: Play error sound/show error feedback
-                }
+                // TODO: Add SFX if Result.Success
             }
             // Second confirm: Execute swap/move
             else
             {
                 prepObject.potentialSwapPosition = cursorPos.Value;
                 var result = prepObject.ExecutePositionAction();
-
-                if (result.Success)
-                {
-#if UNITY_EDITOR
-                    Debug.Log($"Executed position action (swap/move)");
-#endif
-                    // TODO: Update visuals, play sound
-                }
-                else
-                {
-#if UNITY_EDITOR
-                    Debug.Log($"Cannot execute action: {result.ErrorMessage}");
-#endif
-                }
+                // TODO: Add SFX if Result.Success
             }
         }
 
@@ -201,10 +212,6 @@ namespace Turnroot.Gameplay.Brain
             if (prepObject.selectedPosition != null)
             {
                 prepObject.ClearSelection();
-#if UNITY_EDITOR
-                Debug.Log("Cleared selection");
-#endif
-                // TODO: Clear visual feedback
             }
             // Otherwise, return to previous menu
         }

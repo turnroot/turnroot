@@ -4,6 +4,7 @@ using Turnroot.Gameplay.Brain.Components.Battle;
 using Turnroot.Gameplay.Combat;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
 using Turnroot.Gameplay.Maps;
+using Turnroot.Utilities;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -68,10 +69,6 @@ namespace Turnroot.Gameplay.Brain
             _turnRotisserie = GetComponent<TurnRotisserie>();
             playerTurnFlow = GetComponent<PlayerTurnFlow>();
             playerTurnFlow.Intialize();
-
-#if UNITY_EDITOR
-            Debug.Log("BattleBrain: TurnRotisserie and PlayerTurnFlow ready");
-#endif
         }
 
         private void Start()

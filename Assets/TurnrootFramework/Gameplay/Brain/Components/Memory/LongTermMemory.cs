@@ -32,9 +32,6 @@ namespace Turnroot.Gameplay.Brain.Components
             prefs = new JsonPlayerPrefs(
                 Application.persistentDataPath + "/TurnrootBrain/structured/.turnrootdata"
             );
-#if UNITY_EDITOR
-            Debug.Log($"Brain LongTermMemory initialized at: {Application.persistentDataPath}");
-#endif
 
             prefs.OnKeySetChanged += HandlePrefsKeySetChanged;
         }
@@ -116,9 +113,6 @@ namespace Turnroot.Gameplay.Brain.Components
             SaveImmediate();
         }
 
-        /// <summary>
-        /// Removes an integer value from long-term memory.
-        /// </summary>
         public void ForgetInt(string key, bool permanent = false)
         {
             if (permanent)
@@ -134,9 +128,6 @@ namespace Turnroot.Gameplay.Brain.Components
             SaveImmediate();
         }
 
-        /// <summary>
-        /// Removes a boolean value from long-term memory.
-        /// </summary>
         public void ForgetBool(string key, bool permanent = false)
         {
             if (permanent)
@@ -152,9 +143,6 @@ namespace Turnroot.Gameplay.Brain.Components
             SaveImmediate();
         }
 
-        /// <summary>
-        /// Retrieves all keys from long-term memory that start with the specified prefix.
-        /// </summary>
         public List<string> RecallKeysByPrefix(string prefix)
         {
             var keys = new List<string>();
@@ -174,9 +162,6 @@ namespace Turnroot.Gameplay.Brain.Components
             return keys;
         }
 
-        /// <summary>
-        /// Writes all pending changes to disk immediately.
-        /// </summary>
         private void SaveImmediate() => prefs.Save();
 
         private void OnDestroy()

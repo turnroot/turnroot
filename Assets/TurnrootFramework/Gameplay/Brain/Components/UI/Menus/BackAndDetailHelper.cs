@@ -17,10 +17,6 @@ namespace Turnroot.Gameplay.Brain.Segments
 
         private void HandleBackButtonForState(string stateName)
         {
-#if UNITY_EDITOR
-            Debug.Log($"HandleBackButtonForState: state={stateName}");
-#endif
-
             // Check if we need a back button based on:
             // 1. The current state needs menus, OR
             // 2. We're currently in a submenu (depth > 1)

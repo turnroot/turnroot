@@ -138,11 +138,15 @@ GameObject:
   - component: {fileID: 1357883685}
   - component: {fileID: 1357883684}
   - component: {fileID: 1357883683}
-  - component: {fileID: 1357883687}
   - component: {fileID: 1357883686}
   - component: {fileID: 1357883690}
   - component: {fileID: 1357883689}
   - component: {fileID: 1357883688}
+  - component: {fileID: 1357883695}
+  - component: {fileID: 1357883694}
+  - component: {fileID: 1357883693}
+  - component: {fileID: 1357883692}
+  - component: {fileID: 1357883691}
   m_Layer: 0
   m_Name: = Brain
   m_TagString: DoNotModify
@@ -173,6 +177,10 @@ MonoBehaviour:
   uiBrain: {fileID: 0}
   volumeBrain: {fileID: 0}
   audioBrain: {fileID: 0}
+  cameraBrain: {fileID: 0}
+  cursorBrain: {fileID: 0}
+  positioningInputControllerBrain: {fileID: 0}
+  unitAppearanceBrain: {fileID: 0}
   ltm: {fileID: 1357883675}
 --- !u!114 &1357883675
 MonoBehaviour:
@@ -315,18 +323,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2f5fddd625117a54396ff70a38acfd31, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &1357883687
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1357883673}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 18ab6fc01e5a08d45b1ce17cda4530eb, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &1357883688
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -379,12 +375,96 @@ MonoBehaviour:
     menuName: 0
     style: 0
     prefab: {fileID: 0}
+  gameSettingsAudioLocation:
+    parentMenuName: 0
+    menuName: 0
+    style: 0
+    prefab: {fileID: 0}
+  gameSettingsControlsLocation:
+    parentMenuName: 0
+    menuName: 0
+    style: 0
+    prefab: {fileID: 0}
   preBattleMenuLocation:
     parentMenuName: 0
     menuName: 0
     style: 0
     prefab: {fileID: 0}
-  CurrentMenuDepth: 0
+  prebattleMapMenuLocation:
+    parentMenuName: 0
+    menuName: 0
+    style: 0
+    prefab: {fileID: 0}
+  prebattleUnitsMenuLocation:
+    parentMenuName: 0
+    menuName: 0
+    style: 0
+    prefab: {fileID: 0}
+  _isTransitioning: 0
+--- !u!114 &1357883691
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1357883673}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7c8fd3db60fe88247a79eacb56b2ed7f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &1357883692
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1357883673}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4bd425956cf3d20459d7896dc2584fa3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  CursorOffset: {x: 0, y: 0, z: 0}
+  CursorPosition: {fileID: 0}
+  uiSettings: {fileID: 0}
+--- !u!114 &1357883693
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1357883673}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7ed25ae0314e4bd47b64071332bd3627, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &1357883694
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1357883673}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 513ec83bc0f10434ba06b39109179fa2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &1357883695
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1357883673}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0589a18ac2e53ab458d4dc35d062ded8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _tileHighlighter: {fileID: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

@@ -46,9 +46,24 @@ namespace Turnroot.UI.Components
                     name.Initialize(prep);
                     count++;
                 }
-                if (TryGetComponent(out StartingPositions p) && p != null)
+                // Prefer StartingPositions that are part of the resolved BattlePreparationObject (scene map),
+                // falling back to a StartingPositions on this resolver (e.g., menu prefab) only if none found.
+                StartingPositions p = null;
+                if (prep != null)
+                {
+                    p = prep.GetComponentInChildren<StartingPositions>(true);
+                }
+                if (p == null)
+                {
+                    TryGetComponent(out p);
+                }
+
+                if (p != null)
                 {
                     ResolvedPreparationObject.StartingPositionsComponent = p;
+                    Turnroot.Utilities.TurnrootLogger.Log(
+                        $"PreparationObjectResolver: Using StartingPositions instance '{p.name}' from '{p.gameObject.scene.name}'"
+                    );
 
                     // Ensure any other StartingPositions instances are replaced to avoid duplicates
                     var others = FindObjectsByType<StartingPositions>(
