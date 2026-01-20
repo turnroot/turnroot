@@ -55,7 +55,7 @@ namespace Turnroot.Characters
                 hpStat.SetCurrent(hpStat.GetCurrent() + 1f);
             }
 
-            return OperationResult.SuccessResult();
+            return OperationResult.Successful();
         }
 
         private List<UnboundedStatModifier> GetEffectiveGrowthRates()

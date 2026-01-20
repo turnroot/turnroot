@@ -142,7 +142,7 @@ namespace Turnroot.Gameplay.Objects
 
             // owner & slot set by CharacterInventoryInstance.AddToInventory
             InventoryBrain?.TransferItem(this, targetInventory);
-            return OperationResult.SuccessResult();
+            return OperationResult.Successful();
         }
 
         public bool CanDiscard() => !_template.IsUnequippable;
@@ -160,7 +160,7 @@ namespace Turnroot.Gameplay.Objects
                 return res;
             }
             InventoryBrain?.DiscardItem(this);
-            return OperationResult.SuccessResult();
+            return OperationResult.Successful();
         }
 
         public bool CanSell() => !_template.IsUnequippable && _template.Sellable;
@@ -181,7 +181,7 @@ namespace Turnroot.Gameplay.Objects
             }
             StorehouseBrain?.AddGold(finalPrice);
             InventoryBrain?.SellItem(this);
-            return OperationResult.SuccessResult();
+            return OperationResult.Successful();
         }
 
         public bool CanBuy(CharacterInventoryInstance buyerInventory) =>
@@ -215,7 +215,7 @@ namespace Turnroot.Gameplay.Objects
             // owner & slot set by CharacterInventoryInstance.AddToInventory
             StorehouseBrain?.SpendGold(_template.BasePrice);
             InventoryBrain?.BuyItem(this, buyerInventory);
-            return OperationResult.SuccessResult();
+            return OperationResult.Successful();
         }
 
         public bool CanRepair(int repairUses)
@@ -258,7 +258,7 @@ namespace Turnroot.Gameplay.Objects
                     currentUses = 0;
                 }
 
-                return OperationResult.SuccessResult();
+                return OperationResult.Successful();
             }
 
             if (repairUses <= 0 || currentUses - repairUses < 0)
@@ -285,7 +285,7 @@ namespace Turnroot.Gameplay.Objects
                 currentUses = 0;
             }
 
-            return OperationResult.SuccessResult();
+            return OperationResult.Successful();
         }
 
         public void OnAfterDeserialize()

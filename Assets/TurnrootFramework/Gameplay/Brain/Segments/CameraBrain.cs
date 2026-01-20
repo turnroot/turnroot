@@ -58,7 +58,7 @@ namespace Turnroot.Gameplay.Brain.Segments
             }
 
             mapGrid = grid;
-            return OperationResult.SuccessResult();
+            return OperationResult.Successful();
         }
 
         private void HandleStateChanged(BrainState newState) =>

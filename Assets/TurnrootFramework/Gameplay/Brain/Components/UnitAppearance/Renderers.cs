@@ -105,7 +105,7 @@ namespace Turnroot.Gameplay.Brain
 
             if (existing != null)
             {
-                return OperationResult.SuccessResult();
+                return OperationResult.Successful();
             }
 
             CleanupOldModel(pos, models);

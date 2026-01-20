@@ -279,7 +279,7 @@ namespace Turnroot.Gameplay.Brain
 
             var item = character.InventoryInstance.InventoryItems[inventoryIndex];
             _brain?.PublishItemEquipped(character, item);
-            return OperationResult.SuccessResult();
+            return OperationResult.Successful();
         }
 
         /// <summary>
@@ -308,7 +308,7 @@ namespace Turnroot.Gameplay.Brain
             }
 
             _brain?.PublishItemUnequipped(character, item);
-            return OperationResult.SuccessResult();
+            return OperationResult.Successful();
         }
 
         #region Queries

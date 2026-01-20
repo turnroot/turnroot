@@ -98,7 +98,7 @@ namespace Turnroot.Characters.CharacterClass
                 return OperationResult.Failure(msg);
             }
 
-            return OperationResult.SuccessResult();
+            return OperationResult.Successful();
         }
 
         public bool Initialize()
@@ -136,7 +136,7 @@ namespace Turnroot.Characters.CharacterClass
 
             _meshRenderer = meshRenderer;
             Initialize();
-            return OperationResult.SuccessResult();
+            return OperationResult.Successful();
         }
 
         #endregion
@@ -164,7 +164,7 @@ namespace Turnroot.Characters.CharacterClass
                 _classData.Stats.UnboundedStatBonuses,
                 character
             );
-            return OperationResult.SuccessResult();
+            return OperationResult.Successful();
         }
 
         /// <summary>
@@ -188,7 +188,7 @@ namespace Turnroot.Characters.CharacterClass
                 _classData.Stats.UnboundedStatBonuses,
                 character
             );
-            return OperationResult.SuccessResult();
+            return OperationResult.Successful();
         }
 
         /// <summary>
@@ -199,7 +199,7 @@ namespace Turnroot.Characters.CharacterClass
         {
             if (!_isFirstTimeEquipped)
             {
-                return OperationResult.SuccessResult();
+                return OperationResult.Successful();
             }
 
             var _res_applyChange = StatApplicationHelper.ValidateReferences(
@@ -224,7 +224,7 @@ namespace Turnroot.Characters.CharacterClass
             );
 
             _isFirstTimeEquipped = false;
-            return OperationResult.SuccessResult();
+            return OperationResult.Successful();
         }
 
         public void EnforceStatMinimums(CharacterInstance character)

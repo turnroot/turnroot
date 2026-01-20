@@ -273,7 +273,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                     _brain.PublishPlayerControlledUnitActivated(activeUnit);
                 }
 
-                return OperationResult.SuccessResult();
+                return OperationResult.Successful();
             }
             catch (System.Exception ex)
             {
@@ -359,7 +359,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                     BattleBrain.Brain.PublishUnitTakesAnotherTurn(unit);
                     BattleBrain.BattleObject.Context.Flags.ActiveUnitFlags.AnotherTurnGranted =
                         true;
-                    return OperationResult.SuccessResult();
+                    return OperationResult.Successful();
                 }
             }
             return OperationResult.Failure("Cannot grant another turn to unit.");

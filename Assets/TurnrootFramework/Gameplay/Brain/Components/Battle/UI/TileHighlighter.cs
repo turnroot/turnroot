@@ -135,7 +135,7 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
         private OperationResult EnsureBaseMaterial() =>
             _baseMaterial == null
                 ? OperationResult.Failure("Base material is not assigned")
-                : OperationResult.SuccessResult();
+                : OperationResult.Successful();
 
         public void Initialize(MapGrid mapGrid)
         {
@@ -186,7 +186,7 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
                 }
             }
 
-            return OperationResult.SuccessResult();
+            return OperationResult.Successful();
         }
 
         #endregion
@@ -300,7 +300,7 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
             renderer.GetPropertyBlock(props);
             props.SetVector(UV_OFFSET_PROPERTY, uvParams);
             renderer.SetPropertyBlock(props);
-            return OperationResult.SuccessResult();
+            return OperationResult.Successful();
         }
 
         #endregion

@@ -185,7 +185,7 @@ namespace Turnroot.Characters
             _currentClass.EnforceStatMinimums(this);
             _currentClass.ApplyStatCaps(this);
 
-            return OperationResult.SuccessResult();
+            return OperationResult.Successful();
         }
 
         /// <summary>

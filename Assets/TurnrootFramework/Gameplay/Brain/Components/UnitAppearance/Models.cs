@@ -123,7 +123,7 @@ namespace Turnroot.Gameplay.Brain
             models[pos] = model;
 
             _brain?.Publish(new ModelSpawnedEvent(unit, unit.Id, pos, model));
-            return OperationResult.SuccessResult();
+            return OperationResult.Successful();
         }
 
         public OperationResult DespawnUnitModelFromGrid(
@@ -151,7 +151,7 @@ namespace Turnroot.Gameplay.Brain
             Destroy(model);
             models.Remove(pos);
 
-            return OperationResult.SuccessResult();
+            return OperationResult.Successful();
         }
 
         private void ClearExistingModels()

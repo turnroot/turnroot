@@ -12,6 +12,7 @@ namespace Turnroot.Characters
         #region Support Relationships
         public SupportRelationshipInstance GetSupportRelationship(CharacterData character) =>
             _supportRelationships.Find(s => s.Character == character);
+
         public OperationResult AddSupportRelationship(SupportRelationship template)
         {
             bool ok = ValidationHelper.ValidateNotNull(
@@ -42,7 +43,7 @@ namespace Turnroot.Characters
                 _supportRelationships.Add(new SupportRelationshipInstance(template));
             }
 
-            return OperationResult.SuccessResult();
+            return OperationResult.Successful();
         }
 
         internal OperationResult IncreaseSupport(CharacterData character, int amount)
@@ -64,7 +65,7 @@ namespace Turnroot.Characters
             if (relationship != null)
             {
                 relationship.Increase(amount);
-                return OperationResult.SuccessResult();
+                return OperationResult.Successful();
             }
 
             TurnrootLogger.Log(
@@ -76,8 +77,9 @@ namespace Turnroot.Characters
                 return res;
             }
             GetSupportRelationship(character)?.Increase(amount);
-            return OperationResult.SuccessResult();
+            return OperationResult.Successful();
         }
+
         public OperationResult RemoveSupportRelationship(CharacterData character)
         {
             bool ok = ValidationHelper.ValidateNotNull(
@@ -94,7 +96,7 @@ namespace Turnroot.Characters
             }
 
             _ = _supportRelationships.RemoveAll(s => s.Character == character);
-            return OperationResult.SuccessResult();
+            return OperationResult.Successful();
         }
 
         /* ---------------------- Recruitment helpers ---------------------- */
@@ -136,7 +138,7 @@ namespace Turnroot.Characters
                 rel = GetSupportRelationship(character);
             }
             rel.SetIsRecruitableOverride(isRecruitable);
-            return OperationResult.SuccessResult();
+            return OperationResult.Successful();
         }
 
         public float GetCharacterRecruitmentChance(CharacterData character)
@@ -177,7 +179,7 @@ namespace Turnroot.Characters
                 rel = GetSupportRelationship(character);
             }
             rel.SetRecruitmentChanceOverride(Mathf.Clamp(chance, 0f, 100f));
-            return OperationResult.SuccessResult();
+            return OperationResult.Successful();
         }
 
         public float GetCharacterRecruitmentChanceIncreasePerConversation(CharacterData character)
@@ -225,7 +227,7 @@ namespace Turnroot.Characters
             rel.SetRecruitmentChanceIncreasePerConversationOverride(
                 Mathf.Clamp(increase, 0f, 100f)
             );
-            return OperationResult.SuccessResult();
+            return OperationResult.Successful();
         }
 
         public bool GetCharacterRequiresMinSupportLevel(CharacterData character)
@@ -271,7 +273,7 @@ namespace Turnroot.Characters
                 rel = GetSupportRelationship(character);
             }
             rel.SetRequiresMinSupportLevelOverride(requires);
-            return OperationResult.SuccessResult();
+            return OperationResult.Successful();
         }
 
         public OperationResult ClearRecruitmentOverrides(CharacterData character)
@@ -299,7 +301,7 @@ namespace Turnroot.Characters
             rel.ClearRecruitmentChanceOverride();
             rel.ClearRecruitmentChanceIncreasePerConversationOverride();
             rel.ClearRequiresMinSupportLevelOverride();
-            return OperationResult.SuccessResult();
+            return OperationResult.Successful();
         }
 
         #endregion

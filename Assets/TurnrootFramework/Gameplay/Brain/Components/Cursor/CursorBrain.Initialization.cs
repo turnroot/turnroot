@@ -52,7 +52,7 @@ namespace Turnroot.Gameplay.Brain
                     $"InitializeCursor: Could not find valid start grid point at {startPos}."
                 );
             }
-            return OperationResult.SuccessResult();
+            return OperationResult.Successful();
         }
 
         private void InitializeBattleCursor()
@@ -86,7 +86,7 @@ namespace Turnroot.Gameplay.Brain
             if (_cursorInstance != null)
             {
                 // No need to re-initialize if already done
-                return OperationResult.SuccessResult();
+                return OperationResult.Successful();
             }
 
             // Get valid spawn positions from BattlePreparationObject
@@ -105,7 +105,7 @@ namespace Turnroot.Gameplay.Brain
             CursorOffset = _brain.uiBrain?.uiSettings?.BattleCursorOffset ?? Vector3.zero;
 
             InitializeCursor(mapGrid, validSpawnPositions);
-            return OperationResult.SuccessResult();
+            return OperationResult.Successful();
         }
 
         private System.Collections.IEnumerator RetryInitializeBattleCursor()

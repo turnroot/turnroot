@@ -68,7 +68,7 @@ namespace Turnroot.Gameplay.Brain.Segments
                     gridMenu.OnItemSelected += HandlePreBattleMenuSelect;
                 }
             }
-            return OperationResult.SuccessResult();
+            return OperationResult.Successful();
         }
 
         #region PreBattle Menu Event Handlers

@@ -277,7 +277,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         {
             var command = new MoveCommand(unit.Id, CoordinatesInt, Brain.CurrentTurnNumber);
             return Brain.ExecuteCommand(command)
-                ? OperationResult.SuccessResult()
+                ? OperationResult.Successful()
                 : OperationResult.Failure("Move command failed to execute");
         }
 
@@ -295,7 +295,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 Brain.CurrentTurnNumber
             );
             return Brain.ExecuteCommand(command)
-                ? OperationResult.SuccessResult()
+                ? OperationResult.Successful()
                 : OperationResult.Failure("Move command failed to execute");
         }
 
@@ -324,7 +324,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 target,
                 DamageCalculator.CalculatePotentialDamage(attacker, target, weaponItem, this)
             )
-                ? OperationResult.SuccessResult()
+                ? OperationResult.Successful()
                 : OperationResult.Failure("Attack command failed to execute");
         }
 

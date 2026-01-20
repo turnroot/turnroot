@@ -28,7 +28,7 @@ namespace Turnroot.Gameplay.Combat
             SubscribeToBrainEvents();
 
             _isConnectedToBrain = true;
-            return OperationResult.SuccessResult();
+            return OperationResult.Successful();
         }
 
         private void SubscribeToBrainEvents()
@@ -86,7 +86,7 @@ namespace Turnroot.Gameplay.Combat
                     condition.battleContext = Context;
                     ResolveConditionReferences(condition);
                 }
-                return OperationResult.SuccessResult();
+                return OperationResult.Successful();
             }
             catch (System.Exception ex)
             {
@@ -111,7 +111,7 @@ namespace Turnroot.Gameplay.Combat
                     $"Failed to resolve references for {condition?.Name}: {ex.Message}"
                 );
             }
-            return OperationResult.SuccessResult();
+            return OperationResult.Successful();
         }
 
         public OperationResult AddConditionAtRuntime(BattleCondition condition)
@@ -137,7 +137,7 @@ namespace Turnroot.Gameplay.Combat
             {
                 return OperationResult.Failure($"AddConditionAtRuntime failed: {ex.Message}");
             }
-            return OperationResult.SuccessResult();
+            return OperationResult.Successful();
         }
 
         private OperationResult InitializeContextWithBrain()
@@ -167,7 +167,7 @@ namespace Turnroot.Gameplay.Combat
             {
                 return OperationResult.Failure($"Failed to initialize context: {ex.Message}");
             }
-            return OperationResult.SuccessResult();
+            return OperationResult.Successful();
         }
 
         private void SubscribeToMapChanges()

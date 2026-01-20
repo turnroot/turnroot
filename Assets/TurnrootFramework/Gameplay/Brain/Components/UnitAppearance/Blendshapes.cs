@@ -29,7 +29,7 @@ namespace Turnroot.Gameplay.Brain
                 }
             }
 
-            return OperationResult.SuccessResult();
+            return OperationResult.Successful();
         }
 
         private bool ApplyBlendshapeToRenderers(

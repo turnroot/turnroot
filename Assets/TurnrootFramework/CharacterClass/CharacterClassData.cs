@@ -190,7 +190,7 @@ namespace Turnroot.Characters.CharacterClass
                     (stat) => new UnboundedStatModifier(stat.StatType, 0)
                 );
             }
-            return OperationResult.SuccessResult();
+            return OperationResult.Successful();
         }
 
         private void ValidateBoundedStatList(

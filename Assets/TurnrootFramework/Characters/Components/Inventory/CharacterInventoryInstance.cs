@@ -289,7 +289,7 @@ namespace Turnroot.Characters.Components
             int newIndex = _inventoryItems.Count - 1;
             item.Slot = newIndex;
             item.SetOwnerInventory(this);
-            return OperationResult.SuccessResult();
+            return OperationResult.Successful();
         }
 
         public OperationResult RemoveFromInventory(ObjectItemInstance item)
@@ -327,7 +327,7 @@ namespace Turnroot.Characters.Components
                 }
             }
 
-            return OperationResult.SuccessResult();
+            return OperationResult.Successful();
         }
 
         public OperationResult EquipItem(int index)
@@ -356,7 +356,7 @@ namespace Turnroot.Characters.Components
 
             _equippedItemIndices[slotIndex] = index;
             SetEquippedFlag(slotIndex, true);
-            return OperationResult.SuccessResult();
+            return OperationResult.Successful();
         }
 
         public OperationResult UnequipItem(int inventoryIndex)
@@ -386,7 +386,7 @@ namespace Turnroot.Characters.Components
 
             _equippedItemIndices[slotIndex] = -1;
             SetEquippedFlag(slotIndex, false);
-            return OperationResult.SuccessResult();
+            return OperationResult.Successful();
         }
 
         public void UnequipAllItems()

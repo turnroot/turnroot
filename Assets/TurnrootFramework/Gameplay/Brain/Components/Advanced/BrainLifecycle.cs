@@ -58,7 +58,7 @@ namespace Turnroot.Gameplay.Brain
             else
             {
                 TurnrootLogger.Log("LongTermMemory initialized.");
-                return OperationResult.SuccessResult();
+                return OperationResult.Successful();
             }
         }
 
@@ -77,7 +77,7 @@ namespace Turnroot.Gameplay.Brain
             TurnrootLogger.Log(
                 $"Turnroot modules: {(string.IsNullOrEmpty(enabled) ? "None" : enabled)}"
             );
-            return OperationResult.SuccessResult();
+            return OperationResult.Successful();
         }
 
         #region Conversation Controller Management
@@ -105,7 +105,7 @@ namespace Turnroot.Gameplay.Brain
             if (controller != null)
             {
                 _sceneConversationController = controller;
-                return OperationResult.SuccessResult();
+                return OperationResult.Successful();
             }
             return OperationResult.Failure("No ConversationController found in scene.");
         }

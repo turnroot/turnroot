@@ -125,7 +125,7 @@ namespace Turnroot.Gameplay.Brain.Segments
                 if (cam.CompareTag("BattleMapCamera"))
                 {
                     SetBattleMapCamera(cam);
-                    return OperationResult.SuccessResult();
+                    return OperationResult.Successful();
                 }
             }
             return OperationResult.Failure(

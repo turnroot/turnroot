@@ -103,7 +103,7 @@ namespace Turnroot.Gameplay.Brain.Segments
             if (uiFade != null)
             {
                 uiFade.lerpTime = fadeTime;
-                return OperationResult.SuccessResult();
+                return OperationResult.Successful();
             }
             else
             {

@@ -110,7 +110,7 @@ namespace Turnroot.UI.Components
             }
             return count <= 0
                 ? OperationResult.Failure("PreparationObjectResolver: Nothing to initialize")
-                : OperationResult.SuccessResult();
+                : OperationResult.Successful();
         }
 
         public BattlePreparationObject ResolveForBrain(Brain brain)

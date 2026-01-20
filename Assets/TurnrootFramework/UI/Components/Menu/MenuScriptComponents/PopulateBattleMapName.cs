@@ -23,7 +23,7 @@ namespace Turnroot.UI.Components
             {
                 return OperationResult.Failure("Invalid parameters for PopulateBattleMapName");
             }
-            return OperationResult.SuccessResult();
+            return OperationResult.Successful();
         }
     }
 }

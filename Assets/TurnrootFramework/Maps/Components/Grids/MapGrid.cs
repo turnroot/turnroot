@@ -285,7 +285,7 @@ namespace Turnroot.Gameplay.Maps
             RebuildRaycastColors();
             BuildTerrainPositionLookup();
             MarkDirty();
-            return OperationResult.SuccessResult();
+            return OperationResult.Successful();
         }
 
         [Button("Remove Height Connection")]
@@ -574,7 +574,7 @@ namespace Turnroot.Gameplay.Maps
             {
                 mgp.CurrentInstance = occupier;
                 IncrementStateVersion();
-                return OperationResult.SuccessResult();
+                return OperationResult.Successful();
             }
             return OperationResult.Failure(
                 $"Set occupied for point ({point.Row}, {point.Col}) failed"
@@ -590,7 +590,7 @@ namespace Turnroot.Gameplay.Maps
             {
                 mgp.CurrentInstance = null;
                 IncrementStateVersion();
-                return OperationResult.SuccessResult();
+                return OperationResult.Successful();
             }
             return OperationResult.Failure(
                 $"Remove occupied for point ({point.Row}, {point.Col}) failed"

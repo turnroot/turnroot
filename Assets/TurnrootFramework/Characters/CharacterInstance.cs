@@ -52,7 +52,7 @@ namespace Turnroot.Characters
 
         /// <summary>
         /// Moves the character to a new position on the map grid.
-        /// Returns <see cref="OperationResult.SuccessResult"/> if the move is successful.
+        /// Returns <see cref="OperationResult.Successful"/> if the move is successful.
         /// Returns <see cref="OperationResult.Failure"/> with a message if the new position is out of bounds.
         /// </summary>
         /// <param name="newPosition">New position on the map grid</param>
@@ -66,7 +66,7 @@ namespace Turnroot.Characters
             }
 
             _mapGridPosition = newPosition;
-            return OperationResult.SuccessResult();
+            return OperationResult.Successful();
         }
 
         [SerializeField]
@@ -375,7 +375,7 @@ namespace Turnroot.Characters
 #endif
             }
 
-            return OperationResult.SuccessResult();
+            return OperationResult.Successful();
         }
 
         /// <summary>

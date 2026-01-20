@@ -30,7 +30,7 @@ namespace Turnroot.UI.Components
 
             if (_replaced)
             {
-                return OperationResult.SuccessResult();
+                return OperationResult.Successful();
             }
 
             var spawnPoints = _mapGrid.PlayerTeamSpawnPoints;
@@ -48,11 +48,11 @@ namespace Turnroot.UI.Components
             if (ShouldWaitForPlacements())
             {
                 SubscribeToEvents();
-                return OperationResult.SuccessResult();
+                return OperationResult.Successful();
             }
 
             SpawnAllUnitModels();
-            return OperationResult.SuccessResult();
+            return OperationResult.Successful();
         }
 
         private void SetupProjectors(List<Vector2Int> positions)
@@ -194,7 +194,7 @@ namespace Turnroot.UI.Components
             {
                 fade.Show();
             }
-            return OperationResult.SuccessResult();
+            return OperationResult.Successful();
         }
 
         private OperationResult HideWithFade(GameObject go)
@@ -202,7 +202,7 @@ namespace Turnroot.UI.Components
             // Be tolerant: if object is null or already inactive, silently succeed (no log spam)
             if (go == null || !go.activeInHierarchy)
             {
-                return OperationResult.SuccessResult();
+                return OperationResult.Successful();
             }
 
             var fade = UIFadeCache.Get(go);
@@ -214,7 +214,7 @@ namespace Turnroot.UI.Components
             {
                 go.SetActive(false);
             }
-            return OperationResult.SuccessResult();
+            return OperationResult.Successful();
         }
 
         private void SpawnAllUnitModels()
@@ -407,7 +407,7 @@ namespace Turnroot.UI.Components
             UpdateModelPosition(modelB, posA);
             PublishSwapEvent(modelA, modelB, posA, posB);
 
-            return OperationResult.SuccessResult();
+            return OperationResult.Successful();
         }
 
         public OperationResult MoveModel(Vector2Int from, Vector2Int to)
@@ -433,7 +433,7 @@ namespace Turnroot.UI.Components
             UpdateModelPosition(model, to);
             PublishMoveEvent(model, from, to);
 
-            return OperationResult.SuccessResult();
+            return OperationResult.Successful();
         }
 
         private void UpdateModelPosition(GameObject model, Vector2Int pos)

@@ -17,7 +17,7 @@ namespace Turnroot.Gameplay.Objects.Components
             }
 
             forgeOptions = ThisItem.ForgeOptions;
-            return OperationResult.SuccessResult();
+            return OperationResult.Successful();
         }
 
         /// <summary>
@@ -92,7 +92,7 @@ namespace Turnroot.Gameplay.Objects.Components
             }
 
             // good to go!
-            return OperationResult.SuccessResult();
+            return OperationResult.Successful();
         }
 
         /// <summary>
@@ -142,7 +142,7 @@ namespace Turnroot.Gameplay.Objects.Components
 #if UNITY_EDITOR
             Debug.Log($"Forged {ThisItem.name} into {option.ForgeInto.name}.");
 #endif
-            return OperationResult.SuccessResult();
+            return OperationResult.Successful();
         }
     }
 }

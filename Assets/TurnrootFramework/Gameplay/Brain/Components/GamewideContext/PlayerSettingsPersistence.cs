@@ -65,7 +65,7 @@ namespace Turnroot.Gameplay.Brain
                 if (decode.Success && decode.Value != null)
                 {
                     ApplySettingsData(decode.Value);
-                    return OperationResult.SuccessResult();
+                    return OperationResult.Successful();
                 }
             }
             catch (System.Exception ex)
@@ -153,7 +153,7 @@ namespace Turnroot.Gameplay.Brain
 
                 var encode = GamewideContextBrainHelpers.EncodeInstanceToString(_brain, saveData);
                 _longTermMemory?.Remember("PlayerSettings", encode.Value);
-                return OperationResult.SuccessResult();
+                return OperationResult.Successful();
             }
             catch (System.Exception ex)
             {

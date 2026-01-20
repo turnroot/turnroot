@@ -113,7 +113,7 @@ namespace Turnroot.Skills.Nodes
 
             // Store as current node - execution will wait here until Proceed() is called
             currentNode = node;
-            return OperationResult.SuccessResult();
+            return OperationResult.Successful();
         }
 
         /// <summary>

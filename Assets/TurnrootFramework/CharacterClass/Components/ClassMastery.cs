@@ -80,9 +80,9 @@ namespace Turnroot.Characters.CharacterClass
         /// </summary>
         public OperationResult ValidateMasteryConfiguration()
         {
-            return !UsesMasterySystem ? OperationResult.SuccessResult()
+            return !UsesMasterySystem ? OperationResult.Successful()
                 : MasteryTargets.Count == 0 ? OperationResult.Failure("No MasteryTargets defined.")
-                : OperationResult.SuccessResult();
+                : OperationResult.Successful();
         }
     }
 

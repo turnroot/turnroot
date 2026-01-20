@@ -104,7 +104,7 @@ namespace Turnroot.UI.Components
                     (env.IsVolcanic, gamewideUiSettings.isVolcanicImage, "Volcanic"),
                 }
             );
-            return OperationResult.SuccessResult();
+            return OperationResult.Successful();
         }
 
         private static class RowHelpers

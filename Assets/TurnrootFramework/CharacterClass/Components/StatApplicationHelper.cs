@@ -205,7 +205,7 @@ namespace Turnroot.Characters.CharacterClass
                     }
                 }
             }
-            return OperationResult.SuccessResult();
+            return OperationResult.Successful();
         }
 
         /// <summary>
@@ -377,7 +377,7 @@ namespace Turnroot.Characters.CharacterClass
                 return OperationResult.Failure(msg);
             }
 
-            return OperationResult.SuccessResult();
+            return OperationResult.Successful();
         }
 
         #endregion

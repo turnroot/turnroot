@@ -22,12 +22,13 @@ namespace Turnroot.Gameplay.Brain
             try
             {
                 SceneManager.LoadScene(BrainSceneName, LoadSceneMode.Additive);
-                return OperationResult.SuccessResult();
+                return OperationResult.Successful();
             }
             catch (System.Exception e)
             {
                 TurnrootLogger.Log(
-                    $"Failed to load brain scene '{BrainSceneName}': {e.Message}", TurnrootLogger.LogLevel.Error
+                    $"Failed to load brain scene '{BrainSceneName}': {e.Message}",
+                    TurnrootLogger.LogLevel.Error
                 );
                 Debug.Break();
                 return OperationResult.Failure(

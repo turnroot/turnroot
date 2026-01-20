@@ -76,7 +76,7 @@ namespace Turnroot.Gameplay.Combat
                     }
                 }
 
-                return OperationResult.SuccessResult();
+                return OperationResult.Successful();
             }
             catch (System.Exception ex)
             {
@@ -102,7 +102,7 @@ namespace Turnroot.Gameplay.Combat
                 EnemyTeamRoster?.InitializeRuntimePlacementsFromTemplate();
                 ThirdPartyTeamRoster?.InitializeRuntimePlacementsFromTemplate();
 
-                return OperationResult.SuccessResult();
+                return OperationResult.Successful();
             }
             catch (System.Exception ex)
             {
@@ -148,7 +148,7 @@ namespace Turnroot.Gameplay.Combat
                     }
                 }
 
-                return OperationResult.SuccessResult();
+                return OperationResult.Successful();
             }
             catch (System.Exception ex)
             {
@@ -184,7 +184,7 @@ namespace Turnroot.Gameplay.Combat
                 ThirdPartyTeamRoster.AddInstances(thirdPartyInstance.Instances);
             }
 
-            return OperationResult.SuccessResult();
+            return OperationResult.Successful();
         }
 
         public OperationResult ClearBattleRosters()
@@ -194,7 +194,7 @@ namespace Turnroot.Gameplay.Combat
                 PlayerTeamRoster?.Clear();
                 EnemyTeamRoster?.Clear();
                 ThirdPartyTeamRoster?.Clear();
-                return OperationResult.SuccessResult();
+                return OperationResult.Successful();
             }
             catch (System.Exception ex)
             {

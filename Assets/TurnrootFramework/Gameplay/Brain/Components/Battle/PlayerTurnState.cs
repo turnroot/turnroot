@@ -194,7 +194,7 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
             if (allowed)
             {
                 CurrentState = newState;
-                return OperationResult.SuccessResult();
+                return OperationResult.Successful();
             }
 
             return OperationResult.Failure(

@@ -38,7 +38,7 @@ namespace Turnroot.Utilities
             catch { }
         }
 
-        public static OperationResult SuccessResult() =>
+        public static OperationResult Successful() =>
             new() { Success = true, Validation = ValidationResult.Success() };
 
         public static OperationResult Failure(
@@ -109,7 +109,7 @@ namespace Turnroot.Utilities
             [CallerLineNumber] int callerLineNumber = 0
         ) =>
             validation.IsValid
-                ? SuccessResult()
+                ? Successful()
                 : Failure(validation.ErrorMessage, caller, callerFilePath, callerLineNumber);
 
         public static implicit operator OperationResult(ValidationResult validation) =>
@@ -216,7 +216,7 @@ namespace Turnroot.Utilities
         public static implicit operator OperationResult<T>(T value) => SuccessResult(value);
 
         public OperationResult ToNonGeneric() =>
-            Success ? OperationResult.SuccessResult() : OperationResult.Failure(Error, Exception);
+            Success ? OperationResult.Successful() : OperationResult.Failure(Error, Exception);
 
         public T GetValueOrDefault(T defaultValue = default) => Success ? Value : defaultValue;
 

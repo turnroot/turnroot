@@ -81,7 +81,7 @@ namespace Turnroot.Gameplay.Brain
 
             PreparationObject = prep;
             PreparationObject.Initialize(_brain);
-            return OperationResult.SuccessResult();
+            return OperationResult.Successful();
         }
 
         private void HandleUnitMoved(CharacterInstance unit, Vector2Int targetPosition) =>
@@ -104,7 +104,7 @@ namespace Turnroot.Gameplay.Brain
                 $"BattleBrain: {unit.CharacterTemplate.DisplayName} will take another turn"
             );
 
-            return OperationResult.SuccessResult();
+            return OperationResult.Successful();
         }
 
         private OperationResult HandleUnitFinishedMovingAfterActionLogic(CharacterInstance unit)
@@ -121,7 +121,7 @@ namespace Turnroot.Gameplay.Brain
             TurnrootLogger.Log(
                 $"BattleBrain: {unit.CharacterTemplate.DisplayName} can finish moving after action"
             );
-            return OperationResult.SuccessResult();
+            return OperationResult.Successful();
         }
 
         private OperationResult HandleCriticalHitLogic(CharacterInstance unit)
@@ -138,7 +138,7 @@ namespace Turnroot.Gameplay.Brain
             TurnrootLogger.Log(
                 $"BattleBrain: {unit.CharacterTemplate.DisplayName} will perform a critical hit"
             );
-            return OperationResult.SuccessResult();
+            return OperationResult.Successful();
         }
 
         private OperationResult HandleWeaponUsesChangedLogic(CharacterInstance unit, int usesChange)
@@ -187,7 +187,7 @@ namespace Turnroot.Gameplay.Brain
                     $"BattleBrain: Reduced {Mathf.Abs(usesChange)} uses from {unit.CharacterTemplate.DisplayName}'s weapon"
                 );
             }
-            return OperationResult.SuccessResult();
+            return OperationResult.Successful();
         }
 
         private OperationResult HandleItemStolenLogic(
@@ -276,7 +276,7 @@ namespace Turnroot.Gameplay.Brain
             // Publish transfer event
             _brain.inventoryBrain.TransferItem(bestItem, thiefInventory);
 
-            return OperationResult.SuccessResult();
+            return OperationResult.Successful();
         }
 
         #endregion

@@ -124,7 +124,7 @@ namespace Turnroot.Gameplay.Brain
                     prebattle: false
                 );
             }
-            return OperationResult.SuccessResult();
+            return OperationResult.Successful();
         }
 
         private void HandleBattleObjectSet(BattleGameObject battleObject) => HandleBattleStarted();

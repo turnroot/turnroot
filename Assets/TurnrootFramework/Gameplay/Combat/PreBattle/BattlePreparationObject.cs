@@ -88,7 +88,7 @@ namespace Turnroot.Gameplay.Combat.PreBattle
 
             return EnvironmentalConditions == null
                 ? OperationResult.Failure("EnvironmentalConditions not found")
-                : OperationResult.SuccessResult();
+                : OperationResult.Successful();
         }
 
         /* --------------------------- Starting Positions --------------------------- */
@@ -173,7 +173,7 @@ namespace Turnroot.Gameplay.Combat.PreBattle
 
             CurrentPlacementState = PlacementState.DefaultPlaced;
             Brain?.PublishPlacementsInitialized();
-            return OperationResult.SuccessResult();
+            return OperationResult.Successful();
         }
 
         [HideInInspector]
@@ -203,7 +203,7 @@ namespace Turnroot.Gameplay.Combat.PreBattle
             else
             {
                 placements[pos] = unit;
-                return OperationResult.SuccessResult();
+                return OperationResult.Successful();
             }
         }
 
@@ -247,7 +247,7 @@ namespace Turnroot.Gameplay.Combat.PreBattle
                 StartingPositionsComponent.SetSelectedUnit(name, className, portrait);
             }
 
-            return OperationResult.SuccessResult();
+            return OperationResult.Successful();
         }
 
         public OperationResult ClearSelection()
@@ -257,7 +257,7 @@ namespace Turnroot.Gameplay.Combat.PreBattle
             selectedUnit = null;
             potentialSwapUnit = null;
             StartingPositionsComponent.Clears();
-            return OperationResult.SuccessResult();
+            return OperationResult.Successful();
         }
 
         public OperationResult ExecutePositionAction()
@@ -305,7 +305,7 @@ namespace Turnroot.Gameplay.Combat.PreBattle
             ClearSelection();
             CurrentPlacementState = PlacementState.PlayerPlaced; // Mark as modified
 
-            return OperationResult.SuccessResult();
+            return OperationResult.Successful();
         }
 
         /// <summary>
@@ -342,7 +342,7 @@ namespace Turnroot.Gameplay.Combat.PreBattle
                         + pos
                         + ", cleared swap preview"
                 );
-                return OperationResult.SuccessResult();
+                return OperationResult.Successful();
             }
 
             potentialSwapPosition = pos;
@@ -381,7 +381,7 @@ namespace Turnroot.Gameplay.Combat.PreBattle
                 );
             }
 
-            return OperationResult.SuccessResult();
+            return OperationResult.Successful();
         }
 
         private void HandleUnitSelectionChanged(CharacterInstance unit, bool selected)

@@ -37,7 +37,7 @@ namespace Turnroot.Gameplay.Brain
         {
             uiSettings = u;
             return uiSettings != null
-                ? OperationResult.SuccessResult()
+                ? OperationResult.Successful()
                 : OperationResult.Failure("Invalid gamewideUiSettings");
         }
 

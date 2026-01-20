@@ -181,7 +181,7 @@ namespace Turnroot.Gameplay.Brain
             };
 
             combatState.Children = childStates;
-            return OperationResult.SuccessResult();
+            return OperationResult.Successful();
         }
 
         public void SetHighLevelStates()
@@ -335,7 +335,7 @@ namespace Turnroot.Gameplay.Brain
                     $"StateBrain: Child state '{childStateName}' not found in parent state '{parentStateName}'."
                 );
             }
-            return OperationResult.SuccessResult();
+            return OperationResult.Successful();
         }
 
         public bool GetChildStates()

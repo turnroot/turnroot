@@ -55,7 +55,7 @@ namespace Turnroot.Gameplay.Brain
             instance.SetEquipped(true, character);
             _brain?.PublishSkillEquipped(character, skill);
             TurnrootLogger.Log($"Equipped {skill.SkillName} on {character.Id}");
-            return OperationResult.SuccessResult();
+            return OperationResult.Successful();
         }
 
         public OperationResult UnequipSkill(CharacterInstance character, Skill skill)
@@ -74,7 +74,7 @@ namespace Turnroot.Gameplay.Brain
             instance.SetEquipped(false, character);
             _brain?.PublishSkillUnequipped(character, skill);
             TurnrootLogger.Log($"Unequipped {skill.SkillName} on {character.Id}");
-            return OperationResult.SuccessResult();
+            return OperationResult.Successful();
         }
 
         #endregion

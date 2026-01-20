@@ -93,7 +93,7 @@ namespace Turnroot.Gameplay.Brain
 
             PlayerGold -= amount;
             SaveGoldToLTM();
-            return OperationResult.SuccessResult();
+            return OperationResult.Successful();
         }
 
         public void SaveGoldToLTM()
@@ -207,7 +207,7 @@ namespace Turnroot.Gameplay.Brain
 #if UNITY_EDITOR
             Debug.Log($"Deposited {item.Template.name} into storehouse.");
 #endif
-            return OperationResult.SuccessResult();
+            return OperationResult.Successful();
         }
 
         /// <summary>
@@ -251,7 +251,7 @@ namespace Turnroot.Gameplay.Brain
 #if UNITY_EDITOR
             Debug.Log($"Withdrew {item.Template.name} from storehouse.");
 #endif
-            return OperationResult.SuccessResult();
+            return OperationResult.Successful();
         }
 
         /// <summary>
@@ -283,7 +283,7 @@ namespace Turnroot.Gameplay.Brain
 #if UNITY_EDITOR
             Debug.Log($"Consumed {amount}x {material.name} from storehouse.");
 #endif
-            return OperationResult.SuccessResult();
+            return OperationResult.Successful();
         }
 
         /// <summary>
