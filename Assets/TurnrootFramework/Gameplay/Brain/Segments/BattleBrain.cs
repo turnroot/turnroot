@@ -69,8 +69,6 @@ namespace Turnroot.Gameplay.Brain
             _turnRotisserie = GetComponent<TurnRotisserie>();
             playerTurnFlow = GetComponent<PlayerTurnFlow>();
             playerTurnFlow.Intialize();
-
-            TurnrootLogger.Log("BattleBrain: TurnRotisserie and PlayerTurnFlow ready");
         }
 
         private void Start()

@@ -78,9 +78,6 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 case TurnOrder.ThirdPartyEnd:
                     return TurnOrder.PlayerStart;
                 default:
-#if UNITY_EDITOR
-                    Debug.LogError("Invalid TurnOrder state.");
-#endif
                     return TurnOrder.PlayerStart;
             }
         }
@@ -111,11 +108,10 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
             if (instances == null || roster == null)
             {
-#if UNITY_EDITOR
-                Debug.LogError(
-                    "TurnRotisserie: Something is wrong with the battle rosters! They are null!"
+                TurnrootLogger.Log(
+                    "TurnRotisserie: Something is wrong with the battle rosters! They are null!",
+                    TurnrootLogger.LogLevel.Error
                 );
-#endif
                 return new List<CharacterInstance>();
             }
 
@@ -181,9 +177,10 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
             if (_currentRosterIndex < 0 || _currentRosterIndex >= units.Count)
             {
-#if UNITY_EDITOR
-                Debug.LogError($"TurnRotisserie: Invalid roster index {_currentRosterIndex}");
-#endif
+                TurnrootLogger.Log(
+                    $"TurnRotisserie: Invalid roster index {_currentRosterIndex}",
+                    TurnrootLogger.LogLevel.Error
+                );
                 return;
             }
 
@@ -191,11 +188,10 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
             if (activeUnit == null)
             {
-#if UNITY_EDITOR
-                Debug.LogError(
-                    $"TurnRotisserie: Active unit at index {_currentRosterIndex} is null"
+                TurnrootLogger.Log(
+                    $"TurnRotisserie: Active unit at index {_currentRosterIndex} is null",
+                    TurnrootLogger.LogLevel.Warning
                 );
-#endif
                 return;
             }
 
@@ -269,10 +265,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
                 PopulateContext(context);
 
-                context.Participants.AdjacentUnits =
-                    new Locations.Adjacency(
-                        activeUnit
-                    );
+                context.Participants.AdjacentUnits = new Locations.Adjacency(activeUnit);
 
                 // Check if player-controlled
                 if (_currentTurnOrder is TurnOrder.PlayerStart or TurnOrder.PlayerEnd)

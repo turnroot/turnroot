@@ -46,11 +46,9 @@ namespace Turnroot.Gameplay.Combat.PreBattle
             EnvironmentalConditions = GetComponentInChildren<EnvironmentalConditions>(true);
             MapGrid = GetComponentInChildren<MapGrid>(true);
             PlayerTeamSpawnPoints = MapGrid.PlayerTeamSpawnPoints;
-#if UNITY_EDITOR
-            Debug.Log(
+            TurnrootLogger.Log(
                 $"BattlePreparationObject.Initialize: MapGrid={MapGrid?.name}, PlayerTeamSpawnPoints.Count={PlayerTeamSpawnPoints?.Count ?? 0}"
             );
-#endif
 
             // Copy MaxPlayerTeamUnits and RequiredPlayerUnits from a BattleGameObject when available.
             if (brain?.battleBrain?.BattleObject != null)
@@ -223,7 +221,9 @@ namespace Turnroot.Gameplay.Combat.PreBattle
 
             selectedPosition = pos;
             selectedUnit = placements[pos];
-            Debug.Log($"Selected unit: {selectedUnit.CharacterTemplate.DisplayName} at {pos}");
+            TurnrootLogger.Log(
+                $"Selected unit: {selectedUnit.CharacterTemplate.DisplayName} at {pos}"
+            );
 
             // Update visuals: position the selected projector and show unit data immediately
             StartingPositionsComponent?.SetSelected(pos);
