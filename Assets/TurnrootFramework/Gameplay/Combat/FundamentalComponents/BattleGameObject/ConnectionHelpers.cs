@@ -21,7 +21,7 @@ namespace Turnroot.Gameplay.Combat
 
             if (_isConnectedToBrain)
             {
-                return OperationResult.Failure("Already connected to Brain events");
+                return OperationResult.Successful();
             }
 
             InitializeContextWithBrain();
@@ -125,8 +125,10 @@ namespace Turnroot.Gameplay.Combat
             {
                 var list = new List<BattleCondition>(
                     _battleConditions ?? System.Array.Empty<BattleCondition>()
-                );
-                list.Add(condition);
+                )
+                {
+                    condition,
+                };
                 _battleConditions = list.ToArray();
 
                 condition.battleContext = Context;
@@ -172,11 +174,7 @@ namespace Turnroot.Gameplay.Combat
 
         private void SubscribeToMapChanges()
         {
-            try
-            {
-                MapGrid.OnStateVersionChanged += HandleMapStateChanged;
-            }
-            catch { }
+            MapGrid.OnStateVersionChanged += HandleMapStateChanged;
         }
 
         #endregion

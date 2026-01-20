@@ -1,3 +1,4 @@
+using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain
@@ -38,9 +39,7 @@ namespace Turnroot.Gameplay.Brain
             _isActive = true;
             _lastInputTime = Time.time;
 
-#if UNITY_EDITOR
-            Debug.Log("PositioningInputController: Activated");
-#endif
+            TurnrootLogger.Log("PositioningInputController: Activated");
         }
 
         private void HandlePositioningModeExited()
@@ -49,10 +48,7 @@ namespace Turnroot.Gameplay.Brain
             _inputActions?.Disable();
             _inputActions?.Dispose();
             _inputActions = null;
-
-#if UNITY_EDITOR
-            Debug.Log("PositioningInputController: Deactivated");
-#endif
+            TurnrootLogger.Log("PositioningInputController: Deactivated");
         }
 
         private void Update()

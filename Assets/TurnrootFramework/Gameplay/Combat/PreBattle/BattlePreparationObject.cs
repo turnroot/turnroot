@@ -74,10 +74,6 @@ namespace Turnroot.Gameplay.Combat.PreBattle
             {
                 brain.OnUnitSelectionChanged -= HandleUnitSelectionChanged;
                 brain.OnUnitSelectionChanged += HandleUnitSelectionChanged;
-
-                // When UI enters positioning mode, ensure roster is filtered and placements are set
-                // (Do not initialize placements here; initialize on explicit positioning mode entry so
-                //  pre-battle UI previews do not trigger placement/cursor initialization prematurely.)
                 brain.OnPositioningModeEntered -= HandlePositioningModeEntered;
                 brain.OnPositioningModeEntered += HandlePositioningModeEntered;
             }
@@ -86,9 +82,15 @@ namespace Turnroot.Gameplay.Combat.PreBattle
             var cameraBrain = brain?.cameraBrain;
             cameraBrain.SetMapGrid(MapGrid);
 
-            return EnvironmentalConditions == null
-                ? OperationResult.Failure("EnvironmentalConditions not found")
-                : OperationResult.Successful();
+            if (EnvironmentalConditions == null)
+            {
+                return OperationResult.Failure("EnvironmentalConditions not found");
+            }
+
+            // Notify the Brain that this BattlePreparationObject has been initialized.
+            Brain?.PublishBattlePrepObjectInitialized(this);
+
+            return OperationResult.Successful();
         }
 
         /* --------------------------- Starting Positions --------------------------- */

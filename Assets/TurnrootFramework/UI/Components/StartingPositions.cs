@@ -5,7 +5,6 @@ using Turnroot.Gameplay.Brain;
 using Turnroot.Gameplay.Combat.PreBattle;
 using Turnroot.Gameplay.Maps;
 using Turnroot.Utilities;
-using Turnroot.Utilities.AbstractScripts;
 using UnityEngine;
 
 namespace Turnroot.UI.Components
@@ -91,6 +90,13 @@ namespace Turnroot.UI.Components
         {
             if (_prepObject.Brain == null)
             {
+                // If the preparation object hasn't yet been initialized with a Brain,
+                // subscribe to the Brain's prep-initialized event so we can react when it's ready.
+                var anyBrain = FindFirstObjectByType<Brain>();
+                if (anyBrain != null)
+                {
+                    anyBrain.OnBattlePrepObjectInitialized += HandleBrainPrepInitialized;
+                }
                 return;
             }
 
@@ -100,6 +106,13 @@ namespace Turnroot.UI.Components
 
         private void UnsubscribeFromEvents()
         {
+            // Remove any Brain-level subscription waiting for prep initialization.
+            var anyBrain = FindFirstObjectByType<Brain>();
+            if (anyBrain != null)
+            {
+                anyBrain.OnBattlePrepObjectInitialized -= HandleBrainPrepInitialized;
+            }
+
             if (_prepObject?.Brain == null)
             {
                 return;
@@ -128,25 +141,25 @@ namespace Turnroot.UI.Components
         {
             var worldPos = _mapGrid.GetTerrainAdjustedWorldPosition(coords);
             Selected.transform.position = worldPos + Vector3.up * (_mapGrid.GridScale / 2f);
-            ShowWithFade(Selected);
-            HideWithFade(Swap);
-            HideWithFade(SwapGraphic);
+            UIFadeHelpers.ShowWithFade(Selected);
+            UIFadeHelpers.HideWithFade(Swap);
+            UIFadeHelpers.HideWithFade(SwapGraphic);
         }
 
         public void SetSwap(Vector2Int coords)
         {
             var worldPos = _mapGrid.GetTerrainAdjustedWorldPosition(coords);
             Swap.transform.position = worldPos + Vector3.up * (_mapGrid.GridScale / 2f);
-            ShowWithFade(Swap);
+            UIFadeHelpers.ShowWithFade(Swap);
         }
 
         public void Clears()
         {
-            HideWithFade(Selected);
-            HideWithFade(Swap);
-            HideWithFade(SwapGraphic);
-            HideWithFade(SelectedUnit.gameObject);
-            HideWithFade(SwapUnit.gameObject);
+            UIFadeHelpers.HideWithFade(Selected);
+            UIFadeHelpers.HideWithFade(Swap);
+            UIFadeHelpers.HideWithFade(SwapGraphic);
+            UIFadeHelpers.HideWithFade(SelectedUnit.gameObject);
+            UIFadeHelpers.HideWithFade(SwapUnit.gameObject);
             SelectedUnit.ClearData();
             SwapUnit.ClearData();
         }
@@ -154,14 +167,14 @@ namespace Turnroot.UI.Components
         public void SetSelectedUnit(string name, string className, Sprite portrait)
         {
             SelectedUnit.SetData(name, className, portrait);
-            ShowWithFade(SelectedUnit.gameObject);
+            UIFadeHelpers.ShowWithFade(SelectedUnit.gameObject);
         }
 
         public void SetSwapUnit(string name, string className, Sprite portrait)
         {
             SwapUnit.SetData(name, className, portrait);
-            ShowWithFade(SwapUnit.gameObject);
-            ShowWithFade(SwapGraphic);
+            UIFadeHelpers.ShowWithFade(SwapUnit.gameObject);
+            UIFadeHelpers.ShowWithFade(SwapGraphic);
         }
 
         public void ClearSelectedUnit() => SelectedUnit.ClearData();
@@ -169,52 +182,16 @@ namespace Turnroot.UI.Components
         public void ClearSwapUnit()
         {
             SwapUnit.ClearData();
-            HideWithFade(SwapUnit.gameObject);
-            HideWithFade(SwapGraphic);
+            UIFadeHelpers.HideWithFade(SwapUnit.gameObject);
+            UIFadeHelpers.HideWithFade(SwapGraphic);
         }
 
         public void ClearSwapPreview()
         {
-            HideWithFade(Swap);
+            UIFadeHelpers.HideWithFade(Swap);
             SwapUnit.ClearData();
-            HideWithFade(SwapUnit.gameObject);
-            HideWithFade(SwapGraphic);
-        }
-
-        private OperationResult ShowWithFade(GameObject go)
-        {
-            if (go == null)
-            {
-                return OperationResult.Failure("ShowWithFade: GameObject is null.");
-            }
-
-            go.SetActive(true);
-            var fade = UIFadeCache.Get(go);
-            if (fade != null)
-            {
-                fade.Show();
-            }
-            return OperationResult.Successful();
-        }
-
-        private OperationResult HideWithFade(GameObject go)
-        {
-            // Be tolerant: if object is null or already inactive, silently succeed (no log spam)
-            if (go == null || !go.activeInHierarchy)
-            {
-                return OperationResult.Successful();
-            }
-
-            var fade = UIFadeCache.Get(go);
-            if (fade != null)
-            {
-                fade.Hide();
-            }
-            else
-            {
-                go.SetActive(false);
-            }
-            return OperationResult.Successful();
+            UIFadeHelpers.HideWithFade(SwapUnit.gameObject);
+            UIFadeHelpers.HideWithFade(SwapGraphic);
         }
 
         private void SpawnAllUnitModels()
@@ -283,11 +260,8 @@ namespace Turnroot.UI.Components
 
         private void DestroyModel(GameObject model)
         {
-            try
-            {
-                model.SetActive(false);
-            }
-            catch { }
+            model.SetActive(false);
+
             Destroy(model);
         }
 
@@ -302,11 +276,6 @@ namespace Turnroot.UI.Components
 
         private void HandlePlacementsInitialized()
         {
-            if (_prepObject?.Brain == null)
-            {
-                return;
-            }
-
             _prepObject.Brain.OnPlacementsInitialized -= HandlePlacementsInitialized;
 
             if (_prepObject.placements != null && _prepObject.placements.Count > 0)
@@ -317,13 +286,28 @@ namespace Turnroot.UI.Components
 
         private void HandleUnitSelectionChanged(CharacterInstance unit, bool selected)
         {
-            if (_prepObject?.Brain == null)
+            _prepObject.InitializePlacements();
+            SpawnAllUnitModels();
+        }
+
+        private void HandleBrainPrepInitialized(BattlePreparationObject prep)
+        {
+            if (prep != _prepObject)
             {
                 return;
             }
 
-            _prepObject.InitializePlacements();
-            SpawnAllUnitModels();
+            var brain = prep.Brain;
+            if (brain != null)
+            {
+                brain.OnBattlePrepObjectInitialized -= HandleBrainPrepInitialized;
+            }
+
+            SubscribeToEvents();
+            if (_prepObject.placements != null && _prepObject.placements.Count > 0)
+            {
+                SpawnAllUnitModels();
+            }
         }
 
         public void ReplaceBy(StartingPositions newOwner)
@@ -376,28 +360,12 @@ namespace Turnroot.UI.Components
                 || !_unitModels.TryGetValue(posB, out var modelB)
             )
             {
-                TurnrootLogger.Log(
-                    "StartingPositions: One or both positions do not have unit models",
-                    TurnrootLogger.LogLevel.Warning
-                );
-                return new OperationResult
-                {
-                    Success = false,
-                    ErrorMessage = "One or both positions do not have unit models",
-                };
+                return OperationResult.Failure("One or both positions do not have unit models");
             }
 
             if (modelA == null || modelB == null)
             {
-                TurnrootLogger.Log(
-                    "StartingPositions: One or both unit models are null",
-                    TurnrootLogger.LogLevel.Warning
-                );
-                return new OperationResult
-                {
-                    Success = false,
-                    ErrorMessage = "One or both unit models are null",
-                };
+                return OperationResult.Failure("One or both unit models are null");
             }
 
             _unitModels[posA] = modelB;
@@ -449,44 +417,29 @@ namespace Turnroot.UI.Components
             Vector2Int posB
         )
         {
-            try
-            {
-                var idA = modelA.GetComponent<UnitModelOwnership>()?.UnitId;
-                var idB = modelB.GetComponent<UnitModelOwnership>()?.UnitId;
+            var idA = modelA.GetComponent<UnitModelOwnership>()?.UnitId;
+            var idB = modelB.GetComponent<UnitModelOwnership>()?.UnitId;
 
-                _prepObject.Brain?.Publish(
-                    new Gameplay.Brain.Events.ModelSwappedEvent(
-                        idA,
-                        idB,
-                        posA,
-                        posB,
-                        modelA,
-                        modelB
-                    )
-                );
-            }
-            catch { }
+            _prepObject.Brain?.Publish(
+                new Gameplay.Brain.Events.ModelSwappedEvent(idA, idB, posA, posB, modelA, modelB)
+            );
         }
 
         private void PublishMoveEvent(GameObject model, Vector2Int from, Vector2Int to)
         {
-            try
+            var owner = model.GetComponent<UnitModelOwnership>();
+            var id = owner?.UnitId;
+            CharacterInstance inst = null;
+
+            if (!string.IsNullOrEmpty(id))
             {
-                var owner = model.GetComponent<UnitModelOwnership>();
-                var id = owner?.UnitId;
-                CharacterInstance inst = null;
-
-                if (!string.IsNullOrEmpty(id))
-                {
-                    var all = _prepObject.Brain?.gamewideContextBrain?.GetAllActiveInstances();
-                    inst = all?.FirstOrDefault(u => u != null && u.Id == id);
-                }
-
-                _prepObject.Brain?.Publish(
-                    new Gameplay.Brain.Events.ModelMovedEvent(inst, id, from, to, model)
-                );
+                var all = _prepObject.Brain?.gamewideContextBrain?.GetAllActiveInstances();
+                inst = all?.FirstOrDefault(u => u != null && u.Id == id);
             }
-            catch { }
+
+            _prepObject.Brain?.Publish(
+                new Gameplay.Brain.Events.ModelMovedEvent(inst, id, from, to, model)
+            );
         }
 
         private void OnDestroy()

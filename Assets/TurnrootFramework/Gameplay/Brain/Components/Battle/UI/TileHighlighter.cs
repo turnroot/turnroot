@@ -38,9 +38,6 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
         [SerializeField]
         private Vector2Int _dangerZoneAtlasPos = new(0, 1);
 
-        [SerializeField]
-        private Vector2Int _pathPreviewAtlasPos = new(1, 1);
-
         [Header("Advanced")]
         [SerializeField]
         private float _atlasPadding = 0.001f;
@@ -56,13 +53,11 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
         private Vector4 _attackRangeUVParams;
         private Vector4 _healRangeUVParams;
         private Vector4 _dangerZoneUVParams;
-        private Vector4 _pathPreviewUVParams;
         private Dictionary<Vector2Int, DecalProjector> _decalCache = new();
         private HashSet<Vector2Int> _activeMoveTiles = new();
         private HashSet<Vector2Int> _activeAttackTiles = new();
         private HashSet<Vector2Int> _activeHealTiles = new();
         private HashSet<Vector2Int> _activeDangerTiles = new();
-        private HashSet<Vector2Int> _activePathTiles = new();
 
         private MapGrid _mapGrid;
 
@@ -114,12 +109,6 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
             _dangerZoneUVParams = CalculateUVParams(
                 _dangerZoneAtlasPos.x,
                 _dangerZoneAtlasPos.y,
-                tileU,
-                tileV
-            );
-            _pathPreviewUVParams = CalculateUVParams(
-                _pathPreviewAtlasPos.x,
-                _pathPreviewAtlasPos.y,
                 tileU,
                 tileV
             );
@@ -222,10 +211,6 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
                     ClearDangerTiles();
                     BatchHighlightTiles(tiles, _dangerZoneUVParams, _activeDangerTiles);
                     break;
-                case HighlightType.PathPreview:
-                    ClearPathPreview();
-                    BatchHighlightTiles(tiles, _pathPreviewUVParams, _activePathTiles);
-                    break;
             }
         }
 
@@ -237,15 +222,12 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
 
         public void ClearDangerTiles() => BatchClearTiles(_activeDangerTiles);
 
-        public void ClearPathPreview() => BatchClearTiles(_activePathTiles);
-
         public void ClearAll()
         {
             ClearMoveTiles();
             ClearAttackTiles();
             ClearHealTiles();
             ClearDangerTiles();
-            ClearPathPreview();
         }
 
         #endregion

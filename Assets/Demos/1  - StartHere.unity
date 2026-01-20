@@ -47667,6 +47667,10 @@ MonoBehaviour:
     onSegmentReached:
       m_PersistentCalls:
         m_Calls: []
+  - stateId: Combat.Battle
+    onSegmentReached:
+      m_PersistentCalls:
+        m_Calls: []
   brain: {fileID: 0}
 --- !u!1 &1208532634
 GameObject:
@@ -69216,14 +69220,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: df99af80d320e2943892ac9aae6a7cca, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _decalProjectorPrefab: {fileID: 0}
-  _baseMaterial: {fileID: 0}
-  _atlasGridSize: {x: 4, y: 4}
-  _moveRangeAtlasPos: {x: 0, y: 0}
-  _attackRangeAtlasPos: {x: 1, y: 0}
-  _healRangeAtlasPos: {x: 2, y: 0}
-  _dangerZoneAtlasPos: {x: 0, y: 1}
-  _pathPreviewAtlasPos: {x: 1, y: 1}
+  _decalProjectorPrefab: {fileID: 3102780592263605046, guid: efe1793c904b1cc4aa2d376b873dbc0e, type: 3}
+  _baseMaterial: {fileID: 2100000, guid: 466a1142b8494994aa9327d32de5d193, type: 2}
+  _atlasGridSize: {x: 4, y: 3}
+  _moveRangeAtlasPos: {x: 3, y: 1}
+  _attackRangeAtlasPos: {x: 2, y: 0}
+  _healRangeAtlasPos: {x: 3, y: 0}
+  _dangerZoneAtlasPos: {x: 3, y: 3}
   _atlasPadding: 0.001
   _projectionDepth: 2
 --- !u!1 &1746073252

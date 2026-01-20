@@ -91,4 +91,43 @@ namespace Turnroot.Utilities
 
         public static void Clear() => Cache.Clear();
     }
+
+    public static class UIFadeHelpers
+    {
+        public static OperationResult ShowWithFade(GameObject go)
+        {
+            if (go == null)
+            {
+                return OperationResult.Failure("ShowWithFade: GameObject is null.");
+            }
+
+            go.SetActive(true);
+            var fade = UIFadeCache.Get(go);
+            if (fade != null)
+            {
+                fade.Show();
+            }
+            return OperationResult.Successful();
+        }
+
+        public static OperationResult HideWithFade(GameObject go)
+        {
+            // Be tolerant: if object is null or already inactive, silently succeed (no log spam)
+            if (go == null || !go.activeInHierarchy)
+            {
+                return OperationResult.Successful();
+            }
+
+            var fade = UIFadeCache.Get(go);
+            if (fade != null)
+            {
+                fade.Hide();
+            }
+            else
+            {
+                go.SetActive(false);
+            }
+            return OperationResult.Successful();
+        }
+    }
 }

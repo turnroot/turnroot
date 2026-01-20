@@ -9,6 +9,7 @@ using Turnroot.Gameplay.Brain.Components.Battle;
 using Turnroot.Gameplay.Brain.Segments;
 using Turnroot.Gameplay.Combat;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
+using Turnroot.Gameplay.Combat.PreBattle;
 using Turnroot.Gameplay.Maps;
 using Turnroot.Gameplay.Objects;
 using Turnroot.Skills;
@@ -599,18 +600,19 @@ namespace Turnroot.Gameplay.Brain
 
         public void PublishPreBattleCompleted() => OnPreBattleCompleted?.Invoke();
 
-        // Emitted when a BattleGameObject has been located and initialized for the upcoming battle.
-        // Subscribers can use this to access the BattleGameObject safely before the battle-start event.
         public event Action<BattleGameObject> OnBattleObjectSet;
 
         public void PublishBattleObjectSet(BattleGameObject battleObject) =>
             OnBattleObjectSet?.Invoke(battleObject);
 
-        // Emitted when the battle map (MapGrid) has been initialized and is ready for use.
-        // Provides the MapGrid instance to subscribers that need map-level data (UI, visualizers, etc.).
         public event Action<MapGrid> OnBattleMapReady;
 
         public void PublishBattleMapReady(MapGrid mapGrid) => OnBattleMapReady?.Invoke(mapGrid);
+
+        public event Action<BattlePreparationObject> OnBattlePrepObjectInitialized;
+
+        public void PublishBattlePrepObjectInitialized(BattlePreparationObject prep) =>
+            OnBattlePrepObjectInitialized?.Invoke(prep);
 
         #endregion
 
