@@ -164,7 +164,7 @@ namespace Turnroot.Conversations
 
         public Sprite SecondaryPortraitSprite => GetPortraitSpriteForSlot(_secondary);
 
-        public void OnAwake()
+        public void Awake()
         {
             if (SpeakerPortrait != null)
             {

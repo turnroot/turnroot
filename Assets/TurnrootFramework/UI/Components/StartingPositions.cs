@@ -56,6 +56,8 @@ namespace Turnroot.UI.Components
 
         private void SetupProjectors(List<Vector2Int> positions)
         {
+            _mapGrid?.EnsureGridPoints();
+
             for (int i = 0; i < positions.Count; i++)
             {
                 SetProjectorPosition(i, positions[i]);
@@ -201,11 +203,20 @@ namespace Turnroot.UI.Components
                 return;
             }
 
+            // Ensure grid points are ready so spawned models get correct world positions
+            _mapGrid?.EnsureGridPoints();
+
             CleanupOrphanedModels();
             DespawnExistingModels();
 
+            TurnrootLogger.Log($"SpawnAllUnitModels: placements={_prepObject.placements.Count}");
             foreach (var placement in _prepObject.placements)
             {
+                var unit = placement.Value;
+                TurnrootLogger.Log(
+                    $"SpawnAllUnitModels: Spawning at {placement.Key} unitId={(unit?.Id ?? "<null>")} name={(unit?.CharacterTemplate?.DisplayName ?? "<unknown>")}"
+                );
+
                 _prepObject.Brain.unitAppearanceBrain.SpawnUnitModelOnGrid(
                     placement.Key,
                     placement.Value,
@@ -274,20 +285,40 @@ namespace Turnroot.UI.Components
             }
         }
 
+        private Coroutine _spawnDebounceCoroutine;
+        private readonly float _spawnDebounceSeconds = 0.06f; // small debounce window to coalesce rapid placement events
+
         private void HandlePlacementsInitialized()
         {
+            // Debounce multiple rapid placements-initialized events so we only spawn
+            // models once placements have stabilized (avoids intermediate partial spawns).
+            if (_spawnDebounceCoroutine != null)
+            {
+                StopCoroutine(_spawnDebounceCoroutine);
+            }
+            _spawnDebounceCoroutine = StartCoroutine(DebouncedSpawn());
+        }
+
+        private System.Collections.IEnumerator DebouncedSpawn()
+        {
+            yield return new WaitForSeconds(_spawnDebounceSeconds);
+
+            // Unsubscribe now that we're performing the final spawn
             _prepObject.Brain.OnPlacementsInitialized -= HandlePlacementsInitialized;
 
             if (_prepObject.placements != null && _prepObject.placements.Count > 0)
             {
                 SpawnAllUnitModels();
             }
+            _spawnDebounceCoroutine = null;
         }
 
         private void HandleUnitSelectionChanged(CharacterInstance unit, bool selected)
         {
+            // Recompute placements only. SpawnAllUnitModels will be called from
+            // HandlePlacementsInitialized once placements are stable to avoid
+            // intermediate partial spawns.
             _prepObject.InitializePlacements();
-            SpawnAllUnitModels();
         }
 
         private void HandleBrainPrepInitialized(BattlePreparationObject prep)
@@ -417,8 +448,8 @@ namespace Turnroot.UI.Components
             Vector2Int posB
         )
         {
-            var idA = modelA.GetComponent<UnitModelOwnership>()?.UnitId;
-            var idB = modelB.GetComponent<UnitModelOwnership>()?.UnitId;
+            var idA = modelA.GetComponent<UnitModelOwnership>().UnitId;
+            var idB = modelB.GetComponent<UnitModelOwnership>().UnitId;
 
             _prepObject.Brain?.Publish(
                 new Gameplay.Brain.Events.ModelSwappedEvent(idA, idB, posA, posB, modelA, modelB)

@@ -97,84 +97,113 @@ namespace Turnroot.Gameplay.Combat.PreBattle
         [HideInInspector]
         public Dictionary<Vector2Int, CharacterInstance> placements;
 
+        private bool _isInitializingPlacements = false;
+        private bool _needsReinitialize = false;
+
         public OperationResult InitializePlacements()
         {
-            // Use gamewide selection as the single source of truth for which units are selected.
-            var gw = Brain?.gamewideContextBrain;
-            var selectedUnits = gw?.GetSelectedForBattlePlayerTeamUnits();
-
-            // If no runtime selections are present, attempt to compute default selections from roster/templates.
-            if (selectedUnits == null || selectedUnits.Count == 0)
+            // If we're already initializing, mark that we need another pass and return quickly.
+            // This avoids re-entrant calls from PreBattle selection helper which publishes
+            // UnitSelectionChanged for each unit and can cause multiple partial runs.
+            if (_isInitializingPlacements)
             {
-                var persistent =
-                    gw?.GamewidePersistentPlayerRoster
-                    ?? gw?.CreateOrRecallGamewidePersistentPlayerRoster();
-                var runtimeInstance =
-                    persistent != null ? gw.GetOrCreatePlayerTeamRoster(persistent) : null;
-                var selectedTemplates = PreBattleSelectionHelper.EnsureDefaultPreBattleSelections(
-                    Brain,
-                    persistent,
-                    runtimeInstance,
-                    MaxPlayerTeamUnits,
-                    RequiredPlayerUnits
-                );
+                _needsReinitialize = true;
+                return OperationResult.Successful();
+            }
 
-                if (selectedTemplates != null && selectedTemplates.Count > 0)
+            _isInitializingPlacements = true;
+            try
+            {
+                // Use gamewide selection as the single source of truth for which units are selected.
+                var gw = Brain?.gamewideContextBrain;
+                var selectedUnits = gw?.GetSelectedForBattlePlayerTeamUnits();
+
+                // If no runtime selections are present, attempt to compute default selections from roster/templates.
+                if (selectedUnits == null || selectedUnits.Count == 0)
                 {
-                    // Build selected units from templates by finding runtime instances.
-                    var tempList = new List<CharacterInstance>();
-                    var placementsArr =
-                        runtimeInstance != null
-                            ? runtimeInstance.GetPlacements()
-                            : persistent?.characters ?? new Characters.Roster.UnitPlacement[0];
-                    foreach (var p in placementsArr)
-                    {
-                        if (p == null || p.CharacterData == null)
-                        {
-                            continue;
-                        }
+                    var persistent =
+                        gw?.GamewidePersistentPlayerRoster
+                        ?? gw?.CreateOrRecallGamewidePersistentPlayerRoster();
+                    var runtimeInstance =
+                        persistent != null ? gw.GetOrCreatePlayerTeamRoster(persistent) : null;
+                    var selectedTemplates =
+                        PreBattleSelectionHelper.EnsureDefaultPreBattleSelections(
+                            Brain,
+                            persistent,
+                            runtimeInstance,
+                            MaxPlayerTeamUnits,
+                            RequiredPlayerUnits
+                        );
 
-                        if (selectedTemplates.Contains(p.CharacterData))
+                    if (selectedTemplates != null && selectedTemplates.Count > 0)
+                    {
+                        // Build selected units from templates by finding runtime instances.
+                        var tempList = new List<CharacterInstance>();
+                        var placementsArr =
+                            runtimeInstance != null
+                                ? runtimeInstance.GetPlacements()
+                                : persistent?.characters ?? new Characters.Roster.UnitPlacement[0];
+                        foreach (var p in placementsArr)
                         {
-                            var inst =
-                                runtimeInstance != null
-                                    ? runtimeInstance.GetInstanceFor(p.CharacterData)
-                                    : null;
-                            inst ??= gw?.FindInstanceByTemplate(p.CharacterData);
-                            if (inst != null)
+                            if (p == null || p.CharacterData == null)
                             {
-                                tempList.Add(inst);
+                                continue;
+                            }
+
+                            if (selectedTemplates.Contains(p.CharacterData))
+                            {
+                                var inst =
+                                    runtimeInstance != null
+                                        ? runtimeInstance.GetInstanceFor(p.CharacterData)
+                                        : null;
+                                inst ??= gw?.FindInstanceByTemplate(p.CharacterData);
+                                if (inst != null)
+                                {
+                                    tempList.Add(inst);
+                                }
                             }
                         }
+
+                        selectedUnits = tempList;
+                    }
+                }
+
+                if (selectedUnits == null || selectedUnits.Count == 0)
+                {
+                    return OperationResult.Failure("No units available for positioning");
+                }
+
+                placements = new Dictionary<Vector2Int, CharacterInstance>();
+
+                // Place units at spawn points based on their roster order
+                for (int i = 0; i < selectedUnits.Count && i < PlayerTeamSpawnPoints.Count; i++)
+                {
+                    if (i >= MaxPlayerTeamUnits)
+                    {
+                        break;
                     }
 
-                    selectedUnits = tempList;
-                }
-            }
+                    var spawnPos = PlayerTeamSpawnPoints[i];
+                    var unit = selectedUnits[i];
 
-            if (selectedUnits == null || selectedUnits.Count == 0)
-            {
-                return OperationResult.Failure("No units available for positioning");
-            }
-
-            placements = new Dictionary<Vector2Int, CharacterInstance>();
-
-            // Place units at spawn points based on their roster order
-            for (int i = 0; i < selectedUnits.Count && i < PlayerTeamSpawnPoints.Count; i++)
-            {
-                if (i >= MaxPlayerTeamUnits)
-                {
-                    break;
+                    placements[spawnPos] = unit;
                 }
 
-                var spawnPos = PlayerTeamSpawnPoints[i];
-                var unit = selectedUnits[i];
-
-                placements[spawnPos] = unit;
+                CurrentPlacementState = PlacementState.DefaultPlaced;
+                Brain?.PublishPlacementsInitialized();
+            }
+            finally
+            {
+                _isInitializingPlacements = false;
             }
 
-            CurrentPlacementState = PlacementState.DefaultPlaced;
-            Brain?.PublishPlacementsInitialized();
+            // If another InitializePlacements was requested during our run, run it once more now
+            if (_needsReinitialize)
+            {
+                _needsReinitialize = false;
+                return InitializePlacements();
+            }
+
             return OperationResult.Successful();
         }
 
