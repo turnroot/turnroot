@@ -15,12 +15,21 @@ namespace Turnroot.Gameplay.Maps
         {
             serializedObject.Update();
 
-            // Draw everything except the two raycast arrays so we can place our filter UI above them
-            DrawPropertiesExcluding(
-                serializedObject,
-                "_single3dHeightMeshRaycastPoints",
-                "_single3dHeightMeshRaycastIndices"
-            );
+            // Draw all serialized properties except the two raycast arrays.
+            // Use a SerializedProperty iterator to ensure auto-property backing fields
+            // (e.g. properties with [field: SerializeField]) are correctly displayed.
+            var prop = serializedObject.GetIterator();
+            bool enterChildren = true;
+            while (prop.NextVisible(enterChildren))
+            {
+                enterChildren = false;
+                if (
+                    prop.name == "_single3dHeightMeshRaycastPoints"
+                    || prop.name == "_single3dHeightMeshRaycastIndices"
+                )
+                    continue;
+                EditorGUILayout.PropertyField(prop, true);
+            }
 
             EditorGUILayout.Space();
             EditorGUILayout.LabelField("Filter Point", EditorStyles.boldLabel);
@@ -210,6 +219,16 @@ namespace Turnroot.Gameplay.Maps
                 {
                     Undo.RecordObject(mg, "Connect to 3D Map Height");
                     mg.ConnectTo3DMapObject();
+                    EditorUtility.SetDirty(mg);
+                }
+            }
+
+            if (GUILayout.Button("Remove Height Connection"))
+            {
+                if (mg != null)
+                {
+                    Undo.RecordObject(mg, "Remove Height Connection");
+                    mg.RemoveHeightConnection();
                     EditorUtility.SetDirty(mg);
                 }
             }

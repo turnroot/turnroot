@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.Maps
@@ -18,6 +19,9 @@ namespace Turnroot.Gameplay.Maps
             // If the provided 3D map object is null, simply return original positions
             if (mapObject == null)
             {
+                TurnrootLogger.Log(
+                    "MapGridHeightConnector: mapObject is null, returning original positions."
+                );
                 // Return original positions in consistent order
                 var orderedGridPoints = gridPoints.OrderBy(kv => kv.Key.x).ThenBy(kv => kv.Key.y);
                 foreach (var kv in orderedGridPoints)
@@ -85,6 +89,9 @@ namespace Turnroot.Gameplay.Maps
 
                 if (!found)
                 {
+                    TurnrootLogger.Log(
+                        $"MapGridHeightConnector: No hit found on target object for grid point at {point.transform.position}, using fallback."
+                    );
                     // If no hit on the target object, fallback to first hit overall (if any)
                     if (hits.Length > 0 && hits[0].collider != null)
                     {

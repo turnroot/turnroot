@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Turnroot.Gameplay.Combat;
+using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.Maps
@@ -66,6 +67,11 @@ namespace Turnroot.Gameplay.Maps
 #if UNITY_EDITOR
             UnityEditor.EditorUtility.SetDirty(point);
             UnityEditor.EditorUtility.SetDirty(gridPoint);
+
+            // Keep editor color cache up-to-date for this new point
+            var tt = gridPoint.GetCachedTerrainType();
+            var _col = tt?.EditorColor ?? Color.yellow;
+            _gridPointColorCache[new Vector2Int(row, col)] = _col;
 #endif
         }
 
@@ -178,6 +184,7 @@ namespace Turnroot.Gameplay.Maps
 
         public void EnsureGridPoints()
         {
+            TurnrootLogger.Log("MapGrid: Ensuring grid points are created and positioned.");
             int expectedCount = GridWidth * GridHeight;
             int actualCount = transform
                 .Cast<Transform>()
@@ -358,40 +365,122 @@ namespace Turnroot.Gameplay.Maps
                 Gizmos.DrawSphere(corner, 1f);
             }
 
-            if (
-                _showRaycastGizmos
-                && _single3dHeightMeshRaycastPoints != null
-                && _single3dHeightMeshRaycastPoints.Length > 0
-            )
+            if (_showRaycastGizmos)
             {
-                float s = Mathf.Max(0.2f, GridScale * 0.4f);
-                for (int i = 0; i < _single3dHeightMeshRaycastPoints.Length; i++)
+                float s = 0.25f * GridScale;
+
+                // Prefer explicit raycast points when available (from a connected 3D height mesh)
+                if (
+                    _single3dHeightMeshRaycastPoints != null
+                    && _single3dHeightMeshRaycastPoints.Length > 0
+                )
                 {
-                    var p = _single3dHeightMeshRaycastPoints[i];
-                    var c =
-                        (
-                            _single3dHeightMeshRaycastColors != null
-                            && i < _single3dHeightMeshRaycastColors.Length
-                        )
-                            ? _single3dHeightMeshRaycastColors[i]
-                            : Color.magenta;
-                    c.a = 1f;
-                    Gizmos.color = c;
-                    Gizmos.DrawSphere(p, s * (_showRaycastCoordinates ? 0.5f : 1f));
-                    // add a Handle Label with coordinates
-                    if (!_showRaycastCoordinates)
+                    for (int i = 0; i < _single3dHeightMeshRaycastPoints.Length; i++)
                     {
-                        continue;
+                        var p = _single3dHeightMeshRaycastPoints[i];
+                        var c =
+                            (
+                                _single3dHeightMeshRaycastColors != null
+                                && i < _single3dHeightMeshRaycastColors.Length
+                            )
+                                ? _single3dHeightMeshRaycastColors[i]
+                                : Color.magenta;
+                        c.a = 1f;
+                        Gizmos.color = c;
+                        Gizmos.DrawSphere(p, s * (_showRaycastCoordinates ? 0.5f : 1f));
+                        // add a Handle Label with coordinates
+                        if (_showRaycastCoordinates)
+                        {
+                            Gizmos.color = Color.white;
+                            UnityEditor.Handles.Label(
+                                p + (Vector3.up * s * 2f),
+                                _single3dHeightMeshRaycastIndices != null
+                                && i < _single3dHeightMeshRaycastIndices.Length
+                                    ? $"({_single3dHeightMeshRaycastIndices[i].x}, {_single3dHeightMeshRaycastIndices[i].y})"
+                                    : "(?, ?)"
+                            );
+                        }
+                    }
+                }
+                else if (_gridPoints != null && _gridPoints.Count > 0)
+                {
+                    // Performance guard: avoid expensive per-object checks and labels when grid is large.
+                    bool heavy = _gridPoints.Count > 200;
+                    bool showLabels = _showRaycastCoordinates && !heavy;
+
+                    // Ensure we have map point references available quickly
+                    EnsureCachedGridPoints();
+
+                    foreach (var kv in _gridPoints)
+                    {
+                        var go = kv.Value;
+                        if (go == null)
+                        {
+                            continue;
+                        }
+
+                        var p = go.transform.position;
+                        Color c = Color.yellow;
+
+#if UNITY_EDITOR
+                        // Prefer the editor color cache first (fast, populated by editor tools)
+                        if (TryGetEditorPointColor(kv.Key, out var cachedColor))
+                        {
+                            c = cachedColor;
+                        }
+                        // Then prefer the MapGrid's cached MapGridPoint lookup (cheap)
+                        else if (
+                            _cachedGridPoints != null
+                            && _cachedGridPoints.TryGetValue(kv.Key, out var mgp)
+                        )
+                        {
+                            var tt = mgp?.GetCachedTerrainType();
+                            c = tt != null ? tt.EditorColor : Color.yellow;
+                        }
+                        // As a last resort (small grids), try component lookup
+                        else if (!heavy && go.TryGetComponent<MapGridPoint>(out var mgp2))
+                        {
+                            var tt = mgp2?.SelectedTerrainType;
+                            c = tt != null ? tt.EditorColor : Color.yellow;
+                        }
+#else
+                        if (
+                            _cachedGridPoints != null
+                            && _cachedGridPoints.TryGetValue(kv.Key, out var mgp)
+                        )
+                        {
+                            var tt = mgp?.GetCachedTerrainType();
+                            c = tt != null ? tt.EditorColor : Color.yellow;
+                        }
+                        else if (!heavy && go.TryGetComponent<MapGridPoint>(out var mgp2))
+                        {
+                            var tt = mgp2?.SelectedTerrainType;
+                            c = tt != null ? tt.EditorColor : Color.yellow;
+                        }
+#endif
+                        c.a = 1f;
+                        Gizmos.color = c;
+                        Gizmos.DrawSphere(p, s * (showLabels ? 0.5f : 1f));
+
+                        if (showLabels)
+                        {
+                            Gizmos.color = Color.white;
+                            UnityEditor.Handles.Label(
+                                p + (Vector3.up * s * 2f),
+                                $"({kv.Key.x}, {kv.Key.y})"
+                            );
+                        }
                     }
 
-                    Gizmos.color = Color.white;
-                    UnityEditor.Handles.Label(
-                        p + (Vector3.up * s * 2f),
-                        _single3dHeightMeshRaycastIndices != null
-                        && i < _single3dHeightMeshRaycastIndices.Length
-                            ? $"({_single3dHeightMeshRaycastIndices[i].x}, {_single3dHeightMeshRaycastIndices[i].y})"
-                            : "(?, ?)"
-                    );
+                    if (heavy)
+                    {
+                        // Small visual indicator when full labeling is suppressed for performance.
+                        Gizmos.color = Color.gray;
+                        Gizmos.DrawSphere(
+                            transform.position + Vector3.up * 0.1f,
+                            0.02f * GridScale
+                        );
+                    }
                 }
             }
             // Draw a rectangle for the traversable area
@@ -456,6 +545,11 @@ namespace Turnroot.Gameplay.Maps
             {
                 RebuildRaycastColors();
             }
+
+#if UNITY_EDITOR
+            // Keep editor color cache in sync when validating in the Inspector
+            RebuildEditorPointColorCache();
+#endif
 
             if (
                 !UnityEditor.EditorApplication.isCompiling

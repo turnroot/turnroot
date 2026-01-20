@@ -358,6 +358,7 @@ namespace Turnroot.Gameplay.Maps
                 if (GUILayout.Button("Rebuild Index"))
                 {
                     _grid.RebuildGridDictionary();
+                    _grid.RebuildEditorPointColorCache();
                     MarkDirty();
                 }
             }
@@ -403,6 +404,7 @@ namespace Turnroot.Gameplay.Maps
                     _lastKnownWidth = _grid.GridWidth;
                     _lastKnownHeight = _grid.GridHeight;
                     _grid.EnsureGridPoints();
+                    _grid.RebuildEditorPointColorCache();
                     Repaint();
                 }
 
@@ -426,6 +428,7 @@ namespace Turnroot.Gameplay.Maps
                 if (_grid != null)
                 {
                     _grid.EnsureGridPoints();
+                    _grid.RebuildEditorPointColorCache();
                     _lastKnownWidth = _grid.GridWidth;
                     _lastKnownHeight = _grid.GridHeight;
                 }
@@ -2202,6 +2205,10 @@ namespace Turnroot.Gameplay.Maps
                             p.SetTerrainTypeId(chosenTerrain.Id);
                             // PERFORMANCE FIX: Invalidate this cell's color cache
                             _cellColorCache.Remove(p);
+
+                            // Update editor color cache on MapGrid so OnDrawGizmos uses the correct colors
+                            var newColor = GetCellColor(p);
+                            _grid?.SetEditorPointColor(new Vector2Int(r, c), newColor);
                         }
 
                         SafeSetDirty(p);
