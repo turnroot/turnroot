@@ -12,6 +12,10 @@ namespace Turnroot.Gameplay.Brain
         {
             if (!IsPositionValid(position))
             {
+                TurnrootLogger.Log(
+                    $"CursorBrain: Position {position} is INVALID! Reasons: _currentMap null? {_currentMap == null}; _allowedPositions null? {_allowedPositions == null}; contains? {_allowedPositions != null && _allowedPositions.Contains(position)}; contents: {(_allowedPositions != null ? string.Join(", ", _allowedPositions) : "<null>")}",
+                    TurnrootLogger.LogLevel.Error
+                );
                 return OperationResult
                     .Failure($"CursorBrain: Position {position} is not valid for cursor movement")
                     .Success;
@@ -62,7 +66,7 @@ namespace Turnroot.Gameplay.Brain
 
             var targetPos = CursorPosition.CoordinatesInt + gridMovement;
 
-            return IsPositionValid(targetPos) ? MoveCursorTo(targetPos) : false;
+            return IsPositionValid(targetPos) && MoveCursorTo(targetPos);
         }
 
         /// <summary>
@@ -70,19 +74,47 @@ namespace Turnroot.Gameplay.Brain
         /// </summary>
         public bool NavigateWithWrapping(int direction)
         {
+            TurnrootLogger.Log(
+                $"CursorBrain: NavigateWithWrapping: direction={direction}, _allowedPositions null? {_allowedPositions == null}, count={_allowedPositions?.Count ?? 0}, currentIndex={_currentPositionIndex}"
+            );
             if (_allowedPositions == null || _allowedPositions.Count == 0)
             {
+                TurnrootLogger.Log(
+                    "NavigateWithWrapping failed: no allowed positions!",
+                    TurnrootLogger.LogLevel.Error
+                );
                 return false;
             }
 
-            // Wrap around the list
-            _currentPositionIndex = (_currentPositionIndex + direction) % _allowedPositions.Count;
-            if (_currentPositionIndex < 0)
+            // Calculate new index
+            int newIndex = (_currentPositionIndex + direction) % _allowedPositions.Count;
+            if (newIndex < 0)
             {
-                _currentPositionIndex += _allowedPositions.Count;
+                newIndex += _allowedPositions.Count;
             }
 
-            return MoveCursorTo(_allowedPositions[_currentPositionIndex]);
+            TurnrootLogger.Log(
+                $"CursorBrain: NavigateWithWrapping: trying to move from index {_currentPositionIndex} to {newIndex}, position={_allowedPositions[newIndex]}"
+            );
+
+            // Try to move - if it fails, don't update the index
+            bool success = MoveCursorTo(_allowedPositions[newIndex]);
+
+            if (!success)
+            {
+                TurnrootLogger.Log(
+                    $"NavigateWithWrapping: MoveCursorTo failed, NOT updating currentPositionIndex (stays at {_currentPositionIndex})",
+                    TurnrootLogger.LogLevel.Error
+                );
+                // DON'T update the index if the move failed
+            }
+            else
+            {
+                // Only update if successful
+                _currentPositionIndex = newIndex;
+            }
+
+            return success;
         }
 
         /// <summary>
@@ -90,6 +122,14 @@ namespace Turnroot.Gameplay.Brain
         /// </summary>
         public void SetAllowedPositions(List<Vector2Int> positions)
         {
+            TurnrootLogger.Log(
+                $"CursorBrain: SetAllowedPositions called with {positions?.Count ?? 0} positions"
+            );
+            if (positions != null && positions.Count > 0)
+            {
+                TurnrootLogger.Log($"CursorBrain: Positions: {string.Join(", ", positions)}");
+            }
+            TurnrootLogger.Log($"CursorBrain: Stack trace: {System.Environment.StackTrace}");
             _allowedPositions = positions;
             _currentPositionIndex = -1;
 
@@ -115,6 +155,10 @@ namespace Turnroot.Gameplay.Brain
         /// </summary>
         public void ClearAllowedPositions()
         {
+            TurnrootLogger.Log(
+                $"ClearAllowedPositions called! Stack trace: {System.Environment.StackTrace}",
+                TurnrootLogger.LogLevel.Warning
+            );
             _allowedPositions = null;
             _currentPositionIndex = -1;
 

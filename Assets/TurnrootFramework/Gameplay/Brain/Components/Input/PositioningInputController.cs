@@ -10,6 +10,8 @@ namespace Turnroot.Gameplay.Brain
         private float _cachedInputCooldown;
         private bool _cachedIsKeyboard = true;
 
+        private Vector2 _lastDirection = Vector2.zero;
+
         protected override void Awake()
         {
             base.Awake();
@@ -73,7 +75,7 @@ namespace Turnroot.Gameplay.Brain
 
         private bool ProcessInput()
         {
-            // Navigation
+            // Navigation - CHANGED to use wrapping navigation for spawn points
             if (_inputActions?.Navigate?.enabled == true)
             {
                 var direction = _inputActions.Navigate.ReadValue<Vector2>();
@@ -88,26 +90,61 @@ namespace Turnroot.Gameplay.Brain
                 }
                 else
                 {
-                    inputThreshold = 0.3f; // Safe default
+                    inputThreshold = 0.3f;
                 }
 
                 if (direction.magnitude > inputThreshold)
                 {
-                    _brain.cursorBrain?.NavigateCursor(direction);
-
-                    // If a unit is already selected, preview swap/move to the new cursor position
-                    var prepObject = _brain?.battleBrain?.PreparationObject;
-                    var cursorPos = _brain.cursorBrain?.CursorPosition?.CoordinatesInt;
-                    if (
-                        prepObject != null
-                        && prepObject.selectedPosition != null
-                        && cursorPos != null
-                    )
+                    // Prevent repeat inputs when stick/key is held
+                    if (direction == _lastDirection)
                     {
-                        _ = prepObject.PreviewPotentialSwap(cursorPos.Value);
+                        return false;
+                    }
+                    _lastDirection = direction;
+
+                    // CRITICAL FIX: Use NavigateWithWrapping for spawn points
+                    // Determine primary direction (horizontal or vertical)
+                    bool navigated = false;
+                    if (Mathf.Abs(direction.x) > Mathf.Abs(direction.y))
+                    {
+                        // Horizontal navigation
+                        int dir = direction.x > 0 ? 1 : -1;
+                        navigated = _brain.cursorBrain?.NavigateWithWrapping(dir) ?? false;
+#if UNITY_EDITOR
+                        Debug.Log($"Positioning: Navigate horizontal {dir}, success={navigated}");
+#endif
+                    }
+                    else
+                    {
+                        // Vertical navigation (treat as forward/backward in list)
+                        int dir = direction.y > 0 ? 1 : -1;
+                        navigated = _brain.cursorBrain?.NavigateWithWrapping(dir) ?? false;
+#if UNITY_EDITOR
+                        Debug.Log($"Positioning: Navigate vertical {dir}, success={navigated}");
+#endif
                     }
 
-                    return true;
+                    // If navigation succeeded, preview swap
+                    if (navigated)
+                    {
+                        var prepObject = _brain?.battleBrain?.PreparationObject;
+                        var cursorPos = _brain.cursorBrain?.CursorPosition?.CoordinatesInt;
+                        if (
+                            prepObject != null
+                            && prepObject.selectedPosition != null
+                            && cursorPos != null
+                        )
+                        {
+                            _ = prepObject.PreviewPotentialSwap(cursorPos.Value);
+                        }
+                    }
+
+                    return navigated;
+                }
+                else
+                {
+                    // Input below threshold - reset direction tracking
+                    _lastDirection = Vector2.zero;
                 }
             }
 

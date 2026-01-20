@@ -31,7 +31,11 @@ namespace Turnroot.Gameplay.Brain
             {
                 _cursorInstance = Instantiate(uiSettings.BattleCursorPrefab);
                 _cursorInstance.name = "BattleCursor";
+            }
 
+            // ALWAYS update scale based on current map, not just on creation
+            if (_cursorInstance != null && _currentMap != null)
+            {
                 var mapGridScale = _currentMap.GridScale;
                 var scaleFactor = mapGridScale;
                 _cursorInstance.transform.localScale = new Vector3(
@@ -74,22 +78,15 @@ namespace Turnroot.Gameplay.Brain
             var battleContext = _brain.battleBrain.BattleObject.Context;
             CursorOffset = _brain.uiBrain?.uiSettings?.BattleCursorOffset ?? Vector3.zero;
             InitializeCursor(battleContext.mapGrid);
-
-#if UNITY_EDITOR
-            Debug.Log(
-                $"CursorBrain: Initialized battle cursor at {CursorPosition?.CoordinatesInt}"
-            );
-#endif
         }
 
-        private void InitializePreBattleCursor(MapGrid mapGrid)
+        private OperationResult InitializePreBattleCursor(MapGrid mapGrid)
         {
             if (mapGrid == null)
             {
-#if UNITY_EDITOR
-                Debug.LogError("CursorBrain: Cannot initialize pre-battle cursor - no MapGrid");
-#endif
-                return;
+                return OperationResult.Failure(
+                    "CursorBrain: Cannot initialize pre-battle cursor - no MapGrid"
+                );
             }
 
             // Get valid spawn positions from BattlePreparationObject
@@ -108,12 +105,7 @@ namespace Turnroot.Gameplay.Brain
             CursorOffset = _brain.uiBrain?.uiSettings?.BattleCursorOffset ?? Vector3.zero;
 
             InitializeCursor(mapGrid, validSpawnPositions);
-
-#if UNITY_EDITOR
-            Debug.Log(
-                $"CursorBrain: Initialized pre-battle cursor with {validSpawnPositions?.Count ?? 0} valid spawn positions"
-            );
-#endif
+            return OperationResult.SuccessResult();
         }
 
         private System.Collections.IEnumerator RetryInitializeBattleCursor()

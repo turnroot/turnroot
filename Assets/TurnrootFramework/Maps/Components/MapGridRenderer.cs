@@ -4,6 +4,7 @@ using UnityEditor;
 using System.IO;
 using System.Collections.Generic;
 using System.Linq;
+using Turnroot.Utilities;
 
 namespace Turnroot.Gameplay.Maps
 {
@@ -369,50 +370,25 @@ namespace Turnroot.Gameplay.Maps
             int height
         ) GetTraversableBounds(MapGrid grid)
         {
-            // Get the traversable area corners
-            var corners = grid.TraversableAreaCorners;
-
-            if (corners == null || corners.Length != 4)
+            if (grid == null)
             {
-                // Fallback to entire grid if corners not set
-                Debug.LogWarning(
-                    "MapGridRenderer: Traversable area corners not set, using entire grid"
+                TurnrootLogger.Log(
+                    "MapGridRenderer: GetTraversableBounds called with null grid",
+                    TurnrootLogger.LogLevel.Error
                 );
-                return (
-                    0,
-                    grid.GridWidth - 1,
-                    0,
-                    grid.GridHeight - 1,
-                    grid.GridWidth,
-                    grid.GridHeight
-                );
+                return (0, 0, 0, 0, 0, 0);
             }
 
-            // Find the bounding box of the four corners
-            int minRow = int.MaxValue;
-            int maxRow = int.MinValue;
-            int minCol = int.MaxValue;
-            int maxCol = int.MinValue;
+            // Use the entire grid as the traversable area (no separate corners feature)
+            int minRow = 0;
+            int maxRow = Mathf.Max(0, grid.GridWidth - 1);
+            int minCol = 0;
+            int maxCol = Mathf.Max(0, grid.GridHeight - 1);
+            int width = grid.GridWidth;
+            int height = grid.GridHeight;
 
-            foreach (var corner in corners)
-            {
-                minRow = Mathf.Min(minRow, corner.x);
-                maxRow = Mathf.Max(maxRow, corner.x);
-                minCol = Mathf.Min(minCol, corner.y);
-                maxCol = Mathf.Max(maxCol, corner.y);
-            }
-
-            // Ensure bounds are within grid
-            minRow = Mathf.Clamp(minRow, 0, grid.GridWidth - 1);
-            maxRow = Mathf.Clamp(maxRow, 0, grid.GridWidth - 1);
-            minCol = Mathf.Clamp(minCol, 0, grid.GridHeight - 1);
-            maxCol = Mathf.Clamp(maxCol, 0, grid.GridHeight - 1);
-
-            int width = maxRow - minRow + 1;
-            int height = maxCol - minCol + 1;
-
-            Debug.Log(
-                $"MapGridRenderer: Rendering traversable area - Rows [{minRow}-{maxRow}], Cols [{minCol}-{maxCol}], Size: {width}x{height}"
+            TurnrootLogger.Log(
+                $"MapGridRenderer: Rendering full grid area - Rows [{minRow}-{maxRow}], Cols [{minCol}-{maxCol}], Size: {width}x{height}"
             );
 
             return (minRow, maxRow, minCol, maxCol, width, height);

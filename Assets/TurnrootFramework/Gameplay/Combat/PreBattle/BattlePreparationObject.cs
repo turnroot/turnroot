@@ -78,12 +78,11 @@ namespace Turnroot.Gameplay.Combat.PreBattle
                 brain.OnUnitSelectionChanged += HandleUnitSelectionChanged;
 
                 // When UI enters positioning mode, ensure roster is filtered and placements are set
+                // (Do not initialize placements here; initialize on explicit positioning mode entry so
+                //  pre-battle UI previews do not trigger placement/cursor initialization prematurely.)
                 brain.OnPositioningModeEntered -= HandlePositioningModeEntered;
                 brain.OnPositioningModeEntered += HandlePositioningModeEntered;
             }
-
-            // Initialize placements from the current gamewide selection.
-            _ = InitializePlacements();
 
             // Set the map grid for Camera Brain
             var cameraBrain = brain?.cameraBrain;
@@ -127,8 +126,7 @@ namespace Turnroot.Gameplay.Combat.PreBattle
                     var placementsArr =
                         runtimeInstance != null
                             ? runtimeInstance.GetPlacements()
-                            : persistent?.characters
-                                ?? new Characters.Roster.UnitPlacement[0];
+                            : persistent?.characters ?? new Characters.Roster.UnitPlacement[0];
                     foreach (var p in placementsArr)
                     {
                         if (p == null || p.CharacterData == null)
