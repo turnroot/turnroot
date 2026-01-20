@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Turnroot.GameSettings;
 using Turnroot.UI.Components.GridMenu;
+using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain.Segments
@@ -9,10 +10,8 @@ namespace Turnroot.Gameplay.Brain.Segments
     public class MenuRouteHandler
     {
         private readonly UiBrain _brain;
-        private readonly Dictionary<
-            string,
-            Action<UI.Components.MenuItemBase>
-        > _menuActionRoutes = new();
+        private readonly Dictionary<string, Action<UI.Components.MenuItemBase>> _menuActionRoutes =
+            new();
 
         public MenuRouteHandler(UiBrain brain)
         {
@@ -58,11 +57,7 @@ namespace Turnroot.Gameplay.Brain.Segments
             {
                 return;
             }
-            _lastSelectTime = UnityEngine.Time.time;
-
-#if UNITY_EDITOR
-            Debug.Log($"MenuRouteHandler: HandleMenuSelect item: {item?.ItemName}");
-#endif
+            _lastSelectTime = Time.time;
 
             if (item.IsCenter)
             {
@@ -90,9 +85,10 @@ namespace Turnroot.Gameplay.Brain.Segments
             }
             else
             {
-#if UNITY_EDITOR
-                Debug.LogWarning($"No route defined for menu item: {item.ItemName}");
-#endif
+                TurnrootLogger.Log(
+                    $"No route defined for menu item: {item.ItemName}",
+                    TurnrootLogger.LogLevel.Error
+                );
             }
         }
 
@@ -129,14 +125,11 @@ namespace Turnroot.Gameplay.Brain.Segments
             // TODO: Handle withdraw action
         }
 
-        private void TransitionToSubmenu(MenuLocation submenuLocation)
+        private OperationResult TransitionToSubmenu(MenuLocation submenuLocation)
         {
             if (submenuLocation == null)
             {
-#if UNITY_EDITOR
-                Debug.LogError("MenuRouteHandler: Submenu location is null");
-#endif
-                return;
+                return OperationResult.Failure("Submenu location is null");
             }
 
             // Find the currently active menu as the source
@@ -156,14 +149,12 @@ namespace Turnroot.Gameplay.Brain.Segments
 
             if (sourceMenu == null)
             {
-#if UNITY_EDITOR
-                Debug.LogError("MenuRouteHandler: No active source menu found for transition");
-#endif
-                return;
+                return OperationResult.Failure("No active source menu found for transition");
             }
 
             // Use UiBrain's public method with proper source menu
             _brain.TransitionToSubmenu(sourceMenu, submenuLocation);
+            return OperationResult.Successful();
         }
 
         public void AddRoute(string itemName, Action<UI.Components.MenuItemBase> action) =>

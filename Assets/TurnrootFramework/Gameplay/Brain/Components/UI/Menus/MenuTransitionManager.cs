@@ -42,52 +42,24 @@ namespace Turnroot.Gameplay.Brain.Segments
 
         private MenuType DetectMenuType(MenuLocation location)
         {
-            if (location == null)
+            return location switch
             {
-                return MenuType.Unknown;
-            }
-
-            if (location == _settings?.GetPreBattleMenu())
-            {
-                return MenuType.PreBattle;
-            }
-
-            if (location == _settings?.GetGameSettingsMenu())
-            {
-                return MenuType.Settings;
-            }
-
-            if (location == _settings?.GetGameSettingsGraphicsMenu())
-            {
-                return MenuType.Graphics;
-            }
-
-            if (location == _settings?.GetGameSettingsGameplayMenu())
-            {
-                return MenuType.Gameplay;
-            }
-
-            if (location == _settings?.GetGameSettingsAudioMenu())
-            {
-                return MenuType.Audio;
-            }
-
-            return location == _settings?.GetGameSettingsControlsMenu() ? MenuType.Controls
-                : location == _settings?.GetPrebattleMapMenu() ? MenuType.Map
-                : location == _settings?.GetPrebattleUnitsMenu() ? MenuType.Team
-                : MenuType.Unknown;
+                null => MenuType.Unknown,
+                var l when l == _settings?.GetPreBattleMenu() => MenuType.PreBattle,
+                var l when l == _settings?.GetGameSettingsMenu() => MenuType.Settings,
+                var l when l == _settings?.GetGameSettingsGraphicsMenu() => MenuType.Graphics,
+                var l when l == _settings?.GetGameSettingsGameplayMenu() => MenuType.Gameplay,
+                var l when l == _settings?.GetGameSettingsAudioMenu() => MenuType.Audio,
+                var l when l == _settings?.GetGameSettingsControlsMenu() => MenuType.Controls,
+                var l when l == _settings?.GetPrebattleMapMenu() => MenuType.Map,
+                var l when l == _settings?.GetPrebattleUnitsMenu() => MenuType.Team,
+                _ => MenuType.Unknown,
+            };
         }
 
-        // Simplified TransitionBetween - always destroys source and creates target fresh
         public IEnumerator TransitionBetween(MenuLocation from, MenuLocation to)
         {
             var fromInstance = from?.activeInstance;
-#if UNITY_EDITOR
-            Debug.Log(
-                $"MenuTransitionManager: Transitioning from {from?.menuName} to {to?.menuName}"
-            );
-#endif
-
             _currentMenuType = DetectMenuType(to);
 
             // Hide and destroy source menu
@@ -260,9 +232,7 @@ namespace Turnroot.Gameplay.Brain.Segments
             }
         }
 
-        private UIFade EnsureUIFade(GameObject instance, float lerpTime)
-        {
-            return UIFadeCache.GetOrCreate(instance, lerpTime);
-        }
+        private UIFade EnsureUIFade(GameObject instance, float lerpTime) =>
+            UIFadeCache.GetOrCreate(instance, lerpTime);
     }
 }

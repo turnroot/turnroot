@@ -16,14 +16,20 @@ namespace Turnroot.Gameplay.Brain.Segments
         {
             if (uiSettings == null)
             {
-                Debug.LogError("UiBrain: GamewideUiSettings not found!");
+                TurnrootLogger.Log(
+                    "UiBrain: GamewideUiSettings not found!",
+                    TurnrootLogger.LogLevel.Error
+                );
                 return null;
             }
 
             var location = getter();
             if (location == null)
             {
-                Debug.LogError($"UiBrain: {menuName} menu location not found!");
+                TurnrootLogger.Log(
+                    $"UiBrain: {menuName} menu location not found!",
+                    TurnrootLogger.LogLevel.Error
+                );
             }
 
             return location;

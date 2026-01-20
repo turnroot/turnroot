@@ -313,13 +313,11 @@ namespace Turnroot.UI.Components
             _spawnDebounceCoroutine = null;
         }
 
-        private void HandleUnitSelectionChanged(CharacterInstance unit, bool selected)
-        {
+        private void HandleUnitSelectionChanged(CharacterInstance unit, bool selected) =>
             // Recompute placements only. SpawnAllUnitModels will be called from
             // HandlePlacementsInitialized once placements are stable to avoid
             // intermediate partial spawns.
             _prepObject.InitializePlacements();
-        }
 
         private void HandleBrainPrepInitialized(BattlePreparationObject prep)
         {

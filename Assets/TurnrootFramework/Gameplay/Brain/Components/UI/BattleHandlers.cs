@@ -1,3 +1,4 @@
+using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain.Segments
@@ -6,9 +7,7 @@ namespace Turnroot.Gameplay.Brain.Segments
     {
         public void HandleBattleUi()
         {
-#if UNITY_EDITOR
-            Debug.Log("UiBrain: Handling battle UI setup");
-#endif
+            TurnrootLogger.Log("UiBrain: Handling battle UI setup");
             // Battle UI initialization logic will be added here
             // For now, just log that we're in battle state
         }

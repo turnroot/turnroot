@@ -168,10 +168,7 @@ namespace Turnroot.Gameplay.Brain
             }
         }
 
-        private void HandlePreBattlePrepare()
-        {
-            _currentContext = CursorContext.PreBattle;
-        }
+        private void HandlePreBattlePrepare() => _currentContext = CursorContext.PreBattle;
 
         private void HandlePreBattleMapReady(MapGrid mapGrid)
         {

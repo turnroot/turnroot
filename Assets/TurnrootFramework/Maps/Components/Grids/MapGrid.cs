@@ -522,10 +522,7 @@ namespace Turnroot.Gameplay.Maps
         /// <summary>
         /// Editor API: set cached color for a specific grid cell. Used by editor tools to keep gizmo colors in sync.
         /// </summary>
-        public void SetEditorPointColor(Vector2Int cell, Color color)
-        {
-            _gridPointColorCache[cell] = color;
-        }
+        public void SetEditorPointColor(Vector2Int cell, Color color) => _gridPointColorCache[cell] = color;
 
         /// <summary>
         /// Rebuilds the entire editor color cache from current grid points.

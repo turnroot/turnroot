@@ -108,10 +108,7 @@ namespace Turnroot.Characters
         /// <summary>
         /// Set the renderer for this character instance. Used when spawning models in pre-battle or battle.
         /// </summary>
-        public void SetRenderer(SkinnedMeshRenderer renderer)
-        {
-            _meshRenderer = renderer;
-        }
+        public void SetRenderer(SkinnedMeshRenderer renderer) => _meshRenderer = renderer;
 
         #endregion
 
