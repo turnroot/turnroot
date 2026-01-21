@@ -11,8 +11,7 @@ namespace Turnroot.Utilities
     /// </summary>
     public static class UIFadeCache
     {
-        private static readonly Dictionary<int, WeakReference<UIFade>> Cache =
-            new Dictionary<int, WeakReference<UIFade>>();
+        private static readonly Dictionary<int, WeakReference<UIFade>> Cache = new();
 
         public static UIFade Get(GameObject instance)
         {

@@ -21,20 +21,44 @@ namespace Turnroot.Gameplay.Brain
 
         private SkinnedMeshRenderer CreateOutfitMesh(CharacterInstance unit, GameObject parent)
         {
-            var classInst = unit.GetCurrentClass();
-            var prefab = classInst?.ClassData?.Identity?.ClassModelPrefab;
-
-            if (prefab != null)
+            // If this instance is using the battle model, prefer the class outfit prefab.
+            if (unit.UseBattleModel)
             {
-                var obj = Instantiate(prefab, parent.transform);
-                obj.name = "ClassOutfit";
-                return obj.GetComponentInChildren<SkinnedMeshRenderer>();
+                var classInst = unit.GetCurrentClass();
+                var prefab = classInst?.ClassData?.Identity?.ClassModelPrefab;
+                if (prefab != null)
+                {
+                    var obj = Instantiate(prefab, parent.transform);
+                    obj.name = "ClassOutfit";
+                    TurnrootLogger.Log(
+                        $"CreateOutfitMesh: Using class outfit prefab for {unit.CharacterTemplate?.DisplayName}"
+                    );
+                    return obj.GetComponentInChildren<SkinnedMeshRenderer>();
+                }
+            }
+            else
+            {
+                // Use per-character non-battle outfit prefab when available
+                var nbPrefab = unit.CharacterTemplate.NonBattleOutfitPrefab;
+                if (nbPrefab != null)
+                {
+                    var obj = Instantiate(nbPrefab, parent.transform);
+                    obj.name = "NonBattleOutfit";
+                    TurnrootLogger.Log(
+                        $"CreateOutfitMesh: Using non-battle outfit prefab for {unit.CharacterTemplate?.DisplayName}"
+                    );
+                    return obj.GetComponentInChildren<SkinnedMeshRenderer>();
+                }
             }
 
+            // Fallback to copying the character's default model renderer
             if (unit.CharacterTemplate.CharacterDefaultModel != null)
             {
                 var obj = new GameObject("DefaultOutfit");
                 obj.transform.SetParent(parent.transform);
+                TurnrootLogger.Log(
+                    $"CreateOutfitMesh: Falling back to CharacterDefaultModel for {unit.CharacterTemplate?.DisplayName}"
+                );
                 return CopyRenderer(obj, unit.CharacterTemplate.CharacterDefaultModel);
             }
 
