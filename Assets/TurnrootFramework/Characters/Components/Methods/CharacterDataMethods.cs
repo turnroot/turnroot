@@ -155,65 +155,97 @@ namespace Turnroot.Characters
             }
 
 #if UNITY_EDITOR
-            // Validate that assigned skinned meshes contain required blendshapes; if not, clear the assignment and log an error.
-            ValidateRendererBlendshapes(CharacterDefaultModel, nameof(CharacterDefaultModel));
-            ValidateRendererBlendshapes(
-                CharacterHeadHandsAndHair,
-                nameof(CharacterHeadHandsAndHair)
-            );
+            // Validate that assigned prefabs contain a SkinnedMeshRenderer; if not, clear the assignment and log an error.
+            ValidatePrefabBlendshapes(HeadAndHandsPrefab, nameof(HeadAndHandsPrefab));
+            ValidatePrefabBlendshapes(HairPrefab, nameof(HairPrefab));
+            ValidatePrefabBlendshapes(NonBattleOutfitPrefab, nameof(NonBattleOutfitPrefab));
+
+            // Warn if the character defines blendshapes but has no non-battle outfit prefab assigned.
+            if (Blendshapes.BlendshapeNames != null && Blendshapes.BlendshapeNames.Length > 0)
+            {
+                if (NonBattleOutfitPrefab == null)
+                {
+                    TurnrootLogger.Log(
+                        $"{name}: Character has blendshapes defined but no NonBattleOutfitPrefab assigned. Blendshapes are applied only to outfit meshes. Assign a NonBattleOutfitPrefab or ensure class outfits are present.",
+                        TurnrootLogger.LogLevel.Warning
+                    );
+                }
+            }
 #endif
         }
 
 #if UNITY_EDITOR
-        private void ValidateRendererBlendshapes(SkinnedMeshRenderer renderer, string propertyName)
+        private void ValidatePrefabBlendshapes(GameObject prefab, string propertyName)
         {
-            if (renderer == null)
+            if (prefab == null)
             {
                 return;
             }
 
-            var mesh = renderer.sharedMesh;
+            var smr = prefab.GetComponentInChildren<SkinnedMeshRenderer>(true);
+            if (smr == null)
+            {
+                Debug.LogError(
+                    $"{name}: Assigned {propertyName} prefab '{prefab.name}' does not contain a SkinnedMeshRenderer. Clearing assignment."
+                );
+                if (propertyName == nameof(HeadAndHandsPrefab))
+                {
+                    HeadAndHandsPrefab = null;
+                }
+                else if (propertyName == nameof(HairPrefab))
+                {
+                    HairPrefab = null;
+                }
+                else if (propertyName == nameof(NonBattleOutfitPrefab))
+                {
+                    NonBattleOutfitPrefab = null;
+                }
+                return;
+            }
+
+            var mesh = smr.sharedMesh;
             if (mesh == null)
             {
                 Debug.LogError(
-                    $"{name}: Assigned {propertyName} has no sharedMesh. Clearing assignment."
+                    $"{name}: Assigned {propertyName} prefab '{prefab.name}' has no sharedMesh. Clearing assignment."
                 );
-                if (propertyName == nameof(CharacterDefaultModel))
+                if (propertyName == nameof(HeadAndHandsPrefab))
                 {
-                    CharacterDefaultModel = null;
+                    HeadAndHandsPrefab = null;
                 }
-                else if (propertyName == nameof(CharacterHeadHandsAndHair))
+                else if (propertyName == nameof(HairPrefab))
                 {
-                    CharacterHeadHandsAndHair = null;
+                    HairPrefab = null;
+                }
+                else if (propertyName == nameof(NonBattleOutfitPrefab))
+                {
+                    NonBattleOutfitPrefab = null;
                 }
                 return;
             }
 
-            var required = Blendshapes.BlendshapeNames;
-            var missing = new List<string>();
-            if (required != null)
+            // Only enforce required blendshapes on the non-battle outfit prefab.
+            if (propertyName == nameof(NonBattleOutfitPrefab))
             {
-                foreach (var name in required)
+                var required = Blendshapes.BlendshapeNames;
+                var missing = new List<string>();
+                if (required != null)
                 {
-                    if (mesh.GetBlendShapeIndex(name) < 0)
+                    foreach (var name in required)
                     {
-                        missing.Add(name);
+                        if (mesh.GetBlendShapeIndex(name) < 0)
+                        {
+                            missing.Add(name);
+                        }
                     }
                 }
-            }
 
-            if (missing.Count > 0)
-            {
-                Debug.LogError(
-                    $"{name}: Assigned {propertyName} mesh '{mesh.name}' is missing blendshapes: {string.Join(", ", missing)}. Clearing assignment."
-                );
-                if (propertyName == nameof(CharacterDefaultModel))
+                if (missing.Count > 0)
                 {
-                    CharacterDefaultModel = null;
-                }
-                else if (propertyName == nameof(CharacterHeadHandsAndHair))
-                {
-                    CharacterHeadHandsAndHair = null;
+                    Debug.LogError(
+                        $"{name}: Assigned {propertyName} prefab '{prefab.name}' is missing blendshapes: {string.Join(", ", missing)}. Clearing assignment."
+                    );
+                    NonBattleOutfitPrefab = null;
                 }
             }
         }

@@ -175,6 +175,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -274,6 +275,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -373,6 +375,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -472,6 +475,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -571,6 +575,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -670,6 +675,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -769,6 +775,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -868,6 +875,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -967,6 +975,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -1066,6 +1075,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -1165,6 +1175,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -1264,6 +1275,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -1363,6 +1375,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -1462,6 +1475,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -1561,6 +1575,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -1660,6 +1675,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -1759,6 +1775,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -1858,6 +1875,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -1957,6 +1975,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -2056,6 +2075,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -2155,6 +2175,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -2254,6 +2275,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -2353,6 +2375,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -2452,6 +2475,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -2551,6 +2575,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -2650,6 +2675,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -2749,6 +2775,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -2848,6 +2875,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -2947,6 +2975,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -3046,6 +3075,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -3145,6 +3175,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -3244,6 +3275,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -3343,6 +3375,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -3442,6 +3475,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -3593,6 +3627,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -3692,6 +3727,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -3791,6 +3827,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -3922,6 +3959,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -4021,6 +4059,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -4120,6 +4159,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -4219,6 +4259,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -4318,6 +4359,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -4417,6 +4459,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -4516,6 +4559,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -4615,6 +4659,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -4714,6 +4759,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -4813,6 +4859,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -4912,6 +4959,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -5011,6 +5059,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -5110,6 +5159,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -5209,6 +5259,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -5308,6 +5359,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -5407,6 +5459,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -5506,6 +5559,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -5605,6 +5659,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -5704,6 +5759,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -5803,6 +5859,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -5902,6 +5959,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -6001,6 +6059,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -6100,6 +6159,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -6199,6 +6259,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -6298,6 +6359,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -6397,6 +6459,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -6496,6 +6559,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -6595,6 +6659,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -6694,6 +6759,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -6793,6 +6859,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -6892,6 +6959,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -6991,6 +7059,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -7090,6 +7159,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -7189,6 +7259,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -7288,6 +7359,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -7387,6 +7459,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -7486,6 +7559,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -7585,6 +7659,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -7684,6 +7759,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -7783,6 +7859,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -7882,6 +7959,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -7981,6 +8059,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -8080,6 +8159,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -8179,6 +8259,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -8278,6 +8359,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -8377,6 +8459,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -8476,6 +8559,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -8575,6 +8659,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -8674,6 +8759,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -8773,6 +8859,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -8872,6 +8959,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -8971,6 +9059,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -9070,6 +9159,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -9169,6 +9259,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -9268,6 +9359,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -9367,6 +9459,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -9466,6 +9559,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -9565,6 +9659,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -9664,6 +9759,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -9763,6 +9859,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -9862,6 +9959,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -9961,6 +10059,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -10060,6 +10159,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -10159,6 +10259,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -10258,6 +10359,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -10466,6 +10568,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -10565,6 +10668,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -10664,6 +10768,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -10763,6 +10868,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -10862,6 +10968,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -10961,6 +11068,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -11060,6 +11168,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -11159,6 +11268,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -11258,6 +11368,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -11357,6 +11468,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -11456,6 +11568,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -11555,6 +11668,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -11654,6 +11768,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -11753,6 +11868,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -11852,6 +11968,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -11951,6 +12068,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -12050,6 +12168,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -12149,6 +12268,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -12248,6 +12368,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -12347,6 +12468,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -12446,6 +12568,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -12545,6 +12668,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -12644,6 +12768,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -12743,6 +12868,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -12842,6 +12968,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -12941,6 +13068,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -13040,6 +13168,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -13139,6 +13268,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -13238,6 +13368,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -13337,6 +13468,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -13436,6 +13568,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -13535,6 +13668,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -13634,6 +13768,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -13733,6 +13868,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -13832,6 +13968,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -13931,6 +14068,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -14030,6 +14168,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -14129,6 +14268,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -14228,6 +14368,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -14327,6 +14468,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -14426,6 +14568,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -14525,6 +14668,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -14624,6 +14768,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -14723,6 +14868,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -14822,6 +14968,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -14921,6 +15068,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -15020,6 +15168,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -15119,6 +15268,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -15218,6 +15368,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -15317,6 +15468,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -15416,6 +15568,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -15515,6 +15668,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -15614,6 +15768,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -15713,6 +15868,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -15812,6 +15968,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -15911,6 +16068,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -16010,6 +16168,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -16109,6 +16268,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -16208,6 +16368,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -16307,6 +16468,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -16406,6 +16568,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -16505,6 +16668,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -16604,6 +16768,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -16703,6 +16868,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -16802,6 +16968,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -16901,6 +17068,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -17000,6 +17168,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -17099,6 +17268,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -17198,6 +17368,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -17297,6 +17468,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -17396,6 +17568,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -17495,6 +17668,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -17594,6 +17768,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -17693,6 +17868,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -17792,6 +17968,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -17891,6 +18068,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -17990,6 +18168,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -18089,6 +18268,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -18188,6 +18368,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -18287,6 +18468,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -18386,6 +18568,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -18485,6 +18668,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -18584,6 +18768,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -18683,6 +18868,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -18782,6 +18968,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -18881,6 +19068,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -18980,6 +19168,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -19079,6 +19268,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -19178,6 +19368,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -19277,6 +19468,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -19376,6 +19568,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -19475,6 +19668,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -19574,6 +19768,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -19673,6 +19868,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -19772,6 +19968,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -19871,6 +20068,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -19970,6 +20168,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -20069,6 +20268,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -20168,6 +20368,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -20267,6 +20468,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -20366,6 +20568,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -20465,6 +20668,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -20564,6 +20768,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -20663,6 +20868,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -20762,6 +20968,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -20861,6 +21068,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -20960,6 +21168,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -21059,6 +21268,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -21158,6 +21368,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -21257,6 +21468,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -21356,6 +21568,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -21455,6 +21668,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -21554,6 +21768,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -21653,6 +21868,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -21752,6 +21968,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -21851,6 +22068,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -21950,6 +22168,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -22049,6 +22268,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -22148,6 +22368,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -22247,6 +22468,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -22346,6 +22568,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -22445,6 +22668,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -22544,6 +22768,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -22643,6 +22868,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -22742,6 +22968,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -22841,6 +23068,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -22940,6 +23168,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -23039,6 +23268,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -23138,6 +23368,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -23237,6 +23468,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -23336,6 +23568,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -23435,6 +23668,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -23534,6 +23768,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -23633,6 +23868,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -23732,6 +23968,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -23831,6 +24068,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -23930,6 +24168,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -24029,6 +24268,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -24128,6 +24368,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -24227,6 +24468,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -24326,6 +24568,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -24425,6 +24668,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -24524,6 +24768,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -24623,6 +24868,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -24722,6 +24968,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -24821,6 +25068,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -24920,6 +25168,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -25019,6 +25268,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -25118,6 +25368,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -25217,6 +25468,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -25316,6 +25568,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -25415,6 +25668,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -25514,6 +25768,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -25613,6 +25868,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -25712,6 +25968,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -25811,6 +26068,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -25910,6 +26168,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -26009,6 +26268,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -26139,6 +26399,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -26238,6 +26499,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -26337,6 +26599,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -26436,6 +26699,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -26535,6 +26799,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -26634,6 +26899,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -26733,6 +26999,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -26832,6 +27099,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -26931,6 +27199,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -27030,6 +27299,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -27129,6 +27399,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -27228,6 +27499,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -27327,6 +27599,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -27426,6 +27699,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -27525,6 +27799,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -27624,6 +27899,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -27723,6 +27999,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -27822,6 +28099,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -27921,6 +28199,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -28020,6 +28299,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -28119,6 +28399,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -28218,6 +28499,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -28317,6 +28599,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -28416,6 +28699,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -28515,6 +28799,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -28614,6 +28899,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -28713,6 +28999,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -28812,6 +29099,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -28911,6 +29199,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -29010,6 +29299,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -29109,6 +29399,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -29208,6 +29499,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -29307,6 +29599,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -29406,6 +29699,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -29505,6 +29799,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -29604,6 +29899,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -29703,6 +29999,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -29802,6 +30099,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -29901,6 +30199,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -30000,6 +30299,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -30099,6 +30399,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -30198,6 +30499,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -30297,6 +30599,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -30396,6 +30699,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -30495,6 +30799,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -30594,6 +30899,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -30693,6 +30999,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -30792,6 +31099,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -30891,6 +31199,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -30990,6 +31299,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -31120,6 +31430,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -31219,6 +31530,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -31318,6 +31630,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -31417,6 +31730,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -31516,6 +31830,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -31615,6 +31930,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -31714,6 +32030,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -31813,6 +32130,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -31912,6 +32230,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -32011,6 +32330,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -32110,6 +32430,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -32209,6 +32530,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -32308,6 +32630,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -32407,6 +32730,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -32506,6 +32830,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -32605,6 +32930,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -32704,6 +33030,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -32803,6 +33130,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -32902,6 +33230,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -33001,6 +33330,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -33100,6 +33430,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -33199,6 +33530,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -33298,6 +33630,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -33397,6 +33730,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -33496,6 +33830,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -33595,6 +33930,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -33694,6 +34030,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -33793,6 +34130,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -33892,6 +34230,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -33991,6 +34330,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -34090,6 +34430,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -34189,6 +34530,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -34288,6 +34630,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -34387,6 +34730,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -34486,6 +34830,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -34585,6 +34930,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -34684,6 +35030,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -34783,6 +35130,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -34882,6 +35230,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -34981,6 +35330,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -35080,6 +35430,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -35179,6 +35530,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -35278,6 +35630,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -35377,6 +35730,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -35476,6 +35830,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -35575,6 +35930,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -35674,6 +36030,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -35773,6 +36130,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -35872,6 +36230,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -35971,6 +36330,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -36070,6 +36430,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -36169,6 +36530,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -36268,6 +36630,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -36367,6 +36730,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -36466,6 +36830,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -36565,6 +36930,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -36664,6 +37030,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -36763,6 +37130,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -36862,6 +37230,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -36961,6 +37330,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -37060,6 +37430,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -37159,6 +37530,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -37258,6 +37630,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -37357,6 +37730,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -37456,6 +37830,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -37555,6 +37930,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -37654,6 +38030,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -37753,6 +38130,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -37852,6 +38230,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -37951,6 +38330,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -38050,6 +38430,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -38149,6 +38530,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -38248,6 +38630,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -38347,6 +38730,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -38446,6 +38830,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -38545,6 +38930,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -38644,6 +39030,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -38743,6 +39130,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -38842,6 +39230,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -38972,6 +39361,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -39071,6 +39461,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -39170,6 +39561,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -39269,6 +39661,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -39368,6 +39761,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -39467,6 +39861,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -39566,6 +39961,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -39665,6 +40061,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -39764,6 +40161,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -39863,6 +40261,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -39962,6 +40361,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -40061,6 +40461,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -40160,6 +40561,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -40380,6 +40782,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -40479,6 +40882,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -40578,6 +40982,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -40677,6 +41082,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -40878,6 +41284,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -40977,6 +41384,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -41076,6 +41484,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -41175,6 +41584,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -41305,6 +41715,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -41404,6 +41815,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -41503,6 +41915,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -41602,6 +42015,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -41701,6 +42115,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -41800,6 +42215,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -41899,6 +42315,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -41998,6 +42415,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -42097,6 +42515,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -42196,6 +42615,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -42295,6 +42715,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -42394,6 +42815,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -42493,6 +42915,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -42592,6 +43015,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -42691,6 +43115,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -42790,6 +43215,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -42889,6 +43315,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -42988,6 +43415,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -43087,6 +43515,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -43186,6 +43615,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -43285,6 +43715,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -43384,6 +43815,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -43483,6 +43915,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -43582,6 +44015,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -43681,6 +44115,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -43780,6 +44215,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -43879,6 +44315,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -43978,6 +44415,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -44077,6 +44515,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -44176,6 +44615,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -44275,6 +44715,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -44374,6 +44815,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -44473,6 +44915,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -44572,6 +45015,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -44671,6 +45115,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -44770,6 +45215,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -44869,6 +45315,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -44968,6 +45415,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -45067,6 +45515,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -45166,6 +45615,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -45265,6 +45715,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -45364,6 +45815,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -45463,6 +45915,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -45562,6 +46015,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -45661,6 +46115,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -45793,6 +46248,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -45892,6 +46348,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -45991,6 +46448,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -46090,6 +46548,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -46189,6 +46648,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -46288,6 +46748,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -46387,6 +46848,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -46486,6 +46948,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -46585,6 +47048,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -46684,6 +47148,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -46783,6 +47248,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -46882,6 +47348,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -46981,6 +47448,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -47080,6 +47548,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -47179,6 +47648,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -47278,6 +47748,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -47377,6 +47848,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -47476,6 +47948,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -47575,6 +48048,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -47728,6 +48202,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -47827,6 +48302,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -47926,6 +48402,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -48025,6 +48502,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -48124,6 +48602,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -48223,6 +48702,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -48322,6 +48802,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -48421,6 +48902,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -48520,6 +49002,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -48619,6 +49102,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -48718,6 +49202,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -48817,6 +49302,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -48916,6 +49402,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -49015,6 +49502,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -49114,6 +49602,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -49213,6 +49702,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -49312,6 +49802,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -49411,6 +49902,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -49510,6 +50002,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -49609,6 +50102,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -49708,6 +50202,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -49807,6 +50302,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -49906,6 +50402,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -50005,6 +50502,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -50104,6 +50602,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -50203,6 +50702,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -50302,6 +50802,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -50401,6 +50902,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -50500,6 +51002,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -50599,6 +51102,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -50698,6 +51202,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -50797,6 +51302,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -50896,6 +51402,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -50995,6 +51502,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -51094,6 +51602,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -51193,6 +51702,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -51292,6 +51802,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -51391,6 +51902,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -51490,6 +52002,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -51589,6 +52102,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -51688,6 +52202,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -51787,6 +52302,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -51886,6 +52402,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -51985,6 +52502,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -52084,6 +52602,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -52183,6 +52702,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -52282,6 +52802,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -52381,6 +52902,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -52480,6 +53002,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -52579,6 +53102,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -52678,6 +53202,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -52777,6 +53302,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -52876,6 +53402,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -52975,6 +53502,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -53074,6 +53602,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -53173,6 +53702,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -53272,6 +53802,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -53371,6 +53902,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -53470,6 +54002,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -53569,6 +54102,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -53668,6 +54202,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -53767,6 +54302,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -53866,6 +54402,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -53965,6 +54502,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -54064,6 +54602,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -54163,6 +54702,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -54262,6 +54802,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -54361,6 +54902,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -54460,6 +55002,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -54559,6 +55102,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -54658,6 +55202,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -54757,6 +55302,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -54856,6 +55402,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -54955,6 +55502,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -55054,6 +55602,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -55153,6 +55702,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -55252,6 +55802,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -55351,6 +55902,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -55450,6 +56002,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -55549,6 +56102,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -55648,6 +56202,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -55747,6 +56302,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -55846,6 +56402,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -55945,6 +56502,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -56044,6 +56602,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -56143,6 +56702,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -56242,6 +56802,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -56341,6 +56902,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -56440,6 +57002,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -56539,6 +57102,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -56638,6 +57202,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -56737,6 +57302,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -56836,6 +57402,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -56935,6 +57502,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -57034,6 +57602,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -57133,6 +57702,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -57232,6 +57802,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -57331,6 +57902,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -57430,6 +58002,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -57529,6 +58102,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -57628,6 +58202,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -57727,6 +58302,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -57826,6 +58402,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -57925,6 +58502,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -58024,6 +58602,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -58123,6 +58702,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -58222,6 +58802,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -58321,6 +58902,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -58420,6 +59002,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -58519,6 +59102,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -58618,6 +59202,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -58717,6 +59302,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -58816,6 +59402,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -58915,6 +59502,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -59014,6 +59602,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -59113,6 +59702,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -59212,6 +59802,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -59311,6 +59902,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -59410,6 +60002,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -59509,6 +60102,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -59608,6 +60202,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -59707,6 +60302,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -59806,6 +60402,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -59905,6 +60502,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -60004,6 +60602,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -61018,6 +61617,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -61117,6 +61717,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -61216,6 +61817,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -61315,6 +61917,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -61414,6 +62017,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -61513,6 +62117,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -61612,6 +62217,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -61711,6 +62317,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -61810,6 +62417,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -61909,6 +62517,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -62008,6 +62617,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -62107,6 +62717,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -62206,6 +62817,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -62305,6 +62917,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -62404,6 +63017,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -62503,6 +63117,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -62602,6 +63217,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -62701,6 +63317,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -62800,6 +63417,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -62899,6 +63517,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -62998,6 +63617,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -63097,6 +63717,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -63196,6 +63817,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -63295,6 +63917,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -63394,6 +64017,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -63493,6 +64117,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -63592,6 +64217,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -63691,6 +64317,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -63790,6 +64417,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -63889,6 +64517,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -63988,6 +64617,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -64087,6 +64717,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -64186,6 +64817,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -64285,6 +64917,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -64384,6 +65017,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -64483,6 +65117,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -64582,6 +65217,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -64681,6 +65317,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -64780,6 +65417,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -64879,6 +65517,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -64978,6 +65617,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -65077,6 +65717,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -65176,6 +65817,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -65275,6 +65917,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -65374,6 +66017,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -65473,6 +66117,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -65572,6 +66217,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -65671,6 +66317,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -65770,6 +66417,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -66006,6 +66654,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -66105,6 +66754,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -66204,6 +66854,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -66303,6 +66954,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -66402,6 +67054,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -66501,6 +67154,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -66600,6 +67254,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -66699,6 +67354,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -66798,6 +67454,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -66897,6 +67554,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -66996,6 +67654,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -67095,6 +67754,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -67194,6 +67854,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -67293,6 +67954,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -67392,6 +68054,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -67491,6 +68154,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -67590,6 +68254,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -67689,6 +68354,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -67788,6 +68454,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -67887,6 +68554,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -67986,6 +68654,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -68085,6 +68754,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -68184,6 +68854,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -68283,6 +68954,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -68382,6 +69054,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -68481,6 +69154,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -68580,6 +69254,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -68679,6 +69354,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -68778,6 +69454,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -68877,6 +69554,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -68976,6 +69654,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -69093,6 +69772,7 @@ MonoBehaviour:
     _id: 
     _characterTemplate: {fileID: 0}
     _meshRenderer: {fileID: 0}
+    _useBattleModel: 0
     _currentLevel: 0
     _currentExp: 0
     _runtimeBoundedStats: []
@@ -69125,6 +69805,7 @@ MonoBehaviour:
     _id: 
     _characterTemplate: {fileID: 0}
     _meshRenderer: {fileID: 0}
+    _useBattleModel: 0
     _currentLevel: 0
     _currentExp: 0
     _runtimeBoundedStats: []
@@ -69285,6 +69966,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -69384,6 +70066,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -69483,6 +70166,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -69582,6 +70266,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -69681,6 +70366,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -69780,6 +70466,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -69879,6 +70566,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -69978,6 +70666,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -70077,6 +70766,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -70176,6 +70866,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -70275,6 +70966,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -70374,6 +71066,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -70473,6 +71166,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -70572,6 +71266,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -70671,6 +71366,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -70770,6 +71466,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -70869,6 +71566,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -70968,6 +71666,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -71067,6 +71766,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -71166,6 +71866,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -71265,6 +71966,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -71364,6 +72066,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -71463,6 +72166,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -71562,6 +72266,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -71661,6 +72366,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -71760,6 +72466,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -71859,6 +72566,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -71958,6 +72666,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -72057,6 +72766,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -72156,6 +72866,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -72255,6 +72966,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -72354,6 +73066,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -72453,6 +73166,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -72552,6 +73266,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -72651,6 +73366,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -72784,6 +73500,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -72883,6 +73600,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -72982,6 +73700,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -73081,6 +73800,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -73180,6 +73900,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -73279,6 +74000,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -73378,6 +74100,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -73477,6 +74200,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -73576,6 +74300,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -73675,6 +74400,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -73774,6 +74500,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -73873,6 +74600,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -73972,6 +74700,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -74071,6 +74800,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -74170,6 +74900,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -74269,6 +75000,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -74368,6 +75100,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -74467,6 +75200,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -74566,6 +75300,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -74665,6 +75400,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -74764,6 +75500,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -74863,6 +75600,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -74962,6 +75700,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -75061,6 +75800,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -75160,6 +75900,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -75259,6 +76000,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -75358,6 +76100,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -75457,6 +76200,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -75556,6 +76300,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -75655,6 +76400,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -75754,6 +76500,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -75853,6 +76600,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -75952,6 +76700,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -76051,6 +76800,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -76150,6 +76900,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -76249,6 +77000,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -76348,6 +77100,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -76447,6 +77200,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -76546,6 +77300,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -76645,6 +77400,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -76744,6 +77500,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -76843,6 +77600,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -76942,6 +77700,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -77041,6 +77800,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -77140,6 +77900,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -77239,6 +78000,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -77338,6 +78100,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -77437,6 +78200,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -77536,6 +78300,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -77635,6 +78400,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -77734,6 +78500,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -77833,6 +78600,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -77932,6 +78700,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -78031,6 +78800,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -78130,6 +78900,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -78229,6 +79000,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -78328,6 +79100,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -78427,6 +79200,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -78526,6 +79300,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -78625,6 +79400,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -78724,6 +79500,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -78823,6 +79600,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -78922,6 +79700,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -79021,6 +79800,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -79120,6 +79900,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -79219,6 +80000,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -79318,6 +80100,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -79417,6 +80200,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -79516,6 +80300,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -79664,6 +80449,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -79763,6 +80549,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -79862,6 +80649,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -79961,6 +80749,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -80146,6 +80935,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -80245,6 +81035,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -80344,6 +81135,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -80443,6 +81235,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -80542,6 +81335,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -80641,6 +81435,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -80740,6 +81535,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -80839,6 +81635,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -80938,6 +81735,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -81037,6 +81835,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -81136,6 +81935,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -81235,6 +82035,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -81334,6 +82135,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -81433,6 +82235,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -81532,6 +82335,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -81631,6 +82435,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -81730,6 +82535,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -81829,6 +82635,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -81928,6 +82735,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -82027,6 +82835,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -82126,6 +82935,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -82225,6 +83035,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -82324,6 +83135,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -82423,6 +83235,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -82522,6 +83335,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -82621,6 +83435,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -82720,6 +83535,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -82819,6 +83635,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -82918,6 +83735,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -83017,6 +83835,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -83116,6 +83935,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -83215,6 +84035,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -83314,6 +84135,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -83413,6 +84235,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -83512,6 +84335,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -83611,6 +84435,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -83710,6 +84535,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -83809,6 +84635,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -83908,6 +84735,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -84007,6 +84835,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -84106,6 +84935,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -84205,6 +85035,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -84304,6 +85135,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -84403,6 +85235,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -84502,6 +85335,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -84601,6 +85435,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -84700,6 +85535,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -84799,6 +85635,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -84898,6 +85735,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -84997,6 +85835,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -85096,6 +85935,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -85195,6 +86035,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []
@@ -85294,6 +86135,7 @@ MonoBehaviour:
       _id: 
       _characterTemplate: {fileID: 0}
       _meshRenderer: {fileID: 0}
+      _useBattleModel: 0
       _currentLevel: 0
       _currentExp: 0
       _runtimeBoundedStats: []

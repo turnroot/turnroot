@@ -14,7 +14,7 @@ namespace Turnroot.Gameplay.Brain
             var className = classInst?.ClassData?.GetClassName() ?? "";
 
             var material = GetOrCreateMaterial(unit, className);
-            var renderers = GetRelevantRenderers(unit, classInst).ToArray();
+            var renderers = GetOutfitRenderers(unit, classInst).ToArray();
 
             if (renderers.Length == 0)
             {

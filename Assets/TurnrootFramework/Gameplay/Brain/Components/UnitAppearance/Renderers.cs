@@ -9,7 +9,25 @@ namespace Turnroot.Gameplay.Brain
 {
     public partial class UnitAppearanceBrain : BrainComponent
     {
-        private IEnumerable<SkinnedMeshRenderer> GetRelevantRenderers(
+        /// <summary>
+        /// Returns the renderers that should receive blendshape updates.
+        /// This intentionally includes only outfit renderers (class or non-battle outfit)
+        /// and excludes head/hands and hair so those parts remain unaffected by blendshapes.
+        /// </summary>
+        private IEnumerable<SkinnedMeshRenderer> GetBlendshapeRenderers(
+            CharacterInstance unit,
+            CharacterClassDataInstance classInst
+        )
+        {
+            // Reuse the outfit renderer collection so blendshapes only apply to outfits.
+            return GetOutfitRenderers(unit, classInst);
+        }
+
+        /// <summary>
+        /// Returns the renderers that should receive outfit materials (accent/skin colors).
+        /// This intentionally excludes head/hands and hair models so they remain un-tinted.
+        /// </summary>
+        private IEnumerable<SkinnedMeshRenderer> GetOutfitRenderers(
             CharacterInstance unit,
             CharacterClassDataInstance classInst
         )
@@ -18,9 +36,26 @@ namespace Turnroot.Gameplay.Brain
 
             if (unit?.Renderer != null)
             {
-                list.AddRange(
-                    unit.Renderer.gameObject.GetComponentsInChildren<SkinnedMeshRenderer>(true)
-                );
+                // Only include the primary renderer and its children (outfit-specific renderers).
+                // Exclude head/hair renderers which should not receive outfit materials.
+                var primary = unit.Renderer;
+                var pname = primary.gameObject.name ?? string.Empty;
+                if (!pname.StartsWith("HeadHands") && !pname.Equals("Hair"))
+                {
+                    list.Add(primary);
+                    foreach (
+                        var r in primary.gameObject.GetComponentsInChildren<SkinnedMeshRenderer>(
+                            true
+                        )
+                    )
+                    {
+                        var rn = r.gameObject.name ?? string.Empty;
+                        if (!rn.StartsWith("HeadHands") && !rn.Equals("Hair"))
+                        {
+                            list.Add(r);
+                        }
+                    }
+                }
             }
 
             if (classInst?.MeshRenderer != null && !list.Contains(classInst.MeshRenderer))
@@ -33,14 +68,20 @@ namespace Turnroot.Gameplay.Brain
 
         private SkinnedMeshRenderer CreateHeadMesh(CharacterInstance unit, GameObject parent)
         {
-            if (unit.CharacterTemplate.CharacterHeadHandsAndHair == null)
+            if (unit.CharacterTemplate.HeadAndHandsPrefab == null)
             {
                 return null;
             }
 
-            var obj = new GameObject("HeadHandsHair");
-            obj.transform.SetParent(parent.transform);
-            return CopyRenderer(obj, unit.CharacterTemplate.CharacterHeadHandsAndHair);
+            var instance = Object.Instantiate(
+                unit.CharacterTemplate.HeadAndHandsPrefab,
+                parent.transform
+            );
+            instance.name = "HeadHands";
+            TurnrootLogger.Log(
+                $"CreateHeadMesh: Instantiated head/hands prefab for {unit.CharacterTemplate?.DisplayName}"
+            );
+            return instance.GetComponentInChildren<SkinnedMeshRenderer>(true);
         }
 
         private SkinnedMeshRenderer CopyRenderer(GameObject target, SkinnedMeshRenderer source)

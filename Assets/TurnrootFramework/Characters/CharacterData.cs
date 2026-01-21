@@ -221,12 +221,16 @@ namespace Turnroot.Characters
         public Sprite[] Sprites { get; private set; }
 
         [field: Foldout("Visual"), SerializeField]
-        [Tooltip("Complete base model of the character without class-specific parts")]
-        public SkinnedMeshRenderer CharacterDefaultModel { get; private set; }
+        [Tooltip(
+            "Prefab containing head/hands mesh(s). Should contain a SkinnedMeshRenderer to be used for head/hands"
+        )]
+        public GameObject HeadAndHandsPrefab { get; private set; }
 
         [field: Foldout("Visual"), SerializeField]
-        [Tooltip("Parts of the character that are combined with a class model")]
-        public SkinnedMeshRenderer CharacterHeadHandsAndHair { get; private set; }
+        [Tooltip(
+            "Prefab containing hair mesh (SkinnedMeshRenderer). Used when classes opt to attach unit hair"
+        )]
+        public GameObject HairPrefab { get; private set; }
 
         [field: Foldout("Visual"), SerializeField]
         [Tooltip(

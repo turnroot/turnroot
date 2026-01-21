@@ -68,6 +68,10 @@ namespace Turnroot.Characters.CharacterClass
         [Tooltip("Visual and identity properties for this class")]
         public ClassIdentity Identity = new();
 
+        [Foldout("Identity")]
+        [Tooltip("If true, attach per-character hair model")]
+        public bool UseUnitHairOnModel = true;
+
         [Foldout("Stats"), HorizontalLine(color: EColor.Orange)]
         [Tooltip("Stat minimums, caps, bonuses, and growth rates")]
         public ClassStats Stats = new();
