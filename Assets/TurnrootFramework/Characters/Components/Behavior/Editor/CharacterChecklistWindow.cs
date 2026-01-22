@@ -230,6 +230,27 @@ namespace Turnroot.EditorTools
                 EditorGUILayout.EndHorizontal();
             }
 
+            // Bottom row: per-column Notes buttons (show aggregated notes in popup)
+            EditorGUILayout.BeginHorizontal();
+            GUILayout.Space(4);
+            for (int j = 0; j < visibleCharacters.Count; j++)
+            {
+                var ch = visibleCharacters[j];
+                EditorGUILayout.BeginVertical(GUILayout.Width(110), GUILayout.Height(22));
+                if (
+                    GUILayout.Button(
+                        new GUIContent("Notes", "Show all notes (most critical → least)"),
+                        GUILayout.Width(100),
+                        GUILayout.Height(20)
+                    )
+                )
+                {
+                    ShowNotesPopup(ch);
+                }
+                EditorGUILayout.EndVertical();
+            }
+            EditorGUILayout.EndHorizontal();
+
             EditorGUILayout.EndVertical();
 
             EditorGUILayout.EndHorizontal();
@@ -468,7 +489,10 @@ namespace Turnroot.EditorTools
                             r.Note = "Missing head & hands prefab";
                         }
                         else
+                        {
                             r.Color = green;
+                        }
+
                         return r;
                     }
                 )
@@ -487,7 +511,10 @@ namespace Turnroot.EditorTools
                             r.Note = "Missing hair prefab";
                         }
                         else
+                        {
                             r.Color = green;
+                        }
+
                         return r;
                     }
                 )
@@ -506,7 +533,10 @@ namespace Turnroot.EditorTools
                             r.Note = "No default portrait";
                         }
                         else
+                        {
                             r.Color = green;
+                        }
+
                         return r;
                     }
                 )
@@ -528,7 +558,10 @@ namespace Turnroot.EditorTools
                             r.Note = "No support relationships";
                         }
                         else
+                        {
                             r.Color = green;
+                        }
+
                         return r;
                     }
                 )
@@ -547,7 +580,10 @@ namespace Turnroot.EditorTools
                             r.Note = "Badge text or icon missing";
                         }
                         else
+                        {
                             r.Color = green;
+                        }
+
                         return r;
                     }
                 )
@@ -571,7 +607,9 @@ namespace Turnroot.EditorTools
                         bool boundedMatch = true;
                         bool unboundedMatch = true;
                         if (defBounded.Count != data.BoundedStats.Count)
+                        {
                             boundedMatch = false;
+                        }
                         else
                         {
                             foreach (var d in defBounded)
@@ -589,7 +627,9 @@ namespace Turnroot.EditorTools
                             }
                         }
                         if (defUnbounded.Count != data.UnboundedStats.Count)
+                        {
                             unboundedMatch = false;
+                        }
                         else
                         {
                             foreach (var d in defUnbounded)
@@ -612,7 +652,10 @@ namespace Turnroot.EditorTools
                             r.Note = "Stats equal defaults";
                         }
                         else
+                        {
                             r.Color = green;
+                        }
+
                         return r;
                     }
                 )
@@ -643,7 +686,10 @@ namespace Turnroot.EditorTools
                             r.Note = "Personal growth rates are zero";
                         }
                         else
+                        {
                             r.Color = green;
+                        }
+
                         return r;
                     }
                 )
@@ -915,6 +961,12 @@ namespace Turnroot.EditorTools
                 defaultScore++;
             }
 
+            if (data.DisplayName == data.FullName)
+            {
+                defaultScore++;
+                yellowNotes.Add("Display name matches full name (consider differentiating)");
+            }
+
             if (data.Sprites == null || data.Sprites.Length == 0)
             {
                 defaultScore++;
@@ -923,6 +975,7 @@ namespace Turnroot.EditorTools
             if (data.Portraits == null || data.Portraits.Count == 0)
             {
                 defaultScore++;
+                yellowNotes.Add("No portraits assigned (consider adding portraits)");
             }
 
             if (defaultScore >= 2)
@@ -977,6 +1030,32 @@ namespace Turnroot.EditorTools
             public List<string> Notes = new List<string>();
             public bool IsCritical = false;
             public List<Object> MissingPrefabs = new List<Object>();
+        }
+
+        private void ShowNotesPopup(CharacterData character)
+        {
+            var analysis = AnalyzeCharacter(character);
+            var title = $"{character.DisplayName ?? character.name} — {analysis.StatusLabel}";
+            if (analysis.Notes == null || analysis.Notes.Count == 0)
+            {
+                EditorUtility.DisplayDialog(title, "No issues found. Everything looks good.", "OK");
+                return;
+            }
+
+            // Notes are aggregated critical -> warn -> yellow in AnalyzeCharacter, show them in that order.
+            var msg = string.Join("\n", analysis.Notes.Select(n => $"- {n}"));
+            if (analysis.MissingPrefabs != null && analysis.MissingPrefabs.Count > 0)
+            {
+                msg =
+                    msg
+                    + "\n\nMissing prefabs: "
+                    + string.Join(
+                        ", ",
+                        analysis.MissingPrefabs.Select(o => o.name ?? o.ToString())
+                    );
+            }
+
+            EditorUtility.DisplayDialog(title, msg, "OK");
         }
     }
 }
