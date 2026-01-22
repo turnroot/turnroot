@@ -68,7 +68,7 @@ namespace Turnroot.Gameplay.Brain
 
         private Dictionary<ObjectItem, int> _materials = new();
 
-        [SerializeField, HideInInspector]
+        [HideInInspector]
         private int PlayerGold { get; set; } = 0;
 
         [HideInInspector]

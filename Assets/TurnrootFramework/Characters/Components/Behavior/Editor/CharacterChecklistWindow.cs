@@ -344,7 +344,7 @@ namespace Turnroot.EditorTools
             _checks.Clear();
             // Helper color constants
             var red = Color.red;
-            var orange = new Color(1f, 0.6f, 0f);
+            var orange = new Color(1f, 0.5f, 0f);
             var yellow = Color.yellow;
             var green = Color.green;
 

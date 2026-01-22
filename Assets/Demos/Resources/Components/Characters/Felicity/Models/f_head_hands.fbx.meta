@@ -1,7 +1,7 @@
 fileFormatVersion: 2
 guid: a147728d62780f6438ddb1a09350cd09
 ModelImporter:
-  serializedVersion: 22200
+  serializedVersion: 24200
   internalIDToNameTable: []
   externalObjects:
   - first:
@@ -9,6 +9,11 @@ ModelImporter:
       assembly: UnityEngine.CoreModule
       name: felicity_body
     second: {fileID: 2100000, guid: 449de0a4406df9246a08001369799a38, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: felicity_eyes
+    second: {fileID: 2100000, guid: b7bf6f4fc0ee4684b91052939686699a, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0
@@ -61,6 +66,9 @@ ModelImporter:
     maxBonesPerVertex: 4
     minBoneWeight: 0.001
     optimizeBones: 1
+    generateMeshLods: 0
+    meshLodGenerationFlags: 0
+    maximumMeshLod: -1
     meshOptimizationFlags: -1
     indexFormat: 0
     secondaryUVAngleDistortion: 8
