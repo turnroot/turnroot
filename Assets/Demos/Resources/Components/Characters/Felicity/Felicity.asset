@@ -26,7 +26,7 @@ MonoBehaviour:
   <Height>k__BackingField: 156
   <BirthdayDay>k__BackingField: 5
   <BirthdayMonth>k__BackingField: 12
-  <Species>k__BackingField: {fileID: 0}
+  <Species>k__BackingField: {fileID: 11400000, guid: 6b6a40766f8c5d843ba98e8e51603c6e, type: 2}
   <ShortDescription>k__BackingField: 
   <Likes>k__BackingField:
   - Octopi
@@ -40,7 +40,13 @@ MonoBehaviour:
   <CanSSupport>k__BackingField: 1
   <CanSSupportAvatar>k__BackingField: 1
   <IsRecruitable>k__BackingField: 0
-  <IsUnique>k__BackingField: 0
+  <RequiresMinSupportLevel>k__BackingField: 1
+  <SupportRelationshipMinRank>k__BackingField:
+    _value: E
+  <UseRecruitmentChance>k__BackingField: 1
+  <RecruitmentChance>k__BackingField: 25
+  <RecruitmentChanceIncreasePerConversation>k__BackingField: 15
+  <IsUnique>k__BackingField: 1
   <StartingClass>k__BackingField: {fileID: 11400000, guid: c3c5e862da233c24ca2f3019a280df42, type: 2}
   <BadgeText>k__BackingField: Fishing Guild
   <BadgeIcon>k__BackingField: {fileID: 21300000, guid: 9f2c2612454aeb040bb1ab262a1e7c5f, type: 3}
@@ -59,8 +65,9 @@ MonoBehaviour:
     _keys: []
     _values: []
   <Sprites>k__BackingField: []
-  <CharacterDefaultModel>k__BackingField: {fileID: 0}
-  <CharacterHeadHandsAndHair>k__BackingField: {fileID: 0}
+  <HeadAndHandsPrefab>k__BackingField: {fileID: 3543047472321258223, guid: 629a90daf18e7c841a080be4f2e74842, type: 3}
+  <HairPrefab>k__BackingField: {fileID: 4682962753272150353, guid: 075bbe65445b1ab4f8d8ccda0e63ad31, type: 3}
+  <NonBattleOutfitPrefab>k__BackingField: {fileID: 4517500799786329980, guid: bb19045ff93efe64ba934bb1c87e31ee, type: 3}
   <HasExtraBoneLayer>k__BackingField: 0
   <CustomAvatar>k__BackingField: {fileID: 0}
   <AdditionalBonesMask>k__BackingField: {fileID: 0}

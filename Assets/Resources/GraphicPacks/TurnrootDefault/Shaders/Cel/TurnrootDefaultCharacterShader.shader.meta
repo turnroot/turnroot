@@ -1,0 +1,19 @@
+fileFormatVersion: 2
+guid: 3fbff0cf306f16e438a583391308232a
+ShaderImporter:
+  externalObjects: {}
+  defaultTextures:
+  - _normal_map: {instanceID: 0}
+  - _BaseTex: {instanceID: 0}
+  - _BuffTex: {instanceID: 0}
+  - _BuffTex_switch: {instanceID: 0}
+  - _matcap: {instanceID: 0}
+  - _special_buff_switch: {instanceID: 0}
+  - _Emissive_Tex: {instanceID: 0}
+  - _dissolve: {instanceID: 0}
+  - _texcoord: {instanceID: 0}
+  nonModifiableTextures: []
+  preprocessorOverride: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

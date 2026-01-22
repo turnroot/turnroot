@@ -100,6 +100,15 @@ namespace Turnroot.Characters
         [SerializeField]
         private SkinnedMeshRenderer _meshRenderer;
 
+        [SerializeField]
+        private bool _useBattleModel = true;
+
+        /// <summary>
+        /// Whether this instance prefers the battle model (class outfit) or the non-battle model (character outfit).
+        /// Default is true for backwards compatibility.
+        /// </summary>
+        public bool UseBattleModel => _useBattleModel;
+
         /// <summary>
         /// Renderer used to display this character's model. Should be set when the character is spawned.
         /// </summary>
@@ -192,10 +201,11 @@ namespace Turnroot.Characters
         /// </summary>
         // Make constructor non-public to encourage using CharacterInstance.Create which
         // enforces uniqueness for templates with IsUnique.
-        internal CharacterInstance(CharacterData template)
+        internal CharacterInstance(CharacterData template, bool useBattleModel = true)
         {
             _characterTemplate = template;
             _id = GenerateId(template);
+            _useBattleModel = useBattleModel;
             Initialize();
         }
 
@@ -226,7 +236,7 @@ namespace Turnroot.Characters
         /// this returns the previously registered instance for that template if available.
         /// Otherwise it constructs, registers (if unique) and returns a new instance.
         /// </summary>
-        public static CharacterInstance Create(CharacterData template)
+        public static CharacterInstance Create(CharacterData template, bool useBattleModel = true)
         {
             if (template == null)
             {
@@ -242,7 +252,7 @@ namespace Turnroot.Characters
                 }
             }
 
-            var instance = new CharacterInstance(template);
+            var instance = new CharacterInstance(template, useBattleModel);
 
             if (template.IsUnique)
             {

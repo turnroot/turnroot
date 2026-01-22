@@ -61,13 +61,13 @@
         "*.asset": "yaml",
         "*.meta": "yaml",
         "*.prefab": "yaml",
-        "*.unity": "yaml",
+        "*.unity": "yaml"
     },
     "explorer.fileNesting.enabled": true,
     "explorer.fileNesting.patterns": {
-        "*.sln": "*.csproj",
+        "*.sln": "*.csproj"
     },
-    "dotnet.defaultSolution": "fe-prototyping.sln",
+    "dotnet.defaultSolution": "fe-prototyping.slnx",
     "folder-customization.folders": [
         {
             "path": "fe-prototyping\\Assets\\TurnrootFramework\\Conversations\\",

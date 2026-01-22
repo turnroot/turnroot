@@ -38,91 +38,59 @@ namespace Turnroot.Gameplay.Objects
         [TextArea, Foldout("Identity"), SerializeField]
         private string _flavorText = "A new item";
 
-        [Foldout("Identity"), SerializeField, ShowIf(nameof(IsWeaponOrMagicSubtype))]
-        private bool _isUnequippable = true;
+        [field: Foldout("Pricing"), SerializeField, HorizontalLine(color: EColor.Gray)]
+        public int BasePrice { get; } = 100;
 
-        [Foldout("Type"), SerializeField, HorizontalLine(color: EColor.Blue)]
-        private ObjectSubtype _subtype = new(ObjectSubtype.Weapon);
+        [field: Foldout("Pricing"), SerializeField]
+        public bool Sellable { get; } = true;
 
-        [Foldout("Type"), SerializeField, ShowIf(nameof(IsEquipableSubtype))]
-        private EquipableObjectType _equipableType;
+        [field: Foldout("Pricing"), SerializeField]
+        public bool Buyable { get; } = true;
 
-        [Foldout("Type"), SerializeField, ShowIf(nameof(IsWeaponSubtype))]
-        private WeaponType _weaponType;
+        [field: Foldout("Pricing"), SerializeField]
+        public int SellPriceDeductedPerUse { get; } = 2;
 
-        [Foldout("Pricing"), SerializeField, HorizontalLine(color: EColor.Gray)]
-        private int _basePrice = 100;
-
-        public int BasePrice => _basePrice;
-
-        [Foldout("Pricing"), SerializeField]
-        private bool _sellable = true;
-
-        public bool Sellable => _sellable;
-
-        [Foldout("Pricing"), SerializeField]
-        private bool _buyable = true;
-
-        public bool Buyable => _buyable;
-
-        [Foldout("Pricing"), SerializeField]
-        private int _sellPriceDeductedPerUse = 2;
-
-        public int SellPriceDeductedPerUse => _sellPriceDeductedPerUse;
-
-        [
+        [field:
             Foldout("Repair"),
             SerializeField,
             HorizontalLine(color: EColor.Green),
             ShowIf(nameof(IsWeaponOrMagicSubtype))
         ]
-        private bool _repairable = true;
-
-        public bool Repairable => _repairable;
+        public bool Repairable { get; private set; } = true;
 
         [Foldout("Repair"), SerializeField, ShowIf(nameof(IsWeaponOrMagicSubtypeAndIsRepairable))]
         private int _repairPricePerUse = 10;
 
-        [Foldout("Repair"), SerializeField, ShowIf(nameof(IsWeaponOrMagicSubtypeAndIsRepairable))]
-        private bool _repairNeedsItems = true;
+        [field:
+            Foldout("Repair"),
+            SerializeField,
+            ShowIf(nameof(IsWeaponOrMagicSubtypeAndIsRepairable))
+        ]
+        public bool RepairNeedsItems { get; } = true;
 
-        public bool RepairNeedsItems => _repairNeedsItems;
-
-        [
+        [field:
             Foldout("Repair"),
             SerializeField,
             ShowIf(nameof(IsWeaponOrMagicSubtypeAndIsRepairableAndNeedsItems))
         ]
-        private ObjectItem _repairItem;
+        public ObjectItem RepairItem { get; }
 
-        public ObjectItem RepairItem => _repairItem;
-
-        [
+        [field:
             Foldout("Repair"),
             SerializeField,
             ShowIf(nameof(IsWeaponOrMagicSubtypeAndIsRepairableAndNeedsItems))
         ]
-        private int _repairItemAmountPerUse = 1;
+        public int RepairItemAmountPerUse { get; } = 1;
 
-        public int RepairItemAmountPerUse => _repairItemAmountPerUse;
+        [field: Foldout("Repair"), SerializeField, ShowIf(nameof(IsWeaponOrMagicSubtype))]
+        public bool Forgeable { get; private set; } = false;
 
-        [Foldout("Repair"), SerializeField, ShowIf(nameof(IsWeaponOrMagicSubtype))]
-        private bool _forgeable = false;
-
-        public bool Forgeable => _forgeable;
-
-        [Foldout("Repair"), SerializeField, ShowIf(nameof(IsWeaponOrMagicSubtypeAndIsForgeable))]
-        private ForgeOption[] _forgeOptions;
-
-        public ForgeOption[] ForgeOptions => _forgeOptions;
-
-        [
-            Foldout("Lost Items"),
+        [field:
+            Foldout("Repair"),
             SerializeField,
-            HorizontalLine(color: EColor.White),
-            ShowIf(nameof(IsLostItemSubtype))
+            ShowIf(nameof(IsWeaponOrMagicSubtypeAndIsForgeable))
         ]
-        private CharacterData _belongsTo;
+        public ForgeOption[] ForgeOptions { get; }
 
         [
             SerializeField,
@@ -138,19 +106,16 @@ namespace Turnroot.Gameplay.Objects
         [Foldout("Gift"), SerializeField, ShowIf(nameof(IsGiftSubtype))]
         private CharacterData[] _unitsHate;
 
-        [
+        [field:
             Foldout("Range"),
             SerializeField,
             HorizontalLine(color: EColor.Orange),
             ShowIf(nameof(IsWeaponOrMagicOrStaffSubtype))
         ]
-        private int _lowerRange = 0;
+        public int LowerRange { get; } = 0;
 
-        [Foldout("Range"), SerializeField, ShowIf(nameof(IsWeaponOrMagicOrStaffSubtype))]
-        private int _upperRange = 0;
-
-        public int LowerRange => _lowerRange;
-        public int UpperRange => _upperRange;
+        [field: Foldout("Range"), SerializeField, ShowIf(nameof(IsWeaponOrMagicOrStaffSubtype))]
+        public int UpperRange { get; } = 0;
 
         [Foldout("Range"), SerializeField, ShowIf(nameof(IsWeaponOrMagicOrStaffSubtype))]
         private bool _rangeAdjustedByStat = false;
@@ -169,24 +134,21 @@ namespace Turnroot.Gameplay.Objects
         ]
         private int _rangeAdjustedByStatAmount = 0;
 
-        [
+        [field:
             Foldout("Durability"),
             HideInInspector,
             ShowIf(nameof(IsWeaponOrMagicSubtype)),
             HorizontalLine(color: EColor.Pink)
         ]
-        private bool _durability = true;
-
         [HideInInspector]
-        public bool Durability => _durability;
+        public bool Durability { get; private set; } = true;
 
-        [
+        [field:
             Foldout("Durability"),
             SerializeField,
             ShowIf(nameof(IsWeaponOrMagicSubtypeAndIsDurability))
         ]
-        private int _maxUses = 100;
-        public int MaxUses => _maxUses;
+        public int MaxUses { get; } = 100;
 
         [
             Foldout("Durability"),
@@ -202,45 +164,28 @@ namespace Turnroot.Gameplay.Objects
         ]
         private ReplenishUseType _replenishUsesAfterBattleAmount = ReplenishUseType.None;
 
-        [
-            Foldout("Combat"),
-            SerializeField,
-            HorizontalLine(color: EColor.Red),
-            ShowIf(nameof(IsWeaponOrMagicSubtype))
-        ]
-        private float _weight = 1.0f;
-
-        [Foldout("Combat"), SerializeField, ShowIf(nameof(IsWeaponOrMagicSubtype))]
-        private float _might = 0f;
-
-        [Foldout("Combat"), SerializeField, ShowIf(nameof(IsWeaponOrMagicSubtype))]
-        private float _hit = 0f;
-
-        [Foldout("Combat"), SerializeField, ShowIf(nameof(IsWeaponOrMagicSubtype))]
-        private float _critical = 0f;
-
-        [Foldout("Combat"), SerializeField, ShowIf(nameof(IsWeaponOrMagicSubtype))]
-        private SpeciesType[] _speciesEffectiveAgainst = new SpeciesType[0];
-
-        [Foldout("Combat"), SerializeField, ShowIf(nameof(IsWeaponOrMagicSubtype))]
-        private WeaponType[] _weaponTypesEffectiveAgainst = new WeaponType[0];
-
         // Public getters for effectiveness criteria
-        public SpeciesType[] SpeciesEffectiveAgainst => _speciesEffectiveAgainst;
-        public WeaponType[] WeaponTypesEffectiveAgainst => _weaponTypesEffectiveAgainst;
+        [field: Foldout("Combat"), SerializeField, ShowIf(nameof(IsWeaponOrMagicSubtype))]
+        public SpeciesType[] SpeciesEffectiveAgainst { get; } = new SpeciesType[0];
 
-        [Foldout("Combat"), SerializeField, ShowIf(nameof(IsWeaponOrMagicSubtype))]
-        private SerializableDictionary<UnboundedStatType, float> _StatBonuses = new();
+        [field: Foldout("Combat"), SerializeField, ShowIf(nameof(IsWeaponOrMagicSubtype))]
+        public WeaponType[] WeaponTypesEffectiveAgainst { get; } = new WeaponType[0];
 
         [Foldout("Combat"), SerializeField, ShowIf(nameof(IsWeaponOrMagicSubtype))]
         private Skill _weaponEffect;
 
-        public SerializableDictionary<UnboundedStatType, float> StatBonuses => _StatBonuses;
+        [field: Foldout("Combat"), SerializeField, ShowIf(nameof(IsWeaponOrMagicSubtype))]
+        public SerializableDictionary<UnboundedStatType, float> StatBonuses { get; } = new();
 
         // Expose combat values for use by damage calculator
-        public float Might => _might;
-        public float Hit => _hit;
-        public float Critical => _critical;
+        [field: Foldout("Combat"), SerializeField, ShowIf(nameof(IsWeaponOrMagicSubtype))]
+        public float Might { get; } = 0f;
+
+        [field: Foldout("Combat"), SerializeField, ShowIf(nameof(IsWeaponOrMagicSubtype))]
+        public float Hit { get; } = 0f;
+
+        [field: Foldout("Combat"), SerializeField, ShowIf(nameof(IsWeaponOrMagicSubtype))]
+        public float Critical { get; } = 0f;
 
         [
             Foldout("Aptitude"),
@@ -258,62 +203,78 @@ namespace Turnroot.Gameplay.Objects
                 return;
             }
 
-            _durability = settings.GetWeaponsHaveDurability();
-            _repairable = settings.GetWeaponsCanBeRepaired();
-            _forgeable = settings.GetWeaponsCanBeForged();
+            Durability = settings.GetWeaponsHaveDurability();
+            Repairable = settings.GetWeaponsCanBeRepaired();
+            Forgeable = settings.GetWeaponsCanBeForged();
         }
 
         private void OnEnable() => ApplyGameplayDefaultsFromSettings();
 
         private void OnValidate() => ApplyGameplayDefaultsFromSettings();
 
-        public CharacterData BelongsTo => _belongsTo;
+        [field:
+            Foldout("Lost Items"),
+            SerializeField,
+            HorizontalLine(color: EColor.White),
+            ShowIf(nameof(IsLostItemSubtype))
+        ]
+        public CharacterData BelongsTo { get; }
 
-        public float Weight => _weight;
+        [field:
+            Foldout("Combat"),
+            SerializeField,
+            HorizontalLine(color: EColor.Red),
+            ShowIf(nameof(IsWeaponOrMagicSubtype))
+        ]
+        public float Weight { get; } = 1.0f;
 
-        public ObjectSubtype Subtype => _subtype;
+        [field: Foldout("Type"), SerializeField, HorizontalLine(color: EColor.Blue)]
+        public ObjectSubtype Subtype { get; } = new(ObjectSubtype.Weapon);
 
-        public WeaponType WeaponType => _weaponType;
+        [field: Foldout("Type"), SerializeField, ShowIf(nameof(IsWeaponSubtype))]
+        public WeaponType WeaponType { get; }
 
-        public bool IsUnequippable => _isUnequippable;
+        [field: Foldout("Identity"), SerializeField, ShowIf(nameof(IsWeaponOrMagicSubtype))]
+        public bool IsUnequippable { get; } = true;
 
         public bool IsEquippable =>
-            _subtype == ObjectSubtype.Weapon || _subtype == ObjectSubtype.Equipable;
+            Subtype == ObjectSubtype.Weapon || Subtype == ObjectSubtype.Equipable;
 
-        public EquipableObjectType EquipableType => _equipableType;
+        [field: Foldout("Type"), SerializeField, ShowIf(nameof(IsEquipableSubtype))]
+        public EquipableObjectType EquipableType { get; }
 
         /* --------------- Helper methods for NaughtyAttributes ShowIf -------------- */
-        private bool IsEquipableSubtype() => _subtype == ObjectSubtype.Equipable;
+        private bool IsEquipableSubtype() => Subtype == ObjectSubtype.Equipable;
 
-        private bool IsWeaponSubtype() => _subtype == ObjectSubtype.Weapon;
+        private bool IsWeaponSubtype() => Subtype == ObjectSubtype.Weapon;
 
         private bool IsWeaponOrMagicSubtype() =>
-            _subtype == new ObjectSubtype(ObjectSubtype.Weapon)
-            || _subtype == new ObjectSubtype(ObjectSubtype.Magic);
+            Subtype == new ObjectSubtype(ObjectSubtype.Weapon)
+            || Subtype == new ObjectSubtype(ObjectSubtype.Magic);
 
         private bool IsWeaponOrMagicOrStaffSubtype() =>
-            IsWeaponOrMagicSubtype() || _equipableType == EquipableObjectType.Staff;
+            IsWeaponOrMagicSubtype() || EquipableType == EquipableObjectType.Staff;
 
-        private bool IsLostItemSubtype() => _subtype == ObjectSubtype.LostItem;
+        private bool IsLostItemSubtype() => Subtype == ObjectSubtype.LostItem;
 
-        private bool IsGiftSubtype() => _subtype == ObjectSubtype.Gift;
+        private bool IsGiftSubtype() => Subtype == ObjectSubtype.Gift;
 
         private bool IsWeaponOrMagicSubtypeAndIsDurability() =>
-            IsWeaponOrMagicSubtype() && _durability;
+            IsWeaponOrMagicSubtype() && Durability;
 
         private bool IsWeaponOrMagicOrStaffSubtypeAndIsRangeAdjusted() =>
             IsWeaponOrMagicOrStaffSubtype() && _rangeAdjustedByStat;
 
         private bool IsWeaponOrMagicSubtypeAndIsRepairable() =>
-            IsWeaponOrMagicSubtype() && _repairable;
+            IsWeaponOrMagicSubtype() && Repairable;
 
         private bool IsWeaponOrMagicSubtypeAndIsRepairableAndNeedsItems() =>
-            IsWeaponOrMagicSubtypeAndIsRepairable() && _repairNeedsItems;
+            IsWeaponOrMagicSubtypeAndIsRepairable() && RepairNeedsItems;
 
         private bool IsWeaponOrMagicSubtypeAndIsForgeable() =>
-            IsWeaponOrMagicSubtype() && _forgeable;
+            IsWeaponOrMagicSubtype() && Forgeable;
 
         private bool IsDurabilityAndIsReplenishUsesAfterBattle() =>
-            _replenishUsesAfterBattle && _durability;
+            _replenishUsesAfterBattle && Durability;
     }
 }
