@@ -36,13 +36,24 @@ namespace Turnroot.Gameplay.Brain
 
             if (unit?.Renderer != null)
             {
-                // Only include the primary renderer and its children (outfit-specific renderers).
-                // Exclude head/hair renderers which should not receive outfit materials.
+                // Prefer collecting all skinned renderers under the model root so outfits
+                // composed of multiple SMRs are fully included. Exclude head/hands and hair.
                 var primary = unit.Renderer;
-                var pname = primary.gameObject.name ?? string.Empty;
-                if (!pname.StartsWith("HeadHands") && !pname.Equals("Hair"))
+                var root = primary.gameObject.transform.parent;
+                if (root != null)
                 {
-                    list.Add(primary);
+                    foreach (var r in root.GetComponentsInChildren<SkinnedMeshRenderer>(true))
+                    {
+                        var rn = r.gameObject.name ?? string.Empty;
+                        if (!rn.StartsWith("HeadHands") && !rn.Equals("Hair"))
+                        {
+                            list.Add(r);
+                        }
+                    }
+                }
+                else
+                {
+                    // Fallback to primary's children if root is missing
                     foreach (
                         var r in primary.gameObject.GetComponentsInChildren<SkinnedMeshRenderer>(
                             true

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Turnroot.Characters.CharacterClass;
 using Turnroot.Characters.Components.Support;
 using Turnroot.Characters.Stats;
@@ -228,22 +229,52 @@ namespace Turnroot.Characters
             if (propertyName == nameof(NonBattleOutfitPrefab))
             {
                 var required = Blendshapes.BlendshapeNames;
-                var missing = new List<string>();
-                if (required != null)
+                var missingAny = new List<string>();
+                var smrs = prefab.GetComponentsInChildren<SkinnedMeshRenderer>(true);
+                if (smrs == null || smrs.Length == 0)
                 {
-                    foreach (var name in required)
+                    Debug.LogError(
+                        $"{name}: Assigned NonBattleOutfitPrefab '{prefab.name}' contains no SkinnedMeshRenderer. Clearing assignment."
+                    );
+                    NonBattleOutfitPrefab = null;
+                    return;
+                }
+
+                foreach (var childSmr in smrs)
+                {
+                    var m = childSmr.sharedMesh;
+                    if (m == null)
                     {
-                        if (mesh.GetBlendShapeIndex(name) < 0)
+                        Debug.LogError(
+                            $"{name}: NonBattleOutfitPrefab '{prefab.name}' contains a SkinnedMeshRenderer with no sharedMesh. Clearing assignment."
+                        );
+                        NonBattleOutfitPrefab = null;
+                        return;
+                    }
+
+                    if (required != null)
+                    {
+                        var missing = new List<string>();
+                        foreach (var n in required)
                         {
-                            missing.Add(name);
+                            if (m.GetBlendShapeIndex(n) < 0)
+                            {
+                                missing.Add(n);
+                            }
+                        }
+                        if (missing.Count > 0)
+                        {
+                            missingAny.AddRange(
+                                missing.Select(x => $"{childSmr.gameObject.name}:{x}")
+                            );
                         }
                     }
                 }
 
-                if (missing.Count > 0)
+                if (missingAny.Count > 0)
                 {
                     Debug.LogError(
-                        $"{name}: Assigned {propertyName} prefab '{prefab.name}' is missing blendshapes: {string.Join(", ", missing)}. Clearing assignment."
+                        $"{name}: Assigned {propertyName} prefab '{prefab.name}' is missing blendshapes on submeshes: {string.Join(", ", missingAny)}. Clearing assignment."
                     );
                     NonBattleOutfitPrefab = null;
                 }

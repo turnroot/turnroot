@@ -422,8 +422,8 @@ namespace Turnroot.Characters.CharacterClass
             if (Identity.ClassModelPrefab != null)
             {
                 var prefab = Identity.ClassModelPrefab;
-                var smr = prefab.GetComponentInChildren<SkinnedMeshRenderer>(true);
-                if (smr == null)
+                var smrs = prefab.GetComponentsInChildren<SkinnedMeshRenderer>(true);
+                if (smrs == null || smrs.Length == 0)
                 {
                     TurnrootLogger.Log(
                         $"{name}: ClassModelPrefab '{prefab.name}' does not contain a SkinnedMeshRenderer. Clearing assignment.",
@@ -435,11 +435,22 @@ namespace Turnroot.Characters.CharacterClass
                 }
                 else
                 {
-                    var missing = ValidateMesh(smr.sharedMesh, $"ClassModelPrefab '{prefab.name}'");
-                    if (missing.Count > 0)
+                    var missingAny = new List<string>();
+                    foreach (var smr in smrs)
+                    {
+                        var missing = ValidateMesh(
+                            smr.sharedMesh,
+                            $"ClassModelPrefab '{prefab.name}' - {smr.gameObject.name}"
+                        );
+                        if (missing.Count > 0)
+                        {
+                            missingAny.AddRange(missing);
+                        }
+                    }
+                    if (missingAny.Count > 0)
                     {
                         TurnrootLogger.Log(
-                            $"{name}: ClassModelPrefab '{prefab.name}' is missing required blendshapes. Clearing assignment.",
+                            $"{name}: ClassModelPrefab '{prefab.name}' is missing required blendshapes on submeshes: {string.Join(", ", missingAny)}. Clearing assignment.",
                             TurnrootLogger.LogLevel.Error
                         );
                         UnityEditor.Undo.RecordObject(this, "Clear invalid ClassModelPrefab");

@@ -14,6 +14,10 @@ namespace Turnroot.EditorTools
         private List<CharacterData> _characters = new List<CharacterData>();
         private string _statusMessage = "";
 
+        // UI filters
+        private bool _filterUniqueOnly = true;
+        private bool _filterOnlyWarnOrCritical = false;
+
         [MenuItem("Turnroot/Checklists/Character Checklist")]
         public static void ShowWindow()
         {
@@ -37,6 +41,30 @@ namespace Turnroot.EditorTools
             {
                 Refresh();
             }
+
+            // Filters
+            EditorGUILayout.EndHorizontal();
+            EditorGUILayout.BeginHorizontal();
+            var newUnique = EditorGUILayout.ToggleLeft(
+                "Only IsUnique",
+                _filterUniqueOnly,
+                GUILayout.Width(140)
+            );
+            var newSeverity = EditorGUILayout.ToggleLeft(
+                "Only Orange/Red",
+                _filterOnlyWarnOrCritical,
+                GUILayout.Width(150)
+            );
+            if (newUnique != _filterUniqueOnly || newSeverity != _filterOnlyWarnOrCritical)
+            {
+                _filterUniqueOnly = newUnique;
+                _filterOnlyWarnOrCritical = newSeverity;
+                // Clear selection on filter change
+                _selectedCheckIndex = -1;
+                _selectedCharacterIndex = -1;
+                _statusMessage = "Filters updated";
+            }
+            GUILayout.FlexibleSpace();
             EditorGUILayout.EndHorizontal();
 
             EditorGUILayout.Space();
@@ -54,9 +82,26 @@ namespace Turnroot.EditorTools
             {
                 var chk = _checks[_selectedCheckIndex];
                 GUILayout.Label($"Selected check: {chk.Label}", EditorStyles.boldLabel);
-                if (_selectedCharacterIndex >= 0 && _selectedCharacterIndex < _characters.Count)
+                // Recompute visible characters so selection maps correctly when filters change
+                var visibleCharacters = _characters
+                    .Where(c => (!_filterUniqueOnly || c.IsUnique))
+                    .ToList();
+                if (_filterOnlyWarnOrCritical)
                 {
-                    var character = _characters[_selectedCharacterIndex];
+                    visibleCharacters = visibleCharacters
+                        .Where(c =>
+                        {
+                            var a = AnalyzeCharacter(c);
+                            return a.StatusLabel == "CRITICAL" || a.StatusLabel == "WARN";
+                        })
+                        .ToList();
+                }
+                if (
+                    _selectedCharacterIndex >= 0
+                    && _selectedCharacterIndex < visibleCharacters.Count
+                )
+                {
+                    var character = visibleCharacters[_selectedCharacterIndex];
                     var res = chk.Evaluator(character);
                     EditorGUILayout.HelpBox(res.Note ?? "", MessageType.None);
                     EditorGUILayout.BeginHorizontal();
@@ -123,11 +168,26 @@ namespace Turnroot.EditorTools
             }
             EditorGUILayout.EndVertical();
 
+            // Build filtered character list according to toggles
+            var visibleCharacters = _characters
+                .Where(c => (!_filterUniqueOnly || c.IsUnique))
+                .ToList();
+            if (_filterOnlyWarnOrCritical)
+            {
+                visibleCharacters = visibleCharacters
+                    .Where(c =>
+                    {
+                        var a = AnalyzeCharacter(c);
+                        return a.StatusLabel == "CRITICAL" || a.StatusLabel == "WARN";
+                    })
+                    .ToList();
+            }
+
             // Character columns
             EditorGUILayout.BeginVertical();
             // Header row with character names
             EditorGUILayout.BeginHorizontal();
-            foreach (var c in _characters)
+            foreach (var c in visibleCharacters)
             {
                 var analysis = AnalyzeCharacter(c);
                 EditorGUILayout.BeginVertical(GUILayout.Width(110));
@@ -146,9 +206,9 @@ namespace Turnroot.EditorTools
                 var check = _checks[i];
                 EditorGUILayout.BeginHorizontal();
                 GUILayout.Space(4);
-                for (int j = 0; j < _characters.Count; j++)
+                for (int j = 0; j < visibleCharacters.Count; j++)
                 {
-                    var ch = _characters[j];
+                    var ch = visibleCharacters[j];
                     var res = check.Evaluator(ch);
 
                     EditorGUILayout.BeginVertical(GUILayout.Width(110), GUILayout.Height(22));
@@ -349,38 +409,43 @@ namespace Turnroot.EditorTools
                             r.Note = "Missing NonBattleOutfitPrefab";
                             return r;
                         }
-                        var smr =
-                            data.NonBattleOutfitPrefab.GetComponentInChildren<SkinnedMeshRenderer>(
+                        var smrs =
+                            data.NonBattleOutfitPrefab.GetComponentsInChildren<SkinnedMeshRenderer>(
                                 true
                             );
-                        if (smr == null)
+                        if (smrs == null || smrs.Length == 0)
                         {
                             r.Color = red;
-                            r.Note = "NonBattleOutfitPrefab missing SkinnedMeshRenderer";
+                            r.Note = "NonBattleOutfitPrefab contains no SkinnedMeshRenderer";
                             return r;
                         }
-                        var mesh = smr.sharedMesh;
-                        if (mesh == null)
-                        {
-                            r.Color = red;
-                            r.Note = "NonBattleOutfitPrefab missing sharedMesh";
-                            return r;
-                        }
-                        // If character defines blendshapes, ensure mesh contains them
+
+                        // If character defines blendshapes, ensure all submeshes contain them and have sharedMesh
                         var sb = data.Blendshapes.BlendshapeNames;
                         if (sb != null && sb.Length > 0)
                         {
-                            var missing = new System.Collections.Generic.List<string>();
-                            foreach (var b in sb)
+                            var missingAny = new System.Collections.Generic.List<string>();
+                            foreach (var smr in smrs)
                             {
-                                if (mesh.GetBlendShapeIndex(b) < 0)
-                                    missing.Add(b);
+                                var mesh = smr.sharedMesh;
+                                if (mesh == null)
+                                {
+                                    missingAny.Add($"{smr.gameObject.name}:no_mesh");
+                                    continue;
+                                }
+                                foreach (var b in sb)
+                                {
+                                    if (mesh.GetBlendShapeIndex(b) < 0)
+                                    {
+                                        missingAny.Add($"{smr.gameObject.name}:{b}");
+                                    }
+                                }
                             }
-                            if (missing.Count > 0)
+                            if (missingAny.Count > 0)
                             {
                                 r.Color = red;
                                 r.Note =
-                                    $"Outfit missing blendshapes: {string.Join(", ", missing)}";
+                                    $"Outfit missing blendshapes on submeshes: {string.Join(", ", missingAny)}";
                                 return r;
                             }
                         }
@@ -584,29 +649,61 @@ namespace Turnroot.EditorTools
                 )
             );
 
-            // Colors (yellow if black or white)
+            // Colors (orange if black/white or accents identical)
             _checks.Add(
                 new CharacterCheckDefinition(
                     "Accent/Skin Colors",
                     data =>
                     {
                         var r = new CharacterCheckResult();
-                        Color[] checkColors = new Color[]
+                        var ac1 = data.AccentColor1;
+                        var ac2 = data.AccentColor2;
+                        var ac3 = data.AccentColor3;
+                        var skin = data.SkinColor;
+
+                        bool IsBlackOrWhite(Color c)
                         {
-                            data.AccentColor1,
-                            data.AccentColor2,
-                            data.AccentColor3,
-                            data.SkinColor,
-                        };
-                        foreach (var c in checkColors)
-                        {
-                            if (c == Color.black || c == Color.white)
-                            {
-                                r.Color = yellow;
-                                r.Note = "Accent or skin color is black/white";
-                                return r;
-                            }
+                            const float eps = 0.01f;
+                            bool isBlack =
+                                Mathf.Abs(c.r) <= eps
+                                && Mathf.Abs(c.g) <= eps
+                                && Mathf.Abs(c.b) <= eps;
+                            bool isWhite =
+                                Mathf.Abs(c.r - 1f) <= eps
+                                && Mathf.Abs(c.g - 1f) <= eps
+                                && Mathf.Abs(c.b - 1f) <= eps;
+                            return isBlack || isWhite;
                         }
+
+                        bool AreClose(Color a, Color b)
+                        {
+                            const float eps = 0.01f;
+                            return Mathf.Abs(a.r - b.r) <= eps
+                                && Mathf.Abs(a.g - b.g) <= eps
+                                && Mathf.Abs(a.b - b.b) <= eps;
+                        }
+
+                        // If any are black/white -> warn (orange)
+                        if (
+                            IsBlackOrWhite(ac1)
+                            || IsBlackOrWhite(ac2)
+                            || IsBlackOrWhite(ac3)
+                            || IsBlackOrWhite(skin)
+                        )
+                        {
+                            r.Color = orange;
+                            r.Note = "Accent or skin color is black/white";
+                            return r;
+                        }
+
+                        // If the three accent colors are effectively identical -> warn (orange)
+                        if (AreClose(ac1, ac2) && AreClose(ac2, ac3))
+                        {
+                            r.Color = orange;
+                            r.Note = "Accent colors are identical (consider variety)";
+                            return r;
+                        }
+
                         r.Color = green;
                         return r;
                     }

@@ -354,8 +354,7 @@ namespace Turnroot.Characters
         private bool CanShowRecruitable() =>
             Which == CharacterWhich.ENEMY || Which == CharacterWhich.NPC;
 
-        private bool CanShowUnique() =>
-            Which == CharacterWhich.ENEMY || Which == CharacterWhich.NPC;
+        private bool CanShowUnique() => Which != CharacterWhich.AVATAR;
 
         private bool IsAllyOrRecruitable() => Which == CharacterWhich.ALLY || IsRecruitable;
 
