@@ -45,7 +45,11 @@ namespace Turnroot.Gameplay.Brain
                     foreach (var r in root.GetComponentsInChildren<SkinnedMeshRenderer>(true))
                     {
                         var rn = r.gameObject.name ?? string.Empty;
-                        if (!rn.StartsWith("HeadHands") && !rn.Equals("Hair"))
+                        if (
+                            !rn.StartsWith("HeadHands")
+                            && !rn.Equals("Hair")
+                            && !rn.StartsWith("NonBattleOutfit")
+                        )
                         {
                             list.Add(r);
                         }
@@ -61,7 +65,11 @@ namespace Turnroot.Gameplay.Brain
                     )
                     {
                         var rn = r.gameObject.name ?? string.Empty;
-                        if (!rn.StartsWith("HeadHands") && !rn.Equals("Hair"))
+                        if (
+                            !rn.StartsWith("HeadHands")
+                            && !rn.Equals("Hair")
+                            && !rn.StartsWith("NonBattleOutfit")
+                        )
                         {
                             list.Add(r);
                         }

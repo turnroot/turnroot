@@ -12,12 +12,63 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 49abcace4c16701468b7790f4defcb6c, type: 3}
   m_Name: GameplayPlayerSettings
   m_EditorClassIdentifier: 
+  NavigateUp_GamepadDpadUp:
+    storageName: NavigateUp_GamepadDpadUp
+    defaultPath: <Gamepad>/dpad/up
+  NavigateDown_GamepadDpadDown:
+    storageName: NavigateDown_GamepadDpadDown
+    defaultPath: <Gamepad>/dpad/down
+  Select_GamepadSubmit:
+    storageName: Select_GamepadSubmit
+    defaultPath: <Gamepad>/submit
+  NavigateLeft_GamepadDpadLeft:
+    storageName: NavigateLeft_GamepadDpadLeft
+    defaultPath: <Gamepad>/dpad/left
+  NavigateRight_GamepadDpadRight:
+    storageName: NavigateRight_GamepadDpadRight
+    defaultPath: <Gamepad>/dpad/right
+  Back_GamepadCancel:
+    storageName: Back_GamepadCancel
+    defaultPath: <Gamepad>/cancel
+  Details_GamepadButtonWest:
+    storageName: Details_GamepadButtonWest
+    defaultPath: <Gamepad>/buttonWest
+  NavigateVector_GamepadLeftStick:
+    storageName: NavigateVector_GamepadLeftStick
+    defaultPath: <Gamepad>/leftStick
+  NavigateVector_GamepadDpad:
+    storageName: NavigateVector_GamepadDpad
+    defaultPath: <Gamepad>/dpad
+  Selected_Select: 2
+  Selected_Back: 5
+  Selected_Details: 6
+  Selected_NavigateUp: 0
+  Selected_NavigateDown: 1
+  Selected_NavigateLeft: 3
+  Selected_NavigateRight: 4
+  Selected_NavigateVector: 7
+  Permadeath: 0
   TutorialPrompts: 1
   GameDifficulty: 1
+  SpeedSetting: 1
+  SkipEnemyTurnAnimations: 2
+  AutoEndTurn: 1
+  StartUnitSetting: 0
+  PreferredInputControl: 0
+  DisableTurnwheel: 0
+  DisableTacticalLens: 0
+  BattleGridSetting: 0
+  BattleGridStyle: 0
   Brightness: 1
-  Gamma: 1
+  Gamma: 1.1999998
   Quality: 0.3
   Subtitles: 1
   Bloom: 1
+  LensFlare: 1
   DepthOfField: 1
   AnimatedCameraMovement: 1
+  MusicVolume: 0.8
+  SfxVolume: 0.8
+  VoiceVolume: 0.8
+  MusicWhenPaused: 1
+  PreferredBattleMusic: 0

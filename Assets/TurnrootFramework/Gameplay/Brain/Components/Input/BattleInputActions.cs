@@ -13,12 +13,15 @@ namespace Turnroot.Gameplay.Brain
         public InputAction Cancel { get; private set; }
         public InputAction Menu { get; private set; }
 
+        public InputAction RotateMapCamera { get; private set; }
+
         public BattleInputActions()
         {
             Navigate = CreateNavigateAction();
             Confirm = CreateConfirmAction();
             Cancel = CreateCancelAction();
             Menu = CreateMenuAction();
+            RotateMapCamera = CreateRotateMapCameraAction();
         }
 
         public void Enable()
@@ -27,6 +30,7 @@ namespace Turnroot.Gameplay.Brain
             Confirm?.Enable();
             Cancel?.Enable();
             Menu?.Enable();
+            RotateMapCamera?.Enable();
         }
 
         public void Disable()
@@ -35,6 +39,7 @@ namespace Turnroot.Gameplay.Brain
             Confirm?.Disable();
             Cancel?.Disable();
             Menu?.Disable();
+            RotateMapCamera?.Disable();
         }
 
         public void Dispose()
@@ -43,11 +48,13 @@ namespace Turnroot.Gameplay.Brain
             Confirm?.Dispose();
             Cancel?.Dispose();
             Menu?.Dispose();
+            RotateMapCamera?.Dispose();
 
             Navigate = null;
             Confirm = null;
             Cancel = null;
             Menu = null;
+            RotateMapCamera = null;
         }
 
         private InputAction CreateNavigateAction()
@@ -97,6 +104,17 @@ namespace Turnroot.Gameplay.Brain
         {
             var action = new InputAction("Menu", InputActionType.Button, "<Gamepad>/start");
             action.AddBinding("<Keyboard>/tab");
+            return action;
+        }
+
+        private InputAction CreateRotateMapCameraAction()
+        {
+            var action = new InputAction("RotateMapCamera", InputActionType.Value);
+            action
+                .AddCompositeBinding("1DAxis")
+                .With("Negative", "<Keyboard>/leftBracket")
+                .With("Positive", "<Keyboard>/rightBracket");
+            action.AddBinding("<Gamepad>/rightStick/x");
             return action;
         }
     }

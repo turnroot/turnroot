@@ -71,47 +71,31 @@ namespace Turnroot.Gameplay.Brain
                 lensFlare.active = settings.LensFlare;
             }
 
-            // Apply Brightness and Gamma via Lift Gamma Gain
-            if (profile.TryGet<LiftGammaGain>(out var liftGammaGain))
+            // Apply Brightness and Contrast via URP Color Adjustments (postExposure and contrast)
+            if (
+                profile.TryGet<UnityEngine.Rendering.Universal.ColorAdjustments>(
+                    out var colorAdjustments
+                )
+            )
             {
-                // Preserve existing alpha/w components where applicable
-                var currentGamma = liftGammaGain.gamma.value;
-                var currentGain = liftGammaGain.gain.value;
+                // Map brightness to postExposure (-2..2) and contrast to contrast (-50..50)
+                var postExposure = Mathf.Clamp(settings.Brightness, -2f, 2f);
+                var contrast = Mathf.Clamp(settings.Contrast, -50f, 50f);
 
-                // Defensive mapping: gamma must be > 0; brightness uses 1.0 as neutral
-                var gamma = Mathf.Max(0.01f, settings.Gamma);
-                var brightness = settings.Brightness;
+                colorAdjustments.postExposure.value = postExposure;
+                colorAdjustments.contrast.value = contrast;
 
-                var gammaW = settings.Gamma - 1f; // neutral = 0
-                var gainW = settings.Brightness - 1f; // neutral = 0
-
-                liftGammaGain.gamma.value = new Vector4(
-                    currentGamma.x,
-                    currentGamma.y,
-                    currentGamma.z,
-                    gammaW
-                );
-
-                liftGammaGain.gain.value = new Vector4(
-                    currentGain.x,
-                    currentGain.y,
-                    currentGain.z,
-                    gainW
-                );
-
-                // Ensure the parameter overrides are set so the volume system uses our values
+                // Ensure overrides are set so the volume system uses our values
                 try
                 {
-                    // Explicitly set override state for lift/gamma/gain where possible
-                    liftGammaGain.lift.overrideState = liftGammaGain.lift.overrideState || false;
-                    liftGammaGain.gamma.overrideState = true;
-                    liftGammaGain.gain.overrideState = true;
+                    colorAdjustments.postExposure.overrideState = true;
+                    colorAdjustments.contrast.overrideState = true;
                 }
                 catch { }
 
-                // Enable the effect only if settings modify it from neutral (using W components)
-                bool isModified = Mathf.Abs(gainW) > 0.000001f || Mathf.Abs(gammaW) > 0.000001f;
-                liftGammaGain.active = isModified;
+                // Enable the effect only if settings modify it from neutral
+                colorAdjustments.active =
+                    Mathf.Abs(postExposure) > 0.000001f || Mathf.Abs(contrast) > 0.000001f;
             }
 
             // Apply URP quality settings (shadows, cascades, etc.)
@@ -160,7 +144,9 @@ namespace Turnroot.Gameplay.Brain
             }
 
 #if UNITY_EDITOR
-            Debug.Log($"VolumeBrain: Applied Quality step {step} to URP asset.");
+            Debug.Log(
+                $"VolumeBrain: Applied Quality step {step} to URP asset '{rpAsset.name}'. mainLight={rpAsset.mainLightShadowmapResolution}, additionalLights={rpAsset.additionalLightsShadowmapResolution}, shadowDistance={rpAsset.shadowDistance}, cascades={rpAsset.shadowCascadeCount}, SystemInfo.maxTextureSize={SystemInfo.maxTextureSize}"
+            );
 #endif
         }
     }

@@ -94,7 +94,7 @@ namespace Turnroot.Gameplay.Brain
             PlayerSettings.BattleGridStyle = data.BattleGridStyle;
             PlayerSettings.StartUnitSetting = data.StartUnitSetting;
             PlayerSettings.Brightness = data.Brightness;
-            PlayerSettings.Gamma = data.Gamma;
+            PlayerSettings.Contrast = data.Contrast;
             PlayerSettings.Quality = data.Quality;
             PlayerSettings.Subtitles = data.Subtitles;
             PlayerSettings.Bloom = data.Bloom;
@@ -133,7 +133,7 @@ namespace Turnroot.Gameplay.Brain
                     BattleGridStyle = PlayerSettings.BattleGridStyle,
                     StartUnitSetting = PlayerSettings.StartUnitSetting,
                     Brightness = PlayerSettings.Brightness,
-                    Gamma = PlayerSettings.Gamma,
+                    Contrast = PlayerSettings.Contrast,
                     Quality = PlayerSettings.Quality,
                     Subtitles = PlayerSettings.Subtitles,
                     Bloom = PlayerSettings.Bloom,
@@ -219,19 +219,25 @@ namespace Turnroot.Gameplay.Brain
                     case "brightness":
                         if (value is float brightness)
                         {
-                            PlayerSettings.Brightness = Mathf.Clamp01(brightness);
+                            // Brightness uses postExposure range -2..2
+                            PlayerSettings.Brightness = Mathf.Clamp(brightness, -2f, 2f);
                         }
                         break;
-                    case "gamma":
-                        if (value is float gamma)
+                    case "contrast":
+                        if (value is float contrast)
                         {
-                            PlayerSettings.Gamma = Mathf.Clamp(gamma, 0.5f, 2.0f);
+                            // Contrast stored as -50..50 per product decision
+                            PlayerSettings.Contrast = Mathf.Clamp(contrast, -50f, 50f);
                         }
                         break;
                     case "quality":
                         if (value is float quality)
                         {
-                            PlayerSettings.Quality = Mathf.Clamp01(quality);
+                            // Quantize incoming quality to one of {0, 0.1, 0.2, 0.3}
+                            var q = Mathf.Clamp01(quality);
+                            var quant = Mathf.Round(q * 10f) / 10f;
+                            quant = Mathf.Clamp(quant, 0f, 0.3f);
+                            PlayerSettings.Quality = quant;
                         }
                         break;
                     case "subtitles":
@@ -364,8 +370,12 @@ namespace Turnroot.Gameplay.Brain
             .Avatar;
 
         // Graphics settings
-        public float Brightness = 1.0f;
-        public float Gamma = 1.0f;
+        // Brightness maps to URP Color Adjustments.postExposure (-2..2). Default neutral = 0.
+        public float Brightness = 0.0f;
+
+        // Contrast maps to URP Color Adjustments.contrast (-50..50). Default neutral = 0.
+        public float Contrast = 0.0f;
+
         public float Quality = 0.3f;
         public bool Subtitles = true;
         public bool Bloom = true;

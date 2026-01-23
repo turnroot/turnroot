@@ -71,7 +71,6 @@ namespace Turnroot.Gameplay.Brain
 
         private bool ProcessInput()
         {
-            // Navigation - CHANGED to use wrapping navigation for spawn points
             if (_inputActions?.Navigate?.enabled == true)
             {
                 var direction = _inputActions.Navigate.ReadValue<Vector2>();
@@ -98,7 +97,6 @@ namespace Turnroot.Gameplay.Brain
                     }
                     _lastDirection = direction;
 
-                    // CRITICAL FIX: Use NavigateWithWrapping for spawn points
                     // Determine primary direction (horizontal or vertical)
                     bool navigated = false;
                     if (Mathf.Abs(direction.x) > Mathf.Abs(direction.y))
@@ -106,18 +104,12 @@ namespace Turnroot.Gameplay.Brain
                         // Horizontal navigation (find nearest allowed tile on same row)
                         int dir = direction.x > 0 ? 1 : -1;
                         navigated = _brain.cursorBrain?.NavigateHorizontal(dir) ?? false;
-#if UNITY_EDITOR
-                        Debug.Log($"Positioning: Navigate horizontal {dir}, success={navigated}");
-#endif
                     }
                     else
                     {
                         // Vertical navigation (find nearest allowed tile on same column)
                         int dir = direction.y > 0 ? 1 : -1;
                         navigated = _brain.cursorBrain?.NavigateVertical(dir) ?? false;
-#if UNITY_EDITOR
-                        Debug.Log($"Positioning: Navigate vertical {dir}, success={navigated}");
-#endif
                     }
 
                     // If navigation succeeded, preview swap

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Turnroot.Gameplay.PlayerSettings;
 using Turnroot.UI.Components.Menu.Submenu;
+using Turnroot.Utilities;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -18,7 +19,7 @@ namespace Turnroot.Gameplay.Brain.Segments
             _settingsGetters = new Dictionary<string, Func<GameplayPlayerSettings, object>>
             {
                 { "brightness", settings => settings.Brightness },
-                { "gamma", settings => settings.Gamma },
+                { "contrast", settings => settings.Contrast },
                 { "quality", settings => settings.Quality },
                 { "musicvolume", settings => settings.MusicVolume },
                 { "sfxvolume", settings => settings.SfxVolume },
@@ -109,7 +110,43 @@ namespace Turnroot.Gameplay.Brain.Segments
             // Handle sliders in the panel row
             if (panelRow.rowType == PanelRow.RowType.Slider && panelRow.sliderComponent != null)
             {
-                BindSlider(panelRow.sliderComponent, context);
+                // Try to infer the binding name. Sliders are often named "Slider" by prefab, so
+                // prefer the panel row name or label text when available.
+                string inferredSetting = null;
+                string[] candidates = new string[]
+                {
+                    panelRow.sliderComponent.gameObject.name,
+                    panelRow.gameObject.name,
+                    panelRow.labelText != null ? panelRow.labelText.text : null,
+                };
+
+                foreach (var c in candidates)
+                {
+                    if (string.IsNullOrEmpty(c))
+                        continue;
+                    var normalized = string.Empty;
+                    if (!string.IsNullOrEmpty(c))
+                    {
+                        var lower = c.ToLower();
+                        var sb2 = new System.Text.StringBuilder();
+                        foreach (var ch in lower)
+                        {
+                            if (char.IsLetterOrDigit(ch))
+                            {
+                                sb2.Append(ch);
+                            }
+                        }
+                        normalized = sb2.ToString();
+                    }
+
+                    if (_settingsGetters.ContainsKey(normalized))
+                    {
+                        inferredSetting = normalized;
+                        break;
+                    }
+                }
+
+                BindSlider(panelRow.sliderComponent, context, inferredSetting);
             }
 
             // Handle ALL toggles in the panel row independently
@@ -133,34 +170,121 @@ namespace Turnroot.Gameplay.Brain.Segments
 
         private void BindSlider(Slider slider, GamewideContextBrain context)
         {
+            BindSlider(slider, context, null);
+        }
+
+        private void BindSlider(
+            Slider slider,
+            GamewideContextBrain context,
+            string overrideSettingName
+        )
+        {
             if (slider == null || context?.PlayerSettings == null)
             {
                 return;
             }
 
-            string settingName = slider.gameObject.name.ToLower();
+            // Allow callers to pass an inferred/normalized name; otherwise use the slider object name
+            string settingName = overrideSettingName ?? slider.gameObject.name;
+            // Normalize the setting name (lowercase + alphanumeric only)
+            {
+                var lower = settingName.ToLower();
+                var sb2 = new System.Text.StringBuilder();
+                foreach (var ch in lower)
+                {
+                    if (char.IsLetterOrDigit(ch))
+                    {
+                        sb2.Append(ch);
+                    }
+                }
+                settingName = sb2.ToString();
+            }
 
             if (!_settingsGetters.TryGetValue(settingName, out var getter))
             {
                 return; // Unknown setting
             }
 
-            // Set initial value
+            // Set slider min/max depending on the setting.
+            // For consistent UI steps we use normalized sliders (0..1) for most settings and map
+            // that normalized range to real gameplay values. Quality remains an exception.
+            if (settingName == "quality")
+            {
+                slider.minValue = 0f;
+                slider.maxValue = 0.3f;
+            }
+            else
+            {
+                // Use normalized 0..1 range for brightness, contrast and all other sliders so
+                // panel input steps (0.1) map to a single stored step.
+                slider.minValue = 0f;
+                slider.maxValue = 1f;
+            }
+
+            // Set initial value (quantize for quality to tenths and map normalized sliders to gameplay ranges)
             var currentValue = getter(context.PlayerSettings);
             if (currentValue is float floatValue)
             {
-                slider.value = floatValue;
+                if (settingName == "quality")
+                {
+                    slider.value = Mathf.Clamp(Mathf.Round(floatValue * 10f) / 10f, 0f, 0.3f);
+                }
+                else if (settingName == "brightness")
+                {
+                    // Map stored brightness (-2..2) to normalized 0..1 and snap to tenths so UI steps match storage
+                    var normalized = Mathf.Clamp01((floatValue + 2f) / 4f);
+                    slider.value = Mathf.Round(normalized * 10f) / 10f;
+                }
+                else if (settingName == "contrast")
+                {
+                    // Map stored contrast (-50..50) to normalized 0..1 and snap to tenths
+                    var normalized = Mathf.Clamp01((floatValue + 50f) / 100f);
+                    slider.value = Mathf.Round(normalized * 10f) / 10f;
+                }
+                else
+                {
+                    slider.value = floatValue;
+                }
             }
             else if (currentValue is int intValue)
             {
                 slider.value = intValue;
             }
 
-            // Set up change listener
+            // Debug: confirm binding for investigation
+            TurnrootLogger.Log(
+                $"SettingsBindingManager: Bound slider '{slider.gameObject.name}' to setting '{settingName}'"
+            );
+
+            // Set up change listener - quantize quality to tenths (max 0.3) and update settings
             slider.onValueChanged.RemoveAllListeners();
             slider.onValueChanged.AddListener(value =>
             {
-                context.UpdatePlayerSetting(slider.gameObject.name, value);
+                // Quantize normalized slider input to tenths so each left/right step maps to one stored step
+                var norm = Mathf.Round(value * 10f) / 10f;
+                if (Mathf.Abs(slider.value - norm) > 0.0001f)
+                {
+                    slider.value = norm; // keep UI in sync with quantized step
+                }
+
+                float mappedValue = norm;
+                if (settingName == "quality")
+                {
+                    // quality is stored directly in 0..0.3 (already quantized)
+                    mappedValue = Mathf.Clamp(norm, 0f, 0.3f);
+                }
+                else if (settingName == "brightness")
+                {
+                    // map normalized 0..1 to -2..2
+                    mappedValue = norm * 4f - 2f;
+                }
+                else if (settingName == "contrast")
+                {
+                    // map normalized 0..1 to -50..50
+                    mappedValue = norm * 100f - 50f;
+                }
+
+                context.UpdatePlayerSetting(settingName, mappedValue);
             });
         }
 
@@ -171,7 +295,19 @@ namespace Turnroot.Gameplay.Brain.Segments
                 return;
             }
 
-            string settingName = toggle.gameObject.name.ToLower();
+            string settingName;
+            {
+                var lower = toggle.gameObject.name.ToLower();
+                var sb2 = new System.Text.StringBuilder();
+                foreach (var ch in lower)
+                {
+                    if (char.IsLetterOrDigit(ch))
+                    {
+                        sb2.Append(ch);
+                    }
+                }
+                settingName = sb2.ToString();
+            }
 
             if (!_settingsGetters.TryGetValue(settingName, out var getter))
             {
@@ -189,7 +325,7 @@ namespace Turnroot.Gameplay.Brain.Segments
             toggle.onValueChanged.RemoveAllListeners();
             toggle.onValueChanged.AddListener(value =>
             {
-                context.UpdatePlayerSetting(toggle.gameObject.name, value);
+                context.UpdatePlayerSetting(settingName, value);
             });
         }
 
@@ -200,7 +336,19 @@ namespace Turnroot.Gameplay.Brain.Segments
                 return;
             }
 
-            string settingName = carousel.gameObject.name.ToLower();
+            string settingName;
+            {
+                var lower = carousel.gameObject.name.ToLower();
+                var sb2 = new System.Text.StringBuilder();
+                foreach (var ch in lower)
+                {
+                    if (char.IsLetterOrDigit(ch))
+                    {
+                        sb2.Append(ch);
+                    }
+                }
+                settingName = sb2.ToString();
+            }
 
             if (!_settingsGetters.TryGetValue(settingName, out var getter))
             {
@@ -228,7 +376,7 @@ namespace Turnroot.Gameplay.Brain.Segments
                         )
                     )
                     {
-                        context.UpdatePlayerSetting(carousel.gameObject.name, enumValue);
+                        context.UpdatePlayerSetting(settingName, enumValue);
                     }
                 };
             }

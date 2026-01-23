@@ -10,21 +10,37 @@ namespace Turnroot.Gameplay.Brain
     {
         public Material GetUnitOutfitMaterial(CharacterInstance unit)
         {
+            // Do not create or apply a class outfit material for non-battle (display) models.
+            // These use per-character NonBattleOutfit prefabs and should keep their original materials.
+            if (!unit.UseBattleModel)
+            {
+                return null;
+            }
+
             var classInst = unit.GetCurrentClass();
             var className = classInst?.ClassData?.GetClassName() ?? "";
 
             var material = GetOrCreateMaterial(unit, className);
-            var renderers = GetOutfitRenderers(unit, classInst).ToArray();
 
-            if (renderers.Length == 0)
+            // Apply the class outfit material only to the class MeshRenderer when available.
+            // Do NOT overwrite non-battle outfit materials — keep their original material.
+            var classRenderer = classInst?.MeshRenderer;
+
+            if (classRenderer != null)
             {
-                _ = OperationResult.Failure(
-                    "GetUnitOutfitMaterial: unit has no SkinnedMeshRenderer"
+                ApplyMaterialToRenderers(new[] { classRenderer }, material);
+            }
+            else
+            {
+                // No explicit class renderer found — do not apply class material to
+                // arbitrary outfit renderers (this can overwrite non-battle prefabs).
+                TurnrootLogger.Log(
+                    "GetUnitOutfitMaterial: No class MeshRenderer found; skipping applying class material to outfit renderers",
+                    TurnrootLogger.LogLevel.Warning
                 );
                 return null;
             }
 
-            ApplyMaterialToRenderers(renderers, material);
             InitializeClassVisuals(classInst, unit);
             ApplyColorSettings(material, unit);
             ApplyClassTextures(material, classInst);

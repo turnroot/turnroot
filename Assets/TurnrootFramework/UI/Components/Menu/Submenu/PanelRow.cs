@@ -218,15 +218,14 @@ namespace Turnroot.UI.Components.Menu.Submenu
 
         public bool HandleInput(SubmenuRowInput input)
         {
-            return !isSelected
-                ? false
-                : input switch
-            {
-                SubmenuRowInput.Left => HandleInputLeftRight(SubmenuRowInput.Left),
-                SubmenuRowInput.Right => HandleInputLeftRight(SubmenuRowInput.Right),
-                SubmenuRowInput.Select => HandleInputSelect(),
-                _ => false,
-            };
+            return isSelected
+                && input switch
+                {
+                    SubmenuRowInput.Left => HandleInputLeftRight(SubmenuRowInput.Left),
+                    SubmenuRowInput.Right => HandleInputLeftRight(SubmenuRowInput.Right),
+                    SubmenuRowInput.Select => HandleInputSelect(),
+                    _ => false,
+                };
         }
 
         private bool HandleInputLeftRight(SubmenuRowInput direction)
@@ -236,8 +235,50 @@ namespace Turnroot.UI.Components.Menu.Submenu
             switch (rowType)
             {
                 case RowType.Slider:
-                    AdjustSlider(0.1f * delta);
+                {
+                    // Determine step size: Quality slider uses 4 discrete steps (0,1/3,2/3,1),
+                    // other sliders keep the legacy 0.1 increments.
+                    float step;
+                    string normalized = string.Empty;
+                    string[] candidates = new string[]
+                    {
+                        sliderComponent != null ? sliderComponent.gameObject.name : null,
+                        gameObject.name,
+                        labelText != null ? labelText.text : null,
+                    };
+
+                    foreach (var c in candidates)
+                    {
+                        if (string.IsNullOrEmpty(c))
+                            continue;
+                        var lower = c.ToLower();
+                        var sb = new System.Text.StringBuilder();
+                        foreach (var ch in lower)
+                        {
+                            if (char.IsLetterOrDigit(ch))
+                                sb.Append(ch);
+                        }
+                        normalized = sb.ToString();
+                        if (!string.IsNullOrEmpty(normalized))
+                            break;
+                    }
+
+                    if (normalized == "quality")
+                    {
+                        // Move exactly one tenth per input; with slider max=0.3 this yields four steps
+                        step = 0.1f * delta;
+                    }
+                    else
+                    {
+                        step = 0.1f * delta; // legacy behavior for other sliders
+                    }
+
+                    AdjustSlider(step);
+                    Debug.Log(
+                        $"Adjusted slider '{sliderComponent.name}' to {sliderComponent.value}"
+                    );
                     return true;
+                }
 
                 case RowType.Toggles:
                     return NavigateElements(toggleComponents, delta, UpdateToggleVisuals);
