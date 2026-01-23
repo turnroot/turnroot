@@ -140,11 +140,17 @@ namespace Turnroot.Utilities.AbstractScripts
             else
             {
 #if UNITY_EDITOR
-                Debug.LogWarning(
-                    $"DynamicSceneFlow: No segment found for state '{fullStatePath}'."
+                TurnrootLogger.Log(
+                    $"DynamicSceneFlow: No segment found for state '{fullStatePath}'.",
+                    TurnrootLogger.LogLevel.Warning
                 );
 #endif
             }
+        }
+
+        public void HandlePreBattleTransitionToBattleCompleted()
+        {
+            brain.stateBrain.HandlePreBattleTransitionToBattleCompleted();
         }
 
         /// <summary>
