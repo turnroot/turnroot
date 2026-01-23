@@ -115,7 +115,16 @@ namespace Turnroot.Gameplay.Combat
             try
             {
                 var prep = Brain?.battleBrain?.PreparationObject;
-                if (prep?.placements != null && prep.placements.Count > 0)
+                // If no pre-battle placements exist yet, InitializePlacements
+                if (prep != null && (prep.placements == null || prep.placements.Count == 0))
+                {
+                    var res = prep.InitializePlacements();
+                    if (!res.Success)
+                    {
+                        return res;
+                    }
+                }
+
                 {
                     var list = new List<Characters.Roster.UnitPlacement>();
                     foreach (var kvp in prep.placements)
@@ -133,7 +142,7 @@ namespace Turnroot.Gameplay.Combat
                             SpawnPosition = pos,
                             Order = list.Count,
                         };
-                        up.SetStatus(Turnroot.Characters.Roster.UnitStatus.NotSpawned);
+                        up.SetStatus(Characters.Roster.UnitStatus.NotSpawned);
                         up.SetActiveRightNow(true);
 
                         list.Add(up);
