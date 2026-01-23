@@ -15,7 +15,6 @@ namespace Turnroot.Gameplay.Brain
     public partial class BattleInputControllerBrain : BrainComponent
     {
         #region Properties
-
         public CharacterInstance SelectedUnit =>
             _brain.battleBrain.BattleObject.Context.Unit.UnitInstance;
         public BattleContext BattleContext => _brain.battleBrain.BattleObject.Context;
@@ -148,7 +147,12 @@ namespace Turnroot.Gameplay.Brain
         {
             if (_inputActions?.Navigate?.enabled == true)
             {
-                var direction = _inputActions.Navigate.ReadValue<Vector2>();
+                var inputVec = _inputActions.Navigate.ReadValue<Vector2>();
+                var camAngle = _brain?.cameraBrain?.CurrentAngle ?? 0;
+                // a right rotation (1 step) maps Up -> Right.
+                var steps = (((int)camAngle % 360) + 360) % 360 / 90;
+                var direction = RotateVectorBy90StepsCW(inputVec, steps);
+                // Use magnitude threshold for deadzone handling
                 if (direction.magnitude > 0.1f)
                 {
                     HandleNavigateInput(direction);
@@ -175,6 +179,16 @@ namespace Turnroot.Gameplay.Brain
             {
                 _brain?.Publish(new BattleContext.BattleInputMenuEvent());
                 return true;
+            }
+
+            if (_inputActions?.RotateMapCamera?.enabled == true)
+            {
+                var rotateValue = _inputActions.RotateMapCamera.ReadValue<float>();
+                if (Mathf.Abs(rotateValue) > 0.1f)
+                {
+                    _brain.cameraBrain.RotateBattleCamera(rotateValue);
+                    return true;
+                }
             }
 
             return false;
@@ -278,6 +292,9 @@ namespace Turnroot.Gameplay.Brain
                 return;
             }
 
+            // Round direction to discrete unit steps for cursor navigation (cardinal)
+            direction = SnapDirectionToFour(direction);
+
             var currentState = _playerTurnFlow?.GetCurrentState();
 
             // Delegate cursor movement to CursorBrain
@@ -293,6 +310,38 @@ namespace Turnroot.Gameplay.Brain
                     // Update damage preview
                     break;
             }
+        }
+
+        private static Vector2 RotateVectorBy90StepsCW(Vector2 v, int steps)
+        {
+            // Normalize steps to 0..3
+            steps = ((steps % 4) + 4) % 4;
+            // Apply clockwise 90° rotation steps using integer math to avoid trig imprecision
+            switch (steps)
+            {
+                case 0:
+                    return v;
+                case 1: // 90° clockwise: (x,y) -> (y, -x)
+                    return new Vector2(v.y, -v.x);
+                case 2: // 180°: (x,y) -> (-x, -y)
+                    return new Vector2(-v.x, -v.y);
+                case 3: // 270° clockwise (or 90° ccw): (x,y) -> (-y, x)
+                    return new Vector2(-v.y, v.x);
+                default:
+                    return v;
+            }
+        }
+
+        private static Vector2 SnapDirectionToFour(Vector2 v)
+        {
+            if (v.magnitude < 0.0001f)
+                return Vector2.zero;
+            var angle = Mathf.Atan2(v.y, v.x) * Mathf.Rad2Deg;
+            // Snap to nearest 90 degrees (4 cardinal directions)
+            var snapped = Mathf.Round(angle / 90f) * 90f;
+            var rad = snapped * Mathf.Deg2Rad;
+            // Round cosine/sine to avoid floating point imprecision and yield exact cardinal unit vectors
+            return new Vector2(Mathf.Round(Mathf.Cos(rad)), Mathf.Round(Mathf.Sin(rad)));
         }
 
         public void HandleConfirmInput()

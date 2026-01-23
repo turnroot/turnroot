@@ -152,6 +152,15 @@ namespace Turnroot.Gameplay.Brain
             {
                 if (unit.CharacterData == null)
                 {
+#if UNITY_EDITOR
+                    Debug.LogWarning(
+                        $"PopulateRoster: Skipping placement with null CharacterData in '{instance.name}'"
+                    );
+#endif
+                    TurnrootLogger.Log(
+                        $"PopulateRoster: Skipping placement with null CharacterData in '{instance.name}'",
+                        TurnrootLogger.LogLevel.Warning
+                    );
                     continue;
                 }
 
@@ -186,6 +195,15 @@ namespace Turnroot.Gameplay.Brain
             {
                 if (unit == null)
                 {
+                    continue;
+                }
+
+                if (unit.CharacterData == null)
+                {
+                    TurnrootLogger.Log(
+                        $"PopulatePlayerTeamRoster: Skipping placement with null CharacterData in '{instance.name}'",
+                        TurnrootLogger.LogLevel.Error
+                    );
                     continue;
                 }
 

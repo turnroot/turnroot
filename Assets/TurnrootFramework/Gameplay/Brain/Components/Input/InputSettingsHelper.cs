@@ -21,11 +21,10 @@ namespace Turnroot.Gameplay.Brain
                 bool isKeyboard =
                     settings.PreferredInputControl
                     == GameplayPlayerSettings.InputControlType.Keyboard;
-                return !isKeyboard
-                    ? GAMEPAD_COOLDOWN
-                    : settings.SpeedSetting == GameplayPlayerSettings.GameSpeed.Fast
-                    ? 0.09f
-                    : settings.SpeedSetting == GameplayPlayerSettings.GameSpeed.VeryFast ? 0.08f : KEYBOARD_BASE_COOLDOWN;
+                return !isKeyboard ? GAMEPAD_COOLDOWN
+                    : settings.SpeedSetting == GameplayPlayerSettings.GameSpeed.Fast ? 0.09f
+                    : settings.SpeedSetting == GameplayPlayerSettings.GameSpeed.VeryFast ? 0.08f
+                    : KEYBOARD_BASE_COOLDOWN;
             }
             catch
             {

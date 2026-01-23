@@ -13,8 +13,14 @@ namespace Turnroot.Gameplay.Brain
         {
             var root = new GameObject($"{unit.CharacterTemplate.DisplayName}_Root");
             var outfitRenderer = CreateOutfitMesh(unit, root);
-            var headRenderer = CreateHeadMesh(unit, root);
-            var hairRenderer = CreateHairMesh(unit, root);
+
+            // Some outfits (non-battle prefabs) include their own head/hands or hair.
+            // Only create head/hair separately if they are not present on the outfit instance.
+            var hasHead = root.transform.Find("HeadAndHands") != null;
+            var hasHair = root.transform.Find("Hair") != null;
+
+            var headRenderer = hasHead ? outfitRenderer : CreateHeadMesh(unit, root);
+            var hairRenderer = hasHair ? null : CreateHairMesh(unit, root);
 
             SetPrimaryRenderer(unit, outfitRenderer, headRenderer, root);
             return root;
@@ -105,6 +111,17 @@ namespace Turnroot.Gameplay.Brain
                 TurnrootLogger.Log(
                     $"CreateOutfitMesh: Using non-battle outfit prefab for {unit.CharacterTemplate?.DisplayName}"
                 );
+
+                // Ensure the non-battle instance uses the prefab's original materials.
+                // This avoids carrying over any class-created materials from prior runs.
+                var prefabSmr = nbPrefab.GetComponentInChildren<SkinnedMeshRenderer>(true);
+                if (prefabSmr != null)
+                {
+                    nbSmr.sharedMaterials = prefabSmr.sharedMaterials;
+                    TurnrootLogger.Log(
+                        $"CreateOutfitMesh: Restored non-battle outfit materials for {unit.CharacterTemplate?.DisplayName}"
+                    );
+                }
 
                 // Attach head/hands and hair if available
                 if (unit.CharacterTemplate.HeadAndHandsPrefab != null)

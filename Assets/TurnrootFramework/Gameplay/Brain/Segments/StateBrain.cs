@@ -41,6 +41,8 @@ public static class BrainStateNames
 
     // Battle child states (full paths)
     public const string PreBattle = "PreBattle";
+
+    public const string PreBattleTransitionToBattle = "PreBattleTransitionToBattle";
     public const string Battle = "Battle";
     public const string PostBattle = "PostBattle";
 
@@ -65,6 +67,7 @@ public static class BrainStateNames
             Hub,
             // Combat with child states
             $"{Combat}.{PreBattle}",
+            $"{Combat}.{PreBattleTransitionToBattle}",
             $"{Combat}.{Battle}",
             $"{Combat}.{PostBattle}",
         };
@@ -106,29 +109,32 @@ namespace Turnroot.Gameplay.Brain
             // Listen for pre-battle completion and transition to Battle state
             _brain.OnPreBattleCompleted += HandlePreBattleCompleted;
 
+        public void HandlePreBattleTransitionToBattleCompleted() =>
+            ActivateChildState(BrainStateNames.Battle);
+
         private void HandlePreBattleCompleted()
         {
-            // Battle is a sibling of PreBattle under Combat
+            // PreBattleTransitionToBattle is a sibling of PreBattle under Combat
             if (_currentState?.Parent != null)
             {
-                // Find the Battle child state and set it directly
-                var battleState = _currentState.Parent.Children.FirstOrDefault(child =>
-                    child.Name == BrainStateNames.Battle
+                // Find the PreBattleTransitionToBattle child state and set it directly
+                var newState = _currentState.Parent.Children.FirstOrDefault(child =>
+                    child.Name == BrainStateNames.PreBattleTransitionToBattle
                 );
-                if (battleState != null)
+                if (newState != null)
                 {
-                    SetCurrentState(battleState);
+                    SetCurrentState(newState);
                 }
                 else
                 {
                     // Fallback: activate child state
-                    ActivateChildState(BrainStateNames.Battle);
+                    ActivateChildState(BrainStateNames.PreBattleTransitionToBattle);
                 }
             }
             else
             {
-                // Fallback: try to activate Battle directly
-                ActivateChildState(BrainStateNames.Battle);
+                // Fallback: try to activate PreBattleTransitionToBattle directly
+                ActivateChildState(BrainStateNames.PreBattleTransitionToBattle);
             }
         }
 
@@ -176,6 +182,7 @@ namespace Turnroot.Gameplay.Brain
             var childStates = new BrainState[]
             {
                 new(BrainStateNames.PreBattle, combatState),
+                new(BrainStateNames.PreBattleTransitionToBattle, combatState),
                 new(BrainStateNames.Battle, combatState),
                 new(BrainStateNames.PostBattle, combatState),
             };

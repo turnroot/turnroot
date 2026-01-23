@@ -27,6 +27,7 @@ namespace Turnroot.UI.Components
         public void Initialize(Brain brain)
         {
             _brain = brain;
+
             var playerTeamRoster =
                 _brain.gamewideContextBrain.CreateOrRecallGamewidePersistentPlayerRoster();
             var playerTeamRosterInstance = _brain.gamewideContextBrain.GetOrCreatePlayerTeamRoster(
@@ -49,8 +50,11 @@ namespace Turnroot.UI.Components
 
             int unitCount = units.Length;
             var u = LtmKeys.UnitSelectedForBattlePrefix;
-            var keys = LongTermMemory.RecallKeysByPrefix(u);
-            MaxSelectedUnits = _brain.battleBrain.PreparationObject.MaxPlayerTeamUnits;
+            var keys =
+                LongTermMemory?.RecallKeysByPrefix(u)
+                ?? new System.Collections.Generic.List<string>();
+            MaxSelectedUnits =
+                _brain?.battleBrain?.PreparationObject?.MaxPlayerTeamUnits ?? MaxSelectedUnits;
             var keysSet = new HashSet<string>(keys);
 
             // Count currently selected units only among units present in this roster (prefer runtime instance state, fall back to LTM)
@@ -59,6 +63,10 @@ namespace Turnroot.UI.Components
             for (int i = 0; i < unitCount; i++)
             {
                 var unit = units[i];
+                if (unit == null)
+                {
+                    continue;
+                }
 
                 // Pre-compute an initial selection state for counting purposes. Prefer runtime instance when available.
                 var matchedInstance =
@@ -69,7 +77,7 @@ namespace Turnroot.UI.Components
                 var isSelectedForCount =
                     matchedInstance != null
                         ? matchedInstance.IsSelectedForBattle
-                        : LongTermMemory.RecallBool(keyForUnit);
+                        : LongTermMemory?.RecallBool(keyForUnit) ?? false;
 
                 if (isSelectedForCount)
                 {
@@ -190,7 +198,9 @@ namespace Turnroot.UI.Components
                     // Prefer runtime instance selection state when available; otherwise fall back to LTM.
 
                     // If the unit is required for this battle, enable them but don't save it to LTM
-                    var requiredUnits = _brain.battleBrain.PreparationObject.RequiredPlayerUnits;
+                    var requiredUnits =
+                        _brain?.battleBrain?.PreparationObject?.RequiredPlayerUnits
+                        ?? new System.Collections.Generic.List<Turnroot.Characters.CharacterData>();
                     if (requiredUnits.Contains(unit.CharacterData))
                     {
                         // If not already selected via LTM or auto-fill, count them now

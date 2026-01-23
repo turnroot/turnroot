@@ -363,6 +363,14 @@ namespace Turnroot.GameSettings
         [Range(.01f, .3f)]
         public float CameraPanStopDistance = 0.01f;
 
+        [
+            Range(0.05f, 2f),
+            Tooltip(
+                "Duration in seconds for animated camera rotations (clockwise/counterclockwise)"
+            )
+        ]
+        public float CameraRotationDuration = 0.3f;
+
         [Header("Map Conditions"), HorizontalLine(color: EColor.Blue)]
         public Sprite timeDayImage;
         public Sprite timeNightImage;

@@ -1,3 +1,4 @@
+using System.Collections;
 using Turnroot.Gameplay.Combat;
 using Turnroot.Gameplay.Maps;
 using Turnroot.Gameplay.PlayerSettings;
@@ -8,7 +9,11 @@ namespace Turnroot.Gameplay.Brain.Segments
 {
     public partial class CameraBrain : BrainComponent
     {
-        public void MoveCameraToPosition(Vector2Int gridPosition)
+        public int CurrentAngle;
+        private Coroutine _rotationCoroutine;
+        private const float AnimatedRotationDuration = 0.3f;
+
+        public void ComputeTargetPosition(Vector2Int gridPosition)
         {
             Vector3 targetWorldPos = mapGrid.GetTerrainAdjustedWorldPosition(gridPosition);
 
@@ -56,7 +61,93 @@ namespace Turnroot.Gameplay.Brain.Segments
             newPos.y = camPos.y;
 
             _targetCameraPosition = newPos;
+        }
+
+        public void MoveCameraToPosition(Vector2Int gridPosition)
+        {
+            ComputeTargetPosition(gridPosition);
             _shouldMove = true;
+        }
+
+        public OperationResult RotateBattleCamera(float rotateInput)
+        {
+            if (_battleMapCamera == null)
+            {
+                return OperationResult.Failure("BattleMapCamera is null");
+            }
+
+            // Get the current map grid point we're looking at
+            var currentGridPoint = SetBattleGridCameraNeutralCenter();
+
+            // Rotate by 45 degrees around Y axis; positive input = clockwise, negative = counterclockwise
+            float angle = rotateInput > 0 ? 90f : -90f;
+
+            // If animated camera movement is enabled, rotate over time; otherwise rotate immediately
+            if (gameplayPlayerSettings != null && gameplayPlayerSettings.AnimatedCameraMovement)
+            {
+                var duration = UiSettings?.CameraRotationDuration ?? AnimatedRotationDuration;
+
+                // If a rotation is already in progress, ignore additional rotate inputs to keep
+                // camera rotations aligned to 90° steps and prevent desync.
+                if (_rotationCoroutine != null)
+                {
+                    return OperationResult.Successful();
+                }
+
+                _rotationCoroutine = StartCoroutine(
+                    RotateCameraRoutine(angle, duration, currentGridPoint)
+                );
+            }
+            else
+            {
+                _battleMapCamera.transform.Rotate(0f, angle, 0f, Space.World);
+                CurrentAngle = (CurrentAngle + (rotateInput > 0 ? 90 : -90) + 360) % 360;
+                // Find new target position from current grid point and transform immediately
+                ComputeTargetPosition(currentGridPoint);
+                _battleMapCamera.transform.position = _targetCameraPosition;
+            }
+            return OperationResult.Successful();
+        }
+
+        private IEnumerator RotateCameraRoutine(
+            float angle,
+            float duration,
+            Vector2Int currentGridPoint
+        )
+        {
+            var startRot = _battleMapCamera.transform.rotation;
+            var endRot = Quaternion.Euler(0f, angle, 0f) * startRot;
+
+            float elapsed = 0f;
+            while (elapsed < duration)
+            {
+                elapsed += Time.deltaTime;
+                var t = Mathf.Clamp01(elapsed / duration);
+                var newRot = Quaternion.Slerp(startRot, endRot, t);
+                _battleMapCamera.transform.rotation = newRot;
+
+                // Recompute target position for the intermediate rotation to keep the same focus point
+                ComputeTargetPosition(currentGridPoint);
+                _battleMapCamera.transform.position = _targetCameraPosition;
+
+                yield return null;
+            }
+
+            // Ensure final rotation and position are exact
+            _battleMapCamera.transform.rotation = endRot;
+            ComputeTargetPosition(currentGridPoint);
+            _battleMapCamera.transform.position = _targetCameraPosition;
+
+            // Update logical current angle (wrap into 0..359)
+            var deltaAngle = (int)angle;
+            CurrentAngle = (CurrentAngle + deltaAngle) % 360;
+            if (CurrentAngle < 0)
+            {
+                CurrentAngle += 360;
+            }
+
+            // Clear current rotation coroutine handle. Any rotation inputs during animation are ignored.
+            _rotationCoroutine = null;
         }
 
         private void HandleBattleMapCameraPan()

@@ -302,14 +302,19 @@ namespace Turnroot.Gameplay.PlayerSettings
         public BattleGridDisplayStyle BattleGridStyle = BattleGridDisplayStyle.Subtle;
 
         // graphics
-        public float Brightness = 1.0f;
-        public float Gamma = 1.0f;
-        public float Quality = 0.3f;
+        // Brightness mapped to URP Color Adjustments.postExposure (range: -2..2)
+        public float Brightness = 0.0f;
+
+        // Contrast mapped to URP Color Adjustments.contrast (range: -50..50)
+        public float Contrast = 0.0f;
+        public float Quality = 1f;
 
         /// <summary>
-        /// Discrete quality step (0..3) mapped from the Quality slider (0..1)
+        /// Discrete quality step (0..3) mapped from stored gameplay quality values.
+        /// PlayerSettings.Quality will be one of {0, 0.1, 0.2, 0.3} and we map
+        /// those to steps 0..3 by multiplying by 10 and clamping to [0,3].
         /// </summary>
-        public int QualityStep => Mathf.Clamp(Mathf.RoundToInt(Mathf.Clamp01(Quality) * 3f), 0, 3);
+        public int QualityStep => Mathf.Clamp(Mathf.RoundToInt(Mathf.Clamp01(Quality) * 10f), 0, 3);
         public bool Subtitles = true;
         public bool Bloom = true;
         public bool LensFlare = false;
