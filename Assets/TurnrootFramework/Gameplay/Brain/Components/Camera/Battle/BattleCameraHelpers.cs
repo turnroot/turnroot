@@ -87,6 +87,15 @@ namespace Turnroot.Gameplay.Brain.Segments
             if (gameplayPlayerSettings != null && gameplayPlayerSettings.AnimatedCameraMovement)
             {
                 var duration = UiSettings?.CameraRotationDuration ?? AnimatedRotationDuration;
+                switch (gameplayPlayerSettings.SpeedSetting)
+                {
+                    case GameplayPlayerSettings.GameSpeed.Fast:
+                        duration *= 0.75f;
+                        break;
+                    case GameplayPlayerSettings.GameSpeed.VeryFast:
+                        duration *= 0.5f;
+                        break;
+                }
 
                 // If a rotation is already in progress, ignore additional rotate inputs to keep
                 // camera rotations aligned to 90° steps and prevent desync.
@@ -170,11 +179,16 @@ namespace Turnroot.Gameplay.Brain.Segments
                 switch (gameSpeed)
                 {
                     case GameplayPlayerSettings.GameSpeed.Fast:
-                        smoothTime *= 0.85f;
+                        smoothTime *= 0.75f;
                         break;
                     case GameplayPlayerSettings.GameSpeed.VeryFast:
-                        smoothTime *= 0.7f;
+                        smoothTime *= 0.5f;
                         break;
+                }
+
+                if (gameplayPlayerSettings.AnimatedCameraMovement == false)
+                {
+                    smoothTime = .0001f;
                 }
 
                 Vector3 newPos = Vector3.SmoothDamp(
