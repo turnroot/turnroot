@@ -1,4 +1,5 @@
 using System.Collections;
+using Turnroot.Characters.Components;
 using Turnroot.Gameplay.Combat;
 using Turnroot.Gameplay.Maps;
 using Turnroot.Gameplay.PlayerSettings;
@@ -301,6 +302,78 @@ namespace Turnroot.Gameplay.Brain.Segments
             );
 
             return closestPoint.CoordinatesInt;
+        }
+
+        private void HandleBattleStarted()
+        {
+            var battleObject = Brain?.battleBrain?.BattleObject;
+            if (battleObject == null)
+            {
+                TurnrootLogger.Log(
+                    "[CAMERA] HandleBattleStarted: BattleObject is null",
+                    TurnrootLogger.LogLevel.Warning
+                );
+                return;
+            }
+
+            // Ensure map grid reference
+            mapGrid = battleObject.MapGrid ?? Brain?.battleBrain?.PreparationObject?.MapGrid;
+
+            // Ensure camera is initialized
+            InitializeBattleMapCamera(battleObject);
+
+            if (_battleMapCamera == null || mapGrid == null)
+            {
+                TurnrootLogger.Log(
+                    "[CAMERA] HandleBattleStarted: camera or map grid not available",
+                    TurnrootLogger.LogLevel.Warning
+                );
+                return;
+            }
+
+            var playerRoster = battleObject.PlayerTeamRoster;
+            var placements = playerRoster?.GetPlacements();
+            if (placements == null || placements.Length == 0)
+            {
+                TurnrootLogger.Log(
+                    "[CAMERA] HandleBattleStarted: no player placements found, falling back to neutral center"
+                );
+                var center = SetBattleGridCameraNeutralCenter();
+                _brain?.PublishCursorMoveRequested(center);
+                ComputeTargetPosition(center);
+                _shouldMove = true;
+                TurnrootLogger.Log(
+                    $"[CAMERA] Requested cursor move and starting camera follow for center {center}"
+                );
+                return;
+            }
+
+            Vector2Int targetPos = Vector2Int.zero;
+            bool found = false;
+            foreach (var p in placements)
+            {
+                if (p == null || p.CharacterData == null)
+                {
+                    continue;
+                }
+                if (p.CharacterData.Which == CharacterWhich.AVATAR)
+                {
+                    targetPos = p.SpawnPosition;
+                    found = true;
+                    break;
+                }
+            }
+            if (!found)
+            {
+                targetPos = placements[0].SpawnPosition;
+            }
+
+            _brain?.PublishCursorMoveRequested(targetPos);
+            ComputeTargetPosition(targetPos);
+            _shouldMove = true;
+            TurnrootLogger.Log(
+                $"[CAMERA] Requested cursor move and starting camera follow for {targetPos}"
+            );
         }
 
         private void HandleCursorMoved(Vector2Int gridPos)

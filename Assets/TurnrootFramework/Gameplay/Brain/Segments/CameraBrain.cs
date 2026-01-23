@@ -28,6 +28,7 @@ namespace Turnroot.Gameplay.Brain.Segments
             Brain.OnBattleCursorMoved += HandleCursorMoved;
             Brain.OnStateChanged += HandleStateChanged;
             Brain.OnBattleStarted += InitializeMapGrid;
+            Brain.OnBattleStarted += HandleBattleStarted;
         }
 
         protected override void UnsubscribeFromBrainEvents()
@@ -35,6 +36,7 @@ namespace Turnroot.Gameplay.Brain.Segments
             Brain.OnBattleCursorMoved -= HandleCursorMoved;
             Brain.OnStateChanged -= HandleStateChanged;
             Brain.OnBattleStarted -= InitializeMapGrid;
+            Brain.OnBattleStarted -= HandleBattleStarted;
         }
 
         public void InitializeMapGrid()

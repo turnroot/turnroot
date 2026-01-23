@@ -99,23 +99,6 @@ namespace Turnroot.Gameplay.Brain
 
         protected override void SubscribeToBrainEvents()
         {
-            _brain.Subscribe<BattleContext.BattleInputNavigateEvent>(
-                HandleNavigateEvent,
-                EventPriority.High
-            );
-            _brain.Subscribe<BattleContext.BattleInputConfirmEvent>(
-                HandleConfirmEvent,
-                EventPriority.High
-            );
-            _brain.Subscribe<BattleContext.BattleInputCancelEvent>(
-                HandleCancelEvent,
-                EventPriority.High
-            );
-            _brain.Subscribe<BattleContext.BattleInputMenuEvent>(
-                HandleMenuEvent,
-                EventPriority.High
-            );
-
             _brain.OnBattleStarted += HandleBattleStarted;
             _brain.OnBattleCompleted += HandleBattleCompleted;
             _brain.OnPlayerControlledUnitActivated += HandlePlayerUnitActivated;
@@ -126,11 +109,6 @@ namespace Turnroot.Gameplay.Brain
 
         protected override void UnsubscribeFromBrainEvents()
         {
-            _brain.Unsubscribe<BattleContext.BattleInputNavigateEvent>(HandleNavigateEvent);
-            _brain.Unsubscribe<BattleContext.BattleInputConfirmEvent>(HandleConfirmEvent);
-            _brain.Unsubscribe<BattleContext.BattleInputCancelEvent>(HandleCancelEvent);
-            _brain.Unsubscribe<BattleContext.BattleInputMenuEvent>(HandleMenuEvent);
-
             _brain.OnBattleStarted -= HandleBattleStarted;
             _brain.OnBattleCompleted -= HandleBattleCompleted;
             _brain.OnPlayerControlledUnitActivated -= HandlePlayerUnitActivated;
