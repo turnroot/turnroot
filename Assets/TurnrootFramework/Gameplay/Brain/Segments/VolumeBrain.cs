@@ -1,5 +1,6 @@
 using Turnroot.Gameplay.Brain.Components;
 using Turnroot.Gameplay.Brain.Events;
+using Turnroot.Utilities;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
@@ -34,11 +35,9 @@ namespace Turnroot.Gameplay.Brain
                     var globalVolume = rootGameObject.GetComponentInChildren<Volume>(true);
                     if (globalVolume != null && globalVolume.profile != null)
                     {
-#if UNITY_EDITOR
-                        Debug.Log(
+                        TurnrootLogger.Log(
                             $"VolumeBrain: Found global volume in scene '{scene.name}' on root '{rootGameObject.name}' (profile: {globalVolume.profile.name})"
                         );
-#endif
                         ApplyGraphicsSettings(globalVolume, settings);
                         break;
                     }
@@ -142,12 +141,6 @@ namespace Turnroot.Gameplay.Brain
                     rpAsset.shadowCascadeCount = 4;
                     break;
             }
-
-#if UNITY_EDITOR
-            Debug.Log(
-                $"VolumeBrain: Applied Quality step {step} to URP asset '{rpAsset.name}'. mainLight={rpAsset.mainLightShadowmapResolution}, additionalLights={rpAsset.additionalLightsShadowmapResolution}, shadowDistance={rpAsset.shadowDistance}, cascades={rpAsset.shadowCascadeCount}, SystemInfo.maxTextureSize={SystemInfo.maxTextureSize}"
-            );
-#endif
         }
     }
 }

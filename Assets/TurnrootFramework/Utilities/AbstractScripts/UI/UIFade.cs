@@ -35,15 +35,12 @@ namespace Turnroot.Utilities.AbstractScripts
                 float targetAlpha = value ? visibleAlpha : 0f;
                 StopAllCoroutines();
 
-                // If the object is inactive in the hierarchy or this component is disabled,
-                // do not attempt to start a coroutine (Unity will error). Apply final state directly.
                 if (!gameObject.activeInHierarchy || !enabled)
                 {
-#if UNITY_EDITOR
-                    Debug.LogWarning(
-                        $"UIFade: Cannot start LerpAlpha coroutine because '{gameObject.name}' is inactive or disabled. Applying final alpha immediately."
+                    TurnrootLogger.Log(
+                        $"UIFade: Cannot start LerpAlpha coroutine because '{gameObject.name}' is inactive or disabled. Applying final alpha immediately.",
+                        TurnrootLogger.LogLevel.Warning
                     );
-#endif
                     canvasGroup.alpha = targetAlpha;
                     if (Mathf.Approximately(targetAlpha, visibleAlpha))
                     {

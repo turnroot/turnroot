@@ -83,17 +83,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         {
             using var defensiveGoalsPooled = PooledList<AIGoal>.Get();
             var defensiveGoals = defensiveGoalsPooled.List;
-
-            // === ASSESS CURRENT THREAT LEVEL ===
             var enemyProximity = FindClosestAndFurthestEnemies(_context.Participants.Targets);
-
-            // === DEBUG DIAGNOSTICS ===
-            Debug.Log(
-                $"[Defensive Eval] HP: {_context.Unit.UnitInstance.GetHealthPercentage():P0}, Surrounded: {IsSurrounded}, "
-                    + $"ClosestEnemy: {enemyProximity.closestDist:F1}"
-            );
-
-            // === EVALUATE EACH RETREAT TILE ===
             foreach (var tile in _reusableMoveTiles.Keys)
             {
                 if (

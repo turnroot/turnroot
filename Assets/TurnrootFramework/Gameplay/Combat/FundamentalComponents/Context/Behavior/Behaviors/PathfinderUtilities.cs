@@ -355,14 +355,14 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             float furthestDist
         ) FindClosestAndFurthestEnemies(List<CharacterInstance> enemies)
         {
-            Debug.Log(
+            TurnrootLogger.Log(
                 $"[Distance Check] MyPosition: {_context.Unit.UnitInstance.MapGridPosition}, "
                     + $"TargetCount: {enemies.Count}"
             );
             foreach (var target in enemies)
             {
 #if UNITY_EDITOR
-                Debug.Log($"  Target {target.Id}: Position={target.MapGridPosition}");
+                TurnrootLogger.Log($"  Target {target.Id}: Position={target.MapGridPosition}");
 #endif
             }
             float furthestDistance = 0;

@@ -57,20 +57,27 @@ namespace Turnroot.Gameplay.Brain
 
         private void InitializeBattleCursor()
         {
+            TurnrootLogger.Log("CursorBrain: Initializing battle cursor");
             if (_brain?.battleBrain?.BattleObject?.Context?.mapGrid == null)
             {
+                TurnrootLogger.Log(
+                    _brain == null ? "CursorBrain: Cannot initialize battle cursor - Brain is null"
+                    : _brain.battleBrain == null
+                        ? "CursorBrain: Cannot initialize battle cursor - battleBrain is null"
+                    : "CursorBrain: Cannot initialize battle cursor - BattleObject.Context.mapGrid is null"
+                );
                 StartCoroutine(RetryInitializeBattleCursor());
                 return;
             }
 
             if (_cursorInstance != null)
             {
-                // No need to re-initialize if already done
                 return;
             }
 
             var battleContext = _brain.battleBrain.BattleObject.Context;
             CursorOffset = _brain.uiBrain?.uiSettings?.BattleCursorOffset ?? Vector3.zero;
+            TurnrootLogger.Log($"CursorBrain: Got BattleContext");
             InitializeCursor(battleContext.mapGrid);
         }
 
@@ -116,14 +123,12 @@ namespace Turnroot.Gameplay.Brain
 
         private Vector2Int GetInitialCursorPosition(List<Vector2Int> allowedPositions)
         {
-            // If we have restricted positions, start at the first one
             if (allowedPositions != null && allowedPositions.Count > 0)
             {
                 _currentPositionIndex = 0;
                 return allowedPositions[0];
             }
 
-            // Otherwise, get camera center from CameraBrain
             if (_brain?.cameraBrain != null)
             {
                 var neutralCenter = _brain.cameraBrain.SetBattleGridCameraNeutralCenter();
@@ -133,7 +138,7 @@ namespace Turnroot.Gameplay.Brain
                 );
 
 #if UNITY_EDITOR
-                Debug.Log(
+                TurnrootLogger.Log(
                     $"CursorBrain: Using camera neutral center as start position: {startPos}"
                 );
 #endif

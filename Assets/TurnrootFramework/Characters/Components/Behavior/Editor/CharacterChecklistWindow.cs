@@ -257,6 +257,13 @@ namespace Turnroot.EditorTools
             EditorGUILayout.EndScrollView();
         }
 
+        // Roster indices cached for checks
+        private HashSet<CharacterData> _allRosterCharacters = new();
+        private HashSet<CharacterData> _nonPersistentRosterCharacters = new();
+        private HashSet<CharacterData> _persistentPlayerRosterCharacters = new();
+        private Dictionary<CharacterData, List<string>> _rosterLocations =
+            new Dictionary<CharacterData, List<string>>();
+
         private void Refresh()
         {
             _statusMessage = "Loading CharacterData from Resources...";
@@ -288,6 +295,9 @@ namespace Turnroot.EditorTools
 
             // Sort alphabetically
             _characters = _characters.OrderBy(c => c.DisplayName ?? c.name).ToList();
+
+            // Build roster indices used by checks (scan project rosters)
+            BuildRosterIndices();
         }
 
         private void PingMissingAssets()
@@ -347,6 +357,67 @@ namespace Turnroot.EditorTools
             var orange = new Color(1f, 0.5f, 0f);
             var yellow = Color.yellow;
             var green = Color.green;
+
+            // Roster presence check (critical/warn/ok based on uniqueness and roster membership)
+            _checks.Add(
+                new CharacterCheckDefinition(
+                    "Roster Presence",
+                    data =>
+                    {
+                        var r = new CharacterCheckResult();
+
+                        // Look up precomputed sets from Refresh()
+                        bool inAny = _allRosterCharacters.Contains(data);
+                        bool inNonPersistent = _nonPersistentRosterCharacters.Contains(data);
+                        bool inPersistentPlayer = _persistentPlayerRosterCharacters.Contains(data);
+
+                        if (data.IsUnique)
+                        {
+                            if (inAny)
+                            {
+                                r.Color = green;
+                            }
+                            else
+                            {
+                                r.Color = yellow;
+                                r.Note = "Unique character not present in any roster";
+                            }
+                        }
+                        else
+                        {
+                            if (inPersistentPlayer)
+                            {
+                                r.Color = red;
+                                r.Note =
+                                    "Non-unique character found in PlayerTeamRoster (persistent)";
+                            }
+                            else if (inNonPersistent)
+                            {
+                                r.Color = green;
+                            }
+                            else
+                            {
+                                r.Color = yellow;
+                                r.Note = "Non-unique character not present in any roster";
+                            }
+                        }
+
+                        // Also attach a brief note listing roster locations if available
+                        if (
+                            _rosterLocations.TryGetValue(data, out var locations)
+                            && locations.Count > 0
+                        )
+                        {
+                            var locs = string.Join(", ", locations);
+                            r.Note = string.IsNullOrEmpty(r.Note)
+                                ? $"In rosters: {locs}"
+                                : r.Note + $"; In rosters: {locs}";
+                        }
+
+                        return r;
+                    }
+                )
+            );
 
             // Full name (critical)
             _checks.Add(
@@ -1030,6 +1101,68 @@ namespace Turnroot.EditorTools
             public List<string> Notes = new List<string>();
             public bool IsCritical = false;
             public List<Object> MissingPrefabs = new List<Object>();
+        }
+
+        private void BuildRosterIndices()
+        {
+            _allRosterCharacters.Clear();
+            _nonPersistentRosterCharacters.Clear();
+            _persistentPlayerRosterCharacters.Clear();
+            _rosterLocations.Clear();
+
+            // Search for PlayerTeamRoster assets (treated as persistent player rosters)
+            var playerGuids = AssetDatabase.FindAssets("t:PlayerTeamRoster");
+            foreach (var g in playerGuids)
+            {
+                var path = AssetDatabase.GUIDToAssetPath(g);
+                var asset = AssetDatabase.LoadAssetAtPath<Turnroot.Characters.PlayerTeamRoster>(
+                    path
+                );
+                if (asset == null)
+                    continue;
+                var placements = asset.characters;
+                if (placements == null)
+                    continue;
+                foreach (var up in placements)
+                {
+                    if (up == null || up.CharacterData == null)
+                        continue;
+                    _allRosterCharacters.Add(up.CharacterData);
+                    _persistentPlayerRosterCharacters.Add(up.CharacterData);
+                    if (!_rosterLocations.TryGetValue(up.CharacterData, out var list))
+                    {
+                        list = new List<string>();
+                        _rosterLocations[up.CharacterData] = list;
+                    }
+                    list.Add($"PlayerTeamRoster:{asset.name}");
+                }
+            }
+
+            // Search GenericRosters (non-persistent rosters)
+            var genericGuids = AssetDatabase.FindAssets("t:GenericRoster");
+            foreach (var g in genericGuids)
+            {
+                var path = AssetDatabase.GUIDToAssetPath(g);
+                var asset = AssetDatabase.LoadAssetAtPath<Turnroot.Characters.GenericRoster>(path);
+                if (asset == null)
+                    continue;
+                var placements = asset.characters;
+                if (placements == null)
+                    continue;
+                foreach (var up in placements)
+                {
+                    if (up == null || up.CharacterData == null)
+                        continue;
+                    _allRosterCharacters.Add(up.CharacterData);
+                    _nonPersistentRosterCharacters.Add(up.CharacterData);
+                    if (!_rosterLocations.TryGetValue(up.CharacterData, out var list))
+                    {
+                        list = new List<string>();
+                        _rosterLocations[up.CharacterData] = list;
+                    }
+                    list.Add($"GenericRoster:{asset.name}");
+                }
+            }
         }
 
         private void ShowNotesPopup(CharacterData character)

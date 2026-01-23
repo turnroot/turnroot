@@ -14,12 +14,14 @@ namespace Turnroot.Utilities.AbstractScripts
         public UnityEvent onSegmentReached;
     }
 
+    [RequireComponent(typeof(LoadingController))]
     public class DynamicSceneFlow : MonoBehaviour
     {
         public List<FlowSegment> segments = new();
         private int _index = 0;
         public FlowSegment CurrentSegment => segments.Count > _index ? segments[_index] : null;
 
+        [HideInInspector]
         public Brain brain;
 
         private int Index
@@ -68,10 +70,6 @@ namespace Turnroot.Utilities.AbstractScripts
             }
         }
 
-        /// <summary>
-        /// Activates the brain state corresponding to the given state ID.
-        /// Handles both hierarchical states ("Parent.Child") and top-level states.
-        /// </summary>
         private void SetBrainStateFromSegment(string stateId)
         {
             if (brain?.stateBrain == null || string.IsNullOrEmpty(stateId))
@@ -79,7 +77,6 @@ namespace Turnroot.Utilities.AbstractScripts
                 return;
             }
 
-            // Check if this is a hierarchical state (contains a dot, e.g. "Combat.PreBattle")
             if (stateId.Contains("."))
             {
                 var parts = stateId.Split('.');
@@ -90,23 +87,21 @@ namespace Turnroot.Utilities.AbstractScripts
 
                     // Directly activate the child state, which will automatically set the parent
                     brain.stateBrain.ActivateChildStateByFullPath(parentStateName, childStateName);
-#if UNITY_EDITOR
-                    Debug.Log($"DynamicSceneFlow: Activated hierarchical state '{stateId}'");
-#endif
+
+                    TurnrootLogger.Log(
+                        $"DynamicSceneFlow: Activated hierarchical state '{stateId}'"
+                    );
+
                     return;
                 }
             }
 
             // Otherwise it's a top-level state
             brain.stateBrain.ActivateHighLevelState(stateId);
-#if UNITY_EDITOR
-            Debug.Log($"DynamicSceneFlow: Activated top-level state '{stateId}'");
-#endif
+
+            TurnrootLogger.Log($"DynamicSceneFlow: Activated top-level state '{stateId}'");
         }
 
-        /// <summary>
-        /// Handles brain state changes by finding and activating the corresponding flow segment.
-        /// </summary>
         private void HandleStateChanged(BrainState newState)
         {
             if (newState == null)
@@ -118,9 +113,6 @@ namespace Turnroot.Utilities.AbstractScripts
             ActivateSegmentByState(newState);
         }
 
-        /// <summary>
-        /// Finds and activates the flow segment that corresponds to the given brain state.
-        /// </summary>
         public void ActivateSegmentByState(BrainState state)
         {
             if (state == null)
@@ -131,7 +123,6 @@ namespace Turnroot.Utilities.AbstractScripts
             // Build the full state path (e.g., "Combat.PreBattle" for hierarchical states)
             string fullStatePath = GetFullStatePath(state);
 
-            // Find segment with matching state ID
             int foundIndex = segments.FindIndex(s => s.stateId == fullStatePath);
             if (foundIndex != -1)
             {
@@ -139,28 +130,33 @@ namespace Turnroot.Utilities.AbstractScripts
             }
             else
             {
-#if UNITY_EDITOR
                 TurnrootLogger.Log(
                     $"DynamicSceneFlow: No segment found for state '{fullStatePath}'.",
                     TurnrootLogger.LogLevel.Warning
                 );
-#endif
             }
         }
 
-        public void HandlePreBattleTransitionToBattleCompleted()
-        {
+        public void HandlePreBattleTransitionToBattleCompleted() =>
             brain.stateBrain.HandlePreBattleTransitionToBattleCompleted();
+
+        public OperationResult Progress()
+        {
+            if (Index + 1 < segments.Count)
+            {
+                Index++;
+                var segment = CurrentSegment;
+                if (segment != null && !string.IsNullOrEmpty(segment.stateId))
+                {
+                    SetBrainStateFromSegment(segment.stateId);
+                }
+                return OperationResult.Successful();
+            }
+            return OperationResult.Failure("No more segments to progress to.");
         }
 
-        /// <summary>
-        /// Gets the full path of a brain state (e.g., "Combat.PreBattle" for hierarchical states).
-        /// </summary>
         private string GetFullStatePath(BrainState state) => state?.GetFullPath() ?? "";
 
-        /// <summary>
-        /// Called when a new segment is reached. Invokes the segment's event callbacks.
-        /// </summary>
         private void OnSegmentReached(int segmentIndex)
         {
             if (segmentIndex >= segments.Count)
@@ -172,9 +168,6 @@ namespace Turnroot.Utilities.AbstractScripts
             segment?.onSegmentReached?.Invoke();
         }
 
-        /// <summary>
-        /// Utility method to execute an action on the next frame.
-        /// </summary>
         private IEnumerator RunNextFrame(Action action)
         {
             yield return null;

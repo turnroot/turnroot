@@ -40,7 +40,7 @@ MonoBehaviour:
   <UseRecruitmentChance>k__BackingField: 1
   <RecruitmentChance>k__BackingField: 25
   <RecruitmentChanceIncreasePerConversation>k__BackingField: 15
-  <IsUnique>k__BackingField: 0
+  <IsUnique>k__BackingField: 1
   <StartingClass>k__BackingField: {fileID: 0}
   <BadgeText>k__BackingField: 
   <BadgeIcon>k__BackingField: {fileID: 0}
@@ -59,8 +59,9 @@ MonoBehaviour:
     _keys: []
     _values: []
   <Sprites>k__BackingField: []
-  <CharacterDefaultModel>k__BackingField: {fileID: 0}
-  <CharacterHeadHandsAndHair>k__BackingField: {fileID: 0}
+  <HeadAndHandsPrefab>k__BackingField: {fileID: 0}
+  <HairPrefab>k__BackingField: {fileID: 0}
+  <NonBattleOutfitPrefab>k__BackingField: {fileID: 0}
   <HasExtraBoneLayer>k__BackingField: 0
   <CustomAvatar>k__BackingField: {fileID: 0}
   <AdditionalBonesMask>k__BackingField: {fileID: 0}

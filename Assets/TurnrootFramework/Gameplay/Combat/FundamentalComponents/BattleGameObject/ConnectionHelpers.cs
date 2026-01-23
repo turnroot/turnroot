@@ -172,7 +172,8 @@ namespace Turnroot.Gameplay.Combat
             return OperationResult.Successful();
         }
 
-        private void SubscribeToMapChanges() => MapGrid.OnStateVersionChanged += HandleMapStateChanged;
+        private void SubscribeToMapChanges() =>
+            MapGrid.OnStateVersionChanged += HandleMapStateChanged;
 
         #endregion
     }
