@@ -24,16 +24,6 @@ namespace Turnroot.Gameplay.Brain
                 return cache.TryGetValue(CursorPosition.CoordinatesInt, out var unit) ? unit : null;
             }
 
-            // In pre-battle context, check preparation object
-            if (
-                _currentContext == CursorContext.PreBattle
-                && _brain?.battleBrain?.PreparationObject != null
-            )
-            {
-                // TODO: Query pre-battle unit placements
-                return null;
-            }
-
             return null;
         }
 

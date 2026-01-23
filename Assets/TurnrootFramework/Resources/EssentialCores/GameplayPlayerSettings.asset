@@ -50,7 +50,7 @@ MonoBehaviour:
   Permadeath: 0
   TutorialPrompts: 1
   GameDifficulty: 1
-  SpeedSetting: 1
+  SpeedSetting: 2
   SkipEnemyTurnAnimations: 2
   AutoEndTurn: 1
   StartUnitSetting: 0
@@ -59,8 +59,8 @@ MonoBehaviour:
   DisableTacticalLens: 0
   BattleGridSetting: 0
   BattleGridStyle: 0
-  Brightness: 1
-  Gamma: 1.1999998
+  Brightness: 0
+  Contrast: 0
   Quality: 0.3
   Subtitles: 1
   Bloom: 1
