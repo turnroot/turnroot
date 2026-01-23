@@ -315,10 +315,10 @@ namespace Turnroot.Gameplay.Brain
             if (v.magnitude < 0.0001f)
                 return Vector2.zero;
             var angle = Mathf.Atan2(v.y, v.x) * Mathf.Rad2Deg;
-            // Snap to nearest 90 degrees (4 cardinal directions)
-            var snapped = Mathf.Round(angle / 90f) * 90f;
+            // Snap to nearest 45 degrees (8 directions including diagonals)
+            var snapped = Mathf.Round(angle / 45f) * 45f;
             var rad = snapped * Mathf.Deg2Rad;
-            // Round cosine/sine to avoid floating point imprecision and yield exact cardinal unit vectors
+            // Round cosine/sine to avoid floating point imprecision and yield exact integer direction vectors
             return new Vector2(Mathf.Round(Mathf.Cos(rad)), Mathf.Round(Mathf.Sin(rad)));
         }
 

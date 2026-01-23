@@ -57,11 +57,9 @@ namespace Turnroot.Gameplay.Brain.Segments
                 && preBattleMenu.style == MenuStyle.Pie
             )
             {
-#if UNITY_EDITOR
-                Debug.Log(
+                TurnrootLogger.Log(
                     "UiBrain: Hiding Details button because pre-battle radial menu is active."
                 );
-#endif
                 needsDetailsButton = false;
             }
 
@@ -112,9 +110,10 @@ namespace Turnroot.Gameplay.Brain.Segments
         {
             if (uiSettings?.MenuCanvasPrefab == null)
             {
-#if UNITY_EDITOR
-                Debug.LogWarning("UiBrain: MenuCanvasPrefab is not set in GamewideUiSettings");
-#endif
+                TurnrootLogger.Log(
+                    "UiBrain: MenuCanvasPrefab is not set in GamewideUiSettings",
+                    TurnrootLogger.LogLevel.Warning
+                );
                 return;
             }
 
@@ -126,11 +125,10 @@ namespace Turnroot.Gameplay.Brain.Segments
             var simpleButtons = targetPrefabField.GetComponentsInChildren<SimpleButton>(true);
             if (simpleButtons == null || simpleButtons.Length == 0)
             {
-#if UNITY_EDITOR
-                Debug.LogError(
-                    $"UiBrain: No SimpleButton found in MenuCanvasPrefab for role {role}"
+                TurnrootLogger.Log(
+                    $"UiBrain: No SimpleButton found in MenuCanvasPrefab for role {role}",
+                    TurnrootLogger.LogLevel.Warning
                 );
-#endif
                 return;
             }
 
@@ -246,16 +244,15 @@ namespace Turnroot.Gameplay.Brain.Segments
                 }
                 else
                 {
-#if UNITY_EDITOR
-                    Debug.LogWarning("UiBrain: Back navigation failed - null locations");
-#endif
+                    TurnrootLogger.Log(
+                        "UiBrain: Back navigation failed - null locations",
+                        TurnrootLogger.LogLevel.Warning
+                    );
                 }
             }
             else
             {
-#if UNITY_EDITOR
-                Debug.Log("UiBrain: At root level, handling root back");
-#endif
+                TurnrootLogger.Log("UiBrain: At root level, handling root back");
                 HandleRootLevelBack();
             }
         }
@@ -266,9 +263,7 @@ namespace Turnroot.Gameplay.Brain.Segments
             {
                 return;
             }
-#if UNITY_EDITOR
-            Debug.Log("UiBrain: Details button pressed - TODO: Implement details view");
-#endif
+            TurnrootLogger.Log("UiBrain: Details button pressed - TODO: Implement details view");
         }
 
         private void HandleRootLevelBack()
