@@ -446,9 +446,6 @@ namespace Turnroot.Gameplay.Combat.PreBattle
                     );
                 }
 
-                // Set the "battle" camera  (at this point, it behaves like a battle camera)
-                // in camerabrain, and move the camera to the first player spawn point
-                // TODO: Possibly refactor this to use a "prebattle camera"?
                 var cameraBrain = Brain?.cameraBrain;
                 var cameraChildren = GetComponentsInChildren<Camera>();
                 foreach (var cam in cameraChildren)

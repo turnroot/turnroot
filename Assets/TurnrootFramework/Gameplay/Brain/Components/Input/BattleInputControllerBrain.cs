@@ -474,7 +474,6 @@ namespace Turnroot.Gameplay.Brain
         {
             if (CursorPosition == null || !ValidateTileSelection(CursorPosition))
             {
-                // TODO: Error feedback
                 return;
             }
 

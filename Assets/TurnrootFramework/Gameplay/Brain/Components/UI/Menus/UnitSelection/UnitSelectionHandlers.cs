@@ -1,5 +1,6 @@
 using Turnroot.UI.Components;
 using Turnroot.UI.Components.GridMenu;
+using Turnroot.Utilities;
 using UnityEngine;
 #if COFFEE_UIEFFECTS
 using Coffee.UIEffects;
@@ -20,7 +21,6 @@ namespace Turnroot.Gameplay.Brain.Segments
 
             var unitColumns = unitCell.GetComponentInParent<UnitSelectionColumns>(true);
 
-            // Determine whether this toggle would select or deselect
             var willSelect = !item.IsSelectedForBattle;
 
             // Prevent unselecting the only selected unit
@@ -37,9 +37,8 @@ namespace Turnroot.Gameplay.Brain.Segments
                 && unitColumns.SelectedCount >= unitColumns.MaxSelectedUnits
             )
             {
-#if UNITY_EDITOR
-                Debug.Log("UiBrain: Cannot select more units - max reached");
-#endif
+                TurnrootLogger.Log("UiBrain: Cannot select more units - max reached");
+
                 return;
             }
 
@@ -75,7 +74,6 @@ namespace Turnroot.Gameplay.Brain.Segments
             }
 
             // Persist choice in LTM so it survives across menu opens
-            // Use asset name as stable LTM key.
             var template = item?.CharacterInstanceData?.CharacterTemplate;
             var key = template != null ? LtmKeys.UnitSelectedForBattlePrefix + template.name : null;
             if (key != null)
@@ -93,11 +91,7 @@ namespace Turnroot.Gameplay.Brain.Segments
             }
         }
 
-        // Removed unit cell handling for positioning, not actually using
-        // unit cells for this
-
         public void HandlePreBattleMenuSelect(MenuItemBase item) =>
-            // Delegate to the route handler for unified menu handling
             _routeHandler?.HandleMenuSelect(item);
     }
 }
