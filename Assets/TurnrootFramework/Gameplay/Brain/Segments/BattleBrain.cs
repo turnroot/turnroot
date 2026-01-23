@@ -127,6 +127,9 @@ namespace Turnroot.Gameplay.Brain
             // Notify subscribers that the BattleGameObject has been set up and rosters initialized.
             _brain?.PublishBattleObjectSet(BattleObject);
 
+            // Notify systems that the battle has started so they can perform battle-start initialization
+            _brain?.PublishBattleStarted();
+
             // Clear last-attacked per-character so we start fresh for this battle
             var allInstances = GetAllActiveInstances();
             foreach (var inst in allInstances)

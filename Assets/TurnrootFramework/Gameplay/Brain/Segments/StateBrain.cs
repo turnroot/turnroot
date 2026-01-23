@@ -246,13 +246,6 @@ namespace Turnroot.Gameplay.Brain
             _currentState.IsActive = true;
 
             TurnrootLogger.Log($"StateBrain: SetCurrentState -> {_currentState.Name}");
-
-            // Trigger specific events for certain states
-            if (_currentState.Name == BrainStateNames.Battle)
-            {
-                _brain?.PublishBattleStarted();
-            }
-
             _brain?.PublishStateChanged(_currentState);
         }
 

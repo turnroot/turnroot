@@ -13,7 +13,7 @@ namespace Turnroot.Gameplay.Brain
         protected override void SubscribeToBrainEvents()
         {
             _brain.OnPreBattlePrepare += HandlePreBattlePrepare;
-            _brain.OnBattleStarted += HandleStartBattle;
+            _brain.OnPreBattleCompleted += HandleStartBattle;
             _brain.OnBattleCompleted += HandleExitBattle;
             _brain.OnUnitTakesAnotherTurn += HandleUnitTakesAnotherTurn;
             _brain.OnUnitFinishedMovingAfterAction += HandleUnitFinishedMovingAfterAction;
@@ -28,7 +28,7 @@ namespace Turnroot.Gameplay.Brain
         protected override void UnsubscribeFromBrainEvents()
         {
             _brain.OnPreBattlePrepare -= HandlePreBattlePrepare;
-            _brain.OnBattleStarted -= HandleStartBattle;
+            _brain.OnPreBattleCompleted -= HandleStartBattle;
             _brain.OnBattleCompleted -= HandleExitBattle;
             _brain.OnUnitTakesAnotherTurn -= HandleUnitTakesAnotherTurn;
             _brain.OnUnitFinishedMovingAfterAction -= HandleUnitFinishedMovingAfterAction;

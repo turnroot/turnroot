@@ -12,7 +12,6 @@ namespace Turnroot.Gameplay.Brain
 
         protected override void SubscribeToBrainEvents()
         {
-            // Generic cursor events (work across all states)
             _brain.OnCursorInitializeRequested += HandleCursorInitializeRequested;
             _brain.OnCursorMoveRequested += HandleCursorMoveRequested;
             _brain.OnCursorRestrictionsRequested += HandleCursorRestrictionsRequested;
@@ -20,19 +19,16 @@ namespace Turnroot.Gameplay.Brain
             _brain.OnCursorHideRequested += HandleCursorHideRequested;
             _brain.OnCursorShowRequested += HandleCursorShowRequested;
 
-            // State change events
             _brain.OnStateChanged += HandleStateChanged;
 
-            // Battle lifecycle events
             _brain.OnBattleStarted += HandleBattleStarted;
+            _brain.OnBattleMapReady += HandleBattleMapReady;
             _brain.OnBattleCompleted += HandleBattleCompleted;
 
-            // Pre-battle events
             _brain.OnPreBattlePrepare += HandlePreBattlePrepare;
             _brain.OnPreBattleMapReady += HandlePreBattleMapReady;
             _brain.OnPreBattleCompleted += HandlePreBattleCompleted;
 
-            // Player unit activation
             _brain.OnPlayerControlledUnitActivated += HandlePlayerUnitActivated;
 
             _brain.OnPlacementsInitialized += HandlePlacementsInitialized;
@@ -61,6 +57,7 @@ namespace Turnroot.Gameplay.Brain
             _brain.OnCursorShowRequested -= HandleCursorShowRequested;
             _brain.OnStateChanged -= HandleStateChanged;
             _brain.OnBattleStarted -= HandleBattleStarted;
+            _brain.OnBattleMapReady -= HandleBattleMapReady;
             _brain.OnBattleCompleted -= HandleBattleCompleted;
             _brain.OnPreBattlePrepare -= HandlePreBattlePrepare;
             _brain.OnPreBattleMapReady -= HandlePreBattleMapReady;
@@ -85,7 +82,8 @@ namespace Turnroot.Gameplay.Brain
             if (mapGrid == null)
             {
                 TurnrootLogger.Log(
-                    "CursorBrain: HandlePlacementsInitialized: No MapGrid found in PreparationObject"
+                    "CursorBrain: HandlePlacementsInitialized: No MapGrid found in PreparationObject",
+                    TurnrootLogger.LogLevel.Error
                 );
                 return;
             }
@@ -103,7 +101,19 @@ namespace Turnroot.Gameplay.Brain
                     if (!IsInitialized || _currentContext != CursorContext.Battle)
                     {
                         _currentContext = CursorContext.Battle;
-                        InitializeBattleCursor();
+                        ClearAllowedPositions();
+                        // Try to initialize immediately if the battle map is ready; otherwise wait for OnBattleMapReady
+                        if (_brain?.battleBrain?.BattleObject?.Context?.mapGrid != null)
+                        {
+                            InitializeBattleCursor();
+                        }
+                        else
+                        {
+                            TurnrootLogger.Log(
+                                "CursorBrain: Battle map not ready yet - waiting for OnBattleMapReady",
+                                TurnrootLogger.LogLevel.Info
+                            );
+                        }
                     }
                     break;
 
@@ -134,29 +144,20 @@ namespace Turnroot.Gameplay.Brain
             if (_currentContext != CursorContext.Battle)
             {
                 _currentContext = CursorContext.Battle;
-                // Don't initialize immediately - wait for map to be confirmed ready
-                StartCoroutine(WaitForBattleMapReady());
+                // If the map is already ready, initialize; otherwise we'll initialize when OnBattleMapReady fires
+                if (_brain?.battleBrain?.BattleObject?.Context?.mapGrid != null)
+                {
+                    InitializeBattleCursor();
+                }
             }
         }
 
-        private IEnumerator WaitForBattleMapReady()
+        private void HandleBattleMapReady(MapGrid mapGrid)
         {
-            int retries = 0;
-            while (_brain?.battleBrain?.BattleObject?.Context?.mapGrid == null && retries < 20)
-            {
-                retries++;
-                yield return new WaitForSeconds(0.1f);
-            }
-
-            if (_brain?.battleBrain?.BattleObject?.Context?.mapGrid != null)
+            // Initialize the battle cursor when the battle map becomes available, but only if we're in Battle context
+            if (_currentContext == CursorContext.Battle)
             {
                 InitializeBattleCursor();
-            }
-            else
-            {
-#if UNITY_EDITOR
-                Debug.LogError("CursorBrain: Battle map never became ready");
-#endif
             }
         }
 

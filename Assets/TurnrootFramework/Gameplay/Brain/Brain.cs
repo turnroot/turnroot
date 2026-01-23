@@ -160,27 +160,6 @@ namespace Turnroot.Gameplay.Brain
         #endregion
 
         #region Memory Coders
-
-        public string EncodeInstanceToString<T>(T instance)
-            where T : class
-        {
-            var result = GamewideContextBrainHelpers.EncodeInstanceToString(
-                gamewideContextBrain,
-                instance
-            );
-            return result.Success ? result.Value : string.Empty;
-        }
-
-        public T DecodeInstanceFromString<T>(string encodedString)
-            where T : class
-        {
-            var result = GamewideContextBrainHelpers.DecodeInstanceFromString<T>(
-                gamewideContextBrain,
-                encodedString
-            );
-            return result.Success ? result.Value : null;
-        }
-
         public string EncodeString(string value) => DeviceDataCipher.EncryptToBase64(value);
 
         public string DecodeString(string encodedString) =>
@@ -588,11 +567,6 @@ namespace Turnroot.Gameplay.Brain
         public event Action OnPreBattleCompleted;
 
         public void PublishBattleStarted() => OnBattleStarted?.Invoke();
-
-        public void PublishBattleCompleted(BattleExitType exitType) =>
-            OnBattleCompleted?.Invoke(exitType);
-
-        public void PublishBattleContextInitialized() => OnBattleContextInitialized?.Invoke();
 
         public void PublishPreBattlePrepare() => OnPreBattlePrepare?.Invoke();
 

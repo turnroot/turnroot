@@ -38,7 +38,7 @@ namespace Turnroot.Gameplay.Brain
                 if (updateBrain)
                 {
                     _brain?.PublishCursorPositionChanged(position, _currentMap);
-                    _brain?.PublishBattleCursorMoved(position); // Legacy event
+                    _brain?.PublishBattleCursorMoved(position);
                 }
 
                 return true;
@@ -125,7 +125,7 @@ namespace Turnroot.Gameplay.Brain
                 return NavigateWithWrapping(dir);
             }
 
-            var candidates = new System.Collections.Generic.List<Vector2Int>();
+            var candidates = new List<Vector2Int>();
             foreach (var p in _allowedPositions)
             {
                 if (p.y == cur.Value.y)
@@ -205,7 +205,7 @@ namespace Turnroot.Gameplay.Brain
                 return NavigateWithWrapping(dir);
             }
 
-            var candidates = new System.Collections.Generic.List<Vector2Int>();
+            var candidates = new List<Vector2Int>();
             foreach (var p in _allowedPositions)
             {
                 if (p.x == cur.Value.x)

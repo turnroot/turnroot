@@ -345,7 +345,6 @@ namespace Turnroot.Gameplay.Brain.Segments
                 if (displacement != Vector2.zero)
                 {
                     // Convert viewport displacement to world space
-                    // We need to know how much world space = viewport space at cursor's distance
                     float distanceToTerrain = Vector3.Distance(
                         _battleMapCamera.transform.position,
                         cursorWorldPos
@@ -373,10 +372,6 @@ namespace Turnroot.Gameplay.Brain.Segments
                         + cameraUp * (displacement.y * verticalScale);
 
                     _targetCameraPosition += worldDisplacement;
-
-                    TurnrootLogger.Log(
-                        $"[CAMERA] Cursor at viewport {cursorViewportPos}, moving camera by {worldDisplacement}"
-                    );
                 }
             }
         }
