@@ -20,9 +20,6 @@ MonoBehaviour:
   - CharacterData: {fileID: 11400000, guid: a53a4ecdb913d9944b06166e1bc35ca6, type: 2}
     SpawnPosition: {x: 0, y: 0}
     Order: 0
-  - CharacterData: {fileID: 11400000, guid: 37016b91a4d565549a6d923f28fce242, type: 2}
-    SpawnPosition: {x: 0, y: 0}
-    Order: 0
   - CharacterData: {fileID: 11400000, guid: 4cb76f6227e612d438e92ecba6bc83b0, type: 2}
     SpawnPosition: {x: 0, y: 0}
     Order: 0
