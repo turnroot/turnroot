@@ -17,11 +17,7 @@ namespace Turnroot.Gameplay.Brain
         private IEnumerable<SkinnedMeshRenderer> GetBlendshapeRenderers(
             CharacterInstance unit,
             CharacterClassDataInstance classInst
-        )
-        {
-            // Reuse the outfit renderer collection so blendshapes only apply to outfits.
-            return GetOutfitRenderers(unit, classInst);
-        }
+        ) => GetOutfitRenderers(unit, classInst);
 
         /// <summary>
         /// Returns the renderers that should receive outfit materials (accent/skin colors).
@@ -36,8 +32,6 @@ namespace Turnroot.Gameplay.Brain
 
             if (unit?.Renderer != null)
             {
-                // Prefer collecting all skinned renderers under the model root so outfits
-                // composed of multiple SMRs are fully included. Exclude head/hands and hair.
                 var primary = unit.Renderer;
                 var root = primary.gameObject.transform.parent;
                 if (root != null)
@@ -92,24 +86,12 @@ namespace Turnroot.Gameplay.Brain
                 return null;
             }
 
-            var instance = Object.Instantiate(
-                unit.CharacterTemplate.HeadAndHandsPrefab,
-                parent.transform
-            );
+            var instance = Instantiate(unit.CharacterTemplate.HeadAndHandsPrefab, parent.transform);
             instance.name = "HeadHands";
             TurnrootLogger.Log(
                 $"CreateHeadMesh: Instantiated head/hands prefab for {unit.CharacterTemplate?.DisplayName}"
             );
             return instance.GetComponentInChildren<SkinnedMeshRenderer>(true);
-        }
-
-        private SkinnedMeshRenderer CopyRenderer(GameObject target, SkinnedMeshRenderer source)
-        {
-            var renderer = target.AddComponent<SkinnedMeshRenderer>();
-            renderer.sharedMesh = source.sharedMesh;
-            renderer.rootBone = source.rootBone;
-            renderer.bones = source.bones;
-            return renderer;
         }
 
         private void SetPrimaryRenderer(

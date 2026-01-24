@@ -17,63 +17,63 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         ThirdPartyEnd = 5,
     }
 
+    /// <summary>
+    /// Manages turn order progression in battle.
+    /// Reads from BattleContext (which is populated by BattleBrain during initialization).
+    /// </summary>
     public class TurnRotisserie : MonoBehaviour
     {
+        #region Dependencies (Set by BattleBrain)
+
         [HideInInspector]
         public BattleBrain battleBrain;
 
-        public bool HasThirdParty => BattleBrain?.BattleObject?.HasThirdParty ?? false;
+        private Brain.Brain Brain => battleBrain?.Brain;
+        private BattleContext Context => battleBrain?.BattleObject?.Context;
 
-        private BattleBrain BattleBrain => battleBrain;
-        private Brain.Brain _brain => BattleBrain?.Brain;
+        #endregion
+
+        #region State
 
         private TurnOrder _currentTurnOrder = TurnOrder.PlayerStart;
         private int _currentRosterIndex = 0;
+
         private bool UnitTakesAnotherTurn =>
-            BattleBrain?.BattleObject?.Context?.Flags?.ActiveUnitFlags?.AnotherTurnGranted ?? false;
+            Context?.Flags?.ActiveUnitFlags?.AnotherTurnGranted ?? false;
 
-        private bool UnitFinishesMovingAfterAction =>
-            BattleBrain?.BattleObject?.Context?.Flags?.ActiveUnitFlags?.CanFinishMovingAfterAction
-            ?? false;
+        #endregion
 
-        private void Awake() { /* Binding to BattleBrain must be done explicitly via BindToBattleBrain from BattleBrain.Awake() */
-        }
-
-        private void HandlePlayerTurnCompleted()
-        {
-            var currentUnit = GetActiveUnit();
-            if (currentUnit != null)
-            {
-                Progress();
-            }
-        }
+        #region Unity Lifecycle
 
         private void OnDestroy()
         {
-            if (_brain != null)
+            if (Brain != null)
             {
-                _brain.OnPlayerTurnEnded -= HandlePlayerTurnCompleted;
+                Brain.OnPlayerTurnEnded -= HandlePlayerTurnCompleted;
             }
         }
 
-        /// <summary>
-        /// Bind this Rotisserie to the authoritative BattleBrain instance and subscribe to turn events.
-        /// </summary>
-        public void BindToBattleBrain(BattleBrain b)
+        #endregion
+
+        #region Initialization
+        public OperationResult BindToBattleBrain(BattleBrain brain)
         {
-            battleBrain = b;
-            if (_brain != null)
+            battleBrain = brain;
+
+            if (Brain != null)
             {
-                _brain.OnPlayerTurnEnded += HandlePlayerTurnCompleted;
+                Brain.OnPlayerTurnEnded += HandlePlayerTurnCompleted;
             }
             else
             {
-                TurnrootLogger.Log(
-                    "TurnRotisserie: Bound to BattleBrain but underlying Brain is null.",
-                    TurnrootLogger.LogLevel.Warning
-                );
+                return OperationResult.Failure("TurnRotisserie: Underlying Brain is null.");
             }
+            return OperationResult.Successful();
         }
+
+        #endregion
+
+        #region Public API
 
         public CharacterInstance GetActiveUnit()
         {
@@ -83,209 +83,127 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 : null;
         }
 
-        public TurnOrder GetNextTurnOrder()
-        {
-            switch (_currentTurnOrder)
-            {
-                case TurnOrder.PlayerStart:
-                    return TurnOrder.PlayerEnd;
-                case TurnOrder.PlayerEnd:
-                    return TurnOrder.EnemyStart;
-                case TurnOrder.EnemyStart:
-                    return TurnOrder.EnemyEnd;
-                case TurnOrder.EnemyEnd:
-                    return HasThirdParty ? TurnOrder.ThirdPartyStart : TurnOrder.PlayerStart;
-                case TurnOrder.ThirdPartyStart:
-                    return TurnOrder.ThirdPartyEnd;
-                case TurnOrder.ThirdPartyEnd:
-                    return TurnOrder.PlayerStart;
-                default:
-                    return TurnOrder.PlayerStart;
-            }
-        }
-
         /// <summary>
-        /// Gets the active units from the current roster, sorted by Order.
-        /// </summary>
-        private List<CharacterInstance> GetCurrentRosterUnits()
-        {
-            // Diagnostic logging to detect cross-GameObject binding issues
-            TurnrootLogger.Log(
-                $"🔍 TurnRotisserie: BattleBrain is {(BattleBrain == null ? "NULL" : "not null")}"
-            );
-            if (BattleBrain != null)
-            {
-                TurnrootLogger.Log(
-                    $"🔍 PlayerTeamRoster is {(BattleBrain.PlayerTeamRoster == null ? "NULL" : "not null")}"
-                );
-                TurnrootLogger.Log(
-                    $"🔍 BattleObject is {(BattleBrain.BattleObject == null ? "NULL" : "not null")}"
-                );
-            }
-
-            IReadOnlyList<CharacterInstance> instances = null;
-            Characters.Roster roster = null;
-
-            switch (_currentTurnOrder)
-            {
-                case TurnOrder.PlayerStart:
-                case TurnOrder.PlayerEnd:
-                    instances = BattleBrain?.PlayerTeamRoster?.Instances;
-                    roster = BattleBrain?.PlayerTeamRoster?.roster;
-                    break;
-                case TurnOrder.EnemyStart:
-                case TurnOrder.EnemyEnd:
-                    instances = BattleBrain?.EnemyTeamRoster?.Instances;
-                    roster = BattleBrain?.EnemyTeamRoster?.roster;
-                    break;
-                case TurnOrder.ThirdPartyStart:
-                case TurnOrder.ThirdPartyEnd:
-                    instances = BattleBrain?.ThirdPartyTeamRoster?.Instances;
-                    roster = BattleBrain?.ThirdPartyTeamRoster?.roster;
-                    break;
-            }
-
-            if (instances == null || roster == null)
-            {
-                TurnrootLogger.Log(
-                    "TurnRotisserie: Something is wrong with the battle rosters! They are null!",
-                    TurnrootLogger.LogLevel.Error
-                );
-                return new List<CharacterInstance>();
-            }
-
-            // Sort by Order field
-            return instances
-                .OrderBy(unit =>
-                {
-                    var placement = roster.characters.FirstOrDefault(p =>
-                        p.CharacterData == unit.CharacterTemplate
-                    );
-                    return placement?.Order ?? int.MaxValue;
-                })
-                .ToList();
-        }
-
-        /// <summary>
-        /// Progress to the next unit in the current roster, or the next turn phase if all units have acted.
-        /// This implementation avoids recursion and caps phase advances to prevent infinite loops when rosters are empty.
+        /// Progress to the next unit or phase.
+        /// Returns false if no valid units remain (battle should end).
         /// </summary>
         public bool Progress()
         {
             // Check if current unit gets another turn
             if (UnitTakesAnotherTurn)
             {
-                BattleBrain.BattleObject.Context.Flags.ActiveUnitFlags.AnotherTurnGranted = false;
-                // Same unit goes again, don't increment roster index
-                if (ActivateCurrentUnit())
-                {
-                    return true;
-                }
-                return false;
+                Context.Flags.ActiveUnitFlags.AnotherTurnGranted = false;
+                return ActivateCurrentUnit().Success;
             }
 
-            int maxPhaseAttempts = System.Enum.GetValues(typeof(TurnOrder)).Length;
-            int attempts = 0;
+            // Try to find next active unit in current roster
+            _currentRosterIndex++;
 
-            while (attempts < maxPhaseAttempts)
+            var units = GetCurrentRosterUnits();
+            while (_currentRosterIndex < units.Count)
             {
-                // Get current roster
-                var units = GetCurrentRosterUnits();
-                if (units == null)
+                var unit = units[_currentRosterIndex];
+
+                if (!unit.IsDefeatedInCurrentBattle)
                 {
-                    TurnrootLogger.Log(
-                        "TurnRotisserie: Cannot progress turn - current roster units are null.",
-                        TurnrootLogger.LogLevel.Error
-                    );
-                    Debug.Break();
-                    return false;
+                    return ActivateCurrentUnit().Success;
                 }
 
-                // Try to find next non-defeated unit
                 _currentRosterIndex++;
-
-                while (_currentRosterIndex < units.Count)
-                {
-                    var unit = units[_currentRosterIndex];
-
-                    if (!unit.IsDefeatedInCurrentBattle)
-                    {
-                        // Found next active unit
-                        if (ActivateCurrentUnit())
-                        {
-                            return true;
-                        }
-                        // Activation failed; try next unit in this roster
-                    }
-
-                    // Unit is defeated; clear AI helper caches to avoid stale reusable tile data
-                    BattleBrain.ClearAICache();
-
-                    // Skip defeated unit
-                    _currentRosterIndex++;
-                }
-
-                // No active units in this roster; advance phase and try next roster
-                ProgressToNextPhase();
-                attempts++;
             }
 
-            // If we've tried every phase and found nothing, fail gracefully
-            TurnrootLogger.Log(
-                "TurnRotisserie: No active units found in any roster during turn progression.",
-                TurnrootLogger.LogLevel.Error
-            );
-            return false;
+            // No more units in this roster, move to next phase
+            return ProgressToNextPhase();
+        }
+
+        #endregion
+
+        #region Turn Order Logic
+
+        private TurnOrder GetNextTurnOrder()
+        {
+            var hasThirdParty = battleBrain?.BattleObject?.HasThirdParty ?? false;
+
+            return _currentTurnOrder switch
+            {
+                TurnOrder.PlayerStart => TurnOrder.PlayerEnd,
+                TurnOrder.PlayerEnd => TurnOrder.EnemyStart,
+                TurnOrder.EnemyStart => TurnOrder.EnemyEnd,
+                TurnOrder.EnemyEnd => hasThirdParty
+                    ? TurnOrder.ThirdPartyStart
+                    : TurnOrder.PlayerStart,
+                TurnOrder.ThirdPartyStart => TurnOrder.ThirdPartyEnd,
+                TurnOrder.ThirdPartyEnd => TurnOrder.PlayerStart,
+                _ => TurnOrder.PlayerStart,
+            };
         }
 
         /// <summary>
-        /// Activates the current unit in the current roster.
+        /// Gets active units from BattleContext.Participants (already populated by BattleBrain).
         /// </summary>
-        private bool ActivateCurrentUnit()
+        private List<CharacterInstance> GetCurrentRosterUnits()
+        {
+            if (Context?.Participants == null)
+            {
+                TurnrootLogger.Log(
+                    "TurnRotisserie: BattleContext.Participants is null!",
+                    TurnrootLogger.LogLevel.Error
+                );
+                return new List<CharacterInstance>();
+            }
+
+            // Read from context participants (populated during battle init)
+            IEnumerable<CharacterInstance> instances = _currentTurnOrder switch
+            {
+                TurnOrder.PlayerStart or TurnOrder.PlayerEnd => Context.Participants.Allies,
+                TurnOrder.EnemyStart or TurnOrder.EnemyEnd => Context.Participants.Targets,
+                TurnOrder.ThirdPartyStart or TurnOrder.ThirdPartyEnd => Context
+                    .Participants
+                    .ThirdParty,
+                _ => new List<CharacterInstance>(),
+            };
+
+            // Filter out defeated units and return as list
+            return instances.Where(u => u != null && !u.IsDefeatedInCurrentBattle).ToList();
+        }
+
+        private OperationResult ActivateCurrentUnit()
         {
             var units = GetCurrentRosterUnits();
 
             if (_currentRosterIndex < 0 || _currentRosterIndex >= units.Count)
             {
-                TurnrootLogger.Log(
-                    $"TurnRotisserie: Invalid roster index {_currentRosterIndex}",
-                    TurnrootLogger.LogLevel.Error
+                return OperationResult.Failure(
+                    $"TurnRotisserie: Invalid roster index {_currentRosterIndex}"
                 );
-                return false;
             }
 
             var activeUnit = units[_currentRosterIndex];
 
             if (activeUnit == null)
             {
-                TurnrootLogger.Log(
-                    $"TurnRotisserie: Active unit at index {_currentRosterIndex} is null",
-                    TurnrootLogger.LogLevel.Warning
+                return OperationResult.Failure(
+                    $"TurnRotisserie: Active unit at index {_currentRosterIndex} is null"
                 );
-                return false;
             }
 
+            // Update unit statistics
             activeUnit.IncrementCombatCount();
             activeUnit.IncrementTurnsAlive();
 
-            // Update battle context
-            var res = ChangeBattleContextData(activeUnit);
-            if (!res.Success)
+            // Update battle context to reflect the new active unit
+            var result = SetActiveUnitInContext(activeUnit);
+
+            if (!result.Success)
             {
-                TurnrootLogger.Log(
-                    $"TurnRotisserie: Failed to activate unit {activeUnit?.CharacterTemplate?.DisplayName}: {res.ErrorMessage}",
-                    TurnrootLogger.LogLevel.Error
+                return OperationResult.Failure(
+                    $"TurnRotisserie: Failed to activate {activeUnit.CharacterTemplate.DisplayName}: {result.ErrorMessage}"
                 );
-                // Skip this unit and move on
-                _currentRosterIndex++;
-                return false;
             }
-            return true;
+
+            return OperationResult.Successful();
         }
 
-        /// <summary>
-        /// Progress to the next turn phase and reset roster index.
-        /// </summary>
         private bool ProgressToNextPhase()
         {
             TurnOrder previousOrder = _currentTurnOrder;
@@ -299,165 +217,88 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
             if (newRoundStarted)
             {
-                _brain.PublishTurnEnded();
-                _brain.PublishTurnBegin();
+                Brain?.PublishTurnEnded();
+                Brain?.PublishTurnBegin();
             }
 
             // Publish phase-specific events
             switch (_currentTurnOrder)
             {
                 case TurnOrder.PlayerStart:
-                    BattleBrain.playerTurnFlow.StartPlayerTurn();
+                    battleBrain?.playerTurnFlow?.StartPlayerTurn();
                     break;
                 case TurnOrder.PlayerEnd:
-                    _brain.PublishPlayerTurnEnded();
+                    Brain?.PublishPlayerTurnEnded();
                     break;
                 case TurnOrder.EnemyStart:
-                    _brain.PublishEnemyTurnStarted();
+                    Brain?.PublishEnemyTurnStarted();
                     break;
                 case TurnOrder.EnemyEnd:
-                    _brain.PublishEnemyTurnEnded();
+                    Brain?.PublishEnemyTurnEnded();
                     break;
                 case TurnOrder.ThirdPartyStart:
-                    _brain.PublishThirdPartyTurnStarted();
+                    Brain?.PublishThirdPartyTurnStarted();
                     break;
                 case TurnOrder.ThirdPartyEnd:
-                    _brain.PublishThirdPartyTurnEnded();
+                    Brain?.PublishThirdPartyTurnEnded();
                     break;
             }
 
-            // Activate first unit of new phase (do not recurse; caller controls iteration)
-            return true;
+            // Recursively activate first unit of new phase
+            return Progress();
         }
 
+        #endregion
+
+        #region Context Updates
+
         /// <summary>
-        /// Updates BattleContext with the active unit and its targets/allies.
+        /// Sets the active unit in BattleContext.
+        /// BattleContext.Participants is already populated by BattleBrain during init,
+        /// so we just update the active unit reference and adjacency.
         /// </summary>
-        public OperationResult ChangeBattleContextData(CharacterInstance activeUnit)
+        private OperationResult SetActiveUnitInContext(CharacterInstance activeUnit)
         {
-            if (BattleBrain == null)
-            {
-                return OperationResult.Failure("BattleBrain is null");
-            }
-
-            if (BattleBrain.BattleObject == null)
-            {
-                return OperationResult.Failure("BattleObject is null");
-            }
-
-            var context = BattleBrain.BattleObject.Context;
-            if (context == null)
+            if (Context == null)
             {
                 return OperationResult.Failure("BattleContext is null");
             }
 
             try
             {
-                context.Unit.UnitInstance = activeUnit;
-                context.Participants.Targets.Clear();
-                context.Participants.Allies.Clear();
-                context.Participants.ThirdParty.Clear();
+                // Set the active unit
+                Context.Unit.UnitInstance = activeUnit;
 
-                PopulateContext(context);
+                // Update adjacency for the active unit
+                Context.Participants.AdjacentUnits = new Locations.Adjacency(activeUnit);
 
-                context.Participants.AdjacentUnits = new Locations.Adjacency(activeUnit);
-
-                // Check if player-controlled
+                // Publish activation event if this is a player-controlled unit
                 if (_currentTurnOrder is TurnOrder.PlayerStart or TurnOrder.PlayerEnd)
                 {
-                    _brain.PublishPlayerControlledUnitActivated(activeUnit);
+                    Brain?.PublishPlayerControlledUnitActivated(activeUnit);
                 }
 
                 return OperationResult.Successful();
             }
             catch (System.Exception ex)
             {
-                return OperationResult.Failure($"ChangeBattleContextData failed: {ex.Message}");
+                return OperationResult.Failure($"SetActiveUnitInContext failed: {ex.Message}");
             }
         }
 
-        private void PopulateContext(BattleContext context)
+        #endregion
+
+        #region Event Handlers
+
+        private void HandlePlayerTurnCompleted()
         {
-            var b = BattleBrain;
-            var obj = b.BattleObject;
-
-            // 1. Determine Roles based on Turn Order
-            var (playerRole, enemyRole, thirdPartyRole) = _currentTurnOrder switch
+            var currentUnit = GetActiveUnit();
+            if (currentUnit != null)
             {
-                TurnOrder.PlayerStart or TurnOrder.PlayerEnd => (
-                    Role.Ally,
-                    Role.Target,
-                    obj.ThirdPartyFightsAllies ? Role.Target : Role.Ally
-                ),
-
-                TurnOrder.EnemyStart or TurnOrder.EnemyEnd => (
-                    Role.Target,
-                    Role.Ally,
-                    obj.ThirdPartyFightsEnemies ? Role.Target : Role.Ally
-                ),
-
-                _ => // Third Party
-                (
-                    obj.ThirdPartyFightsAllies ? Role.Target : Role.Ally,
-                    obj.ThirdPartyFightsEnemies ? Role.Target : Role.Ally,
-                    Role.Ally
-                ),
-            };
-
-            // 2. Fill the collections using a helper
-            Fill(b.PlayerTeamRoster.Instances, playerRole);
-            Fill(b.EnemyTeamRoster.Instances, enemyRole);
-            Fill(b.ThirdPartyTeamRoster.Instances, thirdPartyRole);
-
-            void Fill(IEnumerable<CharacterInstance> instances, Role role)
-            {
-                foreach (var unit in instances)
-                {
-                    if (unit.IsDefeatedInCurrentBattle || unit == context.Unit.UnitInstance)
-                    {
-                        continue;
-                    }
-
-                    if (role == Role.Ally)
-                    {
-                        context.Participants.Allies.Add(unit);
-                    }
-                    else
-                    {
-                        context.Participants.Targets.Add(unit);
-                    }
-                }
+                Progress();
             }
         }
 
-        private enum Role
-        {
-            Ally,
-            Target,
-        }
-
-        /// <summary>
-        /// Call this when a unit takes another turn.
-        /// </summary>
-        public OperationResult GrantAnotherTurn(CharacterInstance unit)
-        {
-            if (unit == null)
-            {
-                return OperationResult.Failure("Cannot grant another turn to null unit.");
-            }
-
-            var currentUnits = GetCurrentRosterUnits();
-            if (_currentRosterIndex >= 0 && _currentRosterIndex < currentUnits.Count)
-            {
-                if (currentUnits[_currentRosterIndex] == unit)
-                {
-                    BattleBrain.Brain.PublishUnitTakesAnotherTurn(unit);
-                    BattleBrain.BattleObject.Context.Flags.ActiveUnitFlags.AnotherTurnGranted =
-                        true;
-                    return OperationResult.Successful();
-                }
-            }
-            return OperationResult.Failure("Cannot grant another turn to unit.");
-        }
+        #endregion
     }
 }

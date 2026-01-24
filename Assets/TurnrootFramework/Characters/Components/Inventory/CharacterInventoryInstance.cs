@@ -351,7 +351,9 @@ namespace Turnroot.Characters.Components
             {
                 var res = UnequipItemFromSlot(slotIndex);
                 if (!res.Success)
+                {
                     return res;
+                }
             }
 
             _equippedItemIndices[slotIndex] = index;

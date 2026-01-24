@@ -15,10 +15,6 @@ namespace Turnroot.Gameplay.Brain
 
             if (renderers.Length == 0)
             {
-                TurnrootLogger.Log(
-                    $"SetBlendshapes: No outfit renderers found for {unit.CharacterTemplate?.DisplayName}. Blendshapes are applied only to outfit meshes (NonBattleOutfitPrefab or class outfit).",
-                    TurnrootLogger.LogLevel.Error
-                );
                 return OperationResult.Failure("SetBlendshapes: no outfit renderers found");
             }
 
@@ -27,10 +23,6 @@ namespace Turnroot.Gameplay.Brain
                 var weight = weights.GetBlendshapeByName(shapeName);
                 if (!ApplyBlendshapeToRenderers(renderers, shapeName, weight))
                 {
-                    TurnrootLogger.Log(
-                        $"SetBlendshapes: Could not set blendshape '{shapeName}' for {unit.CharacterTemplate?.DisplayName}. Shape not found on any outfit renderer.",
-                        TurnrootLogger.LogLevel.Error
-                    );
                     return OperationResult.Failure(
                         $"Could not set blendshape weight for {shapeName}: shape not found on any renderer"
                     );

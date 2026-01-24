@@ -338,7 +338,10 @@ namespace Turnroot.Characters.CharacterClass
                                 p
                             );
                             if (o == null)
+                            {
                                 continue;
+                            }
+
                             var n = o.Identity?.ClassName;
                             if (
                                 string.Equals(
@@ -374,7 +377,9 @@ namespace Turnroot.Characters.CharacterClass
         private void ValidateClassVisuals()
         {
             if (Identity == null)
+            {
                 return;
+            }
 
             // Required blendshape names must match CharacterModelBlendshapeSet.BlendshapeNames
             var required = new string[]

@@ -21,9 +21,15 @@ namespace Turnroot.Gameplay.Brain.Commands
             var unit = FindUnit(context, UnitId);
             if (unit == null)
             {
+                TurnrootLogger.Log(
+                    $"[SpawnCommand] Could not find unit {UnitId} in context when executing spawn",
+                    TurnrootLogger.LogLevel.Warning
+                );
                 return false;
             }
 
+            // Record previous map position so Undo can restore it if needed
+            UndoState["from"] = unit.MapGridPosition;
             UndoState["wasSpawned"] = true;
 
             var result = context.mapGrid.SetOccupied(
@@ -40,7 +46,26 @@ namespace Turnroot.Gameplay.Brain.Commands
                 {
                     unit.WasSpawnedDuringBattle = true;
                 }
-                catch (System.Exception) { }
+                catch (System.Exception)
+                {
+                    TurnrootLogger.Log(
+                        $"[SpawnCommand] Warning: Could not set WasSpawnedDuringBattle for Unit {UnitId}",
+                        TurnrootLogger.LogLevel.Warning
+                    );
+                }
+
+                // Ensure the instance's logical map position matches the spawn location
+                try
+                {
+                    unit.MapGridPosition = SpawnPosition;
+                }
+                catch (System.Exception)
+                {
+                    TurnrootLogger.Log(
+                        $"[SpawnCommand] Warning: Could not set MapGridPosition for Unit {UnitId}",
+                        TurnrootLogger.LogLevel.Warning
+                    );
+                }
 
                 context.Brain?.Publish(new Events.UnitSpawnedEvent(unit, SpawnPosition));
 
@@ -49,7 +74,13 @@ namespace Turnroot.Gameplay.Brain.Commands
                 {
                     context.Brain?.TakeSnapshot();
                 }
-                catch (System.Exception) { }
+                catch (System.Exception)
+                {
+                    TurnrootLogger.Log(
+                        $"[SpawnCommand] Warning: Could not take snapshot after spawning Unit {UnitId}",
+                        TurnrootLogger.LogLevel.Warning
+                    );
+                }
             }
             return result.Success;
         }
@@ -71,7 +102,26 @@ namespace Turnroot.Gameplay.Brain.Commands
                 {
                     unit.WasSpawnedDuringBattle = false;
                 }
-                catch (System.Exception) { }
+                catch (System.Exception)
+                {
+                    TurnrootLogger.Log(
+                        $"[SpawnCommand] Warning: Could not unset WasSpawnedDuringBattle for Unit {UnitId}",
+                        TurnrootLogger.LogLevel.Warning
+                    );
+                }
+
+                // Restore the previous logical map position recorded during Execute
+                try
+                {
+                    unit.MapGridPosition = (Vector2Int)from;
+                }
+                catch (System.Exception)
+                {
+                    TurnrootLogger.Log(
+                        $"[SpawnCommand] Warning: Could not restore MapGridPosition for Unit {UnitId}",
+                        TurnrootLogger.LogLevel.Warning
+                    );
+                }
 
                 context.Brain?.Publish(new Events.UnitDespawnedEvent(unit, SpawnPosition));
 
@@ -80,7 +130,13 @@ namespace Turnroot.Gameplay.Brain.Commands
                 {
                     context.Brain?.TakeSnapshot();
                 }
-                catch (System.Exception) { }
+                catch (System.Exception)
+                {
+                    TurnrootLogger.Log(
+                        $"[SpawnCommand] Warning: Could not take snapshot after despawning Unit {UnitId}",
+                        TurnrootLogger.LogLevel.Warning
+                    );
+                }
             }
             return result.Success;
         }

@@ -123,7 +123,10 @@ namespace Turnroot.Gameplay.Brain.Segments
                 foreach (var c in candidates)
                 {
                     if (string.IsNullOrEmpty(c))
+                    {
                         continue;
+                    }
+
                     var normalized = string.Empty;
                     if (!string.IsNullOrEmpty(c))
                     {

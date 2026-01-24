@@ -116,6 +116,7 @@ namespace Turnroot.Gameplay.Brain
 
             InitializeBattleRosters();
 
+            // Publish BattleGameObject; rosters and participants have already been initialized and populated by now.
             _brain?.PublishBattleObjectSet(BattleObject);
 
             _brain?.PublishBattleStarted();
@@ -216,9 +217,66 @@ namespace Turnroot.Gameplay.Brain
                 return result;
             }
 
+            // Populate the battle context participants *before* spawning units so commands that run during spawn
+            // can reliably find instances in the context (avoids race conditions where participants are empty).
+            var populateResult = PopulateBattleContextParticipants();
+            if (!populateResult.Success)
+            {
+                TurnrootLogger.Log(
+                    $"Failed to populate battle context during roster initialization: {populateResult.ErrorMessage}",
+                    TurnrootLogger.LogLevel.Error
+                );
+                return populateResult;
+            }
+
             SpawnRosterUnitsOntoGrid();
 
             _aiHelper = new BattleContextAIHelper(BattleObject.Context);
+            return OperationResult.Successful();
+        }
+
+        private OperationResult PopulateBattleContextParticipants()
+        {
+            if (BattleObject == null || BattleObject.Context == null)
+            {
+                return OperationResult.Failure("BattleObject or BattleContext is null");
+            }
+
+            var context = BattleObject.Context;
+
+            // Clear existing
+            context.Participants.Targets.Clear();
+            context.Participants.Allies.Clear();
+            context.Participants.ThirdParty.Clear();
+
+            // Populate from rosters (BattleBrain owns these)
+            foreach (var unit in PlayerTeamRoster.Instances)
+            {
+                if (!unit.IsDefeatedInCurrentBattle)
+                {
+                    context.Participants.Allies.Add(unit);
+                }
+            }
+
+            foreach (var unit in EnemyTeamRoster.Instances)
+            {
+                if (!unit.IsDefeatedInCurrentBattle)
+                {
+                    context.Participants.Targets.Add(unit);
+                }
+            }
+
+            if (BattleObject.HasThirdParty)
+            {
+                foreach (var unit in ThirdPartyTeamRoster.Instances)
+                {
+                    if (!unit.IsDefeatedInCurrentBattle)
+                    {
+                        context.Participants.ThirdParty.Add(unit);
+                    }
+                }
+            }
+
             return OperationResult.Successful();
         }
 

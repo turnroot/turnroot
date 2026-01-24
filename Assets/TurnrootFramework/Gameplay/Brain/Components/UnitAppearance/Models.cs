@@ -257,11 +257,7 @@ namespace Turnroot.Gameplay.Brain
                 return OperationResult.Failure("No model found at given position");
             }
 
-            try
-            {
-                model.SetActive(false);
-            }
-            catch { }
+            model.SetActive(false);
 
             PublishDespawnEvent(model, pos);
             Destroy(model);
@@ -276,11 +272,8 @@ namespace Turnroot.Gameplay.Brain
             {
                 if (kvp.Value != null)
                 {
-                    try
-                    {
-                        kvp.Value.SetActive(false);
-                    }
-                    catch { }
+                    kvp.Value.SetActive(false);
+
                     Destroy(kvp.Value);
                 }
             }
