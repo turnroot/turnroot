@@ -87,11 +87,6 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
         public void InitializeAIControlledUnit(CharacterInstance unitInstance)
         {
-            // Prefer routing context activation through the TurnRotisserie so
-            // a single subsystem owns the ActiveUnit lifecycle and publishes appropriate events.
-            var tr = _context.Brain?.battleBrain?.GetComponent<TurnRotisserie>();
-            _ = tr.ChangeBattleContextData(unitInstance);
-
             _aStarModified = new AStarModified();
 
             if (_context.Brain?.battleBrain?.BattleObject != null)

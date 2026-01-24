@@ -261,8 +261,19 @@ namespace Turnroot.Gameplay.Brain.Snapshots
                             {
                                 context.mapGrid.RemoveOccupied(mgp);
                             }
+
                             // Clear flag so repeated restores don't double-remove
                             u.WasSpawnedDuringBattle = false;
+
+                            // Reset the instance's logical position to an out-of-bounds sentinel so it won't be interpreted
+                            // as occupying a valid grid cell. This avoids leaving the instance at its spawn coords after removal.
+
+                            u.MapGridPosition = new Vector2Int(-9999, -9999);
+
+                            TurnrootLogger.Log(
+                                $"[Snapshot] Removed spawned unit {u.Id} and reset logical position",
+                                TurnrootLogger.LogLevel.Info
+                            );
                         }
                         catch (Exception ex)
                         {

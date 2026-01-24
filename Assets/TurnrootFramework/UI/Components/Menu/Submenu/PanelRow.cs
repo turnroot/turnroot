@@ -250,18 +250,25 @@ namespace Turnroot.UI.Components.Menu.Submenu
                     foreach (var c in candidates)
                     {
                         if (string.IsNullOrEmpty(c))
-                            continue;
-                        var lower = c.ToLower();
+                            {
+                                continue;
+                            }
+
+                            var lower = c.ToLower();
                         var sb = new System.Text.StringBuilder();
                         foreach (var ch in lower)
                         {
                             if (char.IsLetterOrDigit(ch))
-                                sb.Append(ch);
-                        }
+                                {
+                                    sb.Append(ch);
+                                }
+                            }
                         normalized = sb.ToString();
                         if (!string.IsNullOrEmpty(normalized))
-                            break;
-                    }
+                            {
+                                break;
+                            }
+                        }
 
                     if (normalized == "quality")
                     {

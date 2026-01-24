@@ -48189,9 +48189,6 @@ MonoBehaviour:
   OnLoadedAmountChanged:
     m_PersistentCalls:
       m_Calls: []
-  OnLoadingCompleteEvent:
-    m_PersistentCalls:
-      m_Calls: []
 --- !u!1 &1208532634
 GameObject:
   m_ObjectHideFlags: 0

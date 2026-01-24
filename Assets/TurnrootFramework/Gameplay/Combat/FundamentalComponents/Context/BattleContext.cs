@@ -263,6 +263,9 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
         public void InvalidateUnitPositionCache() => currentUnitPositions.Clear();
 
+        public bool IsPlayerControlledUnit(CharacterInstance unit) =>
+            unit != null && Participants.Allies.Contains(unit);
+
         #endregion
 
         #region Command-Based Actions

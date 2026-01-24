@@ -46,7 +46,10 @@ namespace Turnroot.Gameplay.Maps
             {
                 // Ensure trailing slash for Resource loading
                 if (!path.EndsWith("/"))
+                {
                     path += "/";
+                }
+
                 _iconPath = path;
             }
 

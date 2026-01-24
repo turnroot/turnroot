@@ -179,18 +179,28 @@ namespace Turnroot.Gameplay.Combat
                 return OperationResult.Failure("Could not instantiate player team roster");
             }
 
+            // Mirror the template roster on the battle-specific runtime instance so ordering and placements are available
+            PlayerTeamRoster.roster = playerInstance.roster;
             PlayerTeamRoster.AddInstances(playerInstance.Instances);
 
             if (_enemyRoster != null)
             {
                 var enemyInstance = battleBrain.InstantiateGenericRoster(_enemyRoster);
-                EnemyTeamRoster.AddInstances(enemyInstance.Instances);
+                if (enemyInstance != null)
+                {
+                    EnemyTeamRoster.roster = enemyInstance.roster;
+                    EnemyTeamRoster.AddInstances(enemyInstance.Instances);
+                }
             }
 
             if (HasThirdParty && _thirdPartyRoster != null)
             {
                 var thirdPartyInstance = battleBrain.InstantiateGenericRoster(_thirdPartyRoster);
-                ThirdPartyTeamRoster.AddInstances(thirdPartyInstance.Instances);
+                if (thirdPartyInstance != null)
+                {
+                    ThirdPartyTeamRoster.roster = thirdPartyInstance.roster;
+                    ThirdPartyTeamRoster.AddInstances(thirdPartyInstance.Instances);
+                }
             }
 
             return OperationResult.Successful();

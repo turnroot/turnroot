@@ -1,14 +1,17 @@
+using Turnroot.Utilities;
+
 namespace Turnroot.Gameplay.Brain
 {
     public partial class CursorBrain
     {
-        #region Public Query API (moved)
+        #region Public Query API
 
         /// <summary>
         /// Get the character instance at the current cursor position.
         /// </summary>
         public Characters.CharacterInstance GetUnitAtCursor()
         {
+            TurnrootLogger.Log("CursorBrain: Getting unit at cursor position");
             if (CursorPosition == null)
             {
                 return null;
@@ -20,8 +23,16 @@ namespace Turnroot.Gameplay.Brain
                 && _brain?.battleBrain?.BattleObject?.Context != null
             )
             {
+                TurnrootLogger.Log("CursorBrain: Cursor is in battle context");
                 var cache = _brain.battleBrain.BattleObject.Context.GetCurrentUnitPositions();
-                return cache.TryGetValue(CursorPosition.CoordinatesInt, out var unit) ? unit : null;
+                if (cache.TryGetValue(CursorPosition.CoordinatesInt, out var unit))
+                {
+                    TurnrootLogger.Log(
+                        $"CursorBrain: Found unit {unit.CharacterTemplate.DisplayName} at cursor position"
+                    );
+                    return unit;
+                }
+                return null;
             }
 
             return null;
