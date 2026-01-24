@@ -329,7 +329,12 @@ namespace Turnroot.Gameplay.Brain
             switch (currentState)
             {
                 case PlayerTurnStates.NoUnitSelected:
-                    OpenActionMenu();
+                    // Eventually: OpenActionMenu();
+                    var unitAtCursor = _brain.cursorBrain.GetUnitAtCursor();
+                    if (unitAtCursor != null && BattleContext.IsPlayerControlledUnit(unitAtCursor))
+                    {
+                        _playerTurnFlow.SelectUnit();
+                    }
                     break;
                 case PlayerTurnStates.NoActionChosen:
                     // TODO: Open context-sensitive action menu
@@ -502,7 +507,45 @@ namespace Turnroot.Gameplay.Brain
 
         public void ChangeSelectedUnit(CharacterInstance unit)
         {
-            // TODO: Validate player control, update flow, recalculate tiles, update UI
+            // Validate inputs and context
+            if (unit == null || BattleContext == null)
+            {
+                return;
+            }
+
+            // Only allow selecting player-controlled units here
+            if (!BattleContext.IsPlayerControlledUnit(unit))
+            {
+                return;
+            }
+
+            // Avoid redundant work if already selected
+            if (BattleContext.Unit.UnitInstance == unit)
+            {
+                return;
+            }
+
+            // Set the active unit in the battle context so other systems read the correct unit
+            BattleContext.Unit.UnitInstance = unit;
+
+            // Notify subscribers that the player's active unit changed (triggers tile recomputation elsewhere)
+            _brain.PublishPlayerControlledUnitActivated(unit);
+
+            // Recompute valid tiles for input handling and update visuals
+            ComputeValidTiles(unit);
+            _tileHighlighter.ClearAll();
+            _tileHighlighter.HighlightTiles(
+                new List<Vector2Int>(_validMoveTiles.Keys.Select(k => k.CoordinatesInt)),
+                TileHighlighter.HighlightType.Move
+            );
+            _tileHighlighter.HighlightTiles(
+                new List<Vector2Int>(_validAttackTiles.Keys.Select(k => k.CoordinatesInt)),
+                TileHighlighter.HighlightType.Attack
+            );
+            _brain.cursorBrain.ClearAllowedPositions();
+            _brain.cursorBrain.SetAllowedPositions(
+                new List<Vector2Int>(_validMoveTiles.Keys.Select(k => k.CoordinatesInt))
+            );
         }
 
         public void OpenActionMenu() => _playerTurnFlow?.SelectUnit();
