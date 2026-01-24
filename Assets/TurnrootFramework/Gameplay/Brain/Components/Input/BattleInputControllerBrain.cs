@@ -208,6 +208,9 @@ namespace Turnroot.Gameplay.Brain
             _lastInputTime = Time.time;
             _inputEnabled = false; // Explicitly disable until ready
             StartCoroutine(InitializeWhenReady());
+            TurnrootLogger.Log(
+                $"🏁 Battle started. PlayerTurnFlow state: {_playerTurnFlow?.GetCurrentState()}"
+            );
         }
 
         private IEnumerator InitializeWhenReady()
@@ -324,7 +327,11 @@ namespace Turnroot.Gameplay.Brain
 
         public void HandleConfirmInput()
         {
+            TurnrootLogger.Log("BattleInputControllerBrain: Handling Confirm Input");
             var currentState = _playerTurnFlow?.GetCurrentState() ?? PlayerTurnStates.Inactive;
+            TurnrootLogger.Log(
+                $"BattleInputControllerBrain: Current PlayerTurnState is {currentState}"
+            );
 
             switch (currentState)
             {
@@ -334,6 +341,7 @@ namespace Turnroot.Gameplay.Brain
                     if (unitAtCursor != null && BattleContext.IsPlayerControlledUnit(unitAtCursor))
                     {
                         _playerTurnFlow.SelectUnit();
+                        ChangeSelectedUnit(unitAtCursor);
                     }
                     break;
                 case PlayerTurnStates.NoActionChosen:

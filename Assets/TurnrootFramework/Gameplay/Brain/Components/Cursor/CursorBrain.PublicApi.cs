@@ -27,10 +27,6 @@ namespace Turnroot.Gameplay.Brain
                 var cache = _brain.battleBrain.BattleObject.Context.GetCurrentUnitPositions();
                 if (cache.TryGetValue(CursorPosition.CoordinatesInt, out var unit))
                 {
-                    if (_brain?.battleInputControllerBrain != null)
-                    {
-                        _brain.battleInputControllerBrain.ChangeSelectedUnit(unit);
-                    }
                     TurnrootLogger.Log(
                         $"CursorBrain: Found unit {unit.CharacterTemplate.DisplayName} at cursor position"
                     );

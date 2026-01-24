@@ -62,6 +62,10 @@ namespace Turnroot.Gameplay.Brain
             base.Awake();
 
             _turnRotisserie = GetComponent<TurnRotisserie>();
+            if (_turnRotisserie != null)
+            {
+                _turnRotisserie.BindToBattleBrain(this);
+            }
             playerTurnFlow = GetComponent<PlayerTurnFlow>();
             playerTurnFlow.Intialize();
         }
@@ -136,6 +140,7 @@ namespace Turnroot.Gameplay.Brain
             _brain.TakeSnapshot();
 
             TurnrootLogger.Log("BattleBrain: Battle initialization complete");
+            ProgressTurnOrder();
             return;
         }
 
