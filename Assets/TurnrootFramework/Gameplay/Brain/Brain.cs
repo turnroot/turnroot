@@ -655,8 +655,28 @@ namespace Turnroot.Gameplay.Brain
         public event Action<CharacterInstance, CharacterInstance> OnItemStolen;
         public event Action<CharacterInstance, BattleEmotion> OnUnitEmotionChanged;
 
-        public void PublishPlayerControlledUnitActivated(CharacterInstance unit) =>
-            OnPlayerControlledUnitActivated?.Invoke(unit);
+        public void PublishPlayerControlledUnitActivated(CharacterInstance unit)
+        {
+            var handlers = OnPlayerControlledUnitActivated;
+            if (handlers == null)
+                return;
+
+            foreach (var handler in handlers.GetInvocationList())
+            {
+                try
+                {
+                    ((Action<CharacterInstance>)handler).Invoke(unit);
+                }
+                catch (System.Exception ex)
+                {
+                    TurnrootLogger.Log(
+                        $"PublishPlayerControlledUnitActivated: handler {handler.Method.Name} threw: {ex}",
+                        TurnrootLogger.LogLevel.Error
+                    );
+                    throw;
+                }
+            }
+        }
 
         public void PublishAllyDamaged(CharacterInstance unit, int damage) =>
             OnAllyDamaged?.Invoke(unit, damage);

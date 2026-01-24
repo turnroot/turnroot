@@ -237,6 +237,14 @@ namespace Turnroot.Gameplay.Brain
             _validMoveTiles.Clear();
             _validAttackTiles.Clear();
             _aiHelper = BattleContext.AIHelper;
+            if (_aiHelper == null)
+            {
+                TurnrootLogger.Log(
+                    "BattleInputControllerBrain: AIHelper is null",
+                    TurnrootLogger.LogLevel.Error
+                );
+                return OperationResult.Failure("AIHelper not available");
+            }
 
             var currentPos = unit.UnitPositionToMapGridPoint(
                 unit.MapGridPosition,

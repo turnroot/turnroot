@@ -15,7 +15,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
     {
         private readonly BattleContext _context;
         BattleCondition[] BattleConditions;
-        private AStarModified _aStarModified;
+        private AStarModified _aStarModified = new();
 
         // Some basic behavioral bools
         private bool CanMove => BehaviorSettings.MovementDisabled == false;
@@ -85,14 +85,20 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             }
         }
 
-        public void InitializeAIControlledUnit(CharacterInstance unitInstance)
+        public OperationResult InitializeAIControlledUnit(CharacterInstance unitInstance)
         {
-            _aStarModified = new AStarModified();
+            if (unitInstance == null)
+            {
+                return OperationResult.Failure("Cannot initialize AI for null unit");
+            }
+
+            _aStarModified ??= new AStarModified();
 
             if (_context.Brain?.battleBrain?.BattleObject != null)
             {
                 BattleConditions = _context.Brain.battleBrain.BattleObject.BattleConditions;
             }
+            return OperationResult.Successful();
         }
 
         #region AI Goal System

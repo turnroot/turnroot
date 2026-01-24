@@ -264,17 +264,30 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 return OperationResult.Failure("BattleContext is null");
             }
 
+            TurnrootLogger.Log(
+                $"TurnRotisserie: Setting active unit to {activeUnit.CharacterTemplate.DisplayName}"
+            );
+
             try
             {
                 // Set the active unit
                 Context.Unit.UnitInstance = activeUnit;
+                TurnrootLogger.Log(
+                    $"TurnRotisserie: Active unit set to {activeUnit.CharacterTemplate.DisplayName} in context at position {activeUnit.MapGridPosition}"
+                );
 
                 // Update adjacency for the active unit
                 Context.Participants.AdjacentUnits = new Locations.Adjacency(activeUnit);
+                TurnrootLogger.Log(
+                    $"TurnRotisserie: Updated adjacency for active unit {activeUnit.CharacterTemplate.DisplayName}"
+                );
 
                 // Publish activation event if this is a player-controlled unit
                 if (_currentTurnOrder is TurnOrder.PlayerStart or TurnOrder.PlayerEnd)
                 {
+                    TurnrootLogger.Log(
+                        $"TurnRotisserie: Publishing player-controlled unit activated for {activeUnit.CharacterTemplate.DisplayName}"
+                    );
                     Brain?.PublishPlayerControlledUnitActivated(activeUnit);
                 }
 
@@ -282,7 +295,11 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             }
             catch (System.Exception ex)
             {
-                return OperationResult.Failure($"SetActiveUnitInContext failed: {ex.Message}");
+                TurnrootLogger.Log(
+                    $"TurnRotisserie: Exception in SetActiveUnitInContext: {ex}",
+                    TurnrootLogger.LogLevel.Error
+                );
+                return OperationResult.Failure(ex);
             }
         }
 

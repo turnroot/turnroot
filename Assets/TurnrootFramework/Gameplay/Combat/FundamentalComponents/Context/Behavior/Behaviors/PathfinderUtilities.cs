@@ -172,6 +172,9 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 _context.Unit.UnitInstance,
                 "GetPossibleMoveTilesNonAlloc"
             );
+            TurnrootLogger.Log(
+                $"BattleContextAIHelper: Validating unit {_context.Unit.UnitInstance.CharacterTemplate.DisplayName} for move tiles at {_context.Unit.UnitInstance.MapGridPosition} - Valid: {validation.IsValid}"
+            );
             if (!validation.IsValid)
             {
                 return false;
@@ -181,6 +184,10 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 _context.Unit.UnitInstance,
                 _context.mapGrid,
                 start
+            );
+
+            TurnrootLogger.Log(
+                $"BattleContextAIHelper: Generated pathfinding parameters for unit {_context.Unit.UnitInstance.CharacterTemplate.DisplayName} - Start: {parameters.Start}, MovementBudget: {parameters.MovementBudget}, IsWalking: {parameters.IsWalking}, IsFlying: {parameters.IsFlying}"
             );
 
             if (parameters == null || !parameters.IsValid())
@@ -198,6 +205,9 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
             var cacheKey =
                 $"{parameters.Start.Col}_{parameters.Start.Row}_mb{parameters.MovementBudget}_w{parameters.IsWalking}_f{parameters.IsFlying}_rfalse_max0";
+            TurnrootLogger.Log(
+                $"BattleContextAIHelper: Computing move tiles for unit {_context.Unit.UnitInstance.CharacterTemplate.DisplayName} with cache key {cacheKey}"
+            );
             if (_reachabilityCache.TryGetValue(cacheKey, out var cached))
             {
                 foreach (var kvp in cached)
@@ -248,6 +258,10 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 ClearReusableTileDictionaries();
                 _lastSeenMapVersion = _context.mapGrid.StateVersion;
             }
+
+            TurnrootLogger.Log(
+                $"BattleContextAIHelper: Computing AI tiles for unit {_context.Unit.UnitInstance.CharacterTemplate.DisplayName} at {start} on map grid version {_context.mapGrid.MapName}"
+            );
 
             attackTilesResult.Clear();
 

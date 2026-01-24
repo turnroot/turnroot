@@ -341,7 +341,6 @@ namespace Turnroot.Gameplay.Brain
                     "BattleBrain: Failed to progress turn order!",
                     TurnrootLogger.LogLevel.Error
                 );
-                Debug.Break();
             }
         }
 
