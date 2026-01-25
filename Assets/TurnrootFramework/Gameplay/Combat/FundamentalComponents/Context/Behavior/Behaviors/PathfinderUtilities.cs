@@ -95,13 +95,26 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             }
 
             // Apply movement bonuses
-            var classData = _context.Unit.UnitInstance.CurrentClass.ClassData;
-            var movementBonusMod = classData.Stats.UnboundedStatBonuses?.Find(b =>
-                b.unboundedStatType == Characters.Stats.UnboundedStatType.Movement
-            );
-            if (movementBonusMod.HasValue)
+            try
             {
-                parameters.MovementBudget += (int)movementBonusMod.Value.value;
+                if (
+                    _context.Unit.UnitInstance.CurrentClass?.ClassData?.Stats.UnboundedStatBonuses
+                    != null
+                )
+                {
+                    var classData = _context.Unit.UnitInstance.CurrentClass.ClassData;
+                    var movementBonusMod = classData.Stats.UnboundedStatBonuses?.Find(b =>
+                        b.unboundedStatType == Characters.Stats.UnboundedStatType.Movement
+                    );
+                    if (movementBonusMod.HasValue)
+                    {
+                        parameters.MovementBudget += (int)movementBonusMod.Value.value;
+                    }
+                }
+            }
+            catch
+            {
+                TurnrootLogger.Log("Unit class data is null, skipping movement bonus");
             }
 
             // Turn-level caching: clear if turn changed

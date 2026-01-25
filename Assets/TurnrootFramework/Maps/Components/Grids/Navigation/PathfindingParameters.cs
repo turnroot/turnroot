@@ -54,8 +54,19 @@ namespace Turnroot.Gameplay.Maps
                     movementType = classData.Identity.MovementType;
                     isMagic = classData.Identity.IsMagic;
                 }
-                var movementStat = character.GetUnboundedStat(
-                    Characters.Stats.UnboundedStatType.Movement
+                var movementStatObj = character
+                    .GetUnboundedStat(Characters.Stats.UnboundedStatType.Movement);
+                if (movementStatObj == null)
+                {
+                    TurnrootLogger.Log(
+                        $"PathfindingParameters: Movement stat missing for character {character?.CharacterTemplate?.DisplayName ?? "<unknown>"}",
+                        TurnrootLogger.LogLevel.Error
+                    );
+                    return null;
+                }
+                var movementStat = movementStatObj.CurrentInt;
+                TurnrootLogger.Log(
+                    $"PathfindingParameters: Movement stat for character {character.CharacterTemplate.DisplayName} is {movementStat}"
                 );
 
                 return new PathfindingParameters
@@ -71,7 +82,7 @@ namespace Turnroot.Gameplay.Maps
                     SameDirectionMultiplier = 0.95f,
                     IncludeRange = false,
                     IncludeHealRange = false,
-                    MaxRange = 0,
+                    MaxRange = 0, // TODO: Get weapon range
                 };
             }
             catch
