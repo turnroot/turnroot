@@ -8,13 +8,23 @@ namespace Turnroot.Characters.Stats
         [SerializeField]
         private UnboundedStatType _statType = UnboundedStatType.Strength;
 
-        public CharacterStat() { }
+        // Explicit default constructor to avoid unintentionally assuming other values
+        public CharacterStat()
+        {
+            _statType = UnboundedStatType.Strength;
+            _current = 0f;
+            _bonus = 0f;
+        }
 
         // Copy constructor used for safe cloning
         public CharacterStat(CharacterStat other)
         {
             if (other == null)
             {
+                // Ensure sensible defaults if a null source is provided
+                _statType = UnboundedStatType.Strength;
+                _current = 0f;
+                _bonus = 0f;
                 return;
             }
             _statType = other._statType;

@@ -285,6 +285,9 @@ namespace Turnroot.Characters
             {
                 _currentClass.OnAfterDeserialize();
             }
+
+            // Ensure stats exist after deserialization (repair missing or malformed stats)
+            EnsureAllStatsExist();
         }
 
         private OperationResult Initialize()
@@ -304,6 +307,9 @@ namespace Turnroot.Characters
             _runtimeUnboundedStats = CharacterHelpers.CloneUnboundedStats(
                 _characterTemplate.UnboundedStats
             );
+
+            // Verify all required stats exist and create sensible defaults if they are missing
+            EnsureAllStatsExist();
 
             // Deep copy inventory from template
             _inventoryInstance = new CharacterInventoryInstance();
@@ -401,6 +407,21 @@ namespace Turnroot.Characters
                 {
                     _skillInstances.Add(new SkillInstance(skillTemplate));
                 }
+            }
+        }
+
+        private void EnsureAllStatsExist()
+        {
+            // Ensure all bounded stats exist (adds defaults if missing)
+            foreach (BoundedStatType type in System.Enum.GetValues(typeof(BoundedStatType)))
+            {
+                StatHelpers.GetBoundedStat(_runtimeBoundedStats, type);
+            }
+
+            // Ensure all unbounded stats exist (adds defaults if missing)
+            foreach (UnboundedStatType type in System.Enum.GetValues(typeof(UnboundedStatType)))
+            {
+                StatHelpers.GetUnboundedStat(_runtimeUnboundedStats, type);
             }
         }
 

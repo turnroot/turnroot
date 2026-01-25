@@ -4,27 +4,27 @@ namespace Turnroot.Characters.Stats
 {
     public enum BoundedStatType
     {
-        Health,
-        Level,
-        LevelExperience,
-        ClassExperience,
+        Health = 0,
+        Level = 1,
+        LevelExperience = 2,
+        ClassExperience = 3,
     }
 
     public enum UnboundedStatType
     {
-        Strength,
-        Defense,
-        Magic,
-        Resistance,
-        Skill,
-        Speed,
-        Luck,
-        Dexterity,
-        Charm,
-        Movement,
-        Endurance,
-        Authority,
-        CriticalAvoidance,
+        Strength = 0,
+        Defense = 1,
+        Magic = 2,
+        Resistance = 3,
+        Skill = 4,
+        Speed = 5,
+        Luck = 6,
+        Dexterity = 7,
+        Charm = 8,
+        Movement = 9,
+        Endurance = 10,
+        Authority = 11,
+        CriticalAvoidance = 12,
     }
 
     public static class BoundedStatTypeExtensions

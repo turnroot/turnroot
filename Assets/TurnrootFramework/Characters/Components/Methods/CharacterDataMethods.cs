@@ -172,6 +172,9 @@ namespace Turnroot.Characters
                     );
                 }
             }
+
+            // Run stats-specific validation defined in another partial file (if present)
+            ValidateStats();
 #endif
         }
 

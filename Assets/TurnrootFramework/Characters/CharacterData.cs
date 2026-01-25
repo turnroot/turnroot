@@ -318,6 +318,52 @@ namespace Turnroot.Characters
         [field: BoxGroup("Stats & Progression"), SerializeField]
         public List<CharacterStat> UnboundedStats { get; private set; } = new();
 
+#if UNITY_EDITOR
+        private void ValidateStats()
+        {
+            // Check bounded stats
+            var requiredBounded = System.Enum.GetValues(typeof(BoundedStatType));
+            foreach (BoundedStatType type in requiredBounded)
+            {
+                var stat = BoundedStats.Find(s => s.StatType == type);
+                if (stat == null)
+                {
+                    Debug.LogWarning($"{name}: Missing bounded stat {type}");
+                }
+            }
+
+            // Check unbounded stats
+            var requiredUnbounded = System.Enum.GetValues(typeof(UnboundedStatType));
+            foreach (UnboundedStatType type in requiredUnbounded)
+            {
+                var stat = UnboundedStats.Find(s => s.StatType == type);
+                if (stat == null)
+                {
+                    Debug.LogWarning($"{name}: Missing unbounded stat {type}");
+                }
+            }
+
+            // Check for duplicates
+            var boundedTypes = new HashSet<BoundedStatType>();
+            foreach (var stat in BoundedStats)
+            {
+                if (!boundedTypes.Add(stat.StatType))
+                {
+                    Debug.LogError($"{name}: Duplicate bounded stat {stat.StatType}");
+                }
+            }
+
+            var unboundedTypes = new HashSet<UnboundedStatType>();
+            foreach (var stat in UnboundedStats)
+            {
+                if (!unboundedTypes.Add(stat.StatType))
+                {
+                    Debug.LogError($"{name}: Duplicate unbounded stat {stat.StatType}");
+                }
+            }
+        }
+#endif
+
         [field: BoxGroup("Stats & Progression"), SerializeField]
         [Tooltip(
             "Personal growth rates (percentage 0-100) for stat increases on level up. If empty, uses class growth rates only."

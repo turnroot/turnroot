@@ -54,15 +54,36 @@ namespace Turnroot.Gameplay.Maps
                     movementType = classData.Identity.MovementType;
                     isMagic = classData.Identity.IsMagic;
                 }
-                var movementStatObj = character
-                    .GetUnboundedStat(Characters.Stats.UnboundedStatType.Movement);
+                var movementStatObj = character.GetUnboundedStat(
+                    Characters.Stats.UnboundedStatType.Movement
+                );
                 if (movementStatObj == null)
                 {
                     TurnrootLogger.Log(
-                        $"PathfindingParameters: Movement stat missing for character {character?.CharacterTemplate?.DisplayName ?? "<unknown>"}",
+                        $"PathfindingParameters: Movement stat missing for character {character?.CharacterTemplate?.DisplayName ?? "<unknown>"}, using default value 5",
                         TurnrootLogger.LogLevel.Error
                     );
-                    return null;
+                    // Use a sensible default movement value instead of returning null
+                    var defaultMovement = 5;
+                    TurnrootLogger.Log(
+                        $"PathfindingParameters: Defaulting movement to {defaultMovement} for character {character?.CharacterTemplate?.DisplayName ?? "<unknown>"}",
+                        TurnrootLogger.LogLevel.Warning
+                    );
+                    return new PathfindingParameters
+                    {
+                        Graph = graph,
+                        Start = start,
+                        MovementBudget = defaultMovement,
+                        IsWalking = movementType == MovementType.Infantry,
+                        IsFlying = movementType == MovementType.Flying,
+                        IsRiding = movementType == MovementType.Riding,
+                        IsMagic = isMagic,
+                        IsArmored = movementType == MovementType.Armored,
+                        SameDirectionMultiplier = 0.95f,
+                        IncludeRange = false,
+                        IncludeHealRange = false,
+                        MaxRange = 0,
+                    };
                 }
                 var movementStat = movementStatObj.CurrentInt;
                 TurnrootLogger.Log(
