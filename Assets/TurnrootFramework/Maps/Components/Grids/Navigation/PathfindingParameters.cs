@@ -20,7 +20,7 @@ namespace Turnroot.Gameplay.Maps
         public float SameDirectionMultiplier { get; set; } = 0.95f;
         public bool IncludeRange { get; set; } = false;
         public bool IncludeHealRange { get; set; } = false;
-        public int MaxRange { get; set; } = 0;
+        public int MaxRange { get; set; } = 1;
 
         /// <summary>
         /// Creates parameters from a character instance and movement context.

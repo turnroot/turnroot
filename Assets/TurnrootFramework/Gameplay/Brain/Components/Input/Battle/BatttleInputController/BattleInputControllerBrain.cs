@@ -143,6 +143,7 @@ namespace Turnroot.Gameplay.Brain
             if (_inputActions?.Confirm?.WasPressedThisFrame() == true)
             {
                 _brain?.Publish(new BattleContext.BattleInputConfirmEvent());
+                HandleConfirmInput();
                 return true;
             }
 
@@ -249,17 +250,6 @@ namespace Turnroot.Gameplay.Brain
 
         #region Input Event Handlers
 
-        private void HandleNavigateEvent(BattleContext.BattleInputNavigateEvent e) =>
-            HandleNavigateInput(e.Direction);
-
-        private void HandleConfirmEvent(BattleContext.BattleInputConfirmEvent e) =>
-            HandleConfirmInput();
-
-        private void HandleCancelEvent(BattleContext.BattleInputCancelEvent e) =>
-            HandleCancelInput();
-
-        private void HandleMenuEvent(BattleContext.BattleInputMenuEvent e) => OpenMenu();
-
         public void HandleNavigateInput(Vector2 direction)
         {
             if (
@@ -300,11 +290,14 @@ namespace Turnroot.Gameplay.Brain
                 $"BattleInputControllerBrain: Current PlayerTurnState is {currentState}"
             );
 
+            var unitAtCursor = _brain.cursorBrain.GetUnitAtCursor();
+
             switch (currentState)
             {
+                case PlayerTurnStates.Inactive:
+                    break;
                 case PlayerTurnStates.NoUnitSelected:
-                    // Eventually: OpenActionMenu();
-                    var unitAtCursor = _brain.cursorBrain.GetUnitAtCursor();
+                    // Eventually: OpenActionMenu()
                     if (unitAtCursor != null && BattleContext.IsPlayerControlledUnit(unitAtCursor))
                     {
                         _playerTurnFlow.SelectUnit();

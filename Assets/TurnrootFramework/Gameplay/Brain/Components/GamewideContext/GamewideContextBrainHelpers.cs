@@ -13,10 +13,6 @@ using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain
 {
-    /// <summary>
-    /// Shared helper methods for GamewideContextBrain to keep the main class small.
-    /// Provides serialization, hashing, and tamper detection utilities.
-    /// </summary>
     public static class GamewideContextBrainHelpers
     {
         public enum ExploredState
@@ -43,6 +39,17 @@ namespace Turnroot.Gameplay.Brain
             public MapGrid map;
         }
 
+        [Serializable]
+        public class SerializedWrapper
+        {
+            public string TypeName;
+            public string Payload;
+            public string Hash;
+            public string Version;
+        }
+
+        #region Serialization Settings
+
         public static JsonSerializerSettings GetJsonSerializerSettings()
         {
             var settings = new JsonSerializerSettings
@@ -56,19 +63,10 @@ namespace Turnroot.Gameplay.Brain
             return settings;
         }
 
-        [Serializable]
-        public class SerializedWrapper
-        {
-            public string TypeName;
-            public string Payload;
-            public string Hash;
-            public string Version;
-        }
+        #endregion
 
-        /// <summary>
-        /// Computes a lightweight deterministic FNV-1a 64-bit hash.
-        /// </summary>
-        /// <returns>Lower-case hexadecimal hash string.</returns>
+        #region Hashing
+
         public static string ComputeFNV1a64Hex(string input)
         {
             const ulong offsetBasis = 14695981039346656037UL;
@@ -88,14 +86,49 @@ namespace Turnroot.Gameplay.Brain
             return hash.ToString("x16");
         }
 
-        /// <summary>
-        /// Creates a safe default instance when tampering is detected.
-        /// </summary>
+        public static string GetModificationCheckHash<T>(T instance, string versionHex = null)
+        {
+            return TryExecute(
+                () =>
+                {
+                    var settings = GetJsonSerializerSettings();
+                    var json = JsonConvert.SerializeObject(instance, settings);
+                    var input =
+                        json + "|v:" + (string.IsNullOrEmpty(versionHex) ? "0" : versionHex);
+                    return ComputeFNV1a64Hex(input);
+                },
+                string.Empty,
+                "Failed to compute modification hash"
+            );
+        }
+
+        public static string RecomputeHashFromWrapperJObject(JObject wrapper)
+        {
+            if (wrapper == null)
+            {
+                return string.Empty;
+            }
+
+            return TryExecute(
+                () =>
+                {
+                    var payload = (string)wrapper["Payload"] ?? string.Empty;
+                    var version = (string)wrapper["Version"] ?? "0";
+                    return ComputeFNV1a64Hex(payload + "|v:" + version);
+                },
+                string.Empty,
+                "Failed to recompute hash"
+            );
+        }
+
+        #endregion
+
+        #region Default Instance Creation
+
         public static T CreateDefaultInstanceFromWrapper<T>(SerializedWrapper wrapper)
         {
             var t = typeof(T);
 
-            // Special case: CharacterInstance requires a CharacterData template
             if (t == typeof(CharacterInstance))
             {
                 var characterData = TryExtractCharacterDataFromWrapper(wrapper);
@@ -104,7 +137,6 @@ namespace Turnroot.Gameplay.Brain
                     : default;
             }
 
-            // Generic fallback: try parameterless constructor
             if (t.IsValueType)
             {
                 return default;
@@ -121,40 +153,33 @@ namespace Turnroot.Gameplay.Brain
                 return null;
             }
 
-            try
-            {
-                var payloadObj = JObject.Parse(wrapper.Payload);
-                var templateToken =
-                    payloadObj.SelectToken("_characterTemplate")
-                    ?? payloadObj.SelectToken("CharacterTemplate");
-
-                if (templateToken?.Type != JTokenType.Object)
+            return TryExecute(
+                () =>
                 {
-                    return null;
-                }
+                    var payloadObj = JObject.Parse(wrapper.Payload);
+                    var templateToken =
+                        payloadObj.SelectToken("_characterTemplate")
+                        ?? payloadObj.SelectToken("CharacterTemplate");
+
+                    if (templateToken?.Type != JTokenType.Object)
+                    {
+                        return null;
+                    }
 
 #if UNITY_EDITOR
-                var characterData = TryLoadCharacterDataInEditor(templateToken);
-                if (characterData != null)
-                {
-                    return characterData;
-                }
+                    var characterData = TryLoadCharacterDataInEditor(templateToken);
+                    if (characterData != null)
+                    {
+                        return characterData;
+                    }
 #endif
 
-                var name = templateToken.Value<string>("name");
-                if (!string.IsNullOrEmpty(name))
-                {
-                    return Resources.Load<CharacterData>(name);
-                }
-            }
-            catch (Exception ex)
-            {
-#if UNITY_EDITOR
-                Debug.LogWarning($"Failed to extract CharacterData from wrapper: {ex.Message}");
-#endif
-            }
-
-            return null;
+                    var name = templateToken.Value<string>("name");
+                    return !string.IsNullOrEmpty(name) ? Resources.Load<CharacterData>(name) : null;
+                },
+                null,
+                "Failed to extract CharacterData from wrapper"
+            );
         }
 
 #if UNITY_EDITOR
@@ -183,57 +208,40 @@ namespace Turnroot.Gameplay.Brain
         }
 #endif
 
-        /// <summary>
-        /// Computes modification-check hash for an instance.
-        /// </summary>
-        public static string GetModificationCheckHash<T>(T instance, string versionHex = null)
-        {
-            try
-            {
-                var settings = GetJsonSerializerSettings();
-                var json = JsonConvert.SerializeObject(instance, settings);
-                var input = json + "|v:" + (string.IsNullOrEmpty(versionHex) ? "0" : versionHex);
-                return ComputeFNV1a64Hex(input);
-            }
-            catch (Exception ex)
-            {
-#if UNITY_EDITOR
-                Debug.LogWarning($"Failed to compute modification hash: {ex.Message}");
-#endif
-                return string.Empty;
-            }
-        }
+        #endregion
 
-        /// <summary>
-        /// Builds an obfuscated ledger key for storing instance hashes in LongTermMemory.
-        /// Attempts to use an instance Id if available, otherwise falls back to hash/version.
-        /// </summary>
+        #region Ledger Keys
+
         public static string BuildHashLedgerKey<T>(T instance, SerializedWrapper wrapper)
         {
-            try
-            {
-                var tname = typeof(T).FullName ?? typeof(T).Name;
-                var id = ExtractInstanceId(instance, wrapper);
+            return TryExecute(
+                () =>
+                {
+                    var tname = typeof(T).FullName ?? typeof(T).Name;
+                    var id = ExtractInstanceId(instance, wrapper);
 
-                string rawKey = !string.IsNullOrEmpty(id)
-                    ? $"{LtmKeys.InstanceHash}.{tname}.{id}"
-                    : BuildHashBasedKey(tname, wrapper);
+                    string rawKey = !string.IsNullOrEmpty(id)
+                        ? $"{LtmKeys.InstanceHash}.{tname}.{id}"
+                        : BuildHashBasedKey(tname, wrapper);
 
-                var keyHash = ComputeFNV1a64Hex(rawKey);
-                return $"{LtmKeys.InstanceHash}.{tname}.{keyHash}";
-            }
-            catch (Exception ex)
-            {
-#if UNITY_EDITOR
-                Debug.LogWarning($"Failed to build ledger key: {ex.Message}");
-#endif
-                return null;
-            }
+                    var keyHash = ComputeFNV1a64Hex(rawKey);
+                    return $"{LtmKeys.InstanceHash}.{tname}.{keyHash}";
+                },
+                null,
+                "Failed to build ledger key"
+            );
+        }
+
+        public static string BuildRosterLedgerKey(string rosterId)
+        {
+            var rosterType = typeof(Characters.Roster);
+            var rawKey = $"{LtmKeys.Roster}.{rosterType.FullName}.{rosterId}";
+            var keyHash = ComputeFNV1a64Hex(rawKey);
+            return $"{LtmKeys.Roster}.{rosterType.FullName}.{keyHash}";
         }
 
         private static string ExtractInstanceId<T>(T instance, SerializedWrapper wrapper)
         {
-            // Try to extract Id from live instance
             if (instance != null)
             {
                 var id = TryGetIdFromInstance(instance);
@@ -243,7 +251,6 @@ namespace Turnroot.Gameplay.Brain
                 }
             }
 
-            // Try parsing wrapper payload
             return wrapper != null && !string.IsNullOrEmpty(wrapper.Payload)
                 ? TryGetIdFromPayload(wrapper.Payload)
                 : null;
@@ -252,22 +259,16 @@ namespace Turnroot.Gameplay.Brain
         private static string TryGetIdFromInstance<T>(T instance)
         {
             var instType = instance.GetType();
+            const BindingFlags flags =
+                BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
 
-            // Try property first
-            var prop = instType.GetProperty(
-                "Id",
-                BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic
-            );
+            var prop = instType.GetProperty("Id", flags);
             if (prop?.PropertyType == typeof(string))
             {
                 return prop.GetValue(instance) as string;
             }
 
-            // Try field
-            var field = instType.GetField(
-                "_id",
-                BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public
-            );
+            var field = instType.GetField("_id", flags);
             return field?.FieldType == typeof(string) ? field.GetValue(instance) as string : null;
         }
 
@@ -293,16 +294,9 @@ namespace Turnroot.Gameplay.Brain
             return $"{LtmKeys.InstanceHash}.{typeName}.hash_{shortHash}.v_{versionPart}";
         }
 
-        /// <summary>
-        /// Builds a ledger key for roster storage.
-        /// </summary>
-        public static string BuildRosterLedgerKey(string rosterId)
-        {
-            var rosterType = typeof(Characters.Roster);
-            var rawKey = $"{LtmKeys.Roster}.{rosterType.FullName}.{rosterId}";
-            var keyHash = ComputeFNV1a64Hex(rawKey);
-            return $"{LtmKeys.Roster}.{rosterType.FullName}.{keyHash}";
-        }
+        #endregion
+
+        #region Wrapper Encoding/Decoding
 
         public static OperationResult<SerializedWrapper> DecodeWrapperFromBase64(string encoded)
         {
@@ -394,31 +388,10 @@ namespace Turnroot.Gameplay.Brain
             }
         }
 
-        public static string RecomputeHashFromWrapperJObject(JObject wrapper)
-        {
-            if (wrapper == null)
-            {
-                return string.Empty;
-            }
+        #endregion
 
-            try
-            {
-                var payload = (string)wrapper["Payload"] ?? string.Empty;
-                var version = (string)wrapper["Version"] ?? "0";
-                return ComputeFNV1a64Hex(payload + "|v:" + version);
-            }
-            catch (Exception ex)
-            {
-#if UNITY_EDITOR
-                Debug.LogWarning($"Failed to recompute hash: {ex.Message}");
-#endif
-                return string.Empty;
-            }
-        }
+        #region Instance Encoding/Decoding
 
-        /// <summary>
-        /// Encodes an instance to a device-key XOR + Base64 wrapper string and persists ledger entry.
-        /// </summary>
         public static OperationResult<string> EncodeInstanceToString<T>(
             GamewideContextBrain brain,
             T instance
@@ -449,49 +422,22 @@ namespace Turnroot.Gameplay.Brain
             }
         }
 
-        private static SerializedWrapper CreateWrapperForInstance<T>(T instance)
-        {
-            var settings = GetJsonSerializerSettings();
-            var payload = JsonConvert.SerializeObject(instance, settings);
-            var versionHex = DateTime.UtcNow.Ticks.ToString("x16");
-
-            return new SerializedWrapper
-            {
-                TypeName = typeof(T).FullName,
-                Payload = payload,
-                Hash = ComputeFNV1a64Hex(payload + "|v:" + versionHex),
-                Version = versionHex,
-            };
-        }
-
-        private static void PersistLedgerEntry<T>(
-            GamewideContextBrain brain,
-            T instance,
-            SerializedWrapper wrapper
-        )
+        public static OperationResult<string> EncodeInstanceToBase64NoLedger<T>(T instance)
         {
             try
             {
-                var ltm = brain.GetComponent<LongTermMemory>();
-                var key = BuildHashLedgerKey(instance, wrapper);
-
-                if (!string.IsNullOrEmpty(key) && ltm != null)
-                {
-                    ltm.Remember(key, wrapper.Hash);
-                }
+                var wrapper = CreateWrapperForInstance(instance);
+                return EncodeWrapperToBase64(wrapper);
             }
-            catch (Exception ex)
+            catch (Exception e)
             {
-#if UNITY_EDITOR
-                Debug.LogWarning($"Failed to write hash ledger entry: {ex.Message}");
-#endif
+                return OperationResult<string>.Failure(
+                    $"EncodeInstanceToBase64NoLedger failed: {e.Message}",
+                    e
+                );
             }
         }
 
-        /// <summary>
-        /// Decodes an instance from the wrapper produced by EncodeInstanceToString.
-        /// Performs tamper detection and applies the configured policy.
-        /// </summary>
         public static OperationResult<T> DecodeInstanceFromString<T>(
             GamewideContextBrain brain,
             string encodedString
@@ -509,20 +455,17 @@ namespace Turnroot.Gameplay.Brain
                 var settings = GetJsonSerializerSettings();
                 var instance = JsonConvert.DeserializeObject<T>(wrapper.Payload, settings);
 
-                // Verify payload integrity
                 if (!VerifyPayloadHash(wrapper))
                 {
                     var tampered = TamperHandler.HandlePayloadMismatch(brain, instance, wrapper);
-                    return OperationResult<T>.SuccessResult(tampered); // Still returns, but with replacement
+                    return OperationResult<T>.SuccessResult(tampered);
                 }
 
-                // Post-deserialization hook
                 if (instance is IPostDeserialize post)
                 {
                     post.OnAfterDeserialize();
                 }
 
-                // Verify ledger integrity
                 if (!VerifyLedgerHash(brain, instance, wrapper))
                 {
                     var ltm = brain.GetComponent<LongTermMemory>();
@@ -548,20 +491,61 @@ namespace Turnroot.Gameplay.Brain
             }
         }
 
+        private static SerializedWrapper CreateWrapperForInstance<T>(T instance)
+        {
+            var settings = GetJsonSerializerSettings();
+            var payload = JsonConvert.SerializeObject(instance, settings);
+            var versionHex = DateTime.UtcNow.Ticks.ToString("x16");
+
+            return new SerializedWrapper
+            {
+                TypeName = typeof(T).FullName,
+                Payload = payload,
+                Hash = ComputeFNV1a64Hex(payload + "|v:" + versionHex),
+                Version = versionHex,
+            };
+        }
+
+        private static void PersistLedgerEntry<T>(
+            GamewideContextBrain brain,
+            T instance,
+            SerializedWrapper wrapper
+        )
+        {
+            TryExecute(
+                () =>
+                {
+                    var ltm = brain.GetComponent<LongTermMemory>();
+                    var key = BuildHashLedgerKey(instance, wrapper);
+
+                    if (!string.IsNullOrEmpty(key) && ltm != null)
+                    {
+                        ltm.Remember(key, wrapper.Hash);
+                    }
+                },
+                "Failed to write hash ledger entry"
+            );
+        }
+
+        #endregion
+
+        #region Verification
+
         private static bool VerifyPayloadHash(SerializedWrapper wrapper)
         {
-            try
-            {
-                var recomputed = ComputeFNV1a64Hex(wrapper.Payload + "|v:" + wrapper.Version);
-                return string.Equals(recomputed, wrapper.Hash, StringComparison.OrdinalIgnoreCase);
-            }
-            catch (Exception ex)
-            {
-#if UNITY_EDITOR
-                Debug.LogWarning($"Hash verification failed: {ex.Message}");
-#endif
-                return false;
-            }
+            return TryExecute(
+                () =>
+                {
+                    var recomputed = ComputeFNV1a64Hex(wrapper.Payload + "|v:" + wrapper.Version);
+                    return string.Equals(
+                        recomputed,
+                        wrapper.Hash,
+                        StringComparison.OrdinalIgnoreCase
+                    );
+                },
+                false,
+                "Hash verification failed"
+            );
         }
 
         private static bool VerifyLedgerHash<T>(
@@ -570,56 +554,69 @@ namespace Turnroot.Gameplay.Brain
             SerializedWrapper wrapper
         )
         {
-            try
-            {
-                var ltm = brain.GetComponent<LongTermMemory>();
-                var key = BuildHashLedgerKey(instance, wrapper);
-
-                if (string.IsNullOrEmpty(key) || ltm == null)
+            return TryExecute(
+                () =>
                 {
-                    return true; // Can't verify, assume valid
-                }
+                    var ltm = brain.GetComponent<LongTermMemory>();
+                    var key = BuildHashLedgerKey(instance, wrapper);
 
-                var stored = ltm.Recall(key);
+                    if (string.IsNullOrEmpty(key) || ltm == null)
+                    {
+                        return true;
+                    }
 
-                if (string.IsNullOrEmpty(stored))
-                {
-                    // First time seeing this instance, store its hash
-                    ltm.Remember(key, wrapper.Hash);
-                    return true;
-                }
+                    var stored = ltm.Recall(key);
 
-                return string.Equals(stored, wrapper.Hash, StringComparison.OrdinalIgnoreCase);
-            }
-            catch (Exception ex)
-            {
-#if UNITY_EDITOR
-                Debug.LogWarning($"Ledger verification failed: {ex.Message}");
-#endif
-                return true; // Can't verify, assume valid
-            }
+                    if (string.IsNullOrEmpty(stored))
+                    {
+                        ltm.Remember(key, wrapper.Hash);
+                        return true;
+                    }
+
+                    return string.Equals(stored, wrapper.Hash, StringComparison.OrdinalIgnoreCase);
+                },
+                true,
+                "Ledger verification failed"
+            );
         }
+
+        #endregion
+
+        #region Utilities
 
         public static string DesignateInstanceType<T>() => typeof(T).FullName;
 
-        /// <summary>
-        /// Encodes an instance to a device-key XOR + Base64 wrapper string without persisting ledger entries.
-        /// Useful for creating replacement payloads during tamper handling.
-        /// </summary>
-        public static OperationResult<string> EncodeInstanceToBase64NoLedger<T>(T instance)
+        private static T TryExecute<T>(Func<T> action, T defaultValue, string errorMessage)
         {
             try
             {
-                var wrapper = CreateWrapperForInstance(instance);
-                return EncodeWrapperToBase64(wrapper);
+                return action();
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                return OperationResult<string>.Failure(
-                    $"EncodeInstanceToBase64NoLedger failed: {e.Message}",
-                    e
+                TurnrootLogger.Log(
+                    $"{errorMessage}: {ex.Message}",
+                    TurnrootLogger.LogLevel.Warning
+                );
+                return defaultValue;
+            }
+        }
+
+        private static void TryExecute(Action action, string errorMessage)
+        {
+            try
+            {
+                action();
+            }
+            catch (Exception ex)
+            {
+                TurnrootLogger.Log(
+                    $"{errorMessage}: {ex.Message}",
+                    TurnrootLogger.LogLevel.Warning
                 );
             }
         }
+
+        #endregion
     }
 }

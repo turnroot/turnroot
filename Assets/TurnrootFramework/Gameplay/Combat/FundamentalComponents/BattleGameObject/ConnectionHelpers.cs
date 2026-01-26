@@ -164,7 +164,7 @@ namespace Turnroot.Gameplay.Combat
                 SubscribeToMapChanges();
                 // Notify any subscribers that the battle map is ready
                 Brain?.PublishBattleMapReady(MapGrid);
-                GetComponent<TileHighlighter>().Initialize(Brain);
+                GetComponent<TileHighlighter>().Initialize(Brain, MapGrid);
 
                 // Ensure BattlePrecomputeLoader is initialized with the Brain (robustness against subscription order)
                 var loader = GetComponent<BattlePrecomputeLoader>();

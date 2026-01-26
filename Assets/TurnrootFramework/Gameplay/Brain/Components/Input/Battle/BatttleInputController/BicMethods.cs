@@ -30,6 +30,38 @@ namespace Turnroot.Gameplay.Brain
                     _tileHighlighter?.ClearAll();
                     break;
 
+                case PlayerTurnStates.NoActionChosen:
+                    {
+                        // A unit has been selected but no action chosen yet — highlight available moves/attacks
+                        var movePositionsLocal = new List<Vector2Int>(
+                            _validMoveTiles?.Keys.Select(k => k.CoordinatesInt)
+                                ?? System.Array.Empty<Vector2Int>()
+                        );
+                        var attackPositionsLocal = new List<Vector2Int>(
+                            _validAttackTiles?.Keys.Select(k => k.CoordinatesInt)
+                                ?? System.Array.Empty<Vector2Int>()
+                        );
+
+                        TurnrootLogger.Log(
+                            $"HandlePlayerTurnStateChanged: Highlighting {movePositionsLocal.Count} move tiles and {attackPositionsLocal.Count} attack tiles"
+                        );
+
+                        if (_tileHighlighter != null)
+                        {
+                            _tileHighlighter.HighlightTiles(
+                                movePositionsLocal,
+                                TileHighlighter.HighlightType.Move
+                            );
+                            _tileHighlighter.HighlightTiles(
+                                attackPositionsLocal,
+                                TileHighlighter.HighlightType.Attack
+                            );
+                        }
+
+                        _brain.cursorBrain?.SetAllowedPositions(movePositionsLocal);
+                    }
+                    break;
+
                 case PlayerTurnStates.MoveActionChosenChoosingDestination:
                     var movePositions = new List<Vector2Int>(
                         _validMoveTiles.Keys.Select(k => k.CoordinatesInt)
@@ -177,21 +209,33 @@ namespace Turnroot.Gameplay.Brain
 
         public void ChangeSelectedUnit(CharacterInstance unit)
         {
+            TurnrootLogger.Log(
+                $"ChangeSelectedUnit: called for unit {unit?.CharacterTemplate?.DisplayName}"
+            );
             // Validate inputs and context
             if (unit == null || BattleContext == null)
             {
+                TurnrootLogger.Log(
+                    "ChangeSelectedUnit: unit or BattleContext null - aborting",
+                    TurnrootLogger.LogLevel.Warning
+                );
                 return;
             }
 
             // Only allow selecting player-controlled units here
             if (!BattleContext.IsPlayerControlledUnit(unit))
             {
+                TurnrootLogger.Log(
+                    "ChangeSelectedUnit: unit is not player-controlled - aborting",
+                    TurnrootLogger.LogLevel.Warning
+                );
                 return;
             }
 
             // Avoid redundant work if already selected
             if (BattleContext.Unit.UnitInstance == unit)
             {
+                TurnrootLogger.Log("ChangeSelectedUnit: unit already active - skipping");
                 return;
             }
 
@@ -202,16 +246,33 @@ namespace Turnroot.Gameplay.Brain
             _brain.PublishPlayerControlledUnitActivated(unit);
 
             // Recompute valid tiles for input handling and update visuals
-            ComputeValidTiles(unit);
-            _tileHighlighter.ClearAll();
-            _tileHighlighter.HighlightTiles(
-                new List<Vector2Int>(_validMoveTiles.Keys.Select(k => k.CoordinatesInt)),
-                TileHighlighter.HighlightType.Move
+            var res = ComputeValidTiles(unit);
+            TurnrootLogger.Log($"ChangeSelectedUnit: ComputeValidTiles result: {res.Success}");
+
+            TurnrootLogger.Log(
+                $"ChangeSelectedUnit: Valid move tiles count: {_validMoveTiles?.Count ?? 0}, attack tiles count: {_validAttackTiles?.Count ?? 0}"
             );
-            _tileHighlighter.HighlightTiles(
-                new List<Vector2Int>(_validAttackTiles.Keys.Select(k => k.CoordinatesInt)),
-                TileHighlighter.HighlightType.Attack
-            );
+
+            if (_tileHighlighter == null)
+            {
+                TurnrootLogger.Log(
+                    "ChangeSelectedUnit: _tileHighlighter is null - cannot highlight tiles",
+                    TurnrootLogger.LogLevel.Warning
+                );
+            }
+            else
+            {
+                _tileHighlighter.ClearAll();
+                _tileHighlighter.HighlightTiles(
+                    new List<Vector2Int>(_validMoveTiles.Keys.Select(k => k.CoordinatesInt)),
+                    TileHighlighter.HighlightType.Move
+                );
+                _tileHighlighter.HighlightTiles(
+                    new List<Vector2Int>(_validAttackTiles.Keys.Select(k => k.CoordinatesInt)),
+                    TileHighlighter.HighlightType.Attack
+                );
+            }
+
             _brain.cursorBrain.ClearAllowedPositions();
             _brain.cursorBrain.SetAllowedPositions(
                 new List<Vector2Int>(_validMoveTiles.Keys.Select(k => k.CoordinatesInt))

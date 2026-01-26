@@ -141,7 +141,7 @@ namespace Turnroot.Gameplay.Brain
 
             // Initialize and start precompute loader now that the BattleContext and participants are ready
             var precomputeLoader =
-                UnityEngine.Object.FindFirstObjectByType<Turnroot.Gameplay.Combat.Precompute.BattlePrecomputeLoader>();
+                FindFirstObjectByType<Combat.Precompute.BattlePrecomputeLoader>();
             if (precomputeLoader != null)
             {
                 var initRes = precomputeLoader.Initialize(_brain, BattleObject?.Context);
@@ -166,6 +166,16 @@ namespace Turnroot.Gameplay.Brain
             }
 
             ProgressTurnOrder();
+
+            // Ensure PlayerTurnFlow enters its initial state at battle start
+            if (playerTurnFlow != null)
+            {
+                playerTurnFlow.StartPlayerTurn();
+                TurnrootLogger.Log(
+                    $"Battle started. PlayerTurnFlow state: {playerTurnFlow.GetCurrentState()}"
+                );
+            }
+
             return;
         }
 
