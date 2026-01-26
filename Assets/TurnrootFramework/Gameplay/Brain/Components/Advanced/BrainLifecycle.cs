@@ -10,38 +10,44 @@ namespace Turnroot.Gameplay.Brain
 {
     public partial class Brain : MonoBehaviour
     {
+        private bool _awake = false;
+
         public void Awake()
         {
-            InitializeLongTermMemory();
-            InitializeModules();
-            InitializeAdvancedSystems();
-            TryLinkConversationController();
-
-            // populate remaining core components
-            stateBrain = GetComponent<StateBrain>();
-            conversationalBrain = GetComponent<ConversationalBrain>();
-            gamewideContextBrain = GetComponent<GamewideContextBrain>();
-            battleBrain = GetComponent<BattleBrain>();
-            charactersBrain = GetComponent<CharactersBrain>();
-            inventoryBrain = GetComponent<InventoryBrain>();
-            storehouseBrain = GetComponent<StorehouseBrain>();
-            battleInputControllerBrain = GetComponent<BattleInputControllerBrain>();
-            uiBrain = GetComponent<UiBrain>();
-            volumeBrain = GetComponent<VolumeBrain>();
-            audioBrain = GetComponent<AudioBrain>();
-            cameraBrain = GetComponent<CameraBrain>();
-            cursorBrain = GetComponent<CursorBrain>();
-            positioningInputControllerBrain = GetComponent<PositioningInputController>();
-            unitAppearanceBrain = GetComponent<UnitAppearanceBrain>();
-
-            // Find all DynamicSceneFlows in other scenes and set their .brain to this
-            var allSceneFlows = FindObjectsByType<DynamicSceneFlow>(FindObjectsSortMode.None);
-            foreach (var sceneFlow in allSceneFlows)
+            if (!_awake)
             {
-                if (sceneFlow.gameObject.scene != gameObject.scene)
+                InitializeLongTermMemory();
+                InitializeModules();
+                InitializeAdvancedSystems();
+                TryLinkConversationController();
+
+                // populate remaining core components
+                stateBrain = GetComponent<StateBrain>();
+                conversationalBrain = GetComponent<ConversationalBrain>();
+                gamewideContextBrain = GetComponent<GamewideContextBrain>();
+                battleBrain = GetComponent<BattleBrain>();
+                charactersBrain = GetComponent<CharactersBrain>();
+                inventoryBrain = GetComponent<InventoryBrain>();
+                storehouseBrain = GetComponent<StorehouseBrain>();
+                battleInputControllerBrain = GetComponent<BattleInputControllerBrain>();
+                uiBrain = GetComponent<UiBrain>();
+                volumeBrain = GetComponent<VolumeBrain>();
+                audioBrain = GetComponent<AudioBrain>();
+                cameraBrain = GetComponent<CameraBrain>();
+                cursorBrain = GetComponent<CursorBrain>();
+                positioningInputControllerBrain = GetComponent<PositioningInputController>();
+                unitAppearanceBrain = GetComponent<UnitAppearanceBrain>();
+
+                // Find all DynamicSceneFlows in other scenes and set their .brain to this
+                var allSceneFlows = FindObjectsByType<DynamicSceneFlow>(FindObjectsSortMode.None);
+                foreach (var sceneFlow in allSceneFlows)
                 {
-                    sceneFlow.brain = this;
+                    if (sceneFlow.gameObject.scene != gameObject.scene)
+                    {
+                        sceneFlow.brain = this;
+                    }
                 }
+                _awake = true;
             }
         }
 
@@ -89,7 +95,6 @@ namespace Turnroot.Gameplay.Brain
         {
             _sceneConversationController = controller;
             _conversationControllerCache.Invalidate(); // Invalidate cache when manually set
-            TurnrootLogger.Log("Brain populated scene ConversationController.");
         }
 
         private OperationResult TryLinkConversationController()

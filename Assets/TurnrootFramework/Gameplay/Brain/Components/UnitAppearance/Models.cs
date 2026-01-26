@@ -118,9 +118,7 @@ namespace Turnroot.Gameplay.Brain
                 if (prefabSmr != null)
                 {
                     nbSmr.sharedMaterials = prefabSmr.sharedMaterials;
-                    TurnrootLogger.Log(
-                        $"CreateOutfitMesh: Restored non-battle outfit materials for {unit.CharacterTemplate?.DisplayName}"
-                    );
+
                 }
 
                 // Attach head/hands and hair if available

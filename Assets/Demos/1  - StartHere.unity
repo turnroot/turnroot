@@ -48102,398 +48102,6 @@ MonoBehaviour:
   _featureObjectItemProperties: []
   _featureBoolProperties: []
   _featureFloatProperties: []
---- !u!1 &1202996566
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1202996567}
-  - component: {fileID: 1202996568}
-  - component: {fileID: 1202996569}
-  - component: {fileID: 1202996588}
-  - component: {fileID: 1202996587}
-  - component: {fileID: 1202996586}
-  - component: {fileID: 1202996585}
-  - component: {fileID: 1202996584}
-  - component: {fileID: 1202996583}
-  - component: {fileID: 1202996582}
-  - component: {fileID: 1202996581}
-  - component: {fileID: 1202996580}
-  - component: {fileID: 1202996579}
-  - component: {fileID: 1202996578}
-  - component: {fileID: 1202996577}
-  - component: {fileID: 1202996576}
-  - component: {fileID: 1202996575}
-  - component: {fileID: 1202996574}
-  - component: {fileID: 1202996573}
-  - component: {fileID: 1202996572}
-  - component: {fileID: 1202996571}
-  - component: {fileID: 1202996570}
-  m_Layer: 0
-  m_Name: Scene Flow
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1202996567
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1202996566}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1830534780}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1202996568
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1202996566}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 49cfc7a350fcc564983c0248c0ac3355, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  segments:
-  - stateId: Combat.PreBattle
-    onSegmentReached:
-      m_PersistentCalls:
-        m_Calls: []
-  - stateId: Combat.PreBattleTransitionToBattle
-    onSegmentReached:
-      m_PersistentCalls:
-        m_Calls: []
-  - stateId: Combat.Battle
-    onSegmentReached:
-      m_PersistentCalls:
-        m_Calls: []
-  brain: {fileID: 0}
-  loadingController: {fileID: 0}
-  OnLoadedAmountChanged:
-    m_PersistentCalls:
-      m_Calls: []
---- !u!114 &1202996569
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1202996566}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cfa6b2f6e9eb1174cafce60f34fcdbba, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Turnroot.Utilities.AbstractScripts.LoadingController
---- !u!114 &1202996570
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1202996566}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9998a39038696534f9f2efb1a180ce18, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Turnroot.Gameplay.Brain.Brain
-  stateBrain: {fileID: 0}
-  conversationalBrain: {fileID: 0}
-  gamewideContextBrain: {fileID: 0}
-  charactersBrain: {fileID: 0}
-  battleBrain: {fileID: 0}
-  inventoryBrain: {fileID: 0}
-  storehouseBrain: {fileID: 0}
-  battleInputControllerBrain: {fileID: 0}
-  uiBrain: {fileID: 0}
-  volumeBrain: {fileID: 0}
-  audioBrain: {fileID: 0}
-  cameraBrain: {fileID: 0}
-  cursorBrain: {fileID: 0}
-  positioningInputControllerBrain: {fileID: 0}
-  unitAppearanceBrain: {fileID: 0}
-  ltm: {fileID: 0}
---- !u!114 &1202996571
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1202996566}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7c8fd3db60fe88247a79eacb56b2ed7f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Turnroot.Gameplay.Brain.UnitAppearanceBrain
---- !u!114 &1202996572
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1202996566}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7ed25ae0314e4bd47b64071332bd3627, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Turnroot.Gameplay.Brain.Segments.CameraBrain
-  CurrentAngle: 0
---- !u!114 &1202996573
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1202996566}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b3750edc6aae8614d892bde2e1b4cd7a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Turnroot.Gameplay.Brain.AudioBrain
---- !u!114 &1202996574
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1202996566}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cdf87bfe0fdf34c42a744b4b0265c09c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Turnroot.Gameplay.Brain.VolumeBrain
---- !u!114 &1202996575
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1202996566}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b03ea8538cab64e45b164789848c21e0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Turnroot.Gameplay.Brain.Segments.UiBrain
-  uiSettings: {fileID: 0}
-  settingsMenuLocation:
-    parentMenuName: 0
-    menuName: 0
-    style: 0
-    prefab: {fileID: 0}
-  gameSettingsGraphicsLocation:
-    parentMenuName: 0
-    menuName: 0
-    style: 0
-    prefab: {fileID: 0}
-  gameSettingsGameplayLocation:
-    parentMenuName: 0
-    menuName: 0
-    style: 0
-    prefab: {fileID: 0}
-  gameSettingsAudioLocation:
-    parentMenuName: 0
-    menuName: 0
-    style: 0
-    prefab: {fileID: 0}
-  gameSettingsControlsLocation:
-    parentMenuName: 0
-    menuName: 0
-    style: 0
-    prefab: {fileID: 0}
-  preBattleMenuLocation:
-    parentMenuName: 0
-    menuName: 0
-    style: 0
-    prefab: {fileID: 0}
-  prebattleMapMenuLocation:
-    parentMenuName: 0
-    menuName: 0
-    style: 0
-    prefab: {fileID: 0}
-  prebattleUnitsMenuLocation:
-    parentMenuName: 0
-    menuName: 0
-    style: 0
-    prefab: {fileID: 0}
-  _isTransitioning: 0
---- !u!114 &1202996576
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1202996566}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4bd425956cf3d20459d7896dc2584fa3, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Turnroot.Gameplay.Brain.CursorBrain
-  CursorOffset: {x: 0, y: 0, z: 0}
-  CursorPosition: {fileID: 0}
-  uiSettings: {fileID: 0}
---- !u!114 &1202996577
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1202996566}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 513ec83bc0f10434ba06b39109179fa2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Turnroot.Gameplay.Brain.PositioningInputController
---- !u!114 &1202996578
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1202996566}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0589a18ac2e53ab458d4dc35d062ded8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Turnroot.Gameplay.Brain.BattleInputControllerBrain
-  _tileHighlighter: {fileID: 0}
---- !u!114 &1202996579
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1202996566}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d4f1ed36196161d4e93871b31933d7c4, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Turnroot.Gameplay.Brain.StorehouseBrain
-  _storedItems: []
-  GoldDisplayNames:
-    OneLetter: 
-    FullName: 
---- !u!114 &1202996580
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1202996566}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1bd3e041ca9f6fd4c9d1d9ee16d9932a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Turnroot.Gameplay.Brain.InventoryBrain
---- !u!114 &1202996581
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1202996566}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cc11134f4fd9f294db272f8f83d5637d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Turnroot.Gameplay.Brain.BattleBrain
-  _playerTeamRoster: {fileID: 0}
-  playerTurnFlow: {fileID: 0}
---- !u!114 &1202996582
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1202996566}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2f5fddd625117a54396ff70a38acfd31, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Turnroot.Gameplay.Brain.Components.Battle.PlayerTurnFlow
---- !u!114 &1202996583
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1202996566}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 292926fe8d78adc4f92cfae41cd5564c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Turnroot.Gameplay.Combat.FundamentalComponents.Battles.TurnRotisserie
-  battleBrain: {fileID: 0}
---- !u!114 &1202996584
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1202996566}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d351a48f2758e5b4db28e1e17253527d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Turnroot.Gameplay.Brain.CharactersBrain
---- !u!114 &1202996585
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1202996566}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 72d2fb8e623e7104eb6a550e252dbf04, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Turnroot.Gameplay.Brain.GamewideContextBrain
---- !u!114 &1202996586
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1202996566}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cf6cad0909614554d8c46dd4dfbdd26e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Turnroot.Gameplay.Brain.ConversationalBrain
---- !u!114 &1202996587
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1202996566}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2b2e9db230ea2f3489b145291b2b7f0e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Turnroot.Gameplay.Brain.Components.LongTermMemory
---- !u!114 &1202996588
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1202996566}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c10e624373270034ab70adabc9a811fd, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Turnroot.Gameplay.Brain.StateBrain
 --- !u!1 &1208532634
 GameObject:
   m_ObjectHideFlags: 0
@@ -53794,6 +53402,68 @@ MonoBehaviour:
   _featureObjectItemProperties: []
   _featureBoolProperties: []
   _featureFloatProperties: []
+--- !u!1 &1321228775
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1321228776}
+  - component: {fileID: 1321228777}
+  m_Layer: 0
+  m_Name: Scene Flow
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1321228776
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1321228775}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1830534780}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1321228777
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1321228775}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 49cfc7a350fcc564983c0248c0ac3355, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  segments:
+  - stateId: Combat.PreBattle
+    onSegmentReached:
+      m_PersistentCalls:
+        m_Calls: []
+  - stateId: Combat.PreBattleTransitionToBattle
+    onSegmentReached:
+      m_PersistentCalls:
+        m_Calls: []
+  - stateId: Combat.Battle
+    onSegmentReached:
+      m_PersistentCalls:
+        m_Calls: []
+  brain: {fileID: 0}
+  loadingController: {fileID: 0}
+  OnLoadedAmountChanged:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &1323166954
 GameObject:
   m_ObjectHideFlags: 0
@@ -73802,8 +73472,8 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 2023775200}
-  - {fileID: 1202996567}
   - {fileID: 993814470}
+  - {fileID: 1321228776}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1831093231

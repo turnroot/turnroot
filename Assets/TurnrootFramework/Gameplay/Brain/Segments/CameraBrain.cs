@@ -39,12 +39,7 @@ namespace Turnroot.Gameplay.Brain.Segments
 
         public void InitializeMapGrid()
         {
-            // Prefer the BattleObject's MapGrid when available. If not yet initialized (race),
-            // fall back to the preparation object's MapGrid so pre-battle systems still work.
             var grid = BattleObject?.MapGrid ?? Brain?.battleBrain?.PreparationObject?.MapGrid;
-            TurnrootLogger.Log(
-                $"CameraBrain.InitializeMapGrid: obtaining MapGrid = {grid?.name ?? "null"}"
-            );
             SetMapGrid(grid);
         }
 

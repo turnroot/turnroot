@@ -348,10 +348,6 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 return false;
             }
 
-            TurnrootLogger.Log(
-                $"BattleContext: Computing tiles for {unit.CharacterTemplate.DisplayName} at {unit.MapGridPosition}"
-            );
-
             var move = new Dictionary<MapGridPoint, float>();
             var attack = new Dictionary<MapGridPoint, float>();
 

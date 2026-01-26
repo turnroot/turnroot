@@ -36,9 +36,6 @@ namespace Turnroot.Gameplay.Brain.Commands
                 unit.UnitPositionToMapGridPoint(SpawnPosition, context.mapGrid),
                 unit
             );
-            TurnrootLogger.Log(
-                $"[SpawnCommand] Spawning Unit {UnitId} at {SpawnPosition}: Success={result.Success}"
-            );
             if (result.Success)
             {
                 // Mark unit as spawned during this battle so snapshot restore can identify reinforcements

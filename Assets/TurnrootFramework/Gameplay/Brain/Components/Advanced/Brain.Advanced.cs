@@ -138,10 +138,6 @@ namespace Turnroot.Gameplay.Brain
 
             OnTurnBegin += HandleTurnBegin;
             OnTurnEnded += HandleTurnEnd;
-
-            TurnrootLogger.Log(
-                "[Brain] Advanced systems initialized: EventBus, Commands, Snapshots"
-            );
         }
 
         private void HandleTurnBegin()

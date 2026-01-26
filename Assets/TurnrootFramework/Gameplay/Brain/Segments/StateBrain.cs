@@ -143,7 +143,8 @@ namespace Turnroot.Gameplay.Brain
         {
             if (_brain != null)
             {
-                _brain.OnPreBattleCompleted -= HandlePreBattleCompleted;            }
+                _brain.OnPreBattleCompleted -= HandlePreBattleCompleted;
+            }
         }
 
         #region Initialization
