@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
 using Turnroot.Gameplay.Brain;
-using Turnroot.Utilities;
-using UnityEngine;
 
 namespace Turnroot.Characters.Stats
 {
