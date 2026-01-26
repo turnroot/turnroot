@@ -392,6 +392,8 @@ namespace Turnroot.Gameplay.Brain
                 mapGrid.RemoveOccupied(oldPoint);
                 mapGrid.SetOccupied(newPoint, unit);
                 unit.MapGridPosition = target;
+                // CRITICAL: Invalidate tile cache for this unit after movement
+                BattleObject.Context.InvalidateUnitTileCache(unit);
                 // publish both simple event and the advanced UnitMovedEvent for subscribers
                 _brain?.PublishCharacterMoveCompleted(unit, newPoint);
                 _brain?.PublishUnitMoved(unit, target);

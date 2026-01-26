@@ -229,63 +229,50 @@ namespace Turnroot.Gameplay.Brain
 
         private OperationResult ComputeValidTiles(CharacterInstance unit)
         {
-            if (unit == null || BattleContext?.mapGrid == null)
-            {
-                return OperationResult.Failure("No unit or BattleContext");
-            }
-
-            _validMoveTiles.Clear();
-            _validAttackTiles.Clear();
-            _aiHelper = BattleContext.AIHelper;
-            if (_aiHelper == null)
+            if (unit == null)
             {
                 TurnrootLogger.Log(
-                    "BattleInputControllerBrain: AIHelper is null",
+                    "BattleInputControllerBrain: Cannot compute tiles for null unit",
+                    TurnrootLogger.LogLevel.Warning
+                );
+                return OperationResult.Failure("No unit provided");
+            }
+
+            TurnrootLogger.Log(
+                $"BattleInputControllerBrain: Getting valid tiles for unit {unit.CharacterTemplate.DisplayName} at {unit.MapGridPosition}"
+            );
+
+            var context = _brain.battleBrain.BattleObject.Context;
+            if (context == null)
+            {
+                TurnrootLogger.Log(
+                    "BattleInputControllerBrain: BattleContext is null",
                     TurnrootLogger.LogLevel.Error
                 );
-                return OperationResult.Failure("AIHelper not available");
+                return OperationResult.Failure("BattleContext not available");
             }
 
-            var currentPos = unit.UnitPositionToMapGridPoint(
-                unit.MapGridPosition,
-                BattleContext.mapGrid
-            );
+            if (!context.TryGetValidTilesForUnit(unit, out var moveTiles, out var attackTiles))
+            {
+                TurnrootLogger.Log(
+                    $"BattleInputControllerBrain: Failed to get valid tiles for unit {unit.CharacterTemplate.DisplayName}",
+                    TurnrootLogger.LogLevel.Warning
+                );
+                return OperationResult.Failure("Failed to compute tiles");
+            }
+
             TurnrootLogger.Log(
-                $"BattleInputControllerBrain: Computing valid tiles for unit {unit.CharacterTemplate.DisplayName} at {currentPos}"
+                $"BattleInputControllerBrain: Got {moveTiles.Count} move tiles for unit {unit.CharacterTemplate.DisplayName}"
             );
-            bool canHeal = unit.CurrentClass?.ClassData?.Identity?.CanHeal ?? false;
 
-            bool success;
-            if (canHeal)
-            {
-                var healTilesTemp = new Dictionary<MapGridPoint, float>();
-                success = _aiHelper.GetTilesForAIWithHealNonAlloc(
-                    currentPos,
-                    _validMoveTiles,
-                    _validAttackTiles,
-                    healTilesTemp
-                );
-                TurnrootLogger.Log(
-                    $"BattleInputControllerBrain: Computed {healTilesTemp.Count} heal tiles for unit {unit.CharacterTemplate.DisplayName}"
-                );
-            }
-            else
-            {
-                success = _aiHelper.GetTilesForAINonAlloc(
-                    currentPos,
-                    _validMoveTiles,
-                    _validAttackTiles
-                );
-                TurnrootLogger.Log(
-                    $"BattleInputControllerBrain: Computed {_validMoveTiles.Count} move tiles for unit {unit.CharacterTemplate.DisplayName}"
-                );
-            }
+            // Store references for UI purposes
+            _validMoveTiles = moveTiles;
+            _validAttackTiles = attackTiles;
 
-            return !success
-                ? OperationResult.Failure(
-                    $"Failed to calculate tiles for unit {unit.CharacterTemplate.DisplayName}"
-                )
-                : OperationResult.Successful();
+            // Publish for UI highlighting
+            _brain.PublishValidTilesComputed(moveTiles, attackTiles);
+
+            return OperationResult.Successful();
         }
 
         #endregion

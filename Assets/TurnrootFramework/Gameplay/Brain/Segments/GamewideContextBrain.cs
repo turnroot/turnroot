@@ -77,17 +77,25 @@ namespace Turnroot.Gameplay.Brain
                 GetComponent<LongTermMemory>(),
                 this
             );
-            _playerSettingsPersistence.Initialize();
+
+            // Initialize in-memory map exploration list (population deferred until Start when LTM is ready)
+            MapExplorationStatuses = new List<GamewideContextBrainHelpers.ExploredPartial>();
+        }
+
+        private void Start()
+        {
+            _ltm = GetComponent<LongTermMemory>();
+
+            // Initialize player settings persistence (LTM must be ready)
+            _playerSettingsPersistence?.Initialize();
 
             // Try to find the persistent player roster asset in Resources and recall it from LTM if present
             TryLoadAndRecallPersistentPlayerRoster();
+
             var volumeBrain = _brain.volumeBrain;
             volumeBrain.ApplySettingsToVolumes(PlayerSettings);
 
-            _ltm = GetComponent<LongTermMemory>();
-
-            // Initialize in-memory map exploration list and populate from LTM
-            MapExplorationStatuses = new List<GamewideContextBrainHelpers.ExploredPartial>();
+            // Populate exploration statuses now that LTM is available
             PopulateMapExplorationStatusesFromLtm();
         }
 

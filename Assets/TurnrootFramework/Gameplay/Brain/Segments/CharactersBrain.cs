@@ -36,6 +36,10 @@ namespace Turnroot.Gameplay.Brain
             base.Awake();
             _gamewideContextBrain ??= GetComponent<GamewideContextBrain>();
             _battleBrain ??= GetComponent<BattleBrain>();
+        }
+
+        private void Start()
+        {
             _ltm = GetComponent<LongTermMemory>();
             LoadBattleOutcomeStatistics();
         }

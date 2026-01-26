@@ -31,89 +31,53 @@ namespace Turnroot.Gameplay.Maps
             MapGridPoint start
         )
         {
-            MovementType movementType;
-            bool isMagic;
-            try
-            {
-                if (character.CurrentClass?.ClassData == null)
-                {
-                    TurnrootLogger.Log(
-                        "PathfindingParameters: Character class data is null",
-                        TurnrootLogger.LogLevel.Warning
-                    );
-                    movementType = MovementType.Infantry;
-                    TurnrootLogger.Log(
-                        "PathfindingParameters: Defaulting movement type to Infantry",
-                        TurnrootLogger.LogLevel.Warning
-                    );
-                    isMagic = false;
-                }
-                else
-                {
-                    var classData = character.CurrentClass.ClassData;
-                    movementType = classData.Identity.MovementType;
-                    isMagic = classData.Identity.IsMagic;
-                }
-                var movementStatObj = character.GetUnboundedStat(
-                    Characters.Stats.UnboundedStatType.Movement
-                );
-                if (movementStatObj == null)
-                {
-                    TurnrootLogger.Log(
-                        $"PathfindingParameters: Movement stat missing for character {character?.CharacterTemplate?.DisplayName ?? "<unknown>"}, using default value 5",
-                        TurnrootLogger.LogLevel.Error
-                    );
-                    // Use a sensible default movement value instead of returning null
-                    var defaultMovement = 5;
-                    TurnrootLogger.Log(
-                        $"PathfindingParameters: Defaulting movement to {defaultMovement} for character {character?.CharacterTemplate?.DisplayName ?? "<unknown>"}",
-                        TurnrootLogger.LogLevel.Warning
-                    );
-                    return new PathfindingParameters
-                    {
-                        Graph = graph,
-                        Start = start,
-                        MovementBudget = defaultMovement,
-                        IsWalking = movementType == MovementType.Infantry,
-                        IsFlying = movementType == MovementType.Flying,
-                        IsRiding = movementType == MovementType.Riding,
-                        IsMagic = isMagic,
-                        IsArmored = movementType == MovementType.Armored,
-                        SameDirectionMultiplier = 0.95f,
-                        IncludeRange = false,
-                        IncludeHealRange = false,
-                        MaxRange = 0,
-                    };
-                }
-                var movementStat = movementStatObj.CurrentInt;
-                TurnrootLogger.Log(
-                    $"PathfindingParameters: Movement stat for character {character.CharacterTemplate.DisplayName} is {movementStat}"
-                );
+            var classData = character?.CurrentClass?.ClassData;
+            var movementStatObj = character?.GetUnboundedStat(
+                Characters.Stats.UnboundedStatType.Movement
+            );
 
-                return new PathfindingParameters
-                {
-                    Graph = graph,
-                    Start = start,
-                    MovementBudget = movementStat,
-                    IsWalking = movementType == MovementType.Infantry,
-                    IsFlying = movementType == MovementType.Flying,
-                    IsRiding = movementType == MovementType.Riding,
-                    IsMagic = isMagic,
-                    IsArmored = movementType == MovementType.Armored,
-                    SameDirectionMultiplier = 0.95f,
-                    IncludeRange = false,
-                    IncludeHealRange = false,
-                    MaxRange = 0, // TODO: Get weapon range
-                };
-            }
-            catch
+            if (
+                !ValidationHelper.ValidateNotNull(
+                    "PathfindingParameters.FromCharacter",
+                    out var missingArgs,
+                    (character, nameof(character)),
+                    (graph, nameof(graph)),
+                    (start, nameof(start)),
+                    (classData, nameof(classData)),
+                    (movementStatObj, nameof(movementStatObj))
+                )
+            )
             {
                 TurnrootLogger.Log(
-                    "PathfindingParameters: Failed to create from character",
+                    $"PathfindingParameters: Missing required parameter(s): {string.Join(", ", missingArgs)}",
                     TurnrootLogger.LogLevel.Error
                 );
+                return null;
             }
-            return null;
+
+            var movementType = classData.Identity.MovementType;
+            var isMagic = classData.Identity.IsMagic;
+
+            var movementStat = movementStatObj.CurrentInt;
+            TurnrootLogger.Log(
+                $"PathfindingParameters: Movement stat for character {character.CharacterTemplate.DisplayName} is {movementStat}"
+            );
+
+            return new PathfindingParameters
+            {
+                Graph = graph,
+                Start = start,
+                MovementBudget = movementStat,
+                IsWalking = movementType == MovementType.Infantry,
+                IsFlying = movementType == MovementType.Flying,
+                IsRiding = movementType == MovementType.Riding,
+                IsMagic = isMagic,
+                IsArmored = movementType == MovementType.Armored,
+                SameDirectionMultiplier = 0.95f,
+                IncludeRange = false,
+                IncludeHealRange = false,
+                MaxRange = 0, // TODO: Get weapon range
+            };
         }
 
         /// <summary>

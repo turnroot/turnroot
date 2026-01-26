@@ -14,7 +14,6 @@ namespace Turnroot.Utilities.AbstractScripts
         public UnityEvent onSegmentReached;
     }
 
-    [RequireComponent(typeof(LoadingController))]
     public class DynamicSceneFlow : MonoBehaviour
     {
         public List<FlowSegment> segments = new();
@@ -23,6 +22,18 @@ namespace Turnroot.Utilities.AbstractScripts
 
         [HideInInspector]
         public Brain brain;
+
+        [HideInInspector]
+        public LoadingController loadingController;
+
+        public UnityEvent<int> OnLoadedAmountChanged = new();
+
+        public event Action<int> OnLoadedAmountChangedAction;
+        public void ReportLoadingProgress(int percentage)
+        {
+            OnLoadedAmountChanged?.Invoke(percentage);
+            OnLoadedAmountChangedAction?.Invoke(percentage);
+        }
 
         private int Index
         {
@@ -39,25 +50,14 @@ namespace Turnroot.Utilities.AbstractScripts
         {
             _ = StartCoroutine(RunNextFrame(StartScene));
             SubscribeToBrainEvents();
+            loadingController = brain?.GetComponent<LoadingController>();
         }
 
         private void OnDestroy() => UnsubscribeFromBrainEvents();
 
-        private void SubscribeToBrainEvents()
-        {
-            if (brain != null)
-            {
-                brain.OnStateChanged += HandleStateChanged;
-            }
-        }
+        private void SubscribeToBrainEvents() => brain.OnStateChanged += HandleStateChanged;
 
-        private void UnsubscribeFromBrainEvents()
-        {
-            if (brain != null)
-            {
-                brain.OnStateChanged -= HandleStateChanged;
-            }
-        }
+        private void UnsubscribeFromBrainEvents() => brain.OnStateChanged -= HandleStateChanged;
 
         private void StartScene()
         {

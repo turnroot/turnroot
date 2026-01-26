@@ -17,17 +17,40 @@ namespace Turnroot.Utilities
         {
             // Prefer an exact-named asset matching the type name under the subfolder
             string typeName = typeof(T).Name;
-            T found = Resources.Load<T>($"{subfolder}/{typeName}");
-            if (found != null)
+            try
             {
-                return found;
+                T found = Resources.Load<T>($"{subfolder}/{typeName}");
+                if (found != null)
+                {
+                    return found;
+                }
+            }
+            catch (UnityException)
+            {
+                // Resources.Load may throw during Unity's deserialization. Fall through to editor lookup.
             }
 
-            // Fallback: load any asset of this type under the subfolder
-            var foundAll = Resources.LoadAll<T>(subfolder);
-            if (foundAll != null && foundAll.Length > 0)
+            // Fallback: load any asset of this type under the subfolder. Guard with try/catch to
+            // avoid recursive-load exceptions (Resources.LoadAll can trigger dereferencing PPtrs).
+            try
             {
-                return foundAll[0];
+                var foundAll = Resources.LoadAll<T>(subfolder);
+                if (foundAll != null && foundAll.Length > 0)
+                {
+                    // Prefer an asset whose filename matches the type name
+                    foreach (var candidate in foundAll)
+                    {
+                        if (candidate != null && candidate.name == typeName)
+                        {
+                            return candidate;
+                        }
+                    }
+                    return foundAll[0];
+                }
+            }
+            catch (UnityException)
+            {
+                // Ignore and fall back to AssetDatabase in editor mode below.
             }
 
 #if UNITY_EDITOR

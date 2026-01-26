@@ -105,9 +105,13 @@ namespace Turnroot.Gameplay.Brain
             InitializeBattleChildStates();
         }
 
-        protected override void SubscribeToBrainEvents() =>
+        protected override void SubscribeToBrainEvents()
+        {
             // Listen for pre-battle completion and transition to Battle state
             _brain.OnPreBattleCompleted += HandlePreBattleCompleted;
+            // Initialize scene-side battle helpers when the BattleGameObject is set
+            _brain.OnBattleObjectSet += HandleBattleObjectSet;
+        }
 
         public void HandlePreBattleTransitionToBattleCompleted() =>
             ActivateChildState(BrainStateNames.Battle);
@@ -143,6 +147,35 @@ namespace Turnroot.Gameplay.Brain
             if (_brain != null)
             {
                 _brain.OnPreBattleCompleted -= HandlePreBattleCompleted;
+                _brain.OnBattleObjectSet -= HandleBattleObjectSet;
+            }
+        }
+
+        private void HandleBattleObjectSet(Turnroot.Gameplay.Combat.BattleGameObject battleObject)
+        {
+            if (battleObject == null)
+            {
+                return;
+            }
+
+            // Attempt to find a BattlePrecomputeLoader on the BattleGameObject and initialize it.
+            var loader =
+                battleObject.GetComponent<Turnroot.Gameplay.Combat.Precompute.BattlePrecomputeLoader>();
+            if (loader == null)
+            {
+                return;
+            }
+
+            // Prefer a LoadingController attached to the Brain for centralized tracking
+            var loadingController = _brain.GetComponent<LoadingController>();
+
+            var initResult = loader.Initialize(_brain);
+            if (!initResult.Success)
+            {
+                TurnrootLogger.Log(
+                    $"StateBrain: Failed to initialize BattlePrecomputeLoader: {initResult.ErrorMessage}",
+                    TurnrootLogger.LogLevel.Warning
+                );
             }
         }
 

@@ -10,7 +10,8 @@ namespace Turnroot.Characters.Stats
     public static class StatHelpers
     {
         /// <summary>
-        /// Finds a bounded stat by type in a list. If missing, creates a sensible default and adds it to the list when possible.
+        /// Finds a bounded stat by type in a list. Returns null if not found.
+        /// Use GetOrCreateBoundedStat if you want auto-creation behavior.
         /// </summary>
         public static BoundedCharacterStat GetBoundedStat(
             List<BoundedCharacterStat> stats,
@@ -23,24 +24,11 @@ namespace Turnroot.Characters.Stats
                     "StatHelpers.GetBoundedStat: stats list is null",
                     TurnrootLogger.LogLevel.Error
                 );
-                var (max, current, min) = GetDefaultValuesForBoundedStat(type);
-                return new BoundedCharacterStat(max, current, min, type);
+                return null;
             }
-
             try
             {
-                var r = stats.Find(s => s.StatType == type);
-                if (r == null)
-                {
-                    TurnrootLogger.Log(
-                        $"StatHelpers.GetBoundedStat: Stat {type} not found, creating default",
-                        TurnrootLogger.LogLevel.Warning
-                    );
-                    var (max, current, min) = GetDefaultValuesForBoundedStat(type);
-                    var defaultStat = new BoundedCharacterStat(max, current, min, type);
-                    stats.Add(defaultStat);
-                    return defaultStat;
-                }
+                var r = stats.Find(s => s != null && s.StatType == type);
                 return r;
             }
             catch (Exception ex)
@@ -49,13 +37,46 @@ namespace Turnroot.Characters.Stats
                     $"StatHelpers.GetBoundedStat: Exception finding stat {type}: {ex}",
                     TurnrootLogger.LogLevel.Error
                 );
-                var (max, current, min) = GetDefaultValuesForBoundedStat(type);
-                return new BoundedCharacterStat(max, current, min, type);
+                return null;
             }
         }
 
         /// <summary>
-        /// Finds an unbounded stat by type in a list. If missing, creates a sensible default and adds it to the list when possible.
+        /// Gets or creates a bounded stat. Use this ONLY for deserialization repair, not for normal operation.
+        /// </summary>
+        public static BoundedCharacterStat GetOrCreateBoundedStat(
+            List<BoundedCharacterStat> stats,
+            BoundedStatType type
+        )
+        {
+            if (stats == null)
+            {
+                TurnrootLogger.Log(
+                    "StatHelpers.GetOrCreateBoundedStat: stats list is null, cannot create",
+                    TurnrootLogger.LogLevel.Error
+                );
+                return null;
+            }
+
+            var existing = stats.Find(s => s != null && s.StatType == type);
+            if (existing != null)
+            {
+                return existing;
+            }
+
+            TurnrootLogger.Log(
+                $"StatHelpers.GetOrCreateBoundedStat: Creating default stat for {type}",
+                TurnrootLogger.LogLevel.Warning
+            );
+            var (max, current, min) = GetDefaultValuesForBoundedStat(type);
+            var defaultStat = new BoundedCharacterStat(max, current, min, type);
+            stats.Add(defaultStat);
+            return defaultStat;
+        }
+
+        /// <summary>
+        /// Finds an unbounded stat by type in a list. Returns null if not found.
+        /// Use GetOrCreateUnboundedStat if you want auto-creation behavior.
         /// </summary>
         public static CharacterStat GetUnboundedStat(
             List<CharacterStat> stats,
@@ -68,29 +89,11 @@ namespace Turnroot.Characters.Stats
                     "StatHelpers.GetUnboundedStat: stats list is null",
                     TurnrootLogger.LogLevel.Error
                 );
-                return new CharacterStat(GetDefaultValueForUnboundedStat(type), type);
+                return null;
             }
-
             try
             {
-                var r = stats.Find(s => s.StatType == type);
-                if (r == null)
-                {
-                    TurnrootLogger.Log(
-                        $"StatHelpers.GetUnboundedStat: Stat {type} not found, creating default",
-                        TurnrootLogger.LogLevel.Warning
-                    );
-                    var defaultStat = new CharacterStat(
-                        GetDefaultValueForUnboundedStat(type),
-                        type
-                    );
-                    stats.Add(defaultStat);
-                    return defaultStat;
-                }
-
-                TurnrootLogger.Log(
-                    $"StatHelpers.GetUnboundedStat: Found stat {type} with value {r.Current}"
-                );
+                var r = stats.Find(s => s != null && s.StatType == type);
                 return r;
             }
             catch (Exception ex)
@@ -99,8 +102,40 @@ namespace Turnroot.Characters.Stats
                     $"StatHelpers.GetUnboundedStat: Exception finding stat {type}: {ex}",
                     TurnrootLogger.LogLevel.Error
                 );
-                return new CharacterStat(GetDefaultValueForUnboundedStat(type), type);
+                return null;
             }
+        }
+
+        /// <summary>
+        /// Gets or creates an unbounded stat. Use this ONLY for deserialization repair, not for normal operation.
+        /// </summary>
+        public static CharacterStat GetOrCreateUnboundedStat(
+            List<CharacterStat> stats,
+            UnboundedStatType type
+        )
+        {
+            if (stats == null)
+            {
+                TurnrootLogger.Log(
+                    "StatHelpers.GetOrCreateUnboundedStat: stats list is null, cannot create",
+                    TurnrootLogger.LogLevel.Error
+                );
+                return null;
+            }
+
+            var existing = stats.Find(s => s != null && s.StatType == type);
+            if (existing != null)
+            {
+                return existing;
+            }
+
+            TurnrootLogger.Log(
+                $"StatHelpers.GetOrCreateUnboundedStat: Creating default stat for {type}",
+                TurnrootLogger.LogLevel.Warning
+            );
+            var defaultStat = new CharacterStat(GetDefaultValueForUnboundedStat(type), type);
+            stats.Add(defaultStat);
+            return defaultStat;
         }
 
         private static (float max, float current, float min) GetDefaultValuesForBoundedStat(
@@ -124,6 +159,7 @@ namespace Turnroot.Characters.Stats
                 UnboundedStatType.Luck => 5f,
                 UnboundedStatType.CriticalAvoidance => 0f,
                 UnboundedStatType.Authority => 5f,
+                UnboundedStatType.Movement => 5f, // Default movement
                 _ => 10f,
             };
         }

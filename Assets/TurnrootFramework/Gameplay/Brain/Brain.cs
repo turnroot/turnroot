@@ -55,6 +55,7 @@ namespace Turnroot.Gameplay.Brain
     [RequireComponent(typeof(CameraBrain))]
     [RequireComponent(typeof(CursorBrain))]
     [RequireComponent(typeof(UnitAppearanceBrain))]
+    [RequireComponent(typeof(LoadingController))]
     public partial class Brain : MonoBehaviour
     {
         // Core components
@@ -239,6 +240,17 @@ namespace Turnroot.Gameplay.Brain
 
         public void PublishPreBattleMapReady(MapGrid mapGrid) =>
             OnPreBattleMapReady?.Invoke(mapGrid);
+
+        // Event: valid tiles computed for a unit (move tiles, attack tiles)
+        public event Action<
+            System.Collections.Generic.Dictionary<MapGridPoint, float>,
+            System.Collections.Generic.Dictionary<MapGridPoint, float>
+        > OnValidTilesComputed;
+
+        public void PublishValidTilesComputed(
+            System.Collections.Generic.Dictionary<MapGridPoint, float> moveTiles,
+            System.Collections.Generic.Dictionary<MapGridPoint, float> attackTiles
+        ) => OnValidTilesComputed?.Invoke(moveTiles, attackTiles);
 
         public void PublishPreBattleSpawnPositionSelected(
             Vector2Int position,
@@ -659,7 +671,9 @@ namespace Turnroot.Gameplay.Brain
         {
             var handlers = OnPlayerControlledUnitActivated;
             if (handlers == null)
+            {
                 return;
+            }
 
             foreach (var handler in handlers.GetInvocationList())
             {

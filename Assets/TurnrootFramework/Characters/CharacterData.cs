@@ -11,6 +11,7 @@ using Turnroot.Characters.Subclasses;
 using Turnroot.CommonAncestors;
 using Turnroot.Gameplay.Objects;
 using Turnroot.Skills;
+using Turnroot.Utilities;
 using Turnroot.Utilities.AbstractScripts;
 using UnityEngine;
 
@@ -321,45 +322,76 @@ namespace Turnroot.Characters
 #if UNITY_EDITOR
         private void ValidateStats()
         {
+            var errorList = new List<string>();
+            var warningList = new List<string>();
+
             // Check bounded stats
             var requiredBounded = System.Enum.GetValues(typeof(BoundedStatType));
-            foreach (BoundedStatType type in requiredBounded)
+            var existingBounded = new HashSet<BoundedStatType>();
+
+            foreach (var stat in BoundedStats)
             {
-                var stat = BoundedStats.Find(s => s.StatType == type);
                 if (stat == null)
                 {
-                    Debug.LogWarning($"{name}: Missing bounded stat {type}");
+                    warningList.Add($"{name}: BoundedStats contains null entry");
+                    continue;
+                }
+
+                if (!existingBounded.Add(stat.StatType))
+                {
+                    errorList.Add($"{name}: Duplicate bounded stat {stat.StatType}");
+                }
+            }
+
+            foreach (BoundedStatType type in requiredBounded)
+            {
+                if (!existingBounded.Contains(type))
+                {
+                    warningList.Add($"{name}: Missing bounded stat {type}");
                 }
             }
 
             // Check unbounded stats
             var requiredUnbounded = System.Enum.GetValues(typeof(UnboundedStatType));
-            foreach (UnboundedStatType type in requiredUnbounded)
-            {
-                var stat = UnboundedStats.Find(s => s.StatType == type);
-                if (stat == null)
-                {
-                    Debug.LogWarning($"{name}: Missing unbounded stat {type}");
-                }
-            }
+            var existingUnbounded = new HashSet<UnboundedStatType>();
 
-            // Check for duplicates
-            var boundedTypes = new HashSet<BoundedStatType>();
-            foreach (var stat in BoundedStats)
-            {
-                if (!boundedTypes.Add(stat.StatType))
-                {
-                    Debug.LogError($"{name}: Duplicate bounded stat {stat.StatType}");
-                }
-            }
-
-            var unboundedTypes = new HashSet<UnboundedStatType>();
             foreach (var stat in UnboundedStats)
             {
-                if (!unboundedTypes.Add(stat.StatType))
+                if (stat == null)
                 {
-                    Debug.LogError($"{name}: Duplicate unbounded stat {stat.StatType}");
+                    warningList.Add($"{name}: UnboundedStats contains null entry");
+                    continue;
                 }
+
+                if (!existingUnbounded.Add(stat.StatType))
+                {
+                    errorList.Add($"{name}: Duplicate unbounded stat {stat.StatType}");
+                }
+            }
+
+            foreach (UnboundedStatType type in requiredUnbounded)
+            {
+                if (!existingUnbounded.Contains(type))
+                {
+                    warningList.Add($"{name}: Missing unbounded stat {type}");
+                }
+            }
+
+            // Report consolidated results using TurnrootLogger to reduce spam
+            if (errorList.Count > 0)
+            {
+                TurnrootLogger.Log(
+                    $"{name}: Stat validation errors:\n{string.Join("\n", errorList)}",
+                    TurnrootLogger.LogLevel.Error
+                );
+            }
+
+            if (warningList.Count > 0)
+            {
+                TurnrootLogger.Log(
+                    $"{name}: Stat validation warnings:\n{string.Join("\n", warningList)}\nConsider using 'Tools > Turnroot > Refresh Character Stats' or checking the DefaultCharacterStats asset.",
+                    TurnrootLogger.LogLevel.Warning
+                );
             }
         }
 #endif
