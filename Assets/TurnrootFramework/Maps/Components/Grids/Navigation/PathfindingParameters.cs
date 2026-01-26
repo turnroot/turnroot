@@ -1,4 +1,5 @@
 using Turnroot.GameSettings;
+using Turnroot.Utilities;
 
 namespace Turnroot.Gameplay.Maps
 {
@@ -30,17 +31,34 @@ namespace Turnroot.Gameplay.Maps
             MapGridPoint start
         )
         {
-            if (character?.CurrentClass?.ClassData == null)
-            {
-                return null;
-            }
-
-            var classData = character.CurrentClass.ClassData;
-            var movementType = classData.Identity.MovementType;
-            var movementStat = character.GetUnboundedStat(
+            var classData = character?.CurrentClass?.ClassData;
+            var movementStatObj = character?.GetUnboundedStat(
                 Characters.Stats.UnboundedStatType.Movement
             );
 
+            if (
+                !ValidationHelper.ValidateNotNull(
+                    "PathfindingParameters.FromCharacter",
+                    out var missingArgs,
+                    (character, nameof(character)),
+                    (graph, nameof(graph)),
+                    (start, nameof(start)),
+                    (classData, nameof(classData)),
+                    (movementStatObj, nameof(movementStatObj))
+                )
+            )
+            {
+                TurnrootLogger.Log(
+                    $"PathfindingParameters: Missing required parameter(s): {string.Join(", ", missingArgs)}",
+                    TurnrootLogger.LogLevel.Error
+                );
+                return null;
+            }
+
+            var movementType = classData.Identity.MovementType;
+            var isMagic = classData.Identity.IsMagic;
+
+            var movementStat = movementStatObj.CurrentInt;
             return new PathfindingParameters
             {
                 Graph = graph,
@@ -49,12 +67,12 @@ namespace Turnroot.Gameplay.Maps
                 IsWalking = movementType == MovementType.Infantry,
                 IsFlying = movementType == MovementType.Flying,
                 IsRiding = movementType == MovementType.Riding,
-                IsMagic = classData.Identity.IsMagic,
+                IsMagic = isMagic,
                 IsArmored = movementType == MovementType.Armored,
                 SameDirectionMultiplier = 0.95f,
                 IncludeRange = false,
                 IncludeHealRange = false,
-                MaxRange = 0,
+                MaxRange = 0, // TODO: Get weapon range
             };
         }
 

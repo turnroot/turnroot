@@ -2,7 +2,6 @@ using System.Collections;
 using Turnroot.GameSettings;
 using Turnroot.UI.Components.Menu;
 using Turnroot.Utilities;
-using Turnroot.Utilities.AbstractScripts;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain.Segments

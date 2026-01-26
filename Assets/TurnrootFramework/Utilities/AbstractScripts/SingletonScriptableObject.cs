@@ -20,26 +20,72 @@ namespace Turnroot.Utilities.AbstractScripts
                     // Try direct load by expected name first
                     _instance = Resources.Load<T>(typeof(T).Name);
 
-                    // If not found at the exact path, search all Resources for the type
+                    // If not found at the exact path, search all Resources for the type.
+                    // Wrap in try/catch because Unity throws when resources are being loaded
+                    // (recursive serialization/Dereferencing PPtr) and this can happen when
+                    // ScriptableObjects reference each other during deserialization.
                     if (_instance == null)
                     {
-                        var all = Resources.LoadAll<T>("");
-                        if (all != null && all.Length > 0)
+                        try
                         {
-                            // Prefer an asset whose filename matches the type name
-                            foreach (var candidate in all)
+                            var all = Resources.LoadAll<T>("");
+                            if (all != null && all.Length > 0)
                             {
-                                if (candidate != null && candidate.name == typeof(T).Name)
+                                // Prefer an asset whose filename matches the type name
+                                foreach (var candidate in all)
                                 {
-                                    _instance = candidate;
-                                    break;
+                                    if (candidate != null && candidate.name == typeof(T).Name)
+                                    {
+                                        _instance = candidate;
+                                        break;
+                                    }
+                                }
+                                // Otherwise just take the first one found
+                                if (_instance == null)
+                                {
+                                    _instance = all[0];
                                 }
                             }
-                            // Otherwise just take the first one found
-                            if (_instance == null)
+                        }
+                        catch (System.Exception)
+                        {
+#if UNITY_EDITOR
+                            // As a safe fallback in the editor, perform an AssetDatabase search
+                            // which avoids dereferencing PPtr during Resources.LoadAll.
+                            try
                             {
-                                _instance = all[0];
+                                string filter = $"t:{typeof(T).Name}";
+                                var guids = UnityEditor.AssetDatabase.FindAssets(filter);
+                                if (guids != null && guids.Length > 0)
+                                {
+                                    // Prefer exact type-named asset if present
+                                    foreach (var g in guids)
+                                    {
+                                        string path = UnityEditor.AssetDatabase.GUIDToAssetPath(g);
+                                        if (path.Contains($"/Resources/"))
+                                        {
+                                            var asset =
+                                                UnityEditor.AssetDatabase.LoadAssetAtPath<T>(path);
+                                            if (asset != null)
+                                            {
+                                                _instance = asset;
+                                                break;
+                                            }
+                                        }
+                                    }
+
+                                    if (_instance == null)
+                                    {
+                                        var fallbackPath =
+                                            UnityEditor.AssetDatabase.GUIDToAssetPath(guids[0]);
+                                        _instance = UnityEditor.AssetDatabase.LoadAssetAtPath<T>(
+                                            fallbackPath
+                                        );
+                                    }
+                                }
                             }
+                            catch { }
+#endif
                         }
                     }
                 }

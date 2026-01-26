@@ -20,10 +20,8 @@ namespace Turnroot.Gameplay.Brain.Commands
             return true;
         }
 
-        public override bool Undo(BattleContext context)
-        {
+        public override bool Undo(BattleContext context) =>
             // TODO: Turn undo command
-            return false;
-        }
+            false;
     }
 }

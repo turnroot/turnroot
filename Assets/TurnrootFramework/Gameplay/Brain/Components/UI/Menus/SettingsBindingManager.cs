@@ -171,10 +171,7 @@ namespace Turnroot.Gameplay.Brain.Segments
             }
         }
 
-        private void BindSlider(Slider slider, GamewideContextBrain context)
-        {
-            BindSlider(slider, context, null);
-        }
+        private void BindSlider(Slider slider, GamewideContextBrain context) => BindSlider(slider, context, null);
 
         private void BindSlider(
             Slider slider,

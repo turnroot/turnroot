@@ -46,9 +46,6 @@ namespace Turnroot.Gameplay.Combat.PreBattle
             EnvironmentalConditions = GetComponentInChildren<EnvironmentalConditions>(true);
             MapGrid = GetComponentInChildren<MapGrid>(true);
             PlayerTeamSpawnPoints = MapGrid.PlayerTeamSpawnPoints;
-            TurnrootLogger.Log(
-                $"BattlePreparationObject.Initialize: MapGrid={MapGrid?.name}, PlayerTeamSpawnPoints.Count={PlayerTeamSpawnPoints?.Count ?? 0}"
-            );
 
             // Copy MaxPlayerTeamUnits and RequiredPlayerUnits from a BattleGameObject when available.
             if (brain?.battleBrain?.BattleObject != null)
@@ -368,11 +365,6 @@ namespace Turnroot.Gameplay.Combat.PreBattle
                 potentialSwapUnit = null;
                 StartingPositionsComponent?.SetSelected(selectedPosition.Value);
                 StartingPositionsComponent?.ClearSwapPreview();
-                TurnrootLogger.Log(
-                    "PreviewPotentialSwap: cursor is on selected tile "
-                        + pos
-                        + ", cleared swap preview"
-                );
                 return OperationResult.Successful();
             }
 
@@ -401,15 +393,11 @@ namespace Turnroot.Gameplay.Combat.PreBattle
                     );
 
                 StartingPositionsComponent?.SetSwapUnit(name, className, portrait);
-                TurnrootLogger.Log($"PreviewPotentialSwap: target occupied by '{name}' at {pos}");
             }
             else
             {
                 potentialSwapUnit = null;
                 StartingPositionsComponent?.ClearSwapUnit();
-                TurnrootLogger.Log(
-                    $"PreviewPotentialSwap: target empty at {pos} (cleared swap unit)"
-                );
             }
 
             return OperationResult.Successful();

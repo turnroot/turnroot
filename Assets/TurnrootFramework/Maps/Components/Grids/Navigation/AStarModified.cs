@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using Turnroot.Gameplay.Maps;
 using Turnroot.Utilities;
 using UnityEngine;
 using Utils;
@@ -94,13 +93,37 @@ namespace Turnroot.Gameplay.Maps
                         continue;
                     }
 
-                    float stepCost = neighbor.GetTerrainTypeCost(
-                        isWalking,
-                        isFlying,
-                        isRiding,
-                        isMagic,
-                        isArmored
-                    );
+                    float stepCost;
+                    var grid = neighbor.ParentGrid;
+                    var key =
+                        grid != null
+                            ? MapGrid.MakeMovementModeKey(
+                                isWalking,
+                                isFlying,
+                                isRiding,
+                                isMagic,
+                                isArmored
+                            )
+                            : null;
+                    if (
+                        grid != null
+                        && grid.TryGetMovementCostCache(key, out var costCache)
+                        && costCache != null
+                        && costCache.TryGetValue(neighbor, out var cached)
+                    )
+                    {
+                        stepCost = cached;
+                    }
+                    else
+                    {
+                        stepCost = neighbor.GetTerrainTypeCost(
+                            isWalking,
+                            isFlying,
+                            isRiding,
+                            isMagic,
+                            isArmored
+                        );
+                    }
 
                     if (
                         directionFromParent.TryGetValue(current, out var parentDir)
@@ -210,13 +233,37 @@ namespace Turnroot.Gameplay.Maps
                         continue;
                     }
 
-                    float stepCost = neighbor.GetTerrainTypeCost(
-                        isWalking,
-                        isFlying,
-                        isRiding,
-                        isMagic,
-                        isArmored
-                    );
+                    float stepCost;
+                    var grid = neighbor.ParentGrid;
+                    var key =
+                        grid != null
+                            ? MapGrid.MakeMovementModeKey(
+                                isWalking,
+                                isFlying,
+                                isRiding,
+                                isMagic,
+                                isArmored
+                            )
+                            : null;
+                    if (
+                        grid != null
+                        && grid.TryGetMovementCostCache(key, out var costCache)
+                        && costCache != null
+                        && costCache.TryGetValue(neighbor, out var cached)
+                    )
+                    {
+                        stepCost = cached;
+                    }
+                    else
+                    {
+                        stepCost = neighbor.GetTerrainTypeCost(
+                            isWalking,
+                            isFlying,
+                            isRiding,
+                            isMagic,
+                            isArmored
+                        );
+                    }
 
                     if (
                         directionFromParent.TryGetValue(current, out var parentDir)
@@ -308,13 +355,37 @@ namespace Turnroot.Gameplay.Maps
                     {
                         continue;
                     }
-                    float stepCost = neighbor.GetTerrainTypeCost(
-                        isWalking,
-                        isFlying,
-                        isRiding,
-                        isMagic,
-                        isArmored
-                    );
+                    float stepCost;
+                    var grid = neighbor.ParentGrid;
+                    var key =
+                        grid != null
+                            ? MapGrid.MakeMovementModeKey(
+                                isWalking,
+                                isFlying,
+                                isRiding,
+                                isMagic,
+                                isArmored
+                            )
+                            : null;
+                    if (
+                        grid != null
+                        && grid.TryGetMovementCostCache(key, out var costCache)
+                        && costCache != null
+                        && costCache.TryGetValue(neighbor, out var cached)
+                    )
+                    {
+                        stepCost = cached;
+                    }
+                    else
+                    {
+                        stepCost = neighbor.GetTerrainTypeCost(
+                            isWalking,
+                            isFlying,
+                            isRiding,
+                            isMagic,
+                            isArmored
+                        );
+                    }
                     if (
                         directionFromParent.TryGetValue(current, out var parentDir)
                         && parentDir == dir

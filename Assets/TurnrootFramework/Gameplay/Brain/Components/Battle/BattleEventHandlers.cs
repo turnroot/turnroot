@@ -21,6 +21,7 @@ namespace Turnroot.Gameplay.Brain
             _brain.OnWeaponUsesChanged += HandleWeaponUsesChanged;
             _brain.OnItemStolen += HandleItemStolen;
             _brain.OnTurnEnded += HandleTurnEndStatusEffects;
+            _brain.OnTurnBegin += HandleTurnBeginEvent;
             _brain.OnUnitDefeated += HandleUnitDefeated;
             _brain.OnUnitMoved += HandleUnitMoved;
         }
@@ -36,6 +37,7 @@ namespace Turnroot.Gameplay.Brain
             _brain.OnWeaponUsesChanged -= HandleWeaponUsesChanged;
             _brain.OnItemStolen -= HandleItemStolen;
             _brain.OnTurnEnded -= HandleTurnEndStatusEffects;
+            _brain.OnTurnBegin -= HandleTurnBeginEvent;
             _brain.OnUnitDefeated -= HandleUnitDefeated;
             _brain.OnUnitMoved -= HandleUnitMoved;
         }
@@ -84,12 +86,19 @@ namespace Turnroot.Gameplay.Brain
             return OperationResult.Successful();
         }
 
-        private void HandleUnitMoved(CharacterInstance unit, Vector2Int targetPosition) =>
+        private void HandleUnitMoved(CharacterInstance unit, Vector2Int targetPosition)
+        {
             // Rebuild cached unit positions in BattleContext whenever a unit moves
             BattleObject.Context.InvalidateUnitPositionCache();
+            // Also invalidate per-unit tile cache when a unit moves
+            BattleObject.Context.InvalidateUnitTileCache(unit);
+        }
 
-        private void HandleUnitDefeated(CharacterInstance unit) =>
+        private void HandleUnitDefeated(CharacterInstance unit)
+        {
             BattleObject.Context.InvalidateUnitPositionCache();
+            BattleObject.Context.InvalidateUnitTileCache(unit);
+        }
 
         private OperationResult HandleUnitTakesAnotherTurnLogic(CharacterInstance unit)
         {
@@ -123,6 +132,10 @@ namespace Turnroot.Gameplay.Brain
             );
             return OperationResult.Successful();
         }
+
+        private void HandleTurnBeginEvent() =>
+            // Invalidate all tile caches at start of each turn to ensure AI and UI recompute
+            BattleObject.Context.InvalidateAllTileCaches();
 
         private OperationResult HandleCriticalHitLogic(CharacterInstance unit)
         {

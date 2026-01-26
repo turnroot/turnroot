@@ -264,6 +264,10 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 return OperationResult.Failure("BattleContext is null");
             }
 
+            TurnrootLogger.Log(
+                $"TurnRotisserie: Setting active unit to {activeUnit.CharacterTemplate.DisplayName}"
+            );
+
             try
             {
                 // Set the active unit
@@ -282,7 +286,11 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             }
             catch (System.Exception ex)
             {
-                return OperationResult.Failure($"SetActiveUnitInContext failed: {ex.Message}");
+                TurnrootLogger.Log(
+                    $"TurnRotisserie: Exception in SetActiveUnitInContext: {ex}",
+                    TurnrootLogger.LogLevel.Error
+                );
+                return OperationResult.Failure(ex);
             }
         }
 

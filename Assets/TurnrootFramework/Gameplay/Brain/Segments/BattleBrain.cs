@@ -112,11 +112,8 @@ namespace Turnroot.Gameplay.Brain
 
             BattleObject.Context.InvalidateUnitPositionCache();
 
-            TurnrootLogger.Log($"BattleBrain: Connected to BattleGameObject");
-
             InitializeBattleRosters();
 
-            // Publish BattleGameObject; rosters and participants have already been initialized and populated by now.
             _brain?.PublishBattleObjectSet(BattleObject);
 
             _brain?.PublishBattleStarted();
@@ -141,6 +138,33 @@ namespace Turnroot.Gameplay.Brain
             _brain.TakeSnapshot();
 
             TurnrootLogger.Log("BattleBrain: Battle initialization complete");
+
+            // Initialize and start precompute loader now that the BattleContext and participants are ready
+            var precomputeLoader =
+                UnityEngine.Object.FindFirstObjectByType<Turnroot.Gameplay.Combat.Precompute.BattlePrecomputeLoader>();
+            if (precomputeLoader != null)
+            {
+                var initRes = precomputeLoader.Initialize(_brain, BattleObject?.Context);
+                if (!initRes.Success)
+                {
+                    TurnrootLogger.Log(
+                        $"BattleBrain: BattlePrecomputeLoader.Initialize failed: {initRes.ErrorMessage}",
+                        TurnrootLogger.LogLevel.Warning
+                    );
+                }
+                else
+                {
+                    precomputeLoader.ForceStartPrecomputeIfPossible();
+                }
+            }
+            else
+            {
+                TurnrootLogger.Log(
+                    "BattleBrain: No BattlePrecomputeLoader found in scene; skipping precompute",
+                    TurnrootLogger.LogLevel.Warning
+                );
+            }
+
             ProgressTurnOrder();
             return;
         }
@@ -169,6 +193,15 @@ namespace Turnroot.Gameplay.Brain
 
             // Clear central last-attacker mapping in the context
             _brain?.battleBrain?.BattleObject?.Context?.ClearLastAttackHistory();
+
+            // Reset precompute loader so it can run in the next battle
+            var precomputeLoader =
+                UnityEngine.Object.FindFirstObjectByType<Turnroot.Gameplay.Combat.Precompute.BattlePrecomputeLoader>();
+            if (precomputeLoader != null)
+            {
+                precomputeLoader.ResetPrecomputeFlag();
+            }
+
             TurnrootLogger.Log("BattleBrain: Battle cleanup complete");
         }
 
@@ -341,7 +374,6 @@ namespace Turnroot.Gameplay.Brain
                     "BattleBrain: Failed to progress turn order!",
                     TurnrootLogger.LogLevel.Error
                 );
-                Debug.Break();
             }
         }
 
@@ -393,7 +425,7 @@ namespace Turnroot.Gameplay.Brain
                 mapGrid.RemoveOccupied(oldPoint);
                 mapGrid.SetOccupied(newPoint, unit);
                 unit.MapGridPosition = target;
-                // publish both simple event and the advanced UnitMovedEvent for subscribers
+                BattleObject.Context.InvalidateUnitTileCache(unit);
                 _brain?.PublishCharacterMoveCompleted(unit, newPoint);
                 _brain?.PublishUnitMoved(unit, target);
                 _brain?.Publish(new Events.UnitMovedEvent(unit, from, target));

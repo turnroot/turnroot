@@ -19,10 +19,6 @@ namespace Turnroot.Gameplay.Brain
             List<Vector2Int> allowedPositions = null
         )
         {
-            TurnrootLogger.Log(
-                $"CursorBrain.InitializeCursor: Starting initialization. IsInitialized was: {IsInitialized}"
-            );
-
             _currentMap = mapGrid;
             _allowedPositions = allowedPositions;
 
@@ -41,9 +37,6 @@ namespace Turnroot.Gameplay.Brain
                 CursorPosition = startPoint;
                 UpdateCursorVisualPosition(startPos);
                 IsInitialized = true;
-
-                TurnrootLogger.Log($"CursorBrain: IsInitialized set to TRUE. Cursor at {startPos}");
-
                 _brain?.PublishCursorPositionChanged(startPos, _currentMap);
             }
             else
@@ -57,7 +50,6 @@ namespace Turnroot.Gameplay.Brain
 
         private void InitializeBattleCursor()
         {
-            TurnrootLogger.Log("CursorBrain: Initializing battle cursor");
             if (_brain?.battleBrain?.BattleObject?.Context?.mapGrid == null)
             {
                 TurnrootLogger.Log(
@@ -77,7 +69,6 @@ namespace Turnroot.Gameplay.Brain
 
             var battleContext = _brain.battleBrain.BattleObject.Context;
             CursorOffset = _brain.uiBrain?.uiSettings?.BattleCursorOffset ?? Vector3.zero;
-            TurnrootLogger.Log($"CursorBrain: Got BattleContext");
             InitializeCursor(battleContext.mapGrid);
         }
 

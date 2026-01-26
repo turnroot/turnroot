@@ -147,6 +147,7 @@ GameObject:
   - component: {fileID: 1357883693}
   - component: {fileID: 1357883692}
   - component: {fileID: 1357883691}
+  - component: {fileID: 1357883696}
   m_Layer: 0
   m_Name: = Brain
   m_TagString: DoNotModify
@@ -271,6 +272,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 292926fe8d78adc4f92cfae41cd5564c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  battleBrain: {fileID: 0}
 --- !u!114 &1357883683
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -440,6 +442,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7ed25ae0314e4bd47b64071332bd3627, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  CurrentAngle: 0
 --- !u!114 &1357883694
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -465,6 +468,21 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _tileHighlighter: {fileID: 0}
+--- !u!114 &1357883696
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1357883673}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cfa6b2f6e9eb1174cafce60f34fcdbba, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Turnroot.Gameplay.Brain.LoadingController
+  OnLoadedAmountChanged:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

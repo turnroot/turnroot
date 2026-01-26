@@ -522,9 +522,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                     && context.Participants.AdjacentUnits.Center == unit
                 )
                     ? context.Participants.AdjacentUnits
-                    : new Locations.Adjacency(
-                        unit
-                    );
+                    : new Locations.Adjacency(unit);
 
             // Build fast lookup of ally IDs
             using var allyIds = PooledHashSet<string>.Get();

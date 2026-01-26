@@ -1,54 +1,94 @@
 using System;
-using NaughtyAttributes;
+using Turnroot.Utilities;
 using UnityEngine;
-using UnityEngine.Events;
 
-namespace Turnroot.Utilities.AbstractScripts
+namespace Turnroot.Gameplay.Brain
 {
-    [RequireComponent(typeof(DynamicSceneFlow))]
-    public class LoadingController : MonoBehaviour
+    /// <summary>
+    /// Tracks loading/precompute tasks across brain states and reports progress
+    /// </summary>
+    public class LoadingController : BrainComponent
     {
-        private void Awake()
-        {
-            OnLoadedAmountChanged.AddListener(
-                (percentage) => OnLoadedAmountChangedAction?.Invoke(percentage)
-            );
-        }
+        protected override void Awake() => base.Awake();
 
         private int LoadedAmount { get; set; } = 0;
-        private int TotalToLoad { get; set; } = 1;
-        protected int LoadingPercentage => (int)((float)LoadedAmount / TotalToLoad * 100);
+        private int TotalToLoad { get; set; } = 0;
+        protected int LoadingPercentage =>
+            TotalToLoad == 0 ? 100 : (int)((float)LoadedAmount / TotalToLoad * 100);
 
-        [InfoBox(
-            "Loading progress will be reported through this event- used for UI updates. When loading is complete, the DynamicSceneFlow will progress to the next segment. Make sure your DynamicSceneFlow segments are ordered correctly"
-        )]
-        public UnityEvent<int> OnLoadedAmountChanged = new();
-        public event Action<int> OnLoadedAmountChangedAction;
+        public event Action<float> OnProgressChanged;
+
+        private Utilities.AbstractScripts.DynamicSceneFlow GetDynamicSceneFlow() =>
+            Brain?.GetComponentInChildren<Utilities.AbstractScripts.DynamicSceneFlow>(true)
+            ?? FindFirstObjectByType<Utilities.AbstractScripts.DynamicSceneFlow>();
+
+        private void ReportProgress()
+        {
+            var flow = GetDynamicSceneFlow();
+            flow?.ReportLoadingProgress(LoadingPercentage);
+            OnProgressChanged?.Invoke(LoadingPercentage / 100f);
+
+            // Force canvas update to ensure visual feedback
+            Canvas.ForceUpdateCanvases();
+        }
 
         public void IncrementLoadedAmount()
         {
             LoadedAmount++;
-            OnLoadedAmountChanged.Invoke(LoadingPercentage);
-            if (LoadedAmount >= TotalToLoad)
+            ReportProgress();
+            CheckCompletion();
+        }
+
+        public void IncrementLoadedAmountBy(int amount)
+        {
+            if (amount <= 0)
             {
-                DynamicSceneFlow flow = GetComponent<DynamicSceneFlow>();
-                flow.Progress();
+                return;
+            }
+
+            LoadedAmount += amount;
+            ReportProgress();
+            CheckCompletion();
+        }
+
+        private void CheckCompletion()
+        {
+            if (TotalToLoad > 0 && LoadedAmount >= TotalToLoad)
+            {
+                var flow = GetDynamicSceneFlow();
+                flow?.Progress();
             }
         }
 
         public void IncreaseLoadTotal() => TotalToLoad++;
 
+        public void IncreaseLoadTotalBy(int amount)
+        {
+            if (amount <= 0)
+            {
+                return;
+            }
+
+            TotalToLoad += amount;
+            ReportProgress();
+        }
+
         public void Initialize()
         {
             LoadedAmount = 0;
-            TotalToLoad = 1;
-            OnLoadedAmountChanged.Invoke(LoadingPercentage);
+            TotalToLoad = 0;
+            ReportProgress();
         }
 
         public void Clear()
         {
             LoadedAmount = 0;
             TotalToLoad = 0;
+            ReportProgress();
         }
+
+        protected override void SubscribeToBrainEvents() { }
+
+        protected override void UnsubscribeFromBrainEvents() { }
     }
 }

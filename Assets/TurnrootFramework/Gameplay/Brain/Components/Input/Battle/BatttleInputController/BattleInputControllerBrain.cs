@@ -208,7 +208,7 @@ namespace Turnroot.Gameplay.Brain
             _inputEnabled = false; // Explicitly disable until ready
             StartCoroutine(InitializeWhenReady());
             TurnrootLogger.Log(
-                $"🏁 Battle started. PlayerTurnFlow state: {_playerTurnFlow?.GetCurrentState()}"
+                $"Battle started. PlayerTurnFlow state: {_playerTurnFlow?.GetCurrentState()}"
             );
         }
 

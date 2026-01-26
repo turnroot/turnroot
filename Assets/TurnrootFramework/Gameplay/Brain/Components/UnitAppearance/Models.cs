@@ -118,9 +118,7 @@ namespace Turnroot.Gameplay.Brain
                 if (prefabSmr != null)
                 {
                     nbSmr.sharedMaterials = prefabSmr.sharedMaterials;
-                    TurnrootLogger.Log(
-                        $"CreateOutfitMesh: Restored non-battle outfit materials for {unit.CharacterTemplate?.DisplayName}"
-                    );
+
                 }
 
                 // Attach head/hands and hair if available
@@ -171,10 +169,6 @@ namespace Turnroot.Gameplay.Brain
             model.transform.SetPositionAndRotation(worldPos, Quaternion.identity);
             model.transform.localScale = Vector3.one * _brain.uiBrain.uiSettings.ModelsScale;
             owner.DisplayName = unit.CharacterTemplate.DisplayName;
-
-            TurnrootLogger.Log(
-                $"TryReuseExistingModel: Reusing model {model.name} for unit {unit?.Id ?? "<null>"} at {pos}"
-            );
 
             ApplyVisuals(unit, model);
             RemovePreviousMapping(models, model);
@@ -231,10 +225,6 @@ namespace Turnroot.Gameplay.Brain
             ownership.DisplayName = unit.CharacterTemplate.DisplayName;
             model.name = $"{unit.CharacterTemplate.DisplayName}_Model_{unit.Id}";
 
-            TurnrootLogger.Log(
-                $"CreateNewModel: Created model {model.name} for unit {unit?.Id ?? "<null>"} at {pos}"
-            );
-
             ApplyVisuals(unit, model);
             models[pos] = model;
 
@@ -264,6 +254,32 @@ namespace Turnroot.Gameplay.Brain
             models.Remove(pos);
 
             return OperationResult.Successful();
+        }
+
+        /// <summary>
+        /// Public helper used by precompute systems to ensure a model exists for the unit at the
+        /// specified grid position. This uses the brain's internal _activeUnitModels dictionary
+        /// and returns an OperationResult so callers can report progress/failures.
+        /// </summary>
+        public OperationResult PrecomputeSpawnModelAt(
+            CharacterInstance unit,
+            Vector2Int pos,
+            bool prebattle = false
+        )
+        {
+            if (unit == null)
+            {
+                return OperationResult.Failure("Unit is null");
+            }
+
+            try
+            {
+                return SpawnUnitModelOnGrid(pos, unit, _activeUnitModels, prebattle);
+            }
+            catch (System.Exception ex)
+            {
+                return OperationResult.Failure($"PrecomputeSpawnModelAt failed: {ex.Message}");
+            }
         }
 
         private void ClearExistingModels()

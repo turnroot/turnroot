@@ -7,6 +7,7 @@ using Turnroot.Gameplay.Brain.Events;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Environment;
 using Turnroot.Gameplay.Combat.PreBattle;
+using Turnroot.Gameplay.Combat.Precompute;
 using Turnroot.Gameplay.Maps;
 using UnityEngine;
 
@@ -24,6 +25,7 @@ namespace Turnroot.Gameplay.Combat
     [RequireComponent(typeof(BattleContext))]
     [RequireComponent(typeof(BattlePreparationObject))]
     [RequireComponent(typeof(TileHighlighter))]
+    [RequireComponent(typeof(BattlePrecomputeLoader))]
     public partial class BattleGameObject : MonoBehaviour
     {
         [field: SerializeField, HideInInspector]

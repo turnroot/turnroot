@@ -5,6 +5,7 @@ using Turnroot.Gameplay.Brain.Components;
 using Turnroot.Gameplay.Brain.Events;
 using Turnroot.Gameplay.Maps;
 using Turnroot.Gameplay.PlayerSettings;
+using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain
@@ -14,7 +15,6 @@ namespace Turnroot.Gameplay.Brain
     public class GamewideContextBrain : BrainComponent
     {
         #region Configuration
-
         public enum TamperPolicy
         {
             NotifyOnly,
@@ -24,11 +24,9 @@ namespace Turnroot.Gameplay.Brain
 
         [field: SerializeField]
         public TamperPolicy Policy { get; } = TamperPolicy.Replace;
-
         #endregion
 
         #region Dependencies
-
         public Brain CentralBrain => _brain;
 
         private LongTermMemory _ltm;
@@ -36,17 +34,13 @@ namespace Turnroot.Gameplay.Brain
         private RosterManager _rosterManager;
         private CharacterPersistence _characterPersistence;
         private PlayerSettingsPersistence _playerSettingsPersistence;
-
         #endregion
 
         #region State
-
-        // Track all active runtime roster instances by roster id
         private readonly Dictionary<string, object> _activeRosterInstances = new();
 
         [HideInInspector]
         public PlayerTeamRoster GamewidePersistentPlayerRoster { get; set; }
-
         public List<GamewideContextBrainHelpers.ExploredPartial> MapExplorationStatuses
         {
             get;
@@ -55,11 +49,9 @@ namespace Turnroot.Gameplay.Brain
 
         [HideInInspector]
         public GameplayPlayerSettings PlayerSettings => _playerSettingsPersistence?.PlayerSettings;
-
         #endregion
 
         #region Initialization
-
         protected override EventPriority GetSubscriptionPriority() => EventPriority.High;
 
         protected override void Awake()
@@ -68,104 +60,85 @@ namespace Turnroot.Gameplay.Brain
             SubscribeToBrainEvents();
 
             _rosterPersistence = new RosterPersistence(GetComponent<LongTermMemory>());
-            // Pass persistence into RosterManager so it can register/recall rosters
             _rosterManager = new RosterManager(_brain, _rosterPersistence);
             _characterPersistence = new CharacterPersistence(_brain);
-
-            // Initialize player settings persistence
             _playerSettingsPersistence = new PlayerSettingsPersistence(
                 GetComponent<LongTermMemory>(),
                 this
             );
-            _playerSettingsPersistence.Initialize();
 
-            // Try to find the persistent player roster asset in Resources and recall it from LTM if present
-            TryLoadAndRecallPersistentPlayerRoster();
-            var volumeBrain = _brain.volumeBrain;
-            volumeBrain.ApplySettingsToVolumes(PlayerSettings);
-
-            _ltm = GetComponent<LongTermMemory>();
-
-            // Initialize in-memory map exploration list and populate from LTM
             MapExplorationStatuses = new List<GamewideContextBrainHelpers.ExploredPartial>();
-            PopulateMapExplorationStatusesFromLtm();
         }
 
+        private void Start()
+        {
+            _ltm = GetComponent<LongTermMemory>();
+            _playerSettingsPersistence?.Initialize();
+            TryLoadAndRecallPersistentPlayerRoster();
+            _brain.volumeBrain?.ApplySettingsToVolumes(PlayerSettings);
+            PopulateMapExplorationStatusesFromLtm();
+        }
         #endregion
 
         #region Event Subscription
-
         protected override void SubscribeToBrainEvents() =>
-            // Subscribe to save requests so we can persist roster changes triggered at runtime
             _brain.OnSavePlayerRosterRequested += HandleSavePlayerRosterRequested;
 
         protected override void UnsubscribeFromBrainEvents() =>
             _brain.OnSavePlayerRosterRequested -= HandleSavePlayerRosterRequested;
-
         #endregion
 
         #region Persistent Player Roster Management
-
         public PlayerTeamRoster CreateOrRecallGamewidePersistentPlayerRoster()
         {
-            // Prefer an editor-created asset assigned to GamewidePersistentPlayerRoster.
             if (GamewidePersistentPlayerRoster == null)
             {
-                Debug.LogWarning(
-                    "GamewideContextBrain: No GamewidePersistentPlayerRoster assigned. Assign one in editor or implement an editor wrapper."
-                );
-                return null;
+                TryLoadAndRecallPersistentPlayerRoster();
+
+                if (GamewidePersistentPlayerRoster == null)
+                {
+                    TurnrootLogger.Log(
+                        "GamewideContextBrain: No GamewidePersistentPlayerRoster assigned",
+                        TurnrootLogger.LogLevel.Warning
+                    );
+                    return null;
+                }
             }
 
-            // If roster exists and is registered in LTM, recall it (this will create a runtime instance)
-            if (
-                _rosterPersistence != null
-                && _rosterPersistence.HasPlayerRosterInLTM(GamewidePersistentPlayerRoster)
-            )
+            if (_rosterPersistence?.HasPlayerRosterInLTM(GamewidePersistentPlayerRoster) == true)
             {
-#if UNITY_EDITOR
-                Debug.Log("GamewideContextBrain: Recalling existing persistent player roster");
-#endif
                 _rosterManager?.RecallPlayerTeamRoster(GamewidePersistentPlayerRoster);
             }
 
             return GamewidePersistentPlayerRoster;
         }
 
-        /// <summary>
-        /// Attempts to find the `PersistentPlayerRoster` singleton asset in Resources and initialize
-        /// the gamewide persistent player roster from it. If LTM contains a serialized copy of the
-        /// roster, the persisted payload is decoded and applied before instantiation.
-        /// </summary>
         private void TryLoadAndRecallPersistentPlayerRoster()
         {
-            // Try graceful load via singleton accessor if available
             var persistent = Roster.PersistentPlayerRoster.Instance;
             if (persistent == null)
             {
-                return; // nothing to do
+                return;
             }
 
             GamewidePersistentPlayerRoster = persistent.PlayerRoster;
 
             if (GamewidePersistentPlayerRoster == null)
             {
-                Debug.LogWarning(
-                    "GamewideContextBrain: PersistentPlayerRoster.asset has no PlayerRoster assigned."
+                TurnrootLogger.Log(
+                    "GamewideContextBrain: PersistentPlayerRoster.asset has no PlayerRoster assigned",
+                    TurnrootLogger.LogLevel.Warning
                 );
                 return;
             }
 
-            // Attempt to recall persisted roster payload from LTM and apply it to the asset
             var key = GamewideContextBrainHelpers.BuildRosterLedgerKey(
                 GamewidePersistentPlayerRoster.Id
             );
-            var ltm = GetComponent<LongTermMemory>();
-            var encoded = ltm?.Recall(key);
+            var encoded = _ltm?.Recall(key);
 
             if (!string.IsNullOrEmpty(encoded))
             {
-                // Decode saved DTO containing placements and (optionally) character snapshots
                 var decode =
                     GamewideContextBrainHelpers.DecodeInstanceFromString<PlayerRosterSaveData>(
                         this,
@@ -173,35 +146,16 @@ namespace Turnroot.Gameplay.Brain
                     );
                 if (decode.Success && decode.Value != null)
                 {
-                    try
+                    var runtimeInstance = _rosterManager?.InstantiatePlayerTeamRoster(
+                        GamewidePersistentPlayerRoster
+                    );
+                    if (runtimeInstance != null)
                     {
-                        Debug.Log(
-                            "GamewideContextBrain: Recalling persisted player roster from LTM."
-                        );
-
-                        var runtimeInstance = _rosterManager?.InstantiatePlayerTeamRoster(
-                            GamewidePersistentPlayerRoster
-                        );
-
-                        if (runtimeInstance != null)
-                        {
-                            // Apply saved placements into runtime instance
-                            runtimeInstance.ApplyDecodedPlacements(decode.Value.Placements);
-                            Debug.Log(
-                                $"GamewideContextBrain: Applied {decode.Value.Placements?.Length ?? 0} placements to runtime instance."
-                            );
-                        }
-                    }
-                    catch (System.Exception ex)
-                    {
-#if UNITY_EDITOR
-                        Debug.LogWarning($"Failed to apply persisted player roster: {ex.Message}");
-#endif
+                        runtimeInstance.ApplyDecodedPlacements(decode.Value.Placements);
                     }
                 }
             }
 
-            // Ensure there is a runtime instance for the persistent player roster (it will register if needed)
             _rosterManager?.RecallPlayerTeamRoster(GamewidePersistentPlayerRoster);
         }
 
@@ -209,69 +163,49 @@ namespace Turnroot.Gameplay.Brain
         {
             if (GamewidePersistentPlayerRoster == null)
             {
-#if UNITY_EDITOR
-                Debug.LogWarning("GamewideContextBrain: No persistent player roster to save.");
-#endif
+                TurnrootLogger.Log(
+                    "GamewideContextBrain: No persistent player roster to save",
+                    TurnrootLogger.LogLevel.Warning
+                );
                 return;
             }
 
-            try
+            var runtimeInstance = _rosterManager?.GetPersistentPlayerRosterInstance();
+            if (runtimeInstance == null)
             {
-                var runtimeInstance = _rosterManager?.GetPersistentPlayerRosterInstance();
-                if (runtimeInstance != null)
-                {
-                    // Create serializable DTO from runtime instance
-                    var saveData = new PlayerRosterSaveData
-                    {
-                        RosterId = GamewidePersistentPlayerRoster.Id,
-                        Placements = runtimeInstance.GetPlacements(),
-                        CharacterInstances = Enumerable.ToArray(runtimeInstance.Instances),
-                    };
-
-                    var encode = GamewideContextBrainHelpers.EncodeInstanceToString(this, saveData);
-                    if (!encode.Success)
-                    {
-                        Debug.LogError(
-                            $"GamewideContextBrain: Failed to encode player roster: {encode.Error}"
-                        );
-                        return;
-                    }
-
-                    var encoded = encode.Value;
-                    var key = GamewideContextBrainHelpers.BuildRosterLedgerKey(
-                        GamewidePersistentPlayerRoster.Id
-                    );
-                    var ltm = GetComponent<LongTermMemory>();
-                    ltm?.Remember(key, encoded);
-
-                    _rosterPersistence?.RegisterPlayerRoster(GamewidePersistentPlayerRoster);
-
-#if UNITY_EDITOR
-                    Debug.Log("GamewideContextBrain: Saved runtime player roster to LTM.");
-#endif
-                    return;
-                }
-
-#if UNITY_EDITOR
-                Debug.LogWarning("GamewideContextBrain: No runtime instance available to save.");
-#endif
+                TurnrootLogger.Log(
+                    "GamewideContextBrain: No runtime instance available to save",
+                    TurnrootLogger.LogLevel.Warning
+                );
+                return;
             }
-            catch (System.Exception ex)
+
+            var saveData = new PlayerRosterSaveData
             {
-#if UNITY_EDITOR
-                Debug.LogError($"GamewideContextBrain: Save player roster failed: {ex.Message}");
-#endif
+                RosterId = GamewidePersistentPlayerRoster.Id,
+                Placements = runtimeInstance.GetPlacements(),
+                CharacterInstances = runtimeInstance.Instances.ToArray(),
+            };
+
+            var encode = GamewideContextBrainHelpers.EncodeInstanceToString(this, saveData);
+            if (!encode.Success)
+            {
+                TurnrootLogger.Log(
+                    $"GamewideContextBrain: Failed to encode player roster: {encode.Error}",
+                    TurnrootLogger.LogLevel.Error
+                );
+                return;
             }
+
+            var key = GamewideContextBrainHelpers.BuildRosterLedgerKey(
+                GamewidePersistentPlayerRoster.Id
+            );
+            _ltm?.Remember(key, encode.Value);
+            _rosterPersistence?.RegisterPlayerRoster(GamewidePersistentPlayerRoster);
         }
-
         #endregion
 
         #region Roster Management API
-
-        /// <summary>
-        /// Returns a runtime GenericRosterInstance for the provided template. GamewideContextBrain
-        /// owns and tracks persistent runtime rosters; callers should request, not create.
-        /// </summary>
         public GenericRosterInstance GetOrCreateGenericRoster(
             GenericRoster roster,
             bool register = false
@@ -279,13 +213,13 @@ namespace Turnroot.Gameplay.Brain
         {
             if (roster == null)
             {
-#if UNITY_EDITOR
-                Debug.LogWarning("Cannot get/create null roster");
-#endif
+                TurnrootLogger.Log(
+                    "Cannot get/create null roster",
+                    TurnrootLogger.LogLevel.Warning
+                );
                 return null;
             }
 
-            // Return tracked instance if exists
             if (_activeRosterInstances.TryGetValue(roster.Id, out var existing))
             {
                 return existing as GenericRosterInstance;
@@ -300,16 +234,14 @@ namespace Turnroot.Gameplay.Brain
             return instance;
         }
 
-        /// <summary>
-        /// Returns a runtime PlayerTeamRosterInstance for the provided persistent PlayerTeamRoster template.
-        /// </summary>
         public PlayerTeamRosterInstance GetOrCreatePlayerTeamRoster(PlayerTeamRoster roster)
         {
             if (roster == null)
             {
-#if UNITY_EDITOR
-                Debug.LogWarning("Cannot get/create null player roster");
-#endif
+                TurnrootLogger.Log(
+                    "Cannot get/create null player roster",
+                    TurnrootLogger.LogLevel.Warning
+                );
                 return null;
             }
 
@@ -327,41 +259,25 @@ namespace Turnroot.Gameplay.Brain
             return instance;
         }
 
-        /// <summary>
-        /// Delegates to roster manager to recall generic rosters from a list.
-        /// </summary>
         public void RecallGenericRosters(List<GenericRoster> rosters) =>
             _rosterManager?.RecallGenericRosters(rosters);
 
-        /// <summary>
-        /// Delegates to roster manager to recall a player team roster and return the runtime instance.
-        /// </summary>
         public PlayerTeamRosterInstance RecallPlayerTeamRoster(PlayerTeamRoster roster) =>
             _rosterManager?.RecallPlayerTeamRoster(roster);
 
-        /// <summary>
-        /// Returns the current runtime persistent player roster instance, if any.
-        /// </summary>
         public PlayerTeamRosterInstance GetPersistentPlayerTeamRosterInstance() =>
             _rosterManager?.GetPersistentPlayerRosterInstance();
 
-        /// <summary>
-        /// Returns selected CharacterInstances from the persistent player roster.
-        /// </summary>
         public List<CharacterInstance> GetSelectedForBattlePlayerTeamUnits() =>
             RosterFilters.FilterUnitsSelectedForBattle(GetPersistentPlayerTeamRosterInstance());
 
-        /// <summary>
-        /// Returns placements (UnitPlacement[]) corresponding to currently selected units.
-        /// </summary>
         public Characters.Roster.UnitPlacement[] GetSelectedForBattlePlayerTeamPlacements()
         {
             var instance = GetPersistentPlayerTeamRosterInstance();
             var placements =
-                instance != null
-                    ? instance.GetPlacements()
-                    : GamewidePersistentPlayerRoster?.characters
-                        ?? new Characters.Roster.UnitPlacement[0];
+                instance?.GetPlacements()
+                ?? GamewidePersistentPlayerRoster?.characters
+                ?? new Characters.Roster.UnitPlacement[0];
 
             var selectedInstances = GetSelectedForBattlePlayerTeamUnits();
             var selectedTemplates = new HashSet<CharacterData>(
@@ -372,73 +288,47 @@ namespace Turnroot.Gameplay.Brain
                 .Where(p => p.CharacterData != null && selectedTemplates.Contains(p.CharacterData))
                 .ToArray();
         }
-
         #endregion
 
         #region Character Management API
-
-        /// <summary>
-        /// Find an active CharacterInstance by template across all tracked rosters.
-        /// </summary>
         public CharacterInstance FindInstanceByTemplate(CharacterData template) =>
             _rosterManager?.FindInstanceByTemplate(template);
 
-        /// <summary>
-        /// Return all active CharacterInstances from all tracked rosters.
-        /// </summary>
         public List<CharacterInstance> GetAllActiveInstances() =>
             _rosterManager?.GetAllActiveInstances() ?? new List<CharacterInstance>();
 
-        /// <summary>
-        /// Persist a unique character's state via the centralized character persistence.
-        /// </summary>
         public void SaveUniqueCharacterProgress(CharacterInstance instance) =>
             _characterPersistence?.SaveCharacter(instance, updateIndex: false);
-
         #endregion
 
         #region Player Settings Management
-
         public void UpdatePlayerSetting(string settingName, object value)
         {
             _playerSettingsPersistence?.UpdatePlayerSetting(settingName, value);
-
-            // Apply settings that affect global volumes immediately
-            var volumeBrain = _brain?.volumeBrain;
-            if (volumeBrain != null)
-            {
-                volumeBrain.ApplySettingsToVolumes(PlayerSettings);
-            }
+            _brain?.volumeBrain?.ApplySettingsToVolumes(PlayerSettings);
         }
-
         #endregion
 
         #region Map Exploration Management
-
-        /// <summary>
-        /// Register or update an in-memory exploration partial. This does NOT persist to LTM—
-        /// call SaveMapExplorationStatus() or SaveMapExplorationStatus(partial) to persist.
-        /// </summary>
         public void RegisterMapExplorationPartial(
             GamewideContextBrainHelpers.ExploredPartial partial
         )
         {
             if (partial.map == null || string.IsNullOrEmpty(partial.map.MapName))
             {
-#if UNITY_EDITOR
-                Debug.LogWarning(
-                    "RegisterMapExplorationPartial: partial must have a valid map and MapName."
+                TurnrootLogger.Log(
+                    "RegisterMapExplorationPartial: partial must have a valid map and MapName",
+                    TurnrootLogger.LogLevel.Warning
                 );
-#endif
                 return;
             }
 
             MapExplorationStatuses ??= new List<GamewideContextBrainHelpers.ExploredPartial>();
 
-            // Replace existing entry for same map if present, otherwise add
             var existingIndex = MapExplorationStatuses.FindIndex(p =>
                 p.map != null && p.map.MapName == partial.map.MapName
             );
+
             if (existingIndex >= 0)
             {
                 MapExplorationStatuses[existingIndex] = partial;
@@ -449,57 +339,49 @@ namespace Turnroot.Gameplay.Brain
             }
         }
 
-        /// <summary>
-        /// Persist all in-memory exploration partials to LTM. Use the single-argument overload to persist one.
-        /// </summary>
         public void SaveMapExplorationStatus()
         {
             if (_ltm == null || MapExplorationStatuses == null)
             {
-#if UNITY_EDITOR
-                Debug.LogWarning(
-                    "SaveMapExplorationStatus: No LTM available or no statuses to save."
+                TurnrootLogger.Log(
+                    "SaveMapExplorationStatus: No LTM available or no statuses to save",
+                    TurnrootLogger.LogLevel.Warning
                 );
-#endif
                 return;
             }
 
-            for (int i = 0; i < MapExplorationStatuses.Count; i++)
+            foreach (var status in MapExplorationStatuses)
             {
-                SaveMapExplorationStatus(MapExplorationStatuses[i]);
+                SaveMapExplorationStatus(status);
             }
         }
 
-        /// <summary>
-        /// Persist a single exploration partial to LTM.
-        /// </summary>
         public void SaveMapExplorationStatus(GamewideContextBrainHelpers.ExploredPartial partial)
         {
             if (partial.map == null || string.IsNullOrEmpty(partial.map.MapName))
             {
-#if UNITY_EDITOR
-                Debug.LogWarning(
-                    "SaveMapExplorationStatus: partial must have a valid map with MapName."
+                TurnrootLogger.Log(
+                    "SaveMapExplorationStatus: partial must have a valid map with MapName",
+                    TurnrootLogger.LogLevel.Warning
                 );
-#endif
                 return;
             }
 
             if (_ltm == null)
             {
-#if UNITY_EDITOR
-                Debug.LogWarning(
-                    "SaveMapExplorationStatus: No LongTermMemory component available."
+                TurnrootLogger.Log(
+                    "SaveMapExplorationStatus: No LongTermMemory component available",
+                    TurnrootLogger.LogLevel.Warning
                 );
-#endif
                 return;
             }
 
             var encode = GamewideContextBrainHelpers.EncodeInstanceToString(this, partial);
             if (!encode.Success)
             {
-                Debug.LogError(
-                    $"GamewideContextBrain: Failed to encode exploration partial for map {partial.map.MapName}: {encode.Error}"
+                TurnrootLogger.Log(
+                    $"Failed to encode exploration partial for map {partial.map.MapName}: {encode.Error}",
+                    TurnrootLogger.LogLevel.Error
                 );
                 return;
             }
@@ -523,9 +405,8 @@ namespace Turnroot.Gameplay.Brain
 
             MapExplorationStatuses ??= new List<GamewideContextBrainHelpers.ExploredPartial>();
 
-            for (int i = 0; i < keys.Count; i++)
+            foreach (var key in keys)
             {
-                var key = keys[i];
                 var encoded = _ltm.Recall(key);
 
                 if (!string.IsNullOrEmpty(encoded))
@@ -535,6 +416,7 @@ namespace Turnroot.Gameplay.Brain
                             this,
                             encoded
                         );
+
                     if (decoded.Success)
                     {
                         MapExplorationStatuses.Add(decoded.Value);
@@ -542,36 +424,31 @@ namespace Turnroot.Gameplay.Brain
                     }
                 }
 
-                // Fallback: older key format - attempt to construct a minimal partial
+                // Fallback for older key format
                 var suffix =
                     key.Length > LtmKeys.ExploredPartial.Length + 1
                         ? key.Substring(LtmKeys.ExploredPartial.Length + 1)
                         : string.Empty;
 
-                var fallbackPartial = new GamewideContextBrainHelpers.ExploredPartial();
-                fallbackPartial.statuses =
-                    new Dictionary<
-                        GamewideContextBrainHelpers.ExploredQuadrant,
-                        GamewideContextBrainHelpers.ExploredState
-                    >();
-                fallbackPartial.map = string.IsNullOrEmpty(suffix)
-                    ? null
-                    : Resources.Load<MapGrid>(suffix);
+                var fallbackPartial = new GamewideContextBrainHelpers.ExploredPartial
+                {
+                    statuses =
+                        new Dictionary<
+                            GamewideContextBrainHelpers.ExploredQuadrant,
+                            GamewideContextBrainHelpers.ExploredState
+                        >(),
+                    map = string.IsNullOrEmpty(suffix) ? null : Resources.Load<MapGrid>(suffix),
+                };
+
                 MapExplorationStatuses.Add(fallbackPartial);
             }
         }
 
         private string BuildExplorationPartialKey(string mapId) =>
             $"{LtmKeys.ExploredPartial}.{mapId}";
-
         #endregion
     }
 
-    #region Data Transfer Objects
-
-    /// <summary>
-    /// Serializable DTO for player roster saves.
-    /// </summary>
     [System.Serializable]
     public class PlayerRosterSaveData
     {
@@ -579,6 +456,4 @@ namespace Turnroot.Gameplay.Brain
         public Characters.Roster.UnitPlacement[] Placements;
         public CharacterInstance[] CharacterInstances;
     }
-
-    #endregion
 }

@@ -14,7 +14,6 @@ namespace Turnroot.Utilities.AbstractScripts
         public UnityEvent onSegmentReached;
     }
 
-    [RequireComponent(typeof(LoadingController))]
     public class DynamicSceneFlow : MonoBehaviour
     {
         public List<FlowSegment> segments = new();
@@ -23,6 +22,12 @@ namespace Turnroot.Utilities.AbstractScripts
 
         [HideInInspector]
         public Brain brain;
+
+        [HideInInspector]
+        public LoadingController loadingController;
+
+        public UnityEvent<int> OnLoadedAmountChanged = new();
+        public event Action<int> OnLoadedAmountChangedAction;
 
         private int Index
         {
@@ -37,33 +42,62 @@ namespace Turnroot.Utilities.AbstractScripts
 
         private void Start()
         {
-            _ = StartCoroutine(RunNextFrame(StartScene));
+            loadingController = brain?.GetComponent<LoadingController>();
             SubscribeToBrainEvents();
+            SubscribeToLoadingController();
+            _ = StartCoroutine(RunNextFrame(StartScene));
         }
 
-        private void OnDestroy() => UnsubscribeFromBrainEvents();
+        private void OnDestroy()
+        {
+            UnsubscribeFromBrainEvents();
+            UnsubscribeFromLoadingController();
+        }
 
+        #region Event Subscriptions
         private void SubscribeToBrainEvents()
         {
-            if (brain != null)
-            {
-                brain.OnStateChanged += HandleStateChanged;
-            }
+            brain.OnStateChanged += HandleStateChanged;
         }
 
         private void UnsubscribeFromBrainEvents()
         {
-            if (brain != null)
+            brain.OnStateChanged -= HandleStateChanged;
+        }
+
+        private void SubscribeToLoadingController()
+        {
+            if (loadingController != null)
             {
-                brain.OnStateChanged -= HandleStateChanged;
+                loadingController.OnProgressChanged += HandleLoadingProgressChanged;
             }
+        }
+
+        private void UnsubscribeFromLoadingController()
+        {
+            if (loadingController != null)
+            {
+                loadingController.OnProgressChanged -= HandleLoadingProgressChanged;
+            }
+        }
+
+        private void HandleLoadingProgressChanged(float percentage)
+        {
+            int percentInt = Mathf.RoundToInt(percentage * 100f);
+            ReportLoadingProgress(percentInt);
+        }
+        #endregion
+
+        public void ReportLoadingProgress(int percentage)
+        {
+            OnLoadedAmountChanged?.Invoke(percentage);
+            OnLoadedAmountChangedAction?.Invoke(percentage);
         }
 
         private void StartScene()
         {
             Index = 0;
 
-            // Set the Brain state to match the first segment
             if (CurrentSegment != null && !string.IsNullOrEmpty(CurrentSegment.stateId))
             {
                 SetBrainStateFromSegment(CurrentSegment.stateId);
@@ -82,35 +116,20 @@ namespace Turnroot.Utilities.AbstractScripts
                 var parts = stateId.Split('.');
                 if (parts.Length == 2)
                 {
-                    string parentStateName = parts[0];
-                    string childStateName = parts[1];
-
-                    // Directly activate the child state, which will automatically set the parent
-                    brain.stateBrain.ActivateChildStateByFullPath(parentStateName, childStateName);
-
-                    TurnrootLogger.Log(
-                        $"DynamicSceneFlow: Activated hierarchical state '{stateId}'"
-                    );
-
+                    brain.stateBrain.ActivateChildStateByFullPath(parts[0], parts[1]);
                     return;
                 }
             }
 
-            // Otherwise it's a top-level state
             brain.stateBrain.ActivateHighLevelState(stateId);
-
-            TurnrootLogger.Log($"DynamicSceneFlow: Activated top-level state '{stateId}'");
         }
 
         private void HandleStateChanged(BrainState newState)
         {
-            if (newState == null)
+            if (newState != null)
             {
-                return;
+                ActivateSegmentByState(newState);
             }
-
-            // Find and activate the segment that matches the new brain state
-            ActivateSegmentByState(newState);
         }
 
         public void ActivateSegmentByState(BrainState state)
@@ -120,25 +139,17 @@ namespace Turnroot.Utilities.AbstractScripts
                 return;
             }
 
-            // Build the full state path (e.g., "Combat.PreBattle" for hierarchical states)
-            string fullStatePath = GetFullStatePath(state);
-
+            string fullStatePath = state.GetFullPath() ?? "";
             int foundIndex = segments.FindIndex(s => s.stateId == fullStatePath);
+
             if (foundIndex != -1)
             {
                 Index = foundIndex;
             }
-            else
-            {
-                TurnrootLogger.Log(
-                    $"DynamicSceneFlow: No segment found for state '{fullStatePath}'.",
-                    TurnrootLogger.LogLevel.Warning
-                );
-            }
         }
 
         public void HandlePreBattleTransitionToBattleCompleted() =>
-            brain.stateBrain.HandlePreBattleTransitionToBattleCompleted();
+            brain?.stateBrain?.HandlePreBattleTransitionToBattleCompleted();
 
         public OperationResult Progress()
         {
@@ -155,17 +166,12 @@ namespace Turnroot.Utilities.AbstractScripts
             return OperationResult.Failure("No more segments to progress to.");
         }
 
-        private string GetFullStatePath(BrainState state) => state?.GetFullPath() ?? "";
-
         private void OnSegmentReached(int segmentIndex)
         {
-            if (segmentIndex >= segments.Count)
+            if (segmentIndex < segments.Count)
             {
-                return;
+                CurrentSegment?.onSegmentReached?.Invoke();
             }
-
-            var segment = CurrentSegment;
-            segment?.onSegmentReached?.Invoke();
         }
 
         private IEnumerator RunNextFrame(Action action)

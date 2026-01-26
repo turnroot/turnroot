@@ -84,10 +84,6 @@ namespace Turnroot.Gameplay.Brain
 
         private OperationResult HandleBattleStarted()
         {
-            TurnrootLogger.Log(
-                "UnitAppearanceBrain: Handling battle started - spawning unit models"
-            );
-
             ClearExistingModels();
 
             var roster =
@@ -99,9 +95,6 @@ namespace Turnroot.Gameplay.Brain
             }
 
             var placements = roster.GetPlacements();
-            TurnrootLogger.Log(
-                $"UnitAppearanceBrain: PlayerTeamRoster has {placements?.Count() ?? 0} placements."
-            );
 
             foreach (var placement in placements)
             {
@@ -109,14 +102,12 @@ namespace Turnroot.Gameplay.Brain
                 if (instance == null)
                 {
                     TurnrootLogger.Log(
-                        $"UnitAppearanceBrain: No instance for template {placement.CharacterData?.DisplayName}"
+                        $"UnitAppearanceBrain: No instance for template {placement.CharacterData?.DisplayName}",
+                        TurnrootLogger.LogLevel.Warning
                     );
                     continue;
                 }
 
-                TurnrootLogger.Log(
-                    $"Spawning model for {instance.CharacterTemplate.DisplayName} at {placement.SpawnPosition}"
-                );
                 SpawnUnitModelOnGrid(
                     placement.SpawnPosition,
                     instance,

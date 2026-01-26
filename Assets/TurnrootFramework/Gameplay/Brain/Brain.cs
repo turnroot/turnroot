@@ -55,6 +55,7 @@ namespace Turnroot.Gameplay.Brain
     [RequireComponent(typeof(CameraBrain))]
     [RequireComponent(typeof(CursorBrain))]
     [RequireComponent(typeof(UnitAppearanceBrain))]
+    [RequireComponent(typeof(LoadingController))]
     public partial class Brain : MonoBehaviour
     {
         // Core components
@@ -239,6 +240,17 @@ namespace Turnroot.Gameplay.Brain
 
         public void PublishPreBattleMapReady(MapGrid mapGrid) =>
             OnPreBattleMapReady?.Invoke(mapGrid);
+
+        // Event: valid tiles computed for a unit (move tiles, attack tiles)
+        public event Action<
+            System.Collections.Generic.Dictionary<MapGridPoint, float>,
+            System.Collections.Generic.Dictionary<MapGridPoint, float>
+        > OnValidTilesComputed;
+
+        public void PublishValidTilesComputed(
+            System.Collections.Generic.Dictionary<MapGridPoint, float> moveTiles,
+            System.Collections.Generic.Dictionary<MapGridPoint, float> attackTiles
+        ) => OnValidTilesComputed?.Invoke(moveTiles, attackTiles);
 
         public void PublishPreBattleSpawnPositionSelected(
             Vector2Int position,
@@ -655,8 +667,30 @@ namespace Turnroot.Gameplay.Brain
         public event Action<CharacterInstance, CharacterInstance> OnItemStolen;
         public event Action<CharacterInstance, BattleEmotion> OnUnitEmotionChanged;
 
-        public void PublishPlayerControlledUnitActivated(CharacterInstance unit) =>
-            OnPlayerControlledUnitActivated?.Invoke(unit);
+        public void PublishPlayerControlledUnitActivated(CharacterInstance unit)
+        {
+            var handlers = OnPlayerControlledUnitActivated;
+            if (handlers == null)
+            {
+                return;
+            }
+
+            foreach (var handler in handlers.GetInvocationList())
+            {
+                try
+                {
+                    ((Action<CharacterInstance>)handler).Invoke(unit);
+                }
+                catch (System.Exception ex)
+                {
+                    TurnrootLogger.Log(
+                        $"PublishPlayerControlledUnitActivated: handler {handler.Method.Name} threw: {ex}",
+                        TurnrootLogger.LogLevel.Error
+                    );
+                    throw;
+                }
+            }
+        }
 
         public void PublishAllyDamaged(CharacterInstance unit, int damage) =>
             OnAllyDamaged?.Invoke(unit, damage);

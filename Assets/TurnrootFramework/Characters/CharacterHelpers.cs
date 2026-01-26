@@ -24,7 +24,18 @@ namespace Turnroot.Characters
 
             foreach (var s in src)
             {
-                list.Add(new BoundedCharacterStat(s.Max, s.Current, s.Min, s.StatType));
+                if (s != null)
+                {
+                    // Use copy constructor to preserve exact internal state
+                    list.Add(new BoundedCharacterStat(s));
+                }
+                else
+                {
+                    TurnrootLogger.Log(
+                        "CharacterHelpers.CloneBoundedStats: encountered null stat in source list",
+                        TurnrootLogger.LogLevel.Warning
+                    );
+                }
             }
 
             return list;
@@ -40,7 +51,18 @@ namespace Turnroot.Characters
             // Note: new CharacterStat(stat) uses the same constructor pattern used by the template
             foreach (var s in src)
             {
-                list.Add(new CharacterStat(s.Current, s.StatType));
+                if (s != null)
+                {
+                    // Use copy constructor to preserve exact internal state (_current, _bonus, _statType)
+                    list.Add(new CharacterStat(s));
+                }
+                else
+                {
+                    TurnrootLogger.Log(
+                        "CharacterHelpers.CloneUnboundedStats: encountered null stat in source list",
+                        TurnrootLogger.LogLevel.Warning
+                    );
+                }
             }
 
             return list;

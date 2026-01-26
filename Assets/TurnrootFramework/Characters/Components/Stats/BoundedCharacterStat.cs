@@ -19,7 +19,12 @@ namespace Turnroot.Characters.Stats
 
         public BoundedCharacterStat()
         {
+            // Explicit sensible defaults
+            _statType = BoundedStatType.Health;
+            _max = 100f;
+            _min = 0f;
             _current = 100f;
+            _bonus = 0f;
         }
 
         // Copy constructor - preserves all fields
@@ -27,6 +32,12 @@ namespace Turnroot.Characters.Stats
         {
             if (other == null)
             {
+                // Initialize to sensible defaults if other is null
+                _statType = BoundedStatType.Health;
+                _max = 100f;
+                _min = 0f;
+                _current = 100f;
+                _bonus = 0f;
                 return;
             }
             _statType = other._statType;

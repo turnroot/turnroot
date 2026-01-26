@@ -11,27 +11,6 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
     {
         #region Pathfinding Helpers
 
-        // Track the map state version to invalidate caches when the map mutates (terrain/feature/occupancy changes)
-        private int _lastSeenMapVersion = -1;
-
-        // Pathfinding cache keyed by turn and parameter key to avoid recalculating
-        private int _lastCachedTurnNumber = -1;
-        private readonly Dictionary<string, Dictionary<MapGridPoint, float>> _reachabilityCache =
-            new();
-
-        private static string BuildPathCacheKey(PathfindingParameters p) =>
-            // Include start, movement budget and flags relevant to reachability
-            $"{p.Start.Col}_{p.Start.Row}_mb{p.MovementBudget}_w{p.IsWalking}_f{p.IsFlying}_r{p.IncludeRange}_max{p.MaxRange}";
-
-        /// <summary>
-        /// Gets references to the reusable tile dictionaries for callers that need them.
-        /// WARNING: These dictionaries are reused between calls. Copy values if you need to persist them.
-        /// </summary>
-        public (
-            Dictionary<MapGridPoint, float> MoveTiles,
-            Dictionary<MapGridPoint, float> AttackTiles
-        ) GetReusableTileDictionaries() => (_reusableMoveTiles, _reusableAttackTiles);
-
         /// <summary>
         /// Clears internal reusable tile dictionaries to avoid stale data when the active unit changes or is removed.
         /// </summary>
@@ -42,15 +21,17 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         }
 
         /// <summary>
-        /// Invalidate all AI helper caches (move/attack tiles, reachability cache and version trackers).
+        /// Invalidate all AI helper caches (move/attack tiles).
         /// Call this when units spawn/defeat or terrain changes to avoid stale pathfinding data.
         /// </summary>
         public void InvalidateAllCaches()
         {
             ClearReusableTileDictionaries();
-            _reachabilityCache.Clear();
-            _lastSeenMapVersion = -1;
-            _lastCachedTurnNumber = -1;
+            try
+            {
+                _context?.InvalidateAllPathfindingParameters();
+            }
+            catch { }
         }
 
         /// <summary>
@@ -62,13 +43,6 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             bool includeHealRange = false
         )
         {
-            // If map changed, clear reusable caches to ensure up-to-date tiles
-            if (_context?.mapGrid != null && _context.mapGrid.StateVersion != _lastSeenMapVersion)
-            {
-                ClearReusableTileDictionaries();
-                _lastSeenMapVersion = _context.mapGrid.StateVersion;
-            }
-
             result.Clear();
 
             var validation = ValidationService.Instance.ValidateCharacter(
@@ -95,56 +69,47 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             }
 
             // Apply movement bonuses
-            var classData = _context.Unit.UnitInstance.CurrentClass.ClassData;
-            var movementBonusMod = classData.Stats.UnboundedStatBonuses?.Find(b =>
-                b.unboundedStatType == Characters.Stats.UnboundedStatType.Movement
-            );
-            if (movementBonusMod.HasValue)
+            try
             {
-                parameters.MovementBudget += (int)movementBonusMod.Value.value;
-            }
-
-            // Turn-level caching: clear if turn changed
-            int currentTurn = _context?.Brain?.CurrentTurnNumber ?? -1;
-            if (currentTurn != _lastCachedTurnNumber)
-            {
-                _reachabilityCache.Clear();
-                _lastCachedTurnNumber = currentTurn;
-            }
-
-            var cacheKey = BuildPathCacheKey(parameters);
-            if (_reachabilityCache.TryGetValue(cacheKey, out var cached))
-            {
-                foreach (var kvp in cached)
+                if (
+                    _context.Unit.UnitInstance.CurrentClass?.ClassData?.Stats.UnboundedStatBonuses
+                    != null
+                )
                 {
-                    result[kvp.Key] = kvp.Value;
+                    var classData = _context.Unit.UnitInstance.CurrentClass.ClassData;
+                    var movementBonusMod = classData.Stats.UnboundedStatBonuses?.Find(b =>
+                        b.unboundedStatType == Characters.Stats.UnboundedStatType.Movement
+                    );
+                    if (movementBonusMod.HasValue)
+                    {
+                        parameters.MovementBudget += (int)movementBonusMod.Value.value;
+                    }
                 }
             }
-            else
+            catch
             {
-                var points = _aStarModified.GetReachable(
-                    parameters.Graph,
-                    parameters.Start,
-                    parameters.MovementBudget,
-                    parameters.IsWalking,
-                    parameters.IsFlying,
-                    parameters.IsRiding,
-                    parameters.IsMagic,
-                    parameters.IsArmored,
-                    parameters.SameDirectionMultiplier,
-                    parameters.IncludeRange,
-                    parameters.MaxRange
-                );
+                TurnrootLogger.Log("Unit class data is null, skipping movement bonus");
+            }
 
-                if (points != null)
+            var points = _aStarModified.GetReachable(
+                parameters.Graph,
+                parameters.Start,
+                parameters.MovementBudget,
+                parameters.IsWalking,
+                parameters.IsFlying,
+                parameters.IsRiding,
+                parameters.IsMagic,
+                parameters.IsArmored,
+                parameters.SameDirectionMultiplier,
+                parameters.IncludeRange,
+                parameters.MaxRange
+            );
+
+            if (points != null)
+            {
+                foreach (var kvp in points)
                 {
-                    var copy = new Dictionary<MapGridPoint, float>(points);
-                    _reachabilityCache[cacheKey] = copy;
-
-                    foreach (var kvp in copy)
-                    {
-                        result[kvp.Key] = kvp.Value;
-                    }
+                    result[kvp.Key] = kvp.Value;
                 }
             }
 
@@ -159,18 +124,14 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             Dictionary<MapGridPoint, float> result
         )
         {
-            // If map changed, clear reusable caches to ensure up-to-date tiles
-            if (_context?.mapGrid != null && _context.mapGrid.StateVersion != _lastSeenMapVersion)
-            {
-                ClearReusableTileDictionaries();
-                _lastSeenMapVersion = _context.mapGrid.StateVersion;
-            }
-
             result.Clear();
 
             var validation = ValidationService.Instance.ValidateCharacter(
                 _context.Unit.UnitInstance,
                 "GetPossibleMoveTilesNonAlloc"
+            );
+            TurnrootLogger.Log(
+                $"BattleContextAIHelper: Validating unit {_context.Unit.UnitInstance.CharacterTemplate.DisplayName} for move tiles at {_context.Unit.UnitInstance.MapGridPosition} - Valid: {validation.IsValid}"
             );
             if (!validation.IsValid)
             {
@@ -183,50 +144,31 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 start
             );
 
+            TurnrootLogger.Log(
+                $"BattleContextAIHelper: Generated pathfinding parameters for unit {_context.Unit.UnitInstance.CharacterTemplate.DisplayName} - Start: {parameters.Start}, MovementBudget: {parameters.MovementBudget}, IsWalking: {parameters.IsWalking}, IsFlying: {parameters.IsFlying}"
+            );
+
             if (parameters == null || !parameters.IsValid())
             {
                 return false;
             }
 
-            // Turn-level caching: clear if turn changed
-            int currentTurn = _context?.Brain?.CurrentTurnNumber ?? -1;
-            if (currentTurn != _lastCachedTurnNumber)
-            {
-                _reachabilityCache.Clear();
-                _lastCachedTurnNumber = currentTurn;
-            }
+            var points = _aStarModified.GetReachable(
+                parameters.Graph,
+                parameters.Start,
+                parameters.MovementBudget,
+                parameters.IsWalking,
+                parameters.IsFlying,
+                parameters.IsRiding,
+                parameters.IsMagic,
+                parameters.IsArmored
+            );
 
-            var cacheKey =
-                $"{parameters.Start.Col}_{parameters.Start.Row}_mb{parameters.MovementBudget}_w{parameters.IsWalking}_f{parameters.IsFlying}_rfalse_max0";
-            if (_reachabilityCache.TryGetValue(cacheKey, out var cached))
+            if (points != null)
             {
-                foreach (var kvp in cached)
+                foreach (var kvp in points)
                 {
                     result[kvp.Key] = kvp.Value;
-                }
-            }
-            else
-            {
-                var points = _aStarModified.GetReachable(
-                    parameters.Graph,
-                    parameters.Start,
-                    parameters.MovementBudget,
-                    parameters.IsWalking,
-                    parameters.IsFlying,
-                    parameters.IsRiding,
-                    parameters.IsMagic,
-                    parameters.IsArmored
-                );
-
-                if (points != null)
-                {
-                    var copy = new Dictionary<MapGridPoint, float>(points);
-                    _reachabilityCache[cacheKey] = copy;
-
-                    foreach (var kvp in copy)
-                    {
-                        result[kvp.Key] = kvp.Value;
-                    }
                 }
             }
 
@@ -242,31 +184,81 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             Dictionary<MapGridPoint, float> attackTilesResult
         )
         {
-            // If map changed, clear reusable caches to ensure up-to-date tiles
-            if (_context?.mapGrid != null && _context.mapGrid.StateVersion != _lastSeenMapVersion)
-            {
-                ClearReusableTileDictionaries();
-                _lastSeenMapVersion = _context.mapGrid.StateVersion;
-            }
+            // Ensure reusable dictionaries are clear before computing
+            ClearReusableTileDictionaries();
+
+            TurnrootLogger.Log(
+                $"BattleContextAIHelper: Computing AI tiles for unit {_context.Unit.UnitInstance.CharacterTemplate.DisplayName} at {start} on map grid version {_context.mapGrid.MapName}"
+            );
 
             attackTilesResult.Clear();
 
-            if (!GetPossibleMoveTilesNonAlloc(start, moveTilesResult))
+            // Validate character and compute parameters once to avoid creating parameters multiple times
+            var validation = ValidationService.Instance.ValidateCharacter(
+                _context.Unit.UnitInstance,
+                "GetTilesForAINonAlloc"
+            );
+            if (!validation.IsValid)
             {
                 return false;
             }
 
-            using var allTilesPooled = PooledDictionary<MapGridPoint, float>.Get();
-            var allTiles = allTilesPooled.Dictionary;
-
-            if (!GetPossibleTilesIncludingRangeNonAlloc(start, allTiles))
+            var parametersWithRange = PathfindingParameters.FromCharacterWithRange(
+                _context.Unit.UnitInstance,
+                _context.mapGrid,
+                start
+            );
+            if (parametersWithRange == null || !parametersWithRange.IsValid())
             {
                 return false;
             }
 
-            foreach (var tile in allTiles)
+            // Movement-only parameters are a clone with IncludeRange=false
+            var parametersMove = parametersWithRange.Clone();
+            parametersMove.IncludeRange = false;
+            parametersMove.MaxRange = 0;
+
+            var movePoints = _aStarModified.GetReachable(
+                parametersMove.Graph,
+                parametersMove.Start,
+                parametersMove.MovementBudget,
+                parametersMove.IsWalking,
+                parametersMove.IsFlying,
+                parametersMove.IsRiding,
+                parametersMove.IsMagic,
+                parametersMove.IsArmored
+            );
+
+            if (movePoints != null)
             {
-                if (!moveTilesResult.TryGetValue(tile.Key, out _))
+                foreach (var kvp in movePoints)
+                {
+                    moveTilesResult[kvp.Key] = kvp.Value;
+                }
+            }
+
+            var allPoints = _aStarModified.GetReachable(
+                parametersWithRange.Graph,
+                parametersWithRange.Start,
+                parametersWithRange.MovementBudget,
+                parametersWithRange.IsWalking,
+                parametersWithRange.IsFlying,
+                parametersWithRange.IsRiding,
+                parametersWithRange.IsMagic,
+                parametersWithRange.IsArmored,
+                parametersWithRange.SameDirectionMultiplier,
+                parametersWithRange.IncludeRange,
+                parametersWithRange.MaxRange
+            );
+
+            if (allPoints == null)
+            {
+                return true; // movement already filled
+            }
+
+            foreach (var tile in allPoints)
+            {
+                if (!moveTilesResult.ContainsKey(tile.Key))
                 {
                     attackTilesResult[tile.Key] = tile.Value;
                 }
@@ -282,12 +274,8 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             Dictionary<MapGridPoint, float> healTilesResult
         )
         {
-            // If map changed, clear reusable caches to ensure up-to-date tiles
-            if (_context?.mapGrid != null && _context.mapGrid.StateVersion != _lastSeenMapVersion)
-            {
-                ClearReusableTileDictionaries();
-                _lastSeenMapVersion = _context.mapGrid.StateVersion;
-            }
+            // Ensure reusable dictionaries are clear before computing
+            ClearReusableTileDictionaries();
 
             healTilesResult.Clear();
 

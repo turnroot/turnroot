@@ -48,6 +48,86 @@ namespace Turnroot.Characters
         public List<DefaultBoundedStat> DefaultBoundedStats => _defaultBoundedStats;
         public List<DefaultUnboundedStat> DefaultUnboundedStats => _defaultUnboundedStats;
 
+#if UNITY_EDITOR
+        private void OnValidate() => AutoPopulateMissingStats();
+
+        private void AutoPopulateMissingStats()
+        {
+            bool changed = false;
+
+            // Check for missing bounded stats
+            var existingBounded = new HashSet<BoundedStatType>(
+                _defaultBoundedStats.ConvertAll(s => s.StatType)
+            );
+            foreach (BoundedStatType type in System.Enum.GetValues(typeof(BoundedStatType)))
+            {
+                if (!existingBounded.Contains(type))
+                {
+                    var (max, current, min) = GetDefaultValuesForBoundedStat(type);
+                    _defaultBoundedStats.Add(
+                        new DefaultBoundedStat
+                        {
+                            StatType = type,
+                            Max = max,
+                            Current = current,
+                            Min = min,
+                        }
+                    );
+                    changed = true;
+                }
+            }
+
+            // Check for missing unbounded stats
+            var existingUnbounded = new HashSet<UnboundedStatType>(
+                _defaultUnboundedStats.ConvertAll(s => s.StatType)
+            );
+            foreach (UnboundedStatType type in System.Enum.GetValues(typeof(UnboundedStatType)))
+            {
+                if (!existingUnbounded.Contains(type))
+                {
+                    _defaultUnboundedStats.Add(
+                        new DefaultUnboundedStat
+                        {
+                            StatType = type,
+                            Current = GetDefaultValueForStat(type),
+                        }
+                    );
+                    changed = true;
+                }
+            }
+
+            if (changed)
+            {
+                UnityEditor.EditorUtility.SetDirty(this);
+            }
+        }
+
+        private static (float max, float current, float min) GetDefaultValuesForBoundedStat(
+            BoundedStatType statType
+        )
+        {
+            return statType switch
+            {
+                BoundedStatType.Health => (100f, 100f, 0f), // Full health
+                BoundedStatType.Level => (99f, 1f, 1f), // Start at level 1
+                BoundedStatType.LevelExperience => (100f, 0f, 0f), // Experience starts empty
+                BoundedStatType.ClassExperience => (100f, 0f, 0f), // Class experience starts empty
+                _ => (100f, 100f, 0f), // Unknown stats default to full (like health)
+            };
+        }
+
+        private static float GetDefaultValueForStat(UnboundedStatType statType)
+        {
+            return statType switch
+            {
+                UnboundedStatType.Luck => 5f,
+                UnboundedStatType.CriticalAvoidance => 0f,
+                UnboundedStatType.Authority => 5f,
+                _ => 10f,
+            };
+        }
+#endif
+
         /// <summary>
         /// Creates a list of BoundedCharacterStat instances from the default configuration.
         /// </summary>

@@ -522,7 +522,8 @@ namespace Turnroot.Gameplay.Maps
         /// <summary>
         /// Editor API: set cached color for a specific grid cell. Used by editor tools to keep gizmo colors in sync.
         /// </summary>
-        public void SetEditorPointColor(Vector2Int cell, Color color) => _gridPointColorCache[cell] = color;
+        public void SetEditorPointColor(Vector2Int cell, Color color) =>
+            _gridPointColorCache[cell] = color;
 
         /// <summary>
         /// Rebuilds the entire editor color cache from current grid points.
@@ -555,6 +556,88 @@ namespace Turnroot.Gameplay.Maps
 
         public int StateVersion { get; private set; }
         public event System.Action OnStateVersionChanged;
+
+        // Movement cost caches keyed by movement mode key (e.g. "WFRMA"). Each cache stores the map StateVersion it was built for.
+        private readonly System.Collections.Generic.Dictionary<
+            string,
+            (int MapStateVersion, System.Collections.Generic.Dictionary<MapGridPoint, float> Costs)
+        > _movementCostCaches = new System.Collections.Generic.Dictionary<
+            string,
+            (int, System.Collections.Generic.Dictionary<MapGridPoint, float>)
+        >();
+
+        public static string MakeMovementModeKey(
+            bool isWalking,
+            bool isFlying,
+            bool isRiding,
+            bool isMagic,
+            bool isArmored
+        )
+        {
+            // Simple compact key
+            return (isWalking ? "W" : "w")
+                + (isFlying ? "F" : "f")
+                + (isRiding ? "R" : "r")
+                + (isMagic ? "M" : "m")
+                + (isArmored ? "A" : "a");
+        }
+
+        public bool TryGetMovementCostCache(
+            string key,
+            out System.Collections.Generic.Dictionary<MapGridPoint, float> cache
+        )
+        {
+            cache = null;
+            if (
+                _movementCostCaches.TryGetValue(key, out var entry)
+                && entry.MapStateVersion == StateVersion
+            )
+            {
+                cache = entry.Costs;
+                return true;
+            }
+            return false;
+        }
+
+        public OperationResult BuildMovementCostCache(
+            string key,
+            bool isWalking,
+            bool isFlying,
+            bool isRiding,
+            bool isMagic,
+            bool isArmored
+        )
+        {
+            try
+            {
+                EnsureCachedGridPoints();
+                var costs = new System.Collections.Generic.Dictionary<MapGridPoint, float>(
+                    _cachedGridPoints.Count
+                );
+                foreach (var mgp in _cachedGridPoints.Values)
+                {
+                    if (mgp == null)
+                    {
+                        continue;
+                    }
+
+                    float c = mgp.GetTerrainTypeCost(
+                        isWalking,
+                        isFlying,
+                        isRiding,
+                        isMagic,
+                        isArmored
+                    );
+                    costs[mgp] = c;
+                }
+                _movementCostCaches[key] = (StateVersion, costs);
+                return OperationResult.Successful();
+            }
+            catch (System.Exception ex)
+            {
+                return OperationResult.Failure($"BuildMovementCostCache failed: {ex.Message}");
+            }
+        }
 
         public void IncrementStateVersion()
         {

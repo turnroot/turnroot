@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Turnroot.Characters;
 using Turnroot.Characters.CharacterClass;
@@ -13,18 +14,17 @@ namespace Turnroot.Gameplay.Brain
     /// Handles battle statistics, mastery tracking, and character state management.
     /// </summary>
     [RequireComponent(typeof(LongTermMemory))]
+    [RequireComponent(typeof(BattleBrain))]
+    [RequireComponent(typeof(GamewideContextBrain))]
     public partial class CharactersBrain : BrainComponent
     {
         #region Dependencies
-
         private GamewideContextBrain _gamewideContextBrain;
         private BattleBrain _battleBrain;
         private LongTermMemory _ltm;
-
         #endregion
 
         #region Initialization
-
         public void Initialize(GamewideContextBrain gamewideContextBrain, BattleBrain battleBrain)
         {
             _gamewideContextBrain = gamewideContextBrain;
@@ -34,18 +34,28 @@ namespace Turnroot.Gameplay.Brain
         protected override void Awake()
         {
             base.Awake();
-            _gamewideContextBrain ??= GetComponent<GamewideContextBrain>();
-            _battleBrain ??= GetComponent<BattleBrain>();
+            _gamewideContextBrain = GetComponent<GamewideContextBrain>();
+            _battleBrain = GetComponent<BattleBrain>();
+        }
+
+        private bool _migrationPerformed = false;
+
+        private void Start()
+        {
             _ltm = GetComponent<LongTermMemory>();
             LoadBattleOutcomeStatistics();
+
+            var keys = _ltm?.RecallKeysByPrefix("DefaultStat");
+            if (keys != null && keys.Count > 0)
+            {
+                MigrateDefaultStatKeysIfNeeded();
+            }
         }
 
         protected override EventPriority GetSubscriptionPriority() => EventPriority.Highest;
-
         #endregion
 
         #region Event Subscription
-
         protected override void SubscribeToBrainEvents()
         {
             _brain.OnBattleStarted += HandleStartBattle;
@@ -54,6 +64,7 @@ namespace Turnroot.Gameplay.Brain
             _brain.OnEnemyTurnStarted += HandleEnemyTurnStarted;
             _brain.OnThirdPartyTurnStarted += HandleThirdPartyTurnStarted;
             _brain.OnSavePlayerRosterRequested += SavePlayerRosterProgress;
+            _brain.OnLtmKeyCacheUpdated += HandleLtmKeyCacheUpdated;
         }
 
         protected override void UnsubscribeFromBrainEvents()
@@ -64,12 +75,11 @@ namespace Turnroot.Gameplay.Brain
             _brain.OnEnemyTurnStarted -= HandleEnemyTurnStarted;
             _brain.OnThirdPartyTurnStarted -= HandleThirdPartyTurnStarted;
             _brain.OnSavePlayerRosterRequested -= SavePlayerRosterProgress;
+            _brain.OnLtmKeyCacheUpdated -= HandleLtmKeyCacheUpdated;
         }
-
         #endregion
 
         #region Character Progression API
-
         public void RecordKill(CharacterInstance character)
         {
             if (!Validate(character))
@@ -136,11 +146,9 @@ namespace Turnroot.Gameplay.Brain
                 $"{character.CharacterTemplate?.DisplayName} gained {amount} {experienceTypeId} XP"
             );
         }
-
         #endregion
 
         #region Save/Load API
-
         public void SavePlayerRosterProgress()
         {
             if (_battleBrain?.PlayerTeamRoster == null)
@@ -148,31 +156,211 @@ namespace Turnroot.Gameplay.Brain
                 return;
             }
 
-            int savedCount = 0;
             foreach (var character in _battleBrain.PlayerTeamRoster.Instances)
             {
                 if (character?.CharacterTemplate?.IsUnique == true)
                 {
                     _battleBrain.SaveUniqueCharacterProgress(character);
-                    savedCount++;
                 }
             }
         }
+        #endregion
 
+        #region LTM Template Defaults API
+        [Serializable]
+        private class StatDto
+        {
+            public float max,
+                current,
+                min;
+        }
+
+        public bool TryGetTemplateBoundedDefault(
+            string templateFullName,
+            Turnroot.Characters.Stats.BoundedStatType type,
+            out (float max, float current, float min) values
+        )
+        {
+            values = default;
+            if (_ltm == null || string.IsNullOrEmpty(templateFullName))
+            {
+                return false;
+            }
+
+            var json = RecallWithFallback(
+                $"DefaultStat/Template/{templateFullName}/Bounded/{type}",
+                $"DefaultStat/Bounded/{type}"
+            );
+            if (string.IsNullOrEmpty(json))
+            {
+                return false;
+            }
+
+            var dto = JsonUtility.FromJson<StatDto>(json);
+            if (dto == null)
+            {
+                return false;
+            }
+
+            values = (dto.max, dto.current, dto.min);
+            return true;
+        }
+
+        public bool TryGetTemplateUnboundedDefault(
+            string templateFullName,
+            Turnroot.Characters.Stats.UnboundedStatType type,
+            out float value
+        )
+        {
+            value = 0f;
+            if (_ltm == null || string.IsNullOrEmpty(templateFullName))
+            {
+                return false;
+            }
+
+            var data = RecallWithFallback(
+                $"DefaultStat/Template/{templateFullName}/Unbounded/{type}",
+                $"DefaultStat/Unbounded/{type}"
+            );
+            if (string.IsNullOrEmpty(data))
+            {
+                return false;
+            }
+
+            if (float.TryParse(data, out value))
+            {
+                return true;
+            }
+
+            var dto = JsonUtility.FromJson<StatDto>(data);
+            if (dto != null)
+            {
+                value = dto.current;
+                return true;
+            }
+
+            return false;
+        }
+
+        public void SaveTemplateBoundedDefault(
+            string templateFullName,
+            Turnroot.Characters.Stats.BoundedStatType type,
+            (float max, float current, float min) values
+        )
+        {
+            if (_ltm == null || string.IsNullOrEmpty(templateFullName))
+            {
+                return;
+            }
+
+            var dto = new StatDto
+            {
+                max = values.max,
+                current = values.current,
+                min = values.min,
+            };
+            _ltm.Remember(
+                $"DefaultStat/Template/{templateFullName}/Bounded/{type}",
+                JsonUtility.ToJson(dto)
+            );
+        }
+
+        public void SaveTemplateUnboundedDefault(
+            string templateFullName,
+            Turnroot.Characters.Stats.UnboundedStatType type,
+            float value
+        )
+        {
+            if (_ltm == null || string.IsNullOrEmpty(templateFullName))
+            {
+                return;
+            }
+
+            _ltm.Remember(
+                $"DefaultStat/Template/{templateFullName}/Unbounded/{type}",
+                value.ToString()
+            );
+        }
+
+        public List<string> GetDefaultStatKeys() =>
+            _ltm?.RecallKeysByPrefix("DefaultStat") ?? new List<string>();
+
+        private string RecallWithFallback(string primaryKey, string fallbackKey)
+        {
+            var result = _ltm?.Recall(primaryKey);
+            return !string.IsNullOrEmpty(result) ? result : _ltm?.Recall(fallbackKey);
+        }
+        #endregion
+
+        #region LTM Migration Helpers
+        private void HandleLtmKeyCacheUpdated(int version) => MigrateDefaultStatKeysIfNeeded();
+
+        private void MigrateDefaultStatKeysIfNeeded()
+        {
+            if (_ltm == null || _migrationPerformed)
+            {
+                return;
+            }
+
+            var keys = _ltm.RecallKeysByPrefix("DefaultStat");
+            if (keys == null || keys.Count == 0)
+            {
+                _migrationPerformed = true;
+                return;
+            }
+
+            var templates = Resources.FindObjectsOfTypeAll<CharacterData>();
+            var migrated = 0;
+
+            foreach (var key in keys)
+            {
+                var parts = key.Split('/');
+                if (parts.Length < 5 || parts[0] != "DefaultStat" || parts[1] != "Template")
+                {
+                    continue;
+                }
+
+                var oldId = parts[2];
+                foreach (var tmpl in templates)
+                {
+                    if (tmpl == null || tmpl.name != oldId || tmpl.FullName == oldId)
+                    {
+                        continue;
+                    }
+
+                    var newKey = $"DefaultStat/Template/{tmpl.FullName}/{parts[3]}/{parts[4]}";
+                    if (string.IsNullOrEmpty(_ltm.Recall(newKey)))
+                    {
+                        var val = _ltm.Recall(key);
+                        if (!string.IsNullOrEmpty(val))
+                        {
+                            _ltm.Remember(newKey, val);
+                            migrated++;
+                        }
+                    }
+                }
+            }
+
+            if (migrated > 0)
+            {
+                TurnrootLogger.Log(
+                    $"CharactersBrain: Migrated {migrated} DefaultStat keys to use FullName"
+                );
+            }
+
+            _migrationPerformed = true;
+        }
         #endregion
 
         #region Character Query API
-
         public List<CharacterInstance> GetAllActiveCharacters() =>
             _battleBrain?.GetAllActiveInstances() ?? new List<CharacterInstance>();
 
         public CharacterInstance FindCharacterByTemplate(CharacterData template) =>
             _battleBrain?.FindInstanceByTemplate(template);
-
         #endregion
 
         #region Validation Helpers
-
         private bool Validate(params object[] objects)
         {
             foreach (var obj in objects)
@@ -184,7 +372,6 @@ namespace Turnroot.Gameplay.Brain
             }
             return true;
         }
-
         #endregion
     }
 }
