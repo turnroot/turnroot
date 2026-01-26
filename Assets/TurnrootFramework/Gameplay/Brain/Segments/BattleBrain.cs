@@ -112,14 +112,9 @@ namespace Turnroot.Gameplay.Brain
 
             BattleObject.Context.InvalidateUnitPositionCache();
 
-            TurnrootLogger.Log($"BattleBrain: Connected to BattleGameObject");
-
             InitializeBattleRosters();
 
-            // Publish BattleGameObject; rosters and participants have already been initialized and populated by now.
-            TurnrootLogger.Log("BattleBrain: Publishing BattleObjectSet");
             _brain?.PublishBattleObjectSet(BattleObject);
-            TurnrootLogger.Log("BattleBrain: Published BattleObjectSet");
 
             _brain?.PublishBattleStarted();
 
@@ -159,9 +154,6 @@ namespace Turnroot.Gameplay.Brain
                 }
                 else
                 {
-                    TurnrootLogger.Log(
-                        "BattleBrain: Triggering BattlePrecomputeLoader to start precompute"
-                    );
                     precomputeLoader.ForceStartPrecomputeIfPossible();
                 }
             }
@@ -433,9 +425,7 @@ namespace Turnroot.Gameplay.Brain
                 mapGrid.RemoveOccupied(oldPoint);
                 mapGrid.SetOccupied(newPoint, unit);
                 unit.MapGridPosition = target;
-                // CRITICAL: Invalidate tile cache for this unit after movement
                 BattleObject.Context.InvalidateUnitTileCache(unit);
-                // publish both simple event and the advanced UnitMovedEvent for subscribers
                 _brain?.PublishCharacterMoveCompleted(unit, newPoint);
                 _brain?.PublishUnitMoved(unit, target);
                 _brain?.Publish(new Events.UnitMovedEvent(unit, from, target));

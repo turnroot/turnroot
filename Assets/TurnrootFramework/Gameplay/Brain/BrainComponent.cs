@@ -33,11 +33,6 @@ namespace Turnroot.Gameplay.Brain
                 );
                 return;
             }
-
-            TurnrootLogger.Log(
-                $"{GetType().Name} Awake - subscribing to brain events with priority {GetSubscriptionPriority()}."
-            );
-
             SubscribeToBrainEvents();
         }
 

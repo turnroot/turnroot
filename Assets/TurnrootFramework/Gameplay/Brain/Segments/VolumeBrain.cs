@@ -35,9 +35,6 @@ namespace Turnroot.Gameplay.Brain
                     var globalVolume = rootGameObject.GetComponentInChildren<Volume>(true);
                     if (globalVolume != null && globalVolume.profile != null)
                     {
-                        TurnrootLogger.Log(
-                            $"VolumeBrain: Found global volume in scene '{scene.name}' on root '{rootGameObject.name}' (profile: {globalVolume.profile.name})"
-                        );
                         ApplyGraphicsSettings(globalVolume, settings);
                         break;
                     }
@@ -71,11 +68,7 @@ namespace Turnroot.Gameplay.Brain
             }
 
             // Apply Brightness and Contrast via URP Color Adjustments (postExposure and contrast)
-            if (
-                profile.TryGet<UnityEngine.Rendering.Universal.ColorAdjustments>(
-                    out var colorAdjustments
-                )
-            )
+            if (profile.TryGet<ColorAdjustments>(out var colorAdjustments))
             {
                 // Map brightness to postExposure (-2..2) and contrast to contrast (-50..50)
                 var postExposure = Mathf.Clamp(settings.Brightness, -2f, 2f);

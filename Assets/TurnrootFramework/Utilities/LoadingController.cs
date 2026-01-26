@@ -1,4 +1,6 @@
+using System;
 using Turnroot.Utilities;
+using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain
 {
@@ -14,48 +16,46 @@ namespace Turnroot.Gameplay.Brain
         protected int LoadingPercentage =>
             TotalToLoad == 0 ? 100 : (int)((float)LoadedAmount / TotalToLoad * 100);
 
-        /// <summary>
-        /// Increments the loaded amount and notifies listeners. When complete, attempts to advance the scene flow.
-        /// </summary>
-        private Utilities.AbstractScripts.DynamicSceneFlow GetDynamicSceneFlow()
-        {
-            var flow = Brain?.GetComponentInChildren<Utilities.AbstractScripts.DynamicSceneFlow>(
-                true
-            );
-            if (flow != null)
-            {
-                TurnrootLogger.Log(
-                    "LoadingController.GetDynamicSceneFlow: using Brain child DynamicSceneFlow"
-                );
-                return flow;
-            }
+        public event Action<float> OnProgressChanged;
 
-            flow = FindFirstObjectByType<Utilities.AbstractScripts.DynamicSceneFlow>();
-            TurnrootLogger.Log(
-                $"LoadingController.GetDynamicSceneFlow: FindFirstObjectByType returned {(flow != null)}"
-            );
-            return flow;
+        private Utilities.AbstractScripts.DynamicSceneFlow GetDynamicSceneFlow() =>
+            Brain?.GetComponentInChildren<Utilities.AbstractScripts.DynamicSceneFlow>(true)
+            ?? FindFirstObjectByType<Utilities.AbstractScripts.DynamicSceneFlow>();
+
+        private void ReportProgress()
+        {
+            var flow = GetDynamicSceneFlow();
+            flow?.ReportLoadingProgress(LoadingPercentage);
+            OnProgressChanged?.Invoke(LoadingPercentage / 100f);
+
+            // Force canvas update to ensure visual feedback
+            Canvas.ForceUpdateCanvases();
         }
 
         public void IncrementLoadedAmount()
         {
             LoadedAmount++;
-            TurnrootLogger.Log($"LoadingController: Reporting progress {LoadingPercentage}%");
-            var flowProgress = GetDynamicSceneFlow();
-            flowProgress?.ReportLoadingProgress(LoadingPercentage);
+            ReportProgress();
+            CheckCompletion();
+        }
+
+        public void IncrementLoadedAmountBy(int amount)
+        {
+            if (amount <= 0)
+            {
+                return;
+            }
+
+            LoadedAmount += amount;
+            ReportProgress();
+            CheckCompletion();
+        }
+
+        private void CheckCompletion()
+        {
             if (TotalToLoad > 0 && LoadedAmount >= TotalToLoad)
             {
                 var flow = GetDynamicSceneFlow();
-                TurnrootLogger.Log(
-                    $"LoadingController: Completed loading (Loaded:{LoadedAmount}, Total:{TotalToLoad})"
-                );
-                if (flow == null)
-                {
-                    TurnrootLogger.Log(
-                        "LoadingController: No DynamicSceneFlow found to progress",
-                        TurnrootLogger.LogLevel.Warning
-                    );
-                }
                 flow?.Progress();
             }
         }
@@ -70,51 +70,21 @@ namespace Turnroot.Gameplay.Brain
             }
 
             TotalToLoad += amount;
-            GetDynamicSceneFlow()?.ReportLoadingProgress(LoadingPercentage);
-        }
-
-        public void IncrementLoadedAmountBy(int amount)
-        {
-            if (amount <= 0)
-            {
-                return;
-            }
-
-            LoadedAmount += amount;
-            TurnrootLogger.Log(
-                $"LoadingController: Reporting progress {LoadingPercentage}% (by {amount})"
-            );
-            var flowProgress = GetDynamicSceneFlow();
-            flowProgress?.ReportLoadingProgress(LoadingPercentage);
-            if (TotalToLoad > 0 && LoadedAmount >= TotalToLoad)
-            {
-                var flow = GetDynamicSceneFlow();
-                TurnrootLogger.Log(
-                    $"LoadingController: Completed loading (Loaded:{LoadedAmount}, Total:{TotalToLoad})"
-                );
-                if (flow == null)
-                {
-                    TurnrootLogger.Log(
-                        "LoadingController: No DynamicSceneFlow found to progress",
-                        TurnrootLogger.LogLevel.Warning
-                    );
-                }
-                flow?.Progress();
-            }
+            ReportProgress();
         }
 
         public void Initialize()
         {
             LoadedAmount = 0;
             TotalToLoad = 0;
-            GetDynamicSceneFlow()?.ReportLoadingProgress(LoadingPercentage);
+            ReportProgress();
         }
 
         public void Clear()
         {
             LoadedAmount = 0;
             TotalToLoad = 0;
-            GetDynamicSceneFlow()?.ReportLoadingProgress(LoadingPercentage);
+            ReportProgress();
         }
 
         protected override void SubscribeToBrainEvents() { }

@@ -238,10 +238,6 @@ namespace Turnroot.Gameplay.Brain
                 return OperationResult.Failure("No unit provided");
             }
 
-            TurnrootLogger.Log(
-                $"BattleInputControllerBrain: Getting valid tiles for unit {unit.CharacterTemplate.DisplayName} at {unit.MapGridPosition}"
-            );
-
             var context = _brain.battleBrain.BattleObject.Context;
             if (context == null)
             {
@@ -260,10 +256,6 @@ namespace Turnroot.Gameplay.Brain
                 );
                 return OperationResult.Failure("Failed to compute tiles");
             }
-
-            TurnrootLogger.Log(
-                $"BattleInputControllerBrain: Got {moveTiles.Count} move tiles for unit {unit.CharacterTemplate.DisplayName}"
-            );
 
             // Store references for UI purposes
             _validMoveTiles = moveTiles;

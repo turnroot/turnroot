@@ -59,10 +59,6 @@ namespace Turnroot.Gameplay.Maps
             var isMagic = classData.Identity.IsMagic;
 
             var movementStat = movementStatObj.CurrentInt;
-            TurnrootLogger.Log(
-                $"PathfindingParameters: Movement stat for character {character.CharacterTemplate.DisplayName} is {movementStat}"
-            );
-
             return new PathfindingParameters
             {
                 Graph = graph,

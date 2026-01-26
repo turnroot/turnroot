@@ -511,9 +511,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         /// </summary>
         public void InvalidateAllTileCaches()
         {
-            int count = _unitTilesCache.Count;
             _unitTilesCache.Clear();
-            TurnrootLogger.Log($"BattleContext: Cleared all tile caches ({count} units)");
         }
 
         public bool IsPlayerControlledUnit(CharacterInstance unit) =>

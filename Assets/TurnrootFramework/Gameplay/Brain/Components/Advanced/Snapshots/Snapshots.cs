@@ -180,8 +180,6 @@ namespace Turnroot.Gameplay.Brain.Snapshots
 
             Push(snapshot);
             OnSnapshotTaken?.Invoke(snapshot);
-
-            TurnrootLogger.Log($"[Snapshot] Captured turn {turnNumber}, ID: {snapshot.Id}");
             return snapshot;
         }
 
@@ -269,11 +267,6 @@ namespace Turnroot.Gameplay.Brain.Snapshots
                             // as occupying a valid grid cell. This avoids leaving the instance at its spawn coords after removal.
 
                             u.MapGridPosition = new Vector2Int(-9999, -9999);
-
-                            TurnrootLogger.Log(
-                                $"[Snapshot] Removed spawned unit {u.Id} and reset logical position",
-                                TurnrootLogger.LogLevel.Info
-                            );
                         }
                         catch (Exception ex)
                         {

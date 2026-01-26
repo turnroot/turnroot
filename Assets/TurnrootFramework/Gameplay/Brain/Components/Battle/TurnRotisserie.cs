@@ -272,22 +272,13 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             {
                 // Set the active unit
                 Context.Unit.UnitInstance = activeUnit;
-                TurnrootLogger.Log(
-                    $"TurnRotisserie: Active unit set to {activeUnit.CharacterTemplate.DisplayName} in context at position {activeUnit.MapGridPosition}"
-                );
 
                 // Update adjacency for the active unit
                 Context.Participants.AdjacentUnits = new Locations.Adjacency(activeUnit);
-                TurnrootLogger.Log(
-                    $"TurnRotisserie: Updated adjacency for active unit {activeUnit.CharacterTemplate.DisplayName}"
-                );
 
                 // Publish activation event if this is a player-controlled unit
                 if (_currentTurnOrder is TurnOrder.PlayerStart or TurnOrder.PlayerEnd)
                 {
-                    TurnrootLogger.Log(
-                        $"TurnRotisserie: Publishing player-controlled unit activated for {activeUnit.CharacterTemplate.DisplayName}"
-                    );
                     Brain?.PublishPlayerControlledUnitActivated(activeUnit);
                 }
 

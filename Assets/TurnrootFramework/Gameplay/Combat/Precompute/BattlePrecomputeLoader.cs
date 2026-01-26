@@ -21,7 +21,15 @@ namespace Turnroot.Gameplay.Combat.Precompute
         private bool _precomputeStarted = false;
         private bool _forceStartRetryScheduled = false;
 
+        // Control frame pacing for smooth loading bar progression
+        [SerializeField]
+        private float timeBetweenOperations = 0.15f;
+
         #region Initialization
+        /// <summary>
+        /// Initialize the loader with required dependencies. Call this from the owner
+        /// (for example, StateBrain) instead of relying on FindObjectOfType.
+        /// </summary>
         public OperationResult Initialize(
             Brain.Brain brain,
             FundamentalComponents.Battles.BattleContext context = null
@@ -47,10 +55,18 @@ namespace Turnroot.Gameplay.Combat.Precompute
                 return;
             }
 
-            var brain = UnityEngine.Object.FindFirstObjectByType<Brain.Brain>();
+            // Attempt auto-initialize using the scene Brain if available
+            var brain = FindFirstObjectByType<Brain.Brain>();
             if (brain != null)
             {
-                Initialize(brain);
+                var res = Initialize(brain);
+                if (!res.Success)
+                {
+                    TurnrootLogger.Log(
+                        $"BattlePrecomputeLoader: Auto-initialize failed: {res.ErrorMessage}",
+                        TurnrootLogger.LogLevel.Warning
+                    );
+                }
             }
         }
 
@@ -58,6 +74,10 @@ namespace Turnroot.Gameplay.Combat.Precompute
         #endregion
 
         #region Precompute Control
+        /// <summary>
+        /// Attempts to start precompute if battle context is ready.
+        /// If not ready, schedules a retry on the next frame.
+        /// </summary>
         public void ForceStartPrecomputeIfPossible()
         {
             if (_precomputeStarted)
@@ -94,6 +114,13 @@ namespace Turnroot.Gameplay.Combat.Precompute
             {
                 StartCoroutine(RunPrecomputeTasks());
             }
+            else
+            {
+                TurnrootLogger.Log(
+                    "BattlePrecomputeLoader: Retry failed, context still invalid",
+                    TurnrootLogger.LogLevel.Warning
+                );
+            }
         }
 
         public void ResetPrecomputeFlag() => _precomputeStarted = false;
@@ -114,6 +141,11 @@ namespace Turnroot.Gameplay.Combat.Precompute
 
             if (!IsContextValid(context))
             {
+                TurnrootLogger.Log(
+                    "BattlePrecomputeLoader: Invalid context, completing with minimal progress",
+                    TurnrootLogger.LogLevel.Warning
+                );
+
                 CompleteWithMinimalProgress();
                 yield break;
             }
@@ -128,8 +160,11 @@ namespace Turnroot.Gameplay.Combat.Precompute
             }
 
             InitializeLoadingProgress(taskCount);
-            PrecomputeMovementCaches(context.mapGrid);
 
+            // Precompute movement caches with delays between each
+            yield return PrecomputeMovementCaches(context.mapGrid);
+
+            // Process each unit with visible delays for smooth loading bar
             foreach (var unit in units)
             {
                 if (unit == null)
@@ -139,6 +174,8 @@ namespace Turnroot.Gameplay.Combat.Precompute
 
                 yield return ProcessUnit(unit, context, appearanceBrain);
             }
+
+            yield return new WaitForSeconds(timeBetweenOperations);
         }
 
         private IEnumerator ProcessUnit(
@@ -147,54 +184,99 @@ namespace Turnroot.Gameplay.Combat.Precompute
             UnitAppearanceBrain appearanceBrain
         )
         {
-            // Initialize AI
-            context.AIHelper?.InitializeAIControlledUnit(unit);
+            // 1) Initialize AI helper for unit
+            if (context.AIHelper != null)
+            {
+                var initResult = context.AIHelper.InitializeAIControlledUnit(unit);
+                if (!initResult.Success)
+                {
+                    TurnrootLogger.Log(
+                        $"BattlePrecomputeLoader: AI init failed for unit {unit.Id}: {initResult.ErrorMessage}",
+                        TurnrootLogger.LogLevel.Warning
+                    );
+                }
+            }
             IncrementProgress();
-            yield return null;
+            yield return new WaitForSeconds(timeBetweenOperations);
 
-            // Precompute pathfinding
-            context.PrecomputePathfindingParameters(unit);
+            // 2) Precompute pathfinding parameters
+            var paramsOk = context.PrecomputePathfindingParameters(unit);
+            if (!paramsOk)
+            {
+                TurnrootLogger.Log(
+                    $"BattlePrecomputeLoader: Pathfinding params failed for unit {unit.Id}",
+                    TurnrootLogger.LogLevel.Warning
+                );
+            }
             IncrementProgress();
-            yield return null;
+            yield return new WaitForSeconds(timeBetweenOperations);
 
-            // Spawn model
+            // 3) Spawn model (usually most expensive operation)
             if (appearanceBrain != null)
             {
-                appearanceBrain.PrecomputeSpawnModelAt(
+                var spawnResult = appearanceBrain.PrecomputeSpawnModelAt(
                     unit,
                     unit.MapGridPosition,
                     prebattle: false
                 );
+
+                if (!spawnResult.Success)
+                {
+                    TurnrootLogger.Log(
+                        $"BattlePrecomputeLoader: Model spawn failed for unit {unit.Id}: {spawnResult.ErrorMessage}",
+                        TurnrootLogger.LogLevel.Warning
+                    );
+                }
                 IncrementProgress();
-                yield return null;
+                yield return new WaitForSeconds(timeBetweenOperations);
             }
 
-            // Precompute tiles
-            context.TryGetValidTilesForUnit(unit, out _, out _, forceRecompute: true);
+            // 4) Precompute valid tiles (can be expensive for large maps)
+            var tilesOk = context.TryGetValidTilesForUnit(unit, out _, out _, forceRecompute: true);
+
+            if (!tilesOk)
+            {
+                TurnrootLogger.Log(
+                    $"BattlePrecomputeLoader: Tile computation failed for unit {unit.Id}",
+                    TurnrootLogger.LogLevel.Warning
+                );
+            }
             IncrementProgress();
-            yield return null;
+            yield return new WaitForSeconds(timeBetweenOperations);
         }
 
-        private void PrecomputeMovementCaches(MapGrid map)
+        private IEnumerator PrecomputeMovementCaches(MapGrid map)
         {
             if (map == null)
             {
-                return;
+                yield break;
             }
 
+            // Precompute movement-cost caches for common movement modes
             var modes = new (bool w, bool f, bool r, bool m, bool a)[]
             {
-                (true, false, false, false, false),
-                (false, true, false, false, false),
-                (false, false, true, false, false),
-                (false, false, false, true, false),
-                (false, false, false, false, true),
+                (true, false, false, false, false), // Walking/Infantry
+                (false, true, false, false, false), // Flying
+                (false, false, true, false, false), // Riding/Cavalry
+                (false, false, false, true, false), // Magic
+                (false, false, false, false, true), // Armored
             };
 
-            foreach (var mode in modes)
+            foreach (var (w, f, r, m, a) in modes)
             {
-                var key = MapGrid.MakeMovementModeKey(mode.w, mode.f, mode.r, mode.m, mode.a);
-                map.BuildMovementCostCache(key, mode.w, mode.f, mode.r, mode.m, mode.a);
+                var key = MapGrid.MakeMovementModeKey(w, f, r, m, a);
+                var res = map.BuildMovementCostCache(key, w, f, r, m, a);
+
+                if (!res.Success)
+                {
+                    TurnrootLogger.Log(
+                        $"BattlePrecomputeLoader: Failed to build movement cache for mode {key}: {res.ErrorMessage}",
+                        TurnrootLogger.LogLevel.Warning
+                    );
+                }
+
+                // Small delay between cache builds
+                yield return new WaitForSeconds(timeBetweenOperations * 0.5f);
             }
         }
         #endregion
@@ -222,7 +304,7 @@ namespace Turnroot.Gameplay.Combat.Precompute
             int tasksPerUnit = 3; // AI init + pathfinding + tiles
             if (appearanceBrain != null)
             {
-                tasksPerUnit++;
+                tasksPerUnit++; // + model spawn
             }
 
             return units.Count * tasksPerUnit;
@@ -239,10 +321,7 @@ namespace Turnroot.Gameplay.Combat.Precompute
             _loadingController.IncreaseLoadTotalBy(taskCount);
         }
 
-        private void IncrementProgress()
-        {
-            _loadingController?.IncrementLoadedAmountBy(1);
-        }
+        private void IncrementProgress() => _loadingController?.IncrementLoadedAmountBy(1);
 
         private void CompleteWithMinimalProgress()
         {

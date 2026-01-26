@@ -50,24 +50,17 @@ namespace Turnroot.Characters
                 }
 
                 // If LTM exists but DefaultStat keyset isn't present yet, defer persistence until the cache is populated
-                try
+
+                var existingDefaultKeys = ltm.RecallKeysByPrefix("DefaultStat");
+                if (
+                    (existingDefaultKeys == null || existingDefaultKeys.Count == 0)
+                    && !_deferredPersistRegistered
+                )
                 {
-                    var existingDefaultKeys = ltm.RecallKeysByPrefix("DefaultStat");
-                    if (
-                        (existingDefaultKeys == null || existingDefaultKeys.Count == 0)
-                        && !_deferredPersistRegistered
-                    )
-                    {
-                        // Subscribe once to the brain's key cache update event and retry when it's ready
-                        brain.OnLtmKeyCacheUpdated += OnBrainLtmKeyCacheUpdated;
-                        _deferredPersistRegistered = true;
-                        TurnrootLogger.Log(
-                            $"CharacterInstance.EnsurePersistedInLtm: Deferring persistence for {Id} until LTM key cache is populated."
-                        );
-                        return;
-                    }
+                    brain.OnLtmKeyCacheUpdated += OnBrainLtmKeyCacheUpdated;
+                    _deferredPersistRegistered = true;
+                    return;
                 }
-                catch { }
 
                 // Use instance-specific persistence for unique characters; otherwise rely on template-level defaults
                 string key = $"CharacterInstance/{Id}/Stats";

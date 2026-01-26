@@ -159,9 +159,14 @@ namespace Turnroot.Characters
             var classToApply = _characterTemplate.StartingClass ?? GetDefaultStartingClass();
             if (classToApply == null)
             {
-                return OperationResult.Failure(
-                    $"Character {Id} has no starting class and GameplayGeneralSettings.DefaultStartingClass is not set."
+                // Defer to deserialization-time handler to assign defaults if settings are not yet loaded.
+                // Previously this returned Failure and caused higher-level recall/deserialize paths to abort
+                // when GameSettings weren't available yet. Instead, log a warning and continue.
+                TurnrootLogger.Log(
+                    $"Character {Id} has no starting class and GameplayGeneralSettings.DefaultStartingClass is not set - deferring assignment",
+                    TurnrootLogger.LogLevel.Warning
                 );
+                return OperationResult.Successful();
             }
 
             var result = ChangeClass(classToApply, applyClassChangeBonuses: false);

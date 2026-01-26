@@ -78,14 +78,6 @@ namespace Turnroot.Characters
                 (list, type) => StatHelpers.GetOrCreateUnboundedStat(list, type, templateId),
                 ref anyRepaired
             );
-
-            if (anyRepaired)
-            {
-                TurnrootLogger.Log(
-                    $"CharacterInstance.RepairMissingStats: Repaired stats for {Id} - this indicates save data from an older version",
-                    TurnrootLogger.LogLevel.Warning
-                );
-            }
         }
 
         private static void RepairStatsFor<TEnum, TStat>(

@@ -172,10 +172,6 @@ namespace Turnroot.Gameplay.Brain
             model.transform.localScale = Vector3.one * _brain.uiBrain.uiSettings.ModelsScale;
             owner.DisplayName = unit.CharacterTemplate.DisplayName;
 
-            TurnrootLogger.Log(
-                $"TryReuseExistingModel: Reusing model {model.name} for unit {unit?.Id ?? "<null>"} at {pos}"
-            );
-
             ApplyVisuals(unit, model);
             RemovePreviousMapping(models, model);
             models[pos] = model;
@@ -230,10 +226,6 @@ namespace Turnroot.Gameplay.Brain
             ownership.UnitId = unit.Id;
             ownership.DisplayName = unit.CharacterTemplate.DisplayName;
             model.name = $"{unit.CharacterTemplate.DisplayName}_Model_{unit.Id}";
-
-            TurnrootLogger.Log(
-                $"CreateNewModel: Created model {model.name} for unit {unit?.Id ?? "<null>"} at {pos}"
-            );
 
             ApplyVisuals(unit, model);
             models[pos] = model;
