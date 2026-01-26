@@ -31,8 +31,7 @@ namespace Turnroot.Gameplay.Brain
             var placements =
                 runtimeInstance != null
                     ? runtimeInstance.GetPlacements()
-                    : persistentRoster.characters
-                        ?? new Characters.Roster.UnitPlacement[0];
+                    : persistentRoster.characters ?? new Characters.Roster.UnitPlacement[0];
 
             // 1) Required units (always selected for this battle). Do NOT persist required units to LTM.
             if (requiredPlayerUnits != null)
@@ -137,12 +136,6 @@ namespace Turnroot.Gameplay.Brain
             {
                 ltm.RememberBool(LtmKeys.UnitSelectionsAutoFilled, true);
             }
-
-#if UNITY_EDITOR
-            Debug.Log(
-                $"PreBattleSelectionHelper: Ensured {result.Count} selected units (required={requiredPlayerUnits?.Count ?? 0}, autoFilled={!autoFillAlreadyDone})."
-            );
-#endif
 
             return result;
         }

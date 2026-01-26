@@ -178,12 +178,6 @@ namespace Turnroot.Gameplay.Combat
                             TurnrootLogger.LogLevel.Warning
                         );
                     }
-                    else
-                    {
-                        TurnrootLogger.Log(
-                            "BattleGameObject: Initialized BattlePrecomputeLoader (with Context)"
-                        );
-                    }
                 }
             }
             catch (System.Exception ex)
