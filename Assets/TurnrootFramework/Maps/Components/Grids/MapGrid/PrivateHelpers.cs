@@ -124,73 +124,6 @@ namespace Turnroot.Gameplay.Maps
             }
         }
 
-        /// <summary>
-        /// Convert a list of properties to PropertyRecords, returning null if the source is empty.
-        /// This avoids allocating empty lists which saves memory and serialization overhead.
-        /// </summary>
-        private static List<PropertyRecord<TOut>> ConvertPropertiesIfAny<TIn, TOut>(
-            List<TIn> source,
-            System.Func<TIn, PropertyRecord<TOut>> converter
-        )
-        {
-            if (source == null || source.Count == 0)
-            {
-                return null;
-            }
-
-            var result = new List<PropertyRecord<TOut>>(source.Count);
-            foreach (var item in source)
-            {
-                result.Add(converter(item));
-            }
-            return result;
-        }
-
-        public void LoadFeatureLayer()
-        {
-            if (_features == null || _features.Count == 0)
-            {
-                return;
-            }
-
-            foreach (var rec in _features)
-            {
-                var mgp = GetGridPoint(rec.row, rec.col);
-                if (mgp == null)
-                {
-                    continue;
-                }
-
-                mgp.SetFeatureTypeId(rec.typeId);
-                mgp.FeatureName = rec.name ?? string.Empty;
-                mgp.ApplyDefaultsForFeature(rec.typeId);
-                ApplyPropertyList(rec.boolProperties, mgp.SetBoolFeatureProperty);
-                ApplyPropertyList(rec.eventProperties, mgp.SetEventFeatureProperty);
-                ApplyPropertyList(rec.floatProperties, mgp.SetFloatFeatureProperty);
-                ApplyPropertyList(rec.unitProperties, mgp.SetUnitFeatureProperty);
-                ApplyPropertyList(rec.objectItemProperties, mgp.SetObjectItemFeatureProperty);
-            }
-        }
-
-        private void ApplyPropertyList<T>(
-            List<PropertyRecord<T>> properties,
-            System.Action<string, T> setter
-        )
-        {
-            if (properties == null)
-            {
-                return;
-            }
-
-            foreach (var pr in properties)
-            {
-                if (!string.IsNullOrEmpty(pr.key))
-                {
-                    setter(pr.key, pr.value);
-                }
-            }
-        }
-
         public void EnsureGridPoints()
         {
             TurnrootLogger.Log("MapGrid: Ensuring grid points are created and positioned.");
@@ -306,39 +239,6 @@ namespace Turnroot.Gameplay.Maps
 
             // Build lookup dictionary for O(1) terrain position access
             BuildTerrainPositionLookup();
-        }
-
-        private IOrderedEnumerable<KeyValuePair<Vector2Int, TValue>> OrderGridPoints<TValue>(
-            IEnumerable<KeyValuePair<Vector2Int, TValue>> points
-        ) =>
-            // Use consistent ordering without flipping
-            points.OrderBy(kv => kv.Key.x).ThenBy(kv => kv.Key.y);
-
-        /// <summary>
-        /// Builds the terrain position lookup dictionary for O(1) access to raycast points
-        /// </summary>
-        private void BuildTerrainPositionLookup()
-        {
-            if (
-                _single3dHeightMeshRaycastPoints == null
-                || _single3dHeightMeshRaycastIndices == null
-                || _single3dHeightMeshRaycastPoints.Length
-                    != _single3dHeightMeshRaycastIndices.Length
-            )
-            {
-                _terrainPositionLookup?.Clear();
-                return;
-            }
-
-            _terrainPositionLookup = new Dictionary<Vector2Int, Vector3>(
-                _single3dHeightMeshRaycastIndices.Length
-            );
-            for (int i = 0; i < _single3dHeightMeshRaycastIndices.Length; i++)
-            {
-                var key = _single3dHeightMeshRaycastIndices[i];
-                // In case of duplicate keys, last one wins (matches previous linear search semantics)
-                _terrainPositionLookup[key] = _single3dHeightMeshRaycastPoints[i];
-            }
         }
 
         private void MarkDirty()

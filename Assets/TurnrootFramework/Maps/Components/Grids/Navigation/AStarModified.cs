@@ -7,16 +7,12 @@ namespace Turnroot.Gameplay.Maps
 {
     public class AStarModified
     {
-        // Reusable dictionary for GetNeighborsNonAlloc to avoid allocations in hot paths
         private readonly Dictionary<string, MapGridPoint> _neighborsBuffer = new(8);
 
-        private float Heuristic(MapGridPoint a, MapGridPoint b)
-        {
-            int dRow = Mathf.Abs(a.Row - b.Row);
-            int dCol = Mathf.Abs(a.Col - b.Col);
-            return dRow + dCol;
-        }
+        private float Heuristic(MapGridPoint a, MapGridPoint b) =>
+            Mathf.Abs(a.Row - b.Row) + Mathf.Abs(a.Col - b.Col);
 
+        #region A* Search
         public List<MapGridPoint> AStarSearch(
             MapGrid graph,
             MapGridPoint start,
@@ -29,135 +25,51 @@ namespace Turnroot.Gameplay.Maps
             float sameDirectionMultiplier = 0.95f
         )
         {
-            if (graph == null || start == null || goal == null)
+            if (!ValidateInputs(graph, start, goal))
             {
                 return new List<MapGridPoint>();
             }
 
-            // Use canonical grid instances for start/goal so identity checks work
-            MapGridPoint canonicalStart = graph.GetGridPoint(start.Row, start.Col) ?? start;
-            MapGridPoint canonicalGoal = graph.GetGridPoint(goal.Row, goal.Col) ?? goal;
+            var canonicalStart = GetCanonicalPoint(graph, start);
+            var canonicalGoal = GetCanonicalPoint(graph, goal);
 
-            PriorityQueue<MapGridPoint, float> frontier = new();
+            var frontier = new PriorityQueue<MapGridPoint, float>();
             frontier.Enqueue(canonicalStart, 0f);
 
-            // Use pooled collections to reduce GC allocations
-            using var cameFromPooled = PooledDictionary<MapGridPoint, MapGridPoint>.Get();
-            using var costSoFarPooled = PooledDictionary<MapGridPoint, float>.Get();
-            using var directionFromParentPooled = PooledDictionary<MapGridPoint, string>.Get();
-            using var closedPooled = PooledHashSet<MapGridPoint>.Get();
-
-            var cameFrom = cameFromPooled.Dictionary;
-            var costSoFar = costSoFarPooled.Dictionary;
-            var directionFromParent = directionFromParentPooled.Dictionary;
-            var closed = closedPooled.HashSet;
-
-            cameFrom[canonicalStart] = null;
-            costSoFar[canonicalStart] = 0f;
-            directionFromParent[canonicalStart] = null;
+            using var context = CreateSearchContext();
+            InitializeSearch(context, canonicalStart);
 
             while (frontier.Count > 0)
             {
-                MapGridPoint current = frontier.Dequeue();
-                if (
-                    current == canonicalGoal
-                    || (current.Row == canonicalGoal.Row && current.Col == canonicalGoal.Col)
-                )
+                var current = frontier.Dequeue();
+
+                if (IsGoalReached(current, canonicalGoal))
                 {
-                    // Reconstruct ordered path
-                    List<MapGridPoint> result = new();
-                    MapGridPoint node = current;
-                    while (node != null)
-                    {
-                        result.Add(node);
-                        node = cameFrom.TryGetValue(node, out var parent) ? parent : null;
-                    }
-                    result.Reverse();
-                    return result;
+                    return ReconstructPath(current, context.cameFrom);
                 }
 
-                if (closed.Contains(current))
+                if (!context.closed.Add(current))
                 {
                     continue;
                 }
 
-                closed.Add(current);
-
-                // Use non-allocating neighbor retrieval
-                current.GetNeighborsNonAlloc(_neighborsBuffer);
-                foreach (var neighborPair in _neighborsBuffer)
-                {
-                    var neighbor = neighborPair.Value;
-                    if (closed.Contains(neighbor))
-                    {
-                        continue;
-                    }
-
-                    float stepCost;
-                    var grid = neighbor.ParentGrid;
-                    var key =
-                        grid != null
-                            ? MapGrid.MakeMovementModeKey(
-                                isWalking,
-                                isFlying,
-                                isRiding,
-                                isMagic,
-                                isArmored
-                            )
-                            : null;
-                    if (
-                        grid != null
-                        && grid.TryGetMovementCostCache(key, out var costCache)
-                        && costCache != null
-                        && costCache.TryGetValue(neighbor, out var cached)
-                    )
-                    {
-                        stepCost = cached;
-                    }
-                    else
-                    {
-                        stepCost = neighbor.GetTerrainTypeCost(
-                            isWalking,
-                            isFlying,
-                            isRiding,
-                            isMagic,
-                            isArmored
-                        );
-                    }
-
-                    if (
-                        directionFromParent.TryGetValue(current, out var parentDir)
-                        && parentDir == neighborPair.Key
-                    )
-                    {
-                        stepCost *= sameDirectionMultiplier;
-                    }
-
-                    float newCost = costSoFar[current] + stepCost;
-
-                    if (
-                        !costSoFar.TryGetValue(neighbor, out var existingCost)
-                        || newCost < existingCost
-                    )
-                    {
-                        costSoFar[neighbor] = newCost;
-                        float priority = newCost + Heuristic(neighbor, canonicalGoal);
-                        frontier.Enqueue(neighbor, priority);
-                        cameFrom[neighbor] = current;
-                        directionFromParent[neighbor] = neighborPair.Key;
-                    }
-                }
+                ProcessNeighbors(
+                    current,
+                    canonicalGoal,
+                    frontier,
+                    context,
+                    isWalking,
+                    isFlying,
+                    isRiding,
+                    isMagic,
+                    isArmored,
+                    sameDirectionMultiplier
+                );
             }
 
-            // No path found: return empty list
             return new List<MapGridPoint>();
         }
 
-        /// <summary>
-        /// Computes the movement-cost to reach the goal using the same A* search but avoids
-        /// constructing the full path list (non-allocating in the hot path).
-        /// Returns true and sets out cost when a path exists; returns false otherwise.
-        /// </summary>
         public bool TryComputePathCost(
             MapGrid graph,
             MapGridPoint start,
@@ -172,132 +84,53 @@ namespace Turnroot.Gameplay.Maps
         )
         {
             totalCost = 0f;
-            if (graph == null || start == null || goal == null)
+            if (!ValidateInputs(graph, start, goal))
             {
                 return false;
             }
 
-            // Use canonical grid instances for start/goal so identity checks work
-            MapGridPoint canonicalStart = graph.GetGridPoint(start.Row, start.Col) ?? start;
-            MapGridPoint canonicalGoal = graph.GetGridPoint(goal.Row, goal.Col) ?? goal;
+            var canonicalStart = GetCanonicalPoint(graph, start);
+            var canonicalGoal = GetCanonicalPoint(graph, goal);
 
-            PriorityQueue<MapGridPoint, float> frontier = new();
+            var frontier = new PriorityQueue<MapGridPoint, float>();
             frontier.Enqueue(canonicalStart, 0f);
 
-            // Use pooled collections to reduce GC allocations
-            using var cameFromPooled = PooledDictionary<MapGridPoint, MapGridPoint>.Get();
-            using var costSoFarPooled = PooledDictionary<MapGridPoint, float>.Get();
-            using var directionFromParentPooled = PooledDictionary<MapGridPoint, string>.Get();
-            using var closedPooled = PooledHashSet<MapGridPoint>.Get();
-
-            var cameFrom = cameFromPooled.Dictionary;
-            var costSoFar = costSoFarPooled.Dictionary;
-            var directionFromParent = directionFromParentPooled.Dictionary;
-            var closed = closedPooled.HashSet;
-
-            cameFrom[canonicalStart] = null;
-            costSoFar[canonicalStart] = 0f;
-            directionFromParent[canonicalStart] = null;
+            using var context = CreateSearchContext();
+            InitializeSearch(context, canonicalStart);
 
             while (frontier.Count > 0)
             {
-                MapGridPoint current = frontier.Dequeue();
-                if (
-                    current == canonicalGoal
-                    || (current.Row == canonicalGoal.Row && current.Col == canonicalGoal.Col)
-                )
+                var current = frontier.Dequeue();
+
+                if (IsGoalReached(current, canonicalGoal))
                 {
-                    // We have reached the goal. The cost to reach it is recorded in costSoFar.
-                    if (costSoFar.TryGetValue(current, out var c))
-                    {
-                        totalCost = c;
-                        return true;
-                    }
-                    return false;
+                    return context.costSoFar.TryGetValue(current, out totalCost);
                 }
 
-                if (closed.Contains(current))
+                if (!context.closed.Add(current))
                 {
                     continue;
                 }
 
-                closed.Add(current);
-
-                // Use non-allocating neighbor retrieval
-                current.GetNeighborsNonAlloc(_neighborsBuffer);
-                foreach (var neighborPair in _neighborsBuffer)
-                {
-                    var neighbor = neighborPair.Value;
-                    if (closed.Contains(neighbor))
-                    {
-                        continue;
-                    }
-
-                    float stepCost;
-                    var grid = neighbor.ParentGrid;
-                    var key =
-                        grid != null
-                            ? MapGrid.MakeMovementModeKey(
-                                isWalking,
-                                isFlying,
-                                isRiding,
-                                isMagic,
-                                isArmored
-                            )
-                            : null;
-                    if (
-                        grid != null
-                        && grid.TryGetMovementCostCache(key, out var costCache)
-                        && costCache != null
-                        && costCache.TryGetValue(neighbor, out var cached)
-                    )
-                    {
-                        stepCost = cached;
-                    }
-                    else
-                    {
-                        stepCost = neighbor.GetTerrainTypeCost(
-                            isWalking,
-                            isFlying,
-                            isRiding,
-                            isMagic,
-                            isArmored
-                        );
-                    }
-
-                    if (
-                        directionFromParent.TryGetValue(current, out var parentDir)
-                        && parentDir == neighborPair.Key
-                    )
-                    {
-                        stepCost *= sameDirectionMultiplier;
-                    }
-
-                    float newCost = costSoFar[current] + stepCost;
-
-                    if (
-                        !costSoFar.TryGetValue(neighbor, out var existingCost)
-                        || newCost < existingCost
-                    )
-                    {
-                        costSoFar[neighbor] = newCost;
-                        float priority = newCost + Heuristic(neighbor, canonicalGoal);
-                        frontier.Enqueue(neighbor, priority);
-                        cameFrom[neighbor] = current;
-                        directionFromParent[neighbor] = neighborPair.Key;
-                    }
-                }
+                ProcessNeighbors(
+                    current,
+                    canonicalGoal,
+                    frontier,
+                    context,
+                    isWalking,
+                    isFlying,
+                    isRiding,
+                    isMagic,
+                    isArmored,
+                    sameDirectionMultiplier
+                );
             }
 
-            // No path found
             return false;
         }
+        #endregion
 
-        /// <summary>
-        /// Compute all reachable tiles from start with a maximum movement budget.
-        /// Returns a dictionary mapping reachable MapGridPoint -> least cost to reach.
-        /// The returned dictionary is owned by the caller and should be managed accordingly.
-        /// </summary>
+        #region Reachable Tiles
         public Dictionary<MapGridPoint, float> GetReachable(
             MapGrid graph,
             MapGridPoint start,
@@ -312,22 +145,20 @@ namespace Turnroot.Gameplay.Maps
             int maxRange = 0
         )
         {
-            // Don't use pool for returned dictionary as caller owns it
             var result = new Dictionary<MapGridPoint, float>();
             if (graph == null || start == null)
             {
                 return result;
             }
 
-            MapGridPoint canonicalStart = graph.GetGridPoint(start.Row, start.Col) ?? start;
-
-            PriorityQueue<MapGridPoint, float> frontier = new();
+            var canonicalStart = GetCanonicalPoint(graph, start);
+            var frontier = new PriorityQueue<MapGridPoint, float>();
             frontier.Enqueue(canonicalStart, 0f);
 
             using var costSoFarPooled = PooledDictionary<MapGridPoint, float>.Get();
-            using var directionFromParentPooled = PooledDictionary<MapGridPoint, string>.Get();
+            using var directionPooled = PooledDictionary<MapGridPoint, string>.Get();
             var costSoFar = costSoFarPooled.Dictionary;
-            var directionFromParent = directionFromParentPooled.Dictionary;
+            var directionFromParent = directionPooled.Dictionary;
 
             costSoFar[canonicalStart] = 0f;
             directionFromParent[canonicalStart] = null;
@@ -337,7 +168,6 @@ namespace Turnroot.Gameplay.Maps
                 var current = frontier.Dequeue();
                 float currentCost = costSoFar[current];
 
-                // Don't expand nodes that already exceed budget
                 if (currentCost > movementBudget)
                 {
                     continue;
@@ -345,47 +175,23 @@ namespace Turnroot.Gameplay.Maps
 
                 result[current] = currentCost;
 
-                // Use non-allocating neighbor retrieval
                 current.GetNeighborsNonAlloc(_neighborsBuffer);
-                foreach (var kv in _neighborsBuffer)
+                foreach (var (dir, neighbor) in _neighborsBuffer)
                 {
-                    var dir = kv.Key;
-                    var neighbor = kv.Value;
                     if (neighbor.IsOccupied)
                     {
                         continue;
                     }
-                    float stepCost;
-                    var grid = neighbor.ParentGrid;
-                    var key =
-                        grid != null
-                            ? MapGrid.MakeMovementModeKey(
-                                isWalking,
-                                isFlying,
-                                isRiding,
-                                isMagic,
-                                isArmored
-                            )
-                            : null;
-                    if (
-                        grid != null
-                        && grid.TryGetMovementCostCache(key, out var costCache)
-                        && costCache != null
-                        && costCache.TryGetValue(neighbor, out var cached)
-                    )
-                    {
-                        stepCost = cached;
-                    }
-                    else
-                    {
-                        stepCost = neighbor.GetTerrainTypeCost(
-                            isWalking,
-                            isFlying,
-                            isRiding,
-                            isMagic,
-                            isArmored
-                        );
-                    }
+
+                    float stepCost = CalculateStepCost(
+                        neighbor,
+                        isWalking,
+                        isFlying,
+                        isRiding,
+                        isMagic,
+                        isArmored
+                    );
+
                     if (
                         directionFromParent.TryGetValue(current, out var parentDir)
                         && parentDir == dir
@@ -420,10 +226,6 @@ namespace Turnroot.Gameplay.Maps
             return result;
         }
 
-        /// <summary>
-        /// Given a dictionary of reachable tiles (from GetReachable), reconstruct a path from start to goal.
-        /// Returns an empty list if no path exists.
-        /// </summary>
         public List<MapGridPoint> GetPathThroughReachable(
             MapGridPoint start,
             MapGridPoint goal,
@@ -436,7 +238,7 @@ namespace Turnroot.Gameplay.Maps
                 return path;
             }
 
-            MapGridPoint current = goal;
+            var current = goal;
             path.Add(current);
 
             while (current != start)
@@ -444,11 +246,9 @@ namespace Turnroot.Gameplay.Maps
                 MapGridPoint next = null;
                 float lowestCost = float.MaxValue;
 
-                // Use non-allocating neighbor retrieval
                 current.GetNeighborsNonAlloc(_neighborsBuffer);
-                foreach (var kv in _neighborsBuffer)
+                foreach (var (_, neighbor) in _neighborsBuffer)
                 {
-                    var neighbor = kv.Value;
                     if (
                         reachable.TryGetValue(neighbor, out var cost)
                         && cost < lowestCost
@@ -462,7 +262,6 @@ namespace Turnroot.Gameplay.Maps
 
                 if (next == null)
                 {
-                    // No path found
                     path.Clear();
                     return path;
                 }
@@ -474,26 +273,140 @@ namespace Turnroot.Gameplay.Maps
             path.Reverse();
             return path;
         }
+        #endregion
 
-        /// <summary>
-        /// Expand range tiles outward from boundary tiles (tiles at exact movementBudget cost).
-        /// Used for attack range display after movement.
-        /// </summary>
+        #region Helper Methods
+        private bool ValidateInputs(MapGrid graph, MapGridPoint start, MapGridPoint goal) =>
+            graph != null && start != null && goal != null;
+
+        private MapGridPoint GetCanonicalPoint(MapGrid graph, MapGridPoint point) =>
+            graph.GetGridPoint(point.Row, point.Col) ?? point;
+
+        private bool IsGoalReached(MapGridPoint current, MapGridPoint goal) =>
+            current == goal || (current.Row == goal.Row && current.Col == goal.Col);
+
+        private SearchContext CreateSearchContext() => new SearchContext();
+
+        private void InitializeSearch(SearchContext context, MapGridPoint start)
+        {
+            context.cameFrom[start] = null;
+            context.costSoFar[start] = 0f;
+            context.directionFromParent[start] = null;
+        }
+
+        private float CalculateStepCost(
+            MapGridPoint neighbor,
+            bool isWalking,
+            bool isFlying,
+            bool isRiding,
+            bool isMagic,
+            bool isArmored
+        )
+        {
+            var grid = neighbor.ParentGrid;
+            var key =
+                grid != null
+                    ? MapGrid.MakeMovementModeKey(isWalking, isFlying, isRiding, isMagic, isArmored)
+                    : null;
+
+            if (
+                grid != null
+                && grid.TryGetMovementCostCache(key, out var costCache)
+                && costCache?.TryGetValue(neighbor, out var cached) == true
+            )
+            {
+                return cached;
+            }
+
+            return neighbor.GetTerrainTypeCost(isWalking, isFlying, isRiding, isMagic, isArmored);
+        }
+
+        private void ProcessNeighbors(
+            MapGridPoint current,
+            MapGridPoint goal,
+            PriorityQueue<MapGridPoint, float> frontier,
+            SearchContext context,
+            bool isWalking,
+            bool isFlying,
+            bool isRiding,
+            bool isMagic,
+            bool isArmored,
+            float sameDirectionMultiplier
+        )
+        {
+            current.GetNeighborsNonAlloc(_neighborsBuffer);
+            foreach (var (dir, neighbor) in _neighborsBuffer)
+            {
+                if (context.closed.Contains(neighbor))
+                {
+                    continue;
+                }
+
+                float stepCost = CalculateStepCost(
+                    neighbor,
+                    isWalking,
+                    isFlying,
+                    isRiding,
+                    isMagic,
+                    isArmored
+                );
+
+                if (
+                    context.directionFromParent.TryGetValue(current, out var parentDir)
+                    && parentDir == dir
+                )
+                {
+                    stepCost *= sameDirectionMultiplier;
+                }
+
+                float newCost = context.costSoFar[current] + stepCost;
+
+                if (
+                    !context.costSoFar.TryGetValue(neighbor, out var existingCost)
+                    || newCost < existingCost
+                )
+                {
+                    context.costSoFar[neighbor] = newCost;
+                    float priority = newCost + Heuristic(neighbor, goal);
+                    frontier.Enqueue(neighbor, priority);
+                    context.cameFrom[neighbor] = current;
+                    context.directionFromParent[neighbor] = dir;
+                }
+            }
+        }
+
+        private List<MapGridPoint> ReconstructPath(
+            MapGridPoint goal,
+            Dictionary<MapGridPoint, MapGridPoint> cameFrom
+        )
+        {
+            var result = new List<MapGridPoint>();
+            var node = goal;
+
+            while (node != null)
+            {
+                result.Add(node);
+                node = cameFrom.TryGetValue(node, out var parent) ? parent : null;
+            }
+
+            result.Reverse();
+            return result;
+        }
+
         private void ExpandRangeFromBoundary(
             Dictionary<MapGridPoint, float> result,
             int movementBudget,
             int maxRange
         )
         {
-            // Find all boundary tiles (tiles at movementBudget)
-            using var boundaryTilesPooled = PooledList<MapGridPoint>.Get();
-            var boundaryTiles = boundaryTilesPooled.List;
+            using var boundaryPooled = PooledList<MapGridPoint>.Get();
+            var boundaryTiles = boundaryPooled.List;
 
-            foreach (var kv in result)
+            foreach (var (tile, cost) in result)
             {
-                if (Mathf.RoundToInt(kv.Value) == movementBudget)
+                if (Mathf.RoundToInt(cost) == movementBudget)
                 {
-                    boundaryTiles.Add(kv.Key);
+                    boundaryTiles.Add(tile);
                 }
             }
 
@@ -502,7 +415,6 @@ namespace Turnroot.Gameplay.Maps
                 return;
             }
 
-            // Expand from boundary tiles by maxRange steps using BFS
             using var expandedPooled = PooledHashSet<MapGridPoint>.Get();
             using var currentFrontierPooled = PooledHashSet<MapGridPoint>.Get();
             using var nextFrontierPooled = PooledHashSet<MapGridPoint>.Get();
@@ -524,14 +436,12 @@ namespace Turnroot.Gameplay.Maps
                 foreach (var tile in currentFrontier)
                 {
                     tile.GetNeighborsNonAlloc(_neighborsBuffer);
-                    foreach (var n in _neighborsBuffer)
+                    foreach (var (_, neighbor) in _neighborsBuffer)
                     {
-                        var neighbor = n.Value;
-                        if (!result.ContainsKey(neighbor) && !expanded.Contains(neighbor))
+                        if (!result.ContainsKey(neighbor) && expanded.Add(neighbor))
                         {
                             result[neighbor] = movementBudget + step;
                             nextFrontier.Add(neighbor);
-                            expanded.Add(neighbor);
                         }
                     }
                 }
@@ -541,9 +451,45 @@ namespace Turnroot.Gameplay.Maps
                     break;
                 }
 
-                // Swap frontiers
                 (currentFrontier, nextFrontier) = (nextFrontier, currentFrontier);
             }
         }
+        #endregion
+
+        #region Search Context
+        private class SearchContext : System.IDisposable
+        {
+            private readonly PooledDictionary<MapGridPoint, MapGridPoint> _cameFromPooled;
+            private readonly PooledDictionary<MapGridPoint, float> _costSoFarPooled;
+            private readonly PooledDictionary<MapGridPoint, string> _directionPooled;
+            private readonly PooledHashSet<MapGridPoint> _closedPooled;
+
+            public Dictionary<MapGridPoint, MapGridPoint> cameFrom;
+            public Dictionary<MapGridPoint, float> costSoFar;
+            public Dictionary<MapGridPoint, string> directionFromParent;
+            public HashSet<MapGridPoint> closed;
+
+            public SearchContext()
+            {
+                _cameFromPooled = PooledDictionary<MapGridPoint, MapGridPoint>.Get();
+                _costSoFarPooled = PooledDictionary<MapGridPoint, float>.Get();
+                _directionPooled = PooledDictionary<MapGridPoint, string>.Get();
+                _closedPooled = PooledHashSet<MapGridPoint>.Get();
+
+                cameFrom = _cameFromPooled.Dictionary;
+                costSoFar = _costSoFarPooled.Dictionary;
+                directionFromParent = _directionPooled.Dictionary;
+                closed = _closedPooled.HashSet;
+            }
+
+            public void Dispose()
+            {
+                _cameFromPooled.Dispose();
+                _costSoFarPooled.Dispose();
+                _directionPooled.Dispose();
+                _closedPooled.Dispose();
+            }
+        }
+        #endregion
     }
 }

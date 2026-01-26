@@ -1,7 +1,5 @@
-using System;
 using System.Collections;
 using Turnroot.Gameplay.Brain;
-using Turnroot.Gameplay.Brain.Components;
 using Turnroot.Gameplay.Maps;
 using Turnroot.Utilities;
 using UnityEngine;

@@ -118,7 +118,6 @@ namespace Turnroot.Gameplay.Brain
                 if (prefabSmr != null)
                 {
                     nbSmr.sharedMaterials = prefabSmr.sharedMaterials;
-
                 }
 
                 // Attach head/hands and hair if available
