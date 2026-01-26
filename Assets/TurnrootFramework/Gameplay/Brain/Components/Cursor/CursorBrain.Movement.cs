@@ -276,9 +276,6 @@ namespace Turnroot.Gameplay.Brain
         /// </summary>
         public void SetAllowedPositions(List<Vector2Int> positions)
         {
-            TurnrootLogger.Log(
-                $"CursorBrain: SetAllowedPositions called with {positions?.Count ?? 0} positions"
-            );
             _allowedPositions = positions;
             // Initialize current index from existing cursor position when possible to avoid skipping the starting tile
             _currentPositionIndex = -1;
