@@ -23,7 +23,6 @@ namespace Turnroot.Gameplay.Brain
                 && _brain?.battleBrain?.BattleObject?.Context != null
             )
             {
-                TurnrootLogger.Log("CursorBrain: Cursor is in battle context");
                 var cache = _brain.battleBrain.BattleObject.Context.GetCurrentUnitPositions();
                 if (cache.TryGetValue(CursorPosition.CoordinatesInt, out var unit))
                 {

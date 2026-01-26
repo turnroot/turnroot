@@ -69,12 +69,15 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
 
         #region Unity Lifecycle
 
-        public void Initialize(Brain brain)
+        public void Initialize(Brain brain, MapGrid mapGrid)
         {
             _brain = brain;
+            _mapGrid = mapGrid;
             SubscribeToBrainEvents();
             CalculateUVParameters();
             EnsureBaseMaterial();
+            PrewarmDecalCache();
+            TurnrootLogger.Log("TileHighlighter: Initialized with Brain and MapGrid");
         }
 
         private void OnDestroy() => UnsubscribeFromBrainEvents();
@@ -126,12 +129,6 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
                 ? OperationResult.Failure("Base material is not assigned")
                 : OperationResult.Successful();
 
-        public void Initialize(MapGrid mapGrid)
-        {
-            _mapGrid = mapGrid;
-            PrewarmDecalCache();
-        }
-
         private OperationResult PrewarmDecalCache()
         {
             if (_decalProjectorPrefab == null)
@@ -144,7 +141,8 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
                 for (int y = 0; y < _mapGrid.GridHeight; y++)
                 {
                     var pos = new Vector2Int(x, y);
-                    var worldPos = _mapGrid.GetTerrainAdjustedWorldPosition(pos);
+                    var worldPos =
+                        _mapGrid.GetTerrainAdjustedWorldPosition(pos) + (Vector3.up * 10f);
 
                     var decalObj = Instantiate(
                         _decalProjectorPrefab,
@@ -240,6 +238,9 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
             HashSet<Vector2Int> activeSet
         )
         {
+            TurnrootLogger.Log(
+                $"Highlighting {activeSet.Count} tiles" + $"with UV Params: {uvParams}"
+            );
             foreach (var tile in tiles)
             {
                 if (_decalCache.TryGetValue(tile, out var decal))
@@ -273,16 +274,26 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
 
         private OperationResult ApplyUVToDecal(DecalProjector decal, Vector4 uvParams)
         {
-            if (!decal.TryGetComponent<Renderer>(out var renderer))
+            if (decal == null)
             {
-                return OperationResult.Failure("Decal projector is missing Renderer component");
+                return OperationResult.Failure("ApplyUVToDecal: decal is null");
             }
 
-            var props = new MaterialPropertyBlock();
-            renderer.GetPropertyBlock(props);
-            props.SetVector(UV_OFFSET_PROPERTY, uvParams);
-            renderer.SetPropertyBlock(props);
-            return OperationResult.Successful();
+            try
+            {
+                // Map uvParams: x=tileU, y=tileV, z=offsetU, w=offsetV
+                decal.uvScale = new Vector2(uvParams.x, uvParams.y);
+                decal.uvBias = new Vector2(uvParams.z, uvParams.w);
+
+                return OperationResult.Successful();
+            }
+            catch (System.Exception ex)
+            {
+                // Fatal: if DecalProjector API isn't available or fails, surface the error so the caller knows
+                return OperationResult.Failure(
+                    $"ApplyUVToDecal: Failed to set uvScale/uvBias on {decal.gameObject.name}: {ex.Message}"
+                );
+            }
         }
 
         #endregion
@@ -306,7 +317,7 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
             _brain.OnBattleCompleted -= HandleBattleCompleted;
         }
 
-        private void HandleBattleMapReady(MapGrid mapGrid) => Initialize(mapGrid);
+        private void HandleBattleMapReady(MapGrid mapGrid) => Initialize(_brain, mapGrid);
 
         private void HandleBattleCompleted(Combat.BattleExitType exitType) => ClearAll();
 

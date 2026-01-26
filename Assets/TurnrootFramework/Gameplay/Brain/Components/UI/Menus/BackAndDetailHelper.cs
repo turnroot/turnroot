@@ -178,6 +178,18 @@ namespace Turnroot.Gameplay.Brain.Segments
 
             if (handler != null)
             {
+                // Remove any existing subscription first to prevent duplicates
+                try
+                {
+                    chosen.OnSelected -= handler;
+                }
+                catch { }
+                // Now add it
+                chosen.OnSelected += handler;
+
+                TurnrootLogger.Log(
+                    $"UiBrain: Subscribed {role} handler on {chosen.gameObject.name}."
+                );
                 chosen.OnSelected -= handler;
             }
         }

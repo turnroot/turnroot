@@ -69923,10 +69923,10 @@ MonoBehaviour:
   _decalProjectorPrefab: {fileID: 3102780592263605046, guid: efe1793c904b1cc4aa2d376b873dbc0e, type: 3}
   _baseMaterial: {fileID: 2100000, guid: 466a1142b8494994aa9327d32de5d193, type: 2}
   _atlasGridSize: {x: 4, y: 3}
-  _moveRangeAtlasPos: {x: 3, y: 1}
-  _attackRangeAtlasPos: {x: 2, y: 0}
-  _healRangeAtlasPos: {x: 3, y: 0}
-  _dangerZoneAtlasPos: {x: 3, y: 3}
+  _moveRangeAtlasPos: {x: 2, y: 1}
+  _attackRangeAtlasPos: {x: 1, y: 0}
+  _healRangeAtlasPos: {x: 2, y: 0}
+  _dangerZoneAtlasPos: {x: 2, y: 2}
   _atlasPadding: 0.001
   _projectionDepth: 2
 --- !u!114 &1742232841

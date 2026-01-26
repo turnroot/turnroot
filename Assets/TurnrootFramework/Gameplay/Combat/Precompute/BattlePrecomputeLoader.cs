@@ -21,13 +21,9 @@ namespace Turnroot.Gameplay.Combat.Precompute
 
         // Control frame pacing for smooth loading bar progression
         [SerializeField]
-        private float timeBetweenOperations = 0.15f;
+        private float timeBetweenOperations = 0.1f;
 
         #region Initialization
-        /// <summary>
-        /// Initialize the loader with required dependencies. Call this from the owner
-        /// (for example, StateBrain) instead of relying on FindObjectOfType.
-        /// </summary>
         public OperationResult Initialize(
             Brain.Brain brain,
             FundamentalComponents.Battles.BattleContext context = null
@@ -159,10 +155,8 @@ namespace Turnroot.Gameplay.Combat.Precompute
 
             InitializeLoadingProgress(taskCount);
 
-            // Precompute movement caches with delays between each
             yield return PrecomputeMovementCaches(context.mapGrid);
 
-            // Process each unit with visible delays for smooth loading bar
             foreach (var unit in units)
             {
                 if (unit == null)
@@ -209,7 +203,7 @@ namespace Turnroot.Gameplay.Combat.Precompute
             IncrementProgress();
             yield return new WaitForSeconds(timeBetweenOperations);
 
-            // 3) Spawn model (usually most expensive operation)
+            // 3) Spawn model
             if (appearanceBrain != null)
             {
                 var spawnResult = appearanceBrain.PrecomputeSpawnModelAt(
@@ -229,7 +223,7 @@ namespace Turnroot.Gameplay.Combat.Precompute
                 yield return new WaitForSeconds(timeBetweenOperations);
             }
 
-            // 4) Precompute valid tiles (can be expensive for large maps)
+            // 4) Precompute valid tiles
             var tilesOk = context.TryGetValidTilesForUnit(unit, out _, out _, forceRecompute: true);
 
             if (!tilesOk)
