@@ -416,11 +416,25 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 _cachedPathfindingParameters[unit.Id] = p;
             }
 
-            var pr = Turnroot.Gameplay.Maps.PathfindingParameters.FromCharacterWithRange(
-                unit,
-                mapGrid,
-                startPoint
-            );
+            // Avoid recomputing base movement parameters a second time (which may re-read stats/log).
+            // If we successfully built the base parameters, create the ranged variant by cloning.
+            Turnroot.Gameplay.Maps.PathfindingParameters pr = null;
+            if (p != null && p.IsValid())
+            {
+                pr = p.Clone();
+                pr.IncludeRange = true;
+                pr.MaxRange = unit.GetMaxRange();
+            }
+            else
+            {
+                // Fallback: compute ranged parameters directly
+                pr = Turnroot.Gameplay.Maps.PathfindingParameters.FromCharacterWithRange(
+                    unit,
+                    mapGrid,
+                    startPoint
+                );
+            }
+
             if (pr != null && pr.IsValid())
             {
                 _cachedPathfindingParametersWithRange[unit.Id] = pr;
