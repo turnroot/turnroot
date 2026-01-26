@@ -29,6 +29,7 @@ namespace Turnroot.Utilities.AbstractScripts
         public UnityEvent<int> OnLoadedAmountChanged = new();
 
         public event Action<int> OnLoadedAmountChangedAction;
+
         public void ReportLoadingProgress(int percentage)
         {
             OnLoadedAmountChanged?.Invoke(percentage);

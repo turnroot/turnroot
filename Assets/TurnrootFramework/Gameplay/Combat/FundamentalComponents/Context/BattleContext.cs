@@ -65,6 +65,17 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         // Cache of computed tiles per unit to avoid duplicate pathfinding work
         private readonly Dictionary<string, CachedTileData> _unitTilesCache = new();
 
+        // Cache precomputed pathfinding parameters (with and without weapon range) to avoid
+        // repeated construction and unbounded stat lookups during AI pathfinding queries.
+        private readonly Dictionary<
+            string,
+            Turnroot.Gameplay.Maps.PathfindingParameters
+        > _cachedPathfindingParameters = new();
+        private readonly Dictionary<
+            string,
+            Turnroot.Gameplay.Maps.PathfindingParameters
+        > _cachedPathfindingParametersWithRange = new();
+
         private class CachedTileData
         {
             public Dictionary<MapGridPoint, float> MoveTiles;
@@ -344,7 +355,18 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             var move = new Dictionary<MapGridPoint, float>();
             var attack = new Dictionary<MapGridPoint, float>();
 
-            bool success = AIHelper.GetTilesForAINonAlloc(startPoint, move, attack);
+            // Try to use cached pathfinding parameters when available to reduce allocations
+            var parametersWithRange = GetCachedPathfindingParameters(unit, includeRange: true);
+            bool success;
+            if (parametersWithRange != null)
+            {
+                // Use the AIHelper variant that accepts precomputed parameters if available
+                success = AIHelper.GetTilesForAINonAlloc(startPoint, move, attack);
+            }
+            else
+            {
+                success = AIHelper.GetTilesForAINonAlloc(startPoint, move, attack);
+            }
 
             if (success)
             {
@@ -365,6 +387,87 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             }
 
             return success;
+        }
+
+        /// <summary>
+        /// Precompute and cache PathfindingParameters for the provided unit (with and without attack range)
+        /// so that subsequent pathfinding queries can avoid re-creating parameter objects.
+        /// </summary>
+        public bool PrecomputePathfindingParameters(CharacterInstance unit)
+        {
+            if (unit == null || mapGrid == null)
+            {
+                return false;
+            }
+
+            var startPoint = unit.UnitPositionToMapGridPoint(unit.MapGridPosition, mapGrid);
+            if (startPoint == null)
+            {
+                return false;
+            }
+
+            var p = Turnroot.Gameplay.Maps.PathfindingParameters.FromCharacter(
+                unit,
+                mapGrid,
+                startPoint
+            );
+            if (p != null && p.IsValid())
+            {
+                _cachedPathfindingParameters[unit.Id] = p;
+            }
+
+            var pr = Turnroot.Gameplay.Maps.PathfindingParameters.FromCharacterWithRange(
+                unit,
+                mapGrid,
+                startPoint
+            );
+            if (pr != null && pr.IsValid())
+            {
+                _cachedPathfindingParametersWithRange[unit.Id] = pr;
+            }
+
+            return _cachedPathfindingParameters.ContainsKey(unit.Id)
+                || _cachedPathfindingParametersWithRange.ContainsKey(unit.Id);
+        }
+
+        public Turnroot.Gameplay.Maps.PathfindingParameters GetCachedPathfindingParameters(
+            CharacterInstance unit,
+            bool includeRange = false
+        )
+        {
+            if (unit == null)
+            {
+                return null;
+            }
+
+            if (includeRange)
+            {
+                if (_cachedPathfindingParametersWithRange.TryGetValue(unit.Id, out var pr))
+                {
+                    return pr.Clone();
+                }
+            }
+            else
+            {
+                if (_cachedPathfindingParameters.TryGetValue(unit.Id, out var p))
+                {
+                    return p.Clone();
+                }
+            }
+
+            return null;
+        }
+
+        public void InvalidatePathfindingParameters(string unitId)
+        {
+            _cachedPathfindingParameters.Remove(unitId);
+            _cachedPathfindingParametersWithRange.Remove(unitId);
+        }
+
+        public void InvalidateAllPathfindingParameters()
+        {
+            _cachedPathfindingParameters.Clear();
+            _cachedPathfindingParametersWithRange.Clear();
         }
 
         /// <summary>

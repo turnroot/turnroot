@@ -266,6 +266,32 @@ namespace Turnroot.Gameplay.Brain
             return OperationResult.Successful();
         }
 
+        /// <summary>
+        /// Public helper used by precompute systems to ensure a model exists for the unit at the
+        /// specified grid position. This uses the brain's internal _activeUnitModels dictionary
+        /// and returns an OperationResult so callers can report progress/failures.
+        /// </summary>
+        public OperationResult PrecomputeSpawnModelAt(
+            CharacterInstance unit,
+            Vector2Int pos,
+            bool prebattle = false
+        )
+        {
+            if (unit == null)
+            {
+                return OperationResult.Failure("Unit is null");
+            }
+
+            try
+            {
+                return SpawnUnitModelOnGrid(pos, unit, _activeUnitModels, prebattle);
+            }
+            catch (System.Exception ex)
+            {
+                return OperationResult.Failure($"PrecomputeSpawnModelAt failed: {ex.Message}");
+            }
+        }
+
         private void ClearExistingModels()
         {
             foreach (var kvp in _activeUnitModels.ToList())

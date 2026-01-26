@@ -24,7 +24,15 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         /// Invalidate all AI helper caches (move/attack tiles).
         /// Call this when units spawn/defeat or terrain changes to avoid stale pathfinding data.
         /// </summary>
-        public void InvalidateAllCaches() => ClearReusableTileDictionaries();
+        public void InvalidateAllCaches()
+        {
+            ClearReusableTileDictionaries();
+            try
+            {
+                _context?.InvalidateAllPathfindingParameters();
+            }
+            catch { }
+        }
 
         /// <summary>
         /// Populates the provided dictionary with possible tiles that the unit can move to, including the range of its attacks.

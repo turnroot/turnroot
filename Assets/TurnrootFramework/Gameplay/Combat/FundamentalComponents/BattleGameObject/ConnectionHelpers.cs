@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Turnroot.Gameplay.Brain.Components.Battle;
 using Turnroot.Gameplay.Brain.Events;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
+using Turnroot.Gameplay.Combat.Precompute;
 using Turnroot.Gameplay.Maps;
 using Turnroot.Utilities;
 using UnityEngine;
@@ -164,6 +165,26 @@ namespace Turnroot.Gameplay.Combat
                 // Notify any subscribers that the battle map is ready
                 Brain?.PublishBattleMapReady(MapGrid);
                 GetComponent<TileHighlighter>().Initialize(Brain);
+
+                // Ensure BattlePrecomputeLoader is initialized with the Brain (robustness against subscription order)
+                var loader = GetComponent<BattlePrecomputeLoader>();
+                if (loader != null)
+                {
+                    var initRes = loader.Initialize(Brain, Context);
+                    if (!initRes.Success)
+                    {
+                        TurnrootLogger.Log(
+                            $"BattleGameObject: Failed to initialize BattlePrecomputeLoader: {initRes.ErrorMessage}",
+                            TurnrootLogger.LogLevel.Warning
+                        );
+                    }
+                    else
+                    {
+                        TurnrootLogger.Log(
+                            "BattleGameObject: Initialized BattlePrecomputeLoader (with Context)"
+                        );
+                    }
+                }
             }
             catch (System.Exception ex)
             {

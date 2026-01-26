@@ -22,23 +22,40 @@ namespace Turnroot.Gameplay.Brain
             var flow = Brain?.GetComponentInChildren<Utilities.AbstractScripts.DynamicSceneFlow>(
                 true
             );
-            if (flow == null)
+            if (flow != null)
             {
-                flow = FindFirstObjectByType<Utilities.AbstractScripts.DynamicSceneFlow>();
+                TurnrootLogger.Log(
+                    "LoadingController.GetDynamicSceneFlow: using Brain child DynamicSceneFlow"
+                );
+                return flow;
             }
+
+            flow = FindFirstObjectByType<Utilities.AbstractScripts.DynamicSceneFlow>();
+            TurnrootLogger.Log(
+                $"LoadingController.GetDynamicSceneFlow: FindFirstObjectByType returned {(flow != null)}"
+            );
             return flow;
         }
 
         public void IncrementLoadedAmount()
         {
             LoadedAmount++;
-            GetDynamicSceneFlow()?.ReportLoadingProgress(LoadingPercentage);
+            TurnrootLogger.Log($"LoadingController: Reporting progress {LoadingPercentage}%");
+            var flowProgress = GetDynamicSceneFlow();
+            flowProgress?.ReportLoadingProgress(LoadingPercentage);
             if (TotalToLoad > 0 && LoadedAmount >= TotalToLoad)
             {
                 var flow = GetDynamicSceneFlow();
                 TurnrootLogger.Log(
                     $"LoadingController: Completed loading (Loaded:{LoadedAmount}, Total:{TotalToLoad})"
                 );
+                if (flow == null)
+                {
+                    TurnrootLogger.Log(
+                        "LoadingController: No DynamicSceneFlow found to progress",
+                        TurnrootLogger.LogLevel.Warning
+                    );
+                }
                 flow?.Progress();
             }
         }
@@ -64,13 +81,24 @@ namespace Turnroot.Gameplay.Brain
             }
 
             LoadedAmount += amount;
-            GetDynamicSceneFlow()?.ReportLoadingProgress(LoadingPercentage);
+            TurnrootLogger.Log(
+                $"LoadingController: Reporting progress {LoadingPercentage}% (by {amount})"
+            );
+            var flowProgress = GetDynamicSceneFlow();
+            flowProgress?.ReportLoadingProgress(LoadingPercentage);
             if (TotalToLoad > 0 && LoadedAmount >= TotalToLoad)
             {
                 var flow = GetDynamicSceneFlow();
-                Turnroot.Utilities.TurnrootLogger.Log(
+                TurnrootLogger.Log(
                     $"LoadingController: Completed loading (Loaded:{LoadedAmount}, Total:{TotalToLoad})"
                 );
+                if (flow == null)
+                {
+                    TurnrootLogger.Log(
+                        "LoadingController: No DynamicSceneFlow found to progress",
+                        TurnrootLogger.LogLevel.Warning
+                    );
+                }
                 flow?.Progress();
             }
         }

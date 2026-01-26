@@ -73,7 +73,6 @@ namespace Turnroot.Characters
                             Min = min,
                         }
                     );
-                    Debug.Log($"DefaultCharacterStats: Auto-added missing bounded stat {type}");
                     changed = true;
                 }
             }
@@ -93,7 +92,6 @@ namespace Turnroot.Characters
                             Current = GetDefaultValueForStat(type),
                         }
                     );
-                    Debug.Log($"DefaultCharacterStats: Auto-added missing unbounded stat {type}");
                     changed = true;
                 }
             }

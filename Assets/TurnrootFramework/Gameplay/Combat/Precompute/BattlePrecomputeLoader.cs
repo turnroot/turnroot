@@ -1,5 +1,7 @@
+using System;
 using System.Collections;
 using Turnroot.Gameplay.Brain;
+using Turnroot.Gameplay.Brain.Components;
 using Turnroot.Gameplay.Maps;
 using Turnroot.Utilities;
 using UnityEngine;
@@ -8,19 +10,22 @@ namespace Turnroot.Gameplay.Combat.Precompute
 {
     /// <summary>
     /// Precomputes expensive battle startup data during the PreBattleTransitionToBattle
-    /// brain state and reports progress to the scene's LoadingController so the
-    /// DynamicSceneFlow advances only after precompute tasks complete.
+    /// brain state and reports progress to the scene's LoadingController.
     /// </summary>
     public class BattlePrecomputeLoader : MonoBehaviour
     {
         private Brain.Brain _brain;
         private LoadingController _loadingController;
+        private FundamentalComponents.Battles.BattleContext _battleContext;
+        private bool _initialized = false;
+        private bool _precomputeStarted = false;
+        private bool _forceStartRetryScheduled = false;
 
-        /// <summary>
-        /// Initialize the loader with required dependencies. Call this from the owner
-        /// (for example, StateBrain) instead of relying on FindObjectOfType.
-        /// </summary>
-        public OperationResult Initialize(Brain.Brain brain)
+        #region Initialization
+        public OperationResult Initialize(
+            Brain.Brain brain,
+            FundamentalComponents.Battles.BattleContext context = null
+        )
         {
             if (brain == null)
             {
@@ -28,133 +33,103 @@ namespace Turnroot.Gameplay.Combat.Precompute
             }
 
             _brain = brain;
-            // Prefer the LoadingController attached to the Brain for centralized tracking
             _loadingController = brain.GetComponent<LoadingController>();
-            _brain.OnStateChanged += HandleStateChanged;
+            _battleContext = context ?? _battleContext;
+            _initialized = true;
+
             return OperationResult.Successful();
         }
 
-        private void OnDestroy()
+        private void Start()
         {
-            if (_brain != null)
-            {
-                _brain.OnStateChanged -= HandleStateChanged;
-            }
-        }
-
-        private void HandleStateChanged(BrainState newState)
-        {
-            if (newState == null)
+            if (_initialized)
             {
                 return;
             }
 
-            // Target the full pre-battle transition child state
-            if (
-                newState.Name == BrainStateNames.PreBattleTransitionToBattle
-                && newState.Parent != null
-                && newState.Parent.Name == BrainStateNames.Combat
-            )
+            var brain = UnityEngine.Object.FindFirstObjectByType<Brain.Brain>();
+            if (brain != null)
+            {
+                Initialize(brain);
+            }
+        }
+
+        private void OnDestroy() => _brain = null;
+        #endregion
+
+        #region Precompute Control
+        public void ForceStartPrecomputeIfPossible()
+        {
+            if (_precomputeStarted)
+            {
+                return;
+            }
+
+            var context = GetBattleContext();
+            if (!IsContextValid(context))
+            {
+                if (!_forceStartRetryScheduled)
+                {
+                    StartCoroutine(RetryForceStartNextFrame());
+                }
+                return;
+            }
+
+            StartCoroutine(RunPrecomputeTasks());
+        }
+
+        private IEnumerator RetryForceStartNextFrame()
+        {
+            _forceStartRetryScheduled = true;
+            yield return null;
+            _forceStartRetryScheduled = false;
+
+            if (_precomputeStarted)
+            {
+                yield break;
+            }
+
+            var context = GetBattleContext();
+            if (IsContextValid(context))
             {
                 StartCoroutine(RunPrecomputeTasks());
             }
         }
 
+        public void ResetPrecomputeFlag() => _precomputeStarted = false;
+        #endregion
+
+        #region Precompute Tasks
         private IEnumerator RunPrecomputeTasks()
         {
-            // Determine if we have a loading controller to report progress to
-            bool haveLoader = _loadingController != null;
-
-            var battleBrain = _brain?.battleBrain;
-            var context = battleBrain?.BattleObject?.Context;
-
-            if (context == null || context.Participants == null)
+            if (_precomputeStarted)
             {
-                // Nothing to precompute; still advance the flow
-                if (haveLoader)
-                {
-                    _loadingController.Clear();
-                    _loadingController.IncreaseLoadTotalBy(1);
-                    _loadingController.IncrementLoadedAmountBy(1);
-                }
                 yield break;
             }
 
-            var units = context.Participants.GetAllUnits();
-            if (units == null || units.Count == 0)
+            _precomputeStarted = true;
+
+            var context = GetBattleContext();
+            var units = context?.Participants?.GetAllUnits();
+
+            if (!IsContextValid(context))
             {
-                if (haveLoader)
-                {
-                    _loadingController.Clear();
-                    _loadingController.IncreaseLoadTotalBy(1);
-                    _loadingController.IncrementLoadedAmountBy(1);
-                }
+                CompleteWithMinimalProgress();
                 yield break;
             }
 
-            // Build task list: for each unit we will initialize AI helper and compute tiles
-            int tasks = 0;
-            foreach (var u in units)
-            {
-                if (u != null)
-                {
-                    tasks += 2; // AI init + tile compute
-                }
-            }
+            var appearanceBrain = _brain?.unitAppearanceBrain;
+            int taskCount = CalculateTaskCount(units, appearanceBrain);
 
-            if (tasks == 0)
+            if (taskCount == 0)
             {
-                if (haveLoader)
-                {
-                    _loadingController.Clear();
-                    _loadingController.IncreaseLoadTotalBy(1);
-                    _loadingController.IncrementLoadedAmountBy(1);
-                }
+                CompleteWithMinimalProgress();
                 yield break;
             }
 
-            // Configure loading controller
-            if (haveLoader)
-            {
-                _loadingController.Clear();
-                _loadingController.IncreaseLoadTotalBy(tasks);
-            }
+            InitializeLoadingProgress(taskCount);
+            PrecomputeMovementCaches(context.mapGrid);
 
-            // Precompute movement-cost caches for common movement modes to avoid repeated terrain-cost lookups.
-            var map = context.mapGrid;
-            if (map != null)
-            {
-                var modes = new (bool w, bool f, bool r, bool m, bool a)[]
-                {
-                    (true, false, false, false, false), // walking/infantry
-                    (false, true, false, false, false), // flying
-                    (false, false, true, false, false), // riding
-                    (false, false, false, true, false), // magic
-                    (false, false, false, false, true), // armored
-                };
-
-                foreach (var mode in modes)
-                {
-                    var key = MapGrid.MakeMovementModeKey(mode.w, mode.f, mode.r, mode.m, mode.a);
-                    var res = map.BuildMovementCostCache(
-                        key,
-                        mode.w,
-                        mode.f,
-                        mode.r,
-                        mode.m,
-                        mode.a
-                    );
-                    if (!res.Success)
-                    {
-                        TurnrootLogger.Log(
-                            $"BattlePrecomputeLoader: Failed to build movement cost cache for mode {key}: {res.ErrorMessage}",
-                            TurnrootLogger.LogLevel.Warning
-                        );
-                    }
-                }
-            }
-
-            // Iterate units and perform work incrementally to avoid frame freeze
             foreach (var unit in units)
             {
                 if (unit == null)
@@ -162,59 +137,124 @@ namespace Turnroot.Gameplay.Combat.Precompute
                     continue;
                 }
 
-                // 1) Initialize AI helper for unit (may be a light-weight setup)
-                if (context.AIHelper == null)
-                {
-                    TurnrootLogger.Log(
-                        "BattlePrecomputeLoader: AIHelper is null, skipping AI initialization",
-                        TurnrootLogger.LogLevel.Warning
-                    );
-                }
-                else
-                {
-                    var initResult = context.AIHelper.InitializeAIControlledUnit(unit);
-                    if (!initResult.Success)
-                    {
-                        TurnrootLogger.Log(
-                            $"BattlePrecomputeLoader: AI init failed for unit {unit?.Id}: {initResult.ErrorMessage}",
-                            TurnrootLogger.LogLevel.Warning
-                        );
-                    }
-                }
+                yield return ProcessUnit(unit, context, appearanceBrain);
+            }
+        }
 
-                if (haveLoader)
-                {
-                    _loadingController.IncrementLoadedAmountBy(1);
-                }
+        private IEnumerator ProcessUnit(
+            Characters.CharacterInstance unit,
+            FundamentalComponents.Battles.BattleContext context,
+            UnitAppearanceBrain appearanceBrain
+        )
+        {
+            // Initialize AI
+            context.AIHelper?.InitializeAIControlledUnit(unit);
+            IncrementProgress();
+            yield return null;
 
-                // Allow a frame to update UI
-                yield return null;
+            // Precompute pathfinding
+            context.PrecomputePathfindingParameters(unit);
+            IncrementProgress();
+            yield return null;
 
-                // 2) Precompute tiles (force recompute)
-                var tilesOk = context.TryGetValidTilesForUnit(
+            // Spawn model
+            if (appearanceBrain != null)
+            {
+                appearanceBrain.PrecomputeSpawnModelAt(
                     unit,
-                    out var move,
-                    out var attack,
-                    forceRecompute: true
+                    unit.MapGridPosition,
+                    prebattle: false
                 );
-                if (!tilesOk)
-                {
-                    TurnrootLogger.Log(
-                        $"BattlePrecomputeLoader: Tile precompute failed for unit {unit?.Id}",
-                        TurnrootLogger.LogLevel.Warning
-                    );
-                }
-
-                if (haveLoader)
-                {
-                    _loadingController.IncrementLoadedAmountBy(1);
-                }
-
-                // Allow a frame to update UI
+                IncrementProgress();
                 yield return null;
             }
 
-            // All tasks completed; LoadingController will call DynamicSceneFlow.Progress() when loaded amount reaches total
+            // Precompute tiles
+            context.TryGetValidTilesForUnit(unit, out _, out _, forceRecompute: true);
+            IncrementProgress();
+            yield return null;
         }
+
+        private void PrecomputeMovementCaches(MapGrid map)
+        {
+            if (map == null)
+            {
+                return;
+            }
+
+            var modes = new (bool w, bool f, bool r, bool m, bool a)[]
+            {
+                (true, false, false, false, false),
+                (false, true, false, false, false),
+                (false, false, true, false, false),
+                (false, false, false, true, false),
+                (false, false, false, false, true),
+            };
+
+            foreach (var mode in modes)
+            {
+                var key = MapGrid.MakeMovementModeKey(mode.w, mode.f, mode.r, mode.m, mode.a);
+                map.BuildMovementCostCache(key, mode.w, mode.f, mode.r, mode.m, mode.a);
+            }
+        }
+        #endregion
+
+        #region Helper Methods
+        private FundamentalComponents.Battles.BattleContext GetBattleContext() =>
+            _battleContext ?? _brain?.battleBrain?.BattleObject?.Context;
+
+        private bool IsContextValid(FundamentalComponents.Battles.BattleContext context)
+        {
+            var units = context?.Participants?.GetAllUnits();
+            return context != null && units != null && units.Count > 0;
+        }
+
+        private int CalculateTaskCount(
+            System.Collections.Generic.List<Characters.CharacterInstance> units,
+            UnitAppearanceBrain appearanceBrain
+        )
+        {
+            if (units == null)
+            {
+                return 0;
+            }
+
+            int tasksPerUnit = 3; // AI init + pathfinding + tiles
+            if (appearanceBrain != null)
+            {
+                tasksPerUnit++;
+            }
+
+            return units.Count * tasksPerUnit;
+        }
+
+        private void InitializeLoadingProgress(int taskCount)
+        {
+            if (_loadingController == null)
+            {
+                return;
+            }
+
+            _loadingController.Clear();
+            _loadingController.IncreaseLoadTotalBy(taskCount);
+        }
+
+        private void IncrementProgress()
+        {
+            _loadingController?.IncrementLoadedAmountBy(1);
+        }
+
+        private void CompleteWithMinimalProgress()
+        {
+            if (_loadingController == null)
+            {
+                return;
+            }
+
+            _loadingController.Clear();
+            _loadingController.IncreaseLoadTotalBy(1);
+            _loadingController.IncrementLoadedAmountBy(1);
+        }
+        #endregion
     }
 }

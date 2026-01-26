@@ -4,7 +4,6 @@ using Turnroot.Gameplay.PlayerSettings;
 using Turnroot.GameSettings;
 using Turnroot.Utilities;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 namespace Turnroot.Gameplay.Brain.Segments
 {
