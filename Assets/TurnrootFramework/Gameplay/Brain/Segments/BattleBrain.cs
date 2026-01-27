@@ -139,7 +139,8 @@ namespace Turnroot.Gameplay.Brain
 
             TurnrootLogger.Log("BattleBrain: Battle initialization complete");
 
-            // Initialize and start precompute loader now that the BattleContext and participants are ready
+            // Precompute is started from the PreBattleTransitionToBattle scene flow (loading screen active).
+            // Initialize the loader for robustness but do NOT start it here so the flow can coordinate the loading UI.
             var precomputeLoader =
                 FindFirstObjectByType<Combat.Precompute.BattlePrecomputeLoader>();
             if (precomputeLoader != null)
@@ -152,15 +153,11 @@ namespace Turnroot.Gameplay.Brain
                         TurnrootLogger.LogLevel.Warning
                     );
                 }
-                else
-                {
-                    precomputeLoader.ForceStartPrecomputeIfPossible();
-                }
             }
             else
             {
                 TurnrootLogger.Log(
-                    "BattleBrain: No BattlePrecomputeLoader found in scene; skipping precompute",
+                    "BattleBrain: No BattlePrecomputeLoader found in scene; precompute will be skipped if no loader is available",
                     TurnrootLogger.LogLevel.Warning
                 );
             }

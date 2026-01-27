@@ -129,6 +129,8 @@ namespace Turnroot.Gameplay.Combat.Precompute
             }
 
             _precomputeStarted = true;
+            // Ensure loading UI is initialized before adding progress
+            _loadingController?.Initialize();
 
             var context = GetBattleContext();
             var units = context?.Participants?.GetAllUnits();
@@ -141,6 +143,7 @@ namespace Turnroot.Gameplay.Combat.Precompute
                 );
 
                 CompleteWithMinimalProgress();
+                _brain?.PublishPrecomputeCompleted();
                 yield break;
             }
 
@@ -150,6 +153,7 @@ namespace Turnroot.Gameplay.Combat.Precompute
             if (taskCount == 0)
             {
                 CompleteWithMinimalProgress();
+                _brain?.PublishPrecomputeCompleted();
                 yield break;
             }
 
@@ -168,6 +172,8 @@ namespace Turnroot.Gameplay.Combat.Precompute
             }
 
             yield return new WaitForSeconds(timeBetweenOperations);
+
+            _brain?.PublishPrecomputeCompleted();
         }
 
         private IEnumerator ProcessUnit(
@@ -325,6 +331,9 @@ namespace Turnroot.Gameplay.Combat.Precompute
             _loadingController.Clear();
             _loadingController.IncreaseLoadTotalBy(1);
             _loadingController.IncrementLoadedAmountBy(1);
+
+            // Signal completion for flows that are waiting on precompute
+            _brain?.PublishPrecomputeCompleted();
         }
         #endregion
     }

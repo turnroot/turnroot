@@ -155,8 +155,8 @@ namespace Turnroot.Gameplay.Brain
 
         private void UpdateInputCooldown()
         {
-            _cachedInputCooldown = BattleInputSettings.GetInputCooldown();
-            _cachedIsKeyboard = BattleInputSettings.IsKeyboardPreferred();
+            _cachedInputCooldown = InputSettingsHelper.GetInputCooldown();
+            _cachedIsKeyboard = InputSettingsHelper.IsKeyboardPreferred();
         }
 
         private void HandleConfirmInput()

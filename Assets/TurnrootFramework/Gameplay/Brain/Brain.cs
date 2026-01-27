@@ -586,6 +586,11 @@ namespace Turnroot.Gameplay.Brain
 
         public void PublishPreBattleCompleted() => OnPreBattleCompleted?.Invoke();
 
+        // Event: fired when battle precompute has completed (if any)
+        public event Action OnPrecomputeCompleted;
+
+        public void PublishPrecomputeCompleted() => OnPrecomputeCompleted?.Invoke();
+
         public event Action<BattleGameObject> OnBattleObjectSet;
 
         public void PublishBattleObjectSet(BattleGameObject battleObject) =>
