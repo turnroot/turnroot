@@ -77,7 +77,6 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
             CalculateUVParameters();
             EnsureBaseMaterial();
             PrewarmDecalCache();
-            TurnrootLogger.Log("TileHighlighter: Initialized with Brain and MapGrid");
         }
 
         private void OnDestroy() => UnsubscribeFromBrainEvents();
