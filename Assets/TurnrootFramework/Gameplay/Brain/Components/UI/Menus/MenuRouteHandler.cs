@@ -59,14 +59,23 @@ namespace Turnroot.Gameplay.Brain.Segments
             }
             _lastSelectTime = Time.time;
 
+            // Check if we're currently in the pre-battle menu so we only adjust fade speed for pre-battle transitions
             if (item.IsCenter)
             {
-                _brain.SetPreBattleMenuFadeSpeed(_brain.uiSettings.MenuFadeTime);
+                if (_brain.IsInPreBattleMenu())
+                {
+                    _brain.SetPreBattleMenuFadeSpeed(_brain.uiSettings.MenuFadeTime);
+                }
+
                 _brain.HandleStartBattleClick();
                 return;
             }
 
-            _brain.SetPreBattleMenuFadeSpeed(_brain.uiSettings.MenuInternalTransitionTime);
+            // Only adjust internal transition fade when we are originating from the pre-battle menu
+            if (_brain.IsInPreBattleMenu())
+            {
+                _brain.SetPreBattleMenuFadeSpeed(_brain.uiSettings.MenuInternalTransitionTime);
+            }
 
             if (_menuActionRoutes.TryGetValue(item.ItemName, out var action))
             {

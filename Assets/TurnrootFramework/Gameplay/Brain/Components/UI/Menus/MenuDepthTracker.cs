@@ -83,5 +83,12 @@ namespace Turnroot.Gameplay.Brain.Segments
 
             return (currentMenu, previousMenu);
         }
+
+        // Helper to check whether the tracker is currently showing the provided menu
+        public bool IsInMenu(MenuLocation menu) => CurrentMenu == menu;
+
+        // Convenience: check whether we're currently in the pre-battle menu (via settings)
+        public bool IsInPreBattleMenu(GamewideUiSettings settings) =>
+            CurrentMenu == settings?.GetPreBattleMenu();
     }
 }

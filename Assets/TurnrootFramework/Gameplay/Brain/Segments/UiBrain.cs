@@ -74,6 +74,11 @@ namespace Turnroot.Gameplay.Brain.Segments
 
         internal MenuTransitionManager GetTransitionManager() => _transitionManager;
 
+        // Convenience wrappers for common menu checks
+        public bool IsInMenu(MenuLocation menu) => _menuTracker?.IsInMenu(menu) ?? false;
+
+        public bool IsInPreBattleMenu() => _menuTracker?.IsInPreBattleMenu(uiSettings) ?? false;
+
         #endregion
 
         #region Unity Lifecycle and Initialization

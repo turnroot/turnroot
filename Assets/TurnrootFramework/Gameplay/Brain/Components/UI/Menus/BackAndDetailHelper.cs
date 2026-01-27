@@ -53,7 +53,7 @@ namespace Turnroot.Gameplay.Brain.Segments
             var preBattleMenu = uiSettings?.GetPreBattleMenu();
             if (
                 preBattleMenu?.activeInstance != null
-                && _menuTracker?.CurrentMenu == preBattleMenu
+                && IsInPreBattleMenu()
                 && preBattleMenu.style == MenuStyle.Pie
             )
             {
@@ -190,7 +190,6 @@ namespace Turnroot.Gameplay.Brain.Segments
                 TurnrootLogger.Log(
                     $"UiBrain: Subscribed {role} handler on {chosen.gameObject.name}."
                 );
-                chosen.OnSelected -= handler;
             }
         }
 
