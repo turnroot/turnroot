@@ -153,11 +153,11 @@ namespace Turnroot.GameSettings
         [BoxGroup("General Gameplay"), InfoBox("If true, weapons have a set number of uses")]
         public bool WeaponsHaveDurability;
 
-        public bool GetWeaponsCanBeForged() => WeaponsCanBeForged;
-
-        public bool GetWeaponsCanBeRepaired() => WeaponsCanBeRepaired;
-
-        public bool GetWeaponsHaveDurability() => WeaponsHaveDurability;
+        [
+            BoxGroup("General Gameplay"),
+            InfoBox("If true, units can attack even when unarmed. Maximum range will be 1.")
+        ]
+        public bool UnitCanAttackWithoutWeapons;
 
         [BoxGroup("General Gameplay")]
         public bool UseExperienceAptitudes;

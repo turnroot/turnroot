@@ -105,10 +105,7 @@ namespace Turnroot.Gameplay.Brain
             InitializeBattleChildStates();
         }
 
-        protected override void SubscribeToBrainEvents()
-        {
-            _brain.OnPreBattleCompleted += HandlePreBattleCompleted;
-        }
+        protected override void SubscribeToBrainEvents() => _brain.OnPreBattleCompleted += HandlePreBattleCompleted;
 
         public void HandlePreBattleTransitionToBattleCompleted() =>
             ActivateChildState(BrainStateNames.Battle);

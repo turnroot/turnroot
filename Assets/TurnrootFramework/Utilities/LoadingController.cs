@@ -13,7 +13,7 @@ namespace Turnroot.Gameplay.Brain
         private int LoadedAmount { get; set; } = 0;
         private int TotalToLoad { get; set; } = 0;
         protected int LoadingPercentage =>
-            TotalToLoad == 0 ? 100 : (int)((float)LoadedAmount / TotalToLoad * 100);
+            TotalToLoad == 0 ? 0 : (int)((float)LoadedAmount / TotalToLoad * 100);
 
         public event Action<float> OnProgressChanged;
 
@@ -24,10 +24,9 @@ namespace Turnroot.Gameplay.Brain
         private void ReportProgress()
         {
             var flow = GetDynamicSceneFlow();
-            flow?.ReportLoadingProgress(LoadingPercentage);
-            OnProgressChanged?.Invoke(LoadingPercentage / 100f);
-
-            // Force canvas update to ensure visual feedback
+            float normalized = TotalToLoad == 0 ? 0f : (float)LoadedAmount / TotalToLoad;
+            flow?.ReportLoadingProgress(normalized);
+            OnProgressChanged?.Invoke(normalized);
             Canvas.ForceUpdateCanvases();
         }
 

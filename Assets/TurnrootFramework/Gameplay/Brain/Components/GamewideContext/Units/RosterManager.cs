@@ -212,7 +212,6 @@ namespace Turnroot.Gameplay.Brain
                 {
                     characters.Add(character);
 
-                    // Persist unique characters explicitly (factory no longer auto-saves)
                     if (character.CharacterTemplate?.IsUnique == true)
                     {
                         _characterPersistence.SaveCharacter(character, updateIndex: true);
@@ -221,9 +220,6 @@ namespace Turnroot.Gameplay.Brain
             }
 
             instance.AddInstances(characters);
-            TurnrootLogger.Log(
-                $"Populated '{instance.name}' with {characters.Count} player characters"
-            );
         }
 
         /// <summary>

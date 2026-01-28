@@ -194,14 +194,11 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             // Update battle context to reflect the new active unit
             var result = SetActiveUnitInContext(activeUnit);
 
-            if (!result.Success)
-            {
-                return OperationResult.Failure(
+            return !result.Success
+                ? OperationResult.Failure(
                     $"TurnRotisserie: Failed to activate {activeUnit.CharacterTemplate.DisplayName}: {result.ErrorMessage}"
-                );
-            }
-
-            return OperationResult.Successful();
+                )
+                : OperationResult.Successful();
         }
 
         private bool ProgressToNextPhase()
@@ -255,7 +252,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         /// <summary>
         /// Sets the active unit in BattleContext.
         /// BattleContext.Participants is already populated by BattleBrain during init,
-        /// so we just update the active unit reference and adjacency.
+        /// so we just update the active unit reference and adjacency
         /// </summary>
         private OperationResult SetActiveUnitInContext(CharacterInstance activeUnit)
         {
@@ -264,19 +261,20 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 return OperationResult.Failure("BattleContext is null");
             }
 
+            // If the active unit is already set to the requested unit, skip to avoid duplicate activation flows
+            if (Context.Unit?.UnitInstance == activeUnit)
+            {
+                return OperationResult.Successful();
+            }
+
             TurnrootLogger.Log(
                 $"TurnRotisserie: Setting active unit to {activeUnit.CharacterTemplate.DisplayName}"
             );
 
             try
             {
-                // Set the active unit
                 Context.Unit.UnitInstance = activeUnit;
-
-                // Update adjacency for the active unit
                 Context.Participants.AdjacentUnits = new Locations.Adjacency(activeUnit);
-
-                // Publish activation event if this is a player-controlled unit
                 if (_currentTurnOrder is TurnOrder.PlayerStart or TurnOrder.PlayerEnd)
                 {
                     Brain?.PublishPlayerControlledUnitActivated(activeUnit);

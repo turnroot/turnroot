@@ -47,14 +47,11 @@ namespace Turnroot.Characters
             }
 
             var missing = required.Except(existing).ToList();
-            if (missing.Any())
-            {
-                return OperationResult.Failure(
+            return missing.Any()
+                ? OperationResult.Failure(
                     $"CharacterInstance.ValidateRuntimeStatsComplete: missing {statKind} stats {string.Join(", ", missing)} for {Id}"
-                );
-            }
-
-            return OperationResult.Successful();
+                )
+                : OperationResult.Successful();
         }
 
         private void RepairMissingStats()

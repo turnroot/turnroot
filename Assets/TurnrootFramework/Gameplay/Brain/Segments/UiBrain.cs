@@ -175,9 +175,10 @@ namespace Turnroot.Gameplay.Brain.Segments
             }
             catch (System.Exception ex)
             {
-#if UNITY_EDITOR
-                Debug.LogError($"UiBrain: Error rebinding inputs: {ex.Message}");
-#endif
+                TurnrootLogger.Log(
+                    $"UiBrain: Error rebinding inputs: {ex.Message}",
+                    TurnrootLogger.LogLevel.Error
+                );
             }
         }
 
@@ -314,11 +315,6 @@ namespace Turnroot.Gameplay.Brain.Segments
             {
                 if (!_currentDetailsCanvasPrefab.activeInHierarchy)
                 {
-#if UNITY_EDITOR
-                    Debug.Log(
-                        $"UiBrain: Reactivating details canvas '{_currentDetailsCanvasPrefab.name}' on positioning mode exit."
-                    );
-#endif
                     _currentDetailsCanvasPrefab.SetActive(true);
                 }
 

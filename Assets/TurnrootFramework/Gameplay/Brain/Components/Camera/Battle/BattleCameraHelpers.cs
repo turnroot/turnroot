@@ -311,10 +311,6 @@ namespace Turnroot.Gameplay.Brain.Segments
                 return Vector2Int.zero;
             }
 
-            TurnrootLogger.Log(
-                $"[CAMERA] SetCameraNeutralCenter: Found closest grid point {closestPoint.CoordinatesInt} at distance {closestDistance}"
-            );
-
             return closestPoint.CoordinatesInt;
         }
 

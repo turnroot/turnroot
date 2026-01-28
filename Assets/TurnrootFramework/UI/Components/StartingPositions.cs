@@ -22,6 +22,7 @@ namespace Turnroot.UI.Components
         private Dictionary<Vector2Int, GameObject> _unitModels = new();
         private BattlePreparationObject _prepObject;
         private bool _replaced = false;
+        private bool _gridPointsEnsured = false;
 
         public OperationResult Initialize(BattlePreparationObject battlePrep)
         {
@@ -56,7 +57,11 @@ namespace Turnroot.UI.Components
 
         private void SetupProjectors(List<Vector2Int> positions)
         {
-            _mapGrid?.EnsureGridPoints();
+            if (!_gridPointsEnsured)
+            {
+                _mapGrid?.EnsureGridPoints();
+                _gridPointsEnsured = true;
+            }
 
             for (int i = 0; i < positions.Count; i++)
             {
@@ -92,8 +97,6 @@ namespace Turnroot.UI.Components
         {
             if (_prepObject.Brain == null)
             {
-                // If the preparation object hasn't yet been initialized with a Brain,
-                // subscribe to the Brain's prep-initialized event so we can react when it's ready.
                 var anyBrain = FindFirstObjectByType<Brain>();
                 if (anyBrain != null)
                 {
@@ -108,7 +111,6 @@ namespace Turnroot.UI.Components
 
         private void UnsubscribeFromEvents()
         {
-            // Remove any Brain-level subscription waiting for prep initialization.
             var anyBrain = FindFirstObjectByType<Brain>();
             if (anyBrain != null)
             {
@@ -203,8 +205,11 @@ namespace Turnroot.UI.Components
                 return;
             }
 
-            // Ensure grid points are ready so spawned models get correct world positions
-            _mapGrid?.EnsureGridPoints();
+            if (!_gridPointsEnsured)
+            {
+                _mapGrid?.EnsureGridPoints();
+                _gridPointsEnsured = true;
+            }
 
             CleanupOrphanedModels();
             DespawnExistingModels();
@@ -286,12 +291,11 @@ namespace Turnroot.UI.Components
         }
 
         private Coroutine _spawnDebounceCoroutine;
-        private readonly float _spawnDebounceSeconds = 0.06f; // small debounce window to coalesce rapid placement events
+        private readonly float _spawnDebounceSeconds = 0.06f;
 
         private void HandlePlacementsInitialized()
         {
-            // Debounce multiple rapid placements-initialized events so we only spawn
-            // models once placements have stabilized (avoids intermediate partial spawns).
+            // Debounce multiple rapid placements-initialized events
             if (_spawnDebounceCoroutine != null)
             {
                 StopCoroutine(_spawnDebounceCoroutine);
@@ -315,8 +319,7 @@ namespace Turnroot.UI.Components
 
         private void HandleUnitSelectionChanged(CharacterInstance unit, bool selected) =>
             // Recompute placements only. SpawnAllUnitModels will be called from
-            // HandlePlacementsInitialized once placements are stable to avoid
-            // intermediate partial spawns.
+            // HandlePlacementsInitialized once placements are stable
             _prepObject.InitializePlacements();
 
         private void HandleBrainPrepInitialized(BattlePreparationObject prep)

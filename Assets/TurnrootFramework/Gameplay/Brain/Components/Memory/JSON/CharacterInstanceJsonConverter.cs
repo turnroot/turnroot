@@ -25,8 +25,16 @@ namespace Turnroot.Gameplay.Brain.Components
             public const string RuntimeBoundedStats = "_runtimeBoundedStats";
             public const string RuntimeUnboundedStats = "_runtimeUnboundedStats";
             public const string InventoryInstance = "_inventoryInstance";
-            public const string SkillInstances = "_skillInstances";
-            public const string SupportRelationships = "_supportRelationships";
+            public const string SkillInstances = "_skill_instances";
+            public const string SupportRelationships = "_support_relationships";
+
+            // Additional persistent fields
+            public const string ExperienceRanks = "_experienceRanks";
+            public const string CurrentClass = "_currentClass";
+            public const string EquippedClassHistory = "_equippedClassHistory";
+            public const string ActiveStatusEffects = "_activeStatusEffects";
+            public const string MapGridPosition = "_mapGridPosition";
+            public const string UseBattleModel = "_useBattleModel";
         }
 
         public override bool CanConvert(Type objectType) =>
@@ -52,41 +60,76 @@ namespace Turnroot.Gameplay.Brain.Components
             JsonSerializer serializer
         )
         {
-            var token = new JObject
-            {
-                [FieldNames.Id] = instance.Id,
-                [FieldNames.CharacterTemplate] = CreateTemplateToken(instance.CharacterTemplate),
-                [FieldNames.CurrentLevel] = JToken.FromObject(instance.CurrentLevel, serializer),
-                [FieldNames.CurrentExp] = JToken.FromObject(instance.CurrentExp, serializer),
-                [FieldNames.RuntimeBoundedStats] = JToken.FromObject(
-                    instance.RuntimeBoundedStats,
-                    serializer
-                ),
-                [FieldNames.RuntimeUnboundedStats] = JToken.FromObject(
-                    instance.RuntimeUnboundedStats,
-                    serializer
-                ),
-                [FieldNames.InventoryInstance] = JToken.FromObject(
-                    instance.InventoryInstance,
-                    serializer
-                ),
-                [FieldNames.SkillInstances] = JToken.FromObject(
-                    instance.SkillInstances,
-                    serializer
-                ),
-            };
+            var token = new JObject();
+
+            token[FieldNames.Id] = instance.Id;
+
+            var templateToken = CreateTemplateToken(instance.CharacterTemplate);
+            token[FieldNames.CharacterTemplate] =
+                templateToken != null ? (JToken)templateToken : JValue.CreateNull();
+
+            token[FieldNames.CurrentLevel] = JToken.FromObject(instance.CurrentLevel, serializer);
+            token[FieldNames.CurrentExp] = JToken.FromObject(instance.CurrentExp, serializer);
+
+            token[FieldNames.RuntimeBoundedStats] =
+                instance.RuntimeBoundedStats != null
+                    ? JToken.FromObject(instance.RuntimeBoundedStats, serializer)
+                    : JValue.CreateNull();
+
+            token[FieldNames.RuntimeUnboundedStats] =
+                instance.RuntimeUnboundedStats != null
+                    ? JToken.FromObject(instance.RuntimeUnboundedStats, serializer)
+                    : JValue.CreateNull();
+
+            token[FieldNames.InventoryInstance] =
+                instance.InventoryInstance != null
+                    ? JToken.FromObject(instance.InventoryInstance, serializer)
+                    : JValue.CreateNull();
+
+            token[FieldNames.SkillInstances] =
+                instance.SkillInstances != null
+                    ? JToken.FromObject(instance.SkillInstances, serializer)
+                    : JValue.CreateNull();
+
+            // Persist additional fields
+            token[FieldNames.ExperienceRanks] =
+                instance.ExperienceRanks != null
+                    ? JToken.FromObject(instance.ExperienceRanks, serializer)
+                    : JValue.CreateNull();
+
+            token[FieldNames.CurrentClass] =
+                instance.CurrentClass != null
+                    ? JToken.FromObject(instance.CurrentClass, serializer)
+                    : JValue.CreateNull();
+
+            token[FieldNames.EquippedClassHistory] =
+                instance._equippedClassHistory != null
+                    ? JToken.FromObject(instance._equippedClassHistory, serializer)
+                    : JValue.CreateNull();
+
+            token[FieldNames.ActiveStatusEffects] =
+                instance.ActiveStatusEffects != null
+                    ? JToken.FromObject(instance.ActiveStatusEffects, serializer)
+                    : JValue.CreateNull();
+
+            token[FieldNames.MapGridPosition] = JToken.FromObject(
+                instance.MapGridPosition,
+                serializer
+            );
+
+            token[FieldNames.UseBattleModel] = JToken.FromObject(
+                instance.UseBattleModel,
+                serializer
+            );
 
             var supportRelationships = GetPrivateFieldValue(
                 instance,
                 FieldNames.SupportRelationships
             );
-            if (supportRelationships != null)
-            {
-                token[FieldNames.SupportRelationships] = JToken.FromObject(
-                    supportRelationships,
-                    serializer
-                );
-            }
+            token[FieldNames.SupportRelationships] =
+                supportRelationships != null
+                    ? JToken.FromObject(supportRelationships, serializer)
+                    : JValue.CreateNull();
 
             return token;
         }
@@ -245,6 +288,50 @@ namespace Turnroot.Gameplay.Brain.Components
                 token,
                 FieldNames.SupportRelationships,
                 "SupportRelationships",
+                serializer
+            );
+
+            // Additional persistent fields
+            SetFieldFromToken(
+                instance,
+                token,
+                FieldNames.ExperienceRanks,
+                "ExperienceRanks",
+                serializer
+            );
+
+            SetFieldFromToken(instance, token, FieldNames.CurrentClass, "CurrentClass", serializer);
+
+            SetFieldFromToken(
+                instance,
+                token,
+                FieldNames.EquippedClassHistory,
+                "EquippedClassHistory",
+                serializer
+            );
+
+            SetFieldFromToken(
+                instance,
+                token,
+                FieldNames.ActiveStatusEffects,
+                "ActiveStatusEffects",
+                serializer
+            );
+
+            // Map position and flags
+            SetFieldFromToken(
+                instance,
+                token,
+                FieldNames.MapGridPosition,
+                "MapGridPosition",
+                serializer
+            );
+
+            SetFieldFromToken(
+                instance,
+                token,
+                FieldNames.UseBattleModel,
+                "UseBattleModel",
                 serializer
             );
         }

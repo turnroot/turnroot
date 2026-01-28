@@ -11,7 +11,6 @@ namespace Turnroot.Gameplay.Brain
         /// </summary>
         public Characters.CharacterInstance GetUnitAtCursor()
         {
-            TurnrootLogger.Log("CursorBrain: Getting unit at cursor position");
             if (CursorPosition == null)
             {
                 return null;

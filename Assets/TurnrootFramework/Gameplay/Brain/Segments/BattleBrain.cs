@@ -162,6 +162,28 @@ namespace Turnroot.Gameplay.Brain
                 );
             }
 
+            // If the saved roster didn't include multi-turn placements (LastSavedBattleTurn <= 1),
+            // persist the current pre-battle placements as the canonical first-turn placements.
+            try
+            {
+                var gw = _brain?.gamewideContextBrain;
+                if (gw != null)
+                {
+                    int lastSaved = gw.GetSavedPlayerRosterLastBattleTurn();
+                    if (lastSaved <= 1)
+                    {
+                        gw.SavePlayerRoster(lastSavedBattleTurn: 1);
+                    }
+                }
+            }
+            catch (System.Exception ex)
+            {
+                TurnrootLogger.Log(
+                    $"BattleBrain: Failed to persist first-turn placements: {ex.Message}",
+                    TurnrootLogger.LogLevel.Warning
+                );
+            }
+
             ProgressTurnOrder();
 
             // Ensure PlayerTurnFlow enters its initial state at battle start

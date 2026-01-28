@@ -17,10 +17,6 @@ namespace Turnroot.Gameplay.Brain
 
         private void HandlePlayerTurnStateChanged(PlayerTurnStates newState)
         {
-            TurnrootLogger.Log(
-                $"BattleInputControllerBrain notes that Player turn state changed to {newState}"
-            );
-
             switch (newState)
             {
                 case PlayerTurnStates.NoUnitSelected:
@@ -209,10 +205,6 @@ namespace Turnroot.Gameplay.Brain
 
         public void ChangeSelectedUnit(CharacterInstance unit)
         {
-            TurnrootLogger.Log(
-                $"ChangeSelectedUnit: called for unit {unit?.CharacterTemplate?.DisplayName}"
-            );
-            // Validate inputs and context
             if (unit == null || BattleContext == null)
             {
                 TurnrootLogger.Log(
@@ -247,7 +239,6 @@ namespace Turnroot.Gameplay.Brain
 
             // Recompute valid tiles for input handling and update visuals
             var res = ComputeValidTiles(unit);
-            TurnrootLogger.Log($"ChangeSelectedUnit: ComputeValidTiles result: {res.Success}");
 
             TurnrootLogger.Log(
                 $"ChangeSelectedUnit: Valid move tiles count: {_validMoveTiles?.Count ?? 0}, attack tiles count: {_validAttackTiles?.Count ?? 0}"

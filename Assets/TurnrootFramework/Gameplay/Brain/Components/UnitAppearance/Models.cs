@@ -29,10 +29,11 @@ namespace Turnroot.Gameplay.Brain
         private SkinnedMeshRenderer CreateHairMesh(CharacterInstance unit, GameObject parent)
         {
             var classInst = unit.GetCurrentClass();
-            // Always use unit hair for non-battle models; when using the battle model respect the class flag
+            // Always use unit hair for non-battle models; when using the battle model respect the class flags
             var useHair =
                 !unit.UseBattleModel
                 || classInst?.ClassData == null
+                || !classInst.ClassData.HasOutfit
                 || classInst.ClassData.UseUnitHairOnModel;
             if (!useHair)
             {
@@ -58,31 +59,36 @@ namespace Turnroot.Gameplay.Brain
             if (unit.UseBattleModel)
             {
                 var classInst = unit.GetCurrentClass();
-                var prefab = classInst?.ClassData?.Identity?.ClassModelPrefab;
-                if (prefab != null)
+                // Respect class HasOutfit flag: if the class explicitly does not supply an outfit,
+                // fall through to per-character default non-battle outfit behavior.
+                if (classInst?.ClassData != null && classInst.ClassData.HasOutfit)
                 {
-                    var obj = Instantiate(prefab, parent.transform);
-                    obj.name = "ClassOutfit";
-                    var smr = obj.GetComponentInChildren<SkinnedMeshRenderer>(true);
-                    if (smr != null)
+                    var prefab = classInst.ClassData.Identity?.ClassModelPrefab;
+                    if (prefab != null)
                     {
-                        TurnrootLogger.Log(
-                            $"CreateOutfitMesh: Using class outfit prefab for {unit.CharacterTemplate?.DisplayName}"
-                        );
-                        return smr;
-                    }
-                    else
-                    {
-                        TurnrootLogger.Log(
-                            $"CreateOutfitMesh: Class outfit prefab '{prefab.name}' is missing a SkinnedMeshRenderer. Falling back to NonBattleOutfitPrefab for {unit.CharacterTemplate?.DisplayName}",
-                            TurnrootLogger.LogLevel.Warning
-                        );
-                        try
+                        var obj = Instantiate(prefab, parent.transform);
+                        obj.name = "ClassOutfit";
+                        var smr = obj.GetComponentInChildren<SkinnedMeshRenderer>(true);
+                        if (smr != null)
                         {
-                            Destroy(obj);
+                            TurnrootLogger.Log(
+                                $"CreateOutfitMesh: Using class outfit prefab for {unit.CharacterTemplate?.DisplayName}"
+                            );
+                            return smr;
                         }
-                        catch { }
-                        // Fall through to non-battle fallback below
+                        else
+                        {
+                            TurnrootLogger.Log(
+                                $"CreateOutfitMesh: Class outfit prefab '{prefab.name}' is missing a SkinnedMeshRenderer. Falling back to NonBattleOutfitPrefab for {unit.CharacterTemplate?.DisplayName}",
+                                TurnrootLogger.LogLevel.Warning
+                            );
+                            try
+                            {
+                                Destroy(obj);
+                            }
+                            catch { }
+                            // Fall through to non-battle fallback below
+                        }
                     }
                 }
             }

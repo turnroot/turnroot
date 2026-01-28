@@ -38,6 +38,12 @@ namespace Turnroot.Characters.CharacterClass
         [Tooltip("If true, attach per-character hair model")]
         public bool UseUnitHairOnModel = true;
 
+        [Foldout("Identity")]
+        [Tooltip(
+            "If true, this class provides its own outfit prefab and materials. If false, units will use their per-character default outfit and materials."
+        )]
+        public bool HasOutfit = true;
+
         [Foldout("Stats"), HorizontalLine(color: EColor.Orange)]
         [Tooltip("Stat minimums, caps, bonuses, and growth rates")]
         public ClassStats Stats = new();

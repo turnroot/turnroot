@@ -195,12 +195,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             }
 
             var targetWeapon = target.GetEquippedWeapon();
-            if (targetWeapon?.Template == null)
-            {
-                return false;
-            }
-
-            return targetWeapon.Template.UpperRange >= attackerWeapon.Template.LowerRange;
+            return targetWeapon?.Template == null ? false : targetWeapon.Template.UpperRange >= attackerWeapon.Template.LowerRange;
         }
         #endregion
 

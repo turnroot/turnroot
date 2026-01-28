@@ -31,10 +31,6 @@ namespace Turnroot.Gameplay.Brain
             _currentPositionIndex = -1;
             _currentContext = CursorContext.None;
             CursorPosition = null;
-
-#if UNITY_EDITOR
-            Debug.Log("CursorBrain: Cursor cleaned up");
-#endif
         }
 
         #endregion

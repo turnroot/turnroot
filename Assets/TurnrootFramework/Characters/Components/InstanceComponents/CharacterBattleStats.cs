@@ -11,14 +11,12 @@ namespace Turnroot.Characters
     {
         #region Battle Statistics
 
-        // Persistent stats (saved to LTM for unique characters)
-        [SerializeField]
+        [NonSerialized]
         private int _totalKills = 0;
 
-        [SerializeField]
+        [NonSerialized]
         private int _totalBattles = 0;
 
-        // Transient stats (reset each battle, not serialized)
         [NonSerialized]
         private int _turnsAliveThisBattle = 0;
 
@@ -30,16 +28,11 @@ namespace Turnroot.Characters
         public int TurnsAliveThisBattle => _turnsAliveThisBattle;
         public int CombatsThisTurn => _combatsThisTurn;
 
+        [field: NonSerialized]
         public CharacterInstance LastAttacker { get; private set; }
 
-        /// <summary>
-        /// Set the last attacker for this character for the current battle.
-        /// </summary>
         internal void SetLastAttacker(CharacterInstance attacker) => LastAttacker = attacker;
 
-        /// <summary>
-        /// Clear the per-battle last attacker record.
-        /// </summary>
         internal void ClearLastAttacker() => LastAttacker = null;
 
         public enum BattleEmotion
@@ -51,6 +44,7 @@ namespace Turnroot.Characters
             Cautious,
         }
 
+        [field: NonSerialized]
         public BattleEmotion CurrentEmotion { get; set; } = BattleEmotion.Neutral;
 
         public bool LastTurnCollectedTreasure { get; private set; }

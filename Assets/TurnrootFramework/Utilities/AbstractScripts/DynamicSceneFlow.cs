@@ -26,14 +26,11 @@ namespace Turnroot.Utilities.AbstractScripts
         [HideInInspector]
         public LoadingController loadingController;
 
-        public UnityEvent<int> OnLoadedAmountChanged = new();
-        public event Action<int> OnLoadedAmountChangedAction;
+        // Progress (0..1) for UI elements that expect normalized values
+        public UnityEvent<float> OnLoadedAmountChanged = new();
+        public event Action<float> OnLoadedAmountChangedAction;
 
         public UnityEvent StartPreLoading = new();
-
-        // Float-based progress (0..1) for UI elements that expect normalized values
-        public UnityEvent<float> OnLoadedAmountChangedFloat = new();
-        public event Action<float> OnLoadedAmountChangedActionFloat;
 
         private int Index
         {
@@ -73,12 +70,7 @@ namespace Turnroot.Utilities.AbstractScripts
             brain.OnPrecomputeCompleted -= HandlePrecomputeCompleted;
         }
 
-        private void HandlePrecomputeCompleted()
-        {
-            Debug.Log($"[FLOW] T={Time.time:F2} Precompute completed (event)");
-            // When precompute completes, advance the state transition into Battle
-            HandlePreBattleTransitionToBattleCompleted();
-        }
+        private void HandlePrecomputeCompleted() => HandlePreBattleTransitionToBattleCompleted();
 
         private void SubscribeToLoadingController()
         {
@@ -96,26 +88,14 @@ namespace Turnroot.Utilities.AbstractScripts
             }
         }
 
-        private void HandleLoadingProgressChanged(float percentage)
-        {
-            int percentInt = Mathf.RoundToInt(percentage * 100f);
-            ReportLoadingProgress(percentInt);
-            // Also report normalized float progress for UIs expecting 0..1
+        private void HandleLoadingProgressChanged(float percentage) =>
             ReportLoadingProgress(percentage);
-        }
         #endregion
 
-        public void ReportLoadingProgress(int percentage)
+        public void ReportLoadingProgress(float percentage)
         {
             OnLoadedAmountChanged?.Invoke(percentage);
             OnLoadedAmountChangedAction?.Invoke(percentage);
-        }
-
-        // Report normalized progress (0..1) to listeners that expect floats
-        public void ReportLoadingProgress(float percentage)
-        {
-            OnLoadedAmountChangedFloat?.Invoke(percentage);
-            OnLoadedAmountChangedActionFloat?.Invoke(percentage);
         }
 
         private void StartScene()
@@ -152,18 +132,12 @@ namespace Turnroot.Utilities.AbstractScripts
         {
             if (newState != null)
             {
-                Debug.Log($"[FLOW] T={Time.time:F2} State changed to: {newState.Name}");
                 ActivateSegmentByState(newState);
             }
         }
 
         public void ActivateSegmentByState(BrainState state)
         {
-            if (state == null)
-            {
-                return;
-            }
-
             string fullStatePath = state.GetFullPath() ?? "";
             int foundIndex = segments.FindIndex(s => s.stateId == fullStatePath);
 
@@ -197,23 +171,17 @@ namespace Turnroot.Utilities.AbstractScripts
             {
                 CurrentSegment?.onSegmentReached?.Invoke();
 
-                // If we've entered the PreBattleTransitionToBattle segment, ensure the loading UI
-                // is active and start the battle precompute if available.
                 if (
                     CurrentSegment?.stateId != null
                     && CurrentSegment.stateId.Contains(BrainStateNames.PreBattleTransitionToBattle)
                 )
                 {
-                    Debug.Log(
-                        $"[FLOW] T={Time.time:F2} Entered PreBattleTransitionToBattle - starting precompute and ensuring loading UI"
-                    );
-
                     StartPreLoading.Invoke();
 
                     loadingController?.Initialize();
 
                     var loader =
-                        FindFirstObjectByType<Turnroot.Gameplay.Combat.Precompute.BattlePrecomputeLoader>();
+                        FindFirstObjectByType<Gameplay.Combat.Precompute.BattlePrecomputeLoader>();
                     if (loader != null)
                     {
                         var initRes = loader.Initialize(
@@ -226,7 +194,6 @@ namespace Turnroot.Utilities.AbstractScripts
                                 $"DynamicSceneFlow: BattlePrecomputeLoader.Initialize failed: {initRes.ErrorMessage}",
                                 TurnrootLogger.LogLevel.Warning
                             );
-                            // If we can't initialize the loader, move on immediately
                             HandlePreBattleTransitionToBattleCompleted();
                         }
                         else
@@ -236,10 +203,6 @@ namespace Turnroot.Utilities.AbstractScripts
                     }
                     else
                     {
-                        Debug.Log(
-                            $"[FLOW] T={Time.time:F2} No BattlePrecomputeLoader found in scene; skipping precompute"
-                        );
-                        // No loader present, continue immediately
                         HandlePreBattleTransitionToBattleCompleted();
                     }
                 }

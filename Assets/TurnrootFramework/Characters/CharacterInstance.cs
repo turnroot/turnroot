@@ -26,58 +26,58 @@ namespace Turnroot.Characters
     public partial class CharacterInstance : Serialization.IPostDeserialize, IHasStats
     {
         #region Serialized Fields
-        [SerializeField]
+        [NonSerialized]
         private Vector2Int _mapGridPosition;
 
-        [SerializeField]
+        [NonSerialized]
         private bool _isDefeatedInCurrentBattle = false;
 
-        [SerializeField]
+        [NonSerialized]
         private bool _wasSpawnedDuringBattle = false;
 
-        [SerializeField]
+        [NonSerialized]
         private string _id;
 
-        [SerializeField]
+        [NonSerialized]
         private CharacterData _characterTemplate;
 
-        [SerializeField]
+        [NonSerialized]
         private SkinnedMeshRenderer _meshRenderer;
 
-        [SerializeField]
+        [NonSerialized]
         private bool _useBattleModel = true;
 
-        [SerializeField]
+        [NonSerialized]
         private int _currentLevel = 1;
 
-        [SerializeField]
+        [NonSerialized]
         private int _currentExp = 0;
 
-        [SerializeField]
+        [NonSerialized]
         private List<BoundedCharacterStat> _runtimeBoundedStats = new();
 
-        [SerializeField]
+        [NonSerialized]
         private List<CharacterStat> _runtimeUnboundedStats = new();
 
-        [SerializeField]
+        [NonSerialized]
         private CharacterInventoryInstance _inventoryInstance;
 
-        [SerializeField]
+        [NonSerialized]
         private List<SkillInstance> _skillInstances = new();
 
-        [SerializeField]
+        [NonSerialized]
         private List<SupportRelationshipInstance> _supportRelationships = new();
 
-        [SerializeField]
+        [NonSerialized]
         private List<ExperienceRankInstance> _experienceRanks = new();
 
-        [SerializeField]
+        [NonSerialized]
         private CharacterClassDataInstance _currentClass;
 
-        [SerializeField]
-        private List<CharacterClassData> _equippedClassHistory = new();
+        [NonSerialized]
+        public List<CharacterClassData> _equippedClassHistory = new();
 
-        [SerializeField]
+        [NonSerialized]
         private List<StatusEffectInstance> _activeStatusEffects = new();
         #endregion
 

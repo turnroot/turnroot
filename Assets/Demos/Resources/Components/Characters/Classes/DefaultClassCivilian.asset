@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: db6d61028ed4880459dd1b4e943e6f66, type: 3}
-  m_Name: DefaultClass
+  m_Name: DefaultClassCivilian
   m_EditorClassIdentifier: Assembly-CSharp::Turnroot.Characters.CharacterClass.CharacterClassData
   _cachedClassSelectionMode: 1
   Identity:
@@ -28,6 +28,7 @@ MonoBehaviour:
     IsUnique: 0
     MovementType: 0
   UseUnitHairOnModel: 1
+  HasOutfit: 0
   Stats:
     StatMinimums:
     - boundedStatType: 0
