@@ -1,6 +1,7 @@
 using System.Collections;
 using Turnroot.Gameplay.Brain;
 using Turnroot.Gameplay.Maps;
+using Turnroot.GameSettings;
 using Turnroot.Utilities;
 using UnityEngine;
 
@@ -19,7 +20,6 @@ namespace Turnroot.Gameplay.Combat.Precompute
         private bool _precomputeStarted = false;
         private bool _forceStartRetryScheduled = false;
 
-        // Control frame pacing for smooth loading bar progression
         [SerializeField]
         private float timeBetweenOperations = 0.1f;
 
@@ -49,7 +49,6 @@ namespace Turnroot.Gameplay.Combat.Precompute
                 return;
             }
 
-            // Attempt auto-initialize using the scene Brain if available
             var brain = FindFirstObjectByType<Brain.Brain>();
             if (brain != null)
             {
@@ -68,10 +67,6 @@ namespace Turnroot.Gameplay.Combat.Precompute
         #endregion
 
         #region Precompute Control
-        /// <summary>
-        /// Attempts to start precompute if battle context is ready.
-        /// If not ready, schedules a retry on the next frame.
-        /// </summary>
         public void ForceStartPrecomputeIfPossible()
         {
             if (_precomputeStarted)
@@ -148,6 +143,13 @@ namespace Turnroot.Gameplay.Combat.Precompute
             }
 
             var appearanceBrain = _brain?.unitAppearanceBrain;
+
+            // Only precompute units that have actually been spawned/selected for this battle.
+            // This avoids wasting work on roster members that were not placed for this fight.
+            units =
+                units?.FindAll(u => u != null && u.WasSpawnedDuringBattle)
+                ?? new System.Collections.Generic.List<Characters.CharacterInstance>();
+
             int taskCount = CalculateTaskCount(units, appearanceBrain);
 
             if (taskCount == 0)
@@ -159,8 +161,20 @@ namespace Turnroot.Gameplay.Combat.Precompute
 
             InitializeLoadingProgress(taskCount);
 
+            // Ensure LTM replacements are applied for spawned units
+            yield return EnsureLtmUnitsAreUsedRoutine(context);
+
+            // Re-fetch spawned units from context in case replacements occurred
+            units =
+                context
+                    ?.Participants?.GetAllUnits()
+                    ?.FindAll(u => u != null && u.WasSpawnedDuringBattle)
+                ?? new System.Collections.Generic.List<Characters.CharacterInstance>();
+
+            // 1) Precompute movement caches
             yield return PrecomputeMovementCaches(context.mapGrid);
 
+            // 2) Per-unit processing
             foreach (var unit in units)
             {
                 if (unit == null)
@@ -280,6 +294,99 @@ namespace Turnroot.Gameplay.Combat.Precompute
         #endregion
 
         #region Helper Methods
+
+        private IEnumerator EnsureLtmUnitsAreUsedRoutine(
+            FundamentalComponents.Battles.BattleContext context
+        )
+        {
+            if (context == null || _brain?.gamewideContextBrain == null)
+            {
+                yield break;
+            }
+
+            var gw = _brain.gamewideContextBrain;
+
+            var lists = new[]
+            {
+                context.Participants.Allies,
+                context.Participants.Targets,
+                context.Participants.ThirdParty,
+            };
+
+            foreach (var list in lists)
+            {
+                if (list == null)
+                {
+                    continue;
+                }
+
+                for (int i = 0; i < list.Count; i++)
+                {
+                    var unit = list[i];
+                    if (unit == null)
+                    {
+                        continue;
+                    }
+
+                    // Skip units that were not spawned for this battle (only precompute selected units)
+                    if (!unit.WasSpawnedDuringBattle)
+                    {
+                        continue;
+                    }
+
+                    var template = unit.CharacterTemplate;
+                    if (template != null && template.IsUnique)
+                    {
+                        var recalled = gw.RecallCharacter(template);
+                        if (recalled != null && !object.ReferenceEquals(recalled, unit))
+                        {
+                            list[i] = recalled;
+                        }
+
+                        var currentAfterRecall = list[i];
+                        if (currentAfterRecall != null && currentAfterRecall.NeedsPersist)
+                        {
+                            gw.PersistIfNeeded(currentAfterRecall, updateIndex: false);
+                        }
+                    }
+
+                    // After possible replacement, ensure unit has a class assigned. If not, assign
+                    // the character template's starting class if present, otherwise use the game's
+                    // default starting class
+                    var current = list[i];
+                    if (current != null && current.CurrentClass == null)
+                    {
+                        var classToApply =
+                            current.CharacterTemplate?.StartingClass
+                            ?? GameplayGeneralSettings.Instance?.GetDefaultStartingClass();
+
+                        if (classToApply != null)
+                        {
+                            var classRes = current.ChangeClass(
+                                classToApply,
+                                applyClassChangeBonuses: false
+                            );
+                            if (!classRes.Success)
+                            {
+                                TurnrootLogger.Log(
+                                    $"BattlePrecomputeLoader: Failed to assign default class for unit {current.Id}: {classRes.ErrorMessage}",
+                                    TurnrootLogger.LogLevel.Warning
+                                );
+                            }
+                            else
+                            {
+                                current.NeedsPersist = true;
+                                gw.PersistIfNeeded(current, updateIndex: false);
+                            }
+                        }
+                    }
+
+                    IncrementProgress();
+                    yield return new WaitForSeconds(timeBetweenOperations);
+                }
+            }
+        }
+
         private FundamentalComponents.Battles.BattleContext GetBattleContext() =>
             _battleContext ?? _brain?.battleBrain?.BattleObject?.Context;
 
@@ -299,12 +406,13 @@ namespace Turnroot.Gameplay.Combat.Precompute
                 return 0;
             }
 
-            int tasksPerUnit = 3; // AI init + pathfinding + tiles
-            if (appearanceBrain != null)
-            {
-                tasksPerUnit++; // + model spawn
-            }
-
+            // Tasks per unit:
+            // 1) LTM recall/check
+            // 2) AI init
+            // 3) Pathfinding params
+            // 4) Tiles computation
+            // 5) Model spawn
+            int tasksPerUnit = 5;
             return units.Count * tasksPerUnit;
         }
 
@@ -332,7 +440,6 @@ namespace Turnroot.Gameplay.Combat.Precompute
             _loadingController.IncreaseLoadTotalBy(1);
             _loadingController.IncrementLoadedAmountBy(1);
 
-            // Signal completion for flows that are waiting on precompute
             _brain?.PublishPrecomputeCompleted();
         }
         #endregion

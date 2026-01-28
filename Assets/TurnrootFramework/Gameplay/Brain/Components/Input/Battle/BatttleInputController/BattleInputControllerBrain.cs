@@ -284,10 +284,9 @@ namespace Turnroot.Gameplay.Brain
 
         public void HandleConfirmInput()
         {
-            TurnrootLogger.Log("BattleInputControllerBrain: Handling Confirm Input");
             var currentState = _playerTurnFlow?.GetCurrentState() ?? PlayerTurnStates.Inactive;
             TurnrootLogger.Log(
-                $"BattleInputControllerBrain: Current PlayerTurnState is {currentState}"
+                $"BattleInputControllerBrain: Handling Confirm Input. Current PlayerTurnState is {currentState}"
             );
 
             var unitAtCursor = _brain.cursorBrain.GetUnitAtCursor();

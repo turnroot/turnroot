@@ -306,16 +306,12 @@ namespace Turnroot.Gameplay.Brain
                     );
                 }
             }
-
-            TurnrootLogger.Log($"CursorBrain: Set {positions?.Count ?? 0} allowed positions");
         }
 
         public void ClearAllowedPositions()
         {
             _allowedPositions = null;
             _currentPositionIndex = -1;
-
-            TurnrootLogger.Log("CursorBrain: Cleared position restrictions");
         }
 
         public void SetCursorVisibility(bool visible)

@@ -107,15 +107,15 @@ namespace Turnroot.Gameplay.Brain
             return wrapper == null
                 ? string.Empty
                 : TryExecute(
-                () =>
-                {
-                    var payload = (string)wrapper["Payload"] ?? string.Empty;
-                    var version = (string)wrapper["Version"] ?? "0";
-                    return ComputeFNV1a64Hex(payload + "|v:" + version);
-                },
-                string.Empty,
-                "Failed to recompute hash"
-            );
+                    () =>
+                    {
+                        var payload = (string)wrapper["Payload"] ?? string.Empty;
+                        var version = (string)wrapper["Version"] ?? "0";
+                        return ComputeFNV1a64Hex(payload + "|v:" + version);
+                    },
+                    string.Empty,
+                    "Failed to recompute hash"
+                );
         }
 
         #endregion
@@ -458,11 +458,6 @@ namespace Turnroot.Gameplay.Brain
                     return OperationResult<T>.SuccessResult(tampered);
                 }
 
-                if (instance is IPostDeserialize post)
-                {
-                    post.OnAfterDeserialize();
-                }
-
                 if (!VerifyLedgerHash(brain, instance, wrapper))
                 {
                     var ltm = brain.GetComponent<LongTermMemory>();
@@ -475,6 +470,11 @@ namespace Turnroot.Gameplay.Brain
                         stored
                     );
                     return OperationResult<T>.SuccessResult(tampered);
+                }
+
+                if (instance is IPostDeserialize post)
+                {
+                    post.OnAfterDeserialize();
                 }
 
                 return OperationResult<T>.SuccessResult(instance);

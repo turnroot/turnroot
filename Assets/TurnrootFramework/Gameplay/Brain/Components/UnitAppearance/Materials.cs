@@ -17,7 +17,15 @@ namespace Turnroot.Gameplay.Brain
             }
 
             var classInst = unit.GetCurrentClass();
-            var className = classInst?.ClassData?.GetClassName() ?? "";
+
+            // Respect class HasOutfit flag: if the class does not define an outfit, do not
+            // create or apply a class outfit material; let the unit use its per-character defaults.
+            if (classInst?.ClassData == null || !classInst.ClassData.HasOutfit)
+            {
+                return null;
+            }
+
+            var className = classInst.ClassData.GetClassName() ?? "";
 
             var material = GetOrCreateMaterial(unit, className);
 

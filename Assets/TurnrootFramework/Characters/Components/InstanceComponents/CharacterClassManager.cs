@@ -64,9 +64,6 @@ namespace Turnroot.Characters
             }
         }
 
-        /// <summary>
-        /// Returns the minimum attack range across all equippable weapons in the character's inventory, or 0 if no valid weapons are available.
-        /// </summary>
         public int GetMinRange()
         {
             if (_currentClass == null || _currentClass.ClassData == null)
@@ -92,9 +89,6 @@ namespace Turnroot.Characters
             return hasWeapon ? minRange : 0;
         }
 
-        /// <summary>
-        /// Returns the maximum attack range across all equippable weapons in the character's inventory, or 0 if no valid weapons are available.
-        /// </summary>
         public int GetMaxRange()
         {
             if (_currentClass == null || _currentClass.ClassData == null)
@@ -116,10 +110,8 @@ namespace Turnroot.Characters
                     $"CharacterInstance: Considering weapon '{weapon.Template.name}' with max range {weapon.Template.UpperRange} for max range calculation."
                 );
                 maxRange = Mathf.Max(maxRange, weapon.Template.UpperRange);
+                // TODO: Figure out why this isn't seeing weapons in inventory
             }
-            TurnrootLogger.Log(
-                $"CharacterInstance: Computed max range for character '{_characterTemplate.name}' is {maxRange}."
-            );
 
             return maxRange;
         }
@@ -147,19 +139,31 @@ namespace Turnroot.Characters
             // Validate class requirements if needed
             // TODO: Add validation for experience requirements, level requirements, etc.
 
-            // Remove old class bonuses
             if (_currentClass != null)
             {
-                _currentClass.RemoveClassBonuses(this);
+                if (_currentClass.ClassData != null)
+                {
+                    _currentClass.RemoveClassBonuses(this);
+                }
+                else
+                {
+                    // If recovery/assignment was already handled elsewhere, suppress the noisy warning.
+                    if (!ClassRecoveryHandled)
+                    {
+                        TurnrootLogger.Log(
+                            $"CharacterInstance.ChangeClass: Previous class instance for {(_characterTemplate?.name ?? Id)} has missing classData; skipping RemoveClassBonuses",
+                            TurnrootLogger.LogLevel.Warning
+                        );
+                    }
+                }
+
                 _currentClass.Dispose();
             }
 
-            // Check if this class has been equipped before (compare by reference, not name)
             bool isFirstTime = !_equippedClassHistory.Contains(newClassData);
 
             var effectiveRenderer = _meshRenderer;
 
-            // Create new class instance, passing the isFirstTime flag and the character's renderer.
             _currentClass = new CharacterClassDataInstance(
                 _characterTemplate,
                 newClassData,
@@ -167,36 +171,28 @@ namespace Turnroot.Characters
                 isFirstTime
             );
 
-            // Initialize visual representation if we have an effective renderer
             if (effectiveRenderer != null)
             {
                 _currentClass.InitializeWithRenderer(effectiveRenderer);
             }
 
-            // Apply class bonuses
             _currentClass.ApplyClassBonuses(this);
 
-            // Apply one-time class change bonuses if first time (optionally skipped)
             if (isFirstTime)
             {
                 if (applyClassChangeBonuses)
                 {
                     _currentClass.ApplyClassChangeBonuses(this);
                 }
-                // Mark as equipped so first-time bonuses aren't applied again later
                 _equippedClassHistory.Add(newClassData);
             }
 
-            // Enforce stat minimums and caps
             _currentClass.EnforceStatMinimums(this);
             _currentClass.ApplyStatCaps(this);
 
             return OperationResult.Successful();
         }
 
-        /// <summary>
-        /// Check if character meets requirements to change to a specific class.
-        /// </summary>
         public bool MeetsClassRequirements(CharacterClassData classData)
         {
             if (classData == null)
@@ -238,9 +234,6 @@ namespace Turnroot.Characters
             return true;
         }
 
-        /// <summary>
-        /// Validate that the target class follows proper tier progression.
-        /// </summary>
         private bool ValidateClassTierProgression(CharacterClassData targetClass)
         {
             // If no current class, any tier is allowed (starting class)
@@ -256,38 +249,31 @@ namespace Turnroot.Characters
             // Tier regression is allowed (Advanced -> Intermediate is valid)
             if (targetTier > currentTier + 1)
             {
-#if UNITY_EDITOR
-                Debug.LogWarning(
-                    $"Cannot change from {currentTier} class to {targetTier} class - must progress one tier at a time"
+                TurnrootLogger.Log(
+                    $"Cannot change from {currentTier} class to {targetTier} class - must progress one tier at a time",
+                    TurnrootLogger.LogLevel.Warning
                 );
-#endif
+
                 return false;
             }
 
             return true;
         }
 
-        /// <summary>
-        /// Check if character's current class allows a specific weapon type.
-        /// </summary>
         public bool CanEquipWeaponType(Gameplay.Objects.Components.WeaponType weaponType)
         {
             if (_currentClass == null || _currentClass.ClassData == null)
             {
-                return true; // No class restrictions
+                return true;
             }
 
             var allowedTypes = _currentClass.ClassData.Requirements.AllowedWeaponTypes;
 
-            // Empty list means no restrictions (can equip anything)
             return allowedTypes == null
                 || allowedTypes.Count == 0
                 || allowedTypes.Contains(weaponType);
         }
 
-        /// <summary>
-        /// Get available promotion paths based on current class.
-        /// </summary>
         public List<CharacterClassData> GetAvailablePromotions()
         {
             var available = new List<CharacterClassData>();
@@ -314,9 +300,6 @@ namespace Turnroot.Characters
             return available;
         }
 
-        /// <summary>
-        /// Check if character has previously equipped a specific class.
-        /// </summary>
         public bool HasEquippedClass(CharacterClassData classData) =>
             classData != null && _equippedClassHistory.Contains(classData);
 

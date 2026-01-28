@@ -237,9 +237,6 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
             HashSet<Vector2Int> activeSet
         )
         {
-            TurnrootLogger.Log(
-                $"Highlighting {activeSet.Count} tiles" + $"with UV Params: {uvParams}"
-            );
             foreach (var tile in tiles)
             {
                 if (_decalCache.TryGetValue(tile, out var decal))

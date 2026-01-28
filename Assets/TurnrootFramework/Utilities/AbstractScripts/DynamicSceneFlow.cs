@@ -26,14 +26,11 @@ namespace Turnroot.Utilities.AbstractScripts
         [HideInInspector]
         public LoadingController loadingController;
 
-        public UnityEvent<int> OnLoadedAmountChanged = new();
-        public event Action<int> OnLoadedAmountChangedAction;
+        // Progress (0..1) for UI elements that expect normalized values
+        public UnityEvent<float> OnLoadedAmountChanged = new();
+        public event Action<float> OnLoadedAmountChangedAction;
 
         public UnityEvent StartPreLoading = new();
-
-        // Float-based progress (0..1) for UI elements that expect normalized values
-        public UnityEvent<float> OnLoadedAmountChangedFloat = new();
-        public event Action<float> OnLoadedAmountChangedActionFloat;
 
         private int Index
         {
@@ -91,25 +88,14 @@ namespace Turnroot.Utilities.AbstractScripts
             }
         }
 
-        private void HandleLoadingProgressChanged(float percentage)
-        {
-            int percentInt = Mathf.RoundToInt(percentage * 100f);
-            ReportLoadingProgress(percentInt);
-            // Also report normalized float progress for UIs expecting 0..1
+        private void HandleLoadingProgressChanged(float percentage) =>
             ReportLoadingProgress(percentage);
-        }
         #endregion
-
-        public void ReportLoadingProgress(int percentage)
-        {
-            OnLoadedAmountChanged?.Invoke(percentage);
-            OnLoadedAmountChangedAction?.Invoke(percentage);
-        }
 
         public void ReportLoadingProgress(float percentage)
         {
-            OnLoadedAmountChangedFloat?.Invoke(percentage);
-            OnLoadedAmountChangedActionFloat?.Invoke(percentage);
+            OnLoadedAmountChanged?.Invoke(percentage);
+            OnLoadedAmountChangedAction?.Invoke(percentage);
         }
 
         private void StartScene()

@@ -11,6 +11,16 @@ namespace Turnroot.Utilities
 
         public void SetAmount(float amount) => Amount = amount;
 
-        private void Awake() => material?.SetFloat("_Amount", 0f);
+        private void Awake()
+        {
+            material?.SetFloat("_Amount", 0f);
+            Amount = 0;
+        }
+
+        private void OnDestroy()
+        {
+            material?.SetFloat("_Amount", 0f);
+            Amount = 0;
+        }
     }
 }

@@ -75,7 +75,7 @@ namespace Turnroot.Characters
         private CharacterClassDataInstance _currentClass;
 
         [NonSerialized]
-        private List<CharacterClassData> _equippedClassHistory = new();
+        public List<CharacterClassData> _equippedClassHistory = new();
 
         [NonSerialized]
         private List<StatusEffectInstance> _activeStatusEffects = new();

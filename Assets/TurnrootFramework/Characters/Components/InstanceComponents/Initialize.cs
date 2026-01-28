@@ -18,6 +18,12 @@ namespace Turnroot.Characters
         [NonSerialized]
         public GameplayGeneralSettings settings;
 
+        [field: NonSerialized]
+        public bool NeedsPersist { get; set; } = false;
+
+        [field: NonSerialized]
+        public bool ClassRecoveryHandled { get; set; } = false;
+
         internal CharacterInstance(CharacterData template, bool useBattleModel = true)
         {
             _characterTemplate = template;
@@ -77,7 +83,6 @@ namespace Turnroot.Characters
                 _characterTemplate.UnboundedStats
             );
 
-            // Repair missing stats (may create defaults and persist them to LTM)
             RepairMissingStats();
 
             var validation = ValidateRuntimeStatsComplete();
@@ -94,8 +99,6 @@ namespace Turnroot.Characters
             InitializeSupportRelationships();
             InitializeSkills();
             InitializeExperienceRanks();
-
-            // Ensure any defaults we created are recorded in LTM so future loads reuse them
             EnsurePersistedInLtm();
             return InitializeClass();
         }
@@ -161,28 +164,25 @@ namespace Turnroot.Characters
             var classToApply = _characterTemplate.StartingClass ?? GetDefaultStartingClass();
             if (classToApply == null)
             {
-                // Defer to deserialization-time handler to assign defaults if settings are not yet loaded.
-                // Previously this returned Failure and caused higher-level recall/deserialize paths to abort
-                // when GameSettings weren't available yet. Instead, log a warning and continue.
-                TurnrootLogger.Log(
-                    $"Character {Id} has no starting class and GameplayGeneralSettings.DefaultStartingClass is not set - deferring assignment",
-                    TurnrootLogger.LogLevel.Warning
-                );
                 return OperationResult.Successful();
             }
 
             var result = ChangeClass(classToApply, applyClassChangeBonuses: false);
             if (result.Success)
             {
-                TurnrootLogger.Log(
-                    $"Character {Id} initialized with starting class {classToApply.Identity.ClassName}",
-                    TurnrootLogger.LogLevel.Info
-                );
+                ClassRecoveryHandled = true;
             }
             return result;
         }
 
-        private CharacterClassData GetDefaultStartingClass() => settings?.GetDefaultStartingClass();
+        private CharacterClassData GetDefaultStartingClass()
+        {
+            if (settings == null)
+            {
+                settings = GameSettingsLoader.LoadFirst<GameplayGeneralSettings>("GameSettings");
+            }
+            return settings?.GetDefaultStartingClass();
+        }
         #endregion
 
         #region Deserialization
@@ -192,8 +192,6 @@ namespace Turnroot.Characters
             RegisterUniqueInstance();
             HandleCurrentClass();
             RepairMissingStats();
-            // Ensure instance/template defaults are recorded in LTM and LTM entries include any newly
-            // repaired stats so future restores will be complete.
             EnsurePersistedInLtm();
         }
 
@@ -218,9 +216,49 @@ namespace Turnroot.Characters
 
         private void HandleCurrentClass()
         {
+            // Avoid repeated recoveries
+            if (ClassRecoveryHandled)
+            {
+                return;
+            }
+
             if (_currentClass != null)
             {
-                _currentClass.OnAfterDeserialize();
+                if (_currentClass.ClassData != null)
+                {
+                    _currentClass.OnAfterDeserialize();
+                }
+                else
+                {
+                    // Current class instance exists but ClassData failed to deserialize
+                    var recoveredClass =
+                        _characterTemplate?.StartingClass ?? GetDefaultStartingClass();
+                    if (recoveredClass != null)
+                    {
+                        var res = ChangeClass(recoveredClass, applyClassChangeBonuses: false);
+                        var logLevel = res.Success
+                            ? TurnrootLogger.LogLevel.Info
+                            : TurnrootLogger.LogLevel.Warning;
+                        var message = res.Success
+                            ? $"Character {Id} recovered missing class by assigning {recoveredClass.Identity.ClassName} after recall."
+                            : $"CharacterInstance.OnAfterDeserialize: Failed to recover class for {Id}: {res.ErrorMessage}";
+                        TurnrootLogger.Log(message, logLevel);
+
+                        ClassRecoveryHandled = true;
+
+                        if (res.Success)
+                        {
+                            NeedsPersist = true;
+                        }
+                    }
+                    else
+                    {
+                        TurnrootLogger.Log(
+                            $"CharacterInstance.OnAfterDeserialize: No starting/default class available to recover for {Id}",
+                            TurnrootLogger.LogLevel.Warning
+                        );
+                    }
+                }
             }
             else if (_characterTemplate != null && _characterTemplate.StartingClass == null)
             {

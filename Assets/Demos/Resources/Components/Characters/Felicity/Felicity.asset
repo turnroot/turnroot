@@ -47,7 +47,7 @@ MonoBehaviour:
   <RecruitmentChance>k__BackingField: 25
   <RecruitmentChanceIncreasePerConversation>k__BackingField: 15
   <IsUnique>k__BackingField: 1
-  <StartingClass>k__BackingField: {fileID: 11400000, guid: c3c5e862da233c24ca2f3019a280df42, type: 2}
+  <StartingClass>k__BackingField: {fileID: 0}
   <BadgeText>k__BackingField: Fishing Guild
   <BadgeIcon>k__BackingField: {fileID: 21300000, guid: 9f2c2612454aeb040bb1ab262a1e7c5f, type: 3}
   <Blendshapes>k__BackingField:
@@ -137,7 +137,7 @@ MonoBehaviour:
   - _current: 10
     _bonus: 0
     _statType: 8
-  - _current: 5
+  - _current: 4
     _bonus: 0
     _statType: 9
   - _current: 10

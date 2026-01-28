@@ -128,12 +128,6 @@ namespace Turnroot.Gameplay.Brain
                     Mathf.RoundToInt(neutralCenter.y)
                 );
 
-#if UNITY_EDITOR
-                TurnrootLogger.Log(
-                    $"CursorBrain: Using camera neutral center as start position: {startPos}"
-                );
-#endif
-
                 return startPos;
             }
             return Vector2Int.zero;

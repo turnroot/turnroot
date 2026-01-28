@@ -22,9 +22,6 @@ namespace Turnroot.Gameplay.Maps
         public bool IncludeHealRange { get; set; } = false;
         public int MaxRange { get; set; } = 1;
 
-        /// <summary>
-        /// Creates parameters from a character instance and movement context.
-        /// </summary>
         public static PathfindingParameters FromCharacter(
             Characters.CharacterInstance character,
             MapGrid graph,
@@ -32,6 +29,37 @@ namespace Turnroot.Gameplay.Maps
         )
         {
             var classData = character?.CurrentClass?.ClassData;
+            // If classData is missing on the character (e.g., deserialized instance lost class),
+            // attempt to assign the template starting class or the global default and persist it.
+            if (classData == null && character != null)
+            {
+                var classToApply =
+                    character.CharacterTemplate?.StartingClass
+                    ?? GameplayGeneralSettings.Instance?.GetDefaultStartingClass();
+                if (classToApply != null)
+                {
+                    var res = character.ChangeClass(classToApply, applyClassChangeBonuses: false);
+                    if (res.Success)
+                    {
+                        // Persist the updated character so future recalls include the class
+                        var brain = UnityEngine.Object.FindFirstObjectByType<Brain.Brain>();
+                        brain?.gamewideContextBrain?.PersistCharacter(
+                            character,
+                            updateIndex: false
+                        );
+                    }
+                    else
+                    {
+                        TurnrootLogger.Log(
+                            $"PathfindingParameters: Failed to assign default class to {character.Id}: {res.ErrorMessage}",
+                            TurnrootLogger.LogLevel.Warning
+                        );
+                    }
+
+                    classData = character?.CurrentClass?.ClassData;
+                }
+            }
+
             var movementStatObj = character?.GetUnboundedStat(
                 Characters.Stats.UnboundedStatType.Movement
             );
@@ -76,9 +104,6 @@ namespace Turnroot.Gameplay.Maps
             };
         }
 
-        /// <summary>
-        /// Creates parameters including weapon range for attack tile calculation.
-        /// </summary>
         public static PathfindingParameters FromCharacterWithRange(
             Characters.CharacterInstance character,
             MapGrid graph,
@@ -96,9 +121,6 @@ namespace Turnroot.Gameplay.Maps
             return parameters;
         }
 
-        /// <summary>
-        /// Creates a copy of these parameters with modified values.
-        /// </summary>
         public PathfindingParameters Clone()
         {
             return new PathfindingParameters
@@ -118,9 +140,6 @@ namespace Turnroot.Gameplay.Maps
             };
         }
 
-        /// <summary>
-        /// Validates that all required parameters are set.
-        /// </summary>
         public bool IsValid() => Graph != null && Start != null && MovementBudget >= 0;
     }
 }

@@ -37959,6 +37959,17 @@ MonoBehaviour:
   _featureObjectItemProperties: []
   _featureBoolProperties: []
   _featureFloatProperties: []
+--- !u!114 &1382336261 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 99573299477759725, guid: bcbce3e4930f8574982e8b65369c56a5, type: 3}
+  m_PrefabInstance: {fileID: 7599282413907510873}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
 --- !u!1 &1382810449
 GameObject:
   m_ObjectHideFlags: 0
@@ -59201,6 +59212,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1830534780}
     m_Modifications:
+    - target: {fileID: 99573299477759725, guid: bcbce3e4930f8574982e8b65369c56a5, type: 3}
+      propertyPath: m_text
+      value: 
+      objectReference: {fileID: 0}
     - target: {fileID: 1727604653950440879, guid: bcbce3e4930f8574982e8b65369c56a5, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -59244,6 +59259,51 @@ PrefabInstance:
     - target: {fileID: 3458393951798489906, guid: bcbce3e4930f8574982e8b65369c56a5, type: 3}
       propertyPath: m_Name
       value: Battle Scene Flow
+      objectReference: {fileID: 0}
+    - target: {fileID: 3919077790560722290, guid: bcbce3e4930f8574982e8b65369c56a5, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6184827468696405307, guid: bcbce3e4930f8574982e8b65369c56a5, type: 3}
+      propertyPath: segments.Array.data[1].onSegmentReached.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6184827468696405307, guid: bcbce3e4930f8574982e8b65369c56a5, type: 3}
+      propertyPath: segments.Array.data[2].onSegmentReached.m_PersistentCalls.m_Calls.Array.data[1].m_Mode
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6184827468696405307, guid: bcbce3e4930f8574982e8b65369c56a5, type: 3}
+      propertyPath: segments.Array.data[1].onSegmentReached.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 6184827468696405307, guid: bcbce3e4930f8574982e8b65369c56a5, type: 3}
+      propertyPath: segments.Array.data[2].onSegmentReached.m_PersistentCalls.m_Calls.Array.data[1].m_CallState
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 6184827468696405307, guid: bcbce3e4930f8574982e8b65369c56a5, type: 3}
+      propertyPath: segments.Array.data[2].onSegmentReached.m_PersistentCalls.m_Calls.Array.data[1].m_TargetAssemblyTypeName
+      value: Turnroot.Utilities.AbstractScripts.UIFade, Assembly-CSharp
+      objectReference: {fileID: 0}
+    - target: {fileID: 6593402473471794954, guid: bcbce3e4930f8574982e8b65369c56a5, type: 3}
+      propertyPath: _textComponent
+      value: 
+      objectReference: {fileID: 1382336261}
+    - target: {fileID: 6593402473471794954, guid: bcbce3e4930f8574982e8b65369c56a5, type: 3}
+      propertyPath: Hints.Array.size
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 6593402473471794954, guid: bcbce3e4930f8574982e8b65369c56a5, type: 3}
+      propertyPath: 'Hints.Array.data[0]'
+      value: Use the tactical lens to get a glimpse into an enemy's behavior
+      objectReference: {fileID: 0}
+    - target: {fileID: 6593402473471794954, guid: bcbce3e4930f8574982e8b65369c56a5, type: 3}
+      propertyPath: 'Hints.Array.data[1]'
+      value: Units generally fight better close to friends
+      objectReference: {fileID: 0}
+    - target: {fileID: 6593402473471794954, guid: bcbce3e4930f8574982e8b65369c56a5, type: 3}
+      propertyPath: 'Hints.Array.data[2]'
+      value: If an enemy is avoiding combat, they may have a strategic goal you can't
+        see. Beware traps
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
