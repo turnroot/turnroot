@@ -30,8 +30,8 @@ namespace Turnroot.Characters
             _id = GenerateId(template);
             _useBattleModel = useBattleModel;
             settings = GameSettingsLoader.LoadFirst<GameplayGeneralSettings>("GameSettings");
-
             Initialize();
+            GetAvailableWeapons();
         }
 
         private static string GenerateId(CharacterData template)
@@ -193,6 +193,10 @@ namespace Turnroot.Characters
             HandleCurrentClass();
             RepairMissingStats();
             EnsurePersistedInLtm();
+            if (RangeWeaponsCache == null)
+            {
+                GetAvailableWeapons();
+            }
         }
 
         private void EnsureListsInitialized()

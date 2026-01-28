@@ -31,7 +31,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 }
             }
             // Evaluate available weapons using centralized DamageCalculator
-            var availableWeapons = _context.Unit.UnitInstance.GetAvailableWeapons();
+            var availableWeapons = _context.Unit.UnitInstance.RangeWeaponsCache;
             var bestWeapon = null as ObjectItemInstance;
             float bestTotalPotential = 0f;
             int potentialDamage = 0;

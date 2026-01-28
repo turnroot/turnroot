@@ -22,7 +22,7 @@ MonoBehaviour:
   WeaponsCanBeForged: 1
   WeaponsCanBeRepaired: 1
   WeaponsHaveDurability: 1
-  UnitCanAttackWithoutWeapons: 1
+  UnitCanAttackWithoutWeapons: 0
   UseExperienceAptitudes: 0
   GoldDisplayNames:
     OneLetter: G

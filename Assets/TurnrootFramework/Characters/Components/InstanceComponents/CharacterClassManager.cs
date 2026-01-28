@@ -12,21 +12,26 @@ namespace Turnroot.Characters
     /// </summary>
     public partial class CharacterInstance
     {
+        public List<ObjectItemInstance> RangeWeaponsCache = new();
         public Dictionary<string, Material> classNameToOutfitMaterials = new();
 
         #region Battle Helpers
 
         public ObjectItemInstance GetEquippedWeapon()
         {
-            var allowedWeapons = _currentClass.ClassData.Requirements.AllowedWeaponTypes;
+            var allowedWeapons = _currentClass.ClassData.Requirements?.AllowedWeaponTypes;
 
             var inventory = _inventoryInstance.Items();
 
-            // return the weapon in slot 0
+            // return the weapon in slot 0 (allow all when allowedWeapons is null/empty)
             foreach (
                 var weapon in inventory.Where(w =>
                     w.Template != null
-                    && allowedWeapons.Contains(w.Template.WeaponType)
+                    && (
+                        allowedWeapons == null
+                        || allowedWeapons.Count == 0
+                        || allowedWeapons.Contains(w.Template.WeaponType)
+                    )
                     && w.Slot == 0
                 )
             )
@@ -36,32 +41,48 @@ namespace Turnroot.Characters
             return null;
         }
 
-        public List<ObjectItemInstance> GetAvailableWeapons()
+        public void GetAvailableWeapons()
         {
-            var allowedWeapons = _currentClass.ClassData.Requirements.AllowedWeaponTypes;
-            var inventory = _inventoryInstance.Items();
+            // Avoid scanning weapons if class or inventory isn't set up yet
+            if (_currentClass == null || _currentClass.ClassData == null)
+            {
+                RangeWeaponsCache = new List<ObjectItemInstance>();
+                return;
+            }
+
+            var allowedWeapons = _currentClass.ClassData.Requirements?.AllowedWeaponTypes; // null/empty = allow all
+            var inventory = _inventoryInstance?.Items() ?? Enumerable.Empty<ObjectItemInstance>();
             bool hasWeapon = false;
             var weapons = new List<ObjectItemInstance>();
 
-            foreach (
-                var weapon in inventory.Where(w =>
-                    w.Template != null && allowedWeapons.Contains(w.Template.WeaponType)
-                )
-            )
+            foreach (var weapon in inventory.Where(w => w?.Template != null))
             {
+                TurnrootLogger.Log(
+                    $"CharacterInstance: Considering weapon '{weapon.Template.name}' of type '{weapon.Template.WeaponType}' for available weapons."
+                );
+
+                // Unequippable items are exempt from class weapon restrictions and always considered available.
+                if (weapon.Template.IsUnequippable)
+                {
+                    weapons.Add(weapon);
+                    hasWeapon = true;
+                    continue;
+                }
+
+                if (
+                    allowedWeapons != null
+                    && allowedWeapons.Count > 0
+                    && !allowedWeapons.Contains(weapon.Template.WeaponType)
+                )
+                {
+                    continue;
+                }
+
                 weapons.Add(weapon);
                 hasWeapon = true;
             }
 
-            if (!hasWeapon)
-            {
-                return null;
-            }
-            else
-            {
-                // return the first weapon in the lowest slot [0]
-                return weapons;
-            }
+            RangeWeaponsCache = hasWeapon ? weapons : new List<ObjectItemInstance>();
         }
 
         public int GetMinRange()
@@ -71,19 +92,15 @@ namespace Turnroot.Characters
                 return 0;
             }
 
-            var allowedWeapons = _currentClass.ClassData.Requirements.AllowedWeaponTypes;
-            var inventory = _inventoryInstance.Items();
             int minRange = int.MaxValue;
             bool hasWeapon = false;
-
-            foreach (
-                var weapon in inventory.Where(w =>
-                    w.Template != null && allowedWeapons.Contains(w.Template.WeaponType)
-                )
-            )
+            if (RangeWeaponsCache != null && RangeWeaponsCache.Count > 0)
             {
-                hasWeapon = true;
-                minRange = Mathf.Min(minRange, weapon.Template.LowerRange);
+                foreach (var weapon in RangeWeaponsCache)
+                {
+                    hasWeapon = true;
+                    minRange = Mathf.Min(minRange, weapon.Template.LowerRange);
+                }
             }
 
             return hasWeapon ? minRange : 0;
@@ -91,28 +108,31 @@ namespace Turnroot.Characters
 
         public int GetMaxRange()
         {
+            TurnrootLogger.Log(
+                $"CharacterInstance: Calculating max range for character '{_characterTemplate?.name ?? Id}'."
+            );
             if (_currentClass == null || _currentClass.ClassData == null)
             {
                 return settings.UnitCanAttackWithoutWeapons ? 1 : 0;
             }
 
-            var allowedWeapons = _currentClass.ClassData.Requirements.AllowedWeaponTypes;
-            var inventory = _inventoryInstance.Items();
             int maxRange = settings.UnitCanAttackWithoutWeapons ? 1 : 0;
 
-            foreach (
-                var weapon in inventory.Where(w =>
-                    w.Template != null && allowedWeapons.Contains(w.Template.WeaponType)
-                )
-            )
+            if (RangeWeaponsCache != null && RangeWeaponsCache.Count > 0)
             {
-                TurnrootLogger.Log(
-                    $"CharacterInstance: Considering weapon '{weapon.Template.name}' with max range {weapon.Template.UpperRange} for max range calculation."
-                );
-                maxRange = Mathf.Max(maxRange, weapon.Template.UpperRange);
-                // TODO: Figure out why this isn't seeing weapons in inventory
+                foreach (var weapon in RangeWeaponsCache)
+                {
+                    maxRange = Mathf.Max(maxRange, weapon.Template.UpperRange);
+                }
             }
-
+            else
+            {
+                // The available-weapons cache must be populated by this point. If it's empty, this indicates a lifecycle bug.
+                TurnrootLogger.Log(
+                    $"CharacterInstance: Weapon cache empty when calculating max range for {(_characterTemplate?.name ?? Id)} — this should not happen.",
+                    TurnrootLogger.LogLevel.Error
+                );
+            }
             return maxRange;
         }
 
@@ -147,7 +167,6 @@ namespace Turnroot.Characters
                 }
                 else
                 {
-                    // If recovery/assignment was already handled elsewhere, suppress the noisy warning.
                     if (!ClassRecoveryHandled)
                     {
                         TurnrootLogger.Log(
@@ -189,6 +208,9 @@ namespace Turnroot.Characters
 
             _currentClass.EnforceStatMinimums(this);
             _currentClass.ApplyStatCaps(this);
+
+            // Refresh available weapons now that allowed types may have changed
+            GetAvailableWeapons();
 
             return OperationResult.Successful();
         }

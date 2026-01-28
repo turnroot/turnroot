@@ -107,7 +107,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                     }
 
                     // Prefer weapons that provide higher potential damage - use DamageCalculator to evaluate
-                    var availableWeapons = _context.Unit.UnitInstance.GetAvailableWeapons();
+                    var availableWeapons = _context.Unit.UnitInstance.RangeWeaponsCache;
                     ObjectItemInstance bestWeapon = null;
                     float bestPotential = 0f;
                     foreach (var w in availableWeapons)

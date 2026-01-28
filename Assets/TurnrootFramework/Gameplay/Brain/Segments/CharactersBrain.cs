@@ -65,6 +65,10 @@ namespace Turnroot.Gameplay.Brain
             _brain.OnThirdPartyTurnStarted += HandleThirdPartyTurnStarted;
             _brain.OnSavePlayerRosterRequested += SavePlayerRosterProgress;
             _brain.OnLtmKeyCacheUpdated += HandleLtmKeyCacheUpdated;
+
+            // Update weapon caches when inventory equipment changes
+            _brain.OnItemEquipped += HandleItemEquipped;
+            _brain.OnItemUnequipped += HandleItemUnequipped;
         }
 
         protected override void UnsubscribeFromBrainEvents()
@@ -76,6 +80,41 @@ namespace Turnroot.Gameplay.Brain
             _brain.OnThirdPartyTurnStarted -= HandleThirdPartyTurnStarted;
             _brain.OnSavePlayerRosterRequested -= SavePlayerRosterProgress;
             _brain.OnLtmKeyCacheUpdated -= HandleLtmKeyCacheUpdated;
+
+            _brain.OnItemEquipped -= HandleItemEquipped;
+            _brain.OnItemUnequipped -= HandleItemUnequipped;
+        }
+        #endregion
+
+        #region Inventory Event Handlers
+        private void HandleItemEquipped(
+            CharacterInstance character,
+            Gameplay.Objects.ObjectItemInstance item
+        )
+        {
+            if (character == null)
+            {
+                return;
+            }
+            character.GetAvailableWeapons();
+            TurnrootLogger.Log(
+                $"CharactersBrain: Updated weapon cache for {character.Id} after equip."
+            );
+        }
+
+        private void HandleItemUnequipped(
+            CharacterInstance character,
+            Gameplay.Objects.ObjectItemInstance item
+        )
+        {
+            if (character == null)
+            {
+                return;
+            }
+            character.GetAvailableWeapons();
+            TurnrootLogger.Log(
+                $"CharactersBrain: Updated weapon cache for {character.Id} after unequip."
+            );
         }
         #endregion
 
