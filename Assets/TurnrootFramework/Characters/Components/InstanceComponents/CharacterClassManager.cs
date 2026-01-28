@@ -57,10 +57,6 @@ namespace Turnroot.Characters
 
             foreach (var weapon in inventory.Where(w => w?.Template != null))
             {
-                TurnrootLogger.Log(
-                    $"CharacterInstance: Considering weapon '{weapon.Template.name}' of type '{weapon.Template.WeaponType}' for available weapons."
-                );
-
                 // Unequippable items are exempt from class weapon restrictions and always considered available.
                 if (weapon.Template.IsUnequippable)
                 {
@@ -108,16 +104,7 @@ namespace Turnroot.Characters
 
         public int GetMaxRange()
         {
-            TurnrootLogger.Log(
-                $"CharacterInstance: Calculating max range for character '{_characterTemplate?.name ?? Id}'."
-            );
-            if (_currentClass == null || _currentClass.ClassData == null)
-            {
-                return settings.UnitCanAttackWithoutWeapons ? 1 : 0;
-            }
-
             int maxRange = settings.UnitCanAttackWithoutWeapons ? 1 : 0;
-
             if (RangeWeaponsCache != null && RangeWeaponsCache.Count > 0)
             {
                 foreach (var weapon in RangeWeaponsCache)
@@ -127,11 +114,15 @@ namespace Turnroot.Characters
             }
             else
             {
-                // The available-weapons cache must be populated by this point. If it's empty, this indicates a lifecycle bug.
-                TurnrootLogger.Log(
-                    $"CharacterInstance: Weapon cache empty when calculating max range for {(_characterTemplate?.name ?? Id)} — this should not happen.",
-                    TurnrootLogger.LogLevel.Error
-                );
+                if (RangeWeaponsCache == null)
+                {
+                    // if it IS null, something is incredibly broken!!!!!!
+                    TurnrootLogger.Log(
+                        $"GetMaxRange: Something has gone terribly wrong for {_characterTemplate.DisplayName}, unitId={Id}",
+                        TurnrootLogger.LogLevel.Error
+                    );
+                }
+                // If it's not null but it IS empty, that's fine, they just don't have a weapon equipped
             }
             return maxRange;
         }

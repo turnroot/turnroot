@@ -108,12 +108,19 @@ namespace Turnroot.Gameplay.Brain
                     continue;
                 }
 
-                SpawnUnitModelOnGrid(
+                var res = SpawnUnitModelOnGrid(
                     placement.SpawnPosition,
                     instance,
                     _activeUnitModels,
                     prebattle: false
                 );
+                if (!res.Success)
+                {
+                    TurnrootLogger.Log(
+                        $"HandleBattleStarted: Failed to spawn model for {instance?.CharacterTemplate?.DisplayName} at {placement.SpawnPosition} - {res.ErrorMessage}",
+                        TurnrootLogger.LogLevel.Warning
+                    );
+                }
             }
             return OperationResult.Successful();
         }

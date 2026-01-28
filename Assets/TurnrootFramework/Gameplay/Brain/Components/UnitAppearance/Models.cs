@@ -219,6 +219,10 @@ namespace Turnroot.Gameplay.Brain
             var model = CreateModelForUnit(unit);
             if (model == null)
             {
+                TurnrootLogger.Log(
+                    $"CreateNewModel: CreateModelForUnit returned null for unitId={unit.Id}",
+                    TurnrootLogger.LogLevel.Error
+                );
                 return OperationResult.Failure("Failed to create model instance");
             }
 
