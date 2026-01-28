@@ -15,22 +15,24 @@ namespace Turnroot.Characters
     public partial class CharacterInstance : Serialization.IPostDeserialize, IHasStats
     {
         #region Initialization
+        [NonSerialized]
+        public GameplayGeneralSettings settings;
+
         internal CharacterInstance(CharacterData template, bool useBattleModel = true)
         {
             _characterTemplate = template;
             _id = GenerateId(template);
             _useBattleModel = useBattleModel;
+            settings = GameSettingsLoader.LoadFirst<GameplayGeneralSettings>("GameSettings");
+
             Initialize();
         }
 
         private static string GenerateId(CharacterData template)
         {
-            if (template == null)
-            {
-                return Guid.NewGuid().ToString();
-            }
-
-            return template.IsUnique ? $"unique_{template.name}" : Guid.NewGuid().ToString();
+            return template == null ? Guid.NewGuid().ToString()
+                : template.IsUnique ? $"unique_{template.name}"
+                : Guid.NewGuid().ToString();
         }
 
         public static CharacterInstance Create(CharacterData template, bool useBattleModel = true)
@@ -180,11 +182,7 @@ namespace Turnroot.Characters
             return result;
         }
 
-        private CharacterClassData GetDefaultStartingClass()
-        {
-            var settings = GameSettingsLoader.LoadFirst<GameplayGeneralSettings>("GameSettings");
-            return settings?.GetDefaultStartingClass();
-        }
+        private CharacterClassData GetDefaultStartingClass() => settings?.GetDefaultStartingClass();
         #endregion
 
         #region Deserialization

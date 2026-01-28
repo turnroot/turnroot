@@ -194,14 +194,11 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             // Update battle context to reflect the new active unit
             var result = SetActiveUnitInContext(activeUnit);
 
-            if (!result.Success)
-            {
-                return OperationResult.Failure(
+            return !result.Success
+                ? OperationResult.Failure(
                     $"TurnRotisserie: Failed to activate {activeUnit.CharacterTemplate.DisplayName}: {result.ErrorMessage}"
-                );
-            }
-
-            return OperationResult.Successful();
+                )
+                : OperationResult.Successful();
         }
 
         private bool ProgressToNextPhase()

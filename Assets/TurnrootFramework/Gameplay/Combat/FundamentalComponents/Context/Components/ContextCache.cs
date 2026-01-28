@@ -209,9 +209,6 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         /// <summary>
         /// Clear all cached tiles (call on turn end, unit spawned/defeated, map changes)
         /// </summary>
-        public void InvalidateAllTileCaches()
-        {
-            _unitTilesCache.Clear();
-        }
+        public void InvalidateAllTileCaches() => _unitTilesCache.Clear();
     }
 }

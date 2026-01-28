@@ -101,8 +101,6 @@ namespace Turnroot.Gameplay.Brain.Segments
         #region Battle Transition Management
         public void HandleStartBattleClick()
         {
-            Debug.Log($"[FLOW] T={Time.time:F2} Starting battle transition");
-
             var preBattleMenuLocation = uiSettings?.GetPreBattleMenu();
             if (preBattleMenuLocation?.activeInstance == null)
             {
@@ -247,8 +245,6 @@ namespace Turnroot.Gameplay.Brain.Segments
         )
         {
             _isTransitioning = true;
-
-            Debug.Log($"[FLOW] T={Time.time:F2} Starting battle transition (coroutine)");
 
             if (delay > 0f)
             {

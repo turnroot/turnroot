@@ -14,12 +14,7 @@ namespace Turnroot.Gameplay.Brain
             }
 
             // Check allowed positions list if restricted
-            if (_allowedPositions != null && !_allowedPositions.Contains(position))
-            {
-                return false;
-            }
-
-            return true;
+            return _allowedPositions == null || _allowedPositions.Contains(position);
         }
 
         private Vector2Int? FindNearestValidPosition(Vector2Int from)

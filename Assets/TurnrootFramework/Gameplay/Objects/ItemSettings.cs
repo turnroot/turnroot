@@ -26,12 +26,13 @@ namespace Turnroot.Gameplay.Objects
                 {
                     try
                     {
-                        return GameplayGeneralSettings.Instance.GetWeaponsCanBeForged();
+                        return GameplayGeneralSettings.Instance.WeaponsCanBeForged;
                     }
                     catch (System.Exception ex)
                     {
-                        Debug.LogWarning(
-                            $"ItemSettings: Failed to load CanBeForged setting: {ex.Message}. Using default: false"
+                        TurnrootLogger.Log(
+                            $"ItemSettings: Failed to load CanBeForged setting: {ex.Message}. Using default: false",
+                            TurnrootLogger.LogLevel.Warning
                         );
                         return false;
                     }
@@ -50,11 +51,11 @@ namespace Turnroot.Gameplay.Objects
                 {
                     try
                     {
-                        return GameplayGeneralSettings.Instance.GetWeaponsCanBeRepaired();
+                        return GameplayGeneralSettings.Instance.WeaponsCanBeRepaired;
                     }
                     catch (System.Exception ex)
                     {
-                        Debug.LogWarning(
+                        TurnrootLogger.Log(
                             $"ItemSettings: Failed to load CanBeRepaired setting: {ex.Message}. Using default: false"
                         );
                         return false;
@@ -74,12 +75,13 @@ namespace Turnroot.Gameplay.Objects
                 {
                     try
                     {
-                        return GameplayGeneralSettings.Instance.GetWeaponsHaveDurability();
+                        return GameplayGeneralSettings.Instance.WeaponsHaveDurability;
                     }
                     catch (System.Exception ex)
                     {
-                        Debug.LogWarning(
-                            $"ItemSettings: Failed to load HaveDurability setting: {ex.Message}. Using default: true"
+                        TurnrootLogger.Log(
+                            $"ItemSettings: Failed to load HaveDurability setting: {ex.Message}. Using default: true",
+                            TurnrootLogger.LogLevel.Warning
                         );
                         return true;
                     }

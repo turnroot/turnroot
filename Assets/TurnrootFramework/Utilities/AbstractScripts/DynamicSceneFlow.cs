@@ -73,12 +73,7 @@ namespace Turnroot.Utilities.AbstractScripts
             brain.OnPrecomputeCompleted -= HandlePrecomputeCompleted;
         }
 
-        private void HandlePrecomputeCompleted()
-        {
-            Debug.Log($"[FLOW] T={Time.time:F2} Precompute completed (event)");
-            // When precompute completes, advance the state transition into Battle
-            HandlePreBattleTransitionToBattleCompleted();
-        }
+        private void HandlePrecomputeCompleted() => HandlePreBattleTransitionToBattleCompleted();
 
         private void SubscribeToLoadingController()
         {
@@ -111,7 +106,6 @@ namespace Turnroot.Utilities.AbstractScripts
             OnLoadedAmountChangedAction?.Invoke(percentage);
         }
 
-        // Report normalized progress (0..1) to listeners that expect floats
         public void ReportLoadingProgress(float percentage)
         {
             OnLoadedAmountChangedFloat?.Invoke(percentage);
@@ -152,18 +146,12 @@ namespace Turnroot.Utilities.AbstractScripts
         {
             if (newState != null)
             {
-                Debug.Log($"[FLOW] T={Time.time:F2} State changed to: {newState.Name}");
                 ActivateSegmentByState(newState);
             }
         }
 
         public void ActivateSegmentByState(BrainState state)
         {
-            if (state == null)
-            {
-                return;
-            }
-
             string fullStatePath = state.GetFullPath() ?? "";
             int foundIndex = segments.FindIndex(s => s.stateId == fullStatePath);
 
@@ -197,23 +185,17 @@ namespace Turnroot.Utilities.AbstractScripts
             {
                 CurrentSegment?.onSegmentReached?.Invoke();
 
-                // If we've entered the PreBattleTransitionToBattle segment, ensure the loading UI
-                // is active and start the battle precompute if available.
                 if (
                     CurrentSegment?.stateId != null
                     && CurrentSegment.stateId.Contains(BrainStateNames.PreBattleTransitionToBattle)
                 )
                 {
-                    Debug.Log(
-                        $"[FLOW] T={Time.time:F2} Entered PreBattleTransitionToBattle - starting precompute and ensuring loading UI"
-                    );
-
                     StartPreLoading.Invoke();
 
                     loadingController?.Initialize();
 
                     var loader =
-                        FindFirstObjectByType<Turnroot.Gameplay.Combat.Precompute.BattlePrecomputeLoader>();
+                        FindFirstObjectByType<Gameplay.Combat.Precompute.BattlePrecomputeLoader>();
                     if (loader != null)
                     {
                         var initRes = loader.Initialize(
@@ -226,7 +208,6 @@ namespace Turnroot.Utilities.AbstractScripts
                                 $"DynamicSceneFlow: BattlePrecomputeLoader.Initialize failed: {initRes.ErrorMessage}",
                                 TurnrootLogger.LogLevel.Warning
                             );
-                            // If we can't initialize the loader, move on immediately
                             HandlePreBattleTransitionToBattleCompleted();
                         }
                         else
@@ -236,10 +217,6 @@ namespace Turnroot.Utilities.AbstractScripts
                     }
                     else
                     {
-                        Debug.Log(
-                            $"[FLOW] T={Time.time:F2} No BattlePrecomputeLoader found in scene; skipping precompute"
-                        );
-                        // No loader present, continue immediately
                         HandlePreBattleTransitionToBattleCompleted();
                     }
                 }

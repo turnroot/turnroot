@@ -99,12 +99,12 @@ namespace Turnroot.Characters
         {
             if (_currentClass == null || _currentClass.ClassData == null)
             {
-                return 0;
+                return settings.UnitCanAttackWithoutWeapons ? 1 : 0;
             }
 
             var allowedWeapons = _currentClass.ClassData.Requirements.AllowedWeaponTypes;
             var inventory = _inventoryInstance.Items();
-            int maxRange = 0;
+            int maxRange = settings.UnitCanAttackWithoutWeapons ? 1 : 0;
 
             foreach (
                 var weapon in inventory.Where(w =>
@@ -112,8 +112,14 @@ namespace Turnroot.Characters
                 )
             )
             {
+                TurnrootLogger.Log(
+                    $"CharacterInstance: Considering weapon '{weapon.Template.name}' with max range {weapon.Template.UpperRange} for max range calculation."
+                );
                 maxRange = Mathf.Max(maxRange, weapon.Template.UpperRange);
             }
+            TurnrootLogger.Log(
+                $"CharacterInstance: Computed max range for character '{_characterTemplate.name}' is {maxRange}."
+            );
 
             return maxRange;
         }

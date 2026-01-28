@@ -309,16 +309,11 @@ namespace Turnroot.Gameplay.Maps
                     ? MapGrid.MakeMovementModeKey(isWalking, isFlying, isRiding, isMagic, isArmored)
                     : null;
 
-            if (
-                grid != null
+            return grid != null
                 && grid.TryGetMovementCostCache(key, out var costCache)
                 && costCache?.TryGetValue(neighbor, out var cached) == true
-            )
-            {
-                return cached;
-            }
-
-            return neighbor.GetTerrainTypeCost(isWalking, isFlying, isRiding, isMagic, isArmored);
+                ? cached
+                : neighbor.GetTerrainTypeCost(isWalking, isFlying, isRiding, isMagic, isArmored);
         }
 
         private void ProcessNeighbors(

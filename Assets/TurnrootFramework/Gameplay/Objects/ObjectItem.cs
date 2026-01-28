@@ -203,9 +203,9 @@ namespace Turnroot.Gameplay.Objects
                 return;
             }
 
-            Durability = settings.GetWeaponsHaveDurability();
-            Repairable = settings.GetWeaponsCanBeRepaired();
-            Forgeable = settings.GetWeaponsCanBeForged();
+            Durability = settings.WeaponsHaveDurability;
+            Repairable = settings.WeaponsCanBeRepaired;
+            Forgeable = settings.WeaponsCanBeForged;
         }
 
         private void OnEnable() => ApplyGameplayDefaultsFromSettings();

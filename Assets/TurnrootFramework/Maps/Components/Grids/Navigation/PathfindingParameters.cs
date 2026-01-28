@@ -72,7 +72,7 @@ namespace Turnroot.Gameplay.Maps
                 SameDirectionMultiplier = 0.95f,
                 IncludeRange = false,
                 IncludeHealRange = false,
-                MaxRange = 0, // TODO: Get weapon range
+                MaxRange = 0,
             };
         }
 

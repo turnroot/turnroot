@@ -104,12 +104,9 @@ namespace Turnroot.Gameplay.Brain
 
         public static string RecomputeHashFromWrapperJObject(JObject wrapper)
         {
-            if (wrapper == null)
-            {
-                return string.Empty;
-            }
-
-            return TryExecute(
+            return wrapper == null
+                ? string.Empty
+                : TryExecute(
                 () =>
                 {
                     var payload = (string)wrapper["Payload"] ?? string.Empty;
