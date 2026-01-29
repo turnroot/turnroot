@@ -205,6 +205,12 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 {
                     if (!moveTilesResult.ContainsKey(tile.Key))
                     {
+                        // Exclude tiles occupied by allied units from attack tile list
+                        var occupant = tile.Key.CurrentInstance;
+                        if (occupant != null && _context.IsAlly(occupant))
+                        {
+                            continue;
+                        }
                         attackTilesResult[tile.Key] = tile.Value;
                     }
                 }

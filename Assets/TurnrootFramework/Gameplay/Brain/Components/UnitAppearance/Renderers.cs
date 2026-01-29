@@ -121,13 +121,14 @@ namespace Turnroot.Gameplay.Brain
         )
         {
             TurnrootLogger.Log(
-                $"No renderers for {unit.CharacterTemplate.DisplayName}, creating placeholder"
+                $"No renderers for {unit.CharacterTemplate.DisplayName}, creating placeholder for unitId={unit.Id}"
             );
             var placeholder = GameObject.CreatePrimitive(PrimitiveType.Cube);
             placeholder.transform.SetParent(parent.transform);
             placeholder.GetComponent<Renderer>().material.color =
                 unit.CharacterTemplate.AccentColor1;
-            return placeholder.AddComponent<SkinnedMeshRenderer>();
+            var smr = placeholder.AddComponent<SkinnedMeshRenderer>();
+            return smr;
         }
 
         public OperationResult SpawnUnitModelOnGrid(

@@ -28,7 +28,6 @@ public class BrainState
 /// </summary>
 public static class BrainStateNames
 {
-    // High-level states (these are parent states)
     public const string Combat = "Combat";
     public const string Paused = "Paused";
     public const string Cutscene = "Cutscene";
@@ -38,8 +37,6 @@ public static class BrainStateNames
     public const string Credits = "Credits";
     public const string NonCombatGameplay = "NonCombatGameplay";
     public const string Hub = "Hub";
-
-    // Battle child states (full paths)
     public const string PreBattle = "PreBattle";
 
     public const string PreBattleTransitionToBattle = "PreBattleTransitionToBattle";
@@ -105,17 +102,16 @@ namespace Turnroot.Gameplay.Brain
             InitializeBattleChildStates();
         }
 
-        protected override void SubscribeToBrainEvents() => _brain.OnPreBattleCompleted += HandlePreBattleCompleted;
+        protected override void SubscribeToBrainEvents() =>
+            _brain.OnPreBattleCompleted += HandlePreBattleCompleted;
 
         public void HandlePreBattleTransitionToBattleCompleted() =>
             ActivateChildState(BrainStateNames.Battle);
 
         private void HandlePreBattleCompleted()
         {
-            // PreBattleTransitionToBattle is a sibling of PreBattle under Combat
             if (_currentState?.Parent != null)
             {
-                // Find the PreBattleTransitionToBattle child state and set it directly
                 var newState = _currentState.Parent.Children.FirstOrDefault(child =>
                     child.Name == BrainStateNames.PreBattleTransitionToBattle
                 );
@@ -125,13 +121,11 @@ namespace Turnroot.Gameplay.Brain
                 }
                 else
                 {
-                    // Fallback: activate child state
                     ActivateChildState(BrainStateNames.PreBattleTransitionToBattle);
                 }
             }
             else
             {
-                // Fallback: try to activate PreBattleTransitionToBattle directly
                 ActivateChildState(BrainStateNames.PreBattleTransitionToBattle);
             }
         }
@@ -161,7 +155,7 @@ namespace Turnroot.Gameplay.Brain
             var combatState = FindHighLevelState(BrainStateNames.Combat);
             if (combatState.Children != null && combatState.Children.Length > 0)
             {
-                return; // Already initialized
+                return;
             }
 
             SetBattleChildStates();

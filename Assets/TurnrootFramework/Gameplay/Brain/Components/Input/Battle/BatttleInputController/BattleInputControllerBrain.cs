@@ -19,6 +19,8 @@ namespace Turnroot.Gameplay.Brain
         public BattleContext BattleContext => _brain.battleBrain.BattleObject.Context;
         public MapGridPoint CursorPosition => _brain.cursorBrain?.CursorPosition;
 
+        private bool IsBattleInputEnabled => _brain.battleBrain.IsInputEnabled;
+
         [HideInInspector]
         public TileHighlighter _tileHighlighter;
 
@@ -27,8 +29,6 @@ namespace Turnroot.Gameplay.Brain
         #region Fields
 
         private PlayerTurnFlow _playerTurnFlow;
-        private BattleContextAIHelper _aiHelper;
-
         private Dictionary<MapGridPoint, float> _validMoveTiles = new();
         private Dictionary<MapGridPoint, float> _validAttackTiles = new();
 
@@ -67,8 +67,8 @@ namespace Turnroot.Gameplay.Brain
 
         private void Update()
         {
-            // Don't process input until battle is fully ready
-            if (!_inputEnabled)
+            // Don't process input until battle is fully ready; also respect global input enabled flag
+            if (!_inputEnabled || !IsBattleInputEnabled)
             {
                 return;
             }

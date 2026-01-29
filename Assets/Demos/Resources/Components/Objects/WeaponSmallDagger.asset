@@ -14,45 +14,45 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _name: Small Dagger
   _flavorText: Easily concealed for those with questionable motives, but razor-sharp
-    and lightning fast
-  _isUnequippable: 0
-  _subtype:
-    _value: Weapon
-  _equipableType: 0
-  _weaponType: {fileID: 11400000, guid: 030efab55c186fa4ead5d556dc84fdd5, type: 2}
-  _basePrice: 80
-  _sellable: 1
-  _buyable: 1
-  _sellPriceDeductedPerUse: 2
-  _repairable: 1
-  _repairPricePerUse: 2
-  _repairNeedsItems: 1
-  _repairItem: {fileID: 11400000, guid: 87e2f8cd4f716cb4989c491ddc545243, type: 2}
-  _repairItemAmountPerUse: 1
-  _forgeable: 1
-  _forgeOptions: []
-  _belongsTo: {fileID: 0}
+    and lightning fast. Can be thrown a short distance. +1 Luck
+  <BasePrice>k__BackingField: 60
+  <Sellable>k__BackingField: 1
+  <Buyable>k__BackingField: 1
+  <SellPriceDeductedPerUse>k__BackingField: 3
+  <Repairable>k__BackingField: 1
+  _repairPricePerUse: 5
+  <RepairNeedsItems>k__BackingField: 1
+  <RepairItem>k__BackingField: {fileID: 0}
+  <RepairItemAmountPerUse>k__BackingField: 0
+  <Forgeable>k__BackingField: 1
+  <ForgeOptions>k__BackingField: []
   _giftRank: 1
   _unitsLove: []
   _unitsHate: []
-  _lowerRange: 1
-  _upperRange: 1
+  <LowerRange>k__BackingField: 1
+  <UpperRange>k__BackingField: 2
   _rangeAdjustedByStat: 0
   _rangeAdjustedByStatName: 0
   _rangeAdjustedByStatAmount: 0
-  _maxUses: 40
+  <MaxUses>k__BackingField: 20
   _replenishUsesAfterBattle: 0
   _replenishUsesAfterBattleAmount: 0
-  _weight: 1
-  _might: 3
-  _hit: 65
-  _critical: 15
-  _speciesEffectiveAgainst: []
-  _StatBonuses:
-    _keys: 0700000005000000
+  <SpeciesEffectiveAgainst>k__BackingField: []
+  <WeaponTypesEffectiveAgainst>k__BackingField: []
+  _weaponEffect: {fileID: 0}
+  <StatBonuses>k__BackingField:
+    _keys: 06000000
     _values:
     - 1
-    - 1
-  _weaponEffect: {fileID: 0}
+  <Might>k__BackingField: 3
+  <Hit>k__BackingField: 80
+  <Critical>k__BackingField: 15
   _minWeaponTypeAptitude:
     _value: D
+  <BelongsTo>k__BackingField: {fileID: 0}
+  <Weight>k__BackingField: 1
+  <Subtype>k__BackingField:
+    _value: Weapon
+  <WeaponType>k__BackingField: {fileID: 11400000, guid: 030efab55c186fa4ead5d556dc84fdd5, type: 2}
+  <IsUnequippable>k__BackingField: 0
+  <EquipableType>k__BackingField: 0

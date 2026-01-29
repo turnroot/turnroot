@@ -38,10 +38,6 @@ namespace Turnroot.Gameplay.Brain
                                 ?? System.Array.Empty<Vector2Int>()
                         );
 
-                        TurnrootLogger.Log(
-                            $"HandlePlayerTurnStateChanged: Highlighting {movePositionsLocal.Count} move tiles and {attackPositionsLocal.Count} attack tiles"
-                        );
-
                         if (_tileHighlighter != null)
                         {
                             _tileHighlighter.HighlightTiles(
@@ -309,11 +305,8 @@ namespace Turnroot.Gameplay.Brain
                 return OperationResult.Failure("Failed to compute tiles");
             }
 
-            // Store references for UI purposes
             _validMoveTiles = moveTiles;
             _validAttackTiles = attackTiles;
-
-            // Publish for UI highlighting
             _brain.PublishValidTilesComputed(moveTiles, attackTiles);
 
             return OperationResult.Successful();

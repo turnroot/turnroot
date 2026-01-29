@@ -571,6 +571,13 @@ namespace Turnroot.Gameplay.Brain
 
         #region Battle Lifecycle Events
 
+        public event Action OnBattleInputEnabled;
+        public event Action OnBattleInputDisabled;
+
+        public void PublishBattleInputEnabled() => OnBattleInputEnabled?.Invoke();
+
+        public void PublishBattleInputDisabled() => OnBattleInputDisabled?.Invoke();
+
         public event Action OnBattleStarted;
         public event Action<BattleExitType> OnBattleCompleted;
         public event Action OnBattleContextInitialized;

@@ -26,11 +26,10 @@ namespace Turnroot.Gameplay.Brain
             PlayerSettings = GameplayPlayerSettings.Instance;
             if (PlayerSettings == null)
             {
-#if UNITY_EDITOR
-                Debug.LogError(
-                    "PlayerSettingsPersistence: Could not find GameplayPlayerSettings instance"
+                TurnrootLogger.Log(
+                    "PlayerSettingsPersistence: Could not find GameplayPlayerSettings instance",
+                    TurnrootLogger.LogLevel.Error
                 );
-#endif
                 return;
             }
 
@@ -50,9 +49,8 @@ namespace Turnroot.Gameplay.Brain
             var settingsData = _longTermMemory.Recall("PlayerSettings");
             if (string.IsNullOrEmpty(settingsData))
             {
-                return OperationResult.Failure(
-                    "PlayerSettingsPersistence: No saved player settings found in LTM"
-                );
+                SavePlayerSettings();
+                return OperationResult.Successful();
             }
 
             try
