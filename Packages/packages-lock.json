@@ -247,11 +247,10 @@
       }
     },
     "com.wooshii.hierarchydecorator": {
-      "version": "0.10.1",
+      "version": "file:com.wooshii.hierarchydecorator",
       "depth": 0,
-      "source": "registry",
-      "dependencies": {},
-      "url": "https://package.openupm.com"
+      "source": "embedded",
+      "dependencies": {}
     },
     "com.wooshii.pinnedassets": {
       "version": "https://github.com/WooshiiDev/PinnedAssets.git",
