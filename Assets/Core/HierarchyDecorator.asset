@@ -32,8 +32,8 @@ MonoBehaviour:
     fullDepthBreadcrumbs:
       show: 1
       color: {r: 0.5, g: 0.5, b: 0.5, a: 1}
-      style: 1
-      displayHorizontal: 0
+      style: 0
+      displayHorizontal: 1
   styleData:
     displayTags: 1
     displayLayers: 1
@@ -292,610 +292,21 @@ MonoBehaviour:
     showAll: 3
     stackDuplicateIcons: 1
     unityGroups:
-    - name: Animation
-      components:
-      - displayName: AimConstraint
-        name: UnityEngine.Animations.AimConstraint, UnityEngine.AnimationModule,
-          Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-        content:
-          m_Text: AimConstraint
-          m_Image: {fileID: 1499262648515748108, guid: 0000000000000000d000000000000000, type: 0}
-          m_Tooltip: AimConstraint
-          m_TextWithWhitespace: "AimConstraint\u200B"
-        shown: 0
-        excluded: 0
-        isBuiltIn: 1
-        script: {fileID: 0}
-        hasToggle: 1
-      - displayName: Animation
-        name: UnityEngine.Animation, UnityEngine.AnimationModule, Version=0.0.0.0,
-          Culture=neutral, PublicKeyToken=null
-        content:
-          m_Text: Animation
-          m_Image: {fileID: -6866312847677126049, guid: 0000000000000000d000000000000000, type: 0}
-          m_Tooltip: Animation
-          m_TextWithWhitespace: "Animation\u200B"
-        shown: 0
-        excluded: 0
-        isBuiltIn: 1
-        script: {fileID: 0}
-        hasToggle: 1
-      - displayName: Animator
-        name: UnityEngine.Animator, UnityEngine.AnimationModule, Version=0.0.0.0,
-          Culture=neutral, PublicKeyToken=null
-        content:
-          m_Text: Animator
-          m_Image: {fileID: 6921884248723262640, guid: 0000000000000000d000000000000000, type: 0}
-          m_Tooltip: Animator
-          m_TextWithWhitespace: "Animator\u200B"
-        shown: 0
-        excluded: 0
-        isBuiltIn: 1
-        script: {fileID: 0}
-        hasToggle: 1
-      - displayName: LookAtConstraint
-        name: UnityEngine.Animations.LookAtConstraint, UnityEngine.AnimationModule,
-          Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-        content:
-          m_Text: LookAtConstraint
-          m_Image: {fileID: 369954582749368496, guid: 0000000000000000d000000000000000, type: 0}
-          m_Tooltip: LookAtConstraint
-          m_TextWithWhitespace: "LookAtConstraint\u200B"
-        shown: 0
-        excluded: 0
-        isBuiltIn: 1
-        script: {fileID: 0}
-        hasToggle: 1
-      - displayName: ParentConstraint
-        name: UnityEngine.Animations.ParentConstraint, UnityEngine.AnimationModule,
-          Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-        content:
-          m_Text: ParentConstraint
-          m_Image: {fileID: 581906182735090199, guid: 0000000000000000d000000000000000, type: 0}
-          m_Tooltip: ParentConstraint
-          m_TextWithWhitespace: "ParentConstraint\u200B"
-        shown: 0
-        excluded: 0
-        isBuiltIn: 1
-        script: {fileID: 0}
-        hasToggle: 1
-      - displayName: PositionConstraint
-        name: UnityEngine.Animations.PositionConstraint, UnityEngine.AnimationModule,
-          Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-        content:
-          m_Text: PositionConstraint
-          m_Image: {fileID: -7343420614739014117, guid: 0000000000000000d000000000000000, type: 0}
-          m_Tooltip: PositionConstraint
-          m_TextWithWhitespace: "PositionConstraint\u200B"
-        shown: 0
-        excluded: 0
-        isBuiltIn: 1
-        script: {fileID: 0}
-        hasToggle: 1
-      - displayName: RotationConstraint
-        name: UnityEngine.Animations.RotationConstraint, UnityEngine.AnimationModule,
-          Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-        content:
-          m_Text: RotationConstraint
-          m_Image: {fileID: -7485488908267385562, guid: 0000000000000000d000000000000000, type: 0}
-          m_Tooltip: RotationConstraint
-          m_TextWithWhitespace: "RotationConstraint\u200B"
-        shown: 0
-        excluded: 0
-        isBuiltIn: 1
-        script: {fileID: 0}
-        hasToggle: 1
-      - displayName: ScaleConstraint
-        name: UnityEngine.Animations.ScaleConstraint, UnityEngine.AnimationModule,
-          Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-        content:
-          m_Text: ScaleConstraint
-          m_Image: {fileID: 5163284692623341358, guid: 0000000000000000d000000000000000, type: 0}
-          m_Tooltip: ScaleConstraint
-          m_TextWithWhitespace: "ScaleConstraint\u200B"
-        shown: 0
-        excluded: 0
-        isBuiltIn: 1
-        script: {fileID: 0}
-        hasToggle: 1
-      - displayName: SplineAnimate
-        name: UnityEngine.Splines.SplineAnimate, Unity.Splines, Version=0.0.0.0,
-          Culture=neutral, PublicKeyToken=null
-        content:
-          m_Text: SplineAnimate
-          m_Image: {fileID: -8204150473280056172, guid: 0000000000000000d000000000000000, type: 0}
-          m_Tooltip: SplineAnimate
-          m_TextWithWhitespace: "SplineAnimate\u200B"
-        shown: 0
-        excluded: 0
-        isBuiltIn: 1
-        script: {fileID: 0}
-        hasToggle: 1
-      - displayName: TMP_SpriteAnimator
-        name: TMPro.TMP_SpriteAnimator, Unity.TextMeshPro, Version=0.0.0.0, Culture=neutral,
-          PublicKeyToken=null
-        content:
-          m_Text: TMP_SpriteAnimator
-          m_Image: {fileID: -8204150473280056172, guid: 0000000000000000d000000000000000, type: 0}
-          m_Tooltip: TMP_SpriteAnimator
-          m_TextWithWhitespace: "TMP_SpriteAnimator\u200B"
-        shown: 0
-        excluded: 0
-        isBuiltIn: 1
-        script: {fileID: 0}
-        hasToggle: 1
-    - name: 2D
-      components:
-      - displayName: AnchoredJoint2D
-        name: UnityEngine.AnchoredJoint2D, UnityEngine.Physics2DModule, Version=0.0.0.0,
-          Culture=neutral, PublicKeyToken=null
-        content:
-          m_Text: AnchoredJoint2D
-          m_Image: {fileID: 8779834242249542326, guid: 0000000000000000d000000000000000, type: 0}
-          m_Tooltip: AnchoredJoint2D
-          m_TextWithWhitespace: "AnchoredJoint2D\u200B"
-        shown: 0
-        excluded: 0
-        isBuiltIn: 1
-        script: {fileID: 0}
-        hasToggle: 1
-      - displayName: AreaEffector2D
-        name: UnityEngine.AreaEffector2D, UnityEngine.Physics2DModule, Version=0.0.0.0,
-          Culture=neutral, PublicKeyToken=null
-        content:
-          m_Text: AreaEffector2D
-          m_Image: {fileID: -65116092203058140, guid: 0000000000000000d000000000000000, type: 0}
-          m_Tooltip: AreaEffector2D
-          m_TextWithWhitespace: "AreaEffector2D\u200B"
-        shown: 0
-        excluded: 0
-        isBuiltIn: 1
-        script: {fileID: 0}
-        hasToggle: 1
-      - displayName: BoxCollider2D
-        name: UnityEngine.BoxCollider2D, UnityEngine.Physics2DModule, Version=0.0.0.0,
-          Culture=neutral, PublicKeyToken=null
-        content:
-          m_Text: BoxCollider2D
-          m_Image: {fileID: 2230726447646993015, guid: 0000000000000000d000000000000000, type: 0}
-          m_Tooltip: BoxCollider2D
-          m_TextWithWhitespace: "BoxCollider2D\u200B"
-        shown: 0
-        excluded: 0
-        isBuiltIn: 1
-        script: {fileID: 0}
-        hasToggle: 1
-      - displayName: BuoyancyEffector2D
-        name: UnityEngine.BuoyancyEffector2D, UnityEngine.Physics2DModule, Version=0.0.0.0,
-          Culture=neutral, PublicKeyToken=null
-        content:
-          m_Text: BuoyancyEffector2D
-          m_Image: {fileID: 3491322054811378011, guid: 0000000000000000d000000000000000, type: 0}
-          m_Tooltip: BuoyancyEffector2D
-          m_TextWithWhitespace: "BuoyancyEffector2D\u200B"
-        shown: 0
-        excluded: 0
-        isBuiltIn: 1
-        script: {fileID: 0}
-        hasToggle: 1
-      - displayName: CapsuleCollider2D
-        name: UnityEngine.CapsuleCollider2D, UnityEngine.Physics2DModule, Version=0.0.0.0,
-          Culture=neutral, PublicKeyToken=null
-        content:
-          m_Text: CapsuleCollider2D
-          m_Image: {fileID: -2692084220489661059, guid: 0000000000000000d000000000000000, type: 0}
-          m_Tooltip: CapsuleCollider2D
-          m_TextWithWhitespace: "CapsuleCollider2D\u200B"
-        shown: 0
-        excluded: 0
-        isBuiltIn: 1
-        script: {fileID: 0}
-        hasToggle: 1
-      - displayName: CinemachineConfiner2D
-        name: Unity.Cinemachine.CinemachineConfiner2D, Unity.Cinemachine, Version=0.0.0.0,
-          Culture=neutral, PublicKeyToken=null
-        content:
-          m_Text: CinemachineConfiner2D
-          m_Image: {fileID: 2800000, guid: 3327a326efc0c4079a8eada111b11d29, type: 3}
-          m_Tooltip: CinemachineConfiner2D
-          m_TextWithWhitespace: "CinemachineConfiner2D\u200B"
-        shown: 0
-        excluded: 0
-        isBuiltIn: 1
-        script: {fileID: 0}
-        hasToggle: 1
-      - displayName: CircleCollider2D
-        name: UnityEngine.CircleCollider2D, UnityEngine.Physics2DModule, Version=0.0.0.0,
-          Culture=neutral, PublicKeyToken=null
-        content:
-          m_Text: CircleCollider2D
-          m_Image: {fileID: 7882515739285264159, guid: 0000000000000000d000000000000000, type: 0}
-          m_Tooltip: CircleCollider2D
-          m_TextWithWhitespace: "CircleCollider2D\u200B"
-        shown: 0
-        excluded: 0
-        isBuiltIn: 1
-        script: {fileID: 0}
-        hasToggle: 1
-      - displayName: Collider2D
-        name: UnityEngine.Collider2D, UnityEngine.Physics2DModule, Version=0.0.0.0,
-          Culture=neutral, PublicKeyToken=null
-        content:
-          m_Text: Collider2D
-          m_Image: {fileID: 8779834242249542326, guid: 0000000000000000d000000000000000, type: 0}
-          m_Tooltip: Collider2D
-          m_TextWithWhitespace: "Collider2D\u200B"
-        shown: 0
-        excluded: 0
-        isBuiltIn: 1
-        script: {fileID: 0}
-        hasToggle: 1
-      - displayName: CompositeCollider2D
-        name: UnityEngine.CompositeCollider2D, UnityEngine.Physics2DModule, Version=0.0.0.0,
-          Culture=neutral, PublicKeyToken=null
-        content:
-          m_Text: CompositeCollider2D
-          m_Image: {fileID: -2004682403923740574, guid: 0000000000000000d000000000000000, type: 0}
-          m_Tooltip: CompositeCollider2D
-          m_TextWithWhitespace: "CompositeCollider2D\u200B"
-        shown: 0
-        excluded: 0
-        isBuiltIn: 1
-        script: {fileID: 0}
-        hasToggle: 1
-      - displayName: CompositeShadowCaster2D
-        name: UnityEngine.Rendering.Universal.CompositeShadowCaster2D, Unity.RenderPipelines.Universal.2D.Runtime,
-          Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-        content:
-          m_Text: CompositeShadowCaster2D
-          m_Image: {fileID: -8204150473280056172, guid: 0000000000000000d000000000000000, type: 0}
-          m_Tooltip: CompositeShadowCaster2D
-          m_TextWithWhitespace: "CompositeShadowCaster2D\u200B"
-        shown: 0
-        excluded: 0
-        isBuiltIn: 1
-        script: {fileID: 0}
-        hasToggle: 1
-      - displayName: ConstantForce2D
-        name: UnityEngine.ConstantForce2D, UnityEngine.Physics2DModule, Version=0.0.0.0,
-          Culture=neutral, PublicKeyToken=null
-        content:
-          m_Text: ConstantForce2D
-          m_Image: {fileID: -5712622568368013079, guid: 0000000000000000d000000000000000, type: 0}
-          m_Tooltip: ConstantForce2D
-          m_TextWithWhitespace: "ConstantForce2D\u200B"
-        shown: 0
-        excluded: 0
-        isBuiltIn: 1
-        script: {fileID: 0}
-        hasToggle: 1
-      - displayName: CustomCollider2D
-        name: UnityEngine.CustomCollider2D, UnityEngine.Physics2DModule, Version=0.0.0.0,
-          Culture=neutral, PublicKeyToken=null
-        content:
-          m_Text: CustomCollider2D
-          m_Image: {fileID: 839877395022437811, guid: 0000000000000000d000000000000000, type: 0}
-          m_Tooltip: CustomCollider2D
-          m_TextWithWhitespace: "CustomCollider2D\u200B"
-        shown: 0
-        excluded: 0
-        isBuiltIn: 1
-        script: {fileID: 0}
-        hasToggle: 1
-      - displayName: DistanceJoint2D
-        name: UnityEngine.DistanceJoint2D, UnityEngine.Physics2DModule, Version=0.0.0.0,
-          Culture=neutral, PublicKeyToken=null
-        content:
-          m_Text: DistanceJoint2D
-          m_Image: {fileID: 6664071900287422854, guid: 0000000000000000d000000000000000, type: 0}
-          m_Tooltip: DistanceJoint2D
-          m_TextWithWhitespace: "DistanceJoint2D\u200B"
-        shown: 0
-        excluded: 0
-        isBuiltIn: 1
-        script: {fileID: 0}
-        hasToggle: 1
-      - displayName: EdgeCollider2D
-        name: UnityEngine.EdgeCollider2D, UnityEngine.Physics2DModule, Version=0.0.0.0,
-          Culture=neutral, PublicKeyToken=null
-        content:
-          m_Text: EdgeCollider2D
-          m_Image: {fileID: -4574213285256128959, guid: 0000000000000000d000000000000000, type: 0}
-          m_Tooltip: EdgeCollider2D
-          m_TextWithWhitespace: "EdgeCollider2D\u200B"
-        shown: 0
-        excluded: 0
-        isBuiltIn: 1
-        script: {fileID: 0}
-        hasToggle: 1
-      - displayName: Effector2D
-        name: UnityEngine.Effector2D, UnityEngine.Physics2DModule, Version=0.0.0.0,
-          Culture=neutral, PublicKeyToken=null
-        content:
-          m_Text: Effector2D
-          m_Image: {fileID: 8779834242249542326, guid: 0000000000000000d000000000000000, type: 0}
-          m_Tooltip: Effector2D
-          m_TextWithWhitespace: "Effector2D\u200B"
-        shown: 0
-        excluded: 0
-        isBuiltIn: 1
-        script: {fileID: 0}
-        hasToggle: 1
-      - displayName: FixedJoint2D
-        name: UnityEngine.FixedJoint2D, UnityEngine.Physics2DModule, Version=0.0.0.0,
-          Culture=neutral, PublicKeyToken=null
-        content:
-          m_Text: FixedJoint2D
-          m_Image: {fileID: 8963634120372581356, guid: 0000000000000000d000000000000000, type: 0}
-          m_Tooltip: FixedJoint2D
-          m_TextWithWhitespace: "FixedJoint2D\u200B"
-        shown: 0
-        excluded: 0
-        isBuiltIn: 1
-        script: {fileID: 0}
-        hasToggle: 1
-      - displayName: FrictionJoint2D
-        name: UnityEngine.FrictionJoint2D, UnityEngine.Physics2DModule, Version=0.0.0.0,
-          Culture=neutral, PublicKeyToken=null
-        content:
-          m_Text: FrictionJoint2D
-          m_Image: {fileID: 4037354640048256451, guid: 0000000000000000d000000000000000, type: 0}
-          m_Tooltip: FrictionJoint2D
-          m_TextWithWhitespace: "FrictionJoint2D\u200B"
-        shown: 0
-        excluded: 0
-        isBuiltIn: 1
-        script: {fileID: 0}
-        hasToggle: 1
-      - displayName: HingeJoint2D
-        name: UnityEngine.HingeJoint2D, UnityEngine.Physics2DModule, Version=0.0.0.0,
-          Culture=neutral, PublicKeyToken=null
-        content:
-          m_Text: HingeJoint2D
-          m_Image: {fileID: 4952710011494502320, guid: 0000000000000000d000000000000000, type: 0}
-          m_Tooltip: HingeJoint2D
-          m_TextWithWhitespace: "HingeJoint2D\u200B"
-        shown: 0
-        excluded: 0
-        isBuiltIn: 1
-        script: {fileID: 0}
-        hasToggle: 1
-      - displayName: Joint2D
-        name: UnityEngine.Joint2D, UnityEngine.Physics2DModule, Version=0.0.0.0,
-          Culture=neutral, PublicKeyToken=null
-        content:
-          m_Text: Joint2D
-          m_Image: {fileID: 8779834242249542326, guid: 0000000000000000d000000000000000, type: 0}
-          m_Tooltip: Joint2D
-          m_TextWithWhitespace: "Joint2D\u200B"
-        shown: 0
-        excluded: 0
-        isBuiltIn: 1
-        script: {fileID: 0}
-        hasToggle: 1
-      - displayName: Light2D
-        name: UnityEngine.Rendering.Universal.Light2D, Unity.RenderPipelines.Universal.2D.Runtime,
-          Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-        content:
-          m_Text: Light2D
-          m_Image: {fileID: -8204150473280056172, guid: 0000000000000000d000000000000000, type: 0}
-          m_Tooltip: Light2D
-          m_TextWithWhitespace: "Light2D\u200B"
-        shown: 0
-        excluded: 0
-        isBuiltIn: 1
-        script: {fileID: 0}
-        hasToggle: 1
-      - displayName: Physics2DRaycaster
-        name: UnityEngine.EventSystems.Physics2DRaycaster, UnityEngine.UI, Version=1.0.0.0,
-          Culture=neutral, PublicKeyToken=null
-        content:
-          m_Text: Physics2DRaycaster
-          m_Image: {fileID: 8958925463535290616, guid: 0000000000000000d000000000000000, type: 0}
-          m_Tooltip: Physics2DRaycaster
-          m_TextWithWhitespace: "Physics2DRaycaster\u200B"
-        shown: 0
-        excluded: 0
-        isBuiltIn: 1
-        script: {fileID: 0}
-        hasToggle: 1
-      - displayName: PhysicsUpdateBehaviour2D
-        name: UnityEngine.PhysicsUpdateBehaviour2D, UnityEngine.Physics2DModule,
-          Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-        content:
-          m_Text: PhysicsUpdateBehaviour2D
-          m_Image: {fileID: 8779834242249542326, guid: 0000000000000000d000000000000000, type: 0}
-          m_Tooltip: PhysicsUpdateBehaviour2D
-          m_TextWithWhitespace: "PhysicsUpdateBehaviour2D\u200B"
-        shown: 0
-        excluded: 0
-        isBuiltIn: 1
-        script: {fileID: 0}
-        hasToggle: 1
-      - displayName: PlatformEffector2D
-        name: UnityEngine.PlatformEffector2D, UnityEngine.Physics2DModule, Version=0.0.0.0,
-          Culture=neutral, PublicKeyToken=null
-        content:
-          m_Text: PlatformEffector2D
-          m_Image: {fileID: -4280463815080762487, guid: 0000000000000000d000000000000000, type: 0}
-          m_Tooltip: PlatformEffector2D
-          m_TextWithWhitespace: "PlatformEffector2D\u200B"
-        shown: 0
-        excluded: 0
-        isBuiltIn: 1
-        script: {fileID: 0}
-        hasToggle: 1
-      - displayName: PointEffector2D
-        name: UnityEngine.PointEffector2D, UnityEngine.Physics2DModule, Version=0.0.0.0,
-          Culture=neutral, PublicKeyToken=null
-        content:
-          m_Text: PointEffector2D
-          m_Image: {fileID: 1754417221992040693, guid: 0000000000000000d000000000000000, type: 0}
-          m_Tooltip: PointEffector2D
-          m_TextWithWhitespace: "PointEffector2D\u200B"
-        shown: 0
-        excluded: 0
-        isBuiltIn: 1
-        script: {fileID: 0}
-        hasToggle: 1
-      - displayName: PolygonCollider2D
-        name: UnityEngine.PolygonCollider2D, UnityEngine.Physics2DModule, Version=0.0.0.0,
-          Culture=neutral, PublicKeyToken=null
-        content:
-          m_Text: PolygonCollider2D
-          m_Image: {fileID: -6584174250388574261, guid: 0000000000000000d000000000000000, type: 0}
-          m_Tooltip: PolygonCollider2D
-          m_TextWithWhitespace: "PolygonCollider2D\u200B"
-        shown: 0
-        excluded: 0
-        isBuiltIn: 1
-        script: {fileID: 0}
-        hasToggle: 1
-      - displayName: RectMask2D
-        name: UnityEngine.UI.RectMask2D, UnityEngine.UI, Version=1.0.0.0, Culture=neutral,
-          PublicKeyToken=null
-        content:
-          m_Text: RectMask2D
-          m_Image: {fileID: 5601005728230766229, guid: 0000000000000000d000000000000000, type: 0}
-          m_Tooltip: RectMask2D
-          m_TextWithWhitespace: "RectMask2D\u200B"
-        shown: 0
-        excluded: 0
-        isBuiltIn: 1
-        script: {fileID: 0}
-        hasToggle: 1
-      - displayName: RelativeJoint2D
-        name: UnityEngine.RelativeJoint2D, UnityEngine.Physics2DModule, Version=0.0.0.0,
-          Culture=neutral, PublicKeyToken=null
-        content:
-          m_Text: RelativeJoint2D
-          m_Image: {fileID: -757332629082491613, guid: 0000000000000000d000000000000000, type: 0}
-          m_Tooltip: RelativeJoint2D
-          m_TextWithWhitespace: "RelativeJoint2D\u200B"
-        shown: 0
-        excluded: 0
-        isBuiltIn: 1
-        script: {fileID: 0}
-        hasToggle: 1
-      - displayName: Rigidbody2D
-        name: UnityEngine.Rigidbody2D, UnityEngine.Physics2DModule, Version=0.0.0.0,
-          Culture=neutral, PublicKeyToken=null
-        content:
-          m_Text: Rigidbody2D
-          m_Image: {fileID: 8723023343561652918, guid: 0000000000000000d000000000000000, type: 0}
-          m_Tooltip: Rigidbody2D
-          m_TextWithWhitespace: "Rigidbody2D\u200B"
-        shown: 0
-        excluded: 0
-        isBuiltIn: 1
-        script: {fileID: 0}
-        hasToggle: 0
-      - displayName: ShadowCaster2D
-        name: UnityEngine.Rendering.Universal.ShadowCaster2D, Unity.RenderPipelines.Universal.2D.Runtime,
-          Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-        content:
-          m_Text: ShadowCaster2D
-          m_Image: {fileID: -8204150473280056172, guid: 0000000000000000d000000000000000, type: 0}
-          m_Tooltip: ShadowCaster2D
-          m_TextWithWhitespace: "ShadowCaster2D\u200B"
-        shown: 0
-        excluded: 0
-        isBuiltIn: 1
-        script: {fileID: 0}
-        hasToggle: 1
-      - displayName: SliderJoint2D
-        name: UnityEngine.SliderJoint2D, UnityEngine.Physics2DModule, Version=0.0.0.0,
-          Culture=neutral, PublicKeyToken=null
-        content:
-          m_Text: SliderJoint2D
-          m_Image: {fileID: -6545432660917278511, guid: 0000000000000000d000000000000000, type: 0}
-          m_Tooltip: SliderJoint2D
-          m_TextWithWhitespace: "SliderJoint2D\u200B"
-        shown: 0
-        excluded: 0
-        isBuiltIn: 1
-        script: {fileID: 0}
-        hasToggle: 1
-      - displayName: SpringJoint2D
-        name: UnityEngine.SpringJoint2D, UnityEngine.Physics2DModule, Version=0.0.0.0,
-          Culture=neutral, PublicKeyToken=null
-        content:
-          m_Text: SpringJoint2D
-          m_Image: {fileID: 8675268643918541391, guid: 0000000000000000d000000000000000, type: 0}
-          m_Tooltip: SpringJoint2D
-          m_TextWithWhitespace: "SpringJoint2D\u200B"
-        shown: 0
-        excluded: 0
-        isBuiltIn: 1
-        script: {fileID: 0}
-        hasToggle: 1
-      - displayName: SpriteShapeRenderer
-        name: UnityEngine.U2D.SpriteShapeRenderer, UnityEngine.SpriteShapeModule,
-          Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-        content:
-          m_Text: SpriteShapeRenderer
-          m_Image: {fileID: 8268226678086403780, guid: 0000000000000000d000000000000000, type: 0}
-          m_Tooltip: SpriteShapeRenderer
-          m_TextWithWhitespace: "SpriteShapeRenderer\u200B"
-        shown: 0
-        excluded: 0
-        isBuiltIn: 1
-        script: {fileID: 0}
-        hasToggle: 1
-      - displayName: SurfaceEffector2D
-        name: UnityEngine.SurfaceEffector2D, UnityEngine.Physics2DModule, Version=0.0.0.0,
-          Culture=neutral, PublicKeyToken=null
-        content:
-          m_Text: SurfaceEffector2D
-          m_Image: {fileID: -8048572862003724531, guid: 0000000000000000d000000000000000, type: 0}
-          m_Tooltip: SurfaceEffector2D
-          m_TextWithWhitespace: "SurfaceEffector2D\u200B"
-        shown: 0
-        excluded: 0
-        isBuiltIn: 1
-        script: {fileID: 0}
-        hasToggle: 1
-      - displayName: TargetJoint2D
-        name: UnityEngine.TargetJoint2D, UnityEngine.Physics2DModule, Version=0.0.0.0,
-          Culture=neutral, PublicKeyToken=null
-        content:
-          m_Text: TargetJoint2D
-          m_Image: {fileID: 4215790347392998379, guid: 0000000000000000d000000000000000, type: 0}
-          m_Tooltip: TargetJoint2D
-          m_TextWithWhitespace: "TargetJoint2D\u200B"
-        shown: 0
-        excluded: 0
-        isBuiltIn: 1
-        script: {fileID: 0}
-        hasToggle: 1
-      - displayName: TilemapCollider2D
-        name: UnityEngine.Tilemaps.TilemapCollider2D, UnityEngine.TilemapModule,
-          Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-        content:
-          m_Text: TilemapCollider2D
-          m_Image: {fileID: 2301944674211680541, guid: 0000000000000000d000000000000000, type: 0}
-          m_Tooltip: TilemapCollider2D
-          m_TextWithWhitespace: "TilemapCollider2D\u200B"
-        shown: 0
-        excluded: 0
-        isBuiltIn: 1
-        script: {fileID: 0}
-        hasToggle: 1
-      - displayName: WheelJoint2D
-        name: UnityEngine.WheelJoint2D, UnityEngine.Physics2DModule, Version=0.0.0.0,
-          Culture=neutral, PublicKeyToken=null
-        content:
-          m_Text: WheelJoint2D
-          m_Image: {fileID: 6192141092834927191, guid: 0000000000000000d000000000000000, type: 0}
-          m_Tooltip: WheelJoint2D
-          m_TextWithWhitespace: "WheelJoint2D\u200B"
-        shown: 0
-        excluded: 0
-        isBuiltIn: 1
-        script: {fileID: 0}
-        hasToggle: 1
     - name: General
       components:
+      - displayName: AdaptivePerformanceManager
+        name: UnityEngine.AdaptivePerformance.AdaptivePerformanceManager, UnityEngine.AdaptivePerformanceModule,
+          Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+        content:
+          m_Text: AdaptivePerformanceManager
+          m_Image: {fileID: 8779834242249542326, guid: 0000000000000000d000000000000000, type: 0}
+          m_Tooltip: AdaptivePerformanceManager
+          m_TextWithWhitespace: "AdaptivePerformanceManager\u200B"
+        shown: 0
+        excluded: 0
+        isBuiltIn: 1
+        script: {fileID: 0}
+        hasToggle: 1
       - displayName: ArticulationBody
         name: UnityEngine.ArticulationBody, UnityEngine.PhysicsModule, Version=0.0.0.0,
           Culture=neutral, PublicKeyToken=null
@@ -2367,7 +1778,7 @@ MonoBehaviour:
         hasToggle: 1
       - displayName: FrameTimeMeasurement
         name: Unity.PerformanceTesting.Measurements.FrameTimeMeasurement, Unity.PerformanceTesting,
-          Version=3.1.0.0, Culture=neutral, PublicKeyToken=null
+          Version=3.2.0.0, Culture=neutral, PublicKeyToken=null
         content:
           m_Text: FrameTimeMeasurement
           m_Image: {fileID: -8204150473280056172, guid: 0000000000000000d000000000000000, type: 0}
@@ -2640,7 +2051,7 @@ MonoBehaviour:
         hasToggle: 0
       - displayName: OnScreenButton
         name: UnityEngine.InputSystem.OnScreen.OnScreenButton, Unity.InputSystem,
-          Version=1.14.2.0, Culture=neutral, PublicKeyToken=null
+          Version=1.17.0.0, Culture=neutral, PublicKeyToken=null
         content:
           m_Text: OnScreenButton
           m_Image: {fileID: -8204150473280056172, guid: 0000000000000000d000000000000000, type: 0}
@@ -2653,12 +2064,25 @@ MonoBehaviour:
         hasToggle: 1
       - displayName: OnScreenStick
         name: UnityEngine.InputSystem.OnScreen.OnScreenStick, Unity.InputSystem,
-          Version=1.14.2.0, Culture=neutral, PublicKeyToken=null
+          Version=1.17.0.0, Culture=neutral, PublicKeyToken=null
         content:
           m_Text: OnScreenStick
           m_Image: {fileID: -8204150473280056172, guid: 0000000000000000d000000000000000, type: 0}
           m_Tooltip: OnScreenStick
           m_TextWithWhitespace: "OnScreenStick\u200B"
+        shown: 0
+        excluded: 0
+        isBuiltIn: 1
+        script: {fileID: 0}
+        hasToggle: 1
+      - displayName: PanelInputConfiguration
+        name: UnityEngine.UIElements.PanelInputConfiguration, UnityEngine.UIElementsModule,
+          Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+        content:
+          m_Text: PanelInputConfiguration
+          m_Image: {fileID: -9036155654546657373, guid: 0000000000000000d000000000000000, type: 0}
+          m_Tooltip: PanelInputConfiguration
+          m_TextWithWhitespace: "PanelInputConfiguration\u200B"
         shown: 0
         excluded: 0
         isBuiltIn: 1
@@ -2692,7 +2116,7 @@ MonoBehaviour:
         hasToggle: 1
       - displayName: PerformanceTestHelper
         name: Unity.PerformanceTesting.PerformanceTestHelper, Unity.PerformanceTesting,
-          Version=3.1.0.0, Culture=neutral, PublicKeyToken=null
+          Version=3.2.0.0, Culture=neutral, PublicKeyToken=null
         content:
           m_Text: PerformanceTestHelper
           m_Image: {fileID: -8204150473280056172, guid: 0000000000000000d000000000000000, type: 0}
@@ -2729,21 +2153,8 @@ MonoBehaviour:
         isBuiltIn: 1
         script: {fileID: 0}
         hasToggle: 1
-      - displayName: PlayerAuthentication
-        name: Unity.Services.Authentication.Components.PlayerAuthentication, Unity.Services.Authentication,
-          Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-        content:
-          m_Text: PlayerAuthentication
-          m_Image: {fileID: -8204150473280056172, guid: 0000000000000000d000000000000000, type: 0}
-          m_Tooltip: PlayerAuthentication
-          m_TextWithWhitespace: "PlayerAuthentication\u200B"
-        shown: 0
-        excluded: 0
-        isBuiltIn: 1
-        script: {fileID: 0}
-        hasToggle: 1
       - displayName: PlayerInput
-        name: UnityEngine.InputSystem.PlayerInput, Unity.InputSystem, Version=1.14.2.0,
+        name: UnityEngine.InputSystem.PlayerInput, Unity.InputSystem, Version=1.17.0.0,
           Culture=neutral, PublicKeyToken=null
         content:
           m_Text: PlayerInput
@@ -2756,7 +2167,7 @@ MonoBehaviour:
         script: {fileID: 0}
         hasToggle: 1
       - displayName: PlayerInputManager
-        name: UnityEngine.InputSystem.PlayerInputManager, Unity.InputSystem, Version=1.14.2.0,
+        name: UnityEngine.InputSystem.PlayerInputManager, Unity.InputSystem, Version=1.17.0.0,
           Culture=neutral, PublicKeyToken=null
         content:
           m_Text: PlayerInputManager
@@ -2900,7 +2311,7 @@ MonoBehaviour:
         hasToggle: 1
       - displayName: ProfilerMarkerMeasurement
         name: Unity.PerformanceTesting.Measurements.ProfilerMarkerMeasurement, Unity.PerformanceTesting,
-          Version=3.1.0.0, Culture=neutral, PublicKeyToken=null
+          Version=3.2.0.0, Culture=neutral, PublicKeyToken=null
         content:
           m_Text: ProfilerMarkerMeasurement
           m_Image: {fileID: -8204150473280056172, guid: 0000000000000000d000000000000000, type: 0}
@@ -2971,19 +2382,6 @@ MonoBehaviour:
           m_Image: {fileID: -8204150473280056172, guid: 0000000000000000d000000000000000, type: 0}
           m_Tooltip: SceneRenderPipeline
           m_TextWithWhitespace: "SceneRenderPipeline\u200B"
-        shown: 0
-        excluded: 0
-        isBuiltIn: 1
-        script: {fileID: 0}
-        hasToggle: 1
-      - displayName: ServicesInitialization
-        name: Unity.Services.Core.Components.ServicesInitialization, Unity.Services.Core.Components,
-          Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-        content:
-          m_Text: ServicesInitialization
-          m_Image: {fileID: -8204150473280056172, guid: 0000000000000000d000000000000000, type: 0}
-          m_Tooltip: ServicesInitialization
-          m_TextWithWhitespace: "ServicesInitialization\u200B"
         shown: 0
         excluded: 0
         isBuiltIn: 1
@@ -3134,7 +2532,7 @@ MonoBehaviour:
         hasToggle: 1
       - displayName: TouchSimulation
         name: UnityEngine.InputSystem.EnhancedTouch.TouchSimulation, Unity.InputSystem,
-          Version=1.14.2.0, Culture=neutral, PublicKeyToken=null
+          Version=1.17.0.0, Culture=neutral, PublicKeyToken=null
         content:
           m_Text: TouchSimulation
           m_Image: {fileID: -8204150473280056172, guid: 0000000000000000d000000000000000, type: 0}
@@ -3146,7 +2544,7 @@ MonoBehaviour:
         script: {fileID: 0}
         hasToggle: 1
       - displayName: TrackedPoseDriver
-        name: UnityEngine.InputSystem.XR.TrackedPoseDriver, Unity.InputSystem, Version=1.14.2.0,
+        name: UnityEngine.InputSystem.XR.TrackedPoseDriver, Unity.InputSystem, Version=1.17.0.0,
           Culture=neutral, PublicKeyToken=null
         content:
           m_Text: TrackedPoseDriver
@@ -3167,7 +2565,7 @@ MonoBehaviour:
           m_Tooltip: Transform
           m_TextWithWhitespace: "Transform\u200B"
         shown: 0
-        excluded: 0
+        excluded: 1
         isBuiltIn: 1
         script: {fileID: 0}
         hasToggle: 0
@@ -3237,7 +2635,7 @@ MonoBehaviour:
         script: {fileID: 0}
         hasToggle: 1
       - displayName: VirtualMouseInput
-        name: UnityEngine.InputSystem.UI.VirtualMouseInput, Unity.InputSystem, Version=1.14.2.0,
+        name: UnityEngine.InputSystem.UI.VirtualMouseInput, Unity.InputSystem, Version=1.17.0.0,
           Culture=neutral, PublicKeyToken=null
         content:
           m_Text: VirtualMouseInput
@@ -3267,7 +2665,7 @@ MonoBehaviour:
           Culture=neutral, PublicKeyToken=null
         content:
           m_Text: Volume
-          m_Image: {fileID: 2800000, guid: 32b23d5d74f3aee4f9364e34e2f59379, type: 3}
+          m_Image: {fileID: 2800000, guid: 177b2538515c71b4a86aa1cad939807a, type: 2}
           m_Tooltip: Volume
           m_TextWithWhitespace: "Volume\u200B"
         shown: 0
@@ -3288,6 +2686,621 @@ MonoBehaviour:
         isBuiltIn: 1
         script: {fileID: 0}
         hasToggle: 0
+    - name: Animation
+      components:
+      - displayName: AimConstraint
+        name: UnityEngine.Animations.AimConstraint, UnityEngine.AnimationModule,
+          Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+        content:
+          m_Text: AimConstraint
+          m_Image: {fileID: 1499262648515748108, guid: 0000000000000000d000000000000000, type: 0}
+          m_Tooltip: AimConstraint
+          m_TextWithWhitespace: "AimConstraint\u200B"
+        shown: 0
+        excluded: 0
+        isBuiltIn: 1
+        script: {fileID: 0}
+        hasToggle: 1
+      - displayName: Animation
+        name: UnityEngine.Animation, UnityEngine.AnimationModule, Version=0.0.0.0,
+          Culture=neutral, PublicKeyToken=null
+        content:
+          m_Text: Animation
+          m_Image: {fileID: -6866312847677126049, guid: 0000000000000000d000000000000000, type: 0}
+          m_Tooltip: Animation
+          m_TextWithWhitespace: "Animation\u200B"
+        shown: 0
+        excluded: 0
+        isBuiltIn: 1
+        script: {fileID: 0}
+        hasToggle: 1
+      - displayName: Animator
+        name: UnityEngine.Animator, UnityEngine.AnimationModule, Version=0.0.0.0,
+          Culture=neutral, PublicKeyToken=null
+        content:
+          m_Text: Animator
+          m_Image: {fileID: 6921884248723262640, guid: 0000000000000000d000000000000000, type: 0}
+          m_Tooltip: Animator
+          m_TextWithWhitespace: "Animator\u200B"
+        shown: 0
+        excluded: 0
+        isBuiltIn: 1
+        script: {fileID: 0}
+        hasToggle: 1
+      - displayName: LookAtConstraint
+        name: UnityEngine.Animations.LookAtConstraint, UnityEngine.AnimationModule,
+          Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+        content:
+          m_Text: LookAtConstraint
+          m_Image: {fileID: 369954582749368496, guid: 0000000000000000d000000000000000, type: 0}
+          m_Tooltip: LookAtConstraint
+          m_TextWithWhitespace: "LookAtConstraint\u200B"
+        shown: 0
+        excluded: 0
+        isBuiltIn: 1
+        script: {fileID: 0}
+        hasToggle: 1
+      - displayName: ParentConstraint
+        name: UnityEngine.Animations.ParentConstraint, UnityEngine.AnimationModule,
+          Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+        content:
+          m_Text: ParentConstraint
+          m_Image: {fileID: 581906182735090199, guid: 0000000000000000d000000000000000, type: 0}
+          m_Tooltip: ParentConstraint
+          m_TextWithWhitespace: "ParentConstraint\u200B"
+        shown: 0
+        excluded: 0
+        isBuiltIn: 1
+        script: {fileID: 0}
+        hasToggle: 1
+      - displayName: PositionConstraint
+        name: UnityEngine.Animations.PositionConstraint, UnityEngine.AnimationModule,
+          Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+        content:
+          m_Text: PositionConstraint
+          m_Image: {fileID: -7343420614739014117, guid: 0000000000000000d000000000000000, type: 0}
+          m_Tooltip: PositionConstraint
+          m_TextWithWhitespace: "PositionConstraint\u200B"
+        shown: 0
+        excluded: 0
+        isBuiltIn: 1
+        script: {fileID: 0}
+        hasToggle: 1
+      - displayName: RotationConstraint
+        name: UnityEngine.Animations.RotationConstraint, UnityEngine.AnimationModule,
+          Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+        content:
+          m_Text: RotationConstraint
+          m_Image: {fileID: -7485488908267385562, guid: 0000000000000000d000000000000000, type: 0}
+          m_Tooltip: RotationConstraint
+          m_TextWithWhitespace: "RotationConstraint\u200B"
+        shown: 0
+        excluded: 0
+        isBuiltIn: 1
+        script: {fileID: 0}
+        hasToggle: 1
+      - displayName: ScaleConstraint
+        name: UnityEngine.Animations.ScaleConstraint, UnityEngine.AnimationModule,
+          Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+        content:
+          m_Text: ScaleConstraint
+          m_Image: {fileID: 5163284692623341358, guid: 0000000000000000d000000000000000, type: 0}
+          m_Tooltip: ScaleConstraint
+          m_TextWithWhitespace: "ScaleConstraint\u200B"
+        shown: 0
+        excluded: 0
+        isBuiltIn: 1
+        script: {fileID: 0}
+        hasToggle: 1
+      - displayName: SplineAnimate
+        name: UnityEngine.Splines.SplineAnimate, Unity.Splines, Version=0.0.0.0,
+          Culture=neutral, PublicKeyToken=null
+        content:
+          m_Text: SplineAnimate
+          m_Image: {fileID: -8204150473280056172, guid: 0000000000000000d000000000000000, type: 0}
+          m_Tooltip: SplineAnimate
+          m_TextWithWhitespace: "SplineAnimate\u200B"
+        shown: 0
+        excluded: 0
+        isBuiltIn: 1
+        script: {fileID: 0}
+        hasToggle: 1
+      - displayName: TMP_SpriteAnimator
+        name: TMPro.TMP_SpriteAnimator, Unity.TextMeshPro, Version=0.0.0.0, Culture=neutral,
+          PublicKeyToken=null
+        content:
+          m_Text: TMP_SpriteAnimator
+          m_Image: {fileID: -8204150473280056172, guid: 0000000000000000d000000000000000, type: 0}
+          m_Tooltip: TMP_SpriteAnimator
+          m_TextWithWhitespace: "TMP_SpriteAnimator\u200B"
+        shown: 0
+        excluded: 0
+        isBuiltIn: 1
+        script: {fileID: 0}
+        hasToggle: 1
+    - name: 2D
+      components:
+      - displayName: AnchoredJoint2D
+        name: UnityEngine.AnchoredJoint2D, UnityEngine.Physics2DModule, Version=0.0.0.0,
+          Culture=neutral, PublicKeyToken=null
+        content:
+          m_Text: AnchoredJoint2D
+          m_Image: {fileID: 8779834242249542326, guid: 0000000000000000d000000000000000, type: 0}
+          m_Tooltip: AnchoredJoint2D
+          m_TextWithWhitespace: "AnchoredJoint2D\u200B"
+        shown: 0
+        excluded: 0
+        isBuiltIn: 1
+        script: {fileID: 0}
+        hasToggle: 1
+      - displayName: AreaEffector2D
+        name: UnityEngine.AreaEffector2D, UnityEngine.Physics2DModule, Version=0.0.0.0,
+          Culture=neutral, PublicKeyToken=null
+        content:
+          m_Text: AreaEffector2D
+          m_Image: {fileID: -65116092203058140, guid: 0000000000000000d000000000000000, type: 0}
+          m_Tooltip: AreaEffector2D
+          m_TextWithWhitespace: "AreaEffector2D\u200B"
+        shown: 0
+        excluded: 0
+        isBuiltIn: 1
+        script: {fileID: 0}
+        hasToggle: 1
+      - displayName: BoxCollider2D
+        name: UnityEngine.BoxCollider2D, UnityEngine.Physics2DModule, Version=0.0.0.0,
+          Culture=neutral, PublicKeyToken=null
+        content:
+          m_Text: BoxCollider2D
+          m_Image: {fileID: 2230726447646993015, guid: 0000000000000000d000000000000000, type: 0}
+          m_Tooltip: BoxCollider2D
+          m_TextWithWhitespace: "BoxCollider2D\u200B"
+        shown: 0
+        excluded: 0
+        isBuiltIn: 1
+        script: {fileID: 0}
+        hasToggle: 1
+      - displayName: BuoyancyEffector2D
+        name: UnityEngine.BuoyancyEffector2D, UnityEngine.Physics2DModule, Version=0.0.0.0,
+          Culture=neutral, PublicKeyToken=null
+        content:
+          m_Text: BuoyancyEffector2D
+          m_Image: {fileID: 3491322054811378011, guid: 0000000000000000d000000000000000, type: 0}
+          m_Tooltip: BuoyancyEffector2D
+          m_TextWithWhitespace: "BuoyancyEffector2D\u200B"
+        shown: 0
+        excluded: 0
+        isBuiltIn: 1
+        script: {fileID: 0}
+        hasToggle: 1
+      - displayName: CapsuleCollider2D
+        name: UnityEngine.CapsuleCollider2D, UnityEngine.Physics2DModule, Version=0.0.0.0,
+          Culture=neutral, PublicKeyToken=null
+        content:
+          m_Text: CapsuleCollider2D
+          m_Image: {fileID: -2692084220489661059, guid: 0000000000000000d000000000000000, type: 0}
+          m_Tooltip: CapsuleCollider2D
+          m_TextWithWhitespace: "CapsuleCollider2D\u200B"
+        shown: 0
+        excluded: 0
+        isBuiltIn: 1
+        script: {fileID: 0}
+        hasToggle: 1
+      - displayName: CinemachineConfiner2D
+        name: Unity.Cinemachine.CinemachineConfiner2D, Unity.Cinemachine, Version=0.0.0.0,
+          Culture=neutral, PublicKeyToken=null
+        content:
+          m_Text: CinemachineConfiner2D
+          m_Image: {fileID: 2800000, guid: 3327a326efc0c4079a8eada111b11d29, type: 3}
+          m_Tooltip: CinemachineConfiner2D
+          m_TextWithWhitespace: "CinemachineConfiner2D\u200B"
+        shown: 0
+        excluded: 0
+        isBuiltIn: 1
+        script: {fileID: 0}
+        hasToggle: 1
+      - displayName: CircleCollider2D
+        name: UnityEngine.CircleCollider2D, UnityEngine.Physics2DModule, Version=0.0.0.0,
+          Culture=neutral, PublicKeyToken=null
+        content:
+          m_Text: CircleCollider2D
+          m_Image: {fileID: 7882515739285264159, guid: 0000000000000000d000000000000000, type: 0}
+          m_Tooltip: CircleCollider2D
+          m_TextWithWhitespace: "CircleCollider2D\u200B"
+        shown: 0
+        excluded: 0
+        isBuiltIn: 1
+        script: {fileID: 0}
+        hasToggle: 1
+      - displayName: Collider2D
+        name: UnityEngine.Collider2D, UnityEngine.Physics2DModule, Version=0.0.0.0,
+          Culture=neutral, PublicKeyToken=null
+        content:
+          m_Text: Collider2D
+          m_Image: {fileID: 8779834242249542326, guid: 0000000000000000d000000000000000, type: 0}
+          m_Tooltip: Collider2D
+          m_TextWithWhitespace: "Collider2D\u200B"
+        shown: 0
+        excluded: 0
+        isBuiltIn: 1
+        script: {fileID: 0}
+        hasToggle: 1
+      - displayName: CompositeCollider2D
+        name: UnityEngine.CompositeCollider2D, UnityEngine.Physics2DModule, Version=0.0.0.0,
+          Culture=neutral, PublicKeyToken=null
+        content:
+          m_Text: CompositeCollider2D
+          m_Image: {fileID: -2004682403923740574, guid: 0000000000000000d000000000000000, type: 0}
+          m_Tooltip: CompositeCollider2D
+          m_TextWithWhitespace: "CompositeCollider2D\u200B"
+        shown: 0
+        excluded: 0
+        isBuiltIn: 1
+        script: {fileID: 0}
+        hasToggle: 1
+      - displayName: CompositeShadowCaster2D
+        name: UnityEngine.Rendering.Universal.CompositeShadowCaster2D, Unity.RenderPipelines.Universal.2D.Runtime,
+          Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+        content:
+          m_Text: CompositeShadowCaster2D
+          m_Image: {fileID: -8204150473280056172, guid: 0000000000000000d000000000000000, type: 0}
+          m_Tooltip: CompositeShadowCaster2D
+          m_TextWithWhitespace: "CompositeShadowCaster2D\u200B"
+        shown: 0
+        excluded: 0
+        isBuiltIn: 1
+        script: {fileID: 0}
+        hasToggle: 1
+      - displayName: ConstantForce2D
+        name: UnityEngine.ConstantForce2D, UnityEngine.Physics2DModule, Version=0.0.0.0,
+          Culture=neutral, PublicKeyToken=null
+        content:
+          m_Text: ConstantForce2D
+          m_Image: {fileID: -5712622568368013079, guid: 0000000000000000d000000000000000, type: 0}
+          m_Tooltip: ConstantForce2D
+          m_TextWithWhitespace: "ConstantForce2D\u200B"
+        shown: 0
+        excluded: 0
+        isBuiltIn: 1
+        script: {fileID: 0}
+        hasToggle: 1
+      - displayName: CustomCollider2D
+        name: UnityEngine.CustomCollider2D, UnityEngine.Physics2DModule, Version=0.0.0.0,
+          Culture=neutral, PublicKeyToken=null
+        content:
+          m_Text: CustomCollider2D
+          m_Image: {fileID: 839877395022437811, guid: 0000000000000000d000000000000000, type: 0}
+          m_Tooltip: CustomCollider2D
+          m_TextWithWhitespace: "CustomCollider2D\u200B"
+        shown: 0
+        excluded: 0
+        isBuiltIn: 1
+        script: {fileID: 0}
+        hasToggle: 1
+      - displayName: DistanceJoint2D
+        name: UnityEngine.DistanceJoint2D, UnityEngine.Physics2DModule, Version=0.0.0.0,
+          Culture=neutral, PublicKeyToken=null
+        content:
+          m_Text: DistanceJoint2D
+          m_Image: {fileID: 6664071900287422854, guid: 0000000000000000d000000000000000, type: 0}
+          m_Tooltip: DistanceJoint2D
+          m_TextWithWhitespace: "DistanceJoint2D\u200B"
+        shown: 0
+        excluded: 0
+        isBuiltIn: 1
+        script: {fileID: 0}
+        hasToggle: 1
+      - displayName: EdgeCollider2D
+        name: UnityEngine.EdgeCollider2D, UnityEngine.Physics2DModule, Version=0.0.0.0,
+          Culture=neutral, PublicKeyToken=null
+        content:
+          m_Text: EdgeCollider2D
+          m_Image: {fileID: -4574213285256128959, guid: 0000000000000000d000000000000000, type: 0}
+          m_Tooltip: EdgeCollider2D
+          m_TextWithWhitespace: "EdgeCollider2D\u200B"
+        shown: 0
+        excluded: 0
+        isBuiltIn: 1
+        script: {fileID: 0}
+        hasToggle: 1
+      - displayName: Effector2D
+        name: UnityEngine.Effector2D, UnityEngine.Physics2DModule, Version=0.0.0.0,
+          Culture=neutral, PublicKeyToken=null
+        content:
+          m_Text: Effector2D
+          m_Image: {fileID: 8779834242249542326, guid: 0000000000000000d000000000000000, type: 0}
+          m_Tooltip: Effector2D
+          m_TextWithWhitespace: "Effector2D\u200B"
+        shown: 0
+        excluded: 0
+        isBuiltIn: 1
+        script: {fileID: 0}
+        hasToggle: 1
+      - displayName: FixedJoint2D
+        name: UnityEngine.FixedJoint2D, UnityEngine.Physics2DModule, Version=0.0.0.0,
+          Culture=neutral, PublicKeyToken=null
+        content:
+          m_Text: FixedJoint2D
+          m_Image: {fileID: 8963634120372581356, guid: 0000000000000000d000000000000000, type: 0}
+          m_Tooltip: FixedJoint2D
+          m_TextWithWhitespace: "FixedJoint2D\u200B"
+        shown: 0
+        excluded: 0
+        isBuiltIn: 1
+        script: {fileID: 0}
+        hasToggle: 1
+      - displayName: FrictionJoint2D
+        name: UnityEngine.FrictionJoint2D, UnityEngine.Physics2DModule, Version=0.0.0.0,
+          Culture=neutral, PublicKeyToken=null
+        content:
+          m_Text: FrictionJoint2D
+          m_Image: {fileID: 4037354640048256451, guid: 0000000000000000d000000000000000, type: 0}
+          m_Tooltip: FrictionJoint2D
+          m_TextWithWhitespace: "FrictionJoint2D\u200B"
+        shown: 0
+        excluded: 0
+        isBuiltIn: 1
+        script: {fileID: 0}
+        hasToggle: 1
+      - displayName: HingeJoint2D
+        name: UnityEngine.HingeJoint2D, UnityEngine.Physics2DModule, Version=0.0.0.0,
+          Culture=neutral, PublicKeyToken=null
+        content:
+          m_Text: HingeJoint2D
+          m_Image: {fileID: 4952710011494502320, guid: 0000000000000000d000000000000000, type: 0}
+          m_Tooltip: HingeJoint2D
+          m_TextWithWhitespace: "HingeJoint2D\u200B"
+        shown: 0
+        excluded: 0
+        isBuiltIn: 1
+        script: {fileID: 0}
+        hasToggle: 1
+      - displayName: Joint2D
+        name: UnityEngine.Joint2D, UnityEngine.Physics2DModule, Version=0.0.0.0,
+          Culture=neutral, PublicKeyToken=null
+        content:
+          m_Text: Joint2D
+          m_Image: {fileID: 8779834242249542326, guid: 0000000000000000d000000000000000, type: 0}
+          m_Tooltip: Joint2D
+          m_TextWithWhitespace: "Joint2D\u200B"
+        shown: 0
+        excluded: 0
+        isBuiltIn: 1
+        script: {fileID: 0}
+        hasToggle: 1
+      - displayName: Light2D
+        name: UnityEngine.Rendering.Universal.Light2D, Unity.RenderPipelines.Universal.2D.Runtime,
+          Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+        content:
+          m_Text: Light2D
+          m_Image: {fileID: -8204150473280056172, guid: 0000000000000000d000000000000000, type: 0}
+          m_Tooltip: Light2D
+          m_TextWithWhitespace: "Light2D\u200B"
+        shown: 0
+        excluded: 0
+        isBuiltIn: 1
+        script: {fileID: 0}
+        hasToggle: 1
+      - displayName: Physics2DRaycaster
+        name: UnityEngine.EventSystems.Physics2DRaycaster, UnityEngine.UI, Version=1.0.0.0,
+          Culture=neutral, PublicKeyToken=null
+        content:
+          m_Text: Physics2DRaycaster
+          m_Image: {fileID: 8958925463535290616, guid: 0000000000000000d000000000000000, type: 0}
+          m_Tooltip: Physics2DRaycaster
+          m_TextWithWhitespace: "Physics2DRaycaster\u200B"
+        shown: 0
+        excluded: 0
+        isBuiltIn: 1
+        script: {fileID: 0}
+        hasToggle: 1
+      - displayName: PhysicsUpdateBehaviour2D
+        name: UnityEngine.PhysicsUpdateBehaviour2D, UnityEngine.Physics2DModule,
+          Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+        content:
+          m_Text: PhysicsUpdateBehaviour2D
+          m_Image: {fileID: 8779834242249542326, guid: 0000000000000000d000000000000000, type: 0}
+          m_Tooltip: PhysicsUpdateBehaviour2D
+          m_TextWithWhitespace: "PhysicsUpdateBehaviour2D\u200B"
+        shown: 0
+        excluded: 0
+        isBuiltIn: 1
+        script: {fileID: 0}
+        hasToggle: 1
+      - displayName: PlatformEffector2D
+        name: UnityEngine.PlatformEffector2D, UnityEngine.Physics2DModule, Version=0.0.0.0,
+          Culture=neutral, PublicKeyToken=null
+        content:
+          m_Text: PlatformEffector2D
+          m_Image: {fileID: -4280463815080762487, guid: 0000000000000000d000000000000000, type: 0}
+          m_Tooltip: PlatformEffector2D
+          m_TextWithWhitespace: "PlatformEffector2D\u200B"
+        shown: 0
+        excluded: 0
+        isBuiltIn: 1
+        script: {fileID: 0}
+        hasToggle: 1
+      - displayName: PointEffector2D
+        name: UnityEngine.PointEffector2D, UnityEngine.Physics2DModule, Version=0.0.0.0,
+          Culture=neutral, PublicKeyToken=null
+        content:
+          m_Text: PointEffector2D
+          m_Image: {fileID: 1754417221992040693, guid: 0000000000000000d000000000000000, type: 0}
+          m_Tooltip: PointEffector2D
+          m_TextWithWhitespace: "PointEffector2D\u200B"
+        shown: 0
+        excluded: 0
+        isBuiltIn: 1
+        script: {fileID: 0}
+        hasToggle: 1
+      - displayName: PolygonCollider2D
+        name: UnityEngine.PolygonCollider2D, UnityEngine.Physics2DModule, Version=0.0.0.0,
+          Culture=neutral, PublicKeyToken=null
+        content:
+          m_Text: PolygonCollider2D
+          m_Image: {fileID: -6584174250388574261, guid: 0000000000000000d000000000000000, type: 0}
+          m_Tooltip: PolygonCollider2D
+          m_TextWithWhitespace: "PolygonCollider2D\u200B"
+        shown: 0
+        excluded: 0
+        isBuiltIn: 1
+        script: {fileID: 0}
+        hasToggle: 1
+      - displayName: RectMask2D
+        name: UnityEngine.UI.RectMask2D, UnityEngine.UI, Version=1.0.0.0, Culture=neutral,
+          PublicKeyToken=null
+        content:
+          m_Text: RectMask2D
+          m_Image: {fileID: 5601005728230766229, guid: 0000000000000000d000000000000000, type: 0}
+          m_Tooltip: RectMask2D
+          m_TextWithWhitespace: "RectMask2D\u200B"
+        shown: 0
+        excluded: 0
+        isBuiltIn: 1
+        script: {fileID: 0}
+        hasToggle: 1
+      - displayName: RelativeJoint2D
+        name: UnityEngine.RelativeJoint2D, UnityEngine.Physics2DModule, Version=0.0.0.0,
+          Culture=neutral, PublicKeyToken=null
+        content:
+          m_Text: RelativeJoint2D
+          m_Image: {fileID: -757332629082491613, guid: 0000000000000000d000000000000000, type: 0}
+          m_Tooltip: RelativeJoint2D
+          m_TextWithWhitespace: "RelativeJoint2D\u200B"
+        shown: 0
+        excluded: 0
+        isBuiltIn: 1
+        script: {fileID: 0}
+        hasToggle: 1
+      - displayName: RenderAs2D
+        name: UnityEngine.RenderAs2D, UnityEngine.RenderAs2DModule, Version=0.0.0.0,
+          Culture=neutral, PublicKeyToken=null
+        content:
+          m_Text: RenderAs2D
+          m_Image: {fileID: 8779834242249542326, guid: 0000000000000000d000000000000000, type: 0}
+          m_Tooltip: RenderAs2D
+          m_TextWithWhitespace: "RenderAs2D\u200B"
+        shown: 0
+        excluded: 0
+        isBuiltIn: 1
+        script: {fileID: 0}
+        hasToggle: 1
+      - displayName: Rigidbody2D
+        name: UnityEngine.Rigidbody2D, UnityEngine.Physics2DModule, Version=0.0.0.0,
+          Culture=neutral, PublicKeyToken=null
+        content:
+          m_Text: Rigidbody2D
+          m_Image: {fileID: 8723023343561652918, guid: 0000000000000000d000000000000000, type: 0}
+          m_Tooltip: Rigidbody2D
+          m_TextWithWhitespace: "Rigidbody2D\u200B"
+        shown: 0
+        excluded: 0
+        isBuiltIn: 1
+        script: {fileID: 0}
+        hasToggle: 0
+      - displayName: ShadowCaster2D
+        name: UnityEngine.Rendering.Universal.ShadowCaster2D, Unity.RenderPipelines.Universal.2D.Runtime,
+          Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+        content:
+          m_Text: ShadowCaster2D
+          m_Image: {fileID: -8204150473280056172, guid: 0000000000000000d000000000000000, type: 0}
+          m_Tooltip: ShadowCaster2D
+          m_TextWithWhitespace: "ShadowCaster2D\u200B"
+        shown: 0
+        excluded: 0
+        isBuiltIn: 1
+        script: {fileID: 0}
+        hasToggle: 1
+      - displayName: SliderJoint2D
+        name: UnityEngine.SliderJoint2D, UnityEngine.Physics2DModule, Version=0.0.0.0,
+          Culture=neutral, PublicKeyToken=null
+        content:
+          m_Text: SliderJoint2D
+          m_Image: {fileID: -6545432660917278511, guid: 0000000000000000d000000000000000, type: 0}
+          m_Tooltip: SliderJoint2D
+          m_TextWithWhitespace: "SliderJoint2D\u200B"
+        shown: 0
+        excluded: 0
+        isBuiltIn: 1
+        script: {fileID: 0}
+        hasToggle: 1
+      - displayName: SpringJoint2D
+        name: UnityEngine.SpringJoint2D, UnityEngine.Physics2DModule, Version=0.0.0.0,
+          Culture=neutral, PublicKeyToken=null
+        content:
+          m_Text: SpringJoint2D
+          m_Image: {fileID: 8675268643918541391, guid: 0000000000000000d000000000000000, type: 0}
+          m_Tooltip: SpringJoint2D
+          m_TextWithWhitespace: "SpringJoint2D\u200B"
+        shown: 0
+        excluded: 0
+        isBuiltIn: 1
+        script: {fileID: 0}
+        hasToggle: 1
+      - displayName: SpriteShapeRenderer
+        name: UnityEngine.U2D.SpriteShapeRenderer, UnityEngine.SpriteShapeModule,
+          Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+        content:
+          m_Text: SpriteShapeRenderer
+          m_Image: {fileID: 8268226678086403780, guid: 0000000000000000d000000000000000, type: 0}
+          m_Tooltip: SpriteShapeRenderer
+          m_TextWithWhitespace: "SpriteShapeRenderer\u200B"
+        shown: 0
+        excluded: 0
+        isBuiltIn: 1
+        script: {fileID: 0}
+        hasToggle: 1
+      - displayName: SurfaceEffector2D
+        name: UnityEngine.SurfaceEffector2D, UnityEngine.Physics2DModule, Version=0.0.0.0,
+          Culture=neutral, PublicKeyToken=null
+        content:
+          m_Text: SurfaceEffector2D
+          m_Image: {fileID: -8048572862003724531, guid: 0000000000000000d000000000000000, type: 0}
+          m_Tooltip: SurfaceEffector2D
+          m_TextWithWhitespace: "SurfaceEffector2D\u200B"
+        shown: 0
+        excluded: 0
+        isBuiltIn: 1
+        script: {fileID: 0}
+        hasToggle: 1
+      - displayName: TargetJoint2D
+        name: UnityEngine.TargetJoint2D, UnityEngine.Physics2DModule, Version=0.0.0.0,
+          Culture=neutral, PublicKeyToken=null
+        content:
+          m_Text: TargetJoint2D
+          m_Image: {fileID: 4215790347392998379, guid: 0000000000000000d000000000000000, type: 0}
+          m_Tooltip: TargetJoint2D
+          m_TextWithWhitespace: "TargetJoint2D\u200B"
+        shown: 0
+        excluded: 0
+        isBuiltIn: 1
+        script: {fileID: 0}
+        hasToggle: 1
+      - displayName: TilemapCollider2D
+        name: UnityEngine.Tilemaps.TilemapCollider2D, UnityEngine.TilemapModule,
+          Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+        content:
+          m_Text: TilemapCollider2D
+          m_Image: {fileID: 2301944674211680541, guid: 0000000000000000d000000000000000, type: 0}
+          m_Tooltip: TilemapCollider2D
+          m_TextWithWhitespace: "TilemapCollider2D\u200B"
+        shown: 0
+        excluded: 0
+        isBuiltIn: 1
+        script: {fileID: 0}
+        hasToggle: 1
+      - displayName: WheelJoint2D
+        name: UnityEngine.WheelJoint2D, UnityEngine.Physics2DModule, Version=0.0.0.0,
+          Culture=neutral, PublicKeyToken=null
+        content:
+          m_Text: WheelJoint2D
+          m_Image: {fileID: 6192141092834927191, guid: 0000000000000000d000000000000000, type: 0}
+          m_Tooltip: WheelJoint2D
+          m_TextWithWhitespace: "WheelJoint2D\u200B"
+        shown: 0
+        excluded: 0
+        isBuiltIn: 1
+        script: {fileID: 0}
+        hasToggle: 1
     - name: UI
       components:
       - displayName: AspectRatioFitter
@@ -3317,7 +3330,7 @@ MonoBehaviour:
         script: {fileID: 0}
         hasToggle: 1
       - displayName: BaseInputOverride
-        name: UnityEngine.InputSystem.UI.BaseInputOverride, Unity.InputSystem, Version=1.14.2.0,
+        name: UnityEngine.InputSystem.UI.BaseInputOverride, Unity.InputSystem, Version=1.17.0.0,
           Culture=neutral, PublicKeyToken=null
         content:
           m_Text: BaseInputOverride
@@ -3526,7 +3539,7 @@ MonoBehaviour:
         hasToggle: 1
       - displayName: InputSystemUIInputModule
         name: UnityEngine.InputSystem.UI.InputSystemUIInputModule, Unity.InputSystem,
-          Version=1.14.2.0, Culture=neutral, PublicKeyToken=null
+          Version=1.17.0.0, Culture=neutral, PublicKeyToken=null
         content:
           m_Text: InputSystemUIInputModule
           m_Image: {fileID: 2800000, guid: 3028dc075ba8c584d9bc7d1e0255e038, type: 3}
@@ -3578,7 +3591,7 @@ MonoBehaviour:
         hasToggle: 1
       - displayName: MultiplayerEventSystem
         name: UnityEngine.InputSystem.UI.MultiplayerEventSystem, Unity.InputSystem,
-          Version=1.14.2.0, Culture=neutral, PublicKeyToken=null
+          Version=1.17.0.0, Culture=neutral, PublicKeyToken=null
         content:
           m_Text: MultiplayerEventSystem
           m_Image: {fileID: 2800000, guid: 6a237171e2346e3458db37eb0f90d42b, type: 3}
@@ -3851,7 +3864,7 @@ MonoBehaviour:
         hasToggle: 1
       - displayName: TrackedDeviceRaycaster
         name: UnityEngine.InputSystem.UI.TrackedDeviceRaycaster, Unity.InputSystem,
-          Version=1.14.2.0, Culture=neutral, PublicKeyToken=null
+          Version=1.17.0.0, Culture=neutral, PublicKeyToken=null
         content:
           m_Text: TrackedDeviceRaycaster
           m_Image: {fileID: -8204150473280056172, guid: 0000000000000000d000000000000000, type: 0}
@@ -3883,6 +3896,19 @@ MonoBehaviour:
           m_Image: {fileID: 3922097781858013310, guid: 0000000000000000d000000000000000, type: 0}
           m_Tooltip: VerticalLayoutGroup
           m_TextWithWhitespace: "VerticalLayoutGroup\u200B"
+        shown: 0
+        excluded: 0
+        isBuiltIn: 1
+        script: {fileID: 0}
+        hasToggle: 1
+      - displayName: WorldDocumentRaycaster
+        name: UnityEngine.UIElements.WorldDocumentRaycaster, UnityEngine.UI, Version=1.0.0.0,
+          Culture=neutral, PublicKeyToken=null
+        content:
+          m_Text: WorldDocumentRaycaster
+          m_Image: {fileID: -8204150473280056172, guid: 0000000000000000d000000000000000, type: 0}
+          m_Tooltip: WorldDocumentRaycaster
+          m_TextWithWhitespace: "WorldDocumentRaycaster\u200B"
         shown: 0
         excluded: 0
         isBuiltIn: 1
@@ -4326,7 +4352,7 @@ MonoBehaviour:
           Culture=neutral, PublicKeyToken=null
         content:
           m_Text: VFXRenderer
-          m_Image: {fileID: 8779834242249542326, guid: 0000000000000000d000000000000000, type: 0}
+          m_Image: {fileID: 7304178788510838001, guid: 0000000000000000d000000000000000, type: 0}
           m_Tooltip: VFXRenderer
           m_TextWithWhitespace: "VFXRenderer\u200B"
         shown: 0
@@ -4536,7 +4562,7 @@ MonoBehaviour:
         script: {fileID: 11500000, guid: 06f366e3c5427884fbde44ceeb21a439, type: 3}
         hasToggle: 1
       - displayName: BrainLoader
-        name: TurnrootFramework.Gameplay.Brain.BrainLoader, Assembly-CSharp, Version=0.0.0.0,
+        name: Turnroot.Gameplay.Brain.BrainLoader, Assembly-CSharp, Version=0.0.0.0,
           Culture=neutral, PublicKeyToken=null
         content:
           m_Text: BrainLoader
@@ -4549,7 +4575,7 @@ MonoBehaviour:
         script: {fileID: 11500000, guid: 67e9b899f329939479e8f7a9e9025f11, type: 3}
         hasToggle: 1
       - displayName: StateBrain
-        name: TurnrootFramework.Gameplay.Brain.StateBrain, Assembly-CSharp, Version=0.0.0.0,
+        name: Turnroot.Gameplay.Brain.StateBrain, Assembly-CSharp, Version=0.0.0.0,
           Culture=neutral, PublicKeyToken=null
         content:
           m_Text: StateBrain
@@ -4562,8 +4588,8 @@ MonoBehaviour:
         script: {fileID: 11500000, guid: c10e624373270034ab70adabc9a811fd, type: 3}
         hasToggle: 1
       - displayName: LongTermMemory
-        name: LongTermMemory, Assembly-CSharp, Version=0.0.0.0, Culture=neutral,
-          PublicKeyToken=null
+        name: Turnroot.Gameplay.Brain.Components.LongTermMemory, Assembly-CSharp,
+          Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
         content:
           m_Text: LongTermMemory
           m_Image: {fileID: -8204150473280056172, guid: 0000000000000000d000000000000000, type: 0}
@@ -4574,5 +4600,252 @@ MonoBehaviour:
         isBuiltIn: 0
         script: {fileID: 11500000, guid: 2b2e9db230ea2f3489b145291b2b7f0e, type: 3}
         hasToggle: 1
-    unityVersion: 6000.0.56f1
-    unityCount: 324
+      - displayName: EnvironmentalConditions
+        name: Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Environment.EnvironmentalConditions,
+          Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+        content:
+          m_Text: EnvironmentalConditions
+          m_Image: {fileID: -8204150473280056172, guid: 0000000000000000d000000000000000, type: 0}
+          m_Tooltip: EnvironmentalConditions
+          m_TextWithWhitespace: "EnvironmentalConditions\u200B"
+        shown: 0
+        excluded: 0
+        isBuiltIn: 0
+        script: {fileID: 11500000, guid: e5e951d0b7ce5664f964cbfff33910f0, type: 3}
+        hasToggle: 1
+      - displayName: BattleContext
+        name: Turnroot.Gameplay.Combat.FundamentalComponents.Battles.BattleContext,
+          Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+        content:
+          m_Text: BattleContext
+          m_Image: {fileID: -8204150473280056172, guid: 0000000000000000d000000000000000, type: 0}
+          m_Tooltip: BattleContext
+          m_TextWithWhitespace: "BattleContext\u200B"
+        shown: 0
+        excluded: 0
+        isBuiltIn: 0
+        script: {fileID: 11500000, guid: 783c26bfd6c16e144ae89bc9731ee7ad, type: 3}
+        hasToggle: 1
+      - displayName: BattlePreparationObject
+        name: Turnroot.Gameplay.Combat.PreBattle.BattlePreparationObject, Assembly-CSharp,
+          Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+        content:
+          m_Text: BattlePreparationObject
+          m_Image: {fileID: -8204150473280056172, guid: 0000000000000000d000000000000000, type: 0}
+          m_Tooltip: BattlePreparationObject
+          m_TextWithWhitespace: "BattlePreparationObject\u200B"
+        shown: 0
+        excluded: 0
+        isBuiltIn: 0
+        script: {fileID: 11500000, guid: c2a5f85963ca35e48872ec6b867357fb, type: 3}
+        hasToggle: 1
+      - displayName: BattleGameObject
+        name: Turnroot.Gameplay.Combat.BattleGameObject, Assembly-CSharp, Version=0.0.0.0,
+          Culture=neutral, PublicKeyToken=null
+        content:
+          m_Text: BattleGameObject
+          m_Image: {fileID: -8204150473280056172, guid: 0000000000000000d000000000000000, type: 0}
+          m_Tooltip: BattleGameObject
+          m_TextWithWhitespace: "BattleGameObject\u200B"
+        shown: 0
+        excluded: 0
+        isBuiltIn: 0
+        script: {fileID: 11500000, guid: 73bb8535840398749ad801d626bb9834, type: 3}
+        hasToggle: 1
+      - displayName: TileHighlighter
+        name: Turnroot.Gameplay.Brain.Components.Battle.TileHighlighter, Assembly-CSharp,
+          Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+        content:
+          m_Text: TileHighlighter
+          m_Image: {fileID: -8204150473280056172, guid: 0000000000000000d000000000000000, type: 0}
+          m_Tooltip: TileHighlighter
+          m_TextWithWhitespace: "TileHighlighter\u200B"
+        shown: 0
+        excluded: 0
+        isBuiltIn: 0
+        script: {fileID: 11500000, guid: df99af80d320e2943892ac9aae6a7cca, type: 3}
+        hasToggle: 1
+      - displayName: BattlePrecomputeLoader
+        name: Turnroot.Gameplay.Combat.Precompute.BattlePrecomputeLoader, Assembly-CSharp,
+          Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+        content:
+          m_Text: BattlePrecomputeLoader
+          m_Image: {fileID: -8204150473280056172, guid: 0000000000000000d000000000000000, type: 0}
+          m_Tooltip: BattlePrecomputeLoader
+          m_TextWithWhitespace: "BattlePrecomputeLoader\u200B"
+        shown: 0
+        excluded: 0
+        isBuiltIn: 0
+        script: {fileID: 11500000, guid: 935d957867b2d8446814bc69f6ccb81a, type: 3}
+        hasToggle: 1
+      - displayName: PlayerTeamRosterInstance
+        name: Turnroot.Characters.PlayerTeamRosterInstance, Assembly-CSharp, Version=0.0.0.0,
+          Culture=neutral, PublicKeyToken=null
+        content:
+          m_Text: PlayerTeamRosterInstance
+          m_Image: {fileID: -8204150473280056172, guid: 0000000000000000d000000000000000, type: 0}
+          m_Tooltip: PlayerTeamRosterInstance
+          m_TextWithWhitespace: "PlayerTeamRosterInstance\u200B"
+        shown: 0
+        excluded: 0
+        isBuiltIn: 0
+        script: {fileID: 11500000, guid: d126734bfc17008498f17966aec53430, type: 3}
+        hasToggle: 1
+      - displayName: UIFade
+        name: Turnroot.Utilities.AbstractScripts.UIFade, Assembly-CSharp, Version=0.0.0.0,
+          Culture=neutral, PublicKeyToken=null
+        content:
+          m_Text: UIFade
+          m_Image: {fileID: -8204150473280056172, guid: 0000000000000000d000000000000000, type: 0}
+          m_Tooltip: UIFade
+          m_TextWithWhitespace: "UIFade\u200B"
+        shown: 0
+        excluded: 0
+        isBuiltIn: 0
+        script: {fileID: 11500000, guid: e098fbdb6ab736f4d894bc75743cfe7d, type: 3}
+        hasToggle: 1
+      - displayName: RadialMenu
+        name: Turnroot.UI.Components.RadialMenu.RadialMenu, Assembly-CSharp, Version=0.0.0.0,
+          Culture=neutral, PublicKeyToken=null
+        content:
+          m_Text: RadialMenu
+          m_Image: {fileID: -8204150473280056172, guid: 0000000000000000d000000000000000, type: 0}
+          m_Tooltip: RadialMenu
+          m_TextWithWhitespace: "RadialMenu\u200B"
+        shown: 0
+        excluded: 0
+        isBuiltIn: 0
+        script: {fileID: 11500000, guid: a3d4b2881f6ab094580d3cd2628a43cf, type: 3}
+        hasToggle: 1
+      - displayName: UnitModelOwnership
+        name: Turnroot.Gameplay.Brain.UnitModelOwnership, Assembly-CSharp, Version=0.0.0.0,
+          Culture=neutral, PublicKeyToken=null
+        content:
+          m_Text: UnitModelOwnership
+          m_Image: {fileID: -8204150473280056172, guid: 0000000000000000d000000000000000, type: 0}
+          m_Tooltip: UnitModelOwnership
+          m_TextWithWhitespace: "UnitModelOwnership\u200B"
+        shown: 0
+        excluded: 0
+        isBuiltIn: 0
+        script: {fileID: 11500000, guid: 43ae2c306388ea548a0b9f16435a86f9, type: 3}
+        hasToggle: 1
+      - displayName: ConversationController
+        name: Turnroot.Conversations.ConversationController, Assembly-CSharp, Version=0.0.0.0,
+          Culture=neutral, PublicKeyToken=null
+        content:
+          m_Text: ConversationController
+          m_Image: {fileID: -8204150473280056172, guid: 0000000000000000d000000000000000, type: 0}
+          m_Tooltip: ConversationController
+          m_TextWithWhitespace: "ConversationController\u200B"
+        shown: 0
+        excluded: 0
+        isBuiltIn: 0
+        script: {fileID: 11500000, guid: 06f366e3c5427884fbde44ceeb21a439, type: 3}
+        hasToggle: 1
+      - displayName: EnvironmentalConditions
+        name: Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Environment.EnvironmentalConditions,
+          Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+        content:
+          m_Text: EnvironmentalConditions
+          m_Image: {fileID: -8204150473280056172, guid: 0000000000000000d000000000000000, type: 0}
+          m_Tooltip: EnvironmentalConditions
+          m_TextWithWhitespace: "EnvironmentalConditions\u200B"
+        shown: 0
+        excluded: 0
+        isBuiltIn: 0
+        script: {fileID: 11500000, guid: e5e951d0b7ce5664f964cbfff33910f0, type: 3}
+        hasToggle: 1
+      - displayName: BattleContext
+        name: Turnroot.Gameplay.Combat.FundamentalComponents.Battles.BattleContext,
+          Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+        content:
+          m_Text: BattleContext
+          m_Image: {fileID: -8204150473280056172, guid: 0000000000000000d000000000000000, type: 0}
+          m_Tooltip: BattleContext
+          m_TextWithWhitespace: "BattleContext\u200B"
+        shown: 0
+        excluded: 0
+        isBuiltIn: 0
+        script: {fileID: 11500000, guid: 783c26bfd6c16e144ae89bc9731ee7ad, type: 3}
+        hasToggle: 1
+      - displayName: BattlePreparationObject
+        name: Turnroot.Gameplay.Combat.PreBattle.BattlePreparationObject, Assembly-CSharp,
+          Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+        content:
+          m_Text: BattlePreparationObject
+          m_Image: {fileID: -8204150473280056172, guid: 0000000000000000d000000000000000, type: 0}
+          m_Tooltip: BattlePreparationObject
+          m_TextWithWhitespace: "BattlePreparationObject\u200B"
+        shown: 0
+        excluded: 0
+        isBuiltIn: 0
+        script: {fileID: 11500000, guid: c2a5f85963ca35e48872ec6b867357fb, type: 3}
+        hasToggle: 1
+      - displayName: BattleGameObject
+        name: Turnroot.Gameplay.Combat.BattleGameObject, Assembly-CSharp, Version=0.0.0.0,
+          Culture=neutral, PublicKeyToken=null
+        content:
+          m_Text: BattleGameObject
+          m_Image: {fileID: -8204150473280056172, guid: 0000000000000000d000000000000000, type: 0}
+          m_Tooltip: BattleGameObject
+          m_TextWithWhitespace: "BattleGameObject\u200B"
+        shown: 0
+        excluded: 0
+        isBuiltIn: 0
+        script: {fileID: 11500000, guid: 73bb8535840398749ad801d626bb9834, type: 3}
+        hasToggle: 1
+      - displayName: TileHighlighter
+        name: Turnroot.Gameplay.Brain.Components.Battle.TileHighlighter, Assembly-CSharp,
+          Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+        content:
+          m_Text: TileHighlighter
+          m_Image: {fileID: -8204150473280056172, guid: 0000000000000000d000000000000000, type: 0}
+          m_Tooltip: TileHighlighter
+          m_TextWithWhitespace: "TileHighlighter\u200B"
+        shown: 0
+        excluded: 0
+        isBuiltIn: 0
+        script: {fileID: 11500000, guid: df99af80d320e2943892ac9aae6a7cca, type: 3}
+        hasToggle: 1
+      - displayName: BattlePrecomputeLoader
+        name: Turnroot.Gameplay.Combat.Precompute.BattlePrecomputeLoader, Assembly-CSharp,
+          Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+        content:
+          m_Text: BattlePrecomputeLoader
+          m_Image: {fileID: -8204150473280056172, guid: 0000000000000000d000000000000000, type: 0}
+          m_Tooltip: BattlePrecomputeLoader
+          m_TextWithWhitespace: "BattlePrecomputeLoader\u200B"
+        shown: 0
+        excluded: 0
+        isBuiltIn: 0
+        script: {fileID: 11500000, guid: 935d957867b2d8446814bc69f6ccb81a, type: 3}
+        hasToggle: 1
+      - displayName: MapGrid
+        name: Turnroot.Gameplay.Maps.MapGrid, Assembly-CSharp, Version=0.0.0.0, Culture=neutral,
+          PublicKeyToken=null
+        content:
+          m_Text: MapGrid
+          m_Image: {fileID: -8204150473280056172, guid: 0000000000000000d000000000000000, type: 0}
+          m_Tooltip: MapGrid
+          m_TextWithWhitespace: "MapGrid\u200B"
+        shown: 0
+        excluded: 0
+        isBuiltIn: 0
+        script: {fileID: 11500000, guid: 92de5083d17c4334496fe457b4be09ef, type: 3}
+        hasToggle: 1
+      - displayName: BrainLoader
+        name: Turnroot.Gameplay.Brain.BrainLoader, Assembly-CSharp, Version=0.0.0.0,
+          Culture=neutral, PublicKeyToken=null
+        content:
+          m_Text: BrainLoader
+          m_Image: {fileID: -8204150473280056172, guid: 0000000000000000d000000000000000, type: 0}
+          m_Tooltip: BrainLoader
+          m_TextWithWhitespace: "BrainLoader\u200B"
+        shown: 0
+        excluded: 0
+        isBuiltIn: 0
+        script: {fileID: 11500000, guid: 67e9b899f329939479e8f7a9e9025f11, type: 3}
+        hasToggle: 1
+    unityVersion: 6000.3.5f1
+    unityCount: 326
