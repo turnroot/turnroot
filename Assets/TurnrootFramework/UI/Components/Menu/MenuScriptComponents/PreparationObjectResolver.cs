@@ -21,6 +21,12 @@ namespace Turnroot.UI.Components
         public delegate void PreparationResolvedHandler(BattlePreparationObject prep);
         public static event PreparationResolvedHandler OnPreparationResolved;
 
+        public void InitializeFromInspectorEvent()
+        {
+            var brain = FindFirstObjectByType<Brain>();
+            Initialize(brain);
+        }
+
         public OperationResult Initialize(Brain brain)
         {
             var prep = ResolveForBrain(brain);
@@ -46,8 +52,7 @@ namespace Turnroot.UI.Components
                     name.Initialize(prep);
                     count++;
                 }
-                // Prefer StartingPositions that are part of the resolved BattlePreparationObject (scene map),
-                // falling back to a StartingPositions on this resolver (e.g., menu prefab) only if none found.
+
                 StartingPositions p = null;
                 if (prep != null)
                 {
@@ -61,9 +66,6 @@ namespace Turnroot.UI.Components
                 if (p != null)
                 {
                     ResolvedPreparationObject.StartingPositionsComponent = p;
-                    Turnroot.Utilities.TurnrootLogger.Log(
-                        $"PreparationObjectResolver: Using StartingPositions instance '{p.name}' from '{p.gameObject.scene.name}'"
-                    );
 
                     // Ensure any other StartingPositions instances are replaced to avoid duplicates
                     var others = FindObjectsByType<StartingPositions>(
@@ -84,8 +86,8 @@ namespace Turnroot.UI.Components
                     if (!result.Success)
                     {
 #if UNITY_EDITOR
-                        Debug.LogWarning(
-                            $"StartingPositions initialization failed: {result.ErrorMessage}"
+                        TurnrootLogger.Log(
+                            $"StartingPositions initialization failed: {result.ErrorMessage}", TurnrootLogger.LogLevel.Error
                         );
 #endif
                     }

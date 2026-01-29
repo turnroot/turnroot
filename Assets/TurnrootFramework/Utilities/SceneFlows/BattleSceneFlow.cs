@@ -10,19 +10,19 @@ namespace Turnroot.Utilities.AbstractScripts
     public enum MiniBattleState
     {
         // A conversation can interrupt at any point
-        BattleTurnStart,
+        NoBattlePlayerInput,
         Conversation,
-        BattleTurn,
+        EnableBattlePlayerInput,
     }
 
     public class BattleSceneFlow : DynamicSceneFlow
     {
         // Once this reaches Combat.Battle, activate a mini state machine
-        // that goes BattleTurnStart -> BattleTurn -> BattleTurnStart
+        // that goes NoBattlePlayerInput -> EnableBattlePlayerInput -> NoBattlePlayerInput
         // Conversation can interrupt at any point
         // TODO: Hook this in to the TurnRotisserie
         public MiniBattleState CurrentMiniBattleState { get; private set; } =
-            MiniBattleState.BattleTurnStart;
+            MiniBattleState.NoBattlePlayerInput;
 
         public bool ConversationQueued = false; // Set to true to trigger conversation at next opportunity
 
@@ -30,20 +30,20 @@ namespace Turnroot.Utilities.AbstractScripts
 
         public void InitializeMiniBattleState()
         {
-            CurrentMiniBattleState = MiniBattleState.BattleTurnStart;
+            CurrentMiniBattleState = MiniBattleState.NoBattlePlayerInput;
+            TurnrootLogger.Log($"Initialized MiniBattleState to {CurrentMiniBattleState}");
             DisableBattleInput();
-            OnMiniBattleStateBattleTurnStart.Invoke();
+            OnPlayerPreTurn.Invoke();
         }
 
-        public UnityEvent OnMiniBattleStateBattleTurnStart = new();
-        public UnityEvent OnMiniBattleStateBattleTurn = new();
+        public UnityEvent OnPlayerPreTurn = new();
 
         public void ProgressMiniBattleState()
         {
             TurnrootLogger.Log($"Progressing MiniBattleState from {CurrentMiniBattleState}");
             switch (CurrentMiniBattleState)
             {
-                case MiniBattleState.BattleTurnStart:
+                case MiniBattleState.NoBattlePlayerInput:
                     if (ConversationQueued)
                     {
                         CurrentMiniBattleState = MiniBattleState.Conversation;
@@ -52,18 +52,23 @@ namespace Turnroot.Utilities.AbstractScripts
                     }
                     else
                     {
-                        CurrentMiniBattleState = MiniBattleState.BattleTurn;
-                        OnMiniBattleStateBattleTurn.Invoke();
+                        CurrentMiniBattleState = MiniBattleState.EnableBattlePlayerInput;
                         EnableBattleInput();
                     }
                     break;
                 case MiniBattleState.Conversation:
-                    CurrentMiniBattleState = MiniBattleState.BattleTurn;
-                    OnMiniBattleStateBattleTurn.Invoke();
+                    CurrentMiniBattleState = MiniBattleState.EnableBattlePlayerInput;
                     EnableBattleInput();
                     break;
-                case MiniBattleState.BattleTurn:
-                    CurrentMiniBattleState = MiniBattleState.BattleTurnStart;
+                case MiniBattleState.EnableBattlePlayerInput:
+                    CurrentMiniBattleState = MiniBattleState.NoBattlePlayerInput;
+                    // If TurnRotisserie indicates that this is the start of the player turn, call that event:
+                    // for now, just call it
+                    if (brain)
+                    {
+                        OnPlayerPreTurn.Invoke();
+                    }
+
                     DisableBattleInput();
                     break;
             }
