@@ -34,6 +34,9 @@ namespace Turnroot.Gameplay.Brain
 
         #region State
 
+        [HideInInspector]
+        public bool IsInputEnabled = true;
+
         public BattleGameObject BattleObject { get; private set; }
         public Combat.PreBattle.BattlePreparationObject PreparationObject { get; private set; }
 

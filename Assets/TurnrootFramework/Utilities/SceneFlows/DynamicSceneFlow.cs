@@ -17,7 +17,7 @@ namespace Turnroot.Utilities.AbstractScripts
     public class DynamicSceneFlow : MonoBehaviour
     {
         public List<FlowSegment> segments = new();
-        private int _index = 0;
+        protected int _index = 0;
         public FlowSegment CurrentSegment => segments.Count > _index ? segments[_index] : null;
 
         [HideInInspector]
@@ -32,7 +32,7 @@ namespace Turnroot.Utilities.AbstractScripts
 
         public UnityEvent StartPreLoading = new();
 
-        private int Index
+        protected int Index
         {
             get => _index;
             set
@@ -43,7 +43,7 @@ namespace Turnroot.Utilities.AbstractScripts
             }
         }
 
-        private void Start()
+        protected void Start()
         {
             loadingController = brain?.GetComponent<LoadingController>();
             SubscribeToBrainEvents();
@@ -51,28 +51,24 @@ namespace Turnroot.Utilities.AbstractScripts
             _ = StartCoroutine(RunNextFrame(StartScene));
         }
 
-        private void OnDestroy()
+        protected void OnDestroy()
         {
             UnsubscribeFromBrainEvents();
             UnsubscribeFromLoadingController();
         }
 
         #region Event Subscriptions
-        private void SubscribeToBrainEvents()
+        protected virtual void SubscribeToBrainEvents()
         {
             brain.OnStateChanged += HandleStateChanged;
-            brain.OnPrecomputeCompleted += HandlePrecomputeCompleted;
         }
 
-        private void UnsubscribeFromBrainEvents()
+        protected virtual void UnsubscribeFromBrainEvents()
         {
             brain.OnStateChanged -= HandleStateChanged;
-            brain.OnPrecomputeCompleted -= HandlePrecomputeCompleted;
         }
 
-        private void HandlePrecomputeCompleted() => HandlePreBattleTransitionToBattleCompleted();
-
-        private void SubscribeToLoadingController()
+        protected void SubscribeToLoadingController()
         {
             if (loadingController != null)
             {
@@ -80,7 +76,7 @@ namespace Turnroot.Utilities.AbstractScripts
             }
         }
 
-        private void UnsubscribeFromLoadingController()
+        protected void UnsubscribeFromLoadingController()
         {
             if (loadingController != null)
             {
@@ -88,7 +84,7 @@ namespace Turnroot.Utilities.AbstractScripts
             }
         }
 
-        private void HandleLoadingProgressChanged(float percentage) =>
+        protected void HandleLoadingProgressChanged(float percentage) =>
             ReportLoadingProgress(percentage);
         #endregion
 
@@ -98,7 +94,7 @@ namespace Turnroot.Utilities.AbstractScripts
             OnLoadedAmountChangedAction?.Invoke(percentage);
         }
 
-        private void StartScene()
+        protected void StartScene()
         {
             Index = 0;
 
@@ -108,7 +104,7 @@ namespace Turnroot.Utilities.AbstractScripts
             }
         }
 
-        private void SetBrainStateFromSegment(string stateId)
+        protected void SetBrainStateFromSegment(string stateId)
         {
             if (brain?.stateBrain == null || string.IsNullOrEmpty(stateId))
             {
@@ -128,7 +124,7 @@ namespace Turnroot.Utilities.AbstractScripts
             brain.stateBrain.ActivateHighLevelState(stateId);
         }
 
-        private void HandleStateChanged(BrainState newState)
+        protected void HandleStateChanged(BrainState newState)
         {
             if (newState != null)
             {
@@ -147,9 +143,6 @@ namespace Turnroot.Utilities.AbstractScripts
             }
         }
 
-        public void HandlePreBattleTransitionToBattleCompleted() =>
-            brain?.stateBrain?.HandlePreBattleTransitionToBattleCompleted();
-
         public OperationResult Progress()
         {
             if (Index + 1 < segments.Count)
@@ -165,51 +158,15 @@ namespace Turnroot.Utilities.AbstractScripts
             return OperationResult.Failure("No more segments to progress to.");
         }
 
-        private void OnSegmentReached(int segmentIndex)
+        protected virtual void OnSegmentReached(int segmentIndex)
         {
             if (segmentIndex < segments.Count)
             {
                 CurrentSegment?.onSegmentReached?.Invoke();
-
-                if (
-                    CurrentSegment?.stateId != null
-                    && CurrentSegment.stateId.Contains(BrainStateNames.PreBattleTransitionToBattle)
-                )
-                {
-                    StartPreLoading.Invoke();
-
-                    loadingController?.Initialize();
-
-                    var loader =
-                        FindFirstObjectByType<Gameplay.Combat.Precompute.BattlePrecomputeLoader>();
-                    if (loader != null)
-                    {
-                        var initRes = loader.Initialize(
-                            brain,
-                            brain?.battleBrain?.BattleObject?.Context
-                        );
-                        if (!initRes.Success)
-                        {
-                            TurnrootLogger.Log(
-                                $"DynamicSceneFlow: BattlePrecomputeLoader.Initialize failed: {initRes.ErrorMessage}",
-                                TurnrootLogger.LogLevel.Warning
-                            );
-                            HandlePreBattleTransitionToBattleCompleted();
-                        }
-                        else
-                        {
-                            loader.ForceStartPrecomputeIfPossible();
-                        }
-                    }
-                    else
-                    {
-                        HandlePreBattleTransitionToBattleCompleted();
-                    }
-                }
             }
         }
 
-        private IEnumerator RunNextFrame(Action action)
+        protected IEnumerator RunNextFrame(Action action)
         {
             yield return null;
             action();

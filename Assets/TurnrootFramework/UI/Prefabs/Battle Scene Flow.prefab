@@ -254,7 +254,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1727604653950440879}
-  - component: {fileID: 6184827468696405307}
+  - component: {fileID: 7778715969270593766}
+  - component: {fileID: 1233233641911771495}
   m_Layer: 0
   m_Name: Battle Scene Flow
   m_TagString: Untagged
@@ -276,9 +277,10 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 8324460697642302512}
+  - {fileID: 4560868408087418480}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &6184827468696405307
+--- !u!114 &7778715969270593766
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -287,9 +289,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 3458393951798489906}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 49cfc7a350fcc564983c0248c0ac3355, type: 3}
+  m_Script: {fileID: 11500000, guid: 58cdf36f69f233148afc9dd7fb5a0fe2, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: 
+  m_EditorClassIdentifier: Assembly-CSharp::Turnroot.Utilities.AbstractScripts.BattleSceneFlow
   segments:
   - stateId: Combat.PreBattle
     onSegmentReached:
@@ -310,7 +312,20 @@ MonoBehaviour:
   - stateId: Combat.PreBattleTransitionToBattle
     onSegmentReached:
       m_PersistentCalls:
-        m_Calls: []
+        m_Calls:
+        - m_Target: {fileID: 7778715969270593766}
+          m_TargetAssemblyTypeName: Turnroot.Utilities.AbstractScripts.BattleSceneFlow,
+            Assembly-CSharp
+          m_MethodName: DisableBattleInput
+          m_Mode: 1
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
   - stateId: Combat.Battle
     onSegmentReached:
       m_PersistentCalls:
@@ -318,6 +333,19 @@ MonoBehaviour:
         - m_Target: {fileID: 4523465149315176276}
           m_TargetAssemblyTypeName: Turnroot.Utilities.AbstractScripts.UIFade, Assembly-CSharp
           m_MethodName: Hide
+          m_Mode: 1
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
+        - m_Target: {fileID: 7778715969270593766}
+          m_TargetAssemblyTypeName: Turnroot.Utilities.AbstractScripts.BattleSceneFlow,
+            Assembly-CSharp
+          m_MethodName: InitializeMiniBattleState
           m_Mode: 1
           m_Arguments:
             m_ObjectArgument: {fileID: 0}
@@ -359,6 +387,56 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 1
         m_CallState: 2
+  ConversationQueued: 0
+  OnMiniBattleStateBattleTurnStart:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 6186557246191489198}
+        m_TargetAssemblyTypeName: UnityEngine.Playables.PlayableDirector, UnityEngine
+        m_MethodName: Play
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+  OnMiniBattleStateBattleTurn:
+    m_PersistentCalls:
+      m_Calls: []
+--- !u!114 &1233233641911771495
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3458393951798489906}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e52de21a22b6dd44c9cc19f810c65059, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Timeline::UnityEngine.Timeline.SignalReceiver
+  m_Events:
+    m_Signals:
+    - {fileID: 11400000, guid: dab7d28936c8e5f47b24d364b6e0b316, type: 2}
+    m_Events:
+    - m_PersistentCalls:
+        m_Calls:
+        - m_Target: {fileID: 7778715969270593766}
+          m_TargetAssemblyTypeName: Turnroot.Utilities.AbstractScripts.BattleSceneFlow,
+            Assembly-CSharp
+          m_MethodName: ProgressMiniBattleState
+          m_Mode: 1
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
 --- !u!1 &3919077790560722290
 GameObject:
   m_ObjectHideFlags: 0
@@ -584,6 +662,58 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!1 &7518128805109958836
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4560868408087418480}
+  - component: {fileID: 6186557246191489198}
+  m_Layer: 0
+  m_Name: BattlePreTurn
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4560868408087418480
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7518128805109958836}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1727604653950440879}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!320 &6186557246191489198
+PlayableDirector:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7518128805109958836}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_PlayableAsset: {fileID: 11400000, guid: 15983621e6d57c74ca00d92130270c5a, type: 2}
+  m_InitialState: 0
+  m_WrapMode: 2
+  m_DirectorUpdateMode: 1
+  m_InitialTime: 0
+  m_SceneBindings:
+  - key: {fileID: 7346518700655893275, guid: 15983621e6d57c74ca00d92130270c5a, type: 2}
+    value: {fileID: 1233233641911771495}
+  m_ExposedReferences:
+    m_References:
+    - d713ce7de51e8804aa94540d1e368c46: {fileID: 0}
 --- !u!1 &8743487393324909104
 GameObject:
   m_ObjectHideFlags: 0

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Turnroot.Characters.CharacterClass;
@@ -12,7 +13,10 @@ namespace Turnroot.Characters
     /// </summary>
     public partial class CharacterInstance
     {
+        [NonSerialized]
         public List<ObjectItemInstance> RangeWeaponsCache = new();
+
+        [NonSerialized]
         public Dictionary<string, Material> classNameToOutfitMaterials = new();
 
         #region Battle Helpers

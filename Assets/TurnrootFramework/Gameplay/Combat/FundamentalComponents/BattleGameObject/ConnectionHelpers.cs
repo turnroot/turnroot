@@ -40,6 +40,8 @@ namespace Turnroot.Gameplay.Combat
             Brain.OnUnitDefeated += HandleUnitDefeated;
             Brain.OnUnitMoved += HandleUnitMoved;
             Brain.OnBattleCompleted += HandleExitBattle;
+            Brain.OnBattleInputEnabled += () => Brain.battleBrain.IsInputEnabled = true;
+            Brain.OnBattleInputDisabled += () => Brain.battleBrain.IsInputEnabled = false;
 
             Brain.Subscribe<UnitSpawnedEvent>(HandleUnitSpawnedEvent, EventPriority.Normal);
             Brain.Subscribe<UnitDefeatedEvent>(HandleUnitDefeatedEvent, EventPriority.Normal);
@@ -58,6 +60,8 @@ namespace Turnroot.Gameplay.Combat
             Brain.OnUnitDefeated -= HandleUnitDefeated;
             Brain.OnUnitMoved -= HandleUnitMoved;
             Brain.OnBattleCompleted -= HandleExitBattle;
+            Brain.OnBattleInputEnabled -= () => Brain.battleBrain.IsInputEnabled = true;
+            Brain.OnBattleInputDisabled -= () => Brain.battleBrain.IsInputEnabled = false;
 
             Brain.Unsubscribe<UnitSpawnedEvent>(HandleUnitSpawnedEvent);
             Brain.Unsubscribe<UnitDefeatedEvent>(HandleUnitDefeatedEvent);
