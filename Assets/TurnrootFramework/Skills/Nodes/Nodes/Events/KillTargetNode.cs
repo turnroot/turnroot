@@ -1,4 +1,5 @@
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
+using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Skills.Nodes.Events
@@ -34,7 +35,7 @@ namespace Turnroot.Skills.Nodes.Events
                 target => KillCharacter(context, target)
             );
 
-            Debug.Log(
+            TurnrootLogger.Log(
                 $"KillTarget: Killed {killedCount} {(killedCount == 1 ? "enemy" : "enemies")}"
             );
         }

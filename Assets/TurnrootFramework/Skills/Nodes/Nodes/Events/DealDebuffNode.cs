@@ -1,5 +1,6 @@
 using Turnroot.Characters.StatusEffects;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
+using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Skills.Nodes.Events
@@ -60,7 +61,7 @@ namespace Turnroot.Skills.Nodes.Events
 
             if (affected > 0)
             {
-                Debug.Log(
+                TurnrootLogger.Log(
                     $"DealDebuff: Applied {debuffType.DisplayName} debuff to {affected} target(s)"
                 );
             }

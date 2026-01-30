@@ -61,9 +61,8 @@ namespace Turnroot.Gameplay.Brain
         {
             if (HasInstancesPopulated(existing, roster))
             {
-#if UNITY_EDITOR
-                Debug.Log($"Roster '{roster.name}' already populated, skipping");
-#endif
+                TurnrootLogger.Log($"Roster '{roster.name}' already populated, skipping");
+
                 return existing;
             }
 

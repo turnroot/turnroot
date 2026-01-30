@@ -1,4 +1,5 @@
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
+using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Skills.Nodes.Flow
@@ -25,9 +26,7 @@ namespace Turnroot.Skills.Nodes.Flow
             if (!conditionValue.value)
             {
                 context.Flags.IsInterrupted = true;
-#if UNITY_EDITOR
-                Debug.Log($"FlowIf condition is false, stopping execution.");
-#endif
+                TurnrootLogger.Log($"FlowIf condition is false, stopping execution.");
             }
             // If true, execution will proceed normally when Proceed() is called
         }

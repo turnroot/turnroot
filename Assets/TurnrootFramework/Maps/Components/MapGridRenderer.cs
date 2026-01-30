@@ -129,7 +129,7 @@ namespace Turnroot.Gameplay.Maps
             if (!Directory.Exists(savePath))
             {
                 Directory.CreateDirectory(savePath);
-                Debug.Log($"Created directory: {savePath}");
+                TurnrootLogger.Log($"Created directory: {savePath}");
             }
 
             // Generate map name (sanitize for file system)
@@ -161,7 +161,9 @@ namespace Turnroot.Gameplay.Maps
                 Object.DestroyImmediate(unexploredMap);
             }
 
-            Debug.Log($"MapGridRenderer: Successfully rendered map images for '{mapName}'");
+            TurnrootLogger.Log(
+                $"MapGridRenderer: Successfully rendered map images for '{mapName}'"
+            );
         }
 
         private Texture2D RenderFullMap(MapGrid grid)
@@ -627,7 +629,7 @@ namespace Turnroot.Gameplay.Maps
             byte[] pngData = texture.EncodeToPNG();
             File.WriteAllBytes(fullPath, pngData);
 
-            Debug.Log($"Saved map image: {fullPath}");
+            TurnrootLogger.Log($"Saved map image: {fullPath}");
 
             // Refresh AssetDatabase and import
             AssetDatabase.Refresh();
@@ -651,7 +653,7 @@ namespace Turnroot.Gameplay.Maps
             Sprite sprite = AssetDatabase.LoadAssetAtPath<Sprite>(assetPath);
             if (sprite != null)
             {
-                Debug.Log($"Loaded sprite reference for: {fileName}");
+                TurnrootLogger.Log($"Loaded sprite reference for: {fileName}");
             }
             else
             {

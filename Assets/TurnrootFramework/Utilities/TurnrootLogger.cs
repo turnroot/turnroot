@@ -29,7 +29,7 @@ namespace Turnroot.Utilities
                     Debug.LogError($"[Turnroot] {message}");
                     break;
                 default:
-                    Debug.Log($"[Turnroot] {message}");
+                    TurnrootLogger.Log($"[Turnroot] {message}");
                     break;
             }
         }

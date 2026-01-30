@@ -1,5 +1,6 @@
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Locations;
+using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Skills.Nodes.Events
@@ -60,15 +61,14 @@ namespace Turnroot.Skills.Nodes.Events
             string modeText = mode == WarpMode.AllyToCaster ? "to caster" : "to ally";
             string distanceText =
                 maxDistance > 0 ? $" (max {maxDistance} tiles)" : " (unlimited range)";
-#if UNITY_EDITOR
-            Debug.Log($"Warp: Will warp {modeText}{distanceText}");
-#endif
+
+            TurnrootLogger.Log($"Warp: Will warp {modeText}{distanceText}");
         }
     }
 
     public enum WarpMode
     {
-        AllyToCaster, // Bring ally to caster's position (Rescue)
-        CasterToAlly, // Send caster to ally's position (Warp staff target)
+        AllyToCaster,
+        CasterToAlly,
     }
 }

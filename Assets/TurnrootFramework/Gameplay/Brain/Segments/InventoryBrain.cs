@@ -20,22 +20,13 @@ namespace Turnroot.Gameplay.Brain
 
         protected override void Awake() => base.Awake();
 
-        protected override void SubscribeToBrainEvents()
-        {
-            // InventoryBrain primarily publishes events rather than subscribing
-            // Add any event subscriptions here if needed in the future
-        }
+        protected override void SubscribeToBrainEvents() { }
 
-        protected override void UnsubscribeFromBrainEvents()
-        {
-            // No subscriptions to clean up
-        }
+        protected override void UnsubscribeFromBrainEvents() { }
 
         #region Item Operations
 
-        /// <summary>
-        /// Use an item and publish the usage event.
-        /// </summary>
+
         public int UseItem(ObjectItemInstance item)
         {
             if (item == null)
@@ -49,9 +40,7 @@ namespace Turnroot.Gameplay.Brain
             if (remainingUses == 0)
             {
                 _brain?.PublishItemBroken(item);
-#if UNITY_EDITOR
-                Debug.Log($"{item.Template.name} has broken!");
-#endif
+                TurnrootLogger.Log($"{item.Template.name} has broken!");
             }
 
             return remainingUses;
@@ -94,9 +83,6 @@ namespace Turnroot.Gameplay.Brain
             return context.Brain.ExecuteCommand(command);
         }
 
-        /// <summary>
-        /// Transfer an item between inventories and publish the event.
-        /// </summary>
         public OperationResult TransferItem(
             ObjectItemInstance item,
             CharacterInventoryInstance targetInventory
@@ -116,9 +102,6 @@ namespace Turnroot.Gameplay.Brain
             return result;
         }
 
-        /// <summary>
-        /// Discard an item and publish the event.
-        /// </summary>
         public OperationResult DiscardItem(ObjectItemInstance item)
         {
             if (item == null)
@@ -135,9 +118,6 @@ namespace Turnroot.Gameplay.Brain
             return result;
         }
 
-        /// <summary>
-        /// Sell an item and publish the event.
-        /// </summary>
         public OperationResult SellItem(ObjectItemInstance item)
         {
             if (item == null)
@@ -154,9 +134,6 @@ namespace Turnroot.Gameplay.Brain
             return result;
         }
 
-        /// <summary>
-        /// Buy an item and publish the event.
-        /// </summary>
         public OperationResult BuyItem(
             ObjectItemInstance item,
             CharacterInventoryInstance buyerInventory
@@ -176,9 +153,6 @@ namespace Turnroot.Gameplay.Brain
             return result;
         }
 
-        /// <summary>
-        /// Repair an item and publish the event.
-        /// </summary>
         public OperationResult RepairItem(ObjectItemInstance item, int repairUses)
         {
             if (item == null)
@@ -195,9 +169,6 @@ namespace Turnroot.Gameplay.Brain
             return result;
         }
 
-        /// <summary>
-        /// Forge an item into a new item and publish the event.
-        /// </summary>
         public OperationResult ForgeItem(ObjectItemInstance item, ObjectItem targetItem)
         {
             if (item == null || targetItem == null)
@@ -253,9 +224,7 @@ namespace Turnroot.Gameplay.Brain
 
         #endregion
 
-        /// <summary>
-        /// Equip an item on a character and publish an equipped event.
-        /// </summary>
+
         public OperationResult EquipItem(CharacterInstance character, int inventoryIndex)
         {
             if (character == null || character.InventoryInstance == null)
@@ -282,9 +251,6 @@ namespace Turnroot.Gameplay.Brain
             return OperationResult.Successful();
         }
 
-        /// <summary>
-        /// Unequip an item on a character and publish an unequipped event.
-        /// </summary>
         public OperationResult UnequipItem(CharacterInstance character, int inventoryIndex)
         {
             if (character == null || character.InventoryInstance == null)
@@ -313,9 +279,6 @@ namespace Turnroot.Gameplay.Brain
 
         #region Queries
 
-        /// <summary>
-        /// Get all items across all character inventories.
-        /// </summary>
         public List<ObjectItemInstance> GetAllItems()
         {
             // Gather items from both an active battle and gamewide context to support both modes
@@ -365,9 +328,6 @@ namespace Turnroot.Gameplay.Brain
             return items;
         }
 
-        /// <summary>
-        /// Find items by template across all inventories.
-        /// </summary>
         public List<ObjectItemInstance> FindItemsByTemplate(ObjectItem template)
         {
             var items = GetAllItems();

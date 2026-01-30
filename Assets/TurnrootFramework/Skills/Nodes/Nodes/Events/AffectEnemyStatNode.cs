@@ -1,4 +1,5 @@
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
+using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Skills.Nodes.Events
@@ -45,7 +46,7 @@ namespace Turnroot.Skills.Nodes.Events
             if (shouldAffectAll && affected > 0)
             {
 #if UNITY_EDITOR
-                Debug.Log($"AffectEnemyStat: Affected {affected} enemies");
+                TurnrootLogger.Log($"AffectEnemyStat: Affected {affected} enemies");
 #endif
             }
         }

@@ -69,7 +69,7 @@ namespace Turnroot.Skills.Nodes.Events
                 string cureText = GetCureDescription();
                 if (affectedCount > 0)
                 {
-                    Debug.Log(
+                    TurnrootLogger.Log(
                         $"CureDebuff: Cured {cureText} from {affectedCount} adjacent {(affectedCount == 1 ? "ally" : "allies")}"
                     );
                 }
@@ -93,7 +93,9 @@ namespace Turnroot.Skills.Nodes.Events
                 int removed = CureDebuffsFromCharacter(context, target);
                 string cureText = GetCureDescription();
 #if UNITY_EDITOR
-                Debug.Log($"CureDebuff: Cured {cureText} from target ({removed} effects removed)");
+                TurnrootLogger.Log(
+                    $"CureDebuff: Cured {cureText} from target ({removed} effects removed)"
+                );
 #endif
             }
         }

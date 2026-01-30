@@ -24,7 +24,7 @@ namespace Turnroot.Skills.Nodes.Events
             }
 
             context.Brain?.PublishCriticalHit(context.Unit.UnitInstance);
-            Debug.Log(
+            TurnrootLogger.Log(
                 $"CriticalHit: {context.Unit.UnitInstance.CharacterTemplate.DisplayName} triggered a critical hit"
             );
         }

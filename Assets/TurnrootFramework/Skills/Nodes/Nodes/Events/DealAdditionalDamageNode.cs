@@ -1,4 +1,5 @@
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
+using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Skills.Nodes.Events
@@ -43,7 +44,9 @@ namespace Turnroot.Skills.Nodes.Events
             );
 
 #if UNITY_EDITOR
-            Debug.Log($"DealAdditionalDamage: Dealt {damage} damage to {affected} target(s)");
+            TurnrootLogger.Log(
+                $"DealAdditionalDamage: Dealt {damage} damage to {affected} target(s)"
+            );
 #endif
         }
     }

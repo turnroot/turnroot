@@ -1,4 +1,5 @@
 ﻿using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
+using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Skills.Nodes.Events
@@ -27,15 +28,13 @@ namespace Turnroot.Skills.Nodes.Events
 
             if (allAttacksThisTurn)
             {
-#if UNITY_EDITOR
-                Debug.Log("NegateNextAttack: All attacks this turn will be negated for unit");
-#endif
+                TurnrootLogger.Log(
+                    "NegateNextAttack: All attacks this turn will be negated for unit"
+                );
             }
             else
             {
-#if UNITY_EDITOR
-                Debug.Log("NegateNextAttack: Next attack will be negated for unit");
-#endif
+                TurnrootLogger.Log("NegateNextAttack: Next attack will be negated for unit");
             }
         }
     }

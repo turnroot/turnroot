@@ -250,25 +250,25 @@ namespace Turnroot.UI.Components.Menu.Submenu
                     foreach (var c in candidates)
                     {
                         if (string.IsNullOrEmpty(c))
-                            {
-                                continue;
-                            }
+                        {
+                            continue;
+                        }
 
-                            var lower = c.ToLower();
+                        var lower = c.ToLower();
                         var sb = new System.Text.StringBuilder();
                         foreach (var ch in lower)
                         {
                             if (char.IsLetterOrDigit(ch))
-                                {
-                                    sb.Append(ch);
-                                }
-                            }
-                        normalized = sb.ToString();
-                        if (!string.IsNullOrEmpty(normalized))
                             {
-                                break;
+                                sb.Append(ch);
                             }
                         }
+                        normalized = sb.ToString();
+                        if (!string.IsNullOrEmpty(normalized))
+                        {
+                            break;
+                        }
+                    }
 
                     if (normalized == "quality")
                     {
@@ -281,9 +281,6 @@ namespace Turnroot.UI.Components.Menu.Submenu
                     }
 
                     AdjustSlider(step);
-                    Debug.Log(
-                        $"Adjusted slider '{sliderComponent.name}' to {sliderComponent.value}"
-                    );
                     return true;
                 }
 

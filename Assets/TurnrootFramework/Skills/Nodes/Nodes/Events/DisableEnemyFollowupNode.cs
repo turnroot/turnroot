@@ -1,4 +1,5 @@
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
+using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Skills.Nodes.Events
@@ -41,7 +42,7 @@ namespace Turnroot.Skills.Nodes.Events
                         context.SetCustomData($"DisableFollowup_{target.Id}", true);
                     }
                 }
-                Debug.Log(
+                TurnrootLogger.Log(
                     $"DisableEnemyFollowup: Disabled followup for {context.Participants.Targets.Count} enemies"
                 );
             }
@@ -50,15 +51,13 @@ namespace Turnroot.Skills.Nodes.Events
                 var target = context.Participants.Targets[0];
                 if (target == null)
                 {
-#if UNITY_EDITOR
                     Debug.LogWarning("DisableEnemyFollowup: Target is null");
-#endif
+
                     return;
                 }
                 context.SetCustomData($"DisableFollowup_{target.Id}", true);
-#if UNITY_EDITOR
-                Debug.Log("DisableEnemyFollowup: Disabled followup attack for target");
-#endif
+
+                TurnrootLogger.Log("DisableEnemyFollowup: Disabled followup attack for target");
             }
         }
     }

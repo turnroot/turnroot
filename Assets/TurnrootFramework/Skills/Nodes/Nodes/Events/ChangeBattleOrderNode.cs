@@ -1,4 +1,5 @@
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
+using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Skills.Nodes.Events
@@ -38,7 +39,7 @@ namespace Turnroot.Skills.Nodes.Events
             context.SetCustomData("AttackOrderEffectType", effectType);
 
             string target = applyToUnit ? "unit" : "target";
-            Debug.Log(
+            TurnrootLogger.Log(
                 $"ChangeBattleOrder: Applied {effectType} to {target} (speed mod: {speedMod})"
             );
         }

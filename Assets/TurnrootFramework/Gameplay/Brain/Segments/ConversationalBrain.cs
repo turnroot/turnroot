@@ -3,6 +3,7 @@ using Turnroot.Characters.Components.Support;
 using Turnroot.Conversations;
 using Turnroot.Gameplay.Brain.Components;
 using Turnroot.Gameplay.Brain.Events;
+using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain
@@ -25,7 +26,6 @@ namespace Turnroot.Gameplay.Brain
         }
 
         protected override void SubscribeToBrainEvents() =>
-            // Subscribe to conversation end to track completion
             _brain.OnConversationEnded += HandleConversationEnded;
 
         protected override void UnsubscribeFromBrainEvents() =>
@@ -41,9 +41,6 @@ namespace Turnroot.Gameplay.Brain
 
         #region Conversation Persistence
 
-        /// <summary>
-        /// Mark a conversation as completed (fully watched through).
-        /// </summary>
         public void MarkConversationCompleted(Conversation conversation)
         {
             if (conversation == null || _ltm == null)
@@ -53,14 +50,11 @@ namespace Turnroot.Gameplay.Brain
 
             var key = $"{LtmKeys.ConversationCompletedPrefix}{conversation.name}";
             _ltm.RememberBool(key, true);
-            Debug.Log(
+            TurnrootLogger.Log(
                 $"ConversationalBrain: Marked conversation '{conversation.name}' as completed."
             );
         }
 
-        /// <summary>
-        /// Check if a conversation has been completed.
-        /// </summary>
         public bool HasCompletedConversation(Conversation conversation)
         {
             if (conversation == null || _ltm == null)
@@ -72,9 +66,6 @@ namespace Turnroot.Gameplay.Brain
             return _ltm.RecallBool(key);
         }
 
-        /// <summary>
-        /// Check if a conversation has been completed by name.
-        /// </summary>
         public bool HasCompletedConversation(string conversationName)
         {
             if (string.IsNullOrEmpty(conversationName) || _ltm == null)
@@ -86,9 +77,6 @@ namespace Turnroot.Gameplay.Brain
             return _ltm.RecallBool(key);
         }
 
-        /// <summary>
-        /// Mark a conversation as seen (started but not necessarily completed).
-        /// </summary>
         public void MarkConversationSeen(Conversation conversation)
         {
             if (conversation == null || _ltm == null)
@@ -100,9 +88,6 @@ namespace Turnroot.Gameplay.Brain
             _ltm.RememberBool(key, true);
         }
 
-        /// <summary>
-        /// Check if a conversation has been seen.
-        /// </summary>
         public bool HasSeenConversation(Conversation conversation)
         {
             if (conversation == null || _ltm == null)
@@ -114,9 +99,6 @@ namespace Turnroot.Gameplay.Brain
             return _ltm.RecallBool(key);
         }
 
-        /// <summary>
-        /// Mark a support conversation between two characters as completed.
-        /// </summary>
         public void MarkSupportConversationCompleted(
             CharacterData character1,
             CharacterData character2,
@@ -137,14 +119,11 @@ namespace Turnroot.Gameplay.Brain
                     : $"{LtmKeys.SupportConversationPrefix}{name2}_{name1}_{supportLevel}";
 
             _ltm.RememberBool(key, true);
-            Debug.Log(
+            TurnrootLogger.Log(
                 $"ConversationalBrain: Support conversation {name1}/{name2} rank {supportLevel} completed."
             );
         }
 
-        /// <summary>
-        /// Check if a support conversation has been completed.
-        /// </summary>
         public bool HasCompletedSupportConversation(
             CharacterData character1,
             CharacterData character2,
@@ -170,79 +149,68 @@ namespace Turnroot.Gameplay.Brain
 
         #region Conversation Management
 
-        /// <summary>
-        /// Start a conversation and notify the brain.
-        /// </summary>
         public void StartConversation(Conversation conversation)
         {
             if (conversation == null)
             {
-#if UNITY_EDITOR
-                Debug.LogWarning("ConversationalBrain: Cannot start null conversation.");
-#endif
+                TurnrootLogger.Log(
+                    "ConversationalBrain: Cannot start null conversation.",
+                    TurnrootLogger.LogLevel.Warning
+                );
                 return;
             }
 
             _brain?.PublishConversationStarted(conversation);
-#if UNITY_EDITOR
-            Debug.Log($"ConversationalBrain: Started conversation '{conversation.name}'");
-#endif
+            TurnrootLogger.Log($"ConversationalBrain: Started conversation '{conversation.name}'");
         }
 
-        /// <summary>
-        /// End a conversation and notify the brain.
-        /// </summary>
         public void EndConversation(Conversation conversation)
         {
             if (conversation == null)
             {
-#if UNITY_EDITOR
-                Debug.LogWarning("ConversationalBrain: Cannot end null conversation.");
-#endif
+                TurnrootLogger.Log(
+                    "ConversationalBrain: Cannot end null conversation.",
+                    TurnrootLogger.LogLevel.Warning
+                );
                 return;
             }
 
             _brain?.PublishConversationEnded(conversation);
-#if UNITY_EDITOR
-            Debug.Log($"ConversationalBrain: Ended conversation '{conversation.name}'");
-#endif
+
+            TurnrootLogger.Log(
+                $"ConversationalBrain: Ended conversation '{conversation.name}'",
+                TurnrootLogger.LogLevel.Warning
+            );
         }
 
-        /// <summary>
-        /// Start a conversation layer and notify the brain.
-        /// </summary>
         public void StartConversationLayer(ConversationLayer layer)
         {
             if (layer == null)
             {
-#if UNITY_EDITOR
-                Debug.LogWarning("ConversationalBrain: Cannot start null conversation layer.");
-#endif
+                TurnrootLogger.Log(
+                    "ConversationalBrain: Cannot start null conversation layer.",
+                    TurnrootLogger.LogLevel.Warning
+                );
                 return;
             }
 
             _brain?.PublishConversationLayerStarted(layer);
         }
 
-        /// <summary>
-        /// End a conversation layer and notify the brain.
-        /// </summary>
         public void EndConversationLayer(ConversationLayer layer)
         {
             if (layer == null)
             {
-#if UNITY_EDITOR
-                Debug.LogWarning("ConversationalBrain: Cannot end null conversation layer.");
-#endif
+                TurnrootLogger.Log(
+                    "ConversationalBrain: Cannot end null conversation layer.",
+                    TurnrootLogger.LogLevel.Warning
+                );
                 return;
             }
 
             _brain?.PublishConversationLayerEnded(layer);
         }
 
-        /// <summary>
-        /// Notify when support points change for a relationship.
-        /// </summary>
         public void NotifySupportPointsChanged(SupportRelationshipInstance relationship)
         {
             if (relationship == null)
@@ -253,9 +221,6 @@ namespace Turnroot.Gameplay.Brain
             _brain?.PublishSupportPointsChanged(relationship);
         }
 
-        /// <summary>
-        /// Notify when a support conversation becomes available.
-        /// </summary>
         public void NotifySupportConversationAvailable(SupportRelationshipInstance relationship)
         {
             if (relationship == null)
@@ -266,9 +231,6 @@ namespace Turnroot.Gameplay.Brain
             _brain?.PublishSupportConversationAvailable(relationship);
         }
 
-        /// <summary>
-        /// Notify when an S-level support conversation becomes available.
-        /// </summary>
         public void NotifySLevelSupportConversationAvailable(
             SupportRelationshipInstance relationship
         )
