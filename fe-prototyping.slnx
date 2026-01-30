@@ -4,7 +4,6 @@
   <Project Path="Assembly-CSharp.csproj" />
   <Project Path="Assembly-CSharp-Editor.csproj" />
   <Project Path="Mischief.MDV.Editor.csproj" />
-  <Project Path="Wooshii.HierarchyDecorator.Editor.csproj" />
   <Project Path="UIEffect.csproj" />
   <Project Path="Assembly-CSharp-firstpass.csproj" />
 </Solution>

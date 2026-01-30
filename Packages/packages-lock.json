@@ -246,12 +246,6 @@
         "com.unity.modules.imgui": "1.0.0"
       }
     },
-    "com.wooshii.hierarchydecorator": {
-      "version": "file:com.wooshii.hierarchydecorator",
-      "depth": 0,
-      "source": "embedded",
-      "dependencies": {}
-    },
     "com.wooshii.pinnedassets": {
       "version": "https://github.com/WooshiiDev/PinnedAssets.git",
       "depth": 0,
