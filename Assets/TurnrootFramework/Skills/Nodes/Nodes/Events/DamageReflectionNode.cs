@@ -1,4 +1,5 @@
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
+using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Skills.Nodes.Events
@@ -37,7 +38,7 @@ namespace Turnroot.Skills.Nodes.Events
             context.SetCustomData($"ReflectDamage_{context.Unit.UnitInstance.Id}", reflectionData);
 
 #if UNITY_EDITOR
-            Debug.Log($"DamageReflection: Will reflect {reflectPercent}% of damage");
+            TurnrootLogger.Log($"DamageReflection: Will reflect {reflectPercent}% of damage");
 #endif
         }
     }

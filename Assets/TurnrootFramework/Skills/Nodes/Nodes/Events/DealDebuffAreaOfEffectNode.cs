@@ -1,5 +1,6 @@
 using Turnroot.Characters.StatusEffects;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
+using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Skills.Nodes.Events
@@ -62,7 +63,7 @@ namespace Turnroot.Skills.Nodes.Events
                 }
             );
 
-            Debug.Log(
+            TurnrootLogger.Log(
                 $"DealDebuffAreaOfEffect: Applied {debuffType.DisplayName} debuff to {affectedCount} enemies in {radius} tile radius"
             );
         }

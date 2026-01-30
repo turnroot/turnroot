@@ -1,4 +1,5 @@
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
+using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Skills.Nodes.Events
@@ -39,7 +40,7 @@ namespace Turnroot.Skills.Nodes.Events
                 target => DealDamage(context, target, damage)
             );
 
-            Debug.Log(
+            TurnrootLogger.Log(
                 $"AreaOfEffectDamage: Dealt {damage} damage to {affectedCount} enemies in {radius} tile radius"
             );
         }

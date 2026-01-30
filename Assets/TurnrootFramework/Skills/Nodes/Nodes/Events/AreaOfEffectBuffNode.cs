@@ -1,5 +1,6 @@
 using Turnroot.Characters.StatusEffects;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
+using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Skills.Nodes.Events
@@ -90,7 +91,7 @@ namespace Turnroot.Skills.Nodes.Events
             }
 
             string durationType = duration > 0 ? $"{duration} turns" : "permanent";
-            Debug.Log(
+            TurnrootLogger.Log(
                 $"AreaOfEffectBuff: Applied {buffType.DisplayName} to {affectedCount} allies within {radius} tiles ({durationType})"
             );
         }

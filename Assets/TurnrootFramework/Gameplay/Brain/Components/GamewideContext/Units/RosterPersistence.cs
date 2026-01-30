@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Newtonsoft.Json;
 using Turnroot.Characters;
 using Turnroot.Gameplay.Brain.Components;
+using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain
@@ -31,19 +32,14 @@ namespace Turnroot.Gameplay.Brain
 
             if (!string.IsNullOrEmpty(existing))
             {
-#if UNITY_EDITOR
-                Debug.Log($"Roster {roster.name} already registered");
-#endif
+                TurnrootLogger.Log($"Roster {roster.name} already registered");
+
                 return;
             }
 
             var hash = ComputeRosterHash(roster);
             _ltm.Remember(key, hash);
             AddToRosterIndex(roster.Id);
-
-#if UNITY_EDITOR
-            Debug.Log($"Registered roster: {roster.name}");
-#endif
         }
 
         public void RegisterPlayerRoster(PlayerTeamRoster roster)
@@ -64,10 +60,6 @@ namespace Turnroot.Gameplay.Brain
             var hash = ComputeRosterHash(roster);
             _ltm.Remember(key, hash);
             AddToRosterIndex(roster.Id);
-
-#if UNITY_EDITOR
-            Debug.Log($"Registered player roster: {roster.name}");
-#endif
         }
 
         public bool HasRosterInLTM(GenericRoster roster)

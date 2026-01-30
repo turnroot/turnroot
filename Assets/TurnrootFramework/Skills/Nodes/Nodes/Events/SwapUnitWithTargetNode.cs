@@ -44,7 +44,7 @@ namespace Turnroot.Skills.Nodes.Events
             context.SetCustomData("SwapPositions", swapData);
 
 #if UNITY_EDITOR
-            Debug.Log("SwapUnitWithTarget: Will swap positions with target");
+            TurnrootLogger.Log("SwapUnitWithTarget: Will swap positions with target");
 #endif
         }
     }

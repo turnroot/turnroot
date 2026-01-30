@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
@@ -78,10 +79,6 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             }
         }
 
-        /// <summary>
-        /// Called when a unit moves to a tile. Tracks if the tile is a target tile.
-        /// Uses HashSet for O(1) lookups instead of O(n) array Contains.
-        /// </summary>
         public void OnUnitReachedTile(Vector2Int position)
         {
             if (!AreRequirementsMet())
@@ -96,11 +93,9 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 return;
             }
 
-            // HashSet.Add returns false if already present, so this is idempotent
-            // what does idempotent mean??
             if (_reachedTilesSet.Add(position))
             {
-                Debug.Log(
+                TurnrootLogger.Log(
                     $"ReachTilesBattleCondition: Tile {position} reached ({_reachedTilesSet.Count}/{TargetTiles.Count})"
                 );
 

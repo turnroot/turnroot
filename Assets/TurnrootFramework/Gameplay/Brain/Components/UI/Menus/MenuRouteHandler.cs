@@ -104,33 +104,25 @@ namespace Turnroot.Gameplay.Brain.Segments
         // Route implementations
         private void OpenInventory()
         {
-#if UNITY_EDITOR
-            Debug.Log("Opening Inventory - TODO: Implement");
-#endif
+            TurnrootLogger.Log("Opening Inventory - TODO: Implement");
             // TODO: Implement inventory UI
         }
 
         private void OpenSkills()
         {
-#if UNITY_EDITOR
-            Debug.Log("Opening Skills - TODO: Implement");
-#endif
+            TurnrootLogger.Log("Opening Skills - TODO: Implement");
             // TODO: Implement skills UI
         }
 
         private void OpenSupport()
         {
-#if UNITY_EDITOR
-            Debug.Log("Opening Support - TODO: Implement");
-#endif
+            TurnrootLogger.Log("Opening Support - TODO: Implement");
             // TODO: Implement support UI
         }
 
         private void HandleWithdraw()
         {
-#if UNITY_EDITOR
-            Debug.Log("Handling Withdraw - TODO: Implement");
-#endif
+            TurnrootLogger.Log("Handling Withdraw - TODO: Implement");
             // TODO: Handle withdraw action
         }
 

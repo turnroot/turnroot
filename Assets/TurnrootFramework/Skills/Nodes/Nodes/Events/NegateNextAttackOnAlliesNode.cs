@@ -68,13 +68,13 @@ namespace Turnroot.Skills.Nodes.Events
                 {
                     if (allAttacksThisTurn)
                     {
-                        Debug.Log(
+                        TurnrootLogger.Log(
                             $"NegateNextAttackOnAllies: Will negate all attacks this turn for {affectedCount} adjacent {(affectedCount == 1 ? "ally" : "allies")}"
                         );
                     }
                     else
                     {
-                        Debug.Log(
+                        TurnrootLogger.Log(
                             $"NegateNextAttackOnAllies: Will negate next attack for {affectedCount} adjacent {(affectedCount == 1 ? "ally" : "allies")}"
                         );
                     }
@@ -97,14 +97,16 @@ namespace Turnroot.Skills.Nodes.Events
                 );
                 if (allAttacksThisTurn)
                 {
-                    Debug.Log(
+                    TurnrootLogger.Log(
                         "NegateNextAttackOnAllies: All attacks this turn will be negated for caster"
                     );
                 }
                 else
                 {
 #if UNITY_EDITOR
-                    Debug.Log("NegateNextAttackOnAllies: Next attack will be negated for caster");
+                    TurnrootLogger.Log(
+                        "NegateNextAttackOnAllies: Next attack will be negated for caster"
+                    );
 #endif
                 }
             }

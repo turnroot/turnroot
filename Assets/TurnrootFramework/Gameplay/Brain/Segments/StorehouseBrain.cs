@@ -117,10 +117,6 @@ namespace Turnroot.Gameplay.Brain
 
         #region Storehouse Operations
 
-
-        /// <summary>
-        /// Save the current state of the storehouse to long-term memory.
-        /// </summary>
         public void SaveCurrentStorehouse()
         {
             // loop through _materials and save each material count
@@ -131,7 +127,6 @@ namespace Turnroot.Gameplay.Brain
                     material.Value
                 );
             }
-            // save a single string with all stored item IDs, separated by commas
             var itemIds = string.Join(",", _storedItems.ConvertAll(i => i.InstanceID.ToString()));
             _ltm.Remember(LtmKeys.StorehouseStoredItems, itemIds);
         }
@@ -181,18 +176,15 @@ namespace Turnroot.Gameplay.Brain
                     }
                     else
                     {
-                        Debug.LogWarning(
-                            $"StorehouseBrain.LoadStorehouse: Could not find item with ID '{id}'"
+                        TurnrootLogger.Log(
+                            $"StorehouseBrain.LoadStorehouse: Could not find item with ID '{id}'",
+                            TurnrootLogger.LogLevel.Warning
                         );
                     }
                 }
             }
         }
 
-        /// <summary>
-        /// Deposit an item into the storehouse.
-        /// </summary>
-        ///
         public OperationResult DepositItem(ObjectItemInstance item)
         {
             if (item == null)
@@ -204,15 +196,11 @@ namespace Turnroot.Gameplay.Brain
             SaveCurrentStorehouse();
             _brain?.PublishItemDeposited(item);
 
-#if UNITY_EDITOR
-            Debug.Log($"Deposited {item.Template.name} into storehouse.");
-#endif
+            TurnrootLogger.Log($"Deposited {item.Template.name} into storehouse.");
+
             return OperationResult.Successful();
         }
 
-        /// <summary>
-        /// Withdraw an item from the storehouse.
-        /// </summary>
         public OperationResult WithdrawItem(
             ObjectItemInstance item,
             CharacterInventoryInstance targetInventory
@@ -248,24 +236,16 @@ namespace Turnroot.Gameplay.Brain
 
             _brain?.PublishItemWithdrawn(item, targetInventory);
 
-#if UNITY_EDITOR
-            Debug.Log($"Withdrew {item.Template.name} from storehouse.");
-#endif
+            TurnrootLogger.Log($"Withdrew {item.Template.name} from storehouse.");
             return OperationResult.Successful();
         }
 
-        /// <summary>
-        /// Check if the storehouse has sufficient materials for an operation.
-        /// </summary>
         public bool HasMaterials(ObjectItem material, int amount) =>
             material != null
             && amount > 0
             && _materials.TryGetValue(material, out var count)
             && count >= amount;
 
-        /// <summary>
-        /// Consume materials from the storehouse.
-        /// </summary>
         public OperationResult ConsumeMaterials(ObjectItem material, int amount)
         {
             if (!HasMaterials(material, amount))
@@ -280,15 +260,10 @@ namespace Turnroot.Gameplay.Brain
                 _ = _materials.Remove(material);
             }
             SaveCurrentStorehouse();
-#if UNITY_EDITOR
-            Debug.Log($"Consumed {amount}x {material.name} from storehouse.");
-#endif
+            TurnrootLogger.Log($"Consumed {amount}x {material.name} from storehouse.");
             return OperationResult.Successful();
         }
 
-        /// <summary>
-        /// Add materials to the storehouse.
-        /// </summary>
         public void AddMaterials(ObjectItem material, int amount)
         {
             if (material == null || amount <= 0)
@@ -304,14 +279,9 @@ namespace Turnroot.Gameplay.Brain
 
             _materials[material] = currentCount + amount;
             SaveCurrentStorehouse();
-#if UNITY_EDITOR
-            Debug.Log($"Added {amount}x {material.name} to storehouse.");
-#endif
+            TurnrootLogger.Log($"Added {amount}x {material.name} to storehouse.");
         }
 
-        /// <summary>
-        /// Get the count of a specific material.
-        /// </summary>
         public int GetMaterialCount(ObjectItem material) =>
             material == null ? 0
             : _materials.TryGetValue(material, out var count) ? count
@@ -320,15 +290,8 @@ namespace Turnroot.Gameplay.Brain
         #endregion
 
         #region Queries
-
-        /// <summary>
-        /// Get all items currently in the storehouse.
-        /// </summary>
         public List<ObjectItemInstance> GetStoredItems() => new(_storedItems);
 
-        /// <summary>
-        /// Get all available materials and their counts.
-        /// </summary>
         public Dictionary<ObjectItem, int> GetAllMaterials() => new(_materials);
 
         #endregion

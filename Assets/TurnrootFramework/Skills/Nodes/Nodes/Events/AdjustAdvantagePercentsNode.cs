@@ -1,4 +1,5 @@
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
+using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Skills.Nodes.Events
@@ -23,7 +24,7 @@ namespace Turnroot.Skills.Nodes.Events
 
             // Store in CustomData for combat system to use during advantage calculation
             context.SetCustomData("AdvantagePercentModifier", AddAdvantagePercent);
-            Debug.Log(
+            TurnrootLogger.Log(
                 $"AdjustAdvantagePercents: Adjusted advantage percents by {AddAdvantagePercent}%"
             );
         }

@@ -1,5 +1,6 @@
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Locations;
+using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Skills.Nodes.Events
@@ -39,9 +40,10 @@ namespace Turnroot.Skills.Nodes.Events
             var ally = context.Participants.AdjacentUnits.GetUnit(allyDirection);
             if (ally == null)
             {
-#if UNITY_EDITOR
-                Debug.LogWarning($"Reposition: No unit at {allyDirection}");
-#endif
+                TurnrootLogger.Log(
+                    $"Reposition: No unit at {allyDirection}",
+                    TurnrootLogger.LogLevel.Warning
+                );
                 return;
             }
 
@@ -55,7 +57,7 @@ namespace Turnroot.Skills.Nodes.Events
 
             context.SetCustomData("Reposition", repositionData);
 
-            Debug.Log(
+            TurnrootLogger.Log(
                 $"Reposition: Will move ally from {allyDirection} to {moveDirection} relative to caster"
             );
         }

@@ -109,9 +109,10 @@ namespace Turnroot.Gameplay.Objects.Components
             var canForgeResult = CanForge(storehouseBrain, option);
             if (!canForgeResult.Success)
             {
-#if UNITY_EDITOR
-                Debug.LogWarning($"ForgeItem failed: {canForgeResult.ErrorMessage}");
-#endif
+                TurnrootLogger.Log(
+                    $"ForgeItem failed: {canForgeResult.ErrorMessage}",
+                    TurnrootLogger.LogLevel.Warning
+                );
                 return canForgeResult;
             }
 
@@ -119,9 +120,10 @@ namespace Turnroot.Gameplay.Objects.Components
             var spendGoldResult = storehouseBrain.SpendGold(option.Price);
             if (!spendGoldResult.Success)
             {
-#if UNITY_EDITOR
-                Debug.LogWarning($"ForgeItem failed: {spendGoldResult.ErrorMessage}");
-#endif
+                TurnrootLogger.Log(
+                    $"ForgeItem failed: {spendGoldResult.ErrorMessage}",
+                    TurnrootLogger.LogLevel.Warning
+                );
                 return spendGoldResult;
             }
 
@@ -133,15 +135,12 @@ namespace Turnroot.Gameplay.Objects.Components
 
             if (!useMaterialsResult.Success)
             {
-#if UNITY_EDITOR
-                Debug.LogWarning($"ForgeItem failed: {useMaterialsResult.ErrorMessage}");
-#endif
+                TurnrootLogger.Log(
+                    $"ForgeItem failed: {useMaterialsResult.ErrorMessage}",
+                    TurnrootLogger.LogLevel.Warning
+                );
                 return useMaterialsResult;
             }
-
-#if UNITY_EDITOR
-            Debug.Log($"Forged {ThisItem.name} into {option.ForgeInto.name}.");
-#endif
             return OperationResult.Successful();
         }
     }

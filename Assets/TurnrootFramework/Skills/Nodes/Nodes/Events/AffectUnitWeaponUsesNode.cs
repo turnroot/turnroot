@@ -1,4 +1,5 @@
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
+using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Skills.Nodes.Events
@@ -47,7 +48,7 @@ namespace Turnroot.Skills.Nodes.Events
 
             context.Brain?.PublishWeaponUsesChanged(targetCharacter, change);
             string target = applyToUnit ? "unit" : "target";
-            Debug.Log(
+            TurnrootLogger.Log(
                 $"AffectUnitWeaponUses: Changed {target} ({targetCharacter.CharacterTemplate.DisplayName}) weapon uses by {change}"
             );
         }

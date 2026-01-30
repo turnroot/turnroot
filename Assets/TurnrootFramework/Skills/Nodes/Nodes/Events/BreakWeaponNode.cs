@@ -1,4 +1,5 @@
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
+using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Skills.Nodes.Events
@@ -36,7 +37,7 @@ namespace Turnroot.Skills.Nodes.Events
                     // Store break weapon command in CustomData
                     context.SetCustomData($"BreakWeapon_{target.Id}", true);
                 }
-                Debug.Log(
+                TurnrootLogger.Log(
                     $"BreakWeapon: Would break weapon for {context.Participants.Targets.Count} targets"
                 );
             }
@@ -46,7 +47,7 @@ namespace Turnroot.Skills.Nodes.Events
                 // Store break weapon command in CustomData
                 context.SetCustomData($"BreakWeapon_{target.Id}", true);
 #if UNITY_EDITOR
-                Debug.Log("BreakWeapon: Would break weapon for first target");
+                TurnrootLogger.Log("BreakWeapon: Would break weapon for first target");
 #endif
             }
         }

@@ -31,7 +31,6 @@ namespace Turnroot.Utilities.AbstractScripts
         public void InitializeMiniBattleState()
         {
             CurrentMiniBattleState = MiniBattleState.NoBattlePlayerInput;
-            TurnrootLogger.Log($"Initialized MiniBattleState to {CurrentMiniBattleState}");
             DisableBattleInput();
             OnPlayerPreTurn.Invoke();
         }
@@ -40,7 +39,6 @@ namespace Turnroot.Utilities.AbstractScripts
 
         public void ProgressMiniBattleState()
         {
-            TurnrootLogger.Log($"Progressing MiniBattleState from {CurrentMiniBattleState}");
             switch (CurrentMiniBattleState)
             {
                 case MiniBattleState.NoBattlePlayerInput:

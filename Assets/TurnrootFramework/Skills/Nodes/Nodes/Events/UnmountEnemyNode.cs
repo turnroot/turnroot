@@ -1,4 +1,5 @@
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
+using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Skills.Nodes.Events
@@ -21,9 +22,10 @@ namespace Turnroot.Skills.Nodes.Events
         {
             if (context?.Participants?.Targets == null || context.Participants.Targets.Count == 0)
             {
-#if UNITY_EDITOR
-                Debug.LogWarning("UnmountEnemy: No target in context");
-#endif
+                TurnrootLogger.Log(
+                    "UnmountEnemy: No target in context",
+                    TurnrootLogger.LogLevel.Warning
+                );
                 return;
             }
 
@@ -39,24 +41,24 @@ namespace Turnroot.Skills.Nodes.Events
                         context.SetCustomData($"ForceUnmount_{target.Id}", true);
                     }
                 }
-#if UNITY_EDITOR
-                Debug.Log($"UnmountEnemy: Unmounted {context.Participants.Targets.Count} enemies");
-#endif
+                TurnrootLogger.Log(
+                    $"UnmountEnemy: Unmounted {context.Participants.Targets.Count} enemies"
+                );
             }
             else
             {
                 var target = context.Participants.Targets[0];
                 if (target == null)
                 {
-#if UNITY_EDITOR
-                    Debug.LogWarning("UnmountEnemy: Target is null");
-#endif
+                    TurnrootLogger.Log(
+                        "UnmountEnemy: Target is null",
+                        TurnrootLogger.LogLevel.Warning
+                    );
+
                     return;
                 }
                 context.SetCustomData($"ForceUnmount_{target.Id}", true);
-#if UNITY_EDITOR
-                Debug.Log("UnmountEnemy: Forced target to dismount");
-#endif
+                TurnrootLogger.Log("UnmountEnemy: Forced target to dismount");
             }
         }
     }
