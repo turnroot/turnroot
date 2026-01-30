@@ -26,6 +26,7 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
                 _battleBrain.Brain.OnPlayerUndoAction += HandlePlayerUndoAction;
                 _battleBrain.Brain.OnUnitFinishedMovingAfterAction +=
                     HandleUnitFinishedMovingAfterAction;
+                _battleBrain.Brain.OnMoveAnimationCompleted += HandleUnitMoveAnimationCompleted;
             }
         }
 
@@ -36,6 +37,7 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
                 _battleBrain.Brain.OnPlayerUndoAction -= HandlePlayerUndoAction;
                 _battleBrain.Brain.OnUnitFinishedMovingAfterAction -=
                     HandleUnitFinishedMovingAfterAction;
+                _battleBrain.Brain.OnMoveAnimationCompleted -= HandleUnitMoveAnimationCompleted;
             }
         }
 
@@ -87,10 +89,8 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
             }
         }
 
-        // Select a destination directly while a unit is selected (used by input controller)
         public void SelectDestination(MapGridPoint destination)
         {
-            // store pending destination on flow if needed - but input controller manages pending destination currently
             var res = _currentState.TransitionToState(PlayerTurnStates.DestinationSelected);
             if (res.Success)
             {
@@ -102,7 +102,6 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
         // Called by input controller to start the move and lock input until move/animation finishes
         public void StartMove()
         {
-            // Safety: if StartMove is called while already executing a move, ignore duplicate calls.
             if (GetCurrentState() == PlayerTurnStates.ExecutingMove)
             {
                 TurnrootLogger.Log(
@@ -119,7 +118,6 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
             }
         }
 
-        // Called when underlying movement/animation is finished to allow action selection
         public void CompleteMove()
         {
             var res = _currentState.TransitionToState(PlayerTurnStates.ChoosingAction);
@@ -223,7 +221,25 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
 
         private void HandleUnitFinishedMovingAfterAction(CharacterInstance unit)
         {
-            // Only respond if we're the active player's turn and we were executing a move
+            if (_activePlayerUnit == null || unit == null)
+            {
+                return;
+            }
+
+            if (_activePlayerUnit != unit)
+            {
+                return;
+            }
+
+            if (GetCurrentState() == PlayerTurnStates.ExecutingMove)
+            {
+                CompleteMove();
+            }
+        }
+
+        private void HandleUnitMoveAnimationCompleted(CharacterInstance unit)
+        {
+            // Transition the flow from ExecutingMove -> ChoosingAction when the visual animation finishes
             if (_activePlayerUnit == null || unit == null)
             {
                 return;

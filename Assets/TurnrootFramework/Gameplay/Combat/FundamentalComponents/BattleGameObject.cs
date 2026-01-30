@@ -86,6 +86,9 @@ namespace Turnroot.Gameplay.Combat
 
         public LayerMask GroundLayerMask;
 
+        public void PublishMoveAnimationCompleted(CharacterInstance unit) =>
+            Brain.PublishMoveAnimationCompleted(unit);
+
         private bool _isConnectedToBrain;
 
         #region Unity Lifecycle

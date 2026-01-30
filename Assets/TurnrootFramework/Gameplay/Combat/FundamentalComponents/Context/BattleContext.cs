@@ -263,7 +263,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 ThirdParty = new List<CharacterInstance>(),
                 AdjacentUnits = new Adjacency(null),
             };
-            Flags = new CombatFlags();
+            Flags = new CombatFlags { ActiveUnitFlags = new UnitFlag() };
         }
 
         // Get a custom data value, or default if not found

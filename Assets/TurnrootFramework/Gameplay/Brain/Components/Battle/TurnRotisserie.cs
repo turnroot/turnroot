@@ -65,7 +65,6 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 var active = GetActiveUnit();
                 if (active != null && active == unit)
                 {
-                    // EndTurn/Wait should trigger progression
                     Progress();
                 }
             }
@@ -162,7 +161,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         /// </summary>
         private List<CharacterInstance> GetCurrentRosterUnits()
         {
-            if (Context?.Participants == null)
+            if (Context.Participants == null)
             {
                 TurnrootLogger.Log(
                     "TurnRotisserie: BattleContext.Participants is null!",
@@ -224,39 +223,37 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         {
             TurnOrder previousOrder = _currentTurnOrder;
             _currentTurnOrder = GetNextTurnOrder();
-            _currentRosterIndex = -1; // Will be incremented to 0 on next Progress()
+            _currentRosterIndex = -1;
 
-            // Publish phase transition events
             bool newRoundStarted =
                 _currentTurnOrder == TurnOrder.PlayerStart
                 && previousOrder != TurnOrder.PlayerStart;
 
             if (newRoundStarted)
             {
-                Brain?.PublishTurnEnded();
-                Brain?.PublishTurnBegin();
+                Brain.PublishTurnEnded();
+                Brain.PublishTurnBegin();
             }
 
-            // Publish phase-specific events
             switch (_currentTurnOrder)
             {
                 case TurnOrder.PlayerStart:
-                    battleBrain?.playerTurnFlow?.StartPlayerTurn();
+                    battleBrain.playerTurnFlow.StartPlayerTurn();
                     break;
                 case TurnOrder.PlayerEnd:
-                    Brain?.PublishPlayerTurnEnded();
+                    Brain.PublishPlayerTurnEnded();
                     break;
                 case TurnOrder.EnemyStart:
-                    Brain?.PublishEnemyTurnStarted();
+                    Brain.PublishEnemyTurnStarted();
                     break;
                 case TurnOrder.EnemyEnd:
-                    Brain?.PublishEnemyTurnEnded();
+                    Brain.PublishEnemyTurnEnded();
                     break;
                 case TurnOrder.ThirdPartyStart:
-                    Brain?.PublishThirdPartyTurnStarted();
+                    Brain.PublishThirdPartyTurnStarted();
                     break;
                 case TurnOrder.ThirdPartyEnd:
-                    Brain?.PublishThirdPartyTurnEnded();
+                    Brain.PublishThirdPartyTurnEnded();
                     break;
             }
 
@@ -293,10 +290,15 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             try
             {
                 Context.Unit.UnitInstance = activeUnit;
+                if (Context.Flags?.ActiveUnitFlags == null)
+                {
+                    Context.Flags.ActiveUnitFlags = new UnitFlag();
+                }
+                Context.Flags.ActiveUnitFlags.Unit = activeUnit;
                 Context.Participants.AdjacentUnits = new Locations.Adjacency(activeUnit);
                 if (_currentTurnOrder is TurnOrder.PlayerStart or TurnOrder.PlayerEnd)
                 {
-                    Brain?.PublishPlayerControlledUnitActivated(activeUnit);
+                    Brain.PublishPlayerControlledUnitActivated(activeUnit);
                 }
 
                 return OperationResult.Successful();
