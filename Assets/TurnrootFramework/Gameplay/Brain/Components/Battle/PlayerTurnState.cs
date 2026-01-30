@@ -6,9 +6,11 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
     {
         Inactive,
         NoUnitSelected,
-        NoActionChosen,
-        MoveActionChosenChoosingDestination,
-        MoveActionChosenDestinationSelected,
+        UnitSelected, // replaces NoActionChosen: unit selected and ready for input
+        ChoosingDestination, // choosing where to move
+        DestinationSelected, // destination confirmed, will execute move
+        ExecutingMove, // move in progress; input locked until move/animation completes
+        ChoosingAction, // choose an action after moving
         WaitActionChosen,
         AttackActionChosenChoosingTarget,
         AttackActionChosenTargetSelected,
@@ -20,6 +22,8 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
         TalkActionChosenTargetSelected,
         TradeActionChosenChoosingTarget,
         TradeActionChosenTargetSelected,
+        ChoosingTarget,
+        TargetSelected,
         ConfirmAction,
         ExecutingAction, // Command/animation in progress; input locked
         TurnEnded,
@@ -35,85 +39,82 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
         {
             // Valid transitions:
             // 1. Inactive -> NoUnitSelected. This occurs when the player's turn begins.
-            // 2. NoUnitSelected -> NoActionChosen. The player has chosen a unit but not an action.
-            // 3. NoActionChosen -> NoUnitSelected. The player has deselected the unit.
-            // 4. NoActionChosen -> any one of MoveActionChosenChoosingDestination, WaitActionChosen,
-            //      AttackActionChosenChoosingTarget, UseItemActionChosenChoosingItem, HealActionChosenChoosingTarget,
-            //      TalkActionChosenChoosingTarget, TradeActionChosenChoosingTarget. The player has chosen an action.
-            // 5. Any action-chosen -> NoActionChosen. The player has undone their action choice.
-            // 6. Any action-chosen -> corresponding action-chosen-target-selected state. The player has selected a target/destination/item.
-            // 7. Any action-chosen-target-selected -> ConfirmAction. The player has confirmed their action.
-            // 8. Any action-chosen-target-selected -> corresponding action-chosen-choosing-target state. The player has undone their target/destination/item choice.
+            // 2. NoUnitSelected -> UnitSelected. The player has chosen a unit but not an action.
+            // 3. UnitSelected -> NoUnitSelected. The player has deselected the unit.
+            // 4. UnitSelected -> DestinationSelected or ChoosingDestination: the player chose a tile directly or entered destination choosing mode.
+            // 5. DestinationSelected -> ExecutingMove: move command issued; wait for move/animation.
+            // 6. ExecutingMove -> ChoosingAction: when move has finished, player picks action from new location.
+            // 7. ChoosingAction -> action-specific choosing states (Attack/Heal/UseItem/Wait/etc.).
+            // 8. Any action-chosen-target-selected -> ConfirmAction. The player has confirmed their action.
             // 9. ConfirmAction -> ExecutingAction. The player's command executes and animations/effects play while input is locked.
-            // 10. ExecutingAction -> TurnEnded. Action complete; the player's turn ends.
-            // 11. ExecutingAction -> NoActionChosen. Action complete but player can act again (e.g., canto/follow-up).
-            // 12. ConfirmAction -> NoActionChosen. This allows for skills that grant moving after attacking, or attacking a second enemy (shortcut flows).
-            // 13. Wait ActionChosen -> TurnEnded. The player has chosen to wait and end their turn.
+            // 10. ExecutingAction -> TurnEnded or UnitSelected depending on follow-up rules (canto, extra action, etc.).
+            // 11. Wait ActionChosen -> TurnEnded. The player has chosen to wait and end their turn.
             PreviousState = CurrentState;
             bool allowed = (CurrentState, newState) switch
             {
                 (PlayerTurnStates.Inactive, PlayerTurnStates.NoUnitSelected) => true,
 
-                (PlayerTurnStates.NoUnitSelected, PlayerTurnStates.NoActionChosen) => true,
+                (PlayerTurnStates.NoUnitSelected, PlayerTurnStates.UnitSelected) => true,
 
-                (PlayerTurnStates.NoActionChosen, PlayerTurnStates.NoUnitSelected) => true,
+                (PlayerTurnStates.UnitSelected, PlayerTurnStates.NoUnitSelected) => true,
 
+                (PlayerTurnStates.UnitSelected, PlayerTurnStates.ChoosingDestination) => true,
+                // Allow entering action selection from the ChoosingAction state (post-move)
+                (PlayerTurnStates.ChoosingAction, PlayerTurnStates.WaitActionChosen) => true,
                 (
-                    PlayerTurnStates.NoActionChosen,
-                    PlayerTurnStates.MoveActionChosenChoosingDestination
-                ) => true,
-                (PlayerTurnStates.NoActionChosen, PlayerTurnStates.WaitActionChosen) => true,
-                (
-                    PlayerTurnStates.NoActionChosen,
+                    PlayerTurnStates.ChoosingAction,
                     PlayerTurnStates.AttackActionChosenChoosingTarget
                 ) => true,
                 (
-                    PlayerTurnStates.NoActionChosen,
+                    PlayerTurnStates.ChoosingAction,
                     PlayerTurnStates.UseItemActionChosenChoosingItem
                 ) => true,
                 (
-                    PlayerTurnStates.NoActionChosen,
+                    PlayerTurnStates.ChoosingAction,
                     PlayerTurnStates.HealActionChosenChoosingTarget
                 ) => true,
                 (
-                    PlayerTurnStates.NoActionChosen,
+                    PlayerTurnStates.ChoosingAction,
                     PlayerTurnStates.TalkActionChosenChoosingTarget
                 ) => true,
                 (
-                    PlayerTurnStates.NoActionChosen,
+                    PlayerTurnStates.ChoosingAction,
                     PlayerTurnStates.TradeActionChosenChoosingTarget
                 ) => true,
-
+                (PlayerTurnStates.UnitSelected, PlayerTurnStates.DestinationSelected) => true,
+                (PlayerTurnStates.UnitSelected, PlayerTurnStates.WaitActionChosen) => true,
                 (
-                    PlayerTurnStates.MoveActionChosenChoosingDestination,
-                    PlayerTurnStates.NoActionChosen
+                    PlayerTurnStates.UnitSelected,
+                    PlayerTurnStates.AttackActionChosenChoosingTarget
                 ) => true,
-                (PlayerTurnStates.WaitActionChosen, PlayerTurnStates.NoActionChosen) => true,
+                (PlayerTurnStates.UnitSelected, PlayerTurnStates.UseItemActionChosenChoosingItem) =>
+                    true,
+                (PlayerTurnStates.UnitSelected, PlayerTurnStates.HealActionChosenChoosingTarget) =>
+                    true,
+                (PlayerTurnStates.UnitSelected, PlayerTurnStates.TalkActionChosenChoosingTarget) =>
+                    true,
+                (PlayerTurnStates.UnitSelected, PlayerTurnStates.TradeActionChosenChoosingTarget) =>
+                    true,
+
+                (PlayerTurnStates.ChoosingDestination, PlayerTurnStates.UnitSelected) => true,
+                (PlayerTurnStates.DestinationSelected, PlayerTurnStates.ExecutingMove) => true,
+                (PlayerTurnStates.DestinationSelected, PlayerTurnStates.ChoosingAction) => true,
+                (PlayerTurnStates.WaitActionChosen, PlayerTurnStates.UnitSelected) => true,
                 (
                     PlayerTurnStates.AttackActionChosenChoosingTarget,
-                    PlayerTurnStates.NoActionChosen
+                    PlayerTurnStates.UnitSelected
                 ) => true,
-                (
-                    PlayerTurnStates.UseItemActionChosenChoosingItem,
-                    PlayerTurnStates.NoActionChosen
-                ) => true,
-                (
-                    PlayerTurnStates.HealActionChosenChoosingTarget,
-                    PlayerTurnStates.NoActionChosen
-                ) => true,
-                (
-                    PlayerTurnStates.TalkActionChosenChoosingTarget,
-                    PlayerTurnStates.NoActionChosen
-                ) => true,
-                (
-                    PlayerTurnStates.TradeActionChosenChoosingTarget,
-                    PlayerTurnStates.NoActionChosen
-                ) => true,
+                (PlayerTurnStates.UseItemActionChosenChoosingItem, PlayerTurnStates.UnitSelected) =>
+                    true,
+                (PlayerTurnStates.HealActionChosenChoosingTarget, PlayerTurnStates.UnitSelected) =>
+                    true,
+                (PlayerTurnStates.TalkActionChosenChoosingTarget, PlayerTurnStates.UnitSelected) =>
+                    true,
+                (PlayerTurnStates.TradeActionChosenChoosingTarget, PlayerTurnStates.UnitSelected) =>
+                    true,
 
-                (
-                    PlayerTurnStates.MoveActionChosenChoosingDestination,
-                    PlayerTurnStates.MoveActionChosenDestinationSelected
-                ) => true,
+                (PlayerTurnStates.ChoosingDestination, PlayerTurnStates.DestinationSelected) =>
+                    true,
                 (
                     PlayerTurnStates.AttackActionChosenChoosingTarget,
                     PlayerTurnStates.AttackActionChosenTargetSelected
@@ -135,10 +136,7 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
                     PlayerTurnStates.TradeActionChosenTargetSelected
                 ) => true,
 
-                (
-                    PlayerTurnStates.MoveActionChosenDestinationSelected,
-                    PlayerTurnStates.ConfirmAction
-                ) => true,
+                (PlayerTurnStates.DestinationSelected, PlayerTurnStates.ConfirmAction) => true,
                 (
                     PlayerTurnStates.AttackActionChosenTargetSelected,
                     PlayerTurnStates.ConfirmAction
@@ -156,10 +154,8 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
                     PlayerTurnStates.ConfirmAction
                 ) => true,
 
-                (
-                    PlayerTurnStates.MoveActionChosenDestinationSelected,
-                    PlayerTurnStates.MoveActionChosenChoosingDestination
-                ) => true,
+                (PlayerTurnStates.DestinationSelected, PlayerTurnStates.ChoosingDestination) =>
+                    true,
                 (
                     PlayerTurnStates.AttackActionChosenTargetSelected,
                     PlayerTurnStates.AttackActionChosenChoosingTarget
@@ -183,8 +179,9 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
 
                 (PlayerTurnStates.ConfirmAction, PlayerTurnStates.ExecutingAction) => true,
                 (PlayerTurnStates.ExecutingAction, PlayerTurnStates.TurnEnded) => true,
-                (PlayerTurnStates.ExecutingAction, PlayerTurnStates.NoActionChosen) => true,
-                (PlayerTurnStates.ConfirmAction, PlayerTurnStates.NoActionChosen) => true,
+                (PlayerTurnStates.ExecutingAction, PlayerTurnStates.UnitSelected) => true,
+                (PlayerTurnStates.ConfirmAction, PlayerTurnStates.UnitSelected) => true,
+                (PlayerTurnStates.ExecutingMove, PlayerTurnStates.ChoosingAction) => true,
 
                 (PlayerTurnStates.WaitActionChosen, PlayerTurnStates.TurnEnded) => true,
 

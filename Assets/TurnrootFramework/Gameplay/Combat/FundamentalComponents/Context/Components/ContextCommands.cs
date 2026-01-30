@@ -69,13 +69,17 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 return OperationResult.Failure("No weapon to attack with");
             }
 
-            return DealDamage(
+            var success = DealDamage(
                 attacker,
                 target,
                 DamageCalculator.CalculatePotentialDamage(attacker, target, weaponItem, this)
-            )
-                ? OperationResult.Successful()
-                : OperationResult.Failure("Attack command failed to execute");
+            );
+            if (success)
+            {
+                Brain?.PublishAttackLogicCompleted(attacker);
+                return OperationResult.Successful();
+            }
+            return OperationResult.Failure("Attack command failed to execute");
         }
 
         /// <summary>
@@ -115,7 +119,12 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 target?.Id,
                 Brain.CurrentTurnNumber
             );
-            return Brain.ExecuteCommand(command);
+            var success = Brain.ExecuteCommand(command);
+            if (success)
+            {
+                Brain?.PublishUseItemLogicCompleted(user, item);
+            }
+            return success;
         }
 
         public bool HealUnit(
@@ -128,11 +137,17 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             if (fromItem != null)
             {
                 UseItem(user, fromItem, target);
+                Brain?.PublishHealLogicCompleted(user);
             }
             else
             {
                 var command = new HealCommand(user.Id, target.Id, Brain.CurrentTurnNumber);
-                return Brain.ExecuteCommand(command);
+                var success = Brain.ExecuteCommand(command);
+                if (success)
+                {
+                    Brain?.PublishHealLogicCompleted(user);
+                }
+                return success;
             }
             return true;
         }
@@ -144,7 +159,13 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         public bool EndTurn()
         {
             var command = new EndTurnCommand(Brain.CurrentTurnNumber);
-            return Brain.ExecuteCommand(command);
+            var success = Brain.ExecuteCommand(command);
+            if (success)
+            {
+                var unit = Unit?.UnitInstance;
+                Brain?.PublishEndTurnCompleted(unit);
+            }
+            return success;
         }
 
         /// <summary>

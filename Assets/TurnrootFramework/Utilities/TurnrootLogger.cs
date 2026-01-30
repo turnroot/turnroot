@@ -12,7 +12,7 @@ namespace Turnroot.Utilities
             Error,
         }
 
-        [Conditional("UNITY_EDITOR")]
+        [Conditional("UNITY_EDITOR"), Conditional("DEVELOPMENT_BUILD")]
         public static void Log(string message, LogLevel level = LogLevel.Info)
         {
             if (string.IsNullOrEmpty(message))
@@ -29,7 +29,7 @@ namespace Turnroot.Utilities
                     Debug.LogError($"[Turnroot] {message}");
                     break;
                 default:
-                    TurnrootLogger.Log($"[Turnroot] {message}");
+                    Debug.Log($"[Turnroot] {message}");
                     break;
             }
         }

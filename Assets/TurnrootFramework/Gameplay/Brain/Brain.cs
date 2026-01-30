@@ -718,6 +718,64 @@ namespace Turnroot.Gameplay.Brain
         public void PublishUnitTakesAnotherTurn(CharacterInstance unit) =>
             OnUnitTakesAnotherTurn?.Invoke(unit);
 
+        // Player action lifecycle events (typed for robustness)
+        public event Action<CharacterInstance, MapGridPoint> OnMoveStarted; // logical start (includes target)
+        public event Action<CharacterInstance, MapGridPoint> OnMoveCompleted; // logical completion (context)
+        public event Action<CharacterInstance> OnMoveAnimationCompleted; // visual/animation completion
+
+        public event Action<CharacterInstance> OnAttackStarted; // animation/visual start
+        public event Action<CharacterInstance> OnAttackLogicCompleted; // backend logic completion
+        public event Action<CharacterInstance> OnAttackAnimationCompleted; // animation completion
+
+        public event Action<CharacterInstance> OnHealStarted;
+        public event Action<CharacterInstance> OnHealLogicCompleted;
+        public event Action<CharacterInstance> OnHealAnimationCompleted;
+
+        public event Action<CharacterInstance, ObjectItemInstance> OnUseItemStarted;
+        public event Action<CharacterInstance, ObjectItemInstance> OnUseItemLogicCompleted;
+        public event Action<CharacterInstance, ObjectItemInstance> OnUseItemAnimationCompleted;
+
+        public event Action<CharacterInstance> OnEndTurnCompleted;
+
+        public void PublishMoveStarted(CharacterInstance unit, MapGridPoint targetPoint) =>
+            OnMoveStarted?.Invoke(unit, targetPoint);
+
+        public void PublishMoveCompleted(CharacterInstance unit, MapGridPoint targetPoint) =>
+            OnMoveCompleted?.Invoke(unit, targetPoint);
+
+        public void PublishMoveAnimationCompleted(CharacterInstance unit) =>
+            OnMoveAnimationCompleted?.Invoke(unit);
+
+        public void PublishAttackStarted(CharacterInstance unit) => OnAttackStarted?.Invoke(unit);
+
+        public void PublishAttackLogicCompleted(CharacterInstance unit) =>
+            OnAttackLogicCompleted?.Invoke(unit);
+
+        public void PublishAttackAnimationCompleted(CharacterInstance unit) =>
+            OnAttackAnimationCompleted?.Invoke(unit);
+
+        public void PublishHealStarted(CharacterInstance unit) => OnHealStarted?.Invoke(unit);
+
+        public void PublishHealLogicCompleted(CharacterInstance unit) =>
+            OnHealLogicCompleted?.Invoke(unit);
+
+        public void PublishHealAnimationCompleted(CharacterInstance unit) =>
+            OnHealAnimationCompleted?.Invoke(unit);
+
+        public void PublishUseItemStarted(CharacterInstance unit, ObjectItemInstance item) =>
+            OnUseItemStarted?.Invoke(unit, item);
+
+        public void PublishUseItemLogicCompleted(CharacterInstance unit, ObjectItemInstance item) =>
+            OnUseItemLogicCompleted?.Invoke(unit, item);
+
+        public void PublishUseItemAnimationCompleted(
+            CharacterInstance unit,
+            ObjectItemInstance item
+        ) => OnUseItemAnimationCompleted?.Invoke(unit, item);
+
+        public void PublishEndTurnCompleted(CharacterInstance unit) =>
+            OnEndTurnCompleted?.Invoke(unit);
+
         public void PublishUnitFinishedMovingAfterAction(CharacterInstance unit) =>
             OnUnitFinishedMovingAfterAction?.Invoke(unit);
 

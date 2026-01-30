@@ -461,6 +461,7 @@ namespace Turnroot.Gameplay.Brain
                 _brain?.PublishCharacterMoveCompleted(unit, newPoint);
                 _brain?.PublishUnitMoved(unit, target);
                 _brain?.Publish(new Events.UnitMovedEvent(unit, from, target));
+                _brain?.PublishMoveCompleted(unit, newPoint);
             }
             return result.Success;
         }
