@@ -85,7 +85,7 @@ namespace Turnroot.Skills.Nodes.Conditions
             Vector2Int position
         )
         {
-            var mapGrid = context?.mapGrid;
+            var mapGrid = context?.MapGrid;
             if (mapGrid == null)
             {
                 return null;

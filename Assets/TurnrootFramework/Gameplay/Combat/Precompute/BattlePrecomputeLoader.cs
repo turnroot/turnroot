@@ -172,7 +172,7 @@ namespace Turnroot.Gameplay.Combat.Precompute
                 ?? new System.Collections.Generic.List<Characters.CharacterInstance>();
 
             // 1) Precompute movement caches
-            yield return PrecomputeMovementCaches(context.mapGrid);
+            yield return PrecomputeMovementCaches(context.MapGrid);
 
             // 2) Per-unit processing
             foreach (var unit in units)

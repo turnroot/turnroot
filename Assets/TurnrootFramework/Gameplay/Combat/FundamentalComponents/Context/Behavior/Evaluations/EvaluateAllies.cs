@@ -21,7 +21,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 var ally = allies[ai];
                 var allyGridPoint = ally.UnitPositionToMapGridPoint(
                     ally.MapGridPosition,
-                    _context.mapGrid
+                    _context.MapGrid
                 );
 
                 // Check if ally is in heal range
@@ -37,7 +37,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                             Target = ally,
                             Destination = _context.Unit.UnitInstance.UnitPositionToMapGridPoint(
                                 allyGridPoint.CoordinatesInt,
-                                _context.mapGrid
+                                _context.MapGrid
                             ),
                             ActionToTake = AIGoal.Action.Heal,
                         }
@@ -89,7 +89,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 utility += (1f - behavior.SoldierLoneWolf) * 4F; // Soldiers are far more likely to protect allies
 
                 utility += CalculateTerrainBonusOrPenalty(
-                    ally.UnitPositionToMapGridPoint(ally.MapGridPosition, _context.mapGrid),
+                    ally.UnitPositionToMapGridPoint(ally.MapGridPosition, _context.MapGrid),
                     behavior
                 );
 
@@ -102,9 +102,9 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                         Destination = _context.Unit.UnitInstance.UnitPositionToMapGridPoint(
                             ally.UnitPositionToMapGridPoint(
                                 ally.MapGridPosition,
-                                _context.mapGrid
+                                _context.MapGrid
                             ).CoordinatesInt,
-                            _context.mapGrid
+                            _context.MapGrid
                         ),
                     }
                 );

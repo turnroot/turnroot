@@ -52,7 +52,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                             Target = _context.Unit.UnitInstance,
                             Destination = _context.Unit.UnitInstance.UnitPositionToMapGridPoint(
                                 _context.Unit.UnitInstance.MapGridPosition,
-                                _context.mapGrid
+                                _context.MapGrid
                             ),
                         }
                     );
@@ -66,7 +66,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 var target = targets[ti];
                 var targetGridPoint = target.UnitPositionToMapGridPoint(
                     target.MapGridPosition,
-                    _context.mapGrid
+                    _context.MapGrid
                 );
 
                 if (_reusableAttackTiles.ContainsKey(targetGridPoint))
@@ -145,7 +145,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                                 Target = target,
                                 Destination = _context.Unit.UnitInstance.UnitPositionToMapGridPoint(
                                     _context.Unit.UnitInstance.MapGridPosition,
-                                    _context.mapGrid
+                                    _context.MapGrid
                                 ),
                                 ChosenWeapon = bestWeapon,
                             }

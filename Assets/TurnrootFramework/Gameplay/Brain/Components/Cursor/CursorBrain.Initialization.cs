@@ -50,7 +50,7 @@ namespace Turnroot.Gameplay.Brain
 
         private void InitializeBattleCursor()
         {
-            if (_brain?.battleBrain?.BattleObject?.Context?.mapGrid == null)
+            if (_brain?.battleBrain?.BattleObject?.Context?.MapGrid == null)
             {
                 TurnrootLogger.Log(
                     _brain == null ? "CursorBrain: Cannot initialize battle cursor - Brain is null"
@@ -69,7 +69,7 @@ namespace Turnroot.Gameplay.Brain
 
             var battleContext = _brain.battleBrain.BattleObject.Context;
             CursorOffset = _brain.uiBrain?.uiSettings?.BattleCursorOffset ?? Vector3.zero;
-            InitializeCursor(battleContext.mapGrid);
+            InitializeCursor(battleContext.MapGrid);
         }
 
         private OperationResult InitializePreBattleCursor(MapGrid mapGrid)

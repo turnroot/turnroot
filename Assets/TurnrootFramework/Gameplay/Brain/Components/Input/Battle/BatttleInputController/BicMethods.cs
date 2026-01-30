@@ -108,7 +108,7 @@ namespace Turnroot.Gameplay.Brain
                             TurnrootLogger.Log(
                                 $"Started moving unit to {_pendingDestination.CoordinatesInt}"
                             );
-                            // wait for OnUnitFinishedMovingAfterAction (model layer) to call flow.CompleteMove()
+                            // wait for OnMoveAnimationCompleted (visual layer) to call flow.CompleteMove()
                         }
                         else
                         {
@@ -116,6 +116,8 @@ namespace Turnroot.Gameplay.Brain
                                 "Failed to start move to the selected destination",
                                 TurnrootLogger.LogLevel.Warning
                             );
+                            // Re-enable input since the attempted move did not start
+                            _brain.battleBrain.IsInputEnabled = true;
                             _playerTurnFlow.CancelTargetOrDestinationChoice(
                                 PlayerTurnStates.UnitSelected
                             );
@@ -239,7 +241,7 @@ namespace Turnroot.Gameplay.Brain
                         var unit = BattleContext.Unit.UnitInstance;
                         var unitPoint = unit?.UnitPositionToMapGridPoint(
                             unit.MapGridPosition,
-                            _brain?.battleBrain?.BattleObject?.Context?.mapGrid
+                            _brain?.battleBrain?.BattleObject?.Context?.MapGrid
                         );
                         if (unitPoint != null && unitPoint.Equals(destinationPoint))
                         {
@@ -287,10 +289,8 @@ namespace Turnroot.Gameplay.Brain
                 return;
             }
 
-            // Avoid redundant work if already selected
             if (BattleContext.Unit.UnitInstance == unit)
             {
-                TurnrootLogger.Log("ChangeSelectedUnit: unit already active - skipping");
                 return;
             }
 

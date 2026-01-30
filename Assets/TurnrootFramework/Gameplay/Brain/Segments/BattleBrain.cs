@@ -42,6 +42,14 @@ namespace Turnroot.Gameplay.Brain
 
         public CharacterInstance ActiveUnit => _turnRotisserie.GetActiveUnit();
 
+        public int CurrentTurnNumber { get; private set; } = 0;
+
+        public void IncrementTurnNumber()
+        {
+            CurrentTurnNumber++;
+            BattleObject.Context.InvalidateAllTileCaches();
+        }
+
         #endregion
 
         #region Roster Accessors
@@ -142,8 +150,6 @@ namespace Turnroot.Gameplay.Brain
 
             TurnrootLogger.Log("BattleBrain: Battle initialization complete");
 
-            // Precompute is started from the PreBattleTransitionToBattle scene flow (loading screen active).
-            // Initialize the loader for robustness but do NOT start it here so the flow can coordinate the loading UI.
             var precomputeLoader =
                 FindFirstObjectByType<Combat.Precompute.BattlePrecomputeLoader>();
             if (precomputeLoader != null)

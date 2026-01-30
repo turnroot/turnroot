@@ -195,7 +195,9 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             }
 
             var targetWeapon = target.GetEquippedWeapon();
-            return targetWeapon?.Template == null ? false : targetWeapon.Template.UpperRange >= attackerWeapon.Template.LowerRange;
+            return targetWeapon?.Template == null
+                ? false
+                : targetWeapon.Template.UpperRange >= attackerWeapon.Template.LowerRange;
         }
         #endregion
 
@@ -333,11 +335,11 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 avoid += (target.GetUnboundedStat(UnboundedStatType.Luck)?.Get() ?? 0) * luckMult;
             }
 
-            if (context?.mapGrid != null && target != null)
+            if (context?.MapGrid != null && target != null)
             {
                 var targetGridPoint = target.UnitPositionToMapGridPoint(
                     target.MapGridPosition,
-                    context.mapGrid
+                    context.MapGrid
                 );
                 if (targetGridPoint != null)
                 {

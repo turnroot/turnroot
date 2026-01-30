@@ -36242,11 +36242,6 @@ MonoBehaviour:
   _featureObjectItemProperties: []
   _featureBoolProperties: []
   _featureFloatProperties: []
---- !u!4 &1321228776 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 1727604653950440879, guid: bcbce3e4930f8574982e8b65369c56a5, type: 3}
-  m_PrefabInstance: {fileID: 7599282413907510873}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1323166954
 GameObject:
   m_ObjectHideFlags: 0
@@ -50158,7 +50153,6 @@ Transform:
   m_Children:
   - {fileID: 2023775200}
   - {fileID: 993814470}
-  - {fileID: 1321228776}
   - {fileID: 479756323}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -54048,6 +54042,17 @@ MonoBehaviour:
   _featureObjectItemProperties: []
   _featureBoolProperties: []
   _featureFloatProperties: []
+--- !u!114 &1989549782 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3178713994002790861, guid: bcbce3e4930f8574982e8b65369c56a5, type: 3}
+  m_PrefabInstance: {fileID: 7599282413907510873}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
 --- !u!1 &1991122073
 GameObject:
   m_ObjectHideFlags: 0
@@ -59570,7 +59575,7 @@ PrefabInstance:
   serializedVersion: 2
   m_Modification:
     serializedVersion: 3
-    m_TransformParent: {fileID: 1830534780}
+    m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 99573299477759725, guid: bcbce3e4930f8574982e8b65369c56a5, type: 3}
       propertyPath: m_text
@@ -59608,6 +59613,10 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 804458422475225799, guid: bcbce3e4930f8574982e8b65369c56a5, type: 3}
+      propertyPath: m_Name
+      value: BattlePreTurnCanvas
+      objectReference: {fileID: 0}
     - target: {fileID: 965141780005371615, guid: bcbce3e4930f8574982e8b65369c56a5, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
@@ -59626,7 +59635,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1727604653950440879, guid: bcbce3e4930f8574982e8b65369c56a5, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0
+      value: 38.5
       objectReference: {fileID: 0}
     - target: {fileID: 1727604653950440879, guid: bcbce3e4930f8574982e8b65369c56a5, type: 3}
       propertyPath: m_LocalPosition.y
@@ -59634,7 +59643,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1727604653950440879, guid: bcbce3e4930f8574982e8b65369c56a5, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0
+      value: 38.300003
       objectReference: {fileID: 0}
     - target: {fileID: 1727604653950440879, guid: bcbce3e4930f8574982e8b65369c56a5, type: 3}
       propertyPath: m_LocalRotation.w
@@ -59642,15 +59651,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1727604653950440879, guid: bcbce3e4930f8574982e8b65369c56a5, type: 3}
       propertyPath: m_LocalRotation.x
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: 1727604653950440879, guid: bcbce3e4930f8574982e8b65369c56a5, type: 3}
       propertyPath: m_LocalRotation.y
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: 1727604653950440879, guid: bcbce3e4930f8574982e8b65369c56a5, type: 3}
       propertyPath: m_LocalRotation.z
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: 1727604653950440879, guid: bcbce3e4930f8574982e8b65369c56a5, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -59889,6 +59898,10 @@ PrefabInstance:
       value: If an enemy is avoiding combat, they may have a strategic goal you can't
         see. Beware traps
       objectReference: {fileID: 0}
+    - target: {fileID: 6897730604044561914, guid: bcbce3e4930f8574982e8b65369c56a5, type: 3}
+      propertyPath: TurnText
+      value: 
+      objectReference: {fileID: 1989549782}
     - target: {fileID: 7330701043511101161, guid: bcbce3e4930f8574982e8b65369c56a5, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
@@ -60133,6 +60146,7 @@ SceneRoots:
   m_Roots:
   - {fileID: 3633751634012478304}
   - {fileID: 1742232839}
+  - {fileID: 7599282413907510873}
   - {fileID: 143982156611118961}
   - {fileID: 1830534780}
   - {fileID: 2008589565}

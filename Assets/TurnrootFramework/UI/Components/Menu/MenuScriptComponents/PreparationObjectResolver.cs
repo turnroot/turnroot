@@ -13,6 +13,7 @@ namespace Turnroot.UI.Components
     ///     - PopulateBattleMapPreview
     ///     - PopulateMapPrefabEnvironmentCondtions
     ///     - StartingPositions
+    ///     - BattlePreTurn
     /// Needs to have one of these
     /// </summary>
     public class PreparationObjectResolver : MonoBehaviour
@@ -63,6 +64,12 @@ namespace Turnroot.UI.Components
                     TryGetComponent(out p);
                 }
 
+                if (TryGetComponent(out BattlePreTurn preTurn) && preTurn != null)
+                {
+                    preTurn.Initialize(brain.battleBrain);
+                    count++;
+                }
+
                 if (p != null)
                 {
                     ResolvedPreparationObject.StartingPositionsComponent = p;
@@ -87,7 +94,8 @@ namespace Turnroot.UI.Components
                     {
 #if UNITY_EDITOR
                         TurnrootLogger.Log(
-                            $"StartingPositions initialization failed: {result.ErrorMessage}", TurnrootLogger.LogLevel.Error
+                            $"StartingPositions initialization failed: {result.ErrorMessage}",
+                            TurnrootLogger.LogLevel.Error
                         );
 #endif
                     }
@@ -117,7 +125,7 @@ namespace Turnroot.UI.Components
 
         public BattlePreparationObject ResolveForBrain(Brain brain)
         {
-            var prep = brain?.battleBrain?.PreparationObject;
+            var prep = brain.battleBrain.PreparationObject;
             if (prep != null)
             {
                 return prep;

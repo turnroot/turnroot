@@ -20,7 +20,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 var target = targets[ti];
                 var targetGridPoint = target.UnitPositionToMapGridPoint(
                     target.MapGridPosition,
-                    _context.mapGrid
+                    _context.MapGrid
                 );
 
                 var (destination, canAttack) = GetAccessibleTile(targetGridPoint, behavior);
@@ -97,7 +97,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 var target = targets[ti];
                 var targetGridPoint = target.UnitPositionToMapGridPoint(
                     target.MapGridPosition,
-                    _context.mapGrid
+                    _context.MapGrid
                 );
 
                 // Check if target is in attack range
@@ -130,7 +130,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                         Target = target,
                         Destination = _context.Unit.UnitInstance.UnitPositionToMapGridPoint(
                             targetGridPoint.CoordinatesInt,
-                            _context.mapGrid
+                            _context.MapGrid
                         ),
                         ActionToTake = _reusableAttackTiles.ContainsKey(targetGridPoint)
                             ? AIGoal.Action.Attack
@@ -174,7 +174,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             {
                 var targetGridPoint = closestEnemy.UnitPositionToMapGridPoint(
                     closestEnemy.MapGridPosition,
-                    _context.mapGrid
+                    _context.MapGrid
                 );
 
                 // Check if target is in attack range
@@ -195,7 +195,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                         Target = closestEnemy,
                         Destination = _context.Unit.UnitInstance.UnitPositionToMapGridPoint(
                             targetGridPoint.CoordinatesInt,
-                            _context.mapGrid
+                            _context.MapGrid
                         ),
                         ActionToTake = _reusableAttackTiles.ContainsKey(targetGridPoint)
                             ? AIGoal.Action.Attack

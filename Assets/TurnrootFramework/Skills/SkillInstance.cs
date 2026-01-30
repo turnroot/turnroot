@@ -86,7 +86,7 @@ namespace Turnroot.Skills
                     context.Unit.UnitInstance.Id,
                     _skillTemplate.SkillName,
                     targetIds,
-                    context.Brain.CurrentTurnNumber
+                    context.Brain?.battleBrain?.CurrentTurnNumber ?? 0
                 );
                 context.Brain.ExecuteCommand(command);
             }

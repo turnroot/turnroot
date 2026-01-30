@@ -207,7 +207,7 @@ namespace Turnroot.Gameplay.Brain
         private void HandleSavePlayerRosterRequested()
         {
             // Default behavior: save using the current turn number (0 if out of battle)
-            SavePlayerRoster(_brain?.CurrentTurnNumber ?? 0);
+            SavePlayerRoster(_brain?.battleBrain?.CurrentTurnNumber ?? 0);
         }
 
         /// <summary>

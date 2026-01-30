@@ -24,7 +24,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             moveTiles = new Dictionary<MapGridPoint, float>();
             attackTiles = new Dictionary<MapGridPoint, float>();
 
-            if (unit == null || mapGrid == null)
+            if (unit == null || MapGrid == null)
             {
                 return false;
             }
@@ -33,14 +33,11 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             if (!forceRecompute && _unitTilesCache.TryGetValue(unit.Id, out var cached))
             {
                 bool cacheValid =
-                    cached.MapStateVersion == mapGrid.StateVersion
+                    cached.MapStateVersion == MapGrid.StateVersion
                     && cached.UnitPosition == unit.MapGridPosition;
 
                 if (cacheValid)
                 {
-                    TurnrootLogger.Log(
-                        $"BattleContext: Using cached tiles for {unit.CharacterTemplate.DisplayName}"
-                    );
                     moveTiles = cached.MoveTiles;
                     attackTiles = cached.AttackTiles;
                     return true;
@@ -48,13 +45,13 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 else
                 {
                     TurnrootLogger.Log(
-                        $"BattleContext: Cache invalidated for {unit.CharacterTemplate.DisplayName} (map version: {cached.MapStateVersion} vs {mapGrid.StateVersion}, position: {cached.UnitPosition} vs {unit.MapGridPosition})"
+                        $"BattleContext: Cache invalidated for {unit.CharacterTemplate.DisplayName} (map version: {cached.MapStateVersion} vs {MapGrid.StateVersion}, position: {cached.UnitPosition} vs {unit.MapGridPosition})"
                     );
                 }
             }
 
             // Compute tiles using AIHelper
-            var startPoint = unit.UnitPositionToMapGridPoint(unit.MapGridPosition, mapGrid);
+            var startPoint = unit.UnitPositionToMapGridPoint(unit.MapGridPosition, MapGrid);
             if (startPoint == null)
             {
                 return false;
@@ -82,7 +79,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 _unitTilesCache[unit.Id] = new CachedTileData(
                     new Dictionary<MapGridPoint, float>(move),
                     new Dictionary<MapGridPoint, float>(attack),
-                    mapGrid.StateVersion,
+                    MapGrid.StateVersion,
                     unit.MapGridPosition
                 );
 
@@ -103,18 +100,18 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         /// </summary>
         public bool PrecomputePathfindingParameters(CharacterInstance unit)
         {
-            if (unit == null || mapGrid == null)
+            if (unit == null || MapGrid == null)
             {
                 return false;
             }
 
-            var startPoint = unit.UnitPositionToMapGridPoint(unit.MapGridPosition, mapGrid);
+            var startPoint = unit.UnitPositionToMapGridPoint(unit.MapGridPosition, MapGrid);
             if (startPoint == null)
             {
                 return false;
             }
 
-            var p = PathfindingParameters.FromCharacter(unit, mapGrid, startPoint);
+            var p = PathfindingParameters.FromCharacter(unit, MapGrid, startPoint);
             if (p != null && p.IsValid())
             {
                 _cachedPathfindingParameters[unit.Id] = p;
@@ -132,7 +129,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             else
             {
                 // Fallback: compute ranged parameters directly
-                pr = PathfindingParameters.FromCharacterWithRange(unit, mapGrid, startPoint);
+                pr = PathfindingParameters.FromCharacterWithRange(unit, MapGrid, startPoint);
             }
 
             if (pr != null && pr.IsValid())
@@ -184,31 +181,14 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             _cachedPathfindingParametersWithRange.Clear();
         }
 
-        /// <summary>
-        /// Invalidate cached tiles for a specific unit (call when unit moves/acts/changes state)
-        /// </summary>
-        public void InvalidateUnitTileCache(string unitId)
-        {
-            if (_unitTilesCache.Remove(unitId))
-            {
-                TurnrootLogger.Log($"BattleContext: Invalidated tile cache for unit {unitId}");
-            }
-        }
-
-        /// <summary>
-        /// Invalidate cached tiles for a specific unit by instance
-        /// </summary>
         public void InvalidateUnitTileCache(CharacterInstance unit)
         {
             if (unit != null)
             {
-                InvalidateUnitTileCache(unit.Id);
+                InvalidateUnitTileCache(unit);
             }
         }
 
-        /// <summary>
-        /// Clear all cached tiles (call on turn end, unit spawned/defeated, map changes)
-        /// </summary>
         public void InvalidateAllTileCaches() => _unitTilesCache.Clear();
     }
 }

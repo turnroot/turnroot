@@ -66,19 +66,12 @@ namespace Turnroot.Gameplay.Brain
                 return false;
             }
 
-            if (context?.Brain == null)
-            {
-                throw new System.InvalidOperationException(
-                    "UseItemInBattle requires BattleContext.Brain to be set."
-                );
-            }
-
             // Always use command pattern
             var command = new UseItemCommand(
                 user.Id,
                 item.InstanceID,
                 target?.Id,
-                context.Brain.CurrentTurnNumber
+                context.Brain?.battleBrain?.CurrentTurnNumber ?? 0
             );
             return context.Brain.ExecuteCommand(command);
         }

@@ -114,6 +114,12 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
             var res = _currentState.TransitionToState(PlayerTurnStates.ExecutingMove);
             if (res.Success)
             {
+                // Freeze input globally at the battle level so all controllers halt processing
+                if (_battleBrain != null)
+                {
+                    _battleBrain.IsInputEnabled = false;
+                }
+
                 _battleBrain.Brain.PublishPlayerTurnStateChanged(_currentState.CurrentState);
             }
         }
@@ -123,6 +129,11 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
             var res = _currentState.TransitionToState(PlayerTurnStates.ChoosingAction);
             if (res.Success)
             {
+                // Re-enable input now that visuals/animation are finished
+                if (_battleBrain != null)
+                {
+                    _battleBrain.IsInputEnabled = true;
+                }
                 _battleBrain.Brain.PublishPlayerTurnStateChanged(_currentState.CurrentState);
             }
         }

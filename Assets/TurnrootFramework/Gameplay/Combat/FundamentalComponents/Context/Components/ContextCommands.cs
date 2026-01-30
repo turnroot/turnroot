@@ -19,7 +19,11 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         /// <returns>True if the move succeeded.</returns>
         public OperationResult MoveUnitToPointInt(CharacterInstance unit, Vector2Int CoordinatesInt)
         {
-            var command = new MoveCommand(unit.Id, CoordinatesInt, Brain.CurrentTurnNumber);
+            var command = new MoveCommand(
+                unit.Id,
+                CoordinatesInt,
+                Brain?.battleBrain?.CurrentTurnNumber ?? 0
+            );
             return Brain.ExecuteCommand(command)
                 ? OperationResult.Successful()
                 : OperationResult.Failure("Move command failed to execute");
@@ -27,7 +31,11 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
         public bool SpawnAtPosition(CharacterInstance unit, Vector2Int spawnPosition)
         {
-            var command = new SpawnCommand(unit.Id, spawnPosition, Brain.CurrentTurnNumber);
+            var command = new SpawnCommand(
+                unit.Id,
+                spawnPosition,
+                Brain?.battleBrain?.CurrentTurnNumber ?? 0
+            );
             bool success = Brain.ExecuteCommand(command);
             if (success)
             {
@@ -42,7 +50,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             var command = new MoveCommand(
                 unit.Id,
                 targetPoint.CoordinatesInt,
-                Brain.CurrentTurnNumber
+                Brain?.battleBrain?.CurrentTurnNumber ?? 0
             );
             var t = Brain.ExecuteCommand(command)
                 ? OperationResult.Successful()
@@ -103,7 +111,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 attacker.Id,
                 target.Id,
                 damage,
-                Brain.CurrentTurnNumber
+                Brain?.battleBrain?.CurrentTurnNumber ?? 0
             );
             return Brain.ExecuteCommand(command);
         }
@@ -125,7 +133,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 user.Id,
                 item.InstanceID,
                 target?.Id,
-                Brain.CurrentTurnNumber
+                Brain?.battleBrain?.CurrentTurnNumber ?? 0
             );
             var success = Brain.ExecuteCommand(command);
             if (success)
@@ -149,7 +157,11 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             }
             else
             {
-                var command = new HealCommand(user.Id, target.Id, Brain.CurrentTurnNumber);
+                var command = new HealCommand(
+                    user.Id,
+                    target.Id,
+                    Brain?.battleBrain?.CurrentTurnNumber ?? 0
+                );
                 var success = Brain.ExecuteCommand(command);
                 if (success)
                 {
@@ -166,7 +178,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         /// <returns>True if ending turn succeeded.</returns>
         public bool EndTurn()
         {
-            var command = new EndTurnCommand(Brain.CurrentTurnNumber);
+            var command = new EndTurnCommand(Brain?.battleBrain?.CurrentTurnNumber ?? 0);
             var success = Brain.ExecuteCommand(command);
             if (success)
             {

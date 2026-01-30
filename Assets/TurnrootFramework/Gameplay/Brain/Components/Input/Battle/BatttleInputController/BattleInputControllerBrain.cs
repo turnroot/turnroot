@@ -206,24 +206,19 @@ namespace Turnroot.Gameplay.Brain
         private void HandleBattleStarted()
         {
             _lastInputTime = Time.time;
-            _inputEnabled = false; // Explicitly disable until ready
+            _inputEnabled = false;
             StartCoroutine(InitializeWhenReady());
-            TurnrootLogger.Log(
-                $"Battle started. PlayerTurnFlow state: {_playerTurnFlow?.GetCurrentState()}"
-            );
         }
 
         private IEnumerator InitializeWhenReady()
         {
-            // Wait for battle context and map grid
             int waitCount = 0;
-            while (_brain?.battleBrain?.BattleObject?.Context?.mapGrid == null)
+            while (_brain?.battleBrain?.BattleObject?.Context?.MapGrid == null)
             {
                 waitCount++;
                 yield return new WaitForSeconds(0.05f);
             }
 
-            // Wait for cursor brain to be initialized
             waitCount = 0;
             while (_brain?.cursorBrain?.IsInitialized != true)
             {
@@ -234,12 +229,10 @@ namespace Turnroot.Gameplay.Brain
             _playerTurnFlow = _brain.battleBrain.playerTurnFlow;
             SetupInputActions();
 
-            // Wait one more frame to ensure everything is settled
             yield return null;
 
-            // Now enable input processing
             _inputEnabled = true;
-            _lastInputTime = Time.time; // Reset cooldown timer
+            _lastInputTime = Time.time;
 
             _tileHighlighter = _brain.battleBrain.BattleObject.GetComponent<TileHighlighter>();
         }
@@ -262,12 +255,9 @@ namespace Turnroot.Gameplay.Brain
                 return;
             }
 
-            // Round direction to discrete unit steps for cursor navigation (cardinal)
             direction = SnapDirectionToFour(direction);
 
             var currentState = _playerTurnFlow?.GetCurrentState();
-
-            // Delegate cursor movement to CursorBrain
             _brain.cursorBrain.NavigateCursor(direction);
 
             // TODO: Update UI based on cursor position
@@ -296,15 +286,18 @@ namespace Turnroot.Gameplay.Brain
                 case PlayerTurnStates.Inactive:
                     break;
                 case PlayerTurnStates.NoUnitSelected:
-                    // Eventually: OpenActionMenu()
                     if (unitAtCursor != null && BattleContext.IsPlayerControlledUnit(unitAtCursor))
                     {
                         _playerTurnFlow.SelectUnit();
                         ChangeSelectedUnit(unitAtCursor);
                     }
+                    else
+                    {
+                        OpenActionMenu();
+                    }
                     break;
                 case PlayerTurnStates.UnitSelected:
-                    // If cursor is on a player unit, select it; otherwise if cursor is on a valid move tile, start move immediately;
+                    // If cursor is on a player unit, select it; otherwise if cursor is on a valid move tile, start move immediately
                     if (unitAtCursor != null && BattleContext.IsPlayerControlledUnit(unitAtCursor))
                     {
                         var current = BattleContext?.Unit?.UnitInstance;
@@ -315,7 +308,6 @@ namespace Turnroot.Gameplay.Brain
                         }
                         else
                         {
-                            // Cursor is on the already-selected unit — open action menu instead of re-selecting.
                             OpenActionMenu();
                         }
                     }
@@ -342,15 +334,12 @@ namespace Turnroot.Gameplay.Brain
                         )()
                     )
                     {
-                        // One-button direct move: pick tile and select destination; actual move is started by DestinationSelected handler.
                         var destination = _brain.cursorBrain.CursorPosition;
                         _pendingDestination = destination;
                         _playerTurnFlow.SelectDestination(destination);
-                        // Move will be started by the DestinationSelected handler which reads _pendingDestination.
                     }
                     else
                     {
-                        // Fallback: open action menu (we use one-button direct-move on confirm for UnitSelected state)
                         OpenActionMenu();
                     }
                     break;

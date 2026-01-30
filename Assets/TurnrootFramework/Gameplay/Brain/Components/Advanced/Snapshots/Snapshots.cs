@@ -224,7 +224,7 @@ namespace Turnroot.Gameplay.Brain.Snapshots
             {
                 if (unitLookup.TryGetValue(unitId, out var currentUnit))
                 {
-                    snapshot.RestoreUnit(currentUnit, context.mapGrid);
+                    snapshot.RestoreUnit(currentUnit, context.MapGrid);
                 }
                 else
                 {
@@ -253,11 +253,11 @@ namespace Turnroot.Gameplay.Brain.Snapshots
                         {
                             var mgp = u.UnitPositionToMapGridPoint(
                                 u.MapGridPosition,
-                                context.mapGrid
+                                context.MapGrid
                             );
                             if (mgp != null)
                             {
-                                context.mapGrid.RemoveOccupied(mgp);
+                                context.MapGrid.RemoveOccupied(mgp);
                             }
 
                             // Clear flag so repeated restores don't double-remove

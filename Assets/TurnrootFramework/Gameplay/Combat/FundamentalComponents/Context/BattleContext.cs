@@ -27,7 +27,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         /// <summary>
         /// Active map graph for this battle.
         /// </summary>
-        public MapGrid mapGrid { get; private set; }
+        public MapGrid MapGrid { get; private set; }
 
         public BattleContextAIHelper AIHelper { get; private set; }
 
@@ -42,7 +42,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             }
 
             Brain = brain;
-            this.mapGrid = mapGrid;
+            MapGrid = mapGrid;
             AIHelper = new BattleContextAIHelper(this);
         }
 
@@ -217,9 +217,9 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
             var targetGridPoint = target.UnitPositionToMapGridPoint(
                 target.MapGridPosition,
-                mapGrid
+                MapGrid
             );
-            var parameters = PathfindingParameters.FromCharacter(target, mapGrid, targetGridPoint);
+            var parameters = PathfindingParameters.FromCharacter(target, MapGrid, targetGridPoint);
 
             if (parameters == null || projectedDestination == null)
             {
@@ -228,7 +228,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
             if (
                 !PathfinderHelpers.TryComputePathMovementCost(
-                    mapGrid,
+                    MapGrid,
                     parameters,
                     projectedDestination,
                     out float totalCost

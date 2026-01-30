@@ -11,7 +11,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         private void EvaluateExploreVillagesGoals(List<AIGoal> goals, CharacterBehavior behavior)
         {
             float BestUtility = 0f; // This one just adds the best one instead of top 3
-            var allVillageFeaturePoints = _context.mapGrid.GetAllGridPointsByFeatureType(
+            var allVillageFeaturePoints = _context.MapGrid.GetAllGridPointsByFeatureType(
                 FeatureType.Village
             );
             if (allVillageFeaturePoints == null)
@@ -49,7 +49,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             using var treasureGoalsPooled = PooledList<AIGoal>.Get();
             var treasureGoals = treasureGoalsPooled.List;
 
-            var allTreasureFeaturePoints = _context.mapGrid.GetAllGridPointsByFeatureType(
+            var allTreasureFeaturePoints = _context.MapGrid.GetAllGridPointsByFeatureType(
                 FeatureType.Treasure
             );
             if (allTreasureFeaturePoints == null)
@@ -287,7 +287,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                     Target = _context.Unit.UnitInstance,
                     Destination = _context.Unit.UnitInstance.UnitPositionToMapGridPoint(
                         _context.Unit.UnitInstance.MapGridPosition,
-                        _context.mapGrid
+                        _context.MapGrid
                     ),
                     ActionToTake = AIGoal.Action.Heal,
                 }

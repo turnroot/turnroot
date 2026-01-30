@@ -19,13 +19,9 @@ namespace Turnroot.Gameplay.Brain
         #region Priority Event Bus
 
         private PriorityEventBus _eventBus;
-        private int _currentTurnNumber;
 
         /// <summary>The priority-based event bus for ordered event handling.</summary>
         public PriorityEventBus EventBus => _eventBus ??= new PriorityEventBus();
-
-        /// <summary>Current turn number in the battle.</summary>
-        public int CurrentTurnNumber => _currentTurnNumber;
 
         /// <summary>Subscribe to an event type with priority.</summary>
         public void Subscribe<T>(
@@ -95,7 +91,8 @@ namespace Turnroot.Gameplay.Brain
                 _ = OperationResult.Failure("No active battle context.");
                 return null;
             }
-            return Snapshots.Take(context, GetAllBattleCharacters(), _currentTurnNumber);
+            var turn = battleBrain?.CurrentTurnNumber ?? 0;
+            return Snapshots.Take(context, GetAllBattleCharacters(), turn);
         }
 
         /// <summary>Restore the most recent snapshot.</summary>
@@ -136,21 +133,13 @@ namespace Turnroot.Gameplay.Brain
             _commandHistory = new CommandHistory();
             _snapshots = new SnapshotStack();
 
-            OnTurnBegin += HandleTurnBegin;
             OnTurnEnded += HandleTurnEnd;
-        }
-
-        private void HandleTurnBegin()
-        {
-            _currentTurnNumber++;
-            TakeSnapshot(); // Auto-snapshot at turn start
         }
 
         private void HandleTurnEnd() => ProcessDeferredEvents();
 
         private void CleanupAdvancedSystems()
         {
-            OnTurnBegin -= HandleTurnBegin;
             OnTurnEnded -= HandleTurnEnd;
             _eventBus?.ClearAllSubscriptions();
             _commandHistory?.Clear();

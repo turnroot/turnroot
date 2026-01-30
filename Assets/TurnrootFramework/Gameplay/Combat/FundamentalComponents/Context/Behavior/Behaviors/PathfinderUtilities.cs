@@ -43,7 +43,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
             var parameters = PathfindingParameters.FromCharacterWithRange(
                 _context.Unit.UnitInstance,
-                _context.mapGrid,
+                _context.MapGrid,
                 start
             );
 
@@ -102,7 +102,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
             var parameters = PathfindingParameters.FromCharacter(
                 _context.Unit.UnitInstance,
-                _context.mapGrid,
+                _context.MapGrid,
                 start
             );
 
@@ -153,7 +153,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
             var parametersWithRange = PathfindingParameters.FromCharacterWithRange(
                 _context.Unit.UnitInstance,
-                _context.mapGrid,
+                _context.MapGrid,
                 start
             );
 

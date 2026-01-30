@@ -32,8 +32,8 @@ namespace Turnroot.Gameplay.Brain.Commands
             UndoState["from"] = unit.MapGridPosition;
             UndoState["wasSpawned"] = true;
 
-            var result = context.mapGrid.SetOccupied(
-                unit.UnitPositionToMapGridPoint(SpawnPosition, context.mapGrid),
+            var result = context.MapGrid.SetOccupied(
+                unit.UnitPositionToMapGridPoint(SpawnPosition, context.MapGrid),
                 unit
             );
             if (result.Success)
@@ -90,8 +90,8 @@ namespace Turnroot.Gameplay.Brain.Commands
                 return false;
             }
 
-            var result = context.mapGrid.RemoveOccupied(
-                unit.UnitPositionToMapGridPoint(SpawnPosition, context.mapGrid)
+            var result = context.MapGrid.RemoveOccupied(
+                unit.UnitPositionToMapGridPoint(SpawnPosition, context.MapGrid)
             );
             if (result.Success)
             {

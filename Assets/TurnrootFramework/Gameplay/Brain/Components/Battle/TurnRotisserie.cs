@@ -231,7 +231,9 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
             if (newRoundStarted)
             {
+                // Notify end of previous round, increment battle turn counter, then notify start of new round
                 Brain.PublishTurnEnded();
+                battleBrain?.IncrementTurnNumber();
                 Brain.PublishTurnBegin();
             }
 

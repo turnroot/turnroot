@@ -151,9 +151,6 @@ namespace Turnroot.Gameplay.Combat
                     if (list.Count > 0)
                     {
                         PlayerTeamRoster.ApplyDecodedPlacements(list.ToArray());
-                        TurnrootLogger.Log(
-                            $"BattleGameObject: Applied PreBattle placements to PlayerTeamRoster ({list.Count})"
-                        );
                     }
                 }
 

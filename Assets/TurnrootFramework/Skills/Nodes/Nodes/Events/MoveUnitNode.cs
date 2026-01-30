@@ -30,7 +30,7 @@ namespace Turnroot.Skills.Nodes.Events
                 return;
             }
 
-            if (!ValidationHelper.ValidateNotNull(context.mapGrid, nameof(context.mapGrid)))
+            if (!ValidationHelper.ValidateNotNull(context.MapGrid, nameof(context.MapGrid)))
             {
                 return;
             }

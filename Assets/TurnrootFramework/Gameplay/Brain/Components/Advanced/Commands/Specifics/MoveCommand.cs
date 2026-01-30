@@ -26,19 +26,19 @@ namespace Turnroot.Gameplay.Brain.Commands
                 return false;
             }
 
-            var oldPoint = unit.UnitPositionToMapGridPoint(unit.MapGridPosition, context.mapGrid);
+            var oldPoint = unit.UnitPositionToMapGridPoint(unit.MapGridPosition, context.MapGrid);
 
             UndoState["from"] = unit.MapGridPosition;
 
             // Move the unit (updates internal position)
-            var result = unit.MoveToPosition(Target, context.mapGrid);
+            var result = unit.MoveToPosition(Target, context.MapGrid);
 
             if (result.Success)
             {
                 // Update grid occupancy
-                var newPoint = unit.UnitPositionToMapGridPoint(Target, context.mapGrid);
-                context.mapGrid.RemoveOccupied(oldPoint);
-                context.mapGrid.SetOccupied(newPoint, unit);
+                var newPoint = unit.UnitPositionToMapGridPoint(Target, context.MapGrid);
+                context.MapGrid.RemoveOccupied(oldPoint);
+                context.MapGrid.SetOccupied(newPoint, unit);
                 unit.MapGridPosition = Target;
 
                 // Publish event on the priority bus
@@ -64,7 +64,7 @@ namespace Turnroot.Gameplay.Brain.Commands
             }
 
             var bb = context.Brain?.battleBrain;
-            var moved = bb != null && bb.MoveUnit(unit, (Vector2Int)from, context.mapGrid);
+            var moved = bb != null && bb.MoveUnit(unit, (Vector2Int)from, context.MapGrid);
             return moved;
         }
     }

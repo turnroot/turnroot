@@ -479,11 +479,11 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                             var currentStart =
                                 _context.Unit.UnitInstance.UnitPositionToMapGridPoint(
                                     _context.Unit.UnitInstance.MapGridPosition,
-                                    _context.mapGrid
+                                    _context.MapGrid
                                 );
                             if (
                                 PathfinderHelpers.TryFindClosestAllyPathCost(
-                                    _context.mapGrid,
+                                    _context.MapGrid,
                                     _context.Unit.UnitInstance,
                                     currentStart,
                                     _context.Participants.Allies,
@@ -499,7 +499,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                             var destStart = goal.Destination;
                             if (
                                 PathfinderHelpers.TryFindClosestAllyPathCost(
-                                    _context.mapGrid,
+                                    _context.MapGrid,
                                     _context.Unit.UnitInstance,
                                     destStart,
                                     _context.Participants.Allies,
@@ -569,7 +569,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                     GetTilesForAINonAlloc(
                         _context.Unit.UnitInstance.UnitPositionToMapGridPoint(
                             _context.Unit.UnitInstance.MapGridPosition,
-                            _context.mapGrid
+                            _context.MapGrid
                         ),
                         _reusableMoveTiles,
                         _reusableAttackTiles
@@ -591,7 +591,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                     GetTilesForAIWithHealNonAlloc(
                         _context.Unit.UnitInstance.UnitPositionToMapGridPoint(
                             _context.Unit.UnitInstance.MapGridPosition,
-                            _context.mapGrid
+                            _context.MapGrid
                         ),
                         _reusableMoveTiles,
                         _reusableAttackTiles,
