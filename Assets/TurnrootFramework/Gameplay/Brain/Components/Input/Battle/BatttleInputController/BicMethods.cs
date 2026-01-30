@@ -80,13 +80,6 @@ namespace Turnroot.Gameplay.Brain
 
                 case PlayerTurnStates.ChoosingAction:
                     {
-                        // Recompute valid tiles for the unit now that it has moved and caches were invalidated by MoveUnit
-                        var unit = BattleContext?.Unit?.UnitInstance;
-                        if (unit != null)
-                        {
-                            ComputeValidTiles(unit);
-                        }
-                        // After moving, allow player to pick an action at the new position
                         OpenActionMenu();
                     }
                     break;
@@ -302,6 +295,11 @@ namespace Turnroot.Gameplay.Brain
             }
 
             BattleContext.Unit.UnitInstance = unit;
+            if (BattleContext.Flags?.ActiveUnitFlags == null)
+            {
+                BattleContext.Flags.ActiveUnitFlags = new UnitFlag();
+            }
+            BattleContext.Flags.ActiveUnitFlags.Unit = unit;
             _brain.PublishPlayerControlledUnitActivated(unit);
             var res = ComputeValidTiles(unit);
 

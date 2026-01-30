@@ -44,9 +44,17 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 targetPoint.CoordinatesInt,
                 Brain.CurrentTurnNumber
             );
-            return Brain.ExecuteCommand(command)
+            var t = Brain.ExecuteCommand(command)
                 ? OperationResult.Successful()
                 : OperationResult.Failure("Move command failed to execute");
+            if (t.Success)
+            {
+                TurnrootLogger.Log(
+                    $"BattleContext: Moved {unit.CharacterTemplate.DisplayName} to {targetPoint.CoordinatesInt}",
+                    TurnrootLogger.LogLevel.Info
+                );
+            }
+            return t;
         }
 
         public OperationResult AttackTarget(
