@@ -50,6 +50,24 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             if (Brain != null)
             {
                 Brain.OnPlayerTurnEnded -= HandlePlayerTurnCompleted;
+                Brain.OnEndTurnCompleted -= HandlePlayerActionCompleted;
+            }
+        }
+
+        private void HandlePlayerActionCompleted(CharacterInstance unit)
+        {
+            // If the active player chose to Wait or explicitly EndTurn, advance the rotisserie.
+            if (
+                _currentTurnOrder == TurnOrder.PlayerStart
+                || _currentTurnOrder == TurnOrder.PlayerEnd
+            )
+            {
+                var active = GetActiveUnit();
+                if (active != null && active == unit)
+                {
+                    // EndTurn/Wait should trigger progression
+                    Progress();
+                }
             }
         }
 
@@ -63,6 +81,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             if (Brain != null)
             {
                 Brain.OnPlayerTurnEnded += HandlePlayerTurnCompleted;
+                Brain.OnEndTurnCompleted += HandlePlayerActionCompleted;
             }
             else
             {

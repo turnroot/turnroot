@@ -273,7 +273,7 @@ namespace Turnroot.Gameplay.Brain
             // TODO: Update UI based on cursor position
             switch (currentState)
             {
-                case PlayerTurnStates.MoveActionChosenChoosingDestination:
+                case PlayerTurnStates.ChoosingDestination:
                     // Update movement path preview
                     break;
                 case PlayerTurnStates.AttackActionChosenChoosingTarget:
@@ -303,10 +303,58 @@ namespace Turnroot.Gameplay.Brain
                         ChangeSelectedUnit(unitAtCursor);
                     }
                     break;
-                case PlayerTurnStates.NoActionChosen:
-                    // TODO: Open context-sensitive action menu
+                case PlayerTurnStates.UnitSelected:
+                    // If cursor is on a player unit, select it; otherwise if cursor is on a valid move tile, start move immediately;
+                    if (unitAtCursor != null && BattleContext.IsPlayerControlledUnit(unitAtCursor))
+                    {
+                        var current = BattleContext?.Unit?.UnitInstance;
+                        if (current == null || current != unitAtCursor)
+                        {
+                            _playerTurnFlow.SelectUnit();
+                            ChangeSelectedUnit(unitAtCursor);
+                        }
+                        else
+                        {
+                            // Cursor is on the already-selected unit — open action menu instead of re-selecting.
+                            OpenActionMenu();
+                        }
+                    }
+                    else if (
+                        _brain.cursorBrain?.CursorPosition != null
+                        && _playerTurnFlow != null
+                        && _playerTurnFlow.GetCurrentState() == PlayerTurnStates.UnitSelected
+                        && BattleContext != null
+                        && _brain.cursorBrain != null
+                        && _brain.cursorBrain.GetUnitAtCursor() == null
+                        && _brain.cursorBrain?.CursorPosition != null
+                        && (
+                            new System.Func<bool>(() =>
+                            {
+                                var pos = _brain.cursorBrain.CursorPosition;
+                                return pos != null
+                                    && _brain.battleBrain.BattleObject.Context.TryGetValidTilesForUnit(
+                                        BattleContext.Unit.UnitInstance,
+                                        out var mv,
+                                        out var atk
+                                    )
+                                    && mv.ContainsKey(pos);
+                            })
+                        )()
+                    )
+                    {
+                        // One-button direct move: pick tile and select destination; actual move is started by DestinationSelected handler.
+                        var destination = _brain.cursorBrain.CursorPosition;
+                        _pendingDestination = destination;
+                        _playerTurnFlow.SelectDestination(destination);
+                        // Move will be started by the DestinationSelected handler which reads _pendingDestination.
+                    }
+                    else
+                    {
+                        // Fallback: open action menu (we use one-button direct-move on confirm for UnitSelected state)
+                        OpenActionMenu();
+                    }
                     break;
-                case PlayerTurnStates.MoveActionChosenChoosingDestination:
+                case PlayerTurnStates.ChoosingDestination:
                 case PlayerTurnStates.AttackActionChosenChoosingTarget:
                     ConfirmTileSelection();
                     break;
@@ -322,19 +370,24 @@ namespace Turnroot.Gameplay.Brain
 
             switch (currentState)
             {
-                case PlayerTurnStates.NoActionChosen:
+                case PlayerTurnStates.UnitSelected:
                     _playerTurnFlow?.DeselectUnit();
                     break;
-                case PlayerTurnStates.MoveActionChosenChoosingDestination:
-                    _playerTurnFlow?.CancelTargetOrDestinationChoice(
-                        PlayerTurnStates.NoActionChosen
-                    );
+                case PlayerTurnStates.ChoosingDestination:
+                    _playerTurnFlow?.CancelTargetOrDestinationChoice(PlayerTurnStates.UnitSelected);
                     _brain.cursorBrain?.ClearAllowedPositions();
                     break;
+                case PlayerTurnStates.DestinationSelected:
+                    // Cancel destination selection and return to unit selected state
+                    _playerTurnFlow?.CancelTargetOrDestinationChoice(PlayerTurnStates.UnitSelected);
+                    _brain.cursorBrain?.ClearAllowedPositions();
+                    break;
+                case PlayerTurnStates.ChoosingAction:
+                    // After a move completed, Back undoes the move (handled by PlayerTurnFlow.HandlePlayerUndoAction)
+                    RequestUndo();
+                    break;
                 case PlayerTurnStates.AttackActionChosenChoosingTarget:
-                    _playerTurnFlow?.CancelTargetOrDestinationChoice(
-                        PlayerTurnStates.NoActionChosen
-                    );
+                    _playerTurnFlow?.CancelTargetOrDestinationChoice(PlayerTurnStates.UnitSelected);
                     _brain.cursorBrain?.ClearAllowedPositions();
                     break;
                 case PlayerTurnStates.ConfirmAction:
