@@ -13,53 +13,81 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         #region Desperation
         private void EvaluateDesperationGoals(List<AIGoal> goals, CharacterBehavior behavior)
         {
-            float BestUtility = 0f;
+            float bestUtility = 0f;
 
-            // Calculate health status
+            // Health summary used across all desperation checks
             float healthPercent = _context.Unit.UnitInstance.GetHealthPercentage();
             bool isCritical = healthPercent < 0.2f;
 
-            // --- HEAL SELF (Higher Priority) ---
-            // Selfish units (SS < 0.7) prioritize self-preservation
-            if (behavior.SelfishSelfless < 0.7f && healthPercent <= 0.5f)
+            EvaluateDesperationHealSelf(
+                goals,
+                behavior,
+                healthPercent,
+                isCritical,
+                ref bestUtility
+            );
+            EvaluateDesperationKillGoals(goals, behavior, isCritical, ref bestUtility);
+            EvaluateDesperationDefensiveRetreat(
+                goals,
+                behavior,
+                healthPercent,
+                isCritical,
+                ref bestUtility
+            );
+        }
+
+        private void EvaluateDesperationHealSelf(
+            List<AIGoal> goals,
+            CharacterBehavior behavior,
+            float healthPercent,
+            bool isCritical,
+            ref float bestUtility
+        )
+        {
+            // Selfish units (SS < 0.7) prioritize self-preservation when below 50% hp
+            if (!(behavior.SelfishSelfless < 0.7f && healthPercent <= 0.5f))
             {
-                // Dramatically increase utility when critically wounded
-                float baseUtility = 8f + (1f - healthPercent) * 15f;
-
-                // Critical health multiplier
-                if (isCritical)
-                {
-                    baseUtility *= 1.5f;
-                }
-
-                // Lone wolves prioritize self-healing even more
-                baseUtility += behavior.SoldierLoneWolf * 5f;
-
-                // Reduce if very bloodthirsty (would rather die fighting)
-                if (behavior.BloodthirstGreed < 0.3f)
-                {
-                    baseUtility *= 0.7f; // Berserkers less likely to heal
-                }
-
-                if (baseUtility > BestUtility)
-                {
-                    BestUtility = baseUtility;
-                    goals.Add(
-                        new AIGoal
-                        {
-                            Type = AIGoal.GoalType.HealSelf,
-                            UtilityScore = baseUtility,
-                            Target = _context.Unit.UnitInstance,
-                            Destination = _context.Unit.UnitInstance.UnitPositionToMapGridPoint(
-                                _context.Unit.UnitInstance.MapGridPosition,
-                                _context.MapGrid
-                            ),
-                        }
-                    );
-                }
+                return;
             }
 
-            // --- KILL ENEMY (Desperate Attacks) ---
+            float baseUtility = 8f + (1f - healthPercent) * 15f;
+            if (isCritical)
+            {
+                baseUtility *= 1.5f;
+            }
+
+            baseUtility += behavior.SoldierLoneWolf * 5f; // lone wolves prefer self-heal
+
+            if (behavior.BloodthirstGreed < 0.3f)
+            {
+                baseUtility *= 0.7f; // Berserkers less likely to heal
+            }
+
+            if (baseUtility > bestUtility)
+            {
+                bestUtility = baseUtility;
+                goals.Add(
+                    new AIGoal
+                    {
+                        Type = AIGoal.GoalType.HealSelf,
+                        UtilityScore = baseUtility,
+                        Target = _context.Unit.UnitInstance,
+                        Destination = _context.Unit.UnitInstance.UnitPositionToMapGridPoint(
+                            _context.Unit.UnitInstance.MapGridPosition,
+                            _context.MapGrid
+                        ),
+                    }
+                );
+            }
+        }
+
+        private void EvaluateDesperationKillGoals(
+            List<AIGoal> goals,
+            CharacterBehavior behavior,
+            bool isCritical,
+            ref float bestUtility
+        )
+        {
             var targets = _context.Participants.Targets;
             for (int ti = 0; ti < (targets?.Count ?? 0); ti++)
             {
@@ -69,185 +97,195 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                     _context.MapGrid
                 );
 
-                if (_reusableAttackTiles.ContainsKey(targetGridPoint))
+                if (!_reusableAttackTiles.ContainsKey(targetGridPoint))
                 {
-                    float utility = 8f;
+                    continue;
+                }
 
-                    // Mindless units attack recklessly
-                    utility += (1f - behavior.MindlessCunning) * 3f;
+                float utility = 8f;
+                utility += (1f - behavior.MindlessCunning) * 3f; // mindless units attack recklessly
+                utility += (1f - behavior.BloodthirstGreed) * 3f; // bloodthirst bonus
 
-                    // Bloodthirsty units attack even when desperate
-                    utility += (1f - behavior.BloodthirstGreed) * 3f;
+                float targetHealthPercent =
+                    target.GetBoundedStat(Characters.Stats.BoundedStatType.Health).Current
+                    / target.GetBoundedStat(Characters.Stats.BoundedStatType.Health).Max;
 
-                    // MAJOR bonus for low-health targets
-                    float targetHealthPercent =
-                        target.GetBoundedStat(Characters.Stats.BoundedStatType.Health).Current
-                        / target.GetBoundedStat(Characters.Stats.BoundedStatType.Health).Max;
+                if (targetHealthPercent < 0.3f)
+                {
+                    utility += 8f; // Killing blow opportunity
+                }
+                else if (targetHealthPercent < 0.5f)
+                {
+                    utility += 4f; // Wounded target
+                }
 
-                    if (targetHealthPercent < 0.3f)
-                    {
-                        utility += 8f; // Killing blow opportunity
-                    }
-                    else if (targetHealthPercent < 0.5f)
-                    {
-                        utility += 4f; // Wounded target
-                    }
+                var distance = Vector2.Distance(
+                    _context.Unit.UnitInstance.MapGridPosition,
+                    target.MapGridPosition
+                );
+                utility += Mathf.Max(0, 3f - distance);
 
-                    // Distance bonus
-                    var distance = Vector2.Distance(
-                        _context.Unit.UnitInstance.MapGridPosition,
-                        target.MapGridPosition
+                if (isCritical && behavior.MindlessCunning > 0.5f)
+                {
+                    utility *= 0.8f; // Smart units less likely to suicide attack
+                }
+
+                var bestWeapon = ChooseBestWeaponForTarget(target);
+
+                if (utility > bestUtility)
+                {
+                    bestUtility = utility;
+                    goals.Add(
+                        new AIGoal
+                        {
+                            Type = AIGoal.GoalType.KillEnemy,
+                            UtilityScore = utility,
+                            Target = target,
+                            Destination = _context.Unit.UnitInstance.UnitPositionToMapGridPoint(
+                                _context.Unit.UnitInstance.MapGridPosition,
+                                _context.MapGrid
+                            ),
+                            ChosenWeapon = bestWeapon,
+                        }
                     );
-                    utility += Mathf.Max(0, 3f - distance);
+                }
+            }
+        }
 
-                    // PENALTY for attacking when critically wounded (survival instinct)
-                    if (isCritical && behavior.MindlessCunning > 0.5f)
-                    {
-                        utility *= 0.8f; // Smart units less likely to suicide attack
-                    }
+        private Objects.ObjectItemInstance ChooseBestWeaponForTarget(CharacterInstance target)
+        {
+            var availableWeapons = _context.Unit.UnitInstance.RangeWeaponsCache;
+            Objects.ObjectItemInstance bestWeapon = null;
+            float bestPotential = 0f;
 
-                    // Prefer weapons that provide higher potential damage - use DamageCalculator to evaluate
-                    var availableWeapons = _context.Unit.UnitInstance.RangeWeaponsCache;
-                    ObjectItemInstance bestWeapon = null;
-                    float bestPotential = 0f;
-                    foreach (var w in availableWeapons)
-                    {
-                        int perHit = DamageCalculator.CalculatePotentialDamage(
-                            _context.Unit.UnitInstance,
-                            target,
-                            w,
-                            _context
-                        );
-                        int attackCount = DamageCalculator.CalculateAttackCount(
-                            _context.Unit.UnitInstance,
-                            target
-                        );
-                        float total = perHit * attackCount;
-                        if (w == _context.Unit.UnitInstance.GetEquippedWeapon())
-                        {
-                            total *= 1.05f; // small preference for equipped weapon
-                        }
-                        if (total > bestPotential)
-                        {
-                            bestPotential = total;
-                            bestWeapon = w;
-                        }
-                    }
+            foreach (var w in availableWeapons)
+            {
+                int perHit = DamageCalculator.CalculatePotentialDamage(
+                    _context.Unit.UnitInstance,
+                    target,
+                    w,
+                    _context
+                );
+                int attackCount = DamageCalculator.CalculateAttackCount(
+                    _context.Unit.UnitInstance,
+                    target
+                );
+                float total = perHit * attackCount;
+                if (w == _context.Unit.UnitInstance.GetEquippedWeapon())
+                {
+                    total *= 1.05f; // small preference for equipped weapon
+                }
 
-                    if (utility > BestUtility)
-                    {
-                        BestUtility = utility;
-                        goals.Add(
-                            new AIGoal
-                            {
-                                Type = AIGoal.GoalType.KillEnemy,
-                                UtilityScore = utility,
-                                Target = target,
-                                Destination = _context.Unit.UnitInstance.UnitPositionToMapGridPoint(
-                                    _context.Unit.UnitInstance.MapGridPosition,
-                                    _context.MapGrid
-                                ),
-                                ChosenWeapon = bestWeapon,
-                            }
-                        );
-                    }
+                if (total > bestPotential)
+                {
+                    bestPotential = total;
+                    bestWeapon = w;
                 }
             }
 
-            // --- DEFENSIVE RETREAT ---
-            if (behavior.BrashWary > 0.3f)
+            return bestWeapon;
+        }
+
+        private void EvaluateDesperationDefensiveRetreat(
+            List<AIGoal> goals,
+            CharacterBehavior behavior,
+            float healthPercent,
+            bool isCritical,
+            ref float bestUtility
+        )
+        {
+            if (!(behavior.BrashWary > 0.3f))
             {
-                // OPTIMIZATION: Calculate enemy positions once, not per tile
-                var enemyData = FindClosestAndFurthestEnemies(
-                    new List<CharacterInstance>(_context.Participants.Targets)
+                return;
+            }
+
+            var enemyData = FindClosestAndFurthestEnemies(
+                new List<CharacterInstance>(_context.Participants.Targets)
+            );
+            float currentDistanceToEnemy = enemyData.closestDist;
+
+            using var safeTilesPooled = PooledDictionary<MapGridPoint, float>.Get();
+            var safeTiles = safeTilesPooled.Dictionary;
+
+            foreach (var tile in _reusableMoveTiles)
+            {
+                float newDistanceToEnemy = Vector2.Distance(
+                    tile.Key.Coordinates(),
+                    enemyData.closest
                 );
-                float currentDistanceToEnemy = enemyData.closestDist;
 
-                using var safeTilesPooled = PooledDictionary<MapGridPoint, float>.Get();
-                var safeTiles = safeTilesPooled.Dictionary;
+                bool isIncreasingDistance = newDistanceToEnemy > currentDistanceToEnemy;
+                bool isNearAlly = false;
 
-                foreach (var tile in _reusableMoveTiles)
+                if (behavior.SoldierLoneWolf < 0.5f)
                 {
-                    float newDistanceToEnemy = Vector2.Distance(
-                        tile.Key.Coordinates(),
-                        enemyData.closest
-                    );
-
-                    bool isIncreasingDistance = newDistanceToEnemy > currentDistanceToEnemy;
-                    bool isNearAlly = false;
-
-                    // Soldiers seek allies when retreating
-                    if (behavior.SoldierLoneWolf < 0.5f)
+                    var allies = _context.Participants.Allies;
+                    for (int ai = 0; ai < (allies?.Count ?? 0); ai++)
                     {
-                        var allies = _context.Participants.Allies;
-                        for (int ai = 0; ai < (allies?.Count ?? 0); ai++)
+                        var ally = allies[ai];
+                        if (ally == _context.Unit.UnitInstance)
                         {
-                            var ally = allies[ai];
-                            if (ally == _context.Unit.UnitInstance)
-                            {
-                                continue;
-                            }
-
-                            var distanceToAlly = Vector2.Distance(
-                                tile.Key.Coordinates(),
-                                ally.MapGridPosition
-                            );
-
-                            if (distanceToAlly <= 1.5f)
-                            {
-                                isNearAlly = true;
-                                break;
-                            }
-                        }
-                    }
-
-                    if (isIncreasingDistance || isNearAlly)
-                    {
-                        float utility = 5f + (behavior.BrashWary * 5f); // 6.5-10 base
-
-                        // Major bonus for critical health
-                        if (isCritical)
-                        {
-                            utility += 5f + (5f * behavior.MindlessCunning); // Smart units FLEE when dying
-                        }
-                        else if (healthPercent < 0.5f)
-                        {
-                            utility += 5f;
+                            continue;
                         }
 
-                        // Distance improvement bonus
-                        if (isIncreasingDistance)
-                        {
-                            float distanceGain = newDistanceToEnemy - currentDistanceToEnemy;
-                            utility += distanceGain * 2f;
-                        }
+                        var distanceToAlly = Vector2.Distance(
+                            tile.Key.Coordinates(),
+                            ally.MapGridPosition
+                        );
 
-                        // Ally proximity bonus
-                        if (isNearAlly)
+                        if (distanceToAlly <= 1.5f)
                         {
-                            utility += 3f + (behavior.SelfishSelfless * 3f); // Up to +6 for selfless
+                            isNearAlly = true;
+                            break;
                         }
-
-                        safeTiles[tile.Key] = utility;
                     }
                 }
 
-                // Add retreat goals
-                foreach (var safeTile in safeTiles)
+                if (!(isIncreasingDistance || isNearAlly))
                 {
-                    if (safeTile.Value > BestUtility)
-                    {
-                        BestUtility = safeTile.Value;
-                        goals.Add(
-                            new AIGoal
-                            {
-                                Type = AIGoal.GoalType.DefensiveRetreat,
-                                UtilityScore = safeTile.Value,
-                                Target = _context.Unit.UnitInstance,
-                                Destination = safeTile.Key,
-                            }
-                        );
-                    }
+                    continue;
+                }
+
+                float utility = 5f + (behavior.BrashWary * 5f);
+
+                if (isCritical)
+                {
+                    utility += 5f + (5f * behavior.MindlessCunning);
+                }
+                else if (healthPercent < 0.5f)
+                {
+                    utility += 5f;
+                }
+
+                if (isIncreasingDistance)
+                {
+                    float distanceGain = newDistanceToEnemy - currentDistanceToEnemy;
+                    utility += distanceGain * 2f;
+                }
+
+                if (isNearAlly)
+                {
+                    utility += 3f + (behavior.SelfishSelfless * 3f);
+                }
+
+                safeTiles[tile.Key] = utility;
+            }
+
+            // Add retreat goals
+            foreach (var safeTile in safeTiles)
+            {
+                if (safeTile.Value > bestUtility)
+                {
+                    bestUtility = safeTile.Value;
+                    goals.Add(
+                        new AIGoal
+                        {
+                            Type = AIGoal.GoalType.DefensiveRetreat,
+                            UtilityScore = safeTile.Value,
+                            Target = _context.Unit.UnitInstance,
+                            Destination = safeTile.Key,
+                        }
+                    );
                 }
             }
         }

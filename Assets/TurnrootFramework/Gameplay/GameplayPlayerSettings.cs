@@ -62,8 +62,6 @@ namespace Turnroot.Gameplay.PlayerSettings
             Gamepad,
         }
 
-        // Input customization removed — static default bindings are used by InputActionFactory and other input code.
-
         // Logical actions exposed to the UI (e.g., Select, Back, Details...)
         public enum LogicalAction
         {

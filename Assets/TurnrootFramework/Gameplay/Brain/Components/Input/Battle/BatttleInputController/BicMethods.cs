@@ -22,114 +22,131 @@ namespace Turnroot.Gameplay.Brain
             switch (newState)
             {
                 case PlayerTurnStates.NoUnitSelected:
-                    _validMoveTiles.Clear();
-                    _validAttackTiles.Clear();
-                    _brain.cursorBrain?.ClearAllowedPositions();
-                    _tileHighlighter?.ClearAll();
+                    HandleNoUnitSelectedState();
                     break;
 
                 case PlayerTurnStates.UnitSelected:
-                    {
-                        // A unit has been selected but no action chosen yet — highlight available moves/attacks
-                        var movePositionsLocal = new List<Vector2Int>(
-                            _validMoveTiles?.Keys.Select(k => k.CoordinatesInt)
-                                ?? System.Array.Empty<Vector2Int>()
-                        );
-                        var attackPositionsLocal = new List<Vector2Int>(
-                            _validAttackTiles?.Keys.Select(k => k.CoordinatesInt)
-                                ?? System.Array.Empty<Vector2Int>()
-                        );
-
-                        if (_tileHighlighter != null)
-                        {
-                            _tileHighlighter.HighlightTiles(
-                                movePositionsLocal,
-                                TileHighlighter.HighlightType.Move
-                            );
-                            _tileHighlighter.HighlightTiles(
-                                attackPositionsLocal,
-                                TileHighlighter.HighlightType.Attack
-                            );
-                        }
-
-                        _brain.cursorBrain.SetAllowedPositions(movePositionsLocal);
-                    }
+                    HandleUnitSelectedState();
                     break;
 
                 case PlayerTurnStates.ChoosingDestination:
-                    var movePositions = new List<Vector2Int>(
-                        _validMoveTiles.Keys.Select(k => k.CoordinatesInt)
-                    );
-                    _tileHighlighter.HighlightTiles(
-                        movePositions,
-                        TileHighlighter.HighlightType.Move
-                    );
-                    _brain.cursorBrain?.SetAllowedPositions(movePositions);
+                    HandleChoosingDestinationState();
                     break;
 
                 case PlayerTurnStates.AttackActionChosenChoosingTarget:
-                    var attackPositions = new List<Vector2Int>(
-                        _validAttackTiles.Keys.Select(k => k.CoordinatesInt)
-                    );
-                    _tileHighlighter.HighlightTiles(
-                        attackPositions,
-                        TileHighlighter.HighlightType.Attack
-                    );
-                    _brain.cursorBrain?.SetAllowedPositions(attackPositions);
+                    HandleAttackActionChoosingTargetState();
                     break;
 
                 case PlayerTurnStates.ChoosingAction:
-                    {
-                        OpenActionMenu();
-                    }
+                    HandleChoosingActionState();
                     break;
 
                 case PlayerTurnStates.DestinationSelected:
-                    if (_pendingDestination == null)
-                    {
-                        TurnrootLogger.Log(
-                            "DestinationSelected: No pending destination - reverting to UnitSelected",
-                            TurnrootLogger.LogLevel.Warning
-                        );
-                        _playerTurnFlow.CancelTargetOrDestinationChoice(
-                            PlayerTurnStates.UnitSelected
-                        );
-                        break;
-                    }
-
-                    {
-                        var unit = BattleContext.Unit.UnitInstance;
-                        // Start executing the move and lock input until move/animation completes
-                        _playerTurnFlow.StartMove();
-                        _brain.PublishCharacterMoveStarted(unit, _pendingDestination);
-                        var moveRes = BattleContext.MoveUnitToPoint(unit, _pendingDestination);
-                        if (moveRes.Success)
-                        {
-                            TurnrootLogger.Log(
-                                $"Started moving unit to {_pendingDestination.CoordinatesInt}"
-                            );
-                            // wait for OnMoveAnimationCompleted (visual layer) to call flow.CompleteMove()
-                        }
-                        else
-                        {
-                            TurnrootLogger.Log(
-                                "Failed to start move to the selected destination",
-                                TurnrootLogger.LogLevel.Warning
-                            );
-                            // Re-enable input since the attempted move did not start
-                            _brain.battleBrain.IsInputEnabled = true;
-                            _playerTurnFlow.CancelTargetOrDestinationChoice(
-                                PlayerTurnStates.UnitSelected
-                            );
-                        }
-                        _pendingDestination = null;
-                    }
+                    HandleDestinationSelectedState();
                     break;
 
                 case PlayerTurnStates.TurnEnded:
-                    CompletePlayerTurn();
+                    HandleTurnEndedState();
                     break;
             }
+        }
+
+        private void HandleNoUnitSelectedState()
+        {
+            _validMoveTiles.Clear();
+            _validAttackTiles.Clear();
+            _brain.cursorBrain?.ClearAllowedPositions();
+            _tileHighlighter?.ClearAll();
+        }
+
+        private void HandleUnitSelectedState()
+        {
+            // A unit has been selected but no action chosen yet — highlight available moves/attacks
+            var movePositionsLocal = new List<Vector2Int>(
+                _validMoveTiles?.Keys.Select(k => k.CoordinatesInt)
+                    ?? System.Array.Empty<Vector2Int>()
+            );
+            var attackPositionsLocal = new List<Vector2Int>(
+                _validAttackTiles?.Keys.Select(k => k.CoordinatesInt)
+                    ?? System.Array.Empty<Vector2Int>()
+            );
+
+            if (_tileHighlighter != null)
+            {
+                _tileHighlighter.HighlightTiles(
+                    movePositionsLocal,
+                    TileHighlighter.HighlightType.Move
+                );
+                _tileHighlighter.HighlightTiles(
+                    attackPositionsLocal,
+                    TileHighlighter.HighlightType.Attack
+                );
+            }
+
+            _brain.cursorBrain.SetAllowedPositions(movePositionsLocal);
+        }
+
+        private void HandleChoosingDestinationState()
+        {
+            var movePositions = new List<Vector2Int>(
+                _validMoveTiles.Keys.Select(k => k.CoordinatesInt)
+            );
+            _tileHighlighter.HighlightTiles(movePositions, TileHighlighter.HighlightType.Move);
+            _brain.cursorBrain?.SetAllowedPositions(movePositions);
+        }
+
+        private void HandleAttackActionChoosingTargetState()
+        {
+            var attackPositions = new List<Vector2Int>(
+                _validAttackTiles.Keys.Select(k => k.CoordinatesInt)
+            );
+            _tileHighlighter.HighlightTiles(attackPositions, TileHighlighter.HighlightType.Attack);
+            _brain.cursorBrain?.SetAllowedPositions(attackPositions);
+        }
+
+        private void HandleChoosingActionState()
+        {
+            OpenActionMenu();
+        }
+
+        private void HandleDestinationSelectedState()
+        {
+            if (_pendingDestination == null)
+            {
+                TurnrootLogger.Log(
+                    "DestinationSelected: No pending destination - reverting to UnitSelected",
+                    TurnrootLogger.LogLevel.Warning
+                );
+                _playerTurnFlow.CancelTargetOrDestinationChoice(PlayerTurnStates.UnitSelected);
+                return;
+            }
+
+            var unit = BattleContext.Unit.UnitInstance;
+            // Start executing the move and lock input until move/animation completes
+            _playerTurnFlow.StartMove();
+            _brain.PublishCharacterMoveStarted(unit, _pendingDestination);
+            var moveRes = BattleContext.MoveUnitToPoint(unit, _pendingDestination);
+            if (moveRes.Success)
+            {
+                TurnrootLogger.Log($"Started moving unit to {_pendingDestination.CoordinatesInt}");
+                // wait for OnMoveAnimationCompleted (visual layer) to call flow.CompleteMove()
+            }
+            else
+            {
+                TurnrootLogger.Log(
+                    "Failed to start move to the selected destination",
+                    TurnrootLogger.LogLevel.Warning
+                );
+                // Re-enable input since the attempted move did not start
+                _brain.battleBrain.IsInputEnabled = true;
+                _playerTurnFlow.CancelTargetOrDestinationChoice(PlayerTurnStates.UnitSelected);
+            }
+            _pendingDestination = null;
+        }
+
+        private void HandleTurnEndedState()
+        {
+            CompletePlayerTurn();
         }
 
         private void CompletePlayerTurn()

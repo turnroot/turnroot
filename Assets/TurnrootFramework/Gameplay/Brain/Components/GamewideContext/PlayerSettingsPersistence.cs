@@ -322,6 +322,14 @@ namespace Turnroot.Gameplay.Brain
                             PlayerSettings.PreferredBattleMusic = preferredBattleMusic;
                         }
                         break;
+                    case "preferredinputcontrol":
+                        if (value is GameplayPlayerSettings.InputControlType inputControl)
+                        {
+                            PlayerSettings.PreferredInputControl = inputControl;
+                            // Notify subscribers that input control preference changed
+                            _brain?.CentralBrain?.PublishInputControlTypeChanged(inputControl);
+                        }
+                        break;
                     default:
                         return;
                 }

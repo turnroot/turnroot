@@ -27,6 +27,8 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
                 _battleBrain.Brain.OnUnitFinishedMovingAfterAction +=
                     HandleUnitFinishedMovingAfterAction;
                 _battleBrain.Brain.OnMoveAnimationCompleted += HandleUnitMoveAnimationCompleted;
+                // Listen for wait confirmation coming from UI
+                _battleBrain.Brain.OnWaitActionConfirmed += HandleWaitActionConfirmed;
             }
         }
 
@@ -38,6 +40,7 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
                 _battleBrain.Brain.OnUnitFinishedMovingAfterAction -=
                     HandleUnitFinishedMovingAfterAction;
                 _battleBrain.Brain.OnMoveAnimationCompleted -= HandleUnitMoveAnimationCompleted;
+                _battleBrain.Brain.OnWaitActionConfirmed -= HandleWaitActionConfirmed;
             }
         }
 
@@ -158,7 +161,19 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
                         _battleBrain.Brain.PublishUseItemStarted(_activePlayerUnit, null);
                         break;
                     case PlayerTurnStates.WaitActionChosen:
-                        // Waiting will immediately end the turn via Context.EndTurn; publish EndTurnCompleted when done by Context
+                        // If player has AutoEndTurn enabled, immediately end the turn; otherwise request UI confirmation
+                        var playerSettings = _battleBrain
+                            ?.Brain
+                            ?.gamewideContextBrain
+                            ?.PlayerSettings;
+                        if (playerSettings != null && playerSettings.AutoEndTurn)
+                        {
+                            EndTurn();
+                        }
+                        else
+                        {
+                            _battleBrain.Brain.PublishWaitActionRequested(_activePlayerUnit);
+                        }
                         break;
                     default:
                         break;
@@ -193,40 +208,68 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
             var current = GetCurrentState();
             if (current == PlayerTurnStates.ChoosingAction)
             {
-                var brain = _battleBrain?.Brain;
-                if (brain == null)
+                var undone = TryUndoLastMove();
+                if (undone)
                 {
-                    return;
-                }
-
-                var commands = brain.Commands;
-                var history = commands.GetHistory();
-                if (commands.CanUndo && history.Count > 0)
-                {
-                    var last = history[history.Count - 1];
-                    if (last is Turnroot.Gameplay.Brain.Commands.MoveCommand)
+                    // Return flow to UnitSelected so player can reselect a tile/action
+                    var res = _currentState.TransitionToState(PlayerTurnStates.UnitSelected);
+                    if (res.Success)
                     {
-                        // Undo move command (will move unit back via MoveUnit)
-                        var undone = brain.UndoCommand();
-                        if (undone)
-                        {
-                            // Return flow to UnitSelected so player can reselect a tile/action
-                            var res = _currentState.TransitionToState(
-                                PlayerTurnStates.UnitSelected
-                            );
-                            if (res.Success)
-                            {
-                                _battleBrain.Brain.PublishPlayerTurnStateChanged(
-                                    _currentState.CurrentState
-                                );
-                                // Re-announce the active unit so listeners (UI) recompute valid tiles
-                                _battleBrain.Brain.PublishPlayerControlledUnitActivated(
-                                    _activePlayerUnit
-                                );
-                            }
-                        }
+                        _battleBrain.Brain.PublishPlayerTurnStateChanged(
+                            _currentState.CurrentState
+                        );
+                        // Re-announce the active unit so listeners (UI) recompute valid tiles
+                        _battleBrain.Brain.PublishPlayerControlledUnitActivated(_activePlayerUnit);
                     }
                 }
+            }
+        }
+
+        private bool TryUndoLastMove()
+        {
+            var brain = _battleBrain?.Brain;
+            if (brain == null)
+            {
+                return false;
+            }
+
+            var commands = brain.Commands;
+            var history = commands.GetHistory();
+            if (!commands.CanUndo || history.Count == 0)
+            {
+                return false;
+            }
+
+            var last = history[history.Count - 1];
+            if (last is Turnroot.Gameplay.Brain.Commands.MoveCommand)
+            {
+                // Undo move command (will move unit back via MoveUnit)
+                return brain.UndoCommand();
+            }
+
+            return false;
+        }
+
+        private void HandleWaitActionConfirmed(CharacterInstance unit)
+        {
+            if (_activePlayerUnit == null || unit == null)
+            {
+                return;
+            }
+
+            if (_activePlayerUnit != unit)
+            {
+                return;
+            }
+
+            // Only confirm waiting if we're at an appropriate point in the flow
+            var current = GetCurrentState();
+            if (
+                current == PlayerTurnStates.ConfirmAction
+                || current == PlayerTurnStates.WaitActionChosen
+            )
+            {
+                EndTurn();
             }
         }
 

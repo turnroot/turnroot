@@ -447,6 +447,13 @@ namespace Turnroot.Gameplay.Brain
 
         public void PublishSavePlayerSettingsRequested() => OnSavePlayerSettingsRequested?.Invoke();
 
+        // Event: fired when the player's preferred input control type changes (Keyboard / Gamepad)
+        public event System.Action<Turnroot.Gameplay.PlayerSettings.GameplayPlayerSettings.InputControlType> OnInputControlTypeChanged;
+
+        public void PublishInputControlTypeChanged(
+            Turnroot.Gameplay.PlayerSettings.GameplayPlayerSettings.InputControlType newType
+        ) => OnInputControlTypeChanged?.Invoke(newType);
+
         #endregion
 
         #region Item Events
@@ -628,6 +635,10 @@ namespace Turnroot.Gameplay.Brain
         public event Action OnThirdPartyTurnEnded;
         public event Action<CharacterInstance> OnUnitTurnEnded;
 
+        // New events for Wait confirmation flow
+        public event Action<CharacterInstance> OnWaitActionRequested;
+        public event Action<CharacterInstance> OnWaitActionConfirmed;
+
         public void PublishTurnBegin() => OnTurnBegin?.Invoke();
 
         public void PublishTurnEnded() => OnTurnEnded?.Invoke();
@@ -641,6 +652,16 @@ namespace Turnroot.Gameplay.Brain
             OnPlayerTurnStateChanged?.Invoke(newState);
 
         public void PublishPlayerUndoAction() => OnPlayerUndoAction?.Invoke();
+
+        /// <summary>
+        /// UI should subscribe to OnWaitActionRequested to ask the player
+        /// "End turn?". When the player confirms, publish OnWaitActionConfirmed.
+        /// </summary>
+        public void PublishWaitActionRequested(CharacterInstance unit) =>
+            OnWaitActionRequested?.Invoke(unit);
+
+        public void PublishWaitActionConfirmed(CharacterInstance unit) =>
+            OnWaitActionConfirmed?.Invoke(unit);
 
         public void PublishEnemyTurnStarted() => OnEnemyTurnStarted?.Invoke();
 

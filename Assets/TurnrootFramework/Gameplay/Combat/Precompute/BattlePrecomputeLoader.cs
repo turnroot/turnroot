@@ -124,11 +124,9 @@ namespace Turnroot.Gameplay.Combat.Precompute
             }
 
             _precomputeStarted = true;
-            // Ensure loading UI is initialized before adding progress
-            _loadingController?.Initialize();
+            _loadingController?.Initialize(); // Ensure loading UI is initialized before adding progress
 
             var context = GetBattleContext();
-            var units = context?.Participants?.GetAllUnits();
 
             if (!IsContextValid(context))
             {
@@ -137,25 +135,19 @@ namespace Turnroot.Gameplay.Combat.Precompute
                     TurnrootLogger.LogLevel.Warning
                 );
 
-                CompleteWithMinimalProgress();
-                _brain?.PublishPrecomputeCompleted();
+                CompleteWithMinimalProgressAndNotify();
                 yield break;
             }
 
             var appearanceBrain = _brain?.unitAppearanceBrain;
 
-            // Only precompute units that have actually been spawned/selected for this battle.
-            // This avoids wasting work on roster members that were not placed for this fight.
-            units =
-                units?.FindAll(u => u != null && u.WasSpawnedDuringBattle)
-                ?? new System.Collections.Generic.List<Characters.CharacterInstance>();
+            // Only precompute units that were spawned/selected for this battle
+            var units = FilterSpawnedUnits(context?.Participants?.GetAllUnits());
 
             int taskCount = CalculateTaskCount(units, appearanceBrain);
-
             if (taskCount == 0)
             {
-                CompleteWithMinimalProgress();
-                _brain?.PublishPrecomputeCompleted();
+                CompleteWithMinimalProgressAndNotify();
                 yield break;
             }
 
@@ -165,16 +157,38 @@ namespace Turnroot.Gameplay.Combat.Precompute
             yield return EnsureLtmUnitsAreUsedRoutine(context);
 
             // Re-fetch spawned units from context in case replacements occurred
-            units =
-                context
-                    ?.Participants?.GetAllUnits()
-                    ?.FindAll(u => u != null && u.WasSpawnedDuringBattle)
-                ?? new System.Collections.Generic.List<Characters.CharacterInstance>();
+            units = FilterSpawnedUnits(context?.Participants?.GetAllUnits());
 
             // 1) Precompute movement caches
             yield return PrecomputeMovementCaches(context.MapGrid);
 
-            // 2) Per-unit processing
+            // 2) Per-unit processing (extracted loop for clarity)
+            yield return ProcessUnitsLoop(units, context, appearanceBrain);
+
+            yield return new WaitForSeconds(timeBetweenOperations);
+
+            _brain?.PublishPrecomputeCompleted();
+        }
+
+        private System.Collections.Generic.List<Characters.CharacterInstance> FilterSpawnedUnits(
+            System.Collections.Generic.List<Characters.CharacterInstance> units
+        )
+        {
+            return units?.FindAll(u => u != null && u.WasSpawnedDuringBattle)
+                ?? new System.Collections.Generic.List<Characters.CharacterInstance>();
+        }
+
+        private IEnumerator ProcessUnitsLoop(
+            System.Collections.Generic.List<Characters.CharacterInstance> units,
+            FundamentalComponents.Battles.BattleContext context,
+            UnitAppearanceBrain appearanceBrain
+        )
+        {
+            if (units == null)
+            {
+                yield break;
+            }
+
             foreach (var unit in units)
             {
                 if (unit == null)
@@ -184,9 +198,11 @@ namespace Turnroot.Gameplay.Combat.Precompute
 
                 yield return ProcessUnit(unit, context, appearanceBrain);
             }
+        }
 
-            yield return new WaitForSeconds(timeBetweenOperations);
-
+        private void CompleteWithMinimalProgressAndNotify()
+        {
+            CompleteWithMinimalProgress();
             _brain?.PublishPrecomputeCompleted();
         }
 

@@ -23,12 +23,14 @@ namespace Turnroot.Gameplay.Brain
         {
             _brain.OnPositioningModeEntered += HandlePositioningModeEntered;
             _brain.OnPositioningModeExited += HandlePositioningModeExited;
+            _brain.OnInputControlTypeChanged += HandleInputControlTypeChanged;
         }
 
         protected override void UnsubscribeFromBrainEvents()
         {
             _brain.OnPositioningModeEntered -= HandlePositioningModeEntered;
             _brain.OnPositioningModeExited -= HandlePositioningModeExited;
+            _brain.OnInputControlTypeChanged -= HandleInputControlTypeChanged;
         }
 
         private void HandlePositioningModeEntered()
@@ -74,66 +76,29 @@ namespace Turnroot.Gameplay.Brain
             if (_inputActions?.Navigate?.enabled == true)
             {
                 var direction = _inputActions.Navigate.ReadValue<Vector2>();
-                float inputThreshold;
-                if (Brain?.gamewideContextBrain?.PlayerSettings != null)
-                {
-                    inputThreshold =
-                        Brain.gamewideContextBrain.PlayerSettings.PreferredInputControl
-                        == PlayerSettings.GameplayPlayerSettings.InputControlType.Keyboard
-                            ? 0.1f
-                            : 0.5f;
-                }
-                else
-                {
-                    inputThreshold = 0.3f;
-                }
+                var threshold = GetInputThreshold();
 
-                if (direction.magnitude > inputThreshold)
+                if (direction.magnitude > threshold)
                 {
                     // Prevent repeat inputs when stick/key is held
                     if (direction == _lastDirection)
                     {
                         return false;
                     }
+
                     _lastDirection = direction;
 
-                    // Determine primary direction (horizontal or vertical)
-                    bool navigated = false;
-                    if (Mathf.Abs(direction.x) > Mathf.Abs(direction.y))
-                    {
-                        // Horizontal navigation (find nearest allowed tile on same row)
-                        int dir = direction.x > 0 ? 1 : -1;
-                        navigated = _brain.cursorBrain?.NavigateHorizontal(dir) ?? false;
-                    }
-                    else
-                    {
-                        // Vertical navigation (find nearest allowed tile on same column)
-                        int dir = direction.y > 0 ? 1 : -1;
-                        navigated = _brain.cursorBrain?.NavigateVertical(dir) ?? false;
-                    }
-
-                    // If navigation succeeded, preview swap
+                    var navigated = TryNavigateDirection(direction);
                     if (navigated)
                     {
-                        var prepObject = _brain?.battleBrain?.PreparationObject;
-                        var cursorPos = _brain.cursorBrain?.CursorPosition?.CoordinatesInt;
-                        if (
-                            prepObject != null
-                            && prepObject.selectedPosition != null
-                            && cursorPos != null
-                        )
-                        {
-                            _ = prepObject.PreviewPotentialSwap(cursorPos.Value);
-                        }
+                        PreviewSwapIfNeeded();
                     }
 
                     return navigated;
                 }
-                else
-                {
-                    // Input below threshold - reset direction tracking
-                    _lastDirection = Vector2.zero;
-                }
+
+                // Input below threshold - reset direction tracking
+                _lastDirection = Vector2.zero;
             }
 
             // Confirm - Select position / Execute swap
@@ -153,10 +118,60 @@ namespace Turnroot.Gameplay.Brain
             return false;
         }
 
+        private float GetInputThreshold()
+        {
+            // Use cached keyboard preference for micro-optimization. Fall back to a safe threshold if PlayerSettings are not available.
+            if (_brain?.gamewideContextBrain?.PlayerSettings == null)
+            {
+                return 0.3f;
+            }
+
+            return _cachedIsKeyboard ? 0.1f : 0.5f;
+        }
+
+        private bool TryNavigateDirection(Vector2 direction)
+        {
+            if (_brain == null || _brain.cursorBrain == null)
+            {
+                return false;
+            }
+
+            if (Mathf.Abs(direction.x) > Mathf.Abs(direction.y))
+            {
+                int dir = direction.x > 0 ? 1 : -1;
+                return _brain.cursorBrain.NavigateHorizontal(dir);
+            }
+            else
+            {
+                int dir = direction.y > 0 ? 1 : -1;
+                return _brain.cursorBrain.NavigateVertical(dir);
+            }
+        }
+
+        private void PreviewSwapIfNeeded()
+        {
+            var prepObject = _brain?.battleBrain?.PreparationObject;
+            var cursorPos = _brain?.cursorBrain?.CursorPosition?.CoordinatesInt;
+            if (prepObject == null || prepObject.selectedPosition == null || cursorPos == null)
+            {
+                return;
+            }
+
+            _ = prepObject.PreviewPotentialSwap(cursorPos.Value);
+        }
+
         private void UpdateInputCooldown()
         {
             _cachedInputCooldown = InputSettingsHelper.GetInputCooldown();
             _cachedIsKeyboard = InputSettingsHelper.IsKeyboardPreferred();
+        }
+
+        private void HandleInputControlTypeChanged(
+            Turnroot.Gameplay.PlayerSettings.GameplayPlayerSettings.InputControlType _
+        )
+        {
+            // Recompute cached values when the input control type changes elsewhere (e.g., player settings UI)
+            UpdateInputCooldown();
         }
 
         private void HandleConfirmInput()

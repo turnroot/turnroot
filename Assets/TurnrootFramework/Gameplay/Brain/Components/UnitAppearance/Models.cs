@@ -55,93 +55,19 @@ namespace Turnroot.Gameplay.Brain
 
         private SkinnedMeshRenderer CreateOutfitMesh(CharacterInstance unit, GameObject parent)
         {
-            // If this instance is using the battle model, prefer the class outfit prefab.
+            // Prefer class outfit when using battle model
             if (unit.UseBattleModel)
             {
-                var classInst = unit.GetCurrentClass();
-                // Respect class HasOutfit flag: if the class explicitly does not supply an outfit,
-                // fall through to per-character default non-battle outfit behavior.
-                if (classInst?.ClassData != null && classInst.ClassData.HasOutfit)
+                if (TryGetClassOutfit(unit, parent, out var classSmr))
                 {
-                    var prefab = classInst.ClassData.Identity?.ClassModelPrefab;
-                    if (prefab != null)
-                    {
-                        var obj = Instantiate(prefab, parent.transform);
-                        obj.name = "ClassOutfit";
-                        var smr = obj.GetComponentInChildren<SkinnedMeshRenderer>(true);
-                        if (smr != null)
-                        {
-                            TurnrootLogger.Log(
-                                $"CreateOutfitMesh: Using class outfit prefab for {unit.CharacterTemplate?.DisplayName}"
-                            );
-                            return smr;
-                        }
-                        else
-                        {
-                            TurnrootLogger.Log(
-                                $"CreateOutfitMesh: Class outfit prefab '{prefab.name}' is missing a SkinnedMeshRenderer. Falling back to NonBattleOutfitPrefab for {unit.CharacterTemplate?.DisplayName}",
-                                TurnrootLogger.LogLevel.Warning
-                            );
-                            try
-                            {
-                                Destroy(obj);
-                            }
-                            catch { }
-                            // Fall through to non-battle fallback below
-                        }
-                    }
+                    return classSmr;
                 }
             }
 
-            // If not using battle model or class prefab failed, use the per-character non-battle outfit prefab.
-            var nbPrefab = unit.CharacterTemplate.NonBattleOutfitPrefab;
-            if (nbPrefab != null)
+            // Fall back to per-character non-battle outfit
+            var nbSmr = TryCreateNonBattleOutfit(unit, parent);
+            if (nbSmr != null)
             {
-                var nbInstance = Instantiate(nbPrefab, parent.transform);
-                nbInstance.name = "NonBattleOutfit";
-                var nbSmr = nbInstance.GetComponentInChildren<SkinnedMeshRenderer>(true);
-                if (nbSmr == null)
-                {
-                    TurnrootLogger.Log(
-                        $"CreateOutfitMesh: Non-battle outfit prefab '{nbPrefab.name}' does not contain a SkinnedMeshRenderer. Cannot create outfit for {unit.CharacterTemplate?.DisplayName}",
-                        TurnrootLogger.LogLevel.Error
-                    );
-                    try
-                    {
-                        Destroy(nbInstance);
-                    }
-                    catch { }
-                    return null;
-                }
-
-                TurnrootLogger.Log(
-                    $"CreateOutfitMesh: Using non-battle outfit prefab for {unit.CharacterTemplate?.DisplayName}"
-                );
-
-                // Ensure the non-battle instance uses the prefab's original materials.
-                // This avoids carrying over any class-created materials from prior runs.
-                var prefabSmr = nbPrefab.GetComponentInChildren<SkinnedMeshRenderer>(true);
-                if (prefabSmr != null)
-                {
-                    nbSmr.sharedMaterials = prefabSmr.sharedMaterials;
-                }
-
-                // Attach head/hands and hair if available
-                if (unit.CharacterTemplate.HeadAndHandsPrefab != null)
-                {
-                    var hh = Instantiate(
-                        unit.CharacterTemplate.HeadAndHandsPrefab,
-                        parent.transform
-                    );
-                    hh.name = "HeadAndHands";
-                }
-
-                if (unit.CharacterTemplate.HairPrefab != null)
-                {
-                    var hair = Instantiate(unit.CharacterTemplate.HairPrefab, parent.transform);
-                    hair.name = "Hair";
-                }
-
                 return nbSmr;
             }
 
@@ -150,6 +76,110 @@ namespace Turnroot.Gameplay.Brain
                 TurnrootLogger.LogLevel.Error
             );
             return null;
+        }
+
+        private bool TryGetClassOutfit(
+            CharacterInstance unit,
+            GameObject parent,
+            out SkinnedMeshRenderer smr
+        )
+        {
+            smr = null;
+            var classInst = unit.GetCurrentClass();
+            if (classInst?.ClassData == null || !classInst.ClassData.HasOutfit)
+            {
+                return false;
+            }
+
+            var prefab = classInst.ClassData.Identity?.ClassModelPrefab;
+            if (prefab == null)
+            {
+                return false;
+            }
+
+            var obj = Instantiate(prefab, parent.transform);
+            obj.name = "ClassOutfit";
+            smr = obj.GetComponentInChildren<SkinnedMeshRenderer>(true);
+            if (smr != null)
+            {
+                TurnrootLogger.Log(
+                    $"CreateOutfitMesh: Using class outfit prefab for {unit.CharacterTemplate?.DisplayName}"
+                );
+                return true;
+            }
+
+            TurnrootLogger.Log(
+                $"CreateOutfitMesh: Class outfit prefab '{prefab.name}' is missing a SkinnedMeshRenderer. Falling back to NonBattleOutfitPrefab for {unit.CharacterTemplate?.DisplayName}",
+                TurnrootLogger.LogLevel.Warning
+            );
+
+            try
+            {
+                Destroy(obj);
+            }
+            catch { }
+
+            smr = null;
+            return false;
+        }
+
+        private SkinnedMeshRenderer TryCreateNonBattleOutfit(
+            CharacterInstance unit,
+            GameObject parent
+        )
+        {
+            var nbPrefab = unit.CharacterTemplate.NonBattleOutfitPrefab;
+            if (nbPrefab == null)
+            {
+                return null;
+            }
+
+            var nbInstance = Instantiate(nbPrefab, parent.transform);
+            nbInstance.name = "NonBattleOutfit";
+            var nbSmr = nbInstance.GetComponentInChildren<SkinnedMeshRenderer>(true);
+            if (nbSmr == null)
+            {
+                TurnrootLogger.Log(
+                    $"CreateOutfitMesh: Non-battle outfit prefab '{nbPrefab.name}' does not contain a SkinnedMeshRenderer. Cannot create outfit for {unit.CharacterTemplate?.DisplayName}",
+                    TurnrootLogger.LogLevel.Error
+                );
+                try
+                {
+                    Destroy(nbInstance);
+                }
+                catch { }
+                return null;
+            }
+
+            TurnrootLogger.Log(
+                $"CreateOutfitMesh: Using non-battle outfit prefab for {unit.CharacterTemplate?.DisplayName}"
+            );
+
+            // Ensure the non-battle instance uses the prefab's original materials.
+            var prefabSmr = nbPrefab.GetComponentInChildren<SkinnedMeshRenderer>(true);
+            if (prefabSmr != null)
+            {
+                nbSmr.sharedMaterials = prefabSmr.sharedMaterials;
+            }
+
+            AttachHeadAndHair(unit, parent);
+
+            return nbSmr;
+        }
+
+        private void AttachHeadAndHair(CharacterInstance unit, GameObject parent)
+        {
+            if (unit.CharacterTemplate.HeadAndHandsPrefab != null)
+            {
+                var hh = Instantiate(unit.CharacterTemplate.HeadAndHandsPrefab, parent.transform);
+                hh.name = "HeadAndHands";
+            }
+
+            if (unit.CharacterTemplate.HairPrefab != null)
+            {
+                var hair = Instantiate(unit.CharacterTemplate.HairPrefab, parent.transform);
+                hair.name = "Hair";
+            }
         }
 
         private GameObject TryReuseExistingModel(

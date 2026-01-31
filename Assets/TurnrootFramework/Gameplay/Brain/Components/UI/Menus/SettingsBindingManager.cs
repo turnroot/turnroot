@@ -42,6 +42,7 @@ namespace Turnroot.Gameplay.Brain.Segments
                 { "battlegridstyle", settings => settings.BattleGridStyle },
                 { "startunitsetting", settings => settings.StartUnitSetting },
                 { "preferredbattlemusic", settings => settings.PreferredBattleMusic },
+                { "preferredinputcontrol", settings => settings.PreferredInputControl },
             };
 
             RegisterDefaultBinders();

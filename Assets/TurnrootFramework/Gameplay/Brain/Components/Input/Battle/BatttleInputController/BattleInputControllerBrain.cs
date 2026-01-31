@@ -297,51 +297,7 @@ namespace Turnroot.Gameplay.Brain
                     }
                     break;
                 case PlayerTurnStates.UnitSelected:
-                    // If cursor is on a player unit, select it; otherwise if cursor is on a valid move tile, start move immediately
-                    if (unitAtCursor != null && BattleContext.IsPlayerControlledUnit(unitAtCursor))
-                    {
-                        var current = BattleContext?.Unit?.UnitInstance;
-                        if (current == null || current != unitAtCursor)
-                        {
-                            _playerTurnFlow.SelectUnit();
-                            ChangeSelectedUnit(unitAtCursor);
-                        }
-                        else
-                        {
-                            OpenActionMenu();
-                        }
-                    }
-                    else if (
-                        _brain.cursorBrain?.CursorPosition != null
-                        && _playerTurnFlow != null
-                        && _playerTurnFlow.GetCurrentState() == PlayerTurnStates.UnitSelected
-                        && BattleContext != null
-                        && _brain.cursorBrain != null
-                        && _brain.cursorBrain.GetUnitAtCursor() == null
-                        && _brain.cursorBrain?.CursorPosition != null
-                        && (
-                            new System.Func<bool>(() =>
-                            {
-                                var pos = _brain.cursorBrain.CursorPosition;
-                                return pos != null
-                                    && _brain.battleBrain.BattleObject.Context.TryGetValidTilesForUnit(
-                                        BattleContext.Unit.UnitInstance,
-                                        out var mv,
-                                        out var atk
-                                    )
-                                    && mv.ContainsKey(pos);
-                            })
-                        )()
-                    )
-                    {
-                        var destination = _brain.cursorBrain.CursorPosition;
-                        _pendingDestination = destination;
-                        _playerTurnFlow.SelectDestination(destination);
-                    }
-                    else
-                    {
-                        OpenActionMenu();
-                    }
+                    HandleConfirmOnUnitSelected(unitAtCursor);
                     break;
                 case PlayerTurnStates.ChoosingDestination:
                 case PlayerTurnStates.AttackActionChosenChoosingTarget:
@@ -383,6 +339,54 @@ namespace Turnroot.Gameplay.Brain
                     RequestUndo();
                     break;
             }
+        }
+
+        private void HandleConfirmOnUnitSelected(CharacterInstance unitAtCursor)
+        {
+            // If cursor is on a player unit, select or open action menu
+            if (unitAtCursor != null && BattleContext.IsPlayerControlledUnit(unitAtCursor))
+            {
+                var current = BattleContext?.Unit?.UnitInstance;
+                if (current == null || current != unitAtCursor)
+                {
+                    _playerTurnFlow.SelectUnit();
+                    ChangeSelectedUnit(unitAtCursor);
+                }
+                else
+                {
+                    OpenActionMenu();
+                }
+
+                return;
+            }
+
+            // If cursor is on a valid move tile (and not on a unit), start the move immediately
+            var cursorPos = _brain.cursorBrain?.CursorPosition;
+            if (
+                cursorPos != null
+                && _playerTurnFlow != null
+                && _playerTurnFlow.GetCurrentState() == PlayerTurnStates.UnitSelected
+                && BattleContext != null
+                && _brain.cursorBrain != null
+                && _brain.cursorBrain.GetUnitAtCursor() == null
+            )
+            {
+                if (
+                    BattleContext.TryGetValidTilesForUnit(
+                        BattleContext.Unit.UnitInstance,
+                        out var mv,
+                        out var atk
+                    ) && mv.ContainsKey(cursorPos)
+                )
+                {
+                    _pendingDestination = cursorPos;
+                    _playerTurnFlow.SelectDestination(cursorPos);
+                    return;
+                }
+            }
+
+            // Default: open action menu
+            OpenActionMenu();
         }
 
         #endregion

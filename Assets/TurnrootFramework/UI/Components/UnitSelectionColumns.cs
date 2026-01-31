@@ -160,82 +160,134 @@ namespace Turnroot.UI.Components
         )
         {
             var uf = new UtilityFunctions();
-            var nameT = uf.FindChildByTag(unitCell, "UnitCellUnitName");
             var gridMenuItem = unitCell.GetComponent<UnitCellGridMenuItem>();
-            if (nameT != null && nameT.TryGetComponent<TextMeshProUGUI>(out var nameLbl))
+
+            SetNameLabel(uf, unitCell, unit);
+            SetPortraitImage(uf, unitCell, unit);
+            SetClassLabel(uf, unitCell);
+            ConfigureSelection(
+                uf,
+                unitCell,
+                gridMenuItem,
+                unit,
+                prefix,
+                ltm,
+                ref currentlySelectedCount
+            );
+        }
+
+        private void SetNameLabel(
+            UtilityFunctions uf,
+            GameObject unitCell,
+            Characters.Roster.UnitPlacement unit
+        )
+        {
+            var nameT = uf.FindChildByTag(unitCell, "UnitCellUnitName");
+            if (nameT == null || !nameT.TryGetComponent<TextMeshProUGUI>(out var nameLbl))
             {
-                nameLbl.text = unit.CharacterData.DisplayName;
+                return;
             }
 
+            nameLbl.text = unit.CharacterData.DisplayName;
+        }
+
+        private void SetPortraitImage(
+            UtilityFunctions uf,
+            GameObject unitCell,
+            Characters.Roster.UnitPlacement unit
+        )
+        {
             var portraitT = uf.FindChildByTag(unitCell, "UnitCellUnitPortrait");
-            if (portraitT != null && portraitT.TryGetComponent<UnityEngine.UI.Image>(out var img))
+            if (portraitT == null || !portraitT.TryGetComponent<UnityEngine.UI.Image>(out var img))
             {
-                var portrait = unit.CharacterData.DefaultPortrait?.RuntimeSprite;
-                if (portrait != null)
-                {
-                    img.sprite = portrait;
-                }
+                return;
             }
 
+            var portrait = unit.CharacterData.DefaultPortrait?.RuntimeSprite;
+            if (portrait != null)
+            {
+                img.sprite = portrait;
+            }
+        }
+
+        private void SetClassLabel(UtilityFunctions uf, GameObject unitCell)
+        {
             var classT = uf.FindChildByTag(unitCell, "UnitCellUnitClass");
-            if (classT != null && classT.TryGetComponent<TextMeshProUGUI>(out var classLbl))
+            if (classT == null || !classT.TryGetComponent<TextMeshProUGUI>(out var classLbl))
             {
-                classLbl.text = "n/a"; // TODO: Get current class name from roster instance?
+                return;
             }
 
+            classLbl.text = "n/a"; // TODO: Get current class name from roster instance?
+        }
+
+        private void ConfigureSelection(
+            UtilityFunctions uf,
+            GameObject unitCell,
+            UnitCellGridMenuItem gridMenuItem,
+            Characters.Roster.UnitPlacement unit,
+            string prefix,
+            LongTermMemory ltm,
+            ref int currentlySelectedCount
+        )
+        {
             var selectedT = uf.FindChildByTag(unitCell, "UnitCellSelected");
-            if (selectedT != null)
+            if (selectedT == null || gridMenuItem == null)
             {
-                var selectionIndicator = selectedT.gameObject;
-                if (selectionIndicator != null)
+                return;
+            }
+
+            var selectionIndicator = selectedT.gameObject;
+            if (selectionIndicator == null)
+            {
+                return;
+            }
+
+            var key = prefix + unit.CharacterData.name;
+            var isSelected =
+                gridMenuItem.CharacterInstanceData != null
+                    ? gridMenuItem.CharacterInstanceData.IsSelectedForBattle
+                    : ltm?.RecallBool(key) ?? false;
+
+            // If the unit is required for this battle, enable them but don't save it to LTM
+            var requiredUnits =
+                _brain?.battleBrain?.PreparationObject?.RequiredPlayerUnits
+                ?? new System.Collections.Generic.List<Turnroot.Characters.CharacterData>();
+
+            if (requiredUnits.Contains(unit.CharacterData))
+            {
+                if (!isSelected)
                 {
-                    var key = prefix + unit.CharacterData.name;
-                    var isSelected =
-                        gridMenuItem.CharacterInstanceData != null
-                            ? gridMenuItem.CharacterInstanceData.IsSelectedForBattle
-                            : ltm?.RecallBool(key) ?? false;
+                    isSelected = true;
+                    currentlySelectedCount++;
+                }
 
-                    // Prefer runtime instance selection state when available; otherwise fall back to LTM.
-
-                    // If the unit is required for this battle, enable them but don't save it to LTM
-                    var requiredUnits =
-                        _brain?.battleBrain?.PreparationObject?.RequiredPlayerUnits
-                        ?? new System.Collections.Generic.List<Turnroot.Characters.CharacterData>();
-                    if (requiredUnits.Contains(unit.CharacterData))
-                    {
-                        // If not already selected via LTM or auto-fill, count them now
-                        if (!isSelected)
-                        {
-                            isSelected = true;
-                            currentlySelectedCount++;
-                        }
-
-                        // Turn on the required indicator
-                        var requiredT = uf.FindChildByTag(unitCell, "UnitCellRequiredIndicator");
-                        if (requiredT != null)
-                        {
-                            requiredT.gameObject.SetActive(true);
-                            gridMenuItem.CanBeSelectedForBattle = false;
-                        }
-                        else
-                        {
-                            gridMenuItem.CanBeSelectedForBattle = true;
-                        }
-                    }
-
-                    selectionIndicator.SetActive(isSelected);
-                    gridMenuItem.IsSelectedForBattle = isSelected;
-                    if (isSelected)
-                    {
-#if COFFEE_UIEFFECTS
-                        if (selectionIndicator.TryGetComponent<UIEffect>(out var uiEffect))
-                        {
-                            uiEffect.transitionRate = Random.Range(0, 1f);
-                        }
-#endif
-                    }
+                var requiredT = uf.FindChildByTag(unitCell, "UnitCellRequiredIndicator");
+                if (requiredT != null)
+                {
+                    requiredT.gameObject.SetActive(true);
+                    gridMenuItem.CanBeSelectedForBattle = false;
+                }
+                else
+                {
+                    gridMenuItem.CanBeSelectedForBattle = true;
                 }
             }
+
+            selectionIndicator.SetActive(isSelected);
+            gridMenuItem.IsSelectedForBattle = isSelected;
+
+            if (!isSelected)
+            {
+                return;
+            }
+
+#if COFFEE_UIEFFECTS
+            if (selectionIndicator.TryGetComponent<UIEffect>(out var uiEffect))
+            {
+                uiEffect.transitionRate = Random.Range(0, 1f);
+            }
+#endif
         }
 
         public void UpdateUnitCountText()
