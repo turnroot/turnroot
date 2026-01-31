@@ -183,9 +183,17 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
         public void InvalidateUnitTileCache(CharacterInstance unit)
         {
-            if (unit != null)
+            if (unit == null)
             {
-                InvalidateUnitTileCache(unit);
+                return;
+            }
+
+            // Remove cached tiles for this unit (if present). Avoid recursion.
+            if (_unitTilesCache.Remove(unit.Id))
+            {
+                TurnrootLogger.Log(
+                    $"BattleContext: Invalidated tile cache for {unit.CharacterTemplate?.DisplayName}"
+                );
             }
         }
 

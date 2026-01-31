@@ -13,15 +13,9 @@ namespace Turnroot.Gameplay.Brain.Segments
             action.AddBinding("<Keyboard>/w");
             action.AddBinding("<Keyboard>/upArrow");
 
-            var settings =
-                Turnroot.Utilities.GameSettingsLoader.LoadFirst<GameplayPlayerSettings>();
-            var selected = settings?.GetSelectedOptionForAction(
-                GameplayPlayerSettings.LogicalAction.NavigateUp
-            );
-            if (selected != null)
-            {
-                action.AddBinding(settings.GetBinding(selected.Value));
-            }
+            // Default gamepad bindings (customization removed)
+            action.AddBinding("<Gamepad>/dpad/up");
+
             action.Enable();
             return action;
         }
@@ -33,15 +27,9 @@ namespace Turnroot.Gameplay.Brain.Segments
             action.AddBinding("<Keyboard>/s");
             action.AddBinding("<Keyboard>/downArrow");
 
-            var settings =
-                Turnroot.Utilities.GameSettingsLoader.LoadFirst<GameplayPlayerSettings>();
-            var selected = settings?.GetSelectedOptionForAction(
-                GameplayPlayerSettings.LogicalAction.NavigateDown
-            );
-            if (selected != null)
-            {
-                action.AddBinding(settings.GetBinding(selected.Value));
-            }
+            // Default gamepad bindings (customization removed)
+            action.AddBinding("<Gamepad>/dpad/down");
+
             action.Enable();
             return action;
         }
@@ -53,15 +41,9 @@ namespace Turnroot.Gameplay.Brain.Segments
             action.AddBinding("<Keyboard>/enter");
             action.AddBinding("<Keyboard>/space");
 
-            var settings =
-                Turnroot.Utilities.GameSettingsLoader.LoadFirst<GameplayPlayerSettings>();
-            var selected = settings?.GetSelectedOptionForAction(
-                GameplayPlayerSettings.LogicalAction.Select
-            );
-            if (selected != null)
-            {
-                action.AddBinding(settings.GetBinding(selected.Value));
-            }
+            // Default gamepad bindings (customization removed)
+            action.AddBinding("<Gamepad>/submit");
+            action.AddBinding("<Gamepad>/buttonSouth");
 
             action.Enable();
             return action;
@@ -74,15 +56,9 @@ namespace Turnroot.Gameplay.Brain.Segments
             action.AddBinding("<Keyboard>/a");
             action.AddBinding("<Keyboard>/leftArrow");
 
-            var settings =
-                Turnroot.Utilities.GameSettingsLoader.LoadFirst<GameplayPlayerSettings>();
-            var selected = settings?.GetSelectedOptionForAction(
-                GameplayPlayerSettings.LogicalAction.NavigateLeft
-            );
-            if (selected != null)
-            {
-                action.AddBinding(settings.GetBinding(selected.Value));
-            }
+            // Default gamepad bindings (customization removed)
+            action.AddBinding("<Gamepad>/dpad/left");
+
             action.Enable();
             return action;
         }
@@ -94,15 +70,9 @@ namespace Turnroot.Gameplay.Brain.Segments
             action.AddBinding("<Keyboard>/d");
             action.AddBinding("<Keyboard>/rightArrow");
 
-            var settings =
-                Turnroot.Utilities.GameSettingsLoader.LoadFirst<GameplayPlayerSettings>();
-            var selected = settings?.GetSelectedOptionForAction(
-                GameplayPlayerSettings.LogicalAction.NavigateRight
-            );
-            if (selected != null)
-            {
-                action.AddBinding(settings.GetBinding(selected.Value));
-            }
+            // Default gamepad bindings (customization removed)
+            action.AddBinding("<Gamepad>/dpad/right");
+
             action.Enable();
             return action;
         }
@@ -114,15 +84,10 @@ namespace Turnroot.Gameplay.Brain.Segments
             action.AddBinding("<Keyboard>/escape");
             action.AddBinding("<Keyboard>/backspace");
 
-            var settings =
-                Turnroot.Utilities.GameSettingsLoader.LoadFirst<GameplayPlayerSettings>();
-            var selected = settings?.GetSelectedOptionForAction(
-                GameplayPlayerSettings.LogicalAction.Back
-            );
-            if (selected != null)
-            {
-                action.AddBinding(settings.GetBinding(selected.Value));
-            }
+            // Default gamepad bindings (customization removed)
+            action.AddBinding("<Gamepad>/cancel");
+            action.AddBinding("<Gamepad>/buttonEast");
+
             action.Enable();
             return action;
         }
@@ -133,15 +98,9 @@ namespace Turnroot.Gameplay.Brain.Segments
             // Default keyboard binding
             action.AddBinding("<Keyboard>/x");
 
-            var settings =
-                Turnroot.Utilities.GameSettingsLoader.LoadFirst<GameplayPlayerSettings>();
-            var selected = settings?.GetSelectedOptionForAction(
-                GameplayPlayerSettings.LogicalAction.Details
-            );
-            if (selected != null)
-            {
-                action.AddBinding(settings.GetBinding(selected.Value));
-            }
+            // Default gamepad binding (customization removed)
+            action.AddBinding("<Gamepad>/buttonWest");
+
             action.Enable();
             return action;
         }
@@ -155,42 +114,9 @@ namespace Turnroot.Gameplay.Brain.Segments
             action.AddBinding("<Keyboard>/wASD");
             action.AddBinding("<Keyboard>/arrowKeys");
 
-            var settings =
-                Turnroot.Utilities.GameSettingsLoader.LoadFirst<GameplayPlayerSettings>();
-            var selected = settings?.GetSelectedOptionForAction(
-                GameplayPlayerSettings.LogicalAction.NavigateVector
-            );
-
-            if (selected == GameplayPlayerSettings.InputBindingKey.NavigateVector_GamepadLeftStick)
-            {
-                action.AddBinding(
-                    settings.GetBinding(
-                        GameplayPlayerSettings.InputBindingKey.NavigateVector_GamepadLeftStick
-                    )
-                );
-            }
-            else if (selected == GameplayPlayerSettings.InputBindingKey.NavigateVector_GamepadDpad)
-            {
-                action.AddBinding(
-                    settings.GetBinding(
-                        GameplayPlayerSettings.InputBindingKey.NavigateVector_GamepadDpad
-                    )
-                );
-            }
-            else
-            {
-                // Fallback: add both gamepad sources
-                action.AddBinding(
-                    settings?.GetBinding(
-                        GameplayPlayerSettings.InputBindingKey.NavigateVector_GamepadLeftStick
-                    ) ?? "<Gamepad>/leftStick"
-                );
-                action.AddBinding(
-                    settings?.GetBinding(
-                        GameplayPlayerSettings.InputBindingKey.NavigateVector_GamepadDpad
-                    ) ?? "<Gamepad>/dpad"
-                );
-            }
+            // Add both gamepad sources by default (customization removed)
+            action.AddBinding("<Gamepad>/leftStick");
+            action.AddBinding("<Gamepad>/dpad");
 
             action.Enable();
             return action;

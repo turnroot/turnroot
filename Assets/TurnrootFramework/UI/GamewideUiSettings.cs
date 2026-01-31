@@ -150,8 +150,6 @@ namespace Turnroot.GameSettings
             allPossibleMenuLocations.Add(graphicsMenu);
             var audioMenu = new MenuLocation(gameSettingsMenu, MenuName.AudioMenu);
             allPossibleMenuLocations.Add(audioMenu);
-            var controlsMenu = new MenuLocation(gameSettingsMenu, MenuName.ControlsMenu);
-            allPossibleMenuLocations.Add(controlsMenu);
             var gameplayMenu = new MenuLocation(gameSettingsMenu, MenuName.GameplayMenu);
             allPossibleMenuLocations.Add(gameplayMenu);
             // New game + avatar

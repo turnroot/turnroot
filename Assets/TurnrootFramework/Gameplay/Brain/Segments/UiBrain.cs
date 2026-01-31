@@ -110,12 +110,8 @@ namespace Turnroot.Gameplay.Brain.Segments
                     _menuTracker.OnDepthChanged += OnMenuDepthChanged;
                 }
 
-                // Subscribe to binding changes so we can rewire inputs at runtime
+                // Player settings (no input customization present)
                 _playerSettings = GameSettingsLoader.LoadFirst<GameplayPlayerSettings>();
-                if (_playerSettings != null)
-                {
-                    _playerSettings.BindingsChanged += OnBindingsChanged;
-                }
                 var CursorBrain = GetComponent<CursorBrain>();
                 CursorBrain.SetUiSettingsReference(uiSettings);
             }
@@ -136,51 +132,6 @@ namespace Turnroot.Gameplay.Brain.Segments
 
         #region Brain Events and State Management
 
-        private void OnBindingsChanged()
-        {
-            // Rewire inputs for all menus and role buttons when bindings change
-            try
-            {
-                // Rebind every MenuBase found in the scene
-                var menus = UnityEngine.Object.FindObjectsByType<MenuBase>(
-                    FindObjectsInactive.Include,
-                    FindObjectsSortMode.None
-                );
-                foreach (var menu in menus)
-                {
-                    // Recreate the input actions for the menu
-                    SetupMenuInputActions(menu);
-
-                    // Reassign select actions for child SimpleButton components to the new menu.selectAction
-                    var simpleButtons = menu.GetComponentsInChildren<SimpleButton>(true);
-                    foreach (var sb in simpleButtons)
-                    {
-                        try
-                        {
-                            if (sb.SelectAction != null)
-                            {
-                                sb.SelectAction.Disable();
-                                sb.SelectAction.Dispose();
-                            }
-                        }
-                        catch { }
-
-                        sb.AssignSelectAction(menu.selectAction);
-                    }
-                }
-
-                // Reassign Back/Details buttons instantiated on menu canvases
-                ReassignRoleButton(_currentMenuCanvasPrefab);
-                ReassignRoleButton(_currentDetailsCanvasPrefab);
-            }
-            catch (System.Exception ex)
-            {
-                TurnrootLogger.Log(
-                    $"UiBrain: Error rebinding inputs: {ex.Message}",
-                    TurnrootLogger.LogLevel.Error
-                );
-            }
-        }
 
         private void ReassignRoleButton(GameObject canvas)
         {

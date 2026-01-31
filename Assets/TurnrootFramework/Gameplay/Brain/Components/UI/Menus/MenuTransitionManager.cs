@@ -18,7 +18,6 @@ namespace Turnroot.Gameplay.Brain.Segments
         Graphics,
         Gameplay,
         Audio,
-        Controls,
         Battle,
         Map,
         Team,
@@ -50,7 +49,6 @@ namespace Turnroot.Gameplay.Brain.Segments
                 var l when l == _settings?.GetGameSettingsGraphicsMenu() => MenuType.Graphics,
                 var l when l == _settings?.GetGameSettingsGameplayMenu() => MenuType.Gameplay,
                 var l when l == _settings?.GetGameSettingsAudioMenu() => MenuType.Audio,
-                var l when l == _settings?.GetGameSettingsControlsMenu() => MenuType.Controls,
                 var l when l == _settings?.GetPrebattleMapMenu() => MenuType.Map,
                 var l when l == _settings?.GetPrebattleUnitsMenu() => MenuType.Team,
                 _ => MenuType.Unknown,
@@ -142,11 +140,8 @@ namespace Turnroot.Gameplay.Brain.Segments
             {
                 MenuType.PreBattle or MenuType.Map or MenuType.Team =>
                     _brain.HandlePreBattleMenuSelect,
-                MenuType.Settings
-                or MenuType.Graphics
-                or MenuType.Gameplay
-                or MenuType.Audio
-                or MenuType.Controls => _brain.HandleGameSettingsMenuSelect,
+                MenuType.Settings or MenuType.Graphics or MenuType.Gameplay or MenuType.Audio =>
+                    _brain.HandleGameSettingsMenuSelect,
                 _ => _brain.HandleMenuSelect,
             };
 

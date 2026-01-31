@@ -41,7 +41,7 @@ namespace Turnroot.Gameplay.Brain.Segments
             GetValidatedMenuLocation(() => gameSettingsGraphicsLocation, "Game settings graphics");
             GetValidatedMenuLocation(() => gameSettingsGameplayLocation, "Game settings gameplay");
             GetValidatedMenuLocation(() => gameSettingsAudioLocation, "Game settings audio");
-            GetValidatedMenuLocation(() => gameSettingsControlsLocation, "Game settings controls");
+
             GetValidatedMenuLocation(() => preBattleMenuLocation, "Pre-battle");
             GetValidatedMenuLocation(() => prebattleMapMenuLocation, "Pre-battle map");
             GetValidatedMenuLocation(() => prebattleUnitsMenuLocation, "Pre-battle units");

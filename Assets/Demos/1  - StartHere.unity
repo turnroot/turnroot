@@ -13876,13 +13876,13 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 479756322}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 38.300003}
   m_LocalScale: {x: 0, y: 0, z: 0}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1421615753}
-  m_Father: {fileID: 1830534780}
+  m_Father: {fileID: 935331459}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
@@ -26131,6 +26131,40 @@ MonoBehaviour:
   _featureObjectItemProperties: []
   _featureBoolProperties: []
   _featureFloatProperties: []
+--- !u!1 &935331458
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 935331459}
+  m_Layer: 0
+  m_Name: Battle Components
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &935331459
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 935331458}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1742232839}
+  - {fileID: 1321228776}
+  - {fileID: 479756323}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &942152224
 GameObject:
   m_ObjectHideFlags: 0
@@ -36242,6 +36276,11 @@ MonoBehaviour:
   _featureObjectItemProperties: []
   _featureBoolProperties: []
   _featureFloatProperties: []
+--- !u!4 &1321228776 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 1727604653950440879, guid: bcbce3e4930f8574982e8b65369c56a5, type: 3}
+  m_PrefabInstance: {fileID: 7599282413907510873}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1323166954
 GameObject:
   m_ObjectHideFlags: 0
@@ -38185,17 +38224,6 @@ MonoBehaviour:
   _featureObjectItemProperties: []
   _featureBoolProperties: []
   _featureFloatProperties: []
---- !u!114 &1382336261 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 99573299477759725, guid: bcbce3e4930f8574982e8b65369c56a5, type: 3}
-  m_PrefabInstance: {fileID: 7599282413907510873}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
 --- !u!1 &1382810449
 GameObject:
   m_ObjectHideFlags: 0
@@ -47734,14 +47762,14 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1742232834}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1671593255}
   - {fileID: 1504346366}
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 935331459}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1742232840
 MonoBehaviour:
@@ -50153,7 +50181,7 @@ Transform:
   m_Children:
   - {fileID: 2023775200}
   - {fileID: 993814470}
-  - {fileID: 479756323}
+  - {fileID: 2008589565}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1831093231
@@ -54042,17 +54070,6 @@ MonoBehaviour:
   _featureObjectItemProperties: []
   _featureBoolProperties: []
   _featureFloatProperties: []
---- !u!114 &1989549782 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 3178713994002790861, guid: bcbce3e4930f8574982e8b65369c56a5, type: 3}
-  m_PrefabInstance: {fileID: 7599282413907510873}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
 --- !u!1 &1991122073
 GameObject:
   m_ObjectHideFlags: 0
@@ -54661,12 +54678,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2008589562}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -38.5, y: 0, z: -38.300003}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 1830534780}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2016011329
 GameObject:
@@ -59575,12 +59592,8 @@ PrefabInstance:
   serializedVersion: 2
   m_Modification:
     serializedVersion: 3
-    m_TransformParent: {fileID: 0}
+    m_TransformParent: {fileID: 935331459}
     m_Modifications:
-    - target: {fileID: 99573299477759725, guid: bcbce3e4930f8574982e8b65369c56a5, type: 3}
-      propertyPath: m_text
-      value: 
-      objectReference: {fileID: 0}
     - target: {fileID: 269948495531076679, guid: bcbce3e4930f8574982e8b65369c56a5, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
@@ -59612,10 +59625,6 @@ PrefabInstance:
     - target: {fileID: 780990196071785819, guid: bcbce3e4930f8574982e8b65369c56a5, type: 3}
       propertyPath: m_AnchoredPosition.y
       value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 804458422475225799, guid: bcbce3e4930f8574982e8b65369c56a5, type: 3}
-      propertyPath: m_Name
-      value: BattlePreTurnCanvas
       objectReference: {fileID: 0}
     - target: {fileID: 965141780005371615, guid: bcbce3e4930f8574982e8b65369c56a5, type: 3}
       propertyPath: m_AnchorMax.y
@@ -59741,10 +59750,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: Battle Scene Flow
       objectReference: {fileID: 0}
-    - target: {fileID: 3919077790560722290, guid: bcbce3e4930f8574982e8b65369c56a5, type: 3}
-      propertyPath: m_IsActive
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 3957494336083724009, guid: bcbce3e4930f8574982e8b65369c56a5, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
@@ -59792,70 +59797,6 @@ PrefabInstance:
     - target: {fileID: 5727409185103366490, guid: bcbce3e4930f8574982e8b65369c56a5, type: 3}
       propertyPath: m_AnchoredPosition.y
       value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6184827468696405307, guid: bcbce3e4930f8574982e8b65369c56a5, type: 3}
-      propertyPath: StartPreLoading.m_PersistentCalls.m_Calls.Array.size
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6184827468696405307, guid: bcbce3e4930f8574982e8b65369c56a5, type: 3}
-      propertyPath: OnLoadedAmountChanged.m_PersistentCalls.m_Calls.Array.size
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6184827468696405307, guid: bcbce3e4930f8574982e8b65369c56a5, type: 3}
-      propertyPath: segments.Array.data[1].onSegmentReached.m_PersistentCalls.m_Calls.Array.size
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 6184827468696405307, guid: bcbce3e4930f8574982e8b65369c56a5, type: 3}
-      propertyPath: segments.Array.data[2].onSegmentReached.m_PersistentCalls.m_Calls.Array.size
-      value: 2
-      objectReference: {fileID: 0}
-    - target: {fileID: 6184827468696405307, guid: bcbce3e4930f8574982e8b65369c56a5, type: 3}
-      propertyPath: segments.Array.data[1].onSegmentReached.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 6184827468696405307, guid: bcbce3e4930f8574982e8b65369c56a5, type: 3}
-      propertyPath: segments.Array.data[2].onSegmentReached.m_PersistentCalls.m_Calls.Array.data[1].m_Mode
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 6184827468696405307, guid: bcbce3e4930f8574982e8b65369c56a5, type: 3}
-      propertyPath: segments.Array.data[1].onSegmentReached.m_PersistentCalls.m_Calls.Array.data[0].m_Target
-      value: 
-      objectReference: {fileID: 1742232835}
-    - target: {fileID: 6184827468696405307, guid: bcbce3e4930f8574982e8b65369c56a5, type: 3}
-      propertyPath: segments.Array.data[2].onSegmentReached.m_PersistentCalls.m_Calls.Array.data[1].m_Target
-      value: 
-      objectReference: {fileID: 1742232835}
-    - target: {fileID: 6184827468696405307, guid: bcbce3e4930f8574982e8b65369c56a5, type: 3}
-      propertyPath: segments.Array.data[1].onSegmentReached.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
-      value: 2
-      objectReference: {fileID: 0}
-    - target: {fileID: 6184827468696405307, guid: bcbce3e4930f8574982e8b65369c56a5, type: 3}
-      propertyPath: segments.Array.data[2].onSegmentReached.m_PersistentCalls.m_Calls.Array.data[1].m_CallState
-      value: 2
-      objectReference: {fileID: 0}
-    - target: {fileID: 6184827468696405307, guid: bcbce3e4930f8574982e8b65369c56a5, type: 3}
-      propertyPath: segments.Array.data[1].onSegmentReached.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
-      value: DisableInput
-      objectReference: {fileID: 0}
-    - target: {fileID: 6184827468696405307, guid: bcbce3e4930f8574982e8b65369c56a5, type: 3}
-      propertyPath: segments.Array.data[2].onSegmentReached.m_PersistentCalls.m_Calls.Array.data[1].m_MethodName
-      value: EnableInput
-      objectReference: {fileID: 0}
-    - target: {fileID: 6184827468696405307, guid: bcbce3e4930f8574982e8b65369c56a5, type: 3}
-      propertyPath: segments.Array.data[1].onSegmentReached.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
-      value: Turnroot.Gameplay.Combat.BattleGameObject, Assembly-CSharp
-      objectReference: {fileID: 0}
-    - target: {fileID: 6184827468696405307, guid: bcbce3e4930f8574982e8b65369c56a5, type: 3}
-      propertyPath: segments.Array.data[2].onSegmentReached.m_PersistentCalls.m_Calls.Array.data[1].m_TargetAssemblyTypeName
-      value: Turnroot.Gameplay.Combat.BattleGameObject, Assembly-CSharp
-      objectReference: {fileID: 0}
-    - target: {fileID: 6184827468696405307, guid: bcbce3e4930f8574982e8b65369c56a5, type: 3}
-      propertyPath: segments.Array.data[1].onSegmentReached.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
-      value: UnityEngine.Object, UnityEngine
-      objectReference: {fileID: 0}
-    - target: {fileID: 6184827468696405307, guid: bcbce3e4930f8574982e8b65369c56a5, type: 3}
-      propertyPath: segments.Array.data[2].onSegmentReached.m_PersistentCalls.m_Calls.Array.data[1].m_Arguments.m_ObjectArgumentAssemblyTypeName
-      value: UnityEngine.Object, UnityEngine
       objectReference: {fileID: 0}
     - target: {fileID: 6186557246191489198, guid: bcbce3e4930f8574982e8b65369c56a5, type: 3}
       propertyPath: m_ExposedReferences.m_References.Array.data[0].second
@@ -59877,31 +59818,6 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 6593402473471794954, guid: bcbce3e4930f8574982e8b65369c56a5, type: 3}
-      propertyPath: _textComponent
-      value: 
-      objectReference: {fileID: 1382336261}
-    - target: {fileID: 6593402473471794954, guid: bcbce3e4930f8574982e8b65369c56a5, type: 3}
-      propertyPath: Hints.Array.size
-      value: 3
-      objectReference: {fileID: 0}
-    - target: {fileID: 6593402473471794954, guid: bcbce3e4930f8574982e8b65369c56a5, type: 3}
-      propertyPath: 'Hints.Array.data[0]'
-      value: Use the tactical lens to get a glimpse into an enemy's behavior
-      objectReference: {fileID: 0}
-    - target: {fileID: 6593402473471794954, guid: bcbce3e4930f8574982e8b65369c56a5, type: 3}
-      propertyPath: 'Hints.Array.data[1]'
-      value: Units generally fight better close to friends
-      objectReference: {fileID: 0}
-    - target: {fileID: 6593402473471794954, guid: bcbce3e4930f8574982e8b65369c56a5, type: 3}
-      propertyPath: 'Hints.Array.data[2]'
-      value: If an enemy is avoiding combat, they may have a strategic goal you can't
-        see. Beware traps
-      objectReference: {fileID: 0}
-    - target: {fileID: 6897730604044561914, guid: bcbce3e4930f8574982e8b65369c56a5, type: 3}
-      propertyPath: TurnText
-      value: 
-      objectReference: {fileID: 1989549782}
     - target: {fileID: 7330701043511101161, guid: bcbce3e4930f8574982e8b65369c56a5, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
@@ -59949,22 +59865,6 @@ PrefabInstance:
     - target: {fileID: 7645922906081942079, guid: bcbce3e4930f8574982e8b65369c56a5, type: 3}
       propertyPath: m_AnchoredPosition.y
       value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7778715969270593766, guid: bcbce3e4930f8574982e8b65369c56a5, type: 3}
-      propertyPath: OnMiniBattleStateBattleTurn.m_PersistentCalls.m_Calls.Array.size
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7778715969270593766, guid: bcbce3e4930f8574982e8b65369c56a5, type: 3}
-      propertyPath: OnMiniBattleStateBattleTurn.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 7778715969270593766, guid: bcbce3e4930f8574982e8b65369c56a5, type: 3}
-      propertyPath: OnMiniBattleStateBattleTurn.m_PersistentCalls.m_Calls.Array.data[0].m_Target
-      value: 
-      objectReference: {fileID: 1742232834}
-    - target: {fileID: 7778715969270593766, guid: bcbce3e4930f8574982e8b65369c56a5, type: 3}
-      propertyPath: OnMiniBattleStateBattleTurn.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
-      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 8934030873259943151, guid: bcbce3e4930f8574982e8b65369c56a5, type: 3}
       propertyPath: m_AnchorMax.y
@@ -60145,8 +60045,6 @@ SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
   - {fileID: 3633751634012478304}
-  - {fileID: 1742232839}
-  - {fileID: 7599282413907510873}
   - {fileID: 143982156611118961}
+  - {fileID: 935331459}
   - {fileID: 1830534780}
-  - {fileID: 2008589565}

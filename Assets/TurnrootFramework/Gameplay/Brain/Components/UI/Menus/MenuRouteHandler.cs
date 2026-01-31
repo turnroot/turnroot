@@ -38,8 +38,6 @@ namespace Turnroot.Gameplay.Brain.Segments
             _menuActionRoutes["Gameplay"] = _ =>
                 TransitionToSubmenu(_brain.gameSettingsGameplayLocation);
             _menuActionRoutes["Audio"] = _ => TransitionToSubmenu(_brain.gameSettingsAudioLocation);
-            _menuActionRoutes["Controls"] = _ =>
-                TransitionToSubmenu(_brain.gameSettingsControlsLocation);
         }
 
         private float _lastSelectTime = -10f;
