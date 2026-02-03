@@ -55,8 +55,8 @@ namespace Turnroot.Gameplay.Brain
         {
             _validMoveTiles.Clear();
             _validAttackTiles.Clear();
-            _brain.cursorBrain?.ClearAllowedPositions();
-            _tileHighlighter?.ClearAll();
+            _brain.cursorBrain.ClearAllowedPositions();
+            _tileHighlighter.ClearAll();
         }
 
         private void HandleUnitSelectedState()
@@ -92,7 +92,7 @@ namespace Turnroot.Gameplay.Brain
                 _validMoveTiles.Keys.Select(k => k.CoordinatesInt)
             );
             _tileHighlighter.HighlightTiles(movePositions, TileHighlighter.HighlightType.Move);
-            _brain.cursorBrain?.SetAllowedPositions(movePositions);
+            _brain.cursorBrain.SetAllowedPositions(movePositions);
         }
 
         private void HandleAttackActionChoosingTargetState()
@@ -101,7 +101,7 @@ namespace Turnroot.Gameplay.Brain
                 _validAttackTiles.Keys.Select(k => k.CoordinatesInt)
             );
             _tileHighlighter.HighlightTiles(attackPositions, TileHighlighter.HighlightType.Attack);
-            _brain.cursorBrain?.SetAllowedPositions(attackPositions);
+            _brain.cursorBrain.SetAllowedPositions(attackPositions);
         }
 
         private void HandleChoosingActionState() => OpenActionMenu();
@@ -147,9 +147,9 @@ namespace Turnroot.Gameplay.Brain
         {
             _validMoveTiles.Clear();
             _validAttackTiles.Clear();
-            _brain.cursorBrain?.ClearAllowedPositions();
+            _brain.cursorBrain.ClearAllowedPositions();
             _brain.PublishPlayerTurnEnded();
-            _playerTurnFlow?.EndTurn();
+            _playerTurnFlow.EndTurn();
         }
 
         #endregion
@@ -158,17 +158,12 @@ namespace Turnroot.Gameplay.Brain
 
         private static Vector2 RotateVectorBy90StepsCW(Vector2 v, int steps)
         {
-            // Normalize steps to 0..3
             steps = ((steps % 4) + 4) % 4;
-            // Apply clockwise 90° rotation steps using integer math to avoid trig imprecision
             return steps switch
             {
                 0 => v,
-                // 90° clockwise: (x,y) -> (y, -x)
                 1 => new Vector2(v.y, -v.x),
-                // 180°: (x,y) -> (-x, -y)
                 2 => new Vector2(-v.x, -v.y),
-                // 270° clockwise (or 90° ccw): (x,y) -> (-y, x)
                 3 => new Vector2(-v.y, v.x),
                 _ => v,
             };
@@ -195,7 +190,7 @@ namespace Turnroot.Gameplay.Brain
 
         public bool ValidateTileSelection(MapGridPoint point)
         {
-            var currentState = _playerTurnFlow?.GetCurrentState() ?? PlayerTurnStates.Inactive;
+            var currentState = _playerTurnFlow.GetCurrentState();
 
             return currentState switch
             {
@@ -214,7 +209,7 @@ namespace Turnroot.Gameplay.Brain
                 return false;
             }
 
-            var currentState = _playerTurnFlow?.GetCurrentState() ?? PlayerTurnStates.Inactive;
+            var currentState = _playerTurnFlow.GetCurrentState();
 
             return currentState switch
             {
@@ -235,7 +230,7 @@ namespace Turnroot.Gameplay.Brain
                 return;
             }
 
-            var currentState = _playerTurnFlow?.GetCurrentState() ?? PlayerTurnStates.Inactive;
+            var currentState = _playerTurnFlow.GetCurrentState();
 
             switch (currentState)
             {
@@ -344,7 +339,7 @@ namespace Turnroot.Gameplay.Brain
             );
         }
 
-        public void RequestUndo() => _brain?.PublishPlayerUndoAction();
+        public void RequestUndo() => _brain.PublishPlayerUndoAction();
 
         public void OpenActionMenu() { }
 
@@ -365,15 +360,6 @@ namespace Turnroot.Gameplay.Brain
             }
 
             var context = _brain.battleBrain.BattleObject.Context;
-            if (context == null)
-            {
-                TurnrootLogger.Log(
-                    "BattleInputControllerBrain: BattleContext is null",
-                    TurnrootLogger.LogLevel.Error
-                );
-                return OperationResult.Failure("BattleContext not available");
-            }
-
             if (!context.TryGetValidTilesForUnit(unit, out var moveTiles, out var attackTiles))
             {
                 TurnrootLogger.Log(

@@ -48,7 +48,7 @@ namespace Turnroot.Gameplay.Brain
         protected override void Awake()
         {
             base.Awake();
-            _playerTurnFlow = _brain?.battleBrain?.playerTurnFlow;
+            _playerTurnFlow = _brain.battleBrain.playerTurnFlow;
             _lastInputTime = -999f;
             UpdateInputCooldown();
         }
@@ -56,7 +56,7 @@ namespace Turnroot.Gameplay.Brain
         private void Start()
         {
             // Check if we're already in battle state (can happen if component loads late)
-            if (_brain?.stateBrain?.CurrentState?.Name == BrainStateNames.Battle)
+            if (_brain.stateBrain.CurrentState.Name == BrainStateNames.Battle)
             {
                 // Battle already started before we subscribed, initialize manually
                 _lastInputTime = Time.time;
@@ -68,19 +68,20 @@ namespace Turnroot.Gameplay.Brain
         private void Update()
         {
             // Don't process input until battle is fully ready; also respect global input enabled flag
-            if (!_inputEnabled || !IsBattleInputEnabled)
+            if (
+                !_inputEnabled
+                || !IsBattleInputEnabled
+                || (Time.time - _lastInputTime < _cachedInputCooldown)
+            )
             {
                 return;
             }
-
-            if (Time.time - _lastInputTime < _cachedInputCooldown)
+            else
             {
-                return;
-            }
-
-            if (ProcessInput())
-            {
-                _lastInputTime = Time.time;
+                if (ProcessInput())
+                {
+                    _lastInputTime = Time.time;
+                }
             }
         }
 
@@ -125,15 +126,13 @@ namespace Turnroot.Gameplay.Brain
             if (_inputActions?.Navigate?.enabled == true)
             {
                 var inputVec = _inputActions.Navigate.ReadValue<Vector2>();
-                var camAngle = _brain?.cameraBrain?.CurrentAngle ?? 0;
-                // a right rotation (1 step) maps Up -> Right.
+                var camAngle = _brain.cameraBrain.CurrentAngle;
                 var steps = (((int)camAngle % 360) + 360) % 360 / 90;
                 var direction = RotateVectorBy90StepsCW(inputVec, steps);
-                // Use magnitude threshold for deadzone handling
                 if (direction.magnitude > 0.1f)
                 {
                     HandleNavigateInput(direction);
-                    _brain?.Publish(
+                    _brain.Publish(
                         new BattleContext.BattleInputNavigateEvent { Direction = direction }
                     );
                     return true;
@@ -142,20 +141,20 @@ namespace Turnroot.Gameplay.Brain
 
             if (_inputActions?.Confirm?.WasPressedThisFrame() == true)
             {
-                _brain?.Publish(new BattleContext.BattleInputConfirmEvent());
+                _brain.Publish(new BattleContext.BattleInputConfirmEvent());
                 HandleConfirmInput();
                 return true;
             }
 
             if (_inputActions?.Cancel?.WasPressedThisFrame() == true)
             {
-                _brain?.Publish(new BattleContext.BattleInputCancelEvent());
+                _brain.Publish(new BattleContext.BattleInputCancelEvent());
                 return true;
             }
 
             if (_inputActions?.Menu?.WasPressedThisFrame() == true)
             {
-                _brain?.Publish(new BattleContext.BattleInputMenuEvent());
+                _brain.Publish(new BattleContext.BattleInputMenuEvent());
                 return true;
             }
 
@@ -213,14 +212,14 @@ namespace Turnroot.Gameplay.Brain
         private IEnumerator InitializeWhenReady()
         {
             int waitCount = 0;
-            while (_brain?.battleBrain?.BattleObject?.Context?.MapGrid == null)
+            while (_brain.battleBrain.BattleObject.Context.MapGrid == null)
             {
                 waitCount++;
                 yield return new WaitForSeconds(0.05f);
             }
 
             waitCount = 0;
-            while (_brain?.cursorBrain?.IsInitialized != true)
+            while (_brain.cursorBrain.IsInitialized != true)
             {
                 waitCount++;
                 yield return new WaitForSeconds(0.05f);
@@ -260,17 +259,11 @@ namespace Turnroot.Gameplay.Brain
             var currentState = _playerTurnFlow?.GetCurrentState();
             _brain.cursorBrain.NavigateCursor(direction);
 
-            // TODO: Update UI based on cursor position
             switch (currentState)
             {
                 case PlayerTurnStates.UnitSelected:
                 case PlayerTurnStates.ChoosingDestination:
                     var path = HandlePathPreview();
-
-                    if (_tileHighlighter == null)
-                    {
-                        break;
-                    }
 
                     if (path == null || path.Count == 0)
                     {
@@ -278,11 +271,10 @@ namespace Turnroot.Gameplay.Brain
                         break;
                     }
 
-                    // Path already includes start tile as first element; pass the full path directly
                     _tileHighlighter.HighlightPath(path);
                     break;
                 case PlayerTurnStates.AttackActionChosenChoosingTarget:
-                    // Update damage preview
+                    // TODO: Damage preview
                     break;
             }
         }
@@ -319,36 +311,36 @@ namespace Turnroot.Gameplay.Brain
                     ConfirmTileSelection();
                     break;
                 case PlayerTurnStates.ConfirmAction:
-                    _playerTurnFlow?.ConfirmAction();
+                    _playerTurnFlow.ConfirmAction();
                     break;
             }
         }
 
         public void HandleCancelInput()
         {
-            var currentState = _playerTurnFlow?.GetCurrentState() ?? PlayerTurnStates.Inactive;
+            var currentState = _playerTurnFlow.GetCurrentState();
 
             switch (currentState)
             {
                 case PlayerTurnStates.UnitSelected:
-                    _playerTurnFlow?.DeselectUnit();
+                    _playerTurnFlow.DeselectUnit();
                     break;
                 case PlayerTurnStates.ChoosingDestination:
-                    _playerTurnFlow?.CancelTargetOrDestinationChoice(PlayerTurnStates.UnitSelected);
-                    _brain.cursorBrain?.ClearAllowedPositions();
+                    _playerTurnFlow.CancelTargetOrDestinationChoice(PlayerTurnStates.UnitSelected);
+                    _brain.cursorBrain.ClearAllowedPositions();
                     break;
                 case PlayerTurnStates.DestinationSelected:
                     // Cancel destination selection and return to unit selected state
-                    _playerTurnFlow?.CancelTargetOrDestinationChoice(PlayerTurnStates.UnitSelected);
-                    _brain.cursorBrain?.ClearAllowedPositions();
+                    _playerTurnFlow.CancelTargetOrDestinationChoice(PlayerTurnStates.UnitSelected);
+                    _brain.cursorBrain.ClearAllowedPositions();
                     break;
                 case PlayerTurnStates.ChoosingAction:
                     // After a move completed, Back undoes the move (handled by PlayerTurnFlow.HandlePlayerUndoAction)
                     RequestUndo();
                     break;
                 case PlayerTurnStates.AttackActionChosenChoosingTarget:
-                    _playerTurnFlow?.CancelTargetOrDestinationChoice(PlayerTurnStates.UnitSelected);
-                    _brain.cursorBrain?.ClearAllowedPositions();
+                    _playerTurnFlow.CancelTargetOrDestinationChoice(PlayerTurnStates.UnitSelected);
+                    _brain.cursorBrain.ClearAllowedPositions();
                     break;
                 case PlayerTurnStates.ConfirmAction:
                     RequestUndo();
@@ -361,7 +353,7 @@ namespace Turnroot.Gameplay.Brain
             // If cursor is on a player unit, select or open action menu
             if (unitAtCursor != null && BattleContext.IsPlayerControlledUnit(unitAtCursor))
             {
-                var current = BattleContext?.Unit?.UnitInstance;
+                var current = BattleContext.Unit.UnitInstance;
                 if (current == null || current != unitAtCursor)
                 {
                     _playerTurnFlow.SelectUnit();
@@ -376,7 +368,7 @@ namespace Turnroot.Gameplay.Brain
             }
 
             // If cursor is on a valid move tile (and not on a unit), start the move immediately
-            var cursorPos = _brain.cursorBrain?.CursorPosition;
+            var cursorPos = _brain.cursorBrain.CursorPosition;
             if (
                 cursorPos != null
                 && _playerTurnFlow != null

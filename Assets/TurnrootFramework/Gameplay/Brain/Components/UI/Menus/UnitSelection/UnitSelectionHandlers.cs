@@ -26,11 +26,10 @@ namespace Turnroot.Gameplay.Brain.Segments
             // Prevent unselecting the only selected unit
             if (!willSelect && unitColumns != null && unitColumns.SelectedCount <= 1)
             {
-                // TODO: Fire brain event, provide UI feedback
+                _brain.PublishUiPlayerIsTryingToUnselectLastUnit();
                 return;
             }
 
-            // If attempting to select but we've reached the maximum, ignore
             if (
                 willSelect
                 && unitColumns != null
@@ -46,7 +45,7 @@ namespace Turnroot.Gameplay.Brain.Segments
             item.IsSelectedForBattle = willSelect;
             item.CharacterInstanceData.IsSelectedForBattle = willSelect;
 
-            var uf = new Utilities.UtilityFunctions();
+            var uf = new UtilityFunctions();
             var selectedT = uf.FindChildByTag(unitCell, "UnitCellSelected");
             if (selectedT != null)
             {
@@ -66,10 +65,8 @@ namespace Turnroot.Gameplay.Brain.Segments
                 }
             }
 
-            // Update SelectedCount on parent columns and persist selection to LTM
             if (unitColumns != null)
             {
-                // Recompute authoritative count to avoid drift
                 unitColumns.RecomputeSelectedCount();
             }
 
@@ -81,7 +78,6 @@ namespace Turnroot.Gameplay.Brain.Segments
                 _brain.ltm.RememberBool(key, item.IsSelectedForBattle);
             }
 
-            // Propagate selection change to Brain so listeners can react (pre-battle UI, etc.)
             if (item.CharacterInstanceData != null)
             {
                 _brain.PublishUnitSelectionChanged(

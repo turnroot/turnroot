@@ -107,10 +107,8 @@ namespace Turnroot.Gameplay.Brain
         [HideInInspector]
         public LongTermMemory ltm;
 
-        // Scene-level dependencies
         private ConversationController _sceneConversationController;
 
-        // Module flags - paid add-on modules that self-install (evaluated at compile-time)
         public static bool HubModuleEnabled =>
 #if TURNROOT_HUB_MODULE
             true;
@@ -238,18 +236,22 @@ namespace Turnroot.Gameplay.Brain
         public event Action<Vector2Int, CharacterInstance> OnPreBattleSpawnPositionSelected;
         public event Action<CharacterInstance> OnPreBattleSpawnPositionCanceled;
 
+        public event Action OnUiPlayerIsTryingToUnselectLastUnit;
+
+        public void PublishUiPlayerIsTryingToUnselectLastUnit() =>
+            OnUiPlayerIsTryingToUnselectLastUnit?.Invoke();
+
         public void PublishPreBattleMapReady(MapGrid mapGrid) =>
             OnPreBattleMapReady?.Invoke(mapGrid);
 
-        // Event: valid tiles computed for a unit (move tiles, attack tiles)
         public event Action<
-            System.Collections.Generic.Dictionary<MapGridPoint, float>,
-            System.Collections.Generic.Dictionary<MapGridPoint, float>
+            Dictionary<MapGridPoint, float>,
+            Dictionary<MapGridPoint, float>
         > OnValidTilesComputed;
 
         public void PublishValidTilesComputed(
-            System.Collections.Generic.Dictionary<MapGridPoint, float> moveTiles,
-            System.Collections.Generic.Dictionary<MapGridPoint, float> attackTiles
+            Dictionary<MapGridPoint, float> moveTiles,
+            Dictionary<MapGridPoint, float> attackTiles
         ) => OnValidTilesComputed?.Invoke(moveTiles, attackTiles);
 
         public void PublishPreBattleSpawnPositionSelected(
@@ -447,11 +449,10 @@ namespace Turnroot.Gameplay.Brain
 
         public void PublishSavePlayerSettingsRequested() => OnSavePlayerSettingsRequested?.Invoke();
 
-        // Event: fired when the player's preferred input control type changes (Keyboard / Gamepad)
-        public event System.Action<Turnroot.Gameplay.PlayerSettings.GameplayPlayerSettings.InputControlType> OnInputControlTypeChanged;
+        public event Action<PlayerSettings.GameplayPlayerSettings.InputControlType> OnInputControlTypeChanged;
 
         public void PublishInputControlTypeChanged(
-            Turnroot.Gameplay.PlayerSettings.GameplayPlayerSettings.InputControlType newType
+            PlayerSettings.GameplayPlayerSettings.InputControlType newType
         ) => OnInputControlTypeChanged?.Invoke(newType);
 
         #endregion
@@ -600,7 +601,6 @@ namespace Turnroot.Gameplay.Brain
 
         public void PublishPreBattleCompleted() => OnPreBattleCompleted?.Invoke();
 
-        // Event: fired when battle precompute has completed (if any)
         public event Action OnPrecomputeCompleted;
 
         public void PublishPrecomputeCompleted() => OnPrecomputeCompleted?.Invoke();
@@ -634,8 +634,6 @@ namespace Turnroot.Gameplay.Brain
         public event Action OnThirdPartyTurnStarted;
         public event Action OnThirdPartyTurnEnded;
         public event Action<CharacterInstance> OnUnitTurnEnded;
-
-        // New events for Wait confirmation flow
         public event Action<CharacterInstance> OnWaitActionRequested;
         public event Action<CharacterInstance> OnWaitActionConfirmed;
 
@@ -653,10 +651,6 @@ namespace Turnroot.Gameplay.Brain
 
         public void PublishPlayerUndoAction() => OnPlayerUndoAction?.Invoke();
 
-        /// <summary>
-        /// UI should subscribe to OnWaitActionRequested to ask the player
-        /// "End turn?". When the player confirms, publish OnWaitActionConfirmed.
-        /// </summary>
         public void PublishWaitActionRequested(CharacterInstance unit) =>
             OnWaitActionRequested?.Invoke(unit);
 
@@ -714,7 +708,7 @@ namespace Turnroot.Gameplay.Brain
                 {
                     ((Action<CharacterInstance>)handler).Invoke(unit);
                 }
-                catch (System.Exception ex)
+                catch (Exception ex)
                 {
                     TurnrootLogger.Log(
                         $"PublishPlayerControlledUnitActivated: handler {handler.Method.Name} threw: {ex}",
@@ -739,7 +733,6 @@ namespace Turnroot.Gameplay.Brain
         public void PublishUnitTakesAnotherTurn(CharacterInstance unit) =>
             OnUnitTakesAnotherTurn?.Invoke(unit);
 
-        // Player action lifecycle events (typed for robustness)
         public event Action<CharacterInstance, MapGridPoint> OnMoveStarted; // logical start (includes target)
         public event Action<CharacterInstance, MapGridPoint> OnMoveCompleted; // logical completion (context)
         public event Action<CharacterInstance> OnMoveAnimationCompleted; // visual/animation completion

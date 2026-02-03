@@ -135,6 +135,6 @@ namespace Turnroot.Gameplay.Brain
             return result;
         }
 
-        private void ClearPathPreview() => _tileHighlighter?.ClearPathPreview();
+        private void ClearPathPreview() => _tileHighlighter.ClearPathPreview();
     }
 }

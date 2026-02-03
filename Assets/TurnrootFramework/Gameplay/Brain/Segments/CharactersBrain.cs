@@ -89,7 +89,7 @@ namespace Turnroot.Gameplay.Brain
         #region Inventory Event Handlers
         private void HandleItemEquipped(
             CharacterInstance character,
-            Gameplay.Objects.ObjectItemInstance item
+            Objects.ObjectItemInstance item
         )
         {
             if (character == null)
@@ -104,7 +104,7 @@ namespace Turnroot.Gameplay.Brain
 
         private void HandleItemUnequipped(
             CharacterInstance character,
-            Gameplay.Objects.ObjectItemInstance item
+            Objects.ObjectItemInstance item
         )
         {
             if (character == null)
@@ -216,7 +216,7 @@ namespace Turnroot.Gameplay.Brain
 
         public bool TryGetTemplateBoundedDefault(
             string templateFullName,
-            Turnroot.Characters.Stats.BoundedStatType type,
+            Characters.Stats.BoundedStatType type,
             out (float max, float current, float min) values
         )
         {
@@ -247,7 +247,7 @@ namespace Turnroot.Gameplay.Brain
 
         public bool TryGetTemplateUnboundedDefault(
             string templateFullName,
-            Turnroot.Characters.Stats.UnboundedStatType type,
+            Characters.Stats.UnboundedStatType type,
             out float value
         )
         {
@@ -283,7 +283,7 @@ namespace Turnroot.Gameplay.Brain
 
         public void SaveTemplateBoundedDefault(
             string templateFullName,
-            Turnroot.Characters.Stats.BoundedStatType type,
+            Characters.Stats.BoundedStatType type,
             (float max, float current, float min) values
         )
         {
@@ -306,7 +306,7 @@ namespace Turnroot.Gameplay.Brain
 
         public void SaveTemplateUnboundedDefault(
             string templateFullName,
-            Turnroot.Characters.Stats.UnboundedStatType type,
+            Characters.Stats.UnboundedStatType type,
             float value
         )
         {

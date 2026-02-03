@@ -55,12 +55,11 @@ namespace Turnroot.Gameplay.Brain
 
         private void Update()
         {
-            if (!_isActive || _inputActions == null)
-            {
-                return;
-            }
-
-            if (Time.time - _lastInputTime < _cachedInputCooldown)
+            if (
+                !_isActive
+                || _inputActions == null
+                || (Time.time - _lastInputTime < _cachedInputCooldown)
+            )
             {
                 return;
             }
@@ -167,20 +166,20 @@ namespace Turnroot.Gameplay.Brain
         }
 
         private void HandleInputControlTypeChanged(
-            Turnroot.Gameplay.PlayerSettings.GameplayPlayerSettings.InputControlType _
+            PlayerSettings.GameplayPlayerSettings.InputControlType _
         ) =>
             // Recompute cached values when the input control type changes elsewhere (e.g., player settings UI)
             UpdateInputCooldown();
 
         private void HandleConfirmInput()
         {
-            var prepObject = _brain?.battleBrain?.PreparationObject;
+            var prepObject = _brain.battleBrain.PreparationObject;
             if (prepObject == null)
             {
                 return;
             }
 
-            var cursorPos = _brain.cursorBrain?.CursorPosition?.CoordinatesInt;
+            var cursorPos = _brain.cursorBrain.CursorPosition.CoordinatesInt;
             if (cursorPos == null)
             {
                 return;
@@ -189,13 +188,13 @@ namespace Turnroot.Gameplay.Brain
             // First confirm: Select a unit
             if (prepObject.selectedPosition == null)
             {
-                var result = prepObject.SelectPosition(cursorPos.Value);
+                var result = prepObject.SelectPosition(cursorPos);
                 // TODO: Add SFX if Result.Success
             }
             // Second confirm: Execute swap/move
             else
             {
-                prepObject.potentialSwapPosition = cursorPos.Value;
+                prepObject.potentialSwapPosition = cursorPos;
                 var result = prepObject.ExecutePositionAction();
                 // TODO: Add SFX if Result.Success
             }
@@ -203,7 +202,7 @@ namespace Turnroot.Gameplay.Brain
 
         private void HandleCancelInput()
         {
-            var prepObject = _brain?.battleBrain?.PreparationObject;
+            var prepObject = _brain.battleBrain.PreparationObject;
             if (prepObject == null)
             {
                 return;
