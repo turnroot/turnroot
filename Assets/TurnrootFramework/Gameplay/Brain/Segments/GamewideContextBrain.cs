@@ -204,11 +204,9 @@ namespace Turnroot.Gameplay.Brain
             _rosterManager?.RecallPlayerTeamRoster(GamewidePersistentPlayerRoster);
         }
 
-        private void HandleSavePlayerRosterRequested()
-        {
+        private void HandleSavePlayerRosterRequested() =>
             // Default behavior: save using the current turn number (0 if out of battle)
             SavePlayerRoster(_brain?.battleBrain?.CurrentTurnNumber ?? 0);
-        }
 
         /// <summary>
         /// Save the player roster to LTM, recording the provided lastSavedBattleTurn.

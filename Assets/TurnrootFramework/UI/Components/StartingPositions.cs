@@ -222,12 +222,17 @@ namespace Turnroot.UI.Components
                     $"SpawnAllUnitModels: Spawning at {placement.Key} unitId={(unit?.Id ?? "<null>")} name={(unit?.CharacterTemplate?.DisplayName ?? "<unknown>")}"
                 );
 
-                _prepObject.Brain.unitAppearanceBrain.SpawnUnitModelOnGrid(
-                    placement.Key,
-                    placement.Value,
-                    _unitModels,
+                var spawnResult = _prepObject.Brain.unitAppearanceBrain.SpawnUnitAtPosition(
+                    unit: placement.Value,
+                    position: placement.Key,
                     prebattle: true
                 );
+                if (!spawnResult.Success)
+                {
+                    TurnrootLogger.Log(
+                        $"SpawnAllUnitModels: Failed to spawn at {placement.Key}: {spawnResult.ErrorMessage}"
+                    );
+                }
             }
         }
 
@@ -270,7 +275,7 @@ namespace Turnroot.UI.Components
             var positions = _unitModels.Keys.ToList();
             foreach (var pos in positions)
             {
-                _prepObject.Brain.unitAppearanceBrain.DespawnUnitModelFromGrid(pos, _unitModels);
+                _prepObject.Brain.unitAppearanceBrain.DespawnUnitAtPosition(pos);
             }
         }
 
@@ -367,10 +372,7 @@ namespace Turnroot.UI.Components
             {
                 if (_prepObject?.Brain != null)
                 {
-                    _prepObject.Brain.unitAppearanceBrain.DespawnUnitModelFromGrid(
-                        pos,
-                        _unitModels
-                    );
+                    _prepObject.Brain.unitAppearanceBrain.DespawnUnitAtPosition(pos);
                 }
                 else if (_unitModels.TryGetValue(pos, out var model) && model != null)
                 {

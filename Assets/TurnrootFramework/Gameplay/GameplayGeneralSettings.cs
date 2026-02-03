@@ -133,6 +133,9 @@ namespace Turnroot.GameSettings
         ]
         public Material UnitOutfitMaterialTemplate;
 
+        [BoxGroup("Animations"), InfoBox("Base runtime AnimatorController used for unit models")]
+        public RuntimeAnimatorController DefaultUnitAnimatorController;
+
         public CharacterClassData GetDefaultStartingClass() => DefaultStartingClass;
 
         [BoxGroup("General Gameplay"), InfoBox("Put all of the weapon types your game uses here")]

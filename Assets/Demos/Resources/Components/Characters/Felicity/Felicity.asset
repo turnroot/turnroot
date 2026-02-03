@@ -68,6 +68,10 @@ MonoBehaviour:
   <HeadAndHandsPrefab>k__BackingField: {fileID: 3543047472321258223, guid: 629a90daf18e7c841a080be4f2e74842, type: 3}
   <HairPrefab>k__BackingField: {fileID: 4682962753272150353, guid: 075bbe65445b1ab4f8d8ccda0e63ad31, type: 3}
   <NonBattleOutfitPrefab>k__BackingField: {fileID: 4517500799786329980, guid: bb19045ff93efe64ba934bb1c87e31ee, type: 3}
+  <UseDefaultAnimationsAlways>k__BackingField: 0
+  <DefaultWalkingAnimation>k__BackingField: {fileID: -7081863182781396754, guid: 49455e1c9c4801b418f9c8f4ae2061d7, type: 3}
+  <DefaultRunningAnimation>k__BackingField: {fileID: 0}
+  <DefaultIdleAnimations>k__BackingField: []
   <HasExtraBoneLayer>k__BackingField: 0
   <CustomAvatar>k__BackingField: {fileID: 0}
   <AdditionalBonesMask>k__BackingField: {fileID: 0}

@@ -168,11 +168,9 @@ namespace Turnroot.Gameplay.Brain
 
         private void HandleInputControlTypeChanged(
             Turnroot.Gameplay.PlayerSettings.GameplayPlayerSettings.InputControlType _
-        )
-        {
+        ) =>
             // Recompute cached values when the input control type changes elsewhere (e.g., player settings UI)
             UpdateInputCooldown();
-        }
 
         private void HandleConfirmInput()
         {

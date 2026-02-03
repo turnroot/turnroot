@@ -263,8 +263,23 @@ namespace Turnroot.Gameplay.Brain
             // TODO: Update UI based on cursor position
             switch (currentState)
             {
+                case PlayerTurnStates.UnitSelected:
                 case PlayerTurnStates.ChoosingDestination:
-                    // Update movement path preview
+                    var path = HandlePathPreview();
+
+                    if (_tileHighlighter == null)
+                    {
+                        break;
+                    }
+
+                    if (path == null || path.Count == 0)
+                    {
+                        _tileHighlighter.ClearPathPreview();
+                        break;
+                    }
+
+                    // Path already includes start tile as first element; pass the full path directly
+                    _tileHighlighter.HighlightPath(path);
                     break;
                 case PlayerTurnStates.AttackActionChosenChoosingTarget:
                     // Update damage preview

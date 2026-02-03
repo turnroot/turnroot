@@ -1,8 +1,3 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using Turnroot.Gameplay.Brain;
-using UnityEngine;
 using UnityEngine.Events;
 
 namespace Turnroot.Utilities.AbstractScripts

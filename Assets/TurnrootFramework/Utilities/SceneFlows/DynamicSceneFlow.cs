@@ -58,15 +58,9 @@ namespace Turnroot.Utilities.AbstractScripts
         }
 
         #region Event Subscriptions
-        protected virtual void SubscribeToBrainEvents()
-        {
-            brain.OnStateChanged += HandleStateChanged;
-        }
+        protected virtual void SubscribeToBrainEvents() => brain.OnStateChanged += HandleStateChanged;
 
-        protected virtual void UnsubscribeFromBrainEvents()
-        {
-            brain.OnStateChanged -= HandleStateChanged;
-        }
+        protected virtual void UnsubscribeFromBrainEvents() => brain.OnStateChanged -= HandleStateChanged;
 
         protected void SubscribeToLoadingController()
         {

@@ -233,44 +233,67 @@ namespace Turnroot.Gameplay.Maps
         )
         {
             var path = new List<MapGridPoint>();
-            if (!reachable.ContainsKey(goal))
+            if (start == null || goal == null || reachable == null)
             {
                 return path;
             }
 
-            var current = goal;
-            path.Add(current);
-
-            while (current != start)
+            // Both start and goal must be in the reachable set
+            if (!reachable.ContainsKey(start) || !reachable.ContainsKey(goal))
             {
-                MapGridPoint next = null;
-                float lowestCost = float.MaxValue;
+                return path;
+            }
+
+            // Forward Dijkstra-like search constrained to nodes present in 'reachable'.
+            // Use reachable's cost as the priority so we naturally follow the minimal-cost frontier.
+            var frontier = new PriorityQueue<MapGridPoint, float>();
+            frontier.Enqueue(start, reachable[start]);
+
+            var cameFrom = new Dictionary<MapGridPoint, MapGridPoint>();
+            using var visitedPooled = PooledHashSet<MapGridPoint>.Get();
+            var visited = visitedPooled.HashSet;
+
+            while (frontier.Count > 0)
+            {
+                var current = frontier.Dequeue();
+
+                if (!visited.Add(current))
+                {
+                    continue;
+                }
+
+                if (current == goal)
+                {
+                    // Reconstruct path from start -> goal
+                    var node = goal;
+                    while (node != null)
+                    {
+                        path.Add(node);
+                        cameFrom.TryGetValue(node, out node);
+                    }
+
+                    path.Reverse();
+                    return path;
+                }
 
                 current.GetNeighborsNonAlloc(_neighborsBuffer);
                 foreach (var (_, neighbor) in _neighborsBuffer)
                 {
-                    if (
-                        reachable.TryGetValue(neighbor, out var cost)
-                        && cost < lowestCost
-                        && !neighbor.IsOccupied
-                    )
+                    if (!reachable.ContainsKey(neighbor) || neighbor.IsOccupied)
                     {
-                        lowestCost = cost;
-                        next = neighbor;
+                        continue;
+                    }
+
+                    // If not visited and not already in cameFrom, set parent and enqueue
+                    if (!cameFrom.ContainsKey(neighbor) && !visited.Contains(neighbor))
+                    {
+                        cameFrom[neighbor] = current;
+                        frontier.Enqueue(neighbor, reachable[neighbor]);
                     }
                 }
-
-                if (next == null)
-                {
-                    path.Clear();
-                    return path;
-                }
-
-                path.Add(next);
-                current = next;
             }
 
-            path.Reverse();
+            // No path found
             return path;
         }
         #endregion
@@ -309,7 +332,8 @@ namespace Turnroot.Gameplay.Maps
                     ? MapGrid.MakeMovementModeKey(isWalking, isFlying, isRiding, isMagic, isArmored)
                     : null;
 
-            return grid != null
+            return
+                grid != null
                 && grid.TryGetMovementCostCache(key, out var costCache)
                 && costCache?.TryGetValue(neighbor, out var cached) == true
                 ? cached

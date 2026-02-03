@@ -193,9 +193,43 @@ namespace Turnroot.Characters
         public GameObject NonBattleOutfitPrefab { get; private set; }
 
         [field:
+            Foldout("Animations"),
+            SerializeField,
+            HorizontalLine(color: EColor.Green),
+            InfoBox(
+                "If true, this character will always use the default animations assigned here, regardless of class-specific animations."
+            )
+        ]
+        public bool UseDefaultAnimationsAlways { get; private set; } = false;
+
+        [field:
+            Foldout("Animations"),
+            SerializeField,
+            InfoBox(
+                "Animations don't need to be unique- characters should all use the same underlying bone structure, with extra bones animated via a separate layer if needed. See the Rigging section below"
+            )
+        ]
+        public AnimationClip DefaultWalkingAnimation { get; private set; }
+
+        [field:
+            Foldout("Animations"),
+            SerializeField,
+            InfoBox("Used if no running animation is assigned in class.")
+        ]
+        public AnimationClip DefaultRunningAnimation { get; private set; }
+
+        [field:
+            Foldout("Animations"),
+            SerializeField,
+            InfoBox("IIf multiple idle animations are assigned, one will be chosen at random.")
+        ]
+        public AnimationClip[] DefaultIdleAnimations { get; private set; }
+
+        [field:
             Foldout("Rigging"),
             SerializeField,
-            Tooltip("Enable if this character has an additional bone layer (+X)")
+            Tooltip("Enable if this character has an additional bone layer (+X)"),
+            HorizontalLine(color: EColor.Blue)
         ]
         public bool HasExtraBoneLayer { get; private set; } = false;
 

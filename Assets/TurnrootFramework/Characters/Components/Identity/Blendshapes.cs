@@ -24,6 +24,8 @@ namespace Turnroot.Characters
         [Range(0f, 100f)]
         public float neckThickness;
 
+        private const float fixes = 100f;
+
         public readonly string[] BlendshapeNames =>
             new string[]
             {
@@ -33,6 +35,7 @@ namespace Turnroot.Characters
                 "ThighThickness",
                 "ArmThickness",
                 "NeckThickness",
+                "Fixes",
             };
 
         public readonly float GetBlendshapeByName(string name)
@@ -45,6 +48,7 @@ namespace Turnroot.Characters
                 "ThighThickness" => thighThickness,
                 "ArmThickness" => armThickness,
                 "NeckThickness" => neckThickness,
+                "Fixes" => fixes,
                 _ => 0f,
             };
         }

@@ -1,7 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using Turnroot.Characters;
-using Turnroot.Characters.CharacterClass;
 using Turnroot.Gameplay.Brain.Events;
 using Turnroot.Gameplay.Combat;
 using Turnroot.GameSettings;
@@ -13,7 +11,10 @@ namespace Turnroot.Gameplay.Brain
     public partial class UnitAppearanceBrain : BrainComponent
     {
         private GameplayGeneralSettings _settings;
-        private Dictionary<Vector2Int, GameObject> _activeUnitModels = new();
+
+        // Core model tracking - models are owned by units, not positions
+        private Dictionary<string, GameObject> _unitModels = new();
+        private Dictionary<Vector2Int, string> _modelPositions = new();
 
         protected override EventPriority GetSubscriptionPriority() => EventPriority.Low;
 
@@ -41,54 +42,16 @@ namespace Turnroot.Gameplay.Brain
             }
         }
 
-        private void InitializeClassVisuals(
-            CharacterClassDataInstance classInst,
-            CharacterInstance unit
-        )
-        {
-            if (classInst == null)
-            {
-                return;
-            }
-
-            var renderer = classInst.MeshRenderer ?? unit.Renderer;
-            if (renderer != null)
-            {
-                classInst.InitializeWithRenderer(renderer);
-            }
-        }
-
-        private void ApplyVisuals(CharacterInstance unit, GameObject model)
-        {
-            var renderer = model.GetComponentInChildren<SkinnedMeshRenderer>();
-            if (renderer != null)
-            {
-                unit.SetRenderer(renderer);
-                GetUnitOutfitMaterial(unit);
-                SetBlendshapes(unit);
-            }
-        }
-
-        private void PublishDespawnEvent(GameObject model, Vector2Int pos)
-        {
-            var owner = model.GetComponent<UnitModelOwnership>();
-            var unitId = owner?.UnitId;
-            var unit = !string.IsNullOrEmpty(unitId)
-                ? _brain
-                    ?.gamewideContextBrain?.GetAllActiveInstances()
-                    ?.FirstOrDefault(u => u?.Id == unitId)
-                : null;
-
-            _brain?.Publish(new ModelDespawnedEvent(unit, unitId, pos, model));
-        }
+        private void HandleBattleObjectSet(BattleGameObject battleObject) => HandleBattleStarted();
 
         private OperationResult HandleBattleStarted()
         {
-            ClearExistingModels();
+            ClearAllModels();
 
             var roster =
                 _brain?.battleBrain?.PlayerTeamRoster
                 ?? _brain?.battleBrain?.BattleObject?.PlayerTeamRoster;
+
             if (roster == null)
             {
                 return OperationResult.Failure("PlayerTeamRoster is null");
@@ -102,36 +65,45 @@ namespace Turnroot.Gameplay.Brain
                 if (instance == null)
                 {
                     TurnrootLogger.Log(
-                        $"UnitAppearanceBrain: No instance for template {placement.CharacterData?.DisplayName}",
+                        $"No instance for template {placement.CharacterData?.DisplayName}",
                         TurnrootLogger.LogLevel.Warning
                     );
                     continue;
                 }
 
-                var res = SpawnUnitModelOnGrid(
-                    placement.SpawnPosition,
-                    instance,
-                    _activeUnitModels,
-                    prebattle: false
-                );
+                var res = SpawnUnitAtPosition(instance, placement.SpawnPosition, prebattle: false);
                 if (!res.Success)
                 {
                     TurnrootLogger.Log(
-                        $"HandleBattleStarted: Failed to spawn model for {instance?.CharacterTemplate?.DisplayName} at {placement.SpawnPosition} - {res.ErrorMessage}",
+                        $"Failed to spawn {instance?.CharacterTemplate?.DisplayName}: {res.ErrorMessage}",
                         TurnrootLogger.LogLevel.Warning
                     );
                 }
             }
+
             return OperationResult.Successful();
         }
-
-        private void HandleBattleObjectSet(BattleGameObject battleObject) => HandleBattleStarted();
 
         private Vector3 GetWorldPosition(Vector2Int pos, bool prebattle)
         {
             return prebattle
                 ? _brain.battleBrain.PreparationObject.MapGrid.GetTerrainAdjustedWorldPosition(pos)
                 : _brain.battleBrain.BattleObject.MapGrid.GetTerrainAdjustedWorldPosition(pos);
+        }
+
+        private void ClearAllModels()
+        {
+            foreach (var model in _unitModels.Values.ToList())
+            {
+                if (model != null)
+                {
+                    model.SetActive(false);
+                    Destroy(model);
+                }
+            }
+
+            _unitModels.Clear();
+            _modelPositions.Clear();
         }
     }
 }

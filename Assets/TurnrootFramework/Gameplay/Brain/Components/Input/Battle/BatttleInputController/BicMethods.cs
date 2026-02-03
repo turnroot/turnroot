@@ -104,10 +104,7 @@ namespace Turnroot.Gameplay.Brain
             _brain.cursorBrain?.SetAllowedPositions(attackPositions);
         }
 
-        private void HandleChoosingActionState()
-        {
-            OpenActionMenu();
-        }
+        private void HandleChoosingActionState() => OpenActionMenu();
 
         private void HandleDestinationSelectedState()
         {
@@ -144,10 +141,7 @@ namespace Turnroot.Gameplay.Brain
             _pendingDestination = null;
         }
 
-        private void HandleTurnEndedState()
-        {
-            CompletePlayerTurn();
-        }
+        private void HandleTurnEndedState() => CompletePlayerTurn();
 
         private void CompletePlayerTurn()
         {

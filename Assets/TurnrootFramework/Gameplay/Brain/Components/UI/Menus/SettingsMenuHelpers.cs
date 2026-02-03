@@ -73,10 +73,7 @@ namespace Turnroot.Gameplay.Brain.Segments
         #region Settings Menu Event Handlers
 
 
-        public void HandleGameSettingsMenuSelect(MenuItemBase item)
-        {
-            _routeHandler?.HandleMenuSelect(item);
-        }
+        public void HandleGameSettingsMenuSelect(MenuItemBase item) => _routeHandler?.HandleMenuSelect(item);
 
         #endregion
     }
