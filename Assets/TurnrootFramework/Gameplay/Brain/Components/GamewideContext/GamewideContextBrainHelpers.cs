@@ -66,9 +66,6 @@ namespace Turnroot.Gameplay.Brain
 
         public static string DesignateInstanceType<T>() => typeof(T).FullName;
 
-        // Removed TryExecute methods - they hide bugs by silently catching all exceptions.
-        // Use OperationResult pattern for proper error handling instead.
-
         #endregion
     }
 }
