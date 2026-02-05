@@ -85,7 +85,9 @@ namespace Turnroot.Gameplay.Brain
             var movePositions = new List<Vector2Int>(
                 _validMoveTiles.Keys.Select(k => k.CoordinatesInt)
             );
+
             _tileHighlighter.HighlightTiles(movePositions, TileHighlighter.HighlightType.Move);
+
             Brain.cursorBrain.SetAllowedPositions(movePositions);
         }
 
@@ -94,7 +96,9 @@ namespace Turnroot.Gameplay.Brain
             var attackPositions = new List<Vector2Int>(
                 _validAttackTiles.Keys.Select(k => k.CoordinatesInt)
             );
+
             _tileHighlighter.HighlightTiles(attackPositions, TileHighlighter.HighlightType.Attack);
+
             Brain.cursorBrain.SetAllowedPositions(attackPositions);
         }
 

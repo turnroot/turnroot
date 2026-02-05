@@ -357,6 +357,20 @@ namespace Turnroot.Gameplay.Combat.Precompute
                         var recalled = gw.RecallCharacter(template);
                         if (recalled != null && !object.ReferenceEquals(recalled, unit))
                         {
+                            // Copy position from old unit to recalled unit
+                            recalled.MapGridPosition = unit.MapGridPosition;
+                            recalled.WasSpawnedDuringBattle = unit.WasSpawnedDuringBattle;
+
+                            // Update MapGrid to reference the new unit
+                            var gridPoint = context.MapGrid.GetGridPoint(
+                                unit.MapGridPosition.x,
+                                unit.MapGridPosition.y
+                            );
+                            if (gridPoint != null)
+                            {
+                                gridPoint.CurrentInstance = recalled;
+                            }
+
                             list[i] = recalled;
                         }
 

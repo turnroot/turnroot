@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Turnroot.Characters;
 using Turnroot.Gameplay.Brain.Events;
 using Turnroot.Gameplay.Combat;
 using Turnroot.GameSettings;
@@ -28,6 +29,8 @@ namespace Turnroot.Gameplay.Brain
         {
             Brain.OnBattleObjectSet += HandleBattleObjectSet;
             Brain.OnCharacterMoveStarted += HandleCharacterMoveStarted;
+            Brain.OnItemEquipped += HandleItemEquipped;
+            Brain.OnItemUnequipped += HandleItemUnequipped;
 
             if (Brain.battleBrain?.BattleObject != null)
             {
@@ -41,6 +44,8 @@ namespace Turnroot.Gameplay.Brain
             {
                 Brain.OnBattleObjectSet -= HandleBattleObjectSet;
                 Brain.OnCharacterMoveStarted -= HandleCharacterMoveStarted;
+                Brain.OnItemEquipped -= HandleItemEquipped;
+                Brain.OnItemUnequipped -= HandleItemUnequipped;
             }
         }
 
@@ -96,6 +101,19 @@ namespace Turnroot.Gameplay.Brain
 
         private void ClearAllModels()
         {
+            // Get all units to clear their weapon references
+            var allUnits = Brain.gamewideContextBrain?.GetAllActiveInstances();
+            if (allUnits != null)
+            {
+                foreach (var unit in allUnits)
+                {
+                    if (unit != null)
+                    {
+                        ClearWeaponFromUnit(unit);
+                    }
+                }
+            }
+
             foreach (var model in _unitModels.Values.ToList())
             {
                 if (model != null)
@@ -107,6 +125,44 @@ namespace Turnroot.Gameplay.Brain
 
             _unitModels.Clear();
             _modelPositions.Clear();
+        }
+
+        private void HandleItemEquipped(
+            CharacterInstance character,
+            Objects.ObjectItemInstance item
+        )
+        {
+            // Only update weapon models for equipped weapons
+            if (item?.Template?.IsEquippable == true)
+            {
+                var result = UpdateUnitWeapon(character);
+                if (!result.Success)
+                {
+                    TurnrootLogger.Log(
+                        $"Failed to update weapon for {character?.CharacterTemplate?.DisplayName}: {result.ErrorMessage}",
+                        TurnrootLogger.LogLevel.Warning
+                    );
+                }
+            }
+        }
+
+        private void HandleItemUnequipped(
+            CharacterInstance character,
+            Objects.ObjectItemInstance item
+        )
+        {
+            // Only update weapon models for unequipped weapons
+            if (item?.Template?.IsEquippable == true)
+            {
+                var result = UpdateUnitWeapon(character);
+                if (!result.Success)
+                {
+                    TurnrootLogger.Log(
+                        $"Failed to update weapon for {character?.CharacterTemplate?.DisplayName}: {result.ErrorMessage}",
+                        TurnrootLogger.LogLevel.Warning
+                    );
+                }
+            }
         }
     }
 }

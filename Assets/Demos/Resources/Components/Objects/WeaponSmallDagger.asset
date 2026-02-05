@@ -49,6 +49,8 @@ MonoBehaviour:
   <Critical>k__BackingField: 15
   _minWeaponTypeAptitude:
     _value: D
+  Prefab: {fileID: 919132149155446097, guid: 1caa149bf5e4e564d940ba6cdb0e7352, type: 3}
+  InventoryIcon: {fileID: 0}
   <BelongsTo>k__BackingField: {fileID: 0}
   <Weight>k__BackingField: 1
   <Subtype>k__BackingField:

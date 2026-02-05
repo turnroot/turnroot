@@ -73,12 +73,7 @@ namespace Turnroot.Skills.Nodes.Conditions
             }
 
             var inputValue = damagePort.GetInputValue();
-            if (inputValue is FloatValue damageValue)
-            {
-                return damageValue.value;
-            }
-
-            return testDamage;
+            return inputValue is FloatValue damageValue ? damageValue.value : testDamage;
         }
 
         private float GetUnitCurrentHealth(BattleContext context)

@@ -334,10 +334,7 @@ namespace Turnroot.Gameplay.Maps
             }
 
             TerrainType terrainType = terrainAsset?.GetTypeById(point.TerrainTypeId);
-            if (terrainType == null)
-            {
-                terrainType = point.GetCachedTerrainType();
-            }
+            terrainType ??= point.GetCachedTerrainType();
 
             if (terrainType == null || string.IsNullOrEmpty(terrainType.Name))
             {
@@ -611,10 +608,7 @@ namespace Turnroot.Gameplay.Maps
             }
 
             TerrainType terrainType = terrainAsset?.GetTypeById(point.TerrainTypeId);
-            if (terrainType == null)
-            {
-                terrainType = point.GetCachedTerrainType();
-            }
+            terrainType ??= point.GetCachedTerrainType();
 
             return terrainType?.EditorColor ?? Color.white;
         }

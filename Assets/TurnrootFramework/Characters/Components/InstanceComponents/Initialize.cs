@@ -100,6 +100,7 @@ namespace Turnroot.Characters
 #endif
 
             InitializeInventory();
+            EnsureWeaponInSlot0();
             InitializeSupportRelationships();
             InitializeSkills();
             InitializeExperienceRanks();
@@ -114,8 +115,37 @@ namespace Turnroot.Characters
             {
                 foreach (var slot in _characterTemplate.StartingInventory)
                 {
-                    _inventoryInstance.AddToInventory(new ObjectItemInstance(slot.Item));
+                    var itemInstance = new ObjectItemInstance(slot.Item);
+                    _inventoryInstance.AddToInventory(itemInstance);
+                    itemInstance.Slot = slot.SlotIndex;
                 }
+            }
+        }
+
+        private void EnsureWeaponInSlot0()
+        {
+            if (_inventoryInstance == null)
+            {
+                return;
+            }
+
+            var items = _inventoryInstance.Items();
+            var slot0Weapon = items.FirstOrDefault(i =>
+                i.Slot == 0
+                && i.Template?.Subtype == Gameplay.Objects.Components.ObjectSubtype.Weapon
+            );
+
+            if (slot0Weapon != null)
+            {
+                return;
+            }
+
+            var firstWeapon = items.FirstOrDefault(i =>
+                i.Template?.Subtype == Gameplay.Objects.Components.ObjectSubtype.Weapon
+            );
+            if (firstWeapon != null)
+            {
+                firstWeapon.Slot = 0;
             }
         }
 
@@ -196,6 +226,7 @@ namespace Turnroot.Characters
             RegisterUniqueInstance();
             HandleCurrentClass();
             RepairMissingStats();
+            EnsureWeaponInSlot0();
             EnsurePersistedInLtm();
             if (RangeWeaponsCache == null)
             {

@@ -172,9 +172,6 @@ namespace Turnroot.Characters
         private Portrait[] _portraitArrayCache;
 
         [field: Foldout("Visual"), SerializeField]
-        public Sprite[] Sprites { get; private set; }
-
-        [field: Foldout("Visual"), SerializeField]
         [Tooltip(
             "Prefab containing head/hands mesh(s). Should contain a SkinnedMeshRenderer to be used for head/hands"
         )]

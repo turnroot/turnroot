@@ -38,46 +38,10 @@ namespace Turnroot.Gameplay.Brain.Commands
             );
             if (result.Success)
             {
-                // Mark unit as spawned during this battle so snapshot restore can identify reinforcements
-                try
-                {
-                    unit.WasSpawnedDuringBattle = true;
-                }
-                catch (System.Exception)
-                {
-                    TurnrootLogger.Log(
-                        $"[SpawnCommand] Warning: Could not set WasSpawnedDuringBattle for Unit {UnitId}",
-                        TurnrootLogger.LogLevel.Warning
-                    );
-                }
-
-                // Ensure the instance's logical map position matches the spawn location
-                try
-                {
-                    unit.MapGridPosition = SpawnPosition;
-                }
-                catch (System.Exception)
-                {
-                    TurnrootLogger.Log(
-                        $"[SpawnCommand] Warning: Could not set MapGridPosition for Unit {UnitId}",
-                        TurnrootLogger.LogLevel.Warning
-                    );
-                }
-
+                unit.WasSpawnedDuringBattle = true;
+                unit.MapGridPosition = SpawnPosition;
                 context.Brain?.Publish(new Events.UnitSpawnedEvent(unit, SpawnPosition));
-
-                // Take a new snapshot to capture the spawn event immediately (helps testing and rollback)
-                try
-                {
-                    context.Brain?.TakeSnapshot();
-                }
-                catch (System.Exception)
-                {
-                    TurnrootLogger.Log(
-                        $"[SpawnCommand] Warning: Could not take snapshot after spawning Unit {UnitId}",
-                        TurnrootLogger.LogLevel.Warning
-                    );
-                }
+                context.Brain?.TakeSnapshot();
             }
             return result.Success;
         }
@@ -95,45 +59,10 @@ namespace Turnroot.Gameplay.Brain.Commands
             );
             if (result.Success)
             {
-                try
-                {
-                    unit.WasSpawnedDuringBattle = false;
-                }
-                catch (System.Exception)
-                {
-                    TurnrootLogger.Log(
-                        $"[SpawnCommand] Warning: Could not unset WasSpawnedDuringBattle for Unit {UnitId}",
-                        TurnrootLogger.LogLevel.Warning
-                    );
-                }
-
-                // Restore the previous logical map position recorded during Execute
-                try
-                {
-                    unit.MapGridPosition = (Vector2Int)from;
-                }
-                catch (System.Exception)
-                {
-                    TurnrootLogger.Log(
-                        $"[SpawnCommand] Warning: Could not restore MapGridPosition for Unit {UnitId}",
-                        TurnrootLogger.LogLevel.Warning
-                    );
-                }
-
+                unit.WasSpawnedDuringBattle = false;
+                unit.MapGridPosition = (Vector2Int)from;
                 context.Brain?.Publish(new Events.UnitDespawnedEvent(unit, SpawnPosition));
-
-                // Update snapshot to reflect removal
-                try
-                {
-                    context.Brain?.TakeSnapshot();
-                }
-                catch (System.Exception)
-                {
-                    TurnrootLogger.Log(
-                        $"[SpawnCommand] Warning: Could not take snapshot after despawning Unit {UnitId}",
-                        TurnrootLogger.LogLevel.Warning
-                    );
-                }
+                context.Brain?.TakeSnapshot();
             }
             return result.Success;
         }

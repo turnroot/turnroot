@@ -19,32 +19,24 @@ namespace Turnroot.Gameplay.Objects
         [SerializeField]
         private ObjectItem _template;
 
-        // Index of this item within the owner's inventory. -1 means not assigned to an inventory.
-        public int Slot = -1; // Slot index within owner inventory (-1 = not assigned)
+        public int Slot = -1;
 
-        /// <summary>
-        /// Set the inventory that owns this item. Call from the inventory when adding an item.
-        /// </summary>
+        [NonSerialized]
+        private CharacterInventoryInstance _ownerInventory;
+
+        private int currentUses;
+
+        public ObjectItem Template => _template;
+
         internal void SetOwnerInventory(CharacterInventoryInstance owner) =>
             _ownerInventory = owner;
 
-        /// <summary>
-        /// Clear the owner (called when removed from inventory). Also resets the Slot to -1.
-        /// </summary>
         internal void ClearOwnerInventory()
         {
             _ownerInventory = null;
             Slot = -1;
         }
 
-        [NonSerialized]
-        private CharacterInventoryInstance _ownerInventory;
-        private int currentUses;
-        public ObjectItem Template => _template;
-
-        /// <summary>
-        /// The number of times this item has been used.
-        /// </summary>
         public int CurrentUses => currentUses;
 
         /// <summary>

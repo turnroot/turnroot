@@ -46,9 +46,7 @@ namespace Turnroot.Gameplay.Maps
             }
         }
 
-        private void OnValidate() =>
-            // Ensure the lookup is updated when the asset is modified
-            OnEnable();
+        private void OnValidate() => OnEnable();
 
         private void OnDisable() => _typeLookup.Clear();
 
@@ -84,7 +82,6 @@ namespace Turnroot.Gameplay.Maps
 
             var newList = new List<TerrainType>(_types ?? new TerrainType[0]) { newType };
             _types = newList.ToArray();
-            // update lookup
             if (!string.IsNullOrEmpty(newType.Id))
             {
                 _typeLookup[newType.Id] = newType;
@@ -116,21 +113,38 @@ namespace Turnroot.Gameplay.Maps
             return null;
         }
 
-        // Runtime & Editor-friendly loader for the shared TerrainTypes asset.
-        // At runtime this tries `Resources.Load<TerrainTypes>(resourcesName)`.
-        // In the Editor it also falls back to searching the AssetDatabase.
         public static TerrainTypes LoadDefault(string resourcesName = "TerrainTypes")
         {
-            // First try a direct Resources.Load for the given resource name (preserve existing behaviour)
             var fromResources = Resources.Load<TerrainTypes>(resourcesName);
             if (fromResources != null)
             {
                 return fromResources;
             }
 
-            // Fallback to searching GameSettings folder in Resources
             var fromGameSettings = Resources.Load<TerrainTypes>("GameSettings/TerrainTypes");
-            return fromGameSettings;
+            if (fromGameSettings != null)
+            {
+                return fromGameSettings;
+            }
+
+            var fromEssentialCores = Resources.Load<TerrainTypes>(
+                "EssentialCores/GameSettings/Map/Terrain Types"
+            );
+            if (fromEssentialCores != null)
+            {
+                return fromEssentialCores;
+            }
+
+#if UNITY_EDITOR
+            var guids = UnityEditor.AssetDatabase.FindAssets("t:TerrainTypes");
+            if (guids.Length > 0)
+            {
+                var path = UnityEditor.AssetDatabase.GUIDToAssetPath(guids[0]);
+                return UnityEditor.AssetDatabase.LoadAssetAtPath<TerrainTypes>(path);
+            }
+#endif
+
+            return null;
         }
     }
 }

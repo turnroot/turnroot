@@ -80,6 +80,9 @@ namespace Turnroot.Characters
 
         [NonSerialized]
         private List<StatusEffectInstance> _activeStatusEffects = new();
+
+        [NonSerialized]
+        private GameObject _currentWeaponPrefab;
         #endregion
 
         #region Properties
@@ -87,6 +90,11 @@ namespace Turnroot.Characters
         {
             get => _mapGridPosition;
             set => _mapGridPosition = value;
+        }
+        public GameObject CurrentWeaponPrefab
+        {
+            get => _currentWeaponPrefab;
+            set => _currentWeaponPrefab = value;
         }
         public bool IsDefeatedInCurrentBattle
         {

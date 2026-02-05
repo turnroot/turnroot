@@ -23,11 +23,29 @@ namespace Turnroot.Characters
 
         public ObjectItemInstance GetEquippedWeapon()
         {
-            var allowedWeapons = _currentClass.ClassData.Requirements?.AllowedWeaponTypes;
+            if (_currentClass == null || _currentClass.ClassData == null)
+            {
+                TurnrootLogger.Log(
+                    $"[GetEquippedWeapon] Class not initialized for {_characterTemplate?.DisplayName}",
+                    TurnrootLogger.LogLevel.Warning
+                );
+                return null;
+            }
 
+            var allowedWeapons = _currentClass.ClassData.Requirements?.AllowedWeaponTypes;
             var inventory = _inventoryInstance.Items();
 
-            // return the weapon in slot 0 (allow all when allowedWeapons is null/empty)
+            TurnrootLogger.Log(
+                $"[GetEquippedWeapon] {_characterTemplate?.DisplayName} inventory count: {inventory.Length}"
+            );
+
+            foreach (var item in inventory)
+            {
+                TurnrootLogger.Log(
+                    $"[GetEquippedWeapon] Item: {item.Template?.name ?? "null"}, Slot: {item.Slot}, WeaponType: {item.Template?.WeaponType}"
+                );
+            }
+
             foreach (
                 var weapon in inventory.Where(w =>
                     w.Template != null

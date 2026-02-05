@@ -7,12 +7,8 @@ namespace Turnroot.Gameplay.Brain
 {
     public partial class UnitAppearanceBrain
     {
-        private const float ANIMATION_BLEND_DURATION = 0.5f;
+        private const float ANIMATION_BLEND_DURATION = 0.3f;
 
-        /// <summary>
-        /// Sets up animations for a unit's model. Called once during model creation in ApplyVisuals.
-        /// Configures idle and walk animations, defaulting to idle.
-        /// </summary>
         private void SetupWalkAnimation(GameObject model, CharacterInstance unit)
         {
             var animator = model.GetComponent<Animator>();
@@ -34,7 +30,6 @@ namespace Turnroot.Gameplay.Brain
 
             var overrideController = new AnimatorOverrideController(baseController);
 
-            // Determine which animations to use based on UseDefaultAnimationsAlways flag
             AnimationClip walkClip;
             AnimationClip[] idleClips;
 
@@ -234,11 +229,27 @@ namespace Turnroot.Gameplay.Brain
             }
         }
 
-        /// <summary>
-        /// Recursively searches for a bone by name in the transform hierarchy.
-        /// </summary>
-        private Transform FindBoneRecursive(Transform parent, string boneName)
+        private Transform FindBoneRecursive(
+            Transform parent,
+            string boneName,
+            int depth = 0,
+            System.Collections.Generic.HashSet<Transform> visited = null
+        )
         {
+            const int MAX_DEPTH = 30;
+
+            if (parent == null || string.IsNullOrEmpty(boneName) || depth > MAX_DEPTH)
+            {
+                return null;
+            }
+
+            visited ??= new System.Collections.Generic.HashSet<Transform>();
+
+            if (!visited.Add(parent))
+            {
+                return null;
+            }
+
             if (parent.name == boneName)
             {
                 return parent;
@@ -246,10 +257,13 @@ namespace Turnroot.Gameplay.Brain
 
             foreach (Transform child in parent)
             {
-                var result = FindBoneRecursive(child, boneName);
-                if (result != null)
+                if (child != null)
                 {
-                    return result;
+                    var result = FindBoneRecursive(child, boneName, depth + 1, visited);
+                    if (result != null)
+                    {
+                        return result;
+                    }
                 }
             }
 

@@ -265,12 +265,7 @@ namespace Turnroot.Gameplay.Combat.PreBattle
                     ?? selectedUnit.CharacterTemplate?.StartingClass?.Identity?.ClassName
                     ?? "";
                 var portrait =
-                    selectedUnit.CharacterTemplate?.DefaultPortrait?.RuntimeSprite
-                    ?? (
-                        selectedUnit.CharacterTemplate?.Sprites?.Length > 0
-                            ? selectedUnit.CharacterTemplate.Sprites[0]
-                            : null
-                    );
+                    selectedUnit.CharacterTemplate?.DefaultPortrait?.RuntimeSprite ?? null;
 
                 StartingPositionsComponent.SetSelectedUnit(name, className, portrait);
             }
@@ -384,13 +379,7 @@ namespace Turnroot.Gameplay.Combat.PreBattle
                     unit?.CurrentClassTemplate?.Identity?.ClassName
                     ?? unit?.CharacterTemplate?.StartingClass?.Identity?.ClassName
                     ?? "";
-                var portrait =
-                    unit?.CharacterTemplate?.DefaultPortrait?.RuntimeSprite
-                    ?? (
-                        unit?.CharacterTemplate?.Sprites?.Length > 0
-                            ? unit.CharacterTemplate.Sprites[0]
-                            : null
-                    );
+                var portrait = unit?.CharacterTemplate?.DefaultPortrait?.RuntimeSprite ?? null;
 
                 StartingPositionsComponent?.SetSwapUnit(name, className, portrait);
             }

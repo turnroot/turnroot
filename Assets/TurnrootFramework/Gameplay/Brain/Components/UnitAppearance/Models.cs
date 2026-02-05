@@ -415,10 +415,7 @@ namespace Turnroot.Gameplay.Brain
             {
                 if (duplicateRoot != canonicalRoot && duplicateRoot != null)
                 {
-                    TurnrootLogger.Log(
-                        $"UnifyBoneHierarchies: Removing duplicate armature '{duplicateRoot.name}'"
-                    );
-                    Object.Destroy(duplicateRoot.gameObject);
+                    Destroy(duplicateRoot.gameObject);
                 }
             }
         }

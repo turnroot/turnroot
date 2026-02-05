@@ -206,7 +206,8 @@ MonoBehaviour:
       value: 0
   Requirements:
     CertificationItem: {fileID: 0}
-    AllowedWeaponTypes: []
+    AllowedWeaponTypes:
+    - {fileID: 11400000, guid: 030efab55c186fa4ead5d556dc84fdd5, type: 2}
     MinimumLevelRequirement: 1
     AllowedSpecies: []
     PromotionPaths: []

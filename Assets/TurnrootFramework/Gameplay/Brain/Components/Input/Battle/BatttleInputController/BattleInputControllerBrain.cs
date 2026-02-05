@@ -199,6 +199,9 @@ namespace Turnroot.Gameplay.Brain
 
         private IEnumerator InitializeWhenReady()
         {
+            // Initialize _tileHighlighter first, before any state changes can occur
+            _tileHighlighter = Brain.battleBrain.BattleObject.GetComponent<TileHighlighter>();
+
             // Wait for MapGrid to be ready
             int waitCount = 0;
             while (Brain.battleBrain.BattleObject.Context?.MapGrid == null && waitCount < 100)
@@ -221,8 +224,6 @@ namespace Turnroot.Gameplay.Brain
 
             _inputEnabled = true;
             _lastInputTime = Time.time;
-
-            _tileHighlighter = Brain.battleBrain.BattleObject.GetComponent<TileHighlighter>();
         }
 
         private void HandleBattleCompleted(BattleExitType exitType) => CleanupInputActions();

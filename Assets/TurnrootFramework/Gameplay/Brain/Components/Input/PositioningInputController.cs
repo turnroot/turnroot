@@ -120,12 +120,7 @@ namespace Turnroot.Gameplay.Brain
         private float GetInputThreshold()
         {
             // Use cached keyboard preference for micro-optimization. Fall back to a safe threshold if PlayerSettings are not available.
-            if (Brain.gamewideContextBrain?.PlayerSettings == null)
-            {
-                return 0.3f;
-            }
-
-            return _cachedIsKeyboard ? 0.1f : 0.5f;
+            return Brain.gamewideContextBrain?.PlayerSettings == null ? 0.3f : _cachedIsKeyboard ? 0.1f : 0.5f;
         }
 
         private bool TryNavigateDirection(Vector2 direction)
