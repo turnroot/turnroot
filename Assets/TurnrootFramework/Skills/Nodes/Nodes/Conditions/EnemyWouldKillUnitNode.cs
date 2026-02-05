@@ -28,52 +28,71 @@ namespace Turnroot.Skills.Nodes.Conditions
                 if (!Application.isPlaying)
                 {
                     wouldKill.value = testDamage >= 100f; // Arbitrary test
+                    return wouldKill;
                 }
-                else
+
+                // At runtime, check if damage would kill unit
+                if (graph is SkillGraph skillGraph)
                 {
-                    // At runtime, check if damage would kill unit
-                    if (graph is SkillGraph skillGraph)
-                    {
-                        var context = GetContextFromGraph(skillGraph);
-                        if (context != null && context.Unit.UnitInstance != null)
-                        {
-                            // Get incoming damage
-                            float damage = testDamage;
-                            var damagePort = GetInputPort("incomingDamage");
-                            if (damagePort != null && damagePort.IsConnected)
-                            {
-                                var inputValue = damagePort.GetInputValue();
-                                if (inputValue is FloatValue damageValue)
-                                {
-                                    damage = damageValue.value;
-                                }
-                            }
-
-                            // Check unit's current HP
-                            var healthStat = context.Unit.UnitInstance.GetBoundedStat(
-                                BoundedStatType.Health
-                            );
-
-                            if (healthStat != null)
-                            {
-                                // Would this damage reduce HP to 0 or below?
-                                wouldKill.value = (healthStat.Current - damage) <= 0;
-                            }
-                            else
-                            {
-#if UNITY_EDITOR
-                                Debug.LogWarning("EnemyWouldKillUnit: Unit has no Health stat");
-#endif
-                                wouldKill.value = false;
-                            }
-                        }
-                    }
+                    wouldKill.value = CheckIfDamageWouldKillUnit(skillGraph);
                 }
 
                 return wouldKill;
             }
 
             return null;
+        }
+
+        private bool CheckIfDamageWouldKillUnit(SkillGraph skillGraph)
+        {
+            var context = GetContextFromGraph(skillGraph);
+            if (context == null || context.Unit.UnitInstance == null)
+            {
+                return false;
+            }
+
+            float damage = GetIncomingDamage();
+            float currentHealth = GetUnitCurrentHealth(context);
+
+            if (currentHealth < 0)
+            {
+                return false; // No health stat found
+            }
+
+            // Would this damage reduce HP to 0 or below?
+            return (currentHealth - damage) <= 0;
+        }
+
+        private float GetIncomingDamage()
+        {
+            var damagePort = GetInputPort("incomingDamage");
+            if (damagePort == null || !damagePort.IsConnected)
+            {
+                return testDamage;
+            }
+
+            var inputValue = damagePort.GetInputValue();
+            if (inputValue is FloatValue damageValue)
+            {
+                return damageValue.value;
+            }
+
+            return testDamage;
+        }
+
+        private float GetUnitCurrentHealth(BattleContext context)
+        {
+            var healthStat = context.Unit.UnitInstance.GetBoundedStat(BoundedStatType.Health);
+
+            if (healthStat == null)
+            {
+#if UNITY_EDITOR
+                Debug.LogWarning("EnemyWouldKillUnit: Unit has no Health stat");
+#endif
+                return -1f; // Sentinel value
+            }
+
+            return healthStat.Current;
         }
     }
 }

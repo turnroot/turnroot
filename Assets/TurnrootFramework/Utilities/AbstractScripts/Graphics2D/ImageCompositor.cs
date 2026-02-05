@@ -1,4 +1,5 @@
 using Turnroot.Graphics2D;
+using Turnroot.Utilities;
 using UnityEngine;
 #if UNITY_EDITOR
 using UnityEditor;
@@ -13,7 +14,10 @@ namespace Assets.AbstractScripts.Graphics2D
             if (texture == null)
             {
 #if UNITY_EDITOR
-                Debug.LogError("Cannot create sprite from null texture.");
+                TurnrootLogger.Log(
+                    "Cannot create sprite from null texture.",
+                    TurnrootLogger.LogLevel.Error
+                );
 #endif
                 return null;
             }
@@ -34,7 +38,10 @@ namespace Assets.AbstractScripts.Graphics2D
             if (sprite == null || mask == null)
             {
 #if UNITY_EDITOR
-                Debug.LogError("Invalid parameters for TintSpritePixels.");
+                TurnrootLogger.Log(
+                    "Invalid parameters for TintSpritePixels.",
+                    TurnrootLogger.LogLevel.Error
+                );
 #endif
                 return null;
             }
@@ -42,7 +49,10 @@ namespace Assets.AbstractScripts.Graphics2D
             if (tints == null || tints.Length < 3)
             {
 #if UNITY_EDITOR
-                Debug.LogError("TintSpritePixels requires 3 tint colors.");
+                TurnrootLogger.Log(
+                    "TintSpritePixels requires 3 tint colors.",
+                    TurnrootLogger.LogLevel.Error
+                );
 #endif
                 return null;
             }
@@ -53,7 +63,10 @@ namespace Assets.AbstractScripts.Graphics2D
             )
             {
 #if UNITY_EDITOR
-                Debug.LogError("Mask and sprite textures must be the same size.");
+                TurnrootLogger.Log(
+                    "Mask and sprite textures must be the same size.",
+                    TurnrootLogger.LogLevel.Error
+                );
 #endif
                 return null;
             }
@@ -127,8 +140,9 @@ namespace Assets.AbstractScripts.Graphics2D
                 if (tints == null || tints.Length < 3)
                 {
 #if UNITY_EDITOR
-                    Debug.LogWarning(
-                        $"Tinting skipped for layer {layerIndex} (sprite='{spriteName}', tag='{layerTag}'): tints array is null or too short (length={(tints == null ? 0 : tints.Length)}). Provide exactly 3 tint colors for mask-based tinting."
+                    TurnrootLogger.Log(
+                        $"Tinting skipped for layer {layerIndex} (sprite='{spriteName}', tag='{layerTag}'): tints array is null or too short (length={(tints == null ? 0 : tints.Length)}). Provide exactly 3 tint colors for mask-based tinting.",
+                        TurnrootLogger.LogLevel.Warning
                     );
 #endif
                     return null;
@@ -137,8 +151,9 @@ namespace Assets.AbstractScripts.Graphics2D
                 if (sprite == null || sprite.texture == null || mask.texture == null)
                 {
 #if UNITY_EDITOR
-                    Debug.LogWarning(
-                        $"Tinting skipped for layer {layerIndex} (tag='{layerTag}'): sprite or mask texture is null."
+                    TurnrootLogger.Log(
+                        $"Tinting skipped for layer {layerIndex} (tag='{layerTag}'): sprite or mask texture is null.",
+                        TurnrootLogger.LogLevel.Warning
                     );
 #endif
                     return null;
@@ -159,8 +174,9 @@ namespace Assets.AbstractScripts.Graphics2D
                 if (tinted == null)
                 {
 #if UNITY_EDITOR
-                    Debug.LogWarning(
-                        $"Tinting failed for layer {layerIndex} (sprite='{spriteName}', tag='{layerTag}'): TintSpritePixels returned null despite pre-checks. Skipping."
+                    TurnrootLogger.Log(
+                        $"Tinting failed for layer {layerIndex} (sprite='{spriteName}', tag='{layerTag}'): TintSpritePixels returned null despite pre-checks. Skipping.",
+                        TurnrootLogger.LogLevel.Warning
                     );
 #endif
                     return null;
@@ -220,7 +236,10 @@ namespace Assets.AbstractScripts.Graphics2D
             if (baseTexture == null || layers == null)
             {
 #if UNITY_EDITOR
-                Debug.LogError("Invalid parameters for CompositeImageStackLayers.");
+                TurnrootLogger.Log(
+                    "Invalid parameters for CompositeImageStackLayers.",
+                    TurnrootLogger.LogLevel.Error
+                );
 #endif
                 return null;
             }
@@ -289,7 +308,10 @@ namespace Assets.AbstractScripts.Graphics2D
             if (baseTexture == null || layers == null)
             {
 #if UNITY_EDITOR
-                Debug.LogError("Invalid parameters for CompositeLayersOnTexture.");
+                TurnrootLogger.Log(
+                    "Invalid parameters for CompositeLayersOnTexture.",
+                    TurnrootLogger.LogLevel.Error
+                );
 #endif
                 return null;
             }
@@ -348,7 +370,10 @@ namespace Assets.AbstractScripts.Graphics2D
                     if (layerPixels == null)
                     {
 #if UNITY_EDITOR
-                        Debug.LogWarning($"Failed to tint layer {layerIndex}. Skipping.");
+                        TurnrootLogger.Log(
+                            $"Failed to tint layer {layerIndex}. Skipping.",
+                            TurnrootLogger.LogLevel.Warning
+                        );
 #endif
                         continue;
                     }

@@ -36,8 +36,8 @@ namespace Turnroot.Gameplay.Brain
                 // Publish movement events
                 if (updateBrain)
                 {
-                    _brain?.PublishCursorPositionChanged(position, _currentMap);
-                    _brain?.PublishBattleCursorMoved(position);
+                    Brain.PublishCursorPositionChanged(position, _currentMap);
+                    Brain.PublishBattleCursorMoved(position);
                 }
 
                 return true;

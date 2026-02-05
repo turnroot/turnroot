@@ -120,7 +120,7 @@ namespace Turnroot.Gameplay.Brain
         private float GetInputThreshold()
         {
             // Use cached keyboard preference for micro-optimization. Fall back to a safe threshold if PlayerSettings are not available.
-            if (_brain?.gamewideContextBrain?.PlayerSettings == null)
+            if (Brain.gamewideContextBrain?.PlayerSettings == null)
             {
                 return 0.3f;
             }
@@ -130,7 +130,7 @@ namespace Turnroot.Gameplay.Brain
 
         private bool TryNavigateDirection(Vector2 direction)
         {
-            if (_brain == null || _brain.cursorBrain == null)
+            if (Brain.cursorBrain == null)
             {
                 return false;
             }
@@ -138,19 +138,19 @@ namespace Turnroot.Gameplay.Brain
             if (Mathf.Abs(direction.x) > Mathf.Abs(direction.y))
             {
                 int dir = direction.x > 0 ? 1 : -1;
-                return _brain.cursorBrain.NavigateHorizontal(dir);
+                return Brain.cursorBrain.NavigateHorizontal(dir);
             }
             else
             {
                 int dir = direction.y > 0 ? 1 : -1;
-                return _brain.cursorBrain.NavigateVertical(dir);
+                return Brain.cursorBrain.NavigateVertical(dir);
             }
         }
 
         private void PreviewSwapIfNeeded()
         {
-            var prepObject = _brain?.battleBrain?.PreparationObject;
-            var cursorPos = _brain?.cursorBrain?.CursorPosition?.CoordinatesInt;
+            var prepObject = Brain.battleBrain?.PreparationObject;
+            var cursorPos = Brain.cursorBrain?.CursorPosition?.CoordinatesInt;
             if (prepObject == null || prepObject.selectedPosition == null || cursorPos == null)
             {
                 return;
@@ -173,13 +173,13 @@ namespace Turnroot.Gameplay.Brain
 
         private void HandleConfirmInput()
         {
-            var prepObject = _brain.battleBrain.PreparationObject;
+            var prepObject = Brain.battleBrain.PreparationObject;
             if (prepObject == null)
             {
                 return;
             }
 
-            var cursorPos = _brain.cursorBrain.CursorPosition.CoordinatesInt;
+            var cursorPos = Brain.cursorBrain.CursorPosition.CoordinatesInt;
             if (cursorPos == null)
             {
                 return;
@@ -202,7 +202,7 @@ namespace Turnroot.Gameplay.Brain
 
         private void HandleCancelInput()
         {
-            var prepObject = _brain.battleBrain.PreparationObject;
+            var prepObject = Brain.battleBrain.PreparationObject;
             if (prepObject == null)
             {
                 return;

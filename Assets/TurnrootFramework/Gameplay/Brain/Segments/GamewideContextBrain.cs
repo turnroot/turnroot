@@ -206,7 +206,7 @@ namespace Turnroot.Gameplay.Brain
 
         private void HandleSavePlayerRosterRequested() =>
             // Default behavior: save using the current turn number (0 if out of battle)
-            SavePlayerRoster(_brain?.battleBrain?.CurrentTurnNumber ?? 0);
+            SavePlayerRoster(Brain.battleBrain?.CurrentTurnNumber ?? 0);
 
         /// <summary>
         /// Save the player roster to LTM, recording the provided lastSavedBattleTurn.
@@ -389,7 +389,7 @@ namespace Turnroot.Gameplay.Brain
         public void UpdatePlayerSetting(string settingName, object value)
         {
             _playerSettingsPersistence?.UpdatePlayerSetting(settingName, value);
-            _brain?.volumeBrain?.ApplySettingsToVolumes(PlayerSettings);
+            Brain.volumeBrain?.ApplySettingsToVolumes(PlayerSettings);
         }
         #endregion
 

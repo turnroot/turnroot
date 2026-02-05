@@ -208,7 +208,7 @@ namespace Turnroot.Gameplay.Brain
             );
 
             _highLevelStates = states.ToArray();
-            _brain?.PublishHighLevelStatesInitialized();
+            Brain.PublishHighLevelStatesInitialized();
         }
 
         #endregion
@@ -238,7 +238,7 @@ namespace Turnroot.Gameplay.Brain
             _currentState.IsActive = true;
 
             TurnrootLogger.Log($"StateBrain: SetCurrentState -> {_currentState.Name}");
-            _brain?.PublishStateChanged(_currentState);
+            Brain.PublishStateChanged(_currentState);
         }
 
         public BrainState ActivateHighLevelState(string stateName)
@@ -358,7 +358,7 @@ namespace Turnroot.Gameplay.Brain
                 _savedStateBeforePause = _currentState;
                 SetCurrentState(pausedState);
                 TimeManager.PauseGame();
-                _brain?.PublishPaused(_savedStateBeforePause);
+                Brain.PublishPaused(_savedStateBeforePause);
             }
             else
             {
@@ -366,7 +366,7 @@ namespace Turnroot.Gameplay.Brain
                 {
                     SetCurrentState(_savedStateBeforePause);
                     TimeManager.ResumeGame();
-                    _brain?.PublishResumed(_savedStateBeforePause);
+                    Brain.PublishResumed(_savedStateBeforePause);
                     _savedStateBeforePause = null;
                 }
                 else if (_currentState != null)

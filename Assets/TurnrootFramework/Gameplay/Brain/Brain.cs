@@ -301,6 +301,7 @@ namespace Turnroot.Gameplay.Brain
         public event Action<CharacterInstance, MapGridPoint> OnCharacterMoveCompleted;
         public event Action<CharacterInstance> OnPlayerMovePreviewStarted;
         public event Action<CharacterInstance, MapGridPoint> OnPlayerChoseMoveTile;
+        public event Action<CharacterInstance, Vector2Int> OnCharacterVisitedTile;
 
         public void PublishCharacterMoveStarted(
             CharacterInstance character,
@@ -311,6 +312,11 @@ namespace Turnroot.Gameplay.Brain
             CharacterInstance character,
             MapGridPoint targetPoint
         ) => OnCharacterMoveCompleted?.Invoke(character, targetPoint);
+
+        public void PublishCharacterVisitedTile(
+            CharacterInstance character,
+            Vector2Int tilePosition
+        ) => OnCharacterVisitedTile?.Invoke(character, tilePosition);
 
         public void PublishPlayerMovePreviewStarted(CharacterInstance character) =>
             OnPlayerMovePreviewStarted?.Invoke(character);

@@ -24,11 +24,7 @@ namespace Turnroot.Gameplay.Brain
             var res = character.SetCharacterRecruitable(targetCharacter, isRecruitable);
             if (res.Success)
             {
-                _brain?.PublishCharacterRecruitableChanged(
-                    character,
-                    targetCharacter,
-                    isRecruitable
-                );
+                Brain.PublishCharacterRecruitableChanged(character, targetCharacter, isRecruitable);
                 TurnrootLogger.Log(
                     $"Set recruitable for {targetCharacter.DisplayName} to {isRecruitable}"
                 );
@@ -49,11 +45,7 @@ namespace Turnroot.Gameplay.Brain
             var res = character.SetCharacterRecruitmentChance(targetCharacter, chance);
             if (res.Success)
             {
-                _brain?.PublishCharacterRecruitmentChanceChanged(
-                    character,
-                    targetCharacter,
-                    chance
-                );
+                Brain.PublishCharacterRecruitmentChanceChanged(character, targetCharacter, chance);
                 TurnrootLogger.Log(
                     $"Set recruitment chance for {targetCharacter.DisplayName} to {chance}"
                 );
@@ -77,7 +69,7 @@ namespace Turnroot.Gameplay.Brain
             );
             if (res.Success)
             {
-                _brain?.PublishCharacterRecruitmentChanceIncreaseChanged(
+                Brain.PublishCharacterRecruitmentChanceIncreaseChanged(
                     character,
                     targetCharacter,
                     increase
@@ -100,7 +92,7 @@ namespace Turnroot.Gameplay.Brain
             }
 
             character.SetCharacterRequiresMinSupportLevel(targetCharacter, requiresMinSupportLevel);
-            _brain?.PublishCharacterRequiresMinSupportLevelChanged(
+            Brain.PublishCharacterRequiresMinSupportLevelChanged(
                 character,
                 targetCharacter,
                 requiresMinSupportLevel
@@ -121,7 +113,7 @@ namespace Turnroot.Gameplay.Brain
             }
 
             character.ClearRecruitmentOverrides(targetCharacter);
-            _brain?.PublishCharacterRecruitmentOverridesCleared(character, targetCharacter);
+            Brain.PublishCharacterRecruitmentOverridesCleared(character, targetCharacter);
             TurnrootLogger.Log($"Cleared recruitment overrides for {targetCharacter.DisplayName}");
         }
 

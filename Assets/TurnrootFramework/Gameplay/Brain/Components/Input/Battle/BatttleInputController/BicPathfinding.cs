@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using Turnroot.Gameplay.Brain.Components.Battle;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
 using Turnroot.Gameplay.Maps;
-using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain
@@ -49,7 +48,7 @@ namespace Turnroot.Gameplay.Brain
                     && _validMoveTiles != null
                     && _validMoveTiles.Count > 0
                     && _validMoveTiles.ContainsKey(CursorPosition)
-                    && _brain?.cursorBrain?.GetUnitAtCursor() == null
+                    && Brain.cursorBrain?.GetUnitAtCursor() == null
                 )
                 {
                     return true;

@@ -84,17 +84,17 @@ namespace Turnroot.Gameplay.Brain
         private void Start()
         {
             if (
-                _brain?.gamewideContextBrain != null
-                && _brain.gamewideContextBrain.GamewidePersistentPlayerRoster == null
+                Brain.gamewideContextBrain != null
+                && Brain.gamewideContextBrain.GamewidePersistentPlayerRoster == null
             )
             {
-                _brain.gamewideContextBrain.CreateOrRecallGamewidePersistentPlayerRoster();
+                Brain.gamewideContextBrain.CreateOrRecallGamewidePersistentPlayerRoster();
             }
 
             _playerTeamRoster =
-                _brain?.gamewideContextBrain?.GamewidePersistentPlayerRoster ?? _playerTeamRoster;
+                Brain.gamewideContextBrain?.GamewidePersistentPlayerRoster ?? _playerTeamRoster;
 
-            _brain?.gamewideContextBrain?.GetOrCreatePlayerTeamRoster(_playerTeamRoster);
+            Brain.gamewideContextBrain?.GetOrCreatePlayerTeamRoster(_playerTeamRoster);
         }
 
         #endregion
@@ -125,9 +125,9 @@ namespace Turnroot.Gameplay.Brain
 
             InitializeBattleRosters();
 
-            _brain?.PublishBattleObjectSet(BattleObject);
+            Brain.PublishBattleObjectSet(BattleObject);
 
-            _brain?.PublishBattleStarted();
+            Brain.PublishBattleStarted();
 
             var allInstances = GetAllActiveInstances();
             foreach (var inst in allInstances)
@@ -175,7 +175,7 @@ namespace Turnroot.Gameplay.Brain
             // persist the current pre-battle placements as the canonical first-turn placements.
             try
             {
-                var gw = _brain?.gamewideContextBrain;
+                var gw = Brain.gamewideContextBrain;
                 if (gw != null)
                 {
                     int lastSaved = gw.GetSavedPlayerRosterLastBattleTurn();
@@ -230,7 +230,7 @@ namespace Turnroot.Gameplay.Brain
             }
 
             // Clear central last-attacker mapping in the context
-            _brain?.battleBrain?.BattleObject?.Context?.ClearLastAttackHistory();
+            Brain.battleBrain?.BattleObject?.Context?.ClearLastAttackHistory();
 
             // Reset precompute loader so it can run in the next battle
             var precomputeLoader =
@@ -421,22 +421,22 @@ namespace Turnroot.Gameplay.Brain
         public GenericRosterInstance InstantiateGenericRoster(
             GenericRoster roster,
             bool register = false
-        ) => _brain?.gamewideContextBrain?.GetOrCreateGenericRoster(roster, register);
+        ) => Brain.gamewideContextBrain?.GetOrCreateGenericRoster(roster, register);
 
         public PlayerTeamRosterInstance InstantiatePlayerTeamRoster() =>
-            _brain?.gamewideContextBrain?.GetOrCreatePlayerTeamRoster(_playerTeamRoster);
+            Brain.gamewideContextBrain?.GetOrCreatePlayerTeamRoster(_playerTeamRoster);
 
         public void RecallGenericRosters(List<GenericRoster> rosters) =>
-            _brain?.gamewideContextBrain?.RecallGenericRosters(rosters);
+            Brain.gamewideContextBrain?.RecallGenericRosters(rosters);
 
         public CharacterInstance FindInstanceByTemplate(CharacterData template) =>
-            _brain?.gamewideContextBrain?.FindInstanceByTemplate(template);
+            Brain.gamewideContextBrain?.FindInstanceByTemplate(template);
 
         public List<CharacterInstance> GetAllActiveInstances() =>
-            _brain?.gamewideContextBrain?.GetAllActiveInstances();
+            Brain.gamewideContextBrain?.GetAllActiveInstances();
 
         public void SaveUniqueCharacterProgress(CharacterInstance instance) =>
-            _brain?.gamewideContextBrain?.SaveUniqueCharacterProgress(instance);
+            Brain.gamewideContextBrain?.SaveUniqueCharacterProgress(instance);
 
         #endregion
 
@@ -464,10 +464,10 @@ namespace Turnroot.Gameplay.Brain
                 mapGrid.SetOccupied(newPoint, unit);
                 unit.MapGridPosition = target;
                 BattleObject.Context.InvalidateUnitTileCache(unit);
-                _brain?.PublishCharacterMoveCompleted(unit, newPoint);
-                _brain?.PublishUnitMoved(unit, target);
-                _brain?.Publish(new Events.UnitMovedEvent(unit, from, target));
-                _brain?.PublishMoveCompleted(unit, newPoint);
+                Brain.PublishCharacterMoveCompleted(unit, newPoint);
+                Brain.PublishUnitMoved(unit, target);
+                Brain.Publish(new Events.UnitMovedEvent(unit, from, target));
+                Brain.PublishMoveCompleted(unit, newPoint);
             }
             return result.Success;
         }

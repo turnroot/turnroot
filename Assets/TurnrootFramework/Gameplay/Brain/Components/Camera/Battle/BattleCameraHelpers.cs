@@ -349,7 +349,7 @@ namespace Turnroot.Gameplay.Brain.Segments
                     "[CAMERA] HandleBattleStarted: no player placements found, falling back to neutral center"
                 );
                 var center = SetBattleGridCameraNeutralCenter();
-                _brain?.PublishCursorMoveRequested(center);
+                Brain.PublishCursorMoveRequested(center);
                 ComputeTargetPosition(center);
                 _shouldMove = true;
                 TurnrootLogger.Log(
@@ -378,7 +378,7 @@ namespace Turnroot.Gameplay.Brain.Segments
                 targetPos = placements[0].SpawnPosition;
             }
 
-            _brain?.PublishCursorMoveRequested(targetPos);
+            Brain.PublishCursorMoveRequested(targetPos);
             ComputeTargetPosition(targetPos);
             _shouldMove = true;
             TurnrootLogger.Log(

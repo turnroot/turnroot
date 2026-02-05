@@ -168,6 +168,12 @@ namespace Turnroot.GameSettings
         [BoxGroup("UI"), HorizontalLine(color: EColor.Green)]
         public GoldDisplay GoldDisplayNames = new() { OneLetter = "G", FullName = "gold" };
 
+        [BoxGroup("Visuals"), HorizontalLine(color: EColor.Yellow)]
+        public float UnitMovementCurveSmoothing = 4f;
+
+        [BoxGroup("Visuals")]
+        public float UnitMovementCurveRandomness = 0.25f;
+
         [BoxGroup("Maps"), HorizontalLine(color: EColor.Green)]
         public bool UnexploredMaps;
 

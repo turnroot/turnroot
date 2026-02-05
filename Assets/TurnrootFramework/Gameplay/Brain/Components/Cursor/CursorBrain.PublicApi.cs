@@ -19,10 +19,10 @@ namespace Turnroot.Gameplay.Brain
             // In battle context
             if (
                 _currentContext == CursorContext.Battle
-                && _brain?.battleBrain?.BattleObject?.Context != null
+                && Brain.battleBrain?.BattleObject?.Context != null
             )
             {
-                var cache = _brain.battleBrain.BattleObject.Context.GetCurrentUnitPositions();
+                var cache = Brain.battleBrain.BattleObject.Context.GetCurrentUnitPositions();
                 if (cache.TryGetValue(CursorPosition.CoordinatesInt, out var unit))
                 {
                     TurnrootLogger.Log(

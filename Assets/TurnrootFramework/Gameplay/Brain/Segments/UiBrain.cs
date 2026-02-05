@@ -181,7 +181,7 @@ namespace Turnroot.Gameplay.Brain.Segments
 
         private void HandleUnitSelectionChangedPersist(CharacterInstance unit, bool selected)
         {
-            if (unit == null || unit.CharacterTemplate == null || _brain?.ltm == null)
+            if (unit == null || unit.CharacterTemplate == null || Brain.ltm == null)
             {
                 return;
             }

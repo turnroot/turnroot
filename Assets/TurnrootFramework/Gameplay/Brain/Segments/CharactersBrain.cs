@@ -127,7 +127,7 @@ namespace Turnroot.Gameplay.Brain
             }
 
             character.RecordKill();
-            _brain?.PublishCharacterKill(character);
+            Brain.PublishCharacterKill(character);
         }
 
         public void IncrementCombatCount(CharacterInstance character)
@@ -150,7 +150,7 @@ namespace Turnroot.Gameplay.Brain
             var res = character.LevelUp();
             if (res.Success)
             {
-                _brain?.PublishCharacterLevelUp(character);
+                Brain.PublishCharacterLevelUp(character);
             }
         }
 
@@ -167,7 +167,7 @@ namespace Turnroot.Gameplay.Brain
             bool success = character.ChangeClass(newClassData).Success;
             if (success)
             {
-                _brain?.PublishCharacterClassChanged(character);
+                Brain.PublishCharacterClassChanged(character);
             }
             return success;
         }
@@ -180,7 +180,7 @@ namespace Turnroot.Gameplay.Brain
             }
 
             character.AddExperience(experienceTypeId, amount);
-            _brain?.PublishExperienceGained(character, experienceTypeId, amount);
+            Brain.PublishExperienceGained(character, experienceTypeId, amount);
             TurnrootLogger.Log(
                 $"{character.CharacterTemplate?.DisplayName} gained {amount} {experienceTypeId} XP"
             );

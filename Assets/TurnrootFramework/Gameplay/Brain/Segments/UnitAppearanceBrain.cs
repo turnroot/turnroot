@@ -27,6 +27,7 @@ namespace Turnroot.Gameplay.Brain
         protected override void SubscribeToBrainEvents()
         {
             Brain.OnBattleObjectSet += HandleBattleObjectSet;
+            Brain.OnCharacterMoveStarted += HandleCharacterMoveStarted;
 
             if (Brain.battleBrain?.BattleObject != null)
             {
@@ -39,6 +40,7 @@ namespace Turnroot.Gameplay.Brain
             if (Brain != null)
             {
                 Brain.OnBattleObjectSet -= HandleBattleObjectSet;
+                Brain.OnCharacterMoveStarted -= HandleCharacterMoveStarted;
             }
         }
 
@@ -49,8 +51,8 @@ namespace Turnroot.Gameplay.Brain
             ClearAllModels();
 
             var roster =
-                _brain?.battleBrain?.PlayerTeamRoster
-                ?? _brain?.battleBrain?.BattleObject?.PlayerTeamRoster;
+                Brain.battleBrain?.PlayerTeamRoster
+                ?? Brain.battleBrain?.BattleObject?.PlayerTeamRoster;
 
             if (roster == null)
             {

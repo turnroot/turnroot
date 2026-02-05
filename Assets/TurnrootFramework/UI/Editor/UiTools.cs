@@ -53,6 +53,13 @@ namespace Turnroot.UI
             }
 
             // 2) update open scenes
+            UpdateOpenScenes(spacing);
+
+            Debug.Log("Menu spacing applied.");
+        }
+
+        private static void UpdateOpenScenes(float spacing)
+        {
             for (int i = 0; i < EditorSceneManager.sceneCount; i++)
             {
                 var scene = EditorSceneManager.GetSceneAt(i);
@@ -61,60 +68,88 @@ namespace Turnroot.UI
                     continue;
                 }
 
-                bool sceneDirty = false;
-                foreach (var go in scene.GetRootGameObjects())
-                {
-                    // Iterate all transforms in the root to find instances of that prefab asset
-                    foreach (var t in go.GetComponentsInChildren<Transform>(true))
-                    {
-                        var nearestRoot = PrefabUtility.GetNearestPrefabInstanceRoot(t.gameObject);
-                        if (nearestRoot == null)
-                        {
-                            continue;
-                        }
-
-                        var assetPath = PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(
-                            nearestRoot
-                        );
-                        if (string.IsNullOrEmpty(assetPath))
-                        {
-                            continue;
-                        }
-
-                        if (
-                            !assetPath.EndsWith(
-                                "MenuStyleListPrefab.prefab",
-                                System.StringComparison.OrdinalIgnoreCase
-                            )
-                        )
-                        {
-                            continue;
-                        }
-
-                        // Found an instance of the prefab in the scene; set its VerticalLayoutGroup spacing
-                        var vlg = nearestRoot.GetComponentInChildren<VerticalLayoutGroup>(true);
-                        if (vlg != null)
-                        {
-                            Undo.RecordObject(vlg, "Apply Menu Spacing");
-                            vlg.spacing = spacing;
-                            EditorUtility.SetDirty(vlg);
-                            sceneDirty = true;
-                        }
-                        else
-                        {
-                            Debug.LogWarning(
-                                $"MenuStyleListPrefab instance in scene '{scene.name}' has no VerticalLayoutGroup child"
-                            );
-                        }
-                    }
-                }
-                if (sceneDirty)
+                if (UpdateSceneMenuSpacing(scene, spacing))
                 {
                     EditorSceneManager.MarkSceneDirty(scene);
                 }
             }
+        }
 
-            Debug.Log("Menu spacing applied.");
+        private static bool UpdateSceneMenuSpacing(Scene scene, float spacing)
+        {
+            bool sceneDirty = false;
+
+            foreach (var go in scene.GetRootGameObjects())
+            {
+                if (ProcessGameObjectForMenuSpacing(go, spacing, scene.name))
+                {
+                    sceneDirty = true;
+                }
+            }
+
+            return sceneDirty;
+        }
+
+        private static bool ProcessGameObjectForMenuSpacing(
+            GameObject go,
+            float spacing,
+            string sceneName
+        )
+        {
+            bool anyUpdated = false;
+
+            foreach (var t in go.GetComponentsInChildren<Transform>(true))
+            {
+                if (TryUpdatePrefabInstanceSpacing(t.gameObject, spacing, sceneName))
+                {
+                    anyUpdated = true;
+                }
+            }
+
+            return anyUpdated;
+        }
+
+        private static bool TryUpdatePrefabInstanceSpacing(
+            GameObject obj,
+            float spacing,
+            string sceneName
+        )
+        {
+            var nearestRoot = PrefabUtility.GetNearestPrefabInstanceRoot(obj);
+            if (nearestRoot == null)
+            {
+                return false;
+            }
+
+            var assetPath = PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(nearestRoot);
+            if (string.IsNullOrEmpty(assetPath))
+            {
+                return false;
+            }
+
+            if (
+                !assetPath.EndsWith(
+                    "MenuStyleListPrefab.prefab",
+                    System.StringComparison.OrdinalIgnoreCase
+                )
+            )
+            {
+                return false;
+            }
+
+            var vlg = nearestRoot.GetComponentInChildren<VerticalLayoutGroup>(true);
+            if (vlg == null)
+            {
+                Debug.LogWarning(
+                    $"MenuStyleListPrefab instance in scene '{sceneName}' has no VerticalLayoutGroup child"
+                );
+                return false;
+            }
+
+            Undo.RecordObject(vlg, "Apply Menu Spacing");
+            vlg.spacing = spacing;
+            EditorUtility.SetDirty(vlg);
+            return true;
         }
     }
 }

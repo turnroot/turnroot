@@ -34,11 +34,11 @@ namespace Turnroot.Gameplay.Brain
             }
 
             int remainingUses = item.Use();
-            _brain?.PublishItemUsed(item, remainingUses);
+            Brain.PublishItemUsed(item, remainingUses);
 
             if (remainingUses == 0)
             {
-                _brain?.PublishItemBroken(item);
+                Brain.PublishItemBroken(item);
                 TurnrootLogger.Log($"{item.Template.name} has broken!");
             }
 
@@ -70,7 +70,7 @@ namespace Turnroot.Gameplay.Brain
                 user.Id,
                 item.InstanceID,
                 target?.Id,
-                context.Brain?.battleBrain?.CurrentTurnNumber ?? 0
+                context.Brain.battleBrain?.CurrentTurnNumber ?? 0
             );
             return context.Brain.ExecuteCommand(command);
         }
@@ -88,7 +88,7 @@ namespace Turnroot.Gameplay.Brain
             var result = item.Transfer(targetInventory);
             if (result.Success)
             {
-                _brain?.PublishItemTransferred(item, targetInventory);
+                Brain.PublishItemTransferred(item, targetInventory);
             }
 
             return result;
@@ -104,7 +104,7 @@ namespace Turnroot.Gameplay.Brain
             var result = item.Discard();
             if (result.Success)
             {
-                _brain?.PublishItemDiscarded(item);
+                Brain.PublishItemDiscarded(item);
             }
 
             return result;
@@ -120,7 +120,7 @@ namespace Turnroot.Gameplay.Brain
             var result = item.Sell();
             if (result.Success)
             {
-                _brain?.PublishItemSold(item);
+                Brain.PublishItemSold(item);
             }
 
             return result;
@@ -139,7 +139,7 @@ namespace Turnroot.Gameplay.Brain
             var result = item.Buy(buyerInventory);
             if (result.Success)
             {
-                _brain?.PublishItemBought(item, buyerInventory);
+                Brain.PublishItemBought(item, buyerInventory);
             }
 
             return result;
@@ -155,7 +155,7 @@ namespace Turnroot.Gameplay.Brain
             var result = item.Repair(repairUses);
             if (result.Success)
             {
-                _brain?.PublishItemRepaired(item, repairUses);
+                Brain.PublishItemRepaired(item, repairUses);
             }
 
             return result;
@@ -202,13 +202,13 @@ namespace Turnroot.Gameplay.Brain
             }
 
             // Get storehouse brain to consume resources
-            var storehouseBrain = _brain.storehouseBrain;
+            var storehouseBrain = Brain.storehouseBrain;
 
             // Perform the forg
             var result = item.Forger.ForgeItem(storehouseBrain, targetOption.Value);
             if (result.Success)
             {
-                _brain?.PublishItemForged(item, targetItem);
+                Brain.PublishItemForged(item, targetItem);
             }
 
             return result;
@@ -239,7 +239,7 @@ namespace Turnroot.Gameplay.Brain
             }
 
             var item = character.InventoryInstance.InventoryItems[inventoryIndex];
-            _brain?.PublishItemEquipped(character, item);
+            Brain.PublishItemEquipped(character, item);
             return OperationResult.Successful();
         }
 
@@ -265,7 +265,7 @@ namespace Turnroot.Gameplay.Brain
                 return res;
             }
 
-            _brain?.PublishItemUnequipped(character, item);
+            Brain.PublishItemUnequipped(character, item);
             return OperationResult.Successful();
         }
 
@@ -278,7 +278,7 @@ namespace Turnroot.Gameplay.Brain
             var seenCharacters = new HashSet<string>();
 
             // 1) From active BattleBrain (in-battle instances)
-            var battleBrain = _brain.battleBrain;
+            var battleBrain = Brain.battleBrain;
             if (battleBrain != null)
             {
                 var characters = battleBrain.GetAllActiveInstances();
@@ -298,7 +298,7 @@ namespace Turnroot.Gameplay.Brain
             }
 
             // 2) From GamewideContextBrain (persistent/runtime instances outside battle)
-            var gw = _brain?.gamewideContextBrain;
+            var gw = Brain.gamewideContextBrain;
             if (gw != null)
             {
                 var characters = gw.GetAllActiveInstances();

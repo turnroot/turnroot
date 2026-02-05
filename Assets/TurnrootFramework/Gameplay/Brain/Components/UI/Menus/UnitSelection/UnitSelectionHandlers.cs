@@ -26,7 +26,7 @@ namespace Turnroot.Gameplay.Brain.Segments
             // Prevent unselecting the only selected unit
             if (!willSelect && unitColumns != null && unitColumns.SelectedCount <= 1)
             {
-                _brain.PublishUiPlayerIsTryingToUnselectLastUnit();
+                Brain.PublishUiPlayerIsTryingToUnselectLastUnit();
                 return;
             }
 
@@ -75,12 +75,12 @@ namespace Turnroot.Gameplay.Brain.Segments
             var key = template != null ? LtmKeys.UnitSelectedForBattlePrefix + template.name : null;
             if (key != null)
             {
-                _brain.ltm.RememberBool(key, item.IsSelectedForBattle);
+                Brain.ltm.RememberBool(key, item.IsSelectedForBattle);
             }
 
             if (item.CharacterInstanceData != null)
             {
-                _brain.PublishUnitSelectionChanged(
+                Brain.PublishUnitSelectionChanged(
                     item.CharacterInstanceData,
                     item.IsSelectedForBattle
                 );

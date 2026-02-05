@@ -1,9 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
-using Turnroot.Gameplay.Maps;
 using Turnroot.Utilities;
 using UnityEngine;
-using UnityEngine.Rendering.Universal;
 
 namespace Turnroot.Gameplay.Brain.Components.Battle
 {
