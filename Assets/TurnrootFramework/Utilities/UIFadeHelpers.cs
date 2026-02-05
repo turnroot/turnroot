@@ -95,9 +95,10 @@ namespace Turnroot.Utilities
     {
         public static OperationResult ShowWithFade(GameObject go)
         {
-            if (go == null)
+            var validation = OperationResultGuards.RequireNotNull(go, nameof(go));
+            if (!validation.Success)
             {
-                return OperationResult.Failure("ShowWithFade: GameObject is null.");
+                return validation;
             }
 
             go.SetActive(true);

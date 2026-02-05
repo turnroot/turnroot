@@ -27,34 +27,46 @@ namespace Turnroot.Gameplay.Brain
 
         public static string GetModificationCheckHash<T>(T instance, string versionHex = null)
         {
-            return TryExecute(
-                () =>
-                {
-                    var settings = GetJsonSerializerSettings();
-                    var json = Newtonsoft.Json.JsonConvert.SerializeObject(instance, settings);
-                    var input =
-                        json + "|v:" + (string.IsNullOrEmpty(versionHex) ? "0" : versionHex);
-                    return ComputeFNV1a64Hex(input);
-                },
-                string.Empty,
-                "Failed to compute modification hash"
-            );
+            try
+            {
+                var settings = GetJsonSerializerSettings();
+                var json = Newtonsoft.Json.JsonConvert.SerializeObject(instance, settings);
+                var input = json + "|v:" + (string.IsNullOrEmpty(versionHex) ? "0" : versionHex);
+                return ComputeFNV1a64Hex(input);
+            }
+            catch (System.Exception ex)
+            {
+                // Hash computation can fail with corrupted/invalid data - return empty to signal failure
+                Utilities.TurnrootLogger.Log(
+                    $"Failed to compute modification hash: {ex.Message}",
+                    Utilities.TurnrootLogger.LogLevel.Warning
+                );
+                return string.Empty;
+            }
         }
 
         public static string RecomputeHashFromWrapperJObject(Newtonsoft.Json.Linq.JObject wrapper)
         {
-            return wrapper == null
-                ? string.Empty
-                : TryExecute(
-                    () =>
-                    {
-                        var payload = (string)wrapper["Payload"] ?? string.Empty;
-                        var version = (string)wrapper["Version"] ?? "0";
-                        return ComputeFNV1a64Hex(payload + "|v:" + version);
-                    },
-                    string.Empty,
-                    "Failed to recompute hash"
+            if (wrapper == null)
+            {
+                return string.Empty;
+            }
+
+            try
+            {
+                var payload = (string)wrapper["Payload"] ?? string.Empty;
+                var version = (string)wrapper["Version"] ?? "0";
+                return ComputeFNV1a64Hex(payload + "|v:" + version);
+            }
+            catch (System.Exception ex)
+            {
+                // Wrapper might be corrupted - return empty to signal failure
+                Utilities.TurnrootLogger.Log(
+                    $"Failed to recompute hash from wrapper: {ex.Message}",
+                    Utilities.TurnrootLogger.LogLevel.Warning
                 );
+                return string.Empty;
+            }
         }
 
         #endregion

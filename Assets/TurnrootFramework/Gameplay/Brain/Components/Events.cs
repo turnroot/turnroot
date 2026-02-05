@@ -589,11 +589,12 @@ namespace Turnroot.Gameplay.Brain
                 }
                 catch (Exception ex)
                 {
+                    // Log which handler failed, then rethrow to expose the bug
                     TurnrootLogger.Log(
-                        $"PublishPlayerControlledUnitActivated: handler {handler.Method.Name} threw: {ex}",
+                        $"PublishPlayerControlledUnitActivated: handler {handler.Method.Name} in {handler.Method.DeclaringType?.Name} threw exception: {ex}",
                         TurnrootLogger.LogLevel.Error
                     );
-                    throw;
+                    throw; // Don't hide the exception - this is a real bug
                 }
             }
         }

@@ -28,6 +28,8 @@ MonoBehaviour:
   GoldDisplayNames:
     OneLetter: G
     FullName: gold
+  UnitMovementCurveSmoothing: 2
+  UnitMovementCurveRandomness: 0.05
   UnexploredMaps: 1
   MaxNumberOfExplorers: 2
   RidersAndFliersAreBetterExplorers: 1

@@ -13,9 +13,13 @@ namespace Turnroot.UI.Components
 
         public OperationResult Initialize(BattlePreparationObject preparationObject)
         {
-            if (preparationObject == null)
+            var validation = OperationResultGuards.RequireNotNull(
+                preparationObject,
+                nameof(preparationObject)
+            );
+            if (!validation.Success)
             {
-                return OperationResult.Failure("PreparationObject is null");
+                return validation;
             }
 
             // Cache brain for accessing UI settings (may be null in some edge cases)

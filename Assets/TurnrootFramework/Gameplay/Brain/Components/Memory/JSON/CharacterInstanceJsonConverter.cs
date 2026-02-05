@@ -71,46 +71,40 @@ namespace Turnroot.Gameplay.Brain.Components
             token[FieldNames.CurrentLevel] = JToken.FromObject(instance.CurrentLevel, serializer);
             token[FieldNames.CurrentExp] = JToken.FromObject(instance.CurrentExp, serializer);
 
-            token[FieldNames.RuntimeBoundedStats] =
-                instance.RuntimeBoundedStats != null
-                    ? JToken.FromObject(instance.RuntimeBoundedStats, serializer)
-                    : JValue.CreateNull();
-
-            token[FieldNames.RuntimeUnboundedStats] =
-                instance.RuntimeUnboundedStats != null
-                    ? JToken.FromObject(instance.RuntimeUnboundedStats, serializer)
-                    : JValue.CreateNull();
-
-            token[FieldNames.InventoryInstance] =
-                instance.InventoryInstance != null
-                    ? JToken.FromObject(instance.InventoryInstance, serializer)
-                    : JValue.CreateNull();
-
-            token[FieldNames.SkillInstances] =
-                instance.SkillInstances != null
-                    ? JToken.FromObject(instance.SkillInstances, serializer)
-                    : JValue.CreateNull();
+            token[FieldNames.RuntimeBoundedStats] = SerializeFieldOrNull(
+                instance.RuntimeBoundedStats,
+                serializer
+            );
+            token[FieldNames.RuntimeUnboundedStats] = SerializeFieldOrNull(
+                instance.RuntimeUnboundedStats,
+                serializer
+            );
+            token[FieldNames.InventoryInstance] = SerializeFieldOrNull(
+                instance.InventoryInstance,
+                serializer
+            );
+            token[FieldNames.SkillInstances] = SerializeFieldOrNull(
+                instance.SkillInstances,
+                serializer
+            );
 
             // Persist additional fields
-            token[FieldNames.ExperienceRanks] =
-                instance.ExperienceRanks != null
-                    ? JToken.FromObject(instance.ExperienceRanks, serializer)
-                    : JValue.CreateNull();
-
-            token[FieldNames.CurrentClass] =
-                instance.CurrentClass != null
-                    ? JToken.FromObject(instance.CurrentClass, serializer)
-                    : JValue.CreateNull();
-
-            token[FieldNames.EquippedClassHistory] =
-                instance._equippedClassHistory != null
-                    ? JToken.FromObject(instance._equippedClassHistory, serializer)
-                    : JValue.CreateNull();
-
-            token[FieldNames.ActiveStatusEffects] =
-                instance.ActiveStatusEffects != null
-                    ? JToken.FromObject(instance.ActiveStatusEffects, serializer)
-                    : JValue.CreateNull();
+            token[FieldNames.ExperienceRanks] = SerializeFieldOrNull(
+                instance.ExperienceRanks,
+                serializer
+            );
+            token[FieldNames.CurrentClass] = SerializeFieldOrNull(
+                instance.CurrentClass,
+                serializer
+            );
+            token[FieldNames.EquippedClassHistory] = SerializeFieldOrNull(
+                instance._equippedClassHistory,
+                serializer
+            );
+            token[FieldNames.ActiveStatusEffects] = SerializeFieldOrNull(
+                instance.ActiveStatusEffects,
+                serializer
+            );
 
             token[FieldNames.MapGridPosition] = JToken.FromObject(
                 instance.MapGridPosition,
@@ -126,12 +120,21 @@ namespace Turnroot.Gameplay.Brain.Components
                 instance,
                 FieldNames.SupportRelationships
             );
-            token[FieldNames.SupportRelationships] =
-                supportRelationships != null
-                    ? JToken.FromObject(supportRelationships, serializer)
-                    : JValue.CreateNull();
+            token[FieldNames.SupportRelationships] = SerializeFieldOrNull(
+                supportRelationships,
+                serializer
+            );
 
             return token;
+        }
+
+        /// <summary>
+        /// Helper method to serialize a field or return null if the value is null.
+        /// Reduces repetitive null checking in serialization code.
+        /// </summary>
+        private static JToken SerializeFieldOrNull(object value, JsonSerializer serializer)
+        {
+            return value != null ? JToken.FromObject(value, serializer) : JValue.CreateNull();
         }
 
         private JObject CreateTemplateToken(CharacterData template)

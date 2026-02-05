@@ -73,6 +73,7 @@ namespace Turnroot.Gameplay.Brain
 
         private void Start()
         {
+            // All Brain components are initialized by this point, safe to access
             _ltm = GetComponent<LongTermMemory>();
             _playerSettingsPersistence?.Initialize();
             TryLoadAndRecallPersistentPlayerRoster();

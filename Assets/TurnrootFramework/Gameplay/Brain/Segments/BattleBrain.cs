@@ -83,6 +83,7 @@ namespace Turnroot.Gameplay.Brain
 
         private void Start()
         {
+            // Safe to access Brain.gamewideContextBrain here - all Awakes have completed
             if (
                 Brain.gamewideContextBrain != null
                 && Brain.gamewideContextBrain.GamewidePersistentPlayerRoster == null
@@ -105,6 +106,24 @@ namespace Turnroot.Gameplay.Brain
         {
             TurnrootLogger.Log("BattleBrain: Handling StartBattle event");
 
+            if (!InitializeBattleObject())
+            {
+                return; // Early exit if battle object not found
+            }
+
+            InitializeBattleRosters();
+            PublishBattleEvents();
+            ClearUnitBattleState();
+            InitializeAdvancedSystems();
+            InitializePrecomputeLoader();
+            SaveInitialRosterPlacements();
+            StartPlayerTurn();
+
+            TurnrootLogger.Log("BattleBrain: Battle initialization complete");
+        }
+
+        private bool InitializeBattleObject()
+        {
             BattleObject = FindBattleGameObjectInScene();
 
             if (BattleObject == null)
@@ -113,22 +132,25 @@ namespace Turnroot.Gameplay.Brain
                     "BattleBrain: No BattleGameObject found in any loaded scene",
                     TurnrootLogger.LogLevel.Error
                 );
-                return;
+                return false;
             }
 
-            // Connect systems
             BattleObject.Brain = _brain;
             BattleObject.ConnectToBrainEvents();
             BattleObject.ConnectBattleConditionsToContext();
-
             BattleObject.Context.InvalidateUnitPositionCache();
 
-            InitializeBattleRosters();
+            return true;
+        }
 
+        private void PublishBattleEvents()
+        {
             Brain.PublishBattleObjectSet(BattleObject);
-
             Brain.PublishBattleStarted();
+        }
 
+        private void ClearUnitBattleState()
+        {
             var allInstances = GetAllActiveInstances();
             foreach (var inst in allInstances)
             {
@@ -138,20 +160,22 @@ namespace Turnroot.Gameplay.Brain
                     ClearLastAttacker(BattleObject?.Context, inst);
                 }
             }
-
-            // Clear central last-attacker mapping in the context
             BattleObject?.Context?.ClearLastAttackHistory();
+        }
 
-            // Initialize advanced systems (commands, snapshots)
+        private void InitializeAdvancedSystems()
+        {
             // Clear any previous battle's command history
             _brain.Commands?.Clear();
             // Take initial snapshot of battle state
             _brain.TakeSnapshot();
+        }
 
-            TurnrootLogger.Log("BattleBrain: Battle initialization complete");
-
+        private void InitializePrecomputeLoader()
+        {
             var precomputeLoader =
                 FindFirstObjectByType<Combat.Precompute.BattlePrecomputeLoader>();
+
             if (precomputeLoader != null)
             {
                 var initRes = precomputeLoader.Initialize(_brain, BattleObject?.Context);
@@ -170,32 +194,26 @@ namespace Turnroot.Gameplay.Brain
                     TurnrootLogger.LogLevel.Warning
                 );
             }
+        }
 
-            // If the saved roster didn't include multi-turn placements (LastSavedBattleTurn <= 1),
-            // persist the current pre-battle placements as the canonical first-turn placements.
-            try
+        private void SaveInitialRosterPlacements()
+        {
+            var gw = Brain.gamewideContextBrain;
+            if (gw != null)
             {
-                var gw = Brain.gamewideContextBrain;
-                if (gw != null)
+                int lastSaved = gw.GetSavedPlayerRosterLastBattleTurn();
+                if (lastSaved <= 1)
                 {
-                    int lastSaved = gw.GetSavedPlayerRosterLastBattleTurn();
-                    if (lastSaved <= 1)
-                    {
-                        gw.SavePlayerRoster(lastSavedBattleTurn: 1);
-                    }
+                    // SavePlayerRoster should handle its own errors and return OperationResult
+                    gw.SavePlayerRoster(lastSavedBattleTurn: 1);
                 }
             }
-            catch (System.Exception ex)
-            {
-                TurnrootLogger.Log(
-                    $"BattleBrain: Failed to persist first-turn placements: {ex.Message}",
-                    TurnrootLogger.LogLevel.Warning
-                );
-            }
+        }
 
+        private void StartPlayerTurn()
+        {
             ProgressTurnOrder();
 
-            // Ensure PlayerTurnFlow enters its initial state at battle start
             if (playerTurnFlow != null)
             {
                 playerTurnFlow.StartPlayerTurn();
@@ -203,8 +221,6 @@ namespace Turnroot.Gameplay.Brain
                     $"Battle started. PlayerTurnFlow state: {playerTurnFlow.GetCurrentState()}"
                 );
             }
-
-            return;
         }
 
         private void HandleExitBattle(BattleExitType exitType)
@@ -308,9 +324,13 @@ namespace Turnroot.Gameplay.Brain
 
         private OperationResult PopulateBattleContextParticipants()
         {
-            if (BattleObject == null || BattleObject.Context == null)
+            var validation = OperationResultGuards.All(
+                OperationResultGuards.RequireNotNull(BattleObject, nameof(BattleObject)),
+                OperationResultGuards.RequireNotNull(BattleObject?.Context, "BattleContext")
+            );
+            if (!validation.Success)
             {
-                return OperationResult.Failure("BattleObject or BattleContext is null");
+                return validation;
             }
 
             var context = BattleObject.Context;

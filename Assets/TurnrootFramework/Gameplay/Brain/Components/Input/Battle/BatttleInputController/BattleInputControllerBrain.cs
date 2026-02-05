@@ -48,21 +48,8 @@ namespace Turnroot.Gameplay.Brain
         protected override void Awake()
         {
             base.Awake();
-            _playerTurnFlow = Brain.battleBrain.playerTurnFlow;
             _lastInputTime = -999f;
             UpdateInputCooldown();
-        }
-
-        private void Start()
-        {
-            // Check if we're already in battle state (can happen if component loads late)
-            if (Brain.stateBrain.CurrentState.Name == BrainStateNames.Battle)
-            {
-                // Battle already started before we subscribed, initialize manually
-                _lastInputTime = Time.time;
-                _inputEnabled = false;
-                StartCoroutine(InitializeWhenReady());
-            }
         }
 
         private void Update()
@@ -206,26 +193,28 @@ namespace Turnroot.Gameplay.Brain
         {
             _lastInputTime = Time.time;
             _inputEnabled = false;
+            _playerTurnFlow = Brain.battleBrain.playerTurnFlow;
             StartCoroutine(InitializeWhenReady());
         }
 
         private IEnumerator InitializeWhenReady()
         {
+            // Wait for MapGrid to be ready
             int waitCount = 0;
-            while (Brain.battleBrain.BattleObject.Context.MapGrid == null)
+            while (Brain.battleBrain.BattleObject.Context?.MapGrid == null && waitCount < 100)
             {
                 waitCount++;
                 yield return new WaitForSeconds(0.05f);
             }
 
+            // Wait for cursor to be ready
             waitCount = 0;
-            while (Brain.cursorBrain.IsInitialized != true)
+            while (Brain.cursorBrain?.IsInitialized != true && waitCount < 100)
             {
                 waitCount++;
                 yield return new WaitForSeconds(0.05f);
             }
 
-            _playerTurnFlow = Brain.battleBrain.playerTurnFlow;
             SetupInputActions();
 
             yield return null;

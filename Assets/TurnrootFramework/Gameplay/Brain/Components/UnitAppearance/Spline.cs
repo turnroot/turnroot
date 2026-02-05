@@ -50,35 +50,50 @@ namespace Turnroot.Gameplay.Brain
             MapGridPoint destination
         )
         {
-            var mapGrid = Brain.battleBrain?.BattleObject?.MapGrid;
-            if (mapGrid == null)
+            var battleObject = Brain.battleBrain?.BattleObject;
+            var mapGrid = battleObject?.MapGrid;
+            var context = battleObject?.Context;
+
+            if (mapGrid == null || context == null)
             {
                 return null;
             }
 
             var startPos = character.MapGridPosition;
-            var endPos = destination.CoordinatesInt;
+            var startPoint = mapGrid.GetGridPoint(startPos.x, startPos.y);
 
-            // Build Manhattan-style path (horizontal first, then vertical)
+            if (startPoint == null || destination == null)
+            {
+                return null;
+            }
+
+            // Get valid move tiles for this character using the same method as BattleInputControllerBrain
+            if (!context.TryGetValidTilesForUnit(character, out var validMoveTiles, out _))
+            {
+                TurnrootLogger.Log(
+                    $"BuildPathToDestination: Failed to get valid tiles for {character.CharacterTemplate?.DisplayName}",
+                    TurnrootLogger.LogLevel.Warning
+                );
+                return null;
+            }
+
+            // Use GetPathThroughReachable like BicMethods.cs does
+            var astar = new AStarModified();
+            var pathPoints = astar.GetPathThroughReachable(startPoint, destination, validMoveTiles);
+
+            if (pathPoints == null || pathPoints.Count < 2)
+            {
+                return null;
+            }
+
+            // Convert MapGridPoints to world positions
             var path = new List<Vector3>();
-            var current = startPos;
-            path.Add(mapGrid.GetTerrainAdjustedWorldPosition(current));
-
-            // Move along X axis
-            while (current.x != endPos.x)
+            foreach (var gridPoint in pathPoints)
             {
-                current.x += current.x < endPos.x ? 1 : -1;
-                path.Add(mapGrid.GetTerrainAdjustedWorldPosition(current));
+                path.Add(mapGrid.GetTerrainAdjustedWorldPosition(gridPoint.CoordinatesInt));
             }
 
-            // Move along Y axis
-            while (current.y != endPos.y)
-            {
-                current.y += current.y < endPos.y ? 1 : -1;
-                path.Add(mapGrid.GetTerrainAdjustedWorldPosition(current));
-            }
-
-            return path.Count > 1 ? path : null;
+            return path;
         }
 
         private IEnumerator AnimateCharacterMovementCoroutine(
@@ -98,21 +113,31 @@ namespace Turnroot.Gameplay.Brain
 
             // Clear highlights and blend to walk
             tileHighlighter?.ClearAll();
-            BlendToWalkAnimation(animator);
-            yield return new WaitForSeconds(ANIMATION_BLEND_DURATION);
+            if (animator != null)
+            {
+                BlendToWalkAnimation(animator);
+                yield return new WaitForSeconds(ANIMATION_BLEND_DURATION);
+            }
 
             // Create and animate along spline
             var spline = CreateSplineFromMapGridCoordinates(path);
-            var splineLength = GetSplineLength(spline);
-            var duration = splineLength / character.WalkingSpeed;
-            var elapsed = 0f;
+            var splineLength = CalculateSplineArcLength(spline, 100);
+            var baseSpeed = character.WalkingSpeed;
+            var distanceTraveled = 0f;
             var lastTilePos = character.MapGridPosition;
 
-            while (elapsed <= duration)
+            TurnrootLogger.Log(
+                $"Starting movement: splineLength={splineLength}, baseSpeed={baseSpeed}"
+            );
+
+            while (distanceTraveled < splineLength)
             {
-                var t = Mathf.Clamp01(elapsed / duration);
-                var distanceTraveled = t * splineLength;
-                var speed = ApplyDecelerationFactor(distanceTraveled, splineLength);
+                // Calculate current speed with deceleration
+                var speedMultiplier = ApplyDecelerationFactor(distanceTraveled, splineLength);
+                var currentSpeed = baseSpeed * speedMultiplier;
+
+                // Move along the spline based on distance traveled
+                var t = Mathf.Clamp01(distanceTraveled / splineLength);
 
                 spline.Evaluate(t, out var position, out var tangent, out var up);
                 model.transform.position = position;
@@ -136,17 +161,30 @@ namespace Turnroot.Gameplay.Brain
                     lastTilePos = currentTile;
                 }
 
-                elapsed += Time.deltaTime * speed;
+                // Increment distance traveled by actual distance moved this frame
+                distanceTraveled += currentSpeed * Time.deltaTime;
                 yield return null;
             }
 
-            // Ensure final position and rotation
+            TurnrootLogger.Log($"Movement complete, blending to idle");
+
+            // Ensure final position
             model.transform.position = path[path.Count - 1];
             character.MapGridPosition = WorldPositionToGridPosition(path[path.Count - 1]);
 
-            // Blend back to idle
-            BlendToIdleAnimation(animator);
-            yield return new WaitForSeconds(ANIMATION_BLEND_DURATION);
+            // Fire final tile visited event
+            var finalTile = WorldPositionToGridPosition(path[path.Count - 1]);
+            if (finalTile != lastTilePos)
+            {
+                Brain.PublishCharacterVisitedTile(character, finalTile);
+            }
+
+            // Blend back to idle IMMEDIATELY after reaching destination
+            if (animator != null)
+            {
+                BlendToIdleAnimation(animator);
+                yield return new WaitForSeconds(ANIMATION_BLEND_DURATION);
+            }
 
             Brain.PublishMoveAnimationCompleted(character);
         }
@@ -220,23 +258,28 @@ namespace Turnroot.Gameplay.Brain
 
                     if (nextDist > 0f && prevDist > 0f)
                     {
-                        // Check if the path is mostly straight (angle close to 180 degrees)
                         var toNextNorm = math.normalize(toNext);
                         var toPrevNorm = math.normalize(toPrev);
                         var dotProduct = math.dot(toNextNorm, -toPrevNorm);
 
-                        // If dot product is close to 1, it's a straight line - use minimal tangents
-                        var straightnessFactor = math.clamp(1f - dotProduct, 0.1f, 1f);
+                        // Only apply tangents at corners (when direction changes significantly)
+                        // dotProduct close to 1 = straight line (180 degrees)
+                        // dotProduct close to -1 = sharp turn (0 degrees)
+                        var isCorner = dotProduct < 0.9f; // Less than ~25 degree angle = corner
 
-                        var tangentMagnitude =
-                            settings.UnitMovementCurveSmoothing
-                            * math.min(nextDist, prevDist)
-                            * 0.3f
-                            * straightnessFactor;
-                        var tangentDir = math.normalize(toNextNorm - toPrevNorm);
+                        if (isCorner)
+                        {
+                            // Use the average direction for smooth corners
+                            var tangentDir = math.normalize(toNextNorm + toPrevNorm);
+                            var tangentMagnitude =
+                                settings.UnitMovementCurveSmoothing
+                                * math.min(nextDist, prevDist)
+                                * 0.25f;
 
-                        knot.TangentIn = -tangentDir * tangentMagnitude;
-                        knot.TangentOut = tangentDir * tangentMagnitude;
+                            knot.TangentIn = -tangentDir * tangentMagnitude;
+                            knot.TangentOut = tangentDir * tangentMagnitude;
+                        }
+                        // For straight segments, leave tangents at zero for linear interpolation
                     }
                 }
 
@@ -254,6 +297,32 @@ namespace Turnroot.Gameplay.Brain
             for (int i = 0; i < knots.Length - 1; i++)
             {
                 length += math.distance(knots[i].Position, knots[i + 1].Position);
+            }
+
+            return length;
+        }
+
+        private float CalculateSplineArcLength(Spline spline, int samples)
+        {
+            if (spline == null || spline.Count < 2)
+            {
+                return 0f;
+            }
+
+            float length = 0f;
+            float3 previousPos = float3.zero;
+
+            for (int i = 0; i <= samples; i++)
+            {
+                float t = i / (float)samples;
+                spline.Evaluate(t, out var pos, out _, out _);
+
+                if (i > 0)
+                {
+                    length += math.distance(previousPos, pos);
+                }
+
+                previousPos = pos;
             }
 
             return length;

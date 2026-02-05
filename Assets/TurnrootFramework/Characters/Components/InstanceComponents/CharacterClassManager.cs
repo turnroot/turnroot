@@ -146,9 +146,13 @@ namespace Turnroot.Characters
             bool applyClassChangeBonuses = true
         )
         {
-            if (newClassData == null)
+            var validation = OperationResultGuards.RequireNotNull(
+                newClassData,
+                nameof(newClassData)
+            );
+            if (!validation.Success)
             {
-                return OperationResult.Failure("newClassData is null");
+                return validation;
             }
 
             // Validate class requirements if needed

@@ -255,9 +255,10 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
 
         private OperationResult ApplyUVToDecal(DecalProjector decal, Vector4 uvParams)
         {
-            if (decal == null)
+            var validation = OperationResultGuards.RequireNotNull(decal, nameof(decal));
+            if (!validation.Success)
             {
-                return OperationResult.Failure("ApplyUVToDecal: decal is null");
+                return validation;
             }
 
             try

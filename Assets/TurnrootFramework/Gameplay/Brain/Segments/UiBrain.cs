@@ -112,8 +112,11 @@ namespace Turnroot.Gameplay.Brain.Segments
 
                 // Player settings (no input customization present)
                 _playerSettings = GameplayPlayerSettings.Instance;
-                var CursorBrain = GetComponent<CursorBrain>();
-                CursorBrain.SetUiSettingsReference(uiSettings);
+
+                // Note: GetComponent is safe here even though we're in Awake
+                // because we're just getting a reference, not accessing its state
+                var cursorBrain = GetComponent<CursorBrain>();
+                cursorBrain?.SetUiSettingsReference(uiSettings);
             }
 
             // Subscribe to selection changes so they are persisted to LTM centrally

@@ -77,15 +77,14 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         {
             battleBrain = brain;
 
-            if (Brain != null)
+            var validation = OperationResultGuards.RequireNotNull(Brain, nameof(Brain));
+            if (!validation.Success)
             {
-                Brain.OnPlayerTurnEnded += HandlePlayerTurnCompleted;
-                Brain.OnEndTurnCompleted += HandlePlayerActionCompleted;
+                return validation;
             }
-            else
-            {
-                return OperationResult.Failure("TurnRotisserie: Underlying Brain is null.");
-            }
+
+            Brain.OnPlayerTurnEnded += HandlePlayerTurnCompleted;
+            Brain.OnEndTurnCompleted += HandlePlayerActionCompleted;
             return OperationResult.Successful();
         }
 
@@ -274,9 +273,10 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         /// </summary>
         private OperationResult SetActiveUnitInContext(CharacterInstance activeUnit)
         {
-            if (Context == null)
+            var validation = OperationResultGuards.RequireNotNull(Context, nameof(Context));
+            if (!validation.Success)
             {
-                return OperationResult.Failure("BattleContext is null");
+                return validation;
             }
 
             // If the active unit is already set to the requested unit, skip to avoid duplicate activation flows
@@ -289,30 +289,20 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 $"TurnRotisserie: Setting active unit to {activeUnit.CharacterTemplate.DisplayName}"
             );
 
-            try
+            // Set active unit in context
+            Context.Unit.UnitInstance = activeUnit;
+            if (Context.Flags?.ActiveUnitFlags == null)
             {
-                Context.Unit.UnitInstance = activeUnit;
-                if (Context.Flags?.ActiveUnitFlags == null)
-                {
-                    Context.Flags.ActiveUnitFlags = new UnitFlag();
-                }
-                Context.Flags.ActiveUnitFlags.Unit = activeUnit;
-                Context.Participants.AdjacentUnits = new Locations.Adjacency(activeUnit);
-                if (_currentTurnOrder is TurnOrder.PlayerStart or TurnOrder.PlayerEnd)
-                {
-                    Brain.PublishPlayerControlledUnitActivated(activeUnit);
-                }
+                Context.Flags.ActiveUnitFlags = new UnitFlag();
+            }
+            Context.Flags.ActiveUnitFlags.Unit = activeUnit;
+            Context.Participants.AdjacentUnits = new Locations.Adjacency(activeUnit);
+            if (_currentTurnOrder is TurnOrder.PlayerStart or TurnOrder.PlayerEnd)
+            {
+                Brain.PublishPlayerControlledUnitActivated(activeUnit);
+            }
 
-                return OperationResult.Successful();
-            }
-            catch (System.Exception ex)
-            {
-                TurnrootLogger.Log(
-                    $"TurnRotisserie: Exception in SetActiveUnitInContext: {ex}",
-                    TurnrootLogger.LogLevel.Error
-                );
-                return OperationResult.Failure(ex);
-            }
+            return OperationResult.Successful();
         }
 
         #endregion

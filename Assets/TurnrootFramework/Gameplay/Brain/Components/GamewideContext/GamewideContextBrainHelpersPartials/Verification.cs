@@ -1,5 +1,6 @@
 using System;
 using Turnroot.Gameplay.Brain.Components;
+using Turnroot.Utilities;
 
 namespace Turnroot.Gameplay.Brain
 {
@@ -9,19 +10,20 @@ namespace Turnroot.Gameplay.Brain
 
         private static bool VerifyPayloadHash(SerializedWrapper wrapper)
         {
-            return TryExecute(
-                () =>
-                {
-                    var recomputed = ComputeFNV1a64Hex(wrapper.Payload + "|v:" + wrapper.Version);
-                    return string.Equals(
-                        recomputed,
-                        wrapper.Hash,
-                        StringComparison.OrdinalIgnoreCase
-                    );
-                },
-                false,
-                "Hash verification failed"
-            );
+            try
+            {
+                var recomputed = ComputeFNV1a64Hex(wrapper.Payload + "|v:" + wrapper.Version);
+                return string.Equals(recomputed, wrapper.Hash, StringComparison.OrdinalIgnoreCase);
+            }
+            catch (System.Exception ex)
+            {
+                // Hash verification failure likely means corrupted data
+                TurnrootLogger.Log(
+                    $"Hash verification failed: {ex.Message}",
+                    TurnrootLogger.LogLevel.Warning
+                );
+                return false;
+            }
         }
 
         private static bool VerifyLedgerHash<T>(
@@ -30,30 +32,35 @@ namespace Turnroot.Gameplay.Brain
             SerializedWrapper wrapper
         )
         {
-            return TryExecute(
-                () =>
+            try
+            {
+                var ltm = brain.GetComponent<LongTermMemory>();
+                var key = BuildHashLedgerKey(instance, wrapper);
+
+                if (string.IsNullOrEmpty(key) || ltm == null)
                 {
-                    var ltm = brain.GetComponent<LongTermMemory>();
-                    var key = BuildHashLedgerKey(instance, wrapper);
+                    return true;
+                }
 
-                    if (string.IsNullOrEmpty(key) || ltm == null)
-                    {
-                        return true;
-                    }
+                var stored = ltm.Recall(key);
 
-                    var stored = ltm.Recall(key);
+                if (string.IsNullOrEmpty(stored))
+                {
+                    ltm.Remember(key, wrapper.Hash);
+                    return true;
+                }
 
-                    if (string.IsNullOrEmpty(stored))
-                    {
-                        ltm.Remember(key, wrapper.Hash);
-                        return true;
-                    }
-
-                    return string.Equals(stored, wrapper.Hash, StringComparison.OrdinalIgnoreCase);
-                },
-                true,
-                "Ledger verification failed"
-            );
+                return string.Equals(stored, wrapper.Hash, StringComparison.OrdinalIgnoreCase);
+            }
+            catch (System.Exception ex)
+            {
+                // Ledger verification can fail with corrupted data - default to accepting
+                TurnrootLogger.Log(
+                    $"Ledger verification failed: {ex.Message}",
+                    TurnrootLogger.LogLevel.Warning
+                );
+                return true;
+            }
         }
 
         #endregion

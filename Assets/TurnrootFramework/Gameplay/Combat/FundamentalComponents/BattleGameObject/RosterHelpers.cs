@@ -165,9 +165,10 @@ namespace Turnroot.Gameplay.Combat
         public OperationResult PopulateBattleRostersFromTemplates()
         {
             var battleBrain = Brain?.battleBrain;
-            if (battleBrain == null)
+            var validation = OperationResultGuards.RequireNotNull(battleBrain, nameof(battleBrain));
+            if (!validation.Success)
             {
-                return OperationResult.Failure("Brain or battleBrain is null");
+                return validation;
             }
 
             var playerInstance = battleBrain.InstantiatePlayerTeamRoster();

@@ -18,9 +18,10 @@ namespace Turnroot.Gameplay.Brain
             bool prebattle = false
         )
         {
-            if (unit == null)
+            var validation = OperationResultGuards.RequireNotNull(unit, nameof(unit));
+            if (!validation.Success)
             {
-                return OperationResult.Failure("Unit is null");
+                return validation;
             }
 
             var worldPos = GetWorldPosition(position, prebattle);
@@ -47,19 +48,14 @@ namespace Turnroot.Gameplay.Brain
             bool prebattle = false
         )
         {
-            if (unit == null)
+            var validation = OperationResultGuards.RequireNotNull(unit, nameof(unit));
+            if (!validation.Success)
             {
-                return OperationResult.Failure("Unit is null");
+                return validation;
             }
 
-            try
-            {
-                return SpawnUnitAtPosition(unit, position, prebattle);
-            }
-            catch (System.Exception ex)
-            {
-                return OperationResult.Failure($"PrecomputeSpawnModelAt failed: {ex.Message}");
-            }
+            // SpawnUnitAtPosition already handles errors and returns OperationResult
+            return SpawnUnitAtPosition(unit, position, prebattle);
         }
 
         /// <summary>
@@ -67,9 +63,10 @@ namespace Turnroot.Gameplay.Brain
         /// </summary>
         public OperationResult DespawnUnit(string unitId)
         {
-            if (string.IsNullOrEmpty(unitId))
+            var validation = OperationResultGuards.RequireNotNullOrEmpty(unitId, nameof(unitId));
+            if (!validation.Success)
             {
-                return OperationResult.Failure("UnitId is null or empty");
+                return validation;
             }
 
             if (!_unitModels.TryGetValue(unitId, out var model))

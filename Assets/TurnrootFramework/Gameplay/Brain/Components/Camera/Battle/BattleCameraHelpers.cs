@@ -72,9 +72,13 @@ namespace Turnroot.Gameplay.Brain.Segments
 
         public OperationResult RotateBattleCamera(float rotateInput)
         {
-            if (_battleMapCamera == null)
+            var validation = OperationResultGuards.RequireNotNull(
+                _battleMapCamera,
+                nameof(_battleMapCamera)
+            );
+            if (!validation.Success)
             {
-                return OperationResult.Failure("BattleMapCamera is null");
+                return validation;
             }
 
             // Get the current map grid point we're looking at

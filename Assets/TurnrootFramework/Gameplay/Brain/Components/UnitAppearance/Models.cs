@@ -38,6 +38,18 @@ namespace Turnroot.Gameplay.Brain
                 animator.runtimeAnimatorController = _settings.DefaultUnitAnimatorController;
             }
 
+            // Apply custom avatar if character uses a different skeleton
+            if (unit.CharacterTemplate.CustomAvatar != null)
+            {
+                animator.avatar = unit.CharacterTemplate.CustomAvatar;
+                TurnrootLogger.Log(
+                    $"Applied custom avatar for {unit.CharacterTemplate.DisplayName}"
+                );
+            }
+
+            // Setup extra bone layers if character has additional bones
+            SetupAnimatorLayers(animator, unit);
+
             return root;
         }
 
@@ -249,7 +261,6 @@ namespace Turnroot.Gameplay.Brain
         /// </summary>
         private void UnifyBoneHierarchies(GameObject root)
         {
-            // Find all "root" transforms (typically named "root", "Armature", etc.)
             var allRoots = new System.Collections.Generic.List<Transform>();
             FindAllRootTransforms(root.transform, allRoots);
 
@@ -264,20 +275,37 @@ namespace Turnroot.Gameplay.Brain
 
             if (allRoots.Count == 1)
             {
-                // Only one root - just move it to model root and we're done
-                var singleRoot = allRoots[0];
-                if (singleRoot.parent != root.transform)
-                {
-                    singleRoot.SetParent(root.transform, true);
-                }
-                TurnrootLogger.Log(
-                    $"UnifyBoneHierarchies: Single armature '{singleRoot.name}' found and positioned"
-                );
+                HandleSingleArmatureRoot(root, allRoots[0]);
                 return;
             }
 
-            // Multiple roots - pick the one with the most child bones as canonical
-            Transform canonicalRoot = allRoots
+            // Multiple roots - unify them
+            var canonicalRoot = FindCanonicalBoneRoot(allRoots);
+            var boneMap = BuildBoneMapping(canonicalRoot);
+            RebindRendererBones(root, canonicalRoot, boneMap);
+            RemoveDuplicateRoots(root, allRoots, canonicalRoot);
+        }
+
+        /// <summary>
+        /// Handles the simple case where there's only one armature root.
+        /// </summary>
+        private void HandleSingleArmatureRoot(GameObject root, Transform singleRoot)
+        {
+            if (singleRoot.parent != root.transform)
+            {
+                singleRoot.SetParent(root.transform, true);
+            }
+            TurnrootLogger.Log(
+                $"UnifyBoneHierarchies: Single armature '{singleRoot.name}' found and positioned"
+            );
+        }
+
+        /// <summary>
+        /// Finds the canonical bone root from multiple roots - the one with the most child bones.
+        /// </summary>
+        private Transform FindCanonicalBoneRoot(System.Collections.Generic.List<Transform> allRoots)
+        {
+            var canonicalRoot = allRoots
                 .OrderByDescending(r => r.GetComponentsInChildren<Transform>().Length)
                 .First();
 
@@ -286,48 +314,39 @@ namespace Turnroot.Gameplay.Brain
                     + $"({canonicalRoot.GetComponentsInChildren<Transform>().Length} bones)"
             );
 
-            // Build bone name map from canonical hierarchy
+            return canonicalRoot;
+        }
+
+        /// <summary>
+        /// Builds a mapping of bone names to transforms from the canonical hierarchy.
+        /// </summary>
+        private System.Collections.Generic.Dictionary<string, Transform> BuildBoneMapping(
+            Transform canonicalRoot
+        )
+        {
             var boneMap = new System.Collections.Generic.Dictionary<string, Transform>();
             BuildBoneMap(canonicalRoot, boneMap);
+            return boneMap;
+        }
 
-            // For each renderer, try to rebind bones if they reference a duplicate hierarchy
+        /// <summary>
+        /// Rebinds all skinned mesh renderers to use bones from the canonical hierarchy.
+        /// </summary>
+        private void RebindRendererBones(
+            GameObject root,
+            Transform canonicalRoot,
+            System.Collections.Generic.Dictionary<string, Transform> boneMap
+        )
+        {
             var renderers = root.GetComponentsInChildren<SkinnedMeshRenderer>(true);
             foreach (var renderer in renderers)
             {
                 if (renderer.bones != null && renderer.bones.Length > 0)
                 {
-                    // Check if this renderer's bones reference a non-canonical root
                     var firstBone = renderer.bones[0];
                     if (firstBone != null && !IsDescendantOf(firstBone, canonicalRoot))
                     {
-                        // Try to rebind to canonical hierarchy
-                        var newBones = new Transform[renderer.bones.Length];
-                        bool success = true;
-
-                        for (int i = 0; i < renderer.bones.Length; i++)
-                        {
-                            if (
-                                renderer.bones[i] != null
-                                && boneMap.TryGetValue(renderer.bones[i].name, out var newBone)
-                            )
-                            {
-                                newBones[i] = newBone;
-                            }
-                            else
-                            {
-                                success = false;
-                                break;
-                            }
-                        }
-
-                        if (success)
-                        {
-                            renderer.bones = newBones;
-                            renderer.rootBone = canonicalRoot;
-                            TurnrootLogger.Log(
-                                $"UnifyBoneHierarchies: Rebound '{renderer.name}' to canonical bones"
-                            );
-                        }
+                        TryRebindRendererToCanonicalBones(renderer, canonicalRoot, boneMap);
                     }
                 }
                 else
@@ -336,7 +355,55 @@ namespace Turnroot.Gameplay.Brain
                     renderer.rootBone = canonicalRoot;
                 }
             }
+        }
 
+        /// <summary>
+        /// Attempts to rebind a renderer's bones to the canonical hierarchy.
+        /// </summary>
+        private void TryRebindRendererToCanonicalBones(
+            SkinnedMeshRenderer renderer,
+            Transform canonicalRoot,
+            System.Collections.Generic.Dictionary<string, Transform> boneMap
+        )
+        {
+            var newBones = new Transform[renderer.bones.Length];
+            bool success = true;
+
+            for (int i = 0; i < renderer.bones.Length; i++)
+            {
+                if (
+                    renderer.bones[i] != null
+                    && boneMap.TryGetValue(renderer.bones[i].name, out var newBone)
+                )
+                {
+                    newBones[i] = newBone;
+                }
+                else
+                {
+                    success = false;
+                    break;
+                }
+            }
+
+            if (success)
+            {
+                renderer.bones = newBones;
+                renderer.rootBone = canonicalRoot;
+                TurnrootLogger.Log(
+                    $"UnifyBoneHierarchies: Rebound '{renderer.name}' to canonical bones"
+                );
+            }
+        }
+
+        /// <summary>
+        /// Removes duplicate armature roots, keeping only the canonical one.
+        /// </summary>
+        private void RemoveDuplicateRoots(
+            GameObject root,
+            System.Collections.Generic.List<Transform> allRoots,
+            Transform canonicalRoot
+        )
+        {
             // Move canonical root to model root
             if (canonicalRoot.parent != root.transform)
             {

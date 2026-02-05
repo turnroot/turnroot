@@ -21,19 +21,15 @@ namespace Turnroot.Gameplay.Brain
         {
             try
             {
+                // Unity's SceneManager can throw if scene doesn't exist
                 SceneManager.LoadScene(BrainSceneName, LoadSceneMode.Additive);
                 return OperationResult.Successful();
             }
             catch (System.Exception e)
             {
-                TurnrootLogger.Log(
-                    $"Failed to load brain scene '{BrainSceneName}': {e.Message}",
-                    TurnrootLogger.LogLevel.Error
-                );
-                Debug.Break();
-                return OperationResult.Failure(
-                    $"Failed to load brain scene '{BrainSceneName}': {e.Message}"
-                );
+                var error = $"Failed to load brain scene '{BrainSceneName}': {e.Message}";
+                TurnrootLogger.Log(error, TurnrootLogger.LogLevel.Error);
+                return OperationResult.Failure(error);
             }
         }
 

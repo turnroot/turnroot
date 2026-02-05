@@ -29,6 +29,9 @@ MonoBehaviour:
     MovementType: 0
   UseUnitHairOnModel: 1
   HasOutfit: 0
+  WalkAnimation: {fileID: 0}
+  RunAnimation: {fileID: 0}
+  IdleAnimations: []
   Stats:
     StatMinimums:
     - boundedStatType: 0

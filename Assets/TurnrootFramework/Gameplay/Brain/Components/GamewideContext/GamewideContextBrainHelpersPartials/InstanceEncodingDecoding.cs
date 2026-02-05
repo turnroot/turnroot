@@ -130,19 +130,24 @@ namespace Turnroot.Gameplay.Brain
             SerializedWrapper wrapper
         )
         {
-            TryExecute(
-                () =>
-                {
-                    var ltm = brain.GetComponent<LongTermMemory>();
-                    var key = BuildHashLedgerKey(instance, wrapper);
+            try
+            {
+                var ltm = brain.GetComponent<LongTermMemory>();
+                var key = BuildHashLedgerKey(instance, wrapper);
 
-                    if (!string.IsNullOrEmpty(key) && ltm != null)
-                    {
-                        ltm.Remember(key, wrapper.Hash);
-                    }
-                },
-                "Failed to write hash ledger entry"
-            );
+                if (!string.IsNullOrEmpty(key) && ltm != null)
+                {
+                    ltm.Remember(key, wrapper.Hash);
+                }
+            }
+            catch (System.Exception ex)
+            {
+                // Ledger persistence is non-critical - log and continue
+                TurnrootLogger.Log(
+                    $"Failed to write hash ledger entry: {ex.Message}",
+                    TurnrootLogger.LogLevel.Warning
+                );
+            }
         }
 
         #endregion

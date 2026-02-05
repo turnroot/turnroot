@@ -37,33 +37,38 @@ namespace Turnroot.Gameplay.Brain
                 return null;
             }
 
-            return TryExecute(
-                () =>
-                {
-                    var payloadObj = JObject.Parse(wrapper.Payload);
-                    var templateToken =
-                        payloadObj.SelectToken("_characterTemplate")
-                        ?? payloadObj.SelectToken("CharacterTemplate");
+            try
+            {
+                var payloadObj = JObject.Parse(wrapper.Payload);
+                var templateToken =
+                    payloadObj.SelectToken("_characterTemplate")
+                    ?? payloadObj.SelectToken("CharacterTemplate");
 
-                    if (templateToken?.Type != JTokenType.Object)
-                    {
-                        return null;
-                    }
+                if (templateToken?.Type != JTokenType.Object)
+                {
+                    return null;
+                }
 
 #if UNITY_EDITOR
-                    var characterData = TryLoadCharacterDataInEditor(templateToken);
-                    if (characterData != null)
-                    {
-                        return characterData;
-                    }
+                var characterData = TryLoadCharacterDataInEditor(templateToken);
+                if (characterData != null)
+                {
+                    return characterData;
+                }
 #endif
 
-                    var name = templateToken.Value<string>("name");
-                    return !string.IsNullOrEmpty(name) ? Resources.Load<CharacterData>(name) : null;
-                },
-                null,
-                "Failed to extract CharacterData from wrapper"
-            );
+                var name = templateToken.Value<string>("name");
+                return !string.IsNullOrEmpty(name) ? Resources.Load<CharacterData>(name) : null;
+            }
+            catch (System.Exception ex)
+            {
+                // Wrapper payload might be corrupted - return null
+                Utilities.TurnrootLogger.Log(
+                    $"Failed to extract CharacterData from wrapper: {ex.Message}",
+                    Utilities.TurnrootLogger.LogLevel.Warning
+                );
+                return null;
+            }
         }
 
 #if UNITY_EDITOR

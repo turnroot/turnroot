@@ -71,17 +71,11 @@ namespace Turnroot.Gameplay.Brain
                     ?? System.Array.Empty<Vector2Int>()
             );
 
-            if (_tileHighlighter != null)
-            {
-                _tileHighlighter.HighlightTiles(
-                    movePositionsLocal,
-                    TileHighlighter.HighlightType.Move
-                );
-                _tileHighlighter.HighlightTiles(
-                    attackPositionsLocal,
-                    TileHighlighter.HighlightType.Attack
-                );
-            }
+            _tileHighlighter.HighlightTiles(movePositionsLocal, TileHighlighter.HighlightType.Move);
+            _tileHighlighter.HighlightTiles(
+                attackPositionsLocal,
+                TileHighlighter.HighlightType.Attack
+            );
 
             Brain.cursorBrain.SetAllowedPositions(movePositionsLocal);
         }
@@ -331,25 +325,21 @@ namespace Turnroot.Gameplay.Brain
                 $"ChangeSelectedUnit: Valid move tiles count: {_validMoveTiles?.Count ?? 0}, attack tiles count: {_validAttackTiles?.Count ?? 0}"
             );
 
-            if (_tileHighlighter == null)
-            {
-                TurnrootLogger.Log(
-                    "ChangeSelectedUnit: _tileHighlighter is null - cannot highlight tiles",
-                    TurnrootLogger.LogLevel.Warning
-                );
-            }
-            else
-            {
-                _tileHighlighter.ClearAll();
-                _tileHighlighter.HighlightTiles(
-                    new List<Vector2Int>(_validMoveTiles.Keys.Select(k => k.CoordinatesInt)),
-                    TileHighlighter.HighlightType.Move
-                );
-                _tileHighlighter.HighlightTiles(
-                    new List<Vector2Int>(_validAttackTiles.Keys.Select(k => k.CoordinatesInt)),
-                    TileHighlighter.HighlightType.Attack
-                );
-            }
+            _tileHighlighter.ClearAll();
+            _tileHighlighter.HighlightTiles(
+                new List<Vector2Int>(_validMoveTiles.Keys.Select(k => k.CoordinatesInt)),
+                TileHighlighter.HighlightType.Move
+            );
+
+            _tileHighlighter.ClearAll();
+            _tileHighlighter.HighlightTiles(
+                new List<Vector2Int>(_validMoveTiles.Keys.Select(k => k.CoordinatesInt)),
+                TileHighlighter.HighlightType.Move
+            );
+            _tileHighlighter.HighlightTiles(
+                new List<Vector2Int>(_validAttackTiles.Keys.Select(k => k.CoordinatesInt)),
+                TileHighlighter.HighlightType.Attack
+            );
 
             Brain.cursorBrain.ClearAllowedPositions();
             Brain.cursorBrain.SetAllowedPositions(
