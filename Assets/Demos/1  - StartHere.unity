@@ -47794,7 +47794,7 @@ MonoBehaviour:
   _pathStraight: {x: 0, y: 1}
   _pathCorner: {x: 0, y: 0}
   _pathEnd: {x: 0, y: 2}
-  _atlasPadding: 0.001
+  _atlasPadding: 0.0001
   _projectionDepth: 2
 --- !u!114 &1742232841
 MonoBehaviour:

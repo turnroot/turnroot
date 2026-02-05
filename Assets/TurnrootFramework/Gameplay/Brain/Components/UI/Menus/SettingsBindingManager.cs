@@ -55,6 +55,29 @@ namespace Turnroot.Gameplay.Brain.Segments
             RegisterBinder<MenuCarousel>("carousel", BindCarousel);
         }
 
+        /// <summary>
+        /// Normalizes a setting name by converting to lowercase and removing all non-alphanumeric characters.
+        /// This ensures consistent matching with the settings dictionary keys.
+        /// </summary>
+        private static string NormalizeSettingName(string input)
+        {
+            if (string.IsNullOrEmpty(input))
+            {
+                return string.Empty;
+            }
+
+            var lower = input.ToLower();
+            var sb = new System.Text.StringBuilder(lower.Length);
+            foreach (var ch in lower)
+            {
+                if (char.IsLetterOrDigit(ch))
+                {
+                    sb.Append(ch);
+                }
+            }
+            return sb.ToString();
+        }
+
         public void RegisterBinder<T>(string componentType, Action<T, GamewideContextBrain> binder)
             where T : Component
         {
@@ -128,20 +151,7 @@ namespace Turnroot.Gameplay.Brain.Segments
                         continue;
                     }
 
-                    var normalized = string.Empty;
-                    if (!string.IsNullOrEmpty(c))
-                    {
-                        var lower = c.ToLower();
-                        var sb2 = new System.Text.StringBuilder();
-                        foreach (var ch in lower)
-                        {
-                            if (char.IsLetterOrDigit(ch))
-                            {
-                                sb2.Append(ch);
-                            }
-                        }
-                        normalized = sb2.ToString();
-                    }
+                    var normalized = NormalizeSettingName(c);
 
                     if (_settingsGetters.ContainsKey(normalized))
                     {
@@ -189,18 +199,7 @@ namespace Turnroot.Gameplay.Brain.Segments
             // Allow callers to pass an inferred/normalized name; otherwise use the slider object name
             string settingName = overrideSettingName ?? slider.gameObject.name;
             // Normalize the setting name (lowercase + alphanumeric only)
-            {
-                var lower = settingName.ToLower();
-                var sb2 = new System.Text.StringBuilder();
-                foreach (var ch in lower)
-                {
-                    if (char.IsLetterOrDigit(ch))
-                    {
-                        sb2.Append(ch);
-                    }
-                }
-                settingName = sb2.ToString();
-            }
+            settingName = NormalizeSettingName(settingName);
 
             if (!_settingsGetters.TryGetValue(settingName, out var getter))
             {
@@ -297,19 +296,7 @@ namespace Turnroot.Gameplay.Brain.Segments
                 return;
             }
 
-            string settingName;
-            {
-                var lower = toggle.gameObject.name.ToLower();
-                var sb2 = new System.Text.StringBuilder();
-                foreach (var ch in lower)
-                {
-                    if (char.IsLetterOrDigit(ch))
-                    {
-                        sb2.Append(ch);
-                    }
-                }
-                settingName = sb2.ToString();
-            }
+            string settingName = NormalizeSettingName(toggle.gameObject.name);
 
             if (!_settingsGetters.TryGetValue(settingName, out var getter))
             {
@@ -338,19 +325,7 @@ namespace Turnroot.Gameplay.Brain.Segments
                 return;
             }
 
-            string settingName;
-            {
-                var lower = carousel.gameObject.name.ToLower();
-                var sb2 = new System.Text.StringBuilder();
-                foreach (var ch in lower)
-                {
-                    if (char.IsLetterOrDigit(ch))
-                    {
-                        sb2.Append(ch);
-                    }
-                }
-                settingName = sb2.ToString();
-            }
+            string settingName = NormalizeSettingName(carousel.gameObject.name);
 
             if (!_settingsGetters.TryGetValue(settingName, out var getter))
             {

@@ -15,9 +15,10 @@ namespace Turnroot.Gameplay.Combat
 
         public OperationResult ConnectToBrainEvents()
         {
-            if (Brain == null)
+            var validation = OperationResultGuards.RequireNotNull(Brain, nameof(Brain));
+            if (!validation.Success)
             {
-                return OperationResult.Failure("Brain reference is null");
+                return validation;
             }
 
             if (_isConnectedToBrain)
@@ -121,9 +122,10 @@ namespace Turnroot.Gameplay.Combat
 
         public OperationResult AddConditionAtRuntime(BattleCondition condition)
         {
-            if (condition == null)
+            var validation = OperationResultGuards.RequireNotNull(condition, nameof(condition));
+            if (!validation.Success)
             {
-                return OperationResult.Failure("Condition is null");
+                return validation;
             }
 
             try

@@ -68,9 +68,13 @@ namespace Turnroot.Characters
 
         private OperationResult Initialize()
         {
-            if (_characterTemplate == null)
+            var validation = OperationResultGuards.RequireNotNull(
+                _characterTemplate,
+                nameof(_characterTemplate)
+            );
+            if (!validation.Success)
             {
-                return OperationResult.Failure("CharacterTemplate is null.");
+                return validation;
             }
 
             _currentLevel = _characterTemplate.Level;
@@ -85,8 +89,8 @@ namespace Turnroot.Characters
 
             RepairMissingStats();
 
-            var validation = ValidateRuntimeStatsComplete();
-            if (!validation.Success)
+            var validation2 = ValidateRuntimeStatsComplete();
+            if (!validation2.Success)
             {
                 return validation;
             }

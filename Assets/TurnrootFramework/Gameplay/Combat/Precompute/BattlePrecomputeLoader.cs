@@ -29,9 +29,10 @@ namespace Turnroot.Gameplay.Combat.Precompute
             FundamentalComponents.Battles.BattleContext context = null
         )
         {
-            if (brain == null)
+            var validation = OperationResultGuards.RequireNotNull(brain, nameof(brain));
+            if (!validation.Success)
             {
-                return OperationResult.Failure("BattlePrecomputeLoader.Initialize: brain is null");
+                return validation;
             }
 
             _brain = brain;

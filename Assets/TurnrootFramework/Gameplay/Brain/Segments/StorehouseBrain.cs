@@ -39,6 +39,7 @@ namespace Turnroot.Gameplay.Brain
 
         private void Start()
         {
+            // LongTermMemory is initialized in Brain.Awake(), safe to access here
             _ltm = GetComponent<LongTermMemory>();
             _gameplaySettings = GameplayGeneralSettings.Instance;
             _materials = new Dictionary<ObjectItem, int>();

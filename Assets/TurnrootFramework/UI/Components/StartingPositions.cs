@@ -424,9 +424,10 @@ namespace Turnroot.UI.Components
                 return OperationResult.Failure("Source position does not have a unit model");
             }
 
-            if (model == null)
+            var validation = OperationResultGuards.RequireNotNull(model, nameof(model));
+            if (!validation.Success)
             {
-                return OperationResult.Failure("Unit model is null");
+                return validation;
             }
 
             _unitModels.Remove(from);

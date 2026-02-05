@@ -8,7 +8,7 @@ namespace Turnroot.Gameplay.Brain
 {
     public partial class UnitAppearanceBrain
     {
-        private const float ANIMATION_BLEND_DURATION = 0.2f;
+        private const float ANIMATION_BLEND_DURATION = 0.5f;
 
         /// <summary>
         /// Sets up animations for a unit's model. Called once during model creation in ApplyVisuals.
@@ -34,8 +34,29 @@ namespace Turnroot.Gameplay.Brain
             }
 
             var overrideController = new AnimatorOverrideController(baseController);
-            var walkClip = unit?.CharacterTemplate?.DefaultWalkingAnimation;
-            var idleClips = unit?.CharacterTemplate?.DefaultIdleAnimations;
+
+            // Determine which animations to use based on UseDefaultAnimationsAlways flag
+            AnimationClip walkClip;
+            AnimationClip[] idleClips;
+
+            if (unit?.CharacterTemplate?.UseDefaultAnimationsAlways == true)
+            {
+                // Always use character's default animations, ignore class animations
+                walkClip = unit.CharacterTemplate.DefaultWalkingAnimation;
+                idleClips = unit.CharacterTemplate.DefaultIdleAnimations;
+            }
+            else
+            {
+                // Prefer class animations, fall back to character defaults
+                var classData = unit?.GetCurrentClass()?.ClassData;
+
+                walkClip =
+                    classData?.WalkAnimation ?? unit?.CharacterTemplate?.DefaultWalkingAnimation;
+                idleClips =
+                    (classData?.IdleAnimations?.Length > 0 ? classData.IdleAnimations : null)
+                    ?? unit?.CharacterTemplate?.DefaultIdleAnimations;
+            }
+
             var idleClip =
                 idleClips?.Length > 0 ? idleClips[Random.Range(0, idleClips.Length)] : null;
 
@@ -94,6 +115,146 @@ namespace Turnroot.Gameplay.Brain
             {
                 animator.CrossFade(idleHash, ANIMATION_BLEND_DURATION, 0);
             }
+        }
+
+        /// <summary>
+        /// Sets up animator layers for characters with extra bones (tails, wings, etc.).
+        /// Applies AvatarMask to layer 1 for independent animation of extra bones.
+        /// </summary>
+        private void SetupAnimatorLayers(Animator animator, CharacterInstance unit)
+        {
+            if (!unit.CharacterTemplate.HasExtraBoneLayer)
+            {
+                return;
+            }
+
+            // Validate that mask exists when HasExtraBoneLayer is true
+            if (unit.CharacterTemplate.AdditionalBonesMask == null)
+            {
+                TurnrootLogger.Log(
+                    $"{unit.CharacterTemplate.DisplayName}: HasExtraBoneLayer is true but AdditionalBonesMask is not assigned. Extra bones will not animate independently.",
+                    TurnrootLogger.LogLevel.Warning
+                );
+                return;
+            }
+
+            var controller = animator.runtimeAnimatorController;
+            if (controller == null)
+            {
+                TurnrootLogger.Log(
+                    $"{unit.CharacterTemplate.DisplayName}: Cannot setup extra bone layer - no animator controller assigned",
+                    TurnrootLogger.LogLevel.Error
+                );
+                return;
+            }
+
+            // Check if controller has at least 2 layers
+            var controllerAsset = controller as UnityEditor.Animations.AnimatorController;
+            if (controllerAsset == null)
+            {
+                // Runtime - can't modify layers at runtime easily without editor API
+                TurnrootLogger.Log(
+                    $"{unit.CharacterTemplate.DisplayName}: Extra bone layers require setup in the AnimatorController asset at edit time. Ensure Layer 1 has the AvatarMask assigned in the controller.",
+                    TurnrootLogger.LogLevel.Warning
+                );
+                return;
+            }
+
+#if UNITY_EDITOR
+            // Editor-time setup
+            if (controllerAsset.layers.Length < 2)
+            {
+                TurnrootLogger.Log(
+                    $"{unit.CharacterTemplate.DisplayName}: AnimatorController needs at least 2 layers for extra bones. Layer 1 is missing.",
+                    TurnrootLogger.LogLevel.Error
+                );
+                return;
+            }
+
+            // Apply mask to Layer 1
+            var layers = controllerAsset.layers;
+            layers[1].avatarMask = unit.CharacterTemplate.AdditionalBonesMask;
+            controllerAsset.layers = layers;
+
+            TurnrootLogger.Log(
+                $"Applied AvatarMask '{unit.CharacterTemplate.AdditionalBonesMask.name}' to Layer 1 for {unit.CharacterTemplate.DisplayName}"
+            );
+
+            // Validate additional bone names if provided
+            if (
+                unit.CharacterTemplate.AdditionalBoneNames != null
+                && unit.CharacterTemplate.AdditionalBoneNames.Length > 0
+            )
+            {
+                ValidateAdditionalBones(
+                    animator,
+                    unit.CharacterTemplate.AdditionalBoneNames,
+                    unit.CharacterTemplate.DisplayName
+                );
+            }
+#endif
+        }
+
+        /// <summary>
+        /// Validates that all specified additional bones exist in the animator's hierarchy.
+        /// </summary>
+        private void ValidateAdditionalBones(
+            Animator animator,
+            string[] boneNames,
+            string characterName
+        )
+        {
+            if (animator == null || boneNames == null || boneNames.Length == 0)
+            {
+                return;
+            }
+
+            var root = animator.transform;
+            var missingBones = new System.Collections.Generic.List<string>();
+
+            foreach (var boneName in boneNames)
+            {
+                if (string.IsNullOrEmpty(boneName))
+                {
+                    continue;
+                }
+
+                var bone = FindBoneRecursive(root, boneName);
+                if (bone == null)
+                {
+                    missingBones.Add(boneName);
+                }
+            }
+
+            if (missingBones.Count > 0)
+            {
+                TurnrootLogger.Log(
+                    $"{characterName}: Additional bones not found in hierarchy: {string.Join(", ", missingBones)}",
+                    TurnrootLogger.LogLevel.Warning
+                );
+            }
+        }
+
+        /// <summary>
+        /// Recursively searches for a bone by name in the transform hierarchy.
+        /// </summary>
+        private Transform FindBoneRecursive(Transform parent, string boneName)
+        {
+            if (parent.name == boneName)
+            {
+                return parent;
+            }
+
+            foreach (Transform child in parent)
+            {
+                var result = FindBoneRecursive(child, boneName);
+                if (result != null)
+                {
+                    return result;
+                }
+            }
+
+            return null;
         }
     }
 }

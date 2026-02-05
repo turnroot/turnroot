@@ -54,9 +54,10 @@ namespace Turnroot.Gameplay.Brain
                 Brain.battleBrain?.PlayerTeamRoster
                 ?? Brain.battleBrain?.BattleObject?.PlayerTeamRoster;
 
-            if (roster == null)
+            var validation = OperationResultGuards.RequireNotNull(roster, nameof(roster));
+            if (!validation.Success)
             {
-                return OperationResult.Failure("PlayerTeamRoster is null");
+                return validation;
             }
 
             var placements = roster.GetPlacements();

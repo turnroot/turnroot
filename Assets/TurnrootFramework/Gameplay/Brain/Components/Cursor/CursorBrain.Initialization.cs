@@ -50,15 +50,14 @@ namespace Turnroot.Gameplay.Brain
 
         private void InitializeBattleCursor()
         {
+            // This is called from HandleBattleMapReady event, so MapGrid should be ready
+            // If it's not, that's a real bug we should fix rather than retry
             if (Brain.battleBrain?.BattleObject?.Context?.MapGrid == null)
             {
                 TurnrootLogger.Log(
-                    Brain == null ? "CursorBrain: Cannot initialize battle cursor - Brain is null"
-                    : Brain.battleBrain == null
-                        ? "CursorBrain: Cannot initialize battle cursor - battleBrain is null"
-                    : "CursorBrain: Cannot initialize battle cursor - BattleObject.Context.mapGrid is null"
+                    "CursorBrain: Cannot initialize battle cursor - MapGrid is null even after OnBattleMapReady event. This indicates an initialization order bug.",
+                    TurnrootLogger.LogLevel.Error
                 );
-                StartCoroutine(RetryInitializeBattleCursor());
                 return;
             }
 
@@ -104,12 +103,6 @@ namespace Turnroot.Gameplay.Brain
 
             InitializeCursor(mapGrid, validSpawnPositions);
             return OperationResult.Successful();
-        }
-
-        private System.Collections.IEnumerator RetryInitializeBattleCursor()
-        {
-            yield return _waitForSeconds0_1;
-            InitializeBattleCursor();
         }
 
         private Vector2Int GetInitialCursorPosition(List<Vector2Int> allowedPositions)

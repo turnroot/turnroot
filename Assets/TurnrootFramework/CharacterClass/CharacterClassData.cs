@@ -44,6 +44,24 @@ namespace Turnroot.Characters.CharacterClass
         )]
         public bool HasOutfit = true;
 
+        [Foldout("Animations"), HorizontalLine(color: EColor.Green)]
+        [Tooltip(
+            "Walk animation for this class. If null, falls back to character's DefaultWalkingAnimation."
+        )]
+        public AnimationClip WalkAnimation;
+
+        [Foldout("Animations")]
+        [Tooltip(
+            "Run animation for this class. If null, falls back to character's DefaultRunningAnimation."
+        )]
+        public AnimationClip RunAnimation;
+
+        [Foldout("Animations")]
+        [Tooltip(
+            "Idle animations for this class. If empty, falls back to character's DefaultIdleAnimations. If multiple, one is chosen at random."
+        )]
+        public AnimationClip[] IdleAnimations = new AnimationClip[0];
+
         [Foldout("Stats"), HorizontalLine(color: EColor.Orange)]
         [Tooltip("Stat minimums, caps, bonuses, and growth rates")]
         public ClassStats Stats = new();

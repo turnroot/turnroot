@@ -66,36 +66,8 @@ namespace Turnroot.Gameplay.Brain
 
         public static string DesignateInstanceType<T>() => typeof(T).FullName;
 
-        internal static T TryExecute<T>(Func<T> action, T defaultValue, string errorMessage)
-        {
-            try
-            {
-                return action();
-            }
-            catch (Exception ex)
-            {
-                TurnrootLogger.Log(
-                    $"{errorMessage}: {ex.Message}",
-                    TurnrootLogger.LogLevel.Warning
-                );
-                return defaultValue;
-            }
-        }
-
-        internal static void TryExecute(Action action, string errorMessage)
-        {
-            try
-            {
-                action();
-            }
-            catch (Exception ex)
-            {
-                TurnrootLogger.Log(
-                    $"{errorMessage}: {ex.Message}",
-                    TurnrootLogger.LogLevel.Warning
-                );
-            }
-        }
+        // Removed TryExecute methods - they hide bugs by silently catching all exceptions.
+        // Use OperationResult pattern for proper error handling instead.
 
         #endregion
     }

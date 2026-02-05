@@ -11,22 +11,27 @@ namespace Turnroot.Gameplay.Brain
 
         public static string BuildHashLedgerKey<T>(T instance, SerializedWrapper wrapper)
         {
-            return TryExecute(
-                () =>
-                {
-                    var tname = typeof(T).FullName ?? typeof(T).Name;
-                    var id = ExtractInstanceId(instance, wrapper);
+            try
+            {
+                var tname = typeof(T).FullName ?? typeof(T).Name;
+                var id = ExtractInstanceId(instance, wrapper);
 
-                    string rawKey = !string.IsNullOrEmpty(id)
-                        ? $"{LtmKeys.InstanceHash}.{tname}.{id}"
-                        : BuildHashBasedKey(tname, wrapper);
+                string rawKey = !string.IsNullOrEmpty(id)
+                    ? $"{LtmKeys.InstanceHash}.{tname}.{id}"
+                    : BuildHashBasedKey(tname, wrapper);
 
-                    var keyHash = ComputeFNV1a64Hex(rawKey);
-                    return $"{LtmKeys.InstanceHash}.{tname}.{keyHash}";
-                },
-                null,
-                "Failed to build ledger key"
-            );
+                var keyHash = ComputeFNV1a64Hex(rawKey);
+                return $"{LtmKeys.InstanceHash}.{tname}.{keyHash}";
+            }
+            catch (System.Exception ex)
+            {
+                // Key building can fail with invalid instance - return null to signal failure
+                TurnrootLogger.Log(
+                    $"Failed to build ledger key: {ex.Message}",
+                    TurnrootLogger.LogLevel.Warning
+                );
+                return null;
+            }
         }
 
         public static string BuildRosterLedgerKey(string rosterId)

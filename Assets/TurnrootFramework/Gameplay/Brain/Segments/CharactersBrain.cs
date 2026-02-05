@@ -42,6 +42,7 @@ namespace Turnroot.Gameplay.Brain
 
         private void Start()
         {
+            // LongTermMemory is initialized in Brain.Awake(), safe to access here
             _ltm = GetComponent<LongTermMemory>();
             LoadBattleOutcomeStatistics();
 

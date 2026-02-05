@@ -78,9 +78,10 @@ namespace Turnroot.Skills.Nodes
         /// </summary>
         private OperationResult ExecuteNode(SkillNode node)
         {
-            if (node == null)
+            var validation = OperationResultGuards.RequireNotNull(node, nameof(node));
+            if (!validation.Success)
             {
-                return OperationResult.Failure("Node is null");
+                return validation;
             }
 
             // Prevent infinite loops from circular connections

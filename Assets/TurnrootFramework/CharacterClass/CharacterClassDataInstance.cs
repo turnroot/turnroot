@@ -129,9 +129,13 @@ namespace Turnroot.Characters.CharacterClass
 
         public OperationResult InitializeWithRenderer(SkinnedMeshRenderer meshRenderer)
         {
-            if (meshRenderer == null)
+            var validation = OperationResultGuards.RequireNotNull(
+                meshRenderer,
+                nameof(meshRenderer)
+            );
+            if (!validation.Success)
             {
-                return OperationResult.Failure("meshRenderer is null");
+                return validation;
             }
 
             _meshRenderer = meshRenderer;

@@ -221,7 +221,7 @@ namespace Turnroot.Characters
         [field:
             Foldout("Animations"),
             SerializeField,
-            InfoBox("IIf multiple idle animations are assigned, one will be chosen at random.")
+            InfoBox("If multiple idle animations are assigned, one will be chosen at random.")
         ]
         public AnimationClip[] DefaultIdleAnimations { get; private set; }
 
@@ -259,15 +259,6 @@ namespace Turnroot.Characters
             )
         ]
         public string[] AdditionalBoneNames { get; private set; } = new string[0];
-
-        [field:
-            Foldout("Rigging"),
-            SerializeField,
-            Tooltip(
-                "Optional per-character animator controller (or override) that contains animations specifically for the +X layer. Can be applied on a separate Animator layer."
-            )
-        ]
-        public RuntimeAnimatorController ExtraLayerController { get; private set; }
 
         [field: SerializeField, HorizontalLine(color: EColor.Blue)]
         public CharacterBehavior BehaviorSettings { get; private set; }

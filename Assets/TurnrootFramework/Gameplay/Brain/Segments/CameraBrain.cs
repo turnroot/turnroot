@@ -44,9 +44,10 @@ namespace Turnroot.Gameplay.Brain.Segments
 
         public OperationResult SetMapGrid(MapGrid grid)
         {
-            if (grid == null)
+            var validation = OperationResultGuards.RequireNotNull(grid, nameof(grid));
+            if (!validation.Success)
             {
-                return OperationResult.Failure("MapGrid is null");
+                return validation;
             }
 
             mapGrid = grid;
