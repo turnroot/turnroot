@@ -19,14 +19,10 @@ namespace Turnroot.Gameplay.Objects
         [SerializeField]
         private ObjectItem _template;
 
-        public int Slot = -1;
-
-        [NonSerialized]
-        private CharacterInventoryInstance _ownerInventory;
-
-        private int currentUses;
-
         public ObjectItem Template => _template;
+
+        public int Slot = -1;
+        public bool IsEquipped = false;
 
         internal void SetOwnerInventory(CharacterInventoryInstance owner) =>
             _ownerInventory = owner;
@@ -35,6 +31,7 @@ namespace Turnroot.Gameplay.Objects
         {
             _ownerInventory = null;
             Slot = -1;
+            IsEquipped = false;
         }
 
         public int CurrentUses => currentUses;

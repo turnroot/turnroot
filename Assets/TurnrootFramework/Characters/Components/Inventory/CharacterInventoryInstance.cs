@@ -145,6 +145,7 @@ namespace Turnroot.Characters.Components
         private int GetSlotIndexForItem(ObjectItem item)
         {
             return item.Subtype == ObjectSubtype.Weapon ? 0
+                : item.Subtype == ObjectSubtype.Shield ? 1
                 : item.Subtype == ObjectSubtype.Equipable
                     ? item.EquipableType switch
                     {
@@ -240,15 +241,17 @@ namespace Turnroot.Characters.Components
 
         private void AutoEquipNextWeapon()
         {
+            // Find next available weapon and equip it
             foreach (var item in _inventoryItems)
             {
                 if (
                     item.Template != null
-                    && item.Slot != 0
+                    && !item.IsEquipped
                     && item.Template.Subtype == ObjectSubtype.Weapon
                 )
                 {
-                    item.Slot = 0;
+                    item.IsEquipped = true;
+                    item.Slot = 0; // Move to slot 0 for visual organization
                     return;
                 }
             }
@@ -280,6 +283,8 @@ namespace Turnroot.Characters.Components
 
             _equippedItemIndices[slotIndex] = index;
             SetEquippedFlag(slotIndex, true);
+            itemToEquip.IsEquipped = true;
+            itemToEquip.Slot = slotIndex; // Move to slot for visual organization
             return OperationResult.Successful();
         }
 
@@ -306,6 +311,12 @@ namespace Turnroot.Characters.Components
             if (slotIndex < 0 || slotIndex >= _equippedItemIndices.Length)
             {
                 return OperationResult.Failure("Invalid slot index for unequip.");
+            }
+
+            int itemIndex = _equippedItemIndices[slotIndex];
+            if (itemIndex >= 0 && itemIndex < _inventoryItems.Count)
+            {
+                _inventoryItems[itemIndex].IsEquipped = false;
             }
 
             _equippedItemIndices[slotIndex] = -1;

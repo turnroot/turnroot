@@ -169,8 +169,24 @@ namespace Turnroot.Gameplay.Brain
                 hh.name = "HeadAndHands";
             }
 
-            if (unit.CharacterTemplate.HairPrefab != null)
+            // Check if class has a hat outfit
+            var classInst = unit.GetCurrentClass();
+            var classHatPrefab = classInst?.ClassData?.Identity?.ClassHatPrefab;
+
+            if (classHatPrefab != null)
             {
+                // Use class hat with height offset
+                var hat = Instantiate(classHatPrefab, parent.transform);
+                hat.name = "ClassHat";
+                hat.transform.localPosition = new Vector3(
+                    0,
+                    unit.CharacterTemplate.ClassHatHeightOffset,
+                    0
+                );
+            }
+            else if (unit.CharacterTemplate.HairPrefab != null)
+            {
+                // Fall back to default hair (no offset)
                 var hair = Instantiate(unit.CharacterTemplate.HairPrefab, parent.transform);
                 hair.name = "Hair";
             }

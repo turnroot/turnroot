@@ -132,16 +132,30 @@ namespace Turnroot.Gameplay.Brain
             Objects.ObjectItemInstance item
         )
         {
-            // Only update weapon models for equipped weapons
+            // Only update weapon/shield models for equipped items
             if (item?.Template?.IsEquippable == true)
             {
-                var result = UpdateUnitWeapon(character);
-                if (!result.Success)
+                if (item.Template.Subtype == Objects.Components.ObjectSubtype.Weapon)
                 {
-                    TurnrootLogger.Log(
-                        $"Failed to update weapon for {character?.CharacterTemplate?.DisplayName}: {result.ErrorMessage}",
-                        TurnrootLogger.LogLevel.Warning
-                    );
+                    var result = UpdateUnitWeapon(character);
+                    if (!result.Success)
+                    {
+                        TurnrootLogger.Log(
+                            $"Failed to update weapon for {character?.CharacterTemplate?.DisplayName}: {result.ErrorMessage}",
+                            TurnrootLogger.LogLevel.Warning
+                        );
+                    }
+                }
+                else if (item.Template.Subtype == Objects.Components.ObjectSubtype.Shield)
+                {
+                    var result = UpdateUnitShield(character);
+                    if (!result.Success)
+                    {
+                        TurnrootLogger.Log(
+                            $"Failed to update shield for {character?.CharacterTemplate?.DisplayName}: {result.ErrorMessage}",
+                            TurnrootLogger.LogLevel.Warning
+                        );
+                    }
                 }
             }
         }
@@ -151,16 +165,30 @@ namespace Turnroot.Gameplay.Brain
             Objects.ObjectItemInstance item
         )
         {
-            // Only update weapon models for unequipped weapons
+            // Only update weapon/shield models for unequipped items
             if (item?.Template?.IsEquippable == true)
             {
-                var result = UpdateUnitWeapon(character);
-                if (!result.Success)
+                if (item.Template.Subtype == Objects.Components.ObjectSubtype.Weapon)
                 {
-                    TurnrootLogger.Log(
-                        $"Failed to update weapon for {character?.CharacterTemplate?.DisplayName}: {result.ErrorMessage}",
-                        TurnrootLogger.LogLevel.Warning
-                    );
+                    var result = UpdateUnitWeapon(character);
+                    if (!result.Success)
+                    {
+                        TurnrootLogger.Log(
+                            $"Failed to update weapon for {character?.CharacterTemplate?.DisplayName}: {result.ErrorMessage}",
+                            TurnrootLogger.LogLevel.Warning
+                        );
+                    }
+                }
+                else if (item.Template.Subtype == Objects.Components.ObjectSubtype.Shield)
+                {
+                    var result = UpdateUnitShield(character);
+                    if (!result.Success)
+                    {
+                        TurnrootLogger.Log(
+                            $"Failed to update shield for {character?.CharacterTemplate?.DisplayName}: {result.ErrorMessage}",
+                            TurnrootLogger.LogLevel.Warning
+                        );
+                    }
                 }
             }
         }

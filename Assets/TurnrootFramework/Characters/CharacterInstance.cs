@@ -83,6 +83,9 @@ namespace Turnroot.Characters
 
         [NonSerialized]
         private GameObject _currentWeaponPrefab;
+
+        [NonSerialized]
+        private GameObject _currentShieldPrefab;
         #endregion
 
         #region Properties
@@ -96,6 +99,13 @@ namespace Turnroot.Characters
             get => _currentWeaponPrefab;
             set => _currentWeaponPrefab = value;
         }
+
+        public GameObject CurrentShieldPrefab
+        {
+            get => _currentShieldPrefab;
+            set => _currentShieldPrefab = value;
+        }
+
         public bool IsDefeatedInCurrentBattle
         {
             get => _isDefeatedInCurrentBattle;

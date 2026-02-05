@@ -130,6 +130,11 @@ namespace Turnroot.Gameplay.Brain
                 AttachWeaponToUnit(unit, model);
             }
 
+            if (unit.CurrentShieldPrefab == null)
+            {
+                AttachShieldToUnit(unit, model);
+            }
+
             Brain.Publish(new ModelSpawnedEvent(unit, unit.Id, newPosition, model));
             return OperationResult.Successful();
         }
@@ -166,6 +171,15 @@ namespace Turnroot.Gameplay.Brain
             {
                 TurnrootLogger.Log(
                     $"Failed to attach weapon for {unit.CharacterTemplate?.DisplayName}: {weaponResult.ErrorMessage}",
+                    TurnrootLogger.LogLevel.Warning
+                );
+            }
+
+            var shieldResult = AttachShieldToUnit(unit, model);
+            if (!shieldResult.Success)
+            {
+                TurnrootLogger.Log(
+                    $"Failed to attach shield for {unit.CharacterTemplate?.DisplayName}: {shieldResult.ErrorMessage}",
                     TurnrootLogger.LogLevel.Warning
                 );
             }

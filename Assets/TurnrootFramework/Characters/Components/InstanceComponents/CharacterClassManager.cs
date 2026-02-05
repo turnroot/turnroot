@@ -23,44 +23,34 @@ namespace Turnroot.Characters
 
         public ObjectItemInstance GetEquippedWeapon()
         {
-            if (_currentClass == null || _currentClass.ClassData == null)
+            if (_currentClass?.ClassData == null)
             {
-                TurnrootLogger.Log(
-                    $"[GetEquippedWeapon] Class not initialized for {_characterTemplate?.DisplayName}",
-                    TurnrootLogger.LogLevel.Warning
-                );
                 return null;
             }
 
             var allowedWeapons = _currentClass.ClassData.Requirements?.AllowedWeaponTypes;
             var inventory = _inventoryInstance.Items();
 
-            TurnrootLogger.Log(
-                $"[GetEquippedWeapon] {_characterTemplate?.DisplayName} inventory count: {inventory.Length}"
-            );
-
-            foreach (var item in inventory)
-            {
-                TurnrootLogger.Log(
-                    $"[GetEquippedWeapon] Item: {item.Template?.name ?? "null"}, Slot: {item.Slot}, WeaponType: {item.Template?.WeaponType}"
-                );
-            }
-
-            foreach (
-                var weapon in inventory.Where(w =>
-                    w.Template != null
-                    && (
-                        allowedWeapons == null
-                        || allowedWeapons.Count == 0
-                        || allowedWeapons.Contains(w.Template.WeaponType)
-                    )
-                    && w.Slot == 0
+            return inventory.FirstOrDefault(w =>
+                w?.Template != null
+                && w.IsEquipped
+                && (
+                    allowedWeapons == null
+                    || allowedWeapons.Count == 0
+                    || allowedWeapons.Contains(w.Template.WeaponType)
                 )
-            )
-            {
-                return weapon;
-            }
-            return null;
+            );
+        }
+
+        public ObjectItemInstance GetEquippedShield()
+        {
+            return _inventoryInstance
+                .Items()
+                .FirstOrDefault(item =>
+                    item?.Template != null
+                    && item.IsEquipped
+                    && item.Template.Subtype == Gameplay.Objects.Components.ObjectSubtype.Shield
+                );
         }
 
         public void GetAvailableWeapons()

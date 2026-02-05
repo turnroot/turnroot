@@ -111,41 +111,57 @@ namespace Turnroot.Characters
         private void InitializeInventory()
         {
             _inventoryInstance = new CharacterInventoryInstance();
-            if (_characterTemplate.StartingInventory != null)
+
+            if (_characterTemplate.StartingInventory == null)
             {
-                foreach (var slot in _characterTemplate.StartingInventory)
+                return;
+            }
+
+            foreach (var slot in _characterTemplate.StartingInventory)
+            {
+                var itemInstance = new ObjectItemInstance(slot.Item);
+                _inventoryInstance.AddToInventory(itemInstance);
+                itemInstance.Slot = slot.SlotIndex;
+
+                // Set IsEquipped for weapons in slot 0 and shields in slot 1
+                if (
+                    slot.SlotIndex == 0
+                    && slot.Item.Subtype == Gameplay.Objects.Components.ObjectSubtype.Weapon
+                )
                 {
-                    var itemInstance = new ObjectItemInstance(slot.Item);
-                    _inventoryInstance.AddToInventory(itemInstance);
-                    itemInstance.Slot = slot.SlotIndex;
+                    itemInstance.IsEquipped = true;
+                }
+                else if (
+                    slot.SlotIndex == 1
+                    && slot.Item.Subtype == Gameplay.Objects.Components.ObjectSubtype.Shield
+                )
+                {
+                    itemInstance.IsEquipped = true;
                 }
             }
         }
 
         private void EnsureWeaponInSlot0()
         {
-            if (_inventoryInstance == null)
-            {
-                return;
-            }
-
             var items = _inventoryInstance.Items();
-            var slot0Weapon = items.FirstOrDefault(i =>
-                i.Slot == 0
+            var equippedWeapon = items.FirstOrDefault(i =>
+                i.IsEquipped
                 && i.Template?.Subtype == Gameplay.Objects.Components.ObjectSubtype.Weapon
             );
 
-            if (slot0Weapon != null)
+            if (equippedWeapon != null)
             {
                 return;
             }
 
+            // No weapon equipped, equip the first one
             var firstWeapon = items.FirstOrDefault(i =>
                 i.Template?.Subtype == Gameplay.Objects.Components.ObjectSubtype.Weapon
             );
             if (firstWeapon != null)
             {
-                firstWeapon.Slot = 0;
+                firstWeapon.IsEquipped = true;
+                firstWeapon.Slot = 0; // Move to slot 0 for visual organization
             }
         }
 

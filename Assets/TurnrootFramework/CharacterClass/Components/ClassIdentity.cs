@@ -14,6 +14,11 @@ namespace Turnroot.Characters.CharacterClass
         [Tooltip("Prefab containing a SkinnedMeshRenderer for this class outfit (required)")]
         public GameObject ClassModelPrefab;
 
+        [Tooltip(
+            "Prefab containing a SkinnedMeshRenderer for this class hat (optional). If null, uses unit's default hair."
+        )]
+        public GameObject ClassHatPrefab;
+
         [Tooltip("Shader used for rendering")]
         public Shader ShaderGraph;
 
