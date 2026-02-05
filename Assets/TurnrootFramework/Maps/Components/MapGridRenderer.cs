@@ -25,10 +25,7 @@ namespace Turnroot.Gameplay.Maps
 
         private void InitializeFromSettings()
         {
-            var settings =
-                Turnroot.Utilities.GameSettingsLoader.LoadFirst<GameSettings.GamewideUiSettings>(
-                    "GameSettings"
-                );
+            var settings = GameSettings.GamewideUiSettings.Instance;
             if (settings == null)
             {
                 return;
@@ -665,8 +662,7 @@ namespace Turnroot.Gameplay.Maps
 
         private string GetMapSavePath()
         {
-            var gamePackageSettings =
-                Turnroot.Utilities.GameSettingsLoader.LoadFirst<GamePackage.GamePackageSettings>();
+            var gamePackageSettings = GamePackage.GamePackageSettings.Instance;
             if (gamePackageSettings == null)
             {
                 Debug.LogError("Could not find GamePackageSettings in Resources");

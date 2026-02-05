@@ -129,7 +129,7 @@ namespace Turnroot.Characters.CharacterClass
         /// </summary>
         public static GameplayGeneralSettings.ClassSelectionMode GetProjectClassSelectionMode()
         {
-            var settings = GameSettingsLoader.LoadFirst<GameplayGeneralSettings>();
+            var settings = GameplayGeneralSettings.Instance;
             return settings != null
                 ? settings.GetClassSelectionMode()
                 : GameplayGeneralSettings.ClassSelectionMode.PromotionBased;

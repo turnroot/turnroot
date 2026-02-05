@@ -15,8 +15,7 @@ namespace Turnroot.Gameplay.Brain.Segments
         private bool _shouldMove;
         private MapGrid mapGrid;
         private GamewideUiSettings UiSettings => Brain?.uiBrain?.uiSettings;
-        private GameplayPlayerSettings gameplayPlayerSettings =>
-            GameSettingsLoader.LoadFirst<GameplayPlayerSettings>();
+        private GameplayPlayerSettings gameplayPlayerSettings => GameplayPlayerSettings.Instance;
         private GameplayPlayerSettings.GameSpeed gameSpeed =>
             gameplayPlayerSettings?.SpeedSetting ?? GameplayPlayerSettings.GameSpeed.Normal;
         private BattleGameObject BattleObject => Brain?.battleBrain?.BattleObject;

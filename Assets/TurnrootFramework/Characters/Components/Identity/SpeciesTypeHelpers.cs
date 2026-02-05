@@ -13,7 +13,7 @@ namespace Turnroot.Characters
         /// </summary>
         public static SpeciesType[] GetConfiguredSpeciesTypes()
         {
-            var settings = GameSettingsLoader.LoadFirst<GameplayGeneralSettings>("GameSettings");
+            var settings = GameplayGeneralSettings.Instance;
             return settings != null && settings.SpeciesTypes != null
                 ? settings.SpeciesTypes
                 : System.Array.Empty<SpeciesType>();

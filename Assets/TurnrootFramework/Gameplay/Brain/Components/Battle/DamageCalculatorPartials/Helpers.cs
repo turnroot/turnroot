@@ -25,8 +25,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             return true;
         }
 
-        private static GameplayGeneralSettings LoadSettings() =>
-            GameSettingsLoader.LoadFirst<GameplayGeneralSettings>("GameSettings");
+        private static GameplayGeneralSettings LoadSettings() => GameplayGeneralSettings.Instance;
 
         private static void GetHitFormulaMultipliers(
             GameplayGeneralSettings settings,

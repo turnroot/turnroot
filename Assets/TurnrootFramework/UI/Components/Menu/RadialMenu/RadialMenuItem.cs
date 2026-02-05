@@ -40,7 +40,7 @@ namespace Turnroot.UI.Components.RadialMenu
         private void Awake()
         {
             // Load UI settings and apply them
-            var uiSettings = GameSettingsLoader.LoadFirst<GamewideUiSettings>();
+            var uiSettings = GamewideUiSettings.Instance;
             if (uiSettings != null)
             {
                 normalColor = uiSettings.RadialMenuNormalColor;

@@ -29,7 +29,7 @@ namespace Turnroot.Characters
             _characterTemplate = template;
             _id = GenerateId(template);
             _useBattleModel = useBattleModel;
-            settings = GameSettingsLoader.LoadFirst<GameplayGeneralSettings>("GameSettings");
+            settings = GameplayGeneralSettings.Instance;
             Initialize();
             GetAvailableWeapons();
         }
@@ -179,7 +179,7 @@ namespace Turnroot.Characters
         {
             if (settings == null)
             {
-                settings = GameSettingsLoader.LoadFirst<GameplayGeneralSettings>("GameSettings");
+                settings = GameplayGeneralSettings.Instance;
             }
             return settings?.GetDefaultStartingClass();
         }

@@ -98,6 +98,7 @@ namespace Turnroot.Skills.Nodes.Editor
         private GenericMenu BuildSkillMenu(string categoryPrefix = null)
         {
             var menu = new GenericMenu();
+            var graph = target as NodeGraph;
 
             foreach (var asm in AppDomain.CurrentDomain.GetAssemblies())
             {
@@ -133,7 +134,7 @@ namespace Turnroot.Skills.Nodes.Editor
                         continue;
                     }
 
-                    TryAddNodeTypeToMenu(t, menu, categoryPrefix);
+                    TryAddNodeTypeToMenu(t, menu, categoryPrefix, graph);
                 }
             }
 
@@ -143,7 +144,8 @@ namespace Turnroot.Skills.Nodes.Editor
         private static void TryAddNodeTypeToMenu(
             System.Type nodeType,
             GenericMenu menu,
-            string categoryPrefix
+            string categoryPrefix,
+            NodeGraph graph
         )
         {
             foreach (var cad in nodeType.GetCustomAttributesData())
@@ -170,7 +172,7 @@ namespace Turnroot.Skills.Nodes.Editor
                     continue; // Filtered out by category prefix
                 }
 
-                AddNodeCreationMenuItem(menu, nodeType, menuPath, label);
+                AddNodeCreationMenuItem(menu, nodeType, menuPath, label, graph);
                 break;
             }
         }
@@ -196,15 +198,23 @@ namespace Turnroot.Skills.Nodes.Editor
             GenericMenu menu,
             System.Type nodeType,
             string menuPath,
-            string label
+            string label,
+            NodeGraph graph
         )
         {
-            menu.AddItem(new GUIContent(label), false, () => CreateNodeInGraph(nodeType, menuPath));
+            menu.AddItem(
+                new GUIContent(label),
+                false,
+                () => CreateNodeInGraph(nodeType, menuPath, graph)
+            );
         }
 
-        private static void CreateNodeInGraph(System.Type nodeType, string menuPath)
+        private static void CreateNodeInGraph(
+            System.Type nodeType,
+            string menuPath,
+            NodeGraph graph
+        )
         {
-            var graph = target as NodeGraph;
             if (graph == null)
             {
                 return;

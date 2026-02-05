@@ -21,7 +21,7 @@ namespace Turnroot.Gameplay.Brain
         protected override void Awake()
         {
             base.Awake();
-            _settings = GameSettingsLoader.LoadFirst<GameplayGeneralSettings>();
+            _settings = GameplayGeneralSettings.Instance;
         }
 
         protected override void SubscribeToBrainEvents()

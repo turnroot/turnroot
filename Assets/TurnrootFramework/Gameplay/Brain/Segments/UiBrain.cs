@@ -86,7 +86,7 @@ namespace Turnroot.Gameplay.Brain.Segments
         protected override void Awake()
         {
             base.Awake();
-            uiSettings = GameSettingsLoader.LoadFirst<GamewideUiSettings>();
+            uiSettings = GamewideUiSettings.Instance;
             if (uiSettings != null)
             {
                 preBattleMenuLocation = uiSettings.GetPreBattleMenu();
@@ -111,7 +111,7 @@ namespace Turnroot.Gameplay.Brain.Segments
                 }
 
                 // Player settings (no input customization present)
-                _playerSettings = GameSettingsLoader.LoadFirst<GameplayPlayerSettings>();
+                _playerSettings = GameplayPlayerSettings.Instance;
                 var CursorBrain = GetComponent<CursorBrain>();
                 CursorBrain.SetUiSettingsReference(uiSettings);
             }

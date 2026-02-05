@@ -40,7 +40,7 @@ namespace Turnroot.Gameplay.Brain
         private void Start()
         {
             _ltm = GetComponent<LongTermMemory>();
-            _gameplaySettings = GameSettingsLoader.LoadFirst<GameplayGeneralSettings>();
+            _gameplaySettings = GameplayGeneralSettings.Instance;
             _materials = new Dictionary<ObjectItem, int>();
             GoldDisplayNames =
                 _gameplaySettings != null

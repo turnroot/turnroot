@@ -197,7 +197,7 @@ namespace Turnroot.Gameplay.Objects
 
         private void ApplyGameplayDefaultsFromSettings()
         {
-            var settings = GameSettingsLoader.LoadFirst<GameplayGeneralSettings>("GameSettings");
+            var settings = GameplayGeneralSettings.Instance;
             if (settings == null)
             {
                 return;

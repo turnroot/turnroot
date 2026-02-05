@@ -40,7 +40,7 @@ namespace Turnroot.Gameplay.Brain
 #if UNITY_EDITOR
                 Debug.LogWarning("Cannot instantiate null roster");
 #endif
-                Brain.PublishRostersFailed();
+                _brain.PublishRostersFailed();
                 return null;
             }
 
@@ -73,7 +73,7 @@ namespace Turnroot.Gameplay.Brain
                 _persistence.RegisterRoster(roster);
             }
 
-            Brain.PublishRostersReady();
+            _brain.PublishRostersReady();
             return existing;
         }
 
@@ -95,7 +95,7 @@ namespace Turnroot.Gameplay.Brain
                 _persistence.RegisterRoster(roster);
             }
 
-            Brain.PublishRostersReady();
+            _brain.PublishRostersReady();
             return instance;
         }
 
@@ -107,7 +107,7 @@ namespace Turnroot.Gameplay.Brain
                     "Cannot instantiate null player team roster",
                     TurnrootLogger.LogLevel.Warning
                 );
-                Brain.PublishRostersFailed();
+                _brain.PublishRostersFailed();
                 return null;
             }
 
@@ -134,9 +134,9 @@ namespace Turnroot.Gameplay.Brain
             }
 
             // Subscribe to runtime changes so we can request a save when roster mutates
-            instance.OnRosterModified += () => Brain.PublishSavePlayerRosterRequested();
+            instance.OnRosterModified += () => _brain.PublishSavePlayerRosterRequested();
 
-            Brain.PublishRostersReady();
+            _brain.PublishRostersReady();
             return instance;
         }
 
