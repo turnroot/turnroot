@@ -40,7 +40,7 @@ namespace Turnroot.Gameplay.Brain
         private void Start()
         {
             _ltm = GetComponent<LongTermMemory>();
-            _gameplaySettings = GameSettingsLoader.LoadFirst<GameplayGeneralSettings>();
+            _gameplaySettings = GameplayGeneralSettings.Instance;
             _materials = new Dictionary<ObjectItem, int>();
             GoldDisplayNames =
                 _gameplaySettings != null
@@ -161,7 +161,7 @@ namespace Turnroot.Gameplay.Brain
             {
                 var itemIds = storedItemIdsString.Split(',');
                 var allItems =
-                    _brain?.inventoryBrain?.GetAllItems() ?? new List<ObjectItemInstance>();
+                    Brain.inventoryBrain?.GetAllItems() ?? new List<ObjectItemInstance>();
                 foreach (var id in itemIds)
                 {
                     if (string.IsNullOrEmpty(id))
@@ -194,7 +194,7 @@ namespace Turnroot.Gameplay.Brain
 
             _storedItems.Add(item);
             SaveCurrentStorehouse();
-            _brain?.PublishItemDeposited(item);
+            Brain.PublishItemDeposited(item);
 
             TurnrootLogger.Log($"Deposited {item.Template.name} into storehouse.");
 
@@ -234,7 +234,7 @@ namespace Turnroot.Gameplay.Brain
             _ = _storedItems.Remove(item);
             SaveCurrentStorehouse();
 
-            _brain?.PublishItemWithdrawn(item, targetInventory);
+            Brain.PublishItemWithdrawn(item, targetInventory);
 
             TurnrootLogger.Log($"Withdrew {item.Template.name} from storehouse.");
             return OperationResult.Successful();

@@ -9,6 +9,7 @@ using Turnroot.Gameplay.Maps;
 using Turnroot.Skills;
 using Turnroot.Utilities;
 using UnityEngine;
+using UnityEngine.Splines;
 
 namespace Turnroot.Characters
 {
@@ -116,6 +117,9 @@ namespace Turnroot.Characters
         public List<BoundedCharacterStat> BoundedStats => _runtimeBoundedStats;
         public List<CharacterStat> UnboundedStats => _runtimeUnboundedStats;
         public CharacterInstance LastAttackedTarget { get; set; }
+
+        public Spline CurrentMovementSpline { get; set; }
+        public float WalkingSpeed { get; set; } = 3.5f;
         #endregion
 
 

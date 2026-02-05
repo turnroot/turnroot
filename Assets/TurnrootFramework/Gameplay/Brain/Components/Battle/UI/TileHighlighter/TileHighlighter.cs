@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using Turnroot.Gameplay.Maps;
 using Turnroot.Utilities;
 using UnityEngine;
@@ -288,11 +287,6 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
 
         private void UnsubscribeFromBrainEvents()
         {
-            if (_brain == null)
-            {
-                return;
-            }
-
             _brain.OnBattleMapReady -= HandleBattleMapReady;
             _brain.OnBattleCompleted -= HandleBattleCompleted;
         }

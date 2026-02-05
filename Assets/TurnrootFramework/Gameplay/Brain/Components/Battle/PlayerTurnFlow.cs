@@ -241,7 +241,7 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
             }
 
             var last = history[history.Count - 1];
-            if (last is Turnroot.Gameplay.Brain.Commands.MoveCommand)
+            if (last is Commands.MoveCommand)
             {
                 // Undo move command (will move unit back via MoveUnit)
                 return brain.UndoCommand();

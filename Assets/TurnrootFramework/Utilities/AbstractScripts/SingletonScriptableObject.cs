@@ -1,3 +1,4 @@
+using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Utilities.AbstractScripts
@@ -21,77 +22,106 @@ namespace Turnroot.Utilities.AbstractScripts
                     _instance = Resources.Load<T>(typeof(T).Name);
 
                     // If not found at the exact path, search all Resources for the type.
-                    // Wrap in try/catch because Unity throws when resources are being loaded
-                    // (recursive serialization/Dereferencing PPtr) and this can happen when
-                    // ScriptableObjects reference each other during deserialization.
                     if (_instance == null)
                     {
-                        try
-                        {
-                            var all = Resources.LoadAll<T>("");
-                            if (all != null && all.Length > 0)
-                            {
-                                // Prefer an asset whose filename matches the type name
-                                foreach (var candidate in all)
-                                {
-                                    if (candidate != null && candidate.name == typeof(T).Name)
-                                    {
-                                        _instance = candidate;
-                                        break;
-                                    }
-                                }
-                                // Otherwise just take the first one found
-                                if (_instance == null)
-                                {
-                                    _instance = all[0];
-                                }
-                            }
-                        }
-                        catch (System.Exception)
-                        {
-#if UNITY_EDITOR
-                            // As a safe fallback in the editor, perform an AssetDatabase search
-                            // which avoids dereferencing PPtr during Resources.LoadAll.
-                            try
-                            {
-                                string filter = $"t:{typeof(T).Name}";
-                                var guids = UnityEditor.AssetDatabase.FindAssets(filter);
-                                if (guids != null && guids.Length > 0)
-                                {
-                                    // Prefer exact type-named asset if present
-                                    foreach (var g in guids)
-                                    {
-                                        string path = UnityEditor.AssetDatabase.GUIDToAssetPath(g);
-                                        if (path.Contains($"/Resources/"))
-                                        {
-                                            var asset =
-                                                UnityEditor.AssetDatabase.LoadAssetAtPath<T>(path);
-                                            if (asset != null)
-                                            {
-                                                _instance = asset;
-                                                break;
-                                            }
-                                        }
-                                    }
-
-                                    if (_instance == null)
-                                    {
-                                        var fallbackPath =
-                                            UnityEditor.AssetDatabase.GUIDToAssetPath(guids[0]);
-                                        _instance = UnityEditor.AssetDatabase.LoadAssetAtPath<T>(
-                                            fallbackPath
-                                        );
-                                    }
-                                }
-                            }
-                            catch { }
-#endif
-                        }
+                        _instance = TryLoadFromResourcesWithFallback();
                     }
                 }
                 return _instance;
             }
         }
+
+        private static T TryLoadFromResourcesWithFallback()
+        {
+            // Wrap in try/catch because Unity throws when resources are being loaded
+            // (recursive serialization/Dereferencing PPtr) and this can happen when
+            // ScriptableObjects reference each other during deserialization.
+            try
+            {
+                return TryLoadFromResourcesAll();
+            }
+            catch (System.Exception)
+            {
+#if UNITY_EDITOR
+                return TryLoadFromAssetDatabase();
+#else
+                return null;
+#endif
+            }
+        }
+
+        private static T TryLoadFromResourcesAll()
+        {
+            var all = Resources.LoadAll<T>("");
+            if (all == null || all.Length == 0)
+            {
+                return null;
+            }
+
+            // Prefer an asset whose filename matches the type name
+            foreach (var candidate in all)
+            {
+                if (candidate != null && candidate.name == typeof(T).Name)
+                {
+                    return candidate;
+                }
+            }
+
+            // Otherwise just take the first one found
+            return all[0];
+        }
+
+#if UNITY_EDITOR
+        private static T TryLoadFromAssetDatabase()
+        {
+            // As a safe fallback in the editor, perform an AssetDatabase search
+            // which avoids dereferencing PPtr during Resources.LoadAll.
+            try
+            {
+                string filter = $"t:{typeof(T).Name}";
+                var guids = UnityEditor.AssetDatabase.FindAssets(filter);
+                if (guids == null || guids.Length == 0)
+                {
+                    return null;
+                }
+
+                // Prefer exact type-named asset in Resources folder if present
+                var foundInstance = TryFindInResourcesFolder(guids);
+                if (foundInstance != null)
+                {
+                    return foundInstance;
+                }
+
+                // Fallback to first found asset
+                var fallbackPath = UnityEditor.AssetDatabase.GUIDToAssetPath(guids[0]);
+                return UnityEditor.AssetDatabase.LoadAssetAtPath<T>(fallbackPath);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private static T TryFindInResourcesFolder(string[] guids)
+        {
+            foreach (var guid in guids)
+            {
+                string path = UnityEditor.AssetDatabase.GUIDToAssetPath(guid);
+                if (!path.Contains($"/Resources/"))
+                {
+                    continue;
+                }
+
+                var asset = UnityEditor.AssetDatabase.LoadAssetAtPath<T>(path);
+                if (asset != null)
+                {
+                    return asset;
+                }
+            }
+
+            return null;
+        }
+#endif
 
         protected virtual void OnEnable()
         {
@@ -107,11 +137,11 @@ namespace Turnroot.Utilities.AbstractScripts
                 string duplicatePath = UnityEditor.AssetDatabase.GetAssetPath(this);
                 string instancePath = UnityEditor.AssetDatabase.GetAssetPath(_instance);
 
-                Debug.LogError(
+                TurnrootLogger.Log(
                     $"SingletonScriptableObject: DUPLICATE DETECTED! Only one instance of {typeof(T).Name} is allowed. "
                         + $"Keeping: {instancePath}. "
                         + $"Deleting duplicate: {duplicatePath}",
-                    _instance
+                    TurnrootLogger.LogLevel.Error
                 );
 
                 // Delete the duplicate asset file

@@ -15,7 +15,7 @@ namespace Turnroot.UI.Components
         {
             NameText.text = "";
             ClassText.text = "";
-            Portrait.sprite = GameSettingsLoader.LoadFirst<GamewideUiSettings>().NoPortraitSprite;
+            Portrait.sprite = GamewideUiSettings.Instance.NoPortraitSprite;
         }
 
         public void SetData(string unitName, string className, Sprite portraitSprite)
@@ -25,7 +25,7 @@ namespace Turnroot.UI.Components
             Portrait.sprite =
                 portraitSprite != null
                     ? portraitSprite
-                    : GameSettingsLoader.LoadFirst<GamewideUiSettings>().NoPortraitSprite;
+                    : GamewideUiSettings.Instance.NoPortraitSprite;
         }
     }
 }

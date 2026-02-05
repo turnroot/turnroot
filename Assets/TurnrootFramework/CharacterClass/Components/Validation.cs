@@ -26,7 +26,7 @@ namespace Turnroot.Characters.CharacterClass
 
         private OperationResult ValidateStatLists()
         {
-            var defaultStats = GameSettingsLoader.LoadFirst<DefaultCharacterStats>("GameSettings");
+            var defaultStats = DefaultCharacterStats.Instance;
             if (defaultStats == null)
             {
                 return OperationResult.Failure(

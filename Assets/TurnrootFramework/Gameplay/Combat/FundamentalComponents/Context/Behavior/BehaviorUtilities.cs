@@ -241,7 +241,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 TerrainBonus += terrainType.HealthChangePerTurnArmor * 0.3f;
             }
 
-            var settings = GameSettingsLoader.LoadFirst<GameplayGeneralSettings>("GameSettings");
+            var settings = GameplayGeneralSettings.Instance;
             TerrainBonus *= settings.GetTerrainBonusMultiplier();
             TerrainBonus += PersonalityBonus;
             return TerrainBonus;

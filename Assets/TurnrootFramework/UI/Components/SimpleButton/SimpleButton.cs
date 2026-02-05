@@ -132,7 +132,7 @@ namespace Turnroot.UI.Components.SimpleButton
             _uiSettings?.GridListFilmstripButtonHoveredColor ?? Color.cyan;
         private float Duration => _uiSettings?.ButtonTransitionDuration ?? 0.12f;
 
-        private void Awake() => _uiSettings = Turnroot.Utilities.GameSettingsLoader.LoadFirst<GamewideUiSettings>();
+        private void Awake() => _uiSettings = GamewideUiSettings.Instance;
 
         private void OnEnable()
         {

@@ -160,7 +160,7 @@ namespace Turnroot.Gameplay.Brain
                 return;
             }
 
-            _brain?.PublishConversationStarted(conversation);
+            Brain.PublishConversationStarted(conversation);
             TurnrootLogger.Log($"ConversationalBrain: Started conversation '{conversation.name}'");
         }
 
@@ -175,7 +175,7 @@ namespace Turnroot.Gameplay.Brain
                 return;
             }
 
-            _brain?.PublishConversationEnded(conversation);
+            Brain.PublishConversationEnded(conversation);
 
             TurnrootLogger.Log(
                 $"ConversationalBrain: Ended conversation '{conversation.name}'",
@@ -194,7 +194,7 @@ namespace Turnroot.Gameplay.Brain
                 return;
             }
 
-            _brain?.PublishConversationLayerStarted(layer);
+            Brain.PublishConversationLayerStarted(layer);
         }
 
         public void EndConversationLayer(ConversationLayer layer)
@@ -208,7 +208,7 @@ namespace Turnroot.Gameplay.Brain
                 return;
             }
 
-            _brain?.PublishConversationLayerEnded(layer);
+            Brain.PublishConversationLayerEnded(layer);
         }
 
         public void NotifySupportPointsChanged(SupportRelationshipInstance relationship)
@@ -218,7 +218,7 @@ namespace Turnroot.Gameplay.Brain
                 return;
             }
 
-            _brain?.PublishSupportPointsChanged(relationship);
+            Brain.PublishSupportPointsChanged(relationship);
         }
 
         public void NotifySupportConversationAvailable(SupportRelationshipInstance relationship)
@@ -228,7 +228,7 @@ namespace Turnroot.Gameplay.Brain
                 return;
             }
 
-            _brain?.PublishSupportConversationAvailable(relationship);
+            Brain.PublishSupportConversationAvailable(relationship);
         }
 
         public void NotifySLevelSupportConversationAvailable(
@@ -240,7 +240,7 @@ namespace Turnroot.Gameplay.Brain
                 return;
             }
 
-            _brain?.PublishSLevelSupportConversationAvailable(relationship);
+            Brain.PublishSLevelSupportConversationAvailable(relationship);
         }
 
         #endregion

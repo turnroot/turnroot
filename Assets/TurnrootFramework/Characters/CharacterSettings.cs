@@ -52,9 +52,7 @@ namespace Turnroot.Characters
                     return _cachedPrototypeSettings;
                 }
 
-                _cachedPrototypeSettings = GameSettingsLoader.LoadFirst<CharacterPrototypeSettings>(
-                    "GameSettings"
-                );
+                _cachedPrototypeSettings = CharacterPrototypeSettings.Instance;
 
                 if (_cachedPrototypeSettings == null)
                 {
@@ -82,9 +80,7 @@ namespace Turnroot.Characters
                     return _cachedDefaultStats;
                 }
 
-                _cachedDefaultStats = GameSettingsLoader.LoadFirst<DefaultCharacterStats>(
-                    "GameSettings"
-                );
+                _cachedDefaultStats = DefaultCharacterStats.Instance;
 
                 if (_cachedDefaultStats == null)
                 {

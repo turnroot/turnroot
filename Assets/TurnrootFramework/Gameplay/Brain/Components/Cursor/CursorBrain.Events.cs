@@ -76,7 +76,7 @@ namespace Turnroot.Gameplay.Brain
                 return;
             }
 
-            var mapGrid = _brain?.battleBrain?.PreparationObject?.MapGrid;
+            var mapGrid = Brain.battleBrain?.PreparationObject?.MapGrid;
 
             if (mapGrid == null)
             {
@@ -102,7 +102,7 @@ namespace Turnroot.Gameplay.Brain
                         _currentContext = CursorContext.Battle;
                         ClearAllowedPositions();
                         // Try to initialize immediately if the battle map is ready; otherwise wait for OnBattleMapReady
-                        if (_brain?.battleBrain?.BattleObject?.Context?.MapGrid != null)
+                        if (Brain.battleBrain?.BattleObject?.Context?.MapGrid != null)
                         {
                             InitializeBattleCursor();
                         }
@@ -144,7 +144,7 @@ namespace Turnroot.Gameplay.Brain
             {
                 _currentContext = CursorContext.Battle;
                 // If the map is already ready, initialize; otherwise we'll initialize when OnBattleMapReady fires
-                if (_brain?.battleBrain?.BattleObject?.Context?.MapGrid != null)
+                if (Brain.battleBrain?.BattleObject?.Context?.MapGrid != null)
                 {
                     InitializeBattleCursor();
                 }

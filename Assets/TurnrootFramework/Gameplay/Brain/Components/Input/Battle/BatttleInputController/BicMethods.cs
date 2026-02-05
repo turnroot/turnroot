@@ -55,8 +55,8 @@ namespace Turnroot.Gameplay.Brain
         {
             _validMoveTiles.Clear();
             _validAttackTiles.Clear();
-            _brain.cursorBrain?.ClearAllowedPositions();
-            _tileHighlighter?.ClearAll();
+            Brain.cursorBrain.ClearAllowedPositions();
+            _tileHighlighter.ClearAll();
         }
 
         private void HandleUnitSelectedState()
@@ -83,7 +83,7 @@ namespace Turnroot.Gameplay.Brain
                 );
             }
 
-            _brain.cursorBrain.SetAllowedPositions(movePositionsLocal);
+            Brain.cursorBrain.SetAllowedPositions(movePositionsLocal);
         }
 
         private void HandleChoosingDestinationState()
@@ -92,7 +92,7 @@ namespace Turnroot.Gameplay.Brain
                 _validMoveTiles.Keys.Select(k => k.CoordinatesInt)
             );
             _tileHighlighter.HighlightTiles(movePositions, TileHighlighter.HighlightType.Move);
-            _brain.cursorBrain?.SetAllowedPositions(movePositions);
+            Brain.cursorBrain.SetAllowedPositions(movePositions);
         }
 
         private void HandleAttackActionChoosingTargetState()
@@ -101,7 +101,7 @@ namespace Turnroot.Gameplay.Brain
                 _validAttackTiles.Keys.Select(k => k.CoordinatesInt)
             );
             _tileHighlighter.HighlightTiles(attackPositions, TileHighlighter.HighlightType.Attack);
-            _brain.cursorBrain?.SetAllowedPositions(attackPositions);
+            Brain.cursorBrain.SetAllowedPositions(attackPositions);
         }
 
         private void HandleChoosingActionState() => OpenActionMenu();
@@ -121,7 +121,7 @@ namespace Turnroot.Gameplay.Brain
             var unit = BattleContext.Unit.UnitInstance;
             // Start executing the move and lock input until move/animation completes
             _playerTurnFlow.StartMove();
-            _brain.PublishCharacterMoveStarted(unit, _pendingDestination);
+            Brain.PublishCharacterMoveStarted(unit, _pendingDestination);
             var moveRes = BattleContext.MoveUnitToPoint(unit, _pendingDestination);
             if (moveRes.Success)
             {
@@ -135,7 +135,7 @@ namespace Turnroot.Gameplay.Brain
                     TurnrootLogger.LogLevel.Warning
                 );
                 // Re-enable input since the attempted move did not start
-                _brain.battleBrain.IsInputEnabled = true;
+                Brain.battleBrain.IsInputEnabled = true;
                 _playerTurnFlow.CancelTargetOrDestinationChoice(PlayerTurnStates.UnitSelected);
             }
             _pendingDestination = null;
@@ -147,9 +147,9 @@ namespace Turnroot.Gameplay.Brain
         {
             _validMoveTiles.Clear();
             _validAttackTiles.Clear();
-            _brain.cursorBrain?.ClearAllowedPositions();
-            _brain.PublishPlayerTurnEnded();
-            _playerTurnFlow?.EndTurn();
+            Brain.cursorBrain.ClearAllowedPositions();
+            Brain.PublishPlayerTurnEnded();
+            _playerTurnFlow.EndTurn();
         }
 
         #endregion
@@ -158,17 +158,12 @@ namespace Turnroot.Gameplay.Brain
 
         private static Vector2 RotateVectorBy90StepsCW(Vector2 v, int steps)
         {
-            // Normalize steps to 0..3
             steps = ((steps % 4) + 4) % 4;
-            // Apply clockwise 90° rotation steps using integer math to avoid trig imprecision
             return steps switch
             {
                 0 => v,
-                // 90° clockwise: (x,y) -> (y, -x)
                 1 => new Vector2(v.y, -v.x),
-                // 180°: (x,y) -> (-x, -y)
                 2 => new Vector2(-v.x, -v.y),
-                // 270° clockwise (or 90° ccw): (x,y) -> (-y, x)
                 3 => new Vector2(-v.y, v.x),
                 _ => v,
             };
@@ -195,7 +190,7 @@ namespace Turnroot.Gameplay.Brain
 
         public bool ValidateTileSelection(MapGridPoint point)
         {
-            var currentState = _playerTurnFlow?.GetCurrentState() ?? PlayerTurnStates.Inactive;
+            var currentState = _playerTurnFlow.GetCurrentState();
 
             return currentState switch
             {
@@ -214,7 +209,7 @@ namespace Turnroot.Gameplay.Brain
                 return false;
             }
 
-            var currentState = _playerTurnFlow?.GetCurrentState() ?? PlayerTurnStates.Inactive;
+            var currentState = _playerTurnFlow.GetCurrentState();
 
             return currentState switch
             {
@@ -235,47 +230,65 @@ namespace Turnroot.Gameplay.Brain
                 return;
             }
 
-            var currentState = _playerTurnFlow?.GetCurrentState() ?? PlayerTurnStates.Inactive;
+            var currentState = _playerTurnFlow.GetCurrentState();
 
             switch (currentState)
             {
                 case PlayerTurnStates.ChoosingDestination:
-                    var destinationPoint = CursorPosition;
-                    if (destinationPoint != null)
-                    {
-                        _pendingDestination = destinationPoint;
-                        _playerTurnFlow.SelectTargetOrDestination(
-                            PlayerTurnStates.DestinationSelected
-                        );
-
-                        // If destination is the current unit tile, skip moving and go straight to choosing action
-                        var unit = BattleContext.Unit.UnitInstance;
-                        var unitPoint = unit?.UnitPositionToMapGridPoint(
-                            unit.MapGridPosition,
-                            _brain?.battleBrain?.BattleObject?.Context?.MapGrid
-                        );
-                        if (unitPoint != null && unitPoint.Equals(destinationPoint))
-                        {
-                            // Directly enter ChoosingAction (no move required)
-                            _playerTurnFlow.CancelTargetOrDestinationChoice(
-                                PlayerTurnStates.ChoosingAction
-                            );
-                            _pendingDestination = null;
-                            break;
-                        }
-                    }
+                    HandleDestinationSelection(CursorPosition);
                     break;
                 case PlayerTurnStates.AttackActionChosenChoosingTarget:
-                    if (_brain.cursorBrain.IsCursorOnUnit(out var targetUnit))
-                    {
-                        if (ValidateTargetSelection(targetUnit))
-                        {
-                            _playerTurnFlow.SelectTargetOrDestination(
-                                PlayerTurnStates.AttackActionChosenTargetSelected
-                            );
-                        }
-                    }
+                    HandleTargetSelection();
                     break;
+            }
+        }
+
+        private void HandleDestinationSelection(MapGridPoint destinationPoint)
+        {
+            if (destinationPoint == null)
+            {
+                return;
+            }
+
+            _pendingDestination = destinationPoint;
+            _playerTurnFlow.SelectTargetOrDestination(PlayerTurnStates.DestinationSelected);
+
+            // If destination is the current unit tile, skip moving and go straight to choosing action
+            if (IsDestinationSameAsUnitPosition(destinationPoint))
+            {
+                _playerTurnFlow.CancelTargetOrDestinationChoice(PlayerTurnStates.ChoosingAction);
+                _pendingDestination = null;
+            }
+        }
+
+        private bool IsDestinationSameAsUnitPosition(MapGridPoint destinationPoint)
+        {
+            var unit = BattleContext.Unit.UnitInstance;
+            if (unit == null)
+            {
+                return false;
+            }
+
+            var unitPoint = unit.UnitPositionToMapGridPoint(
+                unit.MapGridPosition,
+                Brain.battleBrain?.BattleObject?.Context?.MapGrid
+            );
+
+            return unitPoint != null && unitPoint.Equals(destinationPoint);
+        }
+
+        private void HandleTargetSelection()
+        {
+            if (!Brain.cursorBrain.IsCursorOnUnit(out var targetUnit))
+            {
+                return;
+            }
+
+            if (ValidateTargetSelection(targetUnit))
+            {
+                _playerTurnFlow.SelectTargetOrDestination(
+                    PlayerTurnStates.AttackActionChosenTargetSelected
+                );
             }
         }
 
@@ -311,7 +324,7 @@ namespace Turnroot.Gameplay.Brain
                 BattleContext.Flags.ActiveUnitFlags = new UnitFlag();
             }
             BattleContext.Flags.ActiveUnitFlags.Unit = unit;
-            _brain.PublishPlayerControlledUnitActivated(unit);
+            Brain.PublishPlayerControlledUnitActivated(unit);
             var res = ComputeValidTiles(unit);
 
             TurnrootLogger.Log(
@@ -338,13 +351,13 @@ namespace Turnroot.Gameplay.Brain
                 );
             }
 
-            _brain.cursorBrain.ClearAllowedPositions();
-            _brain.cursorBrain.SetAllowedPositions(
+            Brain.cursorBrain.ClearAllowedPositions();
+            Brain.cursorBrain.SetAllowedPositions(
                 new List<Vector2Int>(_validMoveTiles.Keys.Select(k => k.CoordinatesInt))
             );
         }
 
-        public void RequestUndo() => _brain?.PublishPlayerUndoAction();
+        public void RequestUndo() => Brain.PublishPlayerUndoAction();
 
         public void OpenActionMenu() { }
 
@@ -364,16 +377,7 @@ namespace Turnroot.Gameplay.Brain
                 return OperationResult.Failure("No unit provided");
             }
 
-            var context = _brain.battleBrain.BattleObject.Context;
-            if (context == null)
-            {
-                TurnrootLogger.Log(
-                    "BattleInputControllerBrain: BattleContext is null",
-                    TurnrootLogger.LogLevel.Error
-                );
-                return OperationResult.Failure("BattleContext not available");
-            }
-
+            var context = Brain.battleBrain.BattleObject.Context;
             if (!context.TryGetValidTilesForUnit(unit, out var moveTiles, out var attackTiles))
             {
                 TurnrootLogger.Log(
@@ -385,7 +389,7 @@ namespace Turnroot.Gameplay.Brain
 
             _validMoveTiles = moveTiles;
             _validAttackTiles = attackTiles;
-            _brain.PublishValidTilesComputed(moveTiles, attackTiles);
+            Brain.PublishValidTilesComputed(moveTiles, attackTiles);
 
             return OperationResult.Successful();
         }

@@ -37,7 +37,7 @@ namespace Turnroot.Gameplay.Brain
                 CursorPosition = startPoint;
                 UpdateCursorVisualPosition(startPos);
                 IsInitialized = true;
-                _brain?.PublishCursorPositionChanged(startPos, _currentMap);
+                Brain.PublishCursorPositionChanged(startPos, _currentMap);
             }
             else
             {
@@ -50,11 +50,11 @@ namespace Turnroot.Gameplay.Brain
 
         private void InitializeBattleCursor()
         {
-            if (_brain?.battleBrain?.BattleObject?.Context?.MapGrid == null)
+            if (Brain.battleBrain?.BattleObject?.Context?.MapGrid == null)
             {
                 TurnrootLogger.Log(
-                    _brain == null ? "CursorBrain: Cannot initialize battle cursor - Brain is null"
-                    : _brain.battleBrain == null
+                    Brain == null ? "CursorBrain: Cannot initialize battle cursor - Brain is null"
+                    : Brain.battleBrain == null
                         ? "CursorBrain: Cannot initialize battle cursor - battleBrain is null"
                     : "CursorBrain: Cannot initialize battle cursor - BattleObject.Context.mapGrid is null"
                 );
@@ -67,8 +67,8 @@ namespace Turnroot.Gameplay.Brain
                 return;
             }
 
-            var battleContext = _brain.battleBrain.BattleObject.Context;
-            CursorOffset = _brain.uiBrain?.uiSettings?.BattleCursorOffset ?? Vector3.zero;
+            var battleContext = Brain.battleBrain.BattleObject.Context;
+            CursorOffset = Brain.uiBrain?.uiSettings?.BattleCursorOffset ?? Vector3.zero;
             InitializeCursor(battleContext.MapGrid);
         }
 
@@ -90,7 +90,7 @@ namespace Turnroot.Gameplay.Brain
             // Get valid spawn positions from BattlePreparationObject
             List<Vector2Int> validSpawnPositions = null;
 
-            var prepObject = _brain?.battleBrain?.PreparationObject;
+            var prepObject = Brain.battleBrain?.PreparationObject;
             if (prepObject != null)
             {
                 // Get player spawn positions from preparation object
@@ -100,7 +100,7 @@ namespace Turnroot.Gameplay.Brain
                     validSpawnPositions = spawnPoints;
                 }
             }
-            CursorOffset = _brain.uiBrain?.uiSettings?.BattleCursorOffset ?? Vector3.zero;
+            CursorOffset = Brain.uiBrain?.uiSettings?.BattleCursorOffset ?? Vector3.zero;
 
             InitializeCursor(mapGrid, validSpawnPositions);
             return OperationResult.Successful();
@@ -120,9 +120,9 @@ namespace Turnroot.Gameplay.Brain
                 return allowedPositions[0];
             }
 
-            if (_brain?.cameraBrain != null)
+            if (Brain.cameraBrain != null)
             {
-                var neutralCenter = _brain.cameraBrain.SetBattleGridCameraNeutralCenter();
+                var neutralCenter = Brain.cameraBrain.SetBattleGridCameraNeutralCenter();
                 var startPos = new Vector2Int(
                     Mathf.RoundToInt(neutralCenter.x),
                     Mathf.RoundToInt(neutralCenter.y)

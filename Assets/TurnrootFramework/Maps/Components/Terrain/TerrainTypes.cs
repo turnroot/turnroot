@@ -128,8 +128,9 @@ namespace Turnroot.Gameplay.Maps
                 return fromResources;
             }
 
-            var byLoader = Utilities.GameSettingsLoader.LoadFirst<TerrainTypes>("GameSettings");
-            return byLoader != null ? byLoader : null;
+            // Fallback to searching GameSettings folder in Resources
+            var fromGameSettings = Resources.Load<TerrainTypes>("GameSettings/TerrainTypes");
+            return fromGameSettings;
         }
     }
 }

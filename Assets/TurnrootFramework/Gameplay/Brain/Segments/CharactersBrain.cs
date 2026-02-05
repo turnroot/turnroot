@@ -89,7 +89,7 @@ namespace Turnroot.Gameplay.Brain
         #region Inventory Event Handlers
         private void HandleItemEquipped(
             CharacterInstance character,
-            Gameplay.Objects.ObjectItemInstance item
+            Objects.ObjectItemInstance item
         )
         {
             if (character == null)
@@ -104,7 +104,7 @@ namespace Turnroot.Gameplay.Brain
 
         private void HandleItemUnequipped(
             CharacterInstance character,
-            Gameplay.Objects.ObjectItemInstance item
+            Objects.ObjectItemInstance item
         )
         {
             if (character == null)
@@ -127,7 +127,7 @@ namespace Turnroot.Gameplay.Brain
             }
 
             character.RecordKill();
-            _brain?.PublishCharacterKill(character);
+            Brain.PublishCharacterKill(character);
         }
 
         public void IncrementCombatCount(CharacterInstance character)
@@ -150,7 +150,7 @@ namespace Turnroot.Gameplay.Brain
             var res = character.LevelUp();
             if (res.Success)
             {
-                _brain?.PublishCharacterLevelUp(character);
+                Brain.PublishCharacterLevelUp(character);
             }
         }
 
@@ -167,7 +167,7 @@ namespace Turnroot.Gameplay.Brain
             bool success = character.ChangeClass(newClassData).Success;
             if (success)
             {
-                _brain?.PublishCharacterClassChanged(character);
+                Brain.PublishCharacterClassChanged(character);
             }
             return success;
         }
@@ -180,7 +180,7 @@ namespace Turnroot.Gameplay.Brain
             }
 
             character.AddExperience(experienceTypeId, amount);
-            _brain?.PublishExperienceGained(character, experienceTypeId, amount);
+            Brain.PublishExperienceGained(character, experienceTypeId, amount);
             TurnrootLogger.Log(
                 $"{character.CharacterTemplate?.DisplayName} gained {amount} {experienceTypeId} XP"
             );
@@ -216,7 +216,7 @@ namespace Turnroot.Gameplay.Brain
 
         public bool TryGetTemplateBoundedDefault(
             string templateFullName,
-            Turnroot.Characters.Stats.BoundedStatType type,
+            Characters.Stats.BoundedStatType type,
             out (float max, float current, float min) values
         )
         {
@@ -247,7 +247,7 @@ namespace Turnroot.Gameplay.Brain
 
         public bool TryGetTemplateUnboundedDefault(
             string templateFullName,
-            Turnroot.Characters.Stats.UnboundedStatType type,
+            Characters.Stats.UnboundedStatType type,
             out float value
         )
         {
@@ -283,7 +283,7 @@ namespace Turnroot.Gameplay.Brain
 
         public void SaveTemplateBoundedDefault(
             string templateFullName,
-            Turnroot.Characters.Stats.BoundedStatType type,
+            Characters.Stats.BoundedStatType type,
             (float max, float current, float min) values
         )
         {
@@ -306,7 +306,7 @@ namespace Turnroot.Gameplay.Brain
 
         public void SaveTemplateUnboundedDefault(
             string templateFullName,
-            Turnroot.Characters.Stats.UnboundedStatType type,
+            Characters.Stats.UnboundedStatType type,
             float value
         )
         {

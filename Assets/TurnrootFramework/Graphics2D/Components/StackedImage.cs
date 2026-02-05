@@ -293,14 +293,11 @@ namespace Turnroot.Graphics2D
                 EnsureKeyInitialized();
             }
 
-            // Load Graphics2DSettings using the central GameSettingsLoader which
-            // searches Resources/GameSettings/* and falls back to editor search.
+            // Load Graphics2DSettings using the singleton instance pattern
             Graphics2DSettings settings = null;
             try
             {
-                settings = Turnroot.Utilities.GameSettingsLoader.LoadFirst<Graphics2DSettings>(
-                    "GameSettings"
-                );
+                settings = Graphics2DSettings.Instance;
             }
             catch { }
 
@@ -428,8 +425,7 @@ namespace Turnroot.Graphics2D
             ClearValidationStatus();
 
             // Find GamePackageSettings to determine the correct save location
-            var gamePackageSettings =
-                Turnroot.Utilities.GameSettingsLoader.LoadFirst<GamePackage.GamePackageSettings>();
+            var gamePackageSettings = GamePackage.GamePackageSettings.Instance;
             if (gamePackageSettings == null)
             {
                 SetValidationError(
@@ -509,8 +505,7 @@ namespace Turnroot.Graphics2D
             ClearValidationStatus();
 
             // Find GamePackageSettings to determine the correct load location
-            var gamePackageSettings =
-                Turnroot.Utilities.GameSettingsLoader.LoadFirst<GamePackage.GamePackageSettings>();
+            var gamePackageSettings = GamePackage.GamePackageSettings.Instance;
             if (gamePackageSettings == null)
             {
                 SetValidationError(

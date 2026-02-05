@@ -327,7 +327,7 @@ namespace Turnroot.Gameplay.Brain
                         {
                             PlayerSettings.PreferredInputControl = inputControl;
                             // Notify subscribers that input control preference changed
-                            _brain?.CentralBrain?.PublishInputControlTypeChanged(inputControl);
+                            _brain.CentralBrain?.PublishInputControlTypeChanged(inputControl);
                         }
                         break;
                     default:

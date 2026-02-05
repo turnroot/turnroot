@@ -87,10 +87,10 @@ namespace Turnroot.Gameplay.Brain
             // Publish event before destroying
             if (model != null)
             {
-                var unit = _brain
-                    ?.gamewideContextBrain?.GetAllActiveInstances()
+                var unit = Brain
+                    .gamewideContextBrain?.GetAllActiveInstances()
                     ?.FirstOrDefault(u => u?.Id == unitId);
-                _brain?.Publish(new ModelDespawnedEvent(unit, unitId, position, model));
+                Brain.Publish(new ModelDespawnedEvent(unit, unitId, position, model));
 
                 model.SetActive(false);
                 Destroy(model);
@@ -161,7 +161,7 @@ namespace Turnroot.Gameplay.Brain
                 ownership.DisplayName = unit.CharacterTemplate.DisplayName;
             }
 
-            _brain?.Publish(new ModelSpawnedEvent(unit, unit.Id, newPosition, model));
+            Brain.Publish(new ModelSpawnedEvent(unit, unit.Id, newPosition, model));
             return OperationResult.Successful();
         }
 
@@ -196,7 +196,7 @@ namespace Turnroot.Gameplay.Brain
             _unitModels[unit.Id] = model;
             _modelPositions[position] = unit.Id;
 
-            _brain?.Publish(new ModelSpawnedEvent(unit, unit.Id, position, model));
+            Brain.Publish(new ModelSpawnedEvent(unit, unit.Id, position, model));
             return OperationResult.Successful();
         }
 

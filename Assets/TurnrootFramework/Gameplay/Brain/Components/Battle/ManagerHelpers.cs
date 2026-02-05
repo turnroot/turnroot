@@ -41,16 +41,16 @@ namespace Turnroot.Gameplay.Brain
 
             if (previous == null)
             {
-                _brain?.PublishStatusEffectApplied(character, result);
+                Brain.PublishStatusEffectApplied(character, result);
             }
             else if (result.CurrentStacks > prevStacks)
             {
-                _brain?.PublishStatusEffectStacked(character, result);
+                Brain.PublishStatusEffectStacked(character, result);
             }
             else
             {
                 // Refreshed or updated duration without stacking
-                _brain?.PublishStatusEffectApplied(character, result);
+                Brain.PublishStatusEffectApplied(character, result);
             }
 
             return result;
@@ -69,7 +69,7 @@ namespace Turnroot.Gameplay.Brain
                 var expired = inst.TickStatusEffects();
                 foreach (var e in expired)
                 {
-                    _brain?.PublishStatusEffectExpired(inst, e);
+                    Brain.PublishStatusEffectExpired(inst, e);
                 }
             }
         }
@@ -87,7 +87,7 @@ namespace Turnroot.Gameplay.Brain
             var removed = character.RemoveStatusEffect(effect);
             if (removed)
             {
-                _brain?.PublishStatusEffectRemoved(character, effect);
+                Brain.PublishStatusEffectRemoved(character, effect);
             }
             return removed;
         }
@@ -108,7 +108,7 @@ namespace Turnroot.Gameplay.Brain
             var count = character.RemoveStatusEffectsByType(effectType);
             foreach (var r in toRemove)
             {
-                _brain?.PublishStatusEffectRemoved(character, r);
+                Brain.PublishStatusEffectRemoved(character, r);
             }
             return count;
         }
@@ -126,7 +126,7 @@ namespace Turnroot.Gameplay.Brain
             var count = character.RemoveAllBuffs();
             foreach (var r in toRemove)
             {
-                _brain?.PublishStatusEffectRemoved(character, r);
+                Brain.PublishStatusEffectRemoved(character, r);
             }
             return count;
         }
@@ -144,7 +144,7 @@ namespace Turnroot.Gameplay.Brain
             var count = character.RemoveAllDebuffs();
             foreach (var r in toRemove)
             {
-                _brain?.PublishStatusEffectRemoved(character, r);
+                Brain.PublishStatusEffectRemoved(character, r);
             }
             return count;
         }
@@ -160,9 +160,9 @@ namespace Turnroot.Gameplay.Brain
             character.ClearAllStatusEffects();
             foreach (var r in toRemove)
             {
-                _brain?.PublishStatusEffectRemoved(character, r);
+                Brain.PublishStatusEffectRemoved(character, r);
             }
-            _brain?.PublishAllStatusEffectsCleared(character);
+            Brain.PublishAllStatusEffectsCleared(character);
         }
 
         #endregion
@@ -184,11 +184,11 @@ namespace Turnroot.Gameplay.Brain
             context?.RegisterLastAttacker(target, attacker);
             if (attacker == null)
             {
-                _brain?.PublishLastAttackerCleared(target);
+                Brain.PublishLastAttackerCleared(target);
             }
             else
             {
-                _brain?.PublishLastAttackerSet(target, attacker);
+                Brain.PublishLastAttackerSet(target, attacker);
             }
         }
 
@@ -201,7 +201,7 @@ namespace Turnroot.Gameplay.Brain
 
             target.ClearLastAttacker();
             context?.RegisterLastAttacker(target, null);
-            _brain?.PublishLastAttackerCleared(target);
+            Brain.PublishLastAttackerCleared(target);
         }
 
         #endregion

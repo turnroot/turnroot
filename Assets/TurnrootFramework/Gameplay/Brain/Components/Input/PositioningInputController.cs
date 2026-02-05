@@ -55,12 +55,11 @@ namespace Turnroot.Gameplay.Brain
 
         private void Update()
         {
-            if (!_isActive || _inputActions == null)
-            {
-                return;
-            }
-
-            if (Time.time - _lastInputTime < _cachedInputCooldown)
+            if (
+                !_isActive
+                || _inputActions == null
+                || (Time.time - _lastInputTime < _cachedInputCooldown)
+            )
             {
                 return;
             }
@@ -121,7 +120,7 @@ namespace Turnroot.Gameplay.Brain
         private float GetInputThreshold()
         {
             // Use cached keyboard preference for micro-optimization. Fall back to a safe threshold if PlayerSettings are not available.
-            if (_brain?.gamewideContextBrain?.PlayerSettings == null)
+            if (Brain.gamewideContextBrain?.PlayerSettings == null)
             {
                 return 0.3f;
             }
@@ -131,7 +130,7 @@ namespace Turnroot.Gameplay.Brain
 
         private bool TryNavigateDirection(Vector2 direction)
         {
-            if (_brain == null || _brain.cursorBrain == null)
+            if (Brain.cursorBrain == null)
             {
                 return false;
             }
@@ -139,19 +138,19 @@ namespace Turnroot.Gameplay.Brain
             if (Mathf.Abs(direction.x) > Mathf.Abs(direction.y))
             {
                 int dir = direction.x > 0 ? 1 : -1;
-                return _brain.cursorBrain.NavigateHorizontal(dir);
+                return Brain.cursorBrain.NavigateHorizontal(dir);
             }
             else
             {
                 int dir = direction.y > 0 ? 1 : -1;
-                return _brain.cursorBrain.NavigateVertical(dir);
+                return Brain.cursorBrain.NavigateVertical(dir);
             }
         }
 
         private void PreviewSwapIfNeeded()
         {
-            var prepObject = _brain?.battleBrain?.PreparationObject;
-            var cursorPos = _brain?.cursorBrain?.CursorPosition?.CoordinatesInt;
+            var prepObject = Brain.battleBrain?.PreparationObject;
+            var cursorPos = Brain.cursorBrain?.CursorPosition?.CoordinatesInt;
             if (prepObject == null || prepObject.selectedPosition == null || cursorPos == null)
             {
                 return;
@@ -167,20 +166,20 @@ namespace Turnroot.Gameplay.Brain
         }
 
         private void HandleInputControlTypeChanged(
-            Turnroot.Gameplay.PlayerSettings.GameplayPlayerSettings.InputControlType _
+            PlayerSettings.GameplayPlayerSettings.InputControlType _
         ) =>
             // Recompute cached values when the input control type changes elsewhere (e.g., player settings UI)
             UpdateInputCooldown();
 
         private void HandleConfirmInput()
         {
-            var prepObject = _brain?.battleBrain?.PreparationObject;
+            var prepObject = Brain.battleBrain.PreparationObject;
             if (prepObject == null)
             {
                 return;
             }
 
-            var cursorPos = _brain.cursorBrain?.CursorPosition?.CoordinatesInt;
+            var cursorPos = Brain.cursorBrain.CursorPosition.CoordinatesInt;
             if (cursorPos == null)
             {
                 return;
@@ -189,13 +188,13 @@ namespace Turnroot.Gameplay.Brain
             // First confirm: Select a unit
             if (prepObject.selectedPosition == null)
             {
-                var result = prepObject.SelectPosition(cursorPos.Value);
+                var result = prepObject.SelectPosition(cursorPos);
                 // TODO: Add SFX if Result.Success
             }
             // Second confirm: Execute swap/move
             else
             {
-                prepObject.potentialSwapPosition = cursorPos.Value;
+                prepObject.potentialSwapPosition = cursorPos;
                 var result = prepObject.ExecutePositionAction();
                 // TODO: Add SFX if Result.Success
             }
@@ -203,7 +202,7 @@ namespace Turnroot.Gameplay.Brain
 
         private void HandleCancelInput()
         {
-            var prepObject = _brain?.battleBrain?.PreparationObject;
+            var prepObject = Brain.battleBrain.PreparationObject;
             if (prepObject == null)
             {
                 return;

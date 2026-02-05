@@ -10,7 +10,7 @@ namespace Turnroot.Gameplay.Objects.Components
         /// </summary>
         public static WeaponType[] GetConfiguredWeaponTypes()
         {
-            var settings = GameSettingsLoader.LoadFirst<GameplayGeneralSettings>("GameSettings");
+            var settings = GameplayGeneralSettings.Instance;
             return settings != null && settings.WeaponTypes != null
                 ? settings.WeaponTypes
                 : System.Array.Empty<WeaponType>();

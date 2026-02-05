@@ -52,7 +52,7 @@ namespace Turnroot.UI.Components
             var u = LtmKeys.UnitSelectedForBattlePrefix;
             var keys =
                 LongTermMemory?.RecallKeysByPrefix(u)
-                ?? new System.Collections.Generic.List<string>();
+                ?? new List<string>();
             MaxSelectedUnits =
                 _brain?.battleBrain?.PreparationObject?.MaxPlayerTeamUnits ?? MaxSelectedUnits;
             var keysSet = new HashSet<string>(keys);
@@ -252,7 +252,7 @@ namespace Turnroot.UI.Components
             // If the unit is required for this battle, enable them but don't save it to LTM
             var requiredUnits =
                 _brain?.battleBrain?.PreparationObject?.RequiredPlayerUnits
-                ?? new System.Collections.Generic.List<Turnroot.Characters.CharacterData>();
+                ?? new List<Characters.CharacterData>();
 
             if (requiredUnits.Contains(unit.CharacterData))
             {

@@ -134,54 +134,71 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Environment
             }
 
             // Only one of underwater, underground, desert, rocky, swampy, volcanic
-            int environmentCount = 0;
-            if (IsUnderwater)
+            EnforceExclusiveEnvironment();
+        }
+
+        private void EnforceExclusiveEnvironment()
+        {
+            // Count how many environment flags are set
+            int count = 0;
+            int firstActiveIndex = -1;
+
+            var flags = new[]
             {
-                environmentCount++;
-                if (environmentCount > 1)
+                IsUnderwater,
+                IsUnderground,
+                IsDesert,
+                IsRocky,
+                IsSwampy,
+                IsVolcanic,
+            };
+
+            for (int i = 0; i < flags.Length; i++)
+            {
+                if (flags[i])
                 {
-                    IsUnderwater = false;
+                    if (firstActiveIndex == -1)
+                    {
+                        firstActiveIndex = i;
+                    }
+                    count++;
                 }
             }
-            if (IsUnderground)
+
+            if (count <= 1)
             {
-                environmentCount++;
-                if (environmentCount > 1)
-                {
-                    IsUnderground = false;
-                }
+                return; // Only one or none active, no action needed
             }
-            if (IsDesert)
+
+            // More than one active - disable all except the first
+            if (firstActiveIndex != 0)
             {
-                environmentCount++;
-                if (environmentCount > 1)
-                {
-                    IsDesert = false;
-                }
+                IsUnderwater = false;
             }
-            if (IsRocky)
+
+            if (firstActiveIndex != 1)
             {
-                environmentCount++;
-                if (environmentCount > 1)
-                {
-                    IsRocky = false;
-                }
+                IsUnderground = false;
             }
-            if (IsSwampy)
+
+            if (firstActiveIndex != 2)
             {
-                environmentCount++;
-                if (environmentCount > 1)
-                {
-                    IsSwampy = false;
-                }
+                IsDesert = false;
             }
-            if (IsVolcanic)
+
+            if (firstActiveIndex != 3)
             {
-                environmentCount++;
-                if (environmentCount > 1)
-                {
-                    IsVolcanic = false;
-                }
+                IsRocky = false;
+            }
+
+            if (firstActiveIndex != 4)
+            {
+                IsSwampy = false;
+            }
+
+            if (firstActiveIndex != 5)
+            {
+                IsVolcanic = false;
             }
         }
 

@@ -98,6 +98,7 @@ namespace Turnroot.Skills.Nodes.Editor
         private GenericMenu BuildSkillMenu(string categoryPrefix = null)
         {
             var menu = new GenericMenu();
+            var graph = target as NodeGraph;
 
             foreach (var asm in AppDomain.CurrentDomain.GetAssemblies())
             {
@@ -133,90 +134,128 @@ namespace Turnroot.Skills.Nodes.Editor
                         continue;
                     }
 
-                    foreach (var cad in t.GetCustomAttributesData())
-                    {
-                        if (cad.AttributeType.Name != "CreateNodeMenuAttribute")
-                        {
-                            continue;
-                        }
-
-                        if (cad.ConstructorArguments.Count == 0)
-                        {
-                            continue;
-                        }
-
-                        var arg = cad.ConstructorArguments[0].Value as string;
-                        if (string.IsNullOrEmpty(arg))
-                        {
-                            continue;
-                        }
-
-                        // Optionally filter by top-level category prefix and strip it from the label
-                        string label = arg;
-                        if (!string.IsNullOrEmpty(categoryPrefix))
-                        {
-                            string prefix = categoryPrefix + "/";
-                            if (!arg.StartsWith(prefix, StringComparison.Ordinal))
-                            {
-                                continue;
-                            }
-
-                            label = arg.Substring(prefix.Length);
-                            if (string.IsNullOrEmpty(label))
-                            {
-                                label = arg; // fallback to full label if nothing left
-                            }
-                        }
-                        // Capture for closure
-                        string menuArg = arg;
-                        string menuLabel = label;
-                        menu.AddItem(
-                            new GUIContent(menuLabel),
-                            false,
-                            () =>
-                            {
-                                var graph = target as NodeGraph;
-                                if (graph == null)
-                                {
-                                    return;
-                                }
-
-                                var created = graph.AddNode(t);
-                                if (created != null)
-                                {
-                                    string shortName = menuArg;
-                                    int lastSlash = shortName.LastIndexOf('/');
-                                    if (lastSlash >= 0 && lastSlash < shortName.Length - 1)
-                                    {
-                                        shortName = shortName.Substring(lastSlash + 1);
-                                    }
-
-                                    if (shortName.EndsWith(" Node", StringComparison.Ordinal))
-                                    {
-                                        int newLen = shortName.Length - " Node".Length;
-                                        shortName = shortName.Substring(0, newLen);
-                                    }
-                                    else if (shortName.EndsWith("Node", StringComparison.Ordinal))
-                                    {
-                                        int newLen = shortName.Length - "Node".Length;
-                                        shortName = shortName.Substring(0, newLen);
-                                    }
-                                    shortName = shortName.Trim();
-                                    created.name = shortName;
-                                    UnityEditor.EditorUtility.SetDirty(created);
-                                }
-                                if (NodeEditorWindow.current != null)
-                                {
-                                    NodeEditorWindow.current.Repaint();
-                                }
-                            }
-                        );
-                        break;
-                    }
+                    TryAddNodeTypeToMenu(t, menu, categoryPrefix, graph);
                 }
             }
 
             return menu;
+        }
+
+        private static void TryAddNodeTypeToMenu(
+            System.Type nodeType,
+            GenericMenu menu,
+            string categoryPrefix,
+            NodeGraph graph
+        )
+        {
+            foreach (var cad in nodeType.GetCustomAttributesData())
+            {
+                if (cad.AttributeType.Name != "CreateNodeMenuAttribute")
+                {
+                    continue;
+                }
+
+                if (cad.ConstructorArguments.Count == 0)
+                {
+                    continue;
+                }
+
+                var menuPath = cad.ConstructorArguments[0].Value as string;
+                if (string.IsNullOrEmpty(menuPath))
+                {
+                    continue;
+                }
+
+                var label = GetFilteredMenuLabel(menuPath, categoryPrefix);
+                if (label == null)
+                {
+                    continue; // Filtered out by category prefix
+                }
+
+                AddNodeCreationMenuItem(menu, nodeType, menuPath, label, graph);
+                break;
+            }
+        }
+
+        private static string GetFilteredMenuLabel(string menuPath, string categoryPrefix)
+        {
+            if (string.IsNullOrEmpty(categoryPrefix))
+            {
+                return menuPath;
+            }
+
+            string prefix = categoryPrefix + "/";
+            if (!menuPath.StartsWith(prefix, StringComparison.Ordinal))
+            {
+                return null; // Filtered out
+            }
+
+            string label = menuPath.Substring(prefix.Length);
+            return string.IsNullOrEmpty(label) ? menuPath : label;
+        }
+
+        private static void AddNodeCreationMenuItem(
+            GenericMenu menu,
+            System.Type nodeType,
+            string menuPath,
+            string label,
+            NodeGraph graph
+        )
+        {
+            menu.AddItem(
+                new GUIContent(label),
+                false,
+                () => CreateNodeInGraph(nodeType, menuPath, graph)
+            );
+        }
+
+        private static void CreateNodeInGraph(
+            System.Type nodeType,
+            string menuPath,
+            NodeGraph graph
+        )
+        {
+            if (graph == null)
+            {
+                return;
+            }
+
+            var created = graph.AddNode(nodeType);
+            if (created != null)
+            {
+                string shortName = ExtractShortNameFromMenuPath(menuPath);
+                created.name = shortName;
+                UnityEditor.EditorUtility.SetDirty(created);
+            }
+
+            if (NodeEditorWindow.current != null)
+            {
+                NodeEditorWindow.current.Repaint();
+            }
+        }
+
+        private static string ExtractShortNameFromMenuPath(string menuPath)
+        {
+            string shortName = menuPath;
+
+            // Extract last segment after slash
+            int lastSlash = shortName.LastIndexOf('/');
+            if (lastSlash >= 0 && lastSlash < shortName.Length - 1)
+            {
+                shortName = shortName.Substring(lastSlash + 1);
+            }
+
+            // Remove "Node" suffix (with or without space)
+            if (shortName.EndsWith(" Node", StringComparison.Ordinal))
+            {
+                shortName = shortName.Substring(0, shortName.Length - " Node".Length);
+            }
+            else if (shortName.EndsWith("Node", StringComparison.Ordinal))
+            {
+                shortName = shortName.Substring(0, shortName.Length - "Node".Length);
+            }
+
+            return shortName.Trim();
         }
 
         public override Color GetTypeColor(Type type)

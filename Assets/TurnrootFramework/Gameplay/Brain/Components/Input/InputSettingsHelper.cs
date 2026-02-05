@@ -12,7 +12,7 @@ namespace Turnroot.Gameplay.Brain
         {
             try
             {
-                var settings = GameSettingsLoader.LoadFirst<GameplayPlayerSettings>("GameSettings");
+                var settings = GameplayPlayerSettings.Instance;
                 if (settings == null)
                 {
                     return KEYBOARD_BASE_COOLDOWN;
@@ -36,7 +36,7 @@ namespace Turnroot.Gameplay.Brain
         {
             try
             {
-                var settings = GameSettingsLoader.LoadFirst<GameplayPlayerSettings>("GameSettings");
+                var settings = GameplayPlayerSettings.Instance;
                 return settings == null
                     || settings.PreferredInputControl
                         == GameplayPlayerSettings.InputControlType.Keyboard;
