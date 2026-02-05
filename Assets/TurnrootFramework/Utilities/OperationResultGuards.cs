@@ -90,61 +90,6 @@ namespace Turnroot.Utilities
         }
 
         /// <summary>
-        /// Validates that a custom condition is true.
-        /// </summary>
-        /// <param name="condition">The condition to validate</param>
-        /// <param name="errorMessage">The error message to return if condition is false</param>
-        /// <returns>Success if condition is true, otherwise Failure with the provided message</returns>
-        public static OperationResult Require(
-            bool condition,
-            string errorMessage,
-            [CallerMemberName] string caller = "",
-            [CallerFilePath] string callerFilePath = "",
-            [CallerLineNumber] int callerLineNumber = 0
-        )
-        {
-            if (!condition)
-            {
-                return OperationResult.Failure(
-                    errorMessage,
-                    caller,
-                    callerFilePath,
-                    callerLineNumber
-                );
-            }
-            return OperationResult.Successful();
-        }
-
-        /// <summary>
-        /// Validates that a custom condition evaluated from a value is true.
-        /// </summary>
-        /// <typeparam name="T">The type of value to validate</typeparam>
-        /// <param name="value">The value to validate</param>
-        /// <param name="predicate">The condition to evaluate on the value</param>
-        /// <param name="errorMessage">The error message to return if predicate returns false</param>
-        /// <returns>Success if predicate returns true, otherwise Failure with the provided message</returns>
-        public static OperationResult RequireThat<T>(
-            T value,
-            Func<T, bool> predicate,
-            string errorMessage,
-            [CallerMemberName] string caller = "",
-            [CallerFilePath] string callerFilePath = "",
-            [CallerLineNumber] int callerLineNumber = 0
-        )
-        {
-            if (!predicate(value))
-            {
-                return OperationResult.Failure(
-                    errorMessage,
-                    caller,
-                    callerFilePath,
-                    callerLineNumber
-                );
-            }
-            return OperationResult.Successful();
-        }
-
-        /// <summary>
         /// Combines multiple validation results. Returns the first failure encountered, or success if all pass.
         /// </summary>
         /// <param name="results">The validation results to combine</param>
