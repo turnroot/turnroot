@@ -52,7 +52,9 @@ namespace Turnroot.Gameplay.Brain
         {
             var mapGrid = Brain.battleBrain?.BattleObject?.MapGrid;
             if (mapGrid == null)
+            {
                 return null;
+            }
 
             var startPos = character.MapGridPosition;
             var endPos = destination.CoordinatesInt;
@@ -164,7 +166,9 @@ namespace Turnroot.Gameplay.Brain
         {
             var mapGrid = Brain.battleBrain?.BattleObject?.MapGrid;
             if (mapGrid == null)
+            {
                 return Vector2Int.zero;
+            }
 
             // Find closest grid point by checking nearby positions
             var gridSize = 1f; // Default grid size

@@ -40,9 +40,14 @@ namespace Turnroot.Gameplay.Brain
                 idleClips?.Length > 0 ? idleClips[Random.Range(0, idleClips.Length)] : null;
 
             if (walkClip != null)
+            {
                 overrideController["Walk"] = walkClip;
+            }
+
             if (idleClip != null)
+            {
                 overrideController["Idle"] = idleClip;
+            }
 
             animator.runtimeAnimatorController = overrideController;
             animator.enabled = true;
@@ -66,7 +71,10 @@ namespace Turnroot.Gameplay.Brain
         public void BlendToWalkAnimation(Animator animator)
         {
             if (animator == null || !animator.gameObject.activeInHierarchy)
+            {
                 return;
+            }
+
             var walkHash = Animator.StringToHash("Walk");
             if (animator.HasState(0, walkHash))
             {
@@ -77,7 +85,10 @@ namespace Turnroot.Gameplay.Brain
         public void BlendToIdleAnimation(Animator animator)
         {
             if (animator == null || !animator.gameObject.activeInHierarchy)
+            {
                 return;
+            }
+
             var idleHash = Animator.StringToHash("Idle");
             if (animator.HasState(0, idleHash))
             {

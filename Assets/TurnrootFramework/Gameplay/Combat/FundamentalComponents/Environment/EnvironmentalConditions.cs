@@ -172,17 +172,34 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Environment
 
             // More than one active - disable all except the first
             if (firstActiveIndex != 0)
+            {
                 IsUnderwater = false;
+            }
+
             if (firstActiveIndex != 1)
+            {
                 IsUnderground = false;
+            }
+
             if (firstActiveIndex != 2)
+            {
                 IsDesert = false;
+            }
+
             if (firstActiveIndex != 3)
+            {
                 IsRocky = false;
+            }
+
             if (firstActiveIndex != 4)
+            {
                 IsSwampy = false;
+            }
+
             if (firstActiveIndex != 5)
+            {
                 IsVolcanic = false;
+            }
         }
 
         [Foldout("Environment")]
