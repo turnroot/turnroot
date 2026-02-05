@@ -1,7 +1,6 @@
 using System;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using Turnroot.Serialization;
 using Turnroot.Utilities;
 
 namespace Turnroot.Gameplay.Brain

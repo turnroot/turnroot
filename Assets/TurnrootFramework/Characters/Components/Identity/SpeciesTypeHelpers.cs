@@ -1,5 +1,4 @@
 using Turnroot.GameSettings;
-using Turnroot.Utilities;
 
 namespace Turnroot.Characters
 {

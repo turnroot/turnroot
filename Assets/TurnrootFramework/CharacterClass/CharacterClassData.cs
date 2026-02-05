@@ -7,7 +7,6 @@ using Turnroot.CommonAncestors;
 using Turnroot.Gameplay.Objects.Components;
 using Turnroot.GameSettings;
 using Turnroot.Skills;
-using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Characters.CharacterClass

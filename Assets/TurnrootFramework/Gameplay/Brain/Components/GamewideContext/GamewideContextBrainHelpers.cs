@@ -1,12 +1,8 @@
 using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;
-using Turnroot.Characters;
 using Turnroot.Gameplay.Brain.Components;
 using Turnroot.Gameplay.Maps;
-using Turnroot.Serialization;
-using Turnroot.Utilities;
-using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain
 {

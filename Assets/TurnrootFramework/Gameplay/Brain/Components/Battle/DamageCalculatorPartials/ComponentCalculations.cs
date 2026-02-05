@@ -1,6 +1,5 @@
 using Turnroot.Characters;
 using Turnroot.Characters.Stats;
-using Turnroot.CommonAncestors;
 using Turnroot.Gameplay.Maps;
 using Turnroot.Gameplay.Objects;
 using Turnroot.GameSettings;

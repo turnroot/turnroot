@@ -1,21 +1,7 @@
-using System;
-using System.Collections.Generic;
-using Turnroot.Characters;
-using Turnroot.Characters.Components;
-using Turnroot.Characters.Components.Support;
 using Turnroot.Conversations;
 using Turnroot.Gameplay.Brain.Components;
-using Turnroot.Gameplay.Brain.Components.Battle;
 using Turnroot.Gameplay.Brain.Segments;
-using Turnroot.Gameplay.Combat;
-using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
-using Turnroot.Gameplay.Combat.PreBattle;
-using Turnroot.Gameplay.Maps;
-using Turnroot.Gameplay.Objects;
-using Turnroot.Skills;
-using Turnroot.Utilities;
 using UnityEngine;
-using static Turnroot.Characters.CharacterInstance;
 
 namespace Turnroot.Gameplay.Brain
 {
