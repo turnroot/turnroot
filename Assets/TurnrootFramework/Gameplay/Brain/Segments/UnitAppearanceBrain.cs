@@ -115,6 +115,7 @@ namespace Turnroot.Gameplay.Brain
                     }
                 }
             }
+            // Note: ClearMountFromUnit already destroys mounts and removes them from _mountModels
 
             foreach (var model in _unitModels.Values.ToList())
             {
@@ -125,15 +126,7 @@ namespace Turnroot.Gameplay.Brain
                 }
             }
 
-            foreach (var mount in _mountModels.Values.ToList())
-            {
-                if (mount != null)
-                {
-                    mount.SetActive(false);
-                    Destroy(mount);
-                }
-            }
-
+            // Clear dictionaries
             _unitModels.Clear();
             _mountModels.Clear();
             _modelPositions.Clear();

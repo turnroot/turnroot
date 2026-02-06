@@ -118,15 +118,26 @@ namespace Turnroot.Gameplay.Brain
 
             var mountModel = unit.CurrentMountModel;
 
+            // Look up the actual unit model from the dictionary to ensure we have the correct reference
+            if (
+                !_unitModels.TryGetValue(unit.Id, out GameObject actualUnitModel)
+                || actualUnitModel == null
+            )
+            {
+                return OperationResult.Failure(
+                    $"Cannot dismount {unit.CharacterTemplate?.DisplayName}: unit model not found in registry"
+                );
+            }
+
             // Store mount's world position before dismounting
             var worldPosition = mountModel.transform.position;
             var worldRotation = mountModel.transform.rotation;
             var originalParent = mountModel.transform.parent;
 
             // Re-parent unit back to original parent
-            unitModel.transform.SetParent(originalParent, false);
-            unitModel.transform.position = worldPosition;
-            unitModel.transform.rotation = worldRotation;
+            actualUnitModel.transform.SetParent(originalParent, false);
+            actualUnitModel.transform.position = worldPosition;
+            actualUnitModel.transform.rotation = worldRotation;
 
             ClearMountFromUnit(unit);
 
@@ -140,24 +151,41 @@ namespace Turnroot.Gameplay.Brain
                 return;
             }
 
-            if (unit.CurrentMountModel != null)
-            {
-                unit.CurrentMountModel.SetActive(false);
-                Destroy(unit.CurrentMountModel);
-                unit.CurrentMountModel = null;
-            }
-
+            // Get the mount instance from dictionary (single source of truth)
+            GameObject mountToDestroy = null;
             if (_mountModels.ContainsKey(unit.Id))
             {
-                var mount = _mountModels[unit.Id];
-                if (mount != null)
+                mountToDestroy = _mountModels[unit.Id];
+            }
+            else if (unit.CurrentMountModel != null)
+            {
+                // Fallback if dictionary is out of sync
+                mountToDestroy = unit.CurrentMountModel;
+            }
+
+            // If there's a mount to destroy, detach the unit model first
+            if (mountToDestroy != null)
+            {
+                // Re-parent the unit model back to the mount's parent before destroying the mount
+                if (_unitModels.TryGetValue(unit.Id, out GameObject unitModel) && unitModel != null)
                 {
-                    mount.SetActive(false);
-                    Destroy(mount);
+                    // Preserve world transform
+                    var mountParent = mountToDestroy.transform.parent;
+                    unitModel.transform.SetParent(mountParent, true);
                 }
+
+                // Now safely destroy the mount
+                mountToDestroy.SetActive(false);
+                Destroy(mountToDestroy);
+            }
+
+            // Clean up references (only destroy once via mountToDestroy above)
+            if (_mountModels.ContainsKey(unit.Id))
+            {
                 _mountModels.Remove(unit.Id);
             }
 
+            unit.CurrentMountModel = null;
             unit.IsMounted = false;
         }
 
