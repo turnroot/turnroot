@@ -59,15 +59,28 @@ namespace Turnroot.Gameplay.Brain
             );
             mountInstance.transform.localScale = unitModel.transform.localScale;
 
-            // Set up animator if provided
-            if (classData.Identity.MountAnimator != null)
+            // Set up animator - use MountAnimator if provided, otherwise use default
+            var animator = mountInstance.GetComponent<Animator>();
+            if (animator == null)
             {
-                var animator = mountInstance.GetComponent<Animator>();
-                if (animator == null)
-                {
-                    animator = mountInstance.AddComponent<Animator>();
-                }
-                animator.runtimeAnimatorController = classData.Identity.MountAnimator;
+                animator = mountInstance.AddComponent<Animator>();
+            }
+
+            // Assign animator controller - prefer mount-specific, fall back to default
+            var controllerToUse =
+                classData.Identity.MountAnimator ?? _settings?.DefaultUnitAnimatorController;
+
+            if (controllerToUse != null)
+            {
+                animator.runtimeAnimatorController = controllerToUse;
+            }
+            else
+            {
+                TurnrootLogger.Log(
+                    $"No animator controller available for mount of {unit.CharacterTemplate?.DisplayName}. "
+                        + "Set MountAnimator on class or DefaultUnitAnimatorController in settings.",
+                    TurnrootLogger.LogLevel.Warning
+                );
             }
 
             // Set up walk animation for the mount
@@ -79,6 +92,7 @@ namespace Turnroot.Gameplay.Brain
                 classData.Identity.MountOffset,
                 Quaternion.identity
             );
+
             _mountModels[unit.Id] = mountInstance;
             unit.CurrentMountModel = mountInstance;
             unit.IsMounted = true;

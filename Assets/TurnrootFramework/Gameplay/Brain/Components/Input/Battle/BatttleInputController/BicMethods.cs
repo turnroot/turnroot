@@ -128,11 +128,14 @@ namespace Turnroot.Gameplay.Brain
 
         private void CompletePlayerTurn()
         {
+            // This is cleanup code that runs when TurnEnded state is reached
+            // DO NOT call EndTurn() here - that would try to transition to TurnEnded when we're already there
             _validMoveTiles.Clear();
             _validAttackTiles.Clear();
             Brain.cursorBrain.ClearAllowedPositions();
-            Brain.PublishPlayerTurnEnded();
-            _playerTurnFlow.EndTurn();
+            
+            // Note: PlayerTurnEnded is published by TurnRotisserie, not here
+            // This used to publish it but caused duplicate events
         }
 
         #endregion
@@ -417,7 +420,8 @@ namespace Turnroot.Gameplay.Brain
             }
 
             _playerTurnFlow.WaitAndEndTurn();
-            Brain.battleBrain.turnRotisserie.Progress();
+            // Note: Turn progression is handled by TurnRotisserie via PlayerTurnEnded event
+            // DO NOT call Progress() here or turns will advance twice
             Brain.battleBrain.IsInputEnabled = true;
         }
 

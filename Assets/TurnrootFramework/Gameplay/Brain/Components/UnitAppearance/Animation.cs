@@ -14,8 +14,7 @@ namespace Turnroot.Gameplay.Brain
 
         private void SetupWalkAnimation(GameObject model, CharacterInstance unit)
         {
-            var animator = model.GetComponent<Animator>();
-            if (animator == null)
+            if (!model.TryGetComponent<Animator>(out var animator))
             {
                 TurnrootLogger.Log($"No Animator on '{model.name}'", TurnrootLogger.LogLevel.Error);
                 return;
@@ -47,11 +46,18 @@ namespace Turnroot.Gameplay.Brain
                 // Prefer class animations, fall back to character defaults
                 var classData = unit?.GetCurrentClass()?.ClassData;
 
+                // Unity objects can be "null" but not C# null, so we need explicit checks
+                var classWalkClip = classData?.WalkAnimation;
                 walkClip =
-                    classData?.WalkAnimation ?? unit?.CharacterTemplate?.DefaultWalkingAnimation;
+                    (classWalkClip != null && classWalkClip)
+                        ? classWalkClip
+                        : unit?.CharacterTemplate?.DefaultWalkingAnimation;
+
+                var classIdleClips = classData?.IdleAnimations;
                 idleClips =
-                    (classData?.IdleAnimations?.Length > 0 ? classData.IdleAnimations : null)
-                    ?? unit?.CharacterTemplate?.DefaultIdleAnimations;
+                    (classIdleClips != null && classIdleClips.Length > 0)
+                        ? classIdleClips
+                        : unit?.CharacterTemplate?.DefaultIdleAnimations;
             }
 
             var idleClip =

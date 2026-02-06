@@ -95,16 +95,34 @@ namespace Turnroot.Conversations
 
             var conversation = instance.Conversation;
 
+            // Get scene flow reference once at start
+            var sceneFlow = FindFirstObjectByType<Utilities.AbstractScripts.BattleSceneFlow>();
+
             yield return conversation.BranchingConversation
-                ? RunBranchingConversation(conversation)
-                : RunLinearConversation(conversation);
+                ? RunBranchingConversation(conversation, sceneFlow)
+                : RunLinearConversation(conversation, sceneFlow);
 
             instance?.OnConversationFinished?.Invoke();
             OnAnyConversationFinished?.Invoke();
+
+            // Complete any battle scene interrupt that was waiting for this conversation
+            if (
+                sceneFlow != null
+                && sceneFlow.IsInterruptQueued
+                && sceneFlow.CurrentInterrupt
+                    == Utilities.AbstractScripts.InterruptType.Conversation
+            )
+            {
+                sceneFlow.CompleteInterrupt();
+            }
+
             _conversationRoutine = null;
         }
 
-        private IEnumerator RunBranchingConversation(Conversation conversation)
+        private IEnumerator RunBranchingConversation(
+            Conversation conversation,
+            Utilities.AbstractScripts.BattleSceneFlow sceneFlow
+        )
         {
             var nodes = conversation.GetGraphNodes();
             if (nodes == null || nodes.Count == 0)
@@ -130,14 +148,30 @@ namespace Turnroot.Conversations
 
                 if (nodeData.conversationLayer != null)
                 {
-                    yield return ProcessLayer(nodeData.conversationLayer, conversation);
+                    yield return ProcessLayer(nodeData.conversationLayer, conversation, sceneFlow);
                 }
 
                 if (nodeData.choices?.Count > 0)
                 {
                     _pendingChoiceTarget = int.MinValue;
                     ShowChoicesForNode(currentNodeId);
+
+                    // We're waiting for player to make a choice
+                    sceneFlow?.ResetInterruptActivityTimer();
+                    if (sceneFlow != null)
+                    {
+                        sceneFlow.InterruptIsWaitingForPlayerInput = true;
+                    }
+
                     yield return new WaitUntil(() => _pendingChoiceTarget != int.MinValue);
+
+                    // Player made a choice - reset timer and clear input flag
+                    sceneFlow?.ResetInterruptActivityTimer();
+                    if (sceneFlow != null)
+                    {
+                        sceneFlow.InterruptIsWaitingForPlayerInput = false;
+                    }
+
                     currentNodeId = _pendingChoiceTarget;
                     ClearChoiceButtons();
                     continue;
@@ -151,12 +185,15 @@ namespace Turnroot.Conversations
             _pendingChoiceTarget = int.MinValue;
         }
 
-        private IEnumerator RunLinearConversation(Conversation conversation)
+        private IEnumerator RunLinearConversation(
+            Conversation conversation,
+            Utilities.AbstractScripts.BattleSceneFlow sceneFlow
+        )
         {
             for (int i = 0; i < conversation.Layers.Length; i++)
             {
                 conversation.CurrentLayerIndex = i;
-                yield return ProcessLayer(conversation.Layers[i], conversation, i);
+                yield return ProcessLayer(conversation.Layers[i], conversation, sceneFlow, i);
             }
         }
 
@@ -181,6 +218,7 @@ namespace Turnroot.Conversations
         private IEnumerator ProcessLayer(
             ConversationLayer layer,
             Conversation conversation,
+            Utilities.AbstractScripts.BattleSceneFlow sceneFlow,
             int? layerIndex = null
         )
         {
@@ -202,11 +240,25 @@ namespace Turnroot.Conversations
 
             UpdateUIForLayer(layer);
 
+            // Waiting for player to advance this layer
+            sceneFlow?.ResetInterruptActivityTimer();
+            if (sceneFlow != null)
+            {
+                sceneFlow.InterruptIsWaitingForPlayerInput = true;
+            }
+
             bool completed = false;
             void OnComplete() => completed = true;
             layer.OnLayerComplete.AddListener(OnComplete);
             yield return new WaitUntil(() => completed);
             layer.OnLayerComplete.RemoveListener(OnComplete);
+
+            // Player advanced - reset timer and clear input flag
+            sceneFlow?.ResetInterruptActivityTimer();
+            if (sceneFlow != null)
+            {
+                sceneFlow.InterruptIsWaitingForPlayerInput = false;
+            }
 
             binding?.OnLayerComplete?.Invoke();
 
