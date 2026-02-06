@@ -227,12 +227,12 @@ namespace Turnroot.Gameplay.Combat
             }
 
 #if TURNROOT_MONSTERS_MODULE
-            foreach (var condition in _battleConditions.OfType<DefeatAllMonstersBattleCondition>())
+            foreach (var condition in BattleConditions.OfType<DefeatAllMonstersBattleCondition>())
             {
-                // TODO: condition.CheckCondition();
+                condition.CheckCondition();
             }
 
-            foreach (var condition in _battleConditions.OfType<DefeatMonsterBattleCondition>())
+            foreach (var condition in BattleConditions.OfType<DefeatMonsterBattleCondition>())
                 condition.CheckCondition();
 #endif
         }

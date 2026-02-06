@@ -70,6 +70,9 @@ namespace Turnroot.Gameplay.Brain
                 animator.runtimeAnimatorController = classData.Identity.MountAnimator;
             }
 
+            // Set up walk animation for the mount
+            SetupWalkAnimation(mountInstance, unit);
+
             // Make unit a child of the mount with offset
             unitModel.transform.SetParent(mountInstance.transform, false);
             unitModel.transform.SetLocalPositionAndRotation(

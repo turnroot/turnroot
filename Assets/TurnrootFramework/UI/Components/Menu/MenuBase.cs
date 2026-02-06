@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Turnroot.Gameplay.Brain.Segments;
 using Turnroot.GameSettings;
+using Turnroot.Utilities;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using SimpleButtonComponent = Turnroot.UI.Components.SimpleButton.SimpleButton;
@@ -76,6 +77,22 @@ namespace Turnroot.UI.Components.Menu
             {
                 item.SetParentMenu(this);
                 menuItems.Add(item);
+            }
+        }
+
+        public virtual void ResetSelection()
+        {
+            _actualCurrentSelectedIndex = -1;
+            _previousSelectedIndex = -1;
+        }
+
+        public void SetSelection(int index)
+        {
+            if (index >= 0 && index < menuItems.Count)
+            {
+                _actualCurrentSelectedIndex = index;
+                _previousSelectedIndex = -1;
+                HighlightCurrentItem();
             }
         }
 

@@ -62,7 +62,7 @@ MonoBehaviour:
     m_SingletonActionBindings: []
     m_Flags: 0
   Role: 0
-  ButtonImage: {fileID: 0}
+  ButtonImage: {fileID: 3364729823286090786}
 --- !u!114 &7030849338514863728
 MonoBehaviour:
   m_ObjectHideFlags: 0

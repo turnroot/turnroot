@@ -4,6 +4,8 @@ using Turnroot.Characters;
 using Turnroot.Gameplay.Brain.Components.Battle;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
 using Turnroot.Gameplay.Maps;
+using Turnroot.UI.Components.ListMenu;
+using Turnroot.UI.Components.Menu;
 using Turnroot.Utilities;
 using UnityEngine;
 
@@ -363,7 +365,18 @@ namespace Turnroot.Gameplay.Brain
             string[] actions = { "Wait" };
             var populateResult = battleSelectAction.PopulateList(actions);
 
-            // TODO: Wire up button click handlers
+            // Wire up button click handlers
+            if (battleSelectAction.ListMenuContainer.TryGetComponent<MenuBase>(out var menuBase))
+            {
+                menuBase.OnItemSelected += (item) =>
+                {
+                    if (item is ListMenuItem listMenuItem)
+                    {
+                        HandleActionSelected(listMenuItem.ItemName);
+                    }
+                };
+            }
+
             return populateResult;
         }
 

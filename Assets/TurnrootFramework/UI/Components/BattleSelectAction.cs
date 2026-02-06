@@ -59,9 +59,19 @@ namespace Turnroot.UI.Components
                 return validation;
             }
 
-            foreach (Transform child in ListMenuContainer)
+            // MenuBase is on the ListMenuContainer GameObject, not on this GameObject
+            var menuBase = ListMenuContainer.GetComponent<Menu.MenuBase>();
+            if (menuBase != null)
             {
-                Destroy(child.gameObject);
+                menuBase.menuItems.Clear();
+                menuBase.ResetSelection();
+            }
+
+            var childCount = ListMenuContainer.childCount;
+            for (int i = childCount - 1; i >= 0; i--)
+            {
+                var child = ListMenuContainer.GetChild(i);
+                DestroyImmediate(child.gameObject);
             }
 
             foreach (var action in actions)
@@ -71,6 +81,22 @@ namespace Turnroot.UI.Components
                 if (!setTextResult.Success)
                 {
                     TurnrootLogger.Log(setTextResult.ErrorMessage, TurnrootLogger.LogLevel.Warning);
+                }
+            }
+
+            if (menuBase != null && ListMenuContainer != null)
+            {
+                menuBase.menuItems.Clear();
+                var items = ListMenuContainer.GetComponentsInChildren<MenuItemBase>();
+                foreach (var item in items)
+                {
+                    item.SetParentMenu(menuBase);
+                    menuBase.menuItems.Add(item);
+                }
+
+                if (menuBase.menuItems.Count > 0)
+                {
+                    menuBase.SetSelection(0);
                 }
             }
 

@@ -50,7 +50,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             var command = new MoveCommand(
                 unit.Id,
                 targetPoint.CoordinatesInt,
-                Brain?.battleBrain?.CurrentTurnNumber ?? 0
+                Brain.battleBrain.CurrentTurnNumber
             );
             var t = Brain.ExecuteCommand(command)
                 ? OperationResult.Successful()
@@ -180,7 +180,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             if (success)
             {
                 var unit = Unit?.UnitInstance;
-                Brain?.PublishEndTurnCompleted(unit);
+                Brain.PublishEndTurnCompleted(unit);
             }
             return success;
         }

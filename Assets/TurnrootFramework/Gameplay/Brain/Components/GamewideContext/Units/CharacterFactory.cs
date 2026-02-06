@@ -49,7 +49,7 @@ namespace Turnroot.Gameplay.Brain
                 return;
             }
 
-            if (instance.CurrentClass != null)
+            if (instance.CurrentClass != null && instance.CurrentClass.ClassData != null)
             {
                 return;
             }
