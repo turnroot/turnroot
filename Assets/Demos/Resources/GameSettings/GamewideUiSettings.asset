@@ -81,6 +81,10 @@ MonoBehaviour:
     menuName: 17
     style: 4
     prefab: {fileID: 7814703603592663220, guid: 5a2f7039a843fa64397c2dec257e515d, type: 3}
+  - parentMenuName: 0
+    menuName: 18
+    style: 1
+    prefab: {fileID: 3469738985604321751, guid: eeb7fd29110d47d4986bc9d3c6fea815, type: 3}
   NoPortraitSprite: {fileID: 21300000, guid: 2b3e6b0026eb3524b888ae7aef53a633, type: 3}
   MenuButtonSpacing: 2
   MenuFadeTime: 0.75
@@ -117,6 +121,7 @@ MonoBehaviour:
   CameraPanSafeZone: {x: 0.25, y: 0.25}
   CameraPanSpeed: 0.8
   CameraPanStopDistance: 0.2
+  CameraRotationDuration: 0.3
   timeDayImage: {fileID: -381290362, guid: 0a23fc6fd2c659c46a49bad52b7ac5d8, type: 3}
   timeNightImage: {fileID: -453532295, guid: 0a23fc6fd2c659c46a49bad52b7ac5d8, type: 3}
   timeDawnImage: {fileID: -285944377, guid: 0a23fc6fd2c659c46a49bad52b7ac5d8, type: 3}

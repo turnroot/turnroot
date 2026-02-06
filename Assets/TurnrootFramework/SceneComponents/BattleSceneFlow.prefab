@@ -1387,7 +1387,7 @@ GameObject:
   - component: {fileID: 7778715969270593766}
   - component: {fileID: 1233233641911771495}
   m_Layer: 0
-  m_Name: Battle Scene Flow
+  m_Name: BattleSceneFlow
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
