@@ -23,7 +23,8 @@ namespace Turnroot.Gameplay.Brain
         [SerializeField, HideInInspector]
         private PlayerTeamRoster _playerTeamRoster;
 
-        private TurnRotisserie _turnRotisserie;
+        [HideInInspector]
+        public TurnRotisserie turnRotisserie;
 
         [HideInInspector]
         public PlayerTurnFlow playerTurnFlow;
@@ -40,7 +41,7 @@ namespace Turnroot.Gameplay.Brain
         public BattleGameObject BattleObject { get; private set; }
         public Combat.PreBattle.BattlePreparationObject PreparationObject { get; private set; }
 
-        public CharacterInstance ActiveUnit => _turnRotisserie.GetActiveUnit();
+        public CharacterInstance ActiveUnit => turnRotisserie.GetActiveUnit();
 
         public int CurrentTurnNumber { get; private set; } = 0;
 
@@ -72,10 +73,10 @@ namespace Turnroot.Gameplay.Brain
         {
             base.Awake();
 
-            _turnRotisserie = GetComponent<TurnRotisserie>();
-            if (_turnRotisserie != null)
+            turnRotisserie = GetComponent<TurnRotisserie>();
+            if (turnRotisserie != null)
             {
-                _turnRotisserie.BindToBattleBrain(this);
+                turnRotisserie.BindToBattleBrain(this);
             }
             playerTurnFlow = GetComponent<PlayerTurnFlow>();
             playerTurnFlow.Intialize();
@@ -426,7 +427,7 @@ namespace Turnroot.Gameplay.Brain
 
         public void ProgressTurnOrder()
         {
-            if (!_turnRotisserie.Progress())
+            if (!turnRotisserie.Progress())
             {
                 TurnrootLogger.Log(
                     "BattleBrain: Failed to progress turn order!",

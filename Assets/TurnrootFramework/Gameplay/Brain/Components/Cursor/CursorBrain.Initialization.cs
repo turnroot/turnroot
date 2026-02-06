@@ -7,7 +7,7 @@ namespace Turnroot.Gameplay.Brain
 {
     public partial class CursorBrain
     {
-        private static WaitForSeconds _waitForSeconds0_1 = new WaitForSeconds(0.1f);
+        private static WaitForSeconds _waitForSeconds0_1 = new(0.1f);
 
         #region Cursor Initialization
 

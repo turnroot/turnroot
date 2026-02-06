@@ -44,9 +44,9 @@ namespace Turnroot.Gameplay.Brain
 
         public bool IsCursorOnValidSpawnPoint()
         {
-            return _currentContext != CursorContext.PreBattle || CursorPosition == null
-                ? false
-                : _allowedPositions?.Contains(CursorPosition.CoordinatesInt) ?? false;
+            return _currentContext == CursorContext.PreBattle
+                && CursorPosition != null
+                && (_allowedPositions?.Contains(CursorPosition.CoordinatesInt) ?? false);
         }
         #endregion
     }

@@ -57,10 +57,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         private void HandlePlayerActionCompleted(CharacterInstance unit)
         {
             // If the active player chose to Wait or explicitly EndTurn, advance the rotisserie.
-            if (
-                _currentTurnOrder == TurnOrder.PlayerStart
-                || _currentTurnOrder == TurnOrder.PlayerEnd
-            )
+            if (_currentTurnOrder is TurnOrder.PlayerStart or TurnOrder.PlayerEnd)
             {
                 var active = GetActiveUnit();
                 if (active != null && active == unit)

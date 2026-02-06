@@ -86,6 +86,12 @@ namespace Turnroot.Characters
 
         [NonSerialized]
         private GameObject _currentShieldPrefab;
+
+        [NonSerialized]
+        private bool _isMounted;
+
+        [NonSerialized]
+        private GameObject _currentMountModel;
         #endregion
 
         #region Properties
@@ -104,6 +110,18 @@ namespace Turnroot.Characters
         {
             get => _currentShieldPrefab;
             set => _currentShieldPrefab = value;
+        }
+
+        public bool IsMounted
+        {
+            get => _isMounted;
+            set => _isMounted = value;
+        }
+
+        public GameObject CurrentMountModel
+        {
+            get => _currentMountModel;
+            set => _currentMountModel = value;
         }
 
         public bool IsDefeatedInCurrentBattle

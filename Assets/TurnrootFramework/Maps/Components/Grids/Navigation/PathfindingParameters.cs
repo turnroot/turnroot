@@ -1,3 +1,4 @@
+using Turnroot.Characters;
 using Turnroot.GameSettings;
 using Turnroot.Utilities;
 
@@ -83,7 +84,7 @@ namespace Turnroot.Gameplay.Maps
                 return null;
             }
 
-            var movementType = classData.Identity.MovementType;
+            var movementType = character.GetEffectiveMovementType();
             var isMagic = classData.Identity.IsMagic;
 
             var movementStat = movementStatObj.CurrentInt;

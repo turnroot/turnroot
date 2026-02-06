@@ -21,9 +21,6 @@ namespace Turnroot.Skills.Nodes
             Ally, // From context.Allies[0]
         }
 
-        /// <summary>
-        /// Gets a character instance from the context based on the source.
-        /// </summary>
         public static CharacterInstance GetCharacterFromContext(
             BattleContext context,
             CharacterSource source
@@ -46,9 +43,6 @@ namespace Turnroot.Skills.Nodes
                 };
         }
 
-        /// <summary>
-        /// Gets a stat from a character by name, handling both bounded and unbounded stats.
-        /// </summary>
         public static BaseCharacterStat GetStatFromCharacter(
             CharacterInstance character,
             string statName,
@@ -78,21 +72,6 @@ namespace Turnroot.Skills.Nodes
             return null;
         }
 
-        /// <summary>
-        /// Creates a FloatValue output with a runtime value or default.
-        /// </summary>
-        public static FloatValue CreateFloatOutput(float defaultValue, float runtimeValue) =>
-            new FloatValue { value = Application.isPlaying ? runtimeValue : defaultValue };
-
-        /// <summary>
-        /// Creates a BoolValue output with a runtime value or default.
-        /// </summary>
-        public static BoolValue CreateBoolOutput(bool defaultValue, bool runtimeValue) =>
-            new BoolValue { value = Application.isPlaying ? runtimeValue : defaultValue };
-
-        /// <summary>
-        /// Gets stat current value with fallback handling.
-        /// </summary>
         public static float GetStatCurrentValue(
             SkillGraph skillGraph,
             SkillNode node,
@@ -117,9 +96,6 @@ namespace Turnroot.Skills.Nodes
             return fallbackValue;
         }
 
-        /// <summary>
-        /// Gets stat max value (only for bounded stats).
-        /// </summary>
         public static float GetStatMaxValue(
             SkillGraph skillGraph,
             SkillNode node,
@@ -169,9 +145,6 @@ namespace Turnroot.Skills.Nodes
             return fallbackValue;
         }
 
-        /// <summary>
-        /// Gets stat bonus value.
-        /// </summary>
         public static float GetStatBonus(
             SkillGraph skillGraph,
             SkillNode node,
@@ -187,9 +160,6 @@ namespace Turnroot.Skills.Nodes
             return stat?.Bonus ?? 0f;
         }
 
-        /// <summary>
-        /// Checks if stat has an active bonus (Bonus != 0).
-        /// </summary>
         public static bool GetStatBonusActive(
             SkillGraph skillGraph,
             SkillNode node,

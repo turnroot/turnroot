@@ -1657,7 +1657,8 @@ namespace Turnroot.Gameplay.Maps
             }
 
             Event e = Event.current;
-            Vector2 localMouse = e.mousePosition + _scroll;
+            // Mouse position inside scroll view is already in content space, no need to add scroll
+            Vector2 localMouse = e.mousePosition;
 
             UpdateHoveredCell(localMouse, cellSize, width, height);
             HandleMouse(e, localMouse, cellSize, width, height);
@@ -1693,7 +1694,13 @@ namespace Turnroot.Gameplay.Maps
             {
                 for (int c = 0; c < height; c++)
                 {
-                    Rect cellRect = new(r * cellSize, c * cellSize, cellSize, cellSize);
+                    // Flip Y coordinate to match Unity world space (Y increases upward)
+                    Rect cellRect = new(
+                        r * cellSize,
+                        (height - 1 - c) * cellSize,
+                        cellSize,
+                        cellSize
+                    );
                     var point = _grid.GetGridPoint(r, c);
 
                     Color fill = GetCellColor(point);
@@ -2130,11 +2137,15 @@ namespace Turnroot.Gameplay.Maps
             }
         }
 
-        private Vector2Int MouseToCell(Vector2 localMouse, float cellSize) =>
-            new(
-                Mathf.FloorToInt(localMouse.x / cellSize),
-                Mathf.FloorToInt(localMouse.y / cellSize)
-            );
+        private Vector2Int MouseToCell(Vector2 localMouse, float cellSize)
+        {
+            int row = Mathf.FloorToInt(localMouse.x / cellSize);
+            int col = Mathf.FloorToInt(localMouse.y / cellSize);
+            // Flip Y coordinate to match the flipped drawing
+            int height = _grid.GridHeight;
+            col = height - 1 - col;
+            return new(row, col);
+        }
 
         private Vector2Int ClampCell(Vector2Int cell, int width, int height) =>
             new(

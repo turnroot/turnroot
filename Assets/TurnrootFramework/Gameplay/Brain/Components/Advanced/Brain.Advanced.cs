@@ -70,7 +70,7 @@ namespace Turnroot.Gameplay.Brain
         public bool RedoCommand()
         {
             var context = battleBrain?.BattleObject?.Context;
-            return context == null ? false : Commands.Redo(context);
+            return context != null && Commands.Redo(context);
         }
 
         #endregion

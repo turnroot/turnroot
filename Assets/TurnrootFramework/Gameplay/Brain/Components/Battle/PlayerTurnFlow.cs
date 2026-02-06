@@ -265,8 +265,8 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
             // Only confirm waiting if we're at an appropriate point in the flow
             var current = GetCurrentState();
             if (
-                current == PlayerTurnStates.ConfirmAction
-                || current == PlayerTurnStates.WaitActionChosen
+                current is PlayerTurnStates.ConfirmAction
+                or PlayerTurnStates.WaitActionChosen
             )
             {
                 EndTurn();

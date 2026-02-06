@@ -188,7 +188,7 @@ namespace Turnroot.Gameplay.Brain.Snapshots
         public bool RestoreLast(BattleContext context, IEnumerable<CharacterInstance> units)
         {
             var snapshot = Peek();
-            return snapshot == null ? false : Restore(snapshot, context, units);
+            return snapshot != null && Restore(snapshot, context, units);
         }
 
         /// <summary>

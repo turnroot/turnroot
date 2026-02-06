@@ -21,7 +21,7 @@ namespace Turnroot.UI.Components.Menu.Submenu
         [SerializeField]
         private bool _isOn;
 
-        public UnityEvent<bool> onValueChanged = new UnityEvent<bool>();
+        public UnityEvent<bool> onValueChanged = new();
 
         public bool isOn
         {

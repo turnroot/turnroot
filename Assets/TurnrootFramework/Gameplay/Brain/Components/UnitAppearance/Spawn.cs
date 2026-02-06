@@ -81,6 +81,7 @@ namespace Turnroot.Gameplay.Brain
                 if (unit != null)
                 {
                     ClearWeaponFromUnit(unit);
+                    ClearMountFromUnit(unit);
                 }
 
                 Brain.Publish(new ModelDespawnedEvent(unit, unitId, position, model));
@@ -135,6 +136,17 @@ namespace Turnroot.Gameplay.Brain
                 AttachShieldToUnit(unit, model);
             }
 
+            // Handle mount status changes
+            bool shouldBeMounted = ShouldUnitBeMounted(unit);
+            if (shouldBeMounted && !unit.IsMounted)
+            {
+                AttachMountToUnit(unit, model);
+            }
+            else if (!shouldBeMounted && unit.IsMounted)
+            {
+                DismountUnit(unit, model);
+            }
+
             Brain.Publish(new ModelSpawnedEvent(unit, unit.Id, newPosition, model));
             return OperationResult.Successful();
         }
@@ -169,6 +181,12 @@ namespace Turnroot.Gameplay.Brain
             AttachWeaponToUnit(unit, model);
 
             AttachShieldToUnit(unit, model);
+
+            // Attach mount if class supports it (default mounted for mounted classes)
+            if (ShouldUnitBeMounted(unit))
+            {
+                AttachMountToUnit(unit, model);
+            }
 
             Brain.Publish(new ModelSpawnedEvent(unit, unit.Id, position, model));
             return OperationResult.Successful();

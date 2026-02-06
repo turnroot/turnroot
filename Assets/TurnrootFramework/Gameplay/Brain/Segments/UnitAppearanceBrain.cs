@@ -14,6 +14,7 @@ namespace Turnroot.Gameplay.Brain
         private GameplayGeneralSettings _settings;
         private Dictionary<string, GameObject> _unitModels = new();
         private Dictionary<Vector2Int, string> _modelPositions = new();
+        private Dictionary<string, GameObject> _mountModels = new();
 
         protected override EventPriority GetSubscriptionPriority() => EventPriority.Low;
 
@@ -107,6 +108,7 @@ namespace Turnroot.Gameplay.Brain
                     if (unit != null)
                     {
                         ClearWeaponFromUnit(unit);
+                        ClearMountFromUnit(unit);
                     }
                 }
             }
@@ -120,7 +122,17 @@ namespace Turnroot.Gameplay.Brain
                 }
             }
 
+            foreach (var mount in _mountModels.Values.ToList())
+            {
+                if (mount != null)
+                {
+                    mount.SetActive(false);
+                    Destroy(mount);
+                }
+            }
+
             _unitModels.Clear();
+            _mountModels.Clear();
             _modelPositions.Clear();
         }
 

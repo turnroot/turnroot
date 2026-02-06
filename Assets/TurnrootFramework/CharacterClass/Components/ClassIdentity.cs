@@ -1,4 +1,5 @@
 using System;
+using NaughtyAttributes;
 using Turnroot.GameSettings;
 using UnityEngine;
 
@@ -57,6 +58,25 @@ namespace Turnroot.Characters.CharacterClass
         [Header("Mobility")]
         [Tooltip("Movement type for this class")]
         public MovementType MovementType = MovementType.Infantry;
+
+        [
+            Tooltip("Prefab for mount (used when MovementType is Riding or Flying)"),
+            ShowIf(nameof(IsMountedClass))
+        ]
+        public GameObject MountPrefab;
+
+        [
+            Tooltip("Animator for mount (used when MovementType is Riding or Flying)"),
+            ShowIf(nameof(IsMountedClass))
+        ]
+        public RuntimeAnimatorController MountAnimator;
+
+        [Tooltip("Offset for positioning the unit on the mount"), ShowIf(nameof(HasMountVisuals))]
+        public Vector3 MountOffset = new(0, 1f, 0);
+
+        public bool IsMountedClass() => MovementType is MovementType.Riding or MovementType.Flying;
+
+        public bool HasMountVisuals() => IsMountedClass() && MountPrefab != null;
 
         public bool HasRequiredVisuals() =>
             ClassModelPrefab != null && !string.IsNullOrEmpty(ClassName);

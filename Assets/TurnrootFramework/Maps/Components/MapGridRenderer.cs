@@ -17,11 +17,11 @@ namespace Turnroot.Gameplay.Maps
         private int _cellSize = 32; // Default fallback
         private string _iconPath = "EditorSettings/MapGridEditorIcons/"; // Resources-relative path
 
-        private Color _gridLineColor = new Color(0.3f, 0.3f, 0.3f, 1f);
+        private Color _gridLineColor = new(0.3f, 0.3f, 0.3f, 1f);
         private Color _blackCellColor = Color.black;
-        private Color _darkGrayTerrainColor = new Color(0.3f, 0.3f, 0.3f, 1f); // For wall, deep water, mountain
-        private Color _lightGrayTerrainColor = new Color(0.2f, 0.2f, 0.2f, 1f); // For tall wall, void
-        private Color _blueSpawnColor = new Color(0.2f, 0.5f, 1f, 1f);
+        private Color _darkGrayTerrainColor = new(0.3f, 0.3f, 0.3f, 1f); // For wall, deep water, mountain
+        private Color _lightGrayTerrainColor = new(0.2f, 0.2f, 0.2f, 1f); // For tall wall, void
+        private Color _blueSpawnColor = new(0.2f, 0.5f, 1f, 1f);
 
         private void InitializeFromSettings()
         {
@@ -60,7 +60,7 @@ namespace Turnroot.Gameplay.Maps
         private readonly Dictionary<string, Texture2D> _iconCache = new();
 
         // Terrain types that should show as dark gray (30%) on minimap
-        private readonly HashSet<string> _darkGrayTerrainTypes = new HashSet<string>(
+        private readonly HashSet<string> _darkGrayTerrainTypes = new(
             System.StringComparer.OrdinalIgnoreCase
         )
         {
@@ -71,7 +71,7 @@ namespace Turnroot.Gameplay.Maps
         };
 
         // Terrain types that should show as light gray (20%) on minimap
-        private readonly HashSet<string> _lightGrayTerrainTypes = new HashSet<string>(
+        private readonly HashSet<string> _lightGrayTerrainTypes = new(
             System.StringComparer.OrdinalIgnoreCase
         )
         {
@@ -81,7 +81,7 @@ namespace Turnroot.Gameplay.Maps
         };
 
         // Feature types to skip rendering
-        private readonly HashSet<string> _skipFeatureTypes = new HashSet<string>(
+        private readonly HashSet<string> _skipFeatureTypes = new(
             System.StringComparer.OrdinalIgnoreCase
         )
         {

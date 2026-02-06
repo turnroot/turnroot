@@ -281,7 +281,7 @@ namespace Turnroot.GameSettings
 
         // Support bonuses per rank (C/B/A/S). D/E default to zero.
         [BoxGroup("Combat Mechanics")]
-        public SupportBonus SupportBonusC = new SupportBonus
+        public SupportBonus SupportBonusC = new()
         {
             Hit = 2,
             Avoid = 1,
@@ -290,7 +290,7 @@ namespace Turnroot.GameSettings
         };
 
         [BoxGroup("Combat Mechanics")]
-        public SupportBonus SupportBonusB = new SupportBonus
+        public SupportBonus SupportBonusB = new()
         {
             Hit = 3,
             Avoid = 2,
@@ -299,7 +299,7 @@ namespace Turnroot.GameSettings
         };
 
         [BoxGroup("Combat Mechanics")]
-        public SupportBonus SupportBonusA = new SupportBonus
+        public SupportBonus SupportBonusA = new()
         {
             Hit = 4,
             Avoid = 3,
@@ -308,7 +308,7 @@ namespace Turnroot.GameSettings
         };
 
         [BoxGroup("Combat Mechanics")]
-        public SupportBonus SupportBonusD = new SupportBonus
+        public SupportBonus SupportBonusD = new()
         {
             Hit = 1,
             Avoid = 0,
@@ -317,7 +317,7 @@ namespace Turnroot.GameSettings
         };
 
         [BoxGroup("Combat Mechanics")]
-        public SupportBonus SupportBonusE = new SupportBonus
+        public SupportBonus SupportBonusE = new()
         {
             Hit = 0,
             Avoid = 0,
@@ -326,7 +326,7 @@ namespace Turnroot.GameSettings
         };
 
         [BoxGroup("Combat Mechanics")]
-        public SupportBonus SupportBonusS = new SupportBonus
+        public SupportBonus SupportBonusS = new()
         {
             Hit = 5,
             Avoid = 4,

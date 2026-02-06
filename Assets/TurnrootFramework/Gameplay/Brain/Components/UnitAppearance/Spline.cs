@@ -76,14 +76,28 @@ namespace Turnroot.Gameplay.Brain
             List<Vector3> path
         )
         {
-            if (!_unitModels.TryGetValue(character.Id, out var model) || model == null)
+            if (!_unitModels.TryGetValue(character.Id, out var unitModel) || unitModel == null)
             {
                 TurnrootLogger.Log($"No model for {character.Id}", TurnrootLogger.LogLevel.Warning);
                 Brain.PublishMoveAnimationCompleted(character);
                 yield break;
             }
 
-            var animator = model.GetComponent<Animator>();
+            // Determine which model to animate and move - mount if mounted, unit otherwise
+            GameObject modelToMove;
+            Animator animator;
+
+            if (character.IsMounted && character.CurrentMountModel != null)
+            {
+                modelToMove = character.CurrentMountModel;
+                animator = modelToMove.GetComponent<Animator>();
+            }
+            else
+            {
+                modelToMove = unitModel;
+                animator = modelToMove.GetComponent<Animator>();
+            }
+
             var tileHighlighter = Brain.battleBrain.BattleObject.TileHighlighter;
 
             tileHighlighter.ClearAll();
@@ -105,13 +119,13 @@ namespace Turnroot.Gameplay.Brain
                 var t = Mathf.Clamp01(distanceTraveled / splineLength);
 
                 spline.Evaluate(t, out var position, out var tangent, out var up);
-                model.transform.position = position;
+                modelToMove.transform.position = position;
 
                 if (math.lengthsq(tangent) > 0.001f)
                 {
                     var targetRotation = Quaternion.LookRotation(tangent);
-                    model.transform.rotation = Quaternion.Slerp(
-                        model.transform.rotation,
+                    modelToMove.transform.rotation = Quaternion.Slerp(
+                        modelToMove.transform.rotation,
                         targetRotation,
                         Time.deltaTime * 10f
                     );
@@ -128,7 +142,7 @@ namespace Turnroot.Gameplay.Brain
                 yield return null;
             }
 
-            model.transform.position = path[^1];
+            modelToMove.transform.position = path[^1];
             character.MapGridPosition = WorldPositionToGridPosition(path[^1]);
 
             var finalTile = WorldPositionToGridPosition(path[^1]);

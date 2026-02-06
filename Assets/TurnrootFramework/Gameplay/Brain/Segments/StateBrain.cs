@@ -78,8 +78,9 @@ namespace Turnroot.Gameplay.Brain
     /// </summary>
     public class StateBrain : BrainComponent
     {
-        [field: SerializeField]
-        public BrainState CurrentState { get; private set; }
+        [SerializeField]
+        private BrainState _currentState;
+        public BrainState CurrentState => _currentState;
 
         private BrainState[] _highLevelStates;
         private BrainState _savedStateBeforePause;
@@ -233,7 +234,7 @@ namespace Turnroot.Gameplay.Brain
                 CurrentState.IsActive = false;
             }
 
-            CurrentState = newState;
+            _currentState = newState;
             CurrentState.IsActive = true;
 
             TurnrootLogger.Log($"StateBrain: SetCurrentState -> {CurrentState.Name}");

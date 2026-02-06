@@ -34,6 +34,7 @@ namespace Turnroot.GameSettings
         PreBattleMapMenu,
         PreBattleSupportMenu,
         PrebattleUnitPositionsMenu,
+        BattleActionSelectMenu,
     }
 
     [System.Serializable]
@@ -237,6 +238,9 @@ namespace Turnroot.GameSettings
         public MenuLocation GetPrebattleUnitPositionsMenu() =>
             GetMenuLocation(MenuName.PrebattleUnitPositionsMenu);
 
+        public MenuLocation GetBattleActionSelectMenu() =>
+            GetMenuLocation(MenuName.BattleActionSelectMenu);
+
         public void ResolveParentReferences()
         {
             if (allPossibleMenuLocations == null)
@@ -396,11 +400,11 @@ namespace Turnroot.GameSettings
         [Tooltip("Resources-relative path where map icons are stored (trailing slash optional)")]
         public string MapIconPath = "EditorSettings/MapGridEditorIcons/";
 
-        public Color MapGridLineColor = new Color(0.3f, 0.3f, 0.3f, 1f);
+        public Color MapGridLineColor = new(0.3f, 0.3f, 0.3f, 1f);
         public Color MapBlackCellColor = Color.black;
-        public Color MapDarkGrayTerrainColor = new Color(0.3f, 0.3f, 0.3f, 1f);
-        public Color MapLightGrayTerrainColor = new Color(0.2f, 0.2f, 0.2f, 1f);
-        public Color MapBlueSpawnColor = new Color(0.2f, 0.5f, 1f, 1f);
+        public Color MapDarkGrayTerrainColor = new(0.3f, 0.3f, 0.3f, 1f);
+        public Color MapLightGrayTerrainColor = new(0.2f, 0.2f, 0.2f, 1f);
+        public Color MapBlueSpawnColor = new(0.2f, 0.5f, 1f, 1f);
 
         // Map rendering getters for external consumers
         public int GetMapCellSize() => MapCellSize;

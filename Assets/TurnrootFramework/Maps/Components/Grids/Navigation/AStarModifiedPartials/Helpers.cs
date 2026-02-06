@@ -17,7 +17,7 @@ namespace Turnroot.Gameplay.Maps
         private bool IsGoalReached(MapGridPoint current, MapGridPoint goal) =>
             current == goal || (current.Row == goal.Row && current.Col == goal.Col);
 
-        private SearchContext CreateSearchContext() => new SearchContext();
+        private SearchContext CreateSearchContext() => new();
 
         private void InitializeSearch(SearchContext context, MapGridPoint start)
         {

@@ -87,9 +87,9 @@ namespace Turnroot.Gameplay.Maps
             ("S", 1, 0),
             ("W", 0, -1),
         };
-        [SerializeField]
-        [Tooltip("Gizmo sphere radius (world units)")]
-        private float _gizmoRadius = 0.35f;
+
+        private const float GizmoRadius = 0.35f;
+
         [SerializeField]
         [Tooltip("Feature display name (optional).")]
         private string _featureName = string.Empty;
@@ -143,16 +143,23 @@ namespace Turnroot.Gameplay.Maps
         [SerializeField]
         private List<MapGridPropertyBase.FloatProperty> _featureFloatProperties = new();
 
-        [field: SerializeField]
-        public int Row { get; private set; }
-        [field: SerializeField]
-        public int Col { get; private set; }
-        [field: SerializeField]
-        [field: Tooltip("Terrain type")]
-        public string TerrainTypeId { get; private set; } = string.Empty;
-        [field: SerializeField]
-        [field: Tooltip("Feature type")]
-        public string FeatureTypeId { get; private set; } = string.Empty;
+        [SerializeField]
+        private int _row;
+        public int Row => _row;
+
+        [SerializeField]
+        private int _col;
+        public int Col => _col;
+
+        [SerializeField]
+        [Tooltip("Terrain type")]
+        private string _terrainTypeId = string.Empty;
+        public string TerrainTypeId => _terrainTypeId;
+
+        [SerializeField]
+        [Tooltip("Feature type")]
+        private string _featureTypeId = string.Empty;
+        public string FeatureTypeId => _featureTypeId;
         public string FeatureName
         {
             get => _featureName;
@@ -161,7 +168,7 @@ namespace Turnroot.Gameplay.Maps
         public MapGridPointFeature.FeatureType FeatureType
         {
             get => MapGridPointFeature.TypeFromId(FeatureTypeId);
-            set => FeatureTypeId = MapGridPointFeature.IdFromType(value) ?? string.Empty;
+            set => _featureTypeId = MapGridPointFeature.IdFromType(value) ?? string.Empty;
         }
 
         /// <summary>
@@ -206,8 +213,8 @@ namespace Turnroot.Gameplay.Maps
 
         public void Initialize(int row, int col)
         {
-            Row = row;
-            Col = col;
+            _row = row;
+            _col = col;
         }
 
         /* ---------------------------- Grid Point Property Accessors ---------------------------- */
@@ -218,14 +225,14 @@ namespace Turnroot.Gameplay.Maps
 
         public void SetTerrainTypeId(string id)
         {
-            TerrainTypeId = id ?? string.Empty;
+            _terrainTypeId = id ?? string.Empty;
             InvalidateTerrainTypeCache();
             ParentGrid?.IncrementStateVersion();
         }
 
         public void SetFeatureTypeId(string id)
         {
-            FeatureTypeId = id ?? string.Empty;
+            _featureTypeId = id ?? string.Empty;
             ParentGrid?.IncrementStateVersion();
         }
 
@@ -248,7 +255,7 @@ namespace Turnroot.Gameplay.Maps
                 return;
             }
 
-            FeatureTypeId = selId;
+            _featureTypeId = selId;
             _featureName = name ?? string.Empty;
             ParentGrid?.IncrementStateVersion();
 
@@ -282,7 +289,7 @@ namespace Turnroot.Gameplay.Maps
 
         public void ClearFeature()
         {
-            FeatureTypeId = string.Empty;
+            _featureTypeId = string.Empty;
             _featureName = string.Empty;
             _featureUnitProperties.Clear();
             _featureObjectItemProperties.Clear();
