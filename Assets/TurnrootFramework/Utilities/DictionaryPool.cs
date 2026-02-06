@@ -84,26 +84,25 @@ namespace Turnroot.Utilities
     /// </summary>
     public struct PooledDictionary<TKey, TValue> : System.IDisposable
     {
-        private Dictionary<TKey, TValue> _dictionary;
         private bool _disposed;
 
-        public Dictionary<TKey, TValue> Dictionary => _dictionary;
+        public Dictionary<TKey, TValue> Dictionary { get; private set; }
 
         public static PooledDictionary<TKey, TValue> Get()
         {
             return new PooledDictionary<TKey, TValue>
             {
-                _dictionary = DictionaryPool<TKey, TValue>.Get(),
+                Dictionary = DictionaryPool<TKey, TValue>.Get(),
                 _disposed = false,
             };
         }
 
         public void Dispose()
         {
-            if (!_disposed && _dictionary != null)
+            if (!_disposed && Dictionary != null)
             {
-                DictionaryPool<TKey, TValue>.Return(_dictionary);
-                _dictionary = null;
+                DictionaryPool<TKey, TValue>.Return(Dictionary);
+                Dictionary = null;
                 _disposed = true;
             }
         }

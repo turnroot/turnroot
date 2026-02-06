@@ -27,8 +27,8 @@ namespace Turnroot.Characters
             public float Current = 10;
         }
 
-        [SerializeField]
-        private List<DefaultBoundedStat> _defaultBoundedStats = new()
+        [field: SerializeField]
+        public List<DefaultBoundedStat> DefaultBoundedStats { get; } = new()
         {
             new DefaultBoundedStat
             {
@@ -38,15 +38,11 @@ namespace Turnroot.Characters
                 Min = 0,
             },
         };
-
-        [SerializeField]
-        private List<DefaultUnboundedStat> _defaultUnboundedStats = new()
+        [field: SerializeField]
+        public List<DefaultUnboundedStat> DefaultUnboundedStats { get; } = new()
         {
             new DefaultUnboundedStat { StatType = UnboundedStatType.Strength, Current = 10 },
         };
-
-        public List<DefaultBoundedStat> DefaultBoundedStats => _defaultBoundedStats;
-        public List<DefaultUnboundedStat> DefaultUnboundedStats => _defaultUnboundedStats;
 
 #if UNITY_EDITOR
         private void OnValidate() => AutoPopulateMissingStats();
@@ -57,14 +53,14 @@ namespace Turnroot.Characters
 
             // Check for missing bounded stats
             var existingBounded = new HashSet<BoundedStatType>(
-                _defaultBoundedStats.ConvertAll(s => s.StatType)
+                DefaultBoundedStats.ConvertAll(s => s.StatType)
             );
             foreach (BoundedStatType type in System.Enum.GetValues(typeof(BoundedStatType)))
             {
                 if (!existingBounded.Contains(type))
                 {
                     var (max, current, min) = GetDefaultValuesForBoundedStat(type);
-                    _defaultBoundedStats.Add(
+                    DefaultBoundedStats.Add(
                         new DefaultBoundedStat
                         {
                             StatType = type,
@@ -79,13 +75,13 @@ namespace Turnroot.Characters
 
             // Check for missing unbounded stats
             var existingUnbounded = new HashSet<UnboundedStatType>(
-                _defaultUnboundedStats.ConvertAll(s => s.StatType)
+                DefaultUnboundedStats.ConvertAll(s => s.StatType)
             );
             foreach (UnboundedStatType type in System.Enum.GetValues(typeof(UnboundedStatType)))
             {
                 if (!existingUnbounded.Contains(type))
                 {
-                    _defaultUnboundedStats.Add(
+                    DefaultUnboundedStats.Add(
                         new DefaultUnboundedStat
                         {
                             StatType = type,
@@ -134,7 +130,7 @@ namespace Turnroot.Characters
         public List<BoundedCharacterStat> CreateBoundedStats()
         {
             var stats = new List<BoundedCharacterStat>();
-            foreach (var defaultStat in _defaultBoundedStats)
+            foreach (var defaultStat in DefaultBoundedStats)
             {
                 stats.Add(
                     new BoundedCharacterStat(
@@ -154,7 +150,7 @@ namespace Turnroot.Characters
         public List<CharacterStat> CreateUnboundedStats()
         {
             var stats = new List<CharacterStat>();
-            foreach (var defaultStat in _defaultUnboundedStats)
+            foreach (var defaultStat in DefaultUnboundedStats)
             {
                 stats.Add(new CharacterStat(defaultStat.Current, defaultStat.StatType));
             }

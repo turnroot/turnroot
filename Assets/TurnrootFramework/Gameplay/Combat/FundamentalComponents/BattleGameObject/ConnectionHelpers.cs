@@ -87,7 +87,7 @@ namespace Turnroot.Gameplay.Combat
         {
             try
             {
-                foreach (var condition in _battleConditions)
+                foreach (var condition in BattleConditions)
                 {
                     condition.battleContext = Context;
                     ResolveConditionReferences(condition);
@@ -104,11 +104,11 @@ namespace Turnroot.Gameplay.Combat
         {
             try
             {
-                condition.ResolveRequiredConditions(_battleConditions);
+                condition.ResolveRequiredConditions(BattleConditions);
 
                 if (condition is ConditionalGroupBattleCondition group)
                 {
-                    group.ResolveChildConditions(_battleConditions);
+                    group.ResolveChildConditions(BattleConditions);
                 }
             }
             catch (System.Exception ex)
@@ -131,12 +131,12 @@ namespace Turnroot.Gameplay.Combat
             try
             {
                 var list = new List<BattleCondition>(
-                    _battleConditions ?? System.Array.Empty<BattleCondition>()
+                    BattleConditions ?? System.Array.Empty<BattleCondition>()
                 )
                 {
                     condition,
                 };
-                _battleConditions = list.ToArray();
+                BattleConditions = list.ToArray();
 
                 condition.battleContext = Context;
                 ResolveConditionReferences(condition);
@@ -168,11 +168,9 @@ namespace Turnroot.Gameplay.Combat
             {
                 Context.Initialize(Brain, MapGrid);
                 SubscribeToMapChanges();
-                // Notify any subscribers that the battle map is ready
-                Brain?.PublishBattleMapReady(MapGrid);
-                GetComponent<TileHighlighter>().Initialize(Brain, MapGrid);
+                Brain.PublishBattleMapReady(MapGrid);
+                TileHighlighter.Initialize(Brain, MapGrid);
 
-                // Ensure BattlePrecomputeLoader is initialized with the Brain (robustness against subscription order)
                 var loader = GetComponent<BattlePrecomputeLoader>();
                 if (loader != null)
                 {

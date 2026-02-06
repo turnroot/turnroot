@@ -21,37 +21,23 @@ namespace Turnroot.AbstractScripts.Graphics2D
     )]
     public class Graphics2DSettings : SingletonScriptableObject<Graphics2DSettings>
     {
-        [SerializeField, BoxGroup("Conversations"), HorizontalLine(color: EColor.Blue)]
-        private SecondaryConversationPortraitInactiveBehavior _secondaryConversationPortraitInactiveBehavior =
-            SecondaryConversationPortraitInactiveBehavior.Hide;
-
-        [SerializeField, BoxGroup("Conversations")]
-        private bool _animatePortraitTransitions = true;
-
-        [SerializeField, BoxGroup("Conversations"), Range(0f, 2f)]
-        private float _portraitTransitionDuration = 0.4f;
-
-        [SerializeField, BoxGroup("Conversations"), Range(0f, 2f)]
-        private float _swapCrossfade = 0.4f;
-
         [SerializeField, BoxGroup("Conversations")]
         private Color _inactiveTintColor = new(0.5f, 0.5f, 0.5f, 1f);
 
-        [SerializeField, BoxGroup("Conversations"), Range(0f, 1f)]
-        private float _inactiveTintMix = 0.5f;
-
-        [SerializeField, BoxGroup("Conversations")]
-        private Ease _portraitTransitionEase = Ease.InOutSine;
-
         // Public accessors
-        public SecondaryConversationPortraitInactiveBehavior SecondaryConversationPortraitInactiveBehavior =>
-            _secondaryConversationPortraitInactiveBehavior;
-        public bool AnimatePortraitTransitions => _animatePortraitTransitions;
-        public float PortraitTransitionDuration => _portraitTransitionDuration;
-        public Ease PortraitTransitionEase => _portraitTransitionEase;
-        public float SwapCrossfade => _swapCrossfade;
+        [field: SerializeField, BoxGroup("Conversations"), HorizontalLine(color: EColor.Blue)]
+        public SecondaryConversationPortraitInactiveBehavior SecondaryConversationPortraitInactiveBehavior { get; } = SecondaryConversationPortraitInactiveBehavior.Hide;
+        [field: SerializeField, BoxGroup("Conversations")]
+        public bool AnimatePortraitTransitions { get; } = true;
+        [field: SerializeField, BoxGroup("Conversations"), Range(0f, 2f)]
+        public float PortraitTransitionDuration { get; } = 0.4f;
+        [field: SerializeField, BoxGroup("Conversations")]
+        public Ease PortraitTransitionEase { get; } = Ease.InOutSine;
+        [field: SerializeField, BoxGroup("Conversations"), Range(0f, 2f)]
+        public float SwapCrossfade { get; } = 0.4f;
         public Color InactiveTintColor => _inactiveTintColor;
-        public float InactiveTintMix => _inactiveTintMix;
+        [field: SerializeField, BoxGroup("Conversations"), Range(0f, 1f)]
+        public float InactiveTintMix { get; } = 0.5f;
 
         [Header("Portrait Render Settings")]
         public int portraitRenderWidth = 512;

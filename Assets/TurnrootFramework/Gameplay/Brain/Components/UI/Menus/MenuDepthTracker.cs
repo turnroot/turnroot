@@ -7,7 +7,6 @@ namespace Turnroot.Gameplay.Brain.Segments
     {
         private Stack<MenuLocation> _menuStack = new();
 
-        // Event raised whenever depth changes (push/pop/clear/transition)
         public event System.Action OnDepthChanged;
 
         public int CurrentDepth => _menuStack.Count;
@@ -84,11 +83,9 @@ namespace Turnroot.Gameplay.Brain.Segments
             return (currentMenu, previousMenu);
         }
 
-        // Helper to check whether the tracker is currently showing the provided menu
         public bool IsInMenu(MenuLocation menu) => CurrentMenu == menu;
 
-        // Convenience: check whether we're currently in the pre-battle menu (via settings)
         public bool IsInPreBattleMenu(GamewideUiSettings settings) =>
-            CurrentMenu == settings?.GetPreBattleMenu();
+            CurrentMenu == settings.GetPreBattleMenu();
     }
 }

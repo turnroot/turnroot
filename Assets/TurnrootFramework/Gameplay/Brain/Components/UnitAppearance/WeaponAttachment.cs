@@ -131,33 +131,17 @@ namespace Turnroot.Gameplay.Brain
         public OperationResult UpdateUnitWeapon(CharacterInstance unit)
         {
             var validation = OperationResultGuards.RequireNotNull(unit, nameof(unit));
-            if (!validation.Success)
-            {
-                return validation;
-            }
-
-            if (!_unitModels.TryGetValue(unit.Id, out var model))
-            {
-                return OperationResult.Successful();
-            }
-
-            return AttachWeaponToUnit(unit, model);
+            return !validation.Success
+                ? validation
+                : !_unitModels.TryGetValue(unit.Id, out var model) ? OperationResult.Successful() : AttachWeaponToUnit(unit, model);
         }
 
         public OperationResult UpdateUnitShield(CharacterInstance unit)
         {
             var validation = OperationResultGuards.RequireNotNull(unit, nameof(unit));
-            if (!validation.Success)
-            {
-                return validation;
-            }
-
-            if (!_unitModels.TryGetValue(unit.Id, out var model))
-            {
-                return OperationResult.Successful();
-            }
-
-            return AttachShieldToUnit(unit, model);
+            return !validation.Success
+                ? validation
+                : !_unitModels.TryGetValue(unit.Id, out var model) ? OperationResult.Successful() : AttachShieldToUnit(unit, model);
         }
 
         private void RebindItemToUnitSkeleton(GameObject itemInstance, GameObject unitModel)

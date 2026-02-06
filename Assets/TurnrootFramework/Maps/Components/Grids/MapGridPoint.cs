@@ -87,25 +87,9 @@ namespace Turnroot.Gameplay.Maps
             ("S", 1, 0),
             ("W", 0, -1),
         };
-
-        [SerializeField]
-        private int _row;
-
-        [SerializeField]
-        private int _col;
-
         [SerializeField]
         [Tooltip("Gizmo sphere radius (world units)")]
         private float _gizmoRadius = 0.35f;
-
-        [SerializeField]
-        [Tooltip("Terrain type")]
-        private string _terrainTypeId = string.Empty;
-
-        [SerializeField]
-        [Tooltip("Feature type")]
-        private string _featureTypeId = string.Empty;
-
         [SerializeField]
         [Tooltip("Feature display name (optional).")]
         private string _featureName = string.Empty;
@@ -159,10 +143,16 @@ namespace Turnroot.Gameplay.Maps
         [SerializeField]
         private List<MapGridPropertyBase.FloatProperty> _featureFloatProperties = new();
 
-        public int Row => _row;
-        public int Col => _col;
-        public string TerrainTypeId => _terrainTypeId;
-        public string FeatureTypeId => _featureTypeId;
+        [field: SerializeField]
+        public int Row { get; private set; }
+        [field: SerializeField]
+        public int Col { get; private set; }
+        [field: SerializeField]
+        [field: Tooltip("Terrain type")]
+        public string TerrainTypeId { get; private set; } = string.Empty;
+        [field: SerializeField]
+        [field: Tooltip("Feature type")]
+        public string FeatureTypeId { get; private set; } = string.Empty;
         public string FeatureName
         {
             get => _featureName;
@@ -170,8 +160,8 @@ namespace Turnroot.Gameplay.Maps
         }
         public MapGridPointFeature.FeatureType FeatureType
         {
-            get => MapGridPointFeature.TypeFromId(_featureTypeId);
-            set => _featureTypeId = MapGridPointFeature.IdFromType(value) ?? string.Empty;
+            get => MapGridPointFeature.TypeFromId(FeatureTypeId);
+            set => FeatureTypeId = MapGridPointFeature.IdFromType(value) ?? string.Empty;
         }
 
         /// <summary>
@@ -188,7 +178,7 @@ namespace Turnroot.Gameplay.Maps
                     return null;
                 }
 
-                var terrainType = asset.GetTypeById(_terrainTypeId);
+                var terrainType = asset.GetTypeById(TerrainTypeId);
                 return terrainType ?? (asset.Types?.Length > 0 ? asset.Types[0] : null);
             }
         }
@@ -208,7 +198,7 @@ namespace Turnroot.Gameplay.Maps
             _cachedTerrainType =
                 asset == null
                     ? null
-                    : asset.GetTypeById(_terrainTypeId)
+                    : asset.GetTypeById(TerrainTypeId)
                         ?? (asset.Types?.Length > 0 ? asset.Types[0] : null);
             _terrainTypeCached = true;
             return _cachedTerrainType;
@@ -216,8 +206,8 @@ namespace Turnroot.Gameplay.Maps
 
         public void Initialize(int row, int col)
         {
-            _row = row;
-            _col = col;
+            Row = row;
+            Col = col;
         }
 
         /* ---------------------------- Grid Point Property Accessors ---------------------------- */
@@ -228,14 +218,14 @@ namespace Turnroot.Gameplay.Maps
 
         public void SetTerrainTypeId(string id)
         {
-            _terrainTypeId = id ?? string.Empty;
+            TerrainTypeId = id ?? string.Empty;
             InvalidateTerrainTypeCache();
             ParentGrid?.IncrementStateVersion();
         }
 
         public void SetFeatureTypeId(string id)
         {
-            _featureTypeId = id ?? string.Empty;
+            FeatureTypeId = id ?? string.Empty;
             ParentGrid?.IncrementStateVersion();
         }
 
@@ -252,13 +242,13 @@ namespace Turnroot.Gameplay.Maps
                 return;
             }
 
-            if (singleClickToggle && _featureTypeId == selId)
+            if (singleClickToggle && FeatureTypeId == selId)
             {
                 ClearFeature();
                 return;
             }
 
-            _featureTypeId = selId;
+            FeatureTypeId = selId;
             _featureName = name ?? string.Empty;
             ParentGrid?.IncrementStateVersion();
 
@@ -292,7 +282,7 @@ namespace Turnroot.Gameplay.Maps
 
         public void ClearFeature()
         {
-            _featureTypeId = string.Empty;
+            FeatureTypeId = string.Empty;
             _featureName = string.Empty;
             _featureUnitProperties.Clear();
             _featureObjectItemProperties.Clear();

@@ -27,13 +27,18 @@ namespace Turnroot.Gameplay.Brain
                 return existing as GenericRosterInstance;
             }
 
-            var instance = _rosterManager.InstantiateGenericRoster(roster, register);
-            if (instance != null)
+            var result = _rosterManager.InstantiateGenericRoster(roster, register);
+            if (!result.Success)
             {
-                _activeRosterInstances[roster.Id] = instance;
+                TurnrootLogger.Log(
+                    $"Failed to instantiate generic roster: {result.Error}",
+                    TurnrootLogger.LogLevel.Error
+                );
+                return null;
             }
 
-            return instance;
+            _activeRosterInstances[roster.Id] = result.Value;
+            return result.Value;
         }
 
         public PlayerTeamRosterInstance GetOrCreatePlayerTeamRoster(PlayerTeamRoster roster)
@@ -52,13 +57,18 @@ namespace Turnroot.Gameplay.Brain
                 return existing as PlayerTeamRosterInstance;
             }
 
-            var instance = _rosterManager.InstantiatePlayerTeamRoster(roster);
-            if (instance != null)
+            var result = _rosterManager.InstantiatePlayerTeamRoster(roster);
+            if (!result.Success)
             {
-                _activeRosterInstances[roster.Id] = instance;
+                TurnrootLogger.Log(
+                    $"Failed to instantiate player roster: {result.Error}",
+                    TurnrootLogger.LogLevel.Error
+                );
+                return null;
             }
 
-            return instance;
+            _activeRosterInstances[roster.Id] = result.Value;
+            return result.Value;
         }
 
         public void RecallGenericRosters(List<GenericRoster> rosters) =>
@@ -77,8 +87,8 @@ namespace Turnroot.Gameplay.Brain
         {
             var instance = GetPersistentPlayerTeamRosterInstance();
             var placements =
-                instance?.GetPlacements()
-                ?? GamewidePersistentPlayerRoster?.characters
+                instance.GetPlacements()
+                ?? GamewidePersistentPlayerRoster.characters
                 ?? new Characters.Roster.UnitPlacement[0];
 
             var selectedInstances = GetSelectedForBattlePlayerTeamUnits();

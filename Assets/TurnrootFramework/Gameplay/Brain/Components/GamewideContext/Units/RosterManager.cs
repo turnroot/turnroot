@@ -7,20 +7,13 @@ using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain
 {
-    /// <summary>
-    /// Handles roster lifecycle: instantiation, caching, recall, lookup.
-    /// Single responsibility: manage roster instances.
-    /// </summary>
     public class RosterManager
     {
         private readonly Brain _brain;
         private readonly CharacterFactory _characterFactory;
         private readonly RosterPersistence _persistence;
         private readonly CharacterPersistence _characterPersistence;
-
-        // Explicitly track persistent rosters we create
         private readonly List<GenericRosterInstance> _persistentRosters = new();
-
         private PlayerTeamRosterInstance _persistentPlayerRoster = null;
 
         public RosterManager(Brain brain, RosterPersistence persistence = null)
@@ -33,15 +26,16 @@ namespace Turnroot.Gameplay.Brain
 
         #region Roster Instantiation
 
-        public GenericRosterInstance InstantiateGenericRoster(GenericRoster roster, bool register)
+        public OperationResult<GenericRosterInstance> InstantiateGenericRoster(
+            GenericRoster roster,
+            bool register
+        )
         {
-            if (roster == null)
+            var validation = OperationResultGuards.RequireNotNull(roster, nameof(roster));
+            if (!validation.Success)
             {
-#if UNITY_EDITOR
-                Debug.LogWarning("Cannot instantiate null roster");
-#endif
                 _brain.PublishRostersFailed();
-                return null;
+                return OperationResult<GenericRosterInstance>.Failure(validation.ErrorMessage);
             }
 
             var existing = FindExistingRosterInstance(roster);
@@ -53,7 +47,7 @@ namespace Turnroot.Gameplay.Brain
         private GenericRosterInstance FindExistingRosterInstance(GenericRoster roster) =>
             GetCachedInstances().FirstOrDefault(r => r?.roster == roster);
 
-        private GenericRosterInstance HandleExistingRoster(
+        private OperationResult<GenericRosterInstance> HandleExistingRoster(
             GenericRosterInstance existing,
             GenericRoster roster,
             bool register
@@ -61,12 +55,14 @@ namespace Turnroot.Gameplay.Brain
         {
             if (HasInstancesPopulated(existing, roster))
             {
-                TurnrootLogger.Log($"Roster '{roster.name}' already populated, skipping");
-
-                return existing;
+                return OperationResult<GenericRosterInstance>.SuccessResult(existing);
             }
 
-            PopulateRoster(existing, roster);
+            var populateResult = PopulateRoster(existing, roster);
+            if (!populateResult.Success)
+            {
+                return OperationResult<GenericRosterInstance>.Failure(populateResult.ErrorMessage);
+            }
 
             if (register && _persistence != null)
             {
@@ -74,21 +70,26 @@ namespace Turnroot.Gameplay.Brain
             }
 
             _brain.PublishRostersReady();
-            return existing;
+            return OperationResult<GenericRosterInstance>.SuccessResult(existing);
         }
 
-        private GenericRosterInstance CreateNewRosterInstance(GenericRoster roster, bool register)
+        private OperationResult<GenericRosterInstance> CreateNewRosterInstance(
+            GenericRoster roster,
+            bool register
+        )
         {
             var go = new GameObject($"RosterInstance - {roster.name}");
             var instance = go.AddComponent<GenericRosterInstance>();
             instance.roster = roster;
-
-            // Initialize runtime placements copy so runtime modifications don't hit the template
             instance.InitializeRuntimePlacementsFromTemplate();
 
             _persistentRosters.Add(instance);
 
-            PopulateRoster(instance, roster);
+            var populateResult = PopulateRoster(instance, roster);
+            if (!populateResult.Success)
+            {
+                return OperationResult<GenericRosterInstance>.Failure(populateResult.ErrorMessage);
+            }
 
             if (register && _persistence != null)
             {
@@ -96,68 +97,64 @@ namespace Turnroot.Gameplay.Brain
             }
 
             _brain.PublishRostersReady();
-            return instance;
+            return OperationResult<GenericRosterInstance>.SuccessResult(instance);
         }
 
-        public PlayerTeamRosterInstance InstantiatePlayerTeamRoster(PlayerTeamRoster roster)
+        public OperationResult<PlayerTeamRosterInstance> InstantiatePlayerTeamRoster(
+            PlayerTeamRoster roster
+        )
         {
-            if (roster == null)
+            var validation = OperationResultGuards.RequireNotNull(roster, nameof(roster));
+            if (!validation.Success)
             {
-                TurnrootLogger.Log(
-                    "Cannot instantiate null player team roster",
-                    TurnrootLogger.LogLevel.Warning
-                );
                 _brain.PublishRostersFailed();
-                return null;
+                return OperationResult<PlayerTeamRosterInstance>.Failure(validation.ErrorMessage);
             }
 
             if (_persistentPlayerRoster != null && _persistentPlayerRoster.roster == roster)
             {
-                return _persistentPlayerRoster;
+                return OperationResult<PlayerTeamRosterInstance>.SuccessResult(
+                    _persistentPlayerRoster
+                );
             }
 
             var go = new GameObject($"PlayerTeamRosterInstance - {roster.name}");
             var instance = go.AddComponent<PlayerTeamRosterInstance>();
             instance.roster = roster;
-
-            // Initialize runtime copy of placements so we don't mutate the template
             instance.InitializeRuntimePlacementsFromTemplate();
 
             _persistentPlayerRoster = instance;
 
-            PopulatePlayerTeamRoster(instance, roster);
+            var populateResult = PopulatePlayerTeamRoster(instance, roster);
+            if (!populateResult.Success)
+            {
+                return OperationResult<PlayerTeamRosterInstance>.Failure(
+                    populateResult.ErrorMessage
+                );
+            }
 
-            // Register the player roster in LTM if persistence is available
             if (_persistence != null)
             {
                 _persistence.RegisterPlayerRoster(roster);
             }
 
-            // Subscribe to runtime changes so we can request a save when roster mutates
             instance.OnRosterModified += () => _brain.PublishSavePlayerRosterRequested();
 
             _brain.PublishRostersReady();
-            return instance;
+            return OperationResult<PlayerTeamRosterInstance>.SuccessResult(instance);
         }
 
-        private void PopulateRoster(GenericRosterInstance instance, GenericRoster roster)
+        private OperationResult PopulateRoster(GenericRosterInstance instance, GenericRoster roster)
         {
             var characters = new List<CharacterInstance>();
-
-            // Use runtime placements if the instance has them, otherwise fall back to the template
             var placements = instance.GetPlacements();
 
             foreach (var unit in placements)
             {
                 if (unit.CharacterData == null)
                 {
-#if UNITY_EDITOR
-                    Debug.LogWarning(
-                        $"PopulateRoster: Skipping placement with null CharacterData in '{instance.name}'"
-                    );
-#endif
                     TurnrootLogger.Log(
-                        $"PopulateRoster: Skipping placement with null CharacterData in '{instance.name}'",
+                        $"Skipping placement with null CharacterData in '{instance.name}'",
                         TurnrootLogger.LogLevel.Warning
                     );
                     continue;
@@ -168,7 +165,6 @@ namespace Turnroot.Gameplay.Brain
                 {
                     characters.Add(character);
 
-                    // Persist unique characters explicitly (factory no longer auto-saves)
                     if (character.CharacterTemplate?.IsUnique == true)
                     {
                         _characterPersistence.SaveCharacter(character, updateIndex: true);
@@ -177,32 +173,21 @@ namespace Turnroot.Gameplay.Brain
             }
 
             instance.AddInstances(characters);
-            TurnrootLogger.Log($"Populated '{instance.name}' with {characters.Count} characters");
+            return OperationResult.Successful();
         }
 
-        private void PopulatePlayerTeamRoster(
+        private OperationResult PopulatePlayerTeamRoster(
             PlayerTeamRosterInstance instance,
             PlayerTeamRoster roster
         )
         {
             var characters = new List<CharacterInstance>();
-
-            // Use runtime placements on the instance if available (will be initialized by caller)
             var placements = instance.GetPlacements();
 
             foreach (var unit in placements)
             {
-                if (unit == null)
+                if (unit?.CharacterData == null)
                 {
-                    continue;
-                }
-
-                if (unit.CharacterData == null)
-                {
-                    TurnrootLogger.Log(
-                        $"PopulatePlayerTeamRoster: Skipping placement with null CharacterData in '{instance.name}'",
-                        TurnrootLogger.LogLevel.Error
-                    );
                     continue;
                 }
 
@@ -219,28 +204,26 @@ namespace Turnroot.Gameplay.Brain
             }
 
             instance.AddInstances(characters);
+            return OperationResult.Successful();
         }
 
-        /// <summary>
-        /// Apply decoded persistent player roster payload onto an existing runtime instance.
-        /// This will overwrite runtime placements and repopulate instances from decoded data.
-        /// </summary>
-        public void ApplyDecodedPlayerRoster(
+        public OperationResult ApplyDecodedPlayerRoster(
             PlayerTeamRosterInstance instance,
             PlayerTeamRoster decoded
         )
         {
-            if (instance == null || decoded == null)
+            var validation = OperationResultGuards.All(
+                OperationResultGuards.RequireNotNull(instance, nameof(instance)),
+                OperationResultGuards.RequireNotNull(decoded, nameof(decoded))
+            );
+            if (!validation.Success)
             {
-                return;
+                return validation;
             }
 
-            // Apply placements first so PopulatePlayerTeamRoster uses them
             instance.ApplyDecodedPlacements(decoded.characters);
-
-            // Clear existing instances and repopulate
             instance.Clear();
-            PopulatePlayerTeamRoster(instance, decoded);
+            return PopulatePlayerTeamRoster(instance, decoded);
         }
 
         private bool HasInstancesPopulated(GenericRosterInstance instance, GenericRoster roster)
@@ -258,22 +241,16 @@ namespace Turnroot.Gameplay.Brain
         {
             if (rosters == null || rosters.Count == 0)
             {
-                TurnrootLogger.Log(
-                    "No rosters configured to recall",
-                    TurnrootLogger.LogLevel.Warning
-                );
                 return;
             }
 
             if (_persistence == null)
             {
-                // No persistence available, just register all provided rosters
                 RegisterAllRosters(rosters);
                 return;
             }
 
             var indexedRosters = _persistence.GetIndexedRosterIds();
-
             if (indexedRosters.Count > 0)
             {
                 RecallFromIndex(rosters, indexedRosters);
@@ -288,28 +265,27 @@ namespace Turnroot.Gameplay.Brain
         {
             if (roster == null)
             {
+                return null;
+            }
+
+            var result = InstantiatePlayerTeamRoster(roster);
+            if (!result.Success)
+            {
                 TurnrootLogger.Log(
-                    "No player team roster configured to recall",
-                    TurnrootLogger.LogLevel.Warning
+                    $"Failed to recall player roster: {result.Error}",
+                    TurnrootLogger.LogLevel.Error
                 );
                 return null;
             }
 
-            // Always instantiate a runtime instance for the given roster (creating if necessary)
-            var instance = InstantiatePlayerTeamRoster(roster);
-
-            // If this is the first time we've seen the roster, register it in LTM
             if (_persistence != null && !_persistence.HasPlayerRosterInLTM(roster))
             {
                 _persistence.RegisterPlayerRoster(roster);
             }
 
-            return instance;
+            return result.Value;
         }
 
-        /// <summary>
-        /// Returns the currently active runtime PlayerTeamRosterInstance if any.
-        /// </summary>
         public PlayerTeamRosterInstance GetPersistentPlayerRosterInstance() =>
             _persistentPlayerRoster;
 
@@ -344,18 +320,11 @@ namespace Turnroot.Gameplay.Brain
                 return null;
             }
 
-            // Check generic rosters
             var found = GetCachedInstances()
                 .Select(r => r.GetInstanceFor(template))
                 .FirstOrDefault(i => i != null);
 
-            if (found != null)
-            {
-                return found;
-            }
-
-            // Check player roster too
-            return _persistentPlayerRoster?.GetInstanceFor(template);
+            return found ?? _persistentPlayerRoster?.GetInstanceFor(template);
         }
 
         public List<CharacterInstance> GetAllActiveInstances()
@@ -365,7 +334,6 @@ namespace Turnroot.Gameplay.Brain
                 .SelectMany(r => r.Instances)
                 .ToList();
 
-            // Include player roster instances too
             if (_persistentPlayerRoster?.Instances != null)
             {
                 instances.AddRange(_persistentPlayerRoster.Instances);
@@ -374,9 +342,7 @@ namespace Turnroot.Gameplay.Brain
             return instances;
         }
 
-        private List<GenericRosterInstance> GetCachedInstances() =>
-            // No searching needed - we tracked them as we created them
-            _persistentRosters;
+        private List<GenericRosterInstance> GetCachedInstances() => _persistentRosters;
 
         #endregion
     }

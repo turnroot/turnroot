@@ -32,13 +32,11 @@ namespace Turnroot.Gameplay.Brain
                     return existing;
                 }
 
-                // Create new but DO NOT persist here - caller decides when to save
                 var newUnique = CharacterInstance.Create(template);
                 EnsureDefaultClassAndPersist(newUnique);
                 return newUnique;
             }
 
-            // Non-unique: always create a fresh instance
             var created = CharacterInstance.Create(template);
             EnsureDefaultClassAndPersist(created);
             return created;
@@ -57,15 +55,14 @@ namespace Turnroot.Gameplay.Brain
             }
 
             var classToApply =
-                instance.CharacterTemplate?.StartingClass
-                ?? GameSettings.GameplayGeneralSettings.Instance?.GetDefaultStartingClass();
+                instance.CharacterTemplate.StartingClass
+                ?? GameSettings.GameplayGeneralSettings.Instance.GetDefaultStartingClass();
 
             if (classToApply != null)
             {
                 var res = instance.ChangeClass(classToApply, applyClassChangeBonuses: false);
                 if (res.Success)
                 {
-                    // Persist the update so future recalls include the class
                     _persistence.SaveCharacter(instance, updateIndex: false);
                     Utilities.TurnrootLogger.Log(
                         $"CharacterFactory: Assigned and persisted default class for {instance.Id}"

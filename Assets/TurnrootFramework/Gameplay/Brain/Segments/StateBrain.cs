@@ -78,9 +78,8 @@ namespace Turnroot.Gameplay.Brain
     /// </summary>
     public class StateBrain : BrainComponent
     {
-        [SerializeField]
-        private BrainState _currentState;
-        public BrainState CurrentState => _currentState;
+        [field: SerializeField]
+        public BrainState CurrentState { get; private set; }
 
         private BrainState[] _highLevelStates;
         private BrainState _savedStateBeforePause;
@@ -110,9 +109,9 @@ namespace Turnroot.Gameplay.Brain
 
         private void HandlePreBattleCompleted()
         {
-            if (_currentState?.Parent != null)
+            if (CurrentState?.Parent != null)
             {
-                var newState = _currentState.Parent.Children.FirstOrDefault(child =>
+                var newState = CurrentState.Parent.Children.FirstOrDefault(child =>
                     child.Name == BrainStateNames.PreBattleTransitionToBattle
                 );
                 if (newState != null)
@@ -229,16 +228,16 @@ namespace Turnroot.Gameplay.Brain
                 return;
             }
 
-            if (_currentState != null)
+            if (CurrentState != null)
             {
-                _currentState.IsActive = false;
+                CurrentState.IsActive = false;
             }
 
-            _currentState = newState;
-            _currentState.IsActive = true;
+            CurrentState = newState;
+            CurrentState.IsActive = true;
 
-            TurnrootLogger.Log($"StateBrain: SetCurrentState -> {_currentState.Name}");
-            Brain.PublishStateChanged(_currentState);
+            TurnrootLogger.Log($"StateBrain: SetCurrentState -> {CurrentState.Name}");
+            Brain.PublishStateChanged(CurrentState);
         }
 
         public BrainState ActivateHighLevelState(string stateName)
@@ -253,12 +252,12 @@ namespace Turnroot.Gameplay.Brain
             }
 
             SetCurrentState(newState);
-            return _currentState;
+            return CurrentState;
         }
 
         public void ActivateChildState(string childStateName)
         {
-            if (_currentState == null)
+            if (CurrentState == null)
             {
                 _ = OperationResult.Failure("No active state.");
                 return;
@@ -266,14 +265,14 @@ namespace Turnroot.Gameplay.Brain
 
             // Determine the parent state to search in
             BrainState parentState =
-                _currentState.Children != null && _currentState.Children.Length > 0
-                    ? _currentState // Current state is a parent
-                    : _currentState.Parent; // Current state is a child, use its parent
+                CurrentState.Children != null && CurrentState.Children.Length > 0
+                    ? CurrentState // Current state is a parent
+                    : CurrentState.Parent; // Current state is a child, use its parent
 
             if (parentState?.Children == null || parentState.Children.Length == 0)
             {
                 _ = OperationResult.Failure(
-                    $"StateBrain: Cannot find child state '{childStateName}' from '{_currentState.Name}'."
+                    $"StateBrain: Cannot find child state '{childStateName}' from '{CurrentState.Name}'."
                 );
                 return;
             }
@@ -332,9 +331,9 @@ namespace Turnroot.Gameplay.Brain
 
         public bool GetChildStates()
         {
-            return _currentState == null
+            return CurrentState == null
                 ? OperationResult.Failure("No active state.").Success
-                : _currentState.Children != null && _currentState.Children.Length != 0;
+                : CurrentState.Children != null && CurrentState.Children.Length != 0;
         }
 
         #endregion
@@ -355,7 +354,7 @@ namespace Turnroot.Gameplay.Brain
 
             if (isPaused)
             {
-                _savedStateBeforePause = _currentState;
+                _savedStateBeforePause = CurrentState;
                 SetCurrentState(pausedState);
                 TimeManager.PauseGame();
                 Brain.PublishPaused(_savedStateBeforePause);
@@ -369,9 +368,9 @@ namespace Turnroot.Gameplay.Brain
                     Brain.PublishResumed(_savedStateBeforePause);
                     _savedStateBeforePause = null;
                 }
-                else if (_currentState != null)
+                else if (CurrentState != null)
                 {
-                    _currentState.IsActive = false;
+                    CurrentState.IsActive = false;
                 }
             }
 

@@ -12,8 +12,6 @@ namespace Turnroot.Gameplay.Brain
     public partial class UnitAppearanceBrain : BrainComponent
     {
         private GameplayGeneralSettings _settings;
-
-        // Core model tracking - models are owned by units, not positions
         private Dictionary<string, GameObject> _unitModels = new();
         private Dictionary<Vector2Int, string> _modelPositions = new();
 
@@ -32,7 +30,7 @@ namespace Turnroot.Gameplay.Brain
             Brain.OnItemEquipped += HandleItemEquipped;
             Brain.OnItemUnequipped += HandleItemUnequipped;
 
-            if (Brain.battleBrain?.BattleObject != null)
+            if (Brain.battleBrain.BattleObject != null)
             {
                 HandleBattleObjectSet(Brain.battleBrain.BattleObject);
             }
@@ -101,8 +99,7 @@ namespace Turnroot.Gameplay.Brain
 
         private void ClearAllModels()
         {
-            // Get all units to clear their weapon references
-            var allUnits = Brain.gamewideContextBrain?.GetAllActiveInstances();
+            var allUnits = Brain.gamewideContextBrain.GetAllActiveInstances();
             if (allUnits != null)
             {
                 foreach (var unit in allUnits)
@@ -132,8 +129,7 @@ namespace Turnroot.Gameplay.Brain
             Objects.ObjectItemInstance item
         )
         {
-            // Only update weapon/shield models for equipped items
-            if (item?.Template?.IsEquippable == true)
+            if (item.Template.IsEquippable == true)
             {
                 if (item.Template.Subtype == Objects.Components.ObjectSubtype.Weapon)
                 {
@@ -165,8 +161,7 @@ namespace Turnroot.Gameplay.Brain
             Objects.ObjectItemInstance item
         )
         {
-            // Only update weapon/shield models for unequipped items
-            if (item?.Template?.IsEquippable == true)
+            if (item.Template.IsEquippable == true)
             {
                 if (item.Template.Subtype == Objects.Components.ObjectSubtype.Weapon)
                 {

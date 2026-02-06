@@ -53,7 +53,7 @@ namespace Turnroot.Gameplay.Brain
             var key = GamewideContextBrainHelpers.BuildRosterLedgerKey(
                 GamewidePersistentPlayerRoster.Id
             );
-            var encoded = _ltm?.Recall(key);
+            var encoded = _ltm.Recall(key);
 
             if (!string.IsNullOrEmpty(encoded))
             {
@@ -64,18 +64,16 @@ namespace Turnroot.Gameplay.Brain
                     );
                 if (decode.Success && decode.Value != null)
                 {
-                    var runtimeInstance = _rosterManager?.InstantiatePlayerTeamRoster(
+                    var runtimeInstanceResult = _rosterManager.InstantiatePlayerTeamRoster(
                         GamewidePersistentPlayerRoster
                     );
-                    if (runtimeInstance != null)
+                    if (runtimeInstanceResult.Success == true)
                     {
-                        // Only apply saved placements if the saved roster indicates an ongoing battle
-                        // (LastSavedBattleTurn > 1). If the saved roster is from the first turn or
-                        // hasn't recorded a turn, prefer current runtime placements (e.g., pre-battle)
-                        // which will be saved at battle start.
                         if (decode.Value.LastSavedBattleTurn > 1)
                         {
-                            runtimeInstance.ApplyDecodedPlacements(decode.Value.Placements);
+                            runtimeInstanceResult.Value.ApplyDecodedPlacements(
+                                decode.Value.Placements
+                            );
                         }
                         else
                         {
@@ -88,18 +86,12 @@ namespace Turnroot.Gameplay.Brain
                 }
             }
 
-            _rosterManager?.RecallPlayerTeamRoster(GamewidePersistentPlayerRoster);
+            _rosterManager.RecallPlayerTeamRoster(GamewidePersistentPlayerRoster);
         }
 
         private void HandleSavePlayerRosterRequested() =>
-            // Default behavior: save using the current turn number (0 if out of battle)
-            SavePlayerRoster(Brain.battleBrain?.CurrentTurnNumber ?? 0);
+            SavePlayerRoster(Brain.battleBrain.CurrentTurnNumber);
 
-        /// <summary>
-        /// Save the player roster to LTM, recording the provided lastSavedBattleTurn.
-        /// If lastSavedBattleTurn <= 1, this indicates first-turn placements which will be
-        /// preferred over previously saved placements on next load.
-        /// </summary>
         public void SavePlayerRoster(int lastSavedBattleTurn)
         {
             if (GamewidePersistentPlayerRoster == null)
@@ -142,27 +134,16 @@ namespace Turnroot.Gameplay.Brain
             var key = GamewideContextBrainHelpers.BuildRosterLedgerKey(
                 GamewidePersistentPlayerRoster.Id
             );
-            _ltm?.Remember(key, encode.Value);
-            _rosterPersistence?.RegisterPlayerRoster(GamewidePersistentPlayerRoster);
-            TurnrootLogger.Log(
-                $"GamewideContextBrain: Saved player roster (LastSavedBattleTurn={lastSavedBattleTurn})"
-            );
+            _ltm.Remember(key, encode.Value);
+            _rosterPersistence.RegisterPlayerRoster(GamewidePersistentPlayerRoster);
         }
 
-        /// <summary>
-        /// Returns the LastSavedBattleTurn recorded in the persisted roster, or 0 if none.
-        /// </summary>
         public int GetSavedPlayerRosterLastBattleTurn()
         {
-            if (GamewidePersistentPlayerRoster == null || _ltm == null)
-            {
-                return 0;
-            }
-
             var key = GamewideContextBrainHelpers.BuildRosterLedgerKey(
                 GamewidePersistentPlayerRoster.Id
             );
-            var encoded = _ltm?.Recall(key);
+            var encoded = _ltm.Recall(key);
             if (string.IsNullOrEmpty(encoded))
             {
                 return 0;
@@ -176,19 +157,11 @@ namespace Turnroot.Gameplay.Brain
         }
 
         public CharacterInstance RecallCharacter(CharacterData template) =>
-            _characterPersistence?.RecallCharacter(template);
+            _characterPersistence.RecallCharacter(template);
 
-        /// <summary>
-        /// Persist a character instance to LongTermMemory. updateIndex indicates whether
-        /// the roster/index should be updated (usually false for in-battle saves).
-        /// </summary>
         public void PersistCharacter(CharacterInstance instance, bool updateIndex = false) =>
-            _characterPersistence?.SaveCharacter(instance, updateIndex);
+            _characterPersistence.SaveCharacter(instance, updateIndex);
 
-        /// <summary>
-        /// Persist a character only if it is marked as needing persistence (recovered during deserialization).
-        /// Clears the flag on success and returns true if a persist occurred.
-        /// </summary>
         public bool PersistIfNeeded(CharacterInstance instance, bool updateIndex = false)
         {
             if (instance == null || !instance.NeedsPersist)

@@ -200,7 +200,7 @@ namespace Turnroot.Gameplay.Brain
         private IEnumerator InitializeWhenReady()
         {
             // Initialize _tileHighlighter first, before any state changes can occur
-            _tileHighlighter = Brain.battleBrain.BattleObject.GetComponent<TileHighlighter>();
+            _tileHighlighter = Brain.battleBrain.BattleObject.TileHighlighter;
 
             // Wait for MapGrid to be ready
             int waitCount = 0;

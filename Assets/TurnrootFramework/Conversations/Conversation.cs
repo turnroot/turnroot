@@ -8,31 +8,21 @@ namespace Turnroot.Conversations
     [CreateAssetMenu(fileName = "New Conversation", menuName = "Turnroot/Conversation")]
     public class Conversation : ScriptableObject
     {
-        [
-            SerializeField,
+        [field: SerializeField,
             InfoBox("If checked, this conversation will branch based on player choices.")
         ]
-        private bool _branchingConversation = true;
-        public bool BranchingConversation => _branchingConversation;
+        public bool BranchingConversation { get; } = true;
 
         public UnityEvent OnConversationStart;
         public UnityEvent OnConversationEnd;
 
-        [SerializeField, ReorderableList, HideIf("BranchingConversation")]
-        private ConversationLayer[] _layers;
-        public ConversationLayer[] Layers
-        {
-            get => _layers;
-            set => _layers = value;
-        }
-
-        [
-            SerializeField,
+        [field: SerializeField, ReorderableList, HideIf("BranchingConversation")]
+        public ConversationLayer[] Layers { get; set; }
+        [field: SerializeField,
             ShowIf("BranchingConversation"),
             InfoBox("Branching is handled by a ConversationGraph")
         ]
-        private Branching.Nodes.ConversationGraph _conversationGraph;
-        public Branching.Nodes.ConversationGraph ConversationGraph => _conversationGraph;
+        public Branching.Nodes.ConversationGraph ConversationGraph { get; }
 
         // runtime cache built from the graph
         private Dictionary<int, NodeData> _graphNodes;
@@ -40,7 +30,7 @@ namespace Turnroot.Conversations
         public Dictionary<int, NodeData> GetGraphNodes()
         {
             // Always rebuild runtime node data to avoid holding references to destroyed editor nodes.
-            _graphNodes = BranchedConversationHelpers.GetDataFromGraph(_conversationGraph);
+            _graphNodes = BranchedConversationHelpers.GetDataFromGraph(ConversationGraph);
             return _graphNodes;
         }
 
@@ -48,7 +38,7 @@ namespace Turnroot.Conversations
         public List<string> GetGraphEntryNodeNames()
         {
             var entries = new List<string>();
-            if (_conversationGraph == null)
+            if (ConversationGraph == null)
             {
                 return entries;
             }
@@ -83,16 +73,16 @@ namespace Turnroot.Conversations
         public int CurrentLayerIndex
         {
             get => _currentLayerIndex;
-            set => _currentLayerIndex = Mathf.Clamp(value, 0, _layers.Length - 1);
+            set => _currentLayerIndex = Mathf.Clamp(value, 0, Layers.Length - 1);
         }
 
         public ConversationLayer CurrentLayer
         {
             get
             {
-                return _currentLayerIndex < 0 || _currentLayerIndex >= _layers.Length
+                return _currentLayerIndex < 0 || _currentLayerIndex >= Layers.Length
                     ? null
-                    : _layers[_currentLayerIndex];
+                    : Layers[_currentLayerIndex];
             }
         }
 

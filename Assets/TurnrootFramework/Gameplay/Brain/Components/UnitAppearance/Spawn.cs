@@ -166,23 +166,9 @@ namespace Turnroot.Gameplay.Brain
             _unitModels[unit.Id] = model;
             _modelPositions[position] = unit.Id;
 
-            var weaponResult = AttachWeaponToUnit(unit, model);
-            if (!weaponResult.Success)
-            {
-                TurnrootLogger.Log(
-                    $"Failed to attach weapon for {unit.CharacterTemplate?.DisplayName}: {weaponResult.ErrorMessage}",
-                    TurnrootLogger.LogLevel.Warning
-                );
-            }
+            AttachWeaponToUnit(unit, model);
 
-            var shieldResult = AttachShieldToUnit(unit, model);
-            if (!shieldResult.Success)
-            {
-                TurnrootLogger.Log(
-                    $"Failed to attach shield for {unit.CharacterTemplate?.DisplayName}: {shieldResult.ErrorMessage}",
-                    TurnrootLogger.LogLevel.Warning
-                );
-            }
+            AttachShieldToUnit(unit, model);
 
             Brain.Publish(new ModelSpawnedEvent(unit, unit.Id, position, model));
             return OperationResult.Successful();

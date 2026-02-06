@@ -13,7 +13,6 @@ namespace Turnroot.Utilities
     {
         private readonly Dictionary<TKey, TValue> _cache = new();
         private readonly Func<TKey, TValue> _valueFactory;
-        private bool _isDirty = true;
 
         /// <summary>
         /// Creates a new cache manager with a factory function for generating values.
@@ -65,7 +64,7 @@ namespace Turnroot.Utilities
         public void Invalidate()
         {
             _cache.Clear();
-            _isDirty = true;
+            IsDirty = true;
         }
 
         /// <summary>
@@ -89,12 +88,12 @@ namespace Turnroot.Utilities
         /// <summary>
         /// Indicates if the cache is marked as dirty.
         /// </summary>
-        public bool IsDirty => _isDirty;
+        public bool IsDirty { get; private set; } = true;
 
         /// <summary>
         /// Marks the cache as clean.
         /// </summary>
-        public void MarkClean() => _isDirty = false;
+        public void MarkClean() => IsDirty = false;
     }
 
     /// <summary>
@@ -104,7 +103,6 @@ namespace Turnroot.Utilities
     public class SingleValueCache<T>
     {
         private T _cachedValue;
-        private bool _isDirty = true;
         private readonly Func<T> _valueFactory;
 
         /// <summary>
@@ -130,10 +128,10 @@ namespace Turnroot.Utilities
         /// </summary>
         public T GetOrCompute(Func<T> factory)
         {
-            if (_isDirty)
+            if (IsDirty)
             {
                 _cachedValue = factory();
-                _isDirty = false;
+                IsDirty = false;
             }
             return _cachedValue;
         }
@@ -153,10 +151,10 @@ namespace Turnroot.Utilities
                     );
                 }
 
-                if (_isDirty)
+                if (IsDirty)
                 {
                     _cachedValue = _valueFactory();
-                    _isDirty = false;
+                    IsDirty = false;
                 }
                 return _cachedValue;
             }
@@ -165,11 +163,11 @@ namespace Turnroot.Utilities
         /// <summary>
         /// Invalidates the cache, forcing regeneration on next access.
         /// </summary>
-        public void Invalidate() => _isDirty = true;
+        public void Invalidate() => IsDirty = true;
 
         /// <summary>
         /// Indicates if the cache is marked as dirty.
         /// </summary>
-        public bool IsDirty => _isDirty;
+        public bool IsDirty { get; private set; } = true;
     }
 }

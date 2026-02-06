@@ -15,6 +15,7 @@ MonoBehaviour:
   _cachedClassSelectionMode: 1
   Identity:
     ClassModelPrefab: {fileID: 0}
+    ClassHatPrefab: {fileID: 0}
     ShaderGraph: {fileID: 0}
     Base: {fileID: 0}
     MSE: {fileID: 0}

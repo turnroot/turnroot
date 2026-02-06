@@ -36,7 +36,7 @@ namespace Turnroot.Gameplay.Brain
         private void HandlePositioningModeEntered()
         {
             UpdateInputCooldown();
-            _inputActions = new BattleInputActions(); // Reuse existing input actions
+            _inputActions = new BattleInputActions();
             _inputActions.Enable();
             _isActive = true;
             _lastInputTime = Time.time;
@@ -79,7 +79,6 @@ namespace Turnroot.Gameplay.Brain
 
                 if (direction.magnitude > threshold)
                 {
-                    // Prevent repeat inputs when stick/key is held
                     if (direction == _lastDirection)
                     {
                         return false;
@@ -96,18 +95,15 @@ namespace Turnroot.Gameplay.Brain
                     return navigated;
                 }
 
-                // Input below threshold - reset direction tracking
                 _lastDirection = Vector2.zero;
             }
 
-            // Confirm - Select position / Execute swap
             if (_inputActions?.Confirm?.WasPressedThisFrame() == true)
             {
                 HandleConfirmInput();
                 return true;
             }
 
-            // Cancel - Deselect / Return to menu
             if (_inputActions?.Cancel?.WasPressedThisFrame() == true)
             {
                 HandleCancelInput();
@@ -117,11 +113,10 @@ namespace Turnroot.Gameplay.Brain
             return false;
         }
 
-        private float GetInputThreshold()
-        {
-            // Use cached keyboard preference for micro-optimization. Fall back to a safe threshold if PlayerSettings are not available.
-            return Brain.gamewideContextBrain?.PlayerSettings == null ? 0.3f : _cachedIsKeyboard ? 0.1f : 0.5f;
-        }
+        private float GetInputThreshold() =>
+            Brain.gamewideContextBrain.PlayerSettings == null ? 0.3f
+            : _cachedIsKeyboard ? 0.1f
+            : 0.5f;
 
         private bool TryNavigateDirection(Vector2 direction)
         {
@@ -144,14 +139,14 @@ namespace Turnroot.Gameplay.Brain
 
         private void PreviewSwapIfNeeded()
         {
-            var prepObject = Brain.battleBrain?.PreparationObject;
-            var cursorPos = Brain.cursorBrain?.CursorPosition?.CoordinatesInt;
+            var prepObject = Brain.battleBrain.PreparationObject;
+            var cursorPos = Brain.cursorBrain.CursorPosition.CoordinatesInt;
             if (prepObject == null || prepObject.selectedPosition == null || cursorPos == null)
             {
                 return;
             }
 
-            _ = prepObject.PreviewPotentialSwap(cursorPos.Value);
+            _ = prepObject.PreviewPotentialSwap(cursorPos);
         }
 
         private void UpdateInputCooldown()
@@ -162,9 +157,7 @@ namespace Turnroot.Gameplay.Brain
 
         private void HandleInputControlTypeChanged(
             PlayerSettings.GameplayPlayerSettings.InputControlType _
-        ) =>
-            // Recompute cached values when the input control type changes elsewhere (e.g., player settings UI)
-            UpdateInputCooldown();
+        ) => UpdateInputCooldown();
 
         private void HandleConfirmInput()
         {

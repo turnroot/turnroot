@@ -22,9 +22,7 @@ namespace Turnroot.UI.Components
             NameText.text = unitName;
             ClassText.text = className;
             Portrait.sprite =
-                portraitSprite != null
-                    ? portraitSprite
-                    : GamewideUiSettings.Instance.NoPortraitSprite;
+                portraitSprite ?? GamewideUiSettings.Instance.NoPortraitSprite;
         }
     }
 }

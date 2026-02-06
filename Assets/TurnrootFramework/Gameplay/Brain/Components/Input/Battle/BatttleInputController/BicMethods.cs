@@ -108,23 +108,17 @@ namespace Turnroot.Gameplay.Brain
         {
             if (_pendingDestination == null)
             {
-                TurnrootLogger.Log(
-                    "DestinationSelected: No pending destination - reverting to UnitSelected",
-                    TurnrootLogger.LogLevel.Warning
-                );
                 _playerTurnFlow.CancelTargetOrDestinationChoice(PlayerTurnStates.UnitSelected);
                 return;
             }
 
             var unit = BattleContext.Unit.UnitInstance;
-            // Start executing the move and lock input until move/animation completes
             _playerTurnFlow.StartMove();
             Brain.PublishCharacterMoveStarted(unit, _pendingDestination);
             var moveRes = BattleContext.MoveUnitToPoint(unit, _pendingDestination);
             if (moveRes.Success)
             {
                 TurnrootLogger.Log($"Started moving unit to {_pendingDestination.CoordinatesInt}");
-                // wait for OnMoveAnimationCompleted (visual layer) to call flow.CompleteMove()
             }
             else
             {
@@ -132,7 +126,6 @@ namespace Turnroot.Gameplay.Brain
                     "Failed to start move to the selected destination",
                     TurnrootLogger.LogLevel.Warning
                 );
-                // Re-enable input since the attempted move did not start
                 Brain.battleBrain.IsInputEnabled = true;
                 _playerTurnFlow.CancelTargetOrDestinationChoice(PlayerTurnStates.UnitSelected);
             }
@@ -269,7 +262,7 @@ namespace Turnroot.Gameplay.Brain
 
             var unitPoint = unit.UnitPositionToMapGridPoint(
                 unit.MapGridPosition,
-                Brain.battleBrain?.BattleObject?.Context?.MapGrid
+                Brain.battleBrain.BattleObject.Context.MapGrid
             );
 
             return unitPoint != null && unitPoint.Equals(destinationPoint);
@@ -292,16 +285,6 @@ namespace Turnroot.Gameplay.Brain
 
         public void ChangeSelectedUnit(CharacterInstance unit)
         {
-            if (unit == null || BattleContext == null)
-            {
-                TurnrootLogger.Log(
-                    "ChangeSelectedUnit: unit or BattleContext null - aborting",
-                    TurnrootLogger.LogLevel.Warning
-                );
-                return;
-            }
-
-            // Only allow selecting player-controlled units
             if (!BattleContext.IsPlayerControlledUnit(unit))
             {
                 TurnrootLogger.Log(

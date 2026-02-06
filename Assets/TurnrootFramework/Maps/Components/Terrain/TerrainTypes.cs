@@ -6,9 +6,8 @@ namespace Turnroot.Gameplay.Maps
     [CreateAssetMenu(fileName = "Terrain Types", menuName = "Turnroot/Game Settings/Terrain Types")]
     public class TerrainTypes : ScriptableObject
     {
-        [SerializeField]
-        private TerrainType[] _types;
-        public TerrainType[] Types => _types;
+        [field: SerializeField]
+        public TerrainType[] Types { get; private set; }
 
         [SerializeField]
         private Dictionary<string, TerrainType> _typeLookup = new();
@@ -16,9 +15,9 @@ namespace Turnroot.Gameplay.Maps
         private void OnEnable()
         {
             _typeLookup = new Dictionary<string, TerrainType>();
-            if (_types != null)
+            if (Types != null)
             {
-                foreach (var type in _types)
+                foreach (var type in Types)
                 {
                     if (type == null)
                     {
@@ -80,8 +79,8 @@ namespace Turnroot.Gameplay.Maps
                 idField.SetValue(newType, System.Guid.NewGuid().ToString());
             }
 
-            var newList = new List<TerrainType>(_types ?? new TerrainType[0]) { newType };
-            _types = newList.ToArray();
+            var newList = new List<TerrainType>(Types ?? new TerrainType[0]) { newType };
+            Types = newList.ToArray();
             if (!string.IsNullOrEmpty(newType.Id))
             {
                 _typeLookup[newType.Id] = newType;
@@ -100,9 +99,9 @@ namespace Turnroot.Gameplay.Maps
                 return t;
             }
             // fallback: search array
-            if (_types != null)
+            if (Types != null)
             {
-                foreach (var tt in _types)
+                foreach (var tt in Types)
                 {
                     if (tt != null && tt.Id == id)
                     {
