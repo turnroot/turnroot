@@ -22,27 +22,42 @@ namespace Turnroot.UI.Components
                     : Resources.Load<GameObject>("UI/BattleSelectActionButton");
         }
 
-        public OperationResult SetTextActionButtonPrefab(string text)
+        private OperationResult SetTextOnInstance(GameObject instance, string text)
         {
-            if (ActionButtonPrefab.TryGetComponent<ListMenu.ListMenuItem>(out var listMenuItem))
+            var validation = OperationResultGuards.RequireNotNull(instance, nameof(instance));
+            if (!validation.Success)
             {
-                var l = listMenuItem.ItemName;
-                l = text;
-                var tmp = ActionButtonPrefab.GetComponentInChildren<TextMeshProUGUI>(true);
-                if (tmp != null)
-                {
-                    tmp.text = text;
-                    return OperationResult.Successful();
-                }
+                return validation;
             }
-            return OperationResult.Failure(
-                "BattleSelectAction: Failed to set text on ActionButtonPrefab"
-            );
+
+            if (instance.TryGetComponent<ListMenu.ListMenuItem>(out var listMenuItem))
+            {
+                listMenuItem.SetItemName(text);
+            }
+
+            var tmp = instance.GetComponentInChildren<TextMeshProUGUI>(true);
+            validation = OperationResultGuards.RequireNotNull(tmp, "TextMeshProUGUI component");
+            if (!validation.Success)
+            {
+                return validation;
+            }
+
+            tmp.text = text;
+            return OperationResult.Successful();
         }
 
         public OperationResult PopulateList(string[] actions)
         {
             Initialize();
+
+            var validation = OperationResultGuards.RequireNotNull(
+                ListMenuContainer,
+                nameof(ListMenuContainer)
+            );
+            if (!validation.Success)
+            {
+                return validation;
+            }
 
             foreach (Transform child in ListMenuContainer)
             {
@@ -51,14 +66,11 @@ namespace Turnroot.UI.Components
 
             foreach (var action in actions)
             {
-                _ = Instantiate(ActionButtonPrefab, ListMenuContainer);
-                var setTextResult = SetTextActionButtonPrefab(action);
+                var instance = Instantiate(ActionButtonPrefab, ListMenuContainer);
+                var setTextResult = SetTextOnInstance(instance, action);
                 if (!setTextResult.Success)
                 {
-                    TurnrootLogger.Log(
-                        $"BattleSelectAction: Failed to set text for action '{action}' - {setTextResult.ErrorMessage}",
-                        TurnrootLogger.LogLevel.Warning
-                    );
+                    TurnrootLogger.Log(setTextResult.ErrorMessage, TurnrootLogger.LogLevel.Warning);
                 }
             }
 
