@@ -8,21 +8,24 @@ namespace Turnroot.Conversations
     [CreateAssetMenu(fileName = "New Conversation", menuName = "Turnroot/Conversation")]
     public class Conversation : ScriptableObject
     {
-        [field: SerializeField,
+        [field:
+            SerializeField,
             InfoBox("If checked, this conversation will branch based on player choices.")
         ]
-        public bool BranchingConversation { get; } = true;
+        public bool BranchingConversation { get; private set; } = true;
 
         public UnityEvent OnConversationStart;
         public UnityEvent OnConversationEnd;
 
         [field: SerializeField, ReorderableList, HideIf("BranchingConversation")]
         public ConversationLayer[] Layers { get; set; }
-        [field: SerializeField,
+
+        [field:
+            SerializeField,
             ShowIf("BranchingConversation"),
             InfoBox("Branching is handled by a ConversationGraph")
         ]
-        public Branching.Nodes.ConversationGraph ConversationGraph { get; }
+        public Branching.Nodes.ConversationGraph ConversationGraph { get; private set; }
 
         // runtime cache built from the graph
         private Dictionary<int, NodeData> _graphNodes;

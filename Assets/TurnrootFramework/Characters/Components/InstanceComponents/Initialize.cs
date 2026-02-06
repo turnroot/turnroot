@@ -123,20 +123,20 @@ namespace Turnroot.Characters
                 _inventoryInstance.AddToInventory(itemInstance);
                 itemInstance.Slot = slot.SlotIndex;
 
-                // Set IsEquipped for weapons in slot 0 and shields in slot 1
+                // Equip weapons in slot 0 and shields in slot 1
                 if (
                     slot.SlotIndex == 0
                     && slot.Item.Subtype == Gameplay.Objects.Components.ObjectSubtype.Weapon
                 )
                 {
-                    itemInstance.IsEquipped = true;
+                    _inventoryInstance.EquipItem(itemInstance.Slot);
                 }
                 else if (
                     slot.SlotIndex == 1
                     && slot.Item.Subtype == Gameplay.Objects.Components.ObjectSubtype.Shield
                 )
                 {
-                    itemInstance.IsEquipped = true;
+                    _inventoryInstance.EquipItem(itemInstance.Slot);
                 }
             }
         }

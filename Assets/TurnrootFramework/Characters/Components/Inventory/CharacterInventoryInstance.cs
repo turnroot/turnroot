@@ -208,6 +208,8 @@ namespace Turnroot.Characters.Components
             }
 
             var removedItem = _inventoryItems[index];
+            bool wasEquippedWeaponInSlot0 = removedItem.Slot == 0 && removedItem.IsEquipped;
+
             _inventoryItems.RemoveAt(index);
             removedItem.ClearOwnerInventory();
 
@@ -215,8 +217,6 @@ namespace Turnroot.Characters.Components
             {
                 _inventoryItems[i].Slot = i;
             }
-
-            bool weaponRemovedFromSlot0 = removedItem.Slot == 0;
 
             for (int i = 0; i < _equippedItemIndices.Length; i++)
             {
@@ -231,7 +231,7 @@ namespace Turnroot.Characters.Components
                 }
             }
 
-            if (weaponRemovedFromSlot0)
+            if (wasEquippedWeaponInSlot0)
             {
                 AutoEquipNextWeapon();
             }
