@@ -5,21 +5,46 @@ using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain.Components.Battle
 {
+    /// <summary>
+    /// Manages the state machine and flow control for player-controlled unit turns during battle.
+    /// </summary>
     [RequireComponent(typeof(BattleBrain))]
     public class PlayerTurnFlow : MonoBehaviour
     {
         private PlayerTurnState _currentState;
         private CharacterInstance _activePlayerUnit;
-
         private BattleBrain _battleBrain;
+        private Utilities.AbstractScripts.BattleSceneFlow _cachedSceneFlow;
 
         public PlayerTurnStates GetCurrentState() =>
             _currentState?.CurrentState ?? PlayerTurnStates.Inactive;
+
+        /// <summary>
+        /// Helper to transition states and publish events, reducing boilerplate.
+        /// </summary>
+        /// <param name="newState">The state to transition to</param>
+        /// <param name="publishEvent">Optional event to publish on successful transition</param>
+        /// <returns>True if transition succeeded</returns>
+        private bool TransitionAndPublish(
+            PlayerTurnStates newState,
+            System.Action publishEvent = null
+        )
+        {
+            var res = _currentState.TransitionToState(newState);
+            if (res.Success)
+            {
+                publishEvent?.Invoke();
+                _battleBrain.Brain.PublishPlayerTurnStateChanged(_currentState.CurrentState);
+                return true;
+            }
+            return false;
+        }
 
         public void Intialize()
         {
             _currentState ??= new PlayerTurnState();
             _battleBrain ??= GetComponent<BattleBrain>();
+            _cachedSceneFlow ??= FindFirstObjectByType<Utilities.AbstractScripts.BattleSceneFlow>();
 
             if (_battleBrain?.Brain != null)
             {
@@ -34,6 +59,15 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
 
         private void OnDestroy()
         {
+            CleanupBattle();
+        }
+
+        /// <summary>
+        /// Cleanup method to be called when battle ends.
+        /// Unsubscribes from events and clears cached references.
+        /// </summary>
+        public void CleanupBattle()
+        {
             if (_battleBrain?.Brain != null)
             {
                 _battleBrain.Brain.OnPlayerUndoAction -= HandlePlayerUndoAction;
@@ -42,64 +76,48 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
                 _battleBrain.Brain.OnMoveAnimationCompleted -= HandleUnitMoveAnimationCompleted;
                 _battleBrain.Brain.OnWaitActionConfirmed -= HandleWaitActionConfirmed;
             }
+            _cachedSceneFlow = null;
+            _activePlayerUnit = null;
         }
 
         public void StartPlayerTurn()
         {
             _activePlayerUnit = _battleBrain.BattleObject.Context.Unit.UnitInstance;
-            var res = _currentState.TransitionToState(PlayerTurnStates.NoUnitSelected);
-            if (res.Success)
-            {
-                _battleBrain.Brain.PublishPlayerTurnStarted(_activePlayerUnit);
-                _battleBrain.Brain.PublishPlayerTurnStateChanged(_currentState.CurrentState);
-            }
+            TransitionAndPublish(
+                PlayerTurnStates.NoUnitSelected,
+                () => _battleBrain.Brain.PublishPlayerTurnStarted(_activePlayerUnit)
+            );
         }
 
         public void SelectUnit()
         {
-            var res = _currentState.TransitionToState(PlayerTurnStates.UnitSelected);
-            if (res.Success)
-            {
-                _battleBrain.Brain.PublishPlayerControlledUnitActivated(_activePlayerUnit);
-                _battleBrain.Brain.PublishPlayerTurnStateChanged(_currentState.CurrentState);
-            }
+            TransitionAndPublish(
+                PlayerTurnStates.UnitSelected,
+                () => _battleBrain.Brain.PublishPlayerControlledUnitActivated(_activePlayerUnit)
+            );
         }
 
         public void DeselectUnit()
         {
-            var res = _currentState.TransitionToState(PlayerTurnStates.NoUnitSelected);
-            if (res.Success)
-            {
-                _battleBrain.Brain.PublishPlayerTurnStateChanged(_currentState.CurrentState);
-            }
+            TransitionAndPublish(PlayerTurnStates.NoUnitSelected);
         }
 
         public void ActionChosen(PlayerTurnStates actionState)
         {
-            var res = _currentState.TransitionToState(actionState);
-            if (res.Success)
-            {
-                _battleBrain.Brain.PublishPlayerTurnStateChanged(_currentState.CurrentState);
-            }
+            TransitionAndPublish(actionState);
         }
 
         public void SelectTargetOrDestination(PlayerTurnStates targetSelectedState)
         {
-            var res = _currentState.TransitionToState(targetSelectedState);
-            if (res.Success)
-            {
-                _battleBrain.Brain.PublishPlayerTurnStateChanged(_currentState.CurrentState);
-            }
+            TransitionAndPublish(targetSelectedState);
         }
 
         public void SelectDestination(MapGridPoint destination)
         {
-            var res = _currentState.TransitionToState(PlayerTurnStates.DestinationSelected);
-            if (res.Success)
-            {
-                _battleBrain.Brain.PublishPlayerChoseMoveTile(_activePlayerUnit, destination);
-                _battleBrain.Brain.PublishPlayerTurnStateChanged(_currentState.CurrentState);
-            }
+            TransitionAndPublish(
+                PlayerTurnStates.DestinationSelected,
+                () => _battleBrain.Brain.PublishPlayerChoseMoveTile(_activePlayerUnit, destination)
+            );
         }
 
         // Called by input controller to start the move and lock input until move/animation finishes
@@ -114,92 +132,89 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
                 return;
             }
 
-            var res = _currentState.TransitionToState(PlayerTurnStates.ExecutingMove);
-            if (res.Success)
-            {
-                // Freeze input globally at the battle level so all controllers halt processing
-                if (_battleBrain != null)
+            TransitionAndPublish(
+                PlayerTurnStates.ExecutingMove,
+                () =>
                 {
-                    _battleBrain.IsInputEnabled = false;
+                    // Freeze input globally at the battle level so all controllers halt processing
+                    if (_battleBrain != null)
+                    {
+                        _battleBrain.IsInputEnabled = false;
+                    }
                 }
-
-                _battleBrain.Brain.PublishPlayerTurnStateChanged(_currentState.CurrentState);
-            }
+            );
         }
 
         public void CompleteMove()
         {
-            var res = _currentState.TransitionToState(PlayerTurnStates.ChoosingAction);
-            if (res.Success)
-            {
-                // Re-enable input now that visuals/animation are finished
-                if (_battleBrain != null)
+            TransitionAndPublish(
+                PlayerTurnStates.ChoosingAction,
+                () =>
                 {
-                    _battleBrain.IsInputEnabled = true;
+                    // Re-enable input now that visuals/animation are finished
+                    if (_battleBrain != null)
+                    {
+                        _battleBrain.IsInputEnabled = true;
+                    }
                 }
-                _battleBrain.Brain.PublishPlayerTurnStateChanged(_currentState.CurrentState);
-            }
+            );
         }
 
         public void ConfirmAction()
         {
-            var res = _currentState.TransitionToState(PlayerTurnStates.ConfirmAction);
-            if (res.Success)
-            {
-                // Notify systems that an action is about to start using typed events
-                var prev = _currentState.PreviousState;
-                switch (prev)
-                {
-                    case PlayerTurnStates.AttackActionChosenTargetSelected:
-                        _battleBrain.Brain.PublishAttackStarted(_activePlayerUnit);
-                        break;
-                    case PlayerTurnStates.HealActionChosenTargetSelected:
-                        _battleBrain.Brain.PublishHealStarted(_activePlayerUnit);
-                        break;
-                    case PlayerTurnStates.UseItemActionChosenItemSelected:
-                        // TODO: pass item; this flow currently doesn't track item in flow - keep generic publish for now
-                        _battleBrain.Brain.PublishUseItemStarted(_activePlayerUnit, null);
-                        break;
-                    case PlayerTurnStates.WaitActionChosen:
-                        // If player has AutoEndTurn enabled, immediately end the turn; otherwise request UI confirmation
-                        var playerSettings = _battleBrain
-                            ?.Brain
-                            ?.gamewideContextBrain
-                            ?.PlayerSettings;
-                        if (playerSettings != null && playerSettings.AutoEndTurn)
-                        {
-                            EndTurn();
-                        }
-                        else
-                        {
-                            _battleBrain.Brain.PublishWaitActionRequested(_activePlayerUnit);
-                        }
-                        break;
-                    default:
-                        break;
-                }
+            // Store previous state before transitioning
+            var prev = _currentState.PreviousState;
 
-                _battleBrain.Brain.PublishPlayerTurnStateChanged(_currentState.CurrentState);
-            }
+            TransitionAndPublish(
+                PlayerTurnStates.ConfirmAction,
+                () =>
+                {
+                    // Notify systems that an action is about to start using typed events
+                    switch (prev)
+                    {
+                        case PlayerTurnStates.AttackActionChosenTargetSelected:
+                            _battleBrain.Brain.PublishAttackStarted(_activePlayerUnit);
+                            break;
+                        case PlayerTurnStates.HealActionChosenTargetSelected:
+                            _battleBrain.Brain.PublishHealStarted(_activePlayerUnit);
+                            break;
+                        case PlayerTurnStates.UseItemActionChosenItemSelected:
+                            // TODO: pass item; this flow currently doesn't track item in flow - keep generic publish for now
+                            _battleBrain.Brain.PublishUseItemStarted(_activePlayerUnit, null);
+                            break;
+                        case PlayerTurnStates.WaitActionChosen:
+                            // If player has AutoEndTurn enabled, immediately end the turn; otherwise request UI confirmation
+                            // TODO: When AutoEndTurn is disabled, show a confirmation menu with ListMenuItem "End" button
+                            // to confirm turn end before actually ending the turn. Menu should call WaitAndEndTurn() when confirmed.
+                            var playerSettings = _battleBrain
+                                ?.Brain
+                                ?.gamewideContextBrain
+                                ?.PlayerSettings;
+                            if (playerSettings != null && playerSettings.AutoEndTurn)
+                            {
+                                EndTurn();
+                            }
+                            else
+                            {
+                                _battleBrain.Brain.PublishWaitActionRequested(_activePlayerUnit);
+                            }
+                            break;
+                    }
+                }
+            );
         }
 
         public void CancelTargetOrDestinationChoice(PlayerTurnStates actionChoosingState)
         {
-            var res = _currentState.TransitionToState(actionChoosingState);
-            if (res.Success)
-            {
-                _battleBrain.Brain.PublishPlayerTurnStateChanged(_currentState.CurrentState);
-            }
+            TransitionAndPublish(actionChoosingState);
         }
 
         public void EndTurn()
         {
-            var res = _currentState.TransitionToState(PlayerTurnStates.TurnEnded);
-            if (res.Success)
-            {
-                _battleBrain.Brain.PublishPlayerTurnEnded();
-                _battleBrain.Brain.PublishPlayerTurnStateChanged(_currentState.CurrentState);
-            }
+            // Note: This direct EndTurn bypasses interrupt checking.
+            // For wait actions, use WaitAndEndTurn() instead.
+            // PlayerTurnEnded is published by TurnRotisserie.ProgressToNextPhase()
+            TransitionAndPublish(PlayerTurnStates.TurnEnded);
         }
 
         private void HandlePlayerUndoAction()
@@ -212,15 +227,16 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
                 if (undone)
                 {
                     // Return flow to UnitSelected so player can reselect a tile/action
-                    var res = _currentState.TransitionToState(PlayerTurnStates.UnitSelected);
-                    if (res.Success)
-                    {
-                        _battleBrain.Brain.PublishPlayerTurnStateChanged(
-                            _currentState.CurrentState
-                        );
-                        // Re-announce the active unit so listeners (UI) recompute valid tiles
-                        _battleBrain.Brain.PublishPlayerControlledUnitActivated(_activePlayerUnit);
-                    }
+                    TransitionAndPublish(
+                        PlayerTurnStates.UnitSelected,
+                        () =>
+                        {
+                            // Re-announce the active unit so listeners (UI) recompute valid tiles
+                            _battleBrain.Brain.PublishPlayerControlledUnitActivated(
+                                _activePlayerUnit
+                            );
+                        }
+                    );
                 }
             }
         }
@@ -262,14 +278,12 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
                 return;
             }
 
-            // Only confirm waiting if we're at an appropriate point in the flow
+            // Only confirm waiting if we're in WaitActionChosen state
             var current = GetCurrentState();
-            if (
-                current == PlayerTurnStates.ConfirmAction
-                || current == PlayerTurnStates.WaitActionChosen
-            )
+            if (current == PlayerTurnStates.WaitActionChosen)
             {
-                EndTurn();
+                // This will trigger the full wait flow including interrupt checks
+                WaitAndEndTurn();
             }
         }
 
@@ -322,12 +336,47 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
 
         public void WaitAndEndTurn()
         {
-            var res = _currentState.TransitionToState(PlayerTurnStates.TurnEnded);
-            if (res.Success)
+            // First transition to WaitActionChosen
+            if (!TransitionAndPublish(PlayerTurnStates.WaitActionChosen))
             {
-                _battleBrain.Brain.PublishPlayerTurnEnded();
-                _battleBrain.Brain.PublishPlayerTurnStateChanged(_currentState.CurrentState);
+                return;
             }
+
+            // Check if any interrupts are queued (e.g., conversations)
+            if (_cachedSceneFlow != null && _cachedSceneFlow.IsInterruptQueued)
+            {
+                // Ensure we're in the correct scene flow state before processing interrupt
+                if (
+                    _cachedSceneFlow.CurrentMiniBattleState
+                    == Utilities.AbstractScripts.MiniBattleState.NoBattlePlayerInput
+                )
+                {
+                    // Queue the turn end to happen after interrupt completes
+                    _cachedSceneFlow.QueueInterrupt(
+                        _cachedSceneFlow.CurrentInterrupt,
+                        onCompleted: () => CompleteTurnEnd()
+                    );
+                    _cachedSceneFlow.ProgressMiniBattleState();
+                    return;
+                }
+                else
+                {
+                    TurnrootLogger.Log(
+                        $"PlayerTurnFlow: Interrupt queued but scene flow in unexpected state: {_cachedSceneFlow.CurrentMiniBattleState}",
+                        TurnrootLogger.LogLevel.Warning
+                    );
+                }
+            }
+
+            // No interrupt or scene flow not ready, proceed immediately to turn end
+            CompleteTurnEnd();
+        }
+
+        private void CompleteTurnEnd()
+        {
+            // Note: PlayerTurnEnded is published by TurnRotisserie.ProgressToNextPhase()
+            // to ensure proper ordering with other phase transitions
+            TransitionAndPublish(PlayerTurnStates.TurnEnded);
         }
     }
 }

@@ -5,6 +5,9 @@ using UnityEngine;
 
 namespace Turnroot.UI.Components
 {
+    /// <summary>
+    /// Populates text objects with the battle map name from a BattlePreparationObject.
+    /// </summary>
     public class PopulateBattleMapName : MonoBehaviour
     {
         public TextMeshProUGUI[] BattleMapNameObjects;

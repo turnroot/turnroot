@@ -1,7 +1,7 @@
 namespace Turnroot.Characters
 {
     /// <summary>
-    /// Runtime component that holds the runtime instances for a `Roster` ScriptableObject.
+    /// Runtime instance manager for PlayerTeamRoster with permadeath and casual mode handling.
     /// </summary>
     public class PlayerTeamRosterInstance : RosterInstance<PlayerTeamRoster>
     {

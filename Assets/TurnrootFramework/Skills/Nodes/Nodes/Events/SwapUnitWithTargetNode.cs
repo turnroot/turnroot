@@ -4,6 +4,9 @@ using UnityEngine;
 
 namespace Turnroot.Skills.Nodes.Events
 {
+    /// <summary>
+    /// Swaps the battlefield positions of the caster and the target unit.
+    /// </summary>
     [CreateNodeMenu("Events/Neutral/Swap Unit With Target")]
     [NodeLabel("Swaps the position of the unit with the target")]
     public class SwapUnitWithTargetNode : SkillNode

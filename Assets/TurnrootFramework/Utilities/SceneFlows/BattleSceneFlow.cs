@@ -2,6 +2,9 @@ using UnityEngine.Events;
 
 namespace Turnroot.Utilities.AbstractScripts
 {
+    /// <summary>
+    /// Represents sub-states within a battle scene for managing player input and conversations.
+    /// </summary>
     public enum MiniBattleState
     {
         // A conversation can interrupt at any point
@@ -10,18 +13,122 @@ namespace Turnroot.Utilities.AbstractScripts
         EnableBattlePlayerInput,
     }
 
+    /// <summary>
+    /// Types of interrupts that can pause battle flow.
+    /// </summary>
+    public enum InterruptType
+    {
+        None,
+        Conversation,
+        // Future: Cutscene, EventTrigger, etc.
+    }
+
     public class BattleSceneFlow : DynamicSceneFlow
     {
         // Once this reaches Combat.Battle, activate a mini state machine
         // that goes NoBattlePlayerInput -> EnableBattlePlayerInput -> NoBattlePlayerInput
         // Conversation can interrupt at any point
-        // TODO: Hook this in to the TurnRotisserie
         public MiniBattleState CurrentMiniBattleState { get; private set; } =
             MiniBattleState.NoBattlePlayerInput;
 
-        public bool ConversationQueued = false; // Set to true to trigger conversation at next opportunity
+        private InterruptType _queuedInterrupt = InterruptType.None;
+        private System.Action _onInterruptCompleted;
+        private float _lastInterruptActivityTime;
+        private bool _interruptIsWaitingForPlayerInput;
+        private const float INTERRUPT_INACTIVITY_TIMEOUT = 60f; // 60 seconds of inactivity
 
-        public void QueueConversation() => ConversationQueued = true; // TODO: Connect ConversationController
+        public bool IsInterruptQueued => _queuedInterrupt != InterruptType.None;
+        public InterruptType CurrentInterrupt => _queuedInterrupt;
+        public bool InterruptIsWaitingForPlayerInput
+        {
+            get => _interruptIsWaitingForPlayerInput;
+            set
+            {
+                _interruptIsWaitingForPlayerInput = value;
+                if (value)
+                {
+                    // When we start waiting for input, that's expected activity - reset timer
+                    ResetInterruptActivityTimer();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Call this whenever the interrupt system is actively doing something (frame updates, player choices, etc.)
+        /// to prevent inactivity timeout from triggering.
+        /// </summary>
+        public void ResetInterruptActivityTimer()
+        {
+            _lastInterruptActivityTime = UnityEngine.Time.time;
+        }
+
+        private void Update()
+        {
+            // Check for stuck interrupts using inactivity timer
+            if (_queuedInterrupt != InterruptType.None)
+            {
+                float inactivityDuration = UnityEngine.Time.time - _lastInterruptActivityTime;
+
+                // Only timeout if we've been inactive AND we're not waiting for player input
+                // If we're waiting for player input, that's expected - the player might be taking their time
+                if (
+                    inactivityDuration > INTERRUPT_INACTIVITY_TIMEOUT
+                    && !_interruptIsWaitingForPlayerInput
+                )
+                {
+                    TurnrootLogger.Log(
+                        $"BattleSceneFlow: Interrupt {_queuedInterrupt} inactive for {inactivityDuration:F1}s with no player input expected - forcing completion",
+                        TurnrootLogger.LogLevel.Error
+                    );
+                    CompleteInterrupt();
+                }
+
+                // TODO: Add "are you still there?" system for long player input waits
+                // If _interruptIsWaitingForPlayerInput is true for more than X minutes (5-10?),
+                // show a non-intrusive prompt asking if player is still present.
+                // This prevents AFK players from blocking the system indefinitely.
+            }
+        }
+
+        /// <summary>
+        /// Queue an interrupt to be processed at the next appropriate time.
+        /// </summary>
+        /// <param name="interruptType">The type of interrupt to queue</param>
+        /// <param name="onCompleted">Callback to invoke when interrupt finishes</param>
+        public void QueueInterrupt(InterruptType interruptType, System.Action onCompleted = null)
+        {
+            _queuedInterrupt = interruptType;
+            _onInterruptCompleted = onCompleted;
+            _lastInterruptActivityTime = UnityEngine.Time.time;
+            _interruptIsWaitingForPlayerInput = false;
+        }
+
+        public void QueueConversation(System.Action onCompleted = null) =>
+            QueueInterrupt(InterruptType.Conversation, onCompleted);
+
+        /// <summary>
+        /// Cleanup method to be called when battle ends.
+        /// Clears queued interrupts, resets state, and unsubscribes from events.
+        /// </summary>
+        public void CleanupBattle()
+        {
+            _queuedInterrupt = InterruptType.None;
+            _onInterruptCompleted = null;
+            CurrentMiniBattleState = MiniBattleState.NoBattlePlayerInput;
+            _lastInterruptActivityTime = 0f;
+            _interruptIsWaitingForPlayerInput = false;
+        }
+
+        /// <summary>
+        /// Called when the current interrupt has completed.
+        /// </summary>
+        public void CompleteInterrupt()
+        {
+            _onInterruptCompleted?.Invoke();
+            _onInterruptCompleted = null;
+            _queuedInterrupt = InterruptType.None;
+            _interruptIsWaitingForPlayerInput = false;
+        }
 
         public void InitializeMiniBattleState()
         {
@@ -37,39 +144,111 @@ namespace Turnroot.Utilities.AbstractScripts
             switch (CurrentMiniBattleState)
             {
                 case MiniBattleState.NoBattlePlayerInput:
-                    if (ConversationQueued)
-                    {
-                        CurrentMiniBattleState = MiniBattleState.Conversation;
-                        ConversationQueued = false;
-                        DisableBattleInput();
-                    }
-                    else
-                    {
-                        CurrentMiniBattleState = MiniBattleState.EnableBattlePlayerInput;
-                        EnableBattleInput();
-                    }
+                    HandleNoBattlePlayerInputState();
                     break;
-                case MiniBattleState.Conversation:
-                    CurrentMiniBattleState = MiniBattleState.EnableBattlePlayerInput;
-                    EnableBattleInput();
-                    break;
-                case MiniBattleState.EnableBattlePlayerInput:
-                    CurrentMiniBattleState = MiniBattleState.NoBattlePlayerInput;
-                    // If TurnRotisserie indicates that this is the start of the player turn, call that event:
-                    // for now, just call it
-                    if (brain)
-                    {
-                        OnPlayerPreTurn.Invoke();
-                    }
 
-                    DisableBattleInput();
+                case MiniBattleState.Conversation:
+                    HandleConversationState();
+                    break;
+
+                case MiniBattleState.EnableBattlePlayerInput:
+                    HandleEnableBattlePlayerInputState();
+                    break;
+
+                default:
+                    TurnrootLogger.Log(
+                        $"BattleSceneFlow: Unknown state {CurrentMiniBattleState}",
+                        TurnrootLogger.LogLevel.Warning
+                    );
                     break;
             }
+        }
+
+        private void HandleNoBattlePlayerInputState()
+        {
+            if (IsInterruptQueued)
+            {
+                ProcessQueuedInterrupt();
+            }
+            else
+            {
+                CurrentMiniBattleState = MiniBattleState.EnableBattlePlayerInput;
+                EnableBattleInput();
+            }
+        }
+
+        private void HandleConversationState()
+        {
+            CurrentMiniBattleState = MiniBattleState.EnableBattlePlayerInput;
+            EnableBattleInput();
+        }
+
+        private void HandleEnableBattlePlayerInputState()
+        {
+            CurrentMiniBattleState = MiniBattleState.NoBattlePlayerInput;
+            // If TurnRotisserie indicates that this is the start of the player turn, call that event:
+            // for now, just call it
+            if (brain)
+            {
+                OnPlayerPreTurn.Invoke();
+            }
+            DisableBattleInput();
         }
 
         public void EnableBattleInput() => brain.PublishBattleInputEnabled();
 
         public void DisableBattleInput() => brain.PublishBattleInputDisabled();
+
+        private void ProcessQueuedInterrupt()
+        {
+            switch (_queuedInterrupt)
+            {
+                case InterruptType.Conversation:
+                    CurrentMiniBattleState = MiniBattleState.Conversation;
+                    DisableBattleInput();
+
+                    // Start the conversation via the conversation controller
+                    var conversationController =
+                        FindFirstObjectByType<Turnroot.Conversations.ConversationController>();
+                    if (conversationController != null)
+                    {
+                        conversationController.StartCurrentConversation();
+                        // Conversation is actively running, reset activity timer
+                        ResetInterruptActivityTimer();
+                    }
+                    else
+                    {
+                        Turnroot.Utilities.TurnrootLogger.Log(
+                            "BattleSceneFlow: Conversation queued but no ConversationController found",
+                            Turnroot.Utilities.TurnrootLogger.LogLevel.Warning
+                        );
+                        // No conversation controller, immediately complete
+                        CompleteInterrupt();
+                    }
+                    break;
+
+                // TODO: Handle other interrupt types:
+                // case InterruptType.Cutscene:
+                //     Play cutscene, call ResetInterruptActivityTimer() every frame while cutscene is playing
+                //     Call CompleteInterrupt() when cutscene ends
+                // case InterruptType.EventTrigger:
+                //     Execute event, call ResetInterruptActivityTimer() during execution
+                //     Call CompleteInterrupt() when event finishes
+
+                case InterruptType.None:
+                    // No interrupt, just continue
+                    break;
+
+                default:
+                    // Unknown interrupt type, log warning and clear
+                    Turnroot.Utilities.TurnrootLogger.Log(
+                        $"BattleSceneFlow: Unknown interrupt type {_queuedInterrupt}",
+                        Turnroot.Utilities.TurnrootLogger.LogLevel.Warning
+                    );
+                    CompleteInterrupt();
+                    break;
+            }
+        }
 
         public void HandlePreBattleTransitionToBattleCompleted() =>
             brain?.stateBrain?.HandlePreBattleTransitionToBattleCompleted();

@@ -2,6 +2,9 @@ using Turnroot.Gameplay.PlayerSettings;
 
 namespace Turnroot.Gameplay.Brain
 {
+    /// <summary>
+    /// Provides helper methods for retrieving player input settings such as cooldown times and control type preferences.
+    /// </summary>
     internal static class InputSettingsHelper
     {
         private const float KEYBOARD_BASE_COOLDOWN = 0.1f;

@@ -1,3 +1,4 @@
+using Turnroot.Characters;
 using Turnroot.GameSettings;
 using Turnroot.Utilities;
 
@@ -23,7 +24,7 @@ namespace Turnroot.Gameplay.Maps
         public int MaxRange { get; set; } = 1;
 
         public static PathfindingParameters FromCharacter(
-            Characters.CharacterInstance character,
+            CharacterInstance character,
             MapGrid graph,
             MapGridPoint start
         )
@@ -83,7 +84,7 @@ namespace Turnroot.Gameplay.Maps
                 return null;
             }
 
-            var movementType = classData.Identity.MovementType;
+            var movementType = character.GetEffectiveMovementType();
             var isMagic = classData.Identity.IsMagic;
 
             var movementStat = movementStatObj.CurrentInt;
@@ -105,7 +106,7 @@ namespace Turnroot.Gameplay.Maps
         }
 
         public static PathfindingParameters FromCharacterWithRange(
-            Characters.CharacterInstance character,
+            CharacterInstance character,
             MapGrid graph,
             MapGridPoint start
         )

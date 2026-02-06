@@ -6,6 +6,9 @@ using Turnroot.Utilities;
 
 namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 {
+    /// <summary>
+    /// Partial class containing support bonus calculation methods for adjacent ally combat bonuses.
+    /// </summary>
     public static partial class DamageCalculator
     {
         #region Support Bonuses

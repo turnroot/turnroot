@@ -4,6 +4,9 @@ using UnityEngine;
 
 namespace Turnroot.Skills.Components.Badges
 {
+    /// <summary>
+    /// A visual badge for skills that uses stacked images with accent colors derived from the skill's properties.
+    /// </summary>
     [Serializable]
     public class SkillBadge : StackedImage<Skill>
     {

@@ -3,6 +3,9 @@ using XNode;
 
 namespace Turnroot.Skills.Nodes.Conditions
 {
+    /// <summary>
+    /// Retrieves the number of turns the unit has survived in the current battle.
+    /// </summary>
     [CreateNodeMenu("Conditions/Counters/Turns Alive")]
     [NodeLabel("Gets the number of turns the unit has survived")]
     public class TurnsAliveNode : SkillNode

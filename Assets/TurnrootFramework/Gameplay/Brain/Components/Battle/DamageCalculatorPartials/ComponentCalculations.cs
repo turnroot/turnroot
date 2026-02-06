@@ -7,6 +7,9 @@ using UnityEngine;
 
 namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 {
+    /// <summary>
+    /// Partial class containing component-level damage calculation methods including base damage, defense, weapon triangle, and terrain bonuses.
+    /// </summary>
     public static partial class DamageCalculator
     {
         #region Component Calculations

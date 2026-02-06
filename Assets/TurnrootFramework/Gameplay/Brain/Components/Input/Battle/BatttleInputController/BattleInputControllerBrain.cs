@@ -11,6 +11,9 @@ using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain
 {
+    /// <summary>
+    /// Handles player input during battle, managing cursor navigation, unit selection, and action confirmations.
+    /// </summary>
     public partial class BattleInputControllerBrain : BrainComponent
     {
         #region Properties
@@ -33,6 +36,7 @@ namespace Turnroot.Gameplay.Brain
         private Dictionary<MapGridPoint, float> _validAttackTiles = new();
 
         private BattleInputActions _inputActions;
+        private GameObject _currentActionMenu;
 
         private float _lastInputTime;
         private float _cachedInputCooldown;
@@ -324,8 +328,8 @@ namespace Turnroot.Gameplay.Brain
                     Brain.cursorBrain.ClearAllowedPositions();
                     break;
                 case PlayerTurnStates.ChoosingAction:
-                    // After a move completed, Back undoes the move (handled by PlayerTurnFlow.HandlePlayerUndoAction)
-                    RequestUndo();
+                    // After a move completed, Back undoes the move
+                    HandleActionMenuBack();
                     break;
                 case PlayerTurnStates.AttackActionChosenChoosingTarget:
                     _playerTurnFlow.CancelTargetOrDestinationChoice(PlayerTurnStates.UnitSelected);

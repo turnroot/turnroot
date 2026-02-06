@@ -7,6 +7,9 @@ using UnityEngine.InputSystem;
 
 namespace Turnroot.UI.Components.RadialMenu
 {
+    /// <summary>
+    /// A circular radial menu with joystick/keyboard navigation and customizable layout settings.
+    /// </summary>
     [RequireComponent(typeof(CanvasGroup))]
     public partial class RadialMenu : MonoBehaviour
     {

@@ -28,21 +28,24 @@ namespace Turnroot.Characters
         }
 
         [field: SerializeField]
-        public List<DefaultBoundedStat> DefaultBoundedStats { get; } = new()
-        {
-            new DefaultBoundedStat
+        public List<DefaultBoundedStat> DefaultBoundedStats { get; } =
+            new()
             {
-                StatType = BoundedStatType.Health,
-                Max = 100,
-                Current = 100,
-                Min = 0,
-            },
-        };
+                new DefaultBoundedStat
+                {
+                    StatType = BoundedStatType.Health,
+                    Max = 100,
+                    Current = 100,
+                    Min = 0,
+                },
+            };
+
         [field: SerializeField]
-        public List<DefaultUnboundedStat> DefaultUnboundedStats { get; } = new()
-        {
-            new DefaultUnboundedStat { StatType = UnboundedStatType.Strength, Current = 10 },
-        };
+        public List<DefaultUnboundedStat> DefaultUnboundedStats { get; } =
+            new()
+            {
+                new DefaultUnboundedStat { StatType = UnboundedStatType.Strength, Current = 10 },
+            };
 
 #if UNITY_EDITOR
         private void OnValidate() => AutoPopulateMissingStats();
@@ -124,9 +127,6 @@ namespace Turnroot.Characters
         }
 #endif
 
-        /// <summary>
-        /// Creates a list of BoundedCharacterStat instances from the default configuration.
-        /// </summary>
         public List<BoundedCharacterStat> CreateBoundedStats()
         {
             var stats = new List<BoundedCharacterStat>();
@@ -144,9 +144,6 @@ namespace Turnroot.Characters
             return stats;
         }
 
-        /// <summary>
-        /// Creates a list of CharacterStat instances from the default configuration.
-        /// </summary>
         public List<CharacterStat> CreateUnboundedStats()
         {
             var stats = new List<CharacterStat>();

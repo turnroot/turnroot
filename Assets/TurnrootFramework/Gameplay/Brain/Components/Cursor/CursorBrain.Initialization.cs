@@ -5,9 +5,12 @@ using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain
 {
+    /// <summary>
+    /// Handles cursor initialization for battle and pre-battle contexts.
+    /// </summary>
     public partial class CursorBrain
     {
-        private static WaitForSeconds _waitForSeconds0_1 = new WaitForSeconds(0.1f);
+        private static WaitForSeconds _waitForSeconds0_1 = new(0.1f);
 
         #region Cursor Initialization
 

@@ -3,6 +3,9 @@ using UnityEngine;
 
 namespace Turnroot.Characters
 {
+    /// <summary>
+    /// Defines blendshape values for character model customization.
+    /// </summary>
     [Serializable]
     public struct CharacterModelBlendshapeSet
     {

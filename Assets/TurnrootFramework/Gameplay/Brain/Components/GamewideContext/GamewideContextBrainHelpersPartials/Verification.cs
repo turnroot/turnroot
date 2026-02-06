@@ -4,6 +4,9 @@ using Turnroot.Utilities;
 
 namespace Turnroot.Gameplay.Brain
 {
+    /// <summary>
+    /// Static partial class providing hash verification methods for payload and ledger integrity.
+    /// </summary>
     public static partial class GamewideContextBrainHelpers
     {
         #region Verification
@@ -15,7 +18,7 @@ namespace Turnroot.Gameplay.Brain
                 var recomputed = ComputeFNV1a64Hex(wrapper.Payload + "|v:" + wrapper.Version);
                 return string.Equals(recomputed, wrapper.Hash, StringComparison.OrdinalIgnoreCase);
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
                 // Hash verification failure likely means corrupted data
                 TurnrootLogger.Log(
@@ -52,7 +55,7 @@ namespace Turnroot.Gameplay.Brain
 
                 return string.Equals(stored, wrapper.Hash, StringComparison.OrdinalIgnoreCase);
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
                 // Ledger verification can fail with corrupted data - default to accepting
                 TurnrootLogger.Log(

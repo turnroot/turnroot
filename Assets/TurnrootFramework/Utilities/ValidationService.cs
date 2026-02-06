@@ -136,7 +136,7 @@ namespace Turnroot.Services
             ErrorMessage = errorMessage;
         }
 
-        public static ValidationResult Success() => new ValidationResult(true);
+        public static ValidationResult Success() => new(true);
 
         public static ValidationResult Failure(string errorMessage)
         {

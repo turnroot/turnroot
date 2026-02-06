@@ -3,6 +3,9 @@ using System.Collections.Generic;
 
 namespace Turnroot.Graphics2D.Tags
 {
+    /// <summary>
+    /// Defines the contract for layer tags used in stacked images, including name, order, mandatory status, and folder path.
+    /// </summary>
     public interface ILayerTag
     {
         string Name { get; }
@@ -11,6 +14,9 @@ namespace Turnroot.Graphics2D.Tags
         string FolderPath { get; }
     }
 
+    /// <summary>
+    /// Concrete implementation of a layer tag with name, order, mandatory flag, and folder path properties.
+    /// </summary>
     public class LayerTag : ILayerTag
     {
         public string Name { get; }

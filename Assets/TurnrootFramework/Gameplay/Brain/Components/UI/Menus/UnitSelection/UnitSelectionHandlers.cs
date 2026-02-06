@@ -8,6 +8,9 @@ using Coffee.UIEffects;
 
 namespace Turnroot.Gameplay.Brain.Segments
 {
+    /// <summary>
+    /// Handles unit selection and menu interactions for pre-battle setup.
+    /// </summary>
     public partial class UiBrain : BrainComponent
     {
         private void HandleUnitCellSelectionPreBattle(UnitCellGridMenuItem item)

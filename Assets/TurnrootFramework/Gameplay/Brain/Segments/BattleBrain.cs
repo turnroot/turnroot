@@ -23,7 +23,8 @@ namespace Turnroot.Gameplay.Brain
         [SerializeField, HideInInspector]
         private PlayerTeamRoster _playerTeamRoster;
 
-        private TurnRotisserie _turnRotisserie;
+        [HideInInspector]
+        public TurnRotisserie turnRotisserie;
 
         [HideInInspector]
         public PlayerTurnFlow playerTurnFlow;
@@ -40,7 +41,7 @@ namespace Turnroot.Gameplay.Brain
         public BattleGameObject BattleObject { get; private set; }
         public Combat.PreBattle.BattlePreparationObject PreparationObject { get; private set; }
 
-        public CharacterInstance ActiveUnit => _turnRotisserie.GetActiveUnit();
+        public CharacterInstance ActiveUnit => turnRotisserie.GetActiveUnit();
 
         public int CurrentTurnNumber { get; private set; } = 0;
 
@@ -53,8 +54,6 @@ namespace Turnroot.Gameplay.Brain
         #endregion
 
         #region Roster Accessors
-
-        // Roster accessors through BattleGameObject
         public PlayerTeamRosterInstance PlayerTeamRoster =>
             BattleObject != null ? BattleObject.PlayerTeamRoster : null;
 
@@ -72,10 +71,10 @@ namespace Turnroot.Gameplay.Brain
         {
             base.Awake();
 
-            _turnRotisserie = GetComponent<TurnRotisserie>();
-            if (_turnRotisserie != null)
+            turnRotisserie = GetComponent<TurnRotisserie>();
+            if (turnRotisserie != null)
             {
-                _turnRotisserie.BindToBattleBrain(this);
+                turnRotisserie.BindToBattleBrain(this);
             }
             playerTurnFlow = GetComponent<PlayerTurnFlow>();
             playerTurnFlow.Intialize();
@@ -83,7 +82,6 @@ namespace Turnroot.Gameplay.Brain
 
         private void Start()
         {
-            // Safe to access Brain.gamewideContextBrain here - all Awakes have completed
             if (
                 Brain.gamewideContextBrain != null
                 && Brain.gamewideContextBrain.GamewidePersistentPlayerRoster == null
@@ -204,7 +202,6 @@ namespace Turnroot.Gameplay.Brain
                 int lastSaved = gw.GetSavedPlayerRosterLastBattleTurn();
                 if (lastSaved <= 1)
                 {
-                    // SavePlayerRoster should handle its own errors and return OperationResult
                     gw.SavePlayerRoster(lastSavedBattleTurn: 1);
                 }
             }
@@ -241,16 +238,14 @@ namespace Turnroot.Gameplay.Brain
                 if (inst != null)
                 {
                     inst.LastAttackedTarget = null;
-                    ClearLastAttacker(BattleObject?.Context, inst);
+                    ClearLastAttacker(BattleObject.Context, inst);
                 }
             }
 
-            // Clear central last-attacker mapping in the context
-            Brain.battleBrain?.BattleObject?.Context?.ClearLastAttackHistory();
+            Brain.battleBrain.BattleObject.Context.ClearLastAttackHistory();
 
-            // Reset precompute loader so it can run in the next battle
             var precomputeLoader =
-                UnityEngine.Object.FindFirstObjectByType<Turnroot.Gameplay.Combat.Precompute.BattlePrecomputeLoader>();
+                FindFirstObjectByType<Combat.Precompute.BattlePrecomputeLoader>();
             if (precomputeLoader != null)
             {
                 precomputeLoader.ResetPrecomputeFlag();
@@ -304,8 +299,6 @@ namespace Turnroot.Gameplay.Brain
                 return result;
             }
 
-            // Populate the battle context participants *before* spawning units so commands that run during spawn
-            // can reliably find instances in the context (avoids race conditions where participants are empty).
             var populateResult = PopulateBattleContextParticipants();
             if (!populateResult.Success)
             {
@@ -335,12 +328,10 @@ namespace Turnroot.Gameplay.Brain
 
             var context = BattleObject.Context;
 
-            // Clear existing
             context.Participants.Targets.Clear();
             context.Participants.Allies.Clear();
             context.Participants.ThirdParty.Clear();
 
-            // Populate from rosters (BattleBrain owns these)
             foreach (var unit in PlayerTeamRoster.Instances)
             {
                 if (!unit.IsDefeatedInCurrentBattle)
@@ -380,7 +371,6 @@ namespace Turnroot.Gameplay.Brain
             }
             var playerTeamRoster = BattleObject.PlayerTeamRoster;
 
-            // 1. Spawn enemy units (iterate runtime placements)
             foreach (var p in enemyRoster.GetPlacements())
             {
                 var characterData = p.CharacterData;
@@ -390,7 +380,6 @@ namespace Turnroot.Gameplay.Brain
                 enemyRoster.SetOrder(characterData, placement.Order);
             }
 
-            // 2. Spawn third-party units, if needed
             if (BattleObject.HasThirdParty)
             {
                 var thirdPartyRoster = BattleObject.ThirdPartyTeamRoster;
@@ -407,7 +396,6 @@ namespace Turnroot.Gameplay.Brain
                 }
             }
 
-            // 3. Spawn player team units
             foreach (var p in playerTeamRoster.GetPlacements())
             {
                 var characterData = p.CharacterData;
@@ -426,7 +414,7 @@ namespace Turnroot.Gameplay.Brain
 
         public void ProgressTurnOrder()
         {
-            if (!_turnRotisserie.Progress())
+            if (!turnRotisserie.Progress())
             {
                 TurnrootLogger.Log(
                     "BattleBrain: Failed to progress turn order!",
@@ -441,22 +429,22 @@ namespace Turnroot.Gameplay.Brain
         public GenericRosterInstance InstantiateGenericRoster(
             GenericRoster roster,
             bool register = false
-        ) => Brain.gamewideContextBrain?.GetOrCreateGenericRoster(roster, register);
+        ) => Brain.gamewideContextBrain.GetOrCreateGenericRoster(roster, register);
 
         public PlayerTeamRosterInstance InstantiatePlayerTeamRoster() =>
-            Brain.gamewideContextBrain?.GetOrCreatePlayerTeamRoster(_playerTeamRoster);
+            Brain.gamewideContextBrain.GetOrCreatePlayerTeamRoster(_playerTeamRoster);
 
         public void RecallGenericRosters(List<GenericRoster> rosters) =>
-            Brain.gamewideContextBrain?.RecallGenericRosters(rosters);
+            Brain.gamewideContextBrain.RecallGenericRosters(rosters);
 
         public CharacterInstance FindInstanceByTemplate(CharacterData template) =>
-            Brain.gamewideContextBrain?.FindInstanceByTemplate(template);
+            Brain.gamewideContextBrain.FindInstanceByTemplate(template);
 
         public List<CharacterInstance> GetAllActiveInstances() =>
-            Brain.gamewideContextBrain?.GetAllActiveInstances();
+            Brain.gamewideContextBrain.GetAllActiveInstances();
 
         public void SaveUniqueCharacterProgress(CharacterInstance instance) =>
-            Brain.gamewideContextBrain?.SaveUniqueCharacterProgress(instance);
+            Brain.gamewideContextBrain.SaveUniqueCharacterProgress(instance);
 
         #endregion
 

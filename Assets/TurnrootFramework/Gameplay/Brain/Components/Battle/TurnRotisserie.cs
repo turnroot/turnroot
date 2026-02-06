@@ -30,6 +30,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
         private Brain.Brain Brain => battleBrain?.Brain;
         private BattleContext Context => battleBrain?.BattleObject?.Context;
+        private Utilities.AbstractScripts.BattleSceneFlow _sceneFlow;
 
         #endregion
 
@@ -47,20 +48,27 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
         private void OnDestroy()
         {
+            CleanupBattle();
+        }
+
+        /// <summary>
+        /// Cleanup method to be called when battle ends.
+        /// Unsubscribes from events and clears cached references.
+        /// </summary>
+        public void CleanupBattle()
+        {
             if (Brain != null)
             {
                 Brain.OnPlayerTurnEnded -= HandlePlayerTurnCompleted;
                 Brain.OnEndTurnCompleted -= HandlePlayerActionCompleted;
             }
+            _sceneFlow = null;
         }
 
         private void HandlePlayerActionCompleted(CharacterInstance unit)
         {
             // If the active player chose to Wait or explicitly EndTurn, advance the rotisserie.
-            if (
-                _currentTurnOrder == TurnOrder.PlayerStart
-                || _currentTurnOrder == TurnOrder.PlayerEnd
-            )
+            if (_currentTurnOrder is TurnOrder.PlayerStart or TurnOrder.PlayerEnd)
             {
                 var active = GetActiveUnit();
                 if (active != null && active == unit)
@@ -85,6 +93,10 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
             Brain.OnPlayerTurnEnded += HandlePlayerTurnCompleted;
             Brain.OnEndTurnCompleted += HandlePlayerActionCompleted;
+
+            // Cache scene flow reference for interrupt coordination
+            _sceneFlow = FindFirstObjectByType<Utilities.AbstractScripts.BattleSceneFlow>();
+
             return OperationResult.Successful();
         }
 
@@ -239,10 +251,14 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             switch (_currentTurnOrder)
             {
                 case TurnOrder.PlayerStart:
+                    // Notify scene flow that player turn is beginning (for interrupt system)
+                    _sceneFlow?.InitializeMiniBattleState();
                     battleBrain.playerTurnFlow.StartPlayerTurn();
                     break;
                 case TurnOrder.PlayerEnd:
                     Brain.PublishPlayerTurnEnded();
+                    // Notify scene flow to progress (handles interrupts before next phase)
+                    _sceneFlow?.ProgressMiniBattleState();
                     break;
                 case TurnOrder.EnemyStart:
                     Brain.PublishEnemyTurnStarted();

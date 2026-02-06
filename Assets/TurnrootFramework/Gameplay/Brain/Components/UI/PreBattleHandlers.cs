@@ -11,6 +11,9 @@ using Coffee.UIEffects;
 
 namespace Turnroot.Gameplay.Brain.Segments
 {
+    /// <summary>
+    /// Partial class containing pre-battle UI handlers, menu transitions, and unit selection logic.
+    /// </summary>
     public partial class UiBrain : BrainComponent
     {
         public OperationResult HandlePreBattleUi()

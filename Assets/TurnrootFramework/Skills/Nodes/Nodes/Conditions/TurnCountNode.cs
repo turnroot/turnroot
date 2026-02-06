@@ -3,6 +3,9 @@ using XNode;
 
 namespace Turnroot.Skills.Nodes.Conditions
 {
+    /// <summary>
+    /// Retrieves the current turn number in the battle.
+    /// </summary>
     [CreateNodeMenu("Conditions/Counters/Turn Count")]
     [NodeLabel("Gets the current turn count")]
     public class TurnCountNode : SkillNode

@@ -3,6 +3,9 @@ using UnityEngine;
 
 namespace Turnroot.Characters.CharacterClass
 {
+    /// <summary>
+    /// Custom property drawer for StatModifier that displays the stat type name as the label.
+    /// </summary>
     [CustomPropertyDrawer(typeof(StatModifier))]
     public class StatModifierDrawer : PropertyDrawer
     {
@@ -24,6 +27,9 @@ namespace Turnroot.Characters.CharacterClass
             EditorGUIUtility.singleLineHeight;
     }
 
+    /// <summary>
+    /// Custom property drawer for UnboundedStatModifier that displays the stat type name as the label.
+    /// </summary>
     [CustomPropertyDrawer(typeof(UnboundedStatModifier))]
     public class UnboundedStatModifierDrawer : PropertyDrawer
     {

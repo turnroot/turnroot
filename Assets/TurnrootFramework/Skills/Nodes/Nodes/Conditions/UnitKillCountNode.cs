@@ -3,6 +3,9 @@ using XNode;
 
 namespace Turnroot.Skills.Nodes.Conditions
 {
+    /// <summary>
+    /// Retrieves the total number of enemies defeated by the unit.
+    /// </summary>
     [CreateNodeMenu("Conditions/Unit/Kill Count")]
     [NodeLabel("Gets the unit's kill count")]
     public class UnitKillCountNode : SkillNode

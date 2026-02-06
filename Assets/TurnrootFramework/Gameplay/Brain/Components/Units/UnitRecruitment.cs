@@ -5,6 +5,9 @@ using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain
 {
+    /// <summary>
+    /// Handles character recruitment system, including recruitability overrides, recruitment chances, and support requirements.
+    /// </summary>
     [RequireComponent(typeof(LongTermMemory))]
     public partial class CharactersBrain : BrainComponent
     {

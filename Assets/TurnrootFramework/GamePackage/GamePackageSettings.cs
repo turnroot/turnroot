@@ -7,6 +7,9 @@ using UnityEngine;
 
 namespace Turnroot.GamePackage
 {
+    /// <summary>
+    /// Represents a credit entry for a game contributor.
+    /// </summary>
     [Serializable]
     public struct Credits
     {
@@ -14,6 +17,9 @@ namespace Turnroot.GamePackage
         public string name;
     }
 
+    /// <summary>
+    /// Represents a game studio or publisher with name and logo.
+    /// </summary>
     [Serializable]
     public struct Studio
     {
@@ -21,6 +27,9 @@ namespace Turnroot.GamePackage
         public Sprite logo;
     }
 
+    /// <summary>
+    /// Represents a graphics asset pack used in the game with attribution.
+    /// </summary>
     [Serializable]
     public struct GraphicsPack
     {
@@ -28,6 +37,9 @@ namespace Turnroot.GamePackage
         public string packCreator;
     }
 
+    /// <summary>
+    /// Central configuration for game package metadata, credits, modules, versioning, and platform settings.
+    /// </summary>
     [CreateAssetMenu(
         fileName = "GamePackageSettings",
         menuName = "Turnroot/Game Settings/Game Package Settings"

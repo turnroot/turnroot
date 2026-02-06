@@ -5,6 +5,9 @@ using UnityEngine;
 
 namespace Turnroot.Skills.Nodes.Events
 {
+    /// <summary>
+    /// Teleports an ally to the caster's position or vice versa.
+    /// </summary>
     [CreateNodeMenu("Events/Neutral/Warp")]
     [NodeLabel("Teleport ally to caster's position")]
     public class WarpNode : SkillNode
@@ -66,6 +69,9 @@ namespace Turnroot.Skills.Nodes.Events
         }
     }
 
+    /// <summary>
+    /// Defines the direction of teleportation for the warp effect.
+    /// </summary>
     public enum WarpMode
     {
         AllyToCaster,

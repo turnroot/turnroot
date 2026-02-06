@@ -4,6 +4,9 @@ using UnityEngine;
 
 namespace Turnroot.Skills.Nodes.Events
 {
+    /// <summary>
+    /// Breaks the target enemy's equipped weapon.
+    /// </summary>
     [CreateNodeMenu("Events/Offensive/Break Weapon")]
     [NodeLabel("Break enemy's equipped weapon")]
     public class BreakWeaponNode : SkillNode

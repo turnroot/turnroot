@@ -2,6 +2,9 @@ using UnityEngine;
 
 namespace Turnroot.Characters.Stats
 {
+    /// <summary>
+    /// Represents an unbounded character stat such as Strength, Speed, or Luck.
+    /// </summary>
     [System.Serializable]
     public class CharacterStat : BaseCharacterStat
     {

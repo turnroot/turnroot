@@ -6,6 +6,9 @@ using UnityEngine;
 
 namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 {
+    /// <summary>
+    /// Partial class containing AI goal evaluation and situational behavior modification logic for battle context.
+    /// </summary>
     public partial class BattleContextAIHelper
     {
         private void ChooseEvaluations(List<AIGoal> potentialGoals)

@@ -4,6 +4,9 @@ using UnityEngine;
 
 namespace Turnroot.Conversations
 {
+    /// <summary>
+    /// Base conversation data with dialogue text and pronoun parsing.
+    /// </summary>
     [System.Serializable]
     public class BaseConversation
     {

@@ -4,6 +4,9 @@ using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain
 {
+    /// <summary>
+    /// Handles cursor movement, navigation, and position updates.
+    /// </summary>
     public partial class CursorBrain
     {
         #region Cursor Movement API

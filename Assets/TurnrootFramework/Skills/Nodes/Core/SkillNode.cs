@@ -363,21 +363,33 @@ namespace Turnroot.Skills.Nodes
         #endregion
     }
 
+    /// <summary>
+    /// Represents the execution flow connection between skill nodes.
+    /// </summary>
     [Serializable]
     public struct ExecutionFlow { }
 
+    /// <summary>
+    /// Wraps a boolean value for passing between skill nodes.
+    /// </summary>
     [Serializable]
     public struct BoolValue
     {
         public bool value;
     }
 
+    /// <summary>
+    /// Wraps a float value for passing between skill nodes.
+    /// </summary>
     [Serializable]
     public struct FloatValue
     {
         public float value;
     }
 
+    /// <summary>
+    /// Wraps a string value for passing between skill nodes.
+    /// </summary>
     [Serializable]
     public struct StringValue
     {

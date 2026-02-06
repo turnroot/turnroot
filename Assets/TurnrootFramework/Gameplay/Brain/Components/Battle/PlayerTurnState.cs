@@ -2,6 +2,9 @@ using Turnroot.Utilities;
 
 namespace Turnroot.Gameplay.Brain.Components.Battle
 {
+    /// <summary>
+    /// Defines the possible states during a player-controlled unit's turn in battle.
+    /// </summary>
     public enum PlayerTurnStates
     {
         Inactive,
@@ -29,174 +32,139 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
         TurnEnded,
     }
 
+    /// <summary>
+    /// Manages state transitions for player turn flow with validation and tracking of previous states.
+    /// </summary>
     public class PlayerTurnState
     {
         public PlayerTurnStates CurrentState { get; set; } = PlayerTurnStates.Inactive;
-
         public PlayerTurnStates PreviousState { get; private set; } = PlayerTurnStates.Inactive;
+
+        // Define valid transitions as a static table for clarity and maintainability
+        private static readonly System.Collections.Generic.Dictionary<
+            PlayerTurnStates,
+            System.Collections.Generic.HashSet<PlayerTurnStates>
+        > ValidTransitions = new()
+        {
+            [PlayerTurnStates.Inactive] = new() { PlayerTurnStates.NoUnitSelected },
+            [PlayerTurnStates.NoUnitSelected] = new() { PlayerTurnStates.UnitSelected },
+            [PlayerTurnStates.UnitSelected] = new()
+            {
+                PlayerTurnStates.NoUnitSelected,
+                PlayerTurnStates.ChoosingDestination,
+                PlayerTurnStates.DestinationSelected,
+                PlayerTurnStates.WaitActionChosen,
+                PlayerTurnStates.AttackActionChosenChoosingTarget,
+                PlayerTurnStates.UseItemActionChosenChoosingItem,
+                PlayerTurnStates.HealActionChosenChoosingTarget,
+                PlayerTurnStates.TalkActionChosenChoosingTarget,
+                PlayerTurnStates.TradeActionChosenChoosingTarget,
+            },
+            [PlayerTurnStates.ChoosingDestination] = new()
+            {
+                PlayerTurnStates.UnitSelected,
+                PlayerTurnStates.DestinationSelected,
+            },
+            [PlayerTurnStates.DestinationSelected] = new()
+            {
+                PlayerTurnStates.ChoosingDestination,
+                PlayerTurnStates.ExecutingMove,
+                PlayerTurnStates.ChoosingAction,
+                PlayerTurnStates.ConfirmAction,
+            },
+            [PlayerTurnStates.ExecutingMove] = new() { PlayerTurnStates.ChoosingAction },
+            [PlayerTurnStates.ChoosingAction] = new()
+            {
+                PlayerTurnStates.WaitActionChosen,
+                PlayerTurnStates.AttackActionChosenChoosingTarget,
+                PlayerTurnStates.UseItemActionChosenChoosingItem,
+                PlayerTurnStates.HealActionChosenChoosingTarget,
+                PlayerTurnStates.TalkActionChosenChoosingTarget,
+                PlayerTurnStates.TradeActionChosenChoosingTarget,
+            },
+            [PlayerTurnStates.WaitActionChosen] = new()
+            {
+                PlayerTurnStates.UnitSelected,
+                PlayerTurnStates.TurnEnded,
+            },
+            [PlayerTurnStates.AttackActionChosenChoosingTarget] = new()
+            {
+                PlayerTurnStates.UnitSelected,
+                PlayerTurnStates.AttackActionChosenTargetSelected,
+            },
+            [PlayerTurnStates.AttackActionChosenTargetSelected] = new()
+            {
+                PlayerTurnStates.AttackActionChosenChoosingTarget,
+                PlayerTurnStates.ConfirmAction,
+            },
+            [PlayerTurnStates.UseItemActionChosenChoosingItem] = new()
+            {
+                PlayerTurnStates.UnitSelected,
+                PlayerTurnStates.UseItemActionChosenItemSelected,
+            },
+            [PlayerTurnStates.UseItemActionChosenItemSelected] = new()
+            {
+                PlayerTurnStates.UseItemActionChosenChoosingItem,
+                PlayerTurnStates.ConfirmAction,
+            },
+            [PlayerTurnStates.HealActionChosenChoosingTarget] = new()
+            {
+                PlayerTurnStates.UnitSelected,
+                PlayerTurnStates.HealActionChosenTargetSelected,
+            },
+            [PlayerTurnStates.HealActionChosenTargetSelected] = new()
+            {
+                PlayerTurnStates.HealActionChosenChoosingTarget,
+                PlayerTurnStates.ConfirmAction,
+            },
+            [PlayerTurnStates.TalkActionChosenChoosingTarget] = new()
+            {
+                PlayerTurnStates.UnitSelected,
+                PlayerTurnStates.TalkActionChosenTargetSelected,
+            },
+            [PlayerTurnStates.TalkActionChosenTargetSelected] = new()
+            {
+                PlayerTurnStates.TalkActionChosenChoosingTarget,
+                PlayerTurnStates.ConfirmAction,
+            },
+            [PlayerTurnStates.TradeActionChosenChoosingTarget] = new()
+            {
+                PlayerTurnStates.UnitSelected,
+                PlayerTurnStates.TradeActionChosenTargetSelected,
+            },
+            [PlayerTurnStates.TradeActionChosenTargetSelected] = new()
+            {
+                PlayerTurnStates.TradeActionChosenChoosingTarget,
+                PlayerTurnStates.ConfirmAction,
+            },
+            [PlayerTurnStates.ConfirmAction] = new()
+            {
+                PlayerTurnStates.UnitSelected,
+                PlayerTurnStates.ExecutingAction,
+            },
+            [PlayerTurnStates.ExecutingAction] = new()
+            {
+                PlayerTurnStates.UnitSelected,
+                PlayerTurnStates.TurnEnded,
+            },
+        };
 
         public OperationResult TransitionToState(PlayerTurnStates newState)
         {
-            // Valid transitions:
-            // 1. Inactive -> NoUnitSelected. This occurs when the player's turn begins.
-            // 2. NoUnitSelected -> UnitSelected. The player has chosen a unit but not an action.
-            // 3. UnitSelected -> NoUnitSelected. The player has deselected the unit.
-            // 4. UnitSelected -> DestinationSelected or ChoosingDestination: the player chose a tile directly or entered destination choosing mode.
-            // 5. DestinationSelected -> ExecutingMove: move command issued; wait for move/animation.
-            // 6. ExecutingMove -> ChoosingAction: when move has finished, player picks action from new location.
-            // 7. ChoosingAction -> action-specific choosing states (Attack/Heal/UseItem/Wait/etc.).
-            // 8. Any action-chosen-target-selected -> ConfirmAction. The player has confirmed their action.
-            // 9. ConfirmAction -> ExecutingAction. The player's command executes and animations/effects play while input is locked.
-            // 10. ExecutingAction -> TurnEnded or UnitSelected depending on follow-up rules (canto, extra action, etc.).
-            // 11. Wait ActionChosen -> TurnEnded. The player has chosen to wait and end their turn.
-            PreviousState = CurrentState;
-            bool allowed = (CurrentState, newState) switch
+            // Check if transition is valid using the table
+            if (
+                !ValidTransitions.TryGetValue(CurrentState, out var allowedStates)
+                || !allowedStates.Contains(newState)
+            )
             {
-                (PlayerTurnStates.Inactive, PlayerTurnStates.NoUnitSelected) => true,
-
-                (PlayerTurnStates.NoUnitSelected, PlayerTurnStates.UnitSelected) => true,
-
-                (PlayerTurnStates.UnitSelected, PlayerTurnStates.NoUnitSelected) => true,
-
-                (PlayerTurnStates.UnitSelected, PlayerTurnStates.ChoosingDestination) => true,
-                // Allow entering action selection from the ChoosingAction state (post-move)
-                (PlayerTurnStates.ChoosingAction, PlayerTurnStates.WaitActionChosen) => true,
-                (
-                    PlayerTurnStates.ChoosingAction,
-                    PlayerTurnStates.AttackActionChosenChoosingTarget
-                ) => true,
-                (
-                    PlayerTurnStates.ChoosingAction,
-                    PlayerTurnStates.UseItemActionChosenChoosingItem
-                ) => true,
-                (
-                    PlayerTurnStates.ChoosingAction,
-                    PlayerTurnStates.HealActionChosenChoosingTarget
-                ) => true,
-                (
-                    PlayerTurnStates.ChoosingAction,
-                    PlayerTurnStates.TalkActionChosenChoosingTarget
-                ) => true,
-                (
-                    PlayerTurnStates.ChoosingAction,
-                    PlayerTurnStates.TradeActionChosenChoosingTarget
-                ) => true,
-                (PlayerTurnStates.UnitSelected, PlayerTurnStates.DestinationSelected) => true,
-                (PlayerTurnStates.UnitSelected, PlayerTurnStates.WaitActionChosen) => true,
-                (
-                    PlayerTurnStates.UnitSelected,
-                    PlayerTurnStates.AttackActionChosenChoosingTarget
-                ) => true,
-                (PlayerTurnStates.UnitSelected, PlayerTurnStates.UseItemActionChosenChoosingItem) =>
-                    true,
-                (PlayerTurnStates.UnitSelected, PlayerTurnStates.HealActionChosenChoosingTarget) =>
-                    true,
-                (PlayerTurnStates.UnitSelected, PlayerTurnStates.TalkActionChosenChoosingTarget) =>
-                    true,
-                (PlayerTurnStates.UnitSelected, PlayerTurnStates.TradeActionChosenChoosingTarget) =>
-                    true,
-
-                (PlayerTurnStates.ChoosingDestination, PlayerTurnStates.UnitSelected) => true,
-                (PlayerTurnStates.DestinationSelected, PlayerTurnStates.ExecutingMove) => true,
-                (PlayerTurnStates.DestinationSelected, PlayerTurnStates.ChoosingAction) => true,
-                (PlayerTurnStates.WaitActionChosen, PlayerTurnStates.UnitSelected) => true,
-                (
-                    PlayerTurnStates.AttackActionChosenChoosingTarget,
-                    PlayerTurnStates.UnitSelected
-                ) => true,
-                (PlayerTurnStates.UseItemActionChosenChoosingItem, PlayerTurnStates.UnitSelected) =>
-                    true,
-                (PlayerTurnStates.HealActionChosenChoosingTarget, PlayerTurnStates.UnitSelected) =>
-                    true,
-                (PlayerTurnStates.TalkActionChosenChoosingTarget, PlayerTurnStates.UnitSelected) =>
-                    true,
-                (PlayerTurnStates.TradeActionChosenChoosingTarget, PlayerTurnStates.UnitSelected) =>
-                    true,
-
-                (PlayerTurnStates.ChoosingDestination, PlayerTurnStates.DestinationSelected) =>
-                    true,
-                (
-                    PlayerTurnStates.AttackActionChosenChoosingTarget,
-                    PlayerTurnStates.AttackActionChosenTargetSelected
-                ) => true,
-                (
-                    PlayerTurnStates.UseItemActionChosenChoosingItem,
-                    PlayerTurnStates.UseItemActionChosenItemSelected
-                ) => true,
-                (
-                    PlayerTurnStates.HealActionChosenChoosingTarget,
-                    PlayerTurnStates.HealActionChosenTargetSelected
-                ) => true,
-                (
-                    PlayerTurnStates.TalkActionChosenChoosingTarget,
-                    PlayerTurnStates.TalkActionChosenTargetSelected
-                ) => true,
-                (
-                    PlayerTurnStates.TradeActionChosenChoosingTarget,
-                    PlayerTurnStates.TradeActionChosenTargetSelected
-                ) => true,
-
-                (PlayerTurnStates.DestinationSelected, PlayerTurnStates.ConfirmAction) => true,
-                (
-                    PlayerTurnStates.AttackActionChosenTargetSelected,
-                    PlayerTurnStates.ConfirmAction
-                ) => true,
-                (
-                    PlayerTurnStates.UseItemActionChosenItemSelected,
-                    PlayerTurnStates.ConfirmAction
-                ) => true,
-                (PlayerTurnStates.HealActionChosenTargetSelected, PlayerTurnStates.ConfirmAction) =>
-                    true,
-                (PlayerTurnStates.TalkActionChosenTargetSelected, PlayerTurnStates.ConfirmAction) =>
-                    true,
-                (
-                    PlayerTurnStates.TradeActionChosenTargetSelected,
-                    PlayerTurnStates.ConfirmAction
-                ) => true,
-
-                (PlayerTurnStates.DestinationSelected, PlayerTurnStates.ChoosingDestination) =>
-                    true,
-                (
-                    PlayerTurnStates.AttackActionChosenTargetSelected,
-                    PlayerTurnStates.AttackActionChosenChoosingTarget
-                ) => true,
-                (
-                    PlayerTurnStates.UseItemActionChosenItemSelected,
-                    PlayerTurnStates.UseItemActionChosenChoosingItem
-                ) => true,
-                (
-                    PlayerTurnStates.HealActionChosenTargetSelected,
-                    PlayerTurnStates.HealActionChosenChoosingTarget
-                ) => true,
-                (
-                    PlayerTurnStates.TalkActionChosenTargetSelected,
-                    PlayerTurnStates.TalkActionChosenChoosingTarget
-                ) => true,
-                (
-                    PlayerTurnStates.TradeActionChosenTargetSelected,
-                    PlayerTurnStates.TradeActionChosenChoosingTarget
-                ) => true,
-
-                (PlayerTurnStates.ConfirmAction, PlayerTurnStates.ExecutingAction) => true,
-                (PlayerTurnStates.ExecutingAction, PlayerTurnStates.TurnEnded) => true,
-                (PlayerTurnStates.ExecutingAction, PlayerTurnStates.UnitSelected) => true,
-                (PlayerTurnStates.ConfirmAction, PlayerTurnStates.UnitSelected) => true,
-                (PlayerTurnStates.ExecutingMove, PlayerTurnStates.ChoosingAction) => true,
-
-                (PlayerTurnStates.WaitActionChosen, PlayerTurnStates.TurnEnded) => true,
-
-                _ => false,
-            };
-
-            if (allowed)
-            {
-                CurrentState = newState;
-                return OperationResult.Successful();
+                return OperationResult.Failure(
+                    $"Invalid state transition from {CurrentState} to {newState}"
+                );
             }
 
-            return OperationResult.Failure(
-                $"Invalid state transition from {CurrentState} to {newState}"
-            );
+            PreviousState = CurrentState;
+            CurrentState = newState;
+            return OperationResult.Successful();
         }
     }
 }

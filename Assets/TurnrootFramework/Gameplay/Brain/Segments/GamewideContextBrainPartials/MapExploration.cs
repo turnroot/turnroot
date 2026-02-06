@@ -5,6 +5,9 @@ using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain
 {
+    /// <summary>
+    /// Partial class managing map exploration status tracking and persistence.
+    /// </summary>
     public partial class GamewideContextBrain
     {
         #region Map Exploration Management
@@ -39,15 +42,6 @@ namespace Turnroot.Gameplay.Brain
 
         public void SaveMapExplorationStatus()
         {
-            if (_ltm == null || MapExplorationStatuses == null)
-            {
-                TurnrootLogger.Log(
-                    "SaveMapExplorationStatus: No LTM available or no statuses to save",
-                    TurnrootLogger.LogLevel.Warning
-                );
-                return;
-            }
-
             foreach (var status in MapExplorationStatuses)
             {
                 SaveMapExplorationStatus(status);
@@ -60,15 +54,6 @@ namespace Turnroot.Gameplay.Brain
             {
                 TurnrootLogger.Log(
                     "SaveMapExplorationStatus: partial must have a valid map with MapName",
-                    TurnrootLogger.LogLevel.Warning
-                );
-                return;
-            }
-
-            if (_ltm == null)
-            {
-                TurnrootLogger.Log(
-                    "SaveMapExplorationStatus: No LongTermMemory component available",
                     TurnrootLogger.LogLevel.Warning
                 );
                 return;
@@ -90,11 +75,6 @@ namespace Turnroot.Gameplay.Brain
 
         public void PopulateMapExplorationStatusesFromLtm()
         {
-            if (_ltm == null)
-            {
-                return;
-            }
-
             var keys = _ltm.RecallKeysByPrefix(LtmKeys.ExploredPartial);
             if (keys == null)
             {

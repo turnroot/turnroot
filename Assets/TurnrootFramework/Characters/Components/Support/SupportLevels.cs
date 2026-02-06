@@ -3,6 +3,9 @@ using Turnroot.CommonAncestors;
 
 namespace Turnroot.Characters.Subclasses
 {
+    /// <summary>
+    /// Represents support relationship levels using a letter-based ranking system (E-S).
+    /// </summary>
     [Serializable]
     public class SupportLevels : LeveledLetteredField
     {

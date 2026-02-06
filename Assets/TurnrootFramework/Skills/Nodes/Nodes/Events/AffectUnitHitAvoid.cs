@@ -4,6 +4,9 @@ using UnityEngine;
 
 namespace Turnroot.Skills.Nodes.Events
 {
+    /// <summary>
+    /// Modifies the hit and avoid stat values on the executing unit.
+    /// </summary>
     [CreateNodeMenu("Events/Neutral/Affect Unit Hit|Avoid")]
     [NodeLabel("Modifies hit/avoid value on the executing unit")]
     public class AffectUnitHitAvoid : SkillNode

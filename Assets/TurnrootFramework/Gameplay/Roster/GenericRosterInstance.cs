@@ -1,7 +1,7 @@
 namespace Turnroot.Characters
 {
     /// <summary>
-    /// Runtime component that holds the runtime instances for a `Roster` ScriptableObject.
+    /// Runtime instance manager for generic roster (enemy units, NPCs, etc.).
     /// </summary>
     public class GenericRosterInstance : RosterInstance<GenericRoster> { }
 }

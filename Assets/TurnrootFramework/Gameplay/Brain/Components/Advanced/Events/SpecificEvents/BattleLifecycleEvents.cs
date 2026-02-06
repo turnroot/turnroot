@@ -19,6 +19,9 @@ namespace Turnroot.Gameplay.Brain.Events
     /// </summary>
     public class BattleEndedEvent : BattleEvent
     {
+        /// <summary>
+        /// Represents the possible outcomes of a battle.
+        /// </summary>
         public enum BattleResult
         {
             Victory,

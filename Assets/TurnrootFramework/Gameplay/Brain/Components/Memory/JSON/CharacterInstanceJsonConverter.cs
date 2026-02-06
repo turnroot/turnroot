@@ -16,6 +16,9 @@ namespace Turnroot.Gameplay.Brain.Components
             BindingFlags.Instance | BindingFlags.NonPublic;
 
         // Field name constants
+        /// <summary>
+        /// Constants for CharacterInstance field names used during serialization.
+        /// </summary>
         private static class FieldNames
         {
             public const string Id = "_id";
@@ -60,10 +63,7 @@ namespace Turnroot.Gameplay.Brain.Components
             JsonSerializer serializer
         )
         {
-            var token = new JObject
-            {
-                [FieldNames.Id] = instance.Id
-            };
+            var token = new JObject { [FieldNames.Id] = instance.Id };
 
             var templateToken = CreateTemplateToken(instance.CharacterTemplate);
             token[FieldNames.CharacterTemplate] =

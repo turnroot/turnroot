@@ -3,6 +3,9 @@ using UnityEngine;
 
 namespace Turnroot.Gameplay.Combat.FundamentalComponents
 {
+    /// <summary>
+    /// Defines an experience rank category for character progression (e.g., weapon types, skills).
+    /// </summary>
     [System.Serializable]
     public class ExperienceType
     {

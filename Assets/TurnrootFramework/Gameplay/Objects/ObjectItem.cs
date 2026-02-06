@@ -9,6 +9,9 @@ using UnityEngine;
 
 namespace Turnroot.Gameplay.Objects
 {
+    /// <summary>
+    /// Defines a forging recipe to transform one item into another with required price and materials.
+    /// </summary>
     [System.Serializable]
     public struct ForgeOption
     {
@@ -25,6 +28,9 @@ namespace Turnroot.Gameplay.Objects
         public int ItemAmount;
     }
 
+    /// <summary>
+    /// Represents a gameplay item template with properties for weapons, consumables, gifts, and equipment.
+    /// </summary>
     [CreateAssetMenu(fileName = "ObjectItem", menuName = "Turnroot/Objects/Gameplay Item")]
     public class ObjectItem : ScriptableObject
     {

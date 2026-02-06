@@ -2,6 +2,9 @@ using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
 
 namespace Turnroot.Skills.Nodes.Conditions
 {
+    /// <summary>
+    /// Returns the number of enemy units adjacent to the caster.
+    /// </summary>
     [CreateNodeMenu("Conditions/Position/Adjacent Enemies")]
     [NodeLabel("Gets the current adjacent enemies count")]
     public class AdjacentEnemiesNode : AdjacentUnitsNodeBase

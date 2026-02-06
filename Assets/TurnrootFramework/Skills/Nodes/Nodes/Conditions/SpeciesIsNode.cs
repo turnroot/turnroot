@@ -4,6 +4,9 @@ using XNode;
 
 namespace Turnroot.Skills.Nodes.Conditions
 {
+    /// <summary>
+    /// Evaluates whether a character's species matches the specified species name.
+    /// </summary>
     [CreateNodeMenu("Conditions/Species/Species Is")]
     [NodeLabel("Checks if a character's species matches the specified name")]
     public class SpeciesIsNode : SkillNode
@@ -49,7 +52,10 @@ namespace Turnroot.Skills.Nodes.Conditions
                 return new BoolValue { value = false };
             }
 
-            var character = ConditionHelpers.GetCharacterFromContext(context, characterSource.Value);
+            var character = ConditionHelpers.GetCharacterFromContext(
+                context,
+                characterSource.Value
+            );
             if (character == null)
             {
                 return new BoolValue { value = false };
@@ -76,9 +82,16 @@ namespace Turnroot.Skills.Nodes.Conditions
             }
 
             // Check the Name property, asset name, and Id for flexibility
-            return species.Name?.Equals(targetSpeciesName, System.StringComparison.OrdinalIgnoreCase) == true
-                || species.name?.Equals(targetSpeciesName, System.StringComparison.OrdinalIgnoreCase) == true
-                || species.Id?.Equals(targetSpeciesName, System.StringComparison.OrdinalIgnoreCase) == true;
+            return species.Name?.Equals(
+                    targetSpeciesName,
+                    System.StringComparison.OrdinalIgnoreCase
+                ) == true
+                || species.name?.Equals(
+                    targetSpeciesName,
+                    System.StringComparison.OrdinalIgnoreCase
+                ) == true
+                || species.Id?.Equals(targetSpeciesName, System.StringComparison.OrdinalIgnoreCase)
+                    == true;
         }
     }
 }

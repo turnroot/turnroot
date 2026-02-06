@@ -3,7 +3,9 @@ using UnityEngine;
 
 namespace Turnroot.Utilities.AbstractScripts
 {
-    // T must be a class derived from Component
+    /// <summary>
+    /// Generic object pool implementation for Unity Component-derived objects with automatic growth.
+    /// </summary>
     public class ObjectPool<T>
         where T : Component
     {

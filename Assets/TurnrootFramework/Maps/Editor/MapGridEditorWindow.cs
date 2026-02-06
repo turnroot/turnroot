@@ -41,6 +41,9 @@ using Turnroot.Gameplay.Maps;
 
 namespace Turnroot.Gameplay.Maps
 {
+    /// <summary>
+    /// Editor window for painting terrain types, placing features, and testing movement on map grids.
+    /// </summary>
     public class MapGridEditorWindow : EditorWindow
     {
         // Core references
@@ -139,6 +142,9 @@ namespace Turnroot.Gameplay.Maps
             }
         );
 
+        /// <summary>
+        /// Editor mode for the map grid editor window.
+        /// </summary>
         private enum Mode
         {
             Paint = 0,
@@ -146,6 +152,9 @@ namespace Turnroot.Gameplay.Maps
             SetStartingPositions = 2,
         }
 
+        /// <summary>
+        /// Defines a set of tools with IDs and display names.
+        /// </summary>
         private class ToolSet
         {
             public string[] Ids { get; }
@@ -1657,7 +1666,8 @@ namespace Turnroot.Gameplay.Maps
             }
 
             Event e = Event.current;
-            Vector2 localMouse = e.mousePosition + _scroll;
+            // Mouse position inside scroll view is already in content space, no need to add scroll
+            Vector2 localMouse = e.mousePosition;
 
             UpdateHoveredCell(localMouse, cellSize, width, height);
             HandleMouse(e, localMouse, cellSize, width, height);
@@ -1693,7 +1703,13 @@ namespace Turnroot.Gameplay.Maps
             {
                 for (int c = 0; c < height; c++)
                 {
-                    Rect cellRect = new(r * cellSize, c * cellSize, cellSize, cellSize);
+                    // Flip Y coordinate to match Unity world space (Y increases upward)
+                    Rect cellRect = new(
+                        r * cellSize,
+                        (height - 1 - c) * cellSize,
+                        cellSize,
+                        cellSize
+                    );
                     var point = _grid.GetGridPoint(r, c);
 
                     Color fill = GetCellColor(point);
@@ -2130,11 +2146,15 @@ namespace Turnroot.Gameplay.Maps
             }
         }
 
-        private Vector2Int MouseToCell(Vector2 localMouse, float cellSize) =>
-            new(
-                Mathf.FloorToInt(localMouse.x / cellSize),
-                Mathf.FloorToInt(localMouse.y / cellSize)
-            );
+        private Vector2Int MouseToCell(Vector2 localMouse, float cellSize)
+        {
+            int row = Mathf.FloorToInt(localMouse.x / cellSize);
+            int col = Mathf.FloorToInt(localMouse.y / cellSize);
+            // Flip Y coordinate to match the flipped drawing
+            int height = _grid.GridHeight;
+            col = height - 1 - col;
+            return new(row, col);
+        }
 
         private Vector2Int ClampCell(Vector2Int cell, int width, int height) =>
             new(
@@ -2370,6 +2390,9 @@ namespace Turnroot.Gameplay.Maps
             NewPropertyPrompt.ShowFor(this, point, _grid, propType, forFeature);
         }
 
+        /// <summary>
+        /// Modal prompt window for creating new properties on map grid points.
+        /// </summary>
         private class NewPropertyPrompt : EditorWindow
         {
             private MapGridPoint _point;
@@ -2529,6 +2552,9 @@ namespace Turnroot.Gameplay.Maps
             }
         }
 
+        /// <summary>
+        /// Help window displaying keyboard shortcuts and usage tips for the map grid editor.
+        /// </summary>
         private class HelpWindow : EditorWindow
         {
             private Vector2 _scrollPos;

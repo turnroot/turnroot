@@ -138,6 +138,9 @@ namespace Turnroot.Characters.StatusEffects
         public override string ToString() => _displayName;
     }
 
+    /// <summary>
+    /// Categorizes status effects as beneficial, harmful, or neutral.
+    /// </summary>
     public enum StatusEffectCategory
     {
         Buff,
@@ -145,6 +148,9 @@ namespace Turnroot.Characters.StatusEffects
         Neutral,
     }
 
+    /// <summary>
+    /// Defines a stat modification applied by a status effect.
+    /// </summary>
     [System.Serializable]
     public struct StatusEffectStatModifier
     {

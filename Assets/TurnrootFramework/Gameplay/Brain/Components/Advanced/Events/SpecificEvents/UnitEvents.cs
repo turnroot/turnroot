@@ -21,6 +21,9 @@ namespace Turnroot.Gameplay.Brain.Events
         }
     }
 
+    /// <summary>
+    /// Published when a unit spawns into the battle.
+    /// </summary>
     public class UnitSpawnedEvent : BattleEvent
     {
         public CharacterInstance Unit { get; }
@@ -33,6 +36,9 @@ namespace Turnroot.Gameplay.Brain.Events
         }
     }
 
+    /// <summary>
+    /// Published when a unit is removed from the battle.
+    /// </summary>
     public class UnitDespawnedEvent : BattleEvent
     {
         public CharacterInstance Unit { get; }
@@ -46,6 +52,9 @@ namespace Turnroot.Gameplay.Brain.Events
     }
 
     // Visual/model events - published when Models are spawned/despawned/moved/swapped in the scene.
+    /// <summary>
+    /// Published when a unit's visual model is spawned in the scene.
+    /// </summary>
     public class ModelSpawnedEvent : BattleEvent
     {
         public string UnitId { get; }
@@ -67,6 +76,9 @@ namespace Turnroot.Gameplay.Brain.Events
         }
     }
 
+    /// <summary>
+    /// Published when a unit's visual model is despawned from the scene.
+    /// </summary>
     public class ModelDespawnedEvent : BattleEvent
     {
         public string UnitId { get; }
@@ -88,6 +100,9 @@ namespace Turnroot.Gameplay.Brain.Events
         }
     }
 
+    /// <summary>
+    /// Published when a unit's visual model moves between positions.
+    /// </summary>
     public class ModelMovedEvent : BattleEvent
     {
         public string UnitId { get; }
@@ -112,6 +127,9 @@ namespace Turnroot.Gameplay.Brain.Events
         }
     }
 
+    /// <summary>
+    /// Published when two unit models swap positions in the scene.
+    /// </summary>
     public class ModelSwappedEvent : BattleEvent
     {
         public string UnitIdA { get; }
@@ -139,6 +157,9 @@ namespace Turnroot.Gameplay.Brain.Events
         }
     }
 
+    /// <summary>
+    /// Published when a unit's emotional state changes during battle.
+    /// </summary>
     public class UnitEmotionChangesEvent : BattleEvent
     {
         public CharacterInstance Unit { get; }

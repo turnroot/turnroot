@@ -6,6 +6,9 @@ using UnityEngine;
 
 namespace Turnroot.Skills.Nodes.Events
 {
+    /// <summary>
+    /// Removes status debuffs from the caster or adjacent allied units.
+    /// </summary>
     [CreateNodeMenu("Events/Defensive/Cure Debuff")]
     [NodeLabel("Remove status debuffs from ally")]
     public class CureDebuffNode : SkillNode
@@ -148,6 +151,9 @@ namespace Turnroot.Skills.Nodes.Events
         }
     }
 
+    /// <summary>
+    /// Specifies which debuffs should be removed by the CureDebuffNode.
+    /// </summary>
     public enum CureMode
     {
         AllDebuffs, // Remove all status debuffs

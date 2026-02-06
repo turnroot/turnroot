@@ -5,6 +5,9 @@ using SimpleButtonComponent = Turnroot.UI.Components.SimpleButton.SimpleButton;
 
 namespace Turnroot.UI.Components.ListMenu
 {
+    /// <summary>
+    /// A selectable list menu item that handles pointer interactions and integrates with SimpleButton for visual feedback.
+    /// </summary>
     [RequireComponent(typeof(SimpleButtonComponent))]
     public class ListMenuItem
         : MenuItemBase,

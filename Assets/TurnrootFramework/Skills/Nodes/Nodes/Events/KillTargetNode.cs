@@ -4,6 +4,9 @@ using UnityEngine;
 
 namespace Turnroot.Skills.Nodes.Events
 {
+    /// <summary>
+    /// Instantly kills the target enemy, bypassing normal combat damage calculations.
+    /// </summary>
     [CreateNodeMenu("Events/Offensive/Kill Target")]
     [NodeLabel("Instantly kills the target enemy")]
     public class KillTargetNode : SkillNode

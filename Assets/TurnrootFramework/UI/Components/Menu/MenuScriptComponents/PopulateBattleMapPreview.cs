@@ -5,6 +5,9 @@ using UnityEngine.UI;
 
 namespace Turnroot.UI.Components
 {
+    /// <summary>
+    /// Populates an image with the battle map preview sprite from a BattlePreparationObject.
+    /// </summary>
     public class PopulateBattleMapPreview : MonoBehaviour
     {
         public Image BattleMapImage;

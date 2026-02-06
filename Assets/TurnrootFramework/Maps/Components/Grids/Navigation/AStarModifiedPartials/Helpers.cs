@@ -17,7 +17,7 @@ namespace Turnroot.Gameplay.Maps
         private bool IsGoalReached(MapGridPoint current, MapGridPoint goal) =>
             current == goal || (current.Row == goal.Row && current.Col == goal.Col);
 
-        private SearchContext CreateSearchContext() => new SearchContext();
+        private SearchContext CreateSearchContext() => new();
 
         private void InitializeSearch(SearchContext context, MapGridPoint start)
         {
@@ -185,6 +185,9 @@ namespace Turnroot.Gameplay.Maps
         #endregion
 
         #region Search Context
+        /// <summary>
+        /// Encapsulates state for A* pathfinding search, using pooled collections for performance.
+        /// </summary>
         private class SearchContext : System.IDisposable
         {
             private readonly PooledDictionary<MapGridPoint, MapGridPoint> _cameFromPooled;

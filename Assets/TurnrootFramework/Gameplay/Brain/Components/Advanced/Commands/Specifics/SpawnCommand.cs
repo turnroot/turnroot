@@ -4,6 +4,9 @@ using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain.Commands
 {
+    /// <summary>
+    /// Command to spawn a unit at a specific position on the battle map.
+    /// </summary>
     public class SpawnCommand : CommandBase
     {
         public string UnitId { get; }

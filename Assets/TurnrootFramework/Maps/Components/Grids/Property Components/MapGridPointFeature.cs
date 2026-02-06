@@ -1,5 +1,8 @@
 namespace Turnroot.Gameplay.Maps
 {
+    /// <summary>
+    /// Represents a feature on a map grid point, such as treasure, doors, warps, or other interactive elements.
+    /// </summary>
     [System.Serializable]
     public class MapGridPointFeature
     {
@@ -9,6 +12,9 @@ namespace Turnroot.Gameplay.Maps
 
         public MapGridPointFeature() { }
 
+        /// <summary>
+        /// Enumeration of different feature types that can be placed on map grid points.
+        /// </summary>
         public enum FeatureType
         {
             None = 0,

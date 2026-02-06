@@ -4,6 +4,9 @@ using Turnroot.Utilities;
 
 namespace Turnroot.Conversations
 {
+    /// <summary>
+    /// Utilities for building runtime node data from branching conversation graphs.
+    /// </summary>
     public static class BranchedConversationHelpers
     {
         // Build runtime node structures from the XNode graph (two-pass: incoming counts, then node data)
@@ -310,7 +313,9 @@ namespace Turnroot.Conversations
             s.Length == 0 ? s : char.ToLowerInvariant(s[0]) + s.Substring(1);
     }
 
-    // Node runtime info populated by GetDataFromGraph
+    /// <summary>
+    /// Runtime data for a conversation graph node including choices, connections, and content.
+    /// </summary>
     public class NodeData
     {
         public int id;
@@ -322,6 +327,9 @@ namespace Turnroot.Conversations
         public int incomingCount = 0;
     }
 
+    /// <summary>
+    /// Represents a player choice in a branching conversation with text and target node information.
+    /// </summary>
     public class ChoiceData
     {
         public string portName;

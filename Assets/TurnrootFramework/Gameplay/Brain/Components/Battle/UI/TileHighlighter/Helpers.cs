@@ -5,10 +5,16 @@ using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain.Components.Battle
 {
+    /// <summary>
+    /// Partial class containing helper methods for tile highlighting, path preview, and range visualization in battles.
+    /// </summary>
     public partial class TileHighlighter : MonoBehaviour
     {
         #region Public API
 
+        /// <summary>
+        /// Defines the different types of tile highlights available for visualizing battle actions.
+        /// </summary>
         public enum HighlightType
         {
             Move,
@@ -154,7 +160,11 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
 
         private static float DirToRotation(Vector2Int dir)
         {
-            return dir == Vector2Int.up ? 0f : dir == Vector2Int.right ? 90f : dir == Vector2Int.down ? 180f : dir == Vector2Int.left ? 270f : 0f;
+            return dir == Vector2Int.up ? 0f
+                : dir == Vector2Int.right ? 90f
+                : dir == Vector2Int.down ? 180f
+                : dir == Vector2Int.left ? 270f
+                : 0f;
         }
 
         private static bool IsStraight(Vector2Int incoming, Vector2Int outgoing) =>

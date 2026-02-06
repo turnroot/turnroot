@@ -5,6 +5,9 @@ using UnityEngine.UI;
 
 namespace Turnroot.UI.Components.RadialMenu
 {
+    /// <summary>
+    /// A segment item in a radial menu with material-based highlighting and optional content prefab support.
+    /// </summary>
     [RequireComponent(typeof(Image))]
     public class RadialMenuItem
         : MenuItemBase,

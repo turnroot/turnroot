@@ -7,6 +7,9 @@ using UnityEditor;
 
 namespace Assets.AbstractScripts.Graphics2D
 {
+    /// <summary>
+    /// Provides methods for compositing layered sprites with masking, tinting, and alpha blending support.
+    /// </summary>
     public static class ImageCompositor
     {
         public static Sprite CreateSpriteFromTexture(Texture2D texture)

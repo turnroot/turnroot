@@ -3,6 +3,9 @@ using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain.Commands
 {
+    /// <summary>
+    /// Command to heal a unit, restoring their health.
+    /// </summary>
     public class HealCommand : CommandBase
     {
         public string HealerId { get; }

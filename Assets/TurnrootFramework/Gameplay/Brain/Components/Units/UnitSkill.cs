@@ -6,6 +6,9 @@ using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain
 {
+    /// <summary>
+    /// Manages character skill learning, removal, equipping, and unequipping operations.
+    /// </summary>
     [RequireComponent(typeof(LongTermMemory))]
     public partial class CharactersBrain : BrainComponent
     {

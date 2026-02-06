@@ -5,6 +5,9 @@ using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain
 {
+    /// <summary>
+    /// Manages character support relationships, including increasing support levels and handling support-related operations.
+    /// </summary>
     [RequireComponent(typeof(LongTermMemory))]
     public partial class CharactersBrain : BrainComponent
     {

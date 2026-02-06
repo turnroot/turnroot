@@ -6,6 +6,9 @@ using UnityEngine;
 
 namespace Turnroot.Skills
 {
+    /// <summary>
+    /// Defines a skill template with appearance, behavior graph, and execution logic.
+    /// </summary>
     [CreateAssetMenu(fileName = "NewSkill", menuName = "Turnroot/Skills/Skill")]
     public class Skill : ScriptableObject
     {

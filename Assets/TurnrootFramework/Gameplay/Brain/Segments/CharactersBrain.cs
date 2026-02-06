@@ -42,7 +42,6 @@ namespace Turnroot.Gameplay.Brain
 
         private void Start()
         {
-            // LongTermMemory is initialized in Brain.Awake(), safe to access here
             _ltm = GetComponent<LongTermMemory>();
             LoadBattleOutcomeStatistics();
 
@@ -191,7 +190,7 @@ namespace Turnroot.Gameplay.Brain
         #region Save/Load API
         public void SavePlayerRosterProgress()
         {
-            if (_battleBrain?.PlayerTeamRoster == null)
+            if (_battleBrain.PlayerTeamRoster == null)
             {
                 return;
             }

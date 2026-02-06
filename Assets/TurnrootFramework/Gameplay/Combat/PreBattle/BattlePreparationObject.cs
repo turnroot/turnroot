@@ -10,6 +10,9 @@ using UnityEngine;
 
 namespace Turnroot.Gameplay.Combat.PreBattle
 {
+    /// <summary>
+    /// Represents the current state of player unit placement in pre-battle preparation.
+    /// </summary>
     public enum PlacementState
     {
         NonePlaced,
@@ -18,6 +21,9 @@ namespace Turnroot.Gameplay.Combat.PreBattle
         PlayerConfirmed,
     }
 
+    /// <summary>
+    /// Manages pre-battle preparation including unit selection, placement, and starting positions.
+    /// </summary>
     [RequireComponent(typeof(EnvironmentalConditions))]
     public class BattlePreparationObject : MonoBehaviour
     {

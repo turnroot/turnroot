@@ -3,8 +3,14 @@ using UnityEngine;
 
 namespace Turnroot.Characters
 {
+    /// <summary>
+    /// Base class for roster ScriptableObjects that define character placement and status for teams.
+    /// </summary>
     public abstract class Roster : ScriptableObject
     {
+        /// <summary>
+        /// Defines the current status of a unit in the roster.
+        /// </summary>
         public enum UnitStatus
         {
             NotSpawned,
@@ -12,6 +18,9 @@ namespace Turnroot.Characters
             Defeated,
         }
 
+        /// <summary>
+        /// Represents a single unit's placement data including spawn position, status, and order in the roster.
+        /// </summary>
         [Serializable]
         public class UnitPlacement
         {

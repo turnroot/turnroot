@@ -8,6 +8,9 @@ using XNodeEditor;
 
 namespace Turnroot.Conversations.Branching.Nodes
 {
+    /// <summary>
+    /// Custom graph editor for conversation graphs with specialized node creation menus.
+    /// </summary>
     [CustomNodeGraphEditor(typeof(ConversationGraph))]
     public class ConversationGraphEditor : NodeGraphEditor
     {

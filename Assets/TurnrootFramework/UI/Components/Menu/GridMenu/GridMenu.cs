@@ -5,6 +5,9 @@ using UnityEngine.InputSystem;
 
 namespace Turnroot.UI.Components.GridMenu
 {
+    /// <summary>
+    /// A grid-based menu that supports keyboard and pointer navigation with smart row/column-based movement.
+    /// </summary>
     public class GridMenu : MenuBase
     {
         [Min(1)]

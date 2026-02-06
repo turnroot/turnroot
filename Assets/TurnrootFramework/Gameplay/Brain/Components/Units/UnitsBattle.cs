@@ -7,6 +7,9 @@ using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain
 {
+    /// <summary>
+    /// Tracks battle statistics, outcomes, and participant progress for characters during and after battles.
+    /// </summary>
     [RequireComponent(typeof(LongTermMemory))]
     public partial class CharactersBrain : BrainComponent
     {
@@ -22,11 +25,6 @@ namespace Turnroot.Gameplay.Brain
 
         private void LoadBattleOutcomeStatistics()
         {
-            if (_ltm == null)
-            {
-                return;
-            }
-
             BattlesWon = Mathf.Max(0, _ltm.RecallInt(LtmKeys.BattlesWon));
             BattlesLost = Mathf.Max(0, _ltm.RecallInt(LtmKeys.BattlesLost));
             BattlesRetreated = Mathf.Max(0, _ltm.RecallInt(LtmKeys.BattlesRetreated));
@@ -34,11 +32,6 @@ namespace Turnroot.Gameplay.Brain
 
         private void SaveBattleOutcomeStatistics()
         {
-            if (_ltm == null)
-            {
-                return;
-            }
-
             _ltm.RememberInt(LtmKeys.BattlesWon, BattlesWon);
             _ltm.RememberInt(LtmKeys.BattlesLost, BattlesLost);
             _ltm.RememberInt(LtmKeys.BattlesRetreated, BattlesRetreated);
@@ -101,11 +94,6 @@ namespace Turnroot.Gameplay.Brain
 
         private void IncrementTurnsAliveForFaction(params string[] factionTypes)
         {
-            if (_battleBrain == null)
-            {
-                return;
-            }
-
             var characters = new List<CharacterInstance>();
 
             foreach (var factionType in factionTypes)
@@ -144,15 +132,6 @@ namespace Turnroot.Gameplay.Brain
 
         private void InitializeBattleStatistics()
         {
-            if (_battleBrain == null)
-            {
-                TurnrootLogger.Log(
-                    "CharactersBrain: BattleBrain not found",
-                    TurnrootLogger.LogLevel.Warning
-                );
-                return;
-            }
-
             var allCharacters = GetAllBattleCharacters();
             foreach (var instance in allCharacters)
             {
@@ -164,11 +143,6 @@ namespace Turnroot.Gameplay.Brain
 
         private void ResetBattleStatistics()
         {
-            if (_battleBrain == null)
-            {
-                return;
-            }
-
             var allCharacters = GetAllBattleCharacters();
             foreach (var instance in allCharacters)
             {
@@ -179,15 +153,6 @@ namespace Turnroot.Gameplay.Brain
 
         private void SaveBattleParticipantsProgress()
         {
-            if (_gamewideContextBrain == null || _battleBrain == null)
-            {
-                TurnrootLogger.Log(
-                    "CharactersBrain: Cannot save - missing components",
-                    TurnrootLogger.LogLevel.Warning
-                );
-                return;
-            }
-
             var allCharacters = GetAllBattleCharacters();
             int savedCount = 0;
 

@@ -4,6 +4,9 @@ using UnityEngine;
 
 namespace Turnroot.Characters.Configuration.Editor
 {
+    /// <summary>
+    /// Custom property drawer for SerializableDictionary types.
+    /// </summary>
     [CustomPropertyDrawer(typeof(SerializableDictionary<,>))]
     public class SerializableDictionaryDrawer : PropertyDrawer
     {

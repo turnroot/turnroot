@@ -3,6 +3,9 @@ using Debug = UnityEngine.Debug;
 
 namespace Turnroot.Utilities
 {
+    /// <summary>
+    /// Centralized logging utility for the Turnroot framework.
+    /// </summary>
     public static class TurnrootLogger
     {
         public enum LogLevel

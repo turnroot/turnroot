@@ -2,6 +2,9 @@ using UnityEngine;
 
 namespace Turnroot.Gameplay.Objects.Components
 {
+    /// <summary>
+    /// Defines positions in the weapon triangle system.
+    /// </summary>
     public enum TrianglePositionEnum
     {
         Top,
@@ -10,6 +13,9 @@ namespace Turnroot.Gameplay.Objects.Components
         NotOnTriangle,
     }
 
+    /// <summary>
+    /// Represents a position in the weapon triangle and provides comparison methods for advantage calculations.
+    /// </summary>
     [System.Serializable]
     public class TrianglePosition
     {

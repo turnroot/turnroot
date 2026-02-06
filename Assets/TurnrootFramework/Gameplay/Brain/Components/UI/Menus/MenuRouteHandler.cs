@@ -7,6 +7,9 @@ using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain.Segments
 {
+    /// <summary>
+    /// Routes menu item selections to appropriate handlers and actions.
+    /// </summary>
     public class MenuRouteHandler
     {
         private readonly UiBrain _brain;

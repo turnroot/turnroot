@@ -7,6 +7,9 @@ using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain.Segments
 {
+    /// <summary>
+    /// Controls the battle map camera positioning and follows cursor movement during gameplay.
+    /// </summary>
     public partial class CameraBrain : BrainComponent
     {
         private Camera _battleMapCamera;

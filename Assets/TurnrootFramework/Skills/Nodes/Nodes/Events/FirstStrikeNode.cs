@@ -4,6 +4,9 @@ using UnityEngine;
 
 namespace Turnroot.Skills.Nodes.Events
 {
+    /// <summary>
+    /// Allows the unit to attack first and prevent enemy counterattacks during combat.
+    /// </summary>
     [CreateNodeMenu("Events/Offensive/First Strike")]
     [NodeLabel("Attack first, prevent counterattack")]
     public class FirstStrikeNode : SkillNode

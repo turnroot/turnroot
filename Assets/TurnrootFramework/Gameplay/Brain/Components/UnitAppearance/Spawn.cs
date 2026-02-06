@@ -47,7 +47,6 @@ namespace Turnroot.Gameplay.Brain
                 return validation;
             }
 
-            // SpawnUnitAtPosition already handles errors and returns OperationResult
             return SpawnUnitAtPosition(unit, position, prebattle);
         }
 
@@ -64,7 +63,6 @@ namespace Turnroot.Gameplay.Brain
                 return OperationResult.Failure($"No model found for unit {unitId}");
             }
 
-            // Find and remove position mapping
             var position = _modelPositions.FirstOrDefault(kvp => kvp.Value == unitId).Key;
             if (position != default)
             {
@@ -74,13 +72,13 @@ namespace Turnroot.Gameplay.Brain
             if (model != null)
             {
                 var unit = Brain
-                    .gamewideContextBrain?.GetAllActiveInstances()
+                    .gamewideContextBrain.GetAllActiveInstances()
                     ?.FirstOrDefault(u => u?.Id == unitId);
 
-                // Clear weapon reference
                 if (unit != null)
                 {
                     ClearWeaponFromUnit(unit);
+                    ClearMountFromUnit(unit);
                 }
 
                 Brain.Publish(new ModelDespawnedEvent(unit, unitId, position, model));
@@ -119,8 +117,7 @@ namespace Turnroot.Gameplay.Brain
 
             _modelPositions[newPosition] = unit.Id;
 
-            var ownership = model.GetComponent<UnitModelOwnership>();
-            if (ownership != null)
+            if (model.TryGetComponent<UnitModelOwnership>(out var ownership))
             {
                 ownership.DisplayName = unit.CharacterTemplate.DisplayName;
             }
@@ -133,6 +130,17 @@ namespace Turnroot.Gameplay.Brain
             if (unit.CurrentShieldPrefab == null)
             {
                 AttachShieldToUnit(unit, model);
+            }
+
+            // Handle mount status changes
+            bool shouldBeMounted = ShouldUnitBeMounted(unit);
+            if (shouldBeMounted && !unit.IsMounted)
+            {
+                AttachMountToUnit(unit, model);
+            }
+            else if (!shouldBeMounted && unit.IsMounted)
+            {
+                DismountUnit(unit, model);
             }
 
             Brain.Publish(new ModelSpawnedEvent(unit, unit.Id, newPosition, model));
@@ -169,6 +177,11 @@ namespace Turnroot.Gameplay.Brain
             AttachWeaponToUnit(unit, model);
 
             AttachShieldToUnit(unit, model);
+
+            if (ShouldUnitBeMounted(unit))
+            {
+                AttachMountToUnit(unit, model);
+            }
 
             Brain.Publish(new ModelSpawnedEvent(unit, unit.Id, position, model));
             return OperationResult.Successful();

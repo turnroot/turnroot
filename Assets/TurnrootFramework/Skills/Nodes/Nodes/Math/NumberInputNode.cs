@@ -2,6 +2,9 @@ using XNode;
 
 namespace Turnroot.Skills.Nodes.Math
 {
+    /// <summary>
+    /// Provides a constant numeric value as output.
+    /// </summary>
     [CreateNodeMenu("Math/Number Input")]
     [NodeLabel("Outputs a number")]
     public class NumberInputNode : SkillNode
@@ -15,10 +18,7 @@ namespace Turnroot.Skills.Nodes.Math
         {
             if (port.fieldName == "Number")
             {
-                FloatValue numberValue = new()
-                {
-                    value = defaultValue
-                };
+                FloatValue numberValue = new() { value = defaultValue };
                 return numberValue;
             }
             return null;

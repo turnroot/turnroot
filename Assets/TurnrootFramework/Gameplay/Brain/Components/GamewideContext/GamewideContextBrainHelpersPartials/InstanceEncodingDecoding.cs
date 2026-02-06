@@ -6,6 +6,9 @@ using Turnroot.Utilities;
 
 namespace Turnroot.Gameplay.Brain
 {
+    /// <summary>
+    /// Static partial class providing instance encoding/decoding functionality with ledger tracking.
+    /// </summary>
     public static partial class GamewideContextBrainHelpers
     {
         #region Instance Encoding/Decoding
@@ -140,7 +143,7 @@ namespace Turnroot.Gameplay.Brain
                     ltm.Remember(key, wrapper.Hash);
                 }
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
                 // Ledger persistence is non-critical - log and continue
                 TurnrootLogger.Log(

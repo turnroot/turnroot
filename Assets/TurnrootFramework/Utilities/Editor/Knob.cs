@@ -8,7 +8,9 @@ using UnityEngine;
 
 namespace UnityEditor
 {
-    // State for when we're dragging a knob.
+    /// <summary>
+    /// State for when we're dragging a knob.
+    /// </summary>
     internal class KnobState
     {
         public float dragStartPos;
@@ -17,7 +19,9 @@ namespace UnityEditor
         public bool isEditing;
     }
 
-    // Provide knob layout helper without redefining Unity's EditorGUILayout
+    /// <summary>
+    /// Provides knob layout helper without redefining Unity's EditorGUILayout.
+    /// </summary>
     public static class KnobGUILayout
     {
         public static float Knob(
@@ -62,9 +66,14 @@ namespace UnityEditor
         }
     }
 
-    // Knob rendering implementation stored separately to avoid colliding with UnityEditor.EditorGUI
+    /// <summary>
+    /// Knob rendering implementation stored separately to avoid colliding with UnityEditor.EditorGUI.
+    /// </summary>
     public static class KnobGUI
     {
+        /// <summary>
+        /// Internal context for knob rendering state and behavior.
+        /// </summary>
         internal struct KnobContext
         {
             readonly Rect position;
@@ -159,15 +168,18 @@ namespace UnityEditor
 
             private float MinValue() => Mathf.Min(start, end);
 
-            private float GetCurrentValuePercent() => (ClampedCurrentValue() - MinValue()) / (MaxValue() - MinValue());
+            private float GetCurrentValuePercent() =>
+                (ClampedCurrentValue() - MinValue()) / (MaxValue() - MinValue());
 
             private float MousePosition() => CurrentEvent().mousePosition.y - position.y;
 
-            private bool WasDoubleClick() => CurrentEventType() == EventType.MouseDown && CurrentEvent().clickCount == 2;
+            private bool WasDoubleClick() =>
+                CurrentEventType() == EventType.MouseDown && CurrentEvent().clickCount == 2;
 
             private float ValuesPerPixel() => kPixelRange / (MaxValue() - MinValue());
 
-            private KnobState KnobState() => (KnobState)GUIUtility.GetStateObject(typeof(KnobState), id);
+            private KnobState KnobState() =>
+                (KnobState)GUIUtility.GetStateObject(typeof(KnobState), id);
 
             private void StartDraggingWithValue(float dragStartValue)
             {

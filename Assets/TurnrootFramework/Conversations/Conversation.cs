@@ -5,6 +5,9 @@ using UnityEngine.Events;
 
 namespace Turnroot.Conversations
 {
+    /// <summary>
+    /// Defines a conversation with linear or branching dialogue paths.
+    /// </summary>
     [CreateAssetMenu(fileName = "New Conversation", menuName = "Turnroot/Conversation")]
     public class Conversation : ScriptableObject
     {

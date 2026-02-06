@@ -5,6 +5,9 @@ using UnityEngine;
 
 namespace Turnroot.GameSettings
 {
+    /// <summary>
+    /// Visual presentation styles available for game menus.
+    /// </summary>
     public enum MenuStyle
     {
         Pie,
@@ -14,6 +17,9 @@ namespace Turnroot.GameSettings
         None,
     }
 
+    /// <summary>
+    /// Identifiers for all menu locations in the game.
+    /// </summary>
     public enum MenuName
     {
         None,
@@ -34,8 +40,12 @@ namespace Turnroot.GameSettings
         PreBattleMapMenu,
         PreBattleSupportMenu,
         PrebattleUnitPositionsMenu,
+        BattleActionSelectMenu,
     }
 
+    /// <summary>
+    /// Represents a menu location in the menu hierarchy with style, prefab, and parent relationship.
+    /// </summary>
     [System.Serializable]
     public class MenuLocation
     {
@@ -107,6 +117,9 @@ namespace Turnroot.GameSettings
             };
     }
 
+    /// <summary>
+    /// Global UI configuration for menus, menu hierarchy, and UI element settings.
+    /// </summary>
     [CreateAssetMenu(
         fileName = "GamewideUiSettings",
         menuName = "Turnroot/Game Settings/UI/Gamewide UI Settings"
@@ -236,6 +249,9 @@ namespace Turnroot.GameSettings
 
         public MenuLocation GetPrebattleUnitPositionsMenu() =>
             GetMenuLocation(MenuName.PrebattleUnitPositionsMenu);
+
+        public MenuLocation GetBattleActionSelectMenu() =>
+            GetMenuLocation(MenuName.BattleActionSelectMenu);
 
         public void ResolveParentReferences()
         {
@@ -396,11 +412,11 @@ namespace Turnroot.GameSettings
         [Tooltip("Resources-relative path where map icons are stored (trailing slash optional)")]
         public string MapIconPath = "EditorSettings/MapGridEditorIcons/";
 
-        public Color MapGridLineColor = new Color(0.3f, 0.3f, 0.3f, 1f);
+        public Color MapGridLineColor = new(0.3f, 0.3f, 0.3f, 1f);
         public Color MapBlackCellColor = Color.black;
-        public Color MapDarkGrayTerrainColor = new Color(0.3f, 0.3f, 0.3f, 1f);
-        public Color MapLightGrayTerrainColor = new Color(0.2f, 0.2f, 0.2f, 1f);
-        public Color MapBlueSpawnColor = new Color(0.2f, 0.5f, 1f, 1f);
+        public Color MapDarkGrayTerrainColor = new(0.3f, 0.3f, 0.3f, 1f);
+        public Color MapLightGrayTerrainColor = new(0.2f, 0.2f, 0.2f, 1f);
+        public Color MapBlueSpawnColor = new(0.2f, 0.5f, 1f, 1f);
 
         // Map rendering getters for external consumers
         public int GetMapCellSize() => MapCellSize;

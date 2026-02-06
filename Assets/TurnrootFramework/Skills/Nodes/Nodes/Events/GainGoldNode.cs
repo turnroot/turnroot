@@ -4,6 +4,9 @@ using UnityEngine;
 
 namespace Turnroot.Skills.Nodes.Events
 {
+    /// <summary>
+    /// Grants a specified amount of gold to the player.
+    /// </summary>
     [CreateNodeMenu("Events/Neutral/Gain Gold")]
     [NodeLabel("Grants gold to the player")]
     public class GainGoldNode : SkillNode

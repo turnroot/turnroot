@@ -7,6 +7,9 @@ using UnityEngine.Events;
 
 namespace Turnroot.Utilities.AbstractScripts
 {
+    /// <summary>
+    /// Represents a state segment in a scene flow with an ID and event callbacks.
+    /// </summary>
     [Serializable]
     public class FlowSegment
     {
@@ -14,6 +17,9 @@ namespace Turnroot.Utilities.AbstractScripts
         public UnityEvent onSegmentReached;
     }
 
+    /// <summary>
+    /// Manages sequential scene flow progression through defined state segments.
+    /// </summary>
     public class DynamicSceneFlow : MonoBehaviour
     {
         public List<FlowSegment> segments = new();
@@ -58,9 +64,11 @@ namespace Turnroot.Utilities.AbstractScripts
         }
 
         #region Event Subscriptions
-        protected virtual void SubscribeToBrainEvents() => brain.OnStateChanged += HandleStateChanged;
+        protected virtual void SubscribeToBrainEvents() =>
+            brain.OnStateChanged += HandleStateChanged;
 
-        protected virtual void UnsubscribeFromBrainEvents() => brain.OnStateChanged -= HandleStateChanged;
+        protected virtual void UnsubscribeFromBrainEvents() =>
+            brain.OnStateChanged -= HandleStateChanged;
 
         protected void SubscribeToLoadingController()
         {

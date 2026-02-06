@@ -3,6 +3,9 @@ using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
 
 namespace Turnroot.Gameplay.Brain
 {
+    /// <summary>
+    /// Provides helper methods for battle management including status effects, last attacker tracking, and AI cache management.
+    /// </summary>
     public partial class BattleBrain : BrainComponent
     {
         #region Status Effect Management

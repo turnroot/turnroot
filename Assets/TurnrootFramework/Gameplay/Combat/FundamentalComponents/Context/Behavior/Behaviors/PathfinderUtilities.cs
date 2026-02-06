@@ -361,6 +361,9 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         #endregion
     }
 
+    /// <summary>
+    /// Static utility methods for pathfinding calculations and cost computations.
+    /// </summary>
     public static class PathfinderHelpers
     {
         public static bool TryComputePathMovementCost(

@@ -5,6 +5,9 @@ using UnityEngine;
 
 namespace Turnroot.Editor.PropertyDrawers
 {
+    /// <summary>
+    /// Custom property drawer for WeaponType that displays a dropdown of all WeaponType assets in the project.
+    /// </summary>
     [CustomPropertyDrawer(typeof(WeaponType), true)]
     public class WeaponTypeReferenceDrawer : PropertyDrawer
     {

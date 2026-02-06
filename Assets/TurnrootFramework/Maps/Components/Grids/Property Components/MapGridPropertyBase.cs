@@ -14,6 +14,9 @@ namespace Turnroot.Gameplay.Maps
     [Serializable]
     public abstract class MapGridPropertyBase : ScriptableObject
     {
+        /// <summary>
+        /// Base interface for all property types in the map grid property system.
+        /// </summary>
         public interface IProperty
         {
             string key { get; set; }
@@ -21,6 +24,9 @@ namespace Turnroot.Gameplay.Maps
             void SetValue(object value);
         }
 
+        /// <summary>
+        /// Property type that stores Unity events for map grid points and features.
+        /// </summary>
         [Serializable]
         public class EventProperty : IProperty
         {
@@ -38,6 +44,9 @@ namespace Turnroot.Gameplay.Maps
             public void SetValue(object val) => value = val as UnityEvent ?? new UnityEvent();
         }
 
+        /// <summary>
+        /// Property type that stores character instance references for map grid points and features.
+        /// </summary>
         [Serializable]
         public class UnitProperty : IProperty
         {
@@ -55,6 +64,9 @@ namespace Turnroot.Gameplay.Maps
             public void SetValue(object val) => value = val as CharacterInstance;
         }
 
+        /// <summary>
+        /// Property type that stores object item instances for map grid points and features.
+        /// </summary>
         [Serializable]
         public class ObjectItemProperty : IProperty
         {
@@ -72,6 +84,9 @@ namespace Turnroot.Gameplay.Maps
             public void SetValue(object val) => value = val as ObjectItemInstance;
         }
 
+        /// <summary>
+        /// Property type that stores boolean values for map grid points and features.
+        /// </summary>
         [Serializable]
         public class BoolProperty : IProperty
         {
@@ -89,6 +104,9 @@ namespace Turnroot.Gameplay.Maps
             public void SetValue(object val) => value = val is bool b && b;
         }
 
+        /// <summary>
+        /// Property type that stores floating-point values for map grid points and features.
+        /// </summary>
         [Serializable]
         public class FloatProperty : IProperty
         {

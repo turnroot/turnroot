@@ -4,6 +4,9 @@ using UnityEngine;
 
 namespace Turnroot.Skills.Nodes.Events
 {
+    /// <summary>
+    /// Attempts to steal an item or weapon from the target enemy.
+    /// </summary>
     [CreateNodeMenu("Events/Offensive/Steal")]
     [NodeLabel("Steal an object from the enemy")]
     public class StealNode : SkillNode

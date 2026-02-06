@@ -3,6 +3,9 @@ using XNode;
 
 namespace Turnroot.Skills.Nodes.Math
 {
+    /// <summary>
+    /// Defines the types of numerical comparison operations available.
+    /// </summary>
     public enum NumberComparisonType
     {
         GreaterThan,
@@ -13,6 +16,9 @@ namespace Turnroot.Skills.Nodes.Math
         LessThanOrEqualTo,
     }
 
+    /// <summary>
+    /// Compares two numeric values and returns a boolean result based on the comparison type.
+    /// </summary>
     [CreateNodeMenu("Math/Number Comparisons")]
     [NodeLabel("Compares two numbers, returning True or False")]
     public class NumberComparisonsNode : SkillNode

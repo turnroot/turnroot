@@ -17,6 +17,9 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Locations
         BottomRight,
     }
 
+    /// <summary>
+    /// Represents the 8 adjacent tiles around a center unit and provides methods to access or filter adjacent characters.
+    /// </summary>
     public class Adjacency
     {
         public CharacterInstance Center { get; set; }

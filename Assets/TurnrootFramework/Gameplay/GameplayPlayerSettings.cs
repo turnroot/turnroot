@@ -4,6 +4,9 @@ using UnityEngine;
 
 namespace Turnroot.Gameplay.PlayerSettings
 {
+    /// <summary>
+    /// Stores player-configurable settings for gameplay, graphics, and audio preferences.
+    /// </summary>
     [CreateAssetMenu(
         fileName = "GameplayPlayerSettings",
         menuName = "Turnroot/Gameplay/Gameplay Player Settings"
@@ -12,6 +15,9 @@ namespace Turnroot.Gameplay.PlayerSettings
     {
         // there are no headers or decorators because the player will never interact with this directly
 
+        /// <summary>
+        /// Defines game difficulty levels.
+        /// </summary>
         public enum DifficultyLevel
         {
             Easy,
@@ -20,6 +26,9 @@ namespace Turnroot.Gameplay.PlayerSettings
             Extreme,
         }
 
+        /// <summary>
+        /// Defines gameplay animation speed settings.
+        /// </summary>
         public enum GameSpeed
         {
             Normal,
@@ -27,6 +36,9 @@ namespace Turnroot.Gameplay.PlayerSettings
             VeryFast,
         }
 
+        /// <summary>
+        /// Defines which parts of enemy turns to skip or fast-forward.
+        /// </summary>
         public enum SkipEnemyTurn
         {
             Movement,
@@ -35,6 +47,9 @@ namespace Turnroot.Gameplay.PlayerSettings
             None,
         }
 
+        /// <summary>
+        /// Defines when the battle grid overlay is visible.
+        /// </summary>
         public enum BattleGridDisplay
         {
             UnitSelected,
@@ -42,6 +57,9 @@ namespace Turnroot.Gameplay.PlayerSettings
             AlwaysOff,
         }
 
+        /// <summary>
+        /// Defines visual style of the battle grid overlay.
+        /// </summary>
         public enum BattleGridDisplayStyle
         {
             Subtle,
@@ -49,6 +67,9 @@ namespace Turnroot.Gameplay.PlayerSettings
             Intense,
         }
 
+        /// <summary>
+        /// Defines which unit is selected at the start of each turn.
+        /// </summary>
         public enum StartTurnUnit
         {
             Avatar,
@@ -56,6 +77,9 @@ namespace Turnroot.Gameplay.PlayerSettings
             LowestHpUnit,
         }
 
+        /// <summary>
+        /// Defines the preferred input method for controls.
+        /// </summary>
         public enum InputControlType
         {
             Keyboard,
@@ -63,6 +87,9 @@ namespace Turnroot.Gameplay.PlayerSettings
         }
 
         // Logical actions exposed to the UI (e.g., Select, Back, Details...)
+        /// <summary>
+        /// Defines logical input actions for UI navigation and interaction.
+        /// </summary>
         public enum LogicalAction
         {
             Select,

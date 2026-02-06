@@ -10,6 +10,9 @@ using UnityEngine;
 
 namespace Turnroot.UI.Components
 {
+    /// <summary>
+    /// Manages unit selection UI with multiple columns, allowing players to select units for battle.
+    /// </summary>
     public class UnitSelectionColumns : MonoBehaviour
     {
         private Brain _brain;
@@ -50,9 +53,7 @@ namespace Turnroot.UI.Components
 
             int unitCount = units.Length;
             var u = LtmKeys.UnitSelectedForBattlePrefix;
-            var keys =
-                LongTermMemory?.RecallKeysByPrefix(u)
-                ?? new List<string>();
+            var keys = LongTermMemory?.RecallKeysByPrefix(u) ?? new List<string>();
             MaxSelectedUnits =
                 _brain?.battleBrain?.PreparationObject?.MaxPlayerTeamUnits ?? MaxSelectedUnits;
             var keysSet = new HashSet<string>(keys);
@@ -164,7 +165,7 @@ namespace Turnroot.UI.Components
 
             SetNameLabel(uf, unitCell, unit);
             SetPortraitImage(uf, unitCell, unit);
-            SetClassLabel(uf, unitCell);
+            SetClassLabel(uf, unitCell, gridMenuItem);
             ConfigureSelection(
                 uf,
                 unitCell,
@@ -210,7 +211,11 @@ namespace Turnroot.UI.Components
             }
         }
 
-        private void SetClassLabel(UtilityFunctions uf, GameObject unitCell)
+        private void SetClassLabel(
+            UtilityFunctions uf,
+            GameObject unitCell,
+            UnitCellGridMenuItem gridMenuItem
+        )
         {
             var classT = uf.FindChildByTag(unitCell, "UnitCellUnitClass");
             if (classT == null || !classT.TryGetComponent<TextMeshProUGUI>(out var classLbl))
@@ -218,7 +223,10 @@ namespace Turnroot.UI.Components
                 return;
             }
 
-            classLbl.text = "n/a"; // TODO: Get current class name from roster instance?
+            classLbl.text =
+                gridMenuItem?.CharacterInstanceData?.CurrentClass?.ClassData?.Identity != null
+                    ? gridMenuItem.CharacterInstanceData.CurrentClass.ClassData.Identity.ClassName
+                    : "n/a";
         }
 
         private void ConfigureSelection(
@@ -247,11 +255,11 @@ namespace Turnroot.UI.Components
             var isSelected =
                 gridMenuItem.CharacterInstanceData != null
                     ? gridMenuItem.CharacterInstanceData.IsSelectedForBattle
-                    : ltm?.RecallBool(key) ?? false;
+                    : ltm.RecallBool(key);
 
             // If the unit is required for this battle, enable them but don't save it to LTM
             var requiredUnits =
-                _brain?.battleBrain?.PreparationObject?.RequiredPlayerUnits
+                _brain.battleBrain.PreparationObject?.RequiredPlayerUnits
                 ?? new List<Characters.CharacterData>();
 
             if (requiredUnits.Contains(unit.CharacterData))

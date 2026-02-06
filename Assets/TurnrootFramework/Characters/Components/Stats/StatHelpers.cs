@@ -4,6 +4,9 @@ using Turnroot.Gameplay.Brain;
 
 namespace Turnroot.Characters.Stats
 {
+    /// <summary>
+    /// Utility class providing helper methods for creating, retrieving, and managing character stats.
+    /// </summary>
     public static class StatHelpers
     {
         #region Bounded Stats

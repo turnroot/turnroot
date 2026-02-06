@@ -8,6 +8,9 @@ using UnityEngine.UI;
 
 namespace Turnroot.Conversations
 {
+    /// <summary>
+    /// Manages conversation playback, UI, and branching dialogue choices.
+    /// </summary>
     public partial class ConversationController : MonoBehaviour
     {
         private Coroutine _conversationRoutine;

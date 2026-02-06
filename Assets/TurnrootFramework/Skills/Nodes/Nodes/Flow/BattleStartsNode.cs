@@ -2,6 +2,9 @@ using XNode;
 
 namespace Turnroot.Skills.Nodes.Flow
 {
+    /// <summary>
+    /// Triggers skill execution once at the start of a battle.
+    /// </summary>
     [CreateNodeMenu("Flow/Start/Battle Starts")]
     [NodeLabel("Runs once at the start of battle")]
     public class BattleStartsNode : SkillNode

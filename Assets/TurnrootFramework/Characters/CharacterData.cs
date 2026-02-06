@@ -444,6 +444,9 @@ namespace Turnroot.Characters
         public CharacterData ChildUnitId => _childUnitId;
 #endif
 
+        /// <summary>
+        /// Represents an item slot in a character's inventory with an item and slot index.
+        /// </summary>
         [Serializable]
         public class InventorySlot
         {
@@ -457,6 +460,9 @@ namespace Turnroot.Characters
             public int SlotIndex => _slotIndex;
         }
 
+        /// <summary>
+        /// Defines default visual layer settings for a tagged portrait layer (sprite, offset, scale, tint).
+        /// </summary>
         [Serializable, HideInInspector]
         public class TaggedLayerDefault
         {
@@ -467,6 +473,9 @@ namespace Turnroot.Characters
             public Color Tint;
         }
 
+        /// <summary>
+        /// Represents a character's experience rank in a specific skill type (e.g., sword, riding).
+        /// </summary>
         [Serializable]
         public class ExperienceRank
         {

@@ -6,6 +6,9 @@ using UnityEngine;
 
 namespace Turnroot.Characters.Subclasses
 {
+    /// <summary>
+    /// Portrait implementation for characters using layered images.
+    /// </summary>
     [Serializable]
     public class Portrait : StackedImage<CharacterData>
     {

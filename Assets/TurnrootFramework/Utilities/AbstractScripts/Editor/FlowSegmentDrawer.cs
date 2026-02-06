@@ -3,6 +3,9 @@ using UnityEngine;
 
 namespace Turnroot.Utilities.AbstractScripts
 {
+    /// <summary>
+    /// Custom property drawer for FlowSegment with state ID dropdown.
+    /// </summary>
     [CustomPropertyDrawer(typeof(FlowSegment))]
     public class FlowSegmentDrawer : PropertyDrawer
     {

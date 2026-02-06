@@ -6,6 +6,9 @@ using UnityEngine;
 
 namespace Turnroot.Characters.Components.Support
 {
+    /// <summary>
+    /// Defines a support relationship template between two characters with configurable progression settings.
+    /// </summary>
     [Serializable]
     public class SupportRelationship
     {

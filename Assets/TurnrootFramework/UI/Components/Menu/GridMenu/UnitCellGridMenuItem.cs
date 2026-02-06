@@ -3,6 +3,9 @@ using UnityEngine;
 
 namespace Turnroot.UI.Components.GridMenu
 {
+    /// <summary>
+    /// Specialized grid menu item for displaying character units with battle selection and explorer assignment states.
+    /// </summary>
     public class UnitCellGridMenuItem : GridMenuItem
     {
         // These need extra data

@@ -5,6 +5,9 @@ using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain
 {
+    /// <summary>
+    /// Static partial class providing default instance creation utilities for deserialization.
+    /// </summary>
     public static partial class GamewideContextBrainHelpers
     {
         #region Default Instance Creation
@@ -60,7 +63,7 @@ namespace Turnroot.Gameplay.Brain
                 var name = templateToken.Value<string>("name");
                 return !string.IsNullOrEmpty(name) ? Resources.Load<CharacterData>(name) : null;
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
                 // Wrapper payload might be corrupted - return null
                 Utilities.TurnrootLogger.Log(

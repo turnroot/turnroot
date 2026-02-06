@@ -3,6 +3,9 @@ using XNode;
 
 namespace Turnroot.Skills.Nodes.Conditions
 {
+    /// <summary>
+    /// Condition node that checks if this is the unit's first combat during the current turn.
+    /// </summary>
     [CreateNodeMenu("Conditions/Combat/Is First Combat Of Turn")]
     [NodeLabel("Checks if this is the unit's first combat this turn")]
     public class IsFirstCombatOfTurnNode : SkillNode

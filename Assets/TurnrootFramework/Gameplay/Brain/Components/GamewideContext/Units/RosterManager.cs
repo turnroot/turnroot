@@ -7,6 +7,9 @@ using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain
 {
+    /// <summary>
+    /// Manages roster instantiation, population, and character persistence for both generic and player team rosters.
+    /// </summary>
     public class RosterManager
     {
         private readonly Brain _brain;

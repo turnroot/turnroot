@@ -12,6 +12,9 @@ namespace Turnroot.Gameplay.Brain.Components
     [Serializable]
     public class JsonPlayerPrefs
     {
+        /// <summary>
+        /// Represents a single key-value pair stored in the JSON-based player preferences.
+        /// </summary>
         [Serializable]
         private class PlayerPref
         {

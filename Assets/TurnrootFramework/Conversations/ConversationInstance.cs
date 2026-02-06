@@ -18,6 +18,9 @@ namespace Turnroot.Conversations
 
         public UnityEvent OnConversationFinished;
 
+        /// <summary>
+        /// Per-layer event configuration associating a layer index with UnityEvents for layer lifecycle.
+        /// </summary>
         [System.Serializable]
         public class LayerEvents
         {

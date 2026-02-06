@@ -6,6 +6,9 @@ using UnityEngine.UI;
 
 namespace Turnroot.Conversations
 {
+    /// <summary>
+    /// Partial class handling UI updates, portrait management, and choice button rendering for the conversation controller.
+    /// </summary>
     public partial class ConversationController : MonoBehaviour
     {
         private void UpdateUIForLayer(ConversationLayer layer)

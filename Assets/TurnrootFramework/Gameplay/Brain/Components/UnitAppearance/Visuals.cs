@@ -7,6 +7,9 @@ using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain
 {
+    /// <summary>
+    /// Handles unit visual configuration including materials, colors, textures, and blendshapes.
+    /// </summary>
     public partial class UnitAppearanceBrain
     {
         /// <summary>

@@ -7,6 +7,9 @@ using UnityEngine.UI;
 
 namespace Turnroot.UI.Components
 {
+    /// <summary>
+    /// Populates UI elements with environmental conditions (time, temperature, weather, special) from a BattlePreparationObject.
+    /// </summary>
     public class PopulateMapPrefabEnviromentConditions : MonoBehaviour
     {
         private Brain _brain;
@@ -111,6 +114,9 @@ namespace Turnroot.UI.Components
             return OperationResult.Successful();
         }
 
+        /// <summary>
+        /// Helper methods for populating and configuring environment condition UI rows.
+        /// </summary>
         private static class RowHelpers
         {
             public static Image FindImage(Transform t, string childName) =>

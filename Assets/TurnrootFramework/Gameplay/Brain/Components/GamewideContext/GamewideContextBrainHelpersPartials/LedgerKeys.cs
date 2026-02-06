@@ -4,6 +4,9 @@ using Turnroot.Utilities;
 
 namespace Turnroot.Gameplay.Brain
 {
+    /// <summary>
+    /// Static partial class providing ledger key generation for instance tracking and hashing.
+    /// </summary>
     public static partial class GamewideContextBrainHelpers
     {
         #region Ledger Keys

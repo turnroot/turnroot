@@ -3,6 +3,9 @@ using UnityEngine;
 
 namespace Turnroot.Gameplay.Maps
 {
+    /// <summary>
+    /// Defines terrain properties including movement costs, defensive bonuses, and health modifiers for different unit types.
+    /// </summary>
     [Serializable]
     public class TerrainType
     {

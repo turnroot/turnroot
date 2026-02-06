@@ -3,6 +3,9 @@ using XNode;
 
 namespace Turnroot.Skills.Nodes.Math
 {
+    /// <summary>
+    /// Defines the types of boolean logical operations available.
+    /// </summary>
     public enum BooleanComparisonType
     {
         And,
@@ -13,6 +16,9 @@ namespace Turnroot.Skills.Nodes.Math
         NotEqual,
     }
 
+    /// <summary>
+    /// Performs logical operations (And, Or, etc.) on two boolean values.
+    /// </summary>
     [CreateNodeMenu("Math/Conditional Comparisons")]
     [NodeLabel("Compares two True/False values based on the selected operation")]
     public class ConditionalComparisonsNode : SkillNode

@@ -15,10 +15,6 @@ namespace Turnroot.Characters
         private static CharacterPrototypeSettings _cachedPrototypeSettings;
         private static DefaultCharacterStats _cachedDefaultStats;
 
-        /// <summary>
-        /// Get the maximum number of non-weapon items that can be equipped.
-        /// Defaults to 2 if settings are unavailable.
-        /// </summary>
         public static int MaxNonWeaponSlots
         {
             get
@@ -38,10 +34,6 @@ namespace Turnroot.Characters
             }
         }
 
-        /// <summary>
-        /// Get the character prototype settings.
-        /// Loads from Resources/GameSettings if not cached.
-        /// </summary>
         public static CharacterPrototypeSettings PrototypeSettings
         {
             get
@@ -66,10 +58,6 @@ namespace Turnroot.Characters
             }
         }
 
-        /// <summary>
-        /// Get the default character stats configuration.
-        /// Loads from Resources/GameSettings if not cached.
-        /// </summary>
         public static DefaultCharacterStats DefaultStats
         {
             get
@@ -94,10 +82,6 @@ namespace Turnroot.Characters
             }
         }
 
-        /// <summary>
-        /// Clear all cached settings. Call this when settings are changed in the editor
-        /// or when entering/exiting play mode.
-        /// </summary>
         public static void ClearCache()
         {
             _cachedMaxNonWeaponSlots = null;

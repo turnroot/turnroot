@@ -369,7 +369,7 @@ namespace Turnroot.Gameplay.Brain.Events
         {
             key ??= string.Empty;
 
-            return !_coalescedEvents.TryGetValue(type, out var keys) ? false : keys.Contains(key);
+            return _coalescedEvents.TryGetValue(type, out var keys) && keys.Contains(key);
         }
 
         private void TrackForCoalescingKey(Type type, string key)

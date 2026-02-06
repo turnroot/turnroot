@@ -3,6 +3,9 @@ using UnityEngine.InputSystem;
 
 namespace Turnroot.UI.Components.Menu.Submenu
 {
+    /// <summary>
+    /// Input types for navigating submenu rows.
+    /// </summary>
     public enum SubmenuRowInput
     {
         Left,
@@ -10,6 +13,9 @@ namespace Turnroot.UI.Components.Menu.Submenu
         Select,
     }
 
+    /// <summary>
+    /// Manages a collection of PanelRow components with keyboard/gamepad navigation support.
+    /// </summary>
     public class PanelRows : MonoBehaviour
     {
         public PanelRow[] panelRows;

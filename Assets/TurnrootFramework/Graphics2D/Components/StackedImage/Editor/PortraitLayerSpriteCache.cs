@@ -6,6 +6,10 @@ using UnityEngine;
 
 namespace Turnroot.Graphics2D
 {
+    /// <summary>
+    /// Caches sprite assets for portrait layers organized by tag.
+    /// Provides efficient lookup of sprites by layer tag from the asset database.
+    /// </summary>
     public static class PortraitLayerSpriteCache
     {
         private static readonly Dictionary<string, Sprite[]> _sprites = new(

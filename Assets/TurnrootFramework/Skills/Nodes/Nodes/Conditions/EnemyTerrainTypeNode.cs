@@ -3,6 +3,9 @@ using XNode;
 
 namespace Turnroot.Skills.Nodes.Conditions
 {
+    /// <summary>
+    /// Condition node that checks the terrain type the enemy is standing on.
+    /// </summary>
     [CreateNodeMenu("Conditions/Position/Enemy Terrain Type")]
     [NodeLabel("Gets the terrain type the enemy is currently on")]
     public class EnemyTerrainTypeNode : SkillNode

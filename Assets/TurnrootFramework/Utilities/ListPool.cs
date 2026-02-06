@@ -86,7 +86,7 @@ namespace Turnroot.Utilities
 
         public List<T> List { get; private set; }
 
-        public static PooledList<T> Get() => new PooledList<T> { List = ListPool<T>.Get(), _disposed = false };
+        public static PooledList<T> Get() => new() { List = ListPool<T>.Get(), _disposed = false };
 
         public void Dispose()
         {
@@ -183,7 +183,7 @@ namespace Turnroot.Utilities
 
         public HashSet<T> HashSet { get; private set; }
 
-        public static PooledHashSet<T> Get() => new PooledHashSet<T> { HashSet = HashSetPool<T>.Get(), _disposed = false };
+        public static PooledHashSet<T> Get() => new() { HashSet = HashSetPool<T>.Get(), _disposed = false };
 
         public void Dispose()
         {

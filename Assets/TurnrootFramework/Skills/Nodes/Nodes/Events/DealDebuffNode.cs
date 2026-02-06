@@ -5,6 +5,9 @@ using UnityEngine;
 
 namespace Turnroot.Skills.Nodes.Events
 {
+    /// <summary>
+    /// Applies a status debuff to one or more target enemies.
+    /// </summary>
     [CreateNodeMenu("Events/Offensive/Deal Debuff")]
     [NodeLabel("Applies a debuff to the target")]
     public class DealDebuffNode : SkillNode

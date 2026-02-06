@@ -7,6 +7,9 @@ using UnityEngine.UI;
 
 namespace Turnroot.UI
 {
+    /// <summary>
+    /// Utility methods for applying UI settings to prefabs and scenes.
+    /// </summary>
     public static class UiTools
     {
         public static void ApplyMenuButtonSpacing()

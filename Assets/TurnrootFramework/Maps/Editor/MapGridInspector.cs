@@ -5,6 +5,9 @@ using UnityEngine;
 
 namespace Turnroot.Gameplay.Maps
 {
+    /// <summary>
+    /// Custom inspector for MapGrid with grid manipulation tools.
+    /// </summary>
     [CustomEditor(typeof(MapGrid))]
     public class MapGridInspector : UnityEditor.Editor
     {

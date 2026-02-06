@@ -3,11 +3,16 @@ using UnityEngine;
 
 namespace Turnroot.Gameplay.Maps
 {
+    /// <summary>
+    /// ScriptableObject that manages the collection of terrain types available in the game.
+    /// </summary>
     [CreateAssetMenu(fileName = "Terrain Types", menuName = "Turnroot/Game Settings/Terrain Types")]
     public class TerrainTypes : ScriptableObject
     {
-        [field: SerializeField]
-        public TerrainType[] Types { get; private set; }
+        [SerializeField]
+        private TerrainType[] _types;
+
+        public TerrainType[] Types => _types;
 
         [SerializeField]
         private Dictionary<string, TerrainType> _typeLookup = new();
@@ -80,7 +85,7 @@ namespace Turnroot.Gameplay.Maps
             }
 
             var newList = new List<TerrainType>(Types ?? new TerrainType[0]) { newType };
-            Types = newList.ToArray();
+            _types = newList.ToArray();
             if (!string.IsNullOrEmpty(newType.Id))
             {
                 _typeLookup[newType.Id] = newType;

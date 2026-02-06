@@ -2,6 +2,9 @@ using System.Collections.Generic;
 
 namespace Turnroot.Graphics2D.Tags
 {
+    /// <summary>
+    /// Defines all available layer tags for portrait images, including facial features, accessories, and cosmetic elements.
+    /// </summary>
     public sealed class PortraitLayerTags : LayerTagRegistry<PortraitLayerTags>
     {
         private PortraitLayerTags() { }

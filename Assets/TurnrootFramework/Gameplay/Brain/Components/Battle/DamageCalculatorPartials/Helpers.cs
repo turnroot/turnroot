@@ -5,6 +5,9 @@ using Turnroot.Utilities;
 
 namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 {
+    /// <summary>
+    /// Partial class containing helper methods for damage calculations including input validation and formula multiplier accessors.
+    /// </summary>
     public static partial class DamageCalculator
     {
         #region Helper Methods

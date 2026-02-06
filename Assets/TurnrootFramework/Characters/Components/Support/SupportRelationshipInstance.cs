@@ -5,6 +5,9 @@ using UnityEngine;
 
 namespace Turnroot.Characters.Components.Support
 {
+    /// <summary>
+    /// Represents an instance of a support relationship between characters with progression tracking.
+    /// </summary>
     [Serializable]
     public class SupportRelationshipInstance
     {

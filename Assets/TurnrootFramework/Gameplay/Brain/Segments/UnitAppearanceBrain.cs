@@ -9,11 +9,15 @@ using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain
 {
+    /// <summary>
+    /// Manages visual representations and 3D models of units in battle, including movement animations and equipment changes.
+    /// </summary>
     public partial class UnitAppearanceBrain : BrainComponent
     {
         private GameplayGeneralSettings _settings;
         private Dictionary<string, GameObject> _unitModels = new();
         private Dictionary<Vector2Int, string> _modelPositions = new();
+        private Dictionary<string, GameObject> _mountModels = new();
 
         protected override EventPriority GetSubscriptionPriority() => EventPriority.Low;
 
@@ -107,9 +111,11 @@ namespace Turnroot.Gameplay.Brain
                     if (unit != null)
                     {
                         ClearWeaponFromUnit(unit);
+                        ClearMountFromUnit(unit);
                     }
                 }
             }
+            // Note: ClearMountFromUnit already destroys mounts and removes them from _mountModels
 
             foreach (var model in _unitModels.Values.ToList())
             {
@@ -120,7 +126,9 @@ namespace Turnroot.Gameplay.Brain
                 }
             }
 
+            // Clear dictionaries
             _unitModels.Clear();
+            _mountModels.Clear();
             _modelPositions.Clear();
         }
 

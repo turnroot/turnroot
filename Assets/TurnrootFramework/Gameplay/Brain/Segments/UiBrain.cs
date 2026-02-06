@@ -11,6 +11,9 @@ using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain.Segments
 {
+    /// <summary>
+    /// Manages UI menus, transitions, and settings bindings for pre-battle and battle game states.
+    /// </summary>
     [RequireComponent(typeof(CursorBrain))]
     public partial class UiBrain : BrainComponent
     {
@@ -42,6 +45,9 @@ namespace Turnroot.Gameplay.Brain.Segments
 
         [HideInInspector]
         public MenuLocation prebattleUnitsMenuLocation;
+
+        [HideInInspector]
+        public MenuLocation battleActionSelectMenuLocation;
 
         [HideInInspector]
         public bool _isTransitioning = false;
@@ -95,6 +101,7 @@ namespace Turnroot.Gameplay.Brain.Segments
                 gameSettingsControlsLocation = uiSettings.GetGameSettingsControlsMenu();
                 prebattleMapMenuLocation = uiSettings.GetPrebattleMapMenu();
                 prebattleUnitsMenuLocation = uiSettings.GetPrebattleUnitsMenu();
+                battleActionSelectMenuLocation = uiSettings.GetBattleActionSelectMenu();
 
                 // Initialize new components
                 _transitionManager = new MenuTransitionManager(this, uiSettings);

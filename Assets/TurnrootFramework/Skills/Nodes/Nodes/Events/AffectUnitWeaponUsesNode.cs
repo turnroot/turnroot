@@ -4,6 +4,9 @@ using UnityEngine;
 
 namespace Turnroot.Skills.Nodes.Events
 {
+    /// <summary>
+    /// Modifies the remaining uses of a unit's equipped weapon.
+    /// </summary>
     [CreateNodeMenu("Events/Neutral/Affect Unit Weapon Uses")]
     [NodeLabel("Modifies the remaining uses of the unit's equipped weapon")]
     public class AffectUnitWeaponUsesNode : SkillNode

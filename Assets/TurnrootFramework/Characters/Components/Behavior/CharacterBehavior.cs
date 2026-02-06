@@ -4,6 +4,9 @@ using UnityEngine;
 
 namespace Turnroot.Characters.Components.Behavior
 {
+    /// <summary>
+    /// Defines AI behavioral traits that influence character decision-making in combat.
+    /// </summary>
     [Serializable]
     public struct CharacterBehavior
     {
@@ -54,7 +57,7 @@ namespace Turnroot.Characters.Components.Behavior
         public struct CharacterBehaviorPreset
         {
             public static CharacterBehavior MindlessBerserker =>
-                new CharacterBehavior
+                new()
                 {
                     MovementDisabled = false,
                     AttackDisabled = false,
@@ -66,7 +69,7 @@ namespace Turnroot.Characters.Components.Behavior
                 };
 
             public static CharacterBehavior CunningAssassin =>
-                new CharacterBehavior
+                new()
                 {
                     MovementDisabled = false,
                     AttackDisabled = false,
@@ -78,7 +81,7 @@ namespace Turnroot.Characters.Components.Behavior
                 };
 
             public static CharacterBehavior LoyalGuardian =>
-                new CharacterBehavior
+                new()
                 {
                     MovementDisabled = false,
                     AttackDisabled = false,
@@ -90,7 +93,7 @@ namespace Turnroot.Characters.Components.Behavior
                 };
 
             public static CharacterBehavior WaryProtector =>
-                new CharacterBehavior
+                new()
                 {
                     MovementDisabled = false,
                     AttackDisabled = false,
@@ -102,7 +105,7 @@ namespace Turnroot.Characters.Components.Behavior
                 };
 
             public static CharacterBehavior GreedyCoward =>
-                new CharacterBehavior
+                new()
                 {
                     MovementDisabled = false,
                     AttackDisabled = false,
@@ -114,7 +117,7 @@ namespace Turnroot.Characters.Components.Behavior
                 };
 
             public static CharacterBehavior VengefulWarrior =>
-                new CharacterBehavior
+                new()
                 {
                     MovementDisabled = false,
                     AttackDisabled = false,
@@ -126,7 +129,7 @@ namespace Turnroot.Characters.Components.Behavior
                 };
 
             public static CharacterBehavior RecklessDuelist =>
-                new CharacterBehavior
+                new()
                 {
                     MovementDisabled = false,
                     AttackDisabled = false,
@@ -138,7 +141,7 @@ namespace Turnroot.Characters.Components.Behavior
                 };
 
             public static CharacterBehavior BalancedVeteran =>
-                new CharacterBehavior
+                new()
                 {
                     MovementDisabled = false,
                     AttackDisabled = false,

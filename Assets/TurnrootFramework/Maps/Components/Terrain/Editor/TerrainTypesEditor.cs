@@ -3,6 +3,9 @@ using UnityEngine;
 
 namespace Turnroot.Gameplay.Maps
 {
+    /// <summary>
+    /// Custom inspector for TerrainTypes asset with knob-based stat editing.
+    /// </summary>
     [CustomEditor(typeof(TerrainTypes))]
     public class TerrainTypesEditor : UnityEditor.Editor
     {

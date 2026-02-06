@@ -3,6 +3,9 @@ using Turnroot.GameSettings;
 
 namespace Turnroot.Gameplay.Brain.Segments
 {
+    /// <summary>
+    /// Tracks menu navigation depth and provides history for back navigation.
+    /// </summary>
     public class MenuDepthTracker
     {
         private Stack<MenuLocation> _menuStack = new();

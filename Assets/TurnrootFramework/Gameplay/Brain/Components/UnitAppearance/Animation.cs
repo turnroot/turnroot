@@ -5,14 +5,16 @@ using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain
 {
+    /// <summary>
+    /// Handles unit animation setup, blending, and animator layer configuration.
+    /// </summary>
     public partial class UnitAppearanceBrain
     {
         private const float ANIMATION_BLEND_DURATION = 0.3f;
 
         private void SetupWalkAnimation(GameObject model, CharacterInstance unit)
         {
-            var animator = model.GetComponent<Animator>();
-            if (animator == null)
+            if (!model.TryGetComponent<Animator>(out var animator))
             {
                 TurnrootLogger.Log($"No Animator on '{model.name}'", TurnrootLogger.LogLevel.Error);
                 return;
@@ -44,11 +46,18 @@ namespace Turnroot.Gameplay.Brain
                 // Prefer class animations, fall back to character defaults
                 var classData = unit?.GetCurrentClass()?.ClassData;
 
+                // Unity objects can be "null" but not C# null, so we need explicit checks
+                var classWalkClip = classData?.WalkAnimation;
                 walkClip =
-                    classData?.WalkAnimation ?? unit?.CharacterTemplate?.DefaultWalkingAnimation;
+                    (classWalkClip != null && classWalkClip)
+                        ? classWalkClip
+                        : unit?.CharacterTemplate?.DefaultWalkingAnimation;
+
+                var classIdleClips = classData?.IdleAnimations;
                 idleClips =
-                    (classData?.IdleAnimations?.Length > 0 ? classData.IdleAnimations : null)
-                    ?? unit?.CharacterTemplate?.DefaultIdleAnimations;
+                    (classIdleClips != null && classIdleClips.Length > 0)
+                        ? classIdleClips
+                        : unit?.CharacterTemplate?.DefaultIdleAnimations;
             }
 
             var idleClip =

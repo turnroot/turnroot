@@ -5,6 +5,9 @@ using SimpleButtonComponent = Turnroot.UI.Components.SimpleButton.SimpleButton;
 
 namespace Turnroot.UI.Components.GridMenu
 {
+    /// <summary>
+    /// A menu item designed for grid-based menus with row/column positioning and SimpleButton integration.
+    /// </summary>
     [RequireComponent(typeof(SimpleButtonComponent))]
     public class GridMenuItem
         : MenuItemBase,

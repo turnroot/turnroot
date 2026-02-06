@@ -3,6 +3,9 @@ using XNode;
 
 namespace Turnroot.Conversations.Branching
 {
+    /// <summary>
+    /// A conversation node that branches into three player choices.
+    /// </summary>
     [CreateNodeMenu("Conversation/Split By 3 Choices")]
     public class SplitByChoices3Node : Node
     {

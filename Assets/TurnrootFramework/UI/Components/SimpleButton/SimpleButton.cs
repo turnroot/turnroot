@@ -7,6 +7,9 @@ using UnityEngine.UI;
 
 namespace Turnroot.UI.Components.SimpleButton
 {
+    /// <summary>
+    /// Defines the semantic role of a button for input action mapping and behavior.
+    /// </summary>
     public enum SimpleButtonRole
     {
         Confirm,
@@ -14,6 +17,9 @@ namespace Turnroot.UI.Components.SimpleButton
         Details,
     }
 
+    /// <summary>
+    /// A UI button component with color transitions, input action support, and hover/click handling.
+    /// </summary>
     public class SimpleButton
         : MonoBehaviour,
             IPointerEnterHandler,

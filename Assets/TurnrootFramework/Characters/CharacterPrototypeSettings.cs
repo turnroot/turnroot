@@ -3,6 +3,9 @@ using UnityEngine;
 
 namespace Turnroot.Characters
 {
+    /// <summary>
+    /// Settings for character prototypes and character-related editor updates.
+    /// </summary>
     [CreateAssetMenu(
         fileName = "CharacterPrototypeSettings",
         menuName = "Turnroot/Game Settings/CharacterPrototypeSettings"

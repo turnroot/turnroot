@@ -5,6 +5,9 @@ using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain
 {
+    /// <summary>
+    /// Handles brain event subscriptions and event handlers for cursor operations.
+    /// </summary>
     public partial class CursorBrain
     {
         #region Brain Event Subscriptions (moved)

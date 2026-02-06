@@ -3,6 +3,9 @@ using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain
 {
+    /// <summary>
+    /// Manages player input during unit positioning phase before battle starts.
+    /// </summary>
     public class PositioningInputController : BrainComponent
     {
         private BattleInputActions _inputActions;

@@ -8,6 +8,9 @@ using UnityEngine;
 
 namespace Turnroot.Characters
 {
+    /// <summary>
+    /// CharacterData methods for portrait defaults, skill management, and support relationships.
+    /// </summary>
     public partial class CharacterData : ScriptableObject, IHasStats
     {
         public void InvalidatePortraitArrayCache() => _portraitArrayCache = null;

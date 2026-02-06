@@ -4,6 +4,9 @@ using static Turnroot.Characters.Components.Behavior.CharacterBehavior;
 
 namespace Turnroot.Characters.Components.Behavior
 {
+    /// <summary>
+    /// Custom property drawer for CharacterBehavior with preset selection and value sliders.
+    /// </summary>
     [CustomPropertyDrawer(typeof(CharacterBehavior))]
     public class CharacterBehaviorDrawer : PropertyDrawer
     {

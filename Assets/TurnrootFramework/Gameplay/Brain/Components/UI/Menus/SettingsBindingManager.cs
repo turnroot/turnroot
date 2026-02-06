@@ -8,6 +8,9 @@ using UnityEngine.UI;
 
 namespace Turnroot.Gameplay.Brain.Segments
 {
+    /// <summary>
+    /// Binds UI controls to player settings and manages settings updates.
+    /// </summary>
     public class SettingsBindingManager
     {
         private readonly Dictionary<string, Func<GameplayPlayerSettings, object>> _settingsGetters;

@@ -3,6 +3,9 @@ using UnityEngine;
 
 namespace Turnroot.Characters
 {
+    /// <summary>
+    /// Tracks a character's experience and rank progression for a specific experience type (e.g., weapon proficiency).
+    /// </summary>
     [Serializable]
     public class ExperienceRankInstance
     {
