@@ -100,6 +100,7 @@ namespace Turnroot.Characters
 #endif
 
             InitializeInventory();
+            EnsureWeaponInSlot0();
             InitializeSupportRelationships();
             InitializeSkills();
             InitializeExperienceRanks();
@@ -110,12 +111,57 @@ namespace Turnroot.Characters
         private void InitializeInventory()
         {
             _inventoryInstance = new CharacterInventoryInstance();
-            if (_characterTemplate.StartingInventory != null)
+
+            if (_characterTemplate.StartingInventory == null)
             {
-                foreach (var slot in _characterTemplate.StartingInventory)
+                return;
+            }
+
+            foreach (var slot in _characterTemplate.StartingInventory)
+            {
+                var itemInstance = new ObjectItemInstance(slot.Item);
+                _inventoryInstance.AddToInventory(itemInstance);
+                itemInstance.Slot = slot.SlotIndex;
+
+                // Equip weapons in slot 0 and shields in slot 1
+                if (
+                    slot.SlotIndex == 0
+                    && slot.Item.Subtype == Gameplay.Objects.Components.ObjectSubtype.Weapon
+                )
                 {
-                    _inventoryInstance.AddToInventory(new ObjectItemInstance(slot.Item));
+                    _inventoryInstance.EquipItem(itemInstance.Slot);
                 }
+                else if (
+                    slot.SlotIndex == 1
+                    && slot.Item.Subtype == Gameplay.Objects.Components.ObjectSubtype.Shield
+                )
+                {
+                    _inventoryInstance.EquipItem(itemInstance.Slot);
+                }
+            }
+        }
+
+        private void EnsureWeaponInSlot0()
+        {
+            var items = _inventoryInstance.Items();
+            var equippedWeapon = items.FirstOrDefault(i =>
+                i.IsEquipped
+                && i.Template?.Subtype == Gameplay.Objects.Components.ObjectSubtype.Weapon
+            );
+
+            if (equippedWeapon != null)
+            {
+                return;
+            }
+
+            // No weapon equipped, equip the first one
+            var firstWeapon = items.FirstOrDefault(i =>
+                i.Template?.Subtype == Gameplay.Objects.Components.ObjectSubtype.Weapon
+            );
+            if (firstWeapon != null)
+            {
+                firstWeapon.IsEquipped = true;
+                firstWeapon.Slot = 0; // Move to slot 0 for visual organization
             }
         }
 
@@ -196,6 +242,7 @@ namespace Turnroot.Characters
             RegisterUniqueInstance();
             HandleCurrentClass();
             RepairMissingStats();
+            EnsureWeaponInSlot0();
             EnsurePersistedInLtm();
             if (RangeWeaponsCache == null)
             {

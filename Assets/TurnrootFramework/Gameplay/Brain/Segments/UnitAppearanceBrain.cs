@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Turnroot.Characters;
 using Turnroot.Gameplay.Brain.Events;
 using Turnroot.Gameplay.Combat;
 using Turnroot.GameSettings;
@@ -11,8 +12,6 @@ namespace Turnroot.Gameplay.Brain
     public partial class UnitAppearanceBrain : BrainComponent
     {
         private GameplayGeneralSettings _settings;
-
-        // Core model tracking - models are owned by units, not positions
         private Dictionary<string, GameObject> _unitModels = new();
         private Dictionary<Vector2Int, string> _modelPositions = new();
 
@@ -28,8 +27,10 @@ namespace Turnroot.Gameplay.Brain
         {
             Brain.OnBattleObjectSet += HandleBattleObjectSet;
             Brain.OnCharacterMoveStarted += HandleCharacterMoveStarted;
+            Brain.OnItemEquipped += HandleItemEquipped;
+            Brain.OnItemUnequipped += HandleItemUnequipped;
 
-            if (Brain.battleBrain?.BattleObject != null)
+            if (Brain.battleBrain.BattleObject != null)
             {
                 HandleBattleObjectSet(Brain.battleBrain.BattleObject);
             }
@@ -41,6 +42,8 @@ namespace Turnroot.Gameplay.Brain
             {
                 Brain.OnBattleObjectSet -= HandleBattleObjectSet;
                 Brain.OnCharacterMoveStarted -= HandleCharacterMoveStarted;
+                Brain.OnItemEquipped -= HandleItemEquipped;
+                Brain.OnItemUnequipped -= HandleItemUnequipped;
             }
         }
 
@@ -96,6 +99,18 @@ namespace Turnroot.Gameplay.Brain
 
         private void ClearAllModels()
         {
+            var allUnits = Brain.gamewideContextBrain.GetAllActiveInstances();
+            if (allUnits != null)
+            {
+                foreach (var unit in allUnits)
+                {
+                    if (unit != null)
+                    {
+                        ClearWeaponFromUnit(unit);
+                    }
+                }
+            }
+
             foreach (var model in _unitModels.Values.ToList())
             {
                 if (model != null)
@@ -107,6 +122,70 @@ namespace Turnroot.Gameplay.Brain
 
             _unitModels.Clear();
             _modelPositions.Clear();
+        }
+
+        private void HandleItemEquipped(
+            CharacterInstance character,
+            Objects.ObjectItemInstance item
+        )
+        {
+            if (item.Template.IsEquippable == true)
+            {
+                if (item.Template.Subtype == Objects.Components.ObjectSubtype.Weapon)
+                {
+                    var result = UpdateUnitWeapon(character);
+                    if (!result.Success)
+                    {
+                        TurnrootLogger.Log(
+                            $"Failed to update weapon for {character?.CharacterTemplate?.DisplayName}: {result.ErrorMessage}",
+                            TurnrootLogger.LogLevel.Warning
+                        );
+                    }
+                }
+                else if (item.Template.Subtype == Objects.Components.ObjectSubtype.Shield)
+                {
+                    var result = UpdateUnitShield(character);
+                    if (!result.Success)
+                    {
+                        TurnrootLogger.Log(
+                            $"Failed to update shield for {character?.CharacterTemplate?.DisplayName}: {result.ErrorMessage}",
+                            TurnrootLogger.LogLevel.Warning
+                        );
+                    }
+                }
+            }
+        }
+
+        private void HandleItemUnequipped(
+            CharacterInstance character,
+            Objects.ObjectItemInstance item
+        )
+        {
+            if (item.Template.IsEquippable == true)
+            {
+                if (item.Template.Subtype == Objects.Components.ObjectSubtype.Weapon)
+                {
+                    var result = UpdateUnitWeapon(character);
+                    if (!result.Success)
+                    {
+                        TurnrootLogger.Log(
+                            $"Failed to update weapon for {character?.CharacterTemplate?.DisplayName}: {result.ErrorMessage}",
+                            TurnrootLogger.LogLevel.Warning
+                        );
+                    }
+                }
+                else if (item.Template.Subtype == Objects.Components.ObjectSubtype.Shield)
+                {
+                    var result = UpdateUnitShield(character);
+                    if (!result.Success)
+                    {
+                        TurnrootLogger.Log(
+                            $"Failed to update shield for {character?.CharacterTemplate?.DisplayName}: {result.ErrorMessage}",
+                            TurnrootLogger.LogLevel.Warning
+                        );
+                    }
+                }
+            }
         }
     }
 }

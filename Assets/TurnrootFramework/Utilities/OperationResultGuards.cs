@@ -25,16 +25,14 @@ namespace Turnroot.Utilities
         )
             where T : class
         {
-            if (value == null)
-            {
-                return OperationResult.Failure(
+            return value == null
+                ? OperationResult.Failure(
                     $"{paramName} is null",
                     caller,
                     callerFilePath,
                     callerLineNumber
-                );
-            }
-            return OperationResult.Successful();
+                )
+                : OperationResult.Successful();
         }
 
         /// <summary>
@@ -51,16 +49,14 @@ namespace Turnroot.Utilities
             [CallerLineNumber] int callerLineNumber = 0
         )
         {
-            if (string.IsNullOrEmpty(value))
-            {
-                return OperationResult.Failure(
+            return string.IsNullOrEmpty(value)
+                ? OperationResult.Failure(
                     $"{paramName} is null or empty",
                     caller,
                     callerFilePath,
                     callerLineNumber
-                );
-            }
-            return OperationResult.Successful();
+                )
+                : OperationResult.Successful();
         }
 
         /// <summary>
@@ -77,16 +73,14 @@ namespace Turnroot.Utilities
             [CallerLineNumber] int callerLineNumber = 0
         )
         {
-            if (string.IsNullOrWhiteSpace(value))
-            {
-                return OperationResult.Failure(
+            return string.IsNullOrWhiteSpace(value)
+                ? OperationResult.Failure(
                     $"{paramName} is null, empty, or whitespace",
                     caller,
                     callerFilePath,
                     callerLineNumber
-                );
-            }
-            return OperationResult.Successful();
+                )
+                : OperationResult.Successful();
         }
 
         /// <summary>

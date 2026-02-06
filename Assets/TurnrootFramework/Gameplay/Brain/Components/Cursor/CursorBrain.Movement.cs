@@ -155,7 +155,7 @@ namespace Turnroot.Gameplay.Brain
                 if (!target.HasValue)
                 {
                     // wrap to the rightmost in row
-                    target = candidates[candidates.Count - 1];
+                    target = candidates[^1];
                 }
 
                 bool success = MoveCursorTo(target.Value);
@@ -235,7 +235,7 @@ namespace Turnroot.Gameplay.Brain
                 if (!target.HasValue)
                 {
                     // wrap to bottommost
-                    target = candidates[candidates.Count - 1];
+                    target = candidates[^1];
                 }
 
                 bool success = MoveCursorTo(target.Value);

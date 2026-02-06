@@ -12,6 +12,8 @@ namespace Turnroot.Gameplay.Brain.Components
     public class ObjectItemInstanceJsonConverter : JsonConverter
     {
         private const string TemplateField = "_template";
+        private const string SlotField = "Slot";
+        private const string IsEquippedField = "IsEquipped";
 
         public override bool CanConvert(Type objectType) =>
             typeof(ObjectItemInstance).IsAssignableFrom(objectType);
@@ -41,6 +43,9 @@ namespace Turnroot.Gameplay.Brain.Components
                 token[TemplateField] = JToken.FromObject(template, serializer);
             }
 
+            token[SlotField] = instance.Slot;
+            token[IsEquippedField] = instance.IsEquipped;
+
             return token;
         }
 
@@ -54,6 +59,18 @@ namespace Turnroot.Gameplay.Brain.Components
             var token = JObject.Load(reader);
             var template = ResolveTemplate(token, serializer);
             var instance = CreateInstance(template);
+
+            var slotToken = token.SelectToken(SlotField);
+            if (slotToken != null)
+            {
+                instance.Slot = slotToken.ToObject<int>();
+            }
+
+            var isEquippedToken = token.SelectToken(IsEquippedField);
+            if (isEquippedToken != null)
+            {
+                instance.IsEquipped = isEquippedToken.ToObject<bool>();
+            }
 
             if (instance is Serialization.IPostDeserialize post)
             {

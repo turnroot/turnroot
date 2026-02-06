@@ -172,9 +172,6 @@ namespace Turnroot.Characters
         private Portrait[] _portraitArrayCache;
 
         [field: Foldout("Visual"), SerializeField]
-        public Sprite[] Sprites { get; private set; }
-
-        [field: Foldout("Visual"), SerializeField]
         [Tooltip(
             "Prefab containing head/hands mesh(s). Should contain a SkinnedMeshRenderer to be used for head/hands"
         )]
@@ -191,6 +188,18 @@ namespace Turnroot.Characters
             "Optional per-character non-battle outfit prefab used when UseBattleModel is false"
         )]
         public GameObject NonBattleOutfitPrefab { get; private set; }
+
+        [field: Foldout("Visual"), SerializeField]
+        [Tooltip("Height offset for class hat positioning (Y axis)")]
+        public float ClassHatHeightOffset { get; private set; } = 0f;
+
+        [field: Foldout("Visual"), SerializeField]
+        [Tooltip("3D offset for hand-held items (weapon position adjustment)")]
+        public Vector3 HandItemOffset { get; private set; } = Vector3.zero;
+
+        [field: Foldout("Visual"), SerializeField]
+        [Tooltip("3D offset for shield position adjustment")]
+        public Vector3 ShieldOffset { get; private set; } = Vector3.zero;
 
         [field:
             Foldout("Animations"),

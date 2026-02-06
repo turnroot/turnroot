@@ -174,6 +174,12 @@ namespace Turnroot.GameSettings
         [BoxGroup("Visuals")]
         public float UnitMovementCurveRandomness = 0.25f;
 
+        [BoxGroup("Visuals")]
+        public float UnitMovementDecelerationRange = 1.5f;
+
+        [BoxGroup("Visuals")]
+        public float UnitMovementMinSpeedMultiplier = 0.4f;
+
         [BoxGroup("Maps"), HorizontalLine(color: EColor.Green)]
         public bool UnexploredMaps;
 

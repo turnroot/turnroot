@@ -57,23 +57,22 @@ namespace Turnroot.Gameplay.Brain.Segments
         }
 
         public void OpenMainGameSettingsMenu() =>
-            OpenSubmenu(uiSettings?.GetGameSettingsMenu(), "game settings");
+            OpenSubmenu(uiSettings.GetGameSettingsMenu(), "game settings");
 
         public void OpenPreBattleMapOverview() =>
-            OpenSubmenu(uiSettings?.GetPrebattleMapMenu(), "pre-battle map");
+            OpenSubmenu(uiSettings.GetPrebattleMapMenu(), "pre-battle map");
 
         public void OpenPreBattleUnitsMenu() =>
-            OpenSubmenu(uiSettings?.GetPrebattleUnitsMenu(), "pre-battle units");
+            OpenSubmenu(uiSettings.GetPrebattleUnitsMenu(), "pre-battle units");
 
         public void OpenPreBattleUnitPositionsMenu() =>
-            OpenSubmenu(uiSettings?.GetPrebattleUnitPositionsMenu(), "pre-battle unit positions");
+            OpenSubmenu(uiSettings.GetPrebattleUnitPositionsMenu(), "pre-battle unit positions");
 
         #endregion
 
         #region Settings Menu Event Handlers
-
-
-        public void HandleGameSettingsMenuSelect(MenuItemBase item) => _routeHandler?.HandleMenuSelect(item);
+        public void HandleGameSettingsMenuSelect(MenuItemBase item) =>
+            _routeHandler?.HandleMenuSelect(item);
 
         #endregion
     }

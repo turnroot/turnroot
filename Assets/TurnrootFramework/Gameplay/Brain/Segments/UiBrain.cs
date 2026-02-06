@@ -53,7 +53,7 @@ namespace Turnroot.Gameplay.Brain.Segments
         private MenuRouteHandler _routeHandler;
         private GameplayPlayerSettings _playerSettings;
         public GameObject CurrentPreBattleMenuInstance =>
-            uiSettings?.GetPreBattleMenu()?.activeInstance;
+            uiSettings.GetPreBattleMenu()?.activeInstance;
 
         protected override EventPriority GetSubscriptionPriority() => EventPriority.Low;
 
@@ -67,8 +67,6 @@ namespace Turnroot.Gameplay.Brain.Segments
         internal void SetTransitioning(bool value) => _isTransitioning = value;
 
         internal MonoBehaviour GetMonoBehaviour() => this;
-
-        internal Brain GetBrain() => _brain;
 
         internal MenuDepthTracker GetMenuTracker() => _menuTracker;
 

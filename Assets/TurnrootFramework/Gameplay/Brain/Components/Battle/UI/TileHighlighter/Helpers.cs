@@ -154,27 +154,7 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
 
         private static float DirToRotation(Vector2Int dir)
         {
-            if (dir == Vector2Int.up)
-            {
-                return 0f;
-            }
-
-            if (dir == Vector2Int.right)
-            {
-                return 90f;
-            }
-
-            if (dir == Vector2Int.down)
-            {
-                return 180f;
-            }
-
-            if (dir == Vector2Int.left)
-            {
-                return 270f;
-            }
-
-            return 0f;
+            return dir == Vector2Int.up ? 0f : dir == Vector2Int.right ? 90f : dir == Vector2Int.down ? 180f : dir == Vector2Int.left ? 270f : 0f;
         }
 
         private static bool IsStraight(Vector2Int incoming, Vector2Int outgoing) =>

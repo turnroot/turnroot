@@ -48,7 +48,7 @@ namespace Turnroot.Gameplay.Brain
                     && _validMoveTiles != null
                     && _validMoveTiles.Count > 0
                     && _validMoveTiles.ContainsKey(CursorPosition)
-                    && Brain.cursorBrain?.GetUnitAtCursor() == null
+                    && Brain.cursorBrain.GetUnitAtCursor() == null
                 )
                 {
                     return true;
@@ -114,8 +114,7 @@ namespace Turnroot.Gameplay.Brain
             MapGridPoint startPoint
         )
         {
-            var result = new List<Vector2Int>();
-            result.Add(startPoint.CoordinatesInt);
+            var result = new List<Vector2Int> { startPoint.CoordinatesInt };
 
             foreach (var point in pathPoints)
             {

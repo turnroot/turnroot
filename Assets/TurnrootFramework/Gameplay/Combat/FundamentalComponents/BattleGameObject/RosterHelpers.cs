@@ -114,7 +114,7 @@ namespace Turnroot.Gameplay.Combat
         {
             try
             {
-                var prep = Brain?.battleBrain?.PreparationObject;
+                var prep = Brain.battleBrain.PreparationObject;
                 // If no pre-battle placements exist yet, InitializePlacements
                 if (prep != null && (prep.placements == null || prep.placements.Count == 0))
                 {
@@ -208,9 +208,9 @@ namespace Turnroot.Gameplay.Combat
         {
             try
             {
-                PlayerTeamRoster?.Clear();
-                EnemyTeamRoster?.Clear();
-                ThirdPartyTeamRoster?.Clear();
+                PlayerTeamRoster.Clear();
+                EnemyTeamRoster.Clear();
+                ThirdPartyTeamRoster.Clear();
                 return OperationResult.Successful();
             }
             catch (System.Exception ex)

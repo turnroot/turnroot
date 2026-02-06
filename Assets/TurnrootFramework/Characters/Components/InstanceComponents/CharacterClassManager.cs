@@ -23,26 +23,34 @@ namespace Turnroot.Characters
 
         public ObjectItemInstance GetEquippedWeapon()
         {
-            var allowedWeapons = _currentClass.ClassData.Requirements?.AllowedWeaponTypes;
+            if (_currentClass?.ClassData == null)
+            {
+                return null;
+            }
 
+            var allowedWeapons = _currentClass.ClassData.Requirements?.AllowedWeaponTypes;
             var inventory = _inventoryInstance.Items();
 
-            // return the weapon in slot 0 (allow all when allowedWeapons is null/empty)
-            foreach (
-                var weapon in inventory.Where(w =>
-                    w.Template != null
-                    && (
-                        allowedWeapons == null
-                        || allowedWeapons.Count == 0
-                        || allowedWeapons.Contains(w.Template.WeaponType)
-                    )
-                    && w.Slot == 0
+            return inventory.FirstOrDefault(w =>
+                w?.Template != null
+                && w.IsEquipped
+                && (
+                    allowedWeapons == null
+                    || allowedWeapons.Count == 0
+                    || allowedWeapons.Contains(w.Template.WeaponType)
                 )
-            )
-            {
-                return weapon;
-            }
-            return null;
+            );
+        }
+
+        public ObjectItemInstance GetEquippedShield()
+        {
+            return _inventoryInstance
+                .Items()
+                .FirstOrDefault(item =>
+                    item?.Template != null
+                    && item.IsEquipped
+                    && item.Template.Subtype == Gameplay.Objects.Components.ObjectSubtype.Shield
+                );
         }
 
         public void GetAvailableWeapons()

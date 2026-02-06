@@ -28,16 +28,13 @@ namespace Turnroot.Gameplay.Brain.Segments
         private readonly UiBrain _brain;
         private readonly GamewideUiSettings _settings;
 
-        // Track menu types for better cleanup
-        private MenuType _currentMenuType = MenuType.Unknown;
-
         public MenuTransitionManager(UiBrain brain, GamewideUiSettings settings)
         {
             _brain = brain;
             _settings = settings;
         }
 
-        public MenuType CurrentMenuType => _currentMenuType;
+        public MenuType CurrentMenuType { get; private set; } = MenuType.Unknown;
 
         private MenuType DetectMenuType(MenuLocation location)
         {
@@ -58,15 +55,13 @@ namespace Turnroot.Gameplay.Brain.Segments
         public IEnumerator TransitionBetween(MenuLocation from, MenuLocation to)
         {
             var fromInstance = from?.activeInstance;
-            _currentMenuType = DetectMenuType(to);
+            CurrentMenuType = DetectMenuType(to);
 
-            // Hide and destroy source menu
             if (fromInstance != null)
             {
-                // If we're leaving the pre-battle unit positions menu, notify listeners (exit positioning mode)
-                if (from == _settings?.GetPrebattleUnitPositionsMenu())
+                if (from == _settings.GetPrebattleUnitPositionsMenu())
                 {
-                    _brain.GetBrain()?.PublishPositioningModeExited();
+                    _brain.Brain.PublishPositioningModeExited();
                 }
 
                 var fromFade = UIFadeCache.Get(fromInstance);
@@ -82,17 +77,15 @@ namespace Turnroot.Gameplay.Brain.Segments
                 UIFadeCache.Remove(fromInstance);
             }
 
-            // Create and show target menu fresh
             if (to.prefab != null)
             {
                 to.activeInstance = Object.Instantiate(to.prefab);
                 SetupMenu(to);
                 HandleCreatedMenuInstance(to);
 
-                // If the created menu is the unit positions menu, notify systems that positioning mode entered
                 if (to == _settings?.GetPrebattleUnitPositionsMenu())
                 {
-                    _brain.GetBrain()?.PublishPositioningModeEntered();
+                    _brain.Brain?.PublishPositioningModeEntered();
                 }
 
                 var targetFade = EnsureUIFade(
@@ -106,7 +99,7 @@ namespace Turnroot.Gameplay.Brain.Segments
         public IEnumerator TransitionToBattle(MenuLocation preBattle)
         {
             // Update current menu type
-            _currentMenuType = MenuType.Battle;
+            CurrentMenuType = MenuType.Battle;
 
             var menuInstance = preBattle?.activeInstance;
             if (menuInstance == null)
@@ -194,27 +187,23 @@ namespace Turnroot.Gameplay.Brain.Segments
         {
             var preparationObjectResolver =
                 instance.GetComponentInChildren<PreparationObjectResolver>(true);
-            preparationObjectResolver?.Initialize(_brain.GetBrain());
+            preparationObjectResolver?.Initialize(_brain.Brain);
         }
 
         private void InitializeTeamMenu(GameObject instance)
         {
             var unitColumns = instance.GetComponentInChildren<UnitSelectionColumns>(true);
-            unitColumns?.Initialize(_brain.GetBrain());
+            unitColumns?.Initialize(_brain.Brain);
         }
 
         private void CleanupMenuEvents(GameObject instance)
         {
-            // Clean up MenuBase handlers on all nested menus. NOTE: Keep this limited to
-            // menu-related handlers only; do not touch unrelated UI elements such as
-            // standalone SimpleButton instances which may live outside of menus.
             var menus = instance.GetComponentsInChildren<MenuBase>(true);
             foreach (var menu in menus)
             {
-                // Clean up all possible event handlers that may have been wired in SetupMenu()/SetupPreBattleMenu()
                 menu.OnItemSelected -= _brain.HandlePreBattleMenuSelect;
                 menu.OnItemSelected -= _brain.HandleGameSettingsMenuSelect;
-                menu.OnItemSelected -= _brain.HandleMenuSelect; // ensure general handlers are removed as well
+                menu.OnItemSelected -= _brain.HandleMenuSelect;
             }
 
             // Clean up any nested RadialMenu handlers too

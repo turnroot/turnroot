@@ -194,6 +194,12 @@ namespace Turnroot.Gameplay.Objects
         ]
         private Aptitude _minWeaponTypeAptitude = new(CommonAncestors.LeveledLetteredField.E);
 
+        [Foldout("Visuals"), HorizontalLine(color: EColor.Yellow)]
+        public GameObject Prefab;
+
+        [Foldout("Visuals")]
+        public Sprite InventoryIcon;
+
         private void ApplyGameplayDefaultsFromSettings()
         {
             var settings = GameplayGeneralSettings.Instance;

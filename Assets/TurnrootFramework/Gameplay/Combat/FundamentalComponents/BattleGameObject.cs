@@ -30,15 +30,9 @@ namespace Turnroot.Gameplay.Combat
     {
         [field: SerializeField, HideInInspector]
         public BattleContext Context { get; private set; }
-
-        [Header("Battle Teams"), HorizontalLine(color: EColor.Indigo)]
-        [SerializeField]
-        private bool _hasThirdParty;
-        public bool HasThirdParty
-        {
-            get => _hasThirdParty;
-            set => _hasThirdParty = value;
-        }
+        [field: Header("Battle Teams"), HorizontalLine(color: EColor.Indigo)]
+        [field: SerializeField]
+        public bool HasThirdParty { get; set; }
 
         [ShowIf(nameof(HasThirdParty))]
         public bool ThirdPartyFightsAllies;
@@ -49,23 +43,30 @@ namespace Turnroot.Gameplay.Combat
         [Range(1, 16)]
         public int MaxPlayerTeamUnits;
 
-        [SerializeField]
-        private List<CharacterData> _requiredPlayerUnits = new();
-        public List<CharacterData> RequiredPlayerUnits
-        {
-            get => _requiredPlayerUnits;
-            set => _requiredPlayerUnits = value;
-        }
+        [field: SerializeField]
+        public List<CharacterData> RequiredPlayerUnits { get; set; } = new();
 
         public EnvironmentalConditions EnvironmentalConditions =>
             GetComponent<EnvironmentalConditions>();
 
-        [SerializeField, SerializeReference]
-        private BattleCondition[] _battleConditions;
-        public BattleCondition[] BattleConditions => _battleConditions;
+        [field: SerializeField, SerializeReference]
+        public BattleCondition[] BattleConditions { get; private set; }
 
         [field: SerializeField]
         public MapGrid MapGrid { get; private set; }
+
+        private TileHighlighter _tileHighlighter;
+        public TileHighlighter TileHighlighter
+        {
+            get
+            {
+                if (_tileHighlighter == null)
+                {
+                    _tileHighlighter = GetComponent<TileHighlighter>();
+                }
+                return _tileHighlighter;
+            }
+        }
 
         [Header("Roster Templates"), HorizontalLine(color: EColor.Blue)]
         [SerializeField]
@@ -98,6 +99,7 @@ namespace Turnroot.Gameplay.Combat
             ResetTurnCount();
             Context ??= GetComponent<BattleContext>();
             MapGrid ??= GetComponentInChildren<MapGrid>();
+            _tileHighlighter ??= GetComponent<TileHighlighter>();
 
             ValidateRequiredComponents();
         }
@@ -110,7 +112,7 @@ namespace Turnroot.Gameplay.Combat
                 Debug.Break();
             }
 
-            if (_battleConditions == null)
+            if (BattleConditions == null)
             {
                 Debug.LogError("BattleGameObject requires BattleConditions to be set");
                 Debug.Break();
@@ -121,12 +123,12 @@ namespace Turnroot.Gameplay.Combat
         private void OnValidate()
         {
             Context ??= GetComponent<BattleContext>();
-            if (_battleConditions == null)
+            if (BattleConditions == null)
             {
                 return;
             }
 
-            foreach (var condition in _battleConditions)
+            foreach (var condition in BattleConditions)
             {
                 if (condition == null)
                 {
@@ -137,10 +139,10 @@ namespace Turnroot.Gameplay.Combat
 
                 try
                 {
-                    condition.ResolveRequiredConditions(_battleConditions);
+                    condition.ResolveRequiredConditions(BattleConditions);
                     if (condition is ConditionalGroupBattleCondition group)
                     {
-                        group.ResolveChildConditions(_battleConditions);
+                        group.ResolveChildConditions(BattleConditions);
                     }
                 }
                 catch (System.Exception ex)
@@ -161,12 +163,12 @@ namespace Turnroot.Gameplay.Combat
         {
             IncrementTurnCount();
 
-            foreach (var condition in _battleConditions.OfType<SurviveTurnsBattleCondition>())
+            foreach (var condition in BattleConditions.OfType<SurviveTurnsBattleCondition>())
             {
                 condition.OnTurnEnd();
             }
 
-            foreach (var condition in _battleConditions.OfType<TimeLimitBattleCondition>())
+            foreach (var condition in BattleConditions.OfType<TimeLimitBattleCondition>())
             {
                 condition.OnTurnEnd();
             }
@@ -175,7 +177,7 @@ namespace Turnroot.Gameplay.Combat
         private void HandleAllyDamaged(CharacterInstance unit, int damage)
         {
             foreach (
-                var condition in _battleConditions.OfType<LimitTotalAllyDamageBattleCondition>()
+                var condition in BattleConditions.OfType<LimitTotalAllyDamageBattleCondition>()
             )
             {
                 condition.OnAllyDamaged(damage);
@@ -185,7 +187,7 @@ namespace Turnroot.Gameplay.Combat
         private void HandleEnemyDamaged(CharacterInstance unit, int damage)
         {
             foreach (
-                var condition in _battleConditions.OfType<DealMinimumTotalEnemyDamageBattleCondition>()
+                var condition in BattleConditions.OfType<DealMinimumTotalEnemyDamageBattleCondition>()
             )
             {
                 condition.OnEnemyDamaged(damage);
@@ -202,17 +204,17 @@ namespace Turnroot.Gameplay.Combat
 
         private void CheckDefeatConditions()
         {
-            foreach (var condition in _battleConditions.OfType<DefeatAllEnemiesBattleCondition>())
+            foreach (var condition in BattleConditions.OfType<DefeatAllEnemiesBattleCondition>())
             {
                 condition.CheckCondition();
             }
 
-            foreach (var condition in _battleConditions.OfType<DefeatEnemyBattleCondition>())
+            foreach (var condition in BattleConditions.OfType<DefeatEnemyBattleCondition>())
             {
                 condition.CheckCondition();
             }
 
-            foreach (var condition in _battleConditions.OfType<ProtectNPCsBattleCondition>())
+            foreach (var condition in BattleConditions.OfType<ProtectNPCsBattleCondition>())
             {
                 condition.CheckCondition();
             }
@@ -236,7 +238,7 @@ namespace Turnroot.Gameplay.Combat
 
         private void CheckMovementConditions(CharacterInstance unit, Vector2Int pos)
         {
-            foreach (var condition in _battleConditions)
+            foreach (var condition in BattleConditions)
             {
                 if (condition is SurviveUntilAllyReachesTileBattleCondition reachTile)
                 {
@@ -261,12 +263,12 @@ namespace Turnroot.Gameplay.Combat
             InvalidateAllConditionCaches();
             ClearAICache();
 
-            foreach (var condition in _battleConditions.OfType<DefeatEnemyBattleCondition>())
+            foreach (var condition in BattleConditions.OfType<DefeatEnemyBattleCondition>())
             {
                 condition.CheckCondition();
             }
 
-            foreach (var condition in _battleConditions.OfType<DefeatAllEnemiesBattleCondition>())
+            foreach (var condition in BattleConditions.OfType<DefeatAllEnemiesBattleCondition>())
             {
                 condition.CheckCondition();
             }
@@ -276,7 +278,7 @@ namespace Turnroot.Gameplay.Combat
 
         private void InvalidateAllConditionCaches()
         {
-            foreach (var condition in _battleConditions)
+            foreach (var condition in BattleConditions)
             {
                 try
                 {

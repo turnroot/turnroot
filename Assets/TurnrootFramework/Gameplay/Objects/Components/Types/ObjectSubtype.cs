@@ -13,6 +13,7 @@ namespace Turnroot.Gameplay.Objects.Components
     {
         // Enum values
         public const string Weapon = "Weapon";
+        public const string Shield = "Shield";
         public const string Magic = "Magic";
         public const string Consumable = "Consumable";
         public const string Equipable = "Equipable";
@@ -50,6 +51,7 @@ namespace Turnroot.Gameplay.Objects.Components
 
         // Convenience properties for checking type
         public bool IsWeapon => _value == Weapon;
+        public bool IsShield => _value == Shield;
         public bool IsMagic => _value == Magic;
         public bool IsConsumable => _value == Consumable;
         public bool IsEquipable => _value == Equipable;
@@ -61,7 +63,7 @@ namespace Turnroot.Gameplay.Objects.Components
         /// </summary>
         public static string[] GetValidValues()
         {
-            var values = new List<string> { Weapon, Magic, Consumable, Equipable };
+            var values = new List<string> { Weapon, Shield, Magic, Consumable, Equipable };
 
             var settings = GameplayGeneralSettings.Instance;
             if (settings != null)

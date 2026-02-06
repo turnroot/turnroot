@@ -6,9 +6,8 @@ namespace Turnroot.Gameplay.Maps
     [CreateAssetMenu(fileName = "Terrain Types", menuName = "Turnroot/Game Settings/Terrain Types")]
     public class TerrainTypes : ScriptableObject
     {
-        [SerializeField]
-        private TerrainType[] _types;
-        public TerrainType[] Types => _types;
+        [field: SerializeField]
+        public TerrainType[] Types { get; private set; }
 
         [SerializeField]
         private Dictionary<string, TerrainType> _typeLookup = new();
@@ -16,9 +15,9 @@ namespace Turnroot.Gameplay.Maps
         private void OnEnable()
         {
             _typeLookup = new Dictionary<string, TerrainType>();
-            if (_types != null)
+            if (Types != null)
             {
-                foreach (var type in _types)
+                foreach (var type in Types)
                 {
                     if (type == null)
                     {
@@ -46,9 +45,7 @@ namespace Turnroot.Gameplay.Maps
             }
         }
 
-        private void OnValidate() =>
-            // Ensure the lookup is updated when the asset is modified
-            OnEnable();
+        private void OnValidate() => OnEnable();
 
         private void OnDisable() => _typeLookup.Clear();
 
@@ -82,9 +79,8 @@ namespace Turnroot.Gameplay.Maps
                 idField.SetValue(newType, System.Guid.NewGuid().ToString());
             }
 
-            var newList = new List<TerrainType>(_types ?? new TerrainType[0]) { newType };
-            _types = newList.ToArray();
-            // update lookup
+            var newList = new List<TerrainType>(Types ?? new TerrainType[0]) { newType };
+            Types = newList.ToArray();
             if (!string.IsNullOrEmpty(newType.Id))
             {
                 _typeLookup[newType.Id] = newType;
@@ -103,9 +99,9 @@ namespace Turnroot.Gameplay.Maps
                 return t;
             }
             // fallback: search array
-            if (_types != null)
+            if (Types != null)
             {
-                foreach (var tt in _types)
+                foreach (var tt in Types)
                 {
                     if (tt != null && tt.Id == id)
                     {
@@ -116,21 +112,38 @@ namespace Turnroot.Gameplay.Maps
             return null;
         }
 
-        // Runtime & Editor-friendly loader for the shared TerrainTypes asset.
-        // At runtime this tries `Resources.Load<TerrainTypes>(resourcesName)`.
-        // In the Editor it also falls back to searching the AssetDatabase.
         public static TerrainTypes LoadDefault(string resourcesName = "TerrainTypes")
         {
-            // First try a direct Resources.Load for the given resource name (preserve existing behaviour)
             var fromResources = Resources.Load<TerrainTypes>(resourcesName);
             if (fromResources != null)
             {
                 return fromResources;
             }
 
-            // Fallback to searching GameSettings folder in Resources
             var fromGameSettings = Resources.Load<TerrainTypes>("GameSettings/TerrainTypes");
-            return fromGameSettings;
+            if (fromGameSettings != null)
+            {
+                return fromGameSettings;
+            }
+
+            var fromEssentialCores = Resources.Load<TerrainTypes>(
+                "EssentialCores/GameSettings/Map/Terrain Types"
+            );
+            if (fromEssentialCores != null)
+            {
+                return fromEssentialCores;
+            }
+
+#if UNITY_EDITOR
+            var guids = UnityEditor.AssetDatabase.FindAssets("t:TerrainTypes");
+            if (guids.Length > 0)
+            {
+                var path = UnityEditor.AssetDatabase.GUIDToAssetPath(guids[0]);
+                return UnityEditor.AssetDatabase.LoadAssetAtPath<TerrainTypes>(path);
+            }
+#endif
+
+            return null;
         }
     }
 }

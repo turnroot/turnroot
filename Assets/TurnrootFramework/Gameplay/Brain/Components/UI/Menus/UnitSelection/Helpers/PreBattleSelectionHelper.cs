@@ -26,7 +26,6 @@ namespace Turnroot.Gameplay.Brain
             var gw = brain.gamewideContextBrain;
             var ltm = brain.ltm;
 
-            // Determine placements to iterate (runtime placements preferred)
             var placements =
                 runtimeInstance != null
                     ? runtimeInstance.GetPlacements()

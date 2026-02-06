@@ -1038,20 +1038,15 @@ namespace Turnroot.EditorTools
                 yellowNotes.Add("Display name matches full name (consider differentiating)");
             }
 
-            if (data.Sprites == null || data.Sprites.Length == 0)
-            {
-                defaultScore++;
-            }
-
             if (data.Portraits == null || data.Portraits.Count == 0)
             {
                 defaultScore++;
                 yellowNotes.Add("No portraits assigned (consider adding portraits)");
             }
 
-            if (defaultScore >= 2)
+            if (defaultScore >= 1)
             {
-                yellowNotes.Add("Many fields are default/empty (name/sprites/portraits)");
+                yellowNotes.Add("Many fields are default/empty (name/portraits)");
             }
 
             // Aggregate notes (preserve severity)

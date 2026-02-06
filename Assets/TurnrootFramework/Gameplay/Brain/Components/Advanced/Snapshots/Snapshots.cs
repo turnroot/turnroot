@@ -148,9 +148,8 @@ namespace Turnroot.Gameplay.Brain.Snapshots
     {
         private readonly Snapshot[] _buffer;
         private int _head;
-        private int _count;
 
-        public int Count => _count;
+        public int Count { get; private set; }
         public int Capacity { get; }
 
         public event Action<Snapshot> OnSnapshotTaken;
@@ -290,12 +289,12 @@ namespace Turnroot.Gameplay.Brain.Snapshots
         {
             _buffer[_head] = snapshot;
             _head = (_head + 1) % Capacity;
-            _count = Math.Min(_count + 1, Capacity);
+            Count = Math.Min(Count + 1, Capacity);
         }
 
         public Snapshot Peek()
         {
-            if (_count == 0)
+            if (Count == 0)
             {
                 return null;
             }
@@ -306,13 +305,13 @@ namespace Turnroot.Gameplay.Brain.Snapshots
 
         public Snapshot Pop()
         {
-            if (_count == 0)
+            if (Count == 0)
             {
                 return null;
             }
 
             _head = (_head - 1 + Capacity) % Capacity;
-            _count--;
+            Count--;
             return _buffer[_head];
         }
 
@@ -320,7 +319,7 @@ namespace Turnroot.Gameplay.Brain.Snapshots
         {
             Array.Clear(_buffer, 0, _buffer.Length);
             _head = 0;
-            _count = 0;
+            Count = 0;
         }
 
         /// <summary>
@@ -328,7 +327,7 @@ namespace Turnroot.Gameplay.Brain.Snapshots
         /// </summary>
         public Snapshot GetAt(int index)
         {
-            if (index < 0 || index >= _count)
+            if (index < 0 || index >= Count)
             {
                 return null;
             }

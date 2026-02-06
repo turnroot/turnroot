@@ -60,9 +60,10 @@ namespace Turnroot.Gameplay.Brain.Components
             JsonSerializer serializer
         )
         {
-            var token = new JObject();
-
-            token[FieldNames.Id] = instance.Id;
+            var token = new JObject
+            {
+                [FieldNames.Id] = instance.Id
+            };
 
             var templateToken = CreateTemplateToken(instance.CharacterTemplate);
             token[FieldNames.CharacterTemplate] =

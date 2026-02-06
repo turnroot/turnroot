@@ -24,12 +24,6 @@ namespace Turnroot.Gameplay.Brain
 
         public void SaveCharacter(CharacterInstance instance, bool updateIndex)
         {
-            if (instance?.CharacterTemplate == null || !instance.CharacterTemplate.IsUnique)
-            {
-                return;
-            }
-
-            // Use existing helper
             var encodeResult = GamewideContextBrainHelpers.EncodeInstanceToString(
                 brain.gamewideContextBrain,
                 instance
@@ -53,11 +47,6 @@ namespace Turnroot.Gameplay.Brain
 
         public CharacterInstance RecallCharacter(CharacterData template)
         {
-            if (template == null || !template.IsUnique)
-            {
-                return null;
-            }
-
             try
             {
                 var key = BuildCharacterKey(template);
@@ -77,24 +66,20 @@ namespace Turnroot.Gameplay.Brain
 
                 if (!decodeResult.Success)
                 {
-#if UNITY_EDITOR
                     TurnrootLogger.Log(
                         $"Failed to decode character: {decodeResult.Error}",
                         TurnrootLogger.LogLevel.Warning
                     );
-#endif
                     return null;
                 }
                 return decodeResult.Value;
             }
             catch (Exception ex)
             {
-#if UNITY_EDITOR
                 TurnrootLogger.Log(
                     $"Failed to recall character: {ex.Message}",
                     TurnrootLogger.LogLevel.Warning
                 );
-#endif
                 return null;
             }
         }

@@ -12,14 +12,10 @@ namespace Turnroot.Gameplay.Brain
     {
         #region Battle Statistics
 
-        private int _battlesWon;
-        private int _battlesLost;
-        private int _battlesRetreated;
-
-        public int BattlesWon => _battlesWon;
-        public int BattlesLost => _battlesLost;
-        public int BattlesRetreated => _battlesRetreated;
-        public int TotalBattles => _battlesWon + _battlesLost + _battlesRetreated;
+        public int BattlesWon { get; private set; }
+        public int BattlesLost { get; private set; }
+        public int BattlesRetreated { get; private set; }
+        public int TotalBattles => BattlesWon + BattlesLost + BattlesRetreated;
 
         #endregion
         #region Battle Outcome Statistics
@@ -31,9 +27,9 @@ namespace Turnroot.Gameplay.Brain
                 return;
             }
 
-            _battlesWon = Mathf.Max(0, _ltm.RecallInt(LtmKeys.BattlesWon));
-            _battlesLost = Mathf.Max(0, _ltm.RecallInt(LtmKeys.BattlesLost));
-            _battlesRetreated = Mathf.Max(0, _ltm.RecallInt(LtmKeys.BattlesRetreated));
+            BattlesWon = Mathf.Max(0, _ltm.RecallInt(LtmKeys.BattlesWon));
+            BattlesLost = Mathf.Max(0, _ltm.RecallInt(LtmKeys.BattlesLost));
+            BattlesRetreated = Mathf.Max(0, _ltm.RecallInt(LtmKeys.BattlesRetreated));
         }
 
         private void SaveBattleOutcomeStatistics()
@@ -43,9 +39,9 @@ namespace Turnroot.Gameplay.Brain
                 return;
             }
 
-            _ltm.RememberInt(LtmKeys.BattlesWon, _battlesWon);
-            _ltm.RememberInt(LtmKeys.BattlesLost, _battlesLost);
-            _ltm.RememberInt(LtmKeys.BattlesRetreated, _battlesRetreated);
+            _ltm.RememberInt(LtmKeys.BattlesWon, BattlesWon);
+            _ltm.RememberInt(LtmKeys.BattlesLost, BattlesLost);
+            _ltm.RememberInt(LtmKeys.BattlesRetreated, BattlesRetreated);
             _ltm.RememberInt(LtmKeys.TotalBattles, TotalBattles);
         }
 
@@ -54,19 +50,19 @@ namespace Turnroot.Gameplay.Brain
             switch (exitType)
             {
                 case Combat.BattleExitType.Victory:
-                    _battlesWon++;
+                    BattlesWon++;
                     break;
                 case Combat.BattleExitType.Defeat:
-                    _battlesLost++;
+                    BattlesLost++;
                     break;
                 case Combat.BattleExitType.Retreat:
-                    _battlesRetreated++;
+                    BattlesRetreated++;
                     break;
             }
 
             SaveBattleOutcomeStatistics();
             TurnrootLogger.Log(
-                $"CharactersBrain: Recorded {exitType}. Total: W{_battlesWon}/L{_battlesLost}/R{_battlesRetreated}"
+                $"CharactersBrain: Recorded {exitType}. Total: W{BattlesWon}/L{BattlesLost}/R{BattlesRetreated}"
             );
         }
 

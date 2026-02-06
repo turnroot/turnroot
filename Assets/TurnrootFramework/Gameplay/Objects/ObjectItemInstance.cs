@@ -19,51 +19,33 @@ namespace Turnroot.Gameplay.Objects
         [SerializeField]
         private ObjectItem _template;
 
-        // Index of this item within the owner's inventory. -1 means not assigned to an inventory.
-        public int Slot = -1; // Slot index within owner inventory (-1 = not assigned)
+        public ObjectItem Template => _template;
 
-        /// <summary>
-        /// Set the inventory that owns this item. Call from the inventory when adding an item.
-        /// </summary>
+        public int Slot = -1;
+        public bool IsEquipped = false;
+
+        [NonSerialized]
+        private CharacterInventoryInstance _ownerInventory;
+
+        private int currentUses;
+
         internal void SetOwnerInventory(CharacterInventoryInstance owner) =>
             _ownerInventory = owner;
 
-        /// <summary>
-        /// Clear the owner (called when removed from inventory). Also resets the Slot to -1.
-        /// </summary>
         internal void ClearOwnerInventory()
         {
             _ownerInventory = null;
             Slot = -1;
+            IsEquipped = false;
         }
 
-        [NonSerialized]
-        private CharacterInventoryInstance _ownerInventory;
-        private int currentUses;
-        public ObjectItem Template => _template;
-
-        /// <summary>
-        /// The number of times this item has been used.
-        /// </summary>
         public int CurrentUses => currentUses;
-
-        /// <summary>
-        /// The remaining uses before the item breaks.
-        /// Returns -1 if the item has no durability (infinite uses).
-        /// </summary>
         public int RemainingUses =>
             _template?.Durability == true ? _template.MaxUses - currentUses : -1;
 
-        /// <summary>
-        /// Reference to the Brain for accessing brain segments.
-        /// Must be set via SetBrain() after deserialization or creation.
-        /// </summary>
         [NonSerialized]
         private Brain.Brain _brain;
 
-        /// <summary>
-        /// Sets the Brain reference. Call this after creating or deserializing the item.
-        /// </summary>
         public void SetBrain(Brain.Brain brain) => _brain = brain;
 
         private StorehouseBrain StorehouseBrain => _brain?.storehouseBrain;
@@ -84,12 +66,6 @@ namespace Turnroot.Gameplay.Objects
             currentUses = 0;
         }
 
-        /// <summary>
-        /// Use the item once, reducing its durability if applicable.
-        /// </summary>
-        /// <returns>
-        /// Remaining uses left. -1 if the item is not durable.
-        /// </returns>
         internal int Use()
         {
             if (!_template.Durability)
@@ -111,9 +87,6 @@ namespace Turnroot.Gameplay.Objects
         public bool CanTransfer(CharacterInventoryInstance targetInventory) =>
             !_template.IsUnequippable && !targetInventory.IsFull;
 
-        /// <summary>
-        /// Transfers this item to a target inventory.
-        /// </summary>
         internal OperationResult Transfer(CharacterInventoryInstance targetInventory)
         {
             if (_template.IsUnequippable)
@@ -240,9 +213,6 @@ namespace Turnroot.Gameplay.Objects
             return StorehouseBrain?.CanAfford(repairCost) ?? false;
         }
 
-        /// <summary>
-        /// Repairs this item by restoring the specified number of uses.
-        /// </summary>
         internal OperationResult Repair(int repairUses)
         {
             if (!_template.Repairable || !_template.Durability)
@@ -290,10 +260,6 @@ namespace Turnroot.Gameplay.Objects
 
         public void OnAfterDeserialize()
         {
-            // Ensure _ownerInventory reference is maintained after deserialization
-            // If this item was deserialized without an owner, it will remain null
-            // which is valid for items in shops or as loot
-
             // Clamp currentUses to valid range based on template
             if (_template != null && _template.Durability)
             {

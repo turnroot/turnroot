@@ -310,12 +310,7 @@ namespace Turnroot.Gameplay.Brain.Segments
                 }
             }
 
-            if (closestPoint == null)
-            {
-                return Vector2Int.zero;
-            }
-
-            return closestPoint.CoordinatesInt;
+            return closestPoint == null ? Vector2Int.zero : closestPoint.CoordinatesInt;
         }
 
         private void HandleBattleStarted()

@@ -72,10 +72,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         )
         {
             // If a weapon was not explicitly provided, use the currently equipped weapon
-            if (weaponItem == null)
-            {
-                weaponItem = attacker.GetEquippedWeapon();
-            }
+            weaponItem ??= attacker.GetEquippedWeapon();
 
             if (weaponItem == null)
             {

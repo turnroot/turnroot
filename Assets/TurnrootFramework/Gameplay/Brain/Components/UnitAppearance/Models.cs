@@ -7,10 +7,6 @@ namespace Turnroot.Gameplay.Brain
 {
     public partial class UnitAppearanceBrain
     {
-        /// <summary>
-        /// Creates a complete model GameObject for the specified unit.
-        /// Assembles outfit, head, and hair pieces into a single hierarchy.
-        /// </summary>
         public GameObject CreateModelForUnit(CharacterInstance unit)
         {
             var root = new GameObject($"{unit.CharacterTemplate.DisplayName}_Root");
@@ -26,12 +22,8 @@ namespace Turnroot.Gameplay.Brain
 
             SetPrimaryRenderer(unit, outfitRenderer, headRenderer, root);
 
-            // CRITICAL: Unify all bone hierarchies before adding animator
-            // All meshes share the same bone names but each brought its own copy
-            // We need to rebind them all to use ONE shared armature
             UnifyBoneHierarchies(root);
 
-            // Add Animator component at the root after bones are unified
             var animator = root.AddComponent<Animator>();
             if (_settings?.DefaultUnitAnimatorController != null)
             {
@@ -169,8 +161,24 @@ namespace Turnroot.Gameplay.Brain
                 hh.name = "HeadAndHands";
             }
 
-            if (unit.CharacterTemplate.HairPrefab != null)
+            // Check if class has a hat outfit
+            var classInst = unit.GetCurrentClass();
+            var classHatPrefab = classInst?.ClassData?.Identity?.ClassHatPrefab;
+
+            if (classHatPrefab != null)
             {
+                // Use class hat with height offset
+                var hat = Instantiate(classHatPrefab, parent.transform);
+                hat.name = "ClassHat";
+                hat.transform.localPosition = new Vector3(
+                    0,
+                    unit.CharacterTemplate.ClassHatHeightOffset,
+                    0
+                );
+            }
+            else if (unit.CharacterTemplate.HairPrefab != null)
+            {
+                // Fall back to default hair (no offset)
                 var hair = Instantiate(unit.CharacterTemplate.HairPrefab, parent.transform);
                 hair.name = "Hair";
             }
@@ -253,12 +261,6 @@ namespace Turnroot.Gameplay.Brain
             return placeholder.AddComponent<SkinnedMeshRenderer>();
         }
 
-        /// <summary>
-        /// Unifies all bone hierarchies under the model root.
-        /// Finds all "root" transforms (armatures), picks one as canonical,
-        /// and removes duplicates. If prefabs are set up correctly, renderers
-        /// should automatically reference the unified hierarchy.
-        /// </summary>
         private void UnifyBoneHierarchies(GameObject root)
         {
             var allRoots = new System.Collections.Generic.List<Transform>();
@@ -286,9 +288,6 @@ namespace Turnroot.Gameplay.Brain
             RemoveDuplicateRoots(root, allRoots, canonicalRoot);
         }
 
-        /// <summary>
-        /// Handles the simple case where there's only one armature root.
-        /// </summary>
         private void HandleSingleArmatureRoot(GameObject root, Transform singleRoot)
         {
             if (singleRoot.parent != root.transform)
@@ -300,9 +299,6 @@ namespace Turnroot.Gameplay.Brain
             );
         }
 
-        /// <summary>
-        /// Finds the canonical bone root from multiple roots - the one with the most child bones.
-        /// </summary>
         private Transform FindCanonicalBoneRoot(System.Collections.Generic.List<Transform> allRoots)
         {
             var canonicalRoot = allRoots
@@ -317,9 +313,6 @@ namespace Turnroot.Gameplay.Brain
             return canonicalRoot;
         }
 
-        /// <summary>
-        /// Builds a mapping of bone names to transforms from the canonical hierarchy.
-        /// </summary>
         private System.Collections.Generic.Dictionary<string, Transform> BuildBoneMapping(
             Transform canonicalRoot
         )
@@ -329,9 +322,6 @@ namespace Turnroot.Gameplay.Brain
             return boneMap;
         }
 
-        /// <summary>
-        /// Rebinds all skinned mesh renderers to use bones from the canonical hierarchy.
-        /// </summary>
         private void RebindRendererBones(
             GameObject root,
             Transform canonicalRoot,
@@ -351,15 +341,11 @@ namespace Turnroot.Gameplay.Brain
                 }
                 else
                 {
-                    // No bones assigned - just set root bone as a hint
                     renderer.rootBone = canonicalRoot;
                 }
             }
         }
 
-        /// <summary>
-        /// Attempts to rebind a renderer's bones to the canonical hierarchy.
-        /// </summary>
         private void TryRebindRendererToCanonicalBones(
             SkinnedMeshRenderer renderer,
             Transform canonicalRoot,
@@ -389,15 +375,9 @@ namespace Turnroot.Gameplay.Brain
             {
                 renderer.bones = newBones;
                 renderer.rootBone = canonicalRoot;
-                TurnrootLogger.Log(
-                    $"UnifyBoneHierarchies: Rebound '{renderer.name}' to canonical bones"
-                );
             }
         }
 
-        /// <summary>
-        /// Removes duplicate armature roots, keeping only the canonical one.
-        /// </summary>
         private void RemoveDuplicateRoots(
             GameObject root,
             System.Collections.Generic.List<Transform> allRoots,
@@ -415,17 +395,11 @@ namespace Turnroot.Gameplay.Brain
             {
                 if (duplicateRoot != canonicalRoot && duplicateRoot != null)
                 {
-                    TurnrootLogger.Log(
-                        $"UnifyBoneHierarchies: Removing duplicate armature '{duplicateRoot.name}'"
-                    );
-                    Object.Destroy(duplicateRoot.gameObject);
+                    Destroy(duplicateRoot.gameObject);
                 }
             }
         }
 
-        /// <summary>
-        /// Recursively finds all transforms that look like armature roots.
-        /// </summary>
         private void FindAllRootTransforms(
             Transform parent,
             System.Collections.Generic.List<Transform> results
@@ -447,9 +421,6 @@ namespace Turnroot.Gameplay.Brain
             }
         }
 
-        /// <summary>
-        /// Checks if a transform is a descendant of another.
-        /// </summary>
         private bool IsDescendantOf(Transform child, Transform potentialAncestor)
         {
             var current = child;
@@ -464,9 +435,6 @@ namespace Turnroot.Gameplay.Brain
             return false;
         }
 
-        /// <summary>
-        /// Recursively builds a map of bone names to transforms.
-        /// </summary>
         private void BuildBoneMap(
             Transform bone,
             System.Collections.Generic.Dictionary<string, Transform> map

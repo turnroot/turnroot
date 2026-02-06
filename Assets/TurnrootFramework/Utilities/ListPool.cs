@@ -82,19 +82,18 @@ namespace Turnroot.Utilities
     /// </summary>
     public struct PooledList<T> : System.IDisposable
     {
-        private List<T> _list;
         private bool _disposed;
 
-        public List<T> List => _list;
+        public List<T> List { get; private set; }
 
-        public static PooledList<T> Get() => new PooledList<T> { _list = ListPool<T>.Get(), _disposed = false };
+        public static PooledList<T> Get() => new PooledList<T> { List = ListPool<T>.Get(), _disposed = false };
 
         public void Dispose()
         {
-            if (!_disposed && _list != null)
+            if (!_disposed && List != null)
             {
-                ListPool<T>.Return(_list);
-                _list = null;
+                ListPool<T>.Return(List);
+                List = null;
                 _disposed = true;
             }
         }
@@ -180,19 +179,18 @@ namespace Turnroot.Utilities
     /// </summary>
     public struct PooledHashSet<T> : System.IDisposable
     {
-        private HashSet<T> _hashSet;
         private bool _disposed;
 
-        public HashSet<T> HashSet => _hashSet;
+        public HashSet<T> HashSet { get; private set; }
 
-        public static PooledHashSet<T> Get() => new PooledHashSet<T> { _hashSet = HashSetPool<T>.Get(), _disposed = false };
+        public static PooledHashSet<T> Get() => new PooledHashSet<T> { HashSet = HashSetPool<T>.Get(), _disposed = false };
 
         public void Dispose()
         {
-            if (!_disposed && _hashSet != null)
+            if (!_disposed && HashSet != null)
             {
-                HashSetPool<T>.Return(_hashSet);
-                _hashSet = null;
+                HashSetPool<T>.Return(HashSet);
+                HashSet = null;
                 _disposed = true;
             }
         }
