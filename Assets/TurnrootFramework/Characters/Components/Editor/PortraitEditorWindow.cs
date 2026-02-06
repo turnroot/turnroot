@@ -9,6 +9,9 @@ using UnityEngine;
 
 namespace Turnroot.Characters.Subclasses.Editor
 {
+    /// <summary>
+    /// Editor window for creating and editing character portraits with layered images.
+    /// </summary>
     public class PortraitEditorWindow : StackedImageEditorWindow<CharacterData, Portrait>
     {
         protected override string WindowTitle => "Portrait Editor";

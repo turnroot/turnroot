@@ -7,6 +7,10 @@ using UnityEngine;
 
 namespace Turnroot.Characters
 {
+    /// <summary>
+    /// Runtime instance of a character containing all state and behavior.
+    /// This partial class contains stat validation, repair, and access methods.
+    /// </summary>
     public partial class CharacterInstance : Serialization.IPostDeserialize, IHasStats
     {
         #region Stat Validation

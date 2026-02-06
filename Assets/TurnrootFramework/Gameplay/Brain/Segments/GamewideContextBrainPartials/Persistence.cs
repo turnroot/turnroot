@@ -4,6 +4,9 @@ using Turnroot.Utilities;
 
 namespace Turnroot.Gameplay.Brain
 {
+    /// <summary>
+    /// Partial class handling persistent player roster management and character persistence.
+    /// </summary>
     public partial class GamewideContextBrain
     {
         #region Persistent Player Roster Management

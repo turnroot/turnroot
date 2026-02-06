@@ -128,6 +128,9 @@ namespace Turnroot.Gameplay.Brain.Snapshots
 
         public IEnumerable<string> GetCapturedUnitIds() => _units.Keys;
 
+        /// <summary>
+        /// Represents the captured state of a single unit in a snapshot.
+        /// </summary>
         [Serializable]
         private class UnitState
         {

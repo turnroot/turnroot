@@ -5,6 +5,9 @@ using UnityEngine;
 
 namespace Turnroot.GameSettings
 {
+    /// <summary>
+    /// Visual presentation styles available for game menus.
+    /// </summary>
     public enum MenuStyle
     {
         Pie,
@@ -14,6 +17,9 @@ namespace Turnroot.GameSettings
         None,
     }
 
+    /// <summary>
+    /// Identifiers for all menu locations in the game.
+    /// </summary>
     public enum MenuName
     {
         None,
@@ -37,6 +43,9 @@ namespace Turnroot.GameSettings
         BattleActionSelectMenu,
     }
 
+    /// <summary>
+    /// Represents a menu location in the menu hierarchy with style, prefab, and parent relationship.
+    /// </summary>
     [System.Serializable]
     public class MenuLocation
     {
@@ -108,6 +117,9 @@ namespace Turnroot.GameSettings
             };
     }
 
+    /// <summary>
+    /// Global UI configuration for menus, menu hierarchy, and UI element settings.
+    /// </summary>
     [CreateAssetMenu(
         fileName = "GamewideUiSettings",
         menuName = "Turnroot/Game Settings/UI/Gamewide UI Settings"

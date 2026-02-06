@@ -7,6 +7,9 @@ using System.Collections.Generic;
 
 namespace Turnroot.Conversations.Branching.Nodes
 {
+    /// <summary>
+    /// Node-based graph for creating branching conversation dialogue trees.
+    /// </summary>
     [CreateAssetMenu(
         fileName = "NewConversationGraph",
         menuName = "Turnroot/Conversations/Branching Conversation"

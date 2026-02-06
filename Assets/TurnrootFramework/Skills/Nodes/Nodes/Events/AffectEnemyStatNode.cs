@@ -4,6 +4,9 @@ using UnityEngine;
 
 namespace Turnroot.Skills.Nodes.Events
 {
+    /// <summary>
+    /// Modifies a stat value (Health, Strength, etc.) on the target enemy by a specified amount.
+    /// </summary>
     [CreateNodeMenu("Events/Neutral/Affect Enemy Stat")]
     [NodeLabel("Modifies a stat value on the target enemy")]
     public class AffectEnemyStatNode : SkillNode

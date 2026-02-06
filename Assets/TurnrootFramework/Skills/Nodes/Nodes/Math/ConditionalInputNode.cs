@@ -2,6 +2,9 @@ using XNode;
 
 namespace Turnroot.Skills.Nodes.Math
 {
+    /// <summary>
+    /// Provides constant boolean values (True or False) as outputs.
+    /// </summary>
     [CreateNodeMenu("Math/Conditional Input")]
     [NodeLabel("Outputs True or False")]
     public class ConditionalInputNode : SkillNode

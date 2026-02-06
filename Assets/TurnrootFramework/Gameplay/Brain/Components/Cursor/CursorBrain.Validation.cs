@@ -2,6 +2,9 @@ using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain
 {
+    /// <summary>
+    /// Provides validation and helper methods for cursor position checking.
+    /// </summary>
     public partial class CursorBrain
     {
         #region Validation Helpers

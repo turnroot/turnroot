@@ -2,6 +2,9 @@ using System;
 
 namespace Turnroot.Graphics2D
 {
+    /// <summary>
+    /// An image stack layer that applies tinting only to grayscale sprites, preserving original colors for colored sprites.
+    /// </summary>
     [Serializable]
     public class UnmaskedImageStackLayer : ImageStackLayer
     {

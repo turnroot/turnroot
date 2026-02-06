@@ -3,6 +3,9 @@ using UnityEngine;
 
 namespace Turnroot.Gameplay.Maps
 {
+    /// <summary>
+    /// ScriptableObject that manages the collection of terrain types available in the game.
+    /// </summary>
     [CreateAssetMenu(fileName = "Terrain Types", menuName = "Turnroot/Game Settings/Terrain Types")]
     public class TerrainTypes : ScriptableObject
     {

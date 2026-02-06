@@ -9,6 +9,9 @@ using UnityEngine;
 
 namespace Turnroot.GameSettings
 {
+    /// <summary>
+    /// Defines display names for in-game currency.
+    /// </summary>
     [System.Serializable]
     public struct GoldDisplay
     {
@@ -16,6 +19,9 @@ namespace Turnroot.GameSettings
         public string FullName;
     }
 
+    /// <summary>
+    /// Defines character class progression tiers from starter to expert.
+    /// </summary>
     public enum ProgressionLevel
     {
         Starter = -1,
@@ -25,6 +31,9 @@ namespace Turnroot.GameSettings
         Expert = 4,
     }
 
+    /// <summary>
+    /// Defines unit movement categories that affect terrain traversal and exploration.
+    /// </summary>
     public enum MovementType
     {
         Infantry,
@@ -36,6 +45,9 @@ namespace Turnroot.GameSettings
 
     // TrianglePositionEnum defined in TrianglePosition.cs
 
+    /// <summary>
+    /// Defines types of equipable non-weapon items.
+    /// </summary>
     public enum EquipableObjectType
     {
         Accessory,
@@ -44,6 +56,9 @@ namespace Turnroot.GameSettings
         Ring,
     }
 
+    /// <summary>
+    /// Defines types of equipable outfit items for character customization.
+    /// </summary>
     public enum EquipableOutfitType
     {
         Helmet,
@@ -60,6 +75,9 @@ namespace Turnroot.GameSettings
         Cloak,
     }
 
+    /// <summary>
+    /// Defines how many uses an item recovers after battle.
+    /// </summary>
     public enum ReplenishUseType
     {
         None,
@@ -79,18 +97,27 @@ namespace Turnroot.GameSettings
         Ten,
     }
 
+    /// <summary>
+    /// Central configuration for gameplay mechanics including combat formulas, class progression, items, and unit stats.
+    /// </summary>
     [CreateAssetMenu(
         fileName = "GameplayGeneralSettings",
         menuName = "Turnroot/Game Settings/Gameplay/General Settings"
     )]
     public class GameplayGeneralSettings : SingletonScriptableObject<GameplayGeneralSettings>
     {
+        /// <summary>
+        /// Defines how character classes are selected or changed.
+        /// </summary>
         public enum ClassSelectionMode
         {
             PromotionBased,
             RequirementBased,
         }
 
+        /// <summary>
+        /// Defines calculation methods for hit rate in combat.
+        /// </summary>
         public enum HitFormulaType
         {
             ClassicSkillHeavy, // Skill*2 + Dex + Luck/2
@@ -100,6 +127,9 @@ namespace Turnroot.GameSettings
             Custom, // Manual multipliers
         }
 
+        /// <summary>
+        /// Defines calculation methods for critical hit rate in combat.
+        /// </summary>
         public enum CritFormulaType
         {
             SkillHalf, // Skill/2
@@ -108,6 +138,9 @@ namespace Turnroot.GameSettings
             Custom, // Manual multiplier
         }
 
+        /// <summary>
+        /// Defines calculation methods for evasion rate in combat.
+        /// </summary>
         public enum AvoidFormulaType
         {
             ClassicSpeedHeavy, // Speed*2 + Luck
@@ -264,6 +297,9 @@ namespace Turnroot.GameSettings
 
         // Combat tuning: effectiveness, crit multiplier, double-attack speed threshold, and support bonuses
 
+        /// <summary>
+        /// Defines combat stat bonuses granted by support relationships.
+        /// </summary>
         [System.Serializable]
         public struct SupportBonus
         {

@@ -4,6 +4,9 @@ using UnityEngine;
 
 namespace Turnroot.Skills.Nodes.Events
 {
+    /// <summary>
+    /// Negates the next incoming attack on the unit, preventing all damage.
+    /// </summary>
     [CreateNodeMenu("Events/Defensive/Negate Next Attack")]
     [NodeLabel("Negate incoming attack damage on unit")]
     public class NegateNextAttackNode : SkillNode

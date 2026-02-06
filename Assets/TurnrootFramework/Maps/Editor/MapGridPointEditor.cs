@@ -3,6 +3,9 @@ using UnityEditor;
 
 namespace Turnroot.Gameplay.Maps
 {
+    /// <summary>
+    /// Custom inspector for MapGridPoint with terrain type selection.
+    /// </summary>
     [CustomEditor(typeof(MapGridPoint))]
     public class MapGridPointEditor : UnityEditor.Editor
     {

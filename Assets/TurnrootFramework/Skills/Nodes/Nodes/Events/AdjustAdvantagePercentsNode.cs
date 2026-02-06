@@ -4,6 +4,9 @@ using UnityEngine;
 
 namespace Turnroot.Skills.Nodes.Events
 {
+    /// <summary>
+    /// Adjusts the weapon advantage percentage in combat calculations.
+    /// </summary>
     [CreateNodeMenu("Events/Neutral/Adjust Advantage Percents")]
     [NodeLabel("Adjust Advantage Percents")]
     public class AdjustAdvantagePercentsNode : SkillNode

@@ -3,6 +3,9 @@ using UnityEngine.InputSystem;
 
 namespace Turnroot.Gameplay.Brain.Segments
 {
+    /// <summary>
+    /// Factory class for creating and configuring InputActions for menu navigation and gameplay controls.
+    /// </summary>
     public static class InputActionFactory
     {
         public static InputAction CreateNavigateUp()

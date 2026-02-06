@@ -4,6 +4,9 @@ using UnityEngine;
 
 namespace Turnroot.Skills.Nodes.Events
 {
+    /// <summary>
+    /// Moves the unit to a specified position on the battlefield grid.
+    /// </summary>
     [CreateNodeMenu("Events/Neutral/Move Unit")]
     [NodeLabel("Moves the unit to a new position on the battlefield")]
     public class MoveUnitNode : SkillNode

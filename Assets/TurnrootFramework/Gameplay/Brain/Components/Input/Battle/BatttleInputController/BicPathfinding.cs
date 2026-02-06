@@ -6,6 +6,9 @@ using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain
 {
+    /// <summary>
+    /// Partial class containing pathfinding and path preview logic for battle input controller.
+    /// </summary>
     public partial class BattleInputControllerBrain : BrainComponent
     {
         private List<Vector2Int> HandlePathPreview()

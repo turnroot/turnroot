@@ -8,6 +8,9 @@ using SimpleButtonComponent = Turnroot.UI.Components.SimpleButton.SimpleButton;
 
 namespace Turnroot.UI.Components.Menu
 {
+    /// <summary>
+    /// Abstract base class for menu systems, providing navigation, selection, and input handling functionality.
+    /// </summary>
     [RequireComponent(typeof(CanvasGroup))]
     public abstract class MenuBase : MonoBehaviour
     {
@@ -144,7 +147,6 @@ namespace Turnroot.UI.Components.Menu
             // Only update highlighting if the selection has actually changed
             if (_previousSelectedIndex != _actualCurrentSelectedIndex)
             {
-                // Clear highlighting from previous item
                 if (
                     _previousSelectedIndex >= 0
                     && _previousSelectedIndex < menuItems.Count
@@ -158,7 +160,6 @@ namespace Turnroot.UI.Components.Menu
                     prevButton.OnPointerExit(fakeExitEvent);
                 }
 
-                // Highlight the current item
                 var currentItem = menuItems[_actualCurrentSelectedIndex];
                 if (currentItem.TryGetComponent<SimpleButtonComponent>(out var currentButton))
                 {

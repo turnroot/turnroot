@@ -3,6 +3,9 @@ using UnityEngine;
 
 namespace Turnroot.Characters.Stats.Editor
 {
+    /// <summary>
+    /// Custom property drawer for BoundedCharacterStat with progress bar visualization.
+    /// </summary>
     [CustomPropertyDrawer(typeof(BoundedCharacterStat))]
     public class CharacterStatDrawer : PropertyDrawer
     {

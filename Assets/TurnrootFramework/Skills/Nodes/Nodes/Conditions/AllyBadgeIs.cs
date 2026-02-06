@@ -5,6 +5,9 @@ using XNode;
 
 namespace Turnroot.Skills.Nodes.Conditions
 {
+    /// <summary>
+    /// Condition node that checks how many adjacent allied units have a specific badge text.
+    /// </summary>
     [CreateNodeMenu("Conditions/Unit/Allies' Badge Is")]
     [NodeLabel("Check adjacent allies' badge")]
     public class AllyBadgeIs : SkillNode

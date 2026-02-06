@@ -3,6 +3,9 @@ using UnityEngine;
 
 namespace Turnroot.Characters.Components.Editor
 {
+    /// <summary>
+    /// Custom property drawer for CharacterWhich fields with dropdown selection.
+    /// </summary>
     [CustomPropertyDrawer(typeof(CharacterWhich))]
     public class CharacterWhichDrawer : PropertyDrawer
     {

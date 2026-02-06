@@ -4,6 +4,9 @@ using UnityEngine;
 
 namespace Turnroot.Skills.Nodes.Flow
 {
+    /// <summary>
+    /// Conditional flow node that interrupts execution if the input condition is false.
+    /// </summary>
     [NodeLabel("Proceed if condition is true")]
     [CreateNodeMenu("Flow/Flow If")]
     public class FlowIfNode : SkillNode

@@ -4,6 +4,9 @@ using UnityEngine.Events;
 
 namespace Turnroot.Utilities.AbstractScripts
 {
+    /// <summary>
+    /// Smoothly fades UI elements by controlling CanvasGroup alpha with events for visibility changes.
+    /// </summary>
     [RequireComponent(typeof(CanvasGroup))]
     public class UIFade : MonoBehaviour
     {

@@ -4,6 +4,9 @@ using UnityEngine.UI;
 
 namespace Turnroot.AbstractScripts.Graphics2D
 {
+    /// <summary>
+    /// Utility methods for 2D graphics operations including image manipulation, sprite swapping, and DOTween animations.
+    /// </summary>
     public static class Graphics2DUtils
     {
         // Kill tweens on images and reset alpha

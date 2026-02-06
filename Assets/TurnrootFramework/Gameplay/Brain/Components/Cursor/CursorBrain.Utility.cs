@@ -2,6 +2,9 @@ using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain
 {
+    /// <summary>
+    /// Provides utility methods for cursor direction and grid movement calculations.
+    /// </summary>
     public partial class CursorBrain
     {
         #region Utility Methods

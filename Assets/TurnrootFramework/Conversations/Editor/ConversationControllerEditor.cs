@@ -4,6 +4,9 @@ using UnityEngine;
 
 namespace Turnroot.Conversations.Editor
 {
+    /// <summary>
+    /// Custom editor for ConversationController that provides a UI for managing conversation instances and quick actions.
+    /// </summary>
     [CustomEditor(typeof(ConversationController))]
     [CanEditMultipleObjects]
     public class ConversationControllerEditor : UnityEditor.Editor

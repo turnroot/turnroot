@@ -3,6 +3,9 @@ using UnityEngine;
 
 namespace Turnroot.Characters.Subclasses.Editor
 {
+    /// <summary>
+    /// Custom property drawer for Pronouns fields with dropdown for pronoun selection.
+    /// </summary>
     [CustomPropertyDrawer(typeof(Pronouns))]
     public class PronounsDrawer : PropertyDrawer
     {
@@ -85,6 +88,7 @@ namespace Turnroot.Characters.Subclasses.Editor
             _ = property.serializedObject.ApplyModifiedProperties();
         }
 
-        public override float GetPropertyHeight(SerializedProperty property, GUIContent label) => EditorGUIUtility.singleLineHeight;
+        public override float GetPropertyHeight(SerializedProperty property, GUIContent label) =>
+            EditorGUIUtility.singleLineHeight;
     }
 }

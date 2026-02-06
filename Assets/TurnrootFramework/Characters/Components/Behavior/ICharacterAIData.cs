@@ -35,6 +35,9 @@ namespace Turnroot.Characters
                 ? null
                 : (ICharacterAIData)new CharacterInstanceAIDataAdapter(character);
 
+        /// <summary>
+        /// Adapter that wraps CharacterInstance to provide ICharacterAIData interface.
+        /// </summary>
         private class CharacterInstanceAIDataAdapter : ICharacterAIData
         {
             private readonly CharacterInstance _character;

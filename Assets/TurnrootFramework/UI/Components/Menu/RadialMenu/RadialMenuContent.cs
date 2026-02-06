@@ -4,6 +4,9 @@ using UnityEngine.UI;
 
 namespace Turnroot.UI.Components.RadialMenu
 {
+    /// <summary>
+    /// Default implementation of radial menu content displaying an icon and label with visibility controls.
+    /// </summary>
     [RequireComponent(typeof(RectTransform))]
     public class RadialMenuContent : MonoBehaviour, IRadialMenuContent
     {

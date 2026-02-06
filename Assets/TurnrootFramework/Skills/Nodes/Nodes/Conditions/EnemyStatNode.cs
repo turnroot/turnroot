@@ -1,5 +1,8 @@
 namespace Turnroot.Skills.Nodes.Conditions
 {
+    /// <summary>
+    /// Condition node that retrieves stat values from the enemy character.
+    /// </summary>
     [CreateNodeMenu("Conditions/Enemy/Enemy Stat")]
     [NodeLabel(
         "Gets the current (and if the stat has a max value, the max) stat value of the enemy (if skill applies to multiple enemies, evaluates on the first targeted)"

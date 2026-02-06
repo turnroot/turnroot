@@ -8,6 +8,9 @@ using UnityEditor;
 
 namespace Turnroot.EditorTools
 {
+    /// <summary>
+    /// Editor window for validating character data and displaying completion status.
+    /// </summary>
     public class CharacterChecklistWindow : EditorWindow
     {
         private Vector2 _scroll;
@@ -328,6 +331,9 @@ namespace Turnroot.EditorTools
         private int _selectedCheckIndex = -1;
         private int _selectedCharacterIndex = -1;
 
+        /// <summary>
+        /// Defines a single validation check for character data.
+        /// </summary>
         private class CharacterCheckDefinition
         {
             public string Label;
@@ -343,6 +349,9 @@ namespace Turnroot.EditorTools
             }
         }
 
+        /// <summary>
+        /// Represents the result of a character validation check.
+        /// </summary>
         private class CharacterCheckResult
         {
             public Color Color = Color.gray;
@@ -1088,6 +1097,9 @@ namespace Turnroot.EditorTools
             return result;
         }
 
+        /// <summary>
+        /// Contains analysis results for a character including validation status.
+        /// </summary>
         private class CharacterAnalysis
         {
             public string Name;

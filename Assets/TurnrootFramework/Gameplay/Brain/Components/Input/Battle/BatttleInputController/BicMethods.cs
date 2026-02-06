@@ -9,6 +9,9 @@ using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain
 {
+    /// <summary>
+    /// Partial class containing helper methods for player turn management and state handling.
+    /// </summary>
     public partial class BattleInputControllerBrain : BrainComponent
     {
         #region Player Turn Management

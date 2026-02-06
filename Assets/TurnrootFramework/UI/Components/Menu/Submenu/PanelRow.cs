@@ -4,8 +4,14 @@ using UnityEngine.UI;
 
 namespace Turnroot.UI.Components.Menu.Submenu
 {
+    /// <summary>
+    /// Represents a single row in a panel-based menu with support for sliders, toggles, buttons, and carousels.
+    /// </summary>
     public class PanelRow : MonoBehaviour
     {
+        /// <summary>
+        /// Defines the type of interactive component displayed in this row.
+        /// </summary>
         public enum RowType
         {
             Slider,

@@ -2,12 +2,18 @@ using UnityEngine;
 
 namespace Turnroot.Gameplay.Maps
 {
+    /// <summary>
+    /// Display mode for map features in the editor.
+    /// </summary>
     public enum FeatureDisplay
     {
         Icon,
         Initial,
     }
 
+    /// <summary>
+    /// Settings asset for customizing the map grid editor appearance and behavior.
+    /// </summary>
     [CreateAssetMenu(
         fileName = "MapGridEditorSettings",
         menuName = "Turnroot/Editor Settings/Map Grid Editor Settings"

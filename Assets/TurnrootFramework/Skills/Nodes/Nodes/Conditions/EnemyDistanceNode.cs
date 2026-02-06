@@ -3,6 +3,9 @@ using XNode;
 
 namespace Turnroot.Skills.Nodes.Conditions
 {
+    /// <summary>
+    /// Condition node that calculates the Manhattan distance between the unit and the target enemy.
+    /// </summary>
     [CreateNodeMenu("Conditions/Position/Enemy Distance")]
     [NodeLabel("Gets the distance to the target enemy")]
     public class EnemyDistanceNode : SkillNode

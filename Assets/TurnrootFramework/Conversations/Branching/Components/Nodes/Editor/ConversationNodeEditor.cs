@@ -4,7 +4,9 @@ using XNodeEditor;
 
 namespace Turnroot.Conversations.Branching.Nodes.Editor
 {
-    // Shared implementation used by all conversation node editors
+    /// <summary>
+    /// Shared implementation used by all conversation node editors.
+    /// </summary>
     public abstract class ConversationBaseNodeEditor : NodeEditor
     {
         public override int GetWidth() => 350;
@@ -51,15 +53,27 @@ namespace Turnroot.Conversations.Branching.Nodes.Editor
         }
     }
 
+    /// <summary>
+    /// Custom editor for standard ConversationNode.
+    /// </summary>
     [CustomNodeEditor(typeof(ConversationNode))]
     public class ConversationNodeEditor : ConversationBaseNodeEditor { }
 
+    /// <summary>
+    /// Custom editor for SplitByChoices2Node with two choice branches.
+    /// </summary>
     [CustomNodeEditor(typeof(SplitByChoices2Node))]
     public class SplitByChoices2NodeEditor : ConversationBaseNodeEditor { }
 
+    /// <summary>
+    /// Custom editor for SplitByChoices3Node with three choice branches.
+    /// </summary>
     [CustomNodeEditor(typeof(SplitByChoices3Node))]
     public class SplitByChoices3NodeEditor : ConversationBaseNodeEditor { }
 
+    /// <summary>
+    /// Custom editor for SplitByChoices4Node with four choice branches.
+    /// </summary>
     [CustomNodeEditor(typeof(SplitByChoices4Node))]
     public class SplitByChoices4NodeEditor : ConversationBaseNodeEditor { }
 }

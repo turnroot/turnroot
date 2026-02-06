@@ -2,8 +2,14 @@ using UnityEngine;
 
 namespace Turnroot.UI.Components.RadialMenu
 {
+    /// <summary>
+    /// Partial class containing navigation logic and input handling for radial menu item selection.
+    /// </summary>
     public partial class RadialMenu
     {
+        /// <summary>
+        /// Represents the current state of directional input navigation through menu items.
+        /// </summary>
         private enum NavigationState
         {
             Idle,

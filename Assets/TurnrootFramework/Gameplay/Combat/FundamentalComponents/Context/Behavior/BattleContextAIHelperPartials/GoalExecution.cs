@@ -4,6 +4,9 @@ using UnityEngine;
 
 namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 {
+    /// <summary>
+    /// Partial class containing AI goal execution, tile computation, and goal selection logic for battle context.
+    /// </summary>
     public partial class BattleContextAIHelper
     {
         public void PickTileAndAction()

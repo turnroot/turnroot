@@ -10,9 +10,6 @@ namespace Turnroot.Gameplay.Brain
     /// </summary>
     public partial class UnitAppearanceBrain
     {
-        /// <summary>
-        /// Spawns and attaches a mount to the unit model if the class supports mounting.
-        /// </summary>
         public OperationResult AttachMountToUnit(CharacterInstance unit, GameObject unitModel)
         {
             var validation = OperationResultGuards.All(
@@ -86,9 +83,6 @@ namespace Turnroot.Gameplay.Brain
             return OperationResult.Successful();
         }
 
-        /// <summary>
-        /// Removes the mount from a unit and places the unit back on the ground.
-        /// </summary>
         public OperationResult DismountUnit(CharacterInstance unit, GameObject unitModel)
         {
             var validation = OperationResultGuards.All(
@@ -122,9 +116,6 @@ namespace Turnroot.Gameplay.Brain
             return OperationResult.Successful();
         }
 
-        /// <summary>
-        /// Clears mount model and references from a unit.
-        /// </summary>
         public void ClearMountFromUnit(CharacterInstance unit)
         {
             if (unit == null)
@@ -153,9 +144,6 @@ namespace Turnroot.Gameplay.Brain
             unit.IsMounted = false;
         }
 
-        /// <summary>
-        /// Checks if a unit should be mounted based on class and current mount state.
-        /// </summary>
         public bool ShouldUnitBeMounted(CharacterInstance unit)
         {
             if (unit == null)

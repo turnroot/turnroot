@@ -185,6 +185,9 @@ namespace Turnroot.Gameplay.Maps
         #endregion
 
         #region Search Context
+        /// <summary>
+        /// Encapsulates state for A* pathfinding search, using pooled collections for performance.
+        /// </summary>
         private class SearchContext : System.IDisposable
         {
             private readonly PooledDictionary<MapGridPoint, MapGridPoint> _cameFromPooled;

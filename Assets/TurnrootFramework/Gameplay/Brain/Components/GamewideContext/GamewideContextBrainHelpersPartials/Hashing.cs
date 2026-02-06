@@ -2,6 +2,9 @@ using System.Text;
 
 namespace Turnroot.Gameplay.Brain
 {
+    /// <summary>
+    /// Static partial class providing hashing utilities for data integrity verification.
+    /// </summary>
     public static partial class GamewideContextBrainHelpers
     {
         #region Hashing

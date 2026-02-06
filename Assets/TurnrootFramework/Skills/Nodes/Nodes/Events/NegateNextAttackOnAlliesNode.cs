@@ -5,6 +5,9 @@ using UnityEngine;
 
 namespace Turnroot.Skills.Nodes.Events
 {
+    /// <summary>
+    /// Negates the next incoming attack on the caster and/or adjacent allies, preventing all damage.
+    /// </summary>
     [CreateNodeMenu("Events/Defensive/Negate Next Attack On Allies")]
     [NodeLabel("Negate incoming attack damage on allies")]
     public class NegateNextAttackOnAlliesNode : SkillNode

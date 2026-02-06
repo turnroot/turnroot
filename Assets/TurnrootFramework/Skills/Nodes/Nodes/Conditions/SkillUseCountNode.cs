@@ -3,6 +3,9 @@ using XNode;
 
 namespace Turnroot.Skills.Nodes.Conditions
 {
+    /// <summary>
+    /// Retrieves the number of times the current skill has been used during the battle.
+    /// </summary>
     [CreateNodeMenu("Conditions/Counters/Skill Use Count")]
     [NodeLabel("Gets the number of times the skill has been used in this battle")]
     public class SkillUseCountNode : SkillNode

@@ -13,6 +13,9 @@ using UnityEngine;
 
 namespace Turnroot.Gameplay.Combat
 {
+    /// <summary>
+    /// Defines the various ways a battle can be concluded.
+    /// </summary>
     public enum BattleExitType
     {
         Victory,
@@ -21,6 +24,9 @@ namespace Turnroot.Gameplay.Combat
         Bookmark,
     }
 
+    /// <summary>
+    /// Main battle object managing combat state, teams, rosters, battle conditions, and the map grid.
+    /// </summary>
     [RequireComponent(typeof(EnvironmentalConditions))]
     [RequireComponent(typeof(BattleContext))]
     [RequireComponent(typeof(BattlePreparationObject))]
@@ -30,6 +36,7 @@ namespace Turnroot.Gameplay.Combat
     {
         [field: SerializeField, HideInInspector]
         public BattleContext Context { get; private set; }
+
         [field: Header("Battle Teams"), HorizontalLine(color: EColor.Indigo)]
         [field: SerializeField]
         public bool HasThirdParty { get; set; }

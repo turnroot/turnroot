@@ -5,12 +5,18 @@ using UnityEngine.Serialization;
 
 namespace Turnroot.Characters
 {
+    /// <summary>
+    /// ScriptableObject roster definition for the player's team of characters.
+    /// </summary>
     [CreateAssetMenu(
         fileName = "NewPlayerTeamRoster",
         menuName = "Turnroot/Characters/Player Team Roster"
     )]
     public class PlayerTeamRoster : Roster
     {
+        /// <summary>
+        /// Unit placement entry for player team roster with battle selection tracking.
+        /// </summary>
         [Serializable]
         public class PlayerTeamRosterUnitPlacement : UnitPlacement
         {

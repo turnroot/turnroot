@@ -11,6 +11,9 @@ using UnityEngine;
 
 namespace Turnroot.Characters.CharacterClass
 {
+    /// <summary>
+    /// Criteria for determining class mastery progression.
+    /// </summary>
     public enum MasteryCriteria
     {
         None,
@@ -18,6 +21,9 @@ namespace Turnroot.Characters.CharacterClass
         BattleBased,
     }
 
+    /// <summary>
+    /// ScriptableObject that defines a character class with stats, skills, requirements, and visual properties.
+    /// </summary>
     [CreateAssetMenu(fileName = "New Character Class", menuName = "Turnroot/Characters/Class Data")]
     public partial class CharacterClassData : ScriptableObject
     {
@@ -178,6 +184,9 @@ namespace Turnroot.Characters.CharacterClass
 
         #region Nested Types
 
+        /// <summary>
+        /// Represents a character's proficiency rank (E-S) with a specific weapon type.
+        /// </summary>
         [Serializable]
         public struct WeaponProficiency
         {
@@ -193,6 +202,9 @@ namespace Turnroot.Characters.CharacterClass
             public override string ToString() => $"{weaponType}:{rank.Value}";
         }
 
+        /// <summary>
+        /// Defines minimum level and stat requirements for accessing a character class.
+        /// </summary>
         [Serializable]
         public struct ClassRequirement
         {
@@ -206,6 +218,9 @@ namespace Turnroot.Characters.CharacterClass
         }
     }
 
+    /// <summary>
+    /// Defines a minimum experience rank requirement for a specific skill or weapon type.
+    /// </summary>
     [Serializable]
     public struct ExperienceRequirement
     {
@@ -224,6 +239,9 @@ namespace Turnroot.Characters.CharacterClass
         }
     }
 
+    /// <summary>
+    /// Defines a skill mastery requirement with criteria (level or battle count) and target value.
+    /// </summary>
     [Serializable]
     public struct Mastery
     {
@@ -232,6 +250,9 @@ namespace Turnroot.Characters.CharacterClass
         public int target;
     }
 
+    /// <summary>
+    /// Represents a modifier value applied to a bounded character stat.
+    /// </summary>
     [Serializable]
     public struct StatModifier
     {
@@ -245,6 +266,9 @@ namespace Turnroot.Characters.CharacterClass
         }
     }
 
+    /// <summary>
+    /// Represents a modifier value applied to an unbounded character stat.
+    /// </summary>
     [Serializable]
     public struct UnboundedStatModifier
     {

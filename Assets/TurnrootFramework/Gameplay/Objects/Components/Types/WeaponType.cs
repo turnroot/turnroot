@@ -2,6 +2,9 @@ using UnityEngine;
 
 namespace Turnroot.Gameplay.Objects.Components
 {
+    /// <summary>
+    /// Defines a weapon type with its properties including name, icon, and triangle position.
+    /// </summary>
     [CreateAssetMenu(
         fileName = "WeaponType",
         menuName = "Turnroot/Game Settings/Gameplay/Weapon Type"

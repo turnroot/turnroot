@@ -10,6 +10,9 @@ using UnityEngine;
 
 namespace Turnroot.UI.Components
 {
+    /// <summary>
+    /// Manages unit selection UI with multiple columns, allowing players to select units for battle.
+    /// </summary>
     public class UnitSelectionColumns : MonoBehaviour
     {
         private Brain _brain;
@@ -50,9 +53,7 @@ namespace Turnroot.UI.Components
 
             int unitCount = units.Length;
             var u = LtmKeys.UnitSelectedForBattlePrefix;
-            var keys =
-                LongTermMemory?.RecallKeysByPrefix(u)
-                ?? new List<string>();
+            var keys = LongTermMemory?.RecallKeysByPrefix(u) ?? new List<string>();
             MaxSelectedUnits =
                 _brain?.battleBrain?.PreparationObject?.MaxPlayerTeamUnits ?? MaxSelectedUnits;
             var keysSet = new HashSet<string>(keys);

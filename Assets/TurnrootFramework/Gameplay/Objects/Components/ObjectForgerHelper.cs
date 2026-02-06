@@ -3,6 +3,9 @@ using Turnroot.Utilities;
 
 namespace Turnroot.Gameplay.Objects.Components
 {
+    /// <summary>
+    /// Helper class for managing item forging operations and validating forge requirements.
+    /// </summary>
     public class ObjectForgerHelper
     {
         public ObjectItem ThisItem;

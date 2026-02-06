@@ -5,6 +5,9 @@ using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain.Components.Battle
 {
+    /// <summary>
+    /// Manages the state machine and flow control for player-controlled unit turns during battle.
+    /// </summary>
     [RequireComponent(typeof(BattleBrain))]
     public class PlayerTurnFlow : MonoBehaviour
     {
@@ -264,10 +267,7 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
 
             // Only confirm waiting if we're at an appropriate point in the flow
             var current = GetCurrentState();
-            if (
-                current is PlayerTurnStates.ConfirmAction
-                or PlayerTurnStates.WaitActionChosen
-            )
+            if (current is PlayerTurnStates.ConfirmAction or PlayerTurnStates.WaitActionChosen)
             {
                 EndTurn();
             }

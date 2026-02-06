@@ -5,6 +5,9 @@ using UnityEngine;
 
 namespace Turnroot.Gameplay.Maps
 {
+    /// <summary>
+    /// Custom inspector for MapGridFeatureProperties assets.
+    /// </summary>
     [CustomEditor(typeof(MapGridFeatureProperties))]
     public class MapGridFeaturePropertiesEditor : UnityEditor.Editor
     {

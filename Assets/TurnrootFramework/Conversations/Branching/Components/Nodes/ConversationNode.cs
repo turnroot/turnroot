@@ -6,6 +6,9 @@ using System;
 
 namespace Turnroot.Conversations.Branching
 {
+    /// <summary>
+    /// Represents a single conversation dialogue node in a branching conversation graph.
+    /// </summary>
     [CreateNodeMenu("Conversation/Conversation")]
     public class ConversationNode : Node
     {
@@ -19,6 +22,9 @@ namespace Turnroot.Conversations.Branching
         public override object GetValue(NodePort port) => port.fieldName == "next" ? next : null;
     }
 
+    /// <summary>
+    /// Represents the flow connection between conversation nodes.
+    /// </summary>
     [Serializable]
     public struct ConversationFlow { }
 }

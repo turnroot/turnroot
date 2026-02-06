@@ -2,6 +2,9 @@ using Turnroot.GameSettings;
 
 namespace Turnroot.Gameplay.Objects.Components
 {
+    /// <summary>
+    /// Provides utility methods for working with WeaponType assets.
+    /// </summary>
     public static class WeaponTypeHelpers
     {
         /// <summary>

@@ -7,6 +7,9 @@ using UnityEngine;
 
 namespace Turnroot.Conversations
 {
+    /// <summary>
+    /// Partial class managing conversation execution flow, validation, and coroutine lifecycle for both linear and branching conversations.
+    /// </summary>
     public partial class ConversationController : MonoBehaviour
     {
         private bool ValidateConversationStart()

@@ -4,6 +4,9 @@ using XNode;
 
 namespace Turnroot.Skills.Nodes.Conditions
 {
+    /// <summary>
+    /// Retrieves weapon type information including type name, magic/physical status, and weapon triangle membership.
+    /// </summary>
     [CreateNodeMenu("Conditions/Weapon/Weapon Type")]
     [NodeLabel("Gets the weapon type information")]
     public class WeaponTypeNode : SkillNode

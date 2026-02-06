@@ -3,6 +3,9 @@ using XNode;
 
 namespace Turnroot.Skills.Nodes.Conditions
 {
+    /// <summary>
+    /// Condition node that checks if the unit is the one initiating combat (attacking rather than defending).
+    /// </summary>
     [CreateNodeMenu("Conditions/Combat/Is Initiating Combat")]
     [NodeLabel("Checks if the unit is initiating combat")]
     public class IsInitiatingCombatNode : SkillNode

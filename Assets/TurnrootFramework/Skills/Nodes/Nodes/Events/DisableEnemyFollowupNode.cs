@@ -4,6 +4,9 @@ using UnityEngine;
 
 namespace Turnroot.Skills.Nodes.Events
 {
+    /// <summary>
+    /// Prevents the target enemy from performing a follow-up attack during combat.
+    /// </summary>
     [CreateNodeMenu("Events/Offensive/Disable Enemy Followup")]
     [NodeLabel("Prevents the enemy from performing a follow-up attack")]
     public class DisableEnemyFollowupNode : SkillNode

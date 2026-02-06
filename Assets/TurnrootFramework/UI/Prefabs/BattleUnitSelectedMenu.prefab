@@ -115,8 +115,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 48487be00ac80b64a90f05f241111933, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BattleSelectAction
-  ActionButtonPrefab: {fileID: 0}
-  ListMenuContainer: {fileID: 0}
+  ActionButtonPrefab: {fileID: 7051083045160496654, guid: 506fe0bec5968f742a09294036b652df, type: 3}
+  ListMenuContainer: {fileID: 8332421917550597555}
 --- !u!1 &7751962415308428637
 GameObject:
   m_ObjectHideFlags: 0

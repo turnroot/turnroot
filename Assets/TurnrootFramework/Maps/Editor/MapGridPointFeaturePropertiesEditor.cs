@@ -4,6 +4,9 @@ using UnityEngine;
 
 namespace Turnroot.Gameplay.Maps
 {
+    /// <summary>
+    /// Custom inspector for MapGridPointFeatureProperties with property management.
+    /// </summary>
     [CustomEditor(typeof(MapGridPointFeatureProperties))]
     public class MapGridPointFeaturePropertiesEditor : UnityEditor.Editor
     {

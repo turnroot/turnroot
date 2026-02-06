@@ -3,6 +3,9 @@ using UnityEngine;
 
 namespace Turnroot.CommonAncestors
 {
+    /// <summary>
+    /// Custom property drawer for LeveledLetteredField that displays a dropdown for S/A/B/C/D/E selection.
+    /// </summary>
     [CustomPropertyDrawer(typeof(LeveledLetteredField), true)]
     public class LeveledLetteredFieldDrawer : PropertyDrawer
     {

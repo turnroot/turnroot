@@ -4,6 +4,9 @@ using UnityEngine.UI;
 
 namespace Turnroot.UI.Components
 {
+    /// <summary>
+    /// Displays basic unit information including name, class, and portrait in a UI cell.
+    /// </summary>
     public class UnitCellDataOnly : MonoBehaviour
     {
         public TMPro.TextMeshProUGUI NameText;
@@ -21,8 +24,7 @@ namespace Turnroot.UI.Components
         {
             NameText.text = unitName;
             ClassText.text = className;
-            Portrait.sprite =
-                portraitSprite ?? GamewideUiSettings.Instance.NoPortraitSprite;
+            Portrait.sprite = portraitSprite ?? GamewideUiSettings.Instance.NoPortraitSprite;
         }
     }
 }

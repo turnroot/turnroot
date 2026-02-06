@@ -3,6 +3,9 @@ using XNode;
 
 namespace Turnroot.Skills.Nodes.Math
 {
+    /// <summary>
+    /// Defines the type of mathematical operation to perform on numeric values.
+    /// </summary>
     public enum NumberOperationType
     {
         Add,
@@ -14,6 +17,9 @@ namespace Turnroot.Skills.Nodes.Math
         RoundDown,
     }
 
+    /// <summary>
+    /// Performs mathematical operations (Add, Subtract, Multiply, etc.) on two numeric values.
+    /// </summary>
     [CreateNodeMenu("Math/Number Operations")]
     [NodeLabel("Performs operations on two numbers")]
     public class NumberOperationsNode : SkillNode

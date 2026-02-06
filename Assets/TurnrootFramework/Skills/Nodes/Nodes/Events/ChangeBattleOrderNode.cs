@@ -4,6 +4,9 @@ using UnityEngine;
 
 namespace Turnroot.Skills.Nodes.Events
 {
+    /// <summary>
+    /// Modifies attack order or follow-up attack priority in combat.
+    /// </summary>
     [CreateNodeMenu("Events/Neutral/Change Battle Order")]
     [NodeLabel("Modifies attack order or follow-up attack priority in combat")]
     public class ChangeBattleOrderNode : SkillNode
@@ -45,6 +48,9 @@ namespace Turnroot.Skills.Nodes.Events
         }
     }
 
+    /// <summary>
+    /// Defines the types of battle order modifications that can be applied during combat.
+    /// </summary>
     public enum OrderEffectType
     {
         GuaranteeFollowup, // Unit/target will always perform a follow-up attack

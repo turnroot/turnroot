@@ -8,6 +8,9 @@ using UnityEngine;
 
 namespace Turnroot.Gameplay.Objects
 {
+    /// <summary>
+    /// Runtime instance of an ObjectItem with usage tracking, inventory management, and transaction operations.
+    /// </summary>
     [Serializable]
     public class ObjectItemInstance : IPostDeserialize
     {

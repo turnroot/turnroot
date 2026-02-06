@@ -2,6 +2,9 @@ using XNode;
 
 namespace Turnroot.Skills.Nodes.Conditions
 {
+    /// <summary>
+    /// Defines the types of environmental conditions that can be checked in skill nodes.
+    /// </summary>
     public enum EnvironmentalCondition
     {
         IsVeryHot,
@@ -19,6 +22,9 @@ namespace Turnroot.Skills.Nodes.Conditions
         IsVolcanic,
     }
 
+    /// <summary>
+    /// Condition node that checks various environmental conditions such as weather, time of day, and terrain properties.
+    /// </summary>
     [CreateNodeMenu("Conditions/Environment/Environmental Conditions")]
     [NodeLabel("Checks environmental conditions")]
     public class EnvironmentalConditionsNode : SkillNode

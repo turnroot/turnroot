@@ -3,6 +3,9 @@ using Turnroot.Characters;
 
 namespace Turnroot.Gameplay.Brain
 {
+    /// <summary>
+    /// Provides filtering utilities for player roster units.
+    /// </summary>
     public static class RosterFilters
     {
         public static List<CharacterInstance> FilterUnitsSelectedForBattle(

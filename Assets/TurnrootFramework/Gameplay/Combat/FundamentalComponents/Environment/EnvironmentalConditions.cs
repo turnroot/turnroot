@@ -3,6 +3,9 @@ using UnityEngine;
 
 namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Environment
 {
+    /// <summary>
+    /// Manages environmental conditions for battles including temperature, time of day, weather, and terrain types.
+    /// </summary>
     public class EnvironmentalConditions : MonoBehaviour
     {
         [InfoBox("Only one of 'Very Hot' and 'Very Cold' can be enabled at a time")]

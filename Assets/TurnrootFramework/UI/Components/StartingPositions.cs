@@ -9,6 +9,9 @@ using UnityEngine;
 
 namespace Turnroot.UI.Components
 {
+    /// <summary>
+    /// Manages the UI for selecting and placing units at their starting positions on the battle map.
+    /// </summary>
     public class StartingPositions : MonoBehaviour
     {
         public List<GameObject> TileProjectors;

@@ -3,6 +3,9 @@ using XNode;
 
 namespace Turnroot.Skills.Nodes.Conditions
 {
+    /// <summary>
+    /// Evaluates the terrain type the unit is currently standing on.
+    /// </summary>
     [CreateNodeMenu("Conditions/Position/Unit Terrain Type")]
     [NodeLabel("Gets the terrain type the unit is currently on")]
     public class UnitTerrainTypeNode : SkillNode

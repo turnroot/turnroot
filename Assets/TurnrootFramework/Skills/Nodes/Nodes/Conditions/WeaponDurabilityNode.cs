@@ -3,6 +3,9 @@ using XNode;
 
 namespace Turnroot.Skills.Nodes.Conditions
 {
+    /// <summary>
+    /// Retrieves weapon durability information including current uses, maximum uses, and remaining percentage.
+    /// </summary>
     [CreateNodeMenu("Conditions/Weapon/Weapon Durability")]
     [NodeLabel("Gets the weapon durability information")]
     public class WeaponDurabilityNode : SkillNode

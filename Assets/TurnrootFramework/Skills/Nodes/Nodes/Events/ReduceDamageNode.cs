@@ -5,6 +5,9 @@ using UnityEngine;
 
 namespace Turnroot.Skills.Nodes.Events
 {
+    /// <summary>
+    /// Reduces incoming damage on the unit or adjacent allies by a flat amount or percentage.
+    /// </summary>
     [CreateNodeMenu("Events/Defensive/Reduce Damage")]
     [NodeLabel("Reduce incoming damage")]
     public class ReduceDamageNode : SkillNode

@@ -24,7 +24,7 @@ namespace Turnroot.Gameplay.Maps
         public int MaxRange { get; set; } = 1;
 
         public static PathfindingParameters FromCharacter(
-            Characters.CharacterInstance character,
+            CharacterInstance character,
             MapGrid graph,
             MapGridPoint start
         )
@@ -106,7 +106,7 @@ namespace Turnroot.Gameplay.Maps
         }
 
         public static PathfindingParameters FromCharacterWithRange(
-            Characters.CharacterInstance character,
+            CharacterInstance character,
             MapGrid graph,
             MapGridPoint start
         )

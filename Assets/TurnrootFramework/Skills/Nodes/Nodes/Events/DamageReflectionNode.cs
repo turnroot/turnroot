@@ -4,6 +4,9 @@ using UnityEngine;
 
 namespace Turnroot.Skills.Nodes.Events
 {
+    /// <summary>
+    /// Reflects a percentage of received damage back to the attacker.
+    /// </summary>
     [CreateNodeMenu("Events/Defensive/Damage Reflection")]
     [NodeLabel("Reflect damage back to attacker")]
     public class DamageReflectionNode : SkillNode

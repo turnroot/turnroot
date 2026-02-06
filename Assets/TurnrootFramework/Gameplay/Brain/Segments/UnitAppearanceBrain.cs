@@ -9,6 +9,9 @@ using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain
 {
+    /// <summary>
+    /// Manages visual representations and 3D models of units in battle, including movement animations and equipment changes.
+    /// </summary>
     public partial class UnitAppearanceBrain : BrainComponent
     {
         private GameplayGeneralSettings _settings;

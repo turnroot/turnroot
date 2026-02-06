@@ -11,6 +11,9 @@ using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain.Segments
 {
+    /// <summary>
+    /// Manages UI menus, transitions, and settings bindings for pre-battle and battle game states.
+    /// </summary>
     [RequireComponent(typeof(CursorBrain))]
     public partial class UiBrain : BrainComponent
     {

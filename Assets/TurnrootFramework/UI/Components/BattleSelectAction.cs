@@ -4,10 +4,23 @@ using UnityEngine;
 
 namespace Turnroot.UI.Components
 {
+    /// <summary>
+    /// Manages the action selection UI during battle, populating a list of available actions for the current unit.
+    /// </summary>
     public class BattleSelectAction : MonoBehaviour
     {
         public GameObject ActionButtonPrefab;
         public Transform ListMenuContainer;
+
+        public void Initialize()
+        {
+            ListMenuContainer =
+                ListMenuContainer != null ? ListMenuContainer : transform.Find("List Menu");
+            ActionButtonPrefab =
+                ActionButtonPrefab != null
+                    ? ActionButtonPrefab
+                    : Resources.Load<GameObject>("UI/BattleSelectActionButton");
+        }
 
         public OperationResult SetTextActionButtonPrefab(string text)
         {
@@ -29,10 +42,7 @@ namespace Turnroot.UI.Components
 
         public OperationResult PopulateList(string[] actions)
         {
-            if (ListMenuContainer == null)
-            {
-                return OperationResult.Failure("ListMenuContainer is not assigned");
-            }
+            Initialize();
 
             foreach (Transform child in ListMenuContainer)
             {
@@ -41,7 +51,7 @@ namespace Turnroot.UI.Components
 
             foreach (var action in actions)
             {
-                Instantiate(ActionButtonPrefab, ListMenuContainer);
+                _ = Instantiate(ActionButtonPrefab, ListMenuContainer);
                 var setTextResult = SetTextActionButtonPrefab(action);
                 if (!setTextResult.Success)
                 {

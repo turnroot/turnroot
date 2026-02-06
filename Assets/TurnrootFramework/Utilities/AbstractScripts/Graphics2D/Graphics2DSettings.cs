@@ -5,6 +5,9 @@ using UnityEngine;
 
 namespace Turnroot.AbstractScripts.Graphics2D
 {
+    /// <summary>
+    /// Defines how inactive/secondary conversation portraits are displayed.
+    /// </summary>
     public enum SecondaryConversationPortraitInactiveBehavior
     {
         Hide,
@@ -15,6 +18,9 @@ namespace Turnroot.AbstractScripts.Graphics2D
         None,
     }
 
+    /// <summary>
+    /// Configuration for 2D graphics rendering, conversation portraits, and portrait transition animations.
+    /// </summary>
     [CreateAssetMenu(
         fileName = "Graphics2DSettings",
         menuName = "Turnroot/Game Settings/Graphics/Graphics2D Settings"

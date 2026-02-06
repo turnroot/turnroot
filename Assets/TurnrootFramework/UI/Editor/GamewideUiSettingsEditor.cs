@@ -5,6 +5,9 @@ using UnityEngine;
 
 namespace Turnroot.GameSettings
 {
+    /// <summary>
+    /// Custom editor for GamewideUiSettings that provides a button to apply menu button spacing.
+    /// </summary>
     [CustomEditor(typeof(GamewideUiSettings))]
     public class GamewideUiSettingsEditor : UnityEditor.Editor
     {

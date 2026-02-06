@@ -3,6 +3,9 @@ using UnityEngine;
 
 namespace Turnroot.UI.Components.RadialMenu
 {
+    /// <summary>
+    /// Partial class containing layout positioning, sizing, and visual presentation logic for radial menus.
+    /// </summary>
     public partial class RadialMenu
     {
         private void ArrangeItemsInCircle()

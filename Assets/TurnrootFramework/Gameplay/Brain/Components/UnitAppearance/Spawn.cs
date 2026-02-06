@@ -47,7 +47,6 @@ namespace Turnroot.Gameplay.Brain
                 return validation;
             }
 
-            // SpawnUnitAtPosition already handles errors and returns OperationResult
             return SpawnUnitAtPosition(unit, position, prebattle);
         }
 
@@ -64,7 +63,6 @@ namespace Turnroot.Gameplay.Brain
                 return OperationResult.Failure($"No model found for unit {unitId}");
             }
 
-            // Find and remove position mapping
             var position = _modelPositions.FirstOrDefault(kvp => kvp.Value == unitId).Key;
             if (position != default)
             {
@@ -74,10 +72,9 @@ namespace Turnroot.Gameplay.Brain
             if (model != null)
             {
                 var unit = Brain
-                    .gamewideContextBrain?.GetAllActiveInstances()
+                    .gamewideContextBrain.GetAllActiveInstances()
                     ?.FirstOrDefault(u => u?.Id == unitId);
 
-                // Clear weapon reference
                 if (unit != null)
                 {
                     ClearWeaponFromUnit(unit);
@@ -120,8 +117,7 @@ namespace Turnroot.Gameplay.Brain
 
             _modelPositions[newPosition] = unit.Id;
 
-            var ownership = model.GetComponent<UnitModelOwnership>();
-            if (ownership != null)
+            if (model.TryGetComponent<UnitModelOwnership>(out var ownership))
             {
                 ownership.DisplayName = unit.CharacterTemplate.DisplayName;
             }
@@ -182,7 +178,6 @@ namespace Turnroot.Gameplay.Brain
 
             AttachShieldToUnit(unit, model);
 
-            // Attach mount if class supports it (default mounted for mounted classes)
             if (ShouldUnitBeMounted(unit))
             {
                 AttachMountToUnit(unit, model);

@@ -2,6 +2,9 @@ using UnityEngine.Events;
 
 namespace Turnroot.Utilities.AbstractScripts
 {
+    /// <summary>
+    /// Represents sub-states within a battle scene for managing player input and conversations.
+    /// </summary>
     public enum MiniBattleState
     {
         // A conversation can interrupt at any point

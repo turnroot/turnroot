@@ -3,6 +3,9 @@ using UnityEngine;
 
 namespace Turnroot.Characters.Components
 {
+    /// <summary>
+    /// Custom property drawer for CharacterInventoryInstance with capacity and items display.
+    /// </summary>
     [CustomPropertyDrawer(typeof(CharacterInventoryInstance))]
     public class CharacterInventoryInstanceDrawer : PropertyDrawer
     {

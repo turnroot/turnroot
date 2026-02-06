@@ -5,6 +5,9 @@ using UnityEngine;
 
 namespace Turnroot.Gameplay.Maps
 {
+    /// <summary>
+    /// Connects 2D grid points to 3D map terrain by raycasting downward to determine height positions.
+    /// </summary>
     public class MapGridHeightConnector
     {
         public Vector3[] RaycastPointsDownTo3DMap(

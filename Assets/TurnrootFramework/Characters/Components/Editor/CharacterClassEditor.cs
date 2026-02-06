@@ -3,6 +3,9 @@ using UnityEditor;
 
 namespace Turnroot.Characters.CharacterClass
 {
+    /// <summary>
+    /// Custom editor for CharacterClassData that provides a multi-select UI for allowed pronouns.
+    /// </summary>
     [CustomEditor(typeof(CharacterClassData))]
     public class CharacterClassEditor : NaughtyAttributes.Editor.NaughtyInspector
     {

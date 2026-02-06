@@ -5,6 +5,9 @@ using UnityEngine;
 
 namespace Turnroot.Skills.Nodes.Events
 {
+    /// <summary>
+    /// Applies a buff to all allied units within a specified radius.
+    /// </summary>
     [CreateNodeMenu("Events/Defensive/Area Of Effect Buff")]
     [NodeLabel("Buff adjacent allies in radius")]
     public class AreaOfEffectBuffNode : SkillNode

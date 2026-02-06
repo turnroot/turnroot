@@ -4,6 +4,9 @@ using UnityEngine.UI;
 
 namespace Turnroot.UI.Components.Menu.Submenu
 {
+    /// <summary>
+    /// A UI component that cycles through enum values with left/right navigation arrows.
+    /// </summary>
     public class MenuCarousel : MonoBehaviour
     {
         public List<string> Options = new();

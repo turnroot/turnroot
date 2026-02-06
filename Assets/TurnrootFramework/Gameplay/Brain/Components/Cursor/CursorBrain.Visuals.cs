@@ -2,6 +2,9 @@ using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain
 {
+    /// <summary>
+    /// Handles cursor visual updates and cleanup operations.
+    /// </summary>
     public partial class CursorBrain
     {
         #region Visual Updates

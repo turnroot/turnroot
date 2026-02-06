@@ -5,6 +5,9 @@ using UnityEngine;
 
 namespace Turnroot.Skills.Nodes.Events
 {
+    /// <summary>
+    /// Moves an adjacent ally to a different tile relative to the caster's position.
+    /// </summary>
     [CreateNodeMenu("Events/Neutral/Reposition")]
     [NodeLabel("Move ally to adjacent tile")]
     public class RepositionNode : SkillNode
@@ -63,6 +66,9 @@ namespace Turnroot.Skills.Nodes.Events
         }
     }
 
+    /// <summary>
+    /// Defines the relative position where an ally will be moved during repositioning.
+    /// </summary>
     public enum RepositionDirection
     {
         Behind, // Move ally to tile behind caster

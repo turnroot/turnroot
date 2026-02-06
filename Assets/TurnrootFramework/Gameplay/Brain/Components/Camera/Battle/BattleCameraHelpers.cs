@@ -8,6 +8,9 @@ using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain.Segments
 {
+    /// <summary>
+    /// Partial class containing battle camera helper methods for positioning, rotation, and smooth panning.
+    /// </summary>
     public partial class CameraBrain : BrainComponent
     {
         public int CurrentAngle;

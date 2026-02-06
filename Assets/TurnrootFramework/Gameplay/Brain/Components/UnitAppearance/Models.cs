@@ -5,6 +5,9 @@ using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain
 {
+    /// <summary>
+    /// Handles unit model creation, outfit rendering, and mesh hierarchy management.
+    /// </summary>
     public partial class UnitAppearanceBrain
     {
         public GameObject CreateModelForUnit(CharacterInstance unit)

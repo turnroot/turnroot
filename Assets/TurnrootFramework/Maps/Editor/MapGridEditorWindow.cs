@@ -41,6 +41,9 @@ using Turnroot.Gameplay.Maps;
 
 namespace Turnroot.Gameplay.Maps
 {
+    /// <summary>
+    /// Editor window for painting terrain types, placing features, and testing movement on map grids.
+    /// </summary>
     public class MapGridEditorWindow : EditorWindow
     {
         // Core references
@@ -139,6 +142,9 @@ namespace Turnroot.Gameplay.Maps
             }
         );
 
+        /// <summary>
+        /// Editor mode for the map grid editor window.
+        /// </summary>
         private enum Mode
         {
             Paint = 0,
@@ -146,6 +152,9 @@ namespace Turnroot.Gameplay.Maps
             SetStartingPositions = 2,
         }
 
+        /// <summary>
+        /// Defines a set of tools with IDs and display names.
+        /// </summary>
         private class ToolSet
         {
             public string[] Ids { get; }
@@ -2381,6 +2390,9 @@ namespace Turnroot.Gameplay.Maps
             NewPropertyPrompt.ShowFor(this, point, _grid, propType, forFeature);
         }
 
+        /// <summary>
+        /// Modal prompt window for creating new properties on map grid points.
+        /// </summary>
         private class NewPropertyPrompt : EditorWindow
         {
             private MapGridPoint _point;
@@ -2540,6 +2552,9 @@ namespace Turnroot.Gameplay.Maps
             }
         }
 
+        /// <summary>
+        /// Help window displaying keyboard shortcuts and usage tips for the map grid editor.
+        /// </summary>
         private class HelpWindow : EditorWindow
         {
             private Vector2 _scrollPos;

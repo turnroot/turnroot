@@ -5,6 +5,9 @@ using UnityEngine;
 
 namespace Turnroot.Graphics2D
 {
+    /// <summary>
+    /// Custom property drawer for ImageStackLayer with sprite preview and tag selection.
+    /// </summary>
     [CustomPropertyDrawer(typeof(ImageStackLayer))]
     public class ImageStackLayerDrawer : PropertyDrawer
     {

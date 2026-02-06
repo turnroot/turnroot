@@ -3,6 +3,9 @@ using UnityEngine;
 
 namespace Turnroot.Graphics2D
 {
+    /// <summary>
+    /// Represents a single layer in a stacked image with sprite, mask, offset, scale, rotation, order, and tint properties.
+    /// </summary>
     [Serializable]
     public class ImageStackLayer
     {

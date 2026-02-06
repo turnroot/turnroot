@@ -2,6 +2,9 @@ using Turnroot.Utilities;
 
 namespace Turnroot.Gameplay.Brain.Components.Battle
 {
+    /// <summary>
+    /// Defines the possible states during a player-controlled unit's turn in battle.
+    /// </summary>
     public enum PlayerTurnStates
     {
         Inactive,
@@ -29,6 +32,9 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
         TurnEnded,
     }
 
+    /// <summary>
+    /// Manages state transitions for player turn flow with validation and tracking of previous states.
+    /// </summary>
     public class PlayerTurnState
     {
         public PlayerTurnStates CurrentState { get; set; } = PlayerTurnStates.Inactive;

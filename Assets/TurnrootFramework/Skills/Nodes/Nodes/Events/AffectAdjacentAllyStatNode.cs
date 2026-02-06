@@ -5,6 +5,9 @@ using UnityEngine;
 
 namespace Turnroot.Skills.Nodes.Events
 {
+    /// <summary>
+    /// Modifies a stat value on all adjacent allied units.
+    /// </summary>
     [CreateNodeMenu("Events/Defensive/Affect Adjacent Ally Stat")]
     [NodeLabel("Modifies a stat value on adjacent allied units")]
     public class AffectAdjacentAllyStatNode : SkillNode

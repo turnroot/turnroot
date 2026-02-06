@@ -7,6 +7,9 @@ using UnityEngine;
 
 namespace Turnroot.Characters.Stats
 {
+    /// <summary>
+    /// Utility for refreshing character stats based on gameplay settings.
+    /// </summary>
     public static class DefaultCharacterStatsRefresher
     {
         public static void RefreshStats(

@@ -5,6 +5,9 @@ using UnityEngine;
 
 namespace Turnroot.UI.Components
 {
+    /// <summary>
+    /// Defines the different phases of a battle turn (player, enemy, or third party).
+    /// </summary>
     public enum BattlePreTurnPhase
     {
         PlayerTurn,
@@ -12,6 +15,9 @@ namespace Turnroot.UI.Components
         ThirdPartyTurn,
     }
 
+    /// <summary>
+    /// Displays and manages the turn indicator UI showing which faction's turn it is in battle.
+    /// </summary>
     [RequireComponent(typeof(PreparationObjectResolver))]
     public class BattlePreTurn : MonoBehaviour
     {

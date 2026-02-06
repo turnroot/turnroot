@@ -3,6 +3,12 @@ using UnityEngine;
 
 namespace Turnroot.Graphics2D.Editor
 {
+    /// <summary>
+    /// Base class for editor windows that provide live editing of stacked images.
+    /// Provides common functionality for managing layers, tint colors, and preview rendering.
+    /// </summary>
+    /// <typeparam name="TOwner">The Unity Object type that owns the stacked images</typeparam>
+    /// <typeparam name="TStackedImage">The stacked image type being edited</typeparam>
     public abstract class StackedImageEditorWindow<TOwner, TStackedImage> : EditorWindow
         where TOwner : Object
         where TStackedImage : StackedImage<TOwner>

@@ -4,6 +4,9 @@ using UnityEngine;
 
 namespace Turnroot.Skills.Nodes.Events
 {
+    /// <summary>
+    /// Grants the unit an additional turn immediately after the current action.
+    /// </summary>
     [CreateNodeMenu("Events/Neutral/Take Another Turn")]
     [NodeLabel("Allows the unit to take an additional turn immediately")]
     public class TakeAnotherTurnNode : SkillNode

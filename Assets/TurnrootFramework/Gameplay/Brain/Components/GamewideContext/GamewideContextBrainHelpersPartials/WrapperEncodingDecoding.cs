@@ -5,6 +5,9 @@ using Turnroot.Utilities;
 
 namespace Turnroot.Gameplay.Brain
 {
+    /// <summary>
+    /// Static partial class providing wrapper encoding/decoding between Base64 and JSON.
+    /// </summary>
     public static partial class GamewideContextBrainHelpers
     {
         #region Wrapper Encoding/Decoding

@@ -4,6 +4,9 @@ using UnityEngine;
 
 namespace Turnroot.Graphics2D.Utilities
 {
+    /// <summary>
+    /// Provides validation and utility methods for textures, including readability checks, size validation, and PNG format detection.
+    /// </summary>
     public static class TextureValidator
     {
         public static bool EnsureReadable(Texture2D tex, string context) =>

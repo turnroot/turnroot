@@ -131,7 +131,9 @@ namespace Turnroot.Skills.Nodes.Editor
 #endif
         }
 
-        // Helper class for serializing typeColors dictionary
+        /// <summary>
+        /// Helper class for serializing typeColors dictionary to JSON for EditorPrefs storage.
+        /// </summary>
         [Serializable]
         private class SerializableTypeColorDict
         {

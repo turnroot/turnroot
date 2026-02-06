@@ -9,6 +9,9 @@ using UnityEngine;
 
 namespace Turnroot.Gameplay.Combat
 {
+    /// <summary>
+    /// Custom editor for BattleGameObject with UI for managing battle conditions and required player units.
+    /// </summary>
     [CustomEditor(typeof(BattleGameObject))]
     public class BattleGameObjectEditor : UnityEditor.Editor
     {

@@ -5,6 +5,9 @@ using Turnroot.Utilities;
 
 namespace Turnroot.Gameplay.Brain
 {
+    /// <summary>
+    /// Partial class providing roster and character management API methods.
+    /// </summary>
     public partial class GamewideContextBrain
     {
         #region Roster Management API
@@ -30,10 +33,6 @@ namespace Turnroot.Gameplay.Brain
             var result = _rosterManager.InstantiateGenericRoster(roster, register);
             if (!result.Success)
             {
-                TurnrootLogger.Log(
-                    $"Failed to instantiate generic roster: {result.Error}",
-                    TurnrootLogger.LogLevel.Error
-                );
                 return null;
             }
 
@@ -60,10 +59,6 @@ namespace Turnroot.Gameplay.Brain
             var result = _rosterManager.InstantiatePlayerTeamRoster(roster);
             if (!result.Success)
             {
-                TurnrootLogger.Log(
-                    $"Failed to instantiate player roster: {result.Error}",
-                    TurnrootLogger.LogLevel.Error
-                );
                 return null;
             }
 
@@ -104,13 +99,13 @@ namespace Turnroot.Gameplay.Brain
 
         #region Character Management API
         public CharacterInstance FindInstanceByTemplate(CharacterData template) =>
-            _rosterManager?.FindInstanceByTemplate(template);
+            _rosterManager.FindInstanceByTemplate(template);
 
         public List<CharacterInstance> GetAllActiveInstances() =>
-            _rosterManager?.GetAllActiveInstances() ?? new List<CharacterInstance>();
+            _rosterManager.GetAllActiveInstances() ?? new List<CharacterInstance>();
 
         public void SaveUniqueCharacterProgress(CharacterInstance instance) =>
-            _characterPersistence?.SaveCharacter(instance, updateIndex: false);
+            _characterPersistence.SaveCharacter(instance, updateIndex: false);
         #endregion
     }
 }

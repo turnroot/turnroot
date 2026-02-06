@@ -4,6 +4,9 @@ using UnityEngine;
 
 namespace Turnroot.Skills.Nodes.Events
 {
+    /// <summary>
+    /// Forces the target enemy to dismount from their mount or flying state.
+    /// </summary>
     [CreateNodeMenu("Events/Offensive/Unmount Enemy")]
     [NodeLabel("Force an enemy to dismount from riding/flying. They can remount on their turn")]
     public class UnmountEnemyNode : SkillNode

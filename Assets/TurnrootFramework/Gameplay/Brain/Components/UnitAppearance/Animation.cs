@@ -5,6 +5,9 @@ using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain
 {
+    /// <summary>
+    /// Handles unit animation setup, blending, and animator layer configuration.
+    /// </summary>
     public partial class UnitAppearanceBrain
     {
         private const float ANIMATION_BLEND_DURATION = 0.3f;

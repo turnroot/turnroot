@@ -2,6 +2,9 @@ using UnityEngine;
 
 namespace Turnroot.Utilities.AbstractScripts
 {
+    /// <summary>
+    /// Animates a material's color between two colors using a sine wave interpolation.
+    /// </summary>
     [RequireComponent(typeof(Renderer))]
     public class SineMaterialColors : MonoBehaviour
     {

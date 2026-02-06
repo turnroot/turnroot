@@ -6,6 +6,9 @@ using UnityEngine;
 
 namespace Turnroot.Gameplay.Maps
 {
+    /// <summary>
+    /// Represents a single grid cell on the map with terrain type, spawn point data, and neighbor connectivity.
+    /// </summary>
     public partial class MapGridPoint : MonoBehaviour
     {
         // Cached parent grid reference to avoid repeated GetComponentInParent calls

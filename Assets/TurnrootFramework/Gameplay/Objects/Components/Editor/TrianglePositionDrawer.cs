@@ -3,6 +3,9 @@ using UnityEngine;
 
 namespace Turnroot.Gameplay.Objects.Components
 {
+    /// <summary>
+    /// Custom property drawer for TrianglePosition that displays its enum value in the inspector.
+    /// </summary>
     [CustomPropertyDrawer(typeof(TrianglePosition))]
     public class TrianglePositionDrawer : PropertyDrawer
     {

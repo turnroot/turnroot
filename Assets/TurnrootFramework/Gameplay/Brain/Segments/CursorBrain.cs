@@ -6,6 +6,9 @@ using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain
 {
+    /// <summary>
+    /// Manages the player's cursor position and movement on the map grid during battle and pre-battle phases.
+    /// </summary>
     public partial class CursorBrain : BrainComponent
     {
         // Core fields required by other partials

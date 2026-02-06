@@ -12,6 +12,10 @@ using Turnroot.Utilities;
 
 namespace Turnroot.Characters
 {
+    /// <summary>
+    /// Runtime instance of a character containing all state and behavior.
+    /// This partial class contains initialization and deserialization logic.
+    /// </summary>
     public partial class CharacterInstance : Serialization.IPostDeserialize, IHasStats
     {
         #region Initialization

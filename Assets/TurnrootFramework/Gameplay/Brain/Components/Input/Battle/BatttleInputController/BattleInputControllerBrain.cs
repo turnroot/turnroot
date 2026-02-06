@@ -11,6 +11,9 @@ using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain
 {
+    /// <summary>
+    /// Handles player input during battle, managing cursor navigation, unit selection, and action confirmations.
+    /// </summary>
     public partial class BattleInputControllerBrain : BrainComponent
     {
         #region Properties

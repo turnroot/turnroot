@@ -4,6 +4,9 @@ using XNode;
 
 namespace Turnroot.Skills.Nodes.Conditions
 {
+    /// <summary>
+    /// Condition node that checks the enemy's class type (Infantry, Cavalry, Flying, Armored).
+    /// </summary>
     [CreateNodeMenu("Conditions/Enemy/Enemy Class")]
     [NodeLabel("Gets the enemy's class type")]
     public class EnemyClassNode : SkillNode

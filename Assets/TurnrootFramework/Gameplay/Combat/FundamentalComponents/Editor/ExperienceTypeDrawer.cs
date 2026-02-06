@@ -3,6 +3,9 @@ using UnityEngine;
 
 namespace Turnroot.Gameplay.Combat.FundamentalComponents.Editor
 {
+    /// <summary>
+    /// Custom property drawer for ExperienceType with conditional display of weapon type based on HasWeaponType flag.
+    /// </summary>
     [CustomPropertyDrawer(typeof(ExperienceType))]
     public class ExperienceTypeDrawer : PropertyDrawer
     {

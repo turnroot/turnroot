@@ -4,6 +4,9 @@ using UnityEngine;
 
 namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 {
+    /// <summary>
+    /// Groups multiple battle conditions with AND/OR logic for complex victory requirements.
+    /// </summary>
     [Serializable]
     public class ConditionalGroupBattleCondition : BattleCondition
     {

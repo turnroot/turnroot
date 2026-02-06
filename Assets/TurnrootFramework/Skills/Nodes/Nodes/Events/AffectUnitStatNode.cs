@@ -4,6 +4,9 @@ using UnityEngine;
 
 namespace Turnroot.Skills.Nodes.Events
 {
+    /// <summary>
+    /// Modifies a stat value on the unit executing the skill.
+    /// </summary>
     [CreateNodeMenu("Events/Neutral/Affect Unit Stat")]
     [NodeLabel("Modifies a stat value on the executing unit")]
     public class AffectUnitStatNode : SkillNode

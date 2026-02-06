@@ -3,6 +3,9 @@ using UnityEditor;
 
 namespace Turnroot.Skills.Components.Badges.Editor
 {
+    /// <summary>
+    /// Editor window for editing skill badge stacked images with layer-based composition.
+    /// </summary>
     public class SkillBadgeEditorWindow : StackedImageEditorWindow<Skill, SkillBadge>
     {
         protected override string WindowTitle => "Skill Badge Editor";
@@ -23,6 +26,7 @@ namespace Turnroot.Skills.Components.Badges.Editor
             }
         }
 
-        protected override SkillBadge[] GetImagesFromOwner(Skill owner) => owner != null ? new[] { owner.Badge } : null;
+        protected override SkillBadge[] GetImagesFromOwner(Skill owner) =>
+            owner != null ? new[] { owner.Badge } : null;
     }
 }

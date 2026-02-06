@@ -4,6 +4,9 @@ using UnityEngine;
 
 namespace Turnroot.Skills.Nodes.Events
 {
+    /// <summary>
+    /// Deals additional damage to one or more target enemies.
+    /// </summary>
     [CreateNodeMenu("Events/Offensive/Deal Additional Damage")]
     [NodeLabel("Deals additional damage to the target")]
     public class DealAdditionalDamageNode : SkillNode

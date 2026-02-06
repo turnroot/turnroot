@@ -3,6 +3,9 @@ using UnityEngine;
 
 namespace Turnroot.Characters.Configuration.Editor
 {
+    /// <summary>
+    /// Custom editor for CharacterData that provides enhanced UI for managing bounded and unbounded stats.
+    /// </summary>
     [CustomEditor(typeof(CharacterData))]
     public class CharacterData : UnityEditor.Editor
     {

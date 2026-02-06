@@ -34,6 +34,9 @@ namespace Turnroot.Characters
 
         internal void ClearLastAttacker() => LastAttacker = null;
 
+        /// <summary>
+        /// Represents the current emotional state of a character during battle.
+        /// </summary>
         public enum BattleEmotion
         {
             Neutral,

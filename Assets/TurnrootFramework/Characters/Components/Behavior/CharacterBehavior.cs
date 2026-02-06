@@ -4,6 +4,9 @@ using UnityEngine;
 
 namespace Turnroot.Characters.Components.Behavior
 {
+    /// <summary>
+    /// Defines AI behavioral traits that influence character decision-making in combat.
+    /// </summary>
     [Serializable]
     public struct CharacterBehavior
     {

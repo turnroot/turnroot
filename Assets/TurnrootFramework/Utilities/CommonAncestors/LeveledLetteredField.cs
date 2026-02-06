@@ -3,6 +3,9 @@ using UnityEngine;
 
 namespace Turnroot.CommonAncestors
 {
+    /// <summary>
+    /// Represents a rank or level using letter grades (S, A, B, C, D, E).
+    /// </summary>
     [Serializable]
     public class LeveledLetteredField
     {

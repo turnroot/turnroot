@@ -4,6 +4,9 @@ using XNode;
 
 namespace Turnroot.Skills.Nodes.Conditions
 {
+    /// <summary>
+    /// Condition node that checks if a character (unit, enemy, or ally) has a specific debuff or any debuff.
+    /// </summary>
     [CreateNodeMenu("Conditions/Status/Has Debuff")]
     [NodeLabel("Checks if a unit has a debuff")]
     public class HasDebuffNode : SkillNode

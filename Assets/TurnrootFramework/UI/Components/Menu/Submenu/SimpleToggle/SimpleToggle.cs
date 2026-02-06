@@ -4,6 +4,9 @@ using UnityEngine.UI;
 
 namespace Turnroot.UI.Components.Menu.Submenu
 {
+    /// <summary>
+    /// A simple toggle UI component with background and checkmark images that supports hover highlighting.
+    /// </summary>
     [RequireComponent(typeof(Image))]
     public class SimpleToggle : MonoBehaviour
     {

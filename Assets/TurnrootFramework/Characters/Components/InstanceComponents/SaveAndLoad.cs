@@ -8,11 +8,18 @@ using UnityEngine;
 
 namespace Turnroot.Characters
 {
+    /// <summary>
+    /// Runtime instance of a character containing all state and behavior.
+    /// This partial class contains stat persistence and long-term memory integration.
+    /// </summary>
     public partial class CharacterInstance : Serialization.IPostDeserialize, IHasStats
     {
         #region Stat Persistence
 
         // DTOs for serializing stats into LTM
+        /// <summary>
+        /// Data transfer object for serializing bounded character stats to long-term memory.
+        /// </summary>
         [Serializable]
         private class BoundedStatDto
         {
@@ -22,6 +29,9 @@ namespace Turnroot.Characters
             public float Min;
         }
 
+        /// <summary>
+        /// Data transfer object for serializing unbounded character stats to long-term memory.
+        /// </summary>
         [Serializable]
         private class UnboundedStatDto
         {
@@ -29,6 +39,9 @@ namespace Turnroot.Characters
             public float Current;
         }
 
+        /// <summary>
+        /// Data transfer object containing all character stats for serialization to long-term memory.
+        /// </summary>
         [Serializable]
         private class CharacterInstanceStatsDto
         {

@@ -43,6 +43,9 @@ namespace Turnroot.Skills.Nodes
         }
     }
 
+    /// <summary>
+    /// Categories for organizing and color-coding skill nodes in the editor.
+    /// </summary>
     public enum NodeCategory
     {
         Flow,

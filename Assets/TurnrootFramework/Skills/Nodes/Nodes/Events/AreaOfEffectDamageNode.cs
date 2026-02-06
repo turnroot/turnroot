@@ -4,6 +4,9 @@ using UnityEngine;
 
 namespace Turnroot.Skills.Nodes.Events
 {
+    /// <summary>
+    /// Deals damage to all enemies within an area of effect radius.
+    /// </summary>
     [CreateNodeMenu("Events/Offensive/Area Of Effect Damage")]
     [NodeLabel("Deals damage to all targeted enemies in an area")]
     public class AreaOfEffectDamageNode : SkillNode

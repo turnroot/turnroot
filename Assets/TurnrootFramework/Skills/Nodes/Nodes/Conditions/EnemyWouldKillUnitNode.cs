@@ -5,6 +5,9 @@ using XNode;
 
 namespace Turnroot.Skills.Nodes.Conditions
 {
+    /// <summary>
+    /// Condition node that checks if incoming damage would reduce the unit's health to zero or below.
+    /// </summary>
     [CreateNodeMenu("Conditions/Combat/Enemy Would Kill Unit")]
     [NodeLabel("Check if incoming damage would be lethal")]
     public class EnemyWouldKillUnitNode : SkillNode

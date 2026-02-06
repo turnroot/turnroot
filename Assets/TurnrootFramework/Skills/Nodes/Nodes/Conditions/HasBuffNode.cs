@@ -4,6 +4,9 @@ using XNode;
 
 namespace Turnroot.Skills.Nodes.Conditions
 {
+    /// <summary>
+    /// Condition node that checks if a character (unit, enemy, or ally) has a specific buff or any buff.
+    /// </summary>
     [CreateNodeMenu("Conditions/Status/Has Buff")]
     [NodeLabel("Checks if a unit has a buff")]
     public class HasBuffNode : SkillNode

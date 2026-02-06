@@ -5,6 +5,9 @@ using UnityEngine;
 
 namespace Turnroot.Skills.Nodes.Events
 {
+    /// <summary>
+    /// Applies a status debuff to all enemies within an area of effect radius.
+    /// </summary>
     [CreateNodeMenu("Events/Offensive/Deal Debuff Area Of Effect")]
     [NodeLabel("Applies a debuff to all targeted enemies in an area")]
     public class DealDebuffAreaOfEffectNode : SkillNode

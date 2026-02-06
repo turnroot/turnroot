@@ -4,6 +4,9 @@ using UnityEngine;
 
 namespace Turnroot.Characters.Subclasses
 {
+    /// <summary>
+    /// Manages character pronoun sets (they/them, she/her, he/him).
+    /// </summary>
     [Serializable]
     public class Pronouns
     {

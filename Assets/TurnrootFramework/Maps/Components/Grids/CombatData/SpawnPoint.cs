@@ -5,6 +5,9 @@ using UnityEngine;
 
 namespace Turnroot.Maps.Components.Grids
 {
+    /// <summary>
+    /// Represents a spawn point on a combat grid for allies, avatars, or enemies with character placement and occupation tracking.
+    /// </summary>
     [Serializable]
     public class SpawnPoint
     {

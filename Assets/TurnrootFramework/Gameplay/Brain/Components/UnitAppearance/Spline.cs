@@ -12,6 +12,9 @@ using UnityEngine.Splines;
 
 namespace Turnroot.Gameplay.Brain
 {
+    /// <summary>
+    /// Handles spline-based unit movement animation and pathfinding visualization.
+    /// </summary>
     public partial class UnitAppearanceBrain
     {
         private void HandleCharacterMoveStarted(

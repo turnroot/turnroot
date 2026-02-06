@@ -2,6 +2,9 @@ using UnityEngine;
 
 namespace Turnroot.Utilities
 {
+    /// <summary>
+    /// Drives a material's fill amount parameter, animating UI fill effects.
+    /// </summary>
     public class UiFillDriver : MonoBehaviour
     {
         public Material material;

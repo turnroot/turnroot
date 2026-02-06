@@ -10,6 +10,9 @@ using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain.Segments
 {
+    /// <summary>
+    /// Defines the types of menus available in the game.
+    /// </summary>
     public enum MenuType
     {
         Unknown,
@@ -23,6 +26,9 @@ namespace Turnroot.Gameplay.Brain.Segments
         Team,
     }
 
+    /// <summary>
+    /// Manages transitions and animations between different menu states.
+    /// </summary>
     public class MenuTransitionManager
     {
         private readonly UiBrain _brain;

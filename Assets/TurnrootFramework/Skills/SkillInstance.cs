@@ -8,6 +8,9 @@ using UnityEngine;
 
 namespace Turnroot.Skills
 {
+    /// <summary>
+    /// Runtime instance of a skill with state tracking (ready to fire, equipped) and execution context.
+    /// </summary>
     [Serializable]
     public class SkillInstance : IPostDeserialize
     {

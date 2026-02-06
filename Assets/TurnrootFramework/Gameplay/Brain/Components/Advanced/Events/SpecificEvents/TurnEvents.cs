@@ -27,6 +27,9 @@ namespace Turnroot.Gameplay.Brain.Events
     /// </summary>
     public class FactionTurnStartedEvent : BattleEvent
     {
+        /// <summary>
+        /// Represents the different factions that can take turns in battle.
+        /// </summary>
         public enum Faction
         {
             Player,

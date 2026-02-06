@@ -8,9 +8,15 @@ using UnityEngine.Events;
 
 namespace Turnroot.Conversations
 {
+    /// <summary>
+    /// Represents a single layer of dialogue with speaker configuration, portraits, and lifecycle events.
+    /// </summary>
     [System.Serializable]
     public class ConversationLayer : BaseConversation
     {
+        /// <summary>
+        /// Represents a speaker configuration with character data, display name, and portrait selection.
+        /// </summary>
         [System.Serializable]
         public class SpeakerSlot
         {
@@ -95,6 +101,9 @@ namespace Turnroot.Conversations
         [SerializeField]
         private SpeakerSlot _secondary = new();
 
+        /// <summary>
+        /// Indicates which speaker (primary or secondary) is currently active in the conversation.
+        /// </summary>
         public enum ActiveSpeakerType
         {
             Primary = 0,
@@ -144,6 +153,9 @@ namespace Turnroot.Conversations
         public Portrait SecondarySpeakerPortrait =>
             GetPortrait(_secondary.Speaker, _secondary.PortraitKey);
 
+        /// <summary>
+        /// Contains Unity events triggered at the start and completion of a conversation layer.
+        /// </summary>
         [System.Serializable]
         public class LayerEvents
         {

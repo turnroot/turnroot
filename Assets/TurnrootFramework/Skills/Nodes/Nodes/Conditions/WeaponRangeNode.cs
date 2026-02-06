@@ -3,6 +3,9 @@ using XNode;
 
 namespace Turnroot.Skills.Nodes.Conditions
 {
+    /// <summary>
+    /// Retrieves weapon range information including min/max range and melee/ranged status.
+    /// </summary>
     [CreateNodeMenu("Conditions/Weapon/Weapon Range")]
     [NodeLabel("Gets the weapon range information")]
     public class WeaponRangeNode : SkillNode
