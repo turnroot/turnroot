@@ -127,18 +127,18 @@ namespace Turnroot.Gameplay.Maps
             int maxRange
         )
         {
-            using var boundaryPooled = PooledList<MapGridPoint>.Get();
-            var boundaryTiles = boundaryPooled.List;
+            // Attackable tiles should expand from ALL moveable tiles, not just boundary
+            // This ensures tiles that aren't walkable (high movement cost) can still be attacked
+            // if they're within attack range of any moveable tile
+            using var moveableTilesPooled = PooledList<MapGridPoint>.Get();
+            var moveableTiles = moveableTilesPooled.List;
 
-            foreach (var (tile, cost) in result)
+            foreach (var tile in result.Keys)
             {
-                if (Mathf.RoundToInt(cost) == movementBudget)
-                {
-                    boundaryTiles.Add(tile);
-                }
+                moveableTiles.Add(tile);
             }
 
-            if (boundaryTiles.Count == 0)
+            if (moveableTiles.Count == 0)
             {
                 return;
             }
@@ -151,7 +151,7 @@ namespace Turnroot.Gameplay.Maps
             var currentFrontier = currentFrontierPooled.HashSet;
             var nextFrontier = nextFrontierPooled.HashSet;
 
-            foreach (var tile in boundaryTiles)
+            foreach (var tile in moveableTiles)
             {
                 expanded.Add(tile);
                 currentFrontier.Add(tile);

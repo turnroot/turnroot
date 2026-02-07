@@ -64,9 +64,6 @@ namespace Turnroot.Gameplay.Brain
                 if (res.Success)
                 {
                     _persistence.SaveCharacter(instance, updateIndex: false);
-                    Utilities.TurnrootLogger.Log(
-                        $"CharacterFactory: Assigned and persisted default class for {instance.Id}"
-                    );
                 }
                 else
                 {

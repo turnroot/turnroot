@@ -336,6 +336,16 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
 
         public void WaitAndEndTurn()
         {
+            // If turn already ended, ignore this call (may happen due to race conditions)
+            if (_currentState.CurrentState == PlayerTurnStates.TurnEnded)
+            {
+                TurnrootLogger.Log(
+                    "WaitAndEndTurn called but turn is already ended, ignoring",
+                    TurnrootLogger.LogLevel.Warning
+                );
+                return;
+            }
+
             // First transition to WaitActionChosen
             if (!TransitionAndPublish(PlayerTurnStates.WaitActionChosen))
             {

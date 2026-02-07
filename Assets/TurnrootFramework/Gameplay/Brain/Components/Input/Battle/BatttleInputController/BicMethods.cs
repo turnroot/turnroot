@@ -90,6 +90,16 @@ namespace Turnroot.Gameplay.Brain
 
         private void HandleChoosingActionState()
         {
+            // Check if turn has already ended (shouldn't show menu if so)
+            if (_playerTurnFlow.GetCurrentState() == PlayerTurnStates.TurnEnded)
+            {
+                TurnrootLogger.Log(
+                    "Turn already ended, skipping action menu",
+                    TurnrootLogger.LogLevel.Warning
+                );
+                return;
+            }
+
             var result = ShowActionMenu();
             if (!result.Success)
             {
@@ -133,7 +143,7 @@ namespace Turnroot.Gameplay.Brain
             _validMoveTiles.Clear();
             _validAttackTiles.Clear();
             Brain.cursorBrain.ClearAllowedPositions();
-            
+
             // Note: PlayerTurnEnded is published by TurnRotisserie, not here
             // This used to publish it but caused duplicate events
         }

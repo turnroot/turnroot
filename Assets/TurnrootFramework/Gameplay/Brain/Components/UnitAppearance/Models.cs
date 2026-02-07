@@ -410,9 +410,18 @@ namespace Turnroot.Gameplay.Brain
         {
             foreach (Transform child in parent)
             {
-                var childName = child.name.ToLower();
+                // Skip weapon and shield gameobjects - they have their own bone hierarchies
+                var childNameLower = child.name.ToLower();
+                if (childNameLower.Contains("_weapon") || childNameLower.Contains("_shield"))
+                {
+                    continue;
+                }
 
-                if (childName == "root" || childName == "armature" || childName.StartsWith("root."))
+                if (
+                    childNameLower == "root"
+                    || childNameLower == "armature"
+                    || childNameLower.StartsWith("root.")
+                )
                 {
                     results.Add(child);
                 }

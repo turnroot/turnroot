@@ -48,12 +48,11 @@ namespace Turnroot.Gameplay.Brain
 
             weaponInstance.name = $"{equippedWeapon.Template.name}_Weapon";
 
-            // Apply hand item offset
+            // Apply offset - since all models use the same rig structure,
+            // the weapon keeps its own skeleton and just needs positioning
             weaponInstance.transform.localPosition = unit.CharacterTemplate.HandItemOffset;
             weaponInstance.transform.localRotation = Quaternion.identity;
             weaponInstance.transform.localScale = Vector3.one;
-
-            RebindItemToUnitSkeleton(weaponInstance, model);
 
             unit.CurrentWeaponPrefab = weaponInstance;
 
@@ -98,12 +97,11 @@ namespace Turnroot.Gameplay.Brain
 
             shieldInstance.name = $"{equippedShield.Template.name}_Shield";
 
-            // Apply shield offset
+            // Apply offset - since all models use the same rig structure,
+            // the shield keeps its own skeleton and just needs positioning
             shieldInstance.transform.localPosition = unit.CharacterTemplate.ShieldOffset;
             shieldInstance.transform.localRotation = Quaternion.identity;
             shieldInstance.transform.localScale = Vector3.one;
-
-            RebindItemToUnitSkeleton(shieldInstance, model);
 
             unit.CurrentShieldPrefab = shieldInstance;
 
@@ -142,74 +140,6 @@ namespace Turnroot.Gameplay.Brain
             return !validation.Success ? validation
                 : !_unitModels.TryGetValue(unit.Id, out var model) ? OperationResult.Successful()
                 : AttachShieldToUnit(unit, model);
-        }
-
-        private void RebindItemToUnitSkeleton(GameObject itemInstance, GameObject unitModel)
-        {
-            var unitRoot = FindCanonicalBoneRoot(unitModel.transform);
-            if (unitRoot == null)
-            {
-                return;
-            }
-
-            var boneMap = new System.Collections.Generic.Dictionary<string, Transform>();
-            BuildBoneMap(unitRoot, boneMap);
-
-            var itemRenderers = itemInstance.GetComponentsInChildren<SkinnedMeshRenderer>(true);
-            foreach (var renderer in itemRenderers)
-            {
-                if (renderer.bones == null || renderer.bones.Length == 0)
-                {
-                    continue;
-                }
-
-                var newBones = new Transform[renderer.bones.Length];
-                bool success = true;
-
-                for (int i = 0; i < renderer.bones.Length; i++)
-                {
-                    if (
-                        renderer.bones[i] != null
-                        && boneMap.TryGetValue(renderer.bones[i].name, out var unitBone)
-                    )
-                    {
-                        newBones[i] = unitBone;
-                    }
-                    else
-                    {
-                        success = false;
-                        break;
-                    }
-                }
-
-                if (success)
-                {
-                    renderer.bones = newBones;
-                    renderer.rootBone = unitRoot;
-                }
-            }
-        }
-
-        private Transform FindCanonicalBoneRoot(Transform parent)
-        {
-            foreach (Transform child in parent)
-            {
-                var childName = child.name.ToLower();
-                if (childName == "root" || childName == "armature" || childName.StartsWith("root."))
-                {
-                    return child;
-                }
-
-                if (!child.GetComponent<SkinnedMeshRenderer>())
-                {
-                    var result = FindCanonicalBoneRoot(child);
-                    if (result != null)
-                    {
-                        return result;
-                    }
-                }
-            }
-            return null;
         }
     }
 }
