@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Turnroot.Characters.Stats;
+using Turnroot.GameSettings;
 using Turnroot.Utilities;
 using UnityEngine;
 
@@ -284,6 +285,7 @@ namespace Turnroot.Characters.CharacterClass
             List<UnboundedStatModifier> classCaps = null
         )
         {
+            var brain = Object.FindFirstObjectByType<Gameplay.Brain.Brain>();
             var increasedStats = new List<UnboundedStatType>();
 
             if (character == null || baseGrowths == null)
@@ -311,11 +313,17 @@ namespace Turnroot.Characters.CharacterClass
                     {
                         totalGrowth += classModifier.value;
                     }
-                    // If no matching modifier is found, add nothing (explicitly 0)
                 }
 
-                // Clamp growth rate to 0-100 range
+                var t = totalGrowth;
                 totalGrowth = Mathf.Clamp(totalGrowth, 0f, 100f);
+                // If t > totalGrowth, the stat gains +2 instead of +1 if GameplayGeneralSettings.LevelUpExtraGrowthChance is enabled
+                if (GameplayGeneralSettings.Instance.LevelUpExtraGrowthChance && t > totalGrowth)
+                {
+                    // auto increase by 1 for exceeding 100% growth, then roll for extra growth
+                    stat.SetCurrent(stat.Current + 1);
+                    increasedStats.Add(baseGrowth.unboundedStatType);
+                }
 
                 float roll = Random.Range(0f, 100f);
                 if (roll < totalGrowth)
@@ -339,6 +347,15 @@ namespace Turnroot.Characters.CharacterClass
                         increasedStats.Add(baseGrowth.unboundedStatType);
                     }
                 }
+            }
+
+            if (increasedStats.Count <= 2)
+            {
+                brain.PublishBadLevelUp(character);
+            }
+            else
+            {
+                brain.PublishGoodLevelUp(character);
             }
 
             return increasedStats;

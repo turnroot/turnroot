@@ -12,13 +12,9 @@ namespace Turnroot.Characters
     {
         #region Level Up & Growth
 
-        /// <summary>
-        /// Level up the character and apply random stat growth rolls.
         /// Internal method - use CharactersBrain.LevelUpCharacter() to publish events.
-        /// </summary>
         internal OperationResult LevelUp()
         {
-            // Ensure character has a class equipped before leveling up — validate and return clear diagnostics
             bool ok = ValidationHelper.ValidateNotNull(
                 "CharacterInstance.LevelUp",
                 out var missing,
@@ -33,7 +29,6 @@ namespace Turnroot.Characters
             }
 
             _currentLevel++;
-            // HP always increases by 1 on level up
             var hpStat = GetBoundedStat(BoundedStatType.Health);
             hpStat.SetCurrent(hpStat.GetCurrent() + 1f);
 

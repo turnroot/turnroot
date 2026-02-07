@@ -1,5 +1,4 @@
 using Turnroot.Characters;
-using Turnroot.GameSettings;
 using Turnroot.Utilities;
 using UnityEngine;
 

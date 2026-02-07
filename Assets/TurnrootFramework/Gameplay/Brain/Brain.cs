@@ -131,7 +131,5 @@ namespace Turnroot.Gameplay.Brain
 #else
             false;
 #endif
-
-        // Note: All event declarations and Publish methods have been moved to BrainPartials/Events.cs
     }
 }

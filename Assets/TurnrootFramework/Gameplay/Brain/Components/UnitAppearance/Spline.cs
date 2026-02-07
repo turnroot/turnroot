@@ -2,7 +2,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Turnroot.Characters;
-using Turnroot.Gameplay.Brain.Components.Battle;
 using Turnroot.Gameplay.Maps;
 using Turnroot.GameSettings;
 using Turnroot.Utilities;

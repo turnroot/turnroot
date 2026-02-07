@@ -20,16 +20,19 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 030efab55c186fa4ead5d556dc84fdd5, type: 2}
   SpeciesTypes:
   - {fileID: 11400000, guid: 6b6a40766f8c5d843ba98e8e51603c6e, type: 2}
+  LevelUpExtraGrowthChance: 1
   WeaponsCanBeForged: 1
   WeaponsCanBeRepaired: 1
   WeaponsHaveDurability: 1
-  UnitCanAttackWithoutWeapons: 0
+  UnitCanAttackWithoutWeapons: 1
   UseExperienceAptitudes: 0
   GoldDisplayNames:
     OneLetter: G
     FullName: gold
   UnitMovementCurveSmoothing: 2
   UnitMovementCurveRandomness: 0.05
+  UnitMovementDecelerationRange: 1.5
+  UnitMovementMinSpeedMultiplier: 0.4
   UnexploredMaps: 1
   MaxNumberOfExplorers: 2
   RidersAndFliersAreBetterExplorers: 1

@@ -149,7 +149,7 @@ namespace Turnroot.GameSettings
             Custom, // Manual multiplier
         }
 
-        [BoxGroup("Uni Classes"), HorizontalLine(color: EColor.Blue)]
+        [BoxGroup("Unit Classes"), HorizontalLine(color: EColor.Blue)]
         public ClassSelectionMode ClassSelection = ClassSelectionMode.PromotionBased;
 
         public ClassSelectionMode GetClassSelectionMode() => ClassSelection;
@@ -171,26 +171,31 @@ namespace Turnroot.GameSettings
 
         public CharacterClassData GetDefaultStartingClass() => DefaultStartingClass;
 
-        [BoxGroup("General Gameplay"), InfoBox("Put all of the weapon types your game uses here")]
+        [BoxGroup("Weapons"), InfoBox("Put all of the weapon types your game uses here")]
         public WeaponType[] WeaponTypes;
 
-        [BoxGroup("General Gameplay"), InfoBox("Put all of the species types your game uses here")]
+        [BoxGroup("Characters"), InfoBox("Put all of the species types your game uses here")]
         public SpeciesType[] SpeciesTypes;
 
         [
-            BoxGroup("General Gameplay"),
-            InfoBox("If true, weapons can be forged into higher-tier weapons")
+            BoxGroup("Level Up"),
+            InfoBox(
+                "If true, growth rates above 100% automatically gain +1 and have a chance to gain an additional +1"
+            )
         ]
+        public bool LevelUpExtraGrowthChance = false;
+
+        [BoxGroup("Weapons"), InfoBox("If true, weapons can be forged into higher-tier weapons")]
         public bool WeaponsCanBeForged;
 
-        [BoxGroup("General Gameplay"), InfoBox("If true, weapons can be repaired to renew uses")]
+        [BoxGroup("Weapons"), InfoBox("If true, weapons can be repaired to renew uses")]
         public bool WeaponsCanBeRepaired;
 
-        [BoxGroup("General Gameplay"), InfoBox("If true, weapons have a set number of uses")]
+        [BoxGroup("Weapons"), InfoBox("If true, weapons have a set number of uses")]
         public bool WeaponsHaveDurability;
 
         [
-            BoxGroup("General Gameplay"),
+            BoxGroup("Combat Mechanics"),
             InfoBox("If true, units can attack even when unarmed. Maximum range will be 1.")
         ]
         public bool UnitCanAttackWithoutWeapons;
