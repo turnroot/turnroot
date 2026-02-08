@@ -472,6 +472,15 @@ namespace Turnroot.Gameplay.Brain
                 mapGrid.SetOccupied(newPoint, unit);
                 unit.MapGridPosition = target;
                 BattleObject.Context.InvalidateUnitTileCache(unit);
+                BattleObject.Context.InvalidateUnitPositionCache();
+
+                // Update participants if this is the active unit
+                if (BattleObject.Context.Unit?.UnitInstance == unit)
+                {
+                    BattleObject.Context.UpdateAdjacentUnits();
+                    BattleObject.Context.UpdateTargetsInRange();
+                }
+
                 Brain.PublishCharacterMoveCompleted(unit, newPoint);
                 Brain.PublishUnitMoved(unit, target);
                 Brain.Publish(new Events.UnitMovedEvent(unit, from, target));

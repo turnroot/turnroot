@@ -6,17 +6,11 @@ using Turnroot.Skills.Nodes;
 
 namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 {
-    /// <summary>
-    /// Holds context information for a single unit during combat actions.
-    /// </summary>
     public class UnitContext
     {
         public CharacterInstance UnitInstance { get; set; }
     }
 
-    /// <summary>
-    /// Tracks active skills, skill graphs, and usage counts for the current battle context.
-    /// </summary>
     public class SkillContext
     {
         public Skill CurrentSkill { get; set; }
@@ -26,15 +20,14 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         public SkillGraph CurrentSkillGraph { get; set; }
     }
 
-    /// <summary>
-    /// Contains collections of all participating units categorized by team allegiance and adjacency.
-    /// </summary>
     public class BattleParticipants
     {
         public List<CharacterInstance> Targets { get; set; }
         public List<CharacterInstance> Allies { get; set; }
         public List<CharacterInstance> ThirdParty { get; set; }
         public Adjacency AdjacentUnits { get; set; }
+        public List<CharacterInstance> TargetsInRange { get; set; }
+        public List<CharacterInstance> AlliesInRange { get; set; }
 
         public List<CharacterInstance> GetAllUnits()
         {
@@ -46,9 +39,6 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         }
     }
 
-    /// <summary>
-    /// Stores combat flags and state modifiers for a specific unit during their turn.
-    /// </summary>
     public class UnitFlag
     {
         public CharacterInstance Unit { get; set; }
@@ -57,9 +47,6 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         public bool CanFinishMovingAfterAction { get; set; }
     }
 
-    /// <summary>
-    /// Global combat flags that affect the flow and state of the current battle phase.
-    /// </summary>
     public class CombatFlags
     {
         public bool IsInterrupted { get; set; }

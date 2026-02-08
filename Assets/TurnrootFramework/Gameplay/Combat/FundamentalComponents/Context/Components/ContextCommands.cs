@@ -186,13 +186,15 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         }
 
         /// <summary>
-        /// Checks if a character is an ally in this context.
+        /// Checks if a character is in the Allies roster (player-controlled units).
+        /// For third-party allegiance-aware checks, use BattleContext.AreAllies() or CanAttack().
         /// </summary>
         public bool IsAlly(CharacterInstance character) =>
             Participants?.Allies?.Contains(character) ?? false;
 
         /// <summary>
-        /// Checks if a character is a target (potential enemy) in this context.
+        /// Checks if a character is in the Targets roster (enemy units).
+        /// For third-party allegiance-aware checks, use BattleContext.AreAllies() or CanAttack().
         /// </summary>
         public bool IsTarget(CharacterInstance character) =>
             Participants?.Targets?.Contains(character) ?? false;

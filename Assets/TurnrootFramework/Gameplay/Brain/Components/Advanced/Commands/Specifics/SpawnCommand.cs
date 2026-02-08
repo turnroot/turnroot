@@ -43,6 +43,10 @@ namespace Turnroot.Gameplay.Brain.Commands
             {
                 unit.WasSpawnedDuringBattle = true;
                 unit.MapGridPosition = SpawnPosition;
+
+                // Invalidate position cache after spawning
+                context.InvalidateUnitPositionCache();
+
                 context.Brain?.Publish(new Events.UnitSpawnedEvent(unit, SpawnPosition));
                 context.Brain?.TakeSnapshot();
             }

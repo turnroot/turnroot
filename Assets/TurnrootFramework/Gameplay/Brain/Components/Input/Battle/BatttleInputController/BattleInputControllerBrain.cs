@@ -354,7 +354,15 @@ namespace Turnroot.Gameplay.Brain
                 }
                 else
                 {
-                    OpenActionMenu();
+                    // Confirming on the same unit - treat as "stay in place" and open action menu
+                    var unitPoint = current.UnitPositionToMapGridPoint(
+                        current.MapGridPosition,
+                        BattleContext.MapGrid
+                    );
+                    if (unitPoint != null)
+                    {
+                        HandleDestinationSelection(unitPoint);
+                    }
                 }
 
                 return;
@@ -379,8 +387,24 @@ namespace Turnroot.Gameplay.Brain
                     ) && mv.ContainsKey(cursorPos)
                 )
                 {
-                    _pendingDestination = cursorPos;
-                    _playerTurnFlow.SelectDestination(cursorPos);
+                    // Check if confirming on the same tile as the unit's current position
+                    var unit = BattleContext.Unit.UnitInstance;
+                    var unitPoint = unit.UnitPositionToMapGridPoint(
+                        unit.MapGridPosition,
+                        BattleContext.MapGrid
+                    );
+
+                    if (unitPoint != null && unitPoint.Equals(cursorPos))
+                    {
+                        // Stay in place - open action menu directly
+                        _playerTurnFlow.ActionChosen(PlayerTurnStates.ChoosingAction);
+                    }
+                    else
+                    {
+                        // Move to a different tile
+                        _pendingDestination = cursorPos;
+                        _playerTurnFlow.SelectDestination(cursorPos);
+                    }
                     return;
                 }
             }

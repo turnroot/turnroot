@@ -119,6 +119,14 @@ namespace Turnroot.Gameplay.Brain
                 return;
             }
 
+            // Check if staying in place - skip move and go straight to action menu
+            if (IsDestinationSameAsUnitPosition(_pendingDestination))
+            {
+                _pendingDestination = null;
+                _playerTurnFlow.ActionChosen(PlayerTurnStates.ChoosingAction);
+                return;
+            }
+
             var unit = BattleContext.Unit.UnitInstance;
             _playerTurnFlow.StartMove();
             Brain.PublishCharacterMoveStarted(unit, _pendingDestination);
@@ -258,12 +266,6 @@ namespace Turnroot.Gameplay.Brain
 
             _pendingDestination = destinationPoint;
             _playerTurnFlow.SelectTargetOrDestination(PlayerTurnStates.DestinationSelected);
-
-            if (IsDestinationSameAsUnitPosition(destinationPoint))
-            {
-                _playerTurnFlow.CancelTargetOrDestinationChoice(PlayerTurnStates.ChoosingAction);
-                _pendingDestination = null;
-            }
         }
 
         private bool IsDestinationSameAsUnitPosition(MapGridPoint destinationPoint)
@@ -323,6 +325,10 @@ namespace Turnroot.Gameplay.Brain
             Brain.PublishPlayerControlledUnitActivated(unit);
             ComputeValidTiles(unit);
 
+            // Update adjacency and targets in range for the newly selected unit
+            BattleContext.UpdateAdjacentUnits();
+            BattleContext.UpdateTargetsInRange();
+
             HighlightValidTilesForSelectedUnit();
         }
 
@@ -375,8 +381,7 @@ namespace Turnroot.Gameplay.Brain
             }
 
             // TODO: Add more actions (Attack, Item, Trade, etc.)
-            string[] actions = { "Wait" };
-            var populateResult = battleSelectAction.PopulateList(actions);
+            var populateResult = battleSelectAction.PopulateList(PopulateActionMenu());
 
             // Wire up button click handlers
             if (battleSelectAction.ListMenuContainer.TryGetComponent<MenuBase>(out var menuBase))
@@ -388,9 +393,34 @@ namespace Turnroot.Gameplay.Brain
                         HandleActionSelected(listMenuItem.ItemName);
                     }
                 };
+
+                // Disable menu input for one frame to prevent same-frame input processing
+                StartCoroutine(EnableMenuInputNextFrame(menuBase));
             }
 
             return populateResult;
+        }
+
+        private System.Collections.IEnumerator EnableMenuInputNextFrame(MenuBase menu)
+        {
+            if (menu != null)
+            {
+                menu.enabled = false;
+
+                // Wait until the confirm button is released
+                while (_inputActions?.Confirm?.IsPressed() == true)
+                {
+                    yield return null;
+                }
+
+                // Wait one additional frame after release
+                yield return null;
+
+                if (menu != null)
+                {
+                    menu.enabled = true;
+                }
+            }
         }
 
         private void CloseActionMenu()
@@ -400,6 +430,35 @@ namespace Turnroot.Gameplay.Brain
                 Destroy(_currentActionMenu);
                 _currentActionMenu = null;
             }
+        }
+
+        internal string[] PopulateActionMenu()
+        {
+            var actions = new List<string> { "Wait" };
+            // Trade with adjacent allies
+            if (BattleContext.Participants.AdjacentUnits.GetAdjacentAllyCount(BattleContext) > 0)
+            {
+                actions.Add("Trade");
+                // TODO: Check talk/support
+            }
+            // mount/dismount
+            if (BattleContext.Unit.UnitInstance.CurrentClass.ClassData.Identity.IsMountedClass())
+            {
+                if (BattleContext.Unit.UnitInstance.IsMounted)
+                {
+                    actions.Add("Dismount");
+                }
+                else
+                {
+                    actions.Add("Mount");
+                }
+            }
+            // check if any enemies are in range (already updated after movement)
+            if (BattleContext.Participants.TargetsInRange.Count > 0)
+            {
+                actions.Add("Attack");
+            }
+            return actions.ToArray();
         }
 
         public void HandleActionSelected(string actionName)
@@ -441,7 +500,10 @@ namespace Turnroot.Gameplay.Brain
             RequestUndo();
         }
 
-        public void OpenActionMenu() { }
+        public void OpenActionMenu()
+        {
+            _playerTurnFlow.ActionChosen(PlayerTurnStates.ChoosingAction);
+        }
 
         private OperationResult ComputeValidTiles(CharacterInstance unit)
         {

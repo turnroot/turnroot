@@ -246,7 +246,10 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Locations
             ListPool<CharacterInstance>.Return(allAdjTargets);
         }
 
-        // get adjacent ally count - optimized O(n) instead of O(n²)
+        /// <summary>
+        /// Get adjacent ally count - checks Participants.Allies roster only.
+        /// For third-party allegiance-aware checks, use GetAdjacentTrueAllyCount().
+        /// </summary>
         public int GetAdjacentAllyCount(BattleContext context)
         {
             if (context?.Participants?.Allies == null || context.Participants.Allies.Count == 0)
@@ -278,7 +281,10 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Locations
             return count;
         }
 
-        // get adjacent enemy count - optimized O(n) instead of O(n²)
+        /// <summary>
+        /// Get adjacent enemy count - checks Participants.Targets roster only.
+        /// For third-party allegiance-aware checks, use GetAdjacentTrueEnemyCount().
+        /// </summary>
         public int GetAdjacentEnemyCount(BattleContext context)
         {
             if (context?.Participants?.Targets == null || context.Participants.Targets.Count == 0)
@@ -307,6 +313,54 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Locations
                 }
             }
             ListPool<CharacterInstance>.Return(allAdjTargetCount);
+            return count;
+        }
+
+        /// <summary>
+        /// Gets count of adjacent units that are allies to the center unit, considering third-party allegiances.
+        /// </summary>
+        public int GetAdjacentTrueAllyCount(BattleContext context)
+        {
+            if (context == null || Center == null)
+            {
+                return 0;
+            }
+
+            int count = 0;
+            var allAdj = ListPool<CharacterInstance>.Get();
+            GetAllAdjacentNonAlloc(allAdj);
+            foreach (var adjacent in allAdj)
+            {
+                if (adjacent != null && context.AreAllies(Center, adjacent))
+                {
+                    count++;
+                }
+            }
+            ListPool<CharacterInstance>.Return(allAdj);
+            return count;
+        }
+
+        /// <summary>
+        /// Gets count of adjacent units that are enemies to the center unit, considering third-party allegiances.
+        /// </summary>
+        public int GetAdjacentTrueEnemyCount(BattleContext context)
+        {
+            if (context == null || Center == null)
+            {
+                return 0;
+            }
+
+            int count = 0;
+            var allAdj = ListPool<CharacterInstance>.Get();
+            GetAllAdjacentNonAlloc(allAdj);
+            foreach (var adjacent in allAdj)
+            {
+                if (adjacent != null && context.CanAttack(Center, adjacent))
+                {
+                    count++;
+                }
+            }
+            ListPool<CharacterInstance>.Return(allAdj);
             return count;
         }
     }

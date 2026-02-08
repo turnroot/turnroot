@@ -41,6 +41,12 @@ namespace Turnroot.Gameplay.Brain.Commands
                 context.MapGrid.SetOccupied(newPoint, unit);
                 unit.MapGridPosition = Target;
 
+                // Update battle participants after movement
+                context.InvalidateUnitPositionCache();
+                context.InvalidateUnitTileCache(unit);
+                context.UpdateAdjacentUnits();
+                context.UpdateTargetsInRange();
+
                 // Publish event on the priority bus
                 context.Brain?.Publish(
                     new Events.UnitMovedEvent(unit, (Vector2Int)UndoState["from"], Target)

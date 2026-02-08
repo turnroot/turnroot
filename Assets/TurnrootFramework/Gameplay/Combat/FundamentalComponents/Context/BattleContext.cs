@@ -261,6 +261,8 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 Targets = new List<CharacterInstance>(),
                 Allies = new List<CharacterInstance>(),
                 ThirdParty = new List<CharacterInstance>(),
+                TargetsInRange = new List<CharacterInstance>(),
+                AlliesInRange = new List<CharacterInstance>(),
                 AdjacentUnits = new Adjacency(null),
             };
             Flags = new CombatFlags { ActiveUnitFlags = new UnitFlag() };

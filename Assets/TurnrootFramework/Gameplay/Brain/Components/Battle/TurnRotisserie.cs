@@ -312,7 +312,11 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 Context.Flags.ActiveUnitFlags = new UnitFlag();
             }
             Context.Flags.ActiveUnitFlags.Unit = activeUnit;
-            Context.Participants.AdjacentUnits = new Locations.Adjacency(activeUnit);
+
+            // Update participants data for the newly active unit
+            Context.UpdateAdjacentUnits();
+            Context.UpdateTargetsInRange();
+
             if (_currentTurnOrder is TurnOrder.PlayerStart or TurnOrder.PlayerEnd)
             {
                 Brain.PublishPlayerControlledUnitActivated(activeUnit);

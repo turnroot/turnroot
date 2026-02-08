@@ -12,6 +12,10 @@ namespace Turnroot.Gameplay.Brain.Commands
 
         public override bool Execute(BattleContext context)
         {
+            // Clear dynamic participant data when turn ends
+            // (Targets in range and adjacent units are specific to the active unit)
+            context.ClearParticipantDynamicData();
+
             // Notify that a unit's turn ended (unit is still the active one on the context)
             context.Brain?.PublishUnitTurnEnded(context.Unit.UnitInstance);
 
