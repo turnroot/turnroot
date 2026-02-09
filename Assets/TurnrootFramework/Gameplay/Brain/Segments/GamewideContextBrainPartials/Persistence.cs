@@ -92,6 +92,10 @@ namespace Turnroot.Gameplay.Brain
             _rosterManager.RecallPlayerTeamRoster(GamewidePersistentPlayerRoster);
         }
 
+        private int _currentBattleTurn = 0;
+
+        private void HandleTurnBegin() => _currentBattleTurn = Brain.battleBrain.CurrentTurnNumber;
+
         private void HandleSavePlayerRosterRequested() =>
             SavePlayerRoster(Brain.battleBrain.CurrentTurnNumber);
 

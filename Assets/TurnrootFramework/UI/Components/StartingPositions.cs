@@ -235,6 +235,21 @@ namespace Turnroot.UI.Components
                     TurnrootLogger.Log(
                         $"SpawnAllUnitModels: Failed to spawn at {placement.Key}: {spawnResult.ErrorMessage}"
                     );
+                    continue;
+                }
+
+                // Track the spawned model in our local dictionary
+                var model = _prepObject.Brain.unitAppearanceBrain.GetModelForUnit(unit.Id);
+                if (model != null)
+                {
+                    _unitModels[placement.Key] = model;
+                }
+                else
+                {
+                    TurnrootLogger.Log(
+                        $"SpawnAllUnitModels: Model spawned but not found for {unit?.CharacterTemplate?.DisplayName} at {placement.Key}",
+                        TurnrootLogger.LogLevel.Warning
+                    );
                 }
             }
         }
