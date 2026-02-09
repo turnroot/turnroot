@@ -184,12 +184,7 @@ namespace Turnroot.Gameplay.Brain.Segments
                     chosen.OnSelected -= handler;
                 }
                 catch { }
-                // Now add it
                 chosen.OnSelected += handler;
-
-                TurnrootLogger.Log(
-                    $"UiBrain: Subscribed {role} handler on {chosen.gameObject.name}."
-                );
             }
         }
 
@@ -277,7 +272,7 @@ namespace Turnroot.Gameplay.Brain.Segments
                     // TODO: Return to previous state or world map
                     break;
                 case BrainStateNames.Paused:
-                    Brain.stateBrain.Resume();
+                    Brain.Resume();
                     break;
                 case BrainStateNames.MainMenu:
                     // TODO: Exit game or return to previous screen

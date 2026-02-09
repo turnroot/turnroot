@@ -73,28 +73,30 @@ namespace Turnroot.Gameplay.Brain
 
         private void Start()
         {
-            // All Brain components are initialized by this point, safe to access
             _ltm = GetComponent<LongTermMemory>();
             _playerSettingsPersistence?.Initialize();
             TryLoadAndRecallPersistentPlayerRoster();
-            _brain.volumeBrain?.ApplySettingsToVolumes(PlayerSettings);
+            _brain.PublishPlayerSettingsChanged(PlayerSettings);
             PopulateMapExplorationStatusesFromLtm();
         }
         #endregion
 
         #region Event Subscription
-        protected override void SubscribeToBrainEvents() =>
+        protected override void SubscribeToBrainEvents()
+        {
             _brain.OnSavePlayerRosterRequested += HandleSavePlayerRosterRequested;
+            _brain.OnTurnBegin += HandleTurnBegin;
+        }
 
-        protected override void UnsubscribeFromBrainEvents() =>
-            _brain.OnSavePlayerRosterRequested -= HandleSavePlayerRosterRequested;
+        protected override void UnsubscribeFromBrainEvents()
+        {
+            if (_brain != null)
+            {
+                _brain.OnSavePlayerRosterRequested -= HandleSavePlayerRosterRequested;
+                _brain.OnTurnBegin -= HandleTurnBegin;
+            }
+        }
         #endregion
-
-        // Remaining API methods are implemented in partial files within GamewideContextBrainPartials/
-        // - Persistence.cs: Character and roster persistence methods
-        // - RosterManagement.cs: Roster and character management API
-        // - MapExploration.cs: Map exploration state management
-        // - PlayerSettings.cs: Player settings management
     }
 
     [System.Serializable]

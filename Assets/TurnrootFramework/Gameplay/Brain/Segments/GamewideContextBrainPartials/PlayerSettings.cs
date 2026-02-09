@@ -9,7 +9,7 @@ namespace Turnroot.Gameplay.Brain
         public void UpdatePlayerSetting(string settingName, object value)
         {
             _playerSettingsPersistence.UpdatePlayerSetting(settingName, value);
-            Brain.volumeBrain.ApplySettingsToVolumes(PlayerSettings);
+            Brain.PublishPlayerSettingsChanged(PlayerSettings);
         }
         #endregion
     }

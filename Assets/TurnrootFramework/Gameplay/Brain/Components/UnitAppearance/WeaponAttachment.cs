@@ -9,9 +9,6 @@ namespace Turnroot.Gameplay.Brain
     /// </summary>
     public partial class UnitAppearanceBrain
     {
-        /// <summary>
-        /// Spawns and attaches the equipped weapon to the unit model with offset.
-        /// </summary>
         public OperationResult AttachWeaponToUnit(CharacterInstance unit, GameObject model)
         {
             var validation = OperationResultGuards.All(
@@ -24,43 +21,18 @@ namespace Turnroot.Gameplay.Brain
             }
 
             ClearWeaponFromUnit(unit);
-
             var equippedWeapon = unit.GetEquippedWeapon();
-            if (equippedWeapon == null || equippedWeapon.Template == null)
-            {
-                return OperationResult.Successful();
-            }
-
-            var weaponPrefab = equippedWeapon.Template.Prefab;
-            if (weaponPrefab == null)
-            {
-                return OperationResult.Successful();
-            }
-
-            var weaponInstance = Instantiate(weaponPrefab, model.transform);
-            if (weaponInstance == null)
-            {
-                return OperationResult.Failure(
-                    $"Failed to instantiate weapon prefab for {unit.CharacterTemplate?.DisplayName}"
-                );
-            }
-
-            weaponInstance.name = $"{equippedWeapon.Template.name}_Weapon";
-
-            // Apply offset - since all models use the same rig structure,
-            // the weapon keeps its own skeleton and just needs positioning
-            weaponInstance.transform.localPosition = unit.CharacterTemplate.HandItemOffset;
-            weaponInstance.transform.localRotation = Quaternion.identity;
-            weaponInstance.transform.localScale = Vector3.one;
-
+            var result = AttachEquipmentToUnit(
+                equippedWeapon,
+                model,
+                unit.CharacterTemplate.HandItemOffset,
+                "_Weapon",
+                out var weaponInstance
+            );
             unit.CurrentWeaponPrefab = weaponInstance;
-
-            return OperationResult.Successful();
+            return result;
         }
 
-        /// <summary>
-        /// Spawns and attaches the equipped shield to the unit model with offset.
-        /// </summary>
         public OperationResult AttachShieldToUnit(CharacterInstance unit, GameObject model)
         {
             var validation = OperationResultGuards.All(
@@ -73,38 +45,16 @@ namespace Turnroot.Gameplay.Brain
             }
 
             ClearShieldFromUnit(unit);
-
             var equippedShield = unit.GetEquippedShield();
-            if (equippedShield == null || equippedShield.Template == null)
-            {
-                return OperationResult.Successful();
-            }
-
-            var shieldPrefab = equippedShield.Template.Prefab;
-            if (shieldPrefab == null)
-            {
-                return OperationResult.Successful();
-            }
-
-            var shieldInstance = Instantiate(shieldPrefab, model.transform);
-            if (shieldInstance == null)
-            {
-                return OperationResult.Failure(
-                    $"Failed to instantiate shield prefab for {unit.CharacterTemplate?.DisplayName}"
-                );
-            }
-
-            shieldInstance.name = $"{equippedShield.Template.name}_Shield";
-
-            // Apply offset - since all models use the same rig structure,
-            // the shield keeps its own skeleton and just needs positioning
-            shieldInstance.transform.localPosition = unit.CharacterTemplate.ShieldOffset;
-            shieldInstance.transform.localRotation = Quaternion.identity;
-            shieldInstance.transform.localScale = Vector3.one;
-
+            var result = AttachEquipmentToUnit(
+                equippedShield,
+                model,
+                unit.CharacterTemplate.ShieldOffset,
+                "_Shield",
+                out var shieldInstance
+            );
             unit.CurrentShieldPrefab = shieldInstance;
-
-            return OperationResult.Successful();
+            return result;
         }
 
         public void ClearWeaponFromUnit(CharacterInstance unit)
@@ -139,6 +89,42 @@ namespace Turnroot.Gameplay.Brain
             return !validation.Success ? validation
                 : !_unitModels.TryGetValue(unit.Id, out var model) ? OperationResult.Successful()
                 : AttachShieldToUnit(unit, model);
+        }
+
+        // ===== Helper Methods =====
+
+        /// <summary>
+        /// Common method to attach equipment (weapon or shield) to a unit model.
+        /// </summary>
+        private OperationResult AttachEquipmentToUnit(
+            Objects.ObjectItemInstance equipment,
+            GameObject model,
+            Vector3 offset,
+            string nameSuffix,
+            out GameObject equipmentInstance
+        )
+        {
+            equipmentInstance = null;
+
+            if (equipment?.Template?.Prefab == null)
+            {
+                return OperationResult.Successful();
+            }
+
+            equipmentInstance = Instantiate(equipment.Template.Prefab, model.transform);
+            if (equipmentInstance == null)
+            {
+                return OperationResult.Failure(
+                    $"Failed to instantiate {equipment.Template.name} prefab"
+                );
+            }
+
+            equipmentInstance.name = $"{equipment.Template.name}{nameSuffix}";
+            equipmentInstance.transform.localPosition = offset;
+            equipmentInstance.transform.localRotation = Quaternion.identity;
+            equipmentInstance.transform.localScale = Vector3.one;
+
+            return OperationResult.Successful();
         }
     }
 }

@@ -45,6 +45,9 @@ namespace Turnroot.Gameplay.Brain
         // Add flag to prevent input processing before ready
         private bool _inputEnabled = false;
 
+        // Store enemy target when confirming on enemy for auto-attack after movement
+        private CharacterInstance _pendingAttackTarget;
+
         #endregion
 
         #region Unity Lifecycle
@@ -291,10 +294,7 @@ namespace Turnroot.Gameplay.Brain
                         _playerTurnFlow.SelectUnit();
                         ChangeSelectedUnit(unitAtCursor);
                     }
-                    else
-                    {
-                        OpenActionMenu();
-                    }
+                    // If no unit at cursor, do nothing (can't open action menu without a selected unit)
                     break;
                 case PlayerTurnStates.UnitSelected:
                     HandleConfirmOnUnitSelected(unitAtCursor);
@@ -343,28 +343,66 @@ namespace Turnroot.Gameplay.Brain
 
         private void HandleConfirmOnUnitSelected(CharacterInstance unitAtCursor)
         {
-            // If cursor is on a player unit, select or open action menu
-            if (unitAtCursor != null && BattleContext.IsPlayerControlledUnit(unitAtCursor))
+            var current = BattleContext.Unit.UnitInstance;
+
+            // Scenario 3: Confirming on a different friendly unit - do nothing
+            if (
+                unitAtCursor != null
+                && BattleContext.IsPlayerControlledUnit(unitAtCursor)
+                && current != unitAtCursor
+            )
             {
-                var current = BattleContext.Unit.UnitInstance;
-                if (current == null || current != unitAtCursor)
+                return;
+            }
+
+            // Scenario 1 & 2: Confirming on same unit - open action menu (stay in place)
+            if (unitAtCursor != null && unitAtCursor == current)
+            {
+                OpenActionMenu();
+                return;
+            }
+
+            // Scenario 5: Confirming on enemy unit - move to closest walkable tile and initiate attack
+            if (unitAtCursor != null && BattleContext.IsEnemyUnit(unitAtCursor))
+            {
+                var enemyPos = Brain.cursorBrain.CursorPosition;
+                if (
+                    enemyPos != null
+                    && BattleContext.TryGetValidTilesForUnit(current, out var mv, out var atk)
+                )
                 {
-                    _playerTurnFlow.SelectUnit();
-                    ChangeSelectedUnit(unitAtCursor);
-                }
-                else
-                {
-                    // Confirming on the same unit - treat as "stay in place" and open action menu
-                    var unitPoint = current.UnitPositionToMapGridPoint(
-                        current.MapGridPosition,
-                        BattleContext.MapGrid
-                    );
-                    if (unitPoint != null)
+                    // Find the closest walkable tile to the enemy
+                    MapGridPoint closestTile = null;
+                    float closestDistance = float.MaxValue;
+
+                    foreach (var tile in mv.Keys)
                     {
-                        HandleDestinationSelection(unitPoint);
+                        // Calculate distance to enemy position
+                        var tileCoords = tile.CoordinatesInt;
+                        var enemyCoords = enemyPos.CoordinatesInt;
+                        var dx = tileCoords.x - enemyCoords.x;
+                        var dy = tileCoords.y - enemyCoords.y;
+                        var distance = dx * dx + dy * dy; // Squared distance is fine for comparison
+
+                        if (distance < closestDistance)
+                        {
+                            closestDistance = distance;
+                            closestTile = tile;
+                        }
+                    }
+
+                    if (closestTile != null)
+                    {
+                        // Store enemy target for auto-attack after movement completes
+                        _pendingAttackTarget = unitAtCursor;
+
+                        // Move to the closest tile, then auto-select attack in HandleChoosingActionState
+                        _pendingDestination = closestTile;
+                        _playerTurnFlow.SelectDestination(closestTile);
+                        return;
                     }
                 }
-
+                // Enemy not reachable - do nothing
                 return;
             }
 

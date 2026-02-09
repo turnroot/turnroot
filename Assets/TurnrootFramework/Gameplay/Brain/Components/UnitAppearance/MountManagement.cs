@@ -1,4 +1,5 @@
 using Turnroot.Characters;
+using Turnroot.Characters.CharacterClass;
 using Turnroot.Utilities;
 using UnityEngine;
 
@@ -33,17 +34,15 @@ namespace Turnroot.Gameplay.Brain
 
             if (!classData.Identity.HasMountVisuals())
             {
-                TurnrootLogger.Log(
-                    $"Class {classData.GetClassName()} is mounted but has no mount prefab configured",
-                    TurnrootLogger.LogLevel.Warning
+                LogWarning(
+                    $"Class {classData.GetClassName()} is mounted but has no mount prefab configured"
                 );
                 return OperationResult.Successful();
             }
 
             ClearMountFromUnit(unit);
 
-            var mountPrefab = classData.Identity.MountPrefab;
-            var mountInstance = Instantiate(mountPrefab, unitModel.transform.parent);
+            var mountInstance = InstantiateMount(unit, classData.Identity.MountPrefab, unitModel);
             if (mountInstance == null)
             {
                 return OperationResult.Failure(
@@ -51,46 +50,9 @@ namespace Turnroot.Gameplay.Brain
                 );
             }
 
-            mountInstance.name = $"{unit.CharacterTemplate?.DisplayName}_Mount_{unit.Id}";
-            mountInstance.transform.SetPositionAndRotation(
-                unitModel.transform.position,
-                unitModel.transform.rotation
-            );
-            mountInstance.transform.localScale = unitModel.transform.localScale;
-
-            // Set up animator - use MountAnimator if provided, otherwise use default
-            var animator = mountInstance.GetComponent<Animator>();
-            if (animator == null)
-            {
-                animator = mountInstance.AddComponent<Animator>();
-            }
-
-            // Assign animator controller - prefer mount-specific, fall back to default
-            var controllerToUse =
-                classData.Identity.MountAnimator ?? _settings?.DefaultUnitAnimatorController;
-
-            if (controllerToUse != null)
-            {
-                animator.runtimeAnimatorController = controllerToUse;
-            }
-            else
-            {
-                TurnrootLogger.Log(
-                    $"No animator controller available for mount of {unit.CharacterTemplate?.DisplayName}. "
-                        + "Set MountAnimator on class or DefaultUnitAnimatorController in settings.",
-                    TurnrootLogger.LogLevel.Warning
-                );
-            }
-
-            // Set up walk animation for the mount
+            SetupMountAnimator(mountInstance, classData, unit);
             SetupWalkAnimation(mountInstance, unit);
-
-            // Make unit a child of the mount with offset
-            unitModel.transform.SetParent(mountInstance.transform, false);
-            unitModel.transform.SetLocalPositionAndRotation(
-                classData.Identity.MountOffset,
-                Quaternion.identity
-            );
+            AttachUnitToMount(unitModel, mountInstance, classData.Identity.MountOffset);
 
             _mountModels[unit.Id] = mountInstance;
             unit.CurrentMountModel = mountInstance;
@@ -115,11 +77,8 @@ namespace Turnroot.Gameplay.Brain
                 return OperationResult.Successful();
             }
 
-            var mountModel = unit.CurrentMountModel;
-
-            // Look up the actual unit model from the dictionary to ensure we have the correct reference
             if (
-                !_unitModels.TryGetValue(unit.Id, out GameObject actualUnitModel)
+                !_unitModels.TryGetValue(unit.Id, out var actualUnitModel)
                 || actualUnitModel == null
             )
             {
@@ -128,16 +87,8 @@ namespace Turnroot.Gameplay.Brain
                 );
             }
 
-            // Store mount's world position before dismounting
-            var worldPosition = mountModel.transform.position;
-            var worldRotation = mountModel.transform.rotation;
-            var originalParent = mountModel.transform.parent;
-
-            // Re-parent unit back to original parent
-            actualUnitModel.transform.SetParent(originalParent, false);
-            actualUnitModel.transform.position = worldPosition;
-            actualUnitModel.transform.rotation = worldRotation;
-
+            var mountModel = unit.CurrentMountModel;
+            RestoreUnitFromMount(actualUnitModel, mountModel);
             ClearMountFromUnit(unit);
 
             return OperationResult.Successful();
@@ -150,56 +101,101 @@ namespace Turnroot.Gameplay.Brain
                 return;
             }
 
-            // Get the mount instance from dictionary (single source of truth)
             GameObject mountToDestroy = null;
-            if (_mountModels.ContainsKey(unit.Id))
+            if (!_mountModels.TryGetValue(unit.Id, out mountToDestroy))
             {
-                mountToDestroy = _mountModels[unit.Id];
-            }
-            else if (unit.CurrentMountModel != null)
-            {
-                // Fallback if dictionary is out of sync
                 mountToDestroy = unit.CurrentMountModel;
             }
 
-            // If there's a mount to destroy, detach the unit model first
             if (mountToDestroy != null)
             {
-                // Re-parent the unit model back to the mount's parent before destroying the mount
-                if (_unitModels.TryGetValue(unit.Id, out GameObject unitModel) && unitModel != null)
-                {
-                    // Preserve world transform
-                    var mountParent = mountToDestroy.transform.parent;
-                    unitModel.transform.SetParent(mountParent, true);
-                }
-
-                // Now safely destroy the mount
+                DetachUnitFromMount(unit.Id, mountToDestroy);
                 mountToDestroy.SetActive(false);
                 Destroy(mountToDestroy);
             }
 
-            // Clean up references (only destroy once via mountToDestroy above)
-            if (_mountModels.ContainsKey(unit.Id))
-            {
-                _mountModels.Remove(unit.Id);
-            }
-
+            _mountModels.Remove(unit.Id);
             unit.CurrentMountModel = null;
             unit.IsMounted = false;
         }
 
         public bool ShouldUnitBeMounted(CharacterInstance unit)
         {
-            if (unit == null)
-            {
-                return false;
-            }
+            return unit != null
+                && unit.CurrentClassTemplate?.Identity != null
+                && unit.CurrentClassTemplate.Identity.IsMountedClass()
+                && unit.CurrentClassTemplate.Identity.HasMountVisuals();
+        }
 
-            var classData = unit.CurrentClassTemplate;
-            return classData != null
-                && classData.Identity != null
-                && classData.Identity.IsMountedClass()
-                && classData.Identity.HasMountVisuals();
+        // ===== Helper Methods =====
+
+        private GameObject InstantiateMount(
+            CharacterInstance unit,
+            GameObject mountPrefab,
+            GameObject unitModel
+        )
+        {
+            var mountInstance = Instantiate(mountPrefab, unitModel.transform.parent);
+            mountInstance.name = $"{unit.CharacterTemplate?.DisplayName}_Mount_{unit.Id}";
+            mountInstance.transform.SetPositionAndRotation(
+                unitModel.transform.position,
+                unitModel.transform.rotation
+            );
+            mountInstance.transform.localScale = unitModel.transform.localScale;
+            return mountInstance;
+        }
+
+        private void SetupMountAnimator(
+            GameObject mountInstance,
+            CharacterClassData classData,
+            CharacterInstance unit
+        )
+        {
+            var animator =
+                mountInstance.GetComponent<Animator>() ?? mountInstance.AddComponent<Animator>();
+            var controller =
+                classData.Identity.MountAnimator ?? _settings?.DefaultUnitAnimatorController;
+
+            if (controller != null)
+            {
+                animator.runtimeAnimatorController = controller;
+            }
+            else
+            {
+                LogWarning(
+                    $"No animator controller available for mount of {unit.CharacterTemplate?.DisplayName}. "
+                        + "Set MountAnimator on class or DefaultUnitAnimatorController in settings."
+                );
+            }
+        }
+
+        private void AttachUnitToMount(
+            GameObject unitModel,
+            GameObject mountInstance,
+            Vector3 mountOffset
+        )
+        {
+            unitModel.transform.SetParent(mountInstance.transform, false);
+            unitModel.transform.SetLocalPositionAndRotation(mountOffset, Quaternion.identity);
+        }
+
+        private void RestoreUnitFromMount(GameObject unitModel, GameObject mountModel)
+        {
+            var worldPosition = mountModel.transform.position;
+            var worldRotation = mountModel.transform.rotation;
+            var originalParent = mountModel.transform.parent;
+
+            unitModel.transform.SetParent(originalParent, false);
+            unitModel.transform.position = worldPosition;
+            unitModel.transform.rotation = worldRotation;
+        }
+
+        private void DetachUnitFromMount(string unitId, GameObject mountToDestroy)
+        {
+            if (_unitModels.TryGetValue(unitId, out var unitModel) && unitModel != null)
+            {
+                unitModel.transform.SetParent(mountToDestroy.transform.parent, true);
+            }
         }
     }
 }

@@ -280,19 +280,9 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
 
         #region Brain Events
 
-        private void SubscribeToBrainEvents()
-        {
-            _brain.OnBattleMapReady += HandleBattleMapReady;
-            _brain.OnBattleCompleted += HandleBattleCompleted;
-        }
+        private void SubscribeToBrainEvents() => _brain.OnBattleCompleted += HandleBattleCompleted;
 
-        private void UnsubscribeFromBrainEvents()
-        {
-            _brain.OnBattleMapReady -= HandleBattleMapReady;
-            _brain.OnBattleCompleted -= HandleBattleCompleted;
-        }
-
-        private void HandleBattleMapReady(MapGrid mapGrid) => Initialize(_brain, mapGrid);
+        private void UnsubscribeFromBrainEvents() => _brain.OnBattleCompleted -= HandleBattleCompleted;
 
         private void HandleBattleCompleted(Combat.BattleExitType exitType) => ClearAll();
 

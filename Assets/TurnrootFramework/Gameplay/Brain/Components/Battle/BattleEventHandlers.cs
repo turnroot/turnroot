@@ -287,7 +287,7 @@ namespace Turnroot.Gameplay.Brain
             );
 
             // Publish transfer event
-            _brain.inventoryBrain.TransferItem(bestItem, thiefInventory);
+            Brain.PublishItemTransferred(bestItem, thiefInventory);
 
             return OperationResult.Successful();
         }

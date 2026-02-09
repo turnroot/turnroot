@@ -24,10 +24,7 @@ namespace Turnroot.Gameplay.Brain
             var path = BuildPathToDestination(character, destination);
             if (path == null || path.Count < 2)
             {
-                TurnrootLogger.Log(
-                    $"Invalid path for {character.CharacterTemplate.DisplayName}",
-                    TurnrootLogger.LogLevel.Warning
-                );
+                LogWarning($"Invalid path for {character.CharacterTemplate.DisplayName}");
                 Brain.PublishMoveAnimationCompleted(character);
                 return;
             }
@@ -42,35 +39,36 @@ namespace Turnroot.Gameplay.Brain
         {
             var battleObject = Brain.battleBrain.BattleObject;
             var mapGrid = battleObject.MapGrid;
-            var context = battleObject.Context;
-
             var startPos = character.MapGridPosition;
             var startPoint = mapGrid.GetGridPoint(startPos.x, startPos.y);
 
-            if (!context.TryGetValidTilesForUnit(character, out var validMoveTiles, out _))
+            if (
+                !battleObject.Context.TryGetValidTilesForUnit(
+                    character,
+                    out var validMoveTiles,
+                    out _
+                )
+            )
             {
-                TurnrootLogger.Log(
-                    $"BuildPathToDestination: Failed to get valid tiles for {character.CharacterTemplate.DisplayName}",
-                    TurnrootLogger.LogLevel.Warning
+                LogWarning(
+                    $"BuildPathToDestination: Failed to get valid tiles for {character.CharacterTemplate.DisplayName}"
                 );
                 return null;
             }
 
-            var astar = new AStarModified();
-            var pathPoints = astar.GetPathThroughReachable(startPoint, destination, validMoveTiles);
-
+            var pathPoints = new AStarModified().GetPathThroughReachable(
+                startPoint,
+                destination,
+                validMoveTiles
+            );
             if (pathPoints == null || pathPoints.Count < 2)
-            {
                 return null;
-            }
 
-            var path = new List<Vector3>();
-            foreach (var gridPoint in pathPoints)
-            {
-                path.Add(mapGrid.GetTerrainAdjustedWorldPosition(gridPoint.CoordinatesInt));
-            }
-
-            return path;
+            return pathPoints
+                .Select(gridPoint =>
+                    mapGrid.GetTerrainAdjustedWorldPosition(gridPoint.CoordinatesInt)
+                )
+                .ToList();
         }
 
         private IEnumerator AnimateCharacterMovementCoroutine(
@@ -80,78 +78,18 @@ namespace Turnroot.Gameplay.Brain
         {
             if (!_unitModels.TryGetValue(character.Id, out var unitModel) || unitModel == null)
             {
-                TurnrootLogger.Log($"No model for {character.Id}", TurnrootLogger.LogLevel.Warning);
+                LogWarning($"No model for {character.Id}");
                 Brain.PublishMoveAnimationCompleted(character);
                 yield break;
             }
 
-            // Determine which model to animate and move - mount if mounted, unit otherwise
-            GameObject modelToMove;
-            Animator animator;
-
-            if (character.IsMounted && character.CurrentMountModel != null)
-            {
-                modelToMove = character.CurrentMountModel;
-                animator = modelToMove.GetComponent<Animator>();
-            }
-            else
-            {
-                modelToMove = unitModel;
-                animator = modelToMove.GetComponent<Animator>();
-            }
-
-            var tileHighlighter = Brain.battleBrain.BattleObject.TileHighlighter;
-
-            tileHighlighter.ClearAll();
+            var (modelToMove, animator) = GetModelAndAnimator(character, unitModel);
+            Brain.battleBrain.BattleObject.TileHighlighter.ClearAll();
 
             BlendToWalkAnimation(animator);
             yield return new WaitForSeconds(ANIMATION_BLEND_DURATION);
 
-            var spline = CreateSplineFromMapGridCoordinates(path);
-            var splineLength = CalculateSplineArcLength(spline, 100);
-            var baseSpeed = character.WalkingSpeed;
-            var distanceTraveled = 0f;
-            var lastTilePos = character.MapGridPosition;
-
-            while (distanceTraveled < splineLength)
-            {
-                var speedMultiplier = ApplyDecelerationFactor(distanceTraveled, splineLength);
-                var currentSpeed = baseSpeed * speedMultiplier;
-
-                var t = Mathf.Clamp01(distanceTraveled / splineLength);
-
-                spline.Evaluate(t, out var position, out var tangent, out var up);
-                modelToMove.transform.position = position;
-
-                if (math.lengthsq(tangent) > 0.001f)
-                {
-                    var targetRotation = Quaternion.LookRotation(tangent);
-                    modelToMove.transform.rotation = Quaternion.Slerp(
-                        modelToMove.transform.rotation,
-                        targetRotation,
-                        Time.deltaTime * 10f
-                    );
-                }
-
-                var currentTile = WorldPositionToGridPosition(position);
-                if (currentTile != lastTilePos)
-                {
-                    Brain.PublishCharacterVisitedTile(character, currentTile);
-                    lastTilePos = currentTile;
-                }
-
-                distanceTraveled += currentSpeed * Time.deltaTime;
-                yield return null;
-            }
-
-            modelToMove.transform.position = path[^1];
-            character.MapGridPosition = WorldPositionToGridPosition(path[^1]);
-
-            var finalTile = WorldPositionToGridPosition(path[^1]);
-            if (finalTile != lastTilePos)
-            {
-                Brain.PublishCharacterVisitedTile(character, finalTile);
-            }
+            yield return AnimateAlongSpline(character, path, modelToMove);
 
             if (animator != null)
             {
@@ -200,57 +138,17 @@ namespace Turnroot.Gameplay.Brain
 
             for (int i = 0; i < mapGridPointCoordinates.Count; i++)
             {
-                var pos = new float3(
-                    mapGridPointCoordinates[i].x,
-                    mapGridPointCoordinates[i].y,
-                    mapGridPointCoordinates[i].z
+                var pos = ApplyRandomOffset(
+                    mapGridPointCoordinates[i],
+                    i,
+                    mapGridPointCoordinates.Count,
+                    settings
                 );
-
-                if (i > 0 && i < mapGridPointCoordinates.Count - 1)
-                {
-                    pos += new float3(
-                        UnityEngine.Random.Range(
-                            -settings.UnitMovementCurveRandomness,
-                            settings.UnitMovementCurveRandomness
-                        ),
-                        0f,
-                        UnityEngine.Random.Range(
-                            -settings.UnitMovementCurveRandomness,
-                            settings.UnitMovementCurveRandomness
-                        )
-                    );
-                }
-
                 var knot = new BezierKnot(pos, float3.zero, float3.zero, quaternion.identity);
 
                 if (i > 0 && i < mapGridPointCoordinates.Count - 1)
                 {
-                    var toNext = new float3(mapGridPointCoordinates[i + 1]) - pos;
-                    var toPrev = pos - new float3(mapGridPointCoordinates[i - 1]);
-                    var nextDist = math.length(toNext);
-                    var prevDist = math.length(toPrev);
-
-                    if (nextDist > 0f && prevDist > 0f)
-                    {
-                        var toNextNorm = math.normalize(toNext);
-                        var toPrevNorm = math.normalize(toPrev);
-                        var dotProduct = math.dot(toNextNorm, -toPrevNorm);
-
-                        // Only apply tangents at corners
-                        var isCorner = dotProduct < 0.9f;
-
-                        if (isCorner)
-                        {
-                            var tangentDir = math.normalize(toNextNorm + toPrevNorm);
-                            var tangentMagnitude =
-                                settings.UnitMovementCurveSmoothing
-                                * math.min(nextDist, prevDist)
-                                * 0.25f;
-
-                            knot.TangentIn = -tangentDir * tangentMagnitude;
-                            knot.TangentOut = tangentDir * tangentMagnitude;
-                        }
-                    }
+                    ApplyTangentsToKnot(ref knot, mapGridPointCoordinates, i, settings);
                 }
 
                 spline.Add(knot);
@@ -261,41 +159,151 @@ namespace Turnroot.Gameplay.Brain
 
         public float GetSplineLength(Spline spline)
         {
-            float length = 0f;
-            var knots = spline.Knots.ToArray();
-
-            for (int i = 0; i < knots.Length - 1; i++)
-            {
-                length += math.distance(knots[i].Position, knots[i + 1].Position);
-            }
-
-            return length;
+            return spline
+                .Knots.ToArray()
+                .Take(spline.Count - 1)
+                .Select((knot, i) => math.distance(knot.Position, spline[i + 1].Position))
+                .Sum();
         }
 
         private float CalculateSplineArcLength(Spline spline, int samples)
         {
             if (spline == null || spline.Count < 2)
-            {
                 return 0f;
-            }
 
             float length = 0f;
             float3 previousPos = float3.zero;
 
             for (int i = 0; i <= samples; i++)
             {
-                float t = i / (float)samples;
-                spline.Evaluate(t, out var pos, out _, out _);
-
+                spline.Evaluate(i / (float)samples, out var pos, out _, out _);
                 if (i > 0)
-                {
                     length += math.distance(previousPos, pos);
-                }
-
                 previousPos = pos;
             }
 
             return length;
+        }
+
+        // ===== Helper Methods =====
+
+        private (GameObject modelToMove, Animator animator) GetModelAndAnimator(
+            CharacterInstance character,
+            GameObject unitModel
+        )
+        {
+            if (character.IsMounted && character.CurrentMountModel != null)
+            {
+                var mount = character.CurrentMountModel;
+                return (mount, mount.GetComponent<Animator>());
+            }
+            return (unitModel, unitModel.GetComponent<Animator>());
+        }
+
+        private IEnumerator AnimateAlongSpline(
+            CharacterInstance character,
+            List<Vector3> path,
+            GameObject modelToMove
+        )
+        {
+            var spline = CreateSplineFromMapGridCoordinates(path);
+            var splineLength = CalculateSplineArcLength(spline, 100);
+            var baseSpeed = character.WalkingSpeed;
+            var distanceTraveled = 0f;
+            var lastTilePos = character.MapGridPosition;
+
+            while (distanceTraveled < splineLength)
+            {
+                var speedMultiplier = ApplyDecelerationFactor(distanceTraveled, splineLength);
+                var t = Mathf.Clamp01(distanceTraveled / splineLength);
+
+                spline.Evaluate(t, out var position, out var tangent, out _);
+                modelToMove.transform.position = position;
+
+                if (math.lengthsq(tangent) > 0.001f)
+                {
+                    modelToMove.transform.rotation = Quaternion.Slerp(
+                        modelToMove.transform.rotation,
+                        Quaternion.LookRotation(tangent),
+                        Time.deltaTime * 10f
+                    );
+                }
+
+                var currentTile = WorldPositionToGridPosition(position);
+                if (currentTile != lastTilePos)
+                {
+                    Brain.PublishCharacterVisitedTile(character, currentTile);
+                    lastTilePos = currentTile;
+                }
+
+                distanceTraveled += baseSpeed * speedMultiplier * Time.deltaTime;
+                yield return null;
+            }
+
+            modelToMove.transform.position = path[^1];
+            character.MapGridPosition = WorldPositionToGridPosition(path[^1]);
+
+            var finalTile = WorldPositionToGridPosition(path[^1]);
+            if (finalTile != lastTilePos)
+            {
+                Brain.PublishCharacterVisitedTile(character, finalTile);
+            }
+        }
+
+        private float3 ApplyRandomOffset(
+            Vector3 point,
+            int index,
+            int totalCount,
+            GameplayGeneralSettings settings
+        )
+        {
+            var pos = new float3(point.x, point.y, point.z);
+
+            if (index > 0 && index < totalCount - 1)
+            {
+                pos += new float3(
+                    UnityEngine.Random.Range(
+                        -settings.UnitMovementCurveRandomness,
+                        settings.UnitMovementCurveRandomness
+                    ),
+                    0f,
+                    UnityEngine.Random.Range(
+                        -settings.UnitMovementCurveRandomness,
+                        settings.UnitMovementCurveRandomness
+                    )
+                );
+            }
+
+            return pos;
+        }
+
+        private void ApplyTangentsToKnot(
+            ref BezierKnot knot,
+            List<Vector3> points,
+            int index,
+            GameplayGeneralSettings settings
+        )
+        {
+            var pos = knot.Position;
+            var toNext = new float3(points[index + 1]) - pos;
+            var toPrev = pos - new float3(points[index - 1]);
+            var nextDist = math.length(toNext);
+            var prevDist = math.length(toPrev);
+
+            if (nextDist > 0f && prevDist > 0f)
+            {
+                var dotProduct = math.dot(math.normalize(toNext), -math.normalize(toPrev));
+                if (dotProduct < 0.9f) // Only apply tangents at corners
+                {
+                    var tangentDir = math.normalize(
+                        math.normalize(toNext) + math.normalize(toPrev)
+                    );
+                    var tangentMagnitude =
+                        settings.UnitMovementCurveSmoothing * math.min(nextDist, prevDist) * 0.25f;
+                    knot.TangentIn = -tangentDir * tangentMagnitude;
+                    knot.TangentOut = tangentDir * tangentMagnitude;
+                }
+            }
         }
     }
 }
