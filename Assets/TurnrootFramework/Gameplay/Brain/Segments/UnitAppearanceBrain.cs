@@ -14,6 +14,12 @@ namespace Turnroot.Gameplay.Brain
     /// </summary>
     public partial class UnitAppearanceBrain : BrainComponent
     {
+        internal void LogWarning(string message) =>
+            TurnrootLogger.Log($"UnitAppearanceBrain: {message}", TurnrootLogger.LogLevel.Warning);
+
+        internal void LogError(string message) =>
+            TurnrootLogger.Log($"UnitAppearanceBrain: {message}", TurnrootLogger.LogLevel.Error);
+
         private GameplayGeneralSettings _settings;
         private Dictionary<string, GameObject> _unitModels = new();
         private Dictionary<Vector2Int, string> _modelPositions = new();

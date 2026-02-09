@@ -115,8 +115,14 @@ namespace Turnroot.Gameplay.Combat
             try
             {
                 var prep = Brain.battleBrain.PreparationObject;
+
+                if (prep == null)
+                {
+                    return OperationResult.Successful(); // Continue without prep placements
+                }
+
                 // If no pre-battle placements exist yet, InitializePlacements
-                if (prep != null && (prep.placements == null || prep.placements.Count == 0))
+                if (prep.placements == null || prep.placements.Count == 0)
                 {
                     var res = prep.InitializePlacements();
                     if (!res.Success)
@@ -125,33 +131,36 @@ namespace Turnroot.Gameplay.Combat
                     }
                 }
 
+                if (prep.placements == null || prep.placements.Count == 0)
                 {
-                    var list = new List<Characters.Roster.UnitPlacement>();
-                    foreach (var kvp in prep.placements)
+                    return OperationResult.Successful();
+                }
+
+                var list = new List<Characters.Roster.UnitPlacement>();
+                foreach (var kvp in prep.placements)
+                {
+                    var pos = kvp.Key;
+                    var inst = kvp.Value;
+                    if (inst == null || inst.CharacterTemplate == null)
                     {
-                        var pos = kvp.Key;
-                        var inst = kvp.Value;
-                        if (inst == null || inst.CharacterTemplate == null)
-                        {
-                            continue;
-                        }
-
-                        var up = new Characters.Roster.UnitPlacement
-                        {
-                            CharacterData = inst.CharacterTemplate,
-                            SpawnPosition = pos,
-                            Order = list.Count,
-                        };
-                        up.SetStatus(Characters.Roster.UnitStatus.NotSpawned);
-                        up.SetActiveRightNow(true);
-
-                        list.Add(up);
+                        continue;
                     }
 
-                    if (list.Count > 0)
+                    var up = new Characters.Roster.UnitPlacement
                     {
-                        PlayerTeamRoster.ApplyDecodedPlacements(list.ToArray());
-                    }
+                        CharacterData = inst.CharacterTemplate,
+                        SpawnPosition = pos,
+                        Order = list.Count,
+                    };
+                    up.SetStatus(Characters.Roster.UnitStatus.NotSpawned);
+                    up.SetActiveRightNow(true);
+
+                    list.Add(up);
+                }
+
+                if (list.Count > 0)
+                {
+                    PlayerTeamRoster.ApplyDecodedPlacements(list.ToArray());
                 }
 
                 return OperationResult.Successful();

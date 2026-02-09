@@ -10,6 +10,11 @@ namespace Turnroot.Gameplay.Brain
     /// </summary>
     public partial class UnitAppearanceBrain
     {
+        public GameObject GetModelForUnit(string unitId)
+        {
+            return _unitModels.TryGetValue(unitId, out var model) ? model : null;
+        }
+
         public GameObject CreateModelForUnit(CharacterInstance unit)
         {
             var root = new GameObject($"{unit.CharacterTemplate.DisplayName}_Root");
@@ -257,7 +262,7 @@ namespace Turnroot.Gameplay.Brain
             );
 
             var placeholder = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            placeholder.transform.SetParent(parent.transform);
+            placeholder.transform.SetParent(parent.transform, worldPositionStays: false);
             placeholder.GetComponent<Renderer>().material.color =
                 unit.CharacterTemplate.AccentColor1;
 
