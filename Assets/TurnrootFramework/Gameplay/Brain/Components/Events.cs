@@ -219,14 +219,10 @@ namespace Turnroot.Gameplay.Brain
 
         public event Action OnSavePlayerRosterRequested;
         public event Action OnSavePlayerSettingsRequested;
-        public event Action<PlayerSettings.GameplayPlayerSettings> OnPlayerSettingsChanged;
 
         public void PublishSavePlayerRosterRequested() => OnSavePlayerRosterRequested?.Invoke();
 
         public void PublishSavePlayerSettingsRequested() => OnSavePlayerSettingsRequested?.Invoke();
-
-        public void PublishPlayerSettingsChanged(PlayerSettings.GameplayPlayerSettings settings) =>
-            OnPlayerSettingsChanged?.Invoke(settings);
 
         public event Action<PlayerSettings.GameplayPlayerSettings.InputControlType> OnInputControlTypeChanged;
 

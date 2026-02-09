@@ -57,7 +57,10 @@ namespace Turnroot.Utilities.AbstractScripts
         /// Call this whenever the interrupt system is actively doing something (frame updates, player choices, etc.)
         /// to prevent inactivity timeout from triggering.
         /// </summary>
-        public void ResetInterruptActivityTimer() => _lastInterruptActivityTime = UnityEngine.Time.time;
+        public void ResetInterruptActivityTimer()
+        {
+            _lastInterruptActivityTime = UnityEngine.Time.time;
+        }
 
         private void Update()
         {

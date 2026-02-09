@@ -126,6 +126,7 @@ namespace Turnroot.Gameplay.Maps
 
         public void EnsureGridPoints()
         {
+            TurnrootLogger.Log("MapGrid: Ensuring grid points are created and positioned.");
             int expectedCount = GridWidth * GridHeight;
             int actualCount = transform
                 .Cast<Transform>()
@@ -139,14 +140,17 @@ namespace Turnroot.Gameplay.Maps
             if (needsRebuild)
             {
                 RebuildGridDictionary();
+                TurnrootLogger.Log("MapGrid: Rebuilt grid dictionary from existing children.");
             }
             else if (needsCreate)
             {
                 CreateChildrenPoints();
+                TurnrootLogger.Log("MapGrid: Created missing grid points.");
             }
             else if (_gridPoints?.Count == 0 && transform.childCount > 0)
             {
                 RebuildGridDictionary();
+                TurnrootLogger.Log("MapGrid: Rebuilt grid dictionary from existing children.");
             }
 
             RepositionGridPoints();
@@ -233,6 +237,7 @@ namespace Turnroot.Gameplay.Maps
             _single3dHeightMeshRaycastColors = colors;
             _single3dHeightMeshRaycastIndices = indices;
 
+            // Build lookup dictionary for O(1) terrain position access
             BuildTerrainPositionLookup();
         }
 

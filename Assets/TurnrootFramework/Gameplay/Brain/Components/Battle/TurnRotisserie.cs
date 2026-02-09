@@ -46,7 +46,10 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
         #region Unity Lifecycle
 
-        private void OnDestroy() => CleanupBattle();
+        private void OnDestroy()
+        {
+            CleanupBattle();
+        }
 
         /// <summary>
         /// Cleanup method to be called when battle ends.

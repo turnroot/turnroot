@@ -15,15 +15,9 @@ namespace Turnroot.Gameplay.Brain
     {
         protected override EventPriority GetSubscriptionPriority() => EventPriority.Low;
 
-        protected override void SubscribeToBrainEvents() => Brain.OnPlayerSettingsChanged += ApplySettingsToVolumes;
+        protected override void SubscribeToBrainEvents() { }
 
-        protected override void UnsubscribeFromBrainEvents()
-        {
-            if (Brain != null)
-            {
-                Brain.OnPlayerSettingsChanged -= ApplySettingsToVolumes;
-            }
-        }
+        protected override void UnsubscribeFromBrainEvents() { }
 
         protected override void Awake() => base.Awake();
 

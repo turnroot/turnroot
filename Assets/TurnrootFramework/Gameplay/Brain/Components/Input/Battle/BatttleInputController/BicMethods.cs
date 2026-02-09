@@ -62,7 +62,6 @@ namespace Turnroot.Gameplay.Brain
             _validAttackTiles.Clear();
             Brain.cursorBrain.ClearAllowedPositions();
             _tileHighlighter.ClearAll();
-            _pendingAttackTarget = null; // Clear pending attack when unit is deselected
         }
 
         private void HandleUnitSelectedState()
@@ -98,27 +97,6 @@ namespace Turnroot.Gameplay.Brain
                     "Turn already ended, skipping action menu",
                     TurnrootLogger.LogLevel.Warning
                 );
-                return;
-            }
-
-            // Auto-attack if there's a pending attack target (from confirming on enemy)
-            if (_pendingAttackTarget != null)
-            {
-                TurnrootLogger.Log(
-                    $"Auto-initiating attack on {_pendingAttackTarget.CharacterTemplate.DisplayName}",
-                    TurnrootLogger.LogLevel.Info
-                );
-
-                // TODO: Implement actual attack logic here
-                // - Transition to AttackActionChosenChoosingTarget state
-                // - Set the target to _pendingAttackTarget
-                // - Execute attack or show attack confirmation
-                // For now, just log and clear the pending target
-
-                _playerTurnFlow.ActionChosen(PlayerTurnStates.AttackActionChosenChoosingTarget);
-                // TODO: Auto-select _pendingAttackTarget and confirm attack
-
-                _pendingAttackTarget = null;
                 return;
             }
 
@@ -173,7 +151,6 @@ namespace Turnroot.Gameplay.Brain
             _validMoveTiles.Clear();
             _validAttackTiles.Clear();
             Brain.cursorBrain.ClearAllowedPositions();
-            _pendingAttackTarget = null; // Clear pending attack when turn ends
 
             // Note: PlayerTurnEnded is published by TurnRotisserie, not here
             // This used to publish it but caused duplicate events
@@ -523,8 +500,10 @@ namespace Turnroot.Gameplay.Brain
             RequestUndo();
         }
 
-        public void OpenActionMenu() =>
+        public void OpenActionMenu()
+        {
             _playerTurnFlow.ActionChosen(PlayerTurnStates.ChoosingAction);
+        }
 
         private OperationResult ComputeValidTiles(CharacterInstance unit)
         {
@@ -535,27 +514,13 @@ namespace Turnroot.Gameplay.Brain
                 return validation;
             }
 
-            TurnrootLogger.Log(
-                $"ComputeValidTiles: {unit.CharacterTemplate.DisplayName} at MapGridPosition={unit.MapGridPosition}",
-                TurnrootLogger.LogLevel.Info
-            );
-
             var context = Brain.battleBrain.BattleObject.Context;
             if (!context.TryGetValidTilesForUnit(unit, out var moveTiles, out var attackTiles))
             {
-                TurnrootLogger.Log(
-                    $"ComputeValidTiles: TryGetValidTilesForUnit FAILED for {unit.CharacterTemplate.DisplayName}",
-                    TurnrootLogger.LogLevel.Error
-                );
                 return OperationResult.Failure(
                     $"Failed to get valid tiles for unit {unit.CharacterTemplate.DisplayName}"
                 );
             }
-
-            TurnrootLogger.Log(
-                $"ComputeValidTiles: Got {moveTiles.Count} move tiles, {attackTiles.Count} attack tiles",
-                TurnrootLogger.LogLevel.Info
-            );
 
             _validMoveTiles = moveTiles;
             _validAttackTiles = attackTiles;

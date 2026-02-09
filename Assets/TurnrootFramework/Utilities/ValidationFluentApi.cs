@@ -21,7 +21,10 @@ namespace Turnroot.Utilities
         /// <summary>
         /// Starts a validation chain for a value.
         /// </summary>
-        public static ValidationBuilder<T> That<T>(T value) => new ValidationBuilder<T>(value);
+        public static ValidationBuilder<T> That<T>(T value)
+        {
+            return new ValidationBuilder<T>(value);
+        }
     }
 
     /// <summary>
@@ -190,7 +193,10 @@ namespace Turnroot.Utilities
         /// Returns the final validation result without executing anything.
         /// Useful when you just want to validate without performing an action.
         /// </summary>
-        public OperationResult Result() => _currentResult;
+        public OperationResult Result()
+        {
+            return _currentResult;
+        }
 
         /// <summary>
         /// Implicitly converts to OperationResult for convenience.
