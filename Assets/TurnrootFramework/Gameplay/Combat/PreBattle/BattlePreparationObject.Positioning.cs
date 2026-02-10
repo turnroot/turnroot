@@ -11,53 +11,34 @@ namespace Turnroot.Gameplay.Combat.PreBattle
     {
         public OperationResult PlaceUnit(Vector2Int pos, CharacterInstance unit)
         {
-            if (!PlayerTeamSpawnPoints.Contains(pos))
+            if (!IsPlayerSpawnPoint(pos))
             {
                 return OperationResult.Failure("Cannot place unit: invalid position");
             }
-            else
-            {
-                placements[pos] = unit;
-                // Keep runtime roster updated (no immediate persistence)
-                SyncPlacementsToRuntimeRoster(persist: false);
-                return OperationResult.Successful();
-            }
+
+            placements[pos] = unit;
+            // Keep runtime roster updated (no immediate persistence)
+            SyncPlacementsToRuntimeRoster(persist: false);
+            return OperationResult.Successful();
         }
 
         public OperationResult SelectPosition(Vector2Int pos)
         {
-            if (!PlayerTeamSpawnPoints.Contains(pos))
+            if (!IsPlayerSpawnPoint(pos))
             {
                 return OperationResult.Failure("Invalid position");
             }
 
-            if (!placements.ContainsKey(pos))
+            if (!TryGetPlacement(pos, out var unit))
             {
                 return OperationResult.Failure("Cannot select empty position");
             }
 
             selectedPosition = pos;
-            selectedUnit = placements[pos];
-            TurnrootLogger.Log(
-                $"Selected unit: {selectedUnit.CharacterTemplate.DisplayName} at {pos}"
-            );
+            selectedUnit = unit;
 
             // Update visuals: position the selected projector and show unit data immediately
-            StartingPositionsComponent?.SetSelected(pos);
-
-            if (StartingPositionsComponent != null && selectedUnit != null)
-            {
-                var name = selectedUnit.CharacterTemplate?.DisplayName ?? "";
-                var currentClassInstance = selectedUnit.GetCurrentClass();
-                var className =
-                    currentClassInstance?.ClassData?.GetClassName()
-                    ?? selectedUnit.CharacterTemplate?.StartingClass?.Identity?.ClassName
-                    ?? "";
-                var portrait =
-                    selectedUnit.CharacterTemplate?.DefaultPortrait?.RuntimeSprite ?? null;
-
-                StartingPositionsComponent.SetSelectedUnit(name, className, portrait);
-            }
+            UpdateSelectedVisual(pos, unit);
 
             return OperationResult.Successful();
         }
@@ -68,7 +49,7 @@ namespace Turnroot.Gameplay.Combat.PreBattle
             potentialSwapPosition = null;
             selectedUnit = null;
             potentialSwapUnit = null;
-            StartingPositionsComponent.Clears();
+            StartingPositionsComponent?.Clears();
             return OperationResult.Successful();
         }
 
@@ -86,32 +67,13 @@ namespace Turnroot.Gameplay.Combat.PreBattle
                 return OperationResult.Failure("Invalid action state");
             }
 
-            // Determine if target is occupied
-            bool targetOccupied = placements.ContainsKey(potentialSwapPosition.Value);
-
-            if (targetOccupied)
+            if (TryGetPlacement(potentialSwapPosition.Value, out var _))
             {
-                // Swap
-                StartingPositionsComponent.SetSwap(potentialSwapPosition.Value);
-                (placements[selectedPosition.Value], placements[potentialSwapPosition.Value]) = (
-                    placements[potentialSwapPosition.Value],
-                    placements[selectedPosition.Value]
-                );
-                StartingPositionsComponent.SwapModels(
-                    selectedPosition.Value,
-                    potentialSwapPosition.Value
-                );
+                ApplySwap(selectedPosition.Value, potentialSwapPosition.Value);
             }
             else
             {
-                // Move
-                StartingPositionsComponent.SetSelected(potentialSwapPosition.Value);
-                placements[potentialSwapPosition.Value] = placements[selectedPosition.Value];
-                placements.Remove(selectedPosition.Value);
-                StartingPositionsComponent.MoveModel(
-                    selectedPosition.Value,
-                    potentialSwapPosition.Value
-                );
+                ApplyMove(selectedPosition.Value, potentialSwapPosition.Value);
             }
 
             ClearSelection();
@@ -130,8 +92,7 @@ namespace Turnroot.Gameplay.Combat.PreBattle
                 return OperationResult.Failure("No selected unit to preview against");
             }
 
-            // Invalid positions (not a player spawn point) should clear preview
-            if (PlayerTeamSpawnPoints == null || !PlayerTeamSpawnPoints.Contains(pos))
+            if (!IsPlayerSpawnPoint(pos))
             {
                 potentialSwapPosition = null;
                 potentialSwapUnit = null;
@@ -139,43 +100,98 @@ namespace Turnroot.Gameplay.Combat.PreBattle
                 return OperationResult.Failure("Invalid position");
             }
 
-            // If cursor is on the same tile as the selected unit, clear swap preview
+            // If cursor is on the same tile as the selected unit, clear swap preview and keep selected projector visible
             if (pos == selectedPosition.Value)
             {
                 potentialSwapPosition = null;
                 potentialSwapUnit = null;
-                StartingPositionsComponent?.SetSelected(selectedPosition.Value);
-                StartingPositionsComponent?.ClearSwapPreview();
+                var sp = StartingPositionsComponent;
+                sp?.SetSelected(selectedPosition.Value);
+                sp?.ClearSwapPreview();
                 return OperationResult.Successful();
             }
 
             potentialSwapPosition = pos;
-
-            // Show swap projector at the target
             StartingPositionsComponent?.SetSwap(pos);
 
-            if (placements.ContainsKey(pos))
+            if (TryGetPlacement(pos, out var unit))
             {
-                var unit = placements[pos];
                 potentialSwapUnit = unit;
-
-                // Prepare display data
-                var name = unit?.CharacterTemplate?.DisplayName ?? "";
-                var className =
-                    unit?.CurrentClassTemplate?.Identity?.ClassName
-                    ?? unit?.CharacterTemplate?.StartingClass?.Identity?.ClassName
-                    ?? "";
-                var portrait = unit?.CharacterTemplate?.DefaultPortrait?.RuntimeSprite ?? null;
-
-                StartingPositionsComponent?.SetSwapUnit(name, className, portrait);
+                UpdateSwapPreview(pos, unit);
             }
             else
             {
                 potentialSwapUnit = null;
-                StartingPositionsComponent?.ClearSwapUnit();
+                StartingPositionsComponent?.ClearSwapPreview();
             }
 
             return OperationResult.Successful();
+        }
+
+        // Helper: prepare display data for UI
+        private (string name, string className, UnityEngine.Sprite portrait) BuildUnitDisplayData(
+            CharacterInstance unit
+        )
+        {
+            if (unit == null)
+                return ("", "n/a", null);
+
+            var name = unit.CharacterTemplate?.DisplayName ?? "";
+            var curClass = unit.GetCurrentClass();
+            var className = curClass?.ClassData?.Identity?.ClassName;
+            if (string.IsNullOrEmpty(className))
+                className = unit.CharacterTemplate?.StartingClass?.Identity?.ClassName ?? "n/a";
+            var portrait = unit.CharacterTemplate?.DefaultPortrait?.RuntimeSprite;
+            return (name, className, portrait);
+        }
+
+        // Helper: apply swap visual + data changes
+        private void ApplySwap(Vector2Int from, Vector2Int to)
+        {
+            StartingPositionsComponent.SetSwap(to);
+            (placements[from], placements[to]) = (placements[to], placements[from]);
+            StartingPositionsComponent.SwapModels(from, to);
+        }
+
+        // Helper: apply move visual + data changes
+        private void ApplyMove(Vector2Int from, Vector2Int to)
+        {
+            StartingPositionsComponent.SetSelected(to);
+            placements[to] = placements[from];
+            placements.Remove(from);
+            StartingPositionsComponent.MoveModel(from, to);
+        }
+
+        // Helper: returns true if pos is a valid player spawn point
+        private bool IsPlayerSpawnPoint(Vector2Int pos) =>
+            PlayerTeamSpawnPoints != null && PlayerTeamSpawnPoints.Contains(pos);
+
+        // Helper: safe lookup for placements
+        private bool TryGetPlacement(Vector2Int pos, out CharacterInstance unit) =>
+            placements.TryGetValue(pos, out unit);
+
+        // Helper: update selected projector visuals and unit data display
+        private void UpdateSelectedVisual(Vector2Int pos, CharacterInstance unit)
+        {
+            var sp = StartingPositionsComponent;
+            sp?.SetSelected(pos);
+            if (sp != null && unit != null)
+            {
+                var (name, className, portrait) = BuildUnitDisplayData(unit);
+                sp.SetSelectedUnit(name, className, portrait);
+            }
+        }
+
+        // Helper: update swap preview visuals and unit display
+        private void UpdateSwapPreview(Vector2Int pos, CharacterInstance unit)
+        {
+            var sp = StartingPositionsComponent;
+            sp?.SetSwap(pos);
+            if (sp != null && unit != null)
+            {
+                var (name, className, portrait) = BuildUnitDisplayData(unit);
+                sp.SetSwapUnit(name, className, portrait);
+            }
         }
 
         private void HandleUnitSelectionChanged(CharacterInstance unit, bool selected)

@@ -199,7 +199,8 @@ namespace Turnroot.UI.Components
                 return;
             }
 
-            nameLbl.text = unit.CharacterData.DisplayName;
+            var name = unit.CharacterData?.DisplayName ?? "";
+            nameLbl.text = name;
         }
 
         private void SetPortraitImage(
@@ -214,7 +215,7 @@ namespace Turnroot.UI.Components
                 return;
             }
 
-            var portrait = unit.CharacterData.DefaultPortrait?.RuntimeSprite;
+            var portrait = unit.CharacterData?.DefaultPortrait?.RuntimeSprite;
             if (portrait != null)
             {
                 img.sprite = portrait;
@@ -233,10 +234,19 @@ namespace Turnroot.UI.Components
                 return;
             }
 
-            classLbl.text =
-                gridMenuItem?.CharacterInstanceData?.CurrentClass?.ClassData?.Identity != null
-                    ? gridMenuItem.CharacterInstanceData.CurrentClass.ClassData.Identity.ClassName
-                    : "n/a";
+            if (gridMenuItem?.CharacterInstanceData != null)
+            {
+                var inst = gridMenuItem.CharacterInstanceData;
+                var className =
+                    inst?.GetCurrentClass()?.ClassData?.Identity?.ClassName
+                    ?? inst?.CharacterTemplate?.StartingClass?.Identity?.ClassName
+                    ?? "n/a";
+                classLbl.text = className;
+            }
+            else
+            {
+                classLbl.text = "n/a";
+            }
         }
 
         private void ConfigureSelection(
