@@ -40,6 +40,10 @@ namespace Turnroot.Gameplay.Brain
             Brain.OnItemEquipped += HandleItemEquipped;
             Brain.OnItemUnequipped += HandleItemUnequipped;
 
+            // Subscribe to unit spawn events so visuals are created reactively when the authoritative
+            // spawn (SpawnCommand) publishes a UnitSpawnedEvent.
+            Brain.Subscribe<Events.UnitSpawnedEvent>(HandleUnitSpawnedEvent, EventPriority.Normal);
+
             if (Brain.battleBrain.BattleObject != null)
             {
                 HandleBattleObjectSet(Brain.battleBrain.BattleObject);
@@ -54,6 +58,7 @@ namespace Turnroot.Gameplay.Brain
                 Brain.OnCharacterMoveStarted -= HandleCharacterMoveStarted;
                 Brain.OnItemEquipped -= HandleItemEquipped;
                 Brain.OnItemUnequipped -= HandleItemUnequipped;
+                Brain.Unsubscribe<Events.UnitSpawnedEvent>(HandleUnitSpawnedEvent);
             }
         }
 
@@ -75,6 +80,12 @@ namespace Turnroot.Gameplay.Brain
 
             var placements = roster.GetPlacements();
 
+            TurnrootLogger.Log($"HandleBattleStarted: roster has {placements.Length} placements:");
+            foreach (var p in placements)
+            {
+                TurnrootLogger.Log($"  - {p.CharacterData?.DisplayName} at {p.SpawnPosition}");
+            }
+
             foreach (var placement in placements)
             {
                 var instance = roster.GetInstanceFor(placement.CharacterData);
@@ -87,13 +98,54 @@ namespace Turnroot.Gameplay.Brain
                     continue;
                 }
 
-                var res = SpawnUnitAtPosition(instance, placement.SpawnPosition, prebattle: false);
-                if (!res.Success)
+                // Try to use the authoritative BattleContext spawn so map occupancy and
+                // MapGridPosition are consistently set via the SpawnCommand. If that succeeds
+                // we will create visuals via SpawnUnitAtPosition without overwriting positions later.
+                var spawnedByContext =
+                    Brain.battleBrain?.BattleObject?.Context?.SpawnAtPosition(
+                        instance,
+                        placement.SpawnPosition
+                    ) ?? false;
+                if (!spawnedByContext)
                 {
-                    TurnrootLogger.Log(
-                        $"Failed to spawn {instance?.CharacterTemplate?.DisplayName}: {res.ErrorMessage}",
-                        TurnrootLogger.LogLevel.Warning
+                    // Fallback: try to set occupancy directly on the MapGrid so the authoritative grid state & instance position remain consistent.
+                    var map = Brain.battleBrain?.BattleObject?.MapGrid;
+                    var mgp = map?.GetGridPoint(
+                        placement.SpawnPosition.x,
+                        placement.SpawnPosition.y
                     );
+                    if (mgp != null)
+                    {
+                        var setRes = map.SetOccupied(mgp, instance);
+                        if (setRes.Success)
+                        {
+                            // Mirror SpawnCommand semantics for spawned units.
+                            instance.WasSpawnedDuringBattle = true;
+
+                            // Publish the authoritative UnitSpawnedEvent so visual systems react consistently.
+                            Brain?.Publish(
+                                new Events.UnitSpawnedEvent(instance, placement.SpawnPosition)
+                            );
+                        }
+                        else
+                        {
+                            TurnrootLogger.Log(
+                                $"HandleBattleStarted: MapGrid.SetOccupied failed for {instance.CharacterTemplate.DisplayName} at {placement.SpawnPosition}: {setRes.ErrorMessage}",
+                                TurnrootLogger.LogLevel.Warning
+                            );
+                        }
+                    }
+                    else
+                    {
+                        TurnrootLogger.Log(
+                            $"HandleBattleStarted: Context spawn failed for {instance.CharacterTemplate.DisplayName} at {placement.SpawnPosition}; MapGrid missing grid point, skipping visual spawn.",
+                            TurnrootLogger.LogLevel.Warning
+                        );
+                    }
+                }
+                else
+                {
+                    // Visuals will be created by the UnitSpawnedEvent handler (reactive to authoritative spawn).
                 }
             }
 
@@ -102,9 +154,12 @@ namespace Turnroot.Gameplay.Brain
 
         private Vector3 GetWorldPosition(Vector2Int pos, bool prebattle)
         {
-            return prebattle
-                ? _brain.battleBrain.PreparationObject.MapGrid.GetTerrainAdjustedWorldPosition(pos)
-                : _brain.battleBrain.BattleObject.MapGrid.GetTerrainAdjustedWorldPosition(pos);
+            // Always use PreparationObject.MapGrid since it works correctly
+            // BattleObject.MapGrid might not be initialized the same way
+            var mapGrid =
+                _brain.battleBrain.PreparationObject?.MapGrid
+                ?? _brain.battleBrain.BattleObject?.MapGrid;
+            return mapGrid.GetTerrainAdjustedWorldPosition(pos);
         }
 
         private void ClearAllModels()
@@ -199,6 +254,25 @@ namespace Turnroot.Gameplay.Brain
                         );
                     }
                 }
+            }
+        }
+
+        private void HandleUnitSpawnedEvent(Events.UnitSpawnedEvent evt)
+        {
+            // When an authoritative spawn occurs (SpawnCommand), create or move visuals to match.
+            if (evt == null || evt.Unit == null)
+            {
+                return;
+            }
+
+            // Create or move model for the spawned unit. This will use existing model if present.
+            var res = SpawnUnitAtPosition(evt.Unit, evt.SpawnPosition, prebattle: false);
+            if (!res.Success)
+            {
+                TurnrootLogger.Log(
+                    $"HandleUnitSpawnedEvent: Failed to create/move visuals for {evt.Unit?.CharacterTemplate?.DisplayName}: {res.ErrorMessage}",
+                    TurnrootLogger.LogLevel.Warning
+                );
             }
         }
     }

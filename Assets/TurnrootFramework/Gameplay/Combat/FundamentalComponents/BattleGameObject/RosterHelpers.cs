@@ -17,15 +17,7 @@ namespace Turnroot.Gameplay.Combat
                 return;
             }
 
-            res = InitializeRuntimePlacements();
-            if (!res.Success)
-            {
-                TurnrootLogger.Log(
-                    $"BattleGameObject.InitializeBattleRosters: {res.ErrorMessage}",
-                    TurnrootLogger.LogLevel.Warning
-                );
-            }
-
+            // SINGLE SOURCE OF TRUTH: Only ApplyPreBattlePlacements sets positions
             res = ApplyPreBattlePlacements();
             if (!res.Success)
             {
@@ -50,6 +42,9 @@ namespace Turnroot.Gameplay.Combat
                 {
                     PlayerTeamRoster.Clear();
                 }
+
+                // CRITICAL: Ensure roster has NO template reference that would override our placements
+                PlayerTeamRoster.roster = null;
 
                 if (EnemyTeamRoster == null)
                 {
@@ -81,32 +76,6 @@ namespace Turnroot.Gameplay.Combat
             catch (System.Exception ex)
             {
                 return OperationResult.Failure($"EnsureRostersExist failed: {ex.Message}");
-            }
-        }
-
-        private OperationResult InitializeRuntimePlacements()
-        {
-            try
-            {
-                var persistentPlayer =
-                    Brain?.gamewideContextBrain?.GetPersistentPlayerTeamRosterInstance();
-                if (persistentPlayer != null)
-                {
-                    PlayerTeamRoster.ApplyDecodedPlacements(persistentPlayer.GetPlacements());
-                }
-                else
-                {
-                    PlayerTeamRoster.InitializeRuntimePlacementsFromTemplate();
-                }
-
-                EnemyTeamRoster?.InitializeRuntimePlacementsFromTemplate();
-                ThirdPartyTeamRoster?.InitializeRuntimePlacementsFromTemplate();
-
-                return OperationResult.Successful();
-            }
-            catch (System.Exception ex)
-            {
-                return OperationResult.Failure($"InitializeRuntimePlacements failed: {ex.Message}");
             }
         }
 
@@ -160,7 +129,28 @@ namespace Turnroot.Gameplay.Combat
 
                 if (list.Count > 0)
                 {
+                    TurnrootLogger.Log(
+                        $"ApplyPreBattlePlacements: About to apply {list.Count} placements to battle roster:"
+                    );
+                    foreach (var p in list)
+                    {
+                        TurnrootLogger.Log(
+                            $"  - {p.CharacterData.DisplayName} at {p.SpawnPosition}"
+                        );
+                    }
                     PlayerTeamRoster.ApplyDecodedPlacements(list.ToArray());
+
+                    // Verify they were set correctly
+                    var afterPlacements = PlayerTeamRoster.GetPlacements();
+                    TurnrootLogger.Log(
+                        $"ApplyPreBattlePlacements: After applying, battle roster has {afterPlacements.Length} placements:"
+                    );
+                    foreach (var p in afterPlacements)
+                    {
+                        TurnrootLogger.Log(
+                            $"  - {p.CharacterData?.DisplayName} at {p.SpawnPosition}"
+                        );
+                    }
                 }
 
                 return OperationResult.Successful();
@@ -186,8 +176,8 @@ namespace Turnroot.Gameplay.Combat
                 return OperationResult.Failure("Could not instantiate player team roster");
             }
 
-            // Mirror the template roster on the battle-specific runtime instance so ordering and placements are available
-            PlayerTeamRoster.roster = playerInstance.roster;
+            // CRITICAL: Only add CharacterInstance objects. Do NOT set roster reference.
+            // Positions come ONLY from ApplyPreBattlePlacements.
             PlayerTeamRoster.AddInstances(playerInstance.Instances);
 
             if (_enemyRoster != null)

@@ -25,6 +25,62 @@ namespace Turnroot.Gameplay.Brain
 
             var worldPos = GetWorldPosition(position, prebattle);
 
+            TurnrootLogger.Log(
+                $"SpawnUnitAtPosition: {unit.CharacterTemplate.DisplayName} - gridPos={position}, worldPos={worldPos}, prebattle={prebattle}"
+            );
+
+            // Validate map grid and grid point to avoid silent spawns at Vector3.zero
+            var mapGrid =
+                _brain.battleBrain.PreparationObject?.MapGrid
+                ?? _brain.battleBrain.BattleObject?.Context?.MapGrid
+                ?? _brain.battleBrain.BattleObject?.MapGrid;
+
+            if (mapGrid == null)
+            {
+                TurnrootLogger.Log(
+                    $"SpawnUnitAtPosition: Aborting spawn for {unit?.CharacterTemplate?.DisplayName} - no MapGrid available",
+                    TurnrootLogger.LogLevel.Warning
+                );
+                return OperationResult.Failure("No MapGrid available for spawn");
+            }
+
+            var gridPoint = mapGrid.GetGridPoint(position.x, position.y);
+            if (gridPoint == null)
+            {
+                TurnrootLogger.Log(
+                    $"SpawnUnitAtPosition: Aborting spawn for {unit?.CharacterTemplate?.DisplayName} - invalid grid position {position}",
+                    TurnrootLogger.LogLevel.Warning
+                );
+                return OperationResult.Failure($"Invalid spawn grid point: {position}");
+            }
+
+            // Ensure CharacterInstance has correct position for PREBATTLE visuals and precompute only.
+            // During an actual battle we rely on `BattleContext.SpawnAtPosition` (SpawnCommand)
+            // to set authoritative positions. Avoid overwriting MapGridPosition during battle-start
+            // to prevent competing writers.
+            try
+            {
+                if (prebattle)
+                {
+                    unit.MapGridPosition = position;
+                }
+                // Mark as spawned during battle if this call is part of the battle flow.
+                if (!prebattle)
+                {
+                    unit.WasSpawnedDuringBattle = true;
+                }
+            }
+            catch (System.Exception ex)
+            {
+                TurnrootLogger.Log(
+                    $"SpawnUnitAtPosition: Failed setting instance state for {unit?.Id ?? "<null>"}: {ex.Message}",
+                    TurnrootLogger.LogLevel.Warning
+                );
+            }
+
+            // Recompute exact world position using validated MapGrid
+            worldPos = mapGrid.GetTerrainAdjustedWorldPosition(position);
+
             if (_unitModels.TryGetValue(unit.Id, out var existingModel))
             {
                 return MoveExistingModel(unit, existingModel, position, worldPos);
@@ -45,6 +101,12 @@ namespace Turnroot.Gameplay.Brain
             if (!validation.Success)
             {
                 return validation;
+            }
+
+            // If model already exists, don't try to move it - precompute is just for setup
+            if (_unitModels.ContainsKey(unit.Id))
+            {
+                return OperationResult.Successful();
             }
 
             return SpawnUnitAtPosition(unit, position, prebattle);
@@ -93,9 +155,12 @@ namespace Turnroot.Gameplay.Brain
 
         public OperationResult DespawnUnitAtPosition(Vector2Int position)
         {
-            return !_modelPositions.TryGetValue(position, out var unitId)
-                ? OperationResult.Failure("No model found at position")
-                : DespawnUnit(unitId);
+            if (!_modelPositions.TryGetValue(position, out var unitId))
+            {
+                TurnrootLogger.Log("No model found at position", TurnrootLogger.LogLevel.Warning);
+                return OperationResult.Successful();
+            }
+            return DespawnUnit(unitId);
         }
 
         private OperationResult MoveExistingModel(
@@ -153,16 +218,19 @@ namespace Turnroot.Gameplay.Brain
             Vector3 worldPos
         )
         {
-            var model = CreateModelForUnit(unit);
+            // CRITICAL: Create a positioned root FIRST, then build the model in it
+            var root = new GameObject($"{unit.CharacterTemplate.DisplayName}_Root");
+            root.transform.SetPositionAndRotation(worldPos, Quaternion.identity);
+            root.transform.localScale = Vector3.one * _brain.uiBrain.uiSettings.ModelsScale;
+
+            var model = CreateModelForUnit(unit, root);
             if (model == null)
             {
+                Destroy(root);
                 return OperationResult.Failure(
                     $"Failed to create model for {unit.CharacterTemplate?.DisplayName}"
                 );
             }
-
-            model.transform.SetPositionAndRotation(worldPos, Quaternion.identity);
-            model.transform.localScale = Vector3.one * _brain.uiBrain.uiSettings.ModelsScale;
 
             var ownership = model.AddComponent<UnitModelOwnership>();
             ownership.UnitId = unit.Id;

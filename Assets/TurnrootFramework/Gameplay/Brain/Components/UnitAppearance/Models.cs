@@ -15,9 +15,12 @@ namespace Turnroot.Gameplay.Brain
             return _unitModels.TryGetValue(unitId, out var model) ? model : null;
         }
 
-        public GameObject CreateModelForUnit(CharacterInstance unit)
+        public GameObject CreateModelForUnit(CharacterInstance unit, GameObject root = null)
         {
-            var root = new GameObject($"{unit.CharacterTemplate.DisplayName}_Root");
+            if (root == null)
+            {
+                root = new GameObject($"{unit.CharacterTemplate.DisplayName}_Root");
+            }
 
             var outfitRenderer = CreateOutfitMesh(unit, root);
 
@@ -74,7 +77,7 @@ namespace Turnroot.Gameplay.Brain
             TurnrootLogger.Log(
                 $"No suitable outfit found for {unit.CharacterTemplate?.DisplayName}. "
                     + "Ensure class model or NonBattleOutfitPrefab is assigned.",
-                TurnrootLogger.LogLevel.Error
+                TurnrootLogger.LogLevel.Warning
             );
             return null;
         }
@@ -258,11 +261,29 @@ namespace Turnroot.Gameplay.Brain
         )
         {
             TurnrootLogger.Log(
-                $"No renderers for {unit.CharacterTemplate.DisplayName}, creating placeholder"
+                $"CreatePlaceholderRenderer for {unit.CharacterTemplate.DisplayName}: parent position = {parent.transform.position}"
             );
 
             var placeholder = GameObject.CreatePrimitive(PrimitiveType.Cube);
+
+            TurnrootLogger.Log(
+                $"  Placeholder created at world position: {placeholder.transform.position}"
+            );
+
             placeholder.transform.SetParent(parent.transform, worldPositionStays: false);
+
+            TurnrootLogger.Log(
+                $"  After SetParent(false): placeholder local={placeholder.transform.localPosition}, world={placeholder.transform.position}"
+            );
+
+            // Explicitly ensure it's at local zero
+            placeholder.transform.localPosition = Vector3.zero;
+            placeholder.transform.localRotation = Quaternion.identity;
+
+            TurnrootLogger.Log(
+                $"  After explicit zero: placeholder local={placeholder.transform.localPosition}, world={placeholder.transform.position}"
+            );
+
             placeholder.GetComponent<Renderer>().material.color =
                 unit.CharacterTemplate.AccentColor1;
 
