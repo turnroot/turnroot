@@ -9,6 +9,7 @@ using Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Environment;
 using Turnroot.Gameplay.Combat.PreBattle;
 using Turnroot.Gameplay.Combat.Precompute;
 using Turnroot.Gameplay.Maps;
+using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.Combat
@@ -300,20 +301,7 @@ namespace Turnroot.Gameplay.Combat
             }
         }
 
-        private void ClearAICache()
-        {
-            try
-            {
-                Brain?.battleBrain?.ClearAICache();
-            }
-            catch (System.Exception ex)
-            {
-                TurnrootLogger.Log(
-                    "ClearAICache failed: " + ex.Message,
-                    TurnrootLogger.LogLevel.Warning
-                );
-            }
-        }
+        private void ClearAICache() => Brain.battleBrain.ClearAICache();
 
         private void HandleMapStateChanged() => ClearAICache();
 
