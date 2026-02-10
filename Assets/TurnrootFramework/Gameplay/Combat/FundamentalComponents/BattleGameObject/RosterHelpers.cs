@@ -129,28 +129,7 @@ namespace Turnroot.Gameplay.Combat
 
                 if (list.Count > 0)
                 {
-                    TurnrootLogger.Log(
-                        $"ApplyPreBattlePlacements: About to apply {list.Count} placements to battle roster:"
-                    );
-                    foreach (var p in list)
-                    {
-                        TurnrootLogger.Log(
-                            $"  - {p.CharacterData.DisplayName} at {p.SpawnPosition}"
-                        );
-                    }
                     PlayerTeamRoster.ApplyDecodedPlacements(list.ToArray());
-
-                    // Verify they were set correctly
-                    var afterPlacements = PlayerTeamRoster.GetPlacements();
-                    TurnrootLogger.Log(
-                        $"ApplyPreBattlePlacements: After applying, battle roster has {afterPlacements.Length} placements:"
-                    );
-                    foreach (var p in afterPlacements)
-                    {
-                        TurnrootLogger.Log(
-                            $"  - {p.CharacterData?.DisplayName} at {p.SpawnPosition}"
-                        );
-                    }
                 }
 
                 return OperationResult.Successful();

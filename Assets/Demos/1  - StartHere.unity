@@ -46101,6 +46101,7 @@ GameObject:
   - component: {fileID: 1742232835}
   - component: {fileID: 1742232840}
   - component: {fileID: 1742232841}
+  - component: {fileID: 1742232842}
   m_Layer: 0
   m_Name: = Battle Map
   m_TagString: Untagged
@@ -46125,7 +46126,7 @@ MonoBehaviour:
   ThirdPartyFightsAllies: 0
   ThirdPartyFightsEnemies: 0
   MaxPlayerTeamUnits: 8
-  <RequiredPlayerUnits>k__BackingField: []
+  _requiredPlayerUnits: []
   <BattleConditions>k__BackingField: []
   <MapGrid>k__BackingField: {fileID: 1504346367}
   _enemyRoster: {fileID: 0}
@@ -46250,6 +46251,27 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Turnroot.Gameplay.Combat.Precompute.BattlePrecomputeLoader
   timeBetweenOperations: 0.05
+--- !u!114 &1742232842
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1742232834}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a058a78f753542d40b121e005fe82993, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Turnroot.Gameplay.Brain.Components.Battle.TerrainTypeOverlay
+  terrainTypeDisplayPrefab: {fileID: 0}
+  TerrainTypeName: {fileID: 0}
+  TerrainTypeDescription: {fileID: 0}
+  TerrainTypeDefense: {fileID: 0}
+  TerrainTypeAvoid: {fileID: 0}
+  TerrainTypeHealth: {fileID: 0}
+  GoodColor: {r: 0.08290317, g: 0.6509434, b: 0.50160325, a: 1}
+  BadColor: {r: 0.735849, g: 0.11933845, b: 0.045122836, a: 1}
+  NeutralColor: {r: 0.11320752, g: 0.09024562, b: 0.09024562, a: 1}
 --- !u!1 &1751459802
 GameObject:
   m_ObjectHideFlags: 0

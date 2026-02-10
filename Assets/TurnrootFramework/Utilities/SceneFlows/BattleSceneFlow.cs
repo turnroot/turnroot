@@ -206,7 +206,7 @@ namespace Turnroot.Utilities.AbstractScripts
 
                     // Start the conversation via the conversation controller
                     var conversationController =
-                        FindFirstObjectByType<Turnroot.Conversations.ConversationController>();
+                        FindFirstObjectByType<Conversations.ConversationController>();
                     if (conversationController != null)
                     {
                         conversationController.StartCurrentConversation();

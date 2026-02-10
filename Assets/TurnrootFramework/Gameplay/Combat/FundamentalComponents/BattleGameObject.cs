@@ -9,7 +9,6 @@ using Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Environment;
 using Turnroot.Gameplay.Combat.PreBattle;
 using Turnroot.Gameplay.Combat.Precompute;
 using Turnroot.Gameplay.Maps;
-using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.Combat
@@ -32,6 +31,7 @@ namespace Turnroot.Gameplay.Combat
     [RequireComponent(typeof(BattleContext))]
     [RequireComponent(typeof(BattlePreparationObject))]
     [RequireComponent(typeof(TileHighlighter))]
+    [RequireComponent(typeof(TerrainTypeOverlay))]
     [RequireComponent(typeof(BattlePrecomputeLoader))]
     public partial class BattleGameObject : MonoBehaviour
     {
@@ -51,14 +51,26 @@ namespace Turnroot.Gameplay.Combat
         [Range(1, 16)]
         public int MaxPlayerTeamUnits;
 
-        [field: SerializeField]
-        public List<CharacterData> RequiredPlayerUnits { get; set; } = new();
+        [SerializeField]
+        private List<CharacterData> _requiredPlayerUnits = new();
+
+        public List<CharacterData> RequiredPlayerUnits
+        {
+            get => _requiredPlayerUnits;
+            set => _requiredPlayerUnits = value;
+        }
 
         public EnvironmentalConditions EnvironmentalConditions =>
             GetComponent<EnvironmentalConditions>();
 
-        [field: SerializeField, SerializeReference]
-        public BattleCondition[] BattleConditions { get; private set; }
+        [SerializeField, SerializeReference]
+        private BattleCondition[] _battleConditions;
+
+        public BattleCondition[] BattleConditions
+        {
+            get => _battleConditions;
+            private set => _battleConditions = value;
+        }
 
         [field: SerializeField]
         public MapGrid MapGrid { get; private set; }
@@ -73,6 +85,19 @@ namespace Turnroot.Gameplay.Combat
                     _tileHighlighter = GetComponent<TileHighlighter>();
                 }
                 return _tileHighlighter;
+            }
+        }
+
+        private TerrainTypeOverlay _terrainTypeOverlay;
+        public TerrainTypeOverlay TerrainTypeOverlay
+        {
+            get
+            {
+                if (_terrainTypeOverlay == null)
+                {
+                    _terrainTypeOverlay = GetComponent<TerrainTypeOverlay>();
+                }
+                return _terrainTypeOverlay;
             }
         }
 

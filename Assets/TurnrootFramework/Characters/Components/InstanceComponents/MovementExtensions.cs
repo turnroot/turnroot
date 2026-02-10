@@ -27,7 +27,9 @@ namespace Turnroot.Characters
             var classMovementType = classData.Identity.MovementType;
 
             // If class is mounted but unit is dismounted, treat as infantry
-            return classData.Identity.IsMountedClass() && !instance.IsMounted ? MovementType.Infantry : classMovementType;
+            return classData.Identity.IsMountedClass() && !instance.IsMounted
+                ? MovementType.Infantry
+                : classMovementType;
         }
 
         /// <summary>

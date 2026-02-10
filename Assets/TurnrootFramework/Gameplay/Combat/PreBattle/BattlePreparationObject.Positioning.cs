@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Linq;
 using Turnroot.Characters;
 using Turnroot.Gameplay.Brain;
@@ -129,18 +128,23 @@ namespace Turnroot.Gameplay.Combat.PreBattle
         }
 
         // Helper: prepare display data for UI
-        private (string name, string className, UnityEngine.Sprite portrait) BuildUnitDisplayData(
+        private (string name, string className, Sprite portrait) BuildUnitDisplayData(
             CharacterInstance unit
         )
         {
             if (unit == null)
+            {
                 return ("", "n/a", null);
+            }
 
             var name = unit.CharacterTemplate?.DisplayName ?? "";
             var curClass = unit.GetCurrentClass();
             var className = curClass?.ClassData?.Identity?.ClassName;
             if (string.IsNullOrEmpty(className))
+            {
                 className = unit.CharacterTemplate?.StartingClass?.Identity?.ClassName ?? "n/a";
+            }
+
             var portrait = unit.CharacterTemplate?.DefaultPortrait?.RuntimeSprite;
             return (name, className, portrait);
         }

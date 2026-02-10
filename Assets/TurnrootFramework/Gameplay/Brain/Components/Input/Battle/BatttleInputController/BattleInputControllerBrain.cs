@@ -27,6 +27,9 @@ namespace Turnroot.Gameplay.Brain
         [HideInInspector]
         public TileHighlighter _tileHighlighter;
 
+        [HideInInspector]
+        public TerrainTypeOverlay _terrainTypeOverlay;
+
         #endregion
 
         #region Fields
@@ -205,6 +208,9 @@ namespace Turnroot.Gameplay.Brain
         {
             // Initialize _tileHighlighter first, before any state changes can occur
             _tileHighlighter = Brain.battleBrain.BattleObject.TileHighlighter;
+            _terrainTypeOverlay = Brain.battleBrain.BattleObject.TerrainTypeOverlay;
+
+            // Wait for player turn flow to be ready
 
             // Wait for MapGrid to be ready
             int waitCount = 0;
@@ -265,10 +271,19 @@ namespace Turnroot.Gameplay.Brain
                     }
 
                     _tileHighlighter.HighlightPath(path);
+
                     break;
                 case PlayerTurnStates.AttackActionChosenChoosingTarget:
                     // TODO: Damage preview
                     break;
+            }
+            // terrain type overlay
+            if (destination != null)
+            {
+                _terrainTypeOverlay.Display(
+                    destination,
+                    SelectedUnit.CurrentClass.ClassData.Identity.MovementType
+                );
             }
         }
 
@@ -278,6 +293,8 @@ namespace Turnroot.Gameplay.Brain
             TurnrootLogger.Log(
                 $"BattleInputControllerBrain: Handling Confirm Input. Current PlayerTurnState is {currentState}"
             );
+
+            _terrainTypeOverlay.ResetDisplay();
 
             var unitAtCursor = Brain.cursorBrain.GetUnitAtCursor();
 

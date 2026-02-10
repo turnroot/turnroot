@@ -70,6 +70,8 @@ namespace Turnroot.Gameplay.Maps
         private Color _editorColor = Color.white;
 
         public string Name => string.IsNullOrEmpty(_name) ? "(unnamed)" : _name;
+
+        public string Description;
         public float CostWalk => _costWalk;
         public float CostFly => _costFly;
         public float CostRide => _costRide;

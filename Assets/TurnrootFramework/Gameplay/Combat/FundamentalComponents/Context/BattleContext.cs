@@ -332,7 +332,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                                 }
                             }
                         }
-                        catch (System.Exception ex)
+                        catch (Exception ex)
                         {
                             TurnrootLogger.Log(
                                 "GetCurrentUnitPositions: Roster-based repair failed: "
@@ -381,22 +381,27 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 var battleObj = bb?.BattleObject;
                 var roster = battleObj?.PlayerTeamRoster;
                 if (roster == null)
+                {
                     return;
+                }
 
                 var placements = roster.GetPlacements();
                 // Build simple occupancy map to detect duplicates so we only repair invalid or duplicated positions
-                var occupancy = new System.Collections.Generic.Dictionary<
+                var occupancy = new Dictionary<
                     Vector2Int,
-                    System.Collections.Generic.List<CharacterInstance>
+                    List<CharacterInstance>
                 >();
                 foreach (var p2 in placements)
                 {
                     var i2 = roster.GetInstanceFor(p2.CharacterData);
                     if (i2 == null)
+                    {
                         continue;
+                    }
+
                     if (!occupancy.TryGetValue(i2.MapGridPosition, out var list))
                     {
-                        list = new System.Collections.Generic.List<CharacterInstance>();
+                        list = new List<CharacterInstance>();
                         occupancy[i2.MapGridPosition] = list;
                     }
                     list.Add(i2);
@@ -406,7 +411,9 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 {
                     var inst = roster.GetInstanceFor(p.CharacterData);
                     if (inst == null)
+                    {
                         continue;
+                    }
 
                     var currentPoint = inst.UnitPositionToMapGridPoint(
                         inst.MapGridPosition,
@@ -414,7 +421,9 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                     );
                     var desiredPoint = MapGrid.GetGridPoint(p.SpawnPosition.x, p.SpawnPosition.y);
                     if (desiredPoint == null)
+                    {
                         continue;
+                    }
 
                     var isInvalid = currentPoint == null;
                     var isDuplicate =
@@ -439,7 +448,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                             MapGrid.RemoveOccupied(currentPoint);
                         }
                     }
-                    catch (System.Exception ex)
+                    catch (Exception ex)
                     {
                         TurnrootLogger.Log(
                             "RepairUnitPositionsFromRoster: RemoveOccupied failed: " + ex.Message,
@@ -456,7 +465,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                             inst.MapGridPosition = p.SpawnPosition;
                         }
                     }
-                    catch (System.Exception ex)
+                    catch (Exception ex)
                     {
                         TurnrootLogger.Log(
                             "RepairUnitPositionsFromRoster: SetOccupied failed: " + ex.Message,
@@ -466,7 +475,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                     }
                 }
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
                 TurnrootLogger.Log(
                     "RepairUnitPositionsFromRoster: Repair pass failed: " + ex.Message,
@@ -492,7 +501,10 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 foreach (var u in allUnits)
                 {
                     if (u == null)
+                    {
                         continue;
+                    }
+
                     var mgp = u.UnitPositionToMapGridPoint(u.MapGridPosition, MapGrid);
                     if (mgp == null)
                     {
@@ -513,7 +525,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                         {
                             MapGrid.SetOccupied(mgp, u);
                         }
-                        catch (System.Exception ex)
+                        catch (Exception ex)
                         {
                             TurnrootLogger.Log(
                                 "DebugVerifyOccupancyAlignment: SetOccupied repair failed: "
@@ -524,7 +536,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                     }
                 }
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
                 TurnrootLogger.Log(
                     "DebugVerifyOccupancyAlignment: Verification failed: " + ex.Message,

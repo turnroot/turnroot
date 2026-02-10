@@ -2,7 +2,6 @@ using System;
 using Turnroot.Characters;
 using Turnroot.Characters.Components;
 using Turnroot.Gameplay.Objects;
-using Turnroot.Skills;
 
 namespace Turnroot.Gameplay.Brain
 {

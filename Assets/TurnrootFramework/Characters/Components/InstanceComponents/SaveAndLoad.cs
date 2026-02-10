@@ -362,7 +362,7 @@ namespace Turnroot.Characters
                         brain.OnLtmKeyCacheUpdated -= OnBrainLtmKeyCacheUpdated;
                     }
                 }
-                catch (System.Exception ex)
+                catch (Exception ex)
                 {
                     TurnrootLogger.Log(
                         "OnBrainLtmKeyCacheUpdated cleanup failed: " + ex.Message,

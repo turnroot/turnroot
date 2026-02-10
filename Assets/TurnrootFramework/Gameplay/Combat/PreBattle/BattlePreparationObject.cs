@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using Turnroot.Characters;
 using Turnroot.Gameplay.Brain;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Environment;
@@ -37,8 +36,14 @@ namespace Turnroot.Gameplay.Combat.PreBattle
         [HideInInspector]
         public int MaxPlayerTeamUnits;
 
-        [field: SerializeField, HideInInspector]
-        public List<CharacterData> RequiredPlayerUnits { get; private set; } = new();
+        [SerializeField, HideInInspector]
+        private List<CharacterData> _requiredPlayerUnits = new();
+
+        public List<CharacterData> RequiredPlayerUnits
+        {
+            get => _requiredPlayerUnits;
+            private set => _requiredPlayerUnits = value;
+        }
 
         [HideInInspector]
         public List<Vector2Int> PlayerTeamSpawnPoints;
@@ -110,15 +115,10 @@ namespace Turnroot.Gameplay.Combat.PreBattle
 
         // Per-battle selection state: this is intentionally separate from CharacterInstance.IsSelectedForBattle
         // so changing selections in the pre-battle UI does NOT mutate persistent roster selection state.
-        private readonly System.Collections.Generic.HashSet<string> _battleSelectedIds = new();
+        private readonly HashSet<string> _battleSelectedIds = new();
 
         private bool _isInitializingPlacements = false;
         private bool _needsReinitialize = false;
-
-        // Simplified approach: do not queue per-unit selection publishes during initialization.
-        // `InitializePlacements()` now only publishes PlacementsInitialized and does not fire
-        // `UnitSelectionChanged` for each unit. UI components should request reinitialization
-        // through debounced handlers instead of reacting to per-unit publishes.
 
         public OperationResult InitializePlacements()
         {
@@ -140,56 +140,18 @@ namespace Turnroot.Gameplay.Combat.PreBattle
 
                 // If the player modified selections during this pre-battle session, honor the per-battle selections
                 var prep = Brain?.battleBrain?.PreparationObject;
-                if (prep != null && _battleSelectionsChanged)
-                {
-                    var prepSelected = prep.GetBattleSelectedInstances();
-                    TurnrootLogger.Log(
-                        $"InitializePlacements: honoring per-battle selection changes (count={(prepSelected?.Count ?? 0)})",
-                        TurnrootLogger.LogLevel.Info
-                    );
-                    if (prepSelected == null || prepSelected.Count == 0)
-                    {
-                        // Player explicitly deselected all units for this battle
-                        placements = new System.Collections.Generic.Dictionary<
-                            Vector2Int,
-                            CharacterInstance
-                        >();
-                        StartingPositionsComponent?.DespawnAllModels();
-                        CurrentPlacementState = PlacementState.NonePlaced;
-                        Brain?.PublishPlacementsInitialized();
-                        _isInitializingPlacements = false;
-                        return OperationResult.Successful();
-                    }
 
-                    selectedUnits = prepSelected;
-                    TurnrootLogger.Log(
-                        "InitializePlacements: Using per-battle selection set:",
-                        TurnrootLogger.LogLevel.Info
-                    );
-                    foreach (var s in prepSelected)
-                    {
-                        TurnrootLogger.Log(
-                            $"  - {s?.CharacterTemplate?.DisplayName ?? "<null>"}",
-                            TurnrootLogger.LogLevel.Info
-                        );
-                    }
-                }
-
-                // First, attempt to load explicit placements from the runtime player roster instance (LTM/persisted placements)
                 var persistent =
                     gw?.GamewidePersistentPlayerRoster
                     ?? gw?.CreateOrRecallGamewidePersistentPlayerRoster();
                 var runtimeInstance =
                     persistent != null ? gw.GetOrCreatePlayerTeamRoster(persistent) : null;
 
-                // Try an extracted helper to validate and apply runtime placements
                 if (TryUseRuntimePlacements(gw, persistent, runtimeInstance))
                 {
-                    // The helper published placements; finish early.
                     return OperationResult.Successful();
                 }
 
-                // Compute the final selected units using extracted helper logic
                 var computeResult = ComputeFinalSelectedUnits(
                     gw,
                     persistent,
@@ -203,29 +165,18 @@ namespace Turnroot.Gameplay.Combat.PreBattle
 
                 var finalSelected = computeResult.finalSelected;
 
-                // Apply placements from the computed final selection using an extracted helper
                 ApplyPlacementsFromSelectedUnits(finalSelected);
-
-                // Do NOT publish per-unit `UnitSelectionChanged` here — that caused re-entrancy.
-                // UI updates should be driven by `PlacementsInitialized` (published above).
-                // This keeps initialization single-pass and prevents infinite re-entry loops.
-
-                // Do NOT sync placements into the runtime roster here; only persist on explicit commit (persist:true).
-                // This avoids overwriting the player's roster template during UI-only interactions.
             }
             finally
             {
                 _isInitializingPlacements = false;
             }
 
-            // If another InitializePlacements was requested during our run, run it once more now
             if (_needsReinitialize)
             {
                 _needsReinitialize = false;
                 return InitializePlacements();
             }
-
-            // Flush complete; pending publishes have been delivered.
 
             return OperationResult.Successful();
         }
@@ -248,12 +199,6 @@ namespace Turnroot.Gameplay.Combat.PreBattle
         [HideInInspector]
         public bool CanSwap => selectedUnit != null && potentialSwapUnit != null;
 
-        /// <summary>
-        /// Preview a potential swap/move to <paramref name="pos"/>. This updates
-        /// swap projector and swap unit UI immediately without committing the action.
-        /// If the target tile is empty, swap unit data is cleared. If the cursor
-        /// is on the selected unit, the swap preview is cleared.
-        /// </summary>
         private void OnDestroy()
         {
             if (Brain != null)
@@ -263,11 +208,10 @@ namespace Turnroot.Gameplay.Combat.PreBattle
             }
         }
 
-        // Per-battle selection API (does not mutate CharacterInstance.IsSelectedForBattle)
         public bool IsBattleSelected(CharacterInstance inst) =>
             inst != null && _battleSelectedIds.Contains(inst.Id);
 
-        private bool _battleSelectionsChanged = false; // Track whether user modified selections in this session
+        private bool _battleSelectionsChanged = false;
 
         public void SetBattleSelected(
             CharacterInstance inst,
@@ -290,19 +234,16 @@ namespace Turnroot.Gameplay.Combat.PreBattle
                 _battleSelectedIds.Remove(inst.Id);
             }
 
-            // Mark that selections were changed during this pre-battle session only when requested
             if (markChanged)
             {
                 _battleSelectionsChanged = true;
             }
 
-            // Persist selection choice to LTM so the player's preference is remembered.
             try
             {
                 var template = inst.CharacterTemplate;
                 if (template != null && Brain?.ltm != null)
                 {
-                    // If this unit is required for the battle, don't overwrite LTM
                     if (RequiredPlayerUnits == null || !RequiredPlayerUnits.Contains(template))
                     {
                         var key = LtmKeys.UnitSelectedForBattlePrefix + template.name;
@@ -314,14 +255,13 @@ namespace Turnroot.Gameplay.Combat.PreBattle
 
             if (publish)
             {
-                // Publish selection changes immediately — UI handlers should debounce if needed.
                 Brain?.PublishUnitSelectionChanged(inst, selected);
             }
         }
 
-        public System.Collections.Generic.List<CharacterInstance> GetBattleSelectedInstances()
+        public List<CharacterInstance> GetBattleSelectedInstances()
         {
-            var list = new System.Collections.Generic.List<CharacterInstance>();
+            var list = new List<CharacterInstance>();
 
             // If we have explicitly selected ids for this session, resolve them against the
             // game's active instances so selections are honored even if placements are currently empty.
@@ -400,7 +340,7 @@ namespace Turnroot.Gameplay.Combat.PreBattle
                 return;
             }
 
-            var list = new System.Collections.Generic.List<Characters.Roster.UnitPlacement>();
+            var list = new List<Characters.Roster.UnitPlacement>();
             foreach (var kvp in placements)
             {
                 var pos = kvp.Key;

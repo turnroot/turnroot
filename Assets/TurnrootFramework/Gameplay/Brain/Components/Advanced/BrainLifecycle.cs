@@ -57,15 +57,9 @@ namespace Turnroot.Gameplay.Brain
                 gameObject.GetComponent<LongTermMemory>()
                 ?? gameObject.AddComponent<LongTermMemory>();
 
-            if (ltm == null)
-            {
-                return OperationResult.Failure("Failed to initialize LongTermMemory.");
-            }
-            else
-            {
-                TurnrootLogger.Log("LongTermMemory initialized.");
-                return OperationResult.Successful();
-            }
+            return ltm == null
+                ? OperationResult.Failure("Failed to initialize LongTermMemory.")
+                : OperationResult.Successful();
         }
 
         public OperationResult InitializeModules()
@@ -94,7 +88,7 @@ namespace Turnroot.Gameplay.Brain
         public void PopulateSceneConversationController(ConversationController controller)
         {
             _sceneConversationController = controller;
-            _conversationControllerCache.Invalidate(); // Invalidate cache when manually set
+            _conversationControllerCache.Invalidate();
         }
 
         private OperationResult TryLinkConversationController()

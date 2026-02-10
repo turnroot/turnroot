@@ -76,12 +76,12 @@ namespace Turnroot.Gameplay.Brain
             CursorOffset = Brain.uiBrain?.uiSettings?.BattleCursorOffset ?? Vector3.zero;
 
             // Determine allowed cursor start positions from actual roster placements (battle roster > prep placements > spawn points)
-            System.Collections.Generic.List<Vector2Int> allowedPositions = null;
+            List<Vector2Int> allowedPositions = null;
             var playerRoster = Brain.battleBrain?.BattleObject?.PlayerTeamRoster;
             var roPlacements = playerRoster?.GetPlacements();
             if (roPlacements != null && roPlacements.Length > 0)
             {
-                allowedPositions = new System.Collections.Generic.List<Vector2Int>();
+                allowedPositions = new List<Vector2Int>();
                 foreach (var p in roPlacements)
                 {
                     if (p != null)
@@ -96,7 +96,7 @@ namespace Turnroot.Gameplay.Brain
                 var prep = Brain.battleBrain?.PreparationObject;
                 if (prep?.placements != null && prep.placements.Count > 0)
                 {
-                    allowedPositions = new System.Collections.Generic.List<Vector2Int>(
+                    allowedPositions = new List<Vector2Int>(
                         prep.placements.Keys
                     );
                 }
@@ -105,7 +105,7 @@ namespace Turnroot.Gameplay.Brain
                     && prep.PlayerTeamSpawnPoints.Count > 0
                 )
                 {
-                    allowedPositions = new System.Collections.Generic.List<Vector2Int>(
+                    allowedPositions = new List<Vector2Int>(
                         prep.PlayerTeamSpawnPoints
                     );
                 }

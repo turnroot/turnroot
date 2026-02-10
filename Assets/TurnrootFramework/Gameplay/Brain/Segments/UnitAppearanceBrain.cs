@@ -42,7 +42,7 @@ namespace Turnroot.Gameplay.Brain
 
             // Subscribe to unit spawn events so visuals are created reactively when the authoritative
             // spawn (SpawnCommand) publishes a UnitSpawnedEvent.
-            Brain.Subscribe<Events.UnitSpawnedEvent>(HandleUnitSpawnedEvent, EventPriority.Normal);
+            Brain.Subscribe<UnitSpawnedEvent>(HandleUnitSpawnedEvent, EventPriority.Normal);
 
             if (Brain.battleBrain.BattleObject != null)
             {
@@ -58,7 +58,7 @@ namespace Turnroot.Gameplay.Brain
                 Brain.OnCharacterMoveStarted -= HandleCharacterMoveStarted;
                 Brain.OnItemEquipped -= HandleItemEquipped;
                 Brain.OnItemUnequipped -= HandleItemUnequipped;
-                Brain.Unsubscribe<Events.UnitSpawnedEvent>(HandleUnitSpawnedEvent);
+                Brain.Unsubscribe<UnitSpawnedEvent>(HandleUnitSpawnedEvent);
             }
         }
 
@@ -80,10 +80,12 @@ namespace Turnroot.Gameplay.Brain
 
             var placements = roster.GetPlacements();
 
-            TurnrootLogger.Log($"HandleBattleStarted: roster has {placements.Length} placements:");
-            foreach (var p in placements)
+            if (placements == null || placements.Length == 0)
             {
-                TurnrootLogger.Log($"  - {p.CharacterData?.DisplayName} at {p.SpawnPosition}");
+                TurnrootLogger.Log(
+                    "HandleBattleStarted: roster has no placements",
+                    TurnrootLogger.LogLevel.Info
+                );
             }
 
             foreach (var placement in placements)
@@ -91,9 +93,10 @@ namespace Turnroot.Gameplay.Brain
                 var instance = roster.GetInstanceFor(placement.CharacterData);
                 if (instance == null)
                 {
+                    // Instances may be missing in some initialization scenarios; this is informational.
                     TurnrootLogger.Log(
                         $"No instance for template {placement.CharacterData?.DisplayName}",
-                        TurnrootLogger.LogLevel.Warning
+                        TurnrootLogger.LogLevel.Info
                     );
                     continue;
                 }
@@ -124,22 +127,23 @@ namespace Turnroot.Gameplay.Brain
 
                             // Publish the authoritative UnitSpawnedEvent so visual systems react consistently.
                             Brain?.Publish(
-                                new Events.UnitSpawnedEvent(instance, placement.SpawnPosition)
+                                new UnitSpawnedEvent(instance, placement.SpawnPosition)
                             );
                         }
                         else
                         {
                             TurnrootLogger.Log(
                                 $"HandleBattleStarted: MapGrid.SetOccupied failed for {instance.CharacterTemplate.DisplayName} at {placement.SpawnPosition}: {setRes.ErrorMessage}",
-                                TurnrootLogger.LogLevel.Warning
+                                TurnrootLogger.LogLevel.Info
                             );
                         }
                     }
                     else
                     {
+                        // Missing map grid point can happen during early initialization; log as informational.
                         TurnrootLogger.Log(
                             $"HandleBattleStarted: Context spawn failed for {instance.CharacterTemplate.DisplayName} at {placement.SpawnPosition}; MapGrid missing grid point, skipping visual spawn.",
-                            TurnrootLogger.LogLevel.Warning
+                            TurnrootLogger.LogLevel.Info
                         );
                     }
                 }
@@ -205,9 +209,10 @@ namespace Turnroot.Gameplay.Brain
                     var result = UpdateUnitWeapon(character);
                     if (!result.Success)
                     {
+                        // Non-critical failure to update visuals — informational only.
                         TurnrootLogger.Log(
                             $"Failed to update weapon for {character?.CharacterTemplate?.DisplayName}: {result.ErrorMessage}",
-                            TurnrootLogger.LogLevel.Warning
+                            TurnrootLogger.LogLevel.Info
                         );
                     }
                 }
@@ -216,9 +221,10 @@ namespace Turnroot.Gameplay.Brain
                     var result = UpdateUnitShield(character);
                     if (!result.Success)
                     {
+                        // Non-critical failure to update visuals — informational only.
                         TurnrootLogger.Log(
                             $"Failed to update shield for {character?.CharacterTemplate?.DisplayName}: {result.ErrorMessage}",
-                            TurnrootLogger.LogLevel.Warning
+                            TurnrootLogger.LogLevel.Info
                         );
                     }
                 }
@@ -237,9 +243,10 @@ namespace Turnroot.Gameplay.Brain
                     var result = UpdateUnitWeapon(character);
                     if (!result.Success)
                     {
+                        // Non-critical failure to update visuals — informational only.
                         TurnrootLogger.Log(
                             $"Failed to update weapon for {character?.CharacterTemplate?.DisplayName}: {result.ErrorMessage}",
-                            TurnrootLogger.LogLevel.Warning
+                            TurnrootLogger.LogLevel.Info
                         );
                     }
                 }
@@ -248,16 +255,17 @@ namespace Turnroot.Gameplay.Brain
                     var result = UpdateUnitShield(character);
                     if (!result.Success)
                     {
+                        // Non-critical failure to update visuals — informational only.
                         TurnrootLogger.Log(
                             $"Failed to update shield for {character?.CharacterTemplate?.DisplayName}: {result.ErrorMessage}",
-                            TurnrootLogger.LogLevel.Warning
+                            TurnrootLogger.LogLevel.Info
                         );
                     }
                 }
             }
         }
 
-        private void HandleUnitSpawnedEvent(Events.UnitSpawnedEvent evt)
+        private void HandleUnitSpawnedEvent(UnitSpawnedEvent evt)
         {
             // When an authoritative spawn occurs (SpawnCommand), create or move visuals to match.
             if (evt == null || evt.Unit == null)
@@ -269,9 +277,10 @@ namespace Turnroot.Gameplay.Brain
             var res = SpawnUnitAtPosition(evt.Unit, evt.SpawnPosition, prebattle: false);
             if (!res.Success)
             {
+                // Visual update failed; this is typically non-fatal and can be informational.
                 TurnrootLogger.Log(
                     $"HandleUnitSpawnedEvent: Failed to create/move visuals for {evt.Unit?.CharacterTemplate?.DisplayName}: {res.ErrorMessage}",
-                    TurnrootLogger.LogLevel.Warning
+                    TurnrootLogger.LogLevel.Info
                 );
             }
         }

@@ -105,14 +105,10 @@ namespace Turnroot.Gameplay.Maps
                     var newPos = new Vector2Int(mgp.Row, mgp.Col);
                     if (occupier != null && occupier.MapGridPosition != newPos)
                     {
-                        TurnrootLogger.Log(
-                            $"MapGrid: Aligning {occupier.Id} MapGridPosition from {occupier.MapGridPosition} to {newPos}",
-                            TurnrootLogger.LogLevel.Info
-                        );
                         occupier.MapGridPosition = newPos;
                     }
                 }
-                catch (System.Exception ex)
+                catch (Exception ex)
                 {
                     TurnrootLogger.Log(
                         $"MapGrid: Failed to align MapGridPosition for {occupier?.Id ?? "<null>"}: {ex.Message}",

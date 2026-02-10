@@ -1,4 +1,5 @@
 using Turnroot.Characters;
+using Turnroot.GameSettings;
 using UnityEngine;
 
 namespace Turnroot.UI.Components
@@ -11,7 +12,9 @@ namespace Turnroot.UI.Components
         )
         {
             if (inst == null)
+            {
                 return ("", "n/a", GamewideUiSettings.Instance.NoPortraitSprite);
+            }
 
             var name = inst.CharacterTemplate?.DisplayName ?? "";
             var className =
@@ -26,11 +29,13 @@ namespace Turnroot.UI.Components
 
         // Build display data from CharacterData (no runtime instance available)
         public static (string name, string className, Sprite portrait) FromCharacterData(
-            Characters.CharacterData data
+            CharacterData data
         )
         {
             if (data == null)
+            {
                 return ("", "n/a", GamewideUiSettings.Instance.NoPortraitSprite);
+            }
 
             var name = data.DisplayName ?? "";
             var className = data.StartingClass?.Identity?.ClassName ?? "n/a";

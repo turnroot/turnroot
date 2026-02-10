@@ -16,7 +16,10 @@ namespace Turnroot.Gameplay.Brain
         {
             if (!model.TryGetComponent<Animator>(out var animator))
             {
-                TurnrootLogger.Log($"No Animator on '{model.name}'", TurnrootLogger.LogLevel.Error);
+                TurnrootLogger.Log(
+                    $"Missing Animator on '{model.name}'",
+                    TurnrootLogger.LogLevel.Error
+                );
                 return;
             }
 
@@ -24,7 +27,7 @@ namespace Turnroot.Gameplay.Brain
             if (baseController == null)
             {
                 TurnrootLogger.Log(
-                    $"Animator has no controller on '{model.name}' - check DefaultUnitAnimatorController",
+                    $"Animator on '{model.name}' has no controller.",
                     TurnrootLogger.LogLevel.Error
                 );
                 return;
@@ -135,7 +138,7 @@ namespace Turnroot.Gameplay.Brain
             if (unit.CharacterTemplate.AdditionalBonesMask == null)
             {
                 TurnrootLogger.Log(
-                    $"{unit.CharacterTemplate.DisplayName}: HasExtraBoneLayer is true but AdditionalBonesMask is not assigned. Extra bones will not animate independently.",
+                    $"{unit.CharacterTemplate.DisplayName}: HasExtraBoneLayer is true but AdditionalBonesMask is not assigned.",
                     TurnrootLogger.LogLevel.Warning
                 );
                 return;
@@ -145,7 +148,7 @@ namespace Turnroot.Gameplay.Brain
             if (controller == null)
             {
                 TurnrootLogger.Log(
-                    $"{unit.CharacterTemplate.DisplayName}: Cannot setup extra bone layer - no animator controller assigned",
+                    $"{unit.CharacterTemplate.DisplayName}: Cannot setup extra bone layer - no animator controller assigned.",
                     TurnrootLogger.LogLevel.Error
                 );
                 return;
@@ -157,7 +160,7 @@ namespace Turnroot.Gameplay.Brain
             {
                 // Runtime - can't modify layers at runtime easily without editor API
                 TurnrootLogger.Log(
-                    $"{unit.CharacterTemplate.DisplayName}: Extra bone layers require setup in the AnimatorController asset at edit time. Ensure Layer 1 has the AvatarMask assigned in the controller.",
+                    $"{unit.CharacterTemplate.DisplayName}: Extra bone layers require editor-time setup (assign AvatarMask to Layer 1).",
                     TurnrootLogger.LogLevel.Warning
                 );
                 return;
@@ -168,7 +171,7 @@ namespace Turnroot.Gameplay.Brain
             if (controllerAsset.layers.Length < 2)
             {
                 TurnrootLogger.Log(
-                    $"{unit.CharacterTemplate.DisplayName}: AnimatorController needs at least 2 layers for extra bones. Layer 1 is missing.",
+                    $"{unit.CharacterTemplate.DisplayName}: AnimatorController needs at least 2 layers (Layer 1 missing).",
                     TurnrootLogger.LogLevel.Error
                 );
                 return;
@@ -178,10 +181,6 @@ namespace Turnroot.Gameplay.Brain
             var layers = controllerAsset.layers;
             layers[1].avatarMask = unit.CharacterTemplate.AdditionalBonesMask;
             controllerAsset.layers = layers;
-
-            TurnrootLogger.Log(
-                $"Applied AvatarMask '{unit.CharacterTemplate.AdditionalBonesMask.name}' to Layer 1 for {unit.CharacterTemplate.DisplayName}"
-            );
 
             // Validate additional bone names if provided
             if (

@@ -229,6 +229,17 @@ namespace Turnroot.Gameplay.Brain
                 return;
             }
 
+            // If the requested state is already active (or logically the same), ignore
+            if (CurrentState != null)
+            {
+                var currentPath = CurrentState.GetFullPath();
+                var newPath = newState.GetFullPath();
+                if (string.Equals(currentPath, newPath, StringComparison.Ordinal))
+                {
+                    return;
+                }
+            }
+
             if (CurrentState != null)
             {
                 CurrentState.IsActive = false;

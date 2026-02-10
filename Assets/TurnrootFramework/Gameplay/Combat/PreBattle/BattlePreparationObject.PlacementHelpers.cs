@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using Turnroot.Characters;
 using Turnroot.Gameplay.Brain;
 using Turnroot.Utilities;
@@ -9,12 +8,10 @@ namespace Turnroot.Gameplay.Combat.PreBattle
 {
     public partial class BattlePreparationObject
     {
-        // Extracted helpers from InitializePlacements to reduce nesting and method size.
-
         private bool TryUseRuntimePlacements(
             GamewideContextBrain gw,
-            object persistent,
-            object runtimeInstance
+            PlayerTeamRoster persistent,
+            PlayerTeamRosterInstance runtimeInstance
         )
         {
             if (gw == null || runtimeInstance == null)
@@ -22,8 +19,7 @@ namespace Turnroot.Gameplay.Combat.PreBattle
                 return false;
             }
 
-            var instPlacements = (dynamic)runtimeInstance;
-            var runtimePlacements = instPlacements.GetPlacements();
+            var runtimePlacements = runtimeInstance.GetPlacements();
             TurnrootLogger.Log(
                 $"InitializePlacements: runtimePlacements.Length={(runtimePlacements?.Length ?? 0)}",
                 TurnrootLogger.LogLevel.Info
@@ -46,7 +42,7 @@ namespace Turnroot.Gameplay.Combat.PreBattle
                 try
                 {
                     inst =
-                        instPlacements.GetInstanceFor(p.CharacterData)
+                        runtimeInstance.GetInstanceFor(p.CharacterData)
                         ?? gw.FindInstanceByTemplate(p.CharacterData);
                 }
                 catch
@@ -115,9 +111,7 @@ namespace Turnroot.Gameplay.Combat.PreBattle
             return false;
         }
 
-        private void ApplyPlacementsFromSelectedUnits(
-            System.Collections.Generic.List<CharacterInstance> finalSelected
-        )
+        private void ApplyPlacementsFromSelectedUnits(List<CharacterInstance> finalSelected)
         {
             placements = new Dictionary<Vector2Int, CharacterInstance>();
 
@@ -132,10 +126,6 @@ namespace Turnroot.Gameplay.Combat.PreBattle
 
                 var spawnPos = PlayerTeamSpawnPoints[i];
                 var unit = finalSelected[i];
-
-                var unitName = unit?.CharacterTemplate?.DisplayName ?? "<null>";
-                TurnrootLogger.Log($"InitializePlacements: Placing {unitName} at {spawnPos}");
-
                 placements[spawnPos] = unit;
             }
 

@@ -25,10 +25,6 @@ namespace Turnroot.Gameplay.Brain
 
             var worldPos = GetWorldPosition(position, prebattle);
 
-            TurnrootLogger.Log(
-                $"SpawnUnitAtPosition: {unit.CharacterTemplate.DisplayName} - gridPos={position}, worldPos={worldPos}, prebattle={prebattle}"
-            );
-
             // Validate map grid and grid point to avoid silent spawns at Vector3.zero
             var mapGrid =
                 _brain.battleBrain.PreparationObject?.MapGrid
@@ -104,12 +100,9 @@ namespace Turnroot.Gameplay.Brain
             }
 
             // If model already exists, don't try to move it - precompute is just for setup
-            if (_unitModels.ContainsKey(unit.Id))
-            {
-                return OperationResult.Successful();
-            }
-
-            return SpawnUnitAtPosition(unit, position, prebattle);
+            return _unitModels.ContainsKey(unit.Id)
+                ? OperationResult.Successful()
+                : SpawnUnitAtPosition(unit, position, prebattle);
         }
 
         public OperationResult DespawnUnit(string unitId)

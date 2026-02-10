@@ -11,6 +11,8 @@ namespace Turnroot.Gameplay.Brain
     /// </summary>
     public partial class BattleInputControllerBrain : BrainComponent
     {
+        public MapGridPoint destination;
+
         private List<Vector2Int> HandlePathPreview()
         {
             if (!ShouldShowPathPreview())
@@ -19,7 +21,7 @@ namespace Turnroot.Gameplay.Brain
                 return new List<Vector2Int>();
             }
 
-            var destination = GetValidDestination();
+            destination = GetValidDestination();
             if (destination == null)
             {
                 ClearPathPreview();

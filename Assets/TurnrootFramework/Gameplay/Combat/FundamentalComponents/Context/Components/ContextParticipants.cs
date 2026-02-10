@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using Turnroot.Characters;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Locations;
-using Turnroot.Gameplay.Maps;
 using Turnroot.Utilities;
 using UnityEngine;
 
@@ -159,24 +158,15 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                     }
                 }
             }
-
-            TurnrootLogger.Log(
-                $"BattleContext.UpdateAdjacentUnits: Updated adjacency for {activeUnit.CharacterTemplate.DisplayName}"
-            );
         }
 
         public void ClearTargetsInRange()
         {
             Participants.TargetsInRange.Clear();
             Participants.AlliesInRange.Clear();
-            TurnrootLogger.Log("BattleContext.ClearTargetsInRange: Cleared dynamic range lists");
         }
 
-        public void ClearAdjacentUnits()
-        {
-            Participants.AdjacentUnits = new Adjacency(null);
-            TurnrootLogger.Log("BattleContext.ClearAdjacentUnits: Cleared adjacency");
-        }
+        public void ClearAdjacentUnits() => Participants.AdjacentUnits = new Adjacency(null);
 
         public void ClearParticipantDynamicData()
         {
@@ -207,58 +197,27 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             // Player attacks enemies and potentially third party
             if (IsPlayerControlledUnit(attacker))
             {
-                if (IsEnemyUnit(target))
-                {
-                    return true;
-                }
-                if (IsThirdPartyUnit(target) && (battleObject?.ThirdPartyFightsAllies ?? false))
-                {
-                    return true;
-                }
-                return false;
+                return IsEnemyUnit(target)
+                    || IsThirdPartyUnit(target) && (battleObject?.ThirdPartyFightsAllies ?? false);
             }
 
             // Enemy attacks players and potentially third party
             if (IsEnemyUnit(attacker))
             {
-                if (IsPlayerControlledUnit(target))
-                {
-                    return true;
-                }
-                if (IsThirdPartyUnit(target) && (battleObject?.ThirdPartyFightsEnemies ?? false))
-                {
-                    return true;
-                }
-                return false;
+                return IsPlayerControlledUnit(target)
+                    || IsThirdPartyUnit(target) && (battleObject?.ThirdPartyFightsEnemies ?? false);
             }
 
             // Third party attacks based on allegiance flags
-            if (IsThirdPartyUnit(attacker))
-            {
-                if (
+            return IsThirdPartyUnit(attacker)
+                && (
                     IsPlayerControlledUnit(target)
-                    && (battleObject?.ThirdPartyFightsAllies ?? false)
-                )
-                {
-                    return true;
-                }
-                if (IsEnemyUnit(target) && (battleObject?.ThirdPartyFightsEnemies ?? false))
-                {
-                    return true;
-                }
-                // Third party can attack other third party if both allegiance flags are set (chaos mode)
-                if (
-                    IsThirdPartyUnit(target)
-                    && (battleObject?.ThirdPartyFightsAllies ?? false)
-                    && (battleObject?.ThirdPartyFightsEnemies ?? false)
-                )
-                {
-                    return true;
-                }
-                return false;
-            }
-
-            return false;
+                        && (battleObject?.ThirdPartyFightsAllies ?? false)
+                    || IsEnemyUnit(target) && (battleObject?.ThirdPartyFightsEnemies ?? false)
+                    || IsThirdPartyUnit(target)
+                        && (battleObject?.ThirdPartyFightsAllies ?? false)
+                        && (battleObject?.ThirdPartyFightsEnemies ?? false)
+                );
         }
 
         /// <summary>
@@ -292,24 +251,15 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             }
 
             // Cross-team alliances based on third party settings
-            if (IsPlayerControlledUnit(unit1) && IsThirdPartyUnit(unit2))
-            {
-                return !(battleObject?.ThirdPartyFightsAllies ?? false);
-            }
-            if (IsThirdPartyUnit(unit1) && IsPlayerControlledUnit(unit2))
-            {
-                return !(battleObject?.ThirdPartyFightsAllies ?? false);
-            }
-            if (IsEnemyUnit(unit1) && IsThirdPartyUnit(unit2))
-            {
-                return !(battleObject?.ThirdPartyFightsEnemies ?? false);
-            }
-            if (IsThirdPartyUnit(unit1) && IsEnemyUnit(unit2))
-            {
-                return !(battleObject?.ThirdPartyFightsEnemies ?? false);
-            }
-
-            return false;
+            return IsPlayerControlledUnit(unit1) && IsThirdPartyUnit(unit2)
+                    ? !(battleObject?.ThirdPartyFightsAllies ?? false)
+                : IsThirdPartyUnit(unit1) && IsPlayerControlledUnit(unit2)
+                    ? !(battleObject?.ThirdPartyFightsAllies ?? false)
+                : IsEnemyUnit(unit1) && IsThirdPartyUnit(unit2)
+                    ? !(battleObject?.ThirdPartyFightsEnemies ?? false)
+                : IsThirdPartyUnit(unit1)
+                    && IsEnemyUnit(unit2)
+                    && !(battleObject?.ThirdPartyFightsEnemies ?? false);
         }
 
         #endregion

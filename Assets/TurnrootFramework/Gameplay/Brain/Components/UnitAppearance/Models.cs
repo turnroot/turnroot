@@ -10,7 +10,8 @@ namespace Turnroot.Gameplay.Brain
     /// </summary>
     public partial class UnitAppearanceBrain
     {
-        public GameObject GetModelForUnit(string unitId) => _unitModels.TryGetValue(unitId, out var model) ? model : null;
+        public GameObject GetModelForUnit(string unitId) =>
+            _unitModels.TryGetValue(unitId, out var model) ? model : null;
 
         public GameObject CreateModelForUnit(CharacterInstance unit, GameObject root = null)
         {
@@ -42,9 +43,6 @@ namespace Turnroot.Gameplay.Brain
             if (unit.CharacterTemplate.CustomAvatar != null)
             {
                 animator.avatar = unit.CharacterTemplate.CustomAvatar;
-                TurnrootLogger.Log(
-                    $"Applied custom avatar for {unit.CharacterTemplate.DisplayName}"
-                );
             }
 
             // Setup extra bone layers if character has additional bones
@@ -104,9 +102,6 @@ namespace Turnroot.Gameplay.Brain
 
             if (smr != null)
             {
-                TurnrootLogger.Log(
-                    $"Using class outfit prefab for {unit.CharacterTemplate?.DisplayName}"
-                );
                 return true;
             }
 
@@ -146,9 +141,7 @@ namespace Turnroot.Gameplay.Brain
                 return null;
             }
 
-            TurnrootLogger.Log(
-                $"Using non-battle outfit prefab for {unit.CharacterTemplate?.DisplayName}"
-            );
+
 
             // Preserve the prefab's original materials
             var prefabSmr = nbPrefab.GetComponentInChildren<SkinnedMeshRenderer>(true);
@@ -257,29 +250,12 @@ namespace Turnroot.Gameplay.Brain
             GameObject parent
         )
         {
-            TurnrootLogger.Log(
-                $"CreatePlaceholderRenderer for {unit.CharacterTemplate.DisplayName}: parent position = {parent.transform.position}"
-            );
-
             var placeholder = GameObject.CreatePrimitive(PrimitiveType.Cube);
-
-            TurnrootLogger.Log(
-                $"  Placeholder created at world position: {placeholder.transform.position}"
-            );
-
             placeholder.transform.SetParent(parent.transform, worldPositionStays: false);
-
-            TurnrootLogger.Log(
-                $"  After SetParent(false): placeholder local={placeholder.transform.localPosition}, world={placeholder.transform.position}"
-            );
 
             // Explicitly ensure it's at local zero
             placeholder.transform.localPosition = Vector3.zero;
             placeholder.transform.localRotation = Quaternion.identity;
-
-            TurnrootLogger.Log(
-                $"  After explicit zero: placeholder local={placeholder.transform.localPosition}, world={placeholder.transform.position}"
-            );
 
             placeholder.GetComponent<Renderer>().material.color =
                 unit.CharacterTemplate.AccentColor1;
@@ -320,9 +296,6 @@ namespace Turnroot.Gameplay.Brain
             {
                 singleRoot.SetParent(root.transform, true);
             }
-            TurnrootLogger.Log(
-                $"UnifyBoneHierarchies: Single armature '{singleRoot.name}' found and positioned"
-            );
         }
 
         private Transform FindCanonicalBoneRoot(System.Collections.Generic.List<Transform> allRoots)
@@ -330,11 +303,6 @@ namespace Turnroot.Gameplay.Brain
             var canonicalRoot = allRoots
                 .OrderByDescending(r => r.GetComponentsInChildren<Transform>().Length)
                 .First();
-
-            TurnrootLogger.Log(
-                $"UnifyBoneHierarchies: Found {allRoots.Count} armatures, using '{canonicalRoot.name}' as canonical "
-                    + $"({canonicalRoot.GetComponentsInChildren<Transform>().Length} bones)"
-            );
 
             return canonicalRoot;
         }

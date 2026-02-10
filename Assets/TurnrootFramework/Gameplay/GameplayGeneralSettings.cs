@@ -206,6 +206,12 @@ namespace Turnroot.GameSettings
         [BoxGroup("UI"), HorizontalLine(color: EColor.Green)]
         public GoldDisplay GoldDisplayNames = new() { OneLetter = "G", FullName = "gold" };
 
+        [BoxGroup("UI")]
+        public bool ShowTerrainTypeDescriptionOnTileHover = false;
+
+        [BoxGroup("UI")]
+        public bool ColorTerrainEffects = true;
+
         [BoxGroup("Visuals"), HorizontalLine(color: EColor.Yellow)]
         public float UnitMovementCurveSmoothing = 4f;
 

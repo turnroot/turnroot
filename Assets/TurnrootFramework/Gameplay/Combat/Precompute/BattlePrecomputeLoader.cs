@@ -192,7 +192,9 @@ namespace Turnroot.Gameplay.Combat.Precompute
                     }
                 }
                 foreach (var r in toRemove)
+                {
                     units.Remove(r);
+                }
             }
 
             int taskCount = CalculateTaskCount(units, appearanceBrain);
@@ -201,6 +203,9 @@ namespace Turnroot.Gameplay.Combat.Precompute
                 CompleteWithMinimalProgressAndNotify();
                 yield break;
             }
+
+            // Initialize TerrainTypeOverlay
+            _brain.battleBrain.BattleObject.TerrainTypeOverlay.Initialize();
 
             InitializeLoadingProgress(taskCount);
 

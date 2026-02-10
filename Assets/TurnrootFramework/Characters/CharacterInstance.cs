@@ -100,17 +100,7 @@ namespace Turnroot.Characters
         public Vector2Int MapGridPosition
         {
             get => _mapGridPosition;
-            set
-            {
-#if UNITY_EDITOR
-                // Emit a log when MapGridPosition is set directly so we can detect non-authoritative updates during debugging.
-                Turnroot.Utilities.TurnrootLogger.Log(
-                    $"CharacterInstance: Direct MapGridPosition set for {Id} to {value}",
-                    Turnroot.Utilities.TurnrootLogger.LogLevel.Info
-                );
-#endif
-                _mapGridPosition = value;
-            }
+            set { _mapGridPosition = value; }
         }
         public GameObject CurrentWeaponPrefab
         {

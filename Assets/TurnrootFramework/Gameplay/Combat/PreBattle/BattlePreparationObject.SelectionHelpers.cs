@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using Turnroot.Characters;
 using Turnroot.Gameplay.Brain;
 using Turnroot.Utilities;
@@ -11,12 +10,12 @@ namespace Turnroot.Gameplay.Combat.PreBattle
     {
         private (
             bool hasSelection,
-            System.Collections.Generic.List<CharacterInstance> finalSelected,
+            List<CharacterInstance> finalSelected,
             OperationResult failure
         ) ComputeFinalSelectedUnits(
             GamewideContextBrain gw,
-            dynamic persistent,
-            dynamic runtimeInstance,
+            PlayerTeamRoster persistent,
+            PlayerTeamRosterInstance runtimeInstance,
             BattlePreparationObject prep
         )
         {
@@ -87,11 +86,10 @@ namespace Turnroot.Gameplay.Combat.PreBattle
             }
 
             // If a runtime roster exists, prefer runtime instance selection flags
-            var runtimeSelected = new System.Collections.Generic.List<CharacterInstance>();
-            var runtimeInst = runtimeInstance;
-            if (runtimeInst != null)
+            var runtimeSelected = new List<CharacterInstance>();
+            if (runtimeInstance != null)
             {
-                foreach (var inst in runtimeInst.Instances)
+                foreach (var inst in runtimeInstance.Instances)
                 {
                     if (inst != null && inst.IsSelectedForBattle)
                     {
@@ -100,38 +98,12 @@ namespace Turnroot.Gameplay.Combat.PreBattle
                 }
             }
 
-            TurnrootLogger.Log(
-                $"InitializePlacements: runtimeSelected.Count={runtimeSelected.Count}, selectedUnits.Count={selectedUnits?.Count ?? 0}",
-                TurnrootLogger.LogLevel.Info
-            );
-
-            if (runtimeSelected.Count == 0 && selectedUnits != null && selectedUnits.Count > 0)
-            {
-                TurnrootLogger.Log(
-                    "InitializePlacements: SelectedUnits from selection helper:",
-                    TurnrootLogger.LogLevel.Info
-                );
-                foreach (var s in selectedUnits)
-                {
-                    TurnrootLogger.Log(
-                        $"  - {s?.CharacterTemplate?.DisplayName ?? "<null>"}",
-                        TurnrootLogger.LogLevel.Info
-                    );
-                }
-            }
-
             // If the player modified selections during this pre-battle session, honor those per-battle
             // selections and do NOT let the runtime roster's IsSelectedForBattle flags override them.
-            System.Collections.Generic.List<CharacterInstance> finalSelected;
-            if (!_battleSelectionsChanged && runtimeSelected.Count > 0)
-            {
-                finalSelected = runtimeSelected;
-            }
-            else
-            {
-                finalSelected = selectedUnits;
-            }
-
+            var finalSelected =
+                !_battleSelectionsChanged && runtimeSelected.Count > 0
+                    ? runtimeSelected
+                    : selectedUnits;
             return (true, finalSelected, OperationResult.Successful());
         }
     }

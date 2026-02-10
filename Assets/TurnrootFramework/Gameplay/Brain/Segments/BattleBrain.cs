@@ -102,11 +102,9 @@ namespace Turnroot.Gameplay.Brain
 
         public void HandleStartBattle()
         {
-            TurnrootLogger.Log("BattleBrain: Handling StartBattle event");
-
             if (!InitializeBattleObject())
             {
-                return; // Early exit if battle object not found
+                return;
             }
 
             InitializeBattleRosters();
@@ -116,8 +114,6 @@ namespace Turnroot.Gameplay.Brain
             InitializePrecomputeLoader();
             SaveInitialRosterPlacements();
             StartPlayerTurn();
-
-            TurnrootLogger.Log("BattleBrain: Battle initialization complete");
         }
 
         private bool InitializeBattleObject()
@@ -455,9 +451,10 @@ namespace Turnroot.Gameplay.Brain
                             }
                             else
                             {
-                                // Fallback: set instance position directly when MapGrid lookup fails.
-                                // TODO: Prefer SetOccupied as authoritative. This direct write is an allowed fallback.
-                                characterInstance.MapGridPosition = placement.SpawnPosition; // fallback
+                                TurnrootLogger.Log(
+                                    "SpawnRosterUnitsOntoGrid: Failed to find MapGridPoint for placement during repair.",
+                                    TurnrootLogger.LogLevel.Error
+                                );
                             }
                         }
                         catch (System.Exception ex)
@@ -465,10 +462,8 @@ namespace Turnroot.Gameplay.Brain
                             TurnrootLogger.Log(
                                 "SpawnRosterUnitsOntoGrid: Failed to align spawn position: "
                                     + ex.Message,
-                                TurnrootLogger.LogLevel.Warning
+                                TurnrootLogger.LogLevel.Error
                             );
-                            // Keep fallback to ensure the instance has a position so the game can continue.
-                            characterInstance.MapGridPosition = placement.SpawnPosition;
                         }
                     }
                 }
@@ -496,7 +491,10 @@ namespace Turnroot.Gameplay.Brain
                 {
                     var inst = playerTeamRoster.GetInstanceFor(ap.CharacterData);
                     if (inst == null)
+                    {
                         continue;
+                    }
+
                     if (inst.MapGridPosition != ap.SpawnPosition)
                     {
                         TurnrootLogger.Log(
@@ -536,9 +534,10 @@ namespace Turnroot.Gameplay.Brain
                             }
                             else
                             {
-                                // Fallback: set instance position directly when MapGrid lookup fails.
-                                // TODO: Prefer SetOccupied as authoritative. This direct write is an allowed fallback.
-                                inst.MapGridPosition = ap.SpawnPosition; // fallback
+                                TurnrootLogger.Log(
+                                    "SpawnRosterUnitsOntoGrid: Failed to find MapGridPoint for placement during repair.",
+                                    TurnrootLogger.LogLevel.Error
+                                );
                             }
                         }
                         catch (System.Exception ex)
@@ -546,9 +545,8 @@ namespace Turnroot.Gameplay.Brain
                             TurnrootLogger.Log(
                                 "SpawnRosterUnitsOntoGrid: Post-check alignment failed: "
                                     + ex.Message,
-                                TurnrootLogger.LogLevel.Warning
+                                TurnrootLogger.LogLevel.Error
                             );
-                            inst.MapGridPosition = ap.SpawnPosition;
                         }
                     }
                 }
@@ -626,11 +624,9 @@ namespace Turnroot.Gameplay.Brain
                 var newPoint = unit.UnitPositionToMapGridPoint(target, mapGrid);
                 mapGrid.RemoveOccupied(oldPoint);
                 mapGrid.SetOccupied(newPoint, unit);
-                // MapGrid.SetOccupied is authoritative and will align the instance MapGridPosition; avoid writing it directly here.
                 BattleObject.Context.InvalidateUnitTileCache(unit);
                 BattleObject.Context.InvalidateUnitPositionCache();
 
-                // Update participants if this is the active unit
                 if (BattleObject.Context.Unit?.UnitInstance == unit)
                 {
                     BattleObject.Context.UpdateAdjacentUnits();

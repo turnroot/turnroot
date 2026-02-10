@@ -42,12 +42,6 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                     attackTiles = cached.AttackTiles;
                     return true;
                 }
-                else
-                {
-                    TurnrootLogger.Log(
-                        $"BattleContext: Cache invalidated for {unit.CharacterTemplate.DisplayName} (map version: {cached.MapStateVersion} vs {MapGrid.StateVersion}, position: {cached.UnitPosition} vs {unit.MapGridPosition})"
-                    );
-                }
             }
 
             // Compute tiles using AIHelper
@@ -81,10 +75,6 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                     new Dictionary<MapGridPoint, float>(attack),
                     MapGrid.StateVersion,
                     unit.MapGridPosition
-                );
-
-                TurnrootLogger.Log(
-                    $"BattleContext: Cached {move.Count} move tiles and {attack.Count} attack tiles for {unit.CharacterTemplate.DisplayName}"
                 );
 
                 moveTiles = _unitTilesCache[unit.Id].MoveTiles;
