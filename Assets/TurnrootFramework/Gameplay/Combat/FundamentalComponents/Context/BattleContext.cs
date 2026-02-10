@@ -6,6 +6,7 @@ using Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Locations;
 using Turnroot.Gameplay.Maps;
 using Turnroot.Skills;
 using Turnroot.Skills.Nodes;
+using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
@@ -285,16 +286,253 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             {
                 currentUnitPositions.Clear();
                 var allUnits = Participants.GetAllUnits();
+                TurnrootLogger.Log(
+                    $"GetCurrentUnitPositions: Building cache with {allUnits.Count} units"
+                );
                 foreach (var unit in allUnits)
                 {
+                    // Validate unit position: ensure the map grid contains the point.
+                    var mgp = unit.UnitPositionToMapGridPoint(unit.MapGridPosition, MapGrid);
+                    if (mgp == null)
+                    {
+                        // If the unit has the sentinel uninitialized position, log that explicitly to make
+                        // missing placements easy to find in logs and to distinguish from out-of-bounds values.
+                        var sentinel = new Vector2Int(-9999, -9999);
+                        if (unit.MapGridPosition == sentinel)
+                        {
+                            TurnrootLogger.Log(
+                                $"GetCurrentUnitPositions: Unit {unit.CharacterTemplate.DisplayName} has uninitialized MapGridPosition (sentinel). Attempting roster-based repair.",
+                                TurnrootLogger.LogLevel.Warning
+                            );
+                        }
+
+                        // Attempt to repair from authoritative roster placements if available.
+                        try
+                        {
+                            var bb = Brain?.battleBrain;
+                            var battleObj = bb?.BattleObject;
+                            if (battleObj?.PlayerTeamRoster != null)
+                            {
+                                var placements = battleObj.PlayerTeamRoster.GetPlacements();
+                                foreach (var p in placements)
+                                {
+                                    if (p.CharacterData == unit.CharacterTemplate)
+                                    {
+                                        TurnrootLogger.Log(
+                                            $"GetCurrentUnitPositions: Repairing {unit.CharacterTemplate.DisplayName} MapGridPosition from {unit.MapGridPosition} to {p.SpawnPosition}",
+                                            TurnrootLogger.LogLevel.Warning
+                                        );
+                                        unit.MapGridPosition = p.SpawnPosition;
+                                        mgp = unit.UnitPositionToMapGridPoint(
+                                            unit.MapGridPosition,
+                                            MapGrid
+                                        );
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                        catch (System.Exception ex)
+                        {
+                            TurnrootLogger.Log(
+                                "GetCurrentUnitPositions: Roster-based repair failed: "
+                                    + ex.Message,
+                                TurnrootLogger.LogLevel.Warning
+                            );
+                        }
+                    }
+
+                    if (mgp == null)
+                    {
+                        TurnrootLogger.Log(
+                            $"GetCurrentUnitPositions: Skipping unit {unit.CharacterTemplate.DisplayName} with invalid MapGridPosition={unit.MapGridPosition}",
+                            TurnrootLogger.LogLevel.Warning
+                        );
+                        continue;
+                    }
+
+                    if (currentUnitPositions.ContainsKey(unit.MapGridPosition))
+                    {
+                        TurnrootLogger.Log(
+                            $"GetCurrentUnitPositions: Duplicate MapGridPosition detected for {unit.CharacterTemplate.DisplayName} at {unit.MapGridPosition}, skipping duplicate",
+                            TurnrootLogger.LogLevel.Warning
+                        );
+                        continue;
+                    }
+
+                    TurnrootLogger.Log(
+                        $"  - {unit.CharacterTemplate.DisplayName} id={unit.Id} at MapGridPosition={unit.MapGridPosition}"
+                    );
                     currentUnitPositions[unit.MapGridPosition] = unit;
                 }
             }
             return currentUnitPositions;
         }
 
+        /// <summary>
+        /// Repair unit positions using authoritative roster placements when inconsistencies are detected.
+        /// This attempts to fix invalid or duplicate MapGridPosition values by consulting the PlayerTeamRoster.
+        /// </summary>
+        public void RepairUnitPositionsFromRoster()
+        {
+            try
+            {
+                var bb = Brain?.battleBrain;
+                var battleObj = bb?.BattleObject;
+                var roster = battleObj?.PlayerTeamRoster;
+                if (roster == null)
+                    return;
+
+                var placements = roster.GetPlacements();
+                // Build simple occupancy map to detect duplicates so we only repair invalid or duplicated positions
+                var occupancy = new System.Collections.Generic.Dictionary<
+                    Vector2Int,
+                    System.Collections.Generic.List<CharacterInstance>
+                >();
+                foreach (var p2 in placements)
+                {
+                    var i2 = roster.GetInstanceFor(p2.CharacterData);
+                    if (i2 == null)
+                        continue;
+                    if (!occupancy.TryGetValue(i2.MapGridPosition, out var list))
+                    {
+                        list = new System.Collections.Generic.List<CharacterInstance>();
+                        occupancy[i2.MapGridPosition] = list;
+                    }
+                    list.Add(i2);
+                }
+
+                foreach (var p in placements)
+                {
+                    var inst = roster.GetInstanceFor(p.CharacterData);
+                    if (inst == null)
+                        continue;
+
+                    var currentPoint = inst.UnitPositionToMapGridPoint(
+                        inst.MapGridPosition,
+                        MapGrid
+                    );
+                    var desiredPoint = MapGrid.GetGridPoint(p.SpawnPosition.x, p.SpawnPosition.y);
+                    if (desiredPoint == null)
+                        continue;
+
+                    var isInvalid = currentPoint == null;
+                    var isDuplicate =
+                        occupancy.TryGetValue(inst.MapGridPosition, out var owners)
+                        && owners.Count > 1;
+
+                    if (!isInvalid && !isDuplicate)
+                    {
+                        // No problem for this instance: it either has a valid point and is not duplicated.
+                        continue;
+                    }
+
+                    TurnrootLogger.Log(
+                        $"RepairUnitPositionsFromRoster: Repairing {inst.CharacterTemplate.DisplayName} MapGridPosition from {inst.MapGridPosition} to {p.SpawnPosition} (invalid={isInvalid}, duplicate={isDuplicate})",
+                        TurnrootLogger.LogLevel.Warning
+                    );
+
+                    try
+                    {
+                        if (currentPoint != null)
+                        {
+                            MapGrid.RemoveOccupied(currentPoint);
+                        }
+                    }
+                    catch (System.Exception ex)
+                    {
+                        TurnrootLogger.Log(
+                            "RepairUnitPositionsFromRoster: RemoveOccupied failed: " + ex.Message,
+                            TurnrootLogger.LogLevel.Warning
+                        );
+                    }
+
+                    try
+                    {
+                        var setResult = MapGrid.SetOccupied(desiredPoint, inst);
+                        if (!setResult.Success)
+                        {
+                            // Fallback: if we couldn't set grid occupancy for some reason, set the instance position directly so roster alignment can continue.
+                            inst.MapGridPosition = p.SpawnPosition;
+                        }
+                    }
+                    catch (System.Exception ex)
+                    {
+                        TurnrootLogger.Log(
+                            "RepairUnitPositionsFromRoster: SetOccupied failed: " + ex.Message,
+                            TurnrootLogger.LogLevel.Warning
+                        );
+                        inst.MapGridPosition = p.SpawnPosition;
+                    }
+                }
+            }
+            catch (System.Exception ex)
+            {
+                TurnrootLogger.Log(
+                    "RepairUnitPositionsFromRoster: Repair pass failed: " + ex.Message,
+                    TurnrootLogger.LogLevel.Warning
+                );
+            }
+        }
+
         public bool IsPlayerControlledUnit(CharacterInstance unit) =>
             unit != null && Participants.Allies.Contains(unit);
+
+#if UNITY_EDITOR
+        /// <summary>
+        /// Debug helper: verify that for every unit, the MapGrid point at the instance's MapGridPosition
+        /// has the same CurrentInstance. If not, attempt to repair by calling SetOccupied.
+        /// Only runs in editor builds to avoid impacting runtime performance.
+        /// </summary>
+        public void DebugVerifyOccupancyAlignment()
+        {
+            try
+            {
+                var allUnits = Participants.GetAllUnits();
+                foreach (var u in allUnits)
+                {
+                    if (u == null)
+                        continue;
+                    var mgp = u.UnitPositionToMapGridPoint(u.MapGridPosition, MapGrid);
+                    if (mgp == null)
+                    {
+                        Turnroot.Utilities.TurnrootLogger.Log(
+                            $"DebugVerifyOccupancyAlignment: Unit {u.Id} has invalid MapGridPosition {u.MapGridPosition}",
+                            Turnroot.Utilities.TurnrootLogger.LogLevel.Warning
+                        );
+                        continue;
+                    }
+
+                    if (mgp.CurrentInstance != u)
+                    {
+                        Turnroot.Utilities.TurnrootLogger.Log(
+                            $"DebugVerifyOccupancyAlignment: Mismatch at {mgp.CoordinatesInt} - grid has {mgp.CurrentInstance?.Id ?? "<none>"} vs unit {u.Id}. Repairing.",
+                            Turnroot.Utilities.TurnrootLogger.LogLevel.Warning
+                        );
+                        try
+                        {
+                            MapGrid.SetOccupied(mgp, u);
+                        }
+                        catch (System.Exception ex)
+                        {
+                            TurnrootLogger.Log(
+                                "DebugVerifyOccupancyAlignment: SetOccupied repair failed: "
+                                    + ex.Message,
+                                TurnrootLogger.LogLevel.Warning
+                            );
+                        }
+                    }
+                }
+            }
+            catch (System.Exception ex)
+            {
+                TurnrootLogger.Log(
+                    "DebugVerifyOccupancyAlignment: Verification failed: " + ex.Message,
+                    TurnrootLogger.LogLevel.Warning
+                );
+            }
+        }
+#endif
 
         #endregion
 

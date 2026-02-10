@@ -37,10 +37,20 @@ namespace Turnroot.UI.Components
                 playerTeamRoster
             );
             var LongTermMemory = _brain.ltm;
-            var units =
-                playerTeamRosterInstance != null
-                    ? playerTeamRosterInstance.GetPlacements()
-                    : playerTeamRoster?.characters ?? new Characters.Roster.UnitPlacement[0];
+
+            // Use the persistent roster (Gamewide PlayerTeamRoster) as the authoritative source
+            // for unit selection UI. We will only use runtime instances for read-only display data
+            // (character instance info) and will never mutate the persistent roster from the UI.
+            var units = playerTeamRoster?.characters ?? new Characters.Roster.UnitPlacement[0];
+            if (units.Length == 0 && playerTeamRosterInstance != null)
+            {
+                // Fallback in the unlikely case persistent roster exists but has no characters
+                TurnrootLogger.Log(
+                    "UnitSelectionColumns: persistent roster has no placements; falling back to runtime instance placements",
+                    TurnrootLogger.LogLevel.Warning
+                );
+                units = playerTeamRosterInstance.GetPlacements();
+            }
 
             // Ensure default selection state (adds required units, applies LTM selections, fills to max)
             PreBattleSelectionHelper.EnsureDefaultPreBattleSelections(
@@ -252,10 +262,19 @@ namespace Turnroot.UI.Components
             }
 
             var key = prefix + unit.CharacterData.name;
-            var isSelected =
-                gridMenuItem.CharacterInstanceData != null
-                    ? gridMenuItem.CharacterInstanceData.IsSelectedForBattle
-                    : ltm.RecallBool(key);
+            var prep = _brain?.battleBrain?.PreparationObject;
+            var isSelected = false;
+            if (gridMenuItem.CharacterInstanceData != null)
+            {
+                isSelected =
+                    prep != null
+                        ? prep.IsBattleSelected(gridMenuItem.CharacterInstanceData)
+                        : gridMenuItem.CharacterInstanceData.IsSelectedForBattle;
+            }
+            else
+            {
+                isSelected = ltm.RecallBool(key);
+            }
 
             // If the unit is required for this battle, enable them but don't save it to LTM
             var requiredUnits =

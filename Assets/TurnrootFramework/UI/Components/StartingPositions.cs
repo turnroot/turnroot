@@ -12,7 +12,7 @@ namespace Turnroot.UI.Components
     /// <summary>
     /// Manages the UI for selecting and placing units at their starting positions on the battle map.
     /// </summary>
-    public class StartingPositions : MonoBehaviour
+    public partial class StartingPositions : MonoBehaviour
     {
         public List<GameObject> TileProjectors;
         public GameObject Selected;
@@ -50,6 +50,30 @@ namespace Turnroot.UI.Components
 
             if (ShouldWaitForPlacements())
             {
+                // If we have a Brain available, proactively initialize placements so the UI doesn't wait indefinitely
+                if (_prepObject?.Brain != null)
+                {
+                    TurnrootLogger.Log(
+                        "StartingPositions: Detected waiting for placements - invoking InitializePlacements on prep object",
+                        TurnrootLogger.LogLevel.Info
+                    );
+                    var res = _prepObject.InitializePlacements();
+                    if (!res.Success)
+                    {
+                        TurnrootLogger.Log(
+                            $"StartingPositions: InitializePlacements returned failure: {res.ErrorMessage}",
+                            TurnrootLogger.LogLevel.Warning
+                        );
+                    }
+                    // If placements are now available, proceed to spawn models immediately
+                    if (_prepObject?.placements != null && _prepObject.placements.Count > 0)
+                    {
+                        SpawnAllUnitModels();
+                        SubscribeToEvents();
+                        return OperationResult.Successful();
+                    }
+                }
+
                 SubscribeToEvents();
                 return OperationResult.Successful();
             }
@@ -203,10 +227,7 @@ namespace Turnroot.UI.Components
 
         private void SpawnAllUnitModels()
         {
-            if (_replaced || _prepObject?.placements == null)
-            {
-                return;
-            }
+            SpawnAllUnitModels_Impl();
 
             if (!_gridPointsEnsured)
             {
@@ -217,12 +238,52 @@ namespace Turnroot.UI.Components
             CleanupOrphanedModels();
             DespawnExistingModels();
 
-            TurnrootLogger.Log($"SpawnAllUnitModels: placements={_prepObject.placements.Count}");
+            TurnrootLogger.Log(
+                $"SpawnAllUnitModels: spawn points={_prepObject.PlayerTeamSpawnPoints?.Count ?? 0}, placements={_prepObject.placements?.Count ?? 0}"
+            );
+
+            // Log spawn points for diagnostics
+            if (_prepObject.PlayerTeamSpawnPoints != null)
+            {
+                foreach (var p in _prepObject.PlayerTeamSpawnPoints)
+                {
+                    TurnrootLogger.Log($"SpawnAllUnitModels: spawnPoint {p}");
+                }
+            }
+
+            // Check for duplicate spawn points
+            if (
+                _prepObject.PlayerTeamSpawnPoints != null
+                && _prepObject.PlayerTeamSpawnPoints.Count
+                    != _prepObject.PlayerTeamSpawnPoints.Distinct().Count()
+            )
+            {
+                TurnrootLogger.Log(
+                    "SpawnAllUnitModels: Duplicate PlayerTeamSpawnPoints detected",
+                    TurnrootLogger.LogLevel.Warning
+                );
+            }
+
             foreach (var placement in _prepObject.placements)
             {
                 var unit = placement.Value;
+                var pos = placement.Key;
+
+                // Only spawn if the position is a valid player spawn point
+                if (
+                    _prepObject.PlayerTeamSpawnPoints == null
+                    || !_prepObject.PlayerTeamSpawnPoints.Contains(pos)
+                )
+                {
+                    TurnrootLogger.Log(
+                        $"SpawnAllUnitModels: Skipping spawn for {unit?.CharacterTemplate?.DisplayName ?? "<null>"} at {pos} - not a valid player spawn point",
+                        TurnrootLogger.LogLevel.Warning
+                    );
+                    continue;
+                }
+
                 TurnrootLogger.Log(
-                    $"SpawnAllUnitModels: Spawning at {placement.Key} unitId={(unit?.Id ?? "<null>")} name={(unit?.CharacterTemplate?.DisplayName ?? "<unknown>")}"
+                    $"SpawnAllUnitModels: Spawning at {pos} unitId={(unit?.Id ?? "<null>")} name={(unit?.CharacterTemplate?.DisplayName ?? "<unknown>")}"
                 );
 
                 var spawnResult = _prepObject.Brain.unitAppearanceBrain.SpawnUnitAtPosition(
@@ -233,7 +294,8 @@ namespace Turnroot.UI.Components
                 if (!spawnResult.Success)
                 {
                     TurnrootLogger.Log(
-                        $"SpawnAllUnitModels: Failed to spawn at {placement.Key}: {spawnResult.ErrorMessage}"
+                        $"SpawnAllUnitModels: Failed to spawn at {placement.Key}: {spawnResult.ErrorMessage}",
+                        TurnrootLogger.LogLevel.Warning
                     );
                     continue;
                 }
@@ -243,6 +305,9 @@ namespace Turnroot.UI.Components
                 if (model != null)
                 {
                     _unitModels[placement.Key] = model;
+                    TurnrootLogger.Log(
+                        $"SpawnAllUnitModels: Model spawned for {unit?.CharacterTemplate?.DisplayName} at {placement.Key}"
+                    );
                 }
                 else
                 {
@@ -256,45 +321,12 @@ namespace Turnroot.UI.Components
 
         private void CleanupOrphanedModels()
         {
-            var validIds = new HashSet<string>(
-                _prepObject
-                    .placements.Values.Where(p => p != null && !string.IsNullOrEmpty(p.Id))
-                    .Select(p => p.Id)
-            );
-
-            var ownerships = FindObjectsByType<UnitModelOwnership>(
-                FindObjectsInactive.Include,
-                FindObjectsSortMode.None
-            );
-            foreach (var own in ownerships)
-            {
-                if (own == null || string.IsNullOrEmpty(own.UnitId))
-                {
-                    continue;
-                }
-
-                if (validIds.Contains(own.UnitId))
-                {
-                    continue;
-                }
-
-                DestroyModel(own.gameObject);
-                RemoveModelMapping(own.gameObject);
-            }
+            CleanupOrphanedModels_Impl();
         }
 
         private void DespawnExistingModels()
         {
-            if (_unitModels.Count == 0 || _prepObject?.Brain == null)
-            {
-                return;
-            }
-
-            var positions = _unitModels.Keys.ToList();
-            foreach (var pos in positions)
-            {
-                _prepObject.Brain.unitAppearanceBrain.DespawnUnitAtPosition(pos);
-            }
+            DespawnExistingModels_Impl();
         }
 
         private void DestroyModel(GameObject model)
@@ -304,64 +336,21 @@ namespace Turnroot.UI.Components
             Destroy(model);
         }
 
+        // Thin wrappers that forward to the extracted implementations in the EventHandlers partial
+        private void HandlePlacementsInitialized() => HandlePlacementsInitialized_Impl();
+
+        private void HandleUnitSelectionChanged(CharacterInstance unit, bool selected) =>
+            HandleUnitSelectionChanged_Impl(unit, selected);
+
+        private void HandleBrainPrepInitialized(BattlePreparationObject prep) =>
+            HandleBrainPrepInitialized_Impl(prep);
+
         private void RemoveModelMapping(GameObject model)
         {
             var keys = _unitModels.Where(kvp => kvp.Value == model).Select(kvp => kvp.Key).ToList();
             foreach (var key in keys)
             {
                 _unitModels.Remove(key);
-            }
-        }
-
-        private Coroutine _spawnDebounceCoroutine;
-        private readonly float _spawnDebounceSeconds = 0.06f;
-
-        private void HandlePlacementsInitialized()
-        {
-            // Debounce multiple rapid placements-initialized events
-            if (_spawnDebounceCoroutine != null)
-            {
-                StopCoroutine(_spawnDebounceCoroutine);
-            }
-            _spawnDebounceCoroutine = StartCoroutine(DebouncedSpawn());
-        }
-
-        private System.Collections.IEnumerator DebouncedSpawn()
-        {
-            yield return new WaitForSeconds(_spawnDebounceSeconds);
-
-            // Unsubscribe now that we're performing the final spawn
-            _prepObject.Brain.OnPlacementsInitialized -= HandlePlacementsInitialized;
-
-            if (_prepObject.placements != null && _prepObject.placements.Count > 0)
-            {
-                SpawnAllUnitModels();
-            }
-            _spawnDebounceCoroutine = null;
-        }
-
-        private void HandleUnitSelectionChanged(CharacterInstance unit, bool selected) =>
-            // Recompute placements only. SpawnAllUnitModels will be called from
-            // HandlePlacementsInitialized once placements are stable
-            _prepObject.InitializePlacements();
-
-        private void HandleBrainPrepInitialized(BattlePreparationObject prep)
-        {
-            if (prep != _prepObject)
-            {
-                return;
-            }
-
-            var brain = prep.Brain;
-            if (brain != null)
-            {
-                brain.OnBattlePrepObjectInitialized -= HandleBrainPrepInitialized;
-            }
-
-            SubscribeToEvents();
-            if (_prepObject.placements != null && _prepObject.placements.Count > 0)
-            {
-                SpawnAllUnitModels();
             }
         }
 
@@ -455,44 +444,6 @@ namespace Turnroot.UI.Components
             PublishMoveEvent(model, from, to);
 
             return OperationResult.Successful();
-        }
-
-        private void UpdateModelPosition(GameObject model, Vector2Int pos)
-        {
-            var worldPos = _mapGrid.GetTerrainAdjustedWorldPosition(pos);
-            model.transform.position = worldPos;
-        }
-
-        private void PublishSwapEvent(
-            GameObject modelA,
-            GameObject modelB,
-            Vector2Int posA,
-            Vector2Int posB
-        )
-        {
-            var idA = modelA.GetComponent<UnitModelOwnership>().UnitId;
-            var idB = modelB.GetComponent<UnitModelOwnership>().UnitId;
-
-            _prepObject.Brain?.Publish(
-                new Gameplay.Brain.Events.ModelSwappedEvent(idA, idB, posA, posB, modelA, modelB)
-            );
-        }
-
-        private void PublishMoveEvent(GameObject model, Vector2Int from, Vector2Int to)
-        {
-            var owner = model.GetComponent<UnitModelOwnership>();
-            var id = owner?.UnitId;
-            CharacterInstance inst = null;
-
-            if (!string.IsNullOrEmpty(id))
-            {
-                var all = _prepObject.Brain?.gamewideContextBrain?.GetAllActiveInstances();
-                inst = all?.FirstOrDefault(u => u != null && u.Id == id);
-            }
-
-            _prepObject.Brain?.Publish(
-                new Gameplay.Brain.Events.ModelMovedEvent(inst, id, from, to, model)
-            );
         }
 
         private void OnDestroy()

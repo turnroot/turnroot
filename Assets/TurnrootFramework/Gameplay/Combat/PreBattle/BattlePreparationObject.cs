@@ -25,7 +25,7 @@ namespace Turnroot.Gameplay.Combat.PreBattle
     /// Manages pre-battle preparation including unit selection, placement, and starting positions.
     /// </summary>
     [RequireComponent(typeof(EnvironmentalConditions))]
-    public class BattlePreparationObject : MonoBehaviour
+    public partial class BattlePreparationObject : MonoBehaviour
     {
         public Brain.Brain Brain { get; private set; }
 
@@ -52,6 +52,14 @@ namespace Turnroot.Gameplay.Combat.PreBattle
             EnvironmentalConditions = GetComponentInChildren<EnvironmentalConditions>(true);
             MapGrid = GetComponentInChildren<MapGrid>(true);
             PlayerTeamSpawnPoints = MapGrid.PlayerTeamSpawnPoints;
+
+            if (PlayerTeamSpawnPoints == null || PlayerTeamSpawnPoints.Count == 0)
+            {
+                TurnrootLogger.Log(
+                    "BattlePreparationObject.Initialize: PlayerTeamSpawnPoints is empty or missing. Verify the map's spawn point data.",
+                    TurnrootLogger.LogLevel.Warning
+                );
+            }
 
             // Copy MaxPlayerTeamUnits and RequiredPlayerUnits from a BattleGameObject when available.
             if (brain?.battleBrain?.BattleObject != null)
@@ -100,8 +108,17 @@ namespace Turnroot.Gameplay.Combat.PreBattle
         [HideInInspector]
         public Dictionary<Vector2Int, CharacterInstance> placements;
 
+        // Per-battle selection state: this is intentionally separate from CharacterInstance.IsSelectedForBattle
+        // so changing selections in the pre-battle UI does NOT mutate persistent roster selection state.
+        private readonly System.Collections.Generic.HashSet<string> _battleSelectedIds = new();
+
         private bool _isInitializingPlacements = false;
         private bool _needsReinitialize = false;
+
+        // Simplified approach: do not queue per-unit selection publishes during initialization.
+        // `InitializePlacements()` now only publishes PlacementsInitialized and does not fire
+        // `UnitSelectionChanged` for each unit. UI components should request reinitialization
+        // through debounced handlers instead of reacting to per-unit publishes.
 
         public OperationResult InitializePlacements()
         {
@@ -121,79 +138,80 @@ namespace Turnroot.Gameplay.Combat.PreBattle
                 var gw = Brain?.gamewideContextBrain;
                 var selectedUnits = gw?.GetSelectedForBattlePlayerTeamUnits();
 
-                // If no runtime selections are present, attempt to compute default selections from roster/templates.
-                if (selectedUnits == null || selectedUnits.Count == 0)
+                // If the player modified selections during this pre-battle session, honor the per-battle selections
+                var prep = Brain?.battleBrain?.PreparationObject;
+                if (prep != null && _battleSelectionsChanged)
                 {
-                    var persistent =
-                        gw?.GamewidePersistentPlayerRoster
-                        ?? gw?.CreateOrRecallGamewidePersistentPlayerRoster();
-                    var runtimeInstance =
-                        persistent != null ? gw.GetOrCreatePlayerTeamRoster(persistent) : null;
-                    var selectedTemplates =
-                        PreBattleSelectionHelper.EnsureDefaultPreBattleSelections(
-                            Brain,
-                            persistent,
-                            runtimeInstance,
-                            MaxPlayerTeamUnits,
-                            RequiredPlayerUnits
+                    var prepSelected = prep.GetBattleSelectedInstances();
+                    TurnrootLogger.Log(
+                        $"InitializePlacements: honoring per-battle selection changes (count={(prepSelected?.Count ?? 0)})",
+                        TurnrootLogger.LogLevel.Info
+                    );
+                    if (prepSelected == null || prepSelected.Count == 0)
+                    {
+                        // Player explicitly deselected all units for this battle
+                        placements = new System.Collections.Generic.Dictionary<
+                            Vector2Int,
+                            CharacterInstance
+                        >();
+                        StartingPositionsComponent?.DespawnAllModels();
+                        CurrentPlacementState = PlacementState.NonePlaced;
+                        Brain?.PublishPlacementsInitialized();
+                        _isInitializingPlacements = false;
+                        return OperationResult.Successful();
+                    }
+
+                    selectedUnits = prepSelected;
+                    TurnrootLogger.Log(
+                        "InitializePlacements: Using per-battle selection set:",
+                        TurnrootLogger.LogLevel.Info
+                    );
+                    foreach (var s in prepSelected)
+                    {
+                        TurnrootLogger.Log(
+                            $"  - {s?.CharacterTemplate?.DisplayName ?? "<null>"}",
+                            TurnrootLogger.LogLevel.Info
                         );
-
-                    if (selectedTemplates != null && selectedTemplates.Count > 0)
-                    {
-                        // Build selected units from templates by finding runtime instances.
-                        var tempList = new List<CharacterInstance>();
-                        var placementsArr =
-                            runtimeInstance != null
-                                ? runtimeInstance.GetPlacements()
-                                : persistent?.characters ?? new Characters.Roster.UnitPlacement[0];
-                        foreach (var p in placementsArr)
-                        {
-                            if (p == null || p.CharacterData == null)
-                            {
-                                continue;
-                            }
-
-                            if (selectedTemplates.Contains(p.CharacterData))
-                            {
-                                var inst =
-                                    runtimeInstance != null
-                                        ? runtimeInstance.GetInstanceFor(p.CharacterData)
-                                        : null;
-                                inst ??= gw?.FindInstanceByTemplate(p.CharacterData);
-                                if (inst != null)
-                                {
-                                    tempList.Add(inst);
-                                }
-                            }
-                        }
-
-                        selectedUnits = tempList;
                     }
                 }
 
-                if (selectedUnits == null || selectedUnits.Count == 0)
+                // First, attempt to load explicit placements from the runtime player roster instance (LTM/persisted placements)
+                var persistent =
+                    gw?.GamewidePersistentPlayerRoster
+                    ?? gw?.CreateOrRecallGamewidePersistentPlayerRoster();
+                var runtimeInstance =
+                    persistent != null ? gw.GetOrCreatePlayerTeamRoster(persistent) : null;
+
+                // Try an extracted helper to validate and apply runtime placements
+                if (TryUseRuntimePlacements(gw, persistent, runtimeInstance))
                 {
-                    return OperationResult.Failure("No units available for positioning");
+                    // The helper published placements; finish early.
+                    return OperationResult.Successful();
                 }
 
-                placements = new Dictionary<Vector2Int, CharacterInstance>();
-
-                // Place units at spawn points based on their roster order
-                for (int i = 0; i < selectedUnits.Count && i < PlayerTeamSpawnPoints.Count; i++)
+                // Compute the final selected units using extracted helper logic
+                var computeResult = ComputeFinalSelectedUnits(
+                    gw,
+                    persistent,
+                    runtimeInstance,
+                    (BattlePreparationObject)prep
+                );
+                if (!computeResult.hasSelection)
                 {
-                    if (i >= MaxPlayerTeamUnits)
-                    {
-                        break;
-                    }
-
-                    var spawnPos = PlayerTeamSpawnPoints[i];
-                    var unit = selectedUnits[i];
-
-                    placements[spawnPos] = unit;
+                    return computeResult.failure;
                 }
 
-                CurrentPlacementState = PlacementState.DefaultPlaced;
-                Brain?.PublishPlacementsInitialized();
+                var finalSelected = computeResult.finalSelected;
+
+                // Apply placements from the computed final selection using an extracted helper
+                ApplyPlacementsFromSelectedUnits(finalSelected);
+
+                // Do NOT publish per-unit `UnitSelectionChanged` here — that caused re-entrancy.
+                // UI updates should be driven by `PlacementsInitialized` (published above).
+                // This keeps initialization single-pass and prevents infinite re-entry loops.
+
+                // Do NOT sync placements into the runtime roster here; only persist on explicit commit (persist:true).
+                // This avoids overwriting the player's roster template during UI-only interactions.
             }
             finally
             {
@@ -206,6 +224,8 @@ namespace Turnroot.Gameplay.Combat.PreBattle
                 _needsReinitialize = false;
                 return InitializePlacements();
             }
+
+            // Flush complete; pending publishes have been delivered.
 
             return OperationResult.Successful();
         }
@@ -228,228 +248,184 @@ namespace Turnroot.Gameplay.Combat.PreBattle
         [HideInInspector]
         public bool CanSwap => selectedUnit != null && potentialSwapUnit != null;
 
-        public OperationResult PlaceUnit(Vector2Int pos, CharacterInstance unit)
-        {
-            if (!PlayerTeamSpawnPoints.Contains(pos))
-            {
-                return OperationResult.Failure("Cannot place unit: invalid position");
-            }
-            else
-            {
-                placements[pos] = unit;
-                return OperationResult.Successful();
-            }
-        }
-
-        public OperationResult SelectPosition(Vector2Int pos)
-        {
-            if (!PlayerTeamSpawnPoints.Contains(pos))
-            {
-                return OperationResult.Failure("Invalid position");
-            }
-
-            if (!placements.ContainsKey(pos))
-            {
-                return OperationResult.Failure("Cannot select empty position");
-            }
-
-            selectedPosition = pos;
-            selectedUnit = placements[pos];
-            TurnrootLogger.Log(
-                $"Selected unit: {selectedUnit.CharacterTemplate.DisplayName} at {pos}"
-            );
-
-            // Update visuals: position the selected projector and show unit data immediately
-            StartingPositionsComponent?.SetSelected(pos);
-
-            if (StartingPositionsComponent != null && selectedUnit != null)
-            {
-                var name = selectedUnit.CharacterTemplate?.DisplayName ?? "";
-                var currentClassInstance = selectedUnit.GetCurrentClass();
-                var className =
-                    currentClassInstance?.ClassData?.GetClassName()
-                    ?? selectedUnit.CharacterTemplate?.StartingClass?.Identity?.ClassName
-                    ?? "";
-                var portrait =
-                    selectedUnit.CharacterTemplate?.DefaultPortrait?.RuntimeSprite ?? null;
-
-                StartingPositionsComponent.SetSelectedUnit(name, className, portrait);
-            }
-
-            return OperationResult.Successful();
-        }
-
-        public OperationResult ClearSelection()
-        {
-            selectedPosition = null;
-            potentialSwapPosition = null;
-            selectedUnit = null;
-            potentialSwapUnit = null;
-            StartingPositionsComponent.Clears();
-            return OperationResult.Successful();
-        }
-
-        public OperationResult ExecutePositionAction()
-        {
-            // Called when second Confirm happens
-            if (
-                !ValidationHelper.ValidateNotNull(
-                    "BattlePreparationObject.ExecutePositionAction",
-                    (selectedPosition, nameof(selectedPosition)),
-                    (potentialSwapPosition, nameof(potentialSwapPosition))
-                )
-            )
-            {
-                return OperationResult.Failure("Invalid action state");
-            }
-
-            // Determine if target is occupied
-            bool targetOccupied = placements.ContainsKey(potentialSwapPosition.Value);
-
-            if (targetOccupied)
-            {
-                // Swap
-                StartingPositionsComponent.SetSwap(potentialSwapPosition.Value);
-                (placements[selectedPosition.Value], placements[potentialSwapPosition.Value]) = (
-                    placements[potentialSwapPosition.Value],
-                    placements[selectedPosition.Value]
-                );
-                StartingPositionsComponent.SwapModels(
-                    selectedPosition.Value,
-                    potentialSwapPosition.Value
-                );
-            }
-            else
-            {
-                // Move
-                StartingPositionsComponent.SetSelected(potentialSwapPosition.Value);
-                placements[potentialSwapPosition.Value] = placements[selectedPosition.Value];
-                placements.Remove(selectedPosition.Value);
-                StartingPositionsComponent.MoveModel(
-                    selectedPosition.Value,
-                    potentialSwapPosition.Value
-                );
-            }
-
-            ClearSelection();
-            CurrentPlacementState = PlacementState.PlayerPlaced; // Mark as modified
-
-            return OperationResult.Successful();
-        }
-
         /// <summary>
         /// Preview a potential swap/move to <paramref name="pos"/>. This updates
         /// swap projector and swap unit UI immediately without committing the action.
         /// If the target tile is empty, swap unit data is cleared. If the cursor
         /// is on the selected unit, the swap preview is cleared.
         /// </summary>
-        public OperationResult PreviewPotentialSwap(Vector2Int pos)
-        {
-            if (selectedPosition == null)
-            {
-                return OperationResult.Failure("No selected unit to preview against");
-            }
-
-            // Invalid positions (not a player spawn point) should clear preview
-            if (PlayerTeamSpawnPoints == null || !PlayerTeamSpawnPoints.Contains(pos))
-            {
-                potentialSwapPosition = null;
-                potentialSwapUnit = null;
-                StartingPositionsComponent?.ClearSwapPreview();
-                return OperationResult.Failure("Invalid position");
-            }
-
-            // If cursor is on the same tile as the selected unit, clear swap preview
-            if (pos == selectedPosition.Value)
-            {
-                potentialSwapPosition = null;
-                potentialSwapUnit = null;
-                StartingPositionsComponent?.SetSelected(selectedPosition.Value);
-                StartingPositionsComponent?.ClearSwapPreview();
-                return OperationResult.Successful();
-            }
-
-            potentialSwapPosition = pos;
-
-            // Show swap projector at the target
-            StartingPositionsComponent?.SetSwap(pos);
-
-            if (placements.ContainsKey(pos))
-            {
-                var unit = placements[pos];
-                potentialSwapUnit = unit;
-
-                // Prepare display data
-                var name = unit?.CharacterTemplate?.DisplayName ?? "";
-                var className =
-                    unit?.CurrentClassTemplate?.Identity?.ClassName
-                    ?? unit?.CharacterTemplate?.StartingClass?.Identity?.ClassName
-                    ?? "";
-                var portrait = unit?.CharacterTemplate?.DefaultPortrait?.RuntimeSprite ?? null;
-
-                StartingPositionsComponent?.SetSwapUnit(name, className, portrait);
-            }
-            else
-            {
-                potentialSwapUnit = null;
-                StartingPositionsComponent?.ClearSwapUnit();
-            }
-
-            return OperationResult.Successful();
-        }
-
-        private void HandleUnitSelectionChanged(CharacterInstance unit, bool selected)
-        {
-            // Recompute placements when selection changes
-            if (CurrentPlacementState is PlacementState.NonePlaced or PlacementState.DefaultPlaced)
-            {
-                InitializePlacements();
-            }
-        }
-
-        private void HandlePositioningModeEntered()
-        {
-            // Ensure there is a runtime player roster instance so selection queries work.
-            var gw = Brain?.gamewideContextBrain;
-            if (gw != null)
-            {
-                // Ensure the persistent player roster asset is present and has a runtime instance.
-                var persistent =
-                    gw.GamewidePersistentPlayerRoster
-                    ?? gw.CreateOrRecallGamewidePersistentPlayerRoster();
-                if (persistent != null)
-                {
-                    var rosterInstance = gw.GetOrCreatePlayerTeamRoster(persistent);
-                    PreBattleSelectionHelper.EnsureDefaultPreBattleSelections(
-                        Brain,
-                        persistent,
-                        rosterInstance,
-                        MaxPlayerTeamUnits,
-                        RequiredPlayerUnits
-                    );
-                }
-
-                var cameraBrain = Brain?.cameraBrain;
-                var cameraChildren = GetComponentsInChildren<Camera>();
-                foreach (var cam in cameraChildren)
-                {
-                    if (cam != null && cam.CompareTag("BattleMapCamera"))
-                    {
-                        cameraBrain.SetBattleMapCamera(cam);
-                        break;
-                    }
-                }
-                cameraBrain.MoveCameraToPosition(PlayerTeamSpawnPoints.FirstOrDefault());
-                InitializePlacements();
-            }
-        }
-
         private void OnDestroy()
         {
             if (Brain != null)
             {
                 Brain.OnUnitSelectionChanged -= HandleUnitSelectionChanged;
                 Brain.OnPositioningModeEntered -= HandlePositioningModeEntered;
+            }
+        }
+
+        // Per-battle selection API (does not mutate CharacterInstance.IsSelectedForBattle)
+        public bool IsBattleSelected(CharacterInstance inst) =>
+            inst != null && _battleSelectedIds.Contains(inst.Id);
+
+        private bool _battleSelectionsChanged = false; // Track whether user modified selections in this session
+
+        public void SetBattleSelected(
+            CharacterInstance inst,
+            bool selected,
+            bool publish = true,
+            bool markChanged = true
+        )
+        {
+            if (inst == null)
+            {
+                return;
+            }
+
+            if (selected)
+            {
+                _battleSelectedIds.Add(inst.Id);
+            }
+            else
+            {
+                _battleSelectedIds.Remove(inst.Id);
+            }
+
+            // Mark that selections were changed during this pre-battle session only when requested
+            if (markChanged)
+            {
+                _battleSelectionsChanged = true;
+            }
+
+            // Persist selection choice to LTM so the player's preference is remembered.
+            try
+            {
+                var template = inst.CharacterTemplate;
+                if (template != null && Brain?.ltm != null)
+                {
+                    // If this unit is required for the battle, don't overwrite LTM
+                    if (RequiredPlayerUnits == null || !RequiredPlayerUnits.Contains(template))
+                    {
+                        var key = LtmKeys.UnitSelectedForBattlePrefix + template.name;
+                        Brain.ltm.RememberBool(key, selected);
+                    }
+                }
+            }
+            catch { }
+
+            if (publish)
+            {
+                // Publish selection changes immediately — UI handlers should debounce if needed.
+                Brain?.PublishUnitSelectionChanged(inst, selected);
+            }
+        }
+
+        public System.Collections.Generic.List<CharacterInstance> GetBattleSelectedInstances()
+        {
+            var list = new System.Collections.Generic.List<CharacterInstance>();
+
+            // If we have explicitly selected ids for this session, resolve them against the
+            // game's active instances so selections are honored even if placements are currently empty.
+            if (_battleSelectedIds != null && _battleSelectedIds.Count > 0)
+            {
+                var gw = Brain?.gamewideContextBrain;
+                if (gw != null)
+                {
+                    var all = gw.GetAllActiveInstances();
+                    foreach (var inst in all)
+                    {
+                        if (inst != null && _battleSelectedIds.Contains(inst.Id))
+                        {
+                            list.Add(inst);
+                        }
+                    }
+
+                    // Also include any instances referenced in placements that might not be in the active list.
+                    if (placements != null)
+                    {
+                        foreach (var inst in placements.Values)
+                        {
+                            if (
+                                inst != null
+                                && _battleSelectedIds.Contains(inst.Id)
+                                && !list.Contains(inst)
+                            )
+                            {
+                                list.Add(inst);
+                            }
+                        }
+                    }
+
+                    return list;
+                }
+            }
+
+            // Fallback: if we don't have active instances available yet, use placements as the source.
+            if (placements == null || placements.Count == 0)
+            {
+                return list;
+            }
+
+            foreach (var inst in placements.Values)
+            {
+                if (inst != null && _battleSelectedIds.Contains(inst.Id))
+                {
+                    list.Add(inst);
+                }
+            }
+            return list;
+        }
+
+        // Apply the current placements into the runtime player roster instance. If persist is true,
+        // save the runtime roster into Long Term Memory so placements survive reloads and are used
+        // to initialize the battle roster later.
+        public void SyncPlacementsToRuntimeRoster(bool persist)
+        {
+            var gw = Brain?.gamewideContextBrain;
+            if (gw == null)
+            {
+                return;
+            }
+
+            var persistent =
+                gw.GamewidePersistentPlayerRoster
+                ?? gw.CreateOrRecallGamewidePersistentPlayerRoster();
+            if (persistent == null)
+            {
+                return;
+            }
+
+            var runtimeInstance = gw.GetOrCreatePlayerTeamRoster(persistent);
+            if (runtimeInstance == null)
+            {
+                return;
+            }
+
+            var list = new System.Collections.Generic.List<Characters.Roster.UnitPlacement>();
+            foreach (var kvp in placements)
+            {
+                var pos = kvp.Key;
+                var inst = kvp.Value;
+                if (inst == null || inst.CharacterTemplate == null)
+                {
+                    continue;
+                }
+
+                var up = new Characters.Roster.UnitPlacement
+                {
+                    CharacterData = inst.CharacterTemplate,
+                    SpawnPosition = pos,
+                    Order = list.Count,
+                };
+                up.SetStatus(Characters.Roster.UnitStatus.NotSpawned);
+                up.SetActiveRightNow(true);
+                list.Add(up);
+            }
+
+            runtimeInstance.ApplyDecodedPlacements(list.ToArray());
+
+            if (persist)
+            {
+                gw.SavePlayerRoster(lastSavedBattleTurn: 1);
             }
         }
     }

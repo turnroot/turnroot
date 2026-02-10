@@ -42,7 +42,7 @@ namespace Turnroot.Gameplay.Brain.Commands
             if (result.Success)
             {
                 unit.WasSpawnedDuringBattle = true;
-                unit.MapGridPosition = SpawnPosition;
+                // MapGrid.SetOccupied is authoritative and aligns the instance position. Do not set MapGridPosition directly here.
 
                 // Invalidate position cache after spawning
                 context.InvalidateUnitPositionCache();
@@ -67,7 +67,23 @@ namespace Turnroot.Gameplay.Brain.Commands
             if (result.Success)
             {
                 unit.WasSpawnedDuringBattle = false;
-                unit.MapGridPosition = (Vector2Int)from;
+
+                // Attempt to restore previous occupancy via MapGrid for authoritative consistency.
+                var fromPos = (Vector2Int)from;
+                var prevMgp = context.MapGrid.GetGridPoint(fromPos.x, fromPos.y);
+                if (prevMgp != null)
+                {
+                    context.MapGrid.SetOccupied(prevMgp, unit);
+                }
+                else
+                {
+                    TurnrootLogger.Log(
+                        "SpawnCommand.Undo: Prev grid point missing; falling back to direct MapGridPosition assignment",
+                        TurnrootLogger.LogLevel.Warning
+                    );
+                    unit.MapGridPosition = fromPos; // fallback
+                }
+
                 context.Brain?.Publish(new Events.UnitDespawnedEvent(unit, SpawnPosition));
                 context.Brain?.TakeSnapshot();
             }

@@ -69,9 +69,49 @@ namespace Turnroot.Gameplay.Brain
                 return;
             }
 
-            var battleContext = Brain.battleBrain.BattleObject.Context;
+            // Use PreparationObject.MapGrid for consistency with visual positioning
+            var mapGrid =
+                Brain.battleBrain.PreparationObject?.MapGrid
+                ?? Brain.battleBrain.BattleObject?.Context?.MapGrid;
             CursorOffset = Brain.uiBrain?.uiSettings?.BattleCursorOffset ?? Vector3.zero;
-            InitializeCursor(battleContext.MapGrid);
+
+            // Determine allowed cursor start positions from actual roster placements (battle roster > prep placements > spawn points)
+            System.Collections.Generic.List<Vector2Int> allowedPositions = null;
+            var playerRoster = Brain.battleBrain?.BattleObject?.PlayerTeamRoster;
+            var roPlacements = playerRoster?.GetPlacements();
+            if (roPlacements != null && roPlacements.Length > 0)
+            {
+                allowedPositions = new System.Collections.Generic.List<Vector2Int>();
+                foreach (var p in roPlacements)
+                {
+                    if (p != null)
+                    {
+                        allowedPositions.Add(p.SpawnPosition);
+                    }
+                }
+            }
+
+            if (allowedPositions == null || allowedPositions.Count == 0)
+            {
+                var prep = Brain.battleBrain?.PreparationObject;
+                if (prep?.placements != null && prep.placements.Count > 0)
+                {
+                    allowedPositions = new System.Collections.Generic.List<Vector2Int>(
+                        prep.placements.Keys
+                    );
+                }
+                else if (
+                    prep?.PlayerTeamSpawnPoints != null
+                    && prep.PlayerTeamSpawnPoints.Count > 0
+                )
+                {
+                    allowedPositions = new System.Collections.Generic.List<Vector2Int>(
+                        prep.PlayerTeamSpawnPoints
+                    );
+                }
+            }
+
+            InitializeCursor(mapGrid, allowedPositions);
         }
 
         private OperationResult InitializePreBattleCursor(MapGrid mapGrid)

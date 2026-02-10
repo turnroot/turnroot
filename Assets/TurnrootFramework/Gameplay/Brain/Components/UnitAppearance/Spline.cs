@@ -145,7 +145,8 @@ namespace Turnroot.Gameplay.Brain
             }
 
             modelToMove.transform.position = path[^1];
-            character.MapGridPosition = WorldPositionToGridPosition(path[^1]);
+            // Do NOT set `character.MapGridPosition` here — movement visuals must not mutate authoritative state.
+            // The `MapGrid` (via MoveCommand/SetOccupied) is responsible for updating instance positions.
 
             var finalTile = WorldPositionToGridPosition(path[^1]);
             if (finalTile != lastTilePos)

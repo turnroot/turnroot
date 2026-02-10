@@ -28,7 +28,9 @@ namespace Turnroot.Characters
     {
         #region Serialized Fields
         [NonSerialized]
-        private Vector2Int _mapGridPosition;
+        // Initialize to an explicit invalid sentinel so newly-created instances don't default to (0,0),
+        // which previously produced transient duplicate/invald positions before spawn/placement.
+        private Vector2Int _mapGridPosition = new Vector2Int(-9999, -9999);
 
         [NonSerialized]
         private bool _isDefeatedInCurrentBattle = false;
@@ -98,7 +100,17 @@ namespace Turnroot.Characters
         public Vector2Int MapGridPosition
         {
             get => _mapGridPosition;
-            set => _mapGridPosition = value;
+            set
+            {
+#if UNITY_EDITOR
+                // Emit a log when MapGridPosition is set directly so we can detect non-authoritative updates during debugging.
+                Turnroot.Utilities.TurnrootLogger.Log(
+                    $"CharacterInstance: Direct MapGridPosition set for {Id} to {value}",
+                    Turnroot.Utilities.TurnrootLogger.LogLevel.Info
+                );
+#endif
+                _mapGridPosition = value;
+            }
         }
         public GameObject CurrentWeaponPrefab
         {

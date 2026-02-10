@@ -306,7 +306,13 @@ namespace Turnroot.Gameplay.Combat
             {
                 Brain?.battleBrain?.ClearAICache();
             }
-            catch { }
+            catch (System.Exception ex)
+            {
+                TurnrootLogger.Log(
+                    "ClearAICache failed: " + ex.Message,
+                    TurnrootLogger.LogLevel.Warning
+                );
+            }
         }
 
         private void HandleMapStateChanged() => ClearAICache();

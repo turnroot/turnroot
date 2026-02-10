@@ -44,9 +44,18 @@ namespace Turnroot.Gameplay.Brain.Segments
                 return;
             }
 
-            // Apply toggle
+            // Apply toggle to UI
             item.IsSelectedForBattle = willSelect;
-            item.CharacterInstanceData.IsSelectedForBattle = willSelect;
+            // Apply toggle to the per-battle selection set when in pre-battle; otherwise mutate the instance flag
+            var prep = Brain?.battleBrain?.PreparationObject;
+            if (prep != null && item.CharacterInstanceData != null)
+            {
+                prep.SetBattleSelected(item.CharacterInstanceData, willSelect);
+            }
+            else if (item.CharacterInstanceData != null)
+            {
+                item.CharacterInstanceData.IsSelectedForBattle = willSelect;
+            }
 
             var uf = new UtilityFunctions();
             var selectedT = uf.FindChildByTag(unitCell, "UnitCellSelected");
@@ -81,7 +90,9 @@ namespace Turnroot.Gameplay.Brain.Segments
                 Brain.ltm.RememberBool(key, item.IsSelectedForBattle);
             }
 
-            if (item.CharacterInstanceData != null)
+            // Publish selection change to the rest of the system. When in pre-battle we already
+            // called `SetBattleSelected(...)` which publishes, so avoid double-publishing here.
+            if (item.CharacterInstanceData != null && prep == null)
             {
                 Brain.PublishUnitSelectionChanged(
                     item.CharacterInstanceData,

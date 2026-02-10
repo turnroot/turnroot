@@ -80,7 +80,13 @@ namespace Turnroot.Gameplay.Combat
                     MapGrid.OnStateVersionChanged -= HandleMapStateChanged;
                 }
             }
-            catch { }
+            catch (System.Exception ex)
+            {
+                TurnrootLogger.Log(
+                    "UnsubscribeFromMapChanges failed: " + ex.Message,
+                    TurnrootLogger.LogLevel.Warning
+                );
+            }
         }
 
         public OperationResult ConnectBattleConditionsToContext()
@@ -166,10 +172,12 @@ namespace Turnroot.Gameplay.Combat
 
             try
             {
-                Context.Initialize(Brain, MapGrid);
+                // Use PreparationObject.MapGrid if available for consistency
+                var mapGridToUse = Brain?.battleBrain?.PreparationObject?.MapGrid ?? MapGrid;
+                Context.Initialize(Brain, mapGridToUse);
                 SubscribeToMapChanges();
-                Brain.PublishBattleMapReady(MapGrid);
-                TileHighlighter.Initialize(Brain, MapGrid);
+                Brain.PublishBattleMapReady(mapGridToUse);
+                TileHighlighter.Initialize(Brain, mapGridToUse);
 
                 var loader = GetComponent<BattlePrecomputeLoader>();
                 if (loader != null)

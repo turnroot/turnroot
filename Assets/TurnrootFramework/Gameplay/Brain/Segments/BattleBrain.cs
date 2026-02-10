@@ -401,8 +401,164 @@ namespace Turnroot.Gameplay.Brain
                 var characterData = p.CharacterData;
                 var characterInstance = playerTeamRoster.GetInstanceFor(characterData);
                 var placement = p;
-                BattleObject.Context.SpawnAtPosition(characterInstance, placement.SpawnPosition);
+
+                // Avoid double-spawning: if the unit was already spawned during HandleBattleStarted
+                // and its MapGridPosition matches the intended placement, skip spawning here.
+                if (characterInstance != null && characterInstance.WasSpawnedDuringBattle)
+                {
+                    if (characterInstance.MapGridPosition == placement.SpawnPosition)
+                    {
+                        TurnrootLogger.Log(
+                            $"SpawnRosterUnitsOntoGrid: Skipping spawn for {characterInstance.CharacterTemplate.DisplayName} - already spawned at {placement.SpawnPosition}",
+                            TurnrootLogger.LogLevel.Info
+                        );
+                        playerTeamRoster.SetOrder(characterData, placement.Order);
+                        continue;
+                    }
+                    else
+                    {
+                        // Mismatch detected: log and repair occupying grid so occupancy and instance position align.
+                        TurnrootLogger.Log(
+                            $"SpawnRosterUnitsOntoGrid: Repairing {characterInstance.CharacterTemplate.DisplayName} MapGridPosition from {characterInstance.MapGridPosition} to {placement.SpawnPosition}",
+                            TurnrootLogger.LogLevel.Warning
+                        );
+
+                        try
+                        {
+                            var oldP = characterInstance.UnitPositionToMapGridPoint(
+                                characterInstance.MapGridPosition,
+                                BattleObject.Context.MapGrid
+                            );
+                            if (oldP != null)
+                            {
+                                BattleObject.Context.MapGrid.RemoveOccupied(oldP);
+                            }
+                        }
+                        catch (System.Exception ex)
+                        {
+                            TurnrootLogger.Log(
+                                "SpawnRosterUnitsOntoGrid: Failed during RemoveOccupied cleanup: "
+                                    + ex.Message,
+                                TurnrootLogger.LogLevel.Warning
+                            );
+                        }
+
+                        try
+                        {
+                            var newMgp = BattleObject.Context.MapGrid.GetGridPoint(
+                                placement.SpawnPosition.x,
+                                placement.SpawnPosition.y
+                            );
+                            if (newMgp != null)
+                            {
+                                BattleObject.Context.MapGrid.SetOccupied(newMgp, characterInstance);
+                            }
+                            else
+                            {
+                                // Fallback: set instance position directly when MapGrid lookup fails.
+                                // TODO: Prefer SetOccupied as authoritative. This direct write is an allowed fallback.
+                                characterInstance.MapGridPosition = placement.SpawnPosition; // fallback
+                            }
+                        }
+                        catch (System.Exception ex)
+                        {
+                            TurnrootLogger.Log(
+                                "SpawnRosterUnitsOntoGrid: Failed to align spawn position: "
+                                    + ex.Message,
+                                TurnrootLogger.LogLevel.Warning
+                            );
+                            // Keep fallback to ensure the instance has a position so the game can continue.
+                            characterInstance.MapGridPosition = placement.SpawnPosition;
+                        }
+                    }
+                }
+
+                var spawned = BattleObject.Context.SpawnAtPosition(
+                    characterInstance,
+                    placement.SpawnPosition
+                );
+                if (!spawned)
+                {
+                    TurnrootLogger.Log(
+                        $"SpawnRosterUnitsOntoGrid: SpawnAtPosition failed for {characterData?.DisplayName} at {placement.SpawnPosition}",
+                        TurnrootLogger.LogLevel.Warning
+                    );
+                }
+
                 playerTeamRoster.SetOrder(characterData, placement.Order);
+            }
+
+            // Final verification pass: ensure all roster instances have MapGridPosition matching placements.
+            try
+            {
+                var placementsArr = playerTeamRoster.GetPlacements();
+                foreach (var ap in placementsArr)
+                {
+                    var inst = playerTeamRoster.GetInstanceFor(ap.CharacterData);
+                    if (inst == null)
+                        continue;
+                    if (inst.MapGridPosition != ap.SpawnPosition)
+                    {
+                        TurnrootLogger.Log(
+                            $"SpawnRosterUnitsOntoGrid: Post-check repair for {inst.CharacterTemplate.DisplayName} from {inst.MapGridPosition} to {ap.SpawnPosition}",
+                            TurnrootLogger.LogLevel.Warning
+                        );
+
+                        try
+                        {
+                            var oldP = inst.UnitPositionToMapGridPoint(
+                                inst.MapGridPosition,
+                                BattleObject.Context.MapGrid
+                            );
+                            if (oldP != null)
+                            {
+                                BattleObject.Context.MapGrid.RemoveOccupied(oldP);
+                            }
+                        }
+                        catch (System.Exception ex)
+                        {
+                            TurnrootLogger.Log(
+                                "SpawnRosterUnitsOntoGrid: Post-check RemoveOccupied failed: "
+                                    + ex.Message,
+                                TurnrootLogger.LogLevel.Warning
+                            );
+                        }
+
+                        try
+                        {
+                            var newMgp = BattleObject.Context.MapGrid.GetGridPoint(
+                                ap.SpawnPosition.x,
+                                ap.SpawnPosition.y
+                            );
+                            if (newMgp != null)
+                            {
+                                BattleObject.Context.MapGrid.SetOccupied(newMgp, inst);
+                            }
+                            else
+                            {
+                                // Fallback: set instance position directly when MapGrid lookup fails.
+                                // TODO: Prefer SetOccupied as authoritative. This direct write is an allowed fallback.
+                                inst.MapGridPosition = ap.SpawnPosition; // fallback
+                            }
+                        }
+                        catch (System.Exception ex)
+                        {
+                            TurnrootLogger.Log(
+                                "SpawnRosterUnitsOntoGrid: Post-check alignment failed: "
+                                    + ex.Message,
+                                TurnrootLogger.LogLevel.Warning
+                            );
+                            inst.MapGridPosition = ap.SpawnPosition;
+                        }
+                    }
+                }
+            }
+            catch (System.Exception ex)
+            {
+                TurnrootLogger.Log(
+                    "SpawnRosterUnitsOntoGrid: Unexpected error during spawn pass: " + ex.Message,
+                    TurnrootLogger.LogLevel.Warning
+                );
             }
 
             BattleObject.Context.InvalidateUnitPositionCache();
@@ -470,7 +626,7 @@ namespace Turnroot.Gameplay.Brain
                 var newPoint = unit.UnitPositionToMapGridPoint(target, mapGrid);
                 mapGrid.RemoveOccupied(oldPoint);
                 mapGrid.SetOccupied(newPoint, unit);
-                unit.MapGridPosition = target;
+                // MapGrid.SetOccupied is authoritative and will align the instance MapGridPosition; avoid writing it directly here.
                 BattleObject.Context.InvalidateUnitTileCache(unit);
                 BattleObject.Context.InvalidateUnitPositionCache();
 

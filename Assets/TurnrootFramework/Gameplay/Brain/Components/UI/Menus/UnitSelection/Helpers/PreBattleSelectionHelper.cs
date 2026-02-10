@@ -121,10 +121,27 @@ namespace Turnroot.Gameplay.Brain
 
                 if (inst != null)
                 {
-                    if (inst.IsSelectedForBattle != desired)
+                    var prep = brain.battleBrain?.PreparationObject;
+                    if (prep != null)
                     {
-                        inst.IsSelectedForBattle = desired;
-                        brain.PublishUnitSelectionChanged(inst, desired);
+                        if (prep.IsBattleSelected(inst) != desired)
+                        {
+                            // This is the default auto-selection path; do not mark these as user session changes
+                            prep.SetBattleSelected(
+                                inst,
+                                desired,
+                                publish: true,
+                                markChanged: false
+                            );
+                        }
+                    }
+                    else
+                    {
+                        if (inst.IsSelectedForBattle != desired)
+                        {
+                            inst.IsSelectedForBattle = desired;
+                            brain.PublishUnitSelectionChanged(inst, desired);
+                        }
                     }
                 }
             }

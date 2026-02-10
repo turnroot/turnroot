@@ -86,7 +86,40 @@ namespace Turnroot.Gameplay.Maps
 
             if (_cachedGridPoints?.TryGetValue(key, out var mgp) == true)
             {
+                // If we are overwriting an existing occupant log it to help diagnose conflicting writes.
+                if (mgp.CurrentInstance != null && mgp.CurrentInstance != occupier)
+                {
+                    TurnrootLogger.Log(
+                        $"MapGrid: Overwriting occupant at ({mgp.Row}, {mgp.Col}) - {mgp.CurrentInstance.Id} -> {occupier?.Id}",
+                        TurnrootLogger.LogLevel.Warning
+                    );
+                }
+
                 mgp.CurrentInstance = occupier;
+
+                // Ensure the occupier's logical position matches the grid point. Some callers relied only
+                // on SetOccupied and forgot to set the instance MapGridPosition, causing inconsistencies
+                // where the grid reported a unit present but the instance had a default/incorrect position.
+                try
+                {
+                    var newPos = new Vector2Int(mgp.Row, mgp.Col);
+                    if (occupier != null && occupier.MapGridPosition != newPos)
+                    {
+                        TurnrootLogger.Log(
+                            $"MapGrid: Aligning {occupier.Id} MapGridPosition from {occupier.MapGridPosition} to {newPos}",
+                            TurnrootLogger.LogLevel.Info
+                        );
+                        occupier.MapGridPosition = newPos;
+                    }
+                }
+                catch (System.Exception ex)
+                {
+                    TurnrootLogger.Log(
+                        $"MapGrid: Failed to align MapGridPosition for {occupier?.Id ?? "<null>"}: {ex.Message}",
+                        TurnrootLogger.LogLevel.Warning
+                    );
+                }
+
                 IncrementStateVersion();
                 return OperationResult.Successful();
             }
@@ -103,7 +136,12 @@ namespace Turnroot.Gameplay.Maps
 
             if (_cachedGridPoints?.TryGetValue(key, out var mgp) == true)
             {
+                var prev = mgp.CurrentInstance;
                 mgp.CurrentInstance = null;
+                TurnrootLogger.Log(
+                    $"MapGrid: Removed occupant at ({mgp.Row}, {mgp.Col}) - prev={prev?.Id ?? "<none>"}",
+                    TurnrootLogger.LogLevel.Info
+                );
                 IncrementStateVersion();
                 return OperationResult.Successful();
             }

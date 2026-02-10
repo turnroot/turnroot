@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Linq;
 using Turnroot.Gameplay.Brain;
 using Turnroot.Gameplay.Maps;
 using Turnroot.GameSettings;
@@ -144,6 +145,55 @@ namespace Turnroot.Gameplay.Combat.Precompute
 
             // Only precompute units that were spawned/selected for this battle
             var units = FilterSpawnedUnits(context?.Participants?.GetAllUnits());
+
+            // Validate and repair unit positions where possible to avoid inconsistent precompute
+            if (units != null && units.Count > 0)
+            {
+                var toRemove = new System.Collections.Generic.List<Characters.CharacterInstance>();
+                foreach (
+                    var unit in new System.Collections.Generic.List<Characters.CharacterInstance>(
+                        units
+                    )
+                )
+                {
+                    var gp = context.MapGrid?.GetGridPoint(
+                        unit.MapGridPosition.x,
+                        unit.MapGridPosition.y
+                    );
+                    if (gp == null)
+                    {
+                        var rosterPlacements =
+                            _brain?.battleBrain?.PlayerTeamRoster?.GetPlacements();
+                        var matching = rosterPlacements?.FirstOrDefault(p =>
+                            p.CharacterData == unit.CharacterTemplate
+                        );
+                        if (matching != null)
+                        {
+                            unit.MapGridPosition = matching.SpawnPosition;
+                            var newGp = context.MapGrid?.GetGridPoint(
+                                matching.SpawnPosition.x,
+                                matching.SpawnPosition.y
+                            );
+                            if (newGp != null)
+                            {
+                                newGp.CurrentInstance = unit;
+                                TurnrootLogger.Log(
+                                    $"BattlePrecomputeLoader: Repaired unit {unit.Id} position to {matching.SpawnPosition}",
+                                    TurnrootLogger.LogLevel.Info
+                                );
+                                continue;
+                            }
+                        }
+                        TurnrootLogger.Log(
+                            $"BattlePrecomputeLoader: Unit {unit.Id} has invalid map position {unit.MapGridPosition}",
+                            TurnrootLogger.LogLevel.Warning
+                        );
+                        toRemove.Add(unit);
+                    }
+                }
+                foreach (var r in toRemove)
+                    units.Remove(r);
+            }
 
             int taskCount = CalculateTaskCount(units, appearanceBrain);
             if (taskCount == 0)
@@ -372,6 +422,35 @@ namespace Turnroot.Gameplay.Combat.Precompute
                             }
 
                             list[i] = recalled;
+
+                            // If there is a BattlePreparationObject, update its placements to reference
+                            // the recalled instance so prebattle/battle references stay consistent.
+                            var prep = _brain.battleBrain?.PreparationObject;
+                            if (prep != null && prep.placements != null)
+                            {
+                                var keysToUpdate = prep
+                                    .placements.Where(kvp =>
+                                        kvp.Value != null && kvp.Value.CharacterTemplate == template
+                                    )
+                                    .Select(kvp => kvp.Key)
+                                    .ToList();
+                                foreach (var k in keysToUpdate)
+                                {
+                                    prep.placements[k] = recalled;
+                                }
+                                try
+                                {
+                                    prep.SyncPlacementsToRuntimeRoster(persist: true);
+                                }
+                                catch (System.Exception ex)
+                                {
+                                    TurnrootLogger.Log(
+                                        "BattlePrecomputeLoader: SyncPlacementsToRuntimeRoster failed: "
+                                            + ex.Message,
+                                        TurnrootLogger.LogLevel.Warning
+                                    );
+                                }
+                            }
                         }
 
                         var currentAfterRecall = list[i];
