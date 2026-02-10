@@ -166,9 +166,12 @@ namespace Turnroot.Gameplay.Combat.PreBattle
         private bool IsPlayerSpawnPoint(Vector2Int pos) =>
             PlayerTeamSpawnPoints != null && PlayerTeamSpawnPoints.Contains(pos);
 
-        // Helper: safe lookup for placements
-        private bool TryGetPlacement(Vector2Int pos, out CharacterInstance unit) =>
-            placements.TryGetValue(pos, out unit);
+        // Helper: safe lookup for placements (null-safe)
+        private bool TryGetPlacement(Vector2Int pos, out CharacterInstance unit)
+        {
+            unit = null;
+            return placements != null && placements.TryGetValue(pos, out unit);
+        }
 
         // Helper: update selected projector visuals and unit data display
         private void UpdateSelectedVisual(Vector2Int pos, CharacterInstance unit)

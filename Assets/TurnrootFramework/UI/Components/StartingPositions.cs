@@ -319,15 +319,9 @@ namespace Turnroot.UI.Components
             }
         }
 
-        private void CleanupOrphanedModels()
-        {
-            CleanupOrphanedModels_Impl();
-        }
+        private void CleanupOrphanedModels() => CleanupOrphanedModels_Impl();
 
-        private void DespawnExistingModels()
-        {
-            DespawnExistingModels_Impl();
-        }
+        private void DespawnExistingModels() => DespawnExistingModels_Impl();
 
         private void DestroyModel(GameObject model)
         {

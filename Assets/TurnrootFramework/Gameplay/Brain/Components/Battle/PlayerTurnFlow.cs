@@ -57,10 +57,7 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
             }
         }
 
-        private void OnDestroy()
-        {
-            CleanupBattle();
-        }
+        private void OnDestroy() => CleanupBattle();
 
         /// <summary>
         /// Cleanup method to be called when battle ends.
@@ -97,20 +94,11 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
             );
         }
 
-        public void DeselectUnit()
-        {
-            TransitionAndPublish(PlayerTurnStates.NoUnitSelected);
-        }
+        public void DeselectUnit() => TransitionAndPublish(PlayerTurnStates.NoUnitSelected);
 
-        public void ActionChosen(PlayerTurnStates actionState)
-        {
-            TransitionAndPublish(actionState);
-        }
+        public void ActionChosen(PlayerTurnStates actionState) => TransitionAndPublish(actionState);
 
-        public void SelectTargetOrDestination(PlayerTurnStates targetSelectedState)
-        {
-            TransitionAndPublish(targetSelectedState);
-        }
+        public void SelectTargetOrDestination(PlayerTurnStates targetSelectedState) => TransitionAndPublish(targetSelectedState);
 
         public void SelectDestination(MapGridPoint destination)
         {
@@ -204,18 +192,13 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
             );
         }
 
-        public void CancelTargetOrDestinationChoice(PlayerTurnStates actionChoosingState)
-        {
-            TransitionAndPublish(actionChoosingState);
-        }
+        public void CancelTargetOrDestinationChoice(PlayerTurnStates actionChoosingState) => TransitionAndPublish(actionChoosingState);
 
-        public void EndTurn()
-        {
+        public void EndTurn() =>
             // Note: This direct EndTurn bypasses interrupt checking.
             // For wait actions, use WaitAndEndTurn() instead.
             // PlayerTurnEnded is published by TurnRotisserie.ProgressToNextPhase()
             TransitionAndPublish(PlayerTurnStates.TurnEnded);
-        }
 
         private void HandlePlayerUndoAction()
         {

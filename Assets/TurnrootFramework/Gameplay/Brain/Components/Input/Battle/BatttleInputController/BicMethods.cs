@@ -500,10 +500,7 @@ namespace Turnroot.Gameplay.Brain
             RequestUndo();
         }
 
-        public void OpenActionMenu()
-        {
-            _playerTurnFlow.ActionChosen(PlayerTurnStates.ChoosingAction);
-        }
+        public void OpenActionMenu() => _playerTurnFlow.ActionChosen(PlayerTurnStates.ChoosingAction);
 
         private OperationResult ComputeValidTiles(CharacterInstance unit)
         {

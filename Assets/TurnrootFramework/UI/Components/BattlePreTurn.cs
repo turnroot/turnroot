@@ -74,10 +74,7 @@ namespace Turnroot.UI.Components
             UpdateTurnText();
         }
 
-        private void HandleTurnBegin()
-        {
-            TurnNumber++;
-        }
+        private void HandleTurnBegin() => TurnNumber++;
 
         public void Initialize(BattleBrain brain)
         {
