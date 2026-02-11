@@ -30,7 +30,7 @@ namespace Turnroot.Skills.Nodes.Events
 
             int gold = (int)GetInputFloat("goldAmount", testGold);
 
-            context.Brain?.PublishGoldGained(gold);
+            context.Brain.PublishGoldGained(gold);
 
             TurnrootLogger.Log($"GainGold: Player gained {gold} gold");
         }

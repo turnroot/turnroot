@@ -53,7 +53,7 @@ namespace Turnroot.Gameplay.Brain
         /// <summary>Execute a command and add it to history.</summary>
         public bool ExecuteCommand(ICommand command)
         {
-            var context = battleBrain?.BattleObject?.Context;
+            var context = battleBrain.BattleObject.Context;
             return context == null
                 ? OperationResult.Failure("No active battle context.").Success
                 : Commands.Execute(command, context);
@@ -62,14 +62,14 @@ namespace Turnroot.Gameplay.Brain
         /// <summary>Undo the last executed command.</summary>
         public bool UndoCommand()
         {
-            var context = battleBrain?.BattleObject?.Context;
+            var context = battleBrain.BattleObject.Context;
             return context == null ? false : Commands.Undo(context);
         }
 
         /// <summary>Redo the last undone command.</summary>
         public bool RedoCommand()
         {
-            var context = battleBrain?.BattleObject?.Context;
+            var context = battleBrain.BattleObject.Context;
             return context != null && Commands.Redo(context);
         }
 
@@ -85,37 +85,38 @@ namespace Turnroot.Gameplay.Brain
         /// <summary>Take a snapshot of the current battle state.</summary>
         public Snapshot TakeSnapshot()
         {
-            var context = battleBrain?.BattleObject?.Context;
+            var context = battleBrain.BattleObject.Context;
             if (context == null)
             {
                 _ = OperationResult.Failure("No active battle context.");
                 return null;
             }
-            var turn = battleBrain?.CurrentTurnNumber ?? 0;
+            var turn = battleBrain.CurrentTurnNumber;
             return Snapshots.Take(context, GetAllBattleCharacters(), turn);
         }
 
         /// <summary>Restore the most recent snapshot.</summary>
         public bool RestoreSnapshot()
         {
-            var context = battleBrain?.BattleObject?.Context;
+            var context = battleBrain.BattleObject.Context;
             return context != null && Snapshots.RestoreLast(context, GetAllBattleCharacters());
         }
 
         private IEnumerable<CharacterInstance> GetAllBattleCharacters()
         {
             var characters = new List<CharacterInstance>();
-            if (battleBrain?.PlayerTeamRoster?.Instances != null)
+
+            if (battleBrain.PlayerTeamRoster?.Instances != null)
             {
                 characters.AddRange(battleBrain.PlayerTeamRoster.Instances);
             }
 
-            if (battleBrain?.EnemyTeamRoster?.Instances != null)
+            if (battleBrain.EnemyTeamRoster?.Instances != null)
             {
                 characters.AddRange(battleBrain.EnemyTeamRoster.Instances);
             }
 
-            if (battleBrain?.ThirdPartyTeamRoster?.Instances != null)
+            if (battleBrain.ThirdPartyTeamRoster?.Instances != null)
             {
                 characters.AddRange(battleBrain.ThirdPartyTeamRoster.Instances);
             }
@@ -141,9 +142,9 @@ namespace Turnroot.Gameplay.Brain
         private void CleanupAdvancedSystems()
         {
             OnTurnEnded -= HandleTurnEnd;
-            _eventBus?.ClearAllSubscriptions();
-            _commandHistory?.Clear();
-            _snapshots?.Clear();
+            _eventBus.ClearAllSubscriptions();
+            _commandHistory.Clear();
+            _snapshots.Clear();
         }
 
         #endregion

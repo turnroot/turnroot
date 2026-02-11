@@ -58,14 +58,14 @@ namespace Turnroot.UI.Components
                 playerTeamRoster,
                 playerTeamRosterInstance,
                 MaxSelectedUnits,
-                _brain?.battleBrain?.PreparationObject?.RequiredPlayerUnits
+                _brain.battleBrain.PreparationObject?.RequiredPlayerUnits
             );
 
             int unitCount = units.Length;
             var u = LtmKeys.UnitSelectedForBattlePrefix;
             var keys = LongTermMemory?.RecallKeysByPrefix(u) ?? new List<string>();
             MaxSelectedUnits =
-                _brain?.battleBrain?.PreparationObject?.MaxPlayerTeamUnits ?? MaxSelectedUnits;
+                _brain.battleBrain.PreparationObject?.MaxPlayerTeamUnits ?? MaxSelectedUnits;
             var keysSet = new HashSet<string>(keys);
 
             // Count currently selected units only among units present in this roster (prefer runtime instance state, fall back to LTM)
@@ -238,8 +238,8 @@ namespace Turnroot.UI.Components
             {
                 var inst = gridMenuItem.CharacterInstanceData;
                 var className =
-                    inst?.GetCurrentClass()?.ClassData?.Identity?.ClassName
-                    ?? inst?.CharacterTemplate?.StartingClass?.Identity?.ClassName
+                    inst?.GetCurrentClass()?.ClassData.Identity.ClassName
+                    ?? inst?.CharacterTemplate?.StartingClass?.Identity.ClassName
                     ?? "n/a";
                 classLbl.text = className;
             }
@@ -272,7 +272,7 @@ namespace Turnroot.UI.Components
             }
 
             var key = prefix + unit.CharacterData.name;
-            var prep = _brain?.battleBrain?.PreparationObject;
+            var prep = _brain.battleBrain.PreparationObject;
             var isSelected = false;
             if (gridMenuItem.CharacterInstanceData != null)
             {

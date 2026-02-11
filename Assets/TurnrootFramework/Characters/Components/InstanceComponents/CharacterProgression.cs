@@ -35,7 +35,7 @@ namespace Turnroot.Characters
             var growthRates = GetEffectiveGrowthRates();
 
             var caps =
-                _currentClass?.ClassData?.Stats?.UnboundedStatCaps
+                _currentClass?.ClassData.Stats?.UnboundedStatCaps
                 ?? new List<UnboundedStatModifier>();
 
             var increasedStats = StatApplicationHelper.ApplyStatGrowths(
@@ -62,7 +62,7 @@ namespace Turnroot.Characters
                 effectiveRates.AddRange(_characterTemplate.PersonalGrowthRates);
             }
 
-            var classMods = _currentClass?.ClassData?.Stats?.GrowthRateModifiers;
+            var classMods = _currentClass?.ClassData.Stats?.GrowthRateModifiers;
             if (classMods != null)
             {
                 foreach (var classMod in classMods)

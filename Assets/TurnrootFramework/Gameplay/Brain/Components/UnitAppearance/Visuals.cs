@@ -142,7 +142,7 @@ namespace Turnroot.Gameplay.Brain
 
         private void ApplyClassTextures(Material material, CharacterClassDataInstance classInst)
         {
-            var identity = classInst?.ClassData?.Identity;
+            var identity = classInst?.ClassData.Identity;
 
             if (identity == null)
             {

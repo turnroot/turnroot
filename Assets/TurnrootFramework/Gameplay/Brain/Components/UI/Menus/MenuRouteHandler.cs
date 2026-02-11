@@ -54,7 +54,7 @@ namespace Turnroot.Gameplay.Brain.Segments
             }
 
             // Debounce rapid repeated selections to avoid accidental double-activation
-            if (UnityEngine.Time.time - _lastSelectTime < SelectDebounceSeconds)
+            if (Time.time - _lastSelectTime < SelectDebounceSeconds)
             {
                 return;
             }

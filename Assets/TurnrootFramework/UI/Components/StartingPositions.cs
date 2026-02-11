@@ -86,7 +86,7 @@ namespace Turnroot.UI.Components
         {
             if (!_gridPointsEnsured)
             {
-                _mapGrid?.EnsureGridPoints();
+                _mapGrid.EnsureGridPoints();
                 _gridPointsEnsured = true;
             }
 
@@ -127,12 +127,18 @@ namespace Turnroot.UI.Components
                 var anyBrain = FindFirstObjectByType<Brain>();
                 if (anyBrain != null)
                 {
+                    // Ensure single subscription
+                    anyBrain.OnBattlePrepObjectInitialized -= HandleBrainPrepInitialized;
                     anyBrain.OnBattlePrepObjectInitialized += HandleBrainPrepInitialized;
                 }
                 return;
             }
 
+            // Make subscription idempotent to avoid duplicate handlers when UI is opened multiple times.
+            _prepObject.Brain.OnPlacementsInitialized -= HandlePlacementsInitialized;
             _prepObject.Brain.OnPlacementsInitialized += HandlePlacementsInitialized;
+
+            _prepObject.Brain.OnUnitSelectionChanged -= HandleUnitSelectionChanged;
             _prepObject.Brain.OnUnitSelectionChanged += HandleUnitSelectionChanged;
         }
 
@@ -144,7 +150,7 @@ namespace Turnroot.UI.Components
                 anyBrain.OnBattlePrepObjectInitialized -= HandleBrainPrepInitialized;
             }
 
-            if (_prepObject?.Brain == null)
+            if (_prepObject.Brain == null)
             {
                 return;
             }
@@ -235,75 +241,10 @@ namespace Turnroot.UI.Components
                 _gridPointsEnsured = true;
             }
 
-            CleanupOrphanedModels();
-            DespawnExistingModels();
-
+            // Primary work (cleanup + spawn) is performed by SpawnAllUnitModels_Impl.
             TurnrootLogger.Log(
-                $"SpawnAllUnitModels: spawn points={_prepObject.PlayerTeamSpawnPoints?.Count ?? 0}, placements={_prepObject.placements?.Count ?? 0}"
+                $"SpawnAllUnitModels: spawn points={_prepObject.PlayerTeamSpawnPoints.Count}, placements={_prepObject.placements.Count}"
             );
-
-            // Check for duplicate spawn points
-            if (
-                _prepObject.PlayerTeamSpawnPoints != null
-                && _prepObject.PlayerTeamSpawnPoints.Count
-                    != _prepObject.PlayerTeamSpawnPoints.Distinct().Count()
-            )
-            {
-                TurnrootLogger.Log(
-                    "SpawnAllUnitModels: Duplicate PlayerTeamSpawnPoints detected",
-                    TurnrootLogger.LogLevel.Warning
-                );
-            }
-
-            foreach (var placement in _prepObject.placements)
-            {
-                var unit = placement.Value;
-                var pos = placement.Key;
-
-                // Only spawn if the position is a valid player spawn point
-                if (
-                    _prepObject.PlayerTeamSpawnPoints == null
-                    || !_prepObject.PlayerTeamSpawnPoints.Contains(pos)
-                )
-                {
-                    TurnrootLogger.Log(
-                        $"SpawnAllUnitModels: Skipping spawn for {unit?.CharacterTemplate?.DisplayName ?? "<null>"} at {pos} - not a valid player spawn point",
-                        TurnrootLogger.LogLevel.Warning
-                    );
-                    continue;
-                }
-
-                var spawnResult = _prepObject.Brain.unitAppearanceBrain.SpawnUnitAtPosition(
-                    unit: placement.Value,
-                    position: placement.Key,
-                    prebattle: true
-                );
-                if (!spawnResult.Success)
-                {
-                    TurnrootLogger.Log(
-                        $"SpawnAllUnitModels: Failed to spawn at {placement.Key}: {spawnResult.ErrorMessage}",
-                        TurnrootLogger.LogLevel.Warning
-                    );
-                    continue;
-                }
-
-                // Track the spawned model in our local dictionary
-                var model = _prepObject.Brain.unitAppearanceBrain.GetModelForUnit(unit.Id);
-                if (model != null)
-                {
-                    _unitModels[placement.Key] = model;
-                    TurnrootLogger.Log(
-                        $"SpawnAllUnitModels: Model spawned for {unit?.CharacterTemplate?.DisplayName} at {placement.Key}"
-                    );
-                }
-                else
-                {
-                    TurnrootLogger.Log(
-                        $"SpawnAllUnitModels: Model spawned but not found for {unit?.CharacterTemplate?.DisplayName} at {placement.Key}",
-                        TurnrootLogger.LogLevel.Warning
-                    );
-                }
-            }
         }
 
         private void CleanupOrphanedModels() => CleanupOrphanedModels_Impl();

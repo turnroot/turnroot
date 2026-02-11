@@ -173,7 +173,7 @@ namespace Turnroot.Gameplay.Combat
             try
             {
                 // Use PreparationObject.MapGrid if available for consistency
-                var mapGridToUse = Brain?.battleBrain?.PreparationObject?.MapGrid ?? MapGrid;
+                var mapGridToUse = Brain?.battleBrain.PreparationObject?.MapGrid ?? MapGrid;
                 Context.Initialize(Brain, mapGridToUse);
                 SubscribeToMapChanges();
                 Brain.PublishBattleMapReady(mapGridToUse);

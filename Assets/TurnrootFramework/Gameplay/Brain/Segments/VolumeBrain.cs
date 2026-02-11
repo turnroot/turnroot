@@ -96,7 +96,7 @@ namespace Turnroot.Gameplay.Brain
         private void ApplyQualitySettings(PlayerSettings.GameplayPlayerSettings settings)
         {
             var rpAsset =
-                UnityEngine.Rendering.GraphicsSettings.defaultRenderPipeline
+                GraphicsSettings.defaultRenderPipeline
                 as UniversalRenderPipelineAsset;
             if (rpAsset == null)
             {

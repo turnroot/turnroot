@@ -18,8 +18,8 @@ namespace Turnroot.UI.Components
 
             var name = inst.CharacterTemplate?.DisplayName ?? "";
             var className =
-                inst.GetCurrentClass()?.ClassData?.Identity?.ClassName
-                ?? inst.CharacterTemplate?.StartingClass?.Identity?.ClassName
+                inst.GetCurrentClass()?.ClassData.Identity.ClassName
+                ?? inst.CharacterTemplate?.StartingClass?.Identity.ClassName
                 ?? "n/a";
             var portrait =
                 inst.CharacterTemplate?.DefaultPortrait?.RuntimeSprite
@@ -38,7 +38,7 @@ namespace Turnroot.UI.Components
             }
 
             var name = data.DisplayName ?? "";
-            var className = data.StartingClass?.Identity?.ClassName ?? "n/a";
+            var className = data.StartingClass?.Identity.ClassName ?? "n/a";
             var portrait =
                 data.DefaultPortrait?.RuntimeSprite ?? GamewideUiSettings.Instance.NoPortraitSprite;
             return (name, className, portrait);

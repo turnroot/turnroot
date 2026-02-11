@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Turnroot.Characters;
 using Turnroot.Gameplay.Brain;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Environment;
@@ -9,9 +10,7 @@ using UnityEngine;
 
 namespace Turnroot.Gameplay.Combat.PreBattle
 {
-    /// <summary>
-    /// Represents the current state of player unit placement in pre-battle preparation.
-    /// </summary>
+    // Pre-battle placement state
     public enum PlacementState
     {
         NonePlaced,
@@ -20,9 +19,6 @@ namespace Turnroot.Gameplay.Combat.PreBattle
         PlayerConfirmed,
     }
 
-    /// <summary>
-    /// Manages pre-battle preparation including unit selection, placement, and starting positions.
-    /// </summary>
     [RequireComponent(typeof(EnvironmentalConditions))]
     public partial class BattlePreparationObject : MonoBehaviour
     {
@@ -67,7 +63,7 @@ namespace Turnroot.Gameplay.Combat.PreBattle
             }
 
             // Copy MaxPlayerTeamUnits and RequiredPlayerUnits from a BattleGameObject when available.
-            if (brain?.battleBrain?.BattleObject != null)
+            if (brain?.battleBrain.BattleObject != null)
             {
                 MaxPlayerTeamUnits = brain.battleBrain.BattleObject.MaxPlayerTeamUnits;
                 RequiredPlayerUnits =
@@ -84,14 +80,22 @@ namespace Turnroot.Gameplay.Combat.PreBattle
                 }
             }
 
-            // Keep placement view in sync with gamewide selection. When selection changes we
-            // will reinitialize placements, but we avoid overwriting user edits.
+            // Keep placement view in sync with gamewide selection
             if (brain != null)
             {
                 brain.OnUnitSelectionChanged -= HandleUnitSelectionChanged;
                 brain.OnUnitSelectionChanged += HandleUnitSelectionChanged;
                 brain.OnPositioningModeEntered -= HandlePositioningModeEntered;
                 brain.OnPositioningModeEntered += HandlePositioningModeEntered;
+                brain.OnPlacementsSyncRequested -= HandlePlacementsSyncRequested;
+                brain.OnPlacementsSyncRequested += HandlePlacementsSyncRequested;
+
+                // Reconcile visual model moves/swaps back into prep placements when the user moves models directly.
+                brain.Unsubscribe<Gameplay.Brain.Events.ModelMovedEvent>(HandleModelMovedEvent);
+                brain.Subscribe<Gameplay.Brain.Events.ModelMovedEvent>(HandleModelMovedEvent);
+
+                brain.Unsubscribe<Gameplay.Brain.Events.ModelSwappedEvent>(HandleModelSwappedEvent);
+                brain.Subscribe<Gameplay.Brain.Events.ModelSwappedEvent>(HandleModelSwappedEvent);
             }
 
             // Set the map grid for Camera Brain
@@ -103,15 +107,18 @@ namespace Turnroot.Gameplay.Combat.PreBattle
                 return OperationResult.Failure("EnvironmentalConditions not found");
             }
 
-            // Notify the Brain that this BattlePreparationObject has been initialized.
             Brain?.PublishBattlePrepObjectInitialized(this);
-
             return OperationResult.Successful();
         }
 
         /* --------------------------- Starting Positions --------------------------- */
         [HideInInspector]
-        public Dictionary<Vector2Int, CharacterInstance> placements;
+        public Dictionary<Vector2Int, CharacterData> placements;
+
+        // When true, placement updates should not be applied (used to prevent precompute from
+        // mutating placements during the authoritative roster initialization flow).
+        [HideInInspector]
+        public bool PlacementsLocked { get; set; } = false;
 
         // Per-battle selection state: this is intentionally separate from CharacterInstance.IsSelectedForBattle
         // so changing selections in the pre-battle UI does NOT mutate persistent roster selection state.
@@ -139,7 +146,7 @@ namespace Turnroot.Gameplay.Combat.PreBattle
                 var selectedUnits = gw?.GetSelectedForBattlePlayerTeamUnits();
 
                 // If the player modified selections during this pre-battle session, honor the per-battle selections
-                var prep = Brain?.battleBrain?.PreparationObject;
+                var prep = Brain?.battleBrain.PreparationObject;
 
                 var persistent =
                     gw?.GamewidePersistentPlayerRoster
@@ -205,6 +212,10 @@ namespace Turnroot.Gameplay.Combat.PreBattle
             {
                 Brain.OnUnitSelectionChanged -= HandleUnitSelectionChanged;
                 Brain.OnPositioningModeEntered -= HandlePositioningModeEntered;
+                Brain.OnPlacementsSyncRequested -= HandlePlacementsSyncRequested;
+
+                Brain.Unsubscribe<Gameplay.Brain.Events.ModelMovedEvent>(HandleModelMovedEvent);
+                Brain.Unsubscribe<Gameplay.Brain.Events.ModelSwappedEvent>(HandleModelSwappedEvent);
             }
         }
 
@@ -259,15 +270,161 @@ namespace Turnroot.Gameplay.Combat.PreBattle
             }
         }
 
+        // Sync handler
+        private void HandlePlacementsSyncRequested(bool persist, bool forceApplyPlacementsOnLoad)
+        {
+            if (PlacementsLocked && !persist)
+            {
+                return;
+            }
+
+            try
+            {
+                SyncPlacementsToRuntimeRoster(persist, forceApplyPlacementsOnLoad);
+            }
+            catch (System.Exception ex)
+            {
+                TurnrootLogger.Log(
+                    $"HandlePlacementsSyncRequested: SyncPlacementsToRuntimeRoster failed: {ex.Message}",
+                    TurnrootLogger.LogLevel.Warning
+                );
+            }
+
+            // Notify listeners that placements are initialized/updated after a successful sync.
+            Brain?.PublishPlacementsInitialized();
+        }
+
+        // Reconcile model move events from the UI into authoritative prep placements.
+        private void HandleModelMovedEvent(Gameplay.Brain.Events.ModelMovedEvent ev)
+        {
+            if (ev == null)
+            {
+                return;
+            }
+
+            try
+            {
+                // Resolve instance if not provided
+                var inst = ev.Unit;
+                if (inst == null && !string.IsNullOrEmpty(ev.UnitId))
+                {
+                    var all = Brain?.gamewideContextBrain?.GetAllActiveInstances();
+                    inst = all?.FirstOrDefault(u => u != null && u.Id == ev.UnitId);
+                }
+
+                if (inst == null)
+                {
+                    return;
+                }
+
+                var data = inst.CharacterTemplate;
+                if (data == null)
+                {
+                    return;
+                }
+
+                // Ensure placements exists
+                placements ??= new Dictionary<Vector2Int, CharacterData>();
+
+                // If placement already matches the desired state, skip
+                if (placements.TryGetValue(ev.To, out var existing) && existing == data)
+                {
+                    return;
+                }
+
+                // Remove any old mapping for this template so we don't duplicate
+                var keysToRemove = new System.Collections.Generic.List<Vector2Int>();
+                foreach (var kvp in placements)
+                {
+                    if (kvp.Value == data && kvp.Key != ev.To)
+                    {
+                        keysToRemove.Add(kvp.Key);
+                    }
+                }
+                foreach (var k in keysToRemove)
+                {
+                    placements.Remove(k);
+                }
+
+                placements[ev.To] = data;
+                placements.Remove(ev.From);
+                CurrentPlacementState = PlacementState.PlayerPlaced;
+
+                Brain?.PublishPlacementsSyncRequested(
+                    persist: false,
+                    forceApplyPlacementsOnLoad: false
+                );
+            }
+            catch { }
+        }
+
+        private void HandleModelSwappedEvent(Gameplay.Brain.Events.ModelSwappedEvent ev)
+        {
+            if (ev == null)
+            {
+                return;
+            }
+
+            try
+            {
+                var all = Brain?.gamewideContextBrain?.GetAllActiveInstances();
+                Turnroot.Characters.CharacterInstance a = null,
+                    b = null;
+                if (!string.IsNullOrEmpty(ev.UnitIdA))
+                {
+                    a = all?.FirstOrDefault(u => u != null && u.Id == ev.UnitIdA);
+                }
+                if (!string.IsNullOrEmpty(ev.UnitIdB))
+                {
+                    b = all?.FirstOrDefault(u => u != null && u.Id == ev.UnitIdB);
+                }
+
+                var dataA = a?.CharacterTemplate;
+                var dataB = b?.CharacterTemplate;
+                placements ??= new System.Collections.Generic.Dictionary<
+                    Vector2Int,
+                    CharacterData
+                >();
+
+                // Swap in placements dictionary
+                if (dataA != null)
+                {
+                    placements[ev.PosB] = dataA;
+                }
+                else
+                {
+                    placements.Remove(ev.PosB);
+                }
+
+                if (dataB != null)
+                {
+                    placements[ev.PosA] = dataB;
+                }
+                else
+                {
+                    placements.Remove(ev.PosA);
+                }
+
+                CurrentPlacementState = PlacementState.PlayerPlaced;
+
+                Brain?.PublishPlacementsSyncRequested(
+                    persist: false,
+                    forceApplyPlacementsOnLoad: false
+                );
+            }
+            catch { }
+        }
+
         public List<CharacterInstance> GetBattleSelectedInstances()
         {
             var list = new List<CharacterInstance>();
+            var gw = Brain?.gamewideContextBrain; // ensure gw is available throughout the method
 
             // If we have explicitly selected ids for this session, resolve them against the
             // game's active instances so selections are honored even if placements are currently empty.
             if (_battleSelectedIds != null && _battleSelectedIds.Count > 0)
             {
-                var gw = Brain?.gamewideContextBrain;
+                /* reuse outer gw */
                 if (gw != null)
                 {
                     var all = gw.GetAllActiveInstances();
@@ -282,15 +439,20 @@ namespace Turnroot.Gameplay.Combat.PreBattle
                     // Also include any instances referenced in placements that might not be in the active list.
                     if (placements != null)
                     {
-                        foreach (var inst in placements.Values)
+                        foreach (var data in placements.Values)
                         {
+                            if (data == null)
+                            {
+                                continue;
+                            }
+                            var instFromPlacement = gw.FindInstanceByTemplate(data);
                             if (
-                                inst != null
-                                && _battleSelectedIds.Contains(inst.Id)
-                                && !list.Contains(inst)
+                                instFromPlacement != null
+                                && _battleSelectedIds.Contains(instFromPlacement.Id)
+                                && !list.Contains(instFromPlacement)
                             )
                             {
-                                list.Add(inst);
+                                list.Add(instFromPlacement);
                             }
                         }
                     }
@@ -305,8 +467,13 @@ namespace Turnroot.Gameplay.Combat.PreBattle
                 return list;
             }
 
-            foreach (var inst in placements.Values)
+            foreach (var data in placements.Values)
             {
+                if (data == null)
+                {
+                    continue;
+                }
+                var inst = gw?.FindInstanceByTemplate(data);
                 if (inst != null && _battleSelectedIds.Contains(inst.Id))
                 {
                     list.Add(inst);
@@ -315,58 +482,17 @@ namespace Turnroot.Gameplay.Combat.PreBattle
             return list;
         }
 
-        // Apply the current placements into the runtime player roster instance. If persist is true,
-        // save the runtime roster into Long Term Memory so placements survive reloads and are used
-        // to initialize the battle roster later.
-        public void SyncPlacementsToRuntimeRoster(bool persist)
+        public void SyncPlacementsToRuntimeRoster(
+            bool persist,
+            bool forceApplyPlacementsOnLoad = false
+        )
         {
-            var gw = Brain?.gamewideContextBrain;
-            if (gw == null)
-            {
-                return;
-            }
-
-            var persistent =
-                gw.GamewidePersistentPlayerRoster
-                ?? gw.CreateOrRecallGamewidePersistentPlayerRoster();
-            if (persistent == null)
-            {
-                return;
-            }
-
-            var runtimeInstance = gw.GetOrCreatePlayerTeamRoster(persistent);
-            if (runtimeInstance == null)
-            {
-                return;
-            }
-
-            var list = new List<Characters.Roster.UnitPlacement>();
-            foreach (var kvp in placements)
-            {
-                var pos = kvp.Key;
-                var inst = kvp.Value;
-                if (inst == null || inst.CharacterTemplate == null)
-                {
-                    continue;
-                }
-
-                var up = new Characters.Roster.UnitPlacement
-                {
-                    CharacterData = inst.CharacterTemplate,
-                    SpawnPosition = pos,
-                    Order = list.Count,
-                };
-                up.SetStatus(Characters.Roster.UnitStatus.NotSpawned);
-                up.SetActiveRightNow(true);
-                list.Add(up);
-            }
-
-            runtimeInstance.ApplyDecodedPlacements(list.ToArray());
-
-            if (persist)
-            {
-                gw.SavePlayerRoster(lastSavedBattleTurn: 1);
-            }
+            Turnroot.Gameplay.Combat.PreBattle.BattlePlacementSync.ApplyPlacements(
+                Brain,
+                placements,
+                persist,
+                forceApplyPlacementsOnLoad
+            );
         }
     }
 }

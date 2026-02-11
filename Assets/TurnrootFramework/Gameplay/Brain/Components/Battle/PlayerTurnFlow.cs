@@ -54,10 +54,15 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
                 _battleBrain.Brain.OnMoveAnimationCompleted += HandleUnitMoveAnimationCompleted;
                 // Listen for wait confirmation coming from UI
                 _battleBrain.Brain.OnWaitActionConfirmed += HandleWaitActionConfirmed;
+
+                // Keep active unit in sync with selection events
+                _battleBrain.Brain.OnPlayerControlledUnitActivated += HandlePlayerUnitActivated;
             }
         }
 
         private void OnDestroy() => CleanupBattle();
+
+        private void HandlePlayerUnitActivated(CharacterInstance unit) => _activePlayerUnit = unit;
 
         /// <summary>
         /// Cleanup method to be called when battle ends.
@@ -72,6 +77,8 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
                     HandleUnitFinishedMovingAfterAction;
                 _battleBrain.Brain.OnMoveAnimationCompleted -= HandleUnitMoveAnimationCompleted;
                 _battleBrain.Brain.OnWaitActionConfirmed -= HandleWaitActionConfirmed;
+
+                _battleBrain.Brain.OnPlayerControlledUnitActivated -= HandlePlayerUnitActivated;
             }
             _cachedSceneFlow = null;
             _activePlayerUnit = null;
@@ -98,7 +105,8 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
 
         public void ActionChosen(PlayerTurnStates actionState) => TransitionAndPublish(actionState);
 
-        public void SelectTargetOrDestination(PlayerTurnStates targetSelectedState) => TransitionAndPublish(targetSelectedState);
+        public void SelectTargetOrDestination(PlayerTurnStates targetSelectedState) =>
+            TransitionAndPublish(targetSelectedState);
 
         public void SelectDestination(MapGridPoint destination)
         {
@@ -192,7 +200,8 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
             );
         }
 
-        public void CancelTargetOrDestinationChoice(PlayerTurnStates actionChoosingState) => TransitionAndPublish(actionChoosingState);
+        public void CancelTargetOrDestinationChoice(PlayerTurnStates actionChoosingState) =>
+            TransitionAndPublish(actionChoosingState);
 
         public void EndTurn() =>
             // Note: This direct EndTurn bypasses interrupt checking.
@@ -368,7 +377,7 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
         private void CompleteTurnEnd()
         {
             // Clear dynamic participant data (Targets and AdjacentUnits) when turn ends
-            var context = _battleBrain?.BattleObject?.Context;
+            var context = _battleBrain?.BattleObject.Context;
             if (context != null)
             {
                 context.ClearParticipantDynamicData();

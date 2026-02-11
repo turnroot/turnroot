@@ -26,7 +26,7 @@ namespace Turnroot.Skills.Nodes.Events
                 return;
             }
 
-            context.Brain?.PublishUnitTakesAnotherTurn(context.Unit.UnitInstance);
+            context.Brain.PublishUnitTakesAnotherTurn(context.Unit.UnitInstance);
             TurnrootLogger.Log(
                 $"TakeAnotherTurn: {context.Unit.UnitInstance.CharacterTemplate.DisplayName} will take another turn"
             );

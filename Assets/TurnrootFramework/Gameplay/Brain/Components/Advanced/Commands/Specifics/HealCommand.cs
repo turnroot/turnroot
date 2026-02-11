@@ -58,7 +58,7 @@ namespace Turnroot.Gameplay.Brain.Commands
 
             var healer = FindUnit(context, HealerId);
 
-            context.Brain?.Publish(
+            context.Brain.Publish(
                 new Events.UnitHealedEvent(target, healer, healAmount, (int)health.Current)
             );
 

@@ -17,10 +17,10 @@ namespace Turnroot.Gameplay.Brain.Commands
             context.ClearParticipantDynamicData();
 
             // Notify that a unit's turn ended (unit is still the active one on the context)
-            context.Brain?.PublishUnitTurnEnded(context.Unit.UnitInstance);
+            context.Brain.PublishUnitTurnEnded(context.Unit.UnitInstance);
 
             // Also publish the round-level event
-            context.Brain?.Publish(new Events.TurnEndedEvent(TurnNumber));
+            context.Brain.Publish(new Events.TurnEndedEvent(TurnNumber));
             return true;
         }
 

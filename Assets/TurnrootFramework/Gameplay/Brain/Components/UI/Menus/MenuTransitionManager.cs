@@ -91,7 +91,7 @@ namespace Turnroot.Gameplay.Brain.Segments
 
                 if (to == _settings?.GetPrebattleUnitPositionsMenu())
                 {
-                    _brain.Brain?.PublishPositioningModeEntered();
+                    _brain.Brain.PublishPositioningModeEntered();
                 }
 
                 var targetFade = EnsureUIFade(

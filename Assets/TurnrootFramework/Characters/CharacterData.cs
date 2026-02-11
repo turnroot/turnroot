@@ -313,7 +313,7 @@ namespace Turnroot.Characters
             var warningList = new List<string>();
 
             // Check bounded stats
-            var requiredBounded = System.Enum.GetValues(typeof(BoundedStatType));
+            var requiredBounded = Enum.GetValues(typeof(BoundedStatType));
             var existingBounded = new HashSet<BoundedStatType>();
 
             foreach (var stat in BoundedStats)
@@ -339,7 +339,7 @@ namespace Turnroot.Characters
             }
 
             // Check unbounded stats
-            var requiredUnbounded = System.Enum.GetValues(typeof(UnboundedStatType));
+            var requiredUnbounded = Enum.GetValues(typeof(UnboundedStatType));
             var existingUnbounded = new HashSet<UnboundedStatType>();
 
             foreach (var stat in UnboundedStats)

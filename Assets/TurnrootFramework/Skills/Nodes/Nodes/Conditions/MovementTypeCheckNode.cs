@@ -65,7 +65,7 @@ namespace Turnroot.Skills.Nodes.Conditions
             }
 
             var movementType =
-                character.CurrentClass?.ClassData?.Identity?.MovementType ?? MovementType.Infantry;
+                character.CurrentClass?.ClassData.Identity.MovementType ?? MovementType.Infantry;
             bool matches = movementType == targetMovementType;
 
             return new BoolValue { value = matches };

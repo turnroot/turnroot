@@ -51,8 +51,8 @@ namespace Turnroot.Gameplay.Objects
 
         public void SetBrain(Brain.Brain brain) => _brain = brain;
 
-        private StorehouseBrain StorehouseBrain => _brain?.storehouseBrain;
-        private InventoryBrain InventoryBrain => _brain?.inventoryBrain;
+        private StorehouseBrain StorehouseBrain => _brain.storehouseBrain;
+        private InventoryBrain InventoryBrain => _brain.inventoryBrain;
 
         private readonly ObjectForgerHelper ForgerHelper;
 

@@ -47,7 +47,7 @@ namespace Turnroot.Gameplay.Brain.Segments
             // Apply toggle to UI
             item.IsSelectedForBattle = willSelect;
             // Apply toggle to the per-battle selection set when in pre-battle; otherwise mutate the instance flag
-            var prep = Brain?.battleBrain?.PreparationObject;
+            var prep = Brain?.battleBrain.PreparationObject;
             if (prep != null && item.CharacterInstanceData != null)
             {
                 prep.SetBattleSelected(item.CharacterInstanceData, willSelect);

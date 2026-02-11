@@ -27,7 +27,7 @@ namespace Turnroot.UI.Components
 
             // Cache brain for accessing UI settings (may be null in some edge cases)
             _brain = preparationObject.Brain;
-            var gamewideUiSettings = _brain?.uiBrain?.uiSettings;
+            var gamewideUiSettings = _brain.uiBrain.uiSettings;
             if (gamewideUiSettings == null)
             {
                 return OperationResult.Failure("UI settings not found on Brain");

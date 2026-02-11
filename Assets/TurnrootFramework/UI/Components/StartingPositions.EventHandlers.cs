@@ -27,8 +27,7 @@ namespace Turnroot.UI.Components
         {
             yield return new WaitForSeconds(_spawnDebounceSeconds);
 
-            // Unsubscribe now that we're performing the final spawn
-            _prepObject.Brain.OnPlacementsInitialized -= HandlePlacementsInitialized_Impl;
+            // Keep subscription so future placement changes will trigger a re-spawn
 
             if (_prepObject.placements != null && _prepObject.placements.Count > 0)
             {

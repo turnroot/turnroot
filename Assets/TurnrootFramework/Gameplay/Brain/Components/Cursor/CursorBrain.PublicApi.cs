@@ -19,7 +19,7 @@ namespace Turnroot.Gameplay.Brain
             // In battle context
             if (
                 _currentContext == CursorContext.Battle
-                && Brain.battleBrain?.BattleObject?.Context != null
+                && Brain.battleBrain.BattleObject.Context != null
             )
             {
                 var cache = Brain.battleBrain.BattleObject.Context.GetCurrentUnitPositions();

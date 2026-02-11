@@ -55,7 +55,7 @@ namespace Turnroot.Gameplay.Brain
         {
             // This is called from HandleBattleMapReady event, so MapGrid should be ready
             // If it's not, that's a real bug we should fix rather than retry
-            if (Brain.battleBrain?.BattleObject?.Context?.MapGrid == null)
+            if (Brain.battleBrain.BattleObject.Context?.MapGrid == null)
             {
                 TurnrootLogger.Log(
                     "CursorBrain: Cannot initialize battle cursor - MapGrid is null even after OnBattleMapReady event. This indicates an initialization order bug.",
@@ -72,12 +72,12 @@ namespace Turnroot.Gameplay.Brain
             // Use PreparationObject.MapGrid for consistency with visual positioning
             var mapGrid =
                 Brain.battleBrain.PreparationObject?.MapGrid
-                ?? Brain.battleBrain.BattleObject?.Context?.MapGrid;
-            CursorOffset = Brain.uiBrain?.uiSettings?.BattleCursorOffset ?? Vector3.zero;
+                ?? Brain.battleBrain.BattleObject.Context?.MapGrid;
+            CursorOffset = Brain.uiBrain.uiSettings?.BattleCursorOffset ?? Vector3.zero;
 
             // Determine allowed cursor start positions from actual roster placements (battle roster > prep placements > spawn points)
             List<Vector2Int> allowedPositions = null;
-            var playerRoster = Brain.battleBrain?.BattleObject?.PlayerTeamRoster;
+            var playerRoster = Brain.battleBrain.BattleObject.PlayerTeamRoster;
             var roPlacements = playerRoster?.GetPlacements();
             if (roPlacements != null && roPlacements.Length > 0)
             {
@@ -93,21 +93,17 @@ namespace Turnroot.Gameplay.Brain
 
             if (allowedPositions == null || allowedPositions.Count == 0)
             {
-                var prep = Brain.battleBrain?.PreparationObject;
+                var prep = Brain.battleBrain.PreparationObject;
                 if (prep?.placements != null && prep.placements.Count > 0)
                 {
-                    allowedPositions = new List<Vector2Int>(
-                        prep.placements.Keys
-                    );
+                    allowedPositions = new List<Vector2Int>(prep.placements.Keys);
                 }
                 else if (
                     prep?.PlayerTeamSpawnPoints != null
                     && prep.PlayerTeamSpawnPoints.Count > 0
                 )
                 {
-                    allowedPositions = new List<Vector2Int>(
-                        prep.PlayerTeamSpawnPoints
-                    );
+                    allowedPositions = new List<Vector2Int>(prep.PlayerTeamSpawnPoints);
                 }
             }
 
@@ -132,7 +128,7 @@ namespace Turnroot.Gameplay.Brain
             // Get valid spawn positions from BattlePreparationObject
             List<Vector2Int> validSpawnPositions = null;
 
-            var prepObject = Brain.battleBrain?.PreparationObject;
+            var prepObject = Brain.battleBrain.PreparationObject;
             if (prepObject != null)
             {
                 // Get player spawn positions from preparation object
@@ -142,7 +138,7 @@ namespace Turnroot.Gameplay.Brain
                     validSpawnPositions = spawnPoints;
                 }
             }
-            CursorOffset = Brain.uiBrain?.uiSettings?.BattleCursorOffset ?? Vector3.zero;
+            CursorOffset = Brain.uiBrain.uiSettings?.BattleCursorOffset ?? Vector3.zero;
 
             InitializeCursor(mapGrid, validSpawnPositions);
             return OperationResult.Successful();

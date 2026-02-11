@@ -83,11 +83,17 @@ namespace Turnroot.Gameplay.Brain
         #endregion
 
         #region Event Subscription
-        protected override void SubscribeToBrainEvents() =>
+        protected override void SubscribeToBrainEvents()
+        {
             _brain.OnSavePlayerRosterRequested += HandleSavePlayerRosterRequested;
+            _brain.OnSavePlayerRosterRequestedWithTurn += HandleSavePlayerRosterRequestedWithTurn;
+        }
 
-        protected override void UnsubscribeFromBrainEvents() =>
+        protected override void UnsubscribeFromBrainEvents()
+        {
             _brain.OnSavePlayerRosterRequested -= HandleSavePlayerRosterRequested;
+            _brain.OnSavePlayerRosterRequestedWithTurn -= HandleSavePlayerRosterRequestedWithTurn;
+        }
         #endregion
 
         // Remaining API methods are implemented in partial files within GamewideContextBrainPartials/

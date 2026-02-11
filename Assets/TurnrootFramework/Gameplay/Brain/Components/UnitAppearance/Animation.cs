@@ -38,7 +38,10 @@ namespace Turnroot.Gameplay.Brain
             AnimationClip walkClip;
             AnimationClip[] idleClips;
 
-            if (unit?.CharacterTemplate?.UseDefaultAnimationsAlways == true)
+            if (
+                unit.CharacterTemplate != null
+                && unit.CharacterTemplate.UseDefaultAnimationsAlways == true
+            )
             {
                 // Always use character's default animations, ignore class animations
                 walkClip = unit.CharacterTemplate.DefaultWalkingAnimation;
@@ -47,24 +50,25 @@ namespace Turnroot.Gameplay.Brain
             else
             {
                 // Prefer class animations, fall back to character defaults
-                var classData = unit?.GetCurrentClass()?.ClassData;
+                var classData = unit.GetCurrentClass()?.ClassData;
 
-                // Unity objects can be "null" but not C# null, so we need explicit checks
-                var classWalkClip = classData?.WalkAnimation;
+                var classWalkClip = classData.WalkAnimation;
                 walkClip =
                     (classWalkClip != null && classWalkClip)
                         ? classWalkClip
-                        : unit?.CharacterTemplate?.DefaultWalkingAnimation;
+                        : unit.CharacterTemplate.DefaultWalkingAnimation;
 
-                var classIdleClips = classData?.IdleAnimations;
+                var classIdleClips = classData.IdleAnimations;
                 idleClips =
                     (classIdleClips != null && classIdleClips.Length > 0)
                         ? classIdleClips
-                        : unit?.CharacterTemplate?.DefaultIdleAnimations;
+                        : unit.CharacterTemplate.DefaultIdleAnimations;
             }
 
             var idleClip =
-                idleClips?.Length > 0 ? idleClips[Random.Range(0, idleClips.Length)] : null;
+                idleClips != null && idleClips.Length > 0
+                    ? idleClips[Random.Range(0, idleClips.Length)]
+                    : null;
 
             if (walkClip != null)
             {
@@ -134,7 +138,6 @@ namespace Turnroot.Gameplay.Brain
                 return;
             }
 
-            // Validate that mask exists when HasExtraBoneLayer is true
             if (unit.CharacterTemplate.AdditionalBonesMask == null)
             {
                 TurnrootLogger.Log(
@@ -158,7 +161,6 @@ namespace Turnroot.Gameplay.Brain
             var controllerAsset = controller as UnityEditor.Animations.AnimatorController;
             if (controllerAsset == null)
             {
-                // Runtime - can't modify layers at runtime easily without editor API
                 TurnrootLogger.Log(
                     $"{unit.CharacterTemplate.DisplayName}: Extra bone layers require editor-time setup (assign AvatarMask to Layer 1).",
                     TurnrootLogger.LogLevel.Warning

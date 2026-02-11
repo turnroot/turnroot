@@ -20,7 +20,7 @@ namespace Turnroot.Gameplay.Brain
         public CharacterInstance SelectedUnit =>
             Brain.battleBrain.BattleObject.Context.Unit.UnitInstance;
         public BattleContext BattleContext => Brain.battleBrain.BattleObject.Context;
-        public MapGridPoint CursorPosition => Brain.cursorBrain?.CursorPosition;
+        public MapGridPoint CursorPosition => Brain.cursorBrain.CursorPosition;
 
         private bool IsBattleInputEnabled => Brain.battleBrain.IsInputEnabled;
 
@@ -44,8 +44,6 @@ namespace Turnroot.Gameplay.Brain
         private float _lastInputTime;
         private float _cachedInputCooldown;
         private bool _cachedIsKeyboard = true;
-
-        // Add flag to prevent input processing before ready
         private bool _inputEnabled = false;
 
         #endregion
@@ -61,22 +59,11 @@ namespace Turnroot.Gameplay.Brain
 
         private void Update()
         {
-            // Don't process input until battle is fully ready; also respect global input enabled flag
-            if (
-                !_inputEnabled
-                || !IsBattleInputEnabled
-                || (Time.time - _lastInputTime < _cachedInputCooldown)
-            )
+            if (!_inputEnabled || !IsBattleInputEnabled)
             {
                 return;
             }
-            else
-            {
-                if (ProcessInput())
-                {
-                    _lastInputTime = Time.time;
-                }
-            }
+            ProcessInput();
         }
 
         protected override void OnDestroy()
@@ -99,6 +86,9 @@ namespace Turnroot.Gameplay.Brain
             Brain.OnPlayerTurnStateChanged += new System.Action<PlayerTurnStates>(
                 HandlePlayerTurnStateChanged
             );
+
+            // Update path previews when the cursor moves (used for keyboard/controller navigation)
+            Brain.OnBattleCursorMoved += HandleCursorMoved;
         }
 
         protected override void UnsubscribeFromBrainEvents()
@@ -109,6 +99,8 @@ namespace Turnroot.Gameplay.Brain
             Brain.OnPlayerTurnStateChanged -= new System.Action<PlayerTurnStates>(
                 HandlePlayerTurnStateChanged
             );
+
+            Brain.OnBattleCursorMoved -= HandleCursorMoved;
         }
 
         #endregion
@@ -117,7 +109,7 @@ namespace Turnroot.Gameplay.Brain
 
         private bool ProcessInput()
         {
-            if (_inputActions?.Navigate?.enabled == true)
+            if (_inputActions.Navigate?.enabled == true)
             {
                 var inputVec = _inputActions.Navigate.ReadValue<Vector2>();
                 var camAngle = Brain.cameraBrain.CurrentAngle;
@@ -125,34 +117,38 @@ namespace Turnroot.Gameplay.Brain
                 var direction = RotateVectorBy90StepsCW(inputVec, steps);
                 if (direction.magnitude > 0.1f)
                 {
-                    HandleNavigateInput(direction);
-                    Brain.Publish(
-                        new BattleContext.BattleInputNavigateEvent { Direction = direction }
-                    );
-                    return true;
+                    direction = SnapDirectionToFour(direction);
+                    var navigated = Brain.cursorBrain.TryNavigateWithCooldown(direction);
+                    if (navigated)
+                    {
+                        Brain.Publish(
+                            new BattleContext.BattleInputNavigateEvent { Direction = direction }
+                        );
+                        return true;
+                    }
                 }
             }
 
-            if (_inputActions?.Confirm?.WasPressedThisFrame() == true)
+            if (_inputActions.Confirm?.WasPressedThisFrame() == true)
             {
                 Brain.Publish(new BattleContext.BattleInputConfirmEvent());
                 HandleConfirmInput();
                 return true;
             }
 
-            if (_inputActions?.Cancel?.WasPressedThisFrame() == true)
+            if (_inputActions.Cancel?.WasPressedThisFrame() == true)
             {
                 Brain.Publish(new BattleContext.BattleInputCancelEvent());
                 return true;
             }
 
-            if (_inputActions?.Menu?.WasPressedThisFrame() == true)
+            if (_inputActions.Menu?.WasPressedThisFrame() == true)
             {
                 Brain.Publish(new BattleContext.BattleInputMenuEvent());
                 return true;
             }
 
-            if (_inputActions?.RotateMapCamera?.enabled == true)
+            if (_inputActions.RotateMapCamera?.enabled == true)
             {
                 var rotateValue = _inputActions.RotateMapCamera.ReadValue<float>();
                 if (Mathf.Abs(rotateValue) > 0.1f)
@@ -181,15 +177,15 @@ namespace Turnroot.Gameplay.Brain
             _inputActions.Enable();
         }
 
-        // InputAction creation moved into BattleInputActions helper (see BattleInputActions.cs)
-        // This keeps this controller focused on handling intent and flow rather than input wiring.
-
         private void CleanupInputActions()
         {
             _inputEnabled = false;
-            _inputActions?.Disable();
-            _inputActions?.Dispose();
-            _inputActions = null;
+            if (_inputActions != null)
+            {
+                _inputActions.Disable();
+                _inputActions.Dispose();
+                _inputActions = null;
+            }
         }
 
         #endregion
@@ -206,13 +202,9 @@ namespace Turnroot.Gameplay.Brain
 
         private IEnumerator InitializeWhenReady()
         {
-            // Initialize _tileHighlighter first, before any state changes can occur
             _tileHighlighter = Brain.battleBrain.BattleObject.TileHighlighter;
             _terrainTypeOverlay = Brain.battleBrain.BattleObject.TerrainTypeOverlay;
 
-            // Wait for player turn flow to be ready
-
-            // Wait for MapGrid to be ready
             int waitCount = 0;
             while (Brain.battleBrain.BattleObject.Context?.MapGrid == null && waitCount < 100)
             {
@@ -220,9 +212,8 @@ namespace Turnroot.Gameplay.Brain
                 yield return new WaitForSeconds(0.05f);
             }
 
-            // Wait for cursor to be ready
             waitCount = 0;
-            while (Brain.cursorBrain?.IsInitialized != true && waitCount < 100)
+            while (Brain.cursorBrain.IsInitialized != true && waitCount < 100)
             {
                 waitCount++;
                 yield return new WaitForSeconds(0.05f);
@@ -284,6 +275,56 @@ namespace Turnroot.Gameplay.Brain
                     destination,
                     SelectedUnit.CurrentClass.ClassData.Identity.MovementType
                 );
+            }
+        }
+
+        private void HandleCursorMoved(Vector2Int pos)
+        {
+            // Defensive checks: handler can be called very early in startup before
+            // this component has been fully initialized. Bail out if we don't have
+            // the systems required to compute and display previews.
+            if (_tileHighlighter == null || _terrainTypeOverlay == null)
+            {
+                return;
+            }
+
+            // Only update previews when in states that can show them
+            var currentState = _playerTurnFlow?.GetCurrentState();
+            if (
+                currentState == PlayerTurnStates.UnitSelected
+                || currentState == PlayerTurnStates.ChoosingDestination
+                || currentState == PlayerTurnStates.AttackActionChosenChoosingTarget
+            )
+            {
+                var path = HandlePathPreview();
+
+                if (path == null || path.Count == 0)
+                {
+                    _tileHighlighter.ClearPathPreview();
+                }
+                else
+                {
+                    _tileHighlighter.HighlightPath(path);
+                }
+
+                if (destination != null && SelectedUnit != null)
+                {
+                    var movementType = SelectedUnit
+                        ?.CurrentClass
+                        ?.ClassData
+                        ?.Identity
+                        ?.MovementType;
+                    if (movementType.HasValue)
+                    {
+                        _terrainTypeOverlay.Display(destination, movementType.Value);
+                    }
+                }
+            }
+            else
+            {
+                // Clear previews/overlays when not relevant
+                _tileHighlighter.ClearPathPreview();
+                _terrainTypeOverlay.ResetDisplay();
             }
         }
 

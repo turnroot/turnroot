@@ -69,8 +69,8 @@ namespace Turnroot.Gameplay.Brain
             ClearAllModels();
 
             var roster =
-                Brain.battleBrain?.PlayerTeamRoster
-                ?? Brain.battleBrain?.BattleObject?.PlayerTeamRoster;
+                Brain.battleBrain.PlayerTeamRoster
+                ?? Brain.battleBrain.BattleObject.PlayerTeamRoster;
 
             var validation = OperationResultGuards.RequireNotNull(roster, nameof(roster));
             if (!validation.Success)
@@ -95,7 +95,7 @@ namespace Turnroot.Gameplay.Brain
                 {
                     // Instances may be missing in some initialization scenarios; this is informational.
                     TurnrootLogger.Log(
-                        $"No instance for template {placement.CharacterData?.DisplayName}",
+                        $"No instance for template {placement.CharacterData.DisplayName}",
                         TurnrootLogger.LogLevel.Info
                     );
                     continue;
@@ -105,15 +105,16 @@ namespace Turnroot.Gameplay.Brain
                 // MapGridPosition are consistently set via the SpawnCommand. If that succeeds
                 // we will create visuals via SpawnUnitAtPosition without overwriting positions later.
                 var spawnedByContext =
-                    Brain.battleBrain?.BattleObject?.Context?.SpawnAtPosition(
+                    Brain.battleBrain.BattleObject.Context != null
+                    && Brain.battleBrain.BattleObject.Context.SpawnAtPosition(
                         instance,
                         placement.SpawnPosition
-                    ) ?? false;
+                    );
                 if (!spawnedByContext)
                 {
                     // Fallback: try to set occupancy directly on the MapGrid so the authoritative grid state & instance position remain consistent.
-                    var map = Brain.battleBrain?.BattleObject?.MapGrid;
-                    var mgp = map?.GetGridPoint(
+                    var map = Brain.battleBrain.BattleObject.MapGrid;
+                    var mgp = map.GetGridPoint(
                         placement.SpawnPosition.x,
                         placement.SpawnPosition.y
                     );
@@ -126,7 +127,7 @@ namespace Turnroot.Gameplay.Brain
                             instance.WasSpawnedDuringBattle = true;
 
                             // Publish the authoritative UnitSpawnedEvent so visual systems react consistently.
-                            Brain?.Publish(new UnitSpawnedEvent(instance, placement.SpawnPosition));
+                            Brain.Publish(new UnitSpawnedEvent(instance, placement.SpawnPosition));
                         }
                         else
                         {
@@ -160,7 +161,7 @@ namespace Turnroot.Gameplay.Brain
             // BattleObject.MapGrid might not be initialized the same way
             var mapGrid =
                 _brain.battleBrain.PreparationObject?.MapGrid
-                ?? _brain.battleBrain.BattleObject?.MapGrid;
+                ?? _brain.battleBrain.BattleObject.MapGrid;
             return mapGrid.GetTerrainAdjustedWorldPosition(pos);
         }
 
@@ -270,6 +271,12 @@ namespace Turnroot.Gameplay.Brain
             {
                 return;
             }
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            TurnrootLogger.Log(
+                $"HandleUnitSpawnedEvent: unit={evt.Unit?.Id}, char={evt.Unit?.CharacterTemplate?.DisplayName}, pos={evt.SpawnPosition}",
+                TurnrootLogger.LogLevel.Info
+            );
+#endif
 
             // Create or move model for the spawned unit. This will use existing model if present.
             var res = SpawnUnitAtPosition(evt.Unit, evt.SpawnPosition, prebattle: false);

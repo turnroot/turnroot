@@ -167,7 +167,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             GameplayGeneralSettings settings
         )
         {
-            if (gridPoint == null || unit?.CurrentClass?.ClassData?.Identity == null)
+            if (gridPoint == null || unit?.CurrentClass?.ClassData.Identity == null)
             {
                 return 0f;
             }

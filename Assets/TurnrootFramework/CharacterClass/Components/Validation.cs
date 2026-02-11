@@ -191,7 +191,7 @@ namespace Turnroot.Characters.CharacterClass
                     continue;
                 }
 
-                var otherName = other.Identity?.ClassName;
+                var otherName = other.Identity.ClassName;
                 if (string.IsNullOrWhiteSpace(otherName))
                 {
                     continue;
@@ -218,7 +218,7 @@ namespace Turnroot.Characters.CharacterClass
                                 continue;
                             }
 
-                            var n = o.Identity?.ClassName;
+                            var n = o.Identity.ClassName;
                             if (
                                 string.Equals(
                                     n?.Trim(),

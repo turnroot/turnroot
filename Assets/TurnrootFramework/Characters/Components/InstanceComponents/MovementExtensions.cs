@@ -43,7 +43,7 @@ namespace Turnroot.Characters
             }
 
             var classData = instance.CurrentClassTemplate;
-            return classData?.Identity?.HasMountVisuals() == true;
+            return classData.Identity.HasMountVisuals() == true;
         }
     }
 }

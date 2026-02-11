@@ -121,7 +121,7 @@ namespace Turnroot.Gameplay.Brain
 
                 if (inst != null)
                 {
-                    var prep = brain.battleBrain?.PreparationObject;
+                    var prep = brain.battleBrain.PreparationObject;
                     if (prep != null)
                     {
                         if (prep.IsBattleSelected(inst) != desired)

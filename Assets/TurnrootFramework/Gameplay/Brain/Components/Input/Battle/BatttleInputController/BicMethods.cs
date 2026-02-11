@@ -408,7 +408,7 @@ namespace Turnroot.Gameplay.Brain
                 menu.enabled = false;
 
                 // Wait until the confirm button is released
-                while (_inputActions?.Confirm?.IsPressed() == true)
+                while (_inputActions.Confirm?.IsPressed() == true)
                 {
                     yield return null;
                 }

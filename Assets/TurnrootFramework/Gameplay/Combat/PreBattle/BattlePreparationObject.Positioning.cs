@@ -15,9 +15,18 @@ namespace Turnroot.Gameplay.Combat.PreBattle
                 return OperationResult.Failure("Cannot place unit: invalid position");
             }
 
-            placements[pos] = unit;
+            var data = unit?.CharacterTemplate;
+            if (data == null)
+            {
+                return OperationResult.Failure("Cannot place unit: CharacterData missing");
+            }
+
+            placements[pos] = data;
             // Keep runtime roster updated (no immediate persistence)
-            SyncPlacementsToRuntimeRoster(persist: false);
+            Brain?.PublishPlacementsSyncRequested(
+                persist: false,
+                forceApplyPlacementsOnLoad: false
+            );
             return OperationResult.Successful();
         }
 
@@ -28,16 +37,17 @@ namespace Turnroot.Gameplay.Combat.PreBattle
                 return OperationResult.Failure("Invalid position");
             }
 
-            if (!TryGetPlacement(pos, out var unit))
+            if (!TryGetPlacement(pos, out var data))
             {
                 return OperationResult.Failure("Cannot select empty position");
             }
 
             selectedPosition = pos;
-            selectedUnit = unit;
+            // Resolve instance for UI purposes if available
+            selectedUnit = Brain?.gamewideContextBrain?.FindInstanceByTemplate(data);
 
             // Update visuals: position the selected projector and show unit data immediately
-            UpdateSelectedVisual(pos, unit);
+            UpdateSelectedVisual(pos, selectedUnit);
 
             return OperationResult.Successful();
         }
@@ -75,11 +85,14 @@ namespace Turnroot.Gameplay.Combat.PreBattle
                 ApplyMove(selectedPosition.Value, potentialSwapPosition.Value);
             }
 
+            // Log placements for diagnostics
             ClearSelection();
             CurrentPlacementState = PlacementState.PlayerPlaced; // Mark as modified
 
-            // Persist final player changes so starting positions are saved to Long Term Memory
-            SyncPlacementsToRuntimeRoster(persist: true);
+            // Persist final player changes so starting positions are saved to Long Term Memory.
+            // This is a user-initiated save so force the saved placements to be applied on subsequent load.
+
+            Brain?.PublishPlacementsSyncRequested(persist: true, forceApplyPlacementsOnLoad: true);
 
             return OperationResult.Successful();
         }
@@ -113,10 +126,10 @@ namespace Turnroot.Gameplay.Combat.PreBattle
             potentialSwapPosition = pos;
             StartingPositionsComponent?.SetSwap(pos);
 
-            if (TryGetPlacement(pos, out var unit))
+            if (TryGetPlacement(pos, out var data))
             {
-                potentialSwapUnit = unit;
-                UpdateSwapPreview(pos, unit);
+                potentialSwapUnit = Brain?.gamewideContextBrain?.FindInstanceByTemplate(data);
+                UpdateSwapPreview(pos, potentialSwapUnit);
             }
             else
             {
@@ -127,64 +140,31 @@ namespace Turnroot.Gameplay.Combat.PreBattle
             return OperationResult.Successful();
         }
 
-        // Helper: prepare display data for UI
-        private (string name, string className, Sprite portrait) BuildUnitDisplayData(
-            CharacterInstance unit
-        )
-        {
-            if (unit == null)
-            {
-                return ("", "n/a", null);
-            }
-
-            var name = unit.CharacterTemplate?.DisplayName ?? "";
-            var curClass = unit.GetCurrentClass();
-            var className = curClass?.ClassData?.Identity?.ClassName;
-            if (string.IsNullOrEmpty(className))
-            {
-                className = unit.CharacterTemplate?.StartingClass?.Identity?.ClassName ?? "n/a";
-            }
-
-            var portrait = unit.CharacterTemplate?.DefaultPortrait?.RuntimeSprite;
-            return (name, className, portrait);
-        }
-
-        // Helper: apply swap visual + data changes
-        private void ApplySwap(Vector2Int from, Vector2Int to)
-        {
-            StartingPositionsComponent.SetSwap(to);
-            (placements[from], placements[to]) = (placements[to], placements[from]);
-            StartingPositionsComponent.SwapModels(from, to);
-        }
-
-        // Helper: apply move visual + data changes
-        private void ApplyMove(Vector2Int from, Vector2Int to)
-        {
-            StartingPositionsComponent.SetSelected(to);
-            placements[to] = placements[from];
-            placements.Remove(from);
-            StartingPositionsComponent.MoveModel(from, to);
-        }
-
-        // Helper: returns true if pos is a valid player spawn point
-        private bool IsPlayerSpawnPoint(Vector2Int pos) =>
-            PlayerTeamSpawnPoints != null && PlayerTeamSpawnPoints.Contains(pos);
-
-        // Helper: safe lookup for placements (null-safe)
-        private bool TryGetPlacement(Vector2Int pos, out CharacterInstance unit)
-        {
-            unit = null;
-            return placements != null && placements.TryGetValue(pos, out unit);
-        }
+        // Convenience helpers moved to partial implementations (BattlePreparationObject.Helpers.cs)
 
         // Helper: update selected projector visuals and unit data display
         private void UpdateSelectedVisual(Vector2Int pos, CharacterInstance unit)
         {
             var sp = StartingPositionsComponent;
             sp?.SetSelected(pos);
-            if (sp != null && unit != null)
+            if (sp == null)
+            {
+                return;
+            }
+
+            if (unit != null)
             {
                 var (name, className, portrait) = BuildUnitDisplayData(unit);
+                sp.SetSelectedUnit(name, className, portrait);
+                return;
+            }
+
+            // If there is no active instance, fall back to placement data for display.
+            if (TryGetPlacement(pos, out var data) && data != null)
+            {
+                var name = data.DisplayName ?? "";
+                var className = data.StartingClass?.Identity.ClassName ?? "n/a";
+                var portrait = data.DefaultPortrait?.RuntimeSprite;
                 sp.SetSelectedUnit(name, className, portrait);
             }
         }
@@ -194,9 +174,23 @@ namespace Turnroot.Gameplay.Combat.PreBattle
         {
             var sp = StartingPositionsComponent;
             sp?.SetSwap(pos);
-            if (sp != null && unit != null)
+            if (sp == null)
+            {
+                return;
+            }
+
+            if (unit != null)
             {
                 var (name, className, portrait) = BuildUnitDisplayData(unit);
+                sp.SetSwapUnit(name, className, portrait);
+                return;
+            }
+
+            if (TryGetPlacement(pos, out var data) && data != null)
+            {
+                var name = data.DisplayName ?? "";
+                var className = data.StartingClass?.Identity.ClassName ?? "n/a";
+                var portrait = data.DefaultPortrait?.RuntimeSprite;
                 sp.SetSwapUnit(name, className, portrait);
             }
         }
