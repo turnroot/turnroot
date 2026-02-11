@@ -84,10 +84,7 @@ namespace Turnroot.Gameplay.Combat.PreBattle
             if (!invalidPlacementFound && candidate.Count > 0)
             {
                 placements = candidate;
-                TurnrootLogger.Log(
-                    $"InitializePlacements: Using runtime placements ({placements.Count})",
-                    TurnrootLogger.LogLevel.Info
-                );
+
                 CurrentPlacementState = PlacementState.DefaultPlaced;
                 Brain?.PublishPlacementsInitialized();
                 return true;
@@ -129,7 +126,6 @@ namespace Turnroot.Gameplay.Combat.PreBattle
                 var data = kvp.Value;
                 if (data != null)
                 {
-                    // Resolve instance (if available) and mark selected. Do not mark these as user-changed selections.
                     var inst = Brain?.gamewideContextBrain?.FindInstanceByTemplate(data);
                     if (inst != null)
                     {

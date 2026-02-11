@@ -10,9 +10,7 @@ using UnityEngine;
 
 namespace Turnroot.Gameplay.Combat.PreBattle
 {
-    /// <summary>
-    /// Represents the current state of player unit placement in pre-battle preparation.
-    /// </summary>
+    // Pre-battle placement state
     public enum PlacementState
     {
         NonePlaced,
@@ -21,9 +19,6 @@ namespace Turnroot.Gameplay.Combat.PreBattle
         PlayerConfirmed,
     }
 
-    /// <summary>
-    /// Manages pre-battle preparation including unit selection, placement, and starting positions.
-    /// </summary>
     [RequireComponent(typeof(EnvironmentalConditions))]
     public partial class BattlePreparationObject : MonoBehaviour
     {
@@ -85,17 +80,13 @@ namespace Turnroot.Gameplay.Combat.PreBattle
                 }
             }
 
-            // Keep placement view in sync with gamewide selection. When selection changes we
-            // will reinitialize placements, but we avoid overwriting user edits.
+            // Keep placement view in sync with gamewide selection
             if (brain != null)
             {
                 brain.OnUnitSelectionChanged -= HandleUnitSelectionChanged;
                 brain.OnUnitSelectionChanged += HandleUnitSelectionChanged;
                 brain.OnPositioningModeEntered -= HandlePositioningModeEntered;
                 brain.OnPositioningModeEntered += HandlePositioningModeEntered;
-
-                // Listen for requests to sync placements centrally so callers don't need to know
-                // the details of runtime roster persistence or placement locking.
                 brain.OnPlacementsSyncRequested -= HandlePlacementsSyncRequested;
                 brain.OnPlacementsSyncRequested += HandlePlacementsSyncRequested;
 
@@ -116,9 +107,7 @@ namespace Turnroot.Gameplay.Combat.PreBattle
                 return OperationResult.Failure("EnvironmentalConditions not found");
             }
 
-            // Notify the Brain that this BattlePreparationObject has been initialized.
             Brain?.PublishBattlePrepObjectInitialized(this);
-
             return OperationResult.Successful();
         }
 
@@ -281,68 +270,17 @@ namespace Turnroot.Gameplay.Combat.PreBattle
             }
         }
 
-        // Central handler for sync requests published on the Brain. This consolidates
-        // placement → runtime roster syncing behavior and ensures proper handling of
-        // placement locks and post-sync notification to listeners.
+        // Sync handler
         private void HandlePlacementsSyncRequested(bool persist, bool forceApplyPlacementsOnLoad)
         {
             if (PlacementsLocked && !persist)
             {
-                TurnrootLogger.Log(
-                    "HandlePlacementsSyncRequested: Placements are locked; skipping non-persistent sync.",
-                    TurnrootLogger.LogLevel.Info
-                );
                 return;
             }
-
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-            try
-            {
-                var dbg = "";
-                if (placements != null)
-                {
-                    foreach (var kvp in placements)
-                    {
-                        dbg += $"[{kvp.Key}->{kvp.Value?.name}] ";
-                    }
-                }
-                TurnrootLogger.Log(
-                    $"HandlePlacementsSyncRequested: entering persist={persist} forceApply={forceApplyPlacementsOnLoad}; prep placements: {dbg}",
-                    TurnrootLogger.LogLevel.Info
-                );
-            }
-            catch { }
-#endif
 
             try
             {
                 SyncPlacementsToRuntimeRoster(persist, forceApplyPlacementsOnLoad);
-
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-                try
-                {
-                    var gw = Brain?.gamewideContextBrain;
-                    var persistent =
-                        gw?.GamewidePersistentPlayerRoster
-                        ?? gw?.CreateOrRecallGamewidePersistentPlayerRoster();
-                    var runtime =
-                        persistent != null ? gw.GetOrCreatePlayerTeamRoster(persistent) : null;
-                    var runtimeDbg = "";
-                    if (runtime != null)
-                    {
-                        var rplacements = runtime.GetPlacements();
-                        foreach (var r in rplacements)
-                        {
-                            runtimeDbg += $"[{r.SpawnPosition}->{r.CharacterData?.name}] ";
-                        }
-                    }
-                    TurnrootLogger.Log(
-                        $"HandlePlacementsSyncRequested: runtime placements after sync: {runtimeDbg}",
-                        TurnrootLogger.LogLevel.Info
-                    );
-                }
-                catch { }
-#endif
             }
             catch (System.Exception ex)
             {
@@ -412,13 +350,6 @@ namespace Turnroot.Gameplay.Combat.PreBattle
                 placements.Remove(ev.From);
                 CurrentPlacementState = PlacementState.PlayerPlaced;
 
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-                TurnrootLogger.Log(
-                    $"HandleModelMovedEvent: reconciled {data.name} from {ev.From} to {ev.To}",
-                    TurnrootLogger.LogLevel.Info
-                );
-#endif
-
                 Brain?.PublishPlacementsSyncRequested(
                     persist: false,
                     forceApplyPlacementsOnLoad: false
@@ -475,13 +406,6 @@ namespace Turnroot.Gameplay.Combat.PreBattle
                 }
 
                 CurrentPlacementState = PlacementState.PlayerPlaced;
-
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-                TurnrootLogger.Log(
-                    $"HandleModelSwappedEvent: swapped ids {ev.UnitIdA} <-> {ev.UnitIdB} at {ev.PosA}/{ev.PosB}",
-                    TurnrootLogger.LogLevel.Info
-                );
-#endif
 
                 Brain?.PublishPlacementsSyncRequested(
                     persist: false,
@@ -558,65 +482,17 @@ namespace Turnroot.Gameplay.Combat.PreBattle
             return list;
         }
 
-        // Apply the current placements into the runtime player roster instance. If persist is true,
-        // save the runtime roster into Long Term Memory so placements survive reloads and are used
-        // to initialize the battle roster later. If forceApplyPlacementsOnLoad is true the saved
-        // record will be marked so subsequent loads will re-apply the placements automatically.
         public void SyncPlacementsToRuntimeRoster(
             bool persist,
             bool forceApplyPlacementsOnLoad = false
         )
         {
-            var gw = Brain?.gamewideContextBrain;
-            if (gw == null)
-            {
-                return;
-            }
-
-            var persistent =
-                gw.GamewidePersistentPlayerRoster
-                ?? gw.CreateOrRecallGamewidePersistentPlayerRoster();
-            if (persistent == null)
-            {
-                return;
-            }
-
-            var runtimeInstance = gw.GetOrCreatePlayerTeamRoster(persistent);
-            if (runtimeInstance == null)
-            {
-                return;
-            }
-
-            var list = new List<Characters.Roster.UnitPlacement>();
-            foreach (var kvp in placements)
-            {
-                var pos = kvp.Key;
-                var data = kvp.Value;
-                if (data == null)
-                {
-                    continue;
-                }
-
-                var up = new Characters.Roster.UnitPlacement
-                {
-                    CharacterData = data,
-                    SpawnPosition = pos,
-                    Order = list.Count,
-                };
-                up.SetStatus(Characters.Roster.UnitStatus.NotSpawned);
-                up.SetActiveRightNow(true);
-                list.Add(up);
-            }
-
-            runtimeInstance.ApplyDecodedPlacements(list.ToArray());
-
-            if (persist)
-            {
-                // When the user explicitly persists placements we store them so they will be applied on load.
-                var lastSaved = forceApplyPlacementsOnLoad ? 2 : 1;
-                // Use the Brain event to request a parameterized save so GamewideContext handles persistence.
-                Brain?.PublishSavePlayerRosterRequested(lastSaved);
-            }
+            Turnroot.Gameplay.Combat.PreBattle.BattlePlacementSync.ApplyPlacements(
+                Brain,
+                placements,
+                persist,
+                forceApplyPlacementsOnLoad
+            );
         }
     }
 }

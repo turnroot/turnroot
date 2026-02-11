@@ -86,30 +86,12 @@ namespace Turnroot.Gameplay.Combat.PreBattle
             }
 
             // Log placements for diagnostics
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-            try
-            {
-                var debugList = "";
-                if (placements != null)
-                {
-                    foreach (var kvp in placements)
-                    {
-                        debugList += $"[{kvp.Key} -> {kvp.Value?.name}] ";
-                    }
-                }
-                TurnrootLogger.Log($"ExecutePositionAction: placements after move: {debugList}", TurnrootLogger.LogLevel.Info);
-            }
-            catch { }
-#endif
-
             ClearSelection();
             CurrentPlacementState = PlacementState.PlayerPlaced; // Mark as modified
 
             // Persist final player changes so starting positions are saved to Long Term Memory.
             // This is a user-initiated save so force the saved placements to be applied on subsequent load.
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-            TurnrootLogger.Log("ExecutePositionAction: publishing placements sync requested (persist=true, forceApply=true)", TurnrootLogger.LogLevel.Info);
-#endif
+
             Brain?.PublishPlacementsSyncRequested(persist: true, forceApplyPlacementsOnLoad: true);
 
             return OperationResult.Successful();
@@ -158,55 +140,7 @@ namespace Turnroot.Gameplay.Combat.PreBattle
             return OperationResult.Successful();
         }
 
-        // Helper: prepare display data for UI
-        private (string name, string className, Sprite portrait) BuildUnitDisplayData(
-            CharacterInstance unit
-        )
-        {
-            if (unit == null)
-            {
-                return ("", "n/a", null);
-            }
-
-            var name = unit.CharacterTemplate?.DisplayName ?? "";
-            var curClass = unit.GetCurrentClass();
-            var className = curClass?.ClassData.Identity.ClassName;
-            if (string.IsNullOrEmpty(className))
-            {
-                className = unit.CharacterTemplate?.StartingClass?.Identity.ClassName ?? "n/a";
-            }
-
-            var portrait = unit.CharacterTemplate?.DefaultPortrait?.RuntimeSprite;
-            return (name, className, portrait);
-        }
-
-        // Helper: apply swap visual + data changes
-        private void ApplySwap(Vector2Int from, Vector2Int to)
-        {
-            StartingPositionsComponent.SetSwap(to);
-            (placements[from], placements[to]) = (placements[to], placements[from]);
-            StartingPositionsComponent.SwapModels(from, to);
-        }
-
-        // Helper: apply move visual + data changes
-        private void ApplyMove(Vector2Int from, Vector2Int to)
-        {
-            StartingPositionsComponent.SetSelected(to);
-            placements[to] = placements[from];
-            placements.Remove(from);
-            StartingPositionsComponent.MoveModel(from, to);
-        }
-
-        // Helper: returns true if pos is a valid player spawn point
-        private bool IsPlayerSpawnPoint(Vector2Int pos) =>
-            PlayerTeamSpawnPoints != null && PlayerTeamSpawnPoints.Contains(pos);
-
-        // Helper: safe lookup for placements (null-safe)
-        private bool TryGetPlacement(Vector2Int pos, out CharacterData data)
-        {
-            data = null;
-            return placements != null && placements.TryGetValue(pos, out data);
-        }
+        // Convenience helpers moved to partial implementations (BattlePreparationObject.Helpers.cs)
 
         // Helper: update selected projector visuals and unit data display
         private void UpdateSelectedVisual(Vector2Int pos, CharacterInstance unit)
