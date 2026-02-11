@@ -295,7 +295,7 @@ namespace Turnroot.Gameplay.Brain.Components
 
             try
             {
-                return Turnroot.Utilities.DeviceDataCipher.EncryptToBase64(key);
+                return Utilities.DeviceDataCipher.EncryptToBase64(key);
             }
             catch (Exception ex)
             {
@@ -315,7 +315,7 @@ namespace Turnroot.Gameplay.Brain.Components
 
             try
             {
-                return Turnroot.Utilities.DeviceDataCipher.DecryptFromBase64(encoded);
+                return Utilities.DeviceDataCipher.DecryptFromBase64(encoded);
             }
             catch (Exception ex)
             {

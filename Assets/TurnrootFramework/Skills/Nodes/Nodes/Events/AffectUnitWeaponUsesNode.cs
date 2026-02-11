@@ -49,7 +49,7 @@ namespace Turnroot.Skills.Nodes.Events
 
             int change = (int)GetInputFloat("usesChange", testChange);
 
-            context.Brain?.PublishWeaponUsesChanged(targetCharacter, change);
+            context.Brain.PublishWeaponUsesChanged(targetCharacter, change);
             string target = applyToUnit ? "unit" : "target";
             TurnrootLogger.Log(
                 $"AffectUnitWeaponUses: Changed {target} ({targetCharacter.CharacterTemplate.DisplayName}) weapon uses by {change}"

@@ -29,7 +29,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         public BattleBrain battleBrain;
 
         private Brain.Brain Brain => battleBrain?.Brain;
-        private BattleContext Context => battleBrain?.BattleObject?.Context;
+        private BattleContext Context => battleBrain?.BattleObject.Context;
         private Utilities.AbstractScripts.BattleSceneFlow _sceneFlow;
 
         #endregion
@@ -148,7 +148,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
         private TurnOrder GetNextTurnOrder()
         {
-            var hasThirdParty = battleBrain?.BattleObject?.HasThirdParty ?? false;
+            var hasThirdParty = battleBrain?.BattleObject.HasThirdParty ?? false;
 
             return _currentTurnOrder switch
             {

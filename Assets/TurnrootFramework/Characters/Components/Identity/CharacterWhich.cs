@@ -1,4 +1,5 @@
 using System;
+using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Characters.Components
@@ -9,7 +10,6 @@ namespace Turnroot.Characters.Components
     [Serializable]
     public class CharacterWhich
     {
-        // Constants for valid types
         public const string AVATAR = "Avatar";
         public const string ENEMY = "Enemy";
         public const string ALLY = "Ally";
@@ -32,11 +32,10 @@ namespace Turnroot.Characters.Components
                 }
                 else
                 {
-#if UNITY_EDITOR
-                    Debug.LogWarning(
-                        $"Invalid character type '{value}'. Valid types: {AVATAR}, {ENEMY}, {ALLY}, {NPC}. Defaulting to {ENEMY}."
+                    TurnrootLogger.Log(
+                        $"Invalid CharacterWhich value: {value}. Defaulting to '{ENEMY}'.",
+                        TurnrootLogger.LogLevel.Warning
                     );
-#endif
                     _value = ENEMY;
                 }
             }
@@ -49,12 +48,8 @@ namespace Turnroot.Characters.Components
             Value = value;
         }
 
-        /// <summary>
-        /// Check if a string is a valid character type.
-        /// </summary>
         public static bool IsValid(string value) => value is AVATAR or ENEMY or ALLY or NPC;
 
-        // Implicit conversion to string nn n/
         public static implicit operator string(CharacterWhich which) => which?._value;
 
         public override string ToString() => _value;

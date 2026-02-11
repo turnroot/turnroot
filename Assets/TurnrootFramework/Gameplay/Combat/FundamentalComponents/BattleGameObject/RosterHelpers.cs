@@ -109,15 +109,15 @@ namespace Turnroot.Gameplay.Combat
                 foreach (var kvp in prep.placements)
                 {
                     var pos = kvp.Key;
-                    var inst = kvp.Value;
-                    if (inst == null || inst.CharacterTemplate == null)
+                    var data = kvp.Value;
+                    if (data == null)
                     {
                         continue;
                     }
 
                     var up = new Characters.Roster.UnitPlacement
                     {
-                        CharacterData = inst.CharacterTemplate,
+                        CharacterData = data,
                         SpawnPosition = pos,
                         Order = list.Count,
                     };
@@ -130,6 +130,12 @@ namespace Turnroot.Gameplay.Combat
                 if (list.Count > 0)
                 {
                     PlayerTeamRoster.ApplyDecodedPlacements(list.ToArray());
+                    TurnrootLogger.Log(
+                        $"ApplyPreBattlePlacements: Applied {list.Count} placements to PlayerTeamRoster",
+                        TurnrootLogger.LogLevel.Info
+                    );
+                    // Notify systems that placements have been applied for this battle (cursor, UI, etc.)
+                    Brain?.PublishPlacementsInitialized();
                 }
 
                 return OperationResult.Successful();

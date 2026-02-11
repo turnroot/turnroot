@@ -50,8 +50,8 @@ namespace Turnroot.Gameplay.Brain
         private void HandlePositioningModeExited()
         {
             _isActive = false;
-            _inputActions?.Disable();
-            _inputActions?.Dispose();
+            _inputActions.Disable();
+            _inputActions.Dispose();
             _inputActions = null;
             TurnrootLogger.Log("PositioningInputController: Deactivated");
         }
@@ -75,7 +75,7 @@ namespace Turnroot.Gameplay.Brain
 
         private bool ProcessInput()
         {
-            if (_inputActions?.Navigate?.enabled == true)
+            if (_inputActions.Navigate?.enabled == true)
             {
                 var direction = _inputActions.Navigate.ReadValue<Vector2>();
                 var threshold = GetInputThreshold();
@@ -101,13 +101,13 @@ namespace Turnroot.Gameplay.Brain
                 _lastDirection = Vector2.zero;
             }
 
-            if (_inputActions?.Confirm?.WasPressedThisFrame() == true)
+            if (_inputActions.Confirm?.WasPressedThisFrame() == true)
             {
                 HandleConfirmInput();
                 return true;
             }
 
-            if (_inputActions?.Cancel?.WasPressedThisFrame() == true)
+            if (_inputActions.Cancel?.WasPressedThisFrame() == true)
             {
                 HandleCancelInput();
                 return true;
@@ -209,8 +209,12 @@ namespace Turnroot.Gameplay.Brain
 
         protected override void OnDestroy()
         {
-            _inputActions?.Disable();
-            _inputActions?.Dispose();
+            if (_inputActions != null)
+            {
+                _inputActions.Disable();
+                _inputActions.Dispose();
+                _inputActions = null;
+            }
             base.OnDestroy();
         }
     }

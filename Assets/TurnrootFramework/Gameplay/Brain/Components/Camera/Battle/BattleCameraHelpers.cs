@@ -249,7 +249,7 @@ namespace Turnroot.Gameplay.Brain.Segments
         public Vector2Int SetBattleGridCameraNeutralCenter()
         {
             // Prefer the battle context map grid, but fall back to the pre-battle preparation map if available.
-            var mapGridToUse = mapGrid ?? Brain?.battleBrain?.PreparationObject?.MapGrid;
+            var mapGridToUse = mapGrid ?? Brain?.battleBrain.PreparationObject?.MapGrid;
             if (mapGridToUse == null)
             {
                 return Vector2Int.zero;
@@ -318,7 +318,7 @@ namespace Turnroot.Gameplay.Brain.Segments
 
         private void HandleBattleStarted()
         {
-            var battleObject = Brain?.battleBrain?.BattleObject;
+            var battleObject = Brain?.battleBrain.BattleObject;
             if (battleObject == null)
             {
                 TurnrootLogger.Log(
@@ -329,7 +329,7 @@ namespace Turnroot.Gameplay.Brain.Segments
             }
 
             // Ensure map grid reference
-            mapGrid = battleObject.MapGrid ?? Brain?.battleBrain?.PreparationObject?.MapGrid;
+            mapGrid = battleObject.MapGrid ?? Brain?.battleBrain.PreparationObject?.MapGrid;
 
             // Ensure camera is initialized
             InitializeBattleMapCamera(battleObject);

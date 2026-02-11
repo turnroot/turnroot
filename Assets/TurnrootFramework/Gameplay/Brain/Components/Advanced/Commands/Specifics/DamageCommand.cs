@@ -57,18 +57,18 @@ namespace Turnroot.Gameplay.Brain.Commands
                 UndoState["prevTargetLastAttacker"] = target.LastAttacker;
                 // Use BattleBrain wrapper to ensure events are published and context mapping updated
                 context
-                    .Brain?.GetComponent<BattleBrain>()
+                    .Brain.GetComponent<BattleBrain>()
                     ?.SetLastAttacker(context, target, attacker);
             }
 
-            context.Brain?.Publish(
+            context.Brain.Publish(
                 new Events.UnitDamagedEvent(target, attacker, Damage, (int)health.Current)
             );
 
             if (health.Current <= 0)
             {
                 target.IsDefeatedInCurrentBattle = true;
-                context.Brain?.Publish(new Events.UnitDefeatedEvent(target, attacker));
+                context.Brain.Publish(new Events.UnitDefeatedEvent(target, attacker));
             }
 
             return true;
@@ -103,12 +103,12 @@ namespace Turnroot.Gameplay.Brain.Commands
             {
                 if (UndoState.TryGetValue("prevLastAttackerOfTarget", out var prevLastAttacker))
                 {
-                    var bb = context.Brain?.GetComponent<BattleBrain>();
+                    var bb = context.Brain.GetComponent<BattleBrain>();
                     bb?.SetLastAttacker(context, target, prevLastAttacker as CharacterInstance);
                 }
                 else if (UndoState.TryGetValue("prevTargetLastAttacker", out var prevTargetLast))
                 {
-                    var bb = context.Brain?.GetComponent<BattleBrain>();
+                    var bb = context.Brain.GetComponent<BattleBrain>();
                     bb?.SetLastAttacker(context, target, prevTargetLast as CharacterInstance);
                 }
             }

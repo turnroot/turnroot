@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Turnroot.Characters;
 using Turnroot.Gameplay.Brain.Components.Battle;
 using Turnroot.Gameplay.Combat;
@@ -198,7 +199,8 @@ namespace Turnroot.Gameplay.Brain
                 int lastSaved = gw.GetSavedPlayerRosterLastBattleTurn();
                 if (lastSaved <= 1)
                 {
-                    gw.SavePlayerRoster(lastSavedBattleTurn: 1);
+                    // Use the brain event to request a save (lastSavedBattleTurn == 1)
+                    Brain?.PublishSavePlayerRosterRequested(1);
                 }
             }
         }
@@ -295,6 +297,109 @@ namespace Turnroot.Gameplay.Brain
                 return result;
             }
 
+            // Align pre-battle placement references with the roster's canonical instances so the
+            // hand-off from starting positions -> start battle is deterministic and single-sourced.
+            try
+            {
+                var prep = PreparationObject;
+                var playerRoster = BattleObject?.PlayerTeamRoster;
+                if (prep != null)
+                {
+                    // Prevent precompute from mutating placements while we align/persist/spawn.
+                    prep.PlacementsLocked = true;
+                }
+
+                if (prep?.placements != null && playerRoster != null)
+                {
+                    var keys = prep.placements.Keys.ToList();
+                    foreach (var pos in keys)
+                    {
+                        var data = prep.placements[pos];
+                        if (data == null)
+                        {
+                            continue;
+                        }
+
+                        var inst =
+                            playerRoster.GetInstanceFor(data)
+                            ?? Brain.gamewideContextBrain?.FindInstanceByTemplate(data);
+                        if (inst == null)
+                        {
+                            TurnrootLogger.Log(
+                                $"BattleBrain: Placement at {pos} references {data.name} which has no active instance; roster/spawn may create it at start.",
+                                TurnrootLogger.LogLevel.Info
+                            );
+                        }
+                    }
+
+                    // Persist the corrected placements to LTM so start-battle reads are authoritative.
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                    try
+                    {
+                        var dbg = "";
+                        foreach (var kvp in prep.placements)
+                        {
+                            dbg += $"[{kvp.Key}->{kvp.Value?.name}] ";
+                        }
+                        TurnrootLogger.Log($"BattleBrain: placement alignment pre-sync: {dbg}", TurnrootLogger.LogLevel.Info);
+                    }
+                    catch { }
+#endif
+                    try
+                    {
+                        Brain?.PublishPlacementsSyncRequested(
+                            persist: true,
+                            forceApplyPlacementsOnLoad: false
+                        );
+                    }
+                    catch (System.Exception ex)
+                    {
+                        TurnrootLogger.Log(
+                            "BattleBrain: Failed to PublishPlacementsSyncRequested after alignment: "
+                                + ex.Message,
+                            TurnrootLogger.LogLevel.Warning
+                        );
+                    }
+
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                    // Dev assertion: ensure placements reference character templates that exist in runtime roster or active instances.
+                    try
+                    {
+                        foreach (var kvp in prep.placements)
+                        {
+                            var dataCheck = kvp.Value;
+                            if (dataCheck == null)
+                            {
+                                continue;
+                            }
+                            var instCheck =
+                                playerRoster.GetInstanceFor(dataCheck)
+                                ?? Brain.gamewideContextBrain?.FindInstanceByTemplate(dataCheck);
+                            if (instCheck == null)
+                            {
+                                TurnrootLogger.Log(
+                                    $"BattleBrain Assertion: Placement {dataCheck.name} at {kvp.Key} has no runtime instance after alignment",
+                                    TurnrootLogger.LogLevel.Warning
+                                );
+                                UnityEngine.Debug.Assert(
+                                    instCheck != null,
+                                    $"Placement {dataCheck.name} at {kvp.Key} has no runtime instance after alignment"
+                                );
+                            }
+                        }
+                    }
+                    catch { }
+#endif
+                }
+            }
+            catch (System.Exception ex)
+            {
+                TurnrootLogger.Log(
+                    "BattleBrain: Placement alignment failed: " + ex.Message,
+                    TurnrootLogger.LogLevel.Warning
+                );
+            }
+
             var populateResult = PopulateBattleContextParticipants();
             if (!populateResult.Success)
             {
@@ -306,6 +411,17 @@ namespace Turnroot.Gameplay.Brain
             }
 
             SpawnRosterUnitsOntoGrid();
+
+            // Unlock placements after we've completed authoritative roster initialization and spawning.
+            try
+            {
+                var prep = PreparationObject;
+                if (prep != null)
+                {
+                    prep.PlacementsLocked = false;
+                }
+            }
+            catch { }
 
             _aiHelper = new BattleContextAIHelper(BattleObject.Context);
             return OperationResult.Successful();
@@ -356,210 +472,6 @@ namespace Turnroot.Gameplay.Brain
             }
 
             return OperationResult.Successful();
-        }
-
-        private void SpawnRosterUnitsOntoGrid()
-        {
-            var enemyRoster = BattleObject.EnemyTeamRoster;
-            if (BattleObject.HasThirdParty)
-            {
-                var thirdPartyRoster = BattleObject.ThirdPartyTeamRoster;
-            }
-            var playerTeamRoster = BattleObject.PlayerTeamRoster;
-
-            foreach (var p in enemyRoster.GetPlacements())
-            {
-                var characterData = p.CharacterData;
-                var characterInstance = enemyRoster.GetInstanceFor(characterData);
-                var placement = p;
-                BattleObject.Context.SpawnAtPosition(characterInstance, placement.SpawnPosition);
-                enemyRoster.SetOrder(characterData, placement.Order);
-            }
-
-            if (BattleObject.HasThirdParty)
-            {
-                var thirdPartyRoster = BattleObject.ThirdPartyTeamRoster;
-                foreach (var p in thirdPartyRoster.GetPlacements())
-                {
-                    var characterData = p.CharacterData;
-                    var characterInstance = thirdPartyRoster.GetInstanceFor(characterData);
-                    var placement = p;
-                    BattleObject.Context.SpawnAtPosition(
-                        characterInstance,
-                        placement.SpawnPosition
-                    );
-                    thirdPartyRoster.SetOrder(characterData, placement.Order);
-                }
-            }
-
-            foreach (var p in playerTeamRoster.GetPlacements())
-            {
-                var characterData = p.CharacterData;
-                var characterInstance = playerTeamRoster.GetInstanceFor(characterData);
-                var placement = p;
-
-                // Avoid double-spawning: if the unit was already spawned during HandleBattleStarted
-                // and its MapGridPosition matches the intended placement, skip spawning here.
-                if (characterInstance != null && characterInstance.WasSpawnedDuringBattle)
-                {
-                    if (characterInstance.MapGridPosition == placement.SpawnPosition)
-                    {
-                        TurnrootLogger.Log(
-                            $"SpawnRosterUnitsOntoGrid: Skipping spawn for {characterInstance.CharacterTemplate.DisplayName} - already spawned at {placement.SpawnPosition}",
-                            TurnrootLogger.LogLevel.Info
-                        );
-                        playerTeamRoster.SetOrder(characterData, placement.Order);
-                        continue;
-                    }
-                    else
-                    {
-                        // Mismatch detected: log and repair occupying grid so occupancy and instance position align.
-                        TurnrootLogger.Log(
-                            $"SpawnRosterUnitsOntoGrid: Repairing {characterInstance.CharacterTemplate.DisplayName} MapGridPosition from {characterInstance.MapGridPosition} to {placement.SpawnPosition}",
-                            TurnrootLogger.LogLevel.Warning
-                        );
-
-                        try
-                        {
-                            var oldP = characterInstance.UnitPositionToMapGridPoint(
-                                characterInstance.MapGridPosition,
-                                BattleObject.Context.MapGrid
-                            );
-                            if (oldP != null)
-                            {
-                                BattleObject.Context.MapGrid.RemoveOccupied(oldP);
-                            }
-                        }
-                        catch (System.Exception ex)
-                        {
-                            TurnrootLogger.Log(
-                                "SpawnRosterUnitsOntoGrid: Failed during RemoveOccupied cleanup: "
-                                    + ex.Message,
-                                TurnrootLogger.LogLevel.Warning
-                            );
-                        }
-
-                        try
-                        {
-                            var newMgp = BattleObject.Context.MapGrid.GetGridPoint(
-                                placement.SpawnPosition.x,
-                                placement.SpawnPosition.y
-                            );
-                            if (newMgp != null)
-                            {
-                                BattleObject.Context.MapGrid.SetOccupied(newMgp, characterInstance);
-                            }
-                            else
-                            {
-                                TurnrootLogger.Log(
-                                    "SpawnRosterUnitsOntoGrid: Failed to find MapGridPoint for placement during repair.",
-                                    TurnrootLogger.LogLevel.Error
-                                );
-                            }
-                        }
-                        catch (System.Exception ex)
-                        {
-                            TurnrootLogger.Log(
-                                "SpawnRosterUnitsOntoGrid: Failed to align spawn position: "
-                                    + ex.Message,
-                                TurnrootLogger.LogLevel.Error
-                            );
-                        }
-                    }
-                }
-
-                var spawned = BattleObject.Context.SpawnAtPosition(
-                    characterInstance,
-                    placement.SpawnPosition
-                );
-                if (!spawned)
-                {
-                    TurnrootLogger.Log(
-                        $"SpawnRosterUnitsOntoGrid: SpawnAtPosition failed for {characterData?.DisplayName} at {placement.SpawnPosition}",
-                        TurnrootLogger.LogLevel.Warning
-                    );
-                }
-
-                playerTeamRoster.SetOrder(characterData, placement.Order);
-            }
-
-            // Final verification pass: ensure all roster instances have MapGridPosition matching placements.
-            try
-            {
-                var placementsArr = playerTeamRoster.GetPlacements();
-                foreach (var ap in placementsArr)
-                {
-                    var inst = playerTeamRoster.GetInstanceFor(ap.CharacterData);
-                    if (inst == null)
-                    {
-                        continue;
-                    }
-
-                    if (inst.MapGridPosition != ap.SpawnPosition)
-                    {
-                        TurnrootLogger.Log(
-                            $"SpawnRosterUnitsOntoGrid: Post-check repair for {inst.CharacterTemplate.DisplayName} from {inst.MapGridPosition} to {ap.SpawnPosition}",
-                            TurnrootLogger.LogLevel.Warning
-                        );
-
-                        try
-                        {
-                            var oldP = inst.UnitPositionToMapGridPoint(
-                                inst.MapGridPosition,
-                                BattleObject.Context.MapGrid
-                            );
-                            if (oldP != null)
-                            {
-                                BattleObject.Context.MapGrid.RemoveOccupied(oldP);
-                            }
-                        }
-                        catch (System.Exception ex)
-                        {
-                            TurnrootLogger.Log(
-                                "SpawnRosterUnitsOntoGrid: Post-check RemoveOccupied failed: "
-                                    + ex.Message,
-                                TurnrootLogger.LogLevel.Warning
-                            );
-                        }
-
-                        try
-                        {
-                            var newMgp = BattleObject.Context.MapGrid.GetGridPoint(
-                                ap.SpawnPosition.x,
-                                ap.SpawnPosition.y
-                            );
-                            if (newMgp != null)
-                            {
-                                BattleObject.Context.MapGrid.SetOccupied(newMgp, inst);
-                            }
-                            else
-                            {
-                                TurnrootLogger.Log(
-                                    "SpawnRosterUnitsOntoGrid: Failed to find MapGridPoint for placement during repair.",
-                                    TurnrootLogger.LogLevel.Error
-                                );
-                            }
-                        }
-                        catch (System.Exception ex)
-                        {
-                            TurnrootLogger.Log(
-                                "SpawnRosterUnitsOntoGrid: Post-check alignment failed: "
-                                    + ex.Message,
-                                TurnrootLogger.LogLevel.Error
-                            );
-                        }
-                    }
-                }
-            }
-            catch (System.Exception ex)
-            {
-                TurnrootLogger.Log(
-                    "SpawnRosterUnitsOntoGrid: Unexpected error during spawn pass: " + ex.Message,
-                    TurnrootLogger.LogLevel.Warning
-                );
-            }
-
-            BattleObject.Context.InvalidateUnitPositionCache();
         }
 
         #endregion

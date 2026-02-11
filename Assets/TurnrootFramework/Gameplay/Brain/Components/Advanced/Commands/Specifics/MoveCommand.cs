@@ -1,4 +1,5 @@
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
+using Turnroot.Gameplay.Maps;
 using Turnroot.Utilities;
 using UnityEngine;
 
@@ -29,7 +30,80 @@ namespace Turnroot.Gameplay.Brain.Commands
 
             var oldPoint = unit.UnitPositionToMapGridPoint(unit.MapGridPosition, context.MapGrid);
 
-            UndoState["from"] = unit.MapGridPosition;
+            // Verify that the grid point we think is the source actually contains this unit. If it does not,
+            // search the grid for the authoritative occupancy and repair the instance position if found.
+            MapGridPoint authoritativeOldPoint = oldPoint;
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            if (authoritativeOldPoint == null || authoritativeOldPoint.CurrentInstance != unit)
+            {
+                TurnrootLogger.Log(
+                    $"MoveCommand: Detected grid/instance mismatch for {unit.Id}. Searching grid for authoritative occupancy.",
+                    TurnrootLogger.LogLevel.Warning
+                );
+
+                MapGridPoint found = null;
+                for (int x = 0; x < context.MapGrid.GridWidth && found == null; x++)
+                {
+                    for (int y = 0; y < context.MapGrid.GridHeight; y++)
+                    {
+                        var gp = context.MapGrid.GetGridPoint(x, y);
+                        if (gp?.CurrentInstance == unit)
+                        {
+                            found = gp;
+                            break;
+                        }
+                    }
+                }
+
+                if (found != null)
+                {
+                    authoritativeOldPoint = found;
+
+                    var repairedPos = new Vector2Int(found.Row, found.Col);
+                    UndoState["from"] = repairedPos;
+
+                    if (unit.MapGridPosition != repairedPos)
+                    {
+                        unit.MapGridPosition = repairedPos;
+                        TurnrootLogger.Log(
+                            $"MoveCommand: Repaired {unit.Id} MapGridPosition to {repairedPos}",
+                            TurnrootLogger.LogLevel.Info
+                        );
+                    }
+                }
+                else
+                {
+                    TurnrootLogger.Log(
+                        $"MoveCommand: Could not locate authoritative old point for {unit.Id}; proceeding without RemoveOccupied.",
+                        TurnrootLogger.LogLevel.Warning
+                    );
+
+                    // Clear authoritativeOldPoint so we do not RemoveOccupied the wrong location.
+                    authoritativeOldPoint = null;
+                    UndoState["from"] = unit.MapGridPosition;
+                }
+            }
+            else
+            {
+                UndoState["from"] = unit.MapGridPosition;
+            }
+#else
+            // In release builds, skip the expensive grid search fallback. If there is a mismatch it will be
+            // detected by later sanity checks and handled in debug/diagnostic builds.
+            if (authoritativeOldPoint == null || authoritativeOldPoint.CurrentInstance != unit)
+            {
+                TurnrootLogger.Log(
+                    $"MoveCommand: Grid/instance mismatch for {unit.Id} detected; skipping fallback search in release build.",
+                    TurnrootLogger.LogLevel.Warning
+                );
+                authoritativeOldPoint = null;
+                UndoState["from"] = unit.MapGridPosition;
+            }
+            else
+            {
+                UndoState["from"] = unit.MapGridPosition;
+            }
+#endif
 
             // Move the unit (updates internal position)
             var result = unit.MoveToPosition(Target, context.MapGrid);
@@ -43,10 +117,13 @@ namespace Turnroot.Gameplay.Brain.Commands
                 try
                 {
                     var oldOccupier =
-                        oldPoint == null
+                        authoritativeOldPoint == null
                             ? null
                             : context
-                                .MapGrid.GetGridPoint(oldPoint.Row, oldPoint.Col)
+                                .MapGrid.GetGridPoint(
+                                    authoritativeOldPoint.Row,
+                                    authoritativeOldPoint.Col
+                                )
                                 ?.CurrentInstance;
                     var newOccupierBefore =
                         newPoint == null
@@ -55,7 +132,7 @@ namespace Turnroot.Gameplay.Brain.Commands
                                 .MapGrid.GetGridPoint(newPoint.Row, newPoint.Col)
                                 ?.CurrentInstance;
                     TurnrootLogger.Log(
-                        $"MoveCommand: Before move - unit={unit.Id} old={unit.MapGridPosition} oldOccupier={oldOccupier?.Id ?? "<none>"} new={Target} newOccupier={newOccupierBefore?.Id ?? "<none>"}"
+                        $"MoveCommand: Before move - unit={unit.Id} old={(UndoState.TryGetValue("from", out var _from) ? _from.ToString() : unit.MapGridPosition.ToString())} oldOccupier={oldOccupier?.Id ?? "<none>"} new={Target} newOccupier={newOccupierBefore?.Id ?? "<none>"}"
                     );
                 }
                 catch (System.Exception ex)
@@ -66,15 +143,28 @@ namespace Turnroot.Gameplay.Brain.Commands
                     );
                 }
 
-                context.MapGrid.RemoveOccupied(oldPoint);
+                if (authoritativeOldPoint != null)
+                {
+                    context.MapGrid.RemoveOccupied(authoritativeOldPoint);
+                }
+                else
+                {
+                    TurnrootLogger.Log(
+                        $"MoveCommand: Skipping RemoveOccupied because authoritative old point for {unit.Id} was not found.",
+                        TurnrootLogger.LogLevel.Warning
+                    );
+                }
 
                 try
                 {
                     var afterOld =
-                        oldPoint == null
+                        authoritativeOldPoint == null
                             ? null
                             : context
-                                .MapGrid.GetGridPoint(oldPoint.Row, oldPoint.Col)
+                                .MapGrid.GetGridPoint(
+                                    authoritativeOldPoint.Row,
+                                    authoritativeOldPoint.Col
+                                )
                                 ?.CurrentInstance;
                     TurnrootLogger.Log(
                         $"MoveCommand: After RemoveOccupied - old point occupant now={afterOld?.Id ?? "<none>"}"
@@ -200,28 +290,13 @@ namespace Turnroot.Gameplay.Brain.Commands
                 }
 
                 // Publish event on the priority bus
-                context.Brain?.Publish(
+                context.Brain.Publish(
                     new Events.UnitMovedEvent(unit, (Vector2Int)UndoState["from"], Target)
                 );
 
-                // Also publish typed move events so other systems (UI/flow) can react immediately
-                context.Brain?.PublishCharacterMoveCompleted(unit, newPoint);
-                context.Brain?.PublishUnitMoved(unit, Target);
-                context.Brain?.PublishMoveCompleted(unit, newPoint);
-
-#if UNITY_EDITOR
-                try
-                {
-                    context.DebugVerifyOccupancyAlignment();
-                }
-                catch (System.Exception ex)
-                {
-                    TurnrootLogger.Log(
-                        "MoveCommand: DebugVerifyOccupancyAlignment failed: " + ex.Message,
-                        TurnrootLogger.LogLevel.Warning
-                    );
-                }
-#endif
+                context.Brain.PublishCharacterMoveCompleted(unit, newPoint);
+                context.Brain.PublishUnitMoved(unit, Target);
+                context.Brain.PublishMoveCompleted(unit, newPoint);
             }
 
             return result.Success;
@@ -235,7 +310,7 @@ namespace Turnroot.Gameplay.Brain.Commands
                 return false;
             }
 
-            var bb = context.Brain?.battleBrain;
+            var bb = context.Brain.battleBrain;
             var moved = bb != null && bb.MoveUnit(unit, (Vector2Int)from, context.MapGrid);
             return moved;
         }

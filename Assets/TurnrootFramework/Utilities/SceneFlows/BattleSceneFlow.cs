@@ -57,7 +57,8 @@ namespace Turnroot.Utilities.AbstractScripts
         /// Call this whenever the interrupt system is actively doing something (frame updates, player choices, etc.)
         /// to prevent inactivity timeout from triggering.
         /// </summary>
-        public void ResetInterruptActivityTimer() => _lastInterruptActivityTime = UnityEngine.Time.time;
+        public void ResetInterruptActivityTimer() =>
+            _lastInterruptActivityTime = UnityEngine.Time.time;
 
         private void Update()
         {
@@ -131,7 +132,7 @@ namespace Turnroot.Utilities.AbstractScripts
         {
             CurrentMiniBattleState = MiniBattleState.NoBattlePlayerInput;
             DisableBattleInput();
-            OnPlayerPreTurn.Invoke();
+            OnPlayerPreTurn?.Invoke();
         }
 
         public UnityEvent OnPlayerPreTurn = new();
@@ -187,7 +188,7 @@ namespace Turnroot.Utilities.AbstractScripts
             // for now, just call it
             if (brain)
             {
-                OnPlayerPreTurn.Invoke();
+                OnPlayerPreTurn?.Invoke();
             }
             DisableBattleInput();
         }
@@ -215,9 +216,9 @@ namespace Turnroot.Utilities.AbstractScripts
                     }
                     else
                     {
-                        Turnroot.Utilities.TurnrootLogger.Log(
+                        TurnrootLogger.Log(
                             "BattleSceneFlow: Conversation queued but no ConversationController found",
-                            Turnroot.Utilities.TurnrootLogger.LogLevel.Warning
+                            TurnrootLogger.LogLevel.Warning
                         );
                         // No conversation controller, immediately complete
                         CompleteInterrupt();
@@ -238,9 +239,9 @@ namespace Turnroot.Utilities.AbstractScripts
 
                 default:
                     // Unknown interrupt type, log warning and clear
-                    Turnroot.Utilities.TurnrootLogger.Log(
+                    TurnrootLogger.Log(
                         $"BattleSceneFlow: Unknown interrupt type {_queuedInterrupt}",
-                        Turnroot.Utilities.TurnrootLogger.LogLevel.Warning
+                        TurnrootLogger.LogLevel.Warning
                     );
                     CompleteInterrupt();
                     break;
@@ -248,7 +249,7 @@ namespace Turnroot.Utilities.AbstractScripts
         }
 
         public void HandlePreBattleTransitionToBattleCompleted() =>
-            brain?.stateBrain?.HandlePreBattleTransitionToBattleCompleted();
+            brain?.stateBrain.HandlePreBattleTransitionToBattleCompleted();
 
         protected override void SubscribeToBrainEvents()
         {
@@ -275,18 +276,15 @@ namespace Turnroot.Utilities.AbstractScripts
                     && CurrentSegment.stateId.Contains(BrainStateNames.PreBattleTransitionToBattle)
                 )
                 {
-                    StartPreLoading.Invoke();
-
+                    StartPreLoading?.Invoke();
                     loadingController?.Initialize();
 
                     var loader =
                         FindFirstObjectByType<Gameplay.Combat.Precompute.BattlePrecomputeLoader>();
                     if (loader != null)
                     {
-                        var initRes = loader.Initialize(
-                            brain,
-                            brain?.battleBrain?.BattleObject?.Context
-                        );
+                        var context = brain?.battleBrain?.BattleObject?.Context;
+                        var initRes = loader.Initialize(brain, context);
                         if (!initRes.Success)
                         {
                             TurnrootLogger.Log(

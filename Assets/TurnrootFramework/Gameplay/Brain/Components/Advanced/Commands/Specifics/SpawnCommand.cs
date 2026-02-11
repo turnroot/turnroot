@@ -47,8 +47,8 @@ namespace Turnroot.Gameplay.Brain.Commands
                 // Invalidate position cache after spawning
                 context.InvalidateUnitPositionCache();
 
-                context.Brain?.Publish(new Events.UnitSpawnedEvent(unit, SpawnPosition));
-                context.Brain?.TakeSnapshot();
+                context.Brain.Publish(new Events.UnitSpawnedEvent(unit, SpawnPosition));
+                context.Brain.TakeSnapshot();
             }
             return result.Success;
         }
@@ -84,8 +84,8 @@ namespace Turnroot.Gameplay.Brain.Commands
                     unit.MapGridPosition = fromPos; // fallback
                 }
 
-                context.Brain?.Publish(new Events.UnitDespawnedEvent(unit, SpawnPosition));
-                context.Brain?.TakeSnapshot();
+                context.Brain.Publish(new Events.UnitDespawnedEvent(unit, SpawnPosition));
+                context.Brain.TakeSnapshot();
             }
             return result.Success;
         }

@@ -17,11 +17,11 @@ namespace Turnroot.Gameplay.Brain.Segments
         private Vector3 _currentVelocity;
         private bool _shouldMove;
         private MapGrid mapGrid;
-        private GamewideUiSettings UiSettings => Brain?.uiBrain?.uiSettings;
+        private GamewideUiSettings UiSettings => Brain?.uiBrain.uiSettings;
         private GameplayPlayerSettings gameplayPlayerSettings => GameplayPlayerSettings.Instance;
         private GameplayPlayerSettings.GameSpeed gameSpeed =>
             gameplayPlayerSettings?.SpeedSetting ?? GameplayPlayerSettings.GameSpeed.Normal;
-        private BattleGameObject BattleObject => Brain?.battleBrain?.BattleObject;
+        private BattleGameObject BattleObject => Brain?.battleBrain.BattleObject;
 
         protected override void SubscribeToBrainEvents()
         {
@@ -41,7 +41,7 @@ namespace Turnroot.Gameplay.Brain.Segments
 
         public void InitializeMapGrid()
         {
-            var grid = BattleObject?.MapGrid ?? Brain?.battleBrain?.PreparationObject?.MapGrid;
+            var grid = BattleObject?.MapGrid ?? Brain?.battleBrain.PreparationObject?.MapGrid;
             SetMapGrid(grid);
         }
 

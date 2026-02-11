@@ -116,13 +116,13 @@ namespace Turnroot.Gameplay.Brain
         public void Pause()
         {
             var stateBrain = GetComponent<StateBrain>();
-            stateBrain?.Pause();
+            stateBrain.Pause();
         }
 
         public void Resume()
         {
             var stateBrain = GetComponent<StateBrain>();
-            stateBrain?.Resume();
+            stateBrain.Resume();
         }
 
         #endregion

@@ -27,14 +27,16 @@ namespace Turnroot.Gameplay.Brain
 
             // Validate map grid and grid point to avoid silent spawns at Vector3.zero
             var mapGrid =
-                _brain.battleBrain.PreparationObject?.MapGrid
-                ?? _brain.battleBrain.BattleObject?.Context?.MapGrid
-                ?? _brain.battleBrain.BattleObject?.MapGrid;
+                _brain.battleBrain.PreparationObject.MapGrid
+                ?? _brain.battleBrain.BattleObject.Context.MapGrid ?? _brain
+                    .battleBrain
+                    .BattleObject
+                    .MapGrid;
 
             if (mapGrid == null)
             {
                 TurnrootLogger.Log(
-                    $"SpawnUnitAtPosition: Aborting spawn for {unit?.CharacterTemplate?.DisplayName} - no MapGrid available",
+                    $"SpawnUnitAtPosition: Aborting spawn for {unit.CharacterTemplate.DisplayName} - no MapGrid available",
                     TurnrootLogger.LogLevel.Warning
                 );
                 return OperationResult.Failure("No MapGrid available for spawn");
@@ -44,7 +46,7 @@ namespace Turnroot.Gameplay.Brain
             if (gridPoint == null)
             {
                 TurnrootLogger.Log(
-                    $"SpawnUnitAtPosition: Aborting spawn for {unit?.CharacterTemplate?.DisplayName} - invalid grid position {position}",
+                    $"SpawnUnitAtPosition: Aborting spawn for {unit.CharacterTemplate.DisplayName} - invalid grid position {position}",
                     TurnrootLogger.LogLevel.Warning
                 );
                 return OperationResult.Failure($"Invalid spawn grid point: {position}");
@@ -69,7 +71,7 @@ namespace Turnroot.Gameplay.Brain
             catch (System.Exception ex)
             {
                 TurnrootLogger.Log(
-                    $"SpawnUnitAtPosition: Failed setting instance state for {unit?.Id ?? "<null>"}: {ex.Message}",
+                    $"SpawnUnitAtPosition: Failed setting instance state for {unit.Id}: {ex.Message}",
                     TurnrootLogger.LogLevel.Warning
                 );
             }
@@ -128,7 +130,7 @@ namespace Turnroot.Gameplay.Brain
             {
                 var unit = Brain
                     .gamewideContextBrain.GetAllActiveInstances()
-                    ?.FirstOrDefault(u => u?.Id == unitId);
+                    .FirstOrDefault(u => u != null && u.Id == unitId);
 
                 if (unit != null)
                 {
@@ -215,7 +217,6 @@ namespace Turnroot.Gameplay.Brain
             var root = new GameObject($"{unit.CharacterTemplate.DisplayName}_Root");
             root.transform.SetPositionAndRotation(worldPos, Quaternion.identity);
             root.transform.localScale = Vector3.one * _brain.uiBrain.uiSettings.ModelsScale;
-
             var model = CreateModelForUnit(unit, root);
             if (model == null)
             {
@@ -243,6 +244,14 @@ namespace Turnroot.Gameplay.Brain
             {
                 AttachMountToUnit(unit, model);
             }
+
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            // Dev diagnostic: confirm model created and placed where expected.
+            TurnrootLogger.Log(
+                $"CreateAndPlaceModel: Created model '{model.name}' for unit {unit.Id} at grid {position}, world {worldPos}",
+                TurnrootLogger.LogLevel.Info
+            );
+#endif
 
             Brain.Publish(new ModelSpawnedEvent(unit, unit.Id, position, model));
             return OperationResult.Successful();

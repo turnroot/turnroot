@@ -99,6 +99,9 @@ namespace Turnroot.Gameplay.Brain
         private void HandleSavePlayerRosterRequested() =>
             SavePlayerRoster(Brain.battleBrain.CurrentTurnNumber);
 
+        private void HandleSavePlayerRosterRequestedWithTurn(int lastSavedBattleTurn) =>
+            SavePlayerRoster(lastSavedBattleTurn);
+
         public void SavePlayerRoster(int lastSavedBattleTurn)
         {
             if (GamewidePersistentPlayerRoster == null)

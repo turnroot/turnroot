@@ -26,7 +26,7 @@ namespace Turnroot.Gameplay.Combat.PreBattle
                 return false;
             }
 
-            var candidate = new Dictionary<Vector2Int, CharacterInstance>();
+            var candidate = new Dictionary<Vector2Int, CharacterData>();
             foreach (var p in runtimePlacements)
             {
                 if (p == null || p.CharacterData == null)
@@ -49,7 +49,7 @@ namespace Turnroot.Gameplay.Combat.PreBattle
 
                 if (inst != null)
                 {
-                    candidate[p.SpawnPosition] = inst;
+                    candidate[p.SpawnPosition] = p.CharacterData;
                 }
             }
 
@@ -66,7 +66,10 @@ namespace Turnroot.Gameplay.Combat.PreBattle
                         break;
                     }
 
-                    if (kvp.Value == null)
+                    var data = kvp.Value;
+                    var instForValidation =
+                        runtimeInstance.GetInstanceFor(data) ?? gw.FindInstanceByTemplate(data);
+                    if (instForValidation == null)
                     {
                         TurnrootLogger.Log(
                             $"InitializePlacements: Invalid runtime placement for missing instance at {pos}",
@@ -101,7 +104,7 @@ namespace Turnroot.Gameplay.Combat.PreBattle
 
         private void ApplyPlacementsFromSelectedUnits(List<CharacterInstance> finalSelected)
         {
-            placements = new Dictionary<Vector2Int, CharacterInstance>();
+            placements = new Dictionary<Vector2Int, CharacterData>();
 
             int spawnPointCount = PlayerTeamSpawnPoints != null ? PlayerTeamSpawnPoints.Count : 0;
             int spawnLimit = System.Math.Min(finalSelected.Count, spawnPointCount);
@@ -114,16 +117,24 @@ namespace Turnroot.Gameplay.Combat.PreBattle
 
                 var spawnPos = PlayerTeamSpawnPoints[i];
                 var unit = finalSelected[i];
-                placements[spawnPos] = unit;
+                var data = unit?.CharacterTemplate;
+                if (data != null)
+                {
+                    placements[spawnPos] = data;
+                }
             }
 
             foreach (var kvp in placements)
             {
-                var unit = kvp.Value;
-                if (unit != null)
+                var data = kvp.Value;
+                if (data != null)
                 {
-                    // Do not mark these as user-changed selections (markChanged: false)
-                    SetBattleSelected(unit, true, publish: false, markChanged: false);
+                    // Resolve instance (if available) and mark selected. Do not mark these as user-changed selections.
+                    var inst = Brain?.gamewideContextBrain?.FindInstanceByTemplate(data);
+                    if (inst != null)
+                    {
+                        SetBattleSelected(inst, true, publish: false, markChanged: false);
+                    }
                 }
             }
 

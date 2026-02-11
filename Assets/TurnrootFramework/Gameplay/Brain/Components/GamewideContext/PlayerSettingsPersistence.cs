@@ -400,8 +400,8 @@ namespace Turnroot.Gameplay.Brain
         public float MusicVolume = 0.8f;
         public float SfxVolume = 0.8f;
         public float VoiceVolume = 0.8f;
-        public Audio.PreferredBattleMusic.SongChoice PreferredBattleMusic = Turnroot
-            .Audio
+        public Audio.PreferredBattleMusic.SongChoice PreferredBattleMusic =
+            Audio
             .PreferredBattleMusic
             .SongChoice
             .Default;

@@ -1,5 +1,6 @@
 using Turnroot.GameSettings;
 using Turnroot.UI.Components;
+using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain.Segments
@@ -24,9 +25,10 @@ namespace Turnroot.Gameplay.Brain.Segments
             var sourceMenu = FindActiveMenu();
             if (sourceMenu?.activeInstance == null)
             {
-#if UNITY_EDITOR
-                Debug.LogError($"UiBrain: No active menu to transition from to {menuTypeName}");
-#endif
+                TurnrootLogger.Log(
+                    $"UiBrain: Cannot open {menuTypeName} menu - no active source menu found",
+                    TurnrootLogger.LogLevel.Warning
+                );
                 return;
             }
 

@@ -78,7 +78,7 @@ namespace Turnroot.Gameplay.Combat.PreBattle
             if (selectedUnits == null || selectedUnits.Count == 0)
             {
                 // No selected units — clear any existing placements and ensure UI is updated.
-                placements = new Dictionary<Vector2Int, CharacterInstance>();
+                placements = new Dictionary<Vector2Int, CharacterData>();
                 StartingPositionsComponent?.DespawnAllModels();
                 CurrentPlacementState = PlacementState.NonePlaced;
                 Brain?.PublishPlacementsInitialized();

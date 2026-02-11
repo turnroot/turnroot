@@ -70,7 +70,7 @@ namespace Turnroot.Gameplay.Brain
                 user.Id,
                 item.InstanceID,
                 target?.Id,
-                context.Brain.battleBrain?.CurrentTurnNumber ?? 0
+                context.Brain.battleBrain.CurrentTurnNumber
             );
             return context.Brain.ExecuteCommand(command);
         }

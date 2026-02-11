@@ -71,11 +71,11 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             else if (IsThirdPartyUnit(activeUnit))
             {
                 // Third party attacks based on allegiance flags
-                if (Brain?.battleBrain?.BattleObject?.ThirdPartyFightsAllies ?? false)
+                if (Brain?.battleBrain.BattleObject.ThirdPartyFightsAllies ?? false)
                 {
                     potentialTargets.AddRange(Participants.Allies);
                 }
-                if (Brain?.battleBrain?.BattleObject?.ThirdPartyFightsEnemies ?? false)
+                if (Brain?.battleBrain.BattleObject.ThirdPartyFightsEnemies ?? false)
                 {
                     potentialTargets.AddRange(Participants.Targets);
                 }
@@ -192,7 +192,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 return false;
             }
 
-            var battleObject = Brain?.battleBrain?.BattleObject;
+            var battleObject = Brain?.battleBrain.BattleObject;
 
             // Player attacks enemies and potentially third party
             if (IsPlayerControlledUnit(attacker))
@@ -230,7 +230,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 return false;
             }
 
-            var battleObject = Brain?.battleBrain?.BattleObject;
+            var battleObject = Brain?.battleBrain.BattleObject;
 
             // Same team = allies
             if (IsPlayerControlledUnit(unit1) && IsPlayerControlledUnit(unit2))

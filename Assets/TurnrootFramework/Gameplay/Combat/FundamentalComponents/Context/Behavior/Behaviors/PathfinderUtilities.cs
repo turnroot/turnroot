@@ -259,7 +259,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         private void ApplyMovementBonuses(PathfindingParameters parameters)
         {
             var classData = _context.Unit.UnitInstance.CurrentClass?.ClassData;
-            if (classData?.Stats.UnboundedStatBonuses == null)
+            if (classData.Stats.UnboundedStatBonuses == null)
             {
                 return;
             }

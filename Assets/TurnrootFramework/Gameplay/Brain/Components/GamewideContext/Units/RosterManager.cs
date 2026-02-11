@@ -141,7 +141,7 @@ namespace Turnroot.Gameplay.Brain
                 _persistence.RegisterPlayerRoster(roster);
             }
 
-            instance.OnRosterModified += () => _brain.PublishSavePlayerRosterRequested();
+            instance.OnRosterModified += () => _brain.PublishSavePlayerRosterRequested(_brain?.battleBrain?.CurrentTurnNumber ?? 0);
 
             _brain.PublishRostersReady();
             return OperationResult<PlayerTeamRosterInstance>.SuccessResult(instance);

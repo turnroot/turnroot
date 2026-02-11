@@ -142,10 +142,10 @@ namespace Turnroot.Gameplay.Brain
         public event Action<CharacterInstance> OnUnitModelChangeRequested;
 
         public void PublishUnitModelSpawnRequested(CharacterInstance unit) =>
-            OnUnitModelSpawnRequested?.Invoke(unit);
+            OnUnitModelSpawnRequested.Invoke(unit);
 
         public void PublishUnitModelChangeRequested(CharacterInstance unit) =>
-            OnUnitModelChangeRequested?.Invoke(unit);
+            OnUnitModelChangeRequested.Invoke(unit);
 
         #endregion
 
@@ -154,16 +154,21 @@ namespace Turnroot.Gameplay.Brain
         public event Action OnPositioningModeEntered;
         public event Action OnPositioningModeExited;
         public event Action OnPlacementsInitialized;
+        // Published when some component requests the preparation placements to be synced into the runtime roster.
+        // Args: (persist, forceApplyPlacementsOnLoad)
+        public event Action<bool, bool> OnPlacementsSyncRequested;
         public event Action<CharacterInstance, bool> OnUnitSelectionChanged;
 
-        public void PublishPositioningModeEntered() => OnPositioningModeEntered?.Invoke();
+        public void PublishPositioningModeEntered() => OnPositioningModeEntered.Invoke();
 
-        public void PublishPositioningModeExited() => OnPositioningModeExited?.Invoke();
+        public void PublishPositioningModeExited() => OnPositioningModeExited.Invoke();
 
-        public void PublishPlacementsInitialized() => OnPlacementsInitialized?.Invoke();
+        public void PublishPlacementsInitialized() => OnPlacementsInitialized.Invoke();
+
+        public void PublishPlacementsSyncRequested(bool persist, bool forceApplyPlacementsOnLoad) => OnPlacementsSyncRequested?.Invoke(persist, forceApplyPlacementsOnLoad);
 
         public void PublishUnitSelectionChanged(CharacterInstance unit, bool selected) =>
-            OnUnitSelectionChanged?.Invoke(unit, selected);
+            OnUnitSelectionChanged.Invoke(unit, selected);
 
         #endregion
 
@@ -218,17 +223,21 @@ namespace Turnroot.Gameplay.Brain
         #region Save/Persistence Events
 
         public event Action OnSavePlayerRosterRequested;
+        // New event variant: request a player roster save with a specific lastSavedBattleTurn value.
+        public event Action<int> OnSavePlayerRosterRequestedWithTurn;
         public event Action OnSavePlayerSettingsRequested;
 
-        public void PublishSavePlayerRosterRequested() => OnSavePlayerRosterRequested?.Invoke();
+        public void PublishSavePlayerRosterRequested() => OnSavePlayerRosterRequested.Invoke();
 
-        public void PublishSavePlayerSettingsRequested() => OnSavePlayerSettingsRequested?.Invoke();
+        public void PublishSavePlayerRosterRequested(int lastSavedBattleTurn) => OnSavePlayerRosterRequestedWithTurn?.Invoke(lastSavedBattleTurn);
+
+        public void PublishSavePlayerSettingsRequested() => OnSavePlayerSettingsRequested.Invoke();
 
         public event Action<PlayerSettings.GameplayPlayerSettings.InputControlType> OnInputControlTypeChanged;
 
         public void PublishInputControlTypeChanged(
             PlayerSettings.GameplayPlayerSettings.InputControlType newType
-        ) => OnInputControlTypeChanged?.Invoke(newType);
+        ) => OnInputControlTypeChanged.Invoke(newType);
 
         #endregion
 
@@ -243,26 +252,26 @@ namespace Turnroot.Gameplay.Brain
         public event Action<ConversationLayer> OnConversationLayerEnded;
 
         public void PublishSupportPointsChanged(SupportRelationshipInstance relationship) =>
-            OnSupportPointsChanged?.Invoke(relationship);
+            OnSupportPointsChanged.Invoke(relationship);
 
         public void PublishSupportConversationAvailable(SupportRelationshipInstance relationship) =>
-            OnSupportConversationAvailable?.Invoke(relationship);
+            OnSupportConversationAvailable.Invoke(relationship);
 
         public void PublishSLevelSupportConversationAvailable(
             SupportRelationshipInstance relationship
-        ) => OnSLevelSupportConversationAvailable?.Invoke(relationship);
+        ) => OnSLevelSupportConversationAvailable.Invoke(relationship);
 
         public void PublishConversationStarted(Conversation conversation) =>
-            OnConversationStarted?.Invoke(conversation);
+            OnConversationStarted.Invoke(conversation);
 
         public void PublishConversationEnded(Conversation conversation) =>
-            OnConversationEnded?.Invoke(conversation);
+            OnConversationEnded.Invoke(conversation);
 
         public void PublishConversationLayerStarted(ConversationLayer layer) =>
-            OnConversationLayerStarted?.Invoke(layer);
+            OnConversationLayerStarted.Invoke(layer);
 
         public void PublishConversationLayerEnded(ConversationLayer layer) =>
-            OnConversationLayerEnded?.Invoke(layer);
+            OnConversationLayerEnded.Invoke(layer);
 
         #endregion
 
@@ -277,12 +286,12 @@ namespace Turnroot.Gameplay.Brain
         public void PublishSupportRelationshipAdded(
             CharacterInstance source,
             SupportRelationshipInstance relationship
-        ) => OnSupportRelationshipAdded?.Invoke(source, relationship);
+        ) => OnSupportRelationshipAdded.Invoke(source, relationship);
 
         public void PublishSupportRelationshipRemoved(
             CharacterInstance source,
             CharacterData target
-        ) => OnSupportRelationshipRemoved?.Invoke(source, target);
+        ) => OnSupportRelationshipRemoved.Invoke(source, target);
 
         #endregion
 
@@ -421,7 +430,7 @@ namespace Turnroot.Gameplay.Brain
                 {
                     // Log which handler failed, then rethrow to expose the bug
                     TurnrootLogger.Log(
-                        $"PublishPlayerControlledUnitActivated: handler {handler.Method.Name} in {handler.Method.DeclaringType?.Name} threw exception: {ex}",
+                        $"PublishPlayerControlledUnitActivated: handler {handler.Method.Name} in {handler.Method.DeclaringType.Name} threw exception: {ex}",
                         TurnrootLogger.LogLevel.Error
                     );
                     throw; // Don't hide the exception - this is a real bug

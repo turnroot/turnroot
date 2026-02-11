@@ -34,7 +34,7 @@ namespace Turnroot.Gameplay.Brain
             UnifyBoneHierarchies(root);
 
             var animator = root.AddComponent<Animator>();
-            if (_settings?.DefaultUnitAnimatorController != null)
+            if (_settings.DefaultUnitAnimatorController != null)
             {
                 animator.runtimeAnimatorController = _settings.DefaultUnitAnimatorController;
             }
@@ -70,7 +70,7 @@ namespace Turnroot.Gameplay.Brain
             }
 
             TurnrootLogger.Log(
-                $"No suitable outfit found for {unit.CharacterTemplate?.DisplayName}. "
+                $"No suitable outfit found for {unit.CharacterTemplate.DisplayName}. "
                     + "Ensure class model or NonBattleOutfitPrefab is assigned.",
                 TurnrootLogger.LogLevel.Warning
             );
@@ -90,7 +90,7 @@ namespace Turnroot.Gameplay.Brain
                 return false;
             }
 
-            var prefab = classInst.ClassData.Identity?.ClassModelPrefab;
+            var prefab = classInst.ClassData.Identity.ClassModelPrefab;
             if (prefab == null)
             {
                 return false;
@@ -107,7 +107,7 @@ namespace Turnroot.Gameplay.Brain
 
             TurnrootLogger.Log(
                 $"Class outfit prefab '{prefab.name}' is missing a SkinnedMeshRenderer. "
-                    + $"Falling back to NonBattleOutfitPrefab for {unit.CharacterTemplate?.DisplayName}",
+                    + $"Falling back to NonBattleOutfitPrefab for {unit.CharacterTemplate.DisplayName}",
                 TurnrootLogger.LogLevel.Warning
             );
 
@@ -134,7 +134,7 @@ namespace Turnroot.Gameplay.Brain
             {
                 TurnrootLogger.Log(
                     $"Non-battle outfit prefab '{nbPrefab.name}' does not contain a SkinnedMeshRenderer. "
-                        + $"Cannot create outfit for {unit.CharacterTemplate?.DisplayName}",
+                        + $"Cannot create outfit for {unit.CharacterTemplate.DisplayName}",
                     TurnrootLogger.LogLevel.Error
                 );
                 Destroy(nbInstance);
@@ -162,7 +162,7 @@ namespace Turnroot.Gameplay.Brain
 
             // Check if class has a hat outfit
             var classInst = unit.GetCurrentClass();
-            var classHatPrefab = classInst?.ClassData?.Identity?.ClassHatPrefab;
+            var classHatPrefab = classInst?.ClassData.Identity.ClassHatPrefab;
 
             if (classHatPrefab != null)
             {

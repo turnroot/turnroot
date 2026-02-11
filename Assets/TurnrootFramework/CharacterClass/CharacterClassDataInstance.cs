@@ -79,10 +79,10 @@ namespace Turnroot.Characters.CharacterClass
                 (_meshRenderer, nameof(_meshRenderer)),
                 (_meshRenderer?.material, "meshRenderer.material"),
                 (_classData, nameof(_classData)),
-                (_classData?.Identity, "classData.Identity"),
-                (_classData?.Identity?.Base, "classData.Identity.Base"),
-                (_classData?.Identity?.MSE, "classData.Identity.MSE"),
-                (_classData?.Identity?.TintMask, "classData.Identity.TintMask"),
+                (_classData.Identity, "classData.Identity"),
+                (_classData.Identity.Base, "classData.Identity.Base"),
+                (_classData.Identity.MSE, "classData.Identity.MSE"),
+                (_classData.Identity.TintMask, "classData.Identity.TintMask"),
             };
 
             bool ok = ValidationHelper.ValidateNotNull(
@@ -273,7 +273,8 @@ namespace Turnroot.Characters.CharacterClass
         public bool IsAboveCaps(CharacterInstance character)
         {
             var _res_isAbove = StatApplicationHelper.ValidateReferences(character, _classData, "");
-            return _res_isAbove.Success && StatApplicationHelper.IsAboveUnboundedCaps(
+            return _res_isAbove.Success
+                && StatApplicationHelper.IsAboveUnboundedCaps(
                     _classData.Stats.UnboundedStatCaps,
                     character
                 );

@@ -321,7 +321,7 @@ namespace Turnroot.Gameplay.Brain.Segments
             Brain.OnPositioningModeExited += HandlePositioningModeExited;
 
             // If the Brain already has an active state, invoke handler immediately so UI can react to the current state
-            var current = Brain?.stateBrain?.CurrentState;
+            var current = Brain?.stateBrain.CurrentState;
             if (current != null)
             {
                 _onStateChangedHandler(current);
@@ -330,7 +330,7 @@ namespace Turnroot.Gameplay.Brain.Segments
 
         private void OnMenuDepthChanged()
         {
-            var currentState = Brain?.stateBrain?.CurrentState?.Name ?? string.Empty;
+            var currentState = Brain?.stateBrain.CurrentState?.Name ?? string.Empty;
             HandleButtonsForState(currentState);
         }
 

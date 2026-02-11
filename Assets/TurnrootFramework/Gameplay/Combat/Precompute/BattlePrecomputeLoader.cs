@@ -141,7 +141,7 @@ namespace Turnroot.Gameplay.Combat.Precompute
                 yield break;
             }
 
-            var appearanceBrain = _brain?.unitAppearanceBrain;
+            var appearanceBrain = _brain.unitAppearanceBrain;
 
             // Only precompute units that were spawned/selected for this battle
             var units = FilterSpawnedUnits(context?.Participants?.GetAllUnits());
@@ -162,8 +162,7 @@ namespace Turnroot.Gameplay.Combat.Precompute
                     );
                     if (gp == null)
                     {
-                        var rosterPlacements =
-                            _brain?.battleBrain?.PlayerTeamRoster?.GetPlacements();
+                        var rosterPlacements = _brain.battleBrain.PlayerTeamRoster?.GetPlacements();
                         var matching = rosterPlacements?.FirstOrDefault(p =>
                             p.CharacterData == unit.CharacterTemplate
                         );
@@ -223,7 +222,7 @@ namespace Turnroot.Gameplay.Combat.Precompute
 
             yield return new WaitForSeconds(timeBetweenOperations);
 
-            _brain?.PublishPrecomputeCompleted();
+            _brain.PublishPrecomputeCompleted();
         }
 
         private System.Collections.Generic.List<Characters.CharacterInstance> FilterSpawnedUnits(
@@ -259,7 +258,7 @@ namespace Turnroot.Gameplay.Combat.Precompute
         private void CompleteWithMinimalProgressAndNotify()
         {
             CompleteWithMinimalProgress();
-            _brain?.PublishPrecomputeCompleted();
+            _brain.PublishPrecomputeCompleted();
         }
 
         private IEnumerator ProcessUnit(
@@ -371,7 +370,7 @@ namespace Turnroot.Gameplay.Combat.Precompute
             FundamentalComponents.Battles.BattleContext context
         )
         {
-            if (context == null || _brain?.gamewideContextBrain == null)
+            if (context == null || _brain.gamewideContextBrain == null)
             {
                 yield break;
             }
@@ -410,7 +409,7 @@ namespace Turnroot.Gameplay.Combat.Precompute
                     if (template != null && template.IsUnique)
                     {
                         var recalled = gw.RecallCharacter(template);
-                        if (recalled != null && !object.ReferenceEquals(recalled, unit))
+                        if (recalled != null && !ReferenceEquals(recalled, unit))
                         {
                             // Copy position from old unit to recalled unit
                             recalled.MapGridPosition = unit.MapGridPosition;
@@ -430,27 +429,38 @@ namespace Turnroot.Gameplay.Combat.Precompute
 
                             // If there is a BattlePreparationObject, update its placements to reference
                             // the recalled instance so prebattle/battle references stay consistent.
-                            var prep = _brain.battleBrain?.PreparationObject;
+                            var prep = _brain.battleBrain.PreparationObject;
                             if (prep != null && prep.placements != null)
                             {
                                 var keysToUpdate = prep
                                     .placements.Where(kvp =>
-                                        kvp.Value != null && kvp.Value.CharacterTemplate == template
+                                        kvp.Value != null && kvp.Value == template
                                     )
                                     .Select(kvp => kvp.Key)
                                     .ToList();
                                 foreach (var k in keysToUpdate)
                                 {
-                                    prep.placements[k] = recalled;
+                                    // placements now store CharacterData; ensure they reference the recalled template (no change)
+                                    if (prep != null && prep.PlacementsLocked)
+                                    {
+                                        TurnrootLogger.Log(
+                                            "BattlePrecomputeLoader: Placements are locked for battle initialization; skipping placement update for recalled unit.",
+                                            TurnrootLogger.LogLevel.Warning
+                                        );
+                                        continue;
+                                    }
+
+                                    prep.placements[k] = recalled.CharacterTemplate;
                                 }
                                 try
                                 {
-                                    prep.SyncPlacementsToRuntimeRoster(persist: true);
+                                    // Do not persist during precompute; final persisted placement should occur during roster initialization.
+                                    _brain?.PublishPlacementsSyncRequested(persist: false, forceApplyPlacementsOnLoad: false);
                                 }
                                 catch (System.Exception ex)
                                 {
                                     TurnrootLogger.Log(
-                                        "BattlePrecomputeLoader: SyncPlacementsToRuntimeRoster failed: "
+                                        "BattlePrecomputeLoader: PublishPlacementsSyncRequested failed: "
                                             + ex.Message,
                                         TurnrootLogger.LogLevel.Warning
                                     );
@@ -555,7 +565,7 @@ namespace Turnroot.Gameplay.Combat.Precompute
             _loadingController.IncreaseLoadTotalBy(1);
             _loadingController.IncrementLoadedAmountBy(1);
 
-            _brain?.PublishPrecomputeCompleted();
+            _brain.PublishPrecomputeCompleted();
         }
         #endregion
     }

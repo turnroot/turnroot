@@ -2,6 +2,7 @@ using Turnroot.Characters;
 using Turnroot.Gameplay.Brain.Commands;
 using Turnroot.Gameplay.Maps;
 using Turnroot.Gameplay.Objects;
+using Turnroot.GameSettings;
 using Turnroot.Utilities;
 using UnityEngine;
 
@@ -22,7 +23,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             var command = new MoveCommand(
                 unit.Id,
                 CoordinatesInt,
-                Brain?.battleBrain?.CurrentTurnNumber ?? 0
+                Brain?.battleBrain.CurrentTurnNumber ?? 0
             );
             return Brain.ExecuteCommand(command)
                 ? OperationResult.Successful()
@@ -34,7 +35,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             var command = new SpawnCommand(
                 unit.Id,
                 spawnPosition,
-                Brain?.battleBrain?.CurrentTurnNumber ?? 0
+                Brain?.battleBrain.CurrentTurnNumber ?? 0
             );
             bool success = Brain.ExecuteCommand(command);
             if (success)
@@ -74,10 +75,15 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             // If a weapon was not explicitly provided, use the currently equipped weapon
             weaponItem ??= attacker.GetEquippedWeapon();
 
-            if (weaponItem == null)
+            var canAttackWithoutWeapon = GameplayGeneralSettings
+                .Instance
+                .UnitCanAttackWithoutWeapons;
+
+            if (weaponItem == null && !canAttackWithoutWeapon)
             {
-                Debug.LogWarning(
-                    $"BattleContext: {attacker.CharacterTemplate.DisplayName} has no weapon to attack with!"
+                TurnrootLogger.Log(
+                    $"BattleContext: {attacker.CharacterTemplate.DisplayName} has no weapon to attack with!",
+                    TurnrootLogger.LogLevel.Warning
                 );
                 return OperationResult.Failure("No weapon to attack with");
             }
@@ -108,7 +114,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 attacker.Id,
                 target.Id,
                 damage,
-                Brain?.battleBrain?.CurrentTurnNumber ?? 0
+                Brain?.battleBrain.CurrentTurnNumber ?? 0
             );
             return Brain.ExecuteCommand(command);
         }
@@ -130,7 +136,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 user.Id,
                 item.InstanceID,
                 target?.Id,
-                Brain?.battleBrain?.CurrentTurnNumber ?? 0
+                Brain?.battleBrain.CurrentTurnNumber ?? 0
             );
             var success = Brain.ExecuteCommand(command);
             if (success)
@@ -157,7 +163,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 var command = new HealCommand(
                     user.Id,
                     target.Id,
-                    Brain?.battleBrain?.CurrentTurnNumber ?? 0
+                    Brain?.battleBrain.CurrentTurnNumber ?? 0
                 );
                 var success = Brain.ExecuteCommand(command);
                 if (success)
@@ -175,7 +181,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         /// <returns>True if ending turn succeeded.</returns>
         public bool EndTurn()
         {
-            var command = new EndTurnCommand(Brain?.battleBrain?.CurrentTurnNumber ?? 0);
+            var command = new EndTurnCommand(Brain?.battleBrain.CurrentTurnNumber ?? 0);
             var success = Brain.ExecuteCommand(command);
             if (success)
             {

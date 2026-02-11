@@ -20,7 +20,7 @@ namespace Turnroot.Gameplay.Brain.Segments
             // Check if we need a back button based on:
             // 1. The current state needs menus, OR
             // 2. We're currently in a submenu (depth > 1)
-            bool stateNeedsMenus = System.Array.Exists(
+            bool stateNeedsMenus = Array.Exists(
                 StateBrain.StatesThatNeedMenus,
                 state => state == stateName
             );
@@ -44,7 +44,7 @@ namespace Turnroot.Gameplay.Brain.Segments
 
         private void HandleDetailsButtonForState(string stateName)
         {
-            bool needsDetailsButton = System.Array.Exists(
+            bool needsDetailsButton = Array.Exists(
                 StateBrain.StatesThatNeedMenus,
                 state => state == stateName
             );
@@ -268,7 +268,7 @@ namespace Turnroot.Gameplay.Brain.Segments
 
         private void HandleRootLevelBack()
         {
-            var currentState = Brain?.stateBrain?.CurrentState?.Name;
+            var currentState = Brain?.stateBrain.CurrentState?.Name;
 
             // TODO: Implement root level back behavior based on state
             switch (currentState)

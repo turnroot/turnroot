@@ -50,7 +50,7 @@ namespace Turnroot.Skills.Nodes.Events
                 target =>
                 {
                     // Apply the debuff using the typed StatusEffect system
-                    var effect = context.Brain?.battleBrain?.ApplyStatusEffect(
+                    var effect = context.Brain.battleBrain.ApplyStatusEffect(
                         target,
                         debuffType,
                         sourceCharacterId: context.Unit.UnitInstance?.Id,

@@ -181,7 +181,7 @@ namespace Turnroot.Characters.Stats
             }
 
             GetBrain()
-                ?.charactersBrain?.SaveTemplateBoundedDefault(
+                ?.charactersBrain.SaveTemplateBoundedDefault(
                     templateId,
                     type,
                     (stat.Max, stat.Current, stat.Min)
@@ -216,7 +216,7 @@ namespace Turnroot.Characters.Stats
             }
 
             GetBrain()
-                ?.charactersBrain?.SaveTemplateUnboundedDefault(templateId, type, stat.Current);
+                ?.charactersBrain.SaveTemplateUnboundedDefault(templateId, type, stat.Current);
         }
         #endregion
     }

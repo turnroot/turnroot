@@ -94,7 +94,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
             _aStarModified ??= new AStarModified();
 
-            if (_context.Brain?.battleBrain?.BattleObject != null)
+            if (_context.Brain.battleBrain.BattleObject != null)
             {
                 BattleConditions = _context.Brain.battleBrain.BattleObject.BattleConditions;
             }

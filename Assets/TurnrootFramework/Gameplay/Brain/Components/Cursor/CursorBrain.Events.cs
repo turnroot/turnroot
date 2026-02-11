@@ -79,7 +79,7 @@ namespace Turnroot.Gameplay.Brain
                 return;
             }
 
-            var mapGrid = Brain.battleBrain?.PreparationObject?.MapGrid;
+            var mapGrid = Brain.battleBrain.PreparationObject?.MapGrid;
 
             if (mapGrid == null)
             {
@@ -105,7 +105,7 @@ namespace Turnroot.Gameplay.Brain
                         _currentContext = CursorContext.Battle;
                         ClearAllowedPositions();
                         // Try to initialize immediately if the battle map is ready; otherwise wait for OnBattleMapReady
-                        if (Brain.battleBrain?.BattleObject?.Context?.MapGrid != null)
+                        if (Brain.battleBrain.BattleObject.Context?.MapGrid != null)
                         {
                             InitializeBattleCursor();
                         }
@@ -116,6 +116,9 @@ namespace Turnroot.Gameplay.Brain
                                 TurnrootLogger.LogLevel.Info
                             );
                         }
+
+                        // Reset repeat state so navigation starts fresh when entering Battle context
+                        ResetNavigationCooldown();
                     }
                     break;
 
@@ -147,7 +150,7 @@ namespace Turnroot.Gameplay.Brain
             {
                 _currentContext = CursorContext.Battle;
                 // If the map is already ready, initialize; otherwise we'll initialize when OnBattleMapReady fires
-                if (Brain.battleBrain?.BattleObject?.Context?.MapGrid != null)
+                if (Brain.battleBrain.BattleObject.Context?.MapGrid != null)
                 {
                     InitializeBattleCursor();
                 }

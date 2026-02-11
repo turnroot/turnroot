@@ -12,14 +12,14 @@ namespace Turnroot.UI.Components
         // Extracted spawn/cleanup helpers to keep main file concise.
         internal void SpawnAllUnitModels_Impl()
         {
-            if (_replaced || _prepObject?.placements == null)
+            if (_replaced || _prepObject.placements == null)
             {
                 return;
             }
 
             if (!_gridPointsEnsured)
             {
-                _mapGrid?.EnsureGridPoints();
+                _mapGrid.EnsureGridPoints();
                 _gridPointsEnsured = true;
             }
 
@@ -27,9 +27,8 @@ namespace Turnroot.UI.Components
             DespawnExistingModels();
 
             if (
-                _prepObject.PlayerTeamSpawnPoints != null
-                && _prepObject.PlayerTeamSpawnPoints.Count
-                    != _prepObject.PlayerTeamSpawnPoints.Distinct().Count()
+                _prepObject.PlayerTeamSpawnPoints.Count
+                != _prepObject.PlayerTeamSpawnPoints.Distinct().Count()
             )
             {
                 TurnrootLogger.Log(
@@ -40,44 +39,67 @@ namespace Turnroot.UI.Components
 
             foreach (var placement in _prepObject.placements)
             {
-                var unit = placement.Value;
+                var data = placement.Value;
                 var pos = placement.Key;
 
-                if (
-                    _prepObject.PlayerTeamSpawnPoints == null
-                    || !_prepObject.PlayerTeamSpawnPoints.Contains(pos)
-                )
+                if (!_prepObject.PlayerTeamSpawnPoints.Contains(pos))
                 {
                     TurnrootLogger.Log(
-                        $"SpawnAllUnitModels: Skipping spawn for {unit?.CharacterTemplate?.DisplayName ?? "<null>"} at {pos} - not a valid player spawn point",
+                        $"SpawnAllUnitModels: Skipping spawn for {data?.DisplayName ?? "<no-data>"} at {pos} - not a valid player spawn point",
+                        TurnrootLogger.LogLevel.Warning
+                    );
+                    continue;
+                }
+
+                // Resolve an active instance for the character data. Prefer the runtime roster instance if available.
+                CharacterInstance unitInst = null;
+                var gw = _prepObject.Brain?.gamewideContextBrain;
+                if (gw != null)
+                {
+                    var persistent =
+                        gw.GamewidePersistentPlayerRoster
+                        ?? gw.CreateOrRecallGamewidePersistentPlayerRoster();
+                    var runtimeInstance =
+                        persistent != null ? gw.GetOrCreatePlayerTeamRoster(persistent) : null;
+                    unitInst =
+                        runtimeInstance?.GetInstanceFor(data) ?? gw.FindInstanceByTemplate(data);
+                }
+
+                if (unitInst == null)
+                {
+                    TurnrootLogger.Log(
+                        $"SpawnAllUnitModels: No active instance found for {data?.DisplayName ?? "<no-data>"} at {pos}; skipping model spawn",
                         TurnrootLogger.LogLevel.Warning
                     );
                     continue;
                 }
 
                 var spawnResult = _prepObject.Brain.unitAppearanceBrain.SpawnUnitAtPosition(
-                    unit: placement.Value,
-                    position: placement.Key,
+                    unit: unitInst,
+                    position: pos,
                     prebattle: true
                 );
                 if (!spawnResult.Success)
                 {
                     TurnrootLogger.Log(
-                        $"SpawnAllUnitModels: Failed to spawn at {placement.Key}: {spawnResult.ErrorMessage}",
+                        $"SpawnAllUnitModels: Failed to spawn at {pos}: {spawnResult.ErrorMessage}",
                         TurnrootLogger.LogLevel.Warning
                     );
                     continue;
                 }
 
-                var model = _prepObject.Brain.unitAppearanceBrain.GetModelForUnit(unit.Id);
+                var model = _prepObject.Brain.unitAppearanceBrain.GetModelForUnit(unitInst.Id);
                 if (model != null)
                 {
                     _unitModels[placement.Key] = model;
+                    TurnrootLogger.Log(
+                        $"SpawnAllUnitModels: Model spawned for {data?.DisplayName ?? "<no-data>"} at {placement.Key}"
+                    );
                 }
                 else
                 {
                     TurnrootLogger.Log(
-                        $"SpawnAllUnitModels: Model spawned but not found for {unit?.CharacterTemplate?.DisplayName} at {placement.Key}",
+                        $"SpawnAllUnitModels: Model spawned but not found for {data?.DisplayName ?? "<no-data>"} at {placement.Key}",
                         TurnrootLogger.LogLevel.Warning
                     );
                 }
@@ -86,11 +108,20 @@ namespace Turnroot.UI.Components
 
         internal void CleanupOrphanedModels_Impl()
         {
-            var validIds = new HashSet<string>(
-                _prepObject
-                    .placements.Values.Where(p => p != null && !string.IsNullOrEmpty(p.Id))
-                    .Select(p => p.Id)
-            );
+            var gw = _prepObject.Brain?.gamewideContextBrain;
+            var validIds = new HashSet<string>();
+            foreach (var data in _prepObject.placements.Values)
+            {
+                if (data == null)
+                {
+                    continue;
+                }
+                var inst = gw?.FindInstanceByTemplate(data);
+                if (inst != null && !string.IsNullOrEmpty(inst.Id))
+                {
+                    validIds.Add(inst.Id);
+                }
+            }
 
             var ownerships = FindObjectsByType<UnitModelOwnership>(
                 FindObjectsInactive.Include,
@@ -115,7 +146,7 @@ namespace Turnroot.UI.Components
 
         internal void DespawnExistingModels_Impl()
         {
-            if (_unitModels.Count == 0 || _prepObject?.Brain == null)
+            if (_unitModels.Count == 0 || _prepObject.Brain == null)
             {
                 return;
             }
@@ -165,7 +196,7 @@ namespace Turnroot.UI.Components
             var idA = modelA.GetComponent<UnitModelOwnership>().UnitId;
             var idB = modelB.GetComponent<UnitModelOwnership>().UnitId;
 
-            _prepObject.Brain?.Publish(
+            _prepObject.Brain.Publish(
                 new Gameplay.Brain.Events.ModelSwappedEvent(idA, idB, posA, posB, modelA, modelB)
             );
         }
@@ -178,11 +209,11 @@ namespace Turnroot.UI.Components
 
             if (!string.IsNullOrEmpty(id))
             {
-                var all = _prepObject.Brain?.gamewideContextBrain?.GetAllActiveInstances();
-                inst = all?.FirstOrDefault(u => u != null && u.Id == id);
+                var all = _prepObject.Brain.gamewideContextBrain.GetAllActiveInstances();
+                inst = all.FirstOrDefault(u => u != null && u.Id == id);
             }
 
-            _prepObject.Brain?.Publish(
+            _prepObject.Brain.Publish(
                 new Gameplay.Brain.Events.ModelMovedEvent(inst, id, from, to, model)
             );
         }

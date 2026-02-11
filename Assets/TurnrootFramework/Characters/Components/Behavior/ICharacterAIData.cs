@@ -48,12 +48,12 @@ namespace Turnroot.Characters
             }
 
             public MovementType MovementType =>
-                _character.CurrentClass?.ClassData?.Identity.MovementType ?? MovementType.Infantry;
+                _character.CurrentClass?.ClassData.Identity.MovementType ?? MovementType.Infantry;
 
             public int Movement =>
                 _character.GetUnboundedStat(UnboundedStatType.Movement)?.Get() ?? 0;
 
-            public bool IsMagic => _character.CurrentClass?.ClassData?.Identity.IsMagic ?? false;
+            public bool IsMagic => _character.CurrentClass?.ClassData.Identity.IsMagic ?? false;
 
             public (int min, int max) AttackRange
             {

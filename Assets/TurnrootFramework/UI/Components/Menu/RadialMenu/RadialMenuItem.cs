@@ -85,7 +85,7 @@ namespace Turnroot.UI.Components.RadialMenu
                 _contentComponent = existingContent;
                 _contentRect = (existingContent as Component)?.GetComponent<RectTransform>();
                 _contentComponent.SetLabel(itemName);
-                var gw = Turnroot.GameSettings.GamewideUiSettings.Instance;
+                var gw = GamewideUiSettings.Instance;
                 if (gw != null)
                 {
                     _contentComponent.ApplyVisibility(
@@ -132,7 +132,7 @@ namespace Turnroot.UI.Components.RadialMenu
                     {
                         _contentComponent.SetLabel(itemName);
                         // No per-item icon is stored here; prefab can include its own default icon.
-                        var gw = Turnroot.GameSettings.GamewideUiSettings.Instance;
+                        var gw = GamewideUiSettings.Instance;
                         if (gw != null)
                         {
                             _contentComponent.ApplyVisibility(
@@ -270,7 +270,7 @@ namespace Turnroot.UI.Components.RadialMenu
                 if (_contentComponent != null)
                 {
                     _contentComponent.SetLabel(itemName);
-                    var gw = Turnroot.GameSettings.GamewideUiSettings.Instance;
+                    var gw = GamewideUiSettings.Instance;
                     if (gw != null)
                     {
                         _contentComponent.ApplyVisibility(

@@ -1,5 +1,6 @@
 using System;
 using Turnroot.GameSettings;
+using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Characters
@@ -47,11 +48,10 @@ namespace Turnroot.Characters
 
                 if (_cachedPrototypeSettings == null)
                 {
-#if UNITY_EDITOR
-                    Debug.LogError(
-                        "CharacterPrototypeSettings not found in Resources/GameSettings. Please create one."
+                    TurnrootLogger.Log(
+                        "CharacterPrototypeSettings not found in Resources/GameSettings. Please create one.",
+                        TurnrootLogger.LogLevel.Warning
                     );
-#endif
                 }
 
                 return _cachedPrototypeSettings;
@@ -71,11 +71,10 @@ namespace Turnroot.Characters
 
                 if (_cachedDefaultStats == null)
                 {
-#if UNITY_EDITOR
-                    Debug.LogError(
-                        "DefaultCharacterStats not found in Resources/GameSettings. Please create one."
+                    TurnrootLogger.Log(
+                        "DefaultCharacterStats not found in Resources/GameSettings. Please create one.",
+                        TurnrootLogger.LogLevel.Warning
                     );
-#endif
                 }
 
                 return _cachedDefaultStats;
@@ -111,11 +110,10 @@ namespace Turnroot.Characters
             }
             catch (Exception ex)
             {
-#if UNITY_EDITOR
-                Debug.LogError(
-                    $"Error loading {settingName}: {ex.Message}. Using default: {defaultValue}"
+                TurnrootLogger.Log(
+                    $"{settingName} access failed: {ex.Message}. Using default value.",
+                    TurnrootLogger.LogLevel.Warning
                 );
-#endif
                 return defaultValue;
             }
         }
@@ -123,16 +121,9 @@ namespace Turnroot.Characters
         #region Editor Support
 
 #if UNITY_EDITOR
-        /// <summary>
-        /// Called when scripts are reloaded in the editor.
-        /// Ensures caches are cleared to pick up changes.
-        /// </summary>
         [UnityEditor.InitializeOnLoadMethod]
         private static void OnScriptsReloaded() => ClearCache();
 
-        /// <summary>
-        /// Called when entering play mode.
-        /// </summary>
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void OnEnterPlayMode() => ClearCache();
 #endif

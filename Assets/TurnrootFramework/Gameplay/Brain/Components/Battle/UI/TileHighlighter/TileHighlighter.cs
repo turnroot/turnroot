@@ -288,6 +288,11 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
 
         private void UnsubscribeFromBrainEvents()
         {
+            if (_brain == null)
+            {
+                return;
+            }
+
             _brain.OnBattleMapReady -= HandleBattleMapReady;
             _brain.OnBattleCompleted -= HandleBattleCompleted;
         }
