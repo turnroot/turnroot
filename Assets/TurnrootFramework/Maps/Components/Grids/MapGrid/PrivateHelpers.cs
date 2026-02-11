@@ -126,7 +126,6 @@ namespace Turnroot.Gameplay.Maps
 
         public void EnsureGridPoints()
         {
-            TurnrootLogger.Log("MapGrid: Ensuring grid points are created and positioned.");
             int expectedCount = GridWidth * GridHeight;
             int actualCount = transform
                 .Cast<Transform>()

@@ -20,10 +20,6 @@ namespace Turnroot.Gameplay.Combat.PreBattle
             }
 
             var runtimePlacements = runtimeInstance.GetPlacements();
-            TurnrootLogger.Log(
-                $"InitializePlacements: runtimePlacements.Length={(runtimePlacements?.Length ?? 0)}",
-                TurnrootLogger.LogLevel.Info
-            );
 
             if (runtimePlacements == null || runtimePlacements.Length == 0)
             {
@@ -66,10 +62,6 @@ namespace Turnroot.Gameplay.Combat.PreBattle
                     var pos = kvp.Key;
                     if (PlayerTeamSpawnPoints == null || !PlayerTeamSpawnPoints.Contains(pos))
                     {
-                        TurnrootLogger.Log(
-                            $"InitializePlacements: Invalid runtime placement at {pos} - not a player spawn point",
-                            TurnrootLogger.LogLevel.Warning
-                        );
                         invalidPlacementFound = true;
                         break;
                     }
@@ -102,10 +94,6 @@ namespace Turnroot.Gameplay.Combat.PreBattle
             if (invalidPlacementFound)
             {
                 placements = null;
-                TurnrootLogger.Log(
-                    "InitializePlacements: Discarding invalid runtime placements and falling back to default selection",
-                    TurnrootLogger.LogLevel.Warning
-                );
             }
 
             return false;

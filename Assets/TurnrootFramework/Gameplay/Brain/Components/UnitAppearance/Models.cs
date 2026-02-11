@@ -141,8 +141,6 @@ namespace Turnroot.Gameplay.Brain
                 return null;
             }
 
-
-
             // Preserve the prefab's original materials
             var prefabSmr = nbPrefab.GetComponentInChildren<SkinnedMeshRenderer>(true);
             if (prefabSmr != null)
@@ -270,10 +268,6 @@ namespace Turnroot.Gameplay.Brain
 
             if (allRoots.Count == 0)
             {
-                TurnrootLogger.Log(
-                    "UnifyBoneHierarchies: No armature root found in hierarchy",
-                    TurnrootLogger.LogLevel.Warning
-                );
                 return;
             }
 

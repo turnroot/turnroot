@@ -360,9 +360,6 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                         continue;
                     }
 
-                    TurnrootLogger.Log(
-                        $"  - {unit.CharacterTemplate.DisplayName} id={unit.Id} at MapGridPosition={unit.MapGridPosition}"
-                    );
                     currentUnitPositions[unit.MapGridPosition] = unit;
                 }
             }
@@ -387,10 +384,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
                 var placements = roster.GetPlacements();
                 // Build simple occupancy map to detect duplicates so we only repair invalid or duplicated positions
-                var occupancy = new Dictionary<
-                    Vector2Int,
-                    List<CharacterInstance>
-                >();
+                var occupancy = new Dictionary<Vector2Int, List<CharacterInstance>>();
                 foreach (var p2 in placements)
                 {
                     var i2 = roster.GetInstanceFor(p2.CharacterData);

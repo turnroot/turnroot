@@ -46127,7 +46127,7 @@ MonoBehaviour:
   ThirdPartyFightsEnemies: 0
   MaxPlayerTeamUnits: 8
   _requiredPlayerUnits: []
-  <BattleConditions>k__BackingField: []
+  _battleConditions: []
   <MapGrid>k__BackingField: {fileID: 1504346367}
   _enemyRoster: {fileID: 0}
   _thirdPartyRoster: {fileID: 0}
@@ -46151,7 +46151,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   MaxPlayerTeamUnits: 0
-  <RequiredPlayerUnits>k__BackingField: []
+  _requiredPlayerUnits: []
   PlayerTeamSpawnPoints: []
   StartingPositionsComponent: {fileID: 0}
   CurrentPlacementState: 0
@@ -46263,7 +46263,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a058a78f753542d40b121e005fe82993, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Turnroot.Gameplay.Brain.Components.Battle.TerrainTypeOverlay
-  terrainTypeDisplayPrefab: {fileID: 0}
+  terrainTypeDisplayPrefab: {fileID: 5064561847211869747, guid: 5ee34ce2dcbb4e44c8937248c0c14468, type: 3}
   TerrainTypeName: {fileID: 0}
   TerrainTypeDescription: {fileID: 0}
   TerrainTypeDefense: {fileID: 0}

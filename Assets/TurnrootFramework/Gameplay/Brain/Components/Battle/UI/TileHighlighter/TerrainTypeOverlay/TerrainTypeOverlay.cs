@@ -1,3 +1,4 @@
+using System.Linq;
 using NaughtyAttributes;
 using TMPro;
 using Turnroot.Gameplay.Maps;
@@ -11,13 +12,13 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
     {
         public GameObject terrainTypeDisplayPrefab;
         private GameObject displayObj;
-        public TextMeshProUGUI TerrainTypeName;
+        private TextMeshProUGUI TerrainTypeName;
 
         [ShowIf(nameof(ShowTerrainTypeDescriptionOnTileHover))]
-        public TextMeshProUGUI TerrainTypeDescription;
-        public TextMeshProUGUI TerrainTypeDefense;
-        public TextMeshProUGUI TerrainTypeAvoid;
-        public TextMeshProUGUI TerrainTypeHealth;
+        private TextMeshProUGUI TerrainTypeDescription;
+        private TextMeshProUGUI TerrainTypeDefense;
+        private TextMeshProUGUI TerrainTypeAvoid;
+        private TextMeshProUGUI TerrainTypeHealth;
 
         private bool ShowTerrainTypeDescriptionOnTileHover = false;
         private bool ColorTerrainEffects = true;
@@ -47,6 +48,21 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
                     $"Failed to initialize TerrainTypeOverlay: {ex.Message}"
                 );
             }
+
+            var texts = displayObj.transform.GetComponentsInChildren<TextMeshProUGUI>();
+
+            TerrainTypeName = texts.FirstOrDefault(t => t.gameObject.name == "TerrainTypeName");
+            if (ShowTerrainTypeDescriptionOnTileHover)
+            {
+                TerrainTypeDescription = texts.FirstOrDefault(t =>
+                    t.gameObject.name == "TerrainTypeDescription"
+                );
+            }
+            TerrainTypeDefense = texts.FirstOrDefault(t =>
+                t.gameObject.name == "TerrainTypeDefense"
+            );
+            TerrainTypeAvoid = texts.FirstOrDefault(t => t.gameObject.name == "TerrainTypeAvoid");
+            TerrainTypeHealth = texts.FirstOrDefault(t => t.gameObject.name == "TerrainTypeHealth");
             return OperationResult.Successful();
         }
 
@@ -54,6 +70,9 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
         {
             displayObj.SetActive(true);
             var t = point.GetCachedTerrainType();
+            TurnrootLogger.Log(
+                $"TerrainTypeOverlay: Displaying terrain info for point ({point.Row}, {point.Col}) - terrain={t?.Name ?? "<none>"} movementType={movementType}"
+            );
             if (t == null)
             {
                 return OperationResult.Failure(
@@ -61,7 +80,11 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
                 );
             }
             TerrainTypeName.text = t != null ? t.Name : "Unknown";
-            TerrainTypeDescription.text = t != null ? t.Description : "No description available.";
+            if (ShowTerrainTypeDescriptionOnTileHover)
+            {
+                TerrainTypeDescription.text =
+                    t != null ? t.Description : "No description available.";
+            }
             switch (movementType)
             {
                 case MovementType.Infantry:
@@ -93,10 +116,6 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
                     TerrainTypeAvoid.text = "-";
                     TerrainTypeHealth.text = "-";
                     break;
-            }
-            if (!ShowTerrainTypeDescriptionOnTileHover)
-            {
-                TerrainTypeDescription.gameObject.SetActive(false);
             }
             return OperationResult.Successful();
         }

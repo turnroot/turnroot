@@ -26,18 +26,6 @@ namespace Turnroot.UI.Components
             CleanupOrphanedModels();
             DespawnExistingModels();
 
-            TurnrootLogger.Log(
-                $"SpawnAllUnitModels: spawn points={_prepObject.PlayerTeamSpawnPoints?.Count ?? 0}, placements={_prepObject.placements?.Count ?? 0}"
-            );
-
-            if (_prepObject.PlayerTeamSpawnPoints != null)
-            {
-                foreach (var p in _prepObject.PlayerTeamSpawnPoints)
-                {
-                    TurnrootLogger.Log($"SpawnAllUnitModels: spawnPoint {p}");
-                }
-            }
-
             if (
                 _prepObject.PlayerTeamSpawnPoints != null
                 && _prepObject.PlayerTeamSpawnPoints.Count
@@ -67,10 +55,6 @@ namespace Turnroot.UI.Components
                     continue;
                 }
 
-                TurnrootLogger.Log(
-                    $"SpawnAllUnitModels: Spawning at {pos} unitId={(unit?.Id ?? "<null>")} name={(unit?.CharacterTemplate?.DisplayName ?? "<unknown>")}"
-                );
-
                 var spawnResult = _prepObject.Brain.unitAppearanceBrain.SpawnUnitAtPosition(
                     unit: placement.Value,
                     position: placement.Key,
@@ -89,9 +73,6 @@ namespace Turnroot.UI.Components
                 if (model != null)
                 {
                     _unitModels[placement.Key] = model;
-                    TurnrootLogger.Log(
-                        $"SpawnAllUnitModels: Model spawned for {unit?.CharacterTemplate?.DisplayName} at {placement.Key}"
-                    );
                 }
                 else
                 {

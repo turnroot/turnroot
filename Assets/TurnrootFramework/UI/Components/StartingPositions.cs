@@ -242,15 +242,6 @@ namespace Turnroot.UI.Components
                 $"SpawnAllUnitModels: spawn points={_prepObject.PlayerTeamSpawnPoints?.Count ?? 0}, placements={_prepObject.placements?.Count ?? 0}"
             );
 
-            // Log spawn points for diagnostics
-            if (_prepObject.PlayerTeamSpawnPoints != null)
-            {
-                foreach (var p in _prepObject.PlayerTeamSpawnPoints)
-                {
-                    TurnrootLogger.Log($"SpawnAllUnitModels: spawnPoint {p}");
-                }
-            }
-
             // Check for duplicate spawn points
             if (
                 _prepObject.PlayerTeamSpawnPoints != null
@@ -281,10 +272,6 @@ namespace Turnroot.UI.Components
                     );
                     continue;
                 }
-
-                TurnrootLogger.Log(
-                    $"SpawnAllUnitModels: Spawning at {pos} unitId={(unit?.Id ?? "<null>")} name={(unit?.CharacterTemplate?.DisplayName ?? "<unknown>")}"
-                );
 
                 var spawnResult = _prepObject.Brain.unitAppearanceBrain.SpawnUnitAtPosition(
                     unit: placement.Value,

@@ -216,8 +216,17 @@ namespace Turnroot.Gameplay.Brain
             return list.Distinct();
         }
 
+        private Dictionary<CharacterInstance, bool> _blendshapesApplied = new();
+
         public OperationResult SetBlendshapes(CharacterInstance unit)
         {
+            if (_blendshapesApplied.TryGetValue(unit, out var applied) && applied)
+            {
+                return OperationResult.Successful();
+            }
+
+            _blendshapesApplied[unit] = true;
+
             var weights = unit.CharacterTemplate.Blendshapes;
 
             var names = weights.BlendshapeNames ?? new string[0];
@@ -232,17 +241,23 @@ namespace Turnroot.Gameplay.Brain
                 return OperationResult.Successful(); // Non-breaking warning
             }
 
+            var failedCount = 0;
+
             foreach (var shapeName in names)
             {
                 var weight = weights.GetBlendshapeByName(shapeName);
 
                 if (!ApplyBlendshapeToRenderers(renderers, shapeName, weight))
                 {
-                    LogWarning(
-                        $"Could not set blendshape weight for {shapeName} on {unit.CharacterTemplate.DisplayName}: shape not found on any renderer"
-                    );
-                    // Continue instead of failing - blendshapes are not critical
+                    failedCount++;
                 }
+            }
+
+            if (failedCount > 0)
+            {
+                LogWarning(
+                    $"SetBlendshapes: failed to apply {failedCount} blendshapes for {unit.CharacterTemplate.DisplayName}"
+                );
             }
 
             return OperationResult.Successful();

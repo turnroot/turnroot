@@ -126,9 +126,7 @@ namespace Turnroot.Gameplay.Brain
                             instance.WasSpawnedDuringBattle = true;
 
                             // Publish the authoritative UnitSpawnedEvent so visual systems react consistently.
-                            Brain?.Publish(
-                                new UnitSpawnedEvent(instance, placement.SpawnPosition)
-                            );
+                            Brain?.Publish(new UnitSpawnedEvent(instance, placement.SpawnPosition));
                         }
                         else
                         {
