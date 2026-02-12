@@ -266,24 +266,13 @@ namespace Turnroot.Gameplay.Brain.Commands
 
                 if (problemFound)
                 {
-                    // Minimal diagnostic + repair attempt (details may be logged elsewhere when needed)
+                    // Problem detected after move; repair step removed (handled elsewhere or not required).
                     TurnrootLogger.Log(
-                        "MoveCommand: Problem detected after move; attempting repair",
+                        "MoveCommand: Problem detected after move; repair skipped",
                         TurnrootLogger.LogLevel.Warning
                     );
-                    try
-                    {
-                        context.RepairUnitPositionsFromRoster();
-                    }
-                    catch (System.Exception ex)
-                    {
-                        TurnrootLogger.Log(
-                            "MoveCommand: Repair failed: " + ex.Message,
-                            TurnrootLogger.LogLevel.Warning
-                        );
-                    }
 
-                    // Rebuild caches and adjacency after repair
+                    // Rebuild caches and adjacency
                     context.InvalidateUnitPositionCache();
                     context.UpdateAdjacentUnits();
                     context.UpdateTargetsInRange();

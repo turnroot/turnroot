@@ -1,6 +1,5 @@
 ﻿using System.Linq;
 using Turnroot.Characters;
-using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain
@@ -69,10 +68,8 @@ namespace Turnroot.Gameplay.Brain
                 return nbSmr;
             }
 
-            TurnrootLogger.Log(
-                $"No suitable outfit found for {unit.CharacterTemplate.DisplayName}. "
-                    + "Ensure class model or NonBattleOutfitPrefab is assigned.",
-                TurnrootLogger.LogLevel.Warning
+            LogWarning(
+                $"No suitable outfit found for {unit.CharacterTemplate.DisplayName}. Ensure class model or NonBattleOutfitPrefab is assigned"
             );
             return null;
         }
@@ -105,10 +102,8 @@ namespace Turnroot.Gameplay.Brain
                 return true;
             }
 
-            TurnrootLogger.Log(
-                $"Class outfit prefab '{prefab.name}' is missing a SkinnedMeshRenderer. "
-                    + $"Falling back to NonBattleOutfitPrefab for {unit.CharacterTemplate.DisplayName}",
-                TurnrootLogger.LogLevel.Warning
+            LogWarning(
+                $"Class outfit prefab '{prefab.name}' is missing a SkinnedMeshRenderer. Falling back to NonBattleOutfitPrefab for {unit.CharacterTemplate.DisplayName}"
             );
 
             Destroy(obj);
@@ -132,10 +127,8 @@ namespace Turnroot.Gameplay.Brain
 
             if (nbSmr == null)
             {
-                TurnrootLogger.Log(
-                    $"Non-battle outfit prefab '{nbPrefab.name}' does not contain a SkinnedMeshRenderer. "
-                        + $"Cannot create outfit for {unit.CharacterTemplate.DisplayName}",
-                    TurnrootLogger.LogLevel.Error
+                LogError(
+                    $"Non-battle outfit prefab '{nbPrefab.name}' does not contain a SkinnedMeshRenderer. Cannot create outfit for {unit.CharacterTemplate.DisplayName}"
                 );
                 Destroy(nbInstance);
                 return null;
@@ -156,8 +149,12 @@ namespace Turnroot.Gameplay.Brain
         {
             if (unit.CharacterTemplate.HeadAndHandsPrefab != null)
             {
-                var hh = Instantiate(unit.CharacterTemplate.HeadAndHandsPrefab, parent.transform);
-                hh.name = "HeadAndHands";
+                var hh = TryInstantiatePrefab(
+                    unit.CharacterTemplate.HeadAndHandsPrefab,
+                    parent.transform,
+                    "HeadAndHands",
+                    "AttachHeadAndHair"
+                );
             }
 
             // Check if class has a hat outfit
@@ -167,19 +164,30 @@ namespace Turnroot.Gameplay.Brain
             if (classHatPrefab != null)
             {
                 // Use class hat with height offset
-                var hat = Instantiate(classHatPrefab, parent.transform);
-                hat.name = "ClassHat";
-                hat.transform.localPosition = new Vector3(
-                    0,
-                    unit.CharacterTemplate.ClassHatHeightOffset,
-                    0
+                var hat = TryInstantiatePrefab(
+                    classHatPrefab,
+                    parent.transform,
+                    "ClassHat",
+                    "AttachHeadAndHair"
                 );
+                if (hat != null)
+                {
+                    hat.transform.localPosition = new Vector3(
+                        0,
+                        unit.CharacterTemplate.ClassHatHeightOffset,
+                        0
+                    );
+                }
             }
             else if (unit.CharacterTemplate.HairPrefab != null)
             {
                 // Fall back to default hair (no offset)
-                var hair = Instantiate(unit.CharacterTemplate.HairPrefab, parent.transform);
-                hair.name = "Hair";
+                var hair = TryInstantiatePrefab(
+                    unit.CharacterTemplate.HairPrefab,
+                    parent.transform,
+                    "Hair",
+                    "AttachHeadAndHair"
+                );
             }
         }
 

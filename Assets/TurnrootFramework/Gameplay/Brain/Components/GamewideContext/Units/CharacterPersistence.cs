@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using Newtonsoft.Json;
 using Turnroot.Characters;
 using Turnroot.Gameplay.Brain.Components;
 using Turnroot.Utilities;
@@ -66,9 +64,8 @@ namespace Turnroot.Gameplay.Brain
 
                 if (!decodeResult.Success)
                 {
-                    TurnrootLogger.Log(
-                        $"Failed to decode character: {decodeResult.Error}",
-                        TurnrootLogger.LogLevel.Warning
+                    $"Failed to decode character: {decodeResult.Error}".LogWarning(
+                        "CharacterPersistence"
                     );
                     return null;
                 }
@@ -76,10 +73,7 @@ namespace Turnroot.Gameplay.Brain
             }
             catch (Exception ex)
             {
-                TurnrootLogger.Log(
-                    $"Failed to recall character: {ex.Message}",
-                    TurnrootLogger.LogLevel.Warning
-                );
+                $"Failed to recall character: {ex.Message}".LogWarning("CharacterPersistence");
                 return null;
             }
         }
@@ -89,16 +83,11 @@ namespace Turnroot.Gameplay.Brain
 
         private void AddToCharacterIndex(string templateName)
         {
-            var indexJson = _ltm.Recall(LtmKeys.UniqueCharacterIndex);
-            var index = string.IsNullOrEmpty(indexJson)
-                ? new List<string>()
-                : JsonConvert.DeserializeObject<List<string>>(indexJson);
-
-            if (!index.Contains(templateName))
-            {
-                index.Add(templateName);
-                _ltm.Remember(LtmKeys.UniqueCharacterIndex, JsonConvert.SerializeObject(index));
-            }
+            GamewideContextBrainHelpers.AddToIndexIfMissing(
+                _ltm,
+                LtmKeys.UniqueCharacterIndex,
+                templateName
+            );
         }
     }
 }

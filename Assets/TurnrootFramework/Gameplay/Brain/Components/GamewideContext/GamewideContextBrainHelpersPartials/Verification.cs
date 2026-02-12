@@ -21,10 +21,7 @@ namespace Turnroot.Gameplay.Brain
             catch (Exception ex)
             {
                 // Hash verification failure likely means corrupted data
-                TurnrootLogger.Log(
-                    $"Hash verification failed: {ex.Message}",
-                    TurnrootLogger.LogLevel.Warning
-                );
+                $"Hash verification failed: {ex.Message}".LogWarning("GamewideContextBrainHelpers");
                 return false;
             }
         }
@@ -58,9 +55,8 @@ namespace Turnroot.Gameplay.Brain
             catch (Exception ex)
             {
                 // Ledger verification can fail with corrupted data - default to accepting
-                TurnrootLogger.Log(
-                    $"Ledger verification failed: {ex.Message}",
-                    TurnrootLogger.LogLevel.Warning
+                $"Ledger verification failed: {ex.Message}".LogWarning(
+                    "GamewideContextBrainHelpers"
                 );
                 return true;
             }

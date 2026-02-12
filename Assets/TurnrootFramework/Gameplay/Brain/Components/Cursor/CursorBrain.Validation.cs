@@ -17,12 +17,12 @@ namespace Turnroot.Gameplay.Brain
             }
 
             // Check allowed positions list if restricted
-            return _allowedPositions == null || _allowedPositions.Contains(position);
+            return !HasAllowedPositions() || _allowedPositions.Contains(position);
         }
 
         private Vector2Int? FindNearestValidPosition(Vector2Int from)
         {
-            if (_allowedPositions == null || _allowedPositions.Count == 0)
+            if (!HasAllowedPositions())
             {
                 return null;
             }

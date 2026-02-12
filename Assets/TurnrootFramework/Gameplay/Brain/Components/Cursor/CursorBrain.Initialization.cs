@@ -57,9 +57,8 @@ namespace Turnroot.Gameplay.Brain
             // If it's not, that's a real bug we should fix rather than retry
             if (Brain.battleBrain.BattleObject.Context?.MapGrid == null)
             {
-                TurnrootLogger.Log(
-                    "CursorBrain: Cannot initialize battle cursor - MapGrid is null even after OnBattleMapReady event. This indicates an initialization order bug.",
-                    TurnrootLogger.LogLevel.Error
+                "Cannot initialize battle cursor - MapGrid is null even after OnBattleMapReady event. This indicates an initialization order bug.".LogError(
+                    "CursorBrain"
                 );
                 return;
             }
@@ -75,39 +74,10 @@ namespace Turnroot.Gameplay.Brain
                 ?? Brain.battleBrain.BattleObject.Context?.MapGrid;
             CursorOffset = Brain.uiBrain.uiSettings?.BattleCursorOffset ?? Vector3.zero;
 
-            // Determine allowed cursor start positions from actual roster placements (battle roster > prep placements > spawn points)
-            List<Vector2Int> allowedPositions = null;
-            var playerRoster = Brain.battleBrain.BattleObject.PlayerTeamRoster;
-            var roPlacements = playerRoster?.GetPlacements();
-            if (roPlacements != null && roPlacements.Length > 0)
-            {
-                allowedPositions = new List<Vector2Int>();
-                foreach (var p in roPlacements)
-                {
-                    if (p != null)
-                    {
-                        allowedPositions.Add(p.SpawnPosition);
-                    }
-                }
-            }
-
-            if (allowedPositions == null || allowedPositions.Count == 0)
-            {
-                var prep = Brain.battleBrain.PreparationObject;
-                if (prep?.placements != null && prep.placements.Count > 0)
-                {
-                    allowedPositions = new List<Vector2Int>(prep.placements.Keys);
-                }
-                else if (
-                    prep?.PlayerTeamSpawnPoints != null
-                    && prep.PlayerTeamSpawnPoints.Count > 0
-                )
-                {
-                    allowedPositions = new List<Vector2Int>(prep.PlayerTeamSpawnPoints);
-                }
-            }
-
-            InitializeCursor(mapGrid, allowedPositions);
+            // At battle start we snap the cursor to the active unit but should allow free navigation
+            // so do not restrict allowed positions here. The cursor will be moved to the active unit
+            // when the player-controlled unit is activated (HandlePlayerUnitActivated).
+            InitializeCursor(mapGrid, null);
         }
 
         private OperationResult InitializePreBattleCursor(MapGrid mapGrid)

@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Turnroot.Characters;
 using Turnroot.Utilities;
 using UnityEngine;
@@ -21,10 +20,7 @@ namespace Turnroot.Gameplay.Combat
             res = ApplyPreBattlePlacements();
             if (!res.Success)
             {
-                TurnrootLogger.Log(
-                    $"BattleGameObject.InitializeBattleRosters: {res.ErrorMessage}",
-                    TurnrootLogger.LogLevel.Warning
-                );
+                this.LogWarning($"InitializeBattleRosters: {res.ErrorMessage}");
             }
         }
 
@@ -105,35 +101,15 @@ namespace Turnroot.Gameplay.Combat
                     return OperationResult.Successful();
                 }
 
-                var list = new List<Characters.Roster.UnitPlacement>();
-                foreach (var kvp in prep.placements)
-                {
-                    var pos = kvp.Key;
-                    var data = kvp.Value;
-                    if (data == null)
-                    {
-                        continue;
-                    }
-
-                    var up = new Characters.Roster.UnitPlacement
-                    {
-                        CharacterData = data,
-                        SpawnPosition = pos,
-                        Order = list.Count,
-                    };
-                    up.SetStatus(Characters.Roster.UnitStatus.NotSpawned);
-                    up.SetActiveRightNow(true);
-
-                    list.Add(up);
-                }
-
-                if (list.Count > 0)
-                {
-                    PlayerTeamRoster.ApplyDecodedPlacements(list.ToArray());
-                    TurnrootLogger.Log(
-                        $"ApplyPreBattlePlacements: Applied {list.Count} placements to PlayerTeamRoster",
-                        TurnrootLogger.LogLevel.Info
+                var decoded =
+                    Turnroot.Gameplay.Combat.PreBattle.BattlePlacementSync.ToDecodedPlacementArray(
+                        prep.placements
                     );
+
+                if (decoded.Length > 0)
+                {
+                    PlayerTeamRoster.ApplyDecodedPlacements(decoded);
+                    $"BattleGameObject: ApplyPreBattlePlacements: Applied {decoded.Length} placements to PlayerTeamRoster".LogInfo();
                     // Notify systems that placements have been applied for this battle (cursor, UI, etc.)
                     Brain?.PublishPlacementsInitialized();
                 }

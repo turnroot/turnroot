@@ -28,9 +28,8 @@ namespace Turnroot.Gameplay.Brain
             catch (System.Exception ex)
             {
                 // Key building can fail with invalid instance - return null to signal failure
-                TurnrootLogger.Log(
-                    $"Failed to build ledger key: {ex.Message}",
-                    TurnrootLogger.LogLevel.Warning
+                $"Failed to build ledger key: {ex.Message}".LogWarning(
+                    "GamewideContextBrainHelpers"
                 );
                 return null;
             }

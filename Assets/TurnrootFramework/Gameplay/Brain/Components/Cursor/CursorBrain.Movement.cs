@@ -12,9 +12,8 @@ namespace Turnroot.Gameplay.Brain
         {
             if (!IsPositionValid(position))
             {
-                TurnrootLogger.Log(
-                    $"CursorBrain: Position {position} is INVALID! Reasons: _currentMap null? {_currentMap == null}; _allowedPositions null? {_allowedPositions == null}; contains? {_allowedPositions != null && _allowedPositions.Contains(position)}; contents: {(_allowedPositions != null ? string.Join(", ", _allowedPositions) : "<null>")}",
-                    TurnrootLogger.LogLevel.Error
+                $"Position {position} is INVALID! Reasons: _currentMap null? {_currentMap == null}; _allowedPositions null? {_allowedPositions == null}; contains? {_allowedPositions != null && _allowedPositions.Contains(position)}; contents: {(_allowedPositions != null ? string.Join(", ", _allowedPositions) : "<null>")}".LogError(
+                    "CursorBrain"
                 );
                 return OperationResult
                     .Failure($"CursorBrain: Position {position} is not valid for cursor movement")
@@ -100,7 +99,12 @@ namespace Turnroot.Gameplay.Brain
             {
                 _lastBattleDirection = snapped;
                 _lastBattleNavTime = timeNow;
-                // Execute navigation
+                // Execute navigation. Use free-grid navigation when movement is unrestricted,
+                // otherwise use the restricted navigation helpers (wrapping/indexed).
+                if (!HasAllowedPositions())
+                {
+                    return NavigateCursor(snapped);
+                }
                 if (Mathf.Abs(snapped.x) > 0f)
                 {
                     return NavigateHorizontal(snapped.x > 0f ? 1 : -1);
@@ -114,6 +118,10 @@ namespace Turnroot.Gameplay.Brain
             if (timeNow - _lastBattleNavTime >= cooldown)
             {
                 _lastBattleNavTime = timeNow;
+                if (!HasAllowedPositions())
+                {
+                    return NavigateCursor(snapped);
+                }
                 if (Mathf.Abs(snapped.x) > 0f)
                 {
                     return NavigateHorizontal(snapped.x > 0f ? 1 : -1);
@@ -138,12 +146,9 @@ namespace Turnroot.Gameplay.Brain
         {
             EnsurePositionIndex();
 
-            if (_allowedPositions == null || _allowedPositions.Count == 0)
+            if (!HasAllowedPositions())
             {
-                TurnrootLogger.Log(
-                    "NavigateWithWrapping failed: no allowed positions!",
-                    TurnrootLogger.LogLevel.Error
-                );
+                "NavigateWithWrapping failed: no allowed positions!".LogError("CursorBrain");
                 return false;
             }
 
@@ -159,9 +164,8 @@ namespace Turnroot.Gameplay.Brain
 
             if (!success)
             {
-                TurnrootLogger.Log(
-                    $"NavigateWithWrapping: MoveCursorTo failed, NOT updating currentPositionIndex (stays at {_currentPositionIndex})",
-                    TurnrootLogger.LogLevel.Warning
+                $"NavigateWithWrapping: MoveCursorTo failed, NOT updating currentPositionIndex (stays at {_currentPositionIndex})".LogWarning(
+                    "CursorBrain"
                 );
             }
             else
@@ -174,7 +178,7 @@ namespace Turnroot.Gameplay.Brain
 
         public bool NavigateHorizontal(int dir)
         {
-            if (_allowedPositions == null || _allowedPositions.Count == 0)
+            if (!HasAllowedPositions())
             {
                 return false;
             }
@@ -202,7 +206,7 @@ namespace Turnroot.Gameplay.Brain
 
         public bool NavigateVertical(int dir)
         {
-            if (_allowedPositions == null || _allowedPositions.Count == 0)
+            if (!HasAllowedPositions())
             {
                 return false;
             }
@@ -255,8 +259,8 @@ namespace Turnroot.Gameplay.Brain
                     MoveCursorTo(nearest.Value);
                     // Update current index to the snapped position so wrapping navigation starts from it
                     _currentPositionIndex = _allowedPositions.IndexOf(nearest.Value);
-                    TurnrootLogger.Log(
-                        $"CursorBrain: Snapped cursor to nearest allowed position {nearest.Value} at index {_currentPositionIndex}"
+                    $"Snapped cursor to nearest allowed position {nearest.Value} at index {_currentPositionIndex}".LogInfo(
+                        "CursorBrain"
                     );
                 }
             }
@@ -270,7 +274,7 @@ namespace Turnroot.Gameplay.Brain
 
         private void EnsurePositionIndex()
         {
-            if (_currentPositionIndex < 0 && _allowedPositions != null && CursorPosition != null)
+            if (_currentPositionIndex < 0 && HasAllowedPositions() && CursorPosition != null)
             {
                 _currentPositionIndex = _allowedPositions.IndexOf(CursorPosition.CoordinatesInt);
                 if (_currentPositionIndex < 0)
@@ -280,12 +284,20 @@ namespace Turnroot.Gameplay.Brain
             }
         }
 
-        private List<Vector2Int> GetRowCandidates(int y)
+        private bool HasAllowedPositions() =>
+            _allowedPositions != null && _allowedPositions.Count > 0;
+
+        private List<Vector2Int> GetCandidates(System.Func<Vector2Int, bool> predicate)
         {
             var list = new List<Vector2Int>();
+            if (_allowedPositions == null)
+            {
+                return list;
+            }
+
             foreach (var p in _allowedPositions)
             {
-                if (p.y == y)
+                if (predicate(p))
                 {
                     list.Add(p);
                 }
@@ -293,18 +305,9 @@ namespace Turnroot.Gameplay.Brain
             return list;
         }
 
-        private List<Vector2Int> GetColumnCandidates(int x)
-        {
-            var list = new List<Vector2Int>();
-            foreach (var p in _allowedPositions)
-            {
-                if (p.x == x)
-                {
-                    list.Add(p);
-                }
-            }
-            return list;
-        }
+        private List<Vector2Int> GetRowCandidates(int y) => GetCandidates(p => p.y == y);
+
+        private List<Vector2Int> GetColumnCandidates(int x) => GetCandidates(p => p.x == x);
 
         private Vector2Int FindLeftOrWrap(List<Vector2Int> candidates, int curX)
         {

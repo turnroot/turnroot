@@ -37,15 +37,11 @@ namespace Turnroot.Gameplay.Brain
                 return OperationResult.Successful();
             }
 
-            var weaponInstance = Instantiate(weaponPrefab, model.transform);
+            var weaponInstance = TryInstantiatePrefab(weaponPrefab, model.transform, $"{equippedWeapon.Template.name}_Weapon", "AttachWeaponToUnit");
             if (weaponInstance == null)
             {
-                return OperationResult.Failure(
-                    $"Failed to instantiate weapon prefab for {unit.CharacterTemplate?.DisplayName}"
-                );
+                return OperationResult.Failure($"Failed to instantiate weapon prefab for {unit.CharacterTemplate?.DisplayName}");
             }
-
-            weaponInstance.name = $"{equippedWeapon.Template.name}_Weapon";
 
             // Apply offset - since all models use the same rig structure,
             // the weapon keeps its own skeleton and just needs positioning
@@ -86,15 +82,11 @@ namespace Turnroot.Gameplay.Brain
                 return OperationResult.Successful();
             }
 
-            var shieldInstance = Instantiate(shieldPrefab, model.transform);
+            var shieldInstance = TryInstantiatePrefab(shieldPrefab, model.transform, $"{equippedShield.Template.name}_Shield", "AttachShieldToUnit");
             if (shieldInstance == null)
             {
-                return OperationResult.Failure(
-                    $"Failed to instantiate shield prefab for {unit.CharacterTemplate?.DisplayName}"
-                );
+                return OperationResult.Failure($"Failed to instantiate shield prefab for {unit.CharacterTemplate?.DisplayName}");
             }
-
-            shieldInstance.name = $"{equippedShield.Template.name}_Shield";
 
             // Apply offset - since all models use the same rig structure,
             // the shield keeps its own skeleton and just needs positioning

@@ -141,7 +141,10 @@ namespace Turnroot.Gameplay.Brain
                 _persistence.RegisterPlayerRoster(roster);
             }
 
-            instance.OnRosterModified += () => _brain.PublishSavePlayerRosterRequested(_brain?.battleBrain?.CurrentTurnNumber ?? 0);
+            instance.OnRosterModified += () =>
+                _brain.PublishSavePlayerRosterRequested(
+                    _brain?.battleBrain?.CurrentTurnNumber ?? 0
+                );
 
             _brain.PublishRostersReady();
             return OperationResult<PlayerTeamRosterInstance>.SuccessResult(instance);
@@ -149,31 +152,12 @@ namespace Turnroot.Gameplay.Brain
 
         private OperationResult PopulateRoster(GenericRosterInstance instance, GenericRoster roster)
         {
-            var characters = new List<CharacterInstance>();
             var placements = instance.GetPlacements();
-
-            foreach (var unit in placements)
-            {
-                if (unit.CharacterData == null)
-                {
-                    TurnrootLogger.Log(
-                        $"Skipping placement with null CharacterData in '{instance.name}'",
-                        TurnrootLogger.LogLevel.Warning
-                    );
-                    continue;
-                }
-
-                var character = _characterFactory.CreateOrRecall(unit.CharacterData);
-                if (character != null)
-                {
-                    characters.Add(character);
-
-                    if (character.CharacterTemplate?.IsUnique == true)
-                    {
-                        _characterPersistence.SaveCharacter(character, updateIndex: true);
-                    }
-                }
-            }
+            var characters = BuildCharacterListFromPlacements(
+                placements,
+                logOnNull: true,
+                instanceName: instance.name
+            );
 
             instance.AddInstances(characters);
             return OperationResult.Successful();
@@ -184,27 +168,12 @@ namespace Turnroot.Gameplay.Brain
             PlayerTeamRoster roster
         )
         {
-            var characters = new List<CharacterInstance>();
             var placements = instance.GetPlacements();
-
-            foreach (var unit in placements)
-            {
-                if (unit?.CharacterData == null)
-                {
-                    continue;
-                }
-
-                var character = _characterFactory.CreateOrRecall(unit.CharacterData);
-                if (character != null)
-                {
-                    characters.Add(character);
-
-                    if (character.CharacterTemplate?.IsUnique == true)
-                    {
-                        _characterPersistence.SaveCharacter(character, updateIndex: true);
-                    }
-                }
-            }
+            var characters = BuildCharacterListFromPlacements(
+                placements,
+                logOnNull: false,
+                instanceName: instance.name
+            );
 
             instance.AddInstances(characters);
             return OperationResult.Successful();
@@ -274,10 +243,7 @@ namespace Turnroot.Gameplay.Brain
             var result = InstantiatePlayerTeamRoster(roster);
             if (!result.Success)
             {
-                TurnrootLogger.Log(
-                    $"Failed to recall player roster: {result.Error}",
-                    TurnrootLogger.LogLevel.Error
-                );
+                $"Failed to recall player roster: {result.Error}".LogError("RosterManager");
                 return null;
             }
 
@@ -328,6 +294,46 @@ namespace Turnroot.Gameplay.Brain
                 .FirstOrDefault(i => i != null);
 
             return found ?? _persistentPlayerRoster?.GetInstanceFor(template);
+        }
+
+        private List<CharacterInstance> BuildCharacterListFromPlacements(
+            Turnroot.Characters.Roster.UnitPlacement[] placements,
+            bool logOnNull,
+            string instanceName = ""
+        )
+        {
+            var characters = new List<CharacterInstance>();
+            if (placements == null || placements.Length == 0)
+            {
+                return characters;
+            }
+
+            foreach (var unit in placements)
+            {
+                if (unit == null || unit.CharacterData == null)
+                {
+                    if (logOnNull)
+                    {
+                        $"Skipping placement with null CharacterData in '{instanceName}'".LogWarning(
+                            "RosterManager"
+                        );
+                    }
+                    continue;
+                }
+
+                var character = _characterFactory.CreateOrRecall(unit.CharacterData);
+                if (character != null)
+                {
+                    characters.Add(character);
+
+                    if (character.CharacterTemplate?.IsUnique == true)
+                    {
+                        _characterPersistence.SaveCharacter(character, updateIndex: true);
+                    }
+                }
+            }
+
+            return characters;
         }
 
         public List<CharacterInstance> GetAllActiveInstances()

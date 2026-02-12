@@ -68,11 +68,13 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
 
         public OperationResult Display(MapGridPoint point, MovementType movementType)
         {
+            if (displayObj == null)
+            {
+                return OperationResult.Failure("TerrainTypeOverlay not initialized");
+            }
+
             displayObj.SetActive(true);
             var t = point.GetCachedTerrainType();
-            TurnrootLogger.Log(
-                $"TerrainTypeOverlay: Displaying terrain info for point ({point.Row}, {point.Col}) - terrain={t?.Name ?? "<none>"} movementType={movementType}"
-            );
             if (t == null)
             {
                 return OperationResult.Failure(
@@ -80,7 +82,7 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
                 );
             }
             TerrainTypeName.text = t != null ? t.Name : "Unknown";
-            if (ShowTerrainTypeDescriptionOnTileHover)
+            if (ShowTerrainTypeDescriptionOnTileHover && TerrainTypeDescription != null)
             {
                 TerrainTypeDescription.text =
                     t != null ? t.Description : "No description available.";
@@ -91,30 +93,42 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
                     TerrainTypeDefense.text = FormatStatOrDash(t?.DefenseBonusWalk);
                     TerrainTypeAvoid.text = FormatStatOrDash(t?.AvoidBonusWalk);
                     TerrainTypeHealth.text = FormatStatOrDash(t?.HealthChangePerTurnWalk);
-                    SetTextColor(TerrainTypeDefense, t?.DefenseBonusWalk);
-                    SetTextColor(TerrainTypeAvoid, t?.AvoidBonusWalk);
-                    SetTextColor(TerrainTypeHealth, t?.HealthChangePerTurnWalk);
+                    SetTextColorIfNotNull(TerrainTypeDefense, t?.DefenseBonusWalk);
+                    SetTextColorIfNotNull(TerrainTypeAvoid, t?.AvoidBonusWalk);
+                    SetTextColorIfNotNull(TerrainTypeHealth, t?.HealthChangePerTurnWalk);
                     break;
                 case MovementType.Riding:
                     TerrainTypeDefense.text = FormatStatOrDash(t?.DefenseBonusRiding);
                     TerrainTypeAvoid.text = FormatStatOrDash(t?.AvoidBonusRiding);
                     TerrainTypeHealth.text = FormatStatOrDash(t?.HealthChangePerTurnRiding);
-                    SetTextColor(TerrainTypeDefense, t?.DefenseBonusRiding);
-                    SetTextColor(TerrainTypeAvoid, t?.AvoidBonusRiding);
-                    SetTextColor(TerrainTypeHealth, t?.HealthChangePerTurnRiding);
+                    SetTextColorIfNotNull(TerrainTypeDefense, t?.DefenseBonusRiding);
+                    SetTextColorIfNotNull(TerrainTypeAvoid, t?.AvoidBonusRiding);
+                    SetTextColorIfNotNull(TerrainTypeHealth, t?.HealthChangePerTurnRiding);
                     break;
                 case MovementType.Flying:
                     TerrainTypeDefense.text = FormatStatOrDash(t?.DefenseBonusFlying);
                     TerrainTypeAvoid.text = FormatStatOrDash(t?.AvoidBonusFlying);
                     TerrainTypeHealth.text = FormatStatOrDash(t?.HealthChangePerTurnFlying);
-                    SetTextColor(TerrainTypeDefense, t?.DefenseBonusFlying);
-                    SetTextColor(TerrainTypeAvoid, t?.AvoidBonusFlying);
-                    SetTextColor(TerrainTypeHealth, t?.HealthChangePerTurnFlying);
+                    SetTextColorIfNotNull(TerrainTypeDefense, t?.DefenseBonusFlying);
+                    SetTextColorIfNotNull(TerrainTypeAvoid, t?.AvoidBonusFlying);
+                    SetTextColorIfNotNull(TerrainTypeHealth, t?.HealthChangePerTurnFlying);
                     break;
                 default:
-                    TerrainTypeDefense.text = "-";
-                    TerrainTypeAvoid.text = "-";
-                    TerrainTypeHealth.text = "-";
+                    if (TerrainTypeDefense != null)
+                    {
+                        TerrainTypeDefense.text = "-";
+                    }
+
+                    if (TerrainTypeAvoid != null)
+                    {
+                        TerrainTypeAvoid.text = "-";
+                    }
+
+                    if (TerrainTypeHealth != null)
+                    {
+                        TerrainTypeHealth.text = "-";
+                    }
+
                     break;
             }
             return OperationResult.Successful();
@@ -123,12 +137,24 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
         private string FormatStatOrDash(int? value) =>
             value.GetValueOrDefault() == 0 ? "-" : value.Value.ToString();
 
-        private void SetTextColor(TextMeshProUGUI textElement, int? value) =>
+        private void SetTextColorIfNotNull(TextMeshProUGUI textElement, int? value)
+        {
+            if (textElement == null)
+            {
+                return;
+            }
             textElement.color =
                 !ColorTerrainEffects || value == null || value == 0 ? NeutralColor
                 : value > 0 ? GoodColor
                 : BadColor;
+        }
 
-        public void ResetDisplay() => displayObj.SetActive(false);
+        public void ResetDisplay()
+        {
+            if (displayObj != null)
+            {
+                displayObj.SetActive(false);
+            }
+        }
     }
 }

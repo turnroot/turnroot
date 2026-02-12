@@ -35,20 +35,14 @@ namespace Turnroot.Gameplay.Brain
 
             if (mapGrid == null)
             {
-                TurnrootLogger.Log(
-                    $"SpawnUnitAtPosition: Aborting spawn for {unit.CharacterTemplate.DisplayName} - no MapGrid available",
-                    TurnrootLogger.LogLevel.Warning
-                );
+                LogWarning($"SpawnUnitAtPosition: Aborting spawn for {unit.CharacterTemplate.DisplayName} - no MapGrid available");
                 return OperationResult.Failure("No MapGrid available for spawn");
             }
 
             var gridPoint = mapGrid.GetGridPoint(position.x, position.y);
             if (gridPoint == null)
             {
-                TurnrootLogger.Log(
-                    $"SpawnUnitAtPosition: Aborting spawn for {unit.CharacterTemplate.DisplayName} - invalid grid position {position}",
-                    TurnrootLogger.LogLevel.Warning
-                );
+                LogWarning($"SpawnUnitAtPosition: Aborting spawn for {unit.CharacterTemplate.DisplayName} - invalid grid position {position}");
                 return OperationResult.Failure($"Invalid spawn grid point: {position}");
             }
 
@@ -70,10 +64,7 @@ namespace Turnroot.Gameplay.Brain
             }
             catch (System.Exception ex)
             {
-                TurnrootLogger.Log(
-                    $"SpawnUnitAtPosition: Failed setting instance state for {unit.Id}: {ex.Message}",
-                    TurnrootLogger.LogLevel.Warning
-                );
+                LogWarning($"SpawnUnitAtPosition: Failed setting instance state for {unit.Id}: {ex.Message}");
             }
 
             // Recompute exact world position using validated MapGrid
@@ -152,7 +143,7 @@ namespace Turnroot.Gameplay.Brain
         {
             if (!_modelPositions.TryGetValue(position, out var unitId))
             {
-                TurnrootLogger.Log("No model found at position", TurnrootLogger.LogLevel.Warning);
+                LogWarning("No model found at position");
                 return OperationResult.Successful();
             }
             return DespawnUnit(unitId);
@@ -247,10 +238,7 @@ namespace Turnroot.Gameplay.Brain
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
             // Dev diagnostic: confirm model created and placed where expected.
-            TurnrootLogger.Log(
-                $"CreateAndPlaceModel: Created model '{model.name}' for unit {unit.Id} at grid {position}, world {worldPos}",
-                TurnrootLogger.LogLevel.Info
-            );
+            $"CreateAndPlaceModel: Created model '{model.name}' for unit {unit.Id} at grid {position}, world {worldPos}".LogInfo("UnitAppearanceBrain");
 #endif
 
             Brain.Publish(new ModelSpawnedEvent(unit, unit.Id, position, model));

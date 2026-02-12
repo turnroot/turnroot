@@ -464,5 +464,74 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
             return foundAny;
         }
+
+        /// <summary>
+        /// Find the shortest straight-line distance from an origin point to a list of units.
+        /// Returns float.MaxValue if no valid units were provided.
+        /// </summary>
+        public static float FindClosestDistanceToUnits(
+            Vector2 origin,
+            IReadOnlyList<CharacterInstance> units,
+            CharacterInstance exclude = null
+        )
+        {
+            float closest = float.MaxValue;
+            if (units == null)
+            {
+                return closest;
+            }
+
+            for (int i = 0; i < units.Count; i++)
+            {
+                var u = units[i];
+                if (u == null || u == exclude)
+                {
+                    continue;
+                }
+
+                float dist = Vector2.Distance(origin, u.MapGridPosition);
+                if (dist < closest)
+                {
+                    closest = dist;
+                }
+            }
+
+            return closest;
+        }
+
+        /// <summary>
+        /// Find the closest unit (by straight-line distance) from an origin point. Returns null if none found.
+        /// </summary>
+        public static CharacterInstance FindClosestUnit(
+            Vector2 origin,
+            IReadOnlyList<CharacterInstance> units,
+            CharacterInstance exclude = null
+        )
+        {
+            CharacterInstance closest = null;
+            float closestDist = float.MaxValue;
+            if (units == null)
+            {
+                return null;
+            }
+
+            for (int i = 0; i < units.Count; i++)
+            {
+                var u = units[i];
+                if (u == null || u == exclude)
+                {
+                    continue;
+                }
+
+                float dist = Vector2.Distance(origin, u.MapGridPosition);
+                if (dist < closestDist)
+                {
+                    closestDist = dist;
+                    closest = u;
+                }
+            }
+
+            return closest;
+        }
     }
 }

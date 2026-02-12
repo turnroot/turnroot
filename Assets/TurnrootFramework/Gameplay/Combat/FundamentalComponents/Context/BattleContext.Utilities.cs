@@ -52,23 +52,22 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
             currentUnitPositions.Clear();
             var allUnits = Participants.GetAllUnits();
-            TurnrootLogger.Log(
-                $"GetCurrentUnitPositions: Building cache with {allUnits.Count} units"
-            );
+            this.LogInfo($"GetCurrentUnitPositions: Building cache with {allUnits.Count} units");
             foreach (var unit in allUnits)
             {
                 var result = ValidateAndRepairUnitPosition(unit);
                 if (!result.Success)
                 {
-                    TurnrootLogger.Log(result.ErrorMessage, TurnrootLogger.LogLevel.Warning);
+                    this.LogWarning(
+                        $"GetCurrentUnitPositions: Skipping {unit.CharacterTemplate.DisplayName}; {result.ErrorMessage}"
+                    );
                     continue;
                 }
 
                 if (currentUnitPositions.ContainsKey(unit.MapGridPosition))
                 {
-                    TurnrootLogger.Log(
-                        $"GetCurrentUnitPositions: Duplicate MapGridPosition detected for {unit.CharacterTemplate.DisplayName} at {unit.MapGridPosition}, skipping duplicate",
-                        TurnrootLogger.LogLevel.Warning
+                    this.LogWarning(
+                        $"GetCurrentUnitPositions: Duplicate MapGridPosition detected for {unit.CharacterTemplate.DisplayName} at {unit.MapGridPosition}, skipping duplicate"
                     );
                     continue;
                 }
@@ -94,9 +93,8 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             var sentinel = new Vector2Int(-9999, -9999);
             if (unit.MapGridPosition == sentinel)
             {
-                TurnrootLogger.Log(
-                    $"GetCurrentUnitPositions: Unit {unit.CharacterTemplate.DisplayName} has uninitialized MapGridPosition (sentinel). Attempting roster-based repair.",
-                    TurnrootLogger.LogLevel.Warning
+                this.LogWarning(
+                    $"GetCurrentUnitPositions: Unit {unit.CharacterTemplate.DisplayName} has uninitialized MapGridPosition (sentinel). Attempting roster-based repair."
                 );
             }
 
@@ -118,7 +116,6 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
         private OperationResult TryRepairUnitPositionFromRoster(CharacterInstance unit)
         {
-            // Defensive: prefer explicit checks rather than catch-all exceptions here
             var bb = Brain?.battleBrain;
             var battleObj = bb?.BattleObject;
             var roster = battleObj?.PlayerTeamRoster;
@@ -132,9 +129,8 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             {
                 if (p.CharacterData == unit.CharacterTemplate)
                 {
-                    TurnrootLogger.Log(
-                        $"GetCurrentUnitPositions: Repairing {unit.CharacterTemplate.DisplayName} MapGridPosition from {unit.MapGridPosition} to {p.SpawnPosition}",
-                        TurnrootLogger.LogLevel.Warning
+                    this.LogWarning(
+                        $"GetCurrentUnitPositions: Repairing {unit.CharacterTemplate.DisplayName} MapGridPosition from {unit.MapGridPosition} to {p.SpawnPosition}"
                     );
                     unit.MapGridPosition = p.SpawnPosition;
                     return OperationResult.Successful();

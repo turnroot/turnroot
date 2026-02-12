@@ -33,10 +33,11 @@ namespace Turnroot.Gameplay.Brain
 
             if (!classData.Identity.HasMountVisuals())
             {
-                TurnrootLogger.Log(
-                    $"Class {classData.GetClassName()} is mounted but has no mount prefab configured",
-                    TurnrootLogger.LogLevel.Warning
-                );
+                var msg =
+                    "Class "
+                    + classData.GetClassName()
+                    + " is mounted but has no mount prefab configured";
+                LogWarning(msg);
                 return OperationResult.Successful();
             }
 
@@ -59,15 +60,10 @@ namespace Turnroot.Gameplay.Brain
             mountInstance.transform.localScale = unitModel.transform.localScale;
 
             // Set up animator - use MountAnimator if provided, otherwise use default
-            var animator = mountInstance.GetComponent<Animator>();
-            if (animator == null)
-            {
-                animator = mountInstance.AddComponent<Animator>();
-            }
+            var animator = mountInstance.GetComponent<Animator>() ?? mountInstance.AddComponent<Animator>();
 
             // Assign animator controller - prefer mount-specific, fall back to default
-            var controllerToUse =
-                classData.Identity.MountAnimator ?? _settings?.DefaultUnitAnimatorController;
+            var controllerToUse = classData.Identity.MountAnimator ?? _settings?.DefaultUnitAnimatorController;
 
             if (controllerToUse != null)
             {
@@ -75,11 +71,8 @@ namespace Turnroot.Gameplay.Brain
             }
             else
             {
-                TurnrootLogger.Log(
-                    $"No animator controller available for mount of {unit.CharacterTemplate?.DisplayName}. "
-                        + "Set MountAnimator on class or DefaultUnitAnimatorController in settings.",
-                    TurnrootLogger.LogLevel.Warning
-                );
+                var displayName = unit.CharacterTemplate?.DisplayName ?? "<unknown>";
+                LogWarning($"No animator controller available for mount of {displayName}. Set MountAnimator on class or DefaultUnitAnimatorController in settings.");
             }
 
             // Set up walk animation for the mount

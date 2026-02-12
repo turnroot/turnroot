@@ -1,5 +1,6 @@
 using Turnroot.Characters;
 using Turnroot.Gameplay.Brain.Components;
+using Turnroot.Utilities;
 
 namespace Turnroot.Gameplay.Brain
 {
@@ -67,9 +68,8 @@ namespace Turnroot.Gameplay.Brain
                 }
                 else
                 {
-                    Utilities.TurnrootLogger.Log(
-                        $"CharacterFactory: Failed to assign default class for {instance.Id}: {res.ErrorMessage}",
-                        Utilities.TurnrootLogger.LogLevel.Warning
+                    $"CharacterFactory: Failed to assign default class for {instance.Id}: {res.ErrorMessage}".LogWarning(
+                        "CharacterFactory"
                     );
                 }
             }

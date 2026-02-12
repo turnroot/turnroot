@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Turnroot.Characters;
+using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
@@ -117,13 +118,20 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         {
             if (battleContext == null)
             {
-                Debug.LogWarning(
+                LogWarning(
                     $"{conditionName}: BattleContext not available. Ensure battle is active."
                 );
                 return false;
             }
             return true;
         }
+
+        /// <summary>
+        /// Convenience logging helpers that prefix messages with the concrete condition name.
+        /// </summary>
+        protected void Log(string message) => $"{GetType().Name}: {message}".LogInfo();
+
+        protected void LogWarning(string message) => $"{GetType().Name}: {message}".LogWarning();
 
         /// <summary>
         /// Get units matching specified templates from a list.

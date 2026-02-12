@@ -83,19 +83,7 @@ namespace Turnroot.Gameplay.Combat.PreBattle
             // Keep placement view in sync with gamewide selection
             if (brain != null)
             {
-                brain.OnUnitSelectionChanged -= HandleUnitSelectionChanged;
-                brain.OnUnitSelectionChanged += HandleUnitSelectionChanged;
-                brain.OnPositioningModeEntered -= HandlePositioningModeEntered;
-                brain.OnPositioningModeEntered += HandlePositioningModeEntered;
-                brain.OnPlacementsSyncRequested -= HandlePlacementsSyncRequested;
-                brain.OnPlacementsSyncRequested += HandlePlacementsSyncRequested;
-
-                // Reconcile visual model moves/swaps back into prep placements when the user moves models directly.
-                brain.Unsubscribe<Gameplay.Brain.Events.ModelMovedEvent>(HandleModelMovedEvent);
-                brain.Subscribe<Gameplay.Brain.Events.ModelMovedEvent>(HandleModelMovedEvent);
-
-                brain.Unsubscribe<Gameplay.Brain.Events.ModelSwappedEvent>(HandleModelSwappedEvent);
-                brain.Subscribe<Gameplay.Brain.Events.ModelSwappedEvent>(HandleModelSwappedEvent);
+                ConfigureEventSubscriptions(brain, subscribe: true);
             }
 
             // Set the map grid for Camera Brain
@@ -210,12 +198,69 @@ namespace Turnroot.Gameplay.Combat.PreBattle
         {
             if (Brain != null)
             {
-                Brain.OnUnitSelectionChanged -= HandleUnitSelectionChanged;
-                Brain.OnPositioningModeEntered -= HandlePositioningModeEntered;
-                Brain.OnPlacementsSyncRequested -= HandlePlacementsSyncRequested;
+                ConfigureEventSubscriptions(Brain, subscribe: false);
+            }
+        }
 
-                Brain.Unsubscribe<Gameplay.Brain.Events.ModelMovedEvent>(HandleModelMovedEvent);
-                Brain.Unsubscribe<Gameplay.Brain.Events.ModelSwappedEvent>(HandleModelSwappedEvent);
+        // Helper: centralize adding/removing event subscriptions to avoid duplication
+        private void ConfigureEventSubscriptions(Brain.Brain brain, bool subscribe)
+        {
+            if (brain == null)
+            {
+                return;
+            }
+
+            if (subscribe)
+            {
+                // Unsubscribe first to ensure idempotency
+                brain.OnUnitSelectionChanged -= HandleUnitSelectionChanged;
+                brain.OnUnitSelectionChanged += HandleUnitSelectionChanged;
+
+                brain.OnPositioningModeEntered -= HandlePositioningModeEntered;
+                brain.OnPositioningModeEntered += HandlePositioningModeEntered;
+
+                brain.OnPlacementsSyncRequested -= HandlePlacementsSyncRequested;
+                brain.OnPlacementsSyncRequested += HandlePlacementsSyncRequested;
+
+                brain.Unsubscribe<Gameplay.Brain.Events.ModelMovedEvent>(HandleModelMovedEvent);
+                brain.Subscribe<Gameplay.Brain.Events.ModelMovedEvent>(HandleModelMovedEvent);
+
+                brain.Unsubscribe<Gameplay.Brain.Events.ModelSwappedEvent>(HandleModelSwappedEvent);
+                brain.Subscribe<Gameplay.Brain.Events.ModelSwappedEvent>(HandleModelSwappedEvent);
+            }
+            else
+            {
+                brain.OnUnitSelectionChanged -= HandleUnitSelectionChanged;
+                brain.OnPositioningModeEntered -= HandlePositioningModeEntered;
+                brain.OnPlacementsSyncRequested -= HandlePlacementsSyncRequested;
+
+                brain.Unsubscribe<Gameplay.Brain.Events.ModelMovedEvent>(HandleModelMovedEvent);
+                brain.Unsubscribe<Gameplay.Brain.Events.ModelSwappedEvent>(HandleModelSwappedEvent);
+            }
+        }
+
+        // Ensure placements dictionary exists before use
+        private void EnsurePlacementsExists()
+        {
+            if (placements == null)
+            {
+                placements = new Dictionary<Vector2Int, CharacterData>();
+            }
+        }
+
+        // Safe wrapper around publishing placements sync requests to centralize logging
+        private void SafePublishPlacementsSync(bool persist, bool forceApplyPlacementsOnLoad)
+        {
+            try
+            {
+                Brain?.PublishPlacementsSyncRequested(persist, forceApplyPlacementsOnLoad);
+            }
+            catch (System.Exception ex)
+            {
+                TurnrootLogger.Log(
+                    $"SafePublishPlacementsSync: PublishPlacementsSyncRequested failed: {ex.Message}",
+                    TurnrootLogger.LogLevel.Warning
+                );
             }
         }
 
@@ -324,7 +369,7 @@ namespace Turnroot.Gameplay.Combat.PreBattle
                 }
 
                 // Ensure placements exists
-                placements ??= new Dictionary<Vector2Int, CharacterData>();
+                EnsurePlacementsExists();
 
                 // If placement already matches the desired state, skip
                 if (placements.TryGetValue(ev.To, out var existing) && existing == data)
@@ -350,10 +395,7 @@ namespace Turnroot.Gameplay.Combat.PreBattle
                 placements.Remove(ev.From);
                 CurrentPlacementState = PlacementState.PlayerPlaced;
 
-                Brain?.PublishPlacementsSyncRequested(
-                    persist: false,
-                    forceApplyPlacementsOnLoad: false
-                );
+                SafePublishPlacementsSync(persist: false, forceApplyPlacementsOnLoad: false);
             }
             catch { }
         }
@@ -381,10 +423,7 @@ namespace Turnroot.Gameplay.Combat.PreBattle
 
                 var dataA = a?.CharacterTemplate;
                 var dataB = b?.CharacterTemplate;
-                placements ??= new System.Collections.Generic.Dictionary<
-                    Vector2Int,
-                    CharacterData
-                >();
+                EnsurePlacementsExists();
 
                 // Swap in placements dictionary
                 if (dataA != null)
@@ -407,10 +446,7 @@ namespace Turnroot.Gameplay.Combat.PreBattle
 
                 CurrentPlacementState = PlacementState.PlayerPlaced;
 
-                Brain?.PublishPlacementsSyncRequested(
-                    persist: false,
-                    forceApplyPlacementsOnLoad: false
-                );
+                SafePublishPlacementsSync(persist: false, forceApplyPlacementsOnLoad: false);
             }
             catch { }
         }

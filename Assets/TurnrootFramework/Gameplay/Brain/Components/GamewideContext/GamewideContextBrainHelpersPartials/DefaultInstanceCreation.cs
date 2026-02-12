@@ -1,6 +1,7 @@
 using System;
 using Newtonsoft.Json.Linq;
 using Turnroot.Characters;
+using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain
@@ -66,9 +67,8 @@ namespace Turnroot.Gameplay.Brain
             catch (Exception ex)
             {
                 // Wrapper payload might be corrupted - return null
-                Utilities.TurnrootLogger.Log(
-                    $"Failed to extract CharacterData from wrapper: {ex.Message}",
-                    Utilities.TurnrootLogger.LogLevel.Warning
+                $"Failed to extract CharacterData from wrapper: {ex.Message}".LogWarning(
+                    "GamewideContextBrainHelpers"
                 );
                 return null;
             }

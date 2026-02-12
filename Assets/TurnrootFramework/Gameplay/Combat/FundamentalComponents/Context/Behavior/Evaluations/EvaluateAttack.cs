@@ -1,8 +1,6 @@
 using System.Collections.Generic;
-using Turnroot.Characters;
 using Turnroot.Characters.Components.Behavior;
 using Turnroot.Utilities;
-using UnityEngine;
 
 namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 {
@@ -104,7 +102,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
                 var (utility, chosenWeapon) = CalculateAttackUtility(target, behavior);
                 utility -= behavior.SelfishSelfless * 3f; // Selfless units are less kill-focused
-                utility *= _reusableAttackTiles.ContainsKey(targetGridPoint) ? 5f : 3f;
+                utility *= this.IsAttackable(targetGridPoint) ? 5f : 3f;
 
                 // If any weapon would kill the target, add kill bonus (CalculateAttackUtility already adds bonuses, but ensure kill detection if attacking now)
                 if (
@@ -123,16 +121,13 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 killGoals.Add(
                     new AIGoal
                     {
-                        Type = _reusableAttackTiles.ContainsKey(targetGridPoint)
+                        Type = IsAttackable(targetGridPoint)
                             ? AIGoal.GoalType.KillEnemy
                             : AIGoal.GoalType.GainPosition,
                         UtilityScore = utility,
                         Target = target,
-                        Destination = _context.Unit.UnitInstance.UnitPositionToMapGridPoint(
-                            targetGridPoint.CoordinatesInt,
-                            _context.MapGrid
-                        ),
-                        ActionToTake = _reusableAttackTiles.ContainsKey(targetGridPoint)
+                        Destination = DestinationFromTargetGridPoint(targetGridPoint),
+                        ActionToTake = IsAttackable(targetGridPoint)
                             ? AIGoal.Action.Attack
                             : AIGoal.Action.Move,
                         ChosenWeapon = chosenWeapon,
@@ -147,31 +142,19 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             using var attackGoalsPooled = PooledList<AIGoal>.Get();
             var attackGoals = attackGoalsPooled.List;
             // Attack the closest enemy without regard for strategy
-            CharacterInstance closestEnemy = null;
-            float closestDistance = float.MaxValue;
             float utility = 0f;
             var targetsForSimple = _context.Participants.Targets;
-            for (int ti = 0; ti < (targetsForSimple?.Count ?? 0); ti++)
+            var closestEnemy = PathfinderHelpers.FindClosestUnit(
+                _context.Unit.UnitInstance.MapGridPosition,
+                targetsForSimple
+            );
+            if (closestEnemy != null)
             {
-                var target = targetsForSimple[ti];
                 utility = 6f;
-
-                if (target == _context.Unit.UnitInstance.LastAttackedTarget)
+                if (closestEnemy == _context.Unit.UnitInstance.LastAttackedTarget)
                 {
                     utility += 3f * (1f - MindlessCunning); // Mindless units more consistent
                 }
-                var distance = Vector2.Distance(
-                    _context.Unit.UnitInstance.MapGridPosition,
-                    target.MapGridPosition
-                );
-                if (distance < closestDistance)
-                {
-                    closestDistance = distance;
-                    closestEnemy = target;
-                }
-            }
-            if (closestEnemy != null)
-            {
                 var targetGridPoint = closestEnemy.UnitPositionToMapGridPoint(
                     closestEnemy.MapGridPosition,
                     _context.MapGrid
@@ -180,7 +163,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 // Check if target is in attack range
                 utility +=
                     (1f - behavior.BloodthirstGreed)
-                    * (_reusableAttackTiles.ContainsKey(targetGridPoint) ? 5f : 3f);
+                    * (this.IsAttackable(targetGridPoint) ? 5f : 3f);
 
                 // Use CalculateAttackUtility to pick a preferred weapon
                 var (_, chosenWeapon) = CalculateAttackUtility(closestEnemy, behavior);
@@ -188,16 +171,13 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 attackGoals.Add(
                     new AIGoal
                     {
-                        Type = _reusableAttackTiles.ContainsKey(targetGridPoint)
+                        Type = this.IsAttackable(targetGridPoint)
                             ? AIGoal.GoalType.AttackEnemy
                             : AIGoal.GoalType.GainPosition,
                         UtilityScore = utility,
                         Target = closestEnemy,
-                        Destination = _context.Unit.UnitInstance.UnitPositionToMapGridPoint(
-                            targetGridPoint.CoordinatesInt,
-                            _context.MapGrid
-                        ),
-                        ActionToTake = _reusableAttackTiles.ContainsKey(targetGridPoint)
+                        Destination = DestinationFromTargetGridPoint(targetGridPoint),
+                        ActionToTake = this.IsAttackable(targetGridPoint)
                             ? AIGoal.Action.Attack
                             : AIGoal.Action.Move,
                         ChosenWeapon = chosenWeapon,
