@@ -25,7 +25,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 );
 
                 // Check if ally is in heal range
-                if (_reusableHealTiles.ContainsKey(allyGridPoint))
+                if (IsHealable(allyGridPoint))
                 {
                     float utility = CalculateHealUtility(ally, behavior);
 
@@ -35,10 +35,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                             Type = AIGoal.GoalType.HealAlly,
                             UtilityScore = utility,
                             Target = ally,
-                            Destination = _context.Unit.UnitInstance.UnitPositionToMapGridPoint(
-                                allyGridPoint.CoordinatesInt,
-                                _context.MapGrid
-                            ),
+                            Destination = DestinationFromTargetGridPoint(allyGridPoint),
                             ActionToTake = AIGoal.Action.Heal,
                         }
                     );

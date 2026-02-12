@@ -20,11 +20,10 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 return;
             }
 
-            TurnrootLogger.Log(
+            LogUnitInfo(
                 $"Adding top {count} goals from category with {categoryGoals.Count} goals."
             );
 
-            // Sort by utility descending
             categoryGoals.Sort((a, b) => b.UtilityScore.CompareTo(a.UtilityScore));
 
             // Add top N (or fewer if less than N exist)
@@ -101,17 +100,10 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             utility += distanceImprovement * 3f; // Reward progress toward goal
 
             // Check if tile is dangerous (near player units = enemies to this AI)
-            float closestPlayerDist = float.MaxValue;
-            var allies = _context.Participants.Allies;
-            for (int ai = 0; ai < (allies?.Count ?? 0); ai++) // _context.Participants.Allies are player units from enemy perspective
-            {
-                var ally = allies[ai];
-                float dist = Vector2.Distance(tile.Coordinates(), ally.MapGridPosition);
-                if (dist < closestPlayerDist)
-                {
-                    closestPlayerDist = dist;
-                }
-            }
+            float closestPlayerDist = PathfinderHelpers.FindClosestDistanceToUnits(
+                tile.Coordinates(),
+                _context.Participants.Allies
+            );
 
             // Minor penalty for very dangerous tiles (but not as severe as defensive retreat)
             if (closestPlayerDist < 2f)
@@ -154,15 +146,10 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             utility -= distancePenalty;
 
             // Check if enemies nearby make it dangerous
-            float closestEnemyDist = float.MaxValue;
-            foreach (var enemy in _context.Participants.Targets)
-            {
-                float dist = Vector2.Distance(featureLocation.Coordinates(), enemy.MapGridPosition);
-                if (dist < closestEnemyDist)
-                {
-                    closestEnemyDist = dist;
-                }
-            }
+            float closestEnemyDist = PathfinderHelpers.FindClosestDistanceToUnits(
+                featureLocation.Coordinates(),
+                _context.Participants.Targets
+            );
 
             // Dangerous if enemies within 3 tiles
             if (closestEnemyDist < 3f)
@@ -190,15 +177,10 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             utility += behavior.SelfishSelfless * 3f; // Selfless units are less likely to retreat
             utility -= (1f - behavior.MindlessCunning) * 3f; // mindless units don't retreat as much
             // find the closest enemy to the safe tile
-            float closestEnemyDist = float.MaxValue;
-            foreach (var enemy in _context.Participants.Targets)
-            {
-                float dist = Vector2.Distance(safeTile.Coordinates(), enemy.MapGridPosition);
-                if (dist < closestEnemyDist)
-                {
-                    closestEnemyDist = dist;
-                }
-            }
+            float closestEnemyDist = PathfinderHelpers.FindClosestDistanceToUnits(
+                safeTile.Coordinates(),
+                _context.Participants.Targets
+            );
 
             // Penalty for proximity to enemies (closer is worse)
             float enemyPenalty = Mathf.Max(0f, 3f - closestEnemyDist);
@@ -275,22 +257,13 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             // Formation consideration: penalize tiles far from allies for soldiers
             if (behavior.SoldierLoneWolf < 0.5f)
             {
-                float closestAllyDist = float.MaxValue;
+                // Exclude self from ally distance calculation
                 var allies = _context.Participants.Allies;
-                for (int ai = 0; ai < (allies?.Count ?? 0); ai++)
-                {
-                    var ally = allies[ai];
-                    if (ally == _context.Unit.UnitInstance)
-                    {
-                        continue;
-                    }
-
-                    float dist = Vector2.Distance(tile.Coordinates(), ally.MapGridPosition);
-                    if (dist < closestAllyDist)
-                    {
-                        closestAllyDist = dist;
-                    }
-                }
+                float closestAllyDist = PathfinderHelpers.FindClosestDistanceToUnits(
+                    tile.Coordinates(),
+                    allies,
+                    exclude: _context.Unit.UnitInstance
+                );
 
                 if (closestAllyDist > 3f)
                 {

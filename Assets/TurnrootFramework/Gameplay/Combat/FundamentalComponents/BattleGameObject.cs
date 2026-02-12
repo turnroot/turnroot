@@ -141,13 +141,13 @@ namespace Turnroot.Gameplay.Combat
         {
             if (MapGrid == null)
             {
-                Debug.LogError("BattleGameObject requires a MapGrid child");
+                this.LogError("Requires a MapGrid child");
                 Debug.Break();
             }
 
             if (BattleConditions == null)
             {
-                Debug.LogError("BattleGameObject requires BattleConditions to be set");
+                this.LogError("Requires BattleConditions to be set");
                 Debug.Break();
             }
         }
@@ -180,9 +180,7 @@ namespace Turnroot.Gameplay.Combat
                 }
                 catch (System.Exception ex)
                 {
-                    Debug.LogWarning(
-                        $"Failed to resolve condition {condition?.Name}: {ex.Message}"
-                    );
+                    this.LogWarning($"Failed to resolve condition {condition?.Name}: {ex.Message}");
                 }
             }
         }
@@ -319,7 +317,7 @@ namespace Turnroot.Gameplay.Combat
                 }
                 catch (System.Exception ex)
                 {
-                    Debug.LogWarning(
+                    this.LogWarning(
                         $"Failed to invalidate cache for {condition?.Name}: {ex.Message}"
                     );
                 }

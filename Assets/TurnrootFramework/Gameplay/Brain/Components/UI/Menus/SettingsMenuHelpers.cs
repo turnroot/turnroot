@@ -1,7 +1,6 @@
 using Turnroot.GameSettings;
 using Turnroot.UI.Components;
 using Turnroot.Utilities;
-using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain.Segments
 {

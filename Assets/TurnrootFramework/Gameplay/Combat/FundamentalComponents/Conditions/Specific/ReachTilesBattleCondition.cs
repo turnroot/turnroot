@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
@@ -95,9 +94,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
             if (_reachedTilesSet.Add(position))
             {
-                TurnrootLogger.Log(
-                    $"ReachTilesBattleCondition: Tile {position} reached ({_reachedTilesSet.Count}/{TargetTiles.Count})"
-                );
+                Log($"Tile {position} reached ({_reachedTilesSet.Count}/{TargetTiles.Count})");
 
                 CheckCondition();
             }

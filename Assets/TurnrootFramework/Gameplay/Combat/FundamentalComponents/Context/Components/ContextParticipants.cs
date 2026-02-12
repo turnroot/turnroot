@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using Turnroot.Characters;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Locations;
-using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
@@ -15,10 +14,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         {
             if (Unit?.UnitInstance == null)
             {
-                TurnrootLogger.Log(
-                    "BattleContext.UpdateTargetsInRange: No active unit set",
-                    TurnrootLogger.LogLevel.Warning
-                );
+                this.LogWarning("UpdateTargetsInRange: No active unit set");
                 return;
             }
 
@@ -33,9 +29,8 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
             if (!TryGetValidTilesForUnit(activeUnit, out _, out var attackTiles))
             {
-                TurnrootLogger.Log(
-                    $"BattleContext.UpdateTargetsInRange: Failed to get valid tiles for {activeUnit.CharacterTemplate.DisplayName}",
-                    TurnrootLogger.LogLevel.Warning
+                this.LogWarning(
+                    $"UpdateTargetsInRange: Failed to get valid tiles for {activeUnit.CharacterTemplate.DisplayName}"
                 );
                 Participants.TargetsInRange.Clear();
                 return;
@@ -97,8 +92,8 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 }
             }
 
-            TurnrootLogger.Log(
-                $"BattleContext.UpdateTargetsInRange: Found {Participants.TargetsInRange.Count} targets in range for {activeUnit.CharacterTemplate.DisplayName}"
+            this.LogInfo(
+                $"UpdateTargetsInRange: Found {Participants.TargetsInRange.Count} targets in range for {activeUnit.CharacterTemplate.DisplayName}"
             );
         }
 
@@ -106,10 +101,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         {
             if (Unit?.UnitInstance == null)
             {
-                TurnrootLogger.Log(
-                    "BattleContext.UpdateAdjacentUnits: No active unit set",
-                    TurnrootLogger.LogLevel.Warning
-                );
+                this.LogWarning("UpdateAdjacentUnits: No active unit set");
                 return;
             }
 
@@ -119,10 +111,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
             if (MapGrid == null)
             {
-                TurnrootLogger.Log(
-                    "BattleContext.UpdateAdjacentUnits: MapGrid is null",
-                    TurnrootLogger.LogLevel.Error
-                );
+                this.LogError("UpdateAdjacentUnits: MapGrid is null");
                 return;
             }
 

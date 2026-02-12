@@ -58,9 +58,8 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 : OperationResult.Failure("Move command failed to execute");
             if (t.Success)
             {
-                TurnrootLogger.Log(
-                    $"BattleContext: Moved {unit.CharacterTemplate.DisplayName} to {targetPoint.CoordinatesInt}",
-                    TurnrootLogger.LogLevel.Info
+                this.LogInfo(
+                    $"Moved {unit.CharacterTemplate.DisplayName} to {targetPoint.CoordinatesInt}"
                 );
             }
             return t;
@@ -81,9 +80,8 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
             if (weaponItem == null && !canAttackWithoutWeapon)
             {
-                TurnrootLogger.Log(
-                    $"BattleContext: {attacker.CharacterTemplate.DisplayName} has no weapon to attack with!",
-                    TurnrootLogger.LogLevel.Warning
+                this.LogWarning(
+                    $"{attacker.CharacterTemplate.DisplayName} has no weapon to attack with!"
                 );
                 return OperationResult.Failure("No weapon to attack with");
             }

@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
 using Turnroot.Characters.CharacterClass;
 using Turnroot.Characters.Components.Support;
 using Turnroot.Characters.Stats;

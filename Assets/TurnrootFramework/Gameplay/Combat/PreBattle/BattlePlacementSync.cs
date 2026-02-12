@@ -33,7 +33,26 @@ namespace Turnroot.Gameplay.Combat.PreBattle
                 return;
             }
 
+            var decoded = ToDecodedPlacementArray(placements);
+            runtimeInstance.ApplyDecodedPlacements(decoded);
+
+            if (persist)
+            {
+                var lastSaved = forceApplyPlacementsOnLoad ? 2 : 1;
+                brain?.PublishSavePlayerRosterRequested(lastSaved);
+            }
+        }
+
+        public static Characters.Roster.UnitPlacement[] ToDecodedPlacementArray(
+            Dictionary<Vector2Int, CharacterData> placements
+        )
+        {
             var list = new List<Characters.Roster.UnitPlacement>();
+            if (placements == null)
+            {
+                return list.ToArray();
+            }
+
             foreach (var kvp in placements)
             {
                 var pos = kvp.Key;
@@ -54,13 +73,7 @@ namespace Turnroot.Gameplay.Combat.PreBattle
                 list.Add(up);
             }
 
-            runtimeInstance.ApplyDecodedPlacements(list.ToArray());
-
-            if (persist)
-            {
-                var lastSaved = forceApplyPlacementsOnLoad ? 2 : 1;
-                brain?.PublishSavePlayerRosterRequested(lastSaved);
-            }
+            return list.ToArray();
         }
     }
 }

@@ -96,7 +96,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                     _context.MapGrid
                 );
 
-                if (!_reusableAttackTiles.ContainsKey(targetGridPoint))
+                if (!IsAttackable(targetGridPoint))
                 {
                     continue;
                 }

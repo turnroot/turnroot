@@ -82,10 +82,7 @@ namespace Turnroot.Gameplay.Combat
             }
             catch (System.Exception ex)
             {
-                TurnrootLogger.Log(
-                    "UnsubscribeFromMapChanges failed: " + ex.Message,
-                    TurnrootLogger.LogLevel.Warning
-                );
+                this.LogWarning($"UnsubscribeFromMapChanges failed: {ex.Message}");
             }
         }
 
@@ -185,9 +182,8 @@ namespace Turnroot.Gameplay.Combat
                     var initRes = loader.Initialize(Brain, Context);
                     if (!initRes.Success)
                     {
-                        TurnrootLogger.Log(
-                            $"BattleGameObject: Failed to initialize BattlePrecomputeLoader: {initRes.ErrorMessage}",
-                            TurnrootLogger.LogLevel.Warning
+                        this.LogWarning(
+                            $"Failed to initialize BattlePrecomputeLoader: {initRes.ErrorMessage}"
                         );
                     }
                 }

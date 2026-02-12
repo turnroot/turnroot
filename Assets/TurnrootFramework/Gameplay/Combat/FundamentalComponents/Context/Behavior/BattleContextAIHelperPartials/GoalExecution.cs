@@ -12,8 +12,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         public void PickTileAndAction()
         {
             // TEMPORARY DEBUG: Force recompute every time
-            _reusableMoveTiles.Clear();
-            _reusableAttackTiles.Clear();
+            ClearReusableTileLists();
             // 1. Ensure tiles are computed
             EnsureTilesAreComputed();
 
@@ -33,18 +32,10 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 //5. Add formation bonus to team-oriented units
                 ApplyFormationBonus(potentialGoals);
 
-#if UNITY_EDITOR
-                LogPotentialGoals(potentialGoals);
-#else
-                // In non-editor builds we still keep the same flow without verbose logs
-#endif
                 // 6. Choose and execute the best goal- choose (weighted) from top 3 randomly
 
                 var chosenGoal = SelectWeightedGoal(potentialGoals);
 
-                TurnrootLogger.Log(
-                    $"AI Chose Goal: {chosenGoal.Type} with Utility: {chosenGoal.UtilityScore}, Action: {chosenGoal.ActionToTake}, Tile: {chosenGoal.Destination?.CoordinatesInt}, Target: {chosenGoal.Target?.Id}"
-                );
                 ExecuteChosenGoal(chosenGoal);
             }
             else
@@ -71,19 +62,15 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 _context.Unit.UnitInstance.MapGridPosition,
                 _context.MapGrid
             );
-            float currentClosestAllyDist = float.MaxValue;
-            if (
-                PathfinderHelpers.TryFindClosestAllyPathCost(
-                    _context.MapGrid,
-                    _context.Unit.UnitInstance,
-                    currentStart,
-                    _context.Participants.Allies,
-                    out float currentCost
-                )
+            float currentClosestAllyDist = PathfinderHelpers.TryFindClosestAllyPathCost(
+                _context.MapGrid,
+                _context.Unit.UnitInstance,
+                currentStart,
+                _context.Participants.Allies,
+                out float currentCost
             )
-            {
-                currentClosestAllyDist = currentCost;
-            }
+                ? currentCost
+                : float.MaxValue;
 
             for (int i = 0; i < potentialGoals.Count; i++)
             {
@@ -92,19 +79,15 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 if (goal.Type == AIGoal.GoalType.GainPosition && goal.Destination != null)
                 {
                     var destStart = goal.Destination;
-                    float destClosestAllyDist = float.MaxValue;
-                    if (
-                        PathfinderHelpers.TryFindClosestAllyPathCost(
-                            _context.MapGrid,
-                            _context.Unit.UnitInstance,
-                            destStart,
-                            _context.Participants.Allies,
-                            out float destCost
-                        )
+                    float destClosestAllyDist = PathfinderHelpers.TryFindClosestAllyPathCost(
+                        _context.MapGrid,
+                        _context.Unit.UnitInstance,
+                        destStart,
+                        _context.Participants.Allies,
+                        out float destCost
                     )
-                    {
-                        destClosestAllyDist = destCost;
-                    }
+                        ? destCost
+                        : float.MaxValue;
 
                     if (destClosestAllyDist > currentClosestAllyDist + 0.01f)
                     {
@@ -115,19 +98,6 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 goal.UtilityScore += formationBonus;
                 potentialGoals[i] = goal;
             }
-        }
-
-        private void LogPotentialGoals(List<AIGoal> potentialGoals)
-        {
-#if UNITY_EDITOR
-            TurnrootLogger.Log("AI Potential Goals after formation bonus:");
-            foreach (var goal in potentialGoals)
-            {
-                TurnrootLogger.Log(
-                    $"Goal: {goal.Type}, Utility: {goal.UtilityScore}, Action: {goal.ActionToTake}, Tile: {goal.Destination?.CoordinatesInt}, Target: {goal.Target?.Id}"
-                );
-            }
-#endif
         }
 
         private AIGoal SelectWeightedGoal(List<AIGoal> potentialGoals)
@@ -148,12 +118,13 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
         private void ExecuteChosenGoal(AIGoal chosenGoal)
         {
-            TurnrootLogger.Log(
-                $"AI Chose Goal: {chosenGoal.Type} with Utility: {chosenGoal.UtilityScore}, Action: {chosenGoal.ActionToTake}, Tile: {chosenGoal.Destination?.CoordinatesInt}, Target: {chosenGoal.Target?.Id}"
-            );
+            LogChosenGoal(chosenGoal);
 
             ExecuteGoal(chosenGoal, _context);
         }
+
+        private void LogChosenGoal(AIGoal g) =>
+            $"AI Chose Goal: {g.Type} with Utility: {g.UtilityScore}, Action: {g.ActionToTake}, Tile: {g.Destination?.CoordinatesInt}, Target: {g.Target?.Id}".LogInfo();
 
         private void EnsureTilesAreComputed()
         {
@@ -182,9 +153,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                     || HasMovedSinceLastTurn
                 )
                 {
-                    _reusableMoveTiles.Clear();
-                    _reusableAttackTiles.Clear();
-                    _reusableHealTiles.Clear();
+                    ClearReusableTileLists(true);
 
                     GetTilesForAIWithHealNonAlloc(
                         _context.Unit.UnitInstance.UnitPositionToMapGridPoint(
@@ -196,6 +165,16 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                         _reusableHealTiles
                     );
                 }
+            }
+        }
+
+        private void ClearReusableTileLists(bool includeHeal = false)
+        {
+            _reusableMoveTiles.Clear();
+            _reusableAttackTiles.Clear();
+            if (includeHeal)
+            {
+                _reusableHealTiles.Clear();
             }
         }
     }

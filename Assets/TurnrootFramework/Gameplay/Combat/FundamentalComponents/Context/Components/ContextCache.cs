@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using Turnroot.Characters;
 using Turnroot.Gameplay.Maps;
-using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
@@ -181,9 +180,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             // Remove cached tiles for this unit (if present). Avoid recursion.
             if (_unitTilesCache.Remove(unit.Id))
             {
-                TurnrootLogger.Log(
-                    $"BattleContext: Invalidated tile cache for {unit.CharacterTemplate?.DisplayName}"
-                );
+                this.LogInfo($"Invalidated tile cache for {unit.CharacterTemplate?.DisplayName}");
             }
         }
 

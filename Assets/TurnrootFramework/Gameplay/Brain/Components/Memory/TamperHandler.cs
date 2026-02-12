@@ -1,7 +1,6 @@
 using System;
 using Turnroot.Characters;
 using Turnroot.Utilities;
-using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain.Components
 {
