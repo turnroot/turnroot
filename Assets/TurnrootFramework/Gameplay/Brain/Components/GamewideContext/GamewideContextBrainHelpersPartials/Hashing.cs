@@ -1,4 +1,5 @@
 using System.Text;
+using Turnroot.Utilities;
 
 namespace Turnroot.Gameplay.Brain
 {
@@ -40,9 +41,8 @@ namespace Turnroot.Gameplay.Brain
             catch (System.Exception ex)
             {
                 // Hash computation can fail with corrupted/invalid data - return empty to signal failure
-                Utilities.TurnrootLogger.Log(
-                    $"Failed to compute modification hash: {ex.Message}",
-                    Utilities.TurnrootLogger.LogLevel.Warning
+                $"Failed to compute modification hash: {ex.Message}".LogWarning(
+                    "GamewideContextBrainHelpers"
                 );
                 return string.Empty;
             }
@@ -64,9 +64,8 @@ namespace Turnroot.Gameplay.Brain
             catch (System.Exception ex)
             {
                 // Wrapper might be corrupted - return empty to signal failure
-                Utilities.TurnrootLogger.Log(
-                    $"Failed to recompute hash from wrapper: {ex.Message}",
-                    Utilities.TurnrootLogger.LogLevel.Warning
+                $"Failed to recompute hash from wrapper: {ex.Message}".LogWarning(
+                    "GamewideContextBrainHelpers"
                 );
                 return string.Empty;
             }

@@ -353,6 +353,11 @@ namespace Turnroot.Gameplay.Brain.Segments
                 var center = SetBattleGridCameraNeutralCenter();
                 Brain.PublishCursorMoveRequested(center);
                 ComputeTargetPosition(center);
+                // Snap camera immediately to center at battle start to ensure initial centering is visible.
+                if (_battleMapCamera != null)
+                {
+                    _battleMapCamera.transform.position = _targetCameraPosition;
+                }
                 _shouldMove = true;
                 TurnrootLogger.Log(
                     $"[CAMERA] Requested cursor move and starting camera follow for center {center}"
@@ -382,6 +387,11 @@ namespace Turnroot.Gameplay.Brain.Segments
 
             Brain.PublishCursorMoveRequested(targetPos);
             ComputeTargetPosition(targetPos);
+            // Snap camera immediately to the active unit spawn position at battle start so the player sees it.
+            if (_battleMapCamera != null)
+            {
+                _battleMapCamera.transform.position = _targetCameraPosition;
+            }
             _shouldMove = true;
             TurnrootLogger.Log(
                 $"[CAMERA] Requested cursor move and starting camera follow for {targetPos}"

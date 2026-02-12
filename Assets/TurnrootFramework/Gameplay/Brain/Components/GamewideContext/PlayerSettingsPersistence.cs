@@ -26,9 +26,8 @@ namespace Turnroot.Gameplay.Brain
             PlayerSettings = GameplayPlayerSettings.Instance;
             if (PlayerSettings == null)
             {
-                TurnrootLogger.Log(
-                    "PlayerSettingsPersistence: Could not find GameplayPlayerSettings instance",
-                    TurnrootLogger.LogLevel.Error
+                "PlayerSettingsPersistence: Could not find GameplayPlayerSettings instance".LogError(
+                    "PlayerSettingsPersistence"
                 );
                 return;
             }
@@ -337,13 +336,12 @@ namespace Turnroot.Gameplay.Brain
                 // Auto-save after each setting change
                 SavePlayerSettings();
 
-                TurnrootLogger.Log($"Updated setting {settingName} to {value}");
+                $"Updated setting {settingName} to {value}".LogInfo("PlayerSettingsPersistence");
             }
             catch (System.Exception ex)
             {
-                TurnrootLogger.Log(
-                    $"Failed to update setting {settingName}: {ex.Message}",
-                    TurnrootLogger.LogLevel.Error
+                $"Failed to update setting {settingName}: {ex.Message}".LogError(
+                    "PlayerSettingsPersistence"
                 );
             }
         }
@@ -400,8 +398,7 @@ namespace Turnroot.Gameplay.Brain
         public float MusicVolume = 0.8f;
         public float SfxVolume = 0.8f;
         public float VoiceVolume = 0.8f;
-        public Audio.PreferredBattleMusic.SongChoice PreferredBattleMusic =
-            Audio
+        public Audio.PreferredBattleMusic.SongChoice PreferredBattleMusic = Audio
             .PreferredBattleMusic
             .SongChoice
             .Default;

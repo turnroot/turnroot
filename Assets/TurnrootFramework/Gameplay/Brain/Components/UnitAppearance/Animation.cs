@@ -16,20 +16,14 @@ namespace Turnroot.Gameplay.Brain
         {
             if (!model.TryGetComponent<Animator>(out var animator))
             {
-                TurnrootLogger.Log(
-                    $"Missing Animator on '{model.name}'",
-                    TurnrootLogger.LogLevel.Error
-                );
+                LogError($"Missing Animator on '{model.name}'");
                 return;
             }
 
             var baseController = animator.runtimeAnimatorController;
             if (baseController == null)
             {
-                TurnrootLogger.Log(
-                    $"Animator on '{model.name}' has no controller.",
-                    TurnrootLogger.LogLevel.Error
-                );
+                LogError($"Animator on '{model.name}' has no controller.");
                 return;
             }
 
@@ -140,20 +134,14 @@ namespace Turnroot.Gameplay.Brain
 
             if (unit.CharacterTemplate.AdditionalBonesMask == null)
             {
-                TurnrootLogger.Log(
-                    $"{unit.CharacterTemplate.DisplayName}: HasExtraBoneLayer is true but AdditionalBonesMask is not assigned.",
-                    TurnrootLogger.LogLevel.Warning
-                );
+                LogWarning($"{unit.CharacterTemplate.DisplayName}: HasExtraBoneLayer is true but AdditionalBonesMask is not assigned.");
                 return;
             }
 
             var controller = animator.runtimeAnimatorController;
             if (controller == null)
             {
-                TurnrootLogger.Log(
-                    $"{unit.CharacterTemplate.DisplayName}: Cannot setup extra bone layer - no animator controller assigned.",
-                    TurnrootLogger.LogLevel.Error
-                );
+                LogError($"{unit.CharacterTemplate.DisplayName}: Cannot setup extra bone layer - no animator controller assigned.");
                 return;
             }
 
@@ -161,10 +149,7 @@ namespace Turnroot.Gameplay.Brain
             var controllerAsset = controller as UnityEditor.Animations.AnimatorController;
             if (controllerAsset == null)
             {
-                TurnrootLogger.Log(
-                    $"{unit.CharacterTemplate.DisplayName}: Extra bone layers require editor-time setup (assign AvatarMask to Layer 1).",
-                    TurnrootLogger.LogLevel.Warning
-                );
+                LogWarning($"{unit.CharacterTemplate.DisplayName}: Extra bone layers require editor-time setup (assign AvatarMask to Layer 1).");
                 return;
             }
 
@@ -172,10 +157,7 @@ namespace Turnroot.Gameplay.Brain
             // Editor-time setup
             if (controllerAsset.layers.Length < 2)
             {
-                TurnrootLogger.Log(
-                    $"{unit.CharacterTemplate.DisplayName}: AnimatorController needs at least 2 layers (Layer 1 missing).",
-                    TurnrootLogger.LogLevel.Error
-                );
+                LogError($"{unit.CharacterTemplate.DisplayName}: AnimatorController needs at least 2 layers (Layer 1 missing).");
                 return;
             }
 
@@ -232,10 +214,7 @@ namespace Turnroot.Gameplay.Brain
 
             if (missingBones.Count > 0)
             {
-                TurnrootLogger.Log(
-                    $"{characterName}: Additional bones not found in hierarchy: {string.Join(", ", missingBones)}",
-                    TurnrootLogger.LogLevel.Warning
-                );
+                LogWarning($"{characterName}: Additional bones not found in hierarchy: {string.Join(", ", missingBones)}");
             }
         }
 

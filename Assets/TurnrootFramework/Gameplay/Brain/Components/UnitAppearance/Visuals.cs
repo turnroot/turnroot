@@ -66,10 +66,7 @@ namespace Turnroot.Gameplay.Brain
             }
             else
             {
-                TurnrootLogger.Log(
-                    "No class MeshRenderer found; skipping class material application",
-                    TurnrootLogger.LogLevel.Warning
-                );
+                LogWarning("No class MeshRenderer found; skipping class material application");
 
                 return null;
             }

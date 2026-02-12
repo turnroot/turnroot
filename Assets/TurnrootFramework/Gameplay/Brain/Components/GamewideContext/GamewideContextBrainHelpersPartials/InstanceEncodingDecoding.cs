@@ -146,9 +146,8 @@ namespace Turnroot.Gameplay.Brain
             catch (Exception ex)
             {
                 // Ledger persistence is non-critical - log and continue
-                TurnrootLogger.Log(
-                    $"Failed to write hash ledger entry: {ex.Message}",
-                    TurnrootLogger.LogLevel.Warning
+                $"Failed to write hash ledger entry: {ex.Message}".LogWarning(
+                    "GamewideContextBrainHelpers"
                 );
             }
         }

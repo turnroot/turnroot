@@ -83,9 +83,8 @@ namespace Turnroot.Gameplay.Brain
 
             if (mapGrid == null)
             {
-                TurnrootLogger.Log(
-                    "CursorBrain: HandlePlacementsInitialized: No MapGrid found in PreparationObject",
-                    TurnrootLogger.LogLevel.Error
+                "HandlePlacementsInitialized: No MapGrid found in PreparationObject".LogError(
+                    "CursorBrain"
                 );
                 return;
             }
@@ -111,9 +110,8 @@ namespace Turnroot.Gameplay.Brain
                         }
                         else
                         {
-                            TurnrootLogger.Log(
-                                "CursorBrain: Battle map not ready yet - waiting for OnBattleMapReady",
-                                TurnrootLogger.LogLevel.Info
+                            "Battle map not ready yet - waiting for OnBattleMapReady".LogInfo(
+                                "CursorBrain"
                             );
                         }
 
@@ -205,7 +203,8 @@ namespace Turnroot.Gameplay.Brain
 
             if (gridPoint != null && IsPositionValid(unitPos))
             {
-                MoveCursorTo(unitPos, updateBrain: false);
+                // Publish position changes so other systems (camera, input previews) are updated immediately.
+                MoveCursorTo(unitPos, updateBrain: true);
             }
         }
 

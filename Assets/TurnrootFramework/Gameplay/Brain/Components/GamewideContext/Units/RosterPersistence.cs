@@ -31,7 +31,7 @@ namespace Turnroot.Gameplay.Brain
 
             if (!string.IsNullOrEmpty(existing))
             {
-                TurnrootLogger.Log($"Roster {roster.name} already registered");
+                $"Roster {roster.name} already registered".LogInfo("RosterPersistence");
 
                 return;
             }
@@ -110,16 +110,7 @@ namespace Turnroot.Gameplay.Brain
 
         private void AddToRosterIndex(string rosterId)
         {
-            var indexJson = _ltm.Recall(LtmKeys.RosterIndex);
-            var index = string.IsNullOrEmpty(indexJson)
-                ? new List<string>()
-                : JsonConvert.DeserializeObject<List<string>>(indexJson);
-
-            if (!index.Contains(rosterId))
-            {
-                index.Add(rosterId);
-                _ltm.Remember(LtmKeys.RosterIndex, JsonConvert.SerializeObject(index));
-            }
+            GamewideContextBrainHelpers.AddToIndexIfMissing(_ltm, LtmKeys.RosterIndex, rosterId);
         }
     }
 }

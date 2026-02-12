@@ -24,10 +24,7 @@ namespace Turnroot.Gameplay.Brain
             var path = BuildPathToDestination(character, destination);
             if (path == null || path.Count < 2)
             {
-                TurnrootLogger.Log(
-                    $"Invalid path for {character.CharacterTemplate.DisplayName}",
-                    TurnrootLogger.LogLevel.Warning
-                );
+                LogWarning($"Invalid path for {character.CharacterTemplate.DisplayName}");
                 Brain.PublishMoveAnimationCompleted(character);
                 return;
             }
@@ -49,10 +46,7 @@ namespace Turnroot.Gameplay.Brain
 
             if (!context.TryGetValidTilesForUnit(character, out var validMoveTiles, out _))
             {
-                TurnrootLogger.Log(
-                    $"BuildPathToDestination: Failed to get valid tiles for {character.CharacterTemplate.DisplayName}",
-                    TurnrootLogger.LogLevel.Warning
-                );
+                LogWarning($"BuildPathToDestination: Failed to get valid tiles for {character.CharacterTemplate.DisplayName}");
                 return null;
             }
 
@@ -80,7 +74,7 @@ namespace Turnroot.Gameplay.Brain
         {
             if (!_unitModels.TryGetValue(character.Id, out var unitModel) || unitModel == null)
             {
-                TurnrootLogger.Log($"No model for {character.Id}", TurnrootLogger.LogLevel.Warning);
+                LogWarning($"No model for {character.Id}");
                 Brain.PublishMoveAnimationCompleted(character);
                 yield break;
             }
