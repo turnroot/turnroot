@@ -46264,11 +46264,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Turnroot.Gameplay.Brain.Components.Battle.TerrainTypeOverlay
   terrainTypeDisplayPrefab: {fileID: 5064561847211869747, guid: 5ee34ce2dcbb4e44c8937248c0c14468, type: 3}
-  TerrainTypeName: {fileID: 0}
-  TerrainTypeDescription: {fileID: 0}
-  TerrainTypeDefense: {fileID: 0}
-  TerrainTypeAvoid: {fileID: 0}
-  TerrainTypeHealth: {fileID: 0}
   GoodColor: {r: 0.08290317, g: 0.6509434, b: 0.50160325, a: 1}
   BadColor: {r: 0.735849, g: 0.11933845, b: 0.045122836, a: 1}
   NeutralColor: {r: 0.11320752, g: 0.09024562, b: 0.09024562, a: 1}

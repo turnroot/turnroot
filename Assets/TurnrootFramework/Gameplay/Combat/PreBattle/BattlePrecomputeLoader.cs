@@ -314,7 +314,22 @@ namespace Turnroot.Gameplay.Combat.Precompute
                 yield return new WaitForSeconds(timeBetweenOperations);
             }
 
-            // 4) Precompute valid tiles
+            // 4) Precompute weapon / inventory summary used by AI evaluations
+            try
+            {
+                context.PrecomputeWeaponInfoForUnit(unit);
+            }
+            catch (System.Exception ex)
+            {
+                TurnrootLogger.Log(
+                    $"BattlePrecomputeLoader: Failed to precompute weapon info for unit {unit.Id}: {ex.Message}",
+                    TurnrootLogger.LogLevel.Warning
+                );
+            }
+            IncrementProgress();
+            yield return new WaitForSeconds(timeBetweenOperations);
+
+            // 5) Precompute valid tiles
             var tilesOk = context.TryGetValidTilesForUnit(unit, out _, out _, forceRecompute: true);
 
             if (!tilesOk)
@@ -455,7 +470,10 @@ namespace Turnroot.Gameplay.Combat.Precompute
                                 try
                                 {
                                     // Do not persist during precompute; final persisted placement should occur during roster initialization.
-                                    _brain?.PublishPlacementsSyncRequested(persist: false, forceApplyPlacementsOnLoad: false);
+                                    _brain?.PublishPlacementsSyncRequested(
+                                        persist: false,
+                                        forceApplyPlacementsOnLoad: false
+                                    );
                                 }
                                 catch (System.Exception ex)
                                 {
@@ -537,7 +555,8 @@ namespace Turnroot.Gameplay.Combat.Precompute
             // 3) Pathfinding params
             // 4) Tiles computation
             // 5) Model spawn
-            int tasksPerUnit = 5;
+            // 6) Weapon & inventory summary (cached for AI evaluations)
+            int tasksPerUnit = 6;
             return units.Count * tasksPerUnit;
         }
 
