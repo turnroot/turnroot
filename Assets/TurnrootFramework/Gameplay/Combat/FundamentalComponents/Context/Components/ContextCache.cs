@@ -185,5 +185,127 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         }
 
         public void InvalidateAllTileCaches() => _unitTilesCache.Clear();
+
+        // -----------------------------
+        // Weapon-effectiveness cache
+        // -----------------------------
+
+        private readonly Dictionary<string, CachedWeaponInfo> _unitWeaponCache =
+            new Dictionary<string, CachedWeaponInfo>();
+
+        /// <summary>
+        /// Cached summary of a unit's weapons (equipped + inventory) used by AI evaluations.
+        /// Contains sets of weapon types and species that any weapon in the unit's inventory is
+        /// effective against to allow fast lookups during AI scoring.
+        /// </summary>
+        public class CachedWeaponInfo
+        {
+            public Objects.ObjectItemInstance EquippedWeaponInstance { get; set; }
+            public Objects.Components.WeaponType EquippedWeaponType { get; set; }
+
+            public HashSet<Objects.Components.WeaponType> WeaponTypesInInventory { get; } =
+                new HashSet<Objects.Components.WeaponType>();
+
+            public HashSet<SpeciesType> SpeciesTypesEffectiveAgainst { get; } =
+                new HashSet<SpeciesType>();
+
+            public HashSet<Objects.Components.WeaponType> WeaponTypesEffectiveAgainst { get; } =
+                new HashSet<Objects.Components.WeaponType>();
+
+            public bool HasAnyWeaponEffectiveAgainstSpecies(SpeciesType species) =>
+                SpeciesTypesEffectiveAgainst.Contains(species);
+
+            public bool HasAnyWeaponEffectiveAgainstWeaponType(Objects.Components.WeaponType wt) =>
+                WeaponTypesEffectiveAgainst.Contains(wt);
+        }
+
+        /// <summary>
+        /// Build or refresh the cached weapon summary for a unit by scanning its inventory.
+        /// Intended to be called during precompute and invalidated on inventory/equipment changes.
+        /// </summary>
+        public void PrecomputeWeaponInfoForUnit(CharacterInstance unit)
+        {
+            if (unit == null)
+            {
+                return;
+            }
+
+            var info = new CachedWeaponInfo();
+            var inv = unit.InventoryInstance;
+            if (inv != null && inv.InventoryItems != null)
+            {
+                foreach (var item in inv.InventoryItems)
+                {
+                    if (item == null || item.Template == null)
+                    {
+                        continue;
+                    }
+
+                    // Track equipped weapon separately
+                    if (
+                        item.IsEquipped
+                        && item.Template.Subtype == Objects.Components.ObjectSubtype.Weapon
+                    )
+                    {
+                        info.EquippedWeaponInstance = item;
+                        info.EquippedWeaponType = item.Template.WeaponType;
+                    }
+
+                    // Aggregate weapon types present in inventory
+                    if (item.Template.WeaponType != null)
+                    {
+                        info.WeaponTypesInInventory.Add(item.Template.WeaponType);
+                    }
+
+                    // Aggregate species / weapon-types that this item is effective against
+                    if (item.Template.SpeciesEffectiveAgainst != null)
+                    {
+                        foreach (var s in item.Template.SpeciesEffectiveAgainst)
+                        {
+                            if (s != null)
+                            {
+                                info.SpeciesTypesEffectiveAgainst.Add(s);
+                            }
+                        }
+                    }
+
+                    if (item.Template.WeaponTypesEffectiveAgainst != null)
+                    {
+                        foreach (var wt in item.Template.WeaponTypesEffectiveAgainst)
+                        {
+                            if (wt != null)
+                            {
+                                info.WeaponTypesEffectiveAgainst.Add(wt);
+                            }
+                        }
+                    }
+                }
+            }
+
+            _unitWeaponCache[unit.Id] = info;
+        }
+
+        public CachedWeaponInfo GetCachedWeaponInfo(CharacterInstance unit)
+        {
+            if (unit == null)
+            {
+                return null;
+            }
+
+            _unitWeaponCache.TryGetValue(unit.Id, out var info);
+            return info;
+        }
+
+        public void InvalidateUnitWeaponCache(string unitId)
+        {
+            if (string.IsNullOrEmpty(unitId))
+            {
+                return;
+            }
+
+            _unitWeaponCache.Remove(unitId);
+        }
+
+        public void InvalidateAllWeaponCaches() => _unitWeaponCache.Clear();
     }
 }

@@ -222,11 +222,11 @@ namespace Turnroot.Gameplay.Combat.PreBattle
                 brain.OnPlacementsSyncRequested -= HandlePlacementsSyncRequested;
                 brain.OnPlacementsSyncRequested += HandlePlacementsSyncRequested;
 
-                brain.Unsubscribe<Gameplay.Brain.Events.ModelMovedEvent>(HandleModelMovedEvent);
-                brain.Subscribe<Gameplay.Brain.Events.ModelMovedEvent>(HandleModelMovedEvent);
+                brain.Unsubscribe<Brain.Events.ModelMovedEvent>(HandleModelMovedEvent);
+                brain.Subscribe<Brain.Events.ModelMovedEvent>(HandleModelMovedEvent);
 
-                brain.Unsubscribe<Gameplay.Brain.Events.ModelSwappedEvent>(HandleModelSwappedEvent);
-                brain.Subscribe<Gameplay.Brain.Events.ModelSwappedEvent>(HandleModelSwappedEvent);
+                brain.Unsubscribe<Brain.Events.ModelSwappedEvent>(HandleModelSwappedEvent);
+                brain.Subscribe<Brain.Events.ModelSwappedEvent>(HandleModelSwappedEvent);
             }
             else
             {
@@ -234,8 +234,8 @@ namespace Turnroot.Gameplay.Combat.PreBattle
                 brain.OnPositioningModeEntered -= HandlePositioningModeEntered;
                 brain.OnPlacementsSyncRequested -= HandlePlacementsSyncRequested;
 
-                brain.Unsubscribe<Gameplay.Brain.Events.ModelMovedEvent>(HandleModelMovedEvent);
-                brain.Unsubscribe<Gameplay.Brain.Events.ModelSwappedEvent>(HandleModelSwappedEvent);
+                brain.Unsubscribe<Brain.Events.ModelMovedEvent>(HandleModelMovedEvent);
+                brain.Unsubscribe<Brain.Events.ModelSwappedEvent>(HandleModelSwappedEvent);
             }
         }
 
@@ -340,7 +340,7 @@ namespace Turnroot.Gameplay.Combat.PreBattle
         }
 
         // Reconcile model move events from the UI into authoritative prep placements.
-        private void HandleModelMovedEvent(Gameplay.Brain.Events.ModelMovedEvent ev)
+        private void HandleModelMovedEvent(Brain.Events.ModelMovedEvent ev)
         {
             if (ev == null)
             {
@@ -378,7 +378,7 @@ namespace Turnroot.Gameplay.Combat.PreBattle
                 }
 
                 // Remove any old mapping for this template so we don't duplicate
-                var keysToRemove = new System.Collections.Generic.List<Vector2Int>();
+                var keysToRemove = new List<Vector2Int>();
                 foreach (var kvp in placements)
                 {
                     if (kvp.Value == data && kvp.Key != ev.To)
@@ -400,7 +400,7 @@ namespace Turnroot.Gameplay.Combat.PreBattle
             catch { }
         }
 
-        private void HandleModelSwappedEvent(Gameplay.Brain.Events.ModelSwappedEvent ev)
+        private void HandleModelSwappedEvent(Brain.Events.ModelSwappedEvent ev)
         {
             if (ev == null)
             {
@@ -410,7 +410,7 @@ namespace Turnroot.Gameplay.Combat.PreBattle
             try
             {
                 var all = Brain?.gamewideContextBrain?.GetAllActiveInstances();
-                Turnroot.Characters.CharacterInstance a = null,
+                CharacterInstance a = null,
                     b = null;
                 if (!string.IsNullOrEmpty(ev.UnitIdA))
                 {
@@ -523,7 +523,7 @@ namespace Turnroot.Gameplay.Combat.PreBattle
             bool forceApplyPlacementsOnLoad = false
         )
         {
-            Turnroot.Gameplay.Combat.PreBattle.BattlePlacementSync.ApplyPlacements(
+            BattlePlacementSync.ApplyPlacements(
                 Brain,
                 placements,
                 persist,

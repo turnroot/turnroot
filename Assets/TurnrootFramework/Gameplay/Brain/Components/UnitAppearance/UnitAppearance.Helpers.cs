@@ -16,15 +16,15 @@ namespace Turnroot.Gameplay.Brain
                 if (!string.IsNullOrEmpty(context))
                 {
                     // We cannot call instance LogWarning from static context; use the logger directly.
-                    Turnroot.Utilities.TurnrootLogger.Log($"{context}: prefab is null", Turnroot.Utilities.TurnrootLogger.LogLevel.Warning);
+                    Utilities.TurnrootLogger.Log($"{context}: prefab is null", Utilities.TurnrootLogger.LogLevel.Warning);
                 }
                 return null;
             }
 
-            var instance = UnityEngine.Object.Instantiate(prefab, parent);
+            var instance = Instantiate(prefab, parent);
             if (instance == null)
             {
-                Turnroot.Utilities.TurnrootLogger.Log($"{context ?? "UnitAppearanceBrain"}: Failed to instantiate prefab '{prefab.name}'", Turnroot.Utilities.TurnrootLogger.LogLevel.Warning);
+                Utilities.TurnrootLogger.Log($"{context ?? "UnitAppearanceBrain"}: Failed to instantiate prefab '{prefab.name}'", Utilities.TurnrootLogger.LogLevel.Warning);
                 return null;
             }
 

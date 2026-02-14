@@ -19,9 +19,97 @@ namespace Turnroot.Gameplay.Brain
 
         protected override void Awake() => base.Awake();
 
-        protected override void SubscribeToBrainEvents() { }
+        protected override void SubscribeToBrainEvents()
+        {
+            Brain.OnItemEquipped += HandleItemEquippedEvent;
+            Brain.OnItemUnequipped += HandleItemUnequippedEvent;
+            Brain.OnItemTransferred += HandleItemTransferredEvent;
+            Brain.OnItemBought += HandleItemBoughtEvent;
+            Brain.OnItemSold += HandleItemSoldEvent;
+            Brain.OnItemDiscarded += HandleItemDiscardedEvent;
+        }
 
-        protected override void UnsubscribeFromBrainEvents() { }
+        protected override void UnsubscribeFromBrainEvents()
+        {
+            Brain.OnItemEquipped -= HandleItemEquippedEvent;
+            Brain.OnItemUnequipped -= HandleItemUnequippedEvent;
+            Brain.OnItemTransferred -= HandleItemTransferredEvent;
+            Brain.OnItemBought -= HandleItemBoughtEvent;
+            Brain.OnItemSold -= HandleItemSoldEvent;
+            Brain.OnItemDiscarded -= HandleItemDiscardedEvent;
+        }
+
+        private void HandleItemEquippedEvent(
+            CharacterInstance character,
+            ObjectItemInstance item
+        )
+        {
+            // Equipped weapon changed — invalidate or refresh the cache for this character
+            Brain?.battleBrain?.BattleObject?.Context?.InvalidateUnitWeaponCache(character?.Id);
+        }
+
+        private void HandleItemUnequippedEvent(
+            CharacterInstance character,
+            ObjectItemInstance item
+        )
+        {
+            Brain?.battleBrain?.BattleObject?.Context?.InvalidateUnitWeaponCache(character?.Id);
+        }
+
+        private void HandleItemTransferredEvent(
+            ObjectItemInstance item,
+            CharacterInventoryInstance targetInventory
+        )
+        {
+            // Find owner(s) whose inventory contains this item (targetInventory provided)
+            var ctx = Brain?.battleBrain?.BattleObject?.Context;
+            if (ctx == null)
+            {
+                return;
+            }
+
+            // Invalidate any cached entry for the owner of the target inventory
+            var allUnits = Brain?.gamewideContextBrain?.GetAllActiveInstances();
+            if (allUnits == null)
+            {
+                return;
+            }
+
+            foreach (var c in allUnits)
+            {
+                if (
+                    c?.InventoryInstance == targetInventory
+                    || c?.InventoryInstance?.InventoryItems?.Contains(item) == true
+                )
+                {
+                    ctx.InvalidateUnitWeaponCache(c.Id);
+                }
+            }
+        }
+
+        private void HandleItemBoughtEvent(
+            ObjectItemInstance item,
+            CharacterInventoryInstance buyerInventory
+        )
+        {
+            Brain?.battleBrain?.BattleObject?.Context?.InvalidateUnitWeaponCache(
+                Brain
+                    ?.gamewideContextBrain?.GetAllActiveInstances()
+                    ?.Find(u => u.InventoryInstance == buyerInventory)
+                    ?.Id
+            );
+        }
+
+        private void HandleItemSoldEvent(ObjectItemInstance item)
+        {
+            // Conservative: invalidate all caches when items are removed from inventories via sell
+            Brain?.battleBrain?.BattleObject?.Context?.InvalidateAllWeaponCaches();
+        }
+
+        private void HandleItemDiscardedEvent(ObjectItemInstance item)
+        {
+            Brain?.battleBrain?.BattleObject?.Context?.InvalidateAllWeaponCaches();
+        }
 
         #region Item Operations
 

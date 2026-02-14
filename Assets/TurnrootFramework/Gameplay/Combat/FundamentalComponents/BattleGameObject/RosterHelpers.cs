@@ -102,7 +102,7 @@ namespace Turnroot.Gameplay.Combat
                 }
 
                 var decoded =
-                    Turnroot.Gameplay.Combat.PreBattle.BattlePlacementSync.ToDecodedPlacementArray(
+                    PreBattle.BattlePlacementSync.ToDecodedPlacementArray(
                         prep.placements
                     );
 

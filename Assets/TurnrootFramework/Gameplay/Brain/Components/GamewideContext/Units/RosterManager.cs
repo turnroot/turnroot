@@ -297,7 +297,7 @@ namespace Turnroot.Gameplay.Brain
         }
 
         private List<CharacterInstance> BuildCharacterListFromPlacements(
-            Turnroot.Characters.Roster.UnitPlacement[] placements,
+            Characters.Roster.UnitPlacement[] placements,
             bool logOnNull,
             string instanceName = ""
         )

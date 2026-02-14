@@ -381,7 +381,7 @@ namespace Turnroot.Gameplay.Brain
                                     $"BattleBrain Assertion: Placement {dataCheck.name} at {kvp.Key} has no runtime instance after alignment",
                                     TurnrootLogger.LogLevel.Warning
                                 );
-                                UnityEngine.Debug.Assert(
+                                Debug.Assert(
                                     instCheck != null,
                                     $"Placement {dataCheck.name} at {kvp.Key} has no runtime instance after alignment"
                                 );

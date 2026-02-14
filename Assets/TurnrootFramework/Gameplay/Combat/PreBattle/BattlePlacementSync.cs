@@ -7,7 +7,7 @@ namespace Turnroot.Gameplay.Combat.PreBattle
     public static class BattlePlacementSync
     {
         public static void ApplyPlacements(
-            Turnroot.Gameplay.Brain.Brain brain,
+            Brain.Brain brain,
             Dictionary<Vector2Int, CharacterData> placements,
             bool persist,
             bool forceApplyPlacementsOnLoad = false
