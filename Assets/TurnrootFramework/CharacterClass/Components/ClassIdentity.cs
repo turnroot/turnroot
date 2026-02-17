@@ -5,23 +5,27 @@ using UnityEngine;
 
 namespace Turnroot.Characters.CharacterClass
 {
+    [Serializable]
+    public struct PronounPrefab
+    {
+        [Tooltip("Pronoun key (e.g. 'she', 'he', 'they')")]
+        public string pronounKey;
+
+        [Tooltip("Prefab to use for the specified pronoun key")]
+        public GameObject prefab;
+    }
+
     /// <summary>
     /// Visual and identity information for a character class.
     /// </summary>
     [Serializable]
     public class ClassIdentity
     {
-        [Header("Visuals")]
-        [Tooltip("Prefab containing a SkinnedMeshRenderer for this class outfit (required)")]
-        public GameObject ClassModelPrefab;
-
         [Tooltip(
-            "Prefab containing a SkinnedMeshRenderer for this class hat (optional). If null, uses unit's default hair."
+            "Optional per-pronoun class model overrides. Specify a pronoun key (e.g. 'she','he','they') and a prefab to use for units with that pronoun set."
         )]
-        public GameObject ClassHatPrefab;
-
-        [Tooltip("Shader used for rendering")]
-        public Shader ShaderGraph;
+        [HideInInspector]
+        public PronounPrefab[] PronounClassModelPrefabs = new PronounPrefab[0];
 
         [Tooltip("Base texture")]
         public Texture2D Base;
@@ -29,10 +33,14 @@ namespace Turnroot.Characters.CharacterClass
         [Tooltip("MSE texture")]
         public Texture2D MSE;
 
+        [Tooltip(
+            "Prefab containing a SkinnedMeshRenderer for this class outfit (required). May include head/hands or hat; hair should NOT be included — unit HairPrefab will be used."
+        )]
+        public GameObject ClassModelPrefab;
+
         [Tooltip("Tint mask texture")]
         public Texture2D TintMask;
 
-        [Header("Identity")]
         [Tooltip("Display name for this class")]
         public string ClassName;
 
@@ -55,7 +63,6 @@ namespace Turnroot.Characters.CharacterClass
         [Tooltip("If true, only a unique character can hold this class at a time")]
         public bool IsUnique = false;
 
-        [Header("Mobility")]
         [Tooltip("Movement type for this class")]
         public MovementType MovementType = MovementType.Infantry;
 
@@ -78,8 +85,39 @@ namespace Turnroot.Characters.CharacterClass
 
         public bool HasMountVisuals() => IsMountedClass() && MountPrefab != null;
 
+        // Return true if this class has a usable class model (either default or a pronoun-specific override)
         public bool HasRequiredVisuals() =>
-            ClassModelPrefab != null && !string.IsNullOrEmpty(ClassName);
+            (
+                ClassModelPrefab != null
+                || (PronounClassModelPrefabs != null && PronounClassModelPrefabs.Length > 0)
+            ) && !string.IsNullOrEmpty(ClassName);
+
+        /// <summary>
+        /// Get the class model prefab that best matches the given pronoun key.
+        /// Falls back to the default ClassModelPrefab when no pronoun-specific entry exists.
+        /// </summary>
+        public GameObject GetClassModelPrefabForPronoun(string pronounKey)
+        {
+            if (!string.IsNullOrEmpty(pronounKey) && PronounClassModelPrefabs != null)
+            {
+                foreach (var p in PronounClassModelPrefabs)
+                {
+                    if (
+                        !string.IsNullOrEmpty(p.pronounKey)
+                        && string.Equals(
+                            p.pronounKey,
+                            pronounKey,
+                            StringComparison.OrdinalIgnoreCase
+                        )
+                        && p.prefab != null
+                    )
+                    {
+                        return p.prefab;
+                    }
+                }
+            }
+            return ClassModelPrefab;
+        }
 
         public string GetTierDisplayName()
         {

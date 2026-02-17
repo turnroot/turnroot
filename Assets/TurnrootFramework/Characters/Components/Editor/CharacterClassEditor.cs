@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEditor;
+using UnityEngine;
 
 namespace Turnroot.Characters.CharacterClass
 {
@@ -10,11 +11,15 @@ namespace Turnroot.Characters.CharacterClass
     public class CharacterClassEditor : NaughtyAttributes.Editor.NaughtyInspector
     {
         private SerializedProperty allowedPronounKeysProp;
+        private SerializedProperty pronounClassModelPrefabsProp;
 
         protected override void OnEnable()
         {
             base.OnEnable();
             allowedPronounKeysProp = serializedObject.FindProperty("allowedPronounKeys");
+            pronounClassModelPrefabsProp = serializedObject.FindProperty(
+                "Identity.PronounClassModelPrefabs"
+            );
         }
 
         public override void OnInspectorGUI()
@@ -75,6 +80,78 @@ namespace Turnroot.Characters.CharacterClass
                     allowedPronounKeysProp.GetArrayElementAtIndex(pIdx).stringValue = key;
                     pIdx++;
                 }
+            }
+
+            // Pronoun-specific class model prefabs
+            EditorGUILayout.Space();
+            EditorGUILayout.LabelField("Pronoun-specific Class Models", EditorStyles.boldLabel);
+            if (pronounClassModelPrefabsProp == null)
+            {
+                EditorGUILayout.HelpBox(
+                    "Pronoun model array not found on this asset.",
+                    MessageType.Warning
+                );
+            }
+            else if (pronounKeys == null || pronounKeys.Length == 0)
+            {
+                EditorGUILayout.HelpBox("No pronoun keys available to assign.", MessageType.Info);
+            }
+            else
+            {
+                EditorGUI.indentLevel++;
+                foreach (var key in pronounKeys)
+                {
+                    // Find existing array element for this key (if any)
+                    var foundIndex = -1;
+                    for (var i = 0; i < pronounClassModelPrefabsProp.arraySize; i++)
+                    {
+                        var el = pronounClassModelPrefabsProp.GetArrayElementAtIndex(i);
+                        var keyProp = el.FindPropertyRelative("pronounKey");
+                        if (
+                            string.Equals(
+                                keyProp.stringValue,
+                                key,
+                                System.StringComparison.OrdinalIgnoreCase
+                            )
+                        )
+                        {
+                            foundIndex = i;
+                            break;
+                        }
+                    }
+
+                    EditorGUILayout.BeginHorizontal();
+                    EditorGUILayout.LabelField(key, GUILayout.Width(80));
+
+                    if (foundIndex >= 0)
+                    {
+                        var el = pronounClassModelPrefabsProp.GetArrayElementAtIndex(foundIndex);
+                        var prefabProp = el.FindPropertyRelative("prefab");
+                        EditorGUILayout.PropertyField(prefabProp, GUIContent.none);
+
+                        if (GUILayout.Button("Remove", GUILayout.Width(70)))
+                        {
+                            pronounClassModelPrefabsProp.DeleteArrayElementAtIndex(foundIndex);
+                        }
+                    }
+                    else
+                    {
+                        EditorGUILayout.LabelField("(no override)", GUILayout.MaxWidth(120));
+                        if (GUILayout.Button("Add", GUILayout.Width(50)))
+                        {
+                            var insertIdx = pronounClassModelPrefabsProp.arraySize;
+                            pronounClassModelPrefabsProp.InsertArrayElementAtIndex(insertIdx);
+                            var newEl = pronounClassModelPrefabsProp.GetArrayElementAtIndex(
+                                insertIdx
+                            );
+                            newEl.FindPropertyRelative("pronounKey").stringValue = key;
+                            newEl.FindPropertyRelative("prefab").objectReferenceValue = null;
+                        }
+                    }
+
+                    EditorGUILayout.EndHorizontal();
+                }
+                EditorGUI.indentLevel--;
             }
 
             serializedObject.ApplyModifiedProperties();

@@ -52,24 +52,19 @@ namespace Turnroot.Gameplay.Brain
                 return null;
             }
 
-            var className = classInst.ClassData.GetClassName() ?? "";
+            var material = GetOrCreateMaterial(unit, classInst);
 
-            var material = GetOrCreateMaterial(unit, className);
-
-            // Apply the class outfit material only to the class MeshRenderer
-
-            var classRenderer = classInst?.MeshRenderer;
-
-            if (classRenderer != null)
+            // Apply the class outfit material to all outfit renderers (includes hat renderers)
+            var outfitRenderers = GetOutfitRenderers(unit, classInst).ToArray();
+            if (outfitRenderers == null || outfitRenderers.Length == 0)
             {
-                ApplyMaterialToRenderers(new[] { classRenderer }, material);
-            }
-            else
-            {
-                LogWarning("No class MeshRenderer found; skipping class material application");
-
+                LogWarning(
+                    "GetUnitOutfitMaterial: no outfit renderers found; skipping material application"
+                );
                 return null;
             }
+
+            ApplyMaterialToRenderers(outfitRenderers, material);
 
             InitializeClassVisuals(classInst, unit);
 
@@ -98,17 +93,52 @@ namespace Turnroot.Gameplay.Brain
             }
         }
 
-        private Material GetOrCreateMaterial(CharacterInstance unit, string className)
+        private Material GetOrCreateMaterial(
+            CharacterInstance unit,
+            CharacterClassDataInstance classInst
+        )
         {
+            var className = classInst?.ClassData?.GetClassName() ?? string.Empty;
+
             if (unit.classNameToOutfitMaterials.TryGetValue(className, out var existing))
             {
                 return existing;
             }
 
-            var material = new Material(_settings.UnitOutfitMaterialTemplate)
+            // Prefer cloning the class prefab's non-hair material so the variant uses the same shader as the prefab.
+            Material baseMat = null;
+            var renderer = classInst?.MeshRenderer;
+            if (renderer != null)
             {
-                name = $"{unit.CharacterTemplate.DisplayName}_OutfitMaterial",
-            };
+                var shared = renderer.sharedMaterials ?? new Material[0];
+                if (shared.Length > 0)
+                {
+                    foreach (var m in shared)
+                    {
+                        if (m != null)
+                        {
+                            baseMat = m;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            Material material;
+            if (baseMat != null)
+            {
+                material = new Material(baseMat)
+                {
+                    name = $"{unit.CharacterTemplate.DisplayName}_{className}_Outfit",
+                };
+            }
+            else
+            {
+                material = new Material(_settings.UnitOutfitMaterialTemplate)
+                {
+                    name = $"{unit.CharacterTemplate.DisplayName}_{className}_OutfitMaterial",
+                };
+            }
 
             unit.classNameToOutfitMaterials[className] = material;
 
@@ -119,10 +149,27 @@ namespace Turnroot.Gameplay.Brain
         {
             foreach (var r in renderers)
             {
-                if (r != null)
+                if (r == null)
+                {
+                    continue;
+                }
+
+                // Single-slot renderer — replace the first material
+                var shared = r.sharedMaterials ?? new Material[0];
+                if (shared.Length <= 1)
                 {
                     r.material = material;
+                    continue;
                 }
+
+                // Multi-material renderer: replace all slots with the outfit material (class prefabs must not include hair).
+                var newMats = new Material[shared.Length];
+                for (int i = 0; i < shared.Length; i++)
+                {
+                    newMats[i] = material;
+                }
+
+                r.materials = newMats;
             }
         }
 

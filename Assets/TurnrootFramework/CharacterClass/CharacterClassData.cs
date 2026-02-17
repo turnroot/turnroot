@@ -35,47 +35,40 @@ namespace Turnroot.Characters.CharacterClass
 
         #region Facade Components
 
-        [Foldout("Identity"), HorizontalLine(color: EColor.Yellow)]
+        [HorizontalLine(color: EColor.Yellow)]
         [Tooltip("Visual and identity properties for this class")]
         public ClassIdentity Identity = new();
 
-        [Foldout("Identity")]
-        [Tooltip("If true, attach per-character hair model")]
-        public bool UseUnitHairOnModel = true;
-
-        [Foldout("Identity")]
         [Tooltip(
             "If true, this class provides its own outfit prefab and materials. If false, units will use their per-character default outfit and materials."
         )]
         public bool HasOutfit = true;
 
-        [Foldout("Animations"), HorizontalLine(color: EColor.Green)]
+        [HorizontalLine(color: EColor.Green)]
         [Tooltip(
             "Walk animation for this class. If null, falls back to character's DefaultWalkingAnimation."
         )]
         public AnimationClip WalkAnimation;
 
-        [Foldout("Animations")]
         [Tooltip(
             "Run animation for this class. If null, falls back to character's DefaultRunningAnimation."
         )]
         public AnimationClip RunAnimation;
 
-        [Foldout("Animations")]
         [Tooltip(
             "Idle animations for this class. If empty, falls back to character's DefaultIdleAnimations. If multiple, one is chosen at random."
         )]
         public AnimationClip[] IdleAnimations = new AnimationClip[0];
 
-        [Foldout("Stats"), HorizontalLine(color: EColor.Orange)]
+        [HorizontalLine(color: EColor.Orange)]
         [Tooltip("Stat minimums, caps, bonuses, and growth rates")]
         public ClassStats Stats = new();
 
-        [Foldout("Requirements"), HorizontalLine(color: EColor.Violet)]
+        [HorizontalLine(color: EColor.Violet)]
         [Tooltip("Requirements and restrictions for equipping this class")]
         public ClassRequirements Requirements = new();
 
-        [Foldout("Skills & Mastery"), HorizontalLine(color: EColor.Green)]
+        [HorizontalLine(color: EColor.Green)]
         [Tooltip("Innate skills and mastery progression")]
         public ClassMastery Mastery = new();
 
@@ -83,7 +76,6 @@ namespace Turnroot.Characters.CharacterClass
 
         #region Inspector Helpers
 
-        [Foldout("Identity")]
         [Tooltip(
             "Which pronoun sets are allowed for characters of this class (multi-select). Empty = allow all."
         )]
@@ -157,6 +149,13 @@ namespace Turnroot.Characters.CharacterClass
                 ? settings.GetClassSelectionMode()
                 : GameplayGeneralSettings.ClassSelectionMode.PromotionBased;
         }
+
+        /// <summary>
+        /// Convenience helper to get the class model prefab for a specific pronoun key.
+        /// Falls back to the default class model if no pronoun override exists.
+        /// </summary>
+        public GameObject GetClassModelPrefabForPronoun(string pronounKey) =>
+            Identity?.GetClassModelPrefabForPronoun(pronounKey);
 
         #endregion
 
