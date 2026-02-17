@@ -550,6 +550,47 @@ namespace Turnroot.EditorTools
                                 return r;
                             }
                         }
+
+                        // Recommendation: prefer a dedicated child renderer named 'Hair' for hair meshes
+                        // so runtime material-preservation is deterministic.
+                        try
+                        {
+                            var prefab = data.NonBattleOutfitPrefab;
+                            if (prefab != null)
+                            {
+                                if (prefab.transform.Find("Hair") != null)
+                                {
+                                    r.Color = yellow;
+                                    r.Note =
+                                        "Outfit prefab contains a 'Hair' renderer — move hair into the character HairPrefab instead.";
+                                    return r;
+                                }
+
+                                var childSmrs = prefab.GetComponentsInChildren<SkinnedMeshRenderer>(
+                                    true
+                                );
+                                foreach (var smr in childSmrs)
+                                {
+                                    if (smr == null)
+                                        continue;
+                                    var n = smr.gameObject.name ?? string.Empty;
+                                    if (
+                                        n.IndexOf("hair", System.StringComparison.OrdinalIgnoreCase)
+                                        >= 0
+                                    )
+                                    {
+                                        r.Color = yellow;
+                                        r.Note =
+                                            "Outfit prefab contains a 'Hair' renderer — move hair into the character HairPrefab instead.";
+                                        return r;
+                                    }
+                                }
+                            }
+                        }
+                        catch
+                        { /* non-fatal */
+                        }
+
                         r.Color = green;
                         return r;
                     }

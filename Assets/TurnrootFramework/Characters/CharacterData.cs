@@ -179,7 +179,7 @@ namespace Turnroot.Characters
 
         [field: Foldout("Visual"), SerializeField]
         [Tooltip(
-            "Prefab containing hair mesh (SkinnedMeshRenderer). Used when classes opt to attach unit hair"
+            "Prefab containing hair mesh (SkinnedMeshRenderer). Used when classes opt to attach unit hair. Hair uses its own material and is excluded from class outfit tinting."
         )]
         public GameObject HairPrefab { get; private set; }
 

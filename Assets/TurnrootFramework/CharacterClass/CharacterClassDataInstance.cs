@@ -109,12 +109,51 @@ namespace Turnroot.Characters.CharacterClass
                 return false;
             }
 
-            var mat = _meshRenderer.material;
-
             var identity = _classData.Identity;
-            mat.SetTexture("_Base", identity.Base);
-            mat.SetTexture("_MSE", identity.MSE);
-            mat.SetTexture("_Tint_Mask", identity.TintMask);
+
+            // Apply textures to any material on the renderer that looks like an outfit material
+            var mats = _meshRenderer.materials ?? new Material[0];
+            var applied = false;
+            for (int i = 0; i < mats.Length; i++)
+            {
+                var m = mats[i];
+                if (m == null)
+                {
+                    continue;
+                }
+
+                // Heuristic: outfit materials expose the same shader properties we use for class textures
+                if (m.HasProperty("_Base") || m.HasProperty("_Tint_Mask") || m.HasProperty("_MSE"))
+                {
+                    if (identity.Base != null)
+                    {
+                        m.SetTexture("_Base", identity.Base);
+                    }
+
+                    if (identity.MSE != null)
+                    {
+                        m.SetTexture("_MSE", identity.MSE);
+                    }
+
+                    if (identity.TintMask != null)
+                    {
+                        m.SetTexture("_Tint_Mask", identity.TintMask);
+                    }
+
+                    applied = true;
+                }
+            }
+
+            // No fallback: only write class textures to materials that explicitly expose the class texture properties.
+            if (!applied)
+            {
+                var classLabel =
+                    _classData?.GetClassName() ?? _classData?.name ?? "<unknown class>";
+                TurnrootLogger.Log(
+                    $"CharacterClassDataInstance[{classLabel}]: InitializeWithRenderer: renderer materials do not expose class texture properties; class textures were not applied.",
+                    TurnrootLogger.LogLevel.Warning
+                );
+            }
 
             return true;
         }
