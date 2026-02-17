@@ -333,8 +333,194 @@ namespace Turnroot.Characters.CharacterClass
                         Identity.ClassModelPrefab = null;
                         UnityEditor.EditorUtility.SetDirty(this);
                     }
+                    else
+                    {
+                        // Enforce: class model prefabs must not include hair. Clear assignment if a 'Hair' renderer exists.
+                        if (
+                            prefab != null
+                            && (
+                                prefab.transform.Find("Hair") != null
+                                || System.Array.Find(
+                                    prefab.GetComponentsInChildren<SkinnedMeshRenderer>(true),
+                                    s =>
+                                        s != null
+                                        && (s.gameObject.name ?? string.Empty).IndexOf(
+                                            "hair",
+                                            System.StringComparison.OrdinalIgnoreCase
+                                        ) >= 0
+                                ) != null
+                            )
+                        )
+                        {
+                            TurnrootLogger.Log(
+                                $"{name}: ClassModelPrefab '{prefab.name}' contains a 'Hair' renderer. Class models must not include hair; clearing assignment.",
+                                TurnrootLogger.LogLevel.Error
+                            );
+                            UnityEditor.Undo.RecordObject(this, "Clear invalid ClassModelPrefab");
+                            Identity.ClassModelPrefab = null;
+                            UnityEditor.EditorUtility.SetDirty(this);
+                        }
+                    }
+                }
+
+                // Warn if none of the renderer materials expose class texture properties (_Base/_MSE/_Tint_Mask)
+                bool classMatFound = false;
+                var classSmrs =
+                    prefab.GetComponentsInChildren<SkinnedMeshRenderer>(true)
+                    ?? new SkinnedMeshRenderer[0];
+                foreach (var smr in classSmrs)
+                {
+                    var mats = smr.sharedMaterials ?? new Material[0];
+                    foreach (var mat in mats)
+                    {
+                        if (
+                            mat != null
+                            && (
+                                mat.HasProperty("_Base")
+                                || mat.HasProperty("_MSE")
+                                || mat.HasProperty("_Tint_Mask")
+                            )
+                        )
+                        {
+                            classMatFound = true;
+                            break;
+                        }
+                    }
+                    if (classMatFound)
+                        break;
+                }
+                if (!classMatFound)
+                {
+                    TurnrootLogger.Log(
+                        $"{name}: ClassModelPrefab '{prefab.name}' contains no materials exposing class texture properties (_Base/_MSE/_Tint_Mask). Class textures will not be applied at runtime.",
+                        TurnrootLogger.LogLevel.Warning
+                    );
+                    UnityEditor.EditorUtility.SetDirty(this);
                 }
             }
+
+            // Validate any pronoun-specific class model prefabs (same rules as ClassModelPrefab)
+            if (Identity.PronounClassModelPrefabs != null)
+            {
+                foreach (var pp in Identity.PronounClassModelPrefabs)
+                {
+                    if (pp.prefab == null)
+                    {
+                        continue;
+                    }
+
+                    var prefab = pp.prefab;
+                    var smrs = prefab.GetComponentsInChildren<SkinnedMeshRenderer>(true);
+                    if (smrs == null || smrs.Length == 0)
+                    {
+                        TurnrootLogger.Log(
+                            $"{name}: PronounClassModelPrefabs entry for '{pp.pronounKey}' points to prefab '{prefab.name}' which does not contain a SkinnedMeshRenderer. Clearing that entry.",
+                            TurnrootLogger.LogLevel.Error
+                        );
+                        UnityEditor.Undo.RecordObject(
+                            this,
+                            $"Clear invalid PronounClassModelPrefabs[{pp.pronounKey}]"
+                        );
+                        // Cannot clear struct array element automatically here; notify author and leave for manual fix in inspector
+                        UnityEditor.EditorUtility.SetDirty(this);
+                        continue;
+                    }
+
+                    var missingAny = new List<string>();
+                    foreach (var smr in smrs)
+                    {
+                        var missing = ValidateMesh(
+                            smr.sharedMesh,
+                            $"PronounClassModelPrefabs '{pp.pronounKey}' -> '{prefab.name}' - {smr.gameObject.name}"
+                        );
+                        if (missing.Count > 0)
+                        {
+                            missingAny.AddRange(missing);
+                        }
+                    }
+
+                    if (missingAny.Count > 0)
+                    {
+                        TurnrootLogger.Log(
+                            $"{name}: PronounClassModelPrefabs entry for '{pp.pronounKey}' -> '{prefab.name}' is missing required blendshapes on submeshes: {string.Join(", ", missingAny)}. Clearing that entry.",
+                            TurnrootLogger.LogLevel.Error
+                        );
+                        UnityEditor.Undo.RecordObject(
+                            this,
+                            $"Clear invalid PronounClassModelPrefabs[{pp.pronounKey}]"
+                        );
+                        // Cannot clear struct array element automatically here; notify author and leave for manual fix in inspector
+                        UnityEditor.EditorUtility.SetDirty(this);
+                    }
+
+                    // Recommend: prefer a dedicated child renderer named 'Hair' for hair meshes so the runtime
+                    // preserves hair materials and avoids relying on material-name heuristics.
+                    if (
+                        prefab != null
+                        && (
+                            prefab.transform.Find("Hair") != null
+                            || System.Array.Find(
+                                prefab.GetComponentsInChildren<SkinnedMeshRenderer>(true),
+                                s =>
+                                    s != null
+                                    && (s.gameObject.name ?? string.Empty).IndexOf(
+                                        "hair",
+                                        System.StringComparison.OrdinalIgnoreCase
+                                    ) >= 0
+                            ) != null
+                        )
+                    )
+                    {
+                        TurnrootLogger.Log(
+                            $"{name}: PronounClassModelPrefabs entry for '{pp.pronounKey}' -> '{prefab.name}' contains a 'Hair' renderer. Pronoun-specific class models must not include hair.",
+                            TurnrootLogger.LogLevel.Error
+                        );
+                        UnityEditor.Undo.RecordObject(
+                            this,
+                            $"PronounClassModelPrefabs contains invalid hair renderer [{pp.pronounKey}]"
+                        );
+                        // Notify author for manual fix in inspector (cannot auto-clear struct array element reliably)
+                        UnityEditor.EditorUtility.SetDirty(this);
+
+                        // Warn if none of the renderer materials expose class texture properties (_Base/_MSE/_Tint_Mask)
+                        bool pronounHasClassMat = false;
+                        foreach (var smr2 in smrs)
+                        {
+                            var mats2 = smr2.sharedMaterials ?? new Material[0];
+                            foreach (var mat2 in mats2)
+                            {
+                                if (
+                                    mat2 != null
+                                    && (
+                                        mat2.HasProperty("_Base")
+                                        || mat2.HasProperty("_MSE")
+                                        || mat2.HasProperty("_Tint_Mask")
+                                    )
+                                )
+                                {
+                                    pronounHasClassMat = true;
+                                    break;
+                                }
+                            }
+                            if (pronounHasClassMat)
+                                break;
+                        }
+                        if (!pronounHasClassMat)
+                        {
+                            TurnrootLogger.Log(
+                                $"{name}: PronounClassModelPrefabs entry for '{pp.pronounKey}' -> '{prefab.name}' contains no materials exposing class texture properties (_Base/_MSE/_Tint_Mask). Class textures will not be applied.",
+                                TurnrootLogger.LogLevel.Warning
+                            );
+                            UnityEditor.EditorUtility.SetDirty(this);
+                        }
+                    }
+                }
+            }
+
+            // Hat-specific fields removed — hats should be part of the ClassModelPrefab. ClassModelPrefab and PronounClassModelPrefabs are validated above and must not contain hair.
         }
+
+        // Class/hat/hair rules simplified: class assets must not contain hair (unit hair comes from CharacterData.HairPrefab).
+        // Detection uses explicit 'Hair' child checks or renderer name checks.
     }
 }
