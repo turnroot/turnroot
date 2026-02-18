@@ -27,6 +27,7 @@ Material:
   m_ValidKeywords:
   - _USE_FRENSEL_ON
   - _USE_MATCAP_REFLECTION_ON
+  - _USE_OUTLINES_ON
   m_InvalidKeywords:
   - _USE_HIGHLIGHT_MASK_ON
   - _USE_SHADOW_NOISE_ON
@@ -104,7 +105,7 @@ Material:
     m_Ints: []
     m_Floats:
     - _ASEOutalpha: 0
-    - _ASEOutlineWidth: 0.002
+    - _ASEOutlineWidth: 0.001
     - _AlphaClip: 0
     - _AlphaToMask: 0
     - _Blend: 0
@@ -158,7 +159,7 @@ Material:
     - _use_matcap_emissive: 0
     - _use_matcap_reflection: 1
     - _use_matcat: 0
-    - _use_outlines: 0
+    - _use_outlines: 1
     - _use_shadow_noise: 1
     m_Colors:
     - _ASEOutlineColor: {r: 0, g: 0, b: 0, a: 1}

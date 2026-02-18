@@ -102,23 +102,6 @@ namespace Turnroot.Characters
                     PersonalGrowthRates.Add(new UnboundedStatModifier(stat.StatType, 0f));
                 }
             }
-
-            // Auto-migrate deprecated 'SpecialSkills' (old serialized field) into the new single 'PersonalSkill'
-#if UNITY_EDITOR
-            if (
-                PersonalSkill == null
-                && _deprecatedSpecialSkills != null
-                && _deprecatedSpecialSkills.Count > 0
-            )
-            {
-                PersonalSkill = _deprecatedSpecialSkills[0];
-                TurnrootLogger.Log(
-                    $"{name}: Auto-migrated deprecated SpecialSkills -> PersonalSkill (using first entry).",
-                    TurnrootLogger.LogLevel.Info
-                );
-                UnityEditor.EditorUtility.SetDirty(this);
-            }
-#endif
         }
 
         private void OnValidate()
