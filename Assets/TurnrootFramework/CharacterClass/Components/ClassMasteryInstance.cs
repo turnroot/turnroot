@@ -23,59 +23,25 @@ namespace Turnroot.Characters.CharacterClass
         [SerializeField]
         private int _battlesCompleted = 0;
 
-        [SerializeField]
-        private int _levelWhenEquipped = 1;
-
         public int BattlesCompleted => _battlesCompleted;
-        public int LevelWhenEquipped => _levelWhenEquipped;
-
         public int ProgressPercent => _progressPercent;
         public bool IsMastered => _isMastered;
 
         public ClassMasteryInstance() { }
 
-        public ClassMasteryInstance(
-            CharacterInstance owner,
-            CharacterClassData classData,
-            int levelWhenEquipped
-        )
+        public ClassMasteryInstance(CharacterInstance owner, CharacterClassData classData)
         {
-            _levelWhenEquipped = levelWhenEquipped;
             _battlesCompleted = 0;
             EnsureMasteryProgressInitialized(classData);
         }
 
-        public void OnAfterDeserialize()
-        {
-            // No owner/class reference available here; caller should ensure initialization with classData when possible.
-        }
+        public void OnAfterDeserialize() { }
 
         public void EnsureMasteryProgressInitialized(CharacterClassData classData)
         {
             // Ensure progress is within bounds and set mastered flag if threshold already met.
             _progressPercent = Math.Clamp(_progressPercent, 0, 100);
-            _isMastered =
-                _isMastered
-                || (
-                    classData?.Mastery != null
-                    && _progressPercent >= Math.Clamp(classData.Mastery.MasteryThreshold, 1, 100)
-                );
-        }
-
-        // Backwards-compatible signature: treat any targetIndex as the single mastery slot.
-        public bool IsMasteryTargetUnlocked(CharacterClassData classData, int targetIndex)
-        {
-            return classData?.Mastery != null && _isMastered;
-        }
-
-        // Kept name for backward compatibility; unlocks the class's single mastered skill.
-        private void UnlockMasteryTarget(
-            CharacterInstance owner,
-            CharacterClassData classData,
-            int targetIndex
-        )
-        {
-            UnlockMasteredSkill(owner, classData);
+            _isMastered = _isMastered || (classData?.Mastery != null && _progressPercent >= 100);
         }
 
         private void UnlockMasteredSkill(CharacterInstance owner, CharacterClassData classData)
@@ -135,7 +101,7 @@ namespace Turnroot.Characters.CharacterClass
         /// </summary>
         public void AddProgress(CharacterInstance owner, CharacterClassData classData, int points)
         {
-            if (classData == null || classData.Mastery == null || classData.Mastery == null)
+            if (classData == null || classData.Mastery == null)
                 return;
             if (_isMastered)
                 return;
@@ -156,19 +122,13 @@ namespace Turnroot.Characters.CharacterClass
                 classData,
                 0,
                 _progressPercent,
-                classData.Mastery.MasteryThreshold
+                100
             );
 
-            if (_progressPercent >= Math.Clamp(classData.Mastery.MasteryThreshold, 1, 100))
+            if (_progressPercent >= 100)
             {
                 UnlockMasteredSkill(owner, classData);
             }
-        }
-
-        // Expose setter for level when equipped so caller can initialize from owner
-        public void SetLevelWhenEquipped(int level)
-        {
-            _levelWhenEquipped = level;
         }
     }
 }

@@ -40,7 +40,6 @@ namespace Turnroot.Characters.CharacterClass
         public SkinnedMeshRenderer MeshRenderer => _meshRenderer;
         public bool IsFirstTimeEquipped => _stats?.IsFirstTimeEquipped ?? true;
         public int BattlesCompleted => _mastery?.BattlesCompleted ?? 0;
-        public int LevelWhenEquipped => _mastery?.LevelWhenEquipped ?? 1;
 
         #endregion
 
@@ -57,11 +56,7 @@ namespace Turnroot.Characters.CharacterClass
             _meshRenderer = meshRenderer;
 
             _stats = new ClassStatsInstance(isFirstTimeEquipped);
-            _mastery = new ClassMasteryInstance(
-                owner,
-                classData,
-                owner != null ? owner.CurrentLevel : (_characterData?.Level ?? 1)
-            );
+            _mastery = new ClassMasteryInstance(owner, classData);
         }
 
         public CharacterClassDataInstance() { }

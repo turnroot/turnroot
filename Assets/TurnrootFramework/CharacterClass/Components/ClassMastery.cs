@@ -21,13 +21,9 @@ namespace Turnroot.Characters.CharacterClass
 
         [Header("Mastery System")]
         // Mastery is always enabled for every class (per-turn + kill bonus). The inspector
-        // exposes the skill granted on mastery and the mastery threshold.
+        // exposes the skill granted on mastery.
         [Tooltip("Skill granted when this class is mastered")]
         public Skill MasteredSkill;
-
-        [Tooltip("Progress threshold (0-100) required to master this class; default = 100")]
-        [Range(1, 100)]
-        public int MasteryThreshold = 100;
 
         [Header("Weapon Level Bonuses")]
         [Tooltip("Skills granted upon reaching specific weapon level milestones")]
@@ -74,7 +70,8 @@ namespace Turnroot.Characters.CharacterClass
         /// </summary>
         public bool HasMetMasteryCriteria(int progressPercent)
         {
-            return progressPercent >= Mathf.Clamp(MasteryThreshold, 1, 100);
+            // Mastery threshold is fixed at 100%.
+            return progressPercent >= 100;
         }
 
         /// <summary>
