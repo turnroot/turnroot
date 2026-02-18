@@ -217,7 +217,6 @@ MonoBehaviour:
   Mastery:
     InnateSkills: []
     MasteredSkill: {fileID: 0}
-    MasteryThreshold: 100
     WeaponLevelBonuses: []
   allowedPronounKeys:
   - they

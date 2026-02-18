@@ -224,7 +224,6 @@ MonoBehaviour:
     InnateSkills:
     - {fileID: 11400000, guid: a6ca4abb9906bed4ab5fd536bafdba5e, type: 2}
     MasteredSkill: {fileID: 0}
-    MasteryThreshold: 100
     WeaponLevelBonuses: []
   allowedPronounKeys:
   - they
