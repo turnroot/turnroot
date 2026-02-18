@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using NaughtyAttributes;
 using Turnroot.Gameplay.Objects.Components;
 using Turnroot.Skills;
 using Turnroot.Utilities;
@@ -19,14 +20,14 @@ namespace Turnroot.Characters.CharacterClass
         public List<Skill> InnateSkills = new();
 
         [Header("Mastery System")]
-        [Tooltip("If true, this class uses a mastery system for skill progression")]
-        public bool UsesMasterySystem = false;
+        // Mastery is always enabled for every class (per-turn + kill bonus). The inspector
+        // exposes the skill granted on mastery and the mastery threshold.
+        [Tooltip("Skill granted when this class is mastered")]
+        public Skill MasteredSkill;
 
-        [Tooltip("Mastery criteria for this class (what the character must do to gain mastery)")]
-        public MasteryCriteria MasteryCriteria;
-
-        [Tooltip("Mastery targets (specific skills or stat thresholds required for mastery)")]
-        public List<MasteryTarget> MasteryTargets = new();
+        [Tooltip("Progress threshold (0-100) required to master this class; default = 100")]
+        [Range(1, 100)]
+        public int MasteryThreshold = 100;
 
         [Header("Weapon Level Bonuses")]
         [Tooltip("Skills granted upon reaching specific weapon level milestones")]
@@ -69,20 +70,20 @@ namespace Turnroot.Characters.CharacterClass
         }
 
         /// <summary>
-        /// Checks whether a character has met the mastery criteria.
+        /// Returns true if mastery is considered complete given a progress value (0-100).
         /// </summary>
-        public bool HasMetMasteryCriteria(int achievedMasteryCount) =>
-            // TODO: Fix this
-            true;
+        public bool HasMetMasteryCriteria(int progressPercent)
+        {
+            return progressPercent >= Mathf.Clamp(MasteryThreshold, 1, 100);
+        }
 
         /// <summary>
         /// Validates that mastery configuration is complete.
+        /// (MasteredSkill may be empty — mastery will still track progress.)
         /// </summary>
         public OperationResult ValidateMasteryConfiguration()
         {
-            return !UsesMasterySystem ? OperationResult.Successful()
-                : MasteryTargets.Count == 0 ? OperationResult.Failure("No MasteryTargets defined.")
-                : OperationResult.Successful();
+            return OperationResult.Successful();
         }
     }
 
@@ -101,21 +102,5 @@ namespace Turnroot.Characters.CharacterClass
 
         [Tooltip("Skill granted upon reaching the required weapon level")]
         public Skill GrantedSkill;
-    }
-
-    /// <summary>
-    /// Specific target for mastery progression.
-    /// </summary>
-    [Serializable]
-    public class MasteryTarget
-    {
-        [Tooltip("Description of what must be achieved")]
-        public string TargetDescription;
-
-        [Tooltip("Skill that must be learned or used (if applicable)")]
-        public Skill RequiredSkill;
-
-        [Tooltip("Threshold value (weapon level, usage count, etc.)")]
-        public int ThresholdValue;
     }
 }

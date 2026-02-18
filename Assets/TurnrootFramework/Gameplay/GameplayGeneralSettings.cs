@@ -106,14 +106,72 @@ namespace Turnroot.GameSettings
     )]
     public class GameplayGeneralSettings : SingletonScriptableObject<GameplayGeneralSettings>
     {
-        /// <summary>
-        /// Defines how character classes are selected or changed.
-        /// </summary>
         public enum ClassSelectionMode
         {
             PromotionBased,
             RequirementBased,
         }
+
+        public float MinimumPercentChanceToAttemptClassChange => .6f;
+
+        /// <summary>
+        /// Designer tunables for mastery progression and class-exam behavior.
+        /// - Mastery: control how quickly per-turn/kill actions convert into mastery progress
+        /// - RequirementExam: weights/floor for the probabilistic exam used by RequirementBased mode.
+        /// </summary>
+        [System.Serializable]
+        public struct MasteryTuning
+        {
+            [Tooltip(
+                "Multiplier applied to battle-based mastery points (applies to points passed into IncrementBattleCount)"
+            )]
+            public float BattlePointMultiplier;
+
+            [Tooltip(
+                "Additional multiplier applied when the battle was 'successful' (e.g. unit scored a kill)"
+            )]
+            public float BattleSuccessMultiplier;
+
+            public static MasteryTuning Default() =>
+                new() { BattlePointMultiplier = 1f, BattleSuccessMultiplier = 1f };
+        }
+
+        [System.Serializable]
+        public struct RequirementExamTuning
+        {
+            [
+                Range(0f, 1f),
+                Tooltip("Minimum floor applied to Requirement-based class exam chance (0..1)")
+            ]
+            public float ExamFloor;
+
+            [Tooltip("Weight applied to level-proximity when calculating exam chance")]
+            public float WeightLevel;
+
+            [Tooltip("Weight applied to stat-proximity when calculating exam chance")]
+            public float WeightStats;
+
+            [Tooltip("Weight applied to experience-proximity when calculating exam chance")]
+            public float WeightExperience;
+
+            public static RequirementExamTuning Default() =>
+                new()
+                {
+                    ExamFloor = 0f,
+                    WeightLevel = 1f,
+                    WeightStats = 1f,
+                    WeightExperience = 1f,
+                };
+        }
+
+        /// <summary>
+        /// Mastery/Exam designer tunables (exposed so designers can balance progression speed and exam difficulty)
+        /// </summary>
+        [BoxGroup("Unit Classes")]
+        public MasteryTuning MasterySettings = MasteryTuning.Default();
+
+        [BoxGroup("Unit Classes")]
+        public RequirementExamTuning RequirementExamSettings = RequirementExamTuning.Default();
 
         /// <summary>
         /// Defines calculation methods for hit rate in combat.
@@ -127,9 +185,6 @@ namespace Turnroot.GameSettings
             Custom, // Manual multipliers
         }
 
-        /// <summary>
-        /// Defines calculation methods for critical hit rate in combat.
-        /// </summary>
         public enum CritFormulaType
         {
             SkillHalf, // Skill/2
@@ -138,9 +193,6 @@ namespace Turnroot.GameSettings
             Custom, // Manual multiplier
         }
 
-        /// <summary>
-        /// Defines calculation methods for evasion rate in combat.
-        /// </summary>
         public enum AvoidFormulaType
         {
             ClassicSpeedHeavy, // Speed*2 + Luck
@@ -149,10 +201,23 @@ namespace Turnroot.GameSettings
             Custom, // Manual multiplier
         }
 
-        [BoxGroup("Unit Classes"), HorizontalLine(color: EColor.Blue)]
+        [
+            BoxGroup("Unit Classes"),
+            InfoBox(
+                "Class selection mode affects how characters may change classes:\n- PromotionBased: classes can only be obtained via configured PromotionPaths (use for restrictive progression).\n- RequirementBased: characters may change to any class they meet the requirements for; if they narrowly miss requirements an adjustable 'class exam' chance may allow success."
+            ),
+            HorizontalLine(color: EColor.Blue)
+        ]
         public ClassSelectionMode ClassSelection = ClassSelectionMode.PromotionBased;
 
+        [Tooltip(
+            "If true, switching a character's class will reset their level to 1. Designers may override this independently of ClassSelection mode."
+        )]
+        public bool ResetLevelOnClassChange = true;
+
         public ClassSelectionMode GetClassSelectionMode() => ClassSelection;
+
+        public bool ShouldResetLevelOnClassChange() => ResetLevelOnClassChange;
 
         [BoxGroup("Unit Classes"), InfoBox("Units without a class assigned will use this class")]
         public CharacterClassData DefaultStartingClass;
@@ -272,7 +337,6 @@ namespace Turnroot.GameSettings
         [BoxGroup("Combat Mechanics"), ShowIf("MagicTriangle")]
         public int MagicTriangleDisadvantage = -20;
 
-        // Combat formula configuration
         [BoxGroup("Combat Formulas"), HorizontalLine(color: EColor.Red)]
         public HitFormulaType HitFormula = HitFormulaType.ModernBalanced;
 
@@ -306,11 +370,6 @@ namespace Turnroot.GameSettings
         [BoxGroup("Combat Formulas"), ShowIf("ShowWeaponTriangleHitBonus")]
         public float WeaponTriangleHitBonus = 15f;
 
-        // Combat tuning: effectiveness, crit multiplier, double-attack speed threshold, and support bonuses
-
-        /// <summary>
-        /// Defines combat stat bonuses granted by support relationships.
-        /// </summary>
         [System.Serializable]
         public struct SupportBonus
         {
@@ -324,9 +383,8 @@ namespace Turnroot.GameSettings
         public float EffectivenessMultiplier = 1.5f;
 
         [BoxGroup("Combat Mechanics")]
-        public int DoubleAttackSpeedThreshold = 4; // speed threshold for double attacks
+        public int DoubleAttackSpeedThreshold = 4;
 
-        // Support bonuses per rank (C/B/A/S). D/E default to zero.
         [BoxGroup("Combat Mechanics")]
         public SupportBonus SupportBonusC = new()
         {

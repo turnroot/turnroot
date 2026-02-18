@@ -77,7 +77,9 @@ namespace Turnroot
                 EditorGUI.BeginChangeCheck();
                 shadowReplace = EditorGUILayout.Toggle("Shadow Replace", shadowReplace);
                 if (EditorGUI.EndChangeCheck())
+                {
                     shadowReplaceProp.floatValue = shadowReplace ? 1f : 0f;
+                }
 
                 materialEditor.ShaderProperty(Find("_Shadow_Roughness"), "Shadow Roughness");
                 materialEditor.ShaderProperty(Find("_Shadow_Offset"), "Shadow Offset");
@@ -99,7 +101,9 @@ namespace Turnroot
                 EditorGUI.BeginChangeCheck();
                 highlightReplace = EditorGUILayout.Toggle("Highlight Replace", highlightReplace);
                 if (EditorGUI.EndChangeCheck())
+                {
                     highlightReplaceProp.floatValue = highlightReplace ? 1f : 0f;
+                }
 
                 materialEditor.ShaderProperty(Find("_use_highlight_mask"), "Use Highlight Mask");
                 materialEditor.ShaderProperty(
@@ -167,7 +171,9 @@ namespace Turnroot
                 EditorGUI.BeginChangeCheck();
                 objSpace = EditorGUILayout.Toggle("Object-Space Highlight", objSpace);
                 if (EditorGUI.EndChangeCheck())
+                {
                     objSpaceProp.floatValue = objSpace ? 1f : 0f;
+                }
 
                 materialEditor.ShaderProperty(
                     Find("_use_matcap_animation"),

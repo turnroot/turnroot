@@ -1,7 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using NaughtyAttributes;
 using Turnroot.Gameplay.Objects;
 using Turnroot.Gameplay.Objects.Components;
+using Turnroot.GameSettings;
 using UnityEngine;
 
 namespace Turnroot.Characters.CharacterClass
@@ -25,13 +28,44 @@ namespace Turnroot.Characters.CharacterClass
         [Range(0, 99)]
         public int MinimumLevelRequirement = 1;
 
+        [ShowIf(nameof(ShowRequirementFields))]
+        [Tooltip("Experience rank requirements (weapon/skill ranks) required to access this class")]
+        public List<ExperienceRequirement> ExperienceRequirements = new();
+
         [Header("Species Restrictions")]
         [Tooltip("If not empty, only characters of these species can use this class")]
         public List<SpeciesType> AllowedSpecies = new();
 
+        [Header("Stat Minimums")]
+        [ShowIf(nameof(ShowRequirementFields))]
+        [Tooltip(
+            "Minimum bounded stat requirements to change into this class; leave empty for none"
+        )]
+        public List<Stats.BoundedCharacterStat> MinimumStats = new();
+
         [Header("Promotion Paths")]
+        [HideInInspector]
         [Tooltip("List of class promotion targets this class can advance into")]
         public List<CharacterClassData> PromotionPaths = new();
+
+        // Inspector helper used by ShowIf to hide promotion-path UI when the project is
+        // configured to use requirement-based class selection.
+        private bool ShowPromotionPaths()
+        {
+            var settings = GameplayGeneralSettings.Instance;
+            return settings != null
+                && settings.GetClassSelectionMode()
+                    == GameplayGeneralSettings.ClassSelectionMode.PromotionBased;
+        }
+
+        // Show requirement-specific fields only when project mode is RequirementBased.
+        private bool ShowRequirementFields()
+        {
+            var settings = GameplayGeneralSettings.Instance;
+            return settings != null
+                && settings.GetClassSelectionMode()
+                    == GameplayGeneralSettings.ClassSelectionMode.RequirementBased;
+        }
 
         /// <summary>
         /// Checks whether a character with the given level and species can equip this class.
@@ -69,6 +103,22 @@ namespace Turnroot.Characters.CharacterClass
             if (MinimumLevelRequirement > 1)
             {
                 parts.Add($"Level {MinimumLevelRequirement}+");
+            }
+
+            if (MinimumStats != null && MinimumStats.Count > 0)
+            {
+                var statParts = MinimumStats
+                    .Where(s => s != null)
+                    .Select(s => $"{s.DisplayName} {s.GetCurrent()}");
+                parts.Add($"Stats: {string.Join(", ", statParts)}");
+            }
+
+            if (ExperienceRequirements != null && ExperienceRequirements.Count > 0)
+            {
+                var expParts = ExperienceRequirements
+                    .Where(e => !string.IsNullOrEmpty(e.experienceTypeId))
+                    .Select(e => $"{e.experienceTypeId}:{e.minimumRank.Value}");
+                parts.Add($"Experience: {string.Join(", ", expParts)}");
             }
 
             if (CertificationItem != null)

@@ -53,7 +53,11 @@ namespace Turnroot.Characters
 
         public bool LastTurnKilledEnemy { get; private set; }
 
-        internal void RecordKill() => _totalKills++;
+        internal void RecordKill()
+        {
+            _totalKills++;
+            LastTurnKilledEnemy = true; // mark that a kill occurred during the current turn
+        }
 
         public void RecordBattleStart()
         {
@@ -65,7 +69,13 @@ namespace Turnroot.Characters
 
         public void IncrementCombatCount() => _combatsThisTurn++;
 
-        public void ResetTurnStats() => _combatsThisTurn = 0;
+        public void ResetTurnStats()
+        {
+            _combatsThisTurn = 0;
+            // Clear per-turn flags so they're only true for the turn in which they occurred
+            LastTurnKilledEnemy = false;
+            LastTurnCollectedTreasure = false;
+        }
 
         public void ResetBattleStats()
         {

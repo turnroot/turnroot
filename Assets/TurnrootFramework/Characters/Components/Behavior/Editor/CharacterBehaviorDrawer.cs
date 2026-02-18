@@ -168,7 +168,9 @@ namespace Turnroot.Characters.Components.Behavior
                 (CharacterBehaviorPresetEnum)presetProp.enumValueIndex
             );
             if (!string.IsNullOrEmpty(infoBox))
+            {
                 height += (EditorGUIUtility.singleLineHeight + 2) * 2;
+            }
             // 5 sliders
             height += (EditorGUIUtility.singleLineHeight + 2) * 5;
             // 2 checkboxes

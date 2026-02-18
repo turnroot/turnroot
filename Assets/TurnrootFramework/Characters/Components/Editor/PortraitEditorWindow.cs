@@ -363,7 +363,10 @@ namespace Turnroot.Characters.Subclasses.Editor
             {
                 var l = (index >= 0 && index < layersList.Count) ? layersList[index] : null;
                 if (l == null)
+                {
                     return 48f;
+                }
+
                 float height = 20f; // header row
                 // one compact row for color/offset/scale
                 height += 22f;
@@ -371,7 +374,9 @@ namespace Turnroot.Characters.Subclasses.Editor
                 height += 20f;
                 // optional mask row if untagged
                 if (string.IsNullOrEmpty(l.Tag))
+                {
                     height += 20f;
+                }
                 // padding
                 height += 6f;
                 return height;
@@ -381,7 +386,9 @@ namespace Turnroot.Characters.Subclasses.Editor
                 rect.y += 2;
                 var layer = (index >= 0 && index < layersList.Count) ? layersList[index] : null;
                 if (layer == null)
+                {
                     return;
+                }
 
                 // Layout constants
                 const float previewSize = 48f;
@@ -437,7 +444,9 @@ namespace Turnroot.Characters.Subclasses.Editor
                                 layer.Sprite = s;
                                 EditorUtility.SetDirty(_currentOwner);
                                 if (_autoRefresh)
+                                {
                                     RefreshPreview();
+                                }
                             },
                             currentIndex >= 0 && sprites != null ? sprites[currentIndex] : null
                         );
@@ -461,7 +470,9 @@ namespace Turnroot.Characters.Subclasses.Editor
                         layer.Sprite = spr;
                         EditorUtility.SetDirty(_currentOwner);
                         if (_autoRefresh)
+                        {
                             RefreshPreview();
+                        }
                     }
                 }
 
@@ -513,7 +524,9 @@ namespace Turnroot.Characters.Subclasses.Editor
                         u.Tint = newCol;
                         EditorUtility.SetDirty(_currentOwner);
                         if (_autoRefresh)
+                        {
                             RefreshPreview();
+                        }
                     }
                     cursorX += colorLabelRect.width + 6f + colorFieldRect.width + 8f;
                 }
@@ -548,7 +561,9 @@ namespace Turnroot.Characters.Subclasses.Editor
                     layer.Scale = newScale;
                     EditorUtility.SetDirty(_currentOwner);
                     if (_autoRefresh)
+                    {
                         RefreshPreview();
+                    }
                 }
 
                 y += 22f;
@@ -574,7 +589,9 @@ namespace Turnroot.Characters.Subclasses.Editor
                         layer.Mask = mask;
                         EditorUtility.SetDirty(_currentOwner);
                         if (_autoRefresh)
+                        {
                             RefreshPreview();
+                        }
                     }
                 }
                 else
@@ -584,7 +601,9 @@ namespace Turnroot.Characters.Subclasses.Editor
                     string[] popupOptions = new string[all.Length + 1];
                     popupOptions[0] = "<none>";
                     for (int i = 0; i < all.Length; i++)
+                    {
                         popupOptions[i + 1] = all[i];
+                    }
 
                     int tagIdx = 0;
                     for (int i = 0; i < all.Length; i++)
@@ -621,6 +640,7 @@ namespace Turnroot.Characters.Subclasses.Editor
                         // enforce uniqueness
                         bool duplicate = false;
                         for (int _i = 0; _i < layersList.Count; _i++)
+                        {
                             if (
                                 _i != index
                                 && string.Equals(
@@ -633,6 +653,8 @@ namespace Turnroot.Characters.Subclasses.Editor
                                 duplicate = true;
                                 break;
                             }
+                        }
+
                         if (duplicate)
                         {
                             EditorUtility.DisplayDialog(
@@ -646,15 +668,23 @@ namespace Turnroot.Characters.Subclasses.Editor
                             Undo.RecordObject(_currentOwner, "Change layer tag");
                             layer.Tag = newTag;
                             if (!string.IsNullOrEmpty(newTag))
+                            {
                                 layer.Mask = null;
+                            }
+
                             if (
                                 !string.IsNullOrEmpty(newTag)
                                 && string.Equals(newTag, "Face", StringComparison.OrdinalIgnoreCase)
                             )
+                            {
                                 layer.Order = 0;
+                            }
+
                             EditorUtility.SetDirty(_currentOwner);
                             if (_autoRefresh)
+                            {
                                 RefreshPreview();
+                            }
                         }
                     }
                 }
@@ -677,14 +707,18 @@ namespace Turnroot.Characters.Subclasses.Editor
                 layersList.Insert(0, newLayer);
                 EditorUtility.SetDirty(_currentOwner);
                 if (_autoRefresh)
+                {
                     RefreshPreview();
+                }
             };
 
             _layersReorderList.onRemoveCallback = list =>
             {
                 int removeIndex = list.index;
                 if (removeIndex < 0 || removeIndex >= layersList.Count)
+                {
                     return;
+                }
 
                 var layer = layersList[removeIndex];
                 if (!string.IsNullOrEmpty(layer.Tag) && PortraitLayerTags.IsMandatory(layer.Tag))
@@ -706,7 +740,9 @@ namespace Turnroot.Characters.Subclasses.Editor
                 }
                 EditorUtility.SetDirty(_currentOwner);
                 if (_autoRefresh)
+                {
                     RefreshPreview();
+                }
             };
 
             _layersReorderList.onChangedCallback = list =>
@@ -719,7 +755,9 @@ namespace Turnroot.Characters.Subclasses.Editor
                 Undo.RecordObject(_currentOwner, "Reorder layers");
                 EditorUtility.SetDirty(_currentOwner);
                 if (_autoRefresh)
+                {
                     RefreshPreview();
+                }
             };
         }
 

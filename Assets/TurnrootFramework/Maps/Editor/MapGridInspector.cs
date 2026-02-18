@@ -30,7 +30,10 @@ namespace Turnroot.Gameplay.Maps
                     prop.name == "_single3dHeightMeshRaycastPoints"
                     || prop.name == "_single3dHeightMeshRaycastIndices"
                 )
+                {
                     continue;
+                }
+
                 EditorGUILayout.PropertyField(prop, true);
             }
 

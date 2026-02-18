@@ -410,7 +410,7 @@ namespace Turnroot.UI.Components.GridMenu
             }
 
             if (_cols == null || _cols.Count == 0)
-            { /* fallback to old behavior */
+            {
                 _selectedIndex = Mathf.Max(0, _selectedIndex - 1);
                 UpdateSelectionTo(_selectedIndex);
                 return;
@@ -448,7 +448,7 @@ namespace Turnroot.UI.Components.GridMenu
             }
 
             if (_cols == null || _cols.Count == 0)
-            { /* fallback to old behavior */
+            {
                 _selectedIndex = Mathf.Min(menuItems.Count - 1, _selectedIndex + 1);
                 UpdateSelectionTo(_selectedIndex);
                 return;

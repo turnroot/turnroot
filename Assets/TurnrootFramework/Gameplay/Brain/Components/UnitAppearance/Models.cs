@@ -76,7 +76,10 @@ namespace Turnroot.Gameplay.Brain
                 foreach (var s in childSmrs)
                 {
                     if (s == null)
+                    {
                         continue;
+                    }
+
                     var n = s.gameObject.name ?? string.Empty;
                     if (n.StartsWith("NonBattleOutfit", System.StringComparison.OrdinalIgnoreCase))
                     {

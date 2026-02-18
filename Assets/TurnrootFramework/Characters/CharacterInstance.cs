@@ -30,7 +30,7 @@ namespace Turnroot.Characters
         [NonSerialized]
         // Initialize to an explicit invalid sentinel so newly-created instances don't default to (0,0),
         // which previously produced transient duplicate/invald positions before spawn/placement.
-        private Vector2Int _mapGridPosition = new Vector2Int(-9999, -9999);
+        private Vector2Int _mapGridPosition = new(-9999, -9999);
 
         [NonSerialized]
         private bool _isDefeatedInCurrentBattle = false;

@@ -72,10 +72,10 @@ namespace Turnroot.Skills.Nodes.Editor
                         // Ensure any subasset saved for the node is removed as well
                         try
                         {
-                            var nodePath = AssetDatabase.GetAssetPath(xNode as UnityEngine.Object);
+                            var nodePath = AssetDatabase.GetAssetPath(xNode);
                             if (!string.IsNullOrEmpty(nodePath))
                             {
-                                AssetDatabase.RemoveObjectFromAsset(xNode as UnityEngine.Object);
+                                AssetDatabase.RemoveObjectFromAsset(xNode);
                             }
                         }
                         catch (Exception ex)
@@ -98,7 +98,7 @@ namespace Turnroot.Skills.Nodes.Editor
         private GenericMenu BuildSkillMenu(string categoryPrefix = null)
         {
             var menu = new GenericMenu();
-            var graph = target as NodeGraph;
+            var graph = target;
 
             foreach (var asm in AppDomain.CurrentDomain.GetAssemblies())
             {
@@ -142,7 +142,7 @@ namespace Turnroot.Skills.Nodes.Editor
         }
 
         private static void TryAddNodeTypeToMenu(
-            System.Type nodeType,
+            Type nodeType,
             GenericMenu menu,
             string categoryPrefix,
             NodeGraph graph
@@ -196,7 +196,7 @@ namespace Turnroot.Skills.Nodes.Editor
 
         private static void AddNodeCreationMenuItem(
             GenericMenu menu,
-            System.Type nodeType,
+            Type nodeType,
             string menuPath,
             string label,
             NodeGraph graph
@@ -209,11 +209,7 @@ namespace Turnroot.Skills.Nodes.Editor
             );
         }
 
-        private static void CreateNodeInGraph(
-            System.Type nodeType,
-            string menuPath,
-            NodeGraph graph
-        )
+        private static void CreateNodeInGraph(Type nodeType, string menuPath, NodeGraph graph)
         {
             if (graph == null)
             {
@@ -226,6 +222,30 @@ namespace Turnroot.Skills.Nodes.Editor
                 string shortName = ExtractShortNameFromMenuPath(menuPath);
                 created.name = shortName;
                 UnityEditor.EditorUtility.SetDirty(created);
+
+                // Persist the created node as a sub-asset of the graph so the
+                // graph's `nodes` list is serialized with non-zero fileIDs.
+                try
+                {
+                    var graphPath = AssetDatabase.GetAssetPath(graph);
+                    var createdPath = AssetDatabase.GetAssetPath(created);
+                    if (!string.IsNullOrEmpty(graphPath))
+                    {
+                        if (string.IsNullOrEmpty(createdPath) || createdPath != graphPath)
+                        {
+                            AssetDatabase.AddObjectToAsset(created, graphPath);
+                        }
+
+                        UnityEditor.EditorUtility.SetDirty(graph);
+                        AssetDatabase.SaveAssets();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogWarning(
+                        $"SkillGraphEditor: failed to persist created node as subasset: {ex.Message}"
+                    );
+                }
             }
 
             if (NodeEditorWindow.current != null)

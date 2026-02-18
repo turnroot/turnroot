@@ -15,8 +15,7 @@ namespace Turnroot.Characters.CharacterClass
         #region Bonus Application
 
         /// <summary>
-        /// Apply bounded stat modifiers to a character's bonus values.
-        /// Delegates to StatExtensions.ApplyBoundedBonuses.
+        /// Wrapper: apply bounded stat modifiers to a character's bonus values.
         /// </summary>
         public static void ApplyBoundedBonuses(
             List<StatModifier> modifiers,
@@ -25,8 +24,7 @@ namespace Turnroot.Characters.CharacterClass
         ) => character?.ApplyBoundedBonuses(modifiers);
 
         /// <summary>
-        /// Apply unbounded stat modifiers to a character's bonus values.
-        /// Delegates to StatExtensions.ApplyUnboundedBonuses.
+        /// Wrapper: apply unbounded stat modifiers to a character's bonus values.
         /// </summary>
         public static void ApplyUnboundedBonuses(
             List<UnboundedStatModifier> modifiers,
@@ -35,8 +33,7 @@ namespace Turnroot.Characters.CharacterClass
         ) => character?.ApplyUnboundedBonuses(modifiers);
 
         /// <summary>
-        /// Remove bounded stat modifiers from a character's bonus values.
-        /// Delegates to StatExtensions.RemoveBoundedBonuses.
+        /// Wrapper: remove bounded stat modifiers from a character's bonus values.
         /// </summary>
         public static void RemoveBoundedBonuses(
             List<StatModifier> modifiers,
@@ -45,8 +42,7 @@ namespace Turnroot.Characters.CharacterClass
         ) => character?.RemoveBoundedBonuses(modifiers);
 
         /// <summary>
-        /// Remove unbounded stat modifiers from a character's bonus values.
-        /// Delegates to StatExtensions.RemoveUnboundedBonuses.
+        /// Wrapper: remove unbounded stat modifiers from a character's bonus values.
         /// </summary>
         public static void RemoveUnboundedBonuses(
             List<UnboundedStatModifier> modifiers,
@@ -75,6 +71,8 @@ namespace Turnroot.Characters.CharacterClass
                 return;
             }
 
+            var brain = UnityEngine.Object.FindFirstObjectByType<Gameplay.Brain.Brain>();
+
             foreach (var modifier in modifiers)
             {
                 if (modifier.value != 0)
@@ -82,13 +80,24 @@ namespace Turnroot.Characters.CharacterClass
                     var stat = character.GetBoundedStat(modifier.boundedStatType);
                     if (stat != null)
                     {
+                        float oldVal = stat.Current;
                         stat.SetCurrent(stat.Current + modifier.value);
+                        float newVal = stat.Current;
+
                         if (logChanges)
                         {
                             TurnrootLogger.Log(
                                 $"Class change bonus: {modifier.boundedStatType} +{modifier.value} (now {stat.Current})"
                             );
                         }
+
+                        // Publish stat-changed event so UI/other systems can react
+                        brain?.PublishCharacterBoundedStatChanged(
+                            character,
+                            modifier.boundedStatType,
+                            oldVal,
+                            newVal
+                        );
                     }
                 }
             }
@@ -111,6 +120,8 @@ namespace Turnroot.Characters.CharacterClass
                 return;
             }
 
+            var brain = UnityEngine.Object.FindFirstObjectByType<Gameplay.Brain.Brain>();
+
             foreach (var modifier in modifiers)
             {
                 if (modifier.value != 0)
@@ -118,13 +129,24 @@ namespace Turnroot.Characters.CharacterClass
                     var stat = character.GetUnboundedStat(modifier.unboundedStatType);
                     if (stat != null)
                     {
+                        float oldVal = stat.Current;
                         stat.SetCurrent(stat.Current + modifier.value);
+                        float newVal = stat.Current;
+
                         if (logChanges)
                         {
                             TurnrootLogger.Log(
                                 $"Class change bonus: {modifier.unboundedStatType} +{modifier.value} (now {stat.Current})"
                             );
                         }
+
+                        // Publish stat-changed event so UI/other systems can react
+                        brain?.PublishCharacterUnboundedStatChanged(
+                            character,
+                            modifier.unboundedStatType,
+                            oldVal,
+                            newVal
+                        );
                     }
                 }
             }
@@ -151,6 +173,8 @@ namespace Turnroot.Characters.CharacterClass
                 return;
             }
 
+            var brain = UnityEngine.Object.FindFirstObjectByType<Gameplay.Brain.Brain>();
+
             foreach (var minimum in minimums)
             {
                 if (minimum.value > 0)
@@ -158,13 +182,23 @@ namespace Turnroot.Characters.CharacterClass
                     var stat = character.GetBoundedStat(minimum.boundedStatType);
                     if (stat != null && stat.Current < minimum.value)
                     {
+                        float oldVal = stat.Current;
                         stat.SetCurrent(minimum.value);
+                        float newVal = stat.Current;
+
                         if (logChanges)
                         {
                             TurnrootLogger.Log(
                                 $"Enforced minimum: {minimum.boundedStatType} raised to {minimum.value}"
                             );
                         }
+
+                        brain?.PublishCharacterBoundedStatChanged(
+                            character,
+                            minimum.boundedStatType,
+                            oldVal,
+                            newVal
+                        );
                     }
                 }
             }
@@ -189,6 +223,8 @@ namespace Turnroot.Characters.CharacterClass
                 );
             }
 
+            var brain = UnityEngine.Object.FindFirstObjectByType<Gameplay.Brain.Brain>();
+
             foreach (var minimum in minimums)
             {
                 if (minimum.value > 0)
@@ -196,13 +232,23 @@ namespace Turnroot.Characters.CharacterClass
                     var stat = character.GetUnboundedStat(minimum.unboundedStatType);
                     if (stat != null && stat.Current < minimum.value)
                     {
+                        float oldVal = stat.Current;
                         stat.SetCurrent(minimum.value);
+                        float newVal = stat.Current;
+
                         if (logChanges)
                         {
                             TurnrootLogger.Log(
                                 $"Enforced minimum: {minimum.unboundedStatType} raised to {minimum.value}"
                             );
                         }
+
+                        brain?.PublishCharacterUnboundedStatChanged(
+                            character,
+                            minimum.unboundedStatType,
+                            oldVal,
+                            newVal
+                        );
                     }
                 }
             }

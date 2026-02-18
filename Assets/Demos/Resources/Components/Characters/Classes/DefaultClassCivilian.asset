@@ -210,13 +210,14 @@ MonoBehaviour:
     CertificationItem: {fileID: 0}
     AllowedWeaponTypes: []
     MinimumLevelRequirement: 1
+    ExperienceRequirements: []
     AllowedSpecies: []
+    MinimumStats: []
     PromotionPaths: []
   Mastery:
     InnateSkills: []
-    UsesMasterySystem: 0
-    MasteryCriteria: 0
-    MasteryTargets: []
+    MasteredSkill: {fileID: 0}
+    MasteryThreshold: 100
     WeaponLevelBonuses: []
   allowedPronounKeys:
   - they

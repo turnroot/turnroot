@@ -525,7 +525,7 @@ namespace Turnroot.EditorTools
                         var sb = data.Blendshapes.BlendshapeNames;
                         if (sb != null && sb.Length > 0)
                         {
-                            var missingAny = new System.Collections.Generic.List<string>();
+                            var missingAny = new List<string>();
                             foreach (var smr in smrs)
                             {
                                 var mesh = smr.sharedMesh;
@@ -572,7 +572,10 @@ namespace Turnroot.EditorTools
                                 foreach (var smr in childSmrs)
                                 {
                                     if (smr == null)
+                                    {
                                         continue;
+                                    }
+
                                     var n = smr.gameObject.name ?? string.Empty;
                                     if (
                                         n.IndexOf("hair", System.StringComparison.OrdinalIgnoreCase)
@@ -1163,18 +1166,27 @@ namespace Turnroot.EditorTools
             foreach (var g in playerGuids)
             {
                 var path = AssetDatabase.GUIDToAssetPath(g);
-                var asset = AssetDatabase.LoadAssetAtPath<Turnroot.Characters.PlayerTeamRoster>(
+                var asset = AssetDatabase.LoadAssetAtPath<PlayerTeamRoster>(
                     path
                 );
                 if (asset == null)
+                {
                     continue;
+                }
+
                 var placements = asset.characters;
                 if (placements == null)
+                {
                     continue;
+                }
+
                 foreach (var up in placements)
                 {
                     if (up == null || up.CharacterData == null)
+                    {
                         continue;
+                    }
+
                     _allRosterCharacters.Add(up.CharacterData);
                     _persistentPlayerRosterCharacters.Add(up.CharacterData);
                     if (!_rosterLocations.TryGetValue(up.CharacterData, out var list))
@@ -1191,16 +1203,25 @@ namespace Turnroot.EditorTools
             foreach (var g in genericGuids)
             {
                 var path = AssetDatabase.GUIDToAssetPath(g);
-                var asset = AssetDatabase.LoadAssetAtPath<Turnroot.Characters.GenericRoster>(path);
+                var asset = AssetDatabase.LoadAssetAtPath<GenericRoster>(path);
                 if (asset == null)
+                {
                     continue;
+                }
+
                 var placements = asset.characters;
                 if (placements == null)
+                {
                     continue;
+                }
+
                 foreach (var up in placements)
                 {
                     if (up == null || up.CharacterData == null)
+                    {
                         continue;
+                    }
+
                     _allRosterCharacters.Add(up.CharacterData);
                     _nonPersistentRosterCharacters.Add(up.CharacterData);
                     if (!_rosterLocations.TryGetValue(up.CharacterData, out var list))

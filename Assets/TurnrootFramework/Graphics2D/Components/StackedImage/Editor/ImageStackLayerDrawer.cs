@@ -212,7 +212,10 @@ namespace Turnroot.Graphics2D
                 {
                     offsetProp.vector2Value = new Vector2(newX, newY);
                     if (scaleProp != null)
+                    {
                         scaleProp.floatValue = newScale;
+                    }
+
                     property.serializedObject.ApplyModifiedProperties();
                 }
 
@@ -370,7 +373,9 @@ namespace Turnroot.Graphics2D
                                     var orderPropLocal = el.FindPropertyRelative("Order");
                                     var tagPropLocal = el.FindPropertyRelative("Tag");
                                     if (orderPropLocal == null)
+                                    {
                                         continue;
+                                    }
 
                                     if (
                                         tagPropLocal != null
@@ -394,7 +399,7 @@ namespace Turnroot.Graphics2D
                                 property.serializedObject.ApplyModifiedProperties();
 #if UNITY_EDITOR
                                 var ownerObj =
-                                    property.serializedObject.targetObject as UnityEngine.Object;
+                                    property.serializedObject.targetObject;
                                 if (
                                     ownerObj != null
                                     && !EditorApplication.isCompiling

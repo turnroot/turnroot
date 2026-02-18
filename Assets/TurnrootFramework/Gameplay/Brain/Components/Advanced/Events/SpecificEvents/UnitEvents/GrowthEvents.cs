@@ -23,6 +23,49 @@ namespace Turnroot.Gameplay.Brain
         public event Action<CharacterInstance, Skill> OnCharacterLearnedSkill;
         public event Action<CharacterInstance, Skill> OnCharacterRemovedSkill;
         public event Action<CharacterInstance> OnCharacterClassChanged;
+
+        // Published when a character's bounded/unbounded stat current value changes.
+        public event Action<
+            CharacterInstance,
+            Characters.Stats.BoundedStatType,
+            float,
+            float
+        > OnCharacterBoundedStatChanged;
+        public event Action<
+            CharacterInstance,
+            Characters.Stats.UnboundedStatType,
+            float,
+            float
+        > OnCharacterUnboundedStatChanged;
+
+        // Published specifically when class-level persistent bonuses are applied/removed.
+        public event Action<
+            CharacterInstance,
+            Characters.CharacterClass.CharacterClassData
+        > OnCharacterClassBonusesApplied;
+        public event Action<
+            CharacterInstance,
+            Characters.CharacterClass.CharacterClassData
+        > OnCharacterClassBonusesRemoved;
+
+        // Mastery events: progress updates and unlocked notifications
+        // Args for progress: (owner, classData, targetIndex, progress, threshold)
+        public event Action<
+            CharacterInstance,
+            Characters.CharacterClass.CharacterClassData,
+            int,
+            int,
+            int
+        > OnCharacterClassMasteryProgressChanged;
+
+        // Args for unlock: (owner, classData, targetIndex, unlockedSkill)
+        public event Action<
+            CharacterInstance,
+            Characters.CharacterClass.CharacterClassData,
+            int,
+            Skill
+        > OnCharacterClassMasteryTargetUnlocked;
+
         public event Action<CharacterInstance, string, int> OnExperienceGained;
         public event Action<CharacterInstance, CharacterData, int> OnSupportIncreased;
 
@@ -40,6 +83,53 @@ namespace Turnroot.Gameplay.Brain
 
         public void PublishCharacterClassChanged(CharacterInstance character) =>
             OnCharacterClassChanged?.Invoke(character);
+
+        public void PublishCharacterBoundedStatChanged(
+            CharacterInstance character,
+            Characters.Stats.BoundedStatType statType,
+            float oldValue,
+            float newValue
+        ) => OnCharacterBoundedStatChanged?.Invoke(character, statType, oldValue, newValue);
+
+        public void PublishCharacterUnboundedStatChanged(
+            CharacterInstance character,
+            Characters.Stats.UnboundedStatType statType,
+            float oldValue,
+            float newValue
+        ) => OnCharacterUnboundedStatChanged?.Invoke(character, statType, oldValue, newValue);
+
+        public void PublishCharacterClassBonusesApplied(
+            CharacterInstance character,
+            Characters.CharacterClass.CharacterClassData classData
+        ) => OnCharacterClassBonusesApplied?.Invoke(character, classData);
+
+        public void PublishCharacterClassBonusesRemoved(
+            CharacterInstance character,
+            Characters.CharacterClass.CharacterClassData classData
+        ) => OnCharacterClassBonusesRemoved?.Invoke(character, classData);
+
+        // Mastery publishing helpers
+        public void PublishCharacterClassMasteryProgressChanged(
+            CharacterInstance owner,
+            Characters.CharacterClass.CharacterClassData classData,
+            int targetIndex,
+            int progress,
+            int threshold
+        ) =>
+            OnCharacterClassMasteryProgressChanged?.Invoke(
+                owner,
+                classData,
+                targetIndex,
+                progress,
+                threshold
+            );
+
+        public void PublishCharacterClassMasteryTargetUnlocked(
+            CharacterInstance owner,
+            Characters.CharacterClass.CharacterClassData classData,
+            int targetIndex,
+            Skill skill
+        ) => OnCharacterClassMasteryTargetUnlocked?.Invoke(owner, classData, targetIndex, skill);
 
         public void PublishExperienceGained(
             CharacterInstance character,

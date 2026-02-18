@@ -46,11 +46,14 @@ namespace Turnroot.Gameplay.Brain
             var classInst = unit.GetCurrentClass();
 
             // Respect class HasOutfit flag
-
             if (classInst?.ClassData == null || !classInst.ClassData.HasOutfit)
             {
                 return null;
             }
+
+            // Ensure the runtime class instance is initialized with the class renderer
+            // so GetOrCreateMaterial can clone the class prefab's material (correct shader).
+            InitializeClassVisuals(classInst, unit);
 
             var material = GetOrCreateMaterial(unit, classInst);
 
@@ -66,8 +69,7 @@ namespace Turnroot.Gameplay.Brain
 
             ApplyMaterialToRenderers(outfitRenderers, material);
 
-            InitializeClassVisuals(classInst, unit);
-
+            // class visuals were initialized above
             ApplyColorSettings(material, unit);
 
             ApplyClassTextures(material, classInst);

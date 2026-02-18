@@ -13,6 +13,7 @@ Material:
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
   - _USE_MATCAP_REFLECTION_ON
+  - _USE_OUTLINES_ON
   m_InvalidKeywords:
   - _EMISSION
   m_LightmapFlags: 6
@@ -145,7 +146,7 @@ Material:
     m_Ints: []
     m_Floats:
     - _ASEOutalpha: 0
-    - _ASEOutlineWidth: 0.00146
+    - _ASEOutlineWidth: 0.004
     - _AddPrecomputedVelocity: 0
     - _AlphaClip: 0
     - _AlphaToMask: 0
@@ -226,7 +227,7 @@ Material:
     - _use_matcap_emissive: 0
     - _use_matcap_reflection: 1
     - _use_matcat: 0
-    - _use_outlines: 0
+    - _use_outlines: 1
     - _use_second_emissive: 0
     - _use_second_tex: 0
     - _use_shadow_noise: 0

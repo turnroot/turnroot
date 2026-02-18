@@ -191,7 +191,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         // -----------------------------
 
         private readonly Dictionary<string, CachedWeaponInfo> _unitWeaponCache =
-            new Dictionary<string, CachedWeaponInfo>();
+            new();
 
         /// <summary>
         /// Cached summary of a unit's weapons (equipped + inventory) used by AI evaluations.

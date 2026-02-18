@@ -53,7 +53,9 @@ namespace Turnroot.Gameplay.Combat
                 foreach (var p in placements)
                 {
                     if (p?.CharacterData != null)
+                    {
                         chars.Add(p.CharacterData);
+                    }
                 }
                 characterOptions = chars.ToArray();
                 characterOptionNames = characterOptions
@@ -105,7 +107,10 @@ namespace Turnroot.Gameplay.Combat
                         var names = new string[characterOptionNames.Length + 1];
                         names[0] = "(None)";
                         for (int n = 0; n < characterOptionNames.Length; n++)
+                        {
                             names[n + 1] = characterOptionNames[n];
+                        }
+
                         selected = EditorGUILayout.Popup($"{i + 1}", currentIndex + 1, names) - 1;
                         if (selected != currentIndex)
                         {

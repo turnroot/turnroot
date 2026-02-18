@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Turnroot.Characters.CharacterClass;
 using Turnroot.Gameplay.Objects;
+using Turnroot.GameSettings;
 using Turnroot.Utilities;
 using UnityEngine;
 
@@ -145,6 +146,7 @@ namespace Turnroot.Characters
 
         public CharacterClassDataInstance GetCurrentClass() => _currentClass;
 
+        #region Change
         /// <summary>
         /// Change to a new class. Applies all class bonuses, enforces minimums/caps.
         /// Removes bonuses from old class if present.
@@ -163,35 +165,46 @@ namespace Turnroot.Characters
                 return validation;
             }
 
-            // Validate class requirements if needed
-            // TODO: Add validation for experience requirements, level requirements, etc.
+            // Validate class change policy (promotion vs requirement-based rules)
+            var selectionValidation = ValidateClassChangeSelectionMode(newClassData);
+            if (!selectionValidation.Success)
+            {
+                return selectionValidation;
+            }
 
+            // Remove old class (if present) and clear bonuses
             if (_currentClass != null)
             {
                 if (_currentClass.ClassData != null)
                 {
                     _currentClass.RemoveClassBonuses(this);
                 }
-                else
+                else if (!ClassRecoveryHandled)
                 {
-                    if (!ClassRecoveryHandled)
-                    {
-                        TurnrootLogger.Log(
-                            $"CharacterInstance.ChangeClass: Previous class instance for {(_characterTemplate?.name ?? Id)} has missing classData; skipping RemoveClassBonuses",
-                            TurnrootLogger.LogLevel.Warning
-                        );
-                    }
+                    TurnrootLogger.Log(
+                        $"CharacterInstance.ChangeClass: Previous class instance for {(_characterTemplate?.name ?? Id)} has missing classData; skipping RemoveClassBonuses",
+                        TurnrootLogger.LogLevel.Warning
+                    );
                 }
 
                 _currentClass.Dispose();
+                _currentClass = null;
             }
 
             bool isFirstTime = !_equippedClassHistory.Contains(newClassData);
-
             var effectiveRenderer = _meshRenderer;
 
+            if (
+                GameplayGeneralSettings.Instance?.ShouldResetLevelOnClassChange() == true
+                && GameplayGeneralSettings.Instance?.GetClassSelectionMode()
+                    == GameplayGeneralSettings.ClassSelectionMode.RequirementBased
+            )
+            {
+                _currentLevel = 1;
+            }
+
             _currentClass = new CharacterClassDataInstance(
-                _characterTemplate,
+                this,
                 newClassData,
                 effectiveRenderer,
                 isFirstTime
@@ -216,77 +229,51 @@ namespace Turnroot.Characters
             _currentClass.EnforceStatMinimums(this);
             _currentClass.ApplyStatCaps(this);
 
-            // Refresh available weapons now that allowed types may have changed
             GetAvailableWeapons();
 
             return OperationResult.Successful();
         }
 
-        public bool MeetsClassRequirements(CharacterClassData classData)
+        private OperationResult ValidateClassChangeSelectionMode(CharacterClassData newClassData)
         {
-            if (classData == null)
-            {
-                return false;
-            }
+            var selectionMode =
+                GameplayGeneralSettings.Instance?.GetClassSelectionMode()
+                ?? GameplayGeneralSettings.ClassSelectionMode.PromotionBased;
 
-            // Check level requirement
-            if (_currentLevel < classData.Requirements.MinimumLevelRequirement)
+            if (selectionMode == GameplayGeneralSettings.ClassSelectionMode.PromotionBased)
             {
-                return false;
-            }
-
-            // Check class tier progression
-            if (!ValidateClassTierProgression(classData))
-            {
-                return false;
-            }
-
-            // Check species restrictions
-            if (
-                classData.Requirements.AllowedSpecies.Count > 0
-                && !classData.Requirements.AllowedSpecies.Contains(_characterTemplate.Species)
-            )
-            {
-                return false;
-            }
-
-            // Check pronoun restrictions
-            if (classData.allowedPronounKeys != null && classData.allowedPronounKeys.Count > 0)
-            {
-                string currentPronounKey = _characterTemplate.CharacterPronouns.GetPronounKey();
-                if (!classData.allowedPronounKeys.Contains(currentPronounKey))
+                // In promotion-based mode only allow classes reachable by promotion paths from the
+                // current class (when a current class exists). Starting/initial assignment is still allowed.
+                if (_currentClass != null && _currentClass.ClassData != null)
                 {
-                    return false;
+                    var paths = _currentClass.ClassData.Requirements?.PromotionPaths;
+                    if (paths == null || !paths.Contains(newClassData))
+                    {
+                        return OperationResult.Failure(
+                            "Target class is not a valid promotion for the current class (project is PromotionBased)."
+                        );
+                    }
                 }
+
+                return OperationResult.Successful();
             }
 
-            return true;
-        }
+            // Requirement-based selection: use probabilistic exam
+            var chance = CalculateRequirementPassChance(newClassData);
 
-        private bool ValidateClassTierProgression(CharacterClassData targetClass)
-        {
-            // If no current class, any tier is allowed (starting class)
-            if (_currentClass == null || _currentClass.ClassData == null)
+            if (chance <= GameplayGeneralSettings.Instance.MinimumPercentChanceToAttemptClassChange)
             {
-                return true;
-            }
-
-            var currentTier = _currentClass.ClassData.Identity.ClassTier;
-            var targetTier = targetClass.Identity.ClassTier;
-
-            // Can only advance one tier at a time (Base -> Advanced not allowed)
-            // Tier regression is allowed (Advanced -> Intermediate is valid)
-            if (targetTier > currentTier + 1)
-            {
-                TurnrootLogger.Log(
-                    $"Cannot change from {currentTier} class to {targetTier} class - must progress one tier at a time",
-                    TurnrootLogger.LogLevel.Warning
+                return OperationResult.Failure(
+                    "Character does not meet requirements and may not attempt the class exam."
                 );
-
-                return false;
             }
 
-            return true;
+            if (UnityEngine.Random.value > chance)
+            {
+                return OperationResult.Failure($"Class exam failed ({chance * 100f:0}%).");
+            }
+
+            return OperationResult.Successful();
         }
 
         public bool CanEquipWeaponType(Gameplay.Objects.Components.WeaponType weaponType)
@@ -303,34 +290,7 @@ namespace Turnroot.Characters
                 || allowedTypes.Contains(weaponType);
         }
 
-        public List<CharacterClassData> GetAvailablePromotions()
-        {
-            var available = new List<CharacterClassData>();
-
-            if (_currentClass == null || _currentClass.ClassData == null)
-            {
-                return available;
-            }
-
-            var promotionPaths = _currentClass.ClassData.Requirements.PromotionPaths;
-            if (promotionPaths == null || promotionPaths.Count == 0)
-            {
-                return available;
-            }
-
-            foreach (var promotionClass in promotionPaths)
-            {
-                if (promotionClass != null && MeetsClassRequirements(promotionClass))
-                {
-                    available.Add(promotionClass);
-                }
-            }
-
-            return available;
-        }
-
-        public bool HasEquippedClass(CharacterClassData classData) =>
-            classData != null && _equippedClassHistory.Contains(classData);
+        #endregion
 
         #endregion
     }

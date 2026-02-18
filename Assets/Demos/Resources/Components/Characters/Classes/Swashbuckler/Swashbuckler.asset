@@ -24,7 +24,8 @@ MonoBehaviour:
     ClassModelPrefab: {fileID: 919132149155446097, guid: cf8094e91c56c0541a69d737ef7147b8, type: 3}
     TintMask: {fileID: 2800000, guid: e769a6179af46da4db705e3d52762822, type: 3}
     ClassName: Swashbuckler
-    Description: 
+    Description: A sailor of questionable repute with sure footing and a keen eye.
+      Uses swords, daggers, or axes
     Icon: {fileID: 0}
     ClassTier: 0
     IsMagic: 0
@@ -126,9 +127,9 @@ MonoBehaviour:
     - unboundedStatType: 1
       value: 0
     - unboundedStatType: 2
-      value: 0
+      value: -2
     - unboundedStatType: 3
-      value: 0
+      value: -2
     - unboundedStatType: 4
       value: 0
     - unboundedStatType: 5
@@ -136,7 +137,7 @@ MonoBehaviour:
     - unboundedStatType: 6
       value: 0
     - unboundedStatType: 7
-      value: 0
+      value: 1
     - unboundedStatType: 8
       value: 0
     - unboundedStatType: 9
@@ -149,21 +150,21 @@ MonoBehaviour:
       value: 0
     GrowthRateModifiers:
     - unboundedStatType: 0
-      value: 0
+      value: 0.1
     - unboundedStatType: 1
-      value: 0
+      value: 0.2
     - unboundedStatType: 2
-      value: 0
+      value: -0.2
     - unboundedStatType: 3
-      value: 0
+      value: -0.25
     - unboundedStatType: 4
-      value: 0
+      value: 0.15
     - unboundedStatType: 5
-      value: 0
+      value: 0.15
     - unboundedStatType: 6
-      value: 0
+      value: 0.2
     - unboundedStatType: 7
-      value: 0
+      value: 0.3
     - unboundedStatType: 8
       value: 0
     - unboundedStatType: 9
@@ -197,7 +198,7 @@ MonoBehaviour:
     - unboundedStatType: 5
       value: 0
     - unboundedStatType: 6
-      value: 0
+      value: 1
     - unboundedStatType: 7
       value: 0
     - unboundedStatType: 8
@@ -212,15 +213,18 @@ MonoBehaviour:
       value: 0
   Requirements:
     CertificationItem: {fileID: 0}
-    AllowedWeaponTypes: []
+    AllowedWeaponTypes:
+    - {fileID: 11400000, guid: 030efab55c186fa4ead5d556dc84fdd5, type: 2}
     MinimumLevelRequirement: 1
+    ExperienceRequirements: []
     AllowedSpecies: []
+    MinimumStats: []
     PromotionPaths: []
   Mastery:
-    InnateSkills: []
-    UsesMasterySystem: 0
-    MasteryCriteria: 0
-    MasteryTargets: []
+    InnateSkills:
+    - {fileID: 11400000, guid: a6ca4abb9906bed4ab5fd536bafdba5e, type: 2}
+    MasteredSkill: {fileID: 0}
+    MasteryThreshold: 100
     WeaponLevelBonuses: []
   allowedPronounKeys:
   - they

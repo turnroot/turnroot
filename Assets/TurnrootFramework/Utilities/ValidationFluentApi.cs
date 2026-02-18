@@ -21,7 +21,7 @@ namespace Turnroot.Utilities
         /// <summary>
         /// Starts a validation chain for a value.
         /// </summary>
-        public static ValidationBuilder<T> That<T>(T value) => new ValidationBuilder<T>(value);
+        public static ValidationBuilder<T> That<T>(T value) => new(value);
     }
 
     /// <summary>

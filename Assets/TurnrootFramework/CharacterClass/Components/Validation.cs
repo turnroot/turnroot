@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Turnroot.GameSettings;
 using Turnroot.Utilities;
 using UnityEngine;
 
@@ -7,6 +8,17 @@ namespace Turnroot.Characters.CharacterClass
 {
     public partial class CharacterClassData : ScriptableObject
     {
+        // Required blendshape names used by class visual validation
+        private static readonly string[] RequiredBlendshapeNames = new[]
+        {
+            "ChestSize",
+            "WaistSize",
+            "HipSize",
+            "ThighThickness",
+            "ArmThickness",
+            "NeckThickness",
+        };
+
         /// <summary>
         /// Validate class data when modified in editor.
         /// </summary>
@@ -133,6 +145,18 @@ namespace Turnroot.Characters.CharacterClass
                 return;
             }
 
+            // Warn if project is configured for requirement-based selection but promotion paths were set
+            if (
+                GetProjectClassSelectionMode()
+                == GameplayGeneralSettings.ClassSelectionMode.RequirementBased
+            )
+            {
+                TurnrootLogger.Log(
+                    $"{name}: PromotionPaths are configured but project ClassSelection mode is RequirementBased — promotion paths will be ignored at runtime.",
+                    TurnrootLogger.LogLevel.Warning
+                );
+            }
+
             if (Requirements.PromotionPaths.Contains(this))
             {
                 TurnrootLogger.Log(
@@ -253,18 +277,10 @@ namespace Turnroot.Characters.CharacterClass
             }
 
             // Required blendshape names must match CharacterModelBlendshapeSet.BlendshapeNames
-            var required = new string[]
-            {
-                "ChestSize",
-                "WaistSize",
-                "HipSize",
-                "ThighThickness",
-                "ArmThickness",
-                "NeckThickness",
-            };
+            // Use shared RequiredBlendshapeNames to keep validation consistent and DRY.
 
-            // Helper to validate a mesh for required blendshapes. Returns list of missing blendshape names (empty => ok)
-            List<string> ValidateMesh(Mesh mesh, string source)
+            // Helper: validate a mesh for required blendshapes. Returns list of missing blendshape names (empty => ok)
+            List<string> ValidateMeshBlendshapes(Mesh mesh, string source)
             {
                 var missing = new List<string>();
                 if (mesh == null)
@@ -276,7 +292,7 @@ namespace Turnroot.Characters.CharacterClass
                     return missing;
                 }
 
-                foreach (var b in required)
+                foreach (var b in RequiredBlendshapeNames)
                 {
                     if (mesh.GetBlendShapeIndex(b) < 0)
                     {
@@ -292,6 +308,46 @@ namespace Turnroot.Characters.CharacterClass
                     );
                 }
                 return missing;
+            }
+
+            // Helper: check whether any material in the array exposes class texture properties
+            bool MaterialsExposeClassTextures(Material[] mats)
+            {
+                if (mats == null)
+                    return false;
+                foreach (var mat in mats)
+                {
+                    if (mat == null)
+                        continue;
+                    if (
+                        mat.HasProperty("_Base")
+                        || mat.HasProperty("_MSE")
+                        || mat.HasProperty("_Tint_Mask")
+                    )
+                        return true;
+                }
+                return false;
+            }
+
+            // Helper: detect explicit 'Hair' child or renderer whose name contains 'hair'
+            bool PrefabContainsHairRenderer(GameObject prefab)
+            {
+                if (prefab == null)
+                    return false;
+                if (prefab.transform.Find("Hair") != null)
+                    return true;
+                var smrs =
+                    prefab.GetComponentsInChildren<SkinnedMeshRenderer>(true)
+                    ?? new SkinnedMeshRenderer[0];
+                return Array.Find(
+                        smrs,
+                        s =>
+                            s != null
+                            && (s.gameObject.name ?? string.Empty).IndexOf(
+                                "hair",
+                                StringComparison.OrdinalIgnoreCase
+                            ) >= 0
+                    ) != null;
             }
 
             // Validate prefab if assigned (prefab should contain a SkinnedMeshRenderer)
@@ -314,7 +370,7 @@ namespace Turnroot.Characters.CharacterClass
                     var missingAny = new List<string>();
                     foreach (var smr in smrs)
                     {
-                        var missing = ValidateMesh(
+                        var missing = ValidateMeshBlendshapes(
                             smr.sharedMesh,
                             $"ClassModelPrefab '{prefab.name}' - {smr.gameObject.name}"
                         );
@@ -336,21 +392,7 @@ namespace Turnroot.Characters.CharacterClass
                     else
                     {
                         // Enforce: class model prefabs must not include hair. Clear assignment if a 'Hair' renderer exists.
-                        if (
-                            prefab != null
-                            && (
-                                prefab.transform.Find("Hair") != null
-                                || System.Array.Find(
-                                    prefab.GetComponentsInChildren<SkinnedMeshRenderer>(true),
-                                    s =>
-                                        s != null
-                                        && (s.gameObject.name ?? string.Empty).IndexOf(
-                                            "hair",
-                                            System.StringComparison.OrdinalIgnoreCase
-                                        ) >= 0
-                                ) != null
-                            )
-                        )
+                        if (PrefabContainsHairRenderer(prefab))
                         {
                             TurnrootLogger.Log(
                                 $"{name}: ClassModelPrefab '{prefab.name}' contains a 'Hair' renderer. Class models must not include hair; clearing assignment.",
@@ -371,23 +413,11 @@ namespace Turnroot.Characters.CharacterClass
                 foreach (var smr in classSmrs)
                 {
                     var mats = smr.sharedMaterials ?? new Material[0];
-                    foreach (var mat in mats)
+                    if (MaterialsExposeClassTextures(mats))
                     {
-                        if (
-                            mat != null
-                            && (
-                                mat.HasProperty("_Base")
-                                || mat.HasProperty("_MSE")
-                                || mat.HasProperty("_Tint_Mask")
-                            )
-                        )
-                        {
-                            classMatFound = true;
-                            break;
-                        }
-                    }
-                    if (classMatFound)
+                        classMatFound = true;
                         break;
+                    }
                 }
                 if (!classMatFound)
                 {
@@ -429,7 +459,7 @@ namespace Turnroot.Characters.CharacterClass
                     var missingAny = new List<string>();
                     foreach (var smr in smrs)
                     {
-                        var missing = ValidateMesh(
+                        var missing = ValidateMeshBlendshapes(
                             smr.sharedMesh,
                             $"PronounClassModelPrefabs '{pp.pronounKey}' -> '{prefab.name}' - {smr.gameObject.name}"
                         );
@@ -455,21 +485,7 @@ namespace Turnroot.Characters.CharacterClass
 
                     // Recommend: prefer a dedicated child renderer named 'Hair' for hair meshes so the runtime
                     // preserves hair materials and avoids relying on material-name heuristics.
-                    if (
-                        prefab != null
-                        && (
-                            prefab.transform.Find("Hair") != null
-                            || System.Array.Find(
-                                prefab.GetComponentsInChildren<SkinnedMeshRenderer>(true),
-                                s =>
-                                    s != null
-                                    && (s.gameObject.name ?? string.Empty).IndexOf(
-                                        "hair",
-                                        System.StringComparison.OrdinalIgnoreCase
-                                    ) >= 0
-                            ) != null
-                        )
-                    )
+                    if (PrefabContainsHairRenderer(prefab))
                     {
                         TurnrootLogger.Log(
                             $"{name}: PronounClassModelPrefabs entry for '{pp.pronounKey}' -> '{prefab.name}' contains a 'Hair' renderer. Pronoun-specific class models must not include hair.",
@@ -487,23 +503,11 @@ namespace Turnroot.Characters.CharacterClass
                         foreach (var smr2 in smrs)
                         {
                             var mats2 = smr2.sharedMaterials ?? new Material[0];
-                            foreach (var mat2 in mats2)
+                            if (MaterialsExposeClassTextures(mats2))
                             {
-                                if (
-                                    mat2 != null
-                                    && (
-                                        mat2.HasProperty("_Base")
-                                        || mat2.HasProperty("_MSE")
-                                        || mat2.HasProperty("_Tint_Mask")
-                                    )
-                                )
-                                {
-                                    pronounHasClassMat = true;
-                                    break;
-                                }
-                            }
-                            if (pronounHasClassMat)
+                                pronounHasClassMat = true;
                                 break;
+                            }
                         }
                         if (!pronounHasClassMat)
                         {

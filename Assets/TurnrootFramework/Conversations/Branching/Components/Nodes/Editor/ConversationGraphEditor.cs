@@ -35,7 +35,7 @@ namespace Turnroot.Conversations.Branching.Nodes
                 return false;
             }
 
-            var so = new SerializedObject(node as UnityEngine.Object);
+            var so = new SerializedObject(node);
             var prop = so.GetIterator();
             var ignore = new HashSet<string> { "m_Script", "position", "xnode.graph", "graph" };
             while (prop.NextVisible(true))
@@ -133,7 +133,7 @@ namespace Turnroot.Conversations.Branching.Nodes
                             false,
                             () =>
                             {
-                                var graph = target as NodeGraph;
+                                var graph = target;
                                 if (graph == null)
                                 {
                                     return;
@@ -168,7 +168,7 @@ namespace Turnroot.Conversations.Branching.Nodes
                                     try
                                     {
                                         var graphPath = AssetDatabase.GetAssetPath(
-                                            graph as UnityEngine.Object
+                                            graph
                                         );
                                         var createdPath = AssetDatabase.GetAssetPath(created);
                                         if (!string.IsNullOrEmpty(graphPath))
@@ -182,7 +182,7 @@ namespace Turnroot.Conversations.Branching.Nodes
                                             }
 
                                             UnityEditor.EditorUtility.SetDirty(
-                                                graph as UnityEngine.Object
+                                                graph
                                             );
                                             AssetDatabase.SaveAssets();
                                         }
@@ -262,10 +262,10 @@ namespace Turnroot.Conversations.Branching.Nodes
                         // Also remove the node subasset from the graph asset (if present)
                         try
                         {
-                            var nodePath = AssetDatabase.GetAssetPath(xNode as UnityEngine.Object);
+                            var nodePath = AssetDatabase.GetAssetPath(xNode);
                             if (!string.IsNullOrEmpty(nodePath))
                             {
-                                AssetDatabase.RemoveObjectFromAsset(xNode as UnityEngine.Object);
+                                AssetDatabase.RemoveObjectFromAsset(xNode);
                             }
                         }
                         catch (Exception ex)

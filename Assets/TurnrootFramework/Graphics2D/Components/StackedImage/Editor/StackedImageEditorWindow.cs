@@ -558,7 +558,10 @@ namespace Turnroot.Graphics2D.Editor
         private bool ShouldRefreshPreview()
         {
             if (_currentImage == null || _currentImage.Layers == null)
+            {
                 return false;
+            }
+
             unchecked
             {
                 int hash = 17;
@@ -570,7 +573,10 @@ namespace Turnroot.Graphics2D.Editor
                     {
                         var l = layers[i];
                         if (l == null)
+                        {
                             continue;
+                        }
+
                         hash = hash * 23 + (l.Tag ?? string.Empty).GetHashCode();
                         hash = hash * 23 + l.Order.GetHashCode();
                         hash = hash * 23 + (l.Sprite != null ? l.Sprite.GetInstanceID() : 0);

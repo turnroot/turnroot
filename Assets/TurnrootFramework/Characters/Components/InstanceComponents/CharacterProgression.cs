@@ -29,6 +29,7 @@ namespace Turnroot.Characters
             }
 
             _currentLevel++;
+
             var hpStat = GetBoundedStat(BoundedStatType.Health);
             hpStat.SetCurrent(hpStat.GetCurrent() + 1f);
 

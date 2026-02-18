@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Turnroot.GameSettings;
 using UnityEditor;
 using UnityEngine;
 
@@ -26,7 +27,24 @@ namespace Turnroot.Characters.CharacterClass
         {
             base.OnInspectorGUI();
 
+            // Show current project class-selection mode so authors understand which fields are active
+            var mode = GameplayGeneralSettings.Instance?.GetClassSelectionMode();
+            EditorGUILayout.Space();
+            EditorGUILayout.HelpBox($"Project Class Selection mode: {mode}", MessageType.Info);
+
             serializedObject.Update();
+
+            // Draw PromotionPaths only when project is PromotionBased (Requirements.PromotionPaths is hidden by default)
+            var projectMode =
+                GameplayGeneralSettings.Instance?.GetClassSelectionMode()
+                ?? GameplayGeneralSettings.ClassSelectionMode.PromotionBased;
+
+            var promotionProp = serializedObject.FindProperty("Requirements.PromotionPaths");
+            EditorGUILayout.Space();
+            if (projectMode == GameplayGeneralSettings.ClassSelectionMode.PromotionBased)
+            {
+                EditorGUILayout.PropertyField(promotionProp, true);
+            }
 
             // Add custom UI for Pronouns multi-select at the end
             EditorGUILayout.Space();

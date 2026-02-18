@@ -92,7 +92,7 @@ namespace Turnroot.Gameplay.Brain
         private void HandleThirdPartyTurnStarted() =>
             IncrementTurnsAliveForFaction(CharacterWhich.NPC);
 
-        private void IncrementTurnsAliveForFaction(params string[] factionTypes)
+        private List<CharacterInstance> GetRosterInstancesForFactions(params string[] factionTypes)
         {
             var characters = new List<CharacterInstance>();
 
@@ -119,10 +119,27 @@ namespace Turnroot.Gameplay.Brain
                 }
             }
 
+            return characters;
+        }
+
+        private void IncrementTurnsAliveForFaction(params string[] factionTypes)
+        {
+            var characters = GetRosterInstancesForFactions(factionTypes);
+
             foreach (var instance in characters)
             {
-                instance?.IncrementTurnsAlive();
-                instance?.ResetTurnStats();
+                if (instance == null)
+                {
+                    continue;
+                }
+
+                // Award class mastery per turn (base 1). If the unit recorded a kill in the
+                // previous turn, award +1 extra — mirrors "per-turn + kill bonus" behaviour.
+                var masteryPoints = 1 + (instance.LastTurnKilledEnemy ? 1 : 0);
+                instance.CurrentClass?.IncrementBattleCount(instance, masteryPoints);
+
+                instance.IncrementTurnsAlive();
+                instance.ResetTurnStats();
             }
         }
 
@@ -137,8 +154,6 @@ namespace Turnroot.Gameplay.Brain
             {
                 instance?.RecordBattleStart();
             }
-
-            TurnrootLogger.Log($"CharactersBrain: Initialized {allCharacters.Count} characters");
         }
 
         private void ResetBattleStatistics()
@@ -162,8 +177,6 @@ namespace Turnroot.Gameplay.Brain
                 {
                     continue;
                 }
-
-                character.CurrentClass?.IncrementBattleCount();
 
                 if (character.CharacterTemplate?.IsUnique == true)
                 {

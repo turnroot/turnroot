@@ -1,7 +1,5 @@
 using System;
-using System.Collections.Generic;
 using Turnroot.Serialization;
-using Turnroot.Skills;
 using Turnroot.Utilities;
 using UnityEngine;
 
@@ -26,16 +24,10 @@ namespace Turnroot.Characters.CharacterClass
         private SkinnedMeshRenderer _meshRenderer;
 
         [SerializeField]
-        private bool _isFirstTimeEquipped = true;
+        private ClassStatsInstance _stats = new();
 
         [SerializeField]
-        private int _battlesCompleted = 0;
-
-        [SerializeField]
-        private int _levelWhenEquipped = 1;
-
-        [SerializeField]
-        private List<Skill> _masteredSkills = new();
+        private ClassMasteryInstance _mastery = new();
 
         private bool _disposed = false;
 
@@ -46,27 +38,30 @@ namespace Turnroot.Characters.CharacterClass
         public CharacterData CharacterData => _characterData;
         public CharacterClassData ClassData => _classData;
         public SkinnedMeshRenderer MeshRenderer => _meshRenderer;
-        public bool IsFirstTimeEquipped => _isFirstTimeEquipped;
-        public int BattlesCompleted => _battlesCompleted;
-        public int LevelWhenEquipped => _levelWhenEquipped;
+        public bool IsFirstTimeEquipped => _stats?.IsFirstTimeEquipped ?? true;
+        public int BattlesCompleted => _mastery?.BattlesCompleted ?? 0;
+        public int LevelWhenEquipped => _mastery?.LevelWhenEquipped ?? 1;
 
         #endregion
 
         #region Initialization
         public CharacterClassDataInstance(
-            CharacterData characterData,
+            CharacterInstance owner,
             CharacterClassData classData,
             SkinnedMeshRenderer meshRenderer = null,
             bool isFirstTimeEquipped = true
         )
         {
-            _characterData = characterData;
+            _characterData = owner?.CharacterTemplate;
             _classData = classData;
             _meshRenderer = meshRenderer;
-            _isFirstTimeEquipped = isFirstTimeEquipped;
-            _battlesCompleted = 0;
-            _levelWhenEquipped = characterData?.Level ?? 1;
-            _masteredSkills = new List<Skill>();
+
+            _stats = new ClassStatsInstance(isFirstTimeEquipped);
+            _mastery = new ClassMasteryInstance(
+                owner,
+                classData,
+                owner != null ? owner.CurrentLevel : (_characterData?.Level ?? 1)
+            );
         }
 
         public CharacterClassDataInstance() { }
@@ -111,7 +106,6 @@ namespace Turnroot.Characters.CharacterClass
 
             var identity = _classData.Identity;
 
-            // Apply textures to any material on the renderer that looks like an outfit material
             var mats = _meshRenderer.materials ?? new Material[0];
             var applied = false;
             for (int i = 0; i < mats.Length; i++)
@@ -122,7 +116,6 @@ namespace Turnroot.Characters.CharacterClass
                     continue;
                 }
 
-                // Heuristic: outfit materials expose the same shader properties we use for class textures
                 if (m.HasProperty("_Base") || m.HasProperty("_Tint_Mask") || m.HasProperty("_MSE"))
                 {
                     if (identity.Base != null)
@@ -144,7 +137,6 @@ namespace Turnroot.Characters.CharacterClass
                 }
             }
 
-            // No fallback: only write class textures to materials that explicitly expose the class texture properties.
             if (!applied)
             {
                 var classLabel =
@@ -160,6 +152,7 @@ namespace Turnroot.Characters.CharacterClass
 
         public void OnAfterDeserialize()
         {
+            _mastery?.EnsureMasteryProgressInitialized(_classData);
             if (_characterData != null && _classData != null && _meshRenderer != null)
             {
                 Initialize();
@@ -179,6 +172,7 @@ namespace Turnroot.Characters.CharacterClass
 
             _meshRenderer = meshRenderer;
             Initialize();
+            _mastery?.EnsureMasteryProgressInitialized(_classData);
             return OperationResult.Successful();
         }
 
@@ -190,139 +184,39 @@ namespace Turnroot.Characters.CharacterClass
         /// Apply class stat bonuses to a character instance.
         /// These are persistent bonuses while the class is equipped.
         /// </summary>
-        public OperationResult ApplyClassBonuses(CharacterInstance character)
-        {
-            var _res_applyBonuses = StatApplicationHelper.ValidateReferences(
-                character,
-                _classData,
-                "CharacterClassDataInstance.ApplyClassBonuses"
-            );
-            if (!_res_applyBonuses.Success)
-            {
-                return _res_applyBonuses;
-            }
-
-            StatApplicationHelper.ApplyBoundedBonuses(_classData.Stats.StatBonuses, character);
-            StatApplicationHelper.ApplyUnboundedBonuses(
-                _classData.Stats.UnboundedStatBonuses,
-                character
-            );
-            return OperationResult.Successful();
-        }
+        public OperationResult ApplyClassBonuses(CharacterInstance character) =>
+            _stats.ApplyClassBonuses(character, _classData);
 
         /// <summary>
         /// Remove class stat bonuses from a character instance.
         /// Call when changing classes to remove old class bonuses.
         /// </summary>
-        public OperationResult RemoveClassBonuses(CharacterInstance character)
-        {
-            var _res_removeBonuses = StatApplicationHelper.ValidateReferences(
-                character,
-                _classData,
-                "CharacterClassDataInstance.RemoveClassBonuses"
-            );
-            if (!_res_removeBonuses.Success)
-            {
-                return _res_removeBonuses;
-            }
-
-            StatApplicationHelper.RemoveBoundedBonuses(_classData.Stats.StatBonuses, character);
-            StatApplicationHelper.RemoveUnboundedBonuses(
-                _classData.Stats.UnboundedStatBonuses,
-                character
-            );
-            return OperationResult.Successful();
-        }
+        public OperationResult RemoveClassBonuses(CharacterInstance character) =>
+            _stats.RemoveClassBonuses(character, _classData);
 
         /// <summary>
         /// Apply one-time class change bonuses (permanent stat increases).
         /// Only applied the first time a character equips this class.
         /// </summary>
-        public OperationResult ApplyClassChangeBonuses(CharacterInstance character)
-        {
-            if (!_isFirstTimeEquipped)
-            {
-                return OperationResult.Successful();
-            }
-
-            var _res_applyChange = StatApplicationHelper.ValidateReferences(
-                character,
-                _classData,
-                "CharacterClassDataInstance.ApplyClassChangeBonuses"
-            );
-            if (!_res_applyChange.Success)
-            {
-                return _res_applyChange;
-            }
-
-            StatApplicationHelper.ApplyBoundedPermanentBonuses(
-                _classData.Stats.ClassChangeBonuses,
-                character,
-                logChanges: true
-            );
-            StatApplicationHelper.ApplyUnboundedPermanentBonuses(
-                _classData.Stats.UnboundedClassChangeBonuses,
-                character,
-                logChanges: true
-            );
-
-            _isFirstTimeEquipped = false;
-            return OperationResult.Successful();
-        }
+        public OperationResult ApplyClassChangeBonuses(CharacterInstance character) =>
+            _stats.ApplyClassChangeBonuses(character, _classData);
 
         public void EnforceStatMinimums(CharacterInstance character)
         {
-            var _res_enforce = StatApplicationHelper.ValidateReferences(
-                character,
-                _classData,
-                "CharacterClassDataInstance.EnforceStatMinimums"
-            );
-            if (!_res_enforce.Success)
-            {
-                return;
-            }
-
-            StatApplicationHelper.EnforceBoundedMinimums(
-                _classData.Stats.StatMinimums,
-                character,
-                logChanges: true
-            );
-            StatApplicationHelper.EnforceUnboundedMinimums(
-                _classData.Stats.UnboundedStatMinimums,
-                character,
-                logChanges: true
-            );
+            _stats.EnforceStatMinimums(character, _classData);
         }
 
-        public void ApplyStatCaps(CharacterInstance character)
-        {
-            var _res_caps = StatApplicationHelper.ValidateReferences(
-                character,
-                _classData,
-                "CharacterClassDataInstance.ApplyStatCaps"
-            );
-            if (!_res_caps.Success)
-            {
-                return;
-            }
+        public void ApplyStatCaps(CharacterInstance character) =>
+            _stats.ApplyStatCaps(character, _classData);
 
-            StatApplicationHelper.ApplyBoundedCaps(_classData.Stats.StatCaps, character);
-        }
-
-        public bool IsAboveCaps(CharacterInstance character)
-        {
-            var _res_isAbove = StatApplicationHelper.ValidateReferences(character, _classData, "");
-            return _res_isAbove.Success
-                && StatApplicationHelper.IsAboveUnboundedCaps(
-                    _classData.Stats.UnboundedStatCaps,
-                    character
-                );
-        }
+        public bool IsAboveCaps(CharacterInstance character) =>
+            _stats.IsAboveCaps(character, _classData);
 
         #endregion
 
         #region Mastery Tracking
-        public void IncrementBattleCount() => _battlesCompleted++;
+        public void IncrementBattleCount(CharacterInstance owner = null, int points = 1) =>
+            _mastery.IncrementBattleCount(owner, _classData, points);
 
         #endregion
 

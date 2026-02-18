@@ -735,11 +735,11 @@ namespace Turnroot.Gameplay.Maps
                     var current = point.GetStartingUnit();
                     var currentTemplate = current?.CharacterTemplate;
                     EditorGUI.BeginChangeCheck();
-                    var chosen = (Turnroot.Characters.CharacterData)
+                    var chosen = (Characters.CharacterData)
                         EditorGUILayout.ObjectField(
                             "Starting Unit",
                             currentTemplate,
-                            typeof(Turnroot.Characters.CharacterData),
+                            typeof(Characters.CharacterData),
                             false
                         );
                     if (EditorGUI.EndChangeCheck())
@@ -1001,10 +1001,10 @@ namespace Turnroot.Gameplay.Maps
                     var current = point.GetUnitFeatureProperty(keyProp.stringValue);
                     var currentTemplate = current?.CharacterTemplate;
                     EditorGUI.BeginChangeCheck();
-                    var chosen = (Turnroot.Characters.CharacterData)
+                    var chosen = (Characters.CharacterData)
                         EditorGUILayout.ObjectField(
                             currentTemplate,
-                            typeof(Turnroot.Characters.CharacterData),
+                            typeof(Characters.CharacterData),
                             false
                         );
                     if (EditorGUI.EndChangeCheck())
@@ -1033,10 +1033,10 @@ namespace Turnroot.Gameplay.Maps
                     var current = point.GetObjectItemFeatureProperty(keyProp.stringValue);
                     var currentTemplate = current?.Template;
                     EditorGUI.BeginChangeCheck();
-                    var chosen = (Turnroot.Gameplay.Objects.ObjectItem)
+                    var chosen = (Objects.ObjectItem)
                         EditorGUILayout.ObjectField(
                             currentTemplate,
-                            typeof(Turnroot.Gameplay.Objects.ObjectItem),
+                            typeof(Objects.ObjectItem),
                             false
                         );
                     if (EditorGUI.EndChangeCheck())
@@ -1050,7 +1050,7 @@ namespace Turnroot.Gameplay.Maps
                         {
                             point.SetObjectItemFeatureProperty(
                                 keyProp.stringValue,
-                                new Turnroot.Gameplay.Objects.ObjectItemInstance(chosen)
+                                new Objects.ObjectItemInstance(chosen)
                             );
                         }
 
@@ -2165,7 +2165,9 @@ namespace Turnroot.Gameplay.Maps
         private Color GetCellColor(MapGridPoint point)
         {
             if (point == null)
+            {
                 return Color.white;
+            }
 
             if (_cellColorCache.TryGetValue(point, out var cached))
             {
@@ -2184,7 +2186,9 @@ namespace Turnroot.Gameplay.Maps
         private void ApplyTerrainToSelection()
         {
             if (_grid == null || _terrainAsset?.Types == null)
+            {
                 return;
+            }
 
             int minR = Mathf.Min(_dragStart.x, _dragEnd.x),
                 maxR = Mathf.Max(_dragStart.x, _dragEnd.x);
@@ -2265,7 +2269,9 @@ namespace Turnroot.Gameplay.Maps
         private void SafeSetDirty(UnityEngine.Object obj)
         {
             if (obj == null)
+            {
                 return;
+            }
 
             try
             {
@@ -2273,7 +2279,9 @@ namespace Turnroot.Gameplay.Maps
                 {
                     var path = AssetDatabase.GetAssetPath(obj);
                     if (string.IsNullOrEmpty(path))
+                    {
                         return;
+                    }
                 }
             }
             catch { }
