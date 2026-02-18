@@ -1,0 +1,183 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1d531c8bfa9fbd649862bdaaa67913c8, type: 3}
+  m_Name: GenericEnemy
+  m_EditorClassIdentifier: Assembly-CSharp::Turnroot.Characters.CharacterData
+  _: 
+  <Which>k__BackingField:
+    _value: Enemy
+  <DisplayName>k__BackingField: Generic Enemy
+  <FullName>k__BackingField: Generic Enemy
+  <CharacterPronouns>k__BackingField:
+    _selectedPronouns:
+    - they
+    - their
+    - theirs
+    - them
+  <Height>k__BackingField: 166
+  <BirthdayDay>k__BackingField: 1
+  <BirthdayMonth>k__BackingField: 1
+  <Species>k__BackingField: {fileID: 11400000, guid: 6b6a40766f8c5d843ba98e8e51603c6e, type: 2}
+  <ShortDescription>k__BackingField: A new unit
+  <Likes>k__BackingField: []
+  <Dislikes>k__BackingField: []
+  <Notes>k__BackingField: Take private notes (only in the editor) about this unit
+  <CanSSupport>k__BackingField: 0
+  <CanSSupportAvatar>k__BackingField: 0
+  <IsRecruitable>k__BackingField: 0
+  <RequiresMinSupportLevel>k__BackingField: 1
+  <SupportRelationshipMinRank>k__BackingField:
+    _value: E
+  <UseRecruitmentChance>k__BackingField: 1
+  <RecruitmentChance>k__BackingField: 25
+  <RecruitmentChanceIncreasePerConversation>k__BackingField: 15
+  <IsUnique>k__BackingField: 0
+  <StartingClass>k__BackingField: {fileID: 0}
+  <BadgeText>k__BackingField: 
+  <BadgeIcon>k__BackingField: {fileID: 0}
+  <Blendshapes>k__BackingField:
+    chestSize: 0
+    waistSize: 0
+    hipSize: 0
+    thighThickness: 0
+    armThickness: 0
+    neckThickness: 0
+  <SkinColor>k__BackingField: {r: 0, g: 0, b: 0, a: 0}
+  <AccentColor1>k__BackingField: {r: 0, g: 0, b: 0, a: 0}
+  <AccentColor2>k__BackingField: {r: 0, g: 0, b: 0, a: 0}
+  <AccentColor3>k__BackingField: {r: 0, g: 0, b: 0, a: 0}
+  <Portraits>k__BackingField:
+    _keys: []
+    _values: []
+  <HeadAndHandsPrefab>k__BackingField: {fileID: 0}
+  <HairPrefab>k__BackingField: {fileID: 0}
+  <NonBattleOutfitPrefab>k__BackingField: {fileID: 0}
+  <ClassHatHeightOffset>k__BackingField: 0
+  <HandItemOffset>k__BackingField: {x: 0, y: 0, z: 0}
+  <ShieldOffset>k__BackingField: {x: 0, y: 0, z: 0}
+  <UseDefaultAnimationsAlways>k__BackingField: 0
+  <DefaultWalkingAnimation>k__BackingField: {fileID: 0}
+  <DefaultRunningAnimation>k__BackingField: {fileID: 0}
+  <DefaultIdleAnimations>k__BackingField: []
+  <HasExtraBoneLayer>k__BackingField: 0
+  <CustomAvatar>k__BackingField: {fileID: 0}
+  <AdditionalBonesMask>k__BackingField: {fileID: 0}
+  <AdditionalBoneNames>k__BackingField: []
+  <BehaviorSettings>k__BackingField:
+    MovementDisabled: 0
+    AttackDisabled: 0
+    SoldierLoneWolf: 0.097
+    MindlessCunning: 0.336
+    SelfishSelfless: 0.111
+    BrashWary: 0.23
+    BloodthirstGreed: 0.106
+    preset: 0
+  <StartingInventory>k__BackingField:
+  - _item: {fileID: 11400000, guid: 5cd41645e00940d459770607b3920a1e, type: 2}
+    _slotIndex: 0
+  <SupportRelationships>k__BackingField: []
+  <Level>k__BackingField: 1
+  <Exp>k__BackingField: 0
+  <BoundedStats>k__BackingField:
+  - _current: 100
+    _bonus: 0
+    _statType: 0
+    _max: 100
+    _min: 0
+  - _current: 1
+    _bonus: 0
+    _statType: 1
+    _max: 99
+    _min: 1
+  - _current: 0
+    _bonus: 0
+    _statType: 2
+    _max: 100
+    _min: 0
+  - _current: 0
+    _bonus: 0
+    _statType: 3
+    _max: 100
+    _min: 0
+  <UnboundedStats>k__BackingField:
+  - _current: 10
+    _bonus: 0
+    _statType: 0
+  - _current: 10
+    _bonus: 0
+    _statType: 1
+  - _current: 10
+    _bonus: 0
+    _statType: 2
+  - _current: 10
+    _bonus: 0
+    _statType: 3
+  - _current: 10
+    _bonus: 0
+    _statType: 4
+  - _current: 10
+    _bonus: 0
+    _statType: 5
+  - _current: 5
+    _bonus: 0
+    _statType: 6
+  - _current: 10
+    _bonus: 0
+    _statType: 7
+  - _current: 10
+    _bonus: 0
+    _statType: 8
+  - _current: 10
+    _bonus: 0
+    _statType: 9
+  - _current: 10
+    _bonus: 0
+    _statType: 10
+  - _current: 5
+    _bonus: 0
+    _statType: 11
+  - _current: 0
+    _bonus: 0
+    _statType: 12
+  <PersonalGrowthRates>k__BackingField:
+  - unboundedStatType: 0
+    value: 0
+  - unboundedStatType: 1
+    value: 0
+  - unboundedStatType: 2
+    value: 0
+  - unboundedStatType: 3
+    value: 0
+  - unboundedStatType: 4
+    value: 0
+  - unboundedStatType: 5
+    value: 0
+  - unboundedStatType: 6
+    value: 0
+  - unboundedStatType: 7
+    value: 0
+  - unboundedStatType: 8
+    value: 0
+  - unboundedStatType: 9
+    value: 0
+  - unboundedStatType: 10
+    value: 0
+  - unboundedStatType: 11
+    value: 0
+  - unboundedStatType: 12
+    value: 0
+  <Skills>k__BackingField: []
+  <SpecialSkills>k__BackingField: []
+  <ExperienceRanks>k__BackingField: []
+  references:
+    version: 2
+    RefIds: []

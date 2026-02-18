@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: WeaponSmallDagger
   m_EditorClassIdentifier: 
   _name: Small Dagger
-  _flavorText: Easily concealed for those with questionable motives, but razor-sharp
+  _flavorText: Easily concealed for those with questionable motives. Razor-sharp
     and lightning fast. Can be thrown a short distance. +1 Luck
   <BasePrice>k__BackingField: 60
   <Sellable>k__BackingField: 1
@@ -56,5 +56,5 @@ MonoBehaviour:
   <Subtype>k__BackingField:
     _value: Weapon
   <WeaponType>k__BackingField: {fileID: 11400000, guid: 030efab55c186fa4ead5d556dc84fdd5, type: 2}
-  <IsUnequippable>k__BackingField: 0
+  <IsUnequippable>k__BackingField: 1
   <EquipableType>k__BackingField: 0

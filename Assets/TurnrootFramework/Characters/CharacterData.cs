@@ -376,7 +376,7 @@ namespace Turnroot.Characters
             if (warningList.Count > 0)
             {
                 TurnrootLogger.Log(
-                    $"{name}: Stat validation warnings:\n{string.Join("\n", warningList)}\nConsider using 'Tools > Turnroot > Refresh Character Stats' or checking the DefaultCharacterStats asset.",
+                    $"{name}: Stat validation warnings:\n{string.Join("\n", warningList)}\nConsider using 'Tools > Turnroot > Refresh Character Stats' or checking GameplayGeneralSettings.",
                     TurnrootLogger.LogLevel.Warning
                 );
             }
@@ -390,10 +390,15 @@ namespace Turnroot.Characters
         public List<UnboundedStatModifier> PersonalGrowthRates { get; private set; } = new();
 
         [field: BoxGroup("Skills & Abilities"), SerializeField, HorizontalLine(color: EColor.Green)]
-        public List<Skill> Skills { get; private set; } = new();
+        [field: HideInInspector]
+        internal List<Skill> Skills { get; private set; } = new();
 
         [field: BoxGroup("Skills & Abilities"), SerializeField]
-        public List<Skill> SpecialSkills { get; private set; } = new();
+        [field: Tooltip(
+            "Personal skill assigned to this unit. This is a single, always-equipped ability."
+        )]
+        // TODO: PersonalSkill cannot be unequipped - runtime systems should treat this as permanently assigned.
+        public Skill PersonalSkill { get; private set; }
 
         [field:
             BoxGroup("Experience & Aptitudes"),

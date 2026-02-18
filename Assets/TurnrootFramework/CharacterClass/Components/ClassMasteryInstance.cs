@@ -47,7 +47,9 @@ namespace Turnroot.Characters.CharacterClass
         private void UnlockMasteredSkill(CharacterInstance owner, CharacterClassData classData)
         {
             if (classData?.Mastery == null || classData.Mastery.MasteredSkill == null)
+            {
                 return;
+            }
 
             var skill = classData.Mastery.MasteredSkill;
             _isMastered = true;
@@ -102,9 +104,14 @@ namespace Turnroot.Characters.CharacterClass
         public void AddProgress(CharacterInstance owner, CharacterClassData classData, int points)
         {
             if (classData == null || classData.Mastery == null)
+            {
                 return;
+            }
+
             if (_isMastered)
+            {
                 return;
+            }
 
             var settings = GameplayGeneralSettings.Instance;
             int effectivePoints = Math.Max(0, points);

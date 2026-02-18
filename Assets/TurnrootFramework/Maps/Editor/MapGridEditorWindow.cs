@@ -37,7 +37,6 @@ using System.Collections.Generic;
 using System;
 using System.Linq;
 using UnityEngine.Events;
-using Turnroot.Gameplay.Maps;
 
 namespace Turnroot.Gameplay.Maps
 {

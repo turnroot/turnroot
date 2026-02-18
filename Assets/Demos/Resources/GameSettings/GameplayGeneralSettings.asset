@@ -12,12 +12,27 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 03a896db8f43bba419fac15576b362f2, type: 3}
   m_Name: GameplayGeneralSettings
   m_EditorClassIdentifier: 
+  MasterySettings:
+    BattlePointMultiplier: 1
+    BattleSuccessMultiplier: 1
+  RequirementExamSettings:
+    ExamFloor: 0
+    WeightLevel: 1
+    WeightStats: 1
+    WeightExperience: 1
   ClassSelection: 1
+  ResetLevelOnClassChange: 1
   DefaultStartingClass: {fileID: 11400000, guid: e84bbcf076c01b24c904377215b4ea94, type: 2}
   UnitOutfitMaterialTemplate: {fileID: -876546973899608171, guid: 093e7ff1692846d4aba2a1553c45044b, type: 3}
   DefaultUnitAnimatorController: {fileID: 9100000, guid: 84cb9ec753a3ad747861e5503dfe7f58, type: 2}
   WeaponTypes:
   - {fileID: 11400000, guid: 030efab55c186fa4ead5d556dc84fdd5, type: 2}
+  - {fileID: 11400000, guid: 1265787936baf2a4da7e7a1898d11264, type: 2}
+  - {fileID: 11400000, guid: f57201b01d7550048977555038d4509a, type: 2}
+  - {fileID: 11400000, guid: b20e06ae35b95554fae96b10f25323e6, type: 2}
+  - {fileID: 11400000, guid: d0ede2b92cf21934ebffa93a639fc302, type: 2}
+  - {fileID: 11400000, guid: f91e43ae58a43334eb51bb18455be802, type: 2}
+  - {fileID: 11400000, guid: e8c10a69257127942adff5d215b043bb, type: 2}
   SpeciesTypes:
   - {fileID: 11400000, guid: 6b6a40766f8c5d843ba98e8e51603c6e, type: 2}
   LevelUpExtraGrowthChance: 1
@@ -29,6 +44,8 @@ MonoBehaviour:
   GoldDisplayNames:
     OneLetter: G
     FullName: gold
+  ShowTerrainTypeDescriptionOnTileHover: 0
+  ColorTerrainEffects: 1
   UnitMovementCurveSmoothing: 2
   UnitMovementCurveRandomness: 0.05
   UnitMovementDecelerationRange: 1.5

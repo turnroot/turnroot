@@ -1,8 +1,6 @@
 #if UNITY_EDITOR
 using UnityEditor;
 using UnityEngine;
-using Turnroot.Characters.Subclasses;
-using Turnroot.Characters.CharacterClass;
 
 namespace Turnroot.Characters.CharacterClass.Editor
 {

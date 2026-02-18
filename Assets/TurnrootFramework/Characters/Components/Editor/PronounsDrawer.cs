@@ -64,6 +64,12 @@ namespace Turnroot.Characters.Subclasses.Editor
                 return;
             }
 
+            // Support undo/redo and mark asset dirty so changes persist to disk.
+            UnityEditor.Undo.RecordObject(
+                property.serializedObject.targetObject,
+                $"Change {property.displayName} pronouns"
+            );
+
             string[] pronouns;
             switch (pronounType.ToLower())
             {
@@ -85,7 +91,9 @@ namespace Turnroot.Characters.Subclasses.Editor
                 selectedPronounsProperty.GetArrayElementAtIndex(i).stringValue = pronouns[i];
             }
 
-            _ = property.serializedObject.ApplyModifiedProperties();
+            // Apply and ensure the target object (ScriptableObject asset) is marked dirty so Unity will persist the change.
+            property.serializedObject.ApplyModifiedProperties();
+            UnityEditor.EditorUtility.SetDirty(property.serializedObject.targetObject);
         }
 
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label) =>

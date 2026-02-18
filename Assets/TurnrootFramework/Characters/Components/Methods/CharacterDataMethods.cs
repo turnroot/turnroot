@@ -86,11 +86,11 @@ namespace Turnroot.Characters
             // Initialize stats from defaults if stats are empty
             if (BoundedStats.Count == 0 && UnboundedStats.Count == 0)
             {
-                var defaultStats = CharacterSettings.DefaultStats;
-                if (defaultStats != null)
+                var gs = Turnroot.GameSettings.GameplayGeneralSettings.Instance;
+                if (gs != null)
                 {
-                    BoundedStats = defaultStats.CreateBoundedStats();
-                    UnboundedStats = defaultStats.CreateUnboundedStats();
+                    BoundedStats = gs.CreateDefaultBoundedStats();
+                    UnboundedStats = gs.CreateDefaultUnboundedStats();
                 }
             }
 

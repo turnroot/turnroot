@@ -24,8 +24,8 @@ MonoBehaviour:
     ClassModelPrefab: {fileID: 919132149155446097, guid: cf8094e91c56c0541a69d737ef7147b8, type: 3}
     TintMask: {fileID: 2800000, guid: e769a6179af46da4db705e3d52762822, type: 3}
     ClassName: Swashbuckler
-    Description: A sailor of questionable repute with sure footing and a keen eye.
-      Uses swords, daggers, or axes
+    Description: A sailor of questionable repute with sure footing on sand and shallow
+      water. Uses swords, daggers, or axes
     Icon: {fileID: 0}
     ClassTier: 0
     IsMagic: 0
@@ -47,8 +47,6 @@ MonoBehaviour:
       value: 0
     - boundedStatType: 2
       value: 0
-    - boundedStatType: 3
-      value: 0
     UnboundedStatMinimums:
     - unboundedStatType: 0
       value: 0
@@ -62,8 +60,6 @@ MonoBehaviour:
       value: 0
     - unboundedStatType: 5
       value: 0
-    - unboundedStatType: 6
-      value: 0
     - unboundedStatType: 7
       value: 0
     - unboundedStatType: 8
@@ -72,9 +68,7 @@ MonoBehaviour:
       value: 0
     - unboundedStatType: 10
       value: 0
-    - unboundedStatType: 11
-      value: 0
-    - unboundedStatType: 12
+    - unboundedStatType: 6
       value: 0
     StatCaps:
     - boundedStatType: 0
@@ -82,8 +76,6 @@ MonoBehaviour:
     - boundedStatType: 1
       value: 0
     - boundedStatType: 2
-      value: 0
-    - boundedStatType: 3
       value: 0
     UnboundedStatCaps:
     - unboundedStatType: 0
@@ -98,8 +90,6 @@ MonoBehaviour:
       value: 0
     - unboundedStatType: 5
       value: 0
-    - unboundedStatType: 6
-      value: 0
     - unboundedStatType: 7
       value: 0
     - unboundedStatType: 8
@@ -108,9 +98,7 @@ MonoBehaviour:
       value: 0
     - unboundedStatType: 10
       value: 0
-    - unboundedStatType: 11
-      value: 0
-    - unboundedStatType: 12
+    - unboundedStatType: 6
       value: 0
     StatBonuses:
     - boundedStatType: 0
@@ -118,8 +106,6 @@ MonoBehaviour:
     - boundedStatType: 1
       value: 0
     - boundedStatType: 2
-      value: 0
-    - boundedStatType: 3
       value: 0
     UnboundedStatBonuses:
     - unboundedStatType: 0
@@ -134,8 +120,6 @@ MonoBehaviour:
       value: 0
     - unboundedStatType: 5
       value: 0
-    - unboundedStatType: 6
-      value: 0
     - unboundedStatType: 7
       value: 1
     - unboundedStatType: 8
@@ -144,9 +128,7 @@ MonoBehaviour:
       value: 0
     - unboundedStatType: 10
       value: 0
-    - unboundedStatType: 11
-      value: 0
-    - unboundedStatType: 12
+    - unboundedStatType: 6
       value: 0
     GrowthRateModifiers:
     - unboundedStatType: 0
@@ -161,8 +143,6 @@ MonoBehaviour:
       value: 0.15
     - unboundedStatType: 5
       value: 0.15
-    - unboundedStatType: 6
-      value: 0.2
     - unboundedStatType: 7
       value: 0.3
     - unboundedStatType: 8
@@ -171,18 +151,14 @@ MonoBehaviour:
       value: 0
     - unboundedStatType: 10
       value: 0
-    - unboundedStatType: 11
-      value: 0
-    - unboundedStatType: 12
-      value: 0
+    - unboundedStatType: 6
+      value: 0.2
     ClassChangeBonuses:
     - boundedStatType: 0
       value: 0
     - boundedStatType: 1
       value: 0
     - boundedStatType: 2
-      value: 0
-    - boundedStatType: 3
       value: 0
     UnboundedClassChangeBonuses:
     - unboundedStatType: 0
@@ -197,8 +173,6 @@ MonoBehaviour:
       value: 0
     - unboundedStatType: 5
       value: 0
-    - unboundedStatType: 6
-      value: 1
     - unboundedStatType: 7
       value: 0
     - unboundedStatType: 8
@@ -207,13 +181,13 @@ MonoBehaviour:
       value: 0
     - unboundedStatType: 10
       value: 0
-    - unboundedStatType: 11
-      value: 0
-    - unboundedStatType: 12
-      value: 0
+    - unboundedStatType: 6
+      value: 1
   Requirements:
     CertificationItem: {fileID: 0}
     AllowedWeaponTypes:
+    - {fileID: 11400000, guid: 1265787936baf2a4da7e7a1898d11264, type: 2}
+    - {fileID: 11400000, guid: f91e43ae58a43334eb51bb18455be802, type: 2}
     - {fileID: 11400000, guid: 030efab55c186fa4ead5d556dc84fdd5, type: 2}
     MinimumLevelRequirement: 1
     ExperienceRequirements: []
@@ -223,7 +197,7 @@ MonoBehaviour:
   Mastery:
     InnateSkills:
     - {fileID: 11400000, guid: a6ca4abb9906bed4ab5fd536bafdba5e, type: 2}
-    MasteredSkill: {fileID: 0}
+    MasteredSkill: {fileID: 11400000, guid: 51e0878006838f5469f57ac8ff0b5679, type: 2}
     WeaponLevelBonuses: []
   allowedPronounKeys:
   - they

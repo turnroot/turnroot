@@ -42,8 +42,6 @@ MonoBehaviour:
       value: 0
     - boundedStatType: 2
       value: 0
-    - boundedStatType: 3
-      value: 0
     UnboundedStatMinimums:
     - unboundedStatType: 0
       value: 0
@@ -57,8 +55,6 @@ MonoBehaviour:
       value: 0
     - unboundedStatType: 5
       value: 0
-    - unboundedStatType: 6
-      value: 0
     - unboundedStatType: 7
       value: 0
     - unboundedStatType: 8
@@ -67,9 +63,7 @@ MonoBehaviour:
       value: 0
     - unboundedStatType: 10
       value: 0
-    - unboundedStatType: 11
-      value: 0
-    - unboundedStatType: 12
+    - unboundedStatType: 6
       value: 0
     StatCaps:
     - boundedStatType: 0
@@ -77,8 +71,6 @@ MonoBehaviour:
     - boundedStatType: 1
       value: 0
     - boundedStatType: 2
-      value: 0
-    - boundedStatType: 3
       value: 0
     UnboundedStatCaps:
     - unboundedStatType: 0
@@ -93,8 +85,6 @@ MonoBehaviour:
       value: 0
     - unboundedStatType: 5
       value: 0
-    - unboundedStatType: 6
-      value: 0
     - unboundedStatType: 7
       value: 0
     - unboundedStatType: 8
@@ -103,9 +93,7 @@ MonoBehaviour:
       value: 0
     - unboundedStatType: 10
       value: 0
-    - unboundedStatType: 11
-      value: 0
-    - unboundedStatType: 12
+    - unboundedStatType: 6
       value: 0
     StatBonuses:
     - boundedStatType: 0
@@ -113,8 +101,6 @@ MonoBehaviour:
     - boundedStatType: 1
       value: 0
     - boundedStatType: 2
-      value: 0
-    - boundedStatType: 3
       value: 0
     UnboundedStatBonuses:
     - unboundedStatType: 0
@@ -129,8 +115,6 @@ MonoBehaviour:
       value: 0
     - unboundedStatType: 5
       value: 0
-    - unboundedStatType: 6
-      value: 0
     - unboundedStatType: 7
       value: 0
     - unboundedStatType: 8
@@ -139,9 +123,7 @@ MonoBehaviour:
       value: 0
     - unboundedStatType: 10
       value: 0
-    - unboundedStatType: 11
-      value: 0
-    - unboundedStatType: 12
+    - unboundedStatType: 6
       value: 0
     GrowthRateModifiers:
     - unboundedStatType: 0
@@ -156,8 +138,6 @@ MonoBehaviour:
       value: 0
     - unboundedStatType: 5
       value: 0
-    - unboundedStatType: 6
-      value: 0
     - unboundedStatType: 7
       value: 0
     - unboundedStatType: 8
@@ -166,9 +146,7 @@ MonoBehaviour:
       value: 0
     - unboundedStatType: 10
       value: 0
-    - unboundedStatType: 11
-      value: 0
-    - unboundedStatType: 12
+    - unboundedStatType: 6
       value: 0
     ClassChangeBonuses:
     - boundedStatType: 0
@@ -176,8 +154,6 @@ MonoBehaviour:
     - boundedStatType: 1
       value: 0
     - boundedStatType: 2
-      value: 0
-    - boundedStatType: 3
       value: 0
     UnboundedClassChangeBonuses:
     - unboundedStatType: 0
@@ -192,8 +168,6 @@ MonoBehaviour:
       value: 0
     - unboundedStatType: 5
       value: 0
-    - unboundedStatType: 6
-      value: 0
     - unboundedStatType: 7
       value: 0
     - unboundedStatType: 8
@@ -202,9 +176,7 @@ MonoBehaviour:
       value: 0
     - unboundedStatType: 10
       value: 0
-    - unboundedStatType: 11
-      value: 0
-    - unboundedStatType: 12
+    - unboundedStatType: 6
       value: 0
   Requirements:
     CertificationItem: {fileID: 0}

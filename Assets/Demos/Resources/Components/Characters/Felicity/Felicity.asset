@@ -23,7 +23,7 @@ MonoBehaviour:
     - her
     - hers
     - her
-  <Height>k__BackingField: 156
+  <Height>k__BackingField: 154.7
   <BirthdayDay>k__BackingField: 5
   <BirthdayMonth>k__BackingField: 12
   <Species>k__BackingField: {fileID: 11400000, guid: 6b6a40766f8c5d843ba98e8e51603c6e, type: 2}
@@ -47,7 +47,7 @@ MonoBehaviour:
   <RecruitmentChance>k__BackingField: 25
   <RecruitmentChanceIncreasePerConversation>k__BackingField: 15
   <IsUnique>k__BackingField: 1
-  <StartingClass>k__BackingField: {fileID: 11400000, guid: 1e90a557de999484ab6a619dfd78ce0a, type: 2}
+  <StartingClass>k__BackingField: {fileID: 0}
   <BadgeText>k__BackingField: Fishing Guild
   <BadgeIcon>k__BackingField: {fileID: 21300000, guid: 9f2c2612454aeb040bb1ab262a1e7c5f, type: 3}
   <Blendshapes>k__BackingField:
@@ -58,9 +58,9 @@ MonoBehaviour:
     armThickness: 0
     neckThickness: 0
   <SkinColor>k__BackingField: {r: 0.8745098, g: 0.8235294, b: 0.7411765, a: 0}
-  <AccentColor1>k__BackingField: {r: 0.2, g: 0.28235295, b: 0.39215687, a: 0}
-  <AccentColor2>k__BackingField: {r: 0.34901962, g: 0.4, b: 0.2627451, a: 0}
-  <AccentColor3>k__BackingField: {r: 0.7607843, g: 0.65882355, b: 0.47058824, a: 0}
+  <AccentColor1>k__BackingField: {r: 0.19872002, g: 0.34560007, b: 0.54, a: 0}
+  <AccentColor2>k__BackingField: {r: 0.38392156, g: 0.44, b: 0.2890196, a: 0}
+  <AccentColor3>k__BackingField: {r: 0.45686275, g: 0.65015084, b: 0.9137255, a: 0}
   <Portraits>k__BackingField:
     _keys: []
     _values: []
@@ -172,7 +172,7 @@ MonoBehaviour:
   - unboundedStatType: 10
     value: 0
   <Skills>k__BackingField: []
-  <SpecialSkills>k__BackingField: []
+  <PersonalSkill>k__BackingField: {fileID: 11400000, guid: 99f09bf75af3b064ea95ba36451474a7, type: 2}
   <ExperienceRanks>k__BackingField: []
   references:
     version: 2
