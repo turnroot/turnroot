@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using NaughtyAttributes;
+using Turnroot.CommonAncestors;
 using Turnroot.Gameplay.Objects.Components;
 using Turnroot.Skills;
 using Turnroot.Utilities;
@@ -49,13 +50,17 @@ namespace Turnroot.Characters.CharacterClass
         }
 
         /// <summary>
-        /// Gets the skill granted at a specific weapon level.
+        /// Gets the skill granted for a specific weapon proficiency rank (E..S).
         /// </summary>
-        public Skill GetSkillAtWeaponLevel(WeaponType weaponType, int weaponLevel)
+        public Skill GetSkillAtWeaponRank(WeaponType weaponType, LeveledLetteredField weaponRank)
         {
+            if (weaponRank == null)
+                return null;
             foreach (
                 var bonus in WeaponLevelBonuses.Where(b =>
-                    b.WeaponType == weaponType && b.RequiredWeaponLevel == weaponLevel
+                    b.WeaponType == weaponType
+                    && b.RequiredWeaponRank != null
+                    && b.RequiredWeaponRank.Value == weaponRank.Value
                 )
             )
             {
@@ -93,11 +98,10 @@ namespace Turnroot.Characters.CharacterClass
         [Tooltip("Weapon type this bonus applies to")]
         public WeaponType WeaponType;
 
-        [Tooltip("Weapon level required to unlock this bonus")]
-        [Range(1, 10)]
-        public int RequiredWeaponLevel;
+        [Tooltip("Weapon proficiency rank required to unlock this bonus (E..S)")]
+        public LeveledLetteredField RequiredWeaponRank = new(LeveledLetteredField.E);
 
-        [Tooltip("Skill granted upon reaching the required weapon level")]
+        [Tooltip("Skill granted upon reaching the required weapon rank")]
         public Skill GrantedSkill;
     }
 }

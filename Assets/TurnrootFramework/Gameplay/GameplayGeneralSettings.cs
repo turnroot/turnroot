@@ -1,6 +1,7 @@
 using NaughtyAttributes;
 using Turnroot.Characters;
 using Turnroot.Characters.CharacterClass;
+using Turnroot.Characters.Stats;
 using Turnroot.CommonAncestors;
 using Turnroot.Gameplay.Combat.FundamentalComponents;
 using Turnroot.Gameplay.Objects.Components;
@@ -795,6 +796,82 @@ namespace Turnroot.GameSettings
             }
 
             return list.ToArray();
+        }
+
+        // ---------------------------------------------------------------------
+        // Default stats helper (single source-of-truth)
+        // ---------------------------------------------------------------------
+        public BoundedStatType[] GetDefaultBoundedStatTypes()
+        {
+            var core = new System.Collections.Generic.List<BoundedStatType>
+            {
+                BoundedStatType.Health,
+                BoundedStatType.Level,
+                BoundedStatType.LevelExperience,
+            };
+
+            if (GetUseExperienceAptitudes())
+            {
+                core.Add(BoundedStatType.ClassExperience);
+            }
+
+            return core.ToArray();
+        }
+
+        public UnboundedStatType[] GetDefaultUnboundedStatTypes()
+        {
+            var core = new System.Collections.Generic.List<UnboundedStatType>
+            {
+                UnboundedStatType.Strength,
+                UnboundedStatType.Defense,
+                UnboundedStatType.Magic,
+                UnboundedStatType.Resistance,
+                UnboundedStatType.Skill,
+                UnboundedStatType.Speed,
+                UnboundedStatType.Dexterity,
+                UnboundedStatType.Charm,
+                UnboundedStatType.Movement,
+                UnboundedStatType.Endurance,
+            };
+
+            if (UseLuck)
+            {
+                core.Add(UnboundedStatType.Luck);
+            }
+
+            if (UseSeparateCriticalAvoidance)
+            {
+                core.Add(UnboundedStatType.CriticalAvoidance);
+            }
+
+            if (UseAuthority)
+            {
+                core.Add(UnboundedStatType.Authority);
+            }
+
+            return core.ToArray();
+        }
+
+        public System.Collections.Generic.List<BoundedCharacterStat> CreateDefaultBoundedStats()
+        {
+            var outList = new System.Collections.Generic.List<BoundedCharacterStat>();
+            foreach (var t in GetDefaultBoundedStatTypes())
+            {
+                var (max, current, min) = StatHelpers.GetDefaultValuesForBoundedStatInternal(t);
+                outList.Add(new BoundedCharacterStat(max, current, min, t));
+            }
+            return outList;
+        }
+
+        public System.Collections.Generic.List<CharacterStat> CreateDefaultUnboundedStats()
+        {
+            var outList = new System.Collections.Generic.List<CharacterStat>();
+            foreach (var t in GetDefaultUnboundedStatTypes())
+            {
+                var value = StatHelpers.GetDefaultValueForUnboundedStatInternal(t);
+                outList.Add(new CharacterStat(value, t));
+            }
+            return outList;
         }
 
 #if UNITY_EDITOR

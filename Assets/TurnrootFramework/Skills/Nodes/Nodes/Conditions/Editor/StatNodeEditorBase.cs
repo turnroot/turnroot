@@ -1,5 +1,4 @@
 #if UNITY_EDITOR
-using Turnroot.Characters;
 using Turnroot.Skills.Nodes.Editor;
 using System.Collections.Generic;
 using UnityEditor;
@@ -46,12 +45,12 @@ namespace Turnroot.Skills.Nodes
         {
             serializedObject.Update();
 
-            // Get available stats from DefaultCharacterStats
-            var defaultStats = DefaultCharacterStats.Instance;
-            if (defaultStats == null)
+            // Get available stats from GameplayGeneralSettings (single source-of-truth)
+            var gs = Turnroot.GameSettings.GameplayGeneralSettings.Instance;
+            if (gs == null)
             {
                 EditorGUILayout.HelpBox(
-                    "DefaultCharacterStats not found! Please create one in Resources/GameSettings/*/Characters/",
+                    "GameplayGeneralSettings not found! Ensure a GameplayGeneralSettings asset exists under Resources/GameSettings/",
                     MessageType.Error
                 );
                 base.OnBodyGUI();
@@ -62,22 +61,22 @@ namespace Turnroot.Skills.Nodes
             var availableStats = new List<string>();
             var statTypes = new List<(string name, bool isBounded)>();
 
-            foreach (var stat in defaultStats.DefaultBoundedStats)
+            foreach (var t in gs.GetDefaultBoundedStatTypes())
             {
-                availableStats.Add(stat.StatType.ToString());
-                statTypes.Add((stat.StatType.ToString(), true));
+                availableStats.Add(t.ToString());
+                statTypes.Add((t.ToString(), true));
             }
 
-            foreach (var stat in defaultStats.DefaultUnboundedStats)
+            foreach (var t in gs.GetDefaultUnboundedStatTypes())
             {
-                availableStats.Add(stat.StatType.ToString());
-                statTypes.Add((stat.StatType.ToString(), false));
+                availableStats.Add(t.ToString());
+                statTypes.Add((t.ToString(), false));
             }
 
             if (availableStats.Count == 0)
             {
                 EditorGUILayout.HelpBox(
-                    "No stats configured in DefaultCharacterStats!",
+                    "No default stats configured in GameplayGeneralSettings!",
                     MessageType.Warning
                 );
                 base.OnBodyGUI();

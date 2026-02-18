@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Turnroot.Characters.Stats;
 using Turnroot.GameSettings;
 using Turnroot.Utilities;
 using UnityEngine;
@@ -38,11 +39,11 @@ namespace Turnroot.Characters.CharacterClass
 
         private OperationResult ValidateStatLists()
         {
-            var defaultStats = DefaultCharacterStats.Instance;
-            if (defaultStats == null)
+            var gs = GameplayGeneralSettings.Instance;
+            if (gs == null)
             {
                 return OperationResult.Failure(
-                    $"{name}: Cannot validate stat lists - DefaultCharacterStats not found in GameSettings."
+                    $"{name}: Cannot validate stat lists - GameplayGeneralSettings not found in GameSettings."
                 );
             }
 
@@ -60,9 +61,9 @@ namespace Turnroot.Characters.CharacterClass
             {
                 ValidateBoundedStatList(
                     list,
-                    defaultStats.DefaultBoundedStats,
+                    gs.GetDefaultBoundedStatTypes(),
                     name,
-                    (stat) => new StatModifier(stat.StatType, 0)
+                    (statType) => new StatModifier(statType, 0)
                 );
             }
 
@@ -84,9 +85,9 @@ namespace Turnroot.Characters.CharacterClass
             {
                 ValidateUnboundedStatList(
                     list,
-                    defaultStats.DefaultUnboundedStats,
+                    gs.GetDefaultUnboundedStatTypes(),
                     name,
-                    (stat) => new UnboundedStatModifier(stat.StatType, 0)
+                    (statType) => new UnboundedStatModifier(statType, 0)
                 );
             }
             return OperationResult.Successful();
@@ -94,22 +95,26 @@ namespace Turnroot.Characters.CharacterClass
 
         private void ValidateBoundedStatList(
             List<StatModifier> list,
-            List<DefaultCharacterStats.DefaultBoundedStat> defaults,
+            IEnumerable<BoundedStatType> defaults,
             string listName,
-            Func<DefaultCharacterStats.DefaultBoundedStat, StatModifier> creator
+            Func<BoundedStatType, StatModifier> creator
         )
         {
+            var defaultList = defaults is ICollection<BoundedStatType> c
+                ? c
+                : new List<BoundedStatType>(defaults);
+
             if (list.Count == 0)
             {
-                foreach (var stat in defaults)
+                foreach (var statType in defaultList)
                 {
-                    list.Add(creator(stat));
+                    list.Add(creator(statType));
                 }
             }
-            else if (list.Count != defaults.Count)
+            else if (list.Count != defaultList.Count)
             {
                 TurnrootLogger.Log(
-                    $"{name}: {listName} count ({list.Count}) doesn't match DefaultCharacterStats count ({defaults.Count}). This may cause issues.",
+                    $"{name}: {listName} count ({list.Count}) doesn't match project default stat count ({defaultList.Count}). This may cause issues.",
                     TurnrootLogger.LogLevel.Warning
                 );
             }
@@ -117,22 +122,26 @@ namespace Turnroot.Characters.CharacterClass
 
         private void ValidateUnboundedStatList(
             List<UnboundedStatModifier> list,
-            List<DefaultCharacterStats.DefaultUnboundedStat> defaults,
+            IEnumerable<UnboundedStatType> defaults,
             string listName,
-            Func<DefaultCharacterStats.DefaultUnboundedStat, UnboundedStatModifier> creator
+            Func<UnboundedStatType, UnboundedStatModifier> creator
         )
         {
+            var defaultList = defaults is ICollection<UnboundedStatType> c
+                ? c
+                : new List<UnboundedStatType>(defaults);
+
             if (list.Count == 0)
             {
-                foreach (var stat in defaults)
+                foreach (var statType in defaultList)
                 {
-                    list.Add(creator(stat));
+                    list.Add(creator(statType));
                 }
             }
-            else if (list.Count != defaults.Count)
+            else if (list.Count != defaultList.Count)
             {
                 TurnrootLogger.Log(
-                    $"{name}: {listName} count ({list.Count}) doesn't match DefaultCharacterStats count ({defaults.Count}). This may cause issues.",
+                    $"{name}: {listName} count ({list.Count}) doesn't match project default stat count ({defaultList.Count}). This may cause issues.",
                     TurnrootLogger.LogLevel.Warning
                 );
             }
@@ -314,17 +323,25 @@ namespace Turnroot.Characters.CharacterClass
             bool MaterialsExposeClassTextures(Material[] mats)
             {
                 if (mats == null)
+                {
                     return false;
+                }
+
                 foreach (var mat in mats)
                 {
                     if (mat == null)
+                    {
                         continue;
+                    }
+
                     if (
                         mat.HasProperty("_Base")
                         || mat.HasProperty("_MSE")
                         || mat.HasProperty("_Tint_Mask")
                     )
+                    {
                         return true;
+                    }
                 }
                 return false;
             }
@@ -333,9 +350,15 @@ namespace Turnroot.Characters.CharacterClass
             bool PrefabContainsHairRenderer(GameObject prefab)
             {
                 if (prefab == null)
+                {
                     return false;
+                }
+
                 if (prefab.transform.Find("Hair") != null)
+                {
                     return true;
+                }
+
                 var smrs =
                     prefab.GetComponentsInChildren<SkinnedMeshRenderer>(true)
                     ?? new SkinnedMeshRenderer[0];
@@ -520,11 +543,6 @@ namespace Turnroot.Characters.CharacterClass
                     }
                 }
             }
-
-            // Hat-specific fields removed — hats should be part of the ClassModelPrefab. ClassModelPrefab and PronounClassModelPrefabs are validated above and must not contain hair.
         }
-
-        // Class/hat/hair rules simplified: class assets must not contain hair (unit hair comes from CharacterData.HairPrefab).
-        // Detection uses explicit 'Hair' child checks or renderer name checks.
     }
 }

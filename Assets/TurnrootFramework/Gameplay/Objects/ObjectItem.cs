@@ -219,9 +219,19 @@ namespace Turnroot.Gameplay.Objects
             Forgeable = settings.WeaponsCanBeForged;
         }
 
+        // Apply defaults when the asset is first enabled / loaded by Unity (e.g. when gameplay settings change
+        // and the settings asset forces a reimport). Do NOT re-apply defaults on every inspector change — that
+        // overwrites per-asset developer edits (e.g. unchecking `Repairable`).
         private void OnEnable() => ApplyGameplayDefaultsFromSettings();
 
-        private void OnValidate() => ApplyGameplayDefaultsFromSettings();
+        // Keep OnValidate present for future validation but do not re-apply gameplay defaults here —
+        // users expect inspector edits to persist.
+        private void OnValidate() { }
+
+        // Convenience: allow re-applying gameplay defaults from the inspector/context menu if desired.
+        [ContextMenu("Apply Gameplay Defaults")]
+        private void Editor_ApplyGameplayDefaultsFromSettings() =>
+            ApplyGameplayDefaultsFromSettings();
 
         [field:
             Foldout("Lost Items"),

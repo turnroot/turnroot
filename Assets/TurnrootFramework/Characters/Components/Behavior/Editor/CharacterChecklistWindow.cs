@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Turnroot.Characters;
-using Turnroot.Utilities;
+using Turnroot.Characters.Stats;
 using UnityEngine;
 using UnityEditor;
 
@@ -720,14 +720,15 @@ namespace Turnroot.EditorTools
                     data =>
                     {
                         var r = new CharacterCheckResult();
-                        var defaultStats = CharacterSettings.DefaultStats;
-                        if (defaultStats == null)
-                        {
-                            r.Color = green; // cannot evaluate without defaults
-                            return r;
-                        }
-                        var defBounded = defaultStats.CreateBoundedStats();
-                        var defUnbounded = defaultStats.CreateUnboundedStats();
+                        var gs = Turnroot.GameSettings.GameplayGeneralSettings.Instance;
+                        var defBounded =
+                            gs != null
+                                ? gs.CreateDefaultBoundedStats()
+                                : new List<BoundedCharacterStat>();
+                        var defUnbounded =
+                            gs != null
+                                ? gs.CreateDefaultUnboundedStats()
+                                : new List<CharacterStat>();
                         bool boundedMatch = true;
                         bool unboundedMatch = true;
                         if (defBounded.Count != data.BoundedStats.Count)
@@ -980,11 +981,11 @@ namespace Turnroot.EditorTools
 
             // Stats: compare against defaults (yellow if they match default exactly)
             bool statsAreDefault = false;
-            var defaultStats = CharacterSettings.DefaultStats;
-            if (defaultStats != null)
+            var gs = Turnroot.GameSettings.GameplayGeneralSettings.Instance;
+            if (gs != null)
             {
-                var defBounded = defaultStats.CreateBoundedStats();
-                var defUnbounded = defaultStats.CreateUnboundedStats();
+                var defBounded = gs.CreateDefaultBoundedStats();
+                var defUnbounded = gs.CreateDefaultUnboundedStats();
                 bool boundedMatch = true;
                 bool unboundedMatch = true;
 
@@ -1032,7 +1033,7 @@ namespace Turnroot.EditorTools
                 statsAreDefault = boundedMatch && unboundedMatch;
                 if (statsAreDefault)
                 {
-                    yellowNotes.Add("Stats match DefaultCharacterStats (consider customizing)");
+                    yellowNotes.Add("Stats match project defaults (consider customizing)");
                 }
             }
 
@@ -1166,9 +1167,7 @@ namespace Turnroot.EditorTools
             foreach (var g in playerGuids)
             {
                 var path = AssetDatabase.GUIDToAssetPath(g);
-                var asset = AssetDatabase.LoadAssetAtPath<PlayerTeamRoster>(
-                    path
-                );
+                var asset = AssetDatabase.LoadAssetAtPath<PlayerTeamRoster>(path);
                 if (asset == null)
                 {
                     continue;

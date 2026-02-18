@@ -181,7 +181,13 @@ namespace Turnroot.Characters
         {
             _skillInstances = new List<SkillInstance>();
             AddSkillsFromTemplates(_characterTemplate.Skills);
-            AddSkillsFromTemplates(_characterTemplate.SpecialSkills);
+
+            // Add the character's single PersonalSkill (if assigned). Personal skills are always equipped
+            // for the character and cannot be unequipped at runtime.
+            if (_characterTemplate.PersonalSkill != null)
+            {
+                _skillInstances.Add(new SkillInstance(_characterTemplate.PersonalSkill));
+            }
         }
 
         private void AddSkillsFromTemplates(List<Skill> skillTemplates)

@@ -14,7 +14,6 @@ namespace Turnroot.Characters
     {
         private static int? _cachedMaxNonWeaponSlots;
         private static CharacterPrototypeSettings _cachedPrototypeSettings;
-        private static DefaultCharacterStats _cachedDefaultStats;
 
         public static int MaxNonWeaponSlots
         {
@@ -58,34 +57,10 @@ namespace Turnroot.Characters
             }
         }
 
-        public static DefaultCharacterStats DefaultStats
-        {
-            get
-            {
-                if (_cachedDefaultStats != null)
-                {
-                    return _cachedDefaultStats;
-                }
-
-                _cachedDefaultStats = DefaultCharacterStats.Instance;
-
-                if (_cachedDefaultStats == null)
-                {
-                    TurnrootLogger.Log(
-                        "DefaultCharacterStats not found in Resources/GameSettings. Please create one.",
-                        TurnrootLogger.LogLevel.Warning
-                    );
-                }
-
-                return _cachedDefaultStats;
-            }
-        }
-
         public static void ClearCache()
         {
             _cachedMaxNonWeaponSlots = null;
             _cachedPrototypeSettings = null;
-            _cachedDefaultStats = null;
         }
 
         /// <summary>
