@@ -19,11 +19,6 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles.NPCs
             public CharacterData Enemy;
             public Vector2Int StartingPosition;
             public GameplayPlayerSettings.DifficultyLevel MinimumDifficultyLevelToSpawn;
-
-            [InfoBox(
-                "If true, this enemy will be significantly stronger than the player team. They will also give a much larger XP reward. Use sparingly, generally save these for challenge battles and only have a couple there"
-            )]
-            public bool StrongEnemy;
             public ObjectItem StealableItem;
             public bool WeaponsAreStealable;
 
@@ -32,7 +27,6 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles.NPCs
                 Enemy = enemy;
                 StartingPosition = startingPosition;
                 MinimumDifficultyLevelToSpawn = GameplayPlayerSettings.DifficultyLevel.Easy;
-                StrongEnemy = false;
                 StealableItem = null;
                 WeaponsAreStealable = false;
             }

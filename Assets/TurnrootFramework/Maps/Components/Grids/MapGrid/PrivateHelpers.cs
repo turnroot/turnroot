@@ -317,7 +317,7 @@ namespace Turnroot.Gameplay.Maps
                 else if (_gridPoints != null && _gridPoints.Count > 0)
                 {
                     // Performance guard: avoid expensive per-object checks and labels when grid is large.
-                    bool heavy = _gridPoints.Count > 200;
+                    bool heavy = _gridPoints.Count > 999;
                     bool showLabels = _showRaycastCoordinates && !heavy;
 
                     // Ensure we have map point references available quickly

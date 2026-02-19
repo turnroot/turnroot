@@ -39540,7 +39540,7 @@ MonoBehaviour:
   _single3dHeightMeshRaycastPoints: []
   _single3dHeightMeshRaycastIndices: []
   _showRaycastGizmos: 1
-  _showRaycastCoordinates: 0
+  _showRaycastCoordinates: 1
   _raycastLayerMask:
     serializedVersion: 2
     m_Bits: 64
@@ -46280,7 +46280,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Turnroot.Gameplay.Combat.FundamentalComponents.Battles.NPCs.EnemySupervisor
   GenericEnemyStartingPlacements:
-    placements: []
+    placements:
+    - Enemy: {fileID: 11400000, guid: 3e23498fffa83d440bce6d306134c1ee, type: 2}
+      StartingPosition: {x: 18, y: 20}
+      MinimumDifficultyLevelToSpawn: 0
+      StrongEnemy: 0
+      StealableItem: {fileID: 0}
+      WeaponsAreStealable: 0
   CurrentDifficulty: 0
   GenericEnemyDifficultyMultiplierForThisBattle: 1.05
 --- !u!1 &1751459802
