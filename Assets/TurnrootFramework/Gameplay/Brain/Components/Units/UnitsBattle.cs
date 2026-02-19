@@ -107,7 +107,8 @@ namespace Turnroot.Gameplay.Brain
                 else if (factionType == CharacterWhich.ENEMY)
                 {
                     characters.AddRange(
-                        _battleBrain.EnemyTeamRoster?.Instances ?? new List<CharacterInstance>()
+                        _battleBrain.BattleObject?.Context?.Participants?.Targets
+                            ?? new List<CharacterInstance>()
                     );
                 }
                 else if (factionType == CharacterWhich.NPC)
@@ -202,9 +203,10 @@ namespace Turnroot.Gameplay.Brain
                 characters.AddRange(_battleBrain.PlayerTeamRoster.Instances);
             }
 
-            if (_battleBrain.EnemyTeamRoster?.Instances != null)
+            var enemyTargets = _battleBrain.BattleObject?.Context?.Participants?.Targets;
+            if (enemyTargets != null)
             {
-                characters.AddRange(_battleBrain.EnemyTeamRoster.Instances);
+                characters.AddRange(enemyTargets);
             }
 
             if (_battleBrain.ThirdPartyTeamRoster?.Instances != null)

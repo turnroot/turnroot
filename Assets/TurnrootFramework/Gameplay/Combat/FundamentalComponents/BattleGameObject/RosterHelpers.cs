@@ -42,17 +42,6 @@ namespace Turnroot.Gameplay.Combat
                 // CRITICAL: Ensure roster has NO template reference that would override our placements
                 PlayerTeamRoster.roster = null;
 
-                if (EnemyTeamRoster == null)
-                {
-                    var go = new GameObject("BattleRoster - Enemy Team");
-                    go.transform.SetParent(transform);
-                    EnemyTeamRoster = go.AddComponent<GenericRosterInstance>();
-                }
-                else
-                {
-                    EnemyTeamRoster.Clear();
-                }
-
                 if (HasThirdParty)
                 {
                     if (ThirdPartyTeamRoster == null)
@@ -101,10 +90,9 @@ namespace Turnroot.Gameplay.Combat
                     return OperationResult.Successful();
                 }
 
-                var decoded =
-                    PreBattle.BattlePlacementSync.ToDecodedPlacementArray(
-                        prep.placements
-                    );
+                var decoded = PreBattle.BattlePlacementSync.ToDecodedPlacementArray(
+                    prep.placements
+                );
 
                 if (decoded.Length > 0)
                 {
@@ -141,16 +129,6 @@ namespace Turnroot.Gameplay.Combat
             // Positions come ONLY from ApplyPreBattlePlacements.
             PlayerTeamRoster.AddInstances(playerInstance.Instances);
 
-            if (_enemyRoster != null)
-            {
-                var enemyInstance = battleBrain.InstantiateGenericRoster(_enemyRoster);
-                if (enemyInstance != null)
-                {
-                    EnemyTeamRoster.roster = enemyInstance.roster;
-                    EnemyTeamRoster.AddInstances(enemyInstance.Instances);
-                }
-            }
-
             if (HasThirdParty && _thirdPartyRoster != null)
             {
                 var thirdPartyInstance = battleBrain.InstantiateGenericRoster(_thirdPartyRoster);
@@ -169,7 +147,6 @@ namespace Turnroot.Gameplay.Combat
             try
             {
                 PlayerTeamRoster.Clear();
-                EnemyTeamRoster.Clear();
                 ThirdPartyTeamRoster.Clear();
                 return OperationResult.Successful();
             }

@@ -1,7 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Turnroot.Characters.Stats;
-using Turnroot.GameSettings;
 using Turnroot.Utilities;
 using UnityEngine;
 

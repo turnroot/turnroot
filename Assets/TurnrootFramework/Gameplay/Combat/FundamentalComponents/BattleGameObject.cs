@@ -6,6 +6,7 @@ using Turnroot.Gameplay.Brain.Components.Battle;
 using Turnroot.Gameplay.Brain.Events;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Environment;
+using Turnroot.Gameplay.Combat.FundamentalComponents.Battles.NPCs;
 using Turnroot.Gameplay.Combat.PreBattle;
 using Turnroot.Gameplay.Combat.Precompute;
 using Turnroot.Gameplay.Maps;
@@ -29,6 +30,7 @@ namespace Turnroot.Gameplay.Combat
     /// </summary>
     [RequireComponent(typeof(EnvironmentalConditions))]
     [RequireComponent(typeof(BattleContext))]
+    [RequireComponent(typeof(EnemySupervisor))]
     [RequireComponent(typeof(BattlePreparationObject))]
     [RequireComponent(typeof(TileHighlighter))]
     [RequireComponent(typeof(TerrainTypeOverlay))]
@@ -103,9 +105,6 @@ namespace Turnroot.Gameplay.Combat
 
         [Header("Roster Templates"), HorizontalLine(color: EColor.Blue)]
         [SerializeField]
-        private GenericRoster _enemyRoster;
-
-        [SerializeField]
         private GenericRoster _thirdPartyRoster;
 
         [SerializeField, HideInInspector]
@@ -115,7 +114,6 @@ namespace Turnroot.Gameplay.Combat
         public Brain.Brain Brain { get; set; }
 
         public PlayerTeamRosterInstance PlayerTeamRoster { get; private set; }
-        public GenericRosterInstance EnemyTeamRoster { get; private set; }
         public GenericRosterInstance ThirdPartyTeamRoster { get; private set; }
 
         public LayerMask GroundLayerMask;

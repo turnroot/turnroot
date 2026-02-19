@@ -111,9 +111,10 @@ namespace Turnroot.Gameplay.Brain
                 characters.AddRange(battleBrain.PlayerTeamRoster.Instances);
             }
 
-            if (battleBrain.EnemyTeamRoster?.Instances != null)
+            var enemyTargets = battleBrain.BattleObject?.Context?.Participants?.Targets;
+            if (enemyTargets != null)
             {
-                characters.AddRange(battleBrain.EnemyTeamRoster.Instances);
+                characters.AddRange(enemyTargets);
             }
 
             if (battleBrain.ThirdPartyTeamRoster?.Instances != null)

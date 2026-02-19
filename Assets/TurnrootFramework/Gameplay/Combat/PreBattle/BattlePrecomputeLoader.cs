@@ -1,7 +1,9 @@
 using System.Collections;
 using System.Linq;
 using Turnroot.Gameplay.Brain;
+using Turnroot.Gameplay.Combat.FundamentalComponents.Battles.NPCs;
 using Turnroot.Gameplay.Maps;
+using Turnroot.Gameplay.PlayerSettings;
 using Turnroot.GameSettings;
 using Turnroot.Utilities;
 using UnityEngine;
@@ -197,6 +199,16 @@ namespace Turnroot.Gameplay.Combat.Precompute
             }
 
             int taskCount = CalculateTaskCount(units, appearanceBrain);
+
+            var enemySupervisor = _brain.battleBrain?.BattleObject?.GetComponent<EnemySupervisor>();
+            // If an EnemySupervisor exists we'll reserve the two precompute steps for it —
+            // but the loader will wait for the runtime PlayerTeamRoster to be initialized before executing them.
+            var hasEnemySupervisorWork = enemySupervisor != null;
+            if (hasEnemySupervisorWork)
+            {
+                taskCount += 2;
+            }
+
             if (taskCount == 0)
             {
                 CompleteWithMinimalProgressAndNotify();
@@ -207,6 +219,114 @@ namespace Turnroot.Gameplay.Combat.Precompute
             _brain.battleBrain.BattleObject.TerrainTypeOverlay.Initialize();
 
             InitializeLoadingProgress(taskCount);
+
+            // Run EnemySupervisor precompute steps (if present) and update progress for the two reserved tasks
+            if (hasEnemySupervisorWork)
+            {
+                // Wait (with timeout) for a suitable PlayerTeamRoster to be available.
+                // Accept either the per-battle roster (`BattleBrain.PlayerTeamRoster`) or the
+                // gamewide runtime roster (persistent). If the persistent roster asset exists
+                // we will attempt to create/recall its runtime instance so precompute can proceed.
+                const float rosterWaitTimeout = 2.0f; // seconds
+                float waited = 0f;
+                while (
+                    _brain.battleBrain?.PlayerTeamRoster == null
+                    && (
+                        _brain.gamewideContextBrain?.GetPersistentPlayerTeamRosterInstance() == null
+                    )
+                    && waited < rosterWaitTimeout
+                )
+                {
+                    yield return null;
+                    waited += Time.deltaTime;
+                }
+
+                // Prefer the per-battle roster; otherwise use the gamewide runtime roster (create/recall if needed)
+                var playerRoster =
+                    _brain.battleBrain?.PlayerTeamRoster
+                    ?? _brain.gamewideContextBrain?.GetPersistentPlayerTeamRosterInstance();
+
+                if (
+                    playerRoster == null
+                    && _brain.gamewideContextBrain?.GamewidePersistentPlayerRoster != null
+                )
+                {
+                    // Try to instantiate/recall the persistent runtime roster now so supervisor can compute details.
+                    playerRoster = _brain.gamewideContextBrain.GetOrCreatePlayerTeamRoster(
+                        _brain.gamewideContextBrain.GamewidePersistentPlayerRoster
+                    );
+                }
+
+                if (playerRoster == null)
+                {
+                    TurnrootLogger.Log(
+                        "BattlePrecomputeLoader: No PlayerTeamRoster available for EnemySupervisor precompute; skipping.",
+                        TurnrootLogger.LogLevel.Warning
+                    );
+
+                    // Consume the two reserved progress slots so progress stays consistent.
+                    IncrementProgress();
+                    yield return new WaitForSeconds(timeBetweenOperations);
+                    IncrementProgress();
+                    yield return new WaitForSeconds(timeBetweenOperations);
+                }
+                else
+                {
+                    // 1) compute player-team details (prefer BattleBrain roster; otherwise use BattleContext participants)
+                    EnemySupervisor.PlayerTeamDetails details;
+
+                    if (_brain.battleBrain?.PlayerTeamRoster != null)
+                    {
+                        details = enemySupervisor.ComputeCurrentPlayerTeamDetails(
+                            _brain.battleBrain.PlayerTeamRoster
+                        );
+                    }
+                    else
+                    {
+                        var allies =
+                            context?.Participants?.Allies?.FindAll(u =>
+                                u != null && u.WasSpawnedDuringBattle
+                            )
+                            ?? new System.Collections.Generic.List<Characters.CharacterInstance>();
+                        if (allies.Count > 0)
+                        {
+                            details = enemySupervisor.ComputeCurrentPlayerTeamDetails(allies);
+                        }
+                        else
+                        {
+                            // Fallback to gamewide runtime roster if available
+                            var gwRoster =
+                                _brain.gamewideContextBrain?.GetPersistentPlayerTeamRosterInstance();
+                            details = enemySupervisor.ComputeCurrentPlayerTeamDetails(gwRoster);
+                        }
+                    }
+
+                    IncrementProgress();
+                    yield return new WaitForSeconds(timeBetweenOperations);
+
+                    // ensure supervisor internal state
+                    enemySupervisor.CurrentDifficulty = GameplayPlayerSettings
+                        .Instance
+                        .GameDifficulty;
+                    enemySupervisor.EnemyInstancesByStartingPlacement =
+                        new System.Collections.Generic.Dictionary<
+                            EnemySupervisor.GenericEnemyStartingPlacement,
+                            Characters.CharacterInstance
+                        >();
+
+                    // 2) initialize pre-battle enemies and report any problems
+                    var initRes = enemySupervisor.InitializePreBattleEnemies();
+                    if (!initRes.Success)
+                    {
+                        TurnrootLogger.Log(
+                            $"BattlePrecomputeLoader: EnemySupervisor.InitializePreBattleEnemies failed: {initRes.ErrorMessage}",
+                            TurnrootLogger.LogLevel.Warning
+                        );
+                    }
+                    IncrementProgress();
+                    yield return new WaitForSeconds(timeBetweenOperations);
+                }
+            }
 
             // Ensure LTM replacements are applied for spawned units
             yield return EnsureLtmUnitsAreUsedRoutine(context);
@@ -294,22 +414,32 @@ namespace Turnroot.Gameplay.Combat.Precompute
             IncrementProgress();
             yield return new WaitForSeconds(timeBetweenOperations);
 
-            // 3) Spawn model
+            // 3) Spawn model (skip visuals for units managed by EnemySupervisor; supervisor will notify UnitAppearanceBrain)
             if (appearanceBrain != null)
             {
-                var spawnResult = appearanceBrain.PrecomputeSpawnModelAt(
-                    unit,
-                    unit.MapGridPosition,
-                    prebattle: false
-                );
+                var enemySupervisor =
+                    _brain.battleBrain.BattleObject.GetComponent<EnemySupervisor>();
+                var isSupervisorUnit =
+                    enemySupervisor != null
+                    && enemySupervisor.EnemyInstancesByStartingPlacement != null
+                    && enemySupervisor.EnemyInstancesByStartingPlacement.Values.Contains(unit);
 
-                if (!spawnResult.Success)
+                if (!isSupervisorUnit)
                 {
-                    TurnrootLogger.Log(
-                        $"BattlePrecomputeLoader: Model spawn failed for unit {unit.Id}: {spawnResult.ErrorMessage}",
-                        TurnrootLogger.LogLevel.Warning
+                    var spawnResult = appearanceBrain.PrecomputeSpawnModelAt(
+                        unit,
+                        unit.MapGridPosition,
+                        prebattle: false
                     );
+                    if (!spawnResult.Success)
+                    {
+                        TurnrootLogger.Log(
+                            $"BattlePrecomputeLoader: Model spawn failed for unit {unit.Id}: {spawnResult.ErrorMessage}",
+                            TurnrootLogger.LogLevel.Warning
+                        );
+                    }
                 }
+
                 IncrementProgress();
                 yield return new WaitForSeconds(timeBetweenOperations);
             }
@@ -537,6 +667,38 @@ namespace Turnroot.Gameplay.Combat.Precompute
         {
             var units = context?.Participants?.GetAllUnits();
             return context != null && units != null && units.Count > 0;
+        }
+
+        // Returns true when a PlayerTeamRosterInstance exists and has populated CharacterInstance
+        // objects whose class metadata is valid for precompute consumption.
+        private bool IsRosterReadyForPrecompute(Characters.PlayerTeamRosterInstance roster)
+        {
+            if (roster == null)
+            {
+                return false;
+            }
+
+            var instances = roster.Instances;
+            if (instances == null || instances.Count == 0)
+            {
+                return false;
+            }
+
+            foreach (var inst in instances)
+            {
+                if (inst == null)
+                {
+                    return false;
+                }
+
+                var cls = inst.CurrentClass;
+                if (cls == null || cls.ClassData == null || cls.ClassData.Identity == null)
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         private int CalculateTaskCount(

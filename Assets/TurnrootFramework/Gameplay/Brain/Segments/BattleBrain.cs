@@ -58,9 +58,6 @@ namespace Turnroot.Gameplay.Brain
         public PlayerTeamRosterInstance PlayerTeamRoster =>
             BattleObject != null ? BattleObject.PlayerTeamRoster : null;
 
-        public GenericRosterInstance EnemyTeamRoster =>
-            BattleObject != null ? BattleObject.EnemyTeamRoster : null;
-
         public GenericRosterInstance ThirdPartyTeamRoster =>
             BattleObject != null ? BattleObject.ThirdPartyTeamRoster : null;
 
@@ -341,7 +338,10 @@ namespace Turnroot.Gameplay.Brain
                         {
                             dbg += $"[{kvp.Key}->{kvp.Value?.name}] ";
                         }
-                        TurnrootLogger.Log($"BattleBrain: placement alignment pre-sync: {dbg}", TurnrootLogger.LogLevel.Info);
+                        TurnrootLogger.Log(
+                            $"BattleBrain: placement alignment pre-sync: {dbg}",
+                            TurnrootLogger.LogLevel.Info
+                        );
                     }
                     catch { }
 #endif
@@ -449,14 +449,6 @@ namespace Turnroot.Gameplay.Brain
                 if (!unit.IsDefeatedInCurrentBattle)
                 {
                     context.Participants.Allies.Add(unit);
-                }
-            }
-
-            foreach (var unit in EnemyTeamRoster.Instances)
-            {
-                if (!unit.IsDefeatedInCurrentBattle)
-                {
-                    context.Participants.Targets.Add(unit);
                 }
             }
 

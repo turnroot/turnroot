@@ -9,7 +9,6 @@ namespace Turnroot.Gameplay.Brain
     {
         private void SpawnRosterUnitsOntoGrid()
         {
-            var enemyRoster = BattleObject.EnemyTeamRoster;
             var playerTeamRoster = BattleObject.PlayerTeamRoster;
             var thirdPartyRoster = BattleObject.HasThirdParty
                 ? BattleObject.ThirdPartyTeamRoster
@@ -24,11 +23,6 @@ namespace Turnroot.Gameplay.Brain
             if (thirdPartyRoster != null)
             {
                 SpawnAndOrderRosterPlacements(thirdPartyRoster);
-            }
-
-            if (enemyRoster != null)
-            {
-                SpawnAndOrderRosterPlacements(enemyRoster);
             }
 
             // Final verification for player roster only (keeps original intent of a post-check pass).
