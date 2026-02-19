@@ -1,7 +1,9 @@
 using System.Collections.Generic;
 using NaughtyAttributes;
 using Turnroot.Characters;
+using Turnroot.Gameplay.Brain;
 using Turnroot.Gameplay.PlayerSettings;
+using Turnroot.GameSettings;
 using Turnroot.Utilities;
 using UnityEngine;
 
@@ -37,9 +39,9 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles.NPCs
             InfoBox(
                 "This should, generally speaking, slowly increase over the course of your game. At 1, enemies will be approximately the same level as the player team. At 2, they will be significantly stronger than the player team. Avoid large jumps unless you want a spike in difficulty for a particular battle. The number and details of enemies has an impact on difficulty, this multiplier is not the only factor in how challenging a battle is"
             ),
-            Range(0.75f, 2f)
+            Range(.9f, 1.6f)
         ]
-        public float GenericEnemyDifficultyMultiplierForThisBattle = 1.05f;
+        public float GenericEnemyDifficultyMultiplierForThisBattle = 1f;
 
         public PlayerTeamDetails ComputeCurrentPlayerTeamDetails(
             PlayerTeamRosterInstance CurrentPlayerTeamRosterInstance
@@ -81,9 +83,100 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles.NPCs
                 : OperationResult.Failure(string.Join("; ", failures));
         }
 
+        private Dictionary<CharacterInstance, int> CalculateAdjustedLevels()
+        {
+            var averagePlayerLevel =
+                Details.PlayerTeamSize > 0
+                    ? (int)
+                        System.Math.Round(
+                            System.Math.Round(
+                                System.Linq.Enumerable.Average(Details.PlayerTeamLevels)
+                            )
+                        )
+                    : 1;
+
+            var h = GameplayPlayerSettings.Instance.GameDifficulty switch
+            {
+                GameplayPlayerSettings.DifficultyLevel.Easy => 3f,
+                GameplayPlayerSettings.DifficultyLevel.Normal => 4f,
+                GameplayPlayerSettings.DifficultyLevel.Hard => 5f,
+                GameplayPlayerSettings.DifficultyLevel.Extreme => 6f,
+                _ => 1f,
+            };
+            var highest =
+                (averagePlayerLevel * 10)
+                + System.Math.Ceiling(h * (GenericEnemyDifficultyMultiplierForThisBattle * 10));
+
+            highest = (int)System.Math.Round(highest / 10f);
+
+            var lowest =
+                (System.Linq.Enumerable.Min(Details.PlayerTeamLevels) * 10)
+                - System.Math.Ceiling(
+                    (7f - h) * (GenericEnemyDifficultyMultiplierForThisBattle * 10)
+                );
+            lowest = (int)System.Math.Round(lowest / 10f);
+            if (lowest < 1)
+            {
+                lowest = 1;
+            }
+
+            Dictionary<CharacterInstance, int> adjustedLevels =
+                new Dictionary<CharacterInstance, int>();
+            // Load deterministic per-battle seed from LTM (fallback to instance-based hash if absent)
+            int battleSeed = 0;
+            try
+            {
+                var prep = BattleGameObject.Brain.battleBrain.PreparationObject;
+                var mapName = prep.MapGrid.MapName ?? "<unknown>";
+                var battleKey =
+                    prep != null ? $"{prep.name}.{mapName}" : BattleGameObject?.name ?? mapName;
+                battleSeed =
+                    BattleGameObject.Brain?.ltm?.RecallInt(LtmKeys.BattleSeedKey(battleKey)) ?? 0;
+            }
+            catch { }
+
+            foreach (var kv in EnemyInstancesByStartingPlacement)
+            {
+                var instance = kv.Value;
+
+                var localSkew =
+                    GenericEnemyDifficultyMultiplierForThisBattle
+                    - 1f
+                    + DeterministicDouble(
+                        GameplayGeneralSettings.Instance.GenericEnemySkewAdjustmentRange.x,
+                        GameplayGeneralSettings.Instance.GenericEnemySkewAdjustmentRange.y,
+                        battleSeed,
+                        instance?.Id ?? instance?.CharacterTemplate?.name ?? ""
+                    );
+
+                if (localSkew <= 0)
+                {
+                    var modLowest = DeterministicDouble(
+                        (float)lowest,
+                        averagePlayerLevel,
+                        battleSeed,
+                        instance?.Id ?? instance?.CharacterTemplate?.name ?? ""
+                    );
+                    adjustedLevels[instance] = (int)modLowest;
+                }
+                else
+                {
+                    var modHighest = DeterministicDouble(
+                        averagePlayerLevel,
+                        (float)highest,
+                        battleSeed,
+                        instance?.Id ?? instance?.CharacterTemplate?.name ?? ""
+                    );
+                    adjustedLevels[instance] = (int)modHighest;
+                }
+            }
+            return adjustedLevels;
+        }
+
         private void UpdateGenericEnemiesBasedOnPlayerTeamDetails()
         {
             // Post-spawn adjustments go here
+            var adjustedLevels = CalculateAdjustedLevels();
 
             var appearance = BattleGameObject.Brain.unitAppearanceBrain;
             foreach (var kv in EnemyInstancesByStartingPlacement)

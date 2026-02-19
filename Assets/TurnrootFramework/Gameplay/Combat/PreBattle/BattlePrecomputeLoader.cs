@@ -314,6 +314,44 @@ namespace Turnroot.Gameplay.Combat.Precompute
                             Characters.CharacterInstance
                         >();
 
+                    // Ensure a deterministic per-battle seed exists in LTM and log it. This seed will be
+                    // used by EnemySupervisor to make deterministic 'random' choices for the battle.
+                    try
+                    {
+                        var prep = _brain.battleBrain?.PreparationObject;
+                        var mapName =
+                            prep?.MapGrid?.MapName
+                            ?? _brain.battleBrain?.BattleObject?.MapGrid?.MapName
+                            ?? "<unknown>";
+                        var battleKey =
+                            prep != null
+                                ? $"{prep.name}.{mapName}"
+                                : _brain.battleBrain?.BattleObject?.name ?? mapName;
+                        var ltmKey = LtmKeys.BattleSeedKey(battleKey);
+
+                        int seed = _brain.ltm?.RecallInt(ltmKey) ?? -1;
+                        if (seed <= 0)
+                        {
+                            seed = System.BitConverter.ToInt32(
+                                System.Guid.NewGuid().ToByteArray(),
+                                0
+                            );
+                            _brain.ltm?.RememberInt(ltmKey, seed);
+                            TurnrootLogger.Log(
+                                $"BattlePrecomputeLoader: Generated battle seed {seed} for '{battleKey}'",
+                                TurnrootLogger.LogLevel.Info
+                            );
+                        }
+                        else
+                        {
+                            TurnrootLogger.Log(
+                                $"BattlePrecomputeLoader: Loaded existing battle seed {seed} for '{battleKey}'",
+                                TurnrootLogger.LogLevel.Info
+                            );
+                        }
+                    }
+                    catch { }
+
                     // 2) initialize pre-battle enemies and report any problems
                     var initRes = enemySupervisor.InitializePreBattleEnemies();
                     if (!initRes.Success)

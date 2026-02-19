@@ -54,9 +54,8 @@ MonoBehaviour:
   MaxNumberOfExplorers: 2
   RidersAndFliersAreBetterExplorers: 1
   ExplorersFailIfInjured: 1
-  CombatArts: 0
-  CombatArtLimit: 3
-  MaxEquippedSkills: 0
+  GenericEnemySkewAdjustmentRange: {x: -0.15, y: 0.2}
+  MaxEquippedSkills: 5
   WeaponTriangle: 1
   ExpandedWeaponTriangle: 0
   WeaponTriangleAffectsDamage: 1

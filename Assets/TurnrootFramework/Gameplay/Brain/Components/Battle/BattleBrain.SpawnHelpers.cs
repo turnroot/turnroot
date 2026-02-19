@@ -104,10 +104,6 @@ namespace Turnroot.Gameplay.Brain
 
                 if (instance.MapGridPosition == placement.SpawnPosition)
                 {
-                    TurnrootLogger.Log(
-                        $"SpawnRosterUnitsOntoGrid: Skipping spawn for {instance.CharacterTemplate.DisplayName} - already spawned at {placement.SpawnPosition}",
-                        TurnrootLogger.LogLevel.Info
-                    );
                     roster.SetOrder(characterData, placement.Order);
                     continue;
                 }

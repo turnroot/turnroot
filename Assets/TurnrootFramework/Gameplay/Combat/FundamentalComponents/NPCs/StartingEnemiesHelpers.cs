@@ -86,6 +86,39 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles.NPCs
             return OperationResult.Successful();
         }
 
+        private static int StableStringHash(string s)
+        {
+            if (string.IsNullOrEmpty(s))
+            {
+                return 0;
+            }
+            unchecked
+            {
+                int hash = 23;
+                foreach (var c in s)
+                {
+                    hash = (hash * 31) + c;
+                }
+                return hash;
+            }
+        }
+
+        private static double DeterministicDouble(
+            double min,
+            double max,
+            int battleSeed,
+            string salt
+        )
+        {
+            unchecked
+            {
+                int seed =
+                    (battleSeed == 0 ? (int)0x9E3779B9 : battleSeed) ^ StableStringHash(salt ?? "");
+                var rnd = new System.Random(seed);
+                return min + (rnd.NextDouble() * (max - min));
+            }
+        }
+
         // Overload: compute from an explicit list of CharacterInstance (used during precompute when the
         // per-battle `PlayerTeamRoster` may not yet be initialized but `BattleContext.Participants` is available).
         public PlayerTeamDetails ComputeCurrentPlayerTeamDetails(

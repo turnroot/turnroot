@@ -58,6 +58,11 @@ namespace Turnroot.Gameplay.Brain
         #region BattleBrain Keys
         public const string UnitSelectedForBattlePrefix = "BattleBrain.UnitSelectedForBattle.";
         public const string UnitSelectionsAutoFilled = "BattleBrain.UnitSelectionsAutoFilled";
+
+        // Per-battle deterministic RNG seed (keyed by preparation object / map name)
+        public const string BattleSeedPrefix = "Battle.Seed.";
+
+        public static string BattleSeedKey(string battleId) => BattleSeedPrefix + battleId;
         #endregion
 
         #region Helper Methods
