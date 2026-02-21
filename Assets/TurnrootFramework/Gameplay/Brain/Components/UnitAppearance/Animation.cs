@@ -126,6 +126,7 @@ namespace Turnroot.Gameplay.Brain
         /// </summary>
         private void SetupAnimatorLayers(Animator animator, CharacterInstance unit)
         {
+#if UNITY_EDITOR
             if (!unit.CharacterTemplate.HasExtraBoneLayer)
             {
                 return;
@@ -133,14 +134,18 @@ namespace Turnroot.Gameplay.Brain
 
             if (unit.CharacterTemplate.AdditionalBonesMask == null)
             {
-                LogWarning($"{unit.CharacterTemplate.DisplayName}: HasExtraBoneLayer is true but AdditionalBonesMask is not assigned.");
+                LogWarning(
+                    $"{unit.CharacterTemplate.DisplayName}: HasExtraBoneLayer is true but AdditionalBonesMask is not assigned."
+                );
                 return;
             }
 
             var controller = animator.runtimeAnimatorController;
             if (controller == null)
             {
-                LogError($"{unit.CharacterTemplate.DisplayName}: Cannot setup extra bone layer - no animator controller assigned.");
+                LogError(
+                    $"{unit.CharacterTemplate.DisplayName}: Cannot setup extra bone layer - no animator controller assigned."
+                );
                 return;
             }
 
@@ -148,15 +153,18 @@ namespace Turnroot.Gameplay.Brain
             var controllerAsset = controller as UnityEditor.Animations.AnimatorController;
             if (controllerAsset == null)
             {
-                LogWarning($"{unit.CharacterTemplate.DisplayName}: Extra bone layers require editor-time setup (assign AvatarMask to Layer 1).");
+                LogWarning(
+                    $"{unit.CharacterTemplate.DisplayName}: Extra bone layers require editor-time setup (assign AvatarMask to Layer 1)."
+                );
                 return;
             }
 
-#if UNITY_EDITOR
             // Editor-time setup
             if (controllerAsset.layers.Length < 2)
             {
-                LogError($"{unit.CharacterTemplate.DisplayName}: AnimatorController needs at least 2 layers (Layer 1 missing).");
+                LogError(
+                    $"{unit.CharacterTemplate.DisplayName}: AnimatorController needs at least 2 layers (Layer 1 missing)."
+                );
                 return;
             }
 
@@ -213,7 +221,9 @@ namespace Turnroot.Gameplay.Brain
 
             if (missingBones.Count > 0)
             {
-                LogWarning($"{characterName}: Additional bones not found in hierarchy: {string.Join(", ", missingBones)}");
+                LogWarning(
+                    $"{characterName}: Additional bones not found in hierarchy: {string.Join(", ", missingBones)}"
+                );
             }
         }
 

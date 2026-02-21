@@ -2,11 +2,15 @@ using System;
 using System.Collections.Generic;
 using Turnroot.Utilities;
 using UnityEngine;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 namespace Turnroot.Characters.CharacterClass
 {
     public partial class CharacterClassData : ScriptableObject
     {
+#if UNITY_EDITOR
         // Required blendshape names used by class visual validation
         private static readonly string[] RequiredBlendshapeNames = new[]
         {
@@ -283,5 +287,6 @@ namespace Turnroot.Characters.CharacterClass
                 }
             }
         }
+#endif
     }
 }

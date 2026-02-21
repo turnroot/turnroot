@@ -199,7 +199,29 @@ namespace Turnroot.Gameplay.Brain.Components
 
             try
             {
-                return Resources.Load(name, targetType);
+                // Try the straightforward Resources.Load first
+                var loaded = Resources.Load(name, targetType);
+                if (loaded != null)
+                {
+                    return loaded;
+                }
+
+                // Fallback: attempt to find already-loaded assets of the target type
+                // and match by name. This helps in builds where assets may not be in
+                // Resources but are referenced and loaded into memory.
+                var all = Resources.FindObjectsOfTypeAll(targetType);
+                if (all != null && all.Length > 0)
+                {
+                    foreach (var obj in all)
+                    {
+                        if (obj != null && obj.name == name)
+                        {
+                            return obj;
+                        }
+                    }
+                }
+
+                return null;
             }
             catch (Exception ex)
             {

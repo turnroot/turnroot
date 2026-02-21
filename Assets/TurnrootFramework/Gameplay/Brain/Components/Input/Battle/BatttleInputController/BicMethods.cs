@@ -515,8 +515,12 @@ namespace Turnroot.Gameplay.Brain
             var context = Brain.battleBrain.BattleObject.Context;
             if (!context.TryGetValidTilesForUnit(unit, out var moveTiles, out var attackTiles))
             {
+                var templateName =
+                    unit.CharacterTemplate != null
+                        ? unit.CharacterTemplate.DisplayName
+                        : $"<null template for unit id {unit.Id}>";
                 return OperationResult.Failure(
-                    $"Failed to get valid tiles for unit {unit.CharacterTemplate.DisplayName}"
+                    $"Failed to get valid tiles for unit {templateName}"
                 );
             }
 

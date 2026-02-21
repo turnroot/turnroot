@@ -29,11 +29,29 @@ namespace Turnroot.Gameplay.Brain.Components
 
         private void InitializePrefs()
         {
-            prefs = new JsonPlayerPrefs(
-                Application.persistentDataPath + "/TurnrootBrain/structured/.turnrootdata"
+            var prefsPath = System.IO.Path.Combine(
+                Application.persistentDataPath,
+                "TurnrootBrain",
+                "structured",
+                ".turnrootdata"
             );
 
+            prefs = new JsonPlayerPrefs(prefsPath);
             prefs.OnKeySetChanged += HandlePrefsKeySetChanged;
+
+            var obDir = System.IO.Path.GetDirectoryName(prefsPath);
+            var obPath = System.IO.Path.Combine(obDir, ".turnrootob");
+            if (!System.IO.Directory.Exists(obDir))
+            {
+                System.IO.Directory.CreateDirectory(obDir);
+            }
+
+            if (!System.IO.File.Exists(obPath))
+            {
+                var guid = Guid.NewGuid().ToString("N");
+                var base64 = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(guid));
+                System.IO.File.WriteAllText(obPath, base64);
+            }
         }
 
         private void HandlePrefsKeySetChanged(int version)

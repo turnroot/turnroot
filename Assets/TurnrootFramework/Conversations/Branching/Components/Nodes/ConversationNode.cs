@@ -1,8 +1,5 @@
 using UnityEngine;
 using XNode;
-#if UNITY_EDITOR
-using System;
-#endif
 
 namespace Turnroot.Conversations.Branching
 {
@@ -25,6 +22,6 @@ namespace Turnroot.Conversations.Branching
     /// <summary>
     /// Represents the flow connection between conversation nodes.
     /// </summary>
-    [Serializable]
+    [System.Serializable]
     public struct ConversationFlow { }
 }

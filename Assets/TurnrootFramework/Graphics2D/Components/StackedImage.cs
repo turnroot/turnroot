@@ -50,10 +50,9 @@ namespace Turnroot.Graphics2D
         private Guid _id;
 
         // Editor-only fallback for Graphics2DSettings to avoid creating multiple temporary instances
-#if UNITY_EDITOR
+        // kept at runtime too so composite logic can compile; only populated in editor.
         [NonSerialized]
         private static Graphics2DSettings _editorFallbackGraphics2DSettings;
-#endif
 
         public TOwner Owner => _owner;
 
@@ -89,17 +88,15 @@ namespace Turnroot.Graphics2D
             if (!string.IsNullOrEmpty(key))
             {
                 _key = key;
-#if UNITY_EDITOR
+
                 Debug.Log($"StackedImage key set to: {_key}");
-#endif
             }
             else
             {
                 // If empty/null key is passed, generate a new one
                 EnsureKeyInitialized();
-#if UNITY_EDITOR
+
                 Debug.Log($"Generated new stackedImage key: {_key}");
-#endif
             }
         }
 
@@ -113,9 +110,8 @@ namespace Turnroot.Graphics2D
         {
             _validationMessage = message;
             _hasValidationError = true;
-#if UNITY_EDITOR
+
             Debug.LogError(message);
-#endif
         }
 
         private void EnsureKeyInitialized()
@@ -152,9 +148,8 @@ namespace Turnroot.Graphics2D
             if (string.IsNullOrEmpty(_key))
             {
                 EnsureKeyInitialized();
-#if UNITY_EDITOR
+
                 Debug.Log($"Generated new stackedImage key: {_key}");
-#endif
             }
 
             // Initialize tint colors array if null
@@ -234,9 +229,7 @@ namespace Turnroot.Graphics2D
             // Validate that we have layers to render
             if (Layers == null || Layers.Count == 0)
             {
-#if UNITY_EDITOR
                 Debug.LogWarning("Cannot render stackedImage: No layers present.");
-#endif
                 return;
             }
 
@@ -244,22 +237,16 @@ namespace Turnroot.Graphics2D
             if (string.IsNullOrEmpty(_key))
             {
                 EnsureKeyInitialized();
-#if UNITY_EDITOR
                 Debug.LogWarning($"StackedImage key was empty, generated new key: {_key}");
-#endif
             }
 
-#if UNITY_EDITOR
             Debug.Log($"Rendering stackedImage with key: {_key}");
-#endif
 
             // Use compositor to create the final texture
             Texture2D composited = CompositeLayers();
             if (composited == null)
             {
-#if UNITY_EDITOR
                 Debug.LogError("Failed to composite layers.");
-#endif
                 return;
             }
 
@@ -281,9 +268,7 @@ namespace Turnroot.Graphics2D
         {
             if (Layers == null || Layers.Count == 0)
             {
-#if UNITY_EDITOR
                 Debug.LogWarning("CompositeLayers: no layers available to composite.");
-#endif
                 return null;
             }
 
@@ -422,6 +407,7 @@ namespace Turnroot.Graphics2D
 
         private void SaveToFile(Texture2D texture)
         {
+#if UNITY_EDITOR
             ClearValidationStatus();
 
             // Find GamePackageSettings to determine the correct save location
@@ -434,7 +420,6 @@ namespace Turnroot.Graphics2D
                 return;
             }
 
-#if UNITY_EDITOR
             // Get the asset path of the GamePackageSettings to determine the project structure
             string gamePackageSettingsPath = UnityEditor.AssetDatabase.GetAssetPath(
                 gamePackageSettings
@@ -467,7 +452,6 @@ namespace Turnroot.Graphics2D
                 "Characters",
                 "Portraits"
             );
-#endif
 
             string fileName = $"{_key}.png";
             string fullPath = System.IO.Path.Combine(portraitSavePath, fileName);
@@ -476,19 +460,14 @@ namespace Turnroot.Graphics2D
             if (!System.IO.Directory.Exists(portraitSavePath))
             {
                 System.IO.Directory.CreateDirectory(portraitSavePath);
-#if UNITY_EDITOR
                 Debug.Log($"Created directory: {portraitSavePath}");
-#endif
             }
 
             // Save the texture as PNG
             byte[] pngData = texture.EncodeToPNG();
             System.IO.File.WriteAllBytes(fullPath, pngData);
-#if UNITY_EDITOR
             Debug.Log($"Successfully saved stacked image texture: {fileName} to {fullPath}");
-#endif
 
-#if UNITY_EDITOR
             // Refresh the asset database so Unity sees the new file
             UnityEditor.AssetDatabase.Refresh();
 
@@ -502,6 +481,7 @@ namespace Turnroot.Graphics2D
 
         private void LoadSavedSprite()
         {
+#if UNITY_EDITOR
             ClearValidationStatus();
 
             // Find GamePackageSettings to determine the correct load location
@@ -514,7 +494,6 @@ namespace Turnroot.Graphics2D
                 return;
             }
 
-#if UNITY_EDITOR
             // Wait for asset database to finish importing
             UnityEditor.AssetDatabase.Refresh();
 

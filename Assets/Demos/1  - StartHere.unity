@@ -46284,7 +46284,6 @@ MonoBehaviour:
     - Enemy: {fileID: 11400000, guid: 3e23498fffa83d440bce6d306134c1ee, type: 2}
       StartingPosition: {x: 18, y: 20}
       MinimumDifficultyLevelToSpawn: 0
-      StrongEnemy: 0
       StealableItem: {fileID: 0}
       WeaponsAreStealable: 0
   CurrentDifficulty: 0
