@@ -45,10 +45,7 @@ namespace Turnroot.UI.Components
             if (units.Length == 0 && playerTeamRosterInstance != null)
             {
                 // Fallback in the unlikely case persistent roster exists but has no characters
-                TurnrootLogger.Log(
-                    "UnitSelectionColumns: persistent roster has no placements; falling back to runtime instance placements",
-                    TurnrootLogger.LogLevel.Warning
-                );
+                "UnitSelectionColumns: persistent roster has no placements; falling back to runtime instance placements".LogWarning();
                 units = playerTeamRosterInstance.GetPlacements();
             }
 
@@ -344,3 +341,4 @@ namespace Turnroot.UI.Components
         }
     }
 }
+

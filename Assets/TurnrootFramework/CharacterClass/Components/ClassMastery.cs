@@ -54,7 +54,10 @@ namespace Turnroot.Characters.CharacterClass
         public Skill GetSkillAtWeaponRank(WeaponType weaponType, LeveledLetteredField weaponRank)
         {
             if (weaponRank == null)
+            {
                 return null;
+            }
+
             foreach (
                 var bonus in WeaponLevelBonuses.Where(b =>
                     b.WeaponType == weaponType

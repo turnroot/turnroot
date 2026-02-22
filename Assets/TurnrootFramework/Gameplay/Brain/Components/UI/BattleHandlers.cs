@@ -7,6 +7,6 @@ namespace Turnroot.Gameplay.Brain.Segments
     /// </summary>
     public partial class UiBrain : BrainComponent
     {
-        public void HandleBattleUi() => TurnrootLogger.Log("UiBrain: Handling battle UI setup");
+        public void HandleBattleUi() => "UiBrain: Handling battle UI setup".LogInfo();
     }
 }

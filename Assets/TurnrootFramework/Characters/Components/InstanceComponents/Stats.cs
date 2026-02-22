@@ -113,10 +113,7 @@ namespace Turnroot.Characters
 
             if (hasErrors)
             {
-                TurnrootLogger.Log(
-                    $"Character {Id} has missing stats - this will cause runtime errors! Use GameplayGeneralSettings (default stats) or manually add missing stats to the template.",
-                    TurnrootLogger.LogLevel.Error
-                );
+                $"Character {Id} has missing stats - this will cause runtime errors! Use GameplayGeneralSettings (default stats) or manually add missing stats to the template.".LogError();
             }
         }
 #endif
@@ -136,3 +133,4 @@ namespace Turnroot.Characters
         #endregion
     }
 }
+

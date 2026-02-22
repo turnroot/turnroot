@@ -89,10 +89,8 @@ namespace Turnroot.Gameplay.Maps
                 // If we are overwriting an existing occupant log it to help diagnose conflicting writes.
                 if (mgp.CurrentInstance != null && mgp.CurrentInstance != occupier)
                 {
-                    TurnrootLogger.Log(
-                        $"MapGrid: Overwriting occupant at ({mgp.Row}, {mgp.Col}) - {mgp.CurrentInstance.Id} -> {occupier?.Id}",
-                        TurnrootLogger.LogLevel.Warning
-                    );
+
+                    $"MapGrid: Overwriting occupant at ({mgp.Row}, {mgp.Col}) - {mgp.CurrentInstance.Id} -> {occupier?.Id}".LogWarning();
                 }
 
                 mgp.CurrentInstance = occupier;
@@ -110,10 +108,7 @@ namespace Turnroot.Gameplay.Maps
                 }
                 catch (Exception ex)
                 {
-                    TurnrootLogger.Log(
-                        $"MapGrid: Failed to align MapGridPosition for {occupier?.Id ?? "<null>"}: {ex.Message}",
-                        TurnrootLogger.LogLevel.Warning
-                    );
+                    $"MapGrid: Failed to align MapGridPosition for {occupier?.Id ?? "<null>"}: {ex.Message}".LogWarning();
                 }
 
                 IncrementStateVersion();
@@ -134,10 +129,8 @@ namespace Turnroot.Gameplay.Maps
             {
                 var prev = mgp.CurrentInstance;
                 mgp.CurrentInstance = null;
-                TurnrootLogger.Log(
-                    $"MapGrid: Removed occupant at ({mgp.Row}, {mgp.Col}) - prev={prev?.Id ?? "<none>"}",
-                    TurnrootLogger.LogLevel.Info
-                );
+
+                $"MapGrid: Removed occupant at ({mgp.Row}, {mgp.Col}) - prev={prev?.Id ?? "<none>"}".LogInfo();
                 IncrementStateVersion();
                 return OperationResult.Successful();
             }
@@ -160,3 +153,4 @@ namespace Turnroot.Gameplay.Maps
         #endregion
     }
 }
+

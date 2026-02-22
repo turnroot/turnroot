@@ -22,20 +22,16 @@ namespace Turnroot.Gameplay.Brain.Commands
 
         public override bool Execute(BattleContext context)
         {
-            TurnrootLogger.Log(
-                $"[UseItemCommand] {UserId} used item {ItemId} on {TargetId ?? "self"}"
-            );
+            $"[UseItemCommand] {UserId} used item {ItemId} on {TargetId ?? "self"}".LogInfo();
             // TODO: Use item command
             return true;
         }
 
         public override bool Undo(BattleContext context)
         {
-            TurnrootLogger.Log(
-                "[UseItemCommand] Item use cannot be undone",
-                TurnrootLogger.LogLevel.Warning
-            );
+            "[UseItemCommand] Item use cannot be undone".LogWarning();
             return false;
         }
     }
 }
+

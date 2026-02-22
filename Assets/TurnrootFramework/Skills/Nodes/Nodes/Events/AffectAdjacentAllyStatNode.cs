@@ -79,9 +79,7 @@ namespace Turnroot.Skills.Nodes.Events
             }
             else
             {
-                TurnrootLogger.Log(
-                    $"AffectAdjacentAllyStat: Successfully affected {affectedCount} adjacent {(affectedCount == 1 ? "ally" : "allies")}"
-                );
+                $"AffectAdjacentAllyStat: Successfully affected {affectedCount} adjacent {(affectedCount == 1 ? "ally" : "allies")}".LogInfo();
             }
         }
     }

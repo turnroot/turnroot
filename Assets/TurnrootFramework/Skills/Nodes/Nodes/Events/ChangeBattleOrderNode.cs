@@ -42,9 +42,8 @@ namespace Turnroot.Skills.Nodes.Events
             context.SetCustomData("AttackOrderEffectType", effectType);
 
             string target = applyToUnit ? "unit" : "target";
-            TurnrootLogger.Log(
-                $"ChangeBattleOrder: Applied {effectType} to {target} (speed mod: {speedMod})"
-            );
+
+            $"ChangeBattleOrder: Applied {effectType} to {target} (speed mod: {speedMod})".LogInfo();
         }
     }
 

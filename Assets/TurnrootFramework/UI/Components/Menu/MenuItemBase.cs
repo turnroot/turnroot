@@ -71,7 +71,8 @@ namespace Turnroot.UI.Components
             float endAngle,
             float innerRadius,
             float gapSize
-        ) { }
+        )
+        { }
 
         public virtual void PositionContent(
             float centerAngleDeg,
@@ -79,6 +80,7 @@ namespace Turnroot.UI.Components
             float outerRadiusPct,
             float menuRadius,
             float radialOffsetPct = 0f
-        ) { }
+        )
+        { }
     }
 }

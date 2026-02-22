@@ -31,10 +31,7 @@ namespace Turnroot.UI.Components
                 != _prepObject.PlayerTeamSpawnPoints.Distinct().Count()
             )
             {
-                TurnrootLogger.Log(
-                    "SpawnAllUnitModels: Duplicate PlayerTeamSpawnPoints detected",
-                    TurnrootLogger.LogLevel.Warning
-                );
+                "SpawnAllUnitModels: Duplicate PlayerTeamSpawnPoints detected".LogWarning();
             }
 
             foreach (var placement in _prepObject.placements)
@@ -44,10 +41,7 @@ namespace Turnroot.UI.Components
 
                 if (!_prepObject.PlayerTeamSpawnPoints.Contains(pos))
                 {
-                    TurnrootLogger.Log(
-                        $"SpawnAllUnitModels: Skipping spawn for {data?.DisplayName ?? "<no-data>"} at {pos} - not a valid player spawn point",
-                        TurnrootLogger.LogLevel.Warning
-                    );
+                    $"SpawnAllUnitModels: Skipping spawn for {data?.DisplayName ?? "<no-data>"} at {pos} - not a valid player spawn point".LogWarning();
                     continue;
                 }
 
@@ -67,10 +61,7 @@ namespace Turnroot.UI.Components
 
                 if (unitInst == null)
                 {
-                    TurnrootLogger.Log(
-                        $"SpawnAllUnitModels: No active instance found for {data?.DisplayName ?? "<no-data>"} at {pos}; skipping model spawn",
-                        TurnrootLogger.LogLevel.Warning
-                    );
+                    $"SpawnAllUnitModels: No active instance found for {data?.DisplayName ?? "<no-data>"} at {pos}; skipping model spawn".LogWarning();
                     continue;
                 }
 
@@ -81,10 +72,7 @@ namespace Turnroot.UI.Components
                 );
                 if (!spawnResult.Success)
                 {
-                    TurnrootLogger.Log(
-                        $"SpawnAllUnitModels: Failed to spawn at {pos}: {spawnResult.ErrorMessage}",
-                        TurnrootLogger.LogLevel.Warning
-                    );
+                    $"SpawnAllUnitModels: Failed to spawn at {pos}: {spawnResult.ErrorMessage}".LogWarning();
                     continue;
                 }
 
@@ -92,16 +80,11 @@ namespace Turnroot.UI.Components
                 if (model != null)
                 {
                     _unitModels[placement.Key] = model;
-                    TurnrootLogger.Log(
-                        $"SpawnAllUnitModels: Model spawned for {data?.DisplayName ?? "<no-data>"} at {placement.Key}"
-                    );
+                    $"SpawnAllUnitModels: Model spawned for {data?.DisplayName ?? "<no-data>"} at {placement.Key}".LogInfo();
                 }
                 else
                 {
-                    TurnrootLogger.Log(
-                        $"SpawnAllUnitModels: Model spawned but not found for {data?.DisplayName ?? "<no-data>"} at {placement.Key}",
-                        TurnrootLogger.LogLevel.Warning
-                    );
+                    $"SpawnAllUnitModels: Model spawned but not found for {data?.DisplayName ?? "<no-data>"} at {placement.Key}".LogWarning();
                 }
             }
         }
@@ -219,3 +202,4 @@ namespace Turnroot.UI.Components
         }
     }
 }
+

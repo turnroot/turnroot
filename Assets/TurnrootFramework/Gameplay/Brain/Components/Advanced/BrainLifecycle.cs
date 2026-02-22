@@ -74,9 +74,8 @@ namespace Turnroot.Gameplay.Brain
                 (RetroModuleEnabled, "Retro"),
             };
             var enabled = string.Join(", ", modules.Where(m => m.Item1).Select(m => m.Item2));
-            TurnrootLogger.Log(
-                $"Turnroot modules: {(string.IsNullOrEmpty(enabled) ? "None" : enabled)}"
-            );
+
+            $"Turnroot modules: {(string.IsNullOrEmpty(enabled) ? "None" : enabled)}".LogInfo();
             return OperationResult.Successful();
         }
 

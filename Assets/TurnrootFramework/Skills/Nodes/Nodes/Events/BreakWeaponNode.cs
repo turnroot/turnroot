@@ -40,9 +40,9 @@ namespace Turnroot.Skills.Nodes.Events
                     // Store break weapon command in CustomData
                     context.SetCustomData($"BreakWeapon_{target.Id}", true);
                 }
-                TurnrootLogger.Log(
-                    $"BreakWeapon: Would break weapon for {context.Participants.Targets.Count} targets"
-                );
+
+                $"BreakWeapon: Would break weapon for {context.Participants.Targets.Count} targets"
+            .LogInfo();
             }
             else
             {
@@ -50,9 +50,10 @@ namespace Turnroot.Skills.Nodes.Events
                 // Store break weapon command in CustomData
                 context.SetCustomData($"BreakWeapon_{target.Id}", true);
 #if UNITY_EDITOR
-                TurnrootLogger.Log("BreakWeapon: Would break weapon for first target");
+                "BreakWeapon: Would break weapon for first target".LogInfo();
 #endif
             }
         }
     }
 }
+

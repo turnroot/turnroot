@@ -17,10 +17,7 @@ namespace Turnroot.Gameplay.Brain
         {
             if (partial.map == null || string.IsNullOrEmpty(partial.map.MapName))
             {
-                TurnrootLogger.Log(
-                    "RegisterMapExplorationPartial: partial must have a valid map and MapName",
-                    TurnrootLogger.LogLevel.Warning
-                );
+                "RegisterMapExplorationPartial: partial must have a valid map and MapName".LogWarning();
                 return;
             }
 
@@ -52,20 +49,14 @@ namespace Turnroot.Gameplay.Brain
         {
             if (partial.map == null || string.IsNullOrEmpty(partial.map.MapName))
             {
-                TurnrootLogger.Log(
-                    "SaveMapExplorationStatus: partial must have a valid map with MapName",
-                    TurnrootLogger.LogLevel.Warning
-                );
+                "SaveMapExplorationStatus: partial must have a valid map with MapName".LogWarning();
                 return;
             }
 
             var encode = GamewideContextBrainHelpers.EncodeInstanceToString(this, partial);
             if (!encode.Success)
             {
-                TurnrootLogger.Log(
-                    $"Failed to encode exploration partial for map {partial.map.MapName}: {encode.Error}",
-                    TurnrootLogger.LogLevel.Error
-                );
+                $"Failed to encode exploration partial for map {partial.map.MapName}: {encode.Error}".LogError();
                 return;
             }
 
@@ -126,3 +117,4 @@ namespace Turnroot.Gameplay.Brain
         #endregion
     }
 }
+

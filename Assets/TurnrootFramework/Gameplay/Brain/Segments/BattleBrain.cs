@@ -121,10 +121,7 @@ namespace Turnroot.Gameplay.Brain
 
             if (BattleObject == null)
             {
-                TurnrootLogger.Log(
-                    "BattleBrain: No BattleGameObject found in any loaded scene",
-                    TurnrootLogger.LogLevel.Error
-                );
+                "BattleBrain: No BattleGameObject found in any loaded scene".LogError();
                 return false;
             }
 
@@ -174,10 +171,7 @@ namespace Turnroot.Gameplay.Brain
                 var initRes = precomputeLoader.Initialize(_brain, BattleObject?.Context);
                 if (!initRes.Success)
                 {
-                    TurnrootLogger.Log(
-                        $"BattleBrain: BattlePrecomputeLoader.Initialize failed: {initRes.ErrorMessage}",
-                        TurnrootLogger.LogLevel.Warning
-                    );
+                    $"BattleBrain: BattlePrecomputeLoader.Initialize failed: {initRes.ErrorMessage}".LogWarning();
                 }
                 else
                 {
@@ -190,10 +184,7 @@ namespace Turnroot.Gameplay.Brain
             }
             else
             {
-                TurnrootLogger.Log(
-                    "BattleBrain: No BattlePrecomputeLoader found in scene; precompute will be skipped if no loader is available",
-                    TurnrootLogger.LogLevel.Warning
-                );
+                "BattleBrain: No BattlePrecomputeLoader found in scene; precompute will be skipped if no loader is available".LogWarning();
             }
         }
 
@@ -218,15 +209,13 @@ namespace Turnroot.Gameplay.Brain
             if (playerTurnFlow != null)
             {
                 playerTurnFlow.StartPlayerTurn();
-                TurnrootLogger.Log(
-                    $"Battle started. PlayerTurnFlow state: {playerTurnFlow.GetCurrentState()}"
-                );
+                $"Battle started. PlayerTurnFlow state: {playerTurnFlow.GetCurrentState()}".LogInfo();
             }
         }
 
         private void HandleExitBattle(BattleExitType exitType)
         {
-            TurnrootLogger.Log($"BattleBrain: Handling ExitBattle event with type: {exitType}");
+            $"BattleBrain: Handling ExitBattle event with type: {exitType}".LogInfo();
 
             if (exitType != BattleExitType.Bookmark)
             {
@@ -255,7 +244,7 @@ namespace Turnroot.Gameplay.Brain
                 precomputeLoader.ResetPrecomputeFlag();
             }
 
-            TurnrootLogger.Log("BattleBrain: Battle cleanup complete");
+            "BattleBrain: Battle cleanup complete".LogInfo();
         }
 
         private BattleGameObject FindBattleGameObjectInScene()
@@ -273,17 +262,12 @@ namespace Turnroot.Gameplay.Brain
                     var battleObj = rootObject.GetComponentInChildren<BattleGameObject>();
                     if (battleObj != null)
                     {
-                        TurnrootLogger.Log(
-                            $"BattleBrain: Found BattleGameObject in scene '{scene.name}'"
-                        );
+                        $"BattleBrain: Found BattleGameObject in scene '{scene.name}'".LogInfo();
                         return battleObj;
                     }
                 }
             }
-            TurnrootLogger.Log(
-                "BattleBrain: No BattleGameObject found in loaded scenes",
-                TurnrootLogger.LogLevel.Error
-            );
+            "BattleBrain: No BattleGameObject found in loaded scenes".LogError();
             return null;
         }
 
@@ -331,10 +315,7 @@ namespace Turnroot.Gameplay.Brain
                             ?? Brain.gamewideContextBrain?.FindInstanceByTemplate(data);
                         if (inst == null)
                         {
-                            TurnrootLogger.Log(
-                                $"BattleBrain: Placement at {pos} references {data.name} which has no active instance; roster/spawn may create it at start.",
-                                TurnrootLogger.LogLevel.Info
-                            );
+                            $"BattleBrain: Placement at {pos} references {data.name} which has no active instance; roster/spawn may create it at start.".LogInfo();
                         }
                     }
 
@@ -347,10 +328,7 @@ namespace Turnroot.Gameplay.Brain
                         {
                             dbg += $"[{kvp.Key}->{kvp.Value?.name}] ";
                         }
-                        TurnrootLogger.Log(
-                            $"BattleBrain: placement alignment pre-sync: {dbg}",
-                            TurnrootLogger.LogLevel.Info
-                        );
+                        $"BattleBrain: placement alignment pre-sync: {dbg}".LogInfo();
                     }
                     catch { }
 #endif
@@ -363,11 +341,8 @@ namespace Turnroot.Gameplay.Brain
                     }
                     catch (System.Exception ex)
                     {
-                        TurnrootLogger.Log(
-                            "BattleBrain: Failed to PublishPlacementsSyncRequested after alignment: "
-                                + ex.Message,
-                            TurnrootLogger.LogLevel.Warning
-                        );
+                        "BattleBrain: Failed to PublishPlacementsSyncRequested after alignment: ".LogWarning();
+                        ex.Message.LogWarning();
                     }
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
@@ -386,10 +361,7 @@ namespace Turnroot.Gameplay.Brain
                                 ?? Brain.gamewideContextBrain?.FindInstanceByTemplate(dataCheck);
                             if (instCheck == null)
                             {
-                                TurnrootLogger.Log(
-                                    $"BattleBrain Assertion: Placement {dataCheck.name} at {kvp.Key} has no runtime instance after alignment",
-                                    TurnrootLogger.LogLevel.Warning
-                                );
+                                $"BattleBrain Assertion: Placement {dataCheck.name} at {kvp.Key} has no runtime instance after alignment".LogWarning();
                                 Debug.Assert(
                                     instCheck != null,
                                     $"Placement {dataCheck.name} at {kvp.Key} has no runtime instance after alignment"
@@ -403,19 +375,14 @@ namespace Turnroot.Gameplay.Brain
             }
             catch (System.Exception ex)
             {
-                TurnrootLogger.Log(
-                    "BattleBrain: Placement alignment failed: " + ex.Message,
-                    TurnrootLogger.LogLevel.Warning
-                );
+                "BattleBrain: Placement alignment failed: ".LogWarning();
+                ex.Message.LogWarning();
             }
 
             var populateResult = PopulateBattleContextParticipants();
             if (!populateResult.Success)
             {
-                TurnrootLogger.Log(
-                    $"Failed to populate battle context during roster initialization: {populateResult.ErrorMessage}",
-                    TurnrootLogger.LogLevel.Error
-                );
+                $"Failed to populate battle context during roster initialization: {populateResult.ErrorMessage}".LogError();
                 return populateResult;
             }
 
@@ -483,10 +450,7 @@ namespace Turnroot.Gameplay.Brain
         {
             if (!turnRotisserie.Progress())
             {
-                TurnrootLogger.Log(
-                    "BattleBrain: Failed to progress turn order!",
-                    TurnrootLogger.LogLevel.Error
-                );
+                "BattleBrain: Failed to progress turn order!".LogError();
             }
         }
 

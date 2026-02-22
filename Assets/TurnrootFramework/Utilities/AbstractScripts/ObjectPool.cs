@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+using Turnroot.Utilities;
 namespace Turnroot.Utilities.AbstractScripts
 {
     /// <summary>
@@ -45,10 +46,7 @@ namespace Turnroot.Utilities.AbstractScripts
             {
                 // If the pool runs out, create a new one and grow the pool
 #if UNITY_EDITOR
-                TurnrootLogger.Log(
-                    $"Pool of type {typeof(T).Name} is growing. Consider increasing initial size.",
-                    TurnrootLogger.LogLevel.Warning
-                );
+                $"Pool of type {typeof(T).Name} is growing. Consider increasing initial size.".LogWarning();
 #endif
                 obj = CreateNewObject(true);
             }
@@ -64,3 +62,4 @@ namespace Turnroot.Utilities.AbstractScripts
         }
     }
 }
+

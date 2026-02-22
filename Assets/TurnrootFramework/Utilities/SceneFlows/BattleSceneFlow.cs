@@ -1,5 +1,6 @@
 using UnityEngine.Events;
 
+using Turnroot.Utilities;
 namespace Turnroot.Utilities.AbstractScripts
 {
     /// <summary>
@@ -74,10 +75,7 @@ namespace Turnroot.Utilities.AbstractScripts
                     && !_interruptIsWaitingForPlayerInput
                 )
                 {
-                    TurnrootLogger.Log(
-                        $"BattleSceneFlow: Interrupt {_queuedInterrupt} inactive for {inactivityDuration:F1}s with no player input expected - forcing completion",
-                        TurnrootLogger.LogLevel.Error
-                    );
+                    $"BattleSceneFlow: Interrupt {_queuedInterrupt} inactive for {inactivityDuration:F1}s with no player input expected - forcing completion".LogError();
                     CompleteInterrupt();
                 }
 
@@ -154,10 +152,7 @@ namespace Turnroot.Utilities.AbstractScripts
                     break;
 
                 default:
-                    TurnrootLogger.Log(
-                        $"BattleSceneFlow: Unknown state {CurrentMiniBattleState}",
-                        TurnrootLogger.LogLevel.Warning
-                    );
+                    $"BattleSceneFlow: Unknown state {CurrentMiniBattleState}".LogWarning();
                     break;
             }
         }
@@ -216,10 +211,7 @@ namespace Turnroot.Utilities.AbstractScripts
                     }
                     else
                     {
-                        TurnrootLogger.Log(
-                            "BattleSceneFlow: Conversation queued but no ConversationController found",
-                            TurnrootLogger.LogLevel.Warning
-                        );
+                        "BattleSceneFlow: Conversation queued but no ConversationController found".LogWarning();
                         // No conversation controller, immediately complete
                         CompleteInterrupt();
                     }
@@ -239,10 +231,7 @@ namespace Turnroot.Utilities.AbstractScripts
 
                 default:
                     // Unknown interrupt type, log warning and clear
-                    TurnrootLogger.Log(
-                        $"BattleSceneFlow: Unknown interrupt type {_queuedInterrupt}",
-                        TurnrootLogger.LogLevel.Warning
-                    );
+                    $"BattleSceneFlow: Unknown interrupt type {_queuedInterrupt}".LogWarning();
                     CompleteInterrupt();
                     break;
             }
@@ -283,3 +272,4 @@ namespace Turnroot.Utilities.AbstractScripts
         }
     }
 }
+

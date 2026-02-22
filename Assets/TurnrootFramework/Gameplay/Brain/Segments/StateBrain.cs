@@ -248,7 +248,7 @@ namespace Turnroot.Gameplay.Brain
             _currentState = newState;
             CurrentState.IsActive = true;
 
-            TurnrootLogger.Log($"StateBrain: SetCurrentState -> {CurrentState.Name}");
+            $"StateBrain: SetCurrentState -> {CurrentState.Name}".LogInfo();
             Brain.PublishStateChanged(CurrentState);
         }
 
@@ -296,10 +296,7 @@ namespace Turnroot.Gameplay.Brain
             }
             else
             {
-                TurnrootLogger.Log(
-                    $"StateBrain: Child state '{childStateName}' not found in '{parentState.Name}'.",
-                    TurnrootLogger.LogLevel.Error
-                );
+                $"StateBrain: Child state '{childStateName}' not found in '{parentState.Name}'.".LogError();
             }
         }
 
@@ -392,3 +389,5 @@ namespace Turnroot.Gameplay.Brain
         #endregion
     }
 }
+
+

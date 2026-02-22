@@ -47,10 +47,7 @@ namespace Turnroot.Characters
 
                 if (_cachedPrototypeSettings == null)
                 {
-                    TurnrootLogger.Log(
-                        "CharacterPrototypeSettings not found in Resources/GameSettings. Please create one.",
-                        TurnrootLogger.LogLevel.Warning
-                    );
+                    "CharacterPrototypeSettings not found in Resources/GameSettings. Please create one.".LogWarning();
                 }
 
                 return _cachedPrototypeSettings;
@@ -85,10 +82,7 @@ namespace Turnroot.Characters
             }
             catch (Exception ex)
             {
-                TurnrootLogger.Log(
-                    $"{settingName} access failed: {ex.Message}. Using default value.",
-                    TurnrootLogger.LogLevel.Warning
-                );
+                $"{settingName} access failed: {ex.Message}. Using default value.".LogWarning();
                 return defaultValue;
             }
         }
@@ -106,3 +100,4 @@ namespace Turnroot.Characters
         #endregion
     }
 }
+

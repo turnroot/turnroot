@@ -27,9 +27,10 @@ namespace Turnroot.Skills.Nodes.Events
 
             // Store in CustomData for combat system to use during advantage calculation
             context.SetCustomData("AdvantagePercentModifier", AddAdvantagePercent);
-            TurnrootLogger.Log(
-                $"AdjustAdvantagePercents: Adjusted advantage percents by {AddAdvantagePercent}%"
-            );
+
+            $"AdjustAdvantagePercents: Adjusted advantage percents by {AddAdvantagePercent}%"
+        .LogInfo();
         }
     }
 }
+

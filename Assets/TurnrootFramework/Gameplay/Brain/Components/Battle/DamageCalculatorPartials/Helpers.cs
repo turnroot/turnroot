@@ -19,10 +19,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         {
             if (attacker == null || target == null || weaponItem?.Template == null)
             {
-                TurnrootLogger.Log(
-                    "CalculatePotentialDamage: null attacker, target, or weapon",
-                    TurnrootLogger.LogLevel.Warning
-                );
+                "CalculatePotentialDamage: null attacker, target, or weapon".LogWarning();
                 return false;
             }
             return true;

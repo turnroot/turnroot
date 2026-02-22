@@ -142,7 +142,7 @@ namespace Turnroot.Services
         {
             if (!string.IsNullOrEmpty(errorMessage))
             {
-                TurnrootLogger.Log(errorMessage, TurnrootLogger.LogLevel.Warning);
+                errorMessage.LogWarning();
             }
             return new ValidationResult(false, errorMessage);
         }
@@ -151,8 +151,9 @@ namespace Turnroot.Services
         {
             if (!IsValid && !string.IsNullOrEmpty(ErrorMessage))
             {
-                TurnrootLogger.Log(ErrorMessage, TurnrootLogger.LogLevel.Warning);
+                ErrorMessage.LogWarning();
             }
         }
     }
 }
+

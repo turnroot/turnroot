@@ -50,9 +50,9 @@ namespace Turnroot.Gameplay.Brain
 
             var key = $"{LtmKeys.ConversationCompletedPrefix}{conversation.name}";
             _ltm.RememberBool(key, true);
-            TurnrootLogger.Log(
-                $"ConversationalBrain: Marked conversation '{conversation.name}' as completed."
-            );
+
+            $"ConversationalBrain: Marked conversation '{conversation.name}' as completed."
+        .LogInfo();
         }
 
         public bool HasCompletedConversation(Conversation conversation)
@@ -119,9 +119,9 @@ namespace Turnroot.Gameplay.Brain
                     : $"{LtmKeys.SupportConversationPrefix}{name2}_{name1}_{supportLevel}";
 
             _ltm.RememberBool(key, true);
-            TurnrootLogger.Log(
-                $"ConversationalBrain: Support conversation {name1}/{name2} rank {supportLevel} completed."
-            );
+
+            $"ConversationalBrain: Support conversation {name1}/{name2} rank {supportLevel} completed."
+        .LogInfo();
         }
 
         public bool HasCompletedSupportConversation(
@@ -153,44 +153,32 @@ namespace Turnroot.Gameplay.Brain
         {
             if (conversation == null)
             {
-                TurnrootLogger.Log(
-                    "ConversationalBrain: Cannot start null conversation.",
-                    TurnrootLogger.LogLevel.Warning
-                );
+                "ConversationalBrain: Cannot start null conversation.".LogWarning();
                 return;
             }
 
             Brain.PublishConversationStarted(conversation);
-            TurnrootLogger.Log($"ConversationalBrain: Started conversation '{conversation.name}'");
+            $"ConversationalBrain: Started conversation '{conversation.name}'".LogInfo();
         }
 
         public void EndConversation(Conversation conversation)
         {
             if (conversation == null)
             {
-                TurnrootLogger.Log(
-                    "ConversationalBrain: Cannot end null conversation.",
-                    TurnrootLogger.LogLevel.Warning
-                );
+                "ConversationalBrain: Cannot end null conversation.".LogWarning();
                 return;
             }
 
             Brain.PublishConversationEnded(conversation);
 
-            TurnrootLogger.Log(
-                $"ConversationalBrain: Ended conversation '{conversation.name}'",
-                TurnrootLogger.LogLevel.Warning
-            );
+            $"ConversationalBrain: Ended conversation '{conversation.name}'".LogInfo();
         }
 
         public void StartConversationLayer(ConversationLayer layer)
         {
             if (layer == null)
             {
-                TurnrootLogger.Log(
-                    "ConversationalBrain: Cannot start null conversation layer.",
-                    TurnrootLogger.LogLevel.Warning
-                );
+                "ConversationalBrain: Cannot start null conversation layer.".LogWarning();
                 return;
             }
 
@@ -201,10 +189,7 @@ namespace Turnroot.Gameplay.Brain
         {
             if (layer == null)
             {
-                TurnrootLogger.Log(
-                    "ConversationalBrain: Cannot end null conversation layer.",
-                    TurnrootLogger.LogLevel.Warning
-                );
+                "ConversationalBrain: Cannot end null conversation layer.".LogWarning();
                 return;
             }
 
@@ -246,3 +231,5 @@ namespace Turnroot.Gameplay.Brain
         #endregion
     }
 }
+
+

@@ -58,10 +58,7 @@ namespace Turnroot.Gameplay.Combat.Precompute
                 var res = Initialize(brain);
                 if (!res.Success)
                 {
-                    TurnrootLogger.Log(
-                        $"BattlePrecomputeLoader: Auto-initialize failed: {res.ErrorMessage}",
-                        TurnrootLogger.LogLevel.Warning
-                    );
+                    $"BattlePrecomputeLoader: Auto-initialize failed: {res.ErrorMessage}".LogWarning();
                 }
             }
         }
@@ -105,10 +102,8 @@ namespace Turnroot.Gameplay.Combat.Precompute
 
             if (!IsContextValid(context))
             {
-                TurnrootLogger.Log(
-                    "BattlePrecomputeLoader: Invalid context, completing with minimal progress",
-                    TurnrootLogger.LogLevel.Warning
-                );
+
+                "BattlePrecomputeLoader: Invalid context, completing with minimal progress".LogWarning();
 
                 CompleteWithMinimalProgressAndNotify();
                 yield break;
@@ -183,10 +178,7 @@ namespace Turnroot.Gameplay.Combat.Precompute
 
                 if (playerRoster == null)
                 {
-                    TurnrootLogger.Log(
-                        "BattlePrecomputeLoader: No PlayerTeamRoster available for EnemySupervisor precompute; skipping.",
-                        TurnrootLogger.LogLevel.Warning
-                    );
+                    "BattlePrecomputeLoader: No PlayerTeamRoster available for EnemySupervisor precompute; skipping.".LogWarning();
 
                     // Consume the two reserved progress slots so progress stays consistent.
                     IncrementProgress();
@@ -261,17 +253,11 @@ namespace Turnroot.Gameplay.Combat.Precompute
                                 0
                             );
                             _brain.ltm?.RememberInt(ltmKey, seed);
-                            TurnrootLogger.Log(
-                                $"BattlePrecomputeLoader: Generated battle seed {seed} for '{battleKey}'",
-                                TurnrootLogger.LogLevel.Info
-                            );
+                            $"BattlePrecomputeLoader: Generated battle seed {seed} for '{battleKey}'".LogInfo();
                         }
                         else
                         {
-                            TurnrootLogger.Log(
-                                $"BattlePrecomputeLoader: Loaded existing battle seed {seed} for '{battleKey}'",
-                                TurnrootLogger.LogLevel.Info
-                            );
+                            $"BattlePrecomputeLoader: Loaded existing battle seed {seed} for '{battleKey}'".LogInfo();
                         }
                     }
                     catch { }
@@ -280,10 +266,7 @@ namespace Turnroot.Gameplay.Combat.Precompute
                     var initRes = enemySupervisor.InitializePreBattleEnemies();
                     if (!initRes.Success)
                     {
-                        TurnrootLogger.Log(
-                            $"BattlePrecomputeLoader: EnemySupervisor.InitializePreBattleEnemies failed: {initRes.ErrorMessage}",
-                            TurnrootLogger.LogLevel.Warning
-                        );
+                        $"BattlePrecomputeLoader: EnemySupervisor.InitializePreBattleEnemies failed: {initRes.ErrorMessage}".LogWarning();
                     }
                     IncrementProgress();
                     yield return new WaitForSeconds(timeBetweenOperations);
@@ -361,10 +344,7 @@ namespace Turnroot.Gameplay.Combat.Precompute
                     var classRes = unit.ChangeClass(classToApply, applyClassChangeBonuses: false);
                     if (!classRes.Success)
                     {
-                        TurnrootLogger.Log(
-                            $"BattlePrecomputeLoader: Failed to assign default class for unit {unit.Id}: {classRes.ErrorMessage}",
-                            TurnrootLogger.LogLevel.Warning
-                        );
+                        $"BattlePrecomputeLoader: Failed to assign default class for unit {unit.Id}: {classRes.ErrorMessage}".LogWarning();
                     }
                     else
                     {
@@ -380,10 +360,7 @@ namespace Turnroot.Gameplay.Combat.Precompute
                 var initResult = context.AIHelper.InitializeAIControlledUnit(unit);
                 if (!initResult.Success)
                 {
-                    TurnrootLogger.Log(
-                        $"BattlePrecomputeLoader: AI init failed for unit {unit.Id}: {initResult.ErrorMessage}",
-                        TurnrootLogger.LogLevel.Warning
-                    );
+                    $"BattlePrecomputeLoader: AI init failed for unit {unit.Id}: {initResult.ErrorMessage}".LogWarning();
                 }
             }
             IncrementProgress();
@@ -393,10 +370,7 @@ namespace Turnroot.Gameplay.Combat.Precompute
             var paramsOk = context.PrecomputePathfindingParameters(unit);
             if (!paramsOk)
             {
-                TurnrootLogger.Log(
-                    $"BattlePrecomputeLoader: Pathfinding params failed for unit {unit.Id}",
-                    TurnrootLogger.LogLevel.Warning
-                );
+                $"BattlePrecomputeLoader: Pathfinding params failed for unit {unit.Id}".LogWarning();
             }
             IncrementProgress();
             yield return new WaitForSeconds(timeBetweenOperations);
@@ -420,10 +394,7 @@ namespace Turnroot.Gameplay.Combat.Precompute
                     );
                     if (!spawnResult.Success)
                     {
-                        TurnrootLogger.Log(
-                            $"BattlePrecomputeLoader: Model spawn failed for unit {unit.Id}: {spawnResult.ErrorMessage}",
-                            TurnrootLogger.LogLevel.Warning
-                        );
+                        $"BattlePrecomputeLoader: Model spawn failed for unit {unit.Id}: {spawnResult.ErrorMessage}".LogWarning();
                     }
                 }
 
@@ -438,10 +409,7 @@ namespace Turnroot.Gameplay.Combat.Precompute
             }
             catch (System.Exception ex)
             {
-                TurnrootLogger.Log(
-                    $"BattlePrecomputeLoader: Failed to precompute weapon info for unit {unit.Id}: {ex.Message}",
-                    TurnrootLogger.LogLevel.Warning
-                );
+                $"BattlePrecomputeLoader: Failed to precompute weapon info for unit {unit.Id}: {ex.Message}".LogWarning();
             }
             IncrementProgress();
             yield return new WaitForSeconds(timeBetweenOperations);
@@ -451,10 +419,7 @@ namespace Turnroot.Gameplay.Combat.Precompute
 
             if (!tilesOk)
             {
-                TurnrootLogger.Log(
-                    $"BattlePrecomputeLoader: Tile computation failed for unit {unit.Id}",
-                    TurnrootLogger.LogLevel.Warning
-                );
+                $"BattlePrecomputeLoader: Tile computation failed for unit {unit.Id}".LogWarning();
             }
             IncrementProgress();
             yield return new WaitForSeconds(timeBetweenOperations);
@@ -484,10 +449,7 @@ namespace Turnroot.Gameplay.Combat.Precompute
 
                 if (!res.Success)
                 {
-                    TurnrootLogger.Log(
-                        $"BattlePrecomputeLoader: Failed to build movement cache for mode {key}: {res.ErrorMessage}",
-                        TurnrootLogger.LogLevel.Warning
-                    );
+                    $"BattlePrecomputeLoader: Failed to build movement cache for mode {key}: {res.ErrorMessage}".LogWarning();
                 }
 
                 // Small delay between cache builds
@@ -575,10 +537,7 @@ namespace Turnroot.Gameplay.Combat.Precompute
                                     // placements now store CharacterData; ensure they reference the recalled template (no change)
                                     if (prep != null && prep.PlacementsLocked)
                                     {
-                                        TurnrootLogger.Log(
-                                            "BattlePrecomputeLoader: Placements are locked for battle initialization; skipping placement update for recalled unit.",
-                                            TurnrootLogger.LogLevel.Warning
-                                        );
+                                        "BattlePrecomputeLoader: Placements are locked for battle initialization; skipping placement update for recalled unit.".LogWarning();
                                         continue;
                                     }
 
@@ -594,11 +553,8 @@ namespace Turnroot.Gameplay.Combat.Precompute
                                 }
                                 catch (System.Exception ex)
                                 {
-                                    TurnrootLogger.Log(
-                                        "BattlePrecomputeLoader: PublishPlacementsSyncRequested failed: "
-                                            + ex.Message,
-                                        TurnrootLogger.LogLevel.Warning
-                                    );
+                                    "BattlePrecomputeLoader: PublishPlacementsSyncRequested failed: ".LogWarning();
+                                    ex.Message.LogWarning();
                                 }
                             }
                         }
@@ -628,10 +584,7 @@ namespace Turnroot.Gameplay.Combat.Precompute
                             );
                             if (!classRes.Success)
                             {
-                                TurnrootLogger.Log(
-                                    $"BattlePrecomputeLoader: Failed to assign default class for unit {current.Id}: {classRes.ErrorMessage}",
-                                    TurnrootLogger.LogLevel.Warning
-                                );
+                                $"BattlePrecomputeLoader: Failed to assign default class for unit {current.Id}: {classRes.ErrorMessage}".LogWarning();
                             }
                             else
                             {
@@ -710,3 +663,4 @@ namespace Turnroot.Gameplay.Combat.Precompute
         #endregion
     }
 }
+

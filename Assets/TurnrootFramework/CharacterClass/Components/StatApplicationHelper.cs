@@ -86,9 +86,7 @@ namespace Turnroot.Characters.CharacterClass
 
                         if (logChanges)
                         {
-                            TurnrootLogger.Log(
-                                $"Class change bonus: {modifier.boundedStatType} +{modifier.value} (now {stat.Current})"
-                            );
+                            $"Class change bonus: {modifier.boundedStatType} +{modifier.value} (now {stat.Current})".LogInfo();
                         }
 
                         // Publish stat-changed event so UI/other systems can react
@@ -135,9 +133,7 @@ namespace Turnroot.Characters.CharacterClass
 
                         if (logChanges)
                         {
-                            TurnrootLogger.Log(
-                                $"Class change bonus: {modifier.unboundedStatType} +{modifier.value} (now {stat.Current})"
-                            );
+                            $"Class change bonus: {modifier.unboundedStatType} +{modifier.value} (now {stat.Current})".LogInfo();
                         }
 
                         // Publish stat-changed event so UI/other systems can react
@@ -188,9 +184,7 @@ namespace Turnroot.Characters.CharacterClass
 
                         if (logChanges)
                         {
-                            TurnrootLogger.Log(
-                                $"Enforced minimum: {minimum.boundedStatType} raised to {minimum.value}"
-                            );
+                            $"Enforced minimum: {minimum.boundedStatType} raised to {minimum.value}".LogInfo();
                         }
 
                         brain?.PublishCharacterBoundedStatChanged(
@@ -238,9 +232,7 @@ namespace Turnroot.Characters.CharacterClass
 
                         if (logChanges)
                         {
-                            TurnrootLogger.Log(
-                                $"Enforced minimum: {minimum.unboundedStatType} raised to {minimum.value}"
-                            );
+                            $"Enforced minimum: {minimum.unboundedStatType} raised to {minimum.value}".LogInfo();
                         }
 
                         brain?.PublishCharacterUnboundedStatChanged(

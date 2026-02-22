@@ -22,9 +22,9 @@ namespace Turnroot.Gameplay.Maps
             // If the provided 3D map object is null, simply return original positions
             if (mapObject == null)
             {
-                TurnrootLogger.Log(
-                    "MapGridHeightConnector: mapObject is null, returning original positions."
-                );
+
+                "MapGridHeightConnector: mapObject is null, returning original positions."
+            .LogInfo();
                 // Return original positions in consistent order
                 var orderedGridPoints = gridPoints.OrderBy(kv => kv.Key.x).ThenBy(kv => kv.Key.y);
                 foreach (var kv in orderedGridPoints)
@@ -92,9 +92,9 @@ namespace Turnroot.Gameplay.Maps
 
                 if (!found)
                 {
-                    TurnrootLogger.Log(
-                        $"MapGridHeightConnector: No hit found on target object for grid point at {point.transform.position}, using fallback."
-                    );
+
+                    $"MapGridHeightConnector: No hit found on target object for grid point at {point.transform.position}, using fallback."
+                .LogInfo();
                     // If no hit on the target object, fallback to first hit overall (if any)
                     if (hits.Length > 0 && hits[0].collider != null)
                     {
@@ -113,3 +113,4 @@ namespace Turnroot.Gameplay.Maps
         }
     }
 }
+

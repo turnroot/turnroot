@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Collections.Generic;
-using DG.Tweening;
 using Turnroot.AbstractScripts.Graphics2D;
 using Turnroot.Utilities;
 using UnityEngine;
@@ -48,7 +47,7 @@ namespace Turnroot.Conversations
 
         private static bool LogError(string message)
         {
-            TurnrootLogger.Log(message, TurnrootLogger.LogLevel.Error);
+            message.LogError();
             return false;
         }
 
@@ -60,11 +59,8 @@ namespace Turnroot.Conversations
                 _conversationRoutine = null;
             }
 
-            if (_tweenRunId != 0)
-            {
-                DOTween.Kill(_tweenRunId);
-            }
-
+            // cancel any in‑flight animations, bump run id so any that slip through will bail
+            CancelActiveTweens();
             _tweenRunId++;
         }
 
@@ -127,10 +123,7 @@ namespace Turnroot.Conversations
             var nodes = conversation.GetGraphNodes();
             if (nodes == null || nodes.Count == 0)
             {
-                TurnrootLogger.Log(
-                    $"Branching conversation '{conversation.name}' has no nodes.",
-                    TurnrootLogger.LogLevel.Error
-                );
+                $"Branching conversation '{conversation.name}' has no nodes.".LogError();
                 ResetUI();
                 yield break;
             }
@@ -283,10 +276,7 @@ namespace Turnroot.Conversations
 
         private void CleanupTweens()
         {
-            if (_tweenRunId != 0)
-            {
-                DOTween.Kill(_tweenRunId);
-            }
+            CancelActiveTweens();
         }
     }
 }

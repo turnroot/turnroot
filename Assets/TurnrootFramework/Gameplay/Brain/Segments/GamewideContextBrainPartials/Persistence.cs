@@ -18,10 +18,7 @@ namespace Turnroot.Gameplay.Brain
 
                 if (GamewidePersistentPlayerRoster == null)
                 {
-                    TurnrootLogger.Log(
-                        "GamewideContextBrain: No GamewidePersistentPlayerRoster assigned",
-                        TurnrootLogger.LogLevel.Warning
-                    );
+                    "GamewideContextBrain: No GamewidePersistentPlayerRoster assigned".LogWarning();
                     return null;
                 }
             }
@@ -46,10 +43,7 @@ namespace Turnroot.Gameplay.Brain
 
             if (GamewidePersistentPlayerRoster == null)
             {
-                TurnrootLogger.Log(
-                    "GamewideContextBrain: PersistentPlayerRoster.asset has no PlayerRoster assigned",
-                    TurnrootLogger.LogLevel.Warning
-                );
+                "GamewideContextBrain: PersistentPlayerRoster.asset has no PlayerRoster assigned".LogWarning();
                 return;
             }
 
@@ -80,10 +74,7 @@ namespace Turnroot.Gameplay.Brain
                         }
                         else
                         {
-                            TurnrootLogger.Log(
-                                "GamewideContextBrain: Skipping persisted placements because saved roster is first-turn or empty; using current pre-battle placements",
-                                TurnrootLogger.LogLevel.Info
-                            );
+                            "GamewideContextBrain: Skipping persisted placements because saved roster is first-turn or empty; using current pre-battle placements".LogInfo();
                         }
                     }
                 }
@@ -106,20 +97,14 @@ namespace Turnroot.Gameplay.Brain
         {
             if (GamewidePersistentPlayerRoster == null)
             {
-                TurnrootLogger.Log(
-                    "GamewideContextBrain: No persistent player roster to save",
-                    TurnrootLogger.LogLevel.Warning
-                );
+                "GamewideContextBrain: No persistent player roster to save".LogWarning();
                 return;
             }
 
             var runtimeInstance = _rosterManager?.GetPersistentPlayerRosterInstance();
             if (runtimeInstance == null)
             {
-                TurnrootLogger.Log(
-                    "GamewideContextBrain: No runtime instance available to save",
-                    TurnrootLogger.LogLevel.Warning
-                );
+                "GamewideContextBrain: No runtime instance available to save".LogWarning();
                 return;
             }
 
@@ -134,10 +119,7 @@ namespace Turnroot.Gameplay.Brain
             var encode = GamewideContextBrainHelpers.EncodeInstanceToString(this, saveData);
             if (!encode.Success)
             {
-                TurnrootLogger.Log(
-                    $"GamewideContextBrain: Failed to encode player roster: {encode.Error}",
-                    TurnrootLogger.LogLevel.Error
-                );
+                $"GamewideContextBrain: Failed to encode player roster: {encode.Error}".LogError();
                 return;
             }
 
@@ -181,12 +163,10 @@ namespace Turnroot.Gameplay.Brain
 
             PersistCharacter(instance, updateIndex);
             instance.NeedsPersist = false;
-            TurnrootLogger.Log(
-                $"GamewideContextBrain: Persisted repaired character {instance.Id}",
-                TurnrootLogger.LogLevel.Info
-            );
+            $"GamewideContextBrain: Persisted repaired character {instance.Id}".LogInfo();
             return true;
         }
         #endregion
     }
 }
+

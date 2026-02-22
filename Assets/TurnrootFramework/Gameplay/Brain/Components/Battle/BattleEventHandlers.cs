@@ -109,9 +109,8 @@ namespace Turnroot.Gameplay.Brain
 
             BattleObject.Context.Flags.ActiveUnitFlags.Unit = unit;
             BattleObject.Context.Flags.ActiveUnitFlags.AnotherTurnGranted = true;
-            TurnrootLogger.Log(
-                $"BattleBrain: {unit.CharacterTemplate.DisplayName} will take another turn"
-            );
+
+            $"BattleBrain: {unit.CharacterTemplate.DisplayName} will take another turn".LogInfo();
 
             return OperationResult.Successful();
         }
@@ -127,9 +126,8 @@ namespace Turnroot.Gameplay.Brain
 
             BattleObject.Context.Flags.ActiveUnitFlags.Unit = unit;
             BattleObject.Context.Flags.ActiveUnitFlags.CanFinishMovingAfterAction = true;
-            TurnrootLogger.Log(
-                $"BattleBrain: {unit.CharacterTemplate.DisplayName} can finish moving after action"
-            );
+
+            $"BattleBrain: {unit.CharacterTemplate.DisplayName} can finish moving after action".LogInfo();
             return OperationResult.Successful();
         }
 
@@ -148,9 +146,8 @@ namespace Turnroot.Gameplay.Brain
 
             BattleObject.Context.Flags.ActiveUnitFlags.WillCriticalHit = true;
             BattleObject.Context.Flags.ActiveUnitFlags.Unit = unit;
-            TurnrootLogger.Log(
-                $"BattleBrain: {unit.CharacterTemplate.DisplayName} will perform a critical hit"
-            );
+
+            $"BattleBrain: {unit.CharacterTemplate.DisplayName} will perform a critical hit".LogInfo();
             return OperationResult.Successful();
         }
 
@@ -167,9 +164,7 @@ namespace Turnroot.Gameplay.Brain
             int weaponIndex = inventory.GetEquippedWeaponIndex();
             if (weaponIndex == -1)
             {
-                TurnrootLogger.Log(
-                    $"BattleBrain: {unit.CharacterTemplate.DisplayName} has no equipped weapon"
-                );
+                $"BattleBrain: {unit.CharacterTemplate.DisplayName} has no equipped weapon".LogInfo();
                 return OperationResult.Failure(
                     "BattleBrain: Cannot change weapon uses - no equipped weapon"
                 );
@@ -186,9 +181,8 @@ namespace Turnroot.Gameplay.Brain
             if (usesChange > 0)
             {
                 equippedWeapon.Repair(usesChange);
-                TurnrootLogger.Log(
-                    $"BattleBrain: Restored {usesChange} uses to {unit.CharacterTemplate.DisplayName}'s weapon"
-                );
+
+                $"BattleBrain: Restored {usesChange} uses to {unit.CharacterTemplate.DisplayName}'s weapon".LogInfo();
             }
             else if (usesChange < 0)
             {
@@ -196,10 +190,10 @@ namespace Turnroot.Gameplay.Brain
                 {
                     equippedWeapon.Use();
                 }
-                TurnrootLogger.Log(
-                    $"BattleBrain: Reduced {Mathf.Abs(usesChange)} uses from {unit.CharacterTemplate.DisplayName}'s weapon"
-                );
+
+                $"BattleBrain: Reduced {Mathf.Abs(usesChange)} uses from {unit.CharacterTemplate.DisplayName}'s weapon".LogInfo();
             }
+
             return OperationResult.Successful();
         }
 
@@ -208,9 +202,7 @@ namespace Turnroot.Gameplay.Brain
             CharacterInstance target
         )
         {
-            TurnrootLogger.Log(
-                $"BattleBrain: {thief.CharacterTemplate.DisplayName} attempts to steal from {target.CharacterTemplate.DisplayName}"
-            );
+            $"BattleBrain: {thief.CharacterTemplate.DisplayName} attempts to steal from {target.CharacterTemplate.DisplayName}".LogInfo();
 
             // Get target's inventory
             var targetInventory = target.InventoryInstance;
@@ -282,9 +274,7 @@ namespace Turnroot.Gameplay.Brain
                 );
             }
 
-            TurnrootLogger.Log(
-                $"BattleBrain: {thief.CharacterTemplate.DisplayName} stole {bestItem.Template.name} from {target.CharacterTemplate.DisplayName}!"
-            );
+            $"BattleBrain: {thief.CharacterTemplate.DisplayName} stole {bestItem.Template.name} from {target.CharacterTemplate.DisplayName}!".LogInfo();
 
             // Publish transfer event
             _brain.inventoryBrain.TransferItem(bestItem, thiefInventory);

@@ -80,7 +80,7 @@ namespace Turnroot.UI.Components
                 var setTextResult = SetTextOnInstance(instance, action);
                 if (!setTextResult.Success)
                 {
-                    TurnrootLogger.Log(setTextResult.ErrorMessage, TurnrootLogger.LogLevel.Warning);
+                    setTextResult.ErrorMessage.LogWarning();
                 }
             }
 
@@ -104,3 +104,4 @@ namespace Turnroot.UI.Components
         }
     }
 }
+

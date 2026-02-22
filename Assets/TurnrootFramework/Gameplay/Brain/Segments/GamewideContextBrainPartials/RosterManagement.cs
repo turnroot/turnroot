@@ -18,10 +18,7 @@ namespace Turnroot.Gameplay.Brain
         {
             if (roster == null)
             {
-                TurnrootLogger.Log(
-                    "Cannot get/create null roster",
-                    TurnrootLogger.LogLevel.Warning
-                );
+                "Cannot get/create null roster".LogWarning();
                 return null;
             }
 
@@ -44,10 +41,7 @@ namespace Turnroot.Gameplay.Brain
         {
             if (roster == null)
             {
-                TurnrootLogger.Log(
-                    "Cannot get/create null player roster",
-                    TurnrootLogger.LogLevel.Warning
-                );
+                "Cannot get/create null player roster".LogWarning();
                 return null;
             }
 
@@ -109,3 +103,4 @@ namespace Turnroot.Gameplay.Brain
         #endregion
     }
 }
+

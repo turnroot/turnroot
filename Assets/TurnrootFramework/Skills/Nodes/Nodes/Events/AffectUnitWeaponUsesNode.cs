@@ -51,9 +51,8 @@ namespace Turnroot.Skills.Nodes.Events
 
             context.Brain.PublishWeaponUsesChanged(targetCharacter, change);
             string target = applyToUnit ? "unit" : "target";
-            TurnrootLogger.Log(
-                $"AffectUnitWeaponUses: Changed {target} ({targetCharacter.CharacterTemplate.DisplayName}) weapon uses by {change}"
-            );
+
+            $"AffectUnitWeaponUses: Changed {target} ({targetCharacter.CharacterTemplate.DisplayName}) weapon uses by {change}".LogInfo();
         }
     }
 }

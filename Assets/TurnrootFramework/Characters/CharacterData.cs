@@ -367,18 +367,14 @@ namespace Turnroot.Characters
             // Report consolidated results using TurnrootLogger to reduce spam
             if (errorList.Count > 0)
             {
-                TurnrootLogger.Log(
-                    $"{name}: Stat validation errors:\n{string.Join("\n", errorList)}",
-                    TurnrootLogger.LogLevel.Error
-                );
+
+                $"{name}: Stat validation errors:\n{string.Join("\n", errorList)}".LogError();
             }
 
             if (warningList.Count > 0)
             {
-                TurnrootLogger.Log(
-                    $"{name}: Stat validation warnings:\n{string.Join("\n", warningList)}\nConsider using 'Tools > Turnroot > Refresh Character Stats' or checking GameplayGeneralSettings.",
-                    TurnrootLogger.LogLevel.Warning
-                );
+
+                $"{name}: Stat validation warnings:\n{string.Join("\n", warningList)}\nConsider using 'Tools > Turnroot > Refresh Character Stats' or checking GameplayGeneralSettings.".LogWarning();
             }
         }
 #endif
@@ -514,3 +510,4 @@ namespace Turnroot.Characters
         }
     }
 }
+

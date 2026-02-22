@@ -47,9 +47,8 @@ namespace Turnroot.Skills.Nodes.Events
             );
 
 #if UNITY_EDITOR
-            TurnrootLogger.Log(
-                $"DealAdditionalDamage: Dealt {damage} damage to {affected} target(s)"
-            );
+
+            $"DealAdditionalDamage: Dealt {damage} damage to {affected} target(s)".LogInfo();
 #endif
         }
     }

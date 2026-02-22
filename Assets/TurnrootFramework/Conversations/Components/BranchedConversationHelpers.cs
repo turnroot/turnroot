@@ -40,10 +40,7 @@ namespace Turnroot.Conversations
             }
             catch (System.Exception ex)
             {
-                TurnrootLogger.Log(
-                    $"BranchedConversationHelpers.GetDataFromGraph: exception while parsing graph '{conversationGraph?.name}': {ex.GetType().Name} - {ex.Message}\n{ex.StackTrace}",
-                    TurnrootLogger.LogLevel.Error
-                );
+                $"BranchedConversationHelpers.GetDataFromGraph: exception while parsing graph '{conversationGraph?.name}': {ex.GetType().Name} - {ex.Message}\n{ex.StackTrace}".LogError();
                 return null;
             }
         }
@@ -339,3 +336,4 @@ namespace Turnroot.Conversations
         public string label;
     }
 }
+

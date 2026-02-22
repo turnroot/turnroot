@@ -54,9 +54,9 @@ namespace Turnroot.Gameplay.Brain
             }
 
             SaveBattleOutcomeStatistics();
-            TurnrootLogger.Log(
-                $"CharactersBrain: Recorded {exitType}. Total: W{BattlesWon}/L{BattlesLost}/R{BattlesRetreated}"
-            );
+
+            $"CharactersBrain: Recorded {exitType}. Total: W{BattlesWon}/L{BattlesLost}/R{BattlesRetreated}"
+        .LogInfo();
         }
 
         #endregion
@@ -67,7 +67,7 @@ namespace Turnroot.Gameplay.Brain
 
         private void HandleExitBattle(Combat.BattleExitType exitType)
         {
-            TurnrootLogger.Log($"CharactersBrain: Handling battle exit - {exitType}");
+            $"CharactersBrain: Handling battle exit - {exitType}".LogInfo();
             RecordBattleOutcome(exitType);
 
             if (exitType is Combat.BattleExitType.Victory or Combat.BattleExitType.Bookmark)
@@ -164,7 +164,7 @@ namespace Turnroot.Gameplay.Brain
             {
                 instance?.ResetBattleStats();
             }
-            TurnrootLogger.Log("CharactersBrain: Reset battle statistics");
+            "CharactersBrain: Reset battle statistics".LogInfo();
         }
 
         private void SaveBattleParticipantsProgress()
@@ -186,7 +186,7 @@ namespace Turnroot.Gameplay.Brain
                 }
             }
 
-            TurnrootLogger.Log($"CharactersBrain: Saved {savedCount} unique characters");
+            $"CharactersBrain: Saved {savedCount} unique characters".LogInfo();
         }
 
         private List<CharacterInstance> GetAllBattleCharacters()
@@ -220,3 +220,4 @@ namespace Turnroot.Gameplay.Brain
         #endregion
     }
 }
+

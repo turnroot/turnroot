@@ -203,10 +203,7 @@ namespace Turnroot.Gameplay.Brain.Events
             // Log summary if there were exceptions
             if (nonCriticalExceptions != null && nonCriticalExceptions.Count > 0)
             {
-                TurnrootLogger.Log(
-                    $"[PriorityEventBus] {nonCriticalExceptions.Count} exception(s) occurred during event {typeof(T).Name} processing.",
-                    TurnrootLogger.LogLevel.Warning
-                );
+                $"[PriorityEventBus] {nonCriticalExceptions.Count} exception(s) occurred during event {typeof(T).Name} processing.".LogWarning();
             }
         }
 
@@ -441,3 +438,4 @@ namespace Turnroot.Gameplay.Brain.Events
         #endregion
     }
 }
+

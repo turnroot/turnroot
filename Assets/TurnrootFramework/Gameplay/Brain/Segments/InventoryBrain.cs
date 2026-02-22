@@ -127,7 +127,7 @@ namespace Turnroot.Gameplay.Brain
             if (remainingUses == 0)
             {
                 Brain.PublishItemBroken(item);
-                TurnrootLogger.Log($"{item.Template.name} has broken!");
+                $"{item.Template.name} has broken!".LogInfo();
             }
 
             return remainingUses;
@@ -417,3 +417,4 @@ namespace Turnroot.Gameplay.Brain
         #endregion
     }
 }
+

@@ -1,15 +1,38 @@
-using DG.Tweening;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace Turnroot.AbstractScripts.Graphics2D
 {
     /// <summary>
-    /// Utility methods for 2D graphics operations including image manipulation, sprite swapping, and DOTween animations.
+    /// Utility methods for 2D graphics operations including image manipulation, sprite swapping, and simple coroutine-based animations.
     /// </summary>
     public static class Graphics2DUtils
     {
-        // Kill tweens on images and reset alpha
+        /// <summary>
+        /// Reduced set of easing types that were previously provided by DOTween.
+        /// </summary>
+        public enum Ease
+        {
+            Linear,
+            InOutSine,
+            OutCubic,
+        }
+
+        private static float EvaluateEase(Ease ease, float t)
+        {
+            switch (ease)
+            {
+                case Ease.InOutSine:
+                    // -(cos(pi*t) - 1) / 2
+                    return -(Mathf.Cos(Mathf.PI * t) - 1f) * 0.5f;
+                case Ease.OutCubic:
+                    return 1f - Mathf.Pow(1f - t, 3f);
+                default:
+                    return t;
+            }
+        }
+
         public static void KillImageTweens(params Image[] images)
         {
             foreach (var img in images)
@@ -19,7 +42,6 @@ namespace Turnroot.AbstractScripts.Graphics2D
                     continue;
                 }
 
-                img.DOKill();
                 var c = img.color;
                 c.a = 1f;
                 img.color = c;
@@ -56,8 +78,9 @@ namespace Turnroot.AbstractScripts.Graphics2D
         }
 
         // Crossfade swap using overlays. Underlying sprites are swapped immediately,
-        // then overlays fade out over crossfadeDuration.
-        public static Tween CrossfadeSwap(
+        // then overlays fade out over crossfadeDuration.  Caller should start the
+        // returned IEnumerator via MonoBehaviour.StartCoroutine.
+        public static IEnumerator CrossfadeSwapCoroutine(
             Image a,
             Image b,
             float crossfadeDuration,
@@ -67,7 +90,7 @@ namespace Turnroot.AbstractScripts.Graphics2D
         {
             if (a == null || b == null)
             {
-                return DOVirtual.DelayedCall(0f, () => { }).SetId(runId);
+                yield break;
             }
 
             // create overlays
@@ -114,19 +137,32 @@ namespace Turnroot.AbstractScripts.Graphics2D
             b.sprite = tmp;
 
             // fade overlays out together
-            var seq = DOTween.Sequence();
-            seq.Append(imgA.DOFade(0f, crossfadeDuration).SetEase(ease));
-            seq.Join(imgB.DOFade(0f, crossfadeDuration).SetEase(ease));
-            seq.OnComplete(() =>
+            float elapsed = 0f;
+            Color cA = imgA.color;
+            Color cB = imgB.color;
+            while (elapsed < crossfadeDuration)
             {
-                // cleanup overlays
-                Object.Destroy(overlayA);
-                Object.Destroy(overlayB);
-            });
-            return seq.SetId(runId);
+                elapsed += Time.deltaTime;
+                float t = EvaluateEase(ease, Mathf.Clamp01(elapsed / crossfadeDuration));
+                float alpha = Mathf.Lerp(1f, 0f, t);
+                cA.a = alpha;
+                imgA.color = cA;
+                cB.a = alpha;
+                imgB.color = cB;
+                yield return null;
+            }
+
+            // ensure final state
+            cA.a = 0f;
+            imgA.color = cA;
+            cB.a = 0f;
+            imgB.color = cB;
+
+            Object.Destroy(overlayA);
+            Object.Destroy(overlayB);
         }
 
-        public static Tween CreateTintSequence(
+        public static IEnumerator TintCoroutine(
             Image activeImg,
             Image inactiveImg,
             Color activeColor,
@@ -138,77 +174,95 @@ namespace Turnroot.AbstractScripts.Graphics2D
         {
             if (activeImg == null && inactiveImg == null)
             {
-                return DOVirtual.DelayedCall(0f, () => { }).SetId(runId);
+                yield break;
             }
 
             if (duration <= 0f)
             {
-                return DOVirtual
-                    .DelayedCall(
-                        0f,
-                        () =>
-                        {
-                            if (activeImg != null)
-                            {
-                                activeImg.color = activeColor;
-                            }
-
-                            if (inactiveImg != null)
-                            {
-                                inactiveImg.color = inactiveColor;
-                            }
-                        }
-                    )
-                    .SetId(runId);
-            }
-
-            var seq = DOTween.Sequence();
-            seq.AppendCallback(() =>
-            {
                 if (activeImg != null)
                 {
-                    var c = activeImg.color;
-                    c.a = 1f;
-                    activeImg.color = c;
+                    activeImg.color = activeColor;
                 }
+
                 if (inactiveImg != null)
                 {
-                    var c2 = inactiveImg.color;
-                    c2.a = 1f;
-                    inactiveImg.color = c2;
+                    inactiveImg.color = inactiveColor;
                 }
-            });
+
+                yield break;
+            }
+
+            // ensure starting alpha is opaque
+            if (activeImg != null)
+            {
+                var c = activeImg.color;
+                c.a = 1f;
+                activeImg.color = c;
+            }
+            if (inactiveImg != null)
+            {
+                var c2 = inactiveImg.color;
+                c2.a = 1f;
+                inactiveImg.color = c2;
+            }
+
+            float elapsed = 0f;
+            Color startA = activeImg != null ? activeImg.color : Color.clear;
+            Color startI = inactiveImg != null ? inactiveImg.color : Color.clear;
+
+            while (elapsed < duration)
+            {
+                elapsed += Time.deltaTime;
+                float t = EvaluateEase(ease, Mathf.Clamp01(elapsed / duration));
+                if (activeImg != null)
+                {
+                    activeImg.color = Color.Lerp(startA, activeColor, t);
+                }
+                if (inactiveImg != null && inactiveImg.enabled)
+                {
+                    inactiveImg.color = Color.Lerp(startI, inactiveColor, t);
+                }
+                yield return null;
+            }
 
             if (activeImg != null)
             {
-                seq.Append(activeImg.DOColor(activeColor, duration).SetEase(ease));
+                activeImg.color = activeColor;
             }
-
             if (inactiveImg != null && inactiveImg.enabled)
             {
-                seq.Join(inactiveImg.DOColor(inactiveColor, duration).SetEase(ease));
+                inactiveImg.color = inactiveColor;
             }
-
-            return seq.SetId(runId);
         }
 
-        public static Tween CreateHideTween(Image img, float duration, Ease ease, int runId)
+        public static IEnumerator HideCoroutine(Image img, float duration, Ease ease, int runId)
         {
-            return img == null ? DOVirtual.DelayedCall(0f, () => { }).SetId(runId)
-                : duration <= 0f
-                    ? DOVirtual
-                        .DelayedCall(
-                            0f,
-                            () =>
-                            {
-                                img.enabled = false;
-                            }
-                        )
-                        .SetId(runId)
-                : img.DOFade(0f, duration)
-                    .SetEase(ease)
-                    .OnComplete(() => img.enabled = false)
-                    .SetId(runId);
+            if (img == null)
+            {
+                yield break;
+            }
+
+            if (duration <= 0f)
+            {
+                img.enabled = false;
+                yield break;
+            }
+
+            float elapsed = 0f;
+            Color c = img.color;
+            float startAlpha = c.a;
+            while (elapsed < duration)
+            {
+                elapsed += Time.deltaTime;
+                float t = EvaluateEase(ease, Mathf.Clamp01(elapsed / duration));
+                c.a = Mathf.Lerp(startAlpha, 0f, t);
+                img.color = c;
+                yield return null;
+            }
+
+            c.a = 0f;
+            img.color = c;
+            img.enabled = false;
         }
     }
 }

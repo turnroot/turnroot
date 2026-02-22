@@ -46,9 +46,10 @@ namespace Turnroot.Skills.Nodes.Events
             }
 
             context.Brain.PublishItemStolen(context.Unit.UnitInstance, target);
-            TurnrootLogger.Log(
-                $"Steal: {context.Unit.UnitInstance.CharacterTemplate.DisplayName} attempted to steal {itemType} from {target.CharacterTemplate.DisplayName}"
-            );
+
+            $"Steal: {context.Unit.UnitInstance.CharacterTemplate.DisplayName} attempted to steal {itemType} from {target.CharacterTemplate.DisplayName}"
+        .LogInfo();
         }
     }
 }
+

@@ -58,10 +58,7 @@ namespace Turnroot.Characters.CharacterClass
                 if (!exists)
                 {
                     owner.AddSkill(skill);
-                    TurnrootLogger.Log(
-                        $"{owner.CharacterTemplate?.DisplayName ?? owner.Id}: unlocked mastery skill '{skill.SkillName}' from class '{classData?.GetClassName() ?? "<unknown>"}'",
-                        TurnrootLogger.LogLevel.Info
-                    );
+                    $"{owner.CharacterTemplate?.DisplayName ?? owner.Id}: unlocked mastery skill '{skill.SkillName}' from class '{classData?.GetClassName() ?? "<unknown>"}'".LogInfo();
                 }
             }
 
@@ -137,3 +134,4 @@ namespace Turnroot.Characters.CharacterClass
         }
     }
 }
+

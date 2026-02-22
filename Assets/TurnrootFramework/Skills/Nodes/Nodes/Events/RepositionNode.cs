@@ -43,10 +43,7 @@ namespace Turnroot.Skills.Nodes.Events
             var ally = context.Participants.AdjacentUnits.GetUnit(allyDirection);
             if (ally == null)
             {
-                TurnrootLogger.Log(
-                    $"Reposition: No unit at {allyDirection}",
-                    TurnrootLogger.LogLevel.Warning
-                );
+                $"Reposition: No unit at {allyDirection}".LogWarning();
                 return;
             }
 
@@ -60,9 +57,9 @@ namespace Turnroot.Skills.Nodes.Events
 
             context.SetCustomData("Reposition", repositionData);
 
-            TurnrootLogger.Log(
-                $"Reposition: Will move ally from {allyDirection} to {moveDirection} relative to caster"
-            );
+
+            $"Reposition: Will move ally from {allyDirection} to {moveDirection} relative to caster"
+        .LogInfo();
         }
     }
 
@@ -78,3 +75,5 @@ namespace Turnroot.Skills.Nodes.Events
         Swap, // Swap positions with ally
     }
 }
+
+

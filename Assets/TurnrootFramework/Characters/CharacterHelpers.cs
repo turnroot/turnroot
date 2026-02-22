@@ -31,10 +31,7 @@ namespace Turnroot.Characters
                 }
                 else
                 {
-                    TurnrootLogger.Log(
-                        "CharacterHelpers.CloneBoundedStats: encountered null stat in source list",
-                        TurnrootLogger.LogLevel.Warning
-                    );
+                    "CharacterHelpers.CloneBoundedStats: encountered null stat in source list".LogWarning();
                 }
             }
 
@@ -58,10 +55,7 @@ namespace Turnroot.Characters
                 }
                 else
                 {
-                    TurnrootLogger.Log(
-                        "CharacterHelpers.CloneUnboundedStats: encountered null stat in source list",
-                        TurnrootLogger.LogLevel.Warning
-                    );
+                    "CharacterHelpers.CloneUnboundedStats: encountered null stat in source list".LogWarning();
                 }
             }
 
@@ -123,10 +117,7 @@ namespace Turnroot.Characters
         {
             if (portraits == null)
             {
-                TurnrootLogger.Log(
-                    "CharacterHelpers: No default portrait because no portraits found",
-                    TurnrootLogger.LogLevel.Warning
-                );
+                "CharacterHelpers: No default portrait because no portraits found".LogWarning();
                 return null;
             }
 
@@ -143,3 +134,4 @@ namespace Turnroot.Characters
         }
     }
 }
+

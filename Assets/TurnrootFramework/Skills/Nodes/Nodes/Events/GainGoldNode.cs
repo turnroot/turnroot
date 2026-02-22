@@ -32,7 +32,8 @@ namespace Turnroot.Skills.Nodes.Events
 
             context.Brain.PublishGoldGained(gold);
 
-            TurnrootLogger.Log($"GainGold: Player gained {gold} gold");
+            $"GainGold: Player gained {gold} gold".LogInfo();
         }
     }
 }
+

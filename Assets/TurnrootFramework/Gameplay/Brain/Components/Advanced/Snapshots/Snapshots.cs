@@ -231,10 +231,7 @@ namespace Turnroot.Gameplay.Brain.Snapshots
                 else
                 {
                     // Unit was captured previously but is missing now (was removed); skip to avoid null refs.
-                    TurnrootLogger.Log(
-                        $"[Snapshot] Skipping restore for unit {unitId} - not present in current battle",
-                        TurnrootLogger.LogLevel.Warning
-                    );
+                    $"[Snapshot] Skipping restore for unit {unitId} - not present in current battle".LogWarning();
                 }
             }
 
@@ -272,19 +269,15 @@ namespace Turnroot.Gameplay.Brain.Snapshots
                         }
                         catch (Exception ex)
                         {
-                            TurnrootLogger.Log(
-                                $"[Snapshot] Failed to remove spawned unit {u.Id}: {ex.Message}",
-                                TurnrootLogger.LogLevel.Warning
-                            );
+                            $"[Snapshot] Failed to remove spawned unit {u.Id}: {ex.Message}".LogWarning();
                         }
                     }
                 }
             }
 
             OnSnapshotRestored?.Invoke(snapshot);
-            TurnrootLogger.Log(
-                $"[Snapshot] Restored turn {snapshot.TurnNumber}, ID: {snapshot.Id}"
-            );
+
+            $"[Snapshot] Restored turn {snapshot.TurnNumber}, ID: {snapshot.Id}".LogInfo();
             return true;
         }
 

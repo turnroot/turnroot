@@ -111,10 +111,7 @@ namespace Turnroot.Gameplay.Objects.Components
             var canForgeResult = CanForge(storehouseBrain, option);
             if (!canForgeResult.Success)
             {
-                TurnrootLogger.Log(
-                    $"ForgeItem failed: {canForgeResult.ErrorMessage}",
-                    TurnrootLogger.LogLevel.Warning
-                );
+                $"ForgeItem failed: {canForgeResult.ErrorMessage}".LogWarning();
                 return canForgeResult;
             }
 
@@ -122,10 +119,7 @@ namespace Turnroot.Gameplay.Objects.Components
             var spendGoldResult = storehouseBrain.SpendGold(option.Price);
             if (!spendGoldResult.Success)
             {
-                TurnrootLogger.Log(
-                    $"ForgeItem failed: {spendGoldResult.ErrorMessage}",
-                    TurnrootLogger.LogLevel.Warning
-                );
+                $"ForgeItem failed: {spendGoldResult.ErrorMessage}".LogWarning();
                 return spendGoldResult;
             }
 
@@ -137,13 +131,11 @@ namespace Turnroot.Gameplay.Objects.Components
 
             if (!useMaterialsResult.Success)
             {
-                TurnrootLogger.Log(
-                    $"ForgeItem failed: {useMaterialsResult.ErrorMessage}",
-                    TurnrootLogger.LogLevel.Warning
-                );
+                $"ForgeItem failed: {useMaterialsResult.ErrorMessage}".LogWarning();
                 return useMaterialsResult;
             }
             return OperationResult.Successful();
         }
     }
 }
+

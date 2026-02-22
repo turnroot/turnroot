@@ -66,9 +66,10 @@ namespace Turnroot.Skills.Nodes.Events
                 }
             );
 
-            TurnrootLogger.Log(
-                $"DealDebuffAreaOfEffect: Applied {debuffType.DisplayName} debuff to {affectedCount} enemies in {radius} tile radius"
-            );
+
+            $"DealDebuffAreaOfEffect: Applied {debuffType.DisplayName} debuff to {affectedCount} enemies in {radius} tile radius"
+        .LogInfo();
         }
     }
 }
+

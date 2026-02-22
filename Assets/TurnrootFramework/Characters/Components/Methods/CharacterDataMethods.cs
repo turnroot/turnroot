@@ -126,10 +126,7 @@ namespace Turnroot.Characters
                 var removed = SupportRelationship.SanitizeForCharacter(this, SupportRelationships);
                 foreach (var r in removed)
                 {
-                    TurnrootLogger.Log(
-                        $"Removed invalid support relationship: {name} cannot have a support relationship with themselves ({r.Character?.name})",
-                        TurnrootLogger.LogLevel.Warning
-                    );
+                    $"Removed invalid support relationship: {name} cannot have a support relationship with themselves ({r.Character?.name})".LogWarning();
                 }
             }
 
@@ -138,10 +135,7 @@ namespace Turnroot.Characters
             {
                 if (AdditionalBonesMask == null)
                 {
-                    TurnrootLogger.Log(
-                        $"{name}: 'HasExtraBoneLayer' is true but 'AdditionalBonesMask' is not set. This may cause Animator layering misconfiguration.",
-                        TurnrootLogger.LogLevel.Warning
-                    );
+                    $"{name}: 'HasExtraBoneLayer' is true but 'AdditionalBonesMask' is not set. This may cause Animator layering misconfiguration.".LogWarning();
                 }
 
                 if (
@@ -149,12 +143,10 @@ namespace Turnroot.Characters
                     && AdditionalBonesMask == null
                 )
                 {
-                    TurnrootLogger.Log(
-                        $"{name}: No additional bone names or AvatarMask were provided for the extra bone layer. Add names or an AvatarMask for tooling/runtime mapping.",
-                        TurnrootLogger.LogLevel.Warning
-                    );
+                    $"{name}: No additional bone names or AvatarMask were provided for the extra bone layer. Add names or an AvatarMask for tooling/runtime mapping.".LogWarning();
                 }
             }
         }
     }
 }
+

@@ -97,9 +97,9 @@ namespace Turnroot.Gameplay.Brain
                 return;
             }
             character.GetAvailableWeapons();
-            TurnrootLogger.Log(
-                $"CharactersBrain: Updated weapon cache for {character.Id} after equip."
-            );
+
+            $"CharactersBrain: Updated weapon cache for {character.Id} after equip."
+        .LogInfo();
         }
 
         private void HandleItemUnequipped(
@@ -112,9 +112,9 @@ namespace Turnroot.Gameplay.Brain
                 return;
             }
             character.GetAvailableWeapons();
-            TurnrootLogger.Log(
-                $"CharactersBrain: Updated weapon cache for {character.Id} after unequip."
-            );
+
+            $"CharactersBrain: Updated weapon cache for {character.Id} after unequip."
+        .LogInfo();
         }
         #endregion
 
@@ -181,9 +181,9 @@ namespace Turnroot.Gameplay.Brain
 
             character.AddExperience(experienceTypeId, amount);
             Brain.PublishExperienceGained(character, experienceTypeId, amount);
-            TurnrootLogger.Log(
-                $"{character.CharacterTemplate?.DisplayName} gained {amount} {experienceTypeId} XP"
-            );
+
+            $"{character.CharacterTemplate?.DisplayName} gained {amount} {experienceTypeId} XP"
+        .LogInfo();
         }
         #endregion
 
@@ -382,9 +382,9 @@ namespace Turnroot.Gameplay.Brain
 
             if (migrated > 0)
             {
-                TurnrootLogger.Log(
-                    $"CharactersBrain: Migrated {migrated} DefaultStat keys to use FullName"
-                );
+
+                $"CharactersBrain: Migrated {migrated} DefaultStat keys to use FullName"
+            .LogInfo();
             }
 
             _migrationPerformed = true;
@@ -414,3 +414,4 @@ namespace Turnroot.Gameplay.Brain
         #endregion
     }
 }
+

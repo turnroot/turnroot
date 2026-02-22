@@ -29,7 +29,7 @@ namespace Turnroot.Characters.CharacterClass
 
             // Validate class visuals (mesh/prefab contain required blendshapes)
 #if UNITY_EDITOR
-            ValidateClassVisuals();
+            this.ValidateClassVisuals();
 #endif
         }
 
@@ -109,10 +109,7 @@ namespace Turnroot.Characters.CharacterClass
             }
             else if (list.Count != defaultList.Count)
             {
-                TurnrootLogger.Log(
-                    $"{name}: {listName} count ({list.Count}) doesn't match project default stat count ({defaultList.Count}). This may cause issues.",
-                    TurnrootLogger.LogLevel.Warning
-                );
+                $"{name}: {listName} count ({list.Count}) doesn't match project default stat count ({defaultList.Count}). This may cause issues.".LogWarning();
             }
         }
 
@@ -136,10 +133,7 @@ namespace Turnroot.Characters.CharacterClass
             }
             else if (list.Count != defaultList.Count)
             {
-                TurnrootLogger.Log(
-                    $"{name}: {listName} count ({list.Count}) doesn't match project default stat count ({defaultList.Count}). This may cause issues.",
-                    TurnrootLogger.LogLevel.Warning
-                );
+                $"{name}: {listName} count ({list.Count}) doesn't match project default stat count ({defaultList.Count}). This may cause issues.".LogWarning();
             }
         }
 
@@ -156,18 +150,12 @@ namespace Turnroot.Characters.CharacterClass
                 == GameplayGeneralSettings.ClassSelectionMode.RequirementBased
             )
             {
-                TurnrootLogger.Log(
-                    $"{name}: PromotionPaths are configured but project ClassSelection mode is RequirementBased — promotion paths will be ignored at runtime.",
-                    TurnrootLogger.LogLevel.Warning
-                );
+                $"{name}: PromotionPaths are configured but project ClassSelection mode is RequirementBased — promotion paths will be ignored at runtime.".LogWarning();
             }
 
             if (Requirements.PromotionPaths.Contains(this))
             {
-                TurnrootLogger.Log(
-                    $"{name}: Class cannot have itself in its promotion paths. This creates a cycle.",
-                    TurnrootLogger.LogLevel.Warning
-                );
+                $"{name}: Class cannot have itself in its promotion paths. This creates a cycle.".LogWarning();
             }
 
             // Check for simple 2-step cycles (A -> B -> A)
@@ -179,10 +167,7 @@ namespace Turnroot.Characters.CharacterClass
                     && promotion.Requirements.PromotionPaths.Contains(this)
                 )
                 {
-                    TurnrootLogger.Log(
-                        $"{name}: Detected circular promotion path with {promotion.Identity.ClassName}. This may cause issues.",
-                        TurnrootLogger.LogLevel.Warning
-                    );
+                    $"{name}: Detected circular promotion path with {promotion.Identity.ClassName}. This may cause issues.".LogWarning();
                 }
             }
         }
@@ -268,10 +253,7 @@ namespace Turnroot.Characters.CharacterClass
 
                     Identity.ClassName = candidate;
                     UnityEditor.EditorUtility.SetDirty(this);
-                    TurnrootLogger.Log(
-                        $"{name}: ClassName '{original}' already exists. Renamed to '{candidate}' to ensure uniqueness.",
-                        TurnrootLogger.LogLevel.Warning
-                    );
+                    $"{name}: ClassName '{original}' already exists. Renamed to '{candidate}' to ensure uniqueness.".LogWarning();
                     return;
                 }
             }

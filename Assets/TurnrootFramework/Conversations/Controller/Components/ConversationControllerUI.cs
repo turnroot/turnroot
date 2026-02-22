@@ -1,8 +1,9 @@
-using DG.Tweening;
+using System.Collections;
 using TMPro;
 using Turnroot.AbstractScripts.Graphics2D;
 using UnityEngine;
 using UnityEngine.UI;
+using Ease = Turnroot.AbstractScripts.Graphics2D.Graphics2DUtils.Ease;
 
 namespace Turnroot.Conversations
 {
@@ -56,7 +57,7 @@ namespace Turnroot.Conversations
 
             if (_tweenRunId != 0)
             {
-                DOTween.Kill(_tweenRunId);
+                CancelActiveTweens();
             }
 
             KillImageTweens(_speakerPortraitImageActive, _speakerPortraitImageInactive);
@@ -168,85 +169,111 @@ namespace Turnroot.Conversations
                 ? layer.SecondaryPortraitTint
                 : layer.PrimaryPortraitTint;
 
+            var ease = GfxSettings?.PortraitTransitionEase ?? Ease.OutCubic;
+
             switch (behavior)
             {
                 case SecondaryConversationPortraitInactiveBehavior.Hide:
-                    CreateHideTween(inactiveImg, duration).Play();
+                    StartTween(
+                        Graphics2DUtils.HideCoroutine(inactiveImg, duration, ease, _tweenRunId)
+                    );
                     break;
                 case SecondaryConversationPortraitInactiveBehavior.Tint:
-                    CreateTintSequence(
+                    StartTween(
+                        Graphics2DUtils.TintCoroutine(
                             activeImg,
                             inactiveImg,
                             targetActiveColor,
                             targetInactiveColor,
-                            duration
+                            duration,
+                            ease,
+                            _tweenRunId
                         )
-                        .Play();
+                    );
                     break;
                 case SecondaryConversationPortraitInactiveBehavior.Swap:
-                    CreateSwapSequence(
+                    StartTween(
+                        Graphics2DUtils.CrossfadeSwapCoroutine(
                             _speakerPortraitImageActive,
                             _speakerPortraitImageInactive,
-                            duration
+                            GfxSettings?.SwapCrossfade ?? 0.4f,
+                            ease,
+                            _tweenRunId
                         )
-                        .Play();
+                    );
                     break;
                 case SecondaryConversationPortraitInactiveBehavior.TintAndSwap:
-                    CreateTintAndSwapSequence(
-                        activeImg,
-                        inactiveImg,
-                        targetActiveColor,
-                        targetInactiveColor,
-                        duration
+                    StartTween(
+                        TintAndSwapRoutine(
+                            activeImg,
+                            inactiveImg,
+                            targetActiveColor,
+                            targetInactiveColor,
+                            duration,
+                            ease
+                        )
                     );
                     break;
                 case SecondaryConversationPortraitInactiveBehavior.SwapAndHide:
-                    CreateSwapAndHideSequence(duration);
+                    StartTween(SwapAndHideRoutine(duration, ease));
                     break;
                 case SecondaryConversationPortraitInactiveBehavior.None:
-                    CreateTintSequence(activeImg, inactiveImg, Color.white, Color.white, duration)
-                        .Play();
+                    StartTween(
+                        Graphics2DUtils.TintCoroutine(
+                            activeImg,
+                            inactiveImg,
+                            Color.white,
+                            Color.white,
+                            duration,
+                            ease,
+                            _tweenRunId
+                        )
+                    );
                     break;
             }
         }
 
-        private void CreateSwapSequenceWithFollowUp(Tween followUp)
-        {
-            var runId = _tweenRunId;
-            DOTween
-                .Sequence()
-                .AppendCallback(() =>
-                {
-                    if (runId != _tweenRunId)
-                    {
-                        return;
-                    }
-
-                    (_speakerPortraitImageActive.sprite, _speakerPortraitImageInactive.sprite) = (
-                        _speakerPortraitImageInactive.sprite,
-                        _speakerPortraitImageActive.sprite
-                    );
-                })
-                .Append(followUp)
-                .SetId(_tweenRunId)
-                .Play();
-        }
-
-        private void CreateTintAndSwapSequence(
+        private IEnumerator TintAndSwapRoutine(
             Image activeImg,
             Image inactiveImg,
             Color activeColor,
             Color inactiveColor,
-            float duration
-        ) =>
-            CreateSwapSequenceWithFollowUp(
-                CreateTintSequence(activeImg, inactiveImg, activeColor, inactiveColor, duration)
+            float duration,
+            Ease ease
+        )
+        {
+            // perform swap immediately
+            (_speakerPortraitImageActive.sprite, _speakerPortraitImageInactive.sprite) = (
+                _speakerPortraitImageInactive.sprite,
+                _speakerPortraitImageActive.sprite
             );
 
-        private void CreateSwapAndHideSequence(float duration) =>
-            CreateSwapSequenceWithFollowUp(
-                CreateHideTween(_speakerPortraitImageInactive, duration)
+            // then run tint animation on provided images
+            yield return Graphics2DUtils.TintCoroutine(
+                activeImg,
+                inactiveImg,
+                activeColor,
+                inactiveColor,
+                duration,
+                ease,
+                _tweenRunId
             );
+        }
+
+        private IEnumerator SwapAndHideRoutine(float duration, Ease ease)
+        {
+            (_speakerPortraitImageActive.sprite, _speakerPortraitImageInactive.sprite) = (
+                _speakerPortraitImageInactive.sprite,
+                _speakerPortraitImageActive.sprite
+            );
+
+            yield return Graphics2DUtils.HideCoroutine(
+                _speakerPortraitImageInactive,
+                duration,
+                ease,
+                _tweenRunId
+            );
+        }
 
         private void ClearChoiceButtons()
         {
@@ -327,39 +354,6 @@ namespace Turnroot.Conversations
             {
                 Graphics2DUtils.KillImageTweens(images);
             }
-        }
-
-        private Tween CreateTintSequence(
-            Image activeImg,
-            Image inactiveImg,
-            Color activeColor,
-            Color inactiveColor,
-            float duration
-        )
-        {
-            var ease = GfxSettings?.PortraitTransitionEase ?? Ease.OutCubic;
-            return Graphics2DUtils.CreateTintSequence(
-                activeImg,
-                inactiveImg,
-                activeColor,
-                inactiveColor,
-                duration,
-                ease,
-                _tweenRunId
-            );
-        }
-
-        private Tween CreateSwapSequence(Image a, Image b, float duration)
-        {
-            var swapCross = GfxSettings?.SwapCrossfade ?? 0.4f;
-            var ease = GfxSettings?.PortraitTransitionEase ?? Ease.OutCubic;
-            return Graphics2DUtils.CrossfadeSwap(a, b, swapCross, ease, _tweenRunId);
-        }
-
-        private Tween CreateHideTween(Image img, float duration)
-        {
-            var ease = GfxSettings?.PortraitTransitionEase ?? Ease.OutCubic;
-            return Graphics2DUtils.CreateHideTween(img, duration, ease, _tweenRunId);
         }
     }
 }

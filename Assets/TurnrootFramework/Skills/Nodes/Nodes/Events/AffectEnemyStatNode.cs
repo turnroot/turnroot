@@ -49,9 +49,10 @@ namespace Turnroot.Skills.Nodes.Events
             if (shouldAffectAll && affected > 0)
             {
 #if UNITY_EDITOR
-                TurnrootLogger.Log($"AffectEnemyStat: Affected {affected} enemies");
+                $"AffectEnemyStat: Affected {affected} enemies".LogInfo();
 #endif
             }
         }
     }
 }
+

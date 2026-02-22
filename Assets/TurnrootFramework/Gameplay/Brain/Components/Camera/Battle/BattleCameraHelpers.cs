@@ -277,10 +277,7 @@ namespace Turnroot.Gameplay.Brain.Segments
                 }
                 else
                 {
-                    TurnrootLogger.Log(
-                        "[CAMERA] BattleObject is null; cannot initialize BattleMapCamera neutral center",
-                        TurnrootLogger.LogLevel.Warning
-                    );
+                    "[CAMERA] BattleObject is null; cannot initialize BattleMapCamera neutral center".LogWarning();
                 }
 
                 if (_battleMapCamera == null)
@@ -335,10 +332,7 @@ namespace Turnroot.Gameplay.Brain.Segments
             var battleObject = Brain?.battleBrain.BattleObject;
             if (battleObject == null)
             {
-                TurnrootLogger.Log(
-                    "[CAMERA] HandleBattleStarted: BattleObject is null",
-                    TurnrootLogger.LogLevel.Warning
-                );
+                "[CAMERA] HandleBattleStarted: BattleObject is null".LogWarning();
                 return;
             }
 
@@ -350,10 +344,7 @@ namespace Turnroot.Gameplay.Brain.Segments
 
             if (_battleMapCamera == null || mapGrid == null)
             {
-                TurnrootLogger.Log(
-                    "[CAMERA] HandleBattleStarted: camera or map grid not available",
-                    TurnrootLogger.LogLevel.Warning
-                );
+                "[CAMERA] HandleBattleStarted: camera or map grid not available".LogWarning();
                 return;
             }
 
@@ -361,9 +352,9 @@ namespace Turnroot.Gameplay.Brain.Segments
             var placements = playerRoster?.GetPlacements();
             if (placements == null || placements.Length == 0)
             {
-                TurnrootLogger.Log(
-                    "[CAMERA] HandleBattleStarted: no player placements found, falling back to neutral center"
-                );
+
+                "[CAMERA] HandleBattleStarted: no player placements found, falling back to neutral center"
+            .LogInfo();
                 var center = SetBattleGridCameraNeutralCenter();
                 Brain.PublishCursorMoveRequested(center);
                 ComputeTargetPosition(center);
@@ -373,9 +364,9 @@ namespace Turnroot.Gameplay.Brain.Segments
                     _battleMapCamera.transform.position = _targetCameraPosition;
                 }
                 _shouldMove = true;
-                TurnrootLogger.Log(
-                    $"[CAMERA] Requested cursor move and starting camera follow for center {center}"
-                );
+
+                $"[CAMERA] Requested cursor move and starting camera follow for center {center}"
+            .LogInfo();
                 return;
             }
 
@@ -407,9 +398,9 @@ namespace Turnroot.Gameplay.Brain.Segments
                 _battleMapCamera.transform.position = _targetCameraPosition;
             }
             _shouldMove = true;
-            TurnrootLogger.Log(
-                $"[CAMERA] Requested cursor move and starting camera follow for {targetPos}"
-            );
+
+            $"[CAMERA] Requested cursor move and starting camera follow for {targetPos}"
+        .LogInfo();
         }
 
         private void HandleCursorMoved(Vector2Int gridPos)
@@ -486,3 +477,4 @@ namespace Turnroot.Gameplay.Brain.Segments
         }
     }
 }
+

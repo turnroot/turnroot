@@ -56,10 +56,7 @@ namespace Turnroot.Gameplay.Combat.PreBattle
 
             if (PlayerTeamSpawnPoints == null || PlayerTeamSpawnPoints.Count == 0)
             {
-                TurnrootLogger.Log(
-                    "BattlePreparationObject.Initialize: PlayerTeamSpawnPoints is empty or missing. Verify the map's spawn point data.",
-                    TurnrootLogger.LogLevel.Warning
-                );
+                "BattlePreparationObject.Initialize: PlayerTeamSpawnPoints is empty or missing. Verify the map's spawn point data.".LogWarning();
             }
 
             // Copy MaxPlayerTeamUnits and RequiredPlayerUnits from a BattleGameObject when available.
@@ -257,10 +254,7 @@ namespace Turnroot.Gameplay.Combat.PreBattle
             }
             catch (System.Exception ex)
             {
-                TurnrootLogger.Log(
-                    $"SafePublishPlacementsSync: PublishPlacementsSyncRequested failed: {ex.Message}",
-                    TurnrootLogger.LogLevel.Warning
-                );
+                $"SafePublishPlacementsSync: PublishPlacementsSyncRequested failed: {ex.Message}".LogWarning();
             }
         }
 
@@ -329,10 +323,7 @@ namespace Turnroot.Gameplay.Combat.PreBattle
             }
             catch (System.Exception ex)
             {
-                TurnrootLogger.Log(
-                    $"HandlePlacementsSyncRequested: SyncPlacementsToRuntimeRoster failed: {ex.Message}",
-                    TurnrootLogger.LogLevel.Warning
-                );
+                $"HandlePlacementsSyncRequested: SyncPlacementsToRuntimeRoster failed: {ex.Message}".LogWarning();
             }
 
             // Notify listeners that placements are initialized/updated after a successful sync.
@@ -532,3 +523,4 @@ namespace Turnroot.Gameplay.Combat.PreBattle
         }
     }
 }
+

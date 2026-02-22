@@ -53,17 +53,11 @@ namespace Turnroot.UI.Components
                 // If we have a Brain available, proactively initialize placements so the UI doesn't wait indefinitely
                 if (_prepObject?.Brain != null)
                 {
-                    TurnrootLogger.Log(
-                        "StartingPositions: Detected waiting for placements - invoking InitializePlacements on prep object",
-                        TurnrootLogger.LogLevel.Info
-                    );
+                    "StartingPositions: Detected waiting for placements - invoking InitializePlacements on prep object".LogInfo();
                     var res = _prepObject.InitializePlacements();
                     if (!res.Success)
                     {
-                        TurnrootLogger.Log(
-                            $"StartingPositions: InitializePlacements returned failure: {res.ErrorMessage}",
-                            TurnrootLogger.LogLevel.Warning
-                        );
+                        $"StartingPositions: InitializePlacements returned failure: {res.ErrorMessage}".LogWarning();
                     }
                     // If placements are now available, proceed to spawn models immediately
                     if (_prepObject?.placements != null && _prepObject.placements.Count > 0)
@@ -242,9 +236,9 @@ namespace Turnroot.UI.Components
             }
 
             // Primary work (cleanup + spawn) is performed by SpawnAllUnitModels_Impl.
-            TurnrootLogger.Log(
-                $"SpawnAllUnitModels: spawn points={_prepObject.PlayerTeamSpawnPoints.Count}, placements={_prepObject.placements.Count}"
-            );
+
+            $"SpawnAllUnitModels: spawn points={_prepObject.PlayerTeamSpawnPoints.Count}, placements={_prepObject.placements.Count}"
+        .LogInfo();
         }
 
         private void CleanupOrphanedModels() => CleanupOrphanedModels_Impl();
@@ -375,3 +369,5 @@ namespace Turnroot.UI.Components
         }
     }
 }
+
+

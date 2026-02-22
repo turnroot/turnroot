@@ -32,10 +32,7 @@ namespace Turnroot.Characters.Components
                 }
                 else
                 {
-                    TurnrootLogger.Log(
-                        $"Invalid CharacterWhich value: {value}. Defaulting to '{ENEMY}'.",
-                        TurnrootLogger.LogLevel.Warning
-                    );
+                    $"Invalid CharacterWhich value: {value}. Defaulting to '{ENEMY}'.".LogWarning();
                     _value = ENEMY;
                 }
             }
@@ -55,3 +52,4 @@ namespace Turnroot.Characters.Components
         public override string ToString() => _value;
     }
 }
+

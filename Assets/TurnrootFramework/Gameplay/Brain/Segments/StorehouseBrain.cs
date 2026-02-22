@@ -177,10 +177,7 @@ namespace Turnroot.Gameplay.Brain
                     }
                     else
                     {
-                        TurnrootLogger.Log(
-                            $"StorehouseBrain.LoadStorehouse: Could not find item with ID '{id}'",
-                            TurnrootLogger.LogLevel.Warning
-                        );
+                        $"StorehouseBrain.LoadStorehouse: Could not find item with ID '{id}'".LogWarning();
                     }
                 }
             }
@@ -197,7 +194,7 @@ namespace Turnroot.Gameplay.Brain
             SaveCurrentStorehouse();
             Brain.PublishItemDeposited(item);
 
-            TurnrootLogger.Log($"Deposited {item.Template.name} into storehouse.");
+            $"Deposited {item.Template.name} into storehouse.".LogInfo();
 
             return OperationResult.Successful();
         }
@@ -237,7 +234,7 @@ namespace Turnroot.Gameplay.Brain
 
             Brain.PublishItemWithdrawn(item, targetInventory);
 
-            TurnrootLogger.Log($"Withdrew {item.Template.name} from storehouse.");
+            $"Withdrew {item.Template.name} from storehouse.".LogInfo();
             return OperationResult.Successful();
         }
 
@@ -261,7 +258,7 @@ namespace Turnroot.Gameplay.Brain
                 _ = _materials.Remove(material);
             }
             SaveCurrentStorehouse();
-            TurnrootLogger.Log($"Consumed {amount}x {material.name} from storehouse.");
+            $"Consumed {amount}x {material.name} from storehouse.".LogInfo();
             return OperationResult.Successful();
         }
 
@@ -280,7 +277,7 @@ namespace Turnroot.Gameplay.Brain
 
             _materials[material] = currentCount + amount;
             SaveCurrentStorehouse();
-            TurnrootLogger.Log($"Added {amount}x {material.name} to storehouse.");
+            $"Added {amount}x {material.name} to storehouse.".LogInfo();
         }
 
         public int GetMaterialCount(ObjectItem material) =>
@@ -298,3 +295,5 @@ namespace Turnroot.Gameplay.Brain
         #endregion
     }
 }
+
+

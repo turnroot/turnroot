@@ -15,20 +15,14 @@ namespace Turnroot.Gameplay.Brain.Segments
         {
             if (uiSettings == null)
             {
-                TurnrootLogger.Log(
-                    "UiBrain: GamewideUiSettings not found!",
-                    TurnrootLogger.LogLevel.Error
-                );
+                "UiBrain: GamewideUiSettings not found!".LogError();
                 return null;
             }
 
             var location = getter();
             if (location == null)
             {
-                TurnrootLogger.Log(
-                    $"UiBrain: {menuName} menu location not found!",
-                    TurnrootLogger.LogLevel.Error
-                );
+                $"UiBrain: {menuName} menu location not found!".LogError();
             }
 
             return location;
@@ -122,3 +116,4 @@ namespace Turnroot.Gameplay.Brain.Segments
             _routeHandler?.HandleMenuSelect(item);
     }
 }
+

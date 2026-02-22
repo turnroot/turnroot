@@ -87,7 +87,7 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
 
             if (_pathDecalPool == null)
             {
-                TurnrootLogger.Log("Path decal pool is null!", TurnrootLogger.LogLevel.Error);
+                "Path decal pool is null!".LogError();
                 return;
             }
 
@@ -192,12 +192,11 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
                 return rotation;
             }
 
-            TurnrootLogger.Log(
-                $"ComputeCornerRotation: no match for {incoming} -> {outgoing}",
-                TurnrootLogger.LogLevel.Warning
-            );
+            $"ComputeCornerRotation: no match for {incoming} -> {outgoing}".LogWarning();
             return 0f;
         }
         #endregion
     }
 }
+
+

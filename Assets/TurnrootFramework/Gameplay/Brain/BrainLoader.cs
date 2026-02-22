@@ -28,7 +28,7 @@ namespace Turnroot.Gameplay.Brain
             catch (System.Exception e)
             {
                 var error = $"Failed to load brain scene '{BrainSceneName}': {e.Message}";
-                TurnrootLogger.Log(error, TurnrootLogger.LogLevel.Error);
+                error.LogError();
                 return OperationResult.Failure(error);
             }
         }
@@ -36,3 +36,4 @@ namespace Turnroot.Gameplay.Brain
         private void UnloadBrainScene() => SceneManager.UnloadSceneAsync(BrainSceneName);
     }
 }
+

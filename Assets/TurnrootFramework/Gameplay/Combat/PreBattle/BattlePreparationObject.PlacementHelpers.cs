@@ -71,10 +71,7 @@ namespace Turnroot.Gameplay.Combat.PreBattle
                         runtimeInstance.GetInstanceFor(data) ?? gw.FindInstanceByTemplate(data);
                     if (instForValidation == null)
                     {
-                        TurnrootLogger.Log(
-                            $"InitializePlacements: Invalid runtime placement for missing instance at {pos}",
-                            TurnrootLogger.LogLevel.Warning
-                        );
+                        $"InitializePlacements: Invalid runtime placement for missing instance at {pos}".LogWarning();
                         invalidPlacementFound = true;
                         break;
                     }
@@ -139,3 +136,4 @@ namespace Turnroot.Gameplay.Combat.PreBattle
         }
     }
 }
+

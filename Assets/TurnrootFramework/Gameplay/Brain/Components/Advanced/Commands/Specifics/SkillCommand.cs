@@ -26,10 +26,7 @@ namespace Turnroot.Gameplay.Brain.Commands
         public override bool Undo(BattleContext context)
         {
             // Skill effects are undone through their individual commands (damage, buffs, etc.)
-            TurnrootLogger.Log(
-                "[SkillCommand] Skill activation record cannot be undone",
-                TurnrootLogger.LogLevel.Warning
-            );
+            "[SkillCommand] Skill activation record cannot be undone".LogWarning();
             return false;
         }
     }

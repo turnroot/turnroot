@@ -1,5 +1,6 @@
 using UnityEngine;
 
+using Turnroot.Utilities;
 namespace Turnroot.Utilities.AbstractScripts
 {
     /// <summary>
@@ -136,12 +137,11 @@ namespace Turnroot.Utilities.AbstractScripts
                 string duplicatePath = UnityEditor.AssetDatabase.GetAssetPath(this);
                 string instancePath = UnityEditor.AssetDatabase.GetAssetPath(_instance);
 
-                TurnrootLogger.Log(
+                (
                     $"SingletonScriptableObject: DUPLICATE DETECTED! Only one instance of {typeof(T).Name} is allowed. "
-                        + $"Keeping: {instancePath}. "
-                        + $"Deleting duplicate: {duplicatePath}",
-                    TurnrootLogger.LogLevel.Error
-                );
+                    + $"Keeping: {instancePath}. "
+                    + $"Deleting duplicate: {duplicatePath}"
+                ).LogError();
 
                 // Delete the duplicate asset file
                 if (!string.IsNullOrEmpty(duplicatePath))
@@ -173,3 +173,4 @@ namespace Turnroot.Utilities.AbstractScripts
         }
     }
 }
+

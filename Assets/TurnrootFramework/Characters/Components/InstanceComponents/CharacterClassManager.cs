@@ -130,10 +130,8 @@ namespace Turnroot.Characters
                 if (RangeWeaponsCache == null)
                 {
                     // if it IS null, something is incredibly broken!!!!!!
-                    TurnrootLogger.Log(
-                        $"GetMaxRange: Something has gone terribly wrong for {_characterTemplate.DisplayName}, unitId={Id}",
-                        TurnrootLogger.LogLevel.Error
-                    );
+
+                    $"GetMaxRange: Something has gone terribly wrong for {_characterTemplate.DisplayName}, unitId={Id}".LogError();
                 }
                 // If it's not null but it IS empty, that's fine, they just don't have a weapon equipped
             }
@@ -181,10 +179,7 @@ namespace Turnroot.Characters
                 }
                 else if (!ClassRecoveryHandled)
                 {
-                    TurnrootLogger.Log(
-                        $"CharacterInstance.ChangeClass: Previous class instance for {(_characterTemplate?.name ?? Id)} has missing classData; skipping RemoveClassBonuses",
-                        TurnrootLogger.LogLevel.Warning
-                    );
+                    $"CharacterInstance.ChangeClass: Previous class instance for {(_characterTemplate?.name ?? Id)} has missing classData; skipping RemoveClassBonuses".LogWarning();
                 }
 
                 _currentClass.Dispose();

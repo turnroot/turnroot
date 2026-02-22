@@ -94,9 +94,8 @@ namespace Turnroot.Skills.Nodes.Events
             }
 
             string durationType = duration > 0 ? $"{duration} turns" : "permanent";
-            TurnrootLogger.Log(
-                $"AreaOfEffectBuff: Applied {buffType.DisplayName} to {affectedCount} allies within {radius} tiles ({durationType})"
-            );
+
+            $"AreaOfEffectBuff: Applied {buffType.DisplayName} to {affectedCount} allies within {radius} tiles ({durationType})".LogInfo();
         }
     }
 }

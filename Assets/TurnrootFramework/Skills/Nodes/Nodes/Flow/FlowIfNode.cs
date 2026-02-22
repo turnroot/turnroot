@@ -29,9 +29,10 @@ namespace Turnroot.Skills.Nodes.Flow
             if (!conditionValue.value)
             {
                 context.Flags.IsInterrupted = true;
-                TurnrootLogger.Log($"FlowIf condition is false, stopping execution.");
+                $"FlowIf condition is false, stopping execution.".LogInfo();
             }
             // If true, execution will proceed normally when Proceed() is called
         }
     }
 }
+

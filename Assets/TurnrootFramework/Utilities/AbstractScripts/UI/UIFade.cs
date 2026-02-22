@@ -2,6 +2,7 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.Events;
 
+using Turnroot.Utilities;
 namespace Turnroot.Utilities.AbstractScripts
 {
     /// <summary>
@@ -40,10 +41,7 @@ namespace Turnroot.Utilities.AbstractScripts
 
                 if (!gameObject.activeInHierarchy || !enabled)
                 {
-                    TurnrootLogger.Log(
-                        $"UIFade: Cannot start LerpAlpha coroutine because '{gameObject.name}' is inactive or disabled. Applying final alpha immediately.",
-                        TurnrootLogger.LogLevel.Warning
-                    );
+                    $"UIFade: Cannot start LerpAlpha coroutine because '{gameObject.name}' is inactive or disabled. Applying final alpha immediately.".LogWarning();
                     canvasGroup.alpha = targetAlpha;
                     if (Mathf.Approximately(targetAlpha, visibleAlpha))
                     {
@@ -87,3 +85,4 @@ namespace Turnroot.Utilities.AbstractScripts
         }
     }
 }
+

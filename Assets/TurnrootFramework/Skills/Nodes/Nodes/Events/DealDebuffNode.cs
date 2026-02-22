@@ -64,9 +64,7 @@ namespace Turnroot.Skills.Nodes.Events
 
             if (affected > 0)
             {
-                TurnrootLogger.Log(
-                    $"DealDebuff: Applied {debuffType.DisplayName} debuff to {affected} target(s)"
-                );
+                $"DealDebuff: Applied {debuffType.DisplayName} debuff to {affected} target(s)".LogInfo();
             }
         }
     }

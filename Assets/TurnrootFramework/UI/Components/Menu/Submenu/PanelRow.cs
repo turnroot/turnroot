@@ -241,54 +241,54 @@ namespace Turnroot.UI.Components.Menu.Submenu
             switch (rowType)
             {
                 case RowType.Slider:
-                {
-                    // Determine step size: Quality slider uses 4 discrete steps (0,1/3,2/3,1),
-                    // other sliders keep the legacy 0.1 increments.
-                    float step;
-                    string normalized = string.Empty;
-                    string[] candidates = new string[]
                     {
+                        // Determine step size: Quality slider uses 4 discrete steps (0,1/3,2/3,1),
+                        // other sliders keep the legacy 0.1 increments.
+                        float step;
+                        string normalized = string.Empty;
+                        string[] candidates = new string[]
+                        {
                         sliderComponent != null ? sliderComponent.gameObject.name : null,
                         gameObject.name,
                         labelText != null ? labelText.text : null,
-                    };
+                        };
 
-                    foreach (var c in candidates)
-                    {
-                        if (string.IsNullOrEmpty(c))
+                        foreach (var c in candidates)
                         {
-                            continue;
-                        }
-
-                        var lower = c.ToLower();
-                        var sb = new System.Text.StringBuilder();
-                        foreach (var ch in lower)
-                        {
-                            if (char.IsLetterOrDigit(ch))
+                            if (string.IsNullOrEmpty(c))
                             {
-                                sb.Append(ch);
+                                continue;
+                            }
+
+                            var lower = c.ToLower();
+                            var sb = new System.Text.StringBuilder();
+                            foreach (var ch in lower)
+                            {
+                                if (char.IsLetterOrDigit(ch))
+                                {
+                                    sb.Append(ch);
+                                }
+                            }
+                            normalized = sb.ToString();
+                            if (!string.IsNullOrEmpty(normalized))
+                            {
+                                break;
                             }
                         }
-                        normalized = sb.ToString();
-                        if (!string.IsNullOrEmpty(normalized))
+
+                        if (normalized == "quality")
                         {
-                            break;
+                            // Move exactly one tenth per input; with slider max=0.3 this yields four steps
+                            step = 0.1f * delta;
                         }
-                    }
+                        else
+                        {
+                            step = 0.1f * delta; // legacy behavior for other sliders
+                        }
 
-                    if (normalized == "quality")
-                    {
-                        // Move exactly one tenth per input; with slider max=0.3 this yields four steps
-                        step = 0.1f * delta;
+                        AdjustSlider(step);
+                        return true;
                     }
-                    else
-                    {
-                        step = 0.1f * delta; // legacy behavior for other sliders
-                    }
-
-                    AdjustSlider(step);
-                    return true;
-                }
 
                 case RowType.Toggles:
                     return NavigateElements(toggleComponents, delta, UpdateToggleVisuals);

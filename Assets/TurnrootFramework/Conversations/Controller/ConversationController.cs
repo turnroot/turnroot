@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using NaughtyAttributes;
 using TMPro;
@@ -15,6 +16,7 @@ namespace Turnroot.Conversations
     {
         private Coroutine _conversationRoutine;
         private int _tweenRunId;
+        private readonly System.Collections.Generic.List<Coroutine> _activeTweens = new();
         private Sprite _lastActiveSprite;
         private int _pendingChoiceTarget = int.MinValue;
         private int _activeBranchingNodeId = int.MinValue;
@@ -63,6 +65,42 @@ namespace Turnroot.Conversations
         private void Awake() => OnAwake?.Invoke();
 
         private Conversation SelectedConversation => SelectedInstance?.Conversation;
+
+        private Coroutine StartTween(System.Collections.IEnumerator routine)
+        {
+            if (routine == null)
+            {
+                return null;
+            }
+
+            var c = StartCoroutine(routine);
+            _activeTweens.Add(c);
+            return c;
+        }
+
+        private void CancelActiveTweens()
+        {
+            foreach (var c in _activeTweens)
+            {
+                if (c != null)
+                {
+                    StopCoroutine(c);
+                }
+            }
+            _activeTweens.Clear();
+
+            // tidy up any temporary swap overlays that might have been left behind
+            // when a coroutine was stopped early.
+            // use the newer API to avoid unnecessary sorting overhead
+            var allImages = FindObjectsByType<Image>(FindObjectsSortMode.None);
+            foreach (var img in allImages)
+            {
+                if (img.gameObject.name.StartsWith("swap_overlay_"))
+                {
+                    Destroy(img.gameObject);
+                }
+            }
+        }
 
         private Graphics2DSettings GfxSettings => Graphics2DSettings.Instance;
 

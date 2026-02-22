@@ -103,11 +103,9 @@ namespace Turnroot.UI.Components
             }
             else
             {
-                TurnrootLogger.Log(
-                    "BattlePreTurn: TurnText component is not assigned.",
-                    TurnrootLogger.LogLevel.Warning
-                );
+                "BattlePreTurn: TurnText component is not assigned.".LogWarning();
             }
         }
     }
 }
+

@@ -41,8 +41,9 @@ namespace Turnroot.Skills.Nodes.Events
             context.SetCustomData($"ReflectDamage_{context.Unit.UnitInstance.Id}", reflectionData);
 
 #if UNITY_EDITOR
-            TurnrootLogger.Log($"DamageReflection: Will reflect {reflectPercent}% of damage");
+            $"DamageReflection: Will reflect {reflectPercent}% of damage".LogInfo();
 #endif
         }
     }
 }
+

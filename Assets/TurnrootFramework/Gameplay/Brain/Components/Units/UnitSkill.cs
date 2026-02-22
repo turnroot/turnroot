@@ -23,9 +23,9 @@ namespace Turnroot.Gameplay.Brain
 
             character.AddSkill(skill);
             Brain.PublishCharacterLearnedSkill(character, skill);
-            TurnrootLogger.Log(
-                $"{character.CharacterTemplate?.DisplayName} learned {skill.SkillName}"
-            );
+
+            $"{character.CharacterTemplate?.DisplayName} learned {skill.SkillName}"
+        .LogInfo();
         }
 
         public void RemoveSkill(CharacterInstance character, SkillInstance skill)
@@ -37,9 +37,9 @@ namespace Turnroot.Gameplay.Brain
 
             character.RemoveSkill(skill);
             Brain.PublishCharacterRemovedSkill(character, skill.SkillTemplate);
-            TurnrootLogger.Log(
-                $"{character.CharacterTemplate?.DisplayName} removed {skill.SkillTemplate?.SkillName}"
-            );
+
+            $"{character.CharacterTemplate?.DisplayName} removed {skill.SkillTemplate?.SkillName}"
+        .LogInfo();
         }
 
         public OperationResult EquipSkill(CharacterInstance character, Skill skill)
@@ -57,7 +57,7 @@ namespace Turnroot.Gameplay.Brain
 
             instance.SetEquipped(true, character);
             Brain.PublishSkillEquipped(character, skill);
-            TurnrootLogger.Log($"Equipped {skill.SkillName} on {character.Id}");
+            $"Equipped {skill.SkillName} on {character.Id}".LogInfo();
             return OperationResult.Successful();
         }
 
@@ -76,10 +76,11 @@ namespace Turnroot.Gameplay.Brain
 
             instance.SetEquipped(false, character);
             Brain.PublishSkillUnequipped(character, skill);
-            TurnrootLogger.Log($"Unequipped {skill.SkillName} on {character.Id}");
+            $"Unequipped {skill.SkillName} on {character.Id}".LogInfo();
             return OperationResult.Successful();
         }
 
         #endregion
     }
 }
+

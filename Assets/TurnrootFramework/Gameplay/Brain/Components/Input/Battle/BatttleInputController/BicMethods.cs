@@ -93,17 +93,15 @@ namespace Turnroot.Gameplay.Brain
             // Check if turn has already ended (shouldn't show menu if so)
             if (_playerTurnFlow.GetCurrentState() == PlayerTurnStates.TurnEnded)
             {
-                TurnrootLogger.Log(
-                    "Turn already ended, skipping action menu",
-                    TurnrootLogger.LogLevel.Warning
-                );
+
+                "Turn already ended, skipping action menu".LogWarning();
                 return;
             }
 
             var result = ShowActionMenu();
             if (!result.Success)
             {
-                TurnrootLogger.Log(result.ErrorMessage, TurnrootLogger.LogLevel.Error);
+                result.ErrorMessage.LogError();
             }
         }
 
@@ -145,7 +143,7 @@ namespace Turnroot.Gameplay.Brain
 
             if (!moveRes.Success)
             {
-                TurnrootLogger.Log(moveRes.ErrorMessage, TurnrootLogger.LogLevel.Warning);
+                moveRes.ErrorMessage.LogWarning();
                 Brain.battleBrain.IsInputEnabled = true;
                 _playerTurnFlow.CancelTargetOrDestinationChoice(PlayerTurnStates.UnitSelected);
             }
@@ -313,10 +311,7 @@ namespace Turnroot.Gameplay.Brain
         {
             if (!BattleContext.IsPlayerControlledUnit(unit))
             {
-                TurnrootLogger.Log(
-                    "unit is not player-controlled",
-                    TurnrootLogger.LogLevel.Warning
-                );
+                "unit is not player-controlled".LogWarning();
                 return;
             }
 
@@ -479,10 +474,7 @@ namespace Turnroot.Gameplay.Brain
                     HandleWaitAction();
                     break;
                 default:
-                    TurnrootLogger.Log(
-                        $"Unknown action: {actionName}",
-                        TurnrootLogger.LogLevel.Warning
-                    );
+                    $"Unknown action: {actionName}".LogWarning();
                     break;
             }
         }
@@ -494,7 +486,7 @@ namespace Turnroot.Gameplay.Brain
             var validation = OperationResultGuards.RequireNotNull(SelectedUnit, "SelectedUnit");
             if (!validation.Success)
             {
-                TurnrootLogger.Log(validation.ErrorMessage, TurnrootLogger.LogLevel.Warning);
+                validation.ErrorMessage.LogWarning();
                 return;
             }
 
@@ -518,7 +510,7 @@ namespace Turnroot.Gameplay.Brain
             var validation = OperationResultGuards.RequireNotNull(unit, nameof(unit));
             if (!validation.Success)
             {
-                TurnrootLogger.Log(validation.ErrorMessage, TurnrootLogger.LogLevel.Warning);
+                validation.ErrorMessage.LogWarning();
                 return validation;
             }
 
@@ -544,3 +536,4 @@ namespace Turnroot.Gameplay.Brain
         #endregion
     }
 }
+

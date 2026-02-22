@@ -93,10 +93,7 @@ namespace Turnroot.UI.Components
                     if (!result.Success)
                     {
 #if UNITY_EDITOR
-                        TurnrootLogger.Log(
-                            $"StartingPositions initialization failed: {result.ErrorMessage}",
-                            TurnrootLogger.LogLevel.Error
-                        );
+                        $"StartingPositions initialization failed: {result.ErrorMessage}".LogError();
 #endif
                     }
                     else
@@ -142,3 +139,4 @@ namespace Turnroot.UI.Components
         }
     }
 }
+

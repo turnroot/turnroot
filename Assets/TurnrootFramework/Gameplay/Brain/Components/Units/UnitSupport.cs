@@ -26,9 +26,9 @@ namespace Turnroot.Gameplay.Brain
 
             character.IncreaseSupport(targetCharacter, amount);
             Brain.PublishSupportIncreased(character, targetCharacter, amount);
-            TurnrootLogger.Log(
-                $"Support increased between {character.CharacterTemplate?.DisplayName} and {targetCharacter.DisplayName}"
-            );
+
+            $"Support increased between {character.CharacterTemplate?.DisplayName} and {targetCharacter.DisplayName}"
+        .LogInfo();
         }
 
         public void AddSupportRelationship(
@@ -47,9 +47,9 @@ namespace Turnroot.Gameplay.Brain
             {
                 Brain.PublishSupportRelationshipAdded(character, added);
             }
-            TurnrootLogger.Log(
-                $"Added support relationship for {template.Character.DisplayName} on {character.Id}"
-            );
+
+            $"Added support relationship for {template.Character.DisplayName} on {character.Id}"
+        .LogInfo();
         }
 
         public void RemoveSupportRelationship(CharacterInstance character, CharacterData target)
@@ -61,11 +61,12 @@ namespace Turnroot.Gameplay.Brain
 
             character.RemoveSupportRelationship(target);
             Brain.PublishSupportRelationshipRemoved(character, target);
-            TurnrootLogger.Log(
-                $"Removed support relationship for {target.DisplayName} on {character.Id}"
-            );
+
+            $"Removed support relationship for {target.DisplayName} on {character.Id}"
+        .LogInfo();
         }
 
         #endregion
     }
 }
+

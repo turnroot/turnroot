@@ -25,10 +25,7 @@ namespace Turnroot.Skills.Nodes.Events
         {
             if (context?.Participants?.Targets == null || context.Participants.Targets.Count == 0)
             {
-                TurnrootLogger.Log(
-                    "UnmountEnemy: No target in context",
-                    TurnrootLogger.LogLevel.Warning
-                );
+                "UnmountEnemy: No target in context".LogWarning();
                 return;
             }
 
@@ -44,25 +41,21 @@ namespace Turnroot.Skills.Nodes.Events
                         context.SetCustomData($"ForceUnmount_{target.Id}", true);
                     }
                 }
-                TurnrootLogger.Log(
-                    $"UnmountEnemy: Unmounted {context.Participants.Targets.Count} enemies"
-                );
+                $"UnmountEnemy: Unmounted {context.Participants.Targets.Count} enemies".LogInfo();
             }
             else
             {
                 var target = context.Participants.Targets[0];
                 if (target == null)
                 {
-                    TurnrootLogger.Log(
-                        "UnmountEnemy: Target is null",
-                        TurnrootLogger.LogLevel.Warning
-                    );
-
+                    "UnmountEnemy: Target is null".LogWarning();
                     return;
                 }
                 context.SetCustomData($"ForceUnmount_{target.Id}", true);
-                TurnrootLogger.Log("UnmountEnemy: Forced target to dismount");
+                "UnmountEnemy: Forced target to dismount".LogInfo();
             }
         }
     }
 }
+
+

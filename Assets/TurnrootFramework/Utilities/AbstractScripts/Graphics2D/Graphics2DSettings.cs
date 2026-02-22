@@ -1,7 +1,9 @@
-using DG.Tweening;
 using NaughtyAttributes;
 using Turnroot.Utilities.AbstractScripts;
 using UnityEngine;
+
+// The easing enum is defined alongside the utilities so we can refer to it directly
+using Ease = Turnroot.AbstractScripts.Graphics2D.Graphics2DUtils.Ease;
 
 namespace Turnroot.AbstractScripts.Graphics2D
 {

@@ -37,10 +37,7 @@ namespace Turnroot.Characters.CharacterClass
                 var missing = new List<string>();
                 if (mesh == null)
                 {
-                    TurnrootLogger.Log(
-                        $"{name}: {source} has no mesh assigned.",
-                        TurnrootLogger.LogLevel.Error
-                    );
+                    $"{name}: {source} has no mesh assigned.".LogError();
                     return missing;
                 }
 
@@ -54,10 +51,8 @@ namespace Turnroot.Characters.CharacterClass
 
                 if (missing.Count > 0)
                 {
-                    TurnrootLogger.Log(
-                        $"{name}: {source} is missing blendshapes: {string.Join(", ", missing)}",
-                        TurnrootLogger.LogLevel.Error
-                    );
+
+                    $"{name}: {source} is missing blendshapes: {string.Join(", ", missing)}".LogError();
                 }
                 return missing;
             }
@@ -123,10 +118,7 @@ namespace Turnroot.Characters.CharacterClass
                 var smrs = prefab.GetComponentsInChildren<SkinnedMeshRenderer>(true);
                 if (smrs == null || smrs.Length == 0)
                 {
-                    TurnrootLogger.Log(
-                        $"{name}: ClassModelPrefab '{prefab.name}' does not contain a SkinnedMeshRenderer. Clearing assignment.",
-                        TurnrootLogger.LogLevel.Error
-                    );
+                    $"{name}: ClassModelPrefab '{prefab.name}' does not contain a SkinnedMeshRenderer. Clearing assignment.".LogError();
                     UnityEditor.Undo.RecordObject(this, "Clear invalid ClassModelPrefab");
                     Identity.ClassModelPrefab = null;
                     UnityEditor.EditorUtility.SetDirty(this);
@@ -147,10 +139,8 @@ namespace Turnroot.Characters.CharacterClass
                     }
                     if (missingAny.Count > 0)
                     {
-                        TurnrootLogger.Log(
-                            $"{name}: ClassModelPrefab '{prefab.name}' is missing required blendshapes on submeshes: {string.Join(", ", missingAny)}. Clearing assignment.",
-                            TurnrootLogger.LogLevel.Error
-                        );
+
+                        $"{name}: ClassModelPrefab '{prefab.name}' is missing required blendshapes on submeshes: {string.Join(", ", missingAny)}. Clearing assignment.".LogError();
                         UnityEditor.Undo.RecordObject(this, "Clear invalid ClassModelPrefab");
                         Identity.ClassModelPrefab = null;
                         UnityEditor.EditorUtility.SetDirty(this);
@@ -160,10 +150,7 @@ namespace Turnroot.Characters.CharacterClass
                         // Enforce: class model prefabs must not include hair. Clear assignment if a 'Hair' renderer exists.
                         if (PrefabContainsHairRenderer(prefab))
                         {
-                            TurnrootLogger.Log(
-                                $"{name}: ClassModelPrefab '{prefab.name}' contains a 'Hair' renderer. Class models must not include hair; clearing assignment.",
-                                TurnrootLogger.LogLevel.Error
-                            );
+                            $"{name}: ClassModelPrefab '{prefab.name}' contains a 'Hair' renderer. Class models must not include hair; clearing assignment.".LogError();
                             UnityEditor.Undo.RecordObject(this, "Clear invalid ClassModelPrefab");
                             Identity.ClassModelPrefab = null;
                             UnityEditor.EditorUtility.SetDirty(this);
@@ -187,10 +174,7 @@ namespace Turnroot.Characters.CharacterClass
                 }
                 if (!classMatFound)
                 {
-                    TurnrootLogger.Log(
-                        $"{name}: ClassModelPrefab '{prefab.name}' contains no materials exposing class texture properties (_Base/_MSE/_Tint_Mask). Class textures will not be applied at runtime.",
-                        TurnrootLogger.LogLevel.Warning
-                    );
+                    $"{name}: ClassModelPrefab '{prefab.name}' contains no materials exposing class texture properties (_Base/_MSE/_Tint_Mask). Class textures will not be applied at runtime.".LogWarning();
                     UnityEditor.EditorUtility.SetDirty(this);
                 }
             }
@@ -209,10 +193,7 @@ namespace Turnroot.Characters.CharacterClass
                     var smrs = prefab.GetComponentsInChildren<SkinnedMeshRenderer>(true);
                     if (smrs == null || smrs.Length == 0)
                     {
-                        TurnrootLogger.Log(
-                            $"{name}: PronounClassModelPrefabs entry for '{pp.pronounKey}' points to prefab '{prefab.name}' which does not contain a SkinnedMeshRenderer. Clearing that entry.",
-                            TurnrootLogger.LogLevel.Error
-                        );
+                        $"{name}: PronounClassModelPrefabs entry for '{pp.pronounKey}' points to prefab '{prefab.name}' which does not contain a SkinnedMeshRenderer. Clearing that entry.".LogError();
                         UnityEditor.Undo.RecordObject(
                             this,
                             $"Clear invalid PronounClassModelPrefabs[{pp.pronounKey}]"
@@ -237,10 +218,8 @@ namespace Turnroot.Characters.CharacterClass
 
                     if (missingAny.Count > 0)
                     {
-                        TurnrootLogger.Log(
-                            $"{name}: PronounClassModelPrefabs entry for '{pp.pronounKey}' -> '{prefab.name}' is missing required blendshapes on submeshes: {string.Join(", ", missingAny)}. Clearing that entry.",
-                            TurnrootLogger.LogLevel.Error
-                        );
+
+                        $"{name}: PronounClassModelPrefabs entry for '{pp.pronounKey}' -> '{prefab.name}' is missing required blendshapes on submeshes: {string.Join(", ", missingAny)}. Clearing that entry.".LogError();
                         UnityEditor.Undo.RecordObject(
                             this,
                             $"Clear invalid PronounClassModelPrefabs[{pp.pronounKey}]"
@@ -253,10 +232,7 @@ namespace Turnroot.Characters.CharacterClass
                     // preserves hair materials and avoids relying on material-name heuristics.
                     if (PrefabContainsHairRenderer(prefab))
                     {
-                        TurnrootLogger.Log(
-                            $"{name}: PronounClassModelPrefabs entry for '{pp.pronounKey}' -> '{prefab.name}' contains a 'Hair' renderer. Pronoun-specific class models must not include hair.",
-                            TurnrootLogger.LogLevel.Error
-                        );
+                        $"{name}: PronounClassModelPrefabs entry for '{pp.pronounKey}' -> '{prefab.name}' contains a 'Hair' renderer. Pronoun-specific class models must not include hair.".LogError();
                         UnityEditor.Undo.RecordObject(
                             this,
                             $"PronounClassModelPrefabs contains invalid hair renderer [{pp.pronounKey}]"
@@ -277,10 +253,7 @@ namespace Turnroot.Characters.CharacterClass
                         }
                         if (!pronounHasClassMat)
                         {
-                            TurnrootLogger.Log(
-                                $"{name}: PronounClassModelPrefabs entry for '{pp.pronounKey}' -> '{prefab.name}' contains no materials exposing class texture properties (_Base/_MSE/_Tint_Mask). Class textures will not be applied.",
-                                TurnrootLogger.LogLevel.Warning
-                            );
+                            $"{name}: PronounClassModelPrefabs entry for '{pp.pronounKey}' -> '{prefab.name}' contains no materials exposing class texture properties (_Base/_MSE/_Tint_Mask). Class textures will not be applied.".LogWarning();
                             UnityEditor.EditorUtility.SetDirty(this);
                         }
                     }
@@ -290,3 +263,5 @@ namespace Turnroot.Characters.CharacterClass
 #endif
     }
 }
+
+

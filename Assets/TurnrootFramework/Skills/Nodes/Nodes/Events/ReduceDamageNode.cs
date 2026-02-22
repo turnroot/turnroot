@@ -75,9 +75,7 @@ namespace Turnroot.Skills.Nodes.Events
                 string reductionType = isPercentage ? "%" : "flat";
                 if (affectedCount > 0)
                 {
-                    TurnrootLogger.Log(
-                        $"ReduceDamage: Applied {reduction} {reductionType} damage reduction to {affectedCount} adjacent {(affectedCount == 1 ? "ally" : "allies")}"
-                    );
+                    $"ReduceDamage: Applied {reduction} {reductionType} damage reduction to {affectedCount} adjacent {(affectedCount == 1 ? "ally" : "allies")}".LogInfo();
                 }
                 else
                 {
@@ -97,9 +95,8 @@ namespace Turnroot.Skills.Nodes.Events
                 );
                 string reductionType = isPercentage ? "%" : "flat";
 #if UNITY_EDITOR
-                TurnrootLogger.Log(
-                    $"ReduceDamage: Will take {reduction} {reductionType} less damage"
-                );
+
+                $"ReduceDamage: Will take {reduction} {reductionType} less damage".LogInfo();
 #endif
             }
         }

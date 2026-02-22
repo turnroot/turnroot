@@ -57,9 +57,9 @@ namespace Turnroot.Gameplay.Brain.Segments
                 && preBattleMenu.style == MenuStyle.Pie
             )
             {
-                TurnrootLogger.Log(
-                    "UiBrain: Hiding Details button because pre-battle radial menu is active."
-                );
+
+                "UiBrain: Hiding Details button because pre-battle radial menu is active."
+            .LogInfo();
                 needsDetailsButton = false;
             }
 
@@ -110,10 +110,7 @@ namespace Turnroot.Gameplay.Brain.Segments
         {
             if (uiSettings?.MenuCanvasPrefab == null)
             {
-                TurnrootLogger.Log(
-                    "UiBrain: MenuCanvasPrefab is not set in GamewideUiSettings",
-                    TurnrootLogger.LogLevel.Warning
-                );
+                "UiBrain: MenuCanvasPrefab is not set in GamewideUiSettings".LogWarning();
                 return;
             }
 
@@ -125,10 +122,7 @@ namespace Turnroot.Gameplay.Brain.Segments
             var simpleButtons = targetPrefabField.GetComponentsInChildren<SimpleButton>(true);
             if (simpleButtons == null || simpleButtons.Length == 0)
             {
-                TurnrootLogger.Log(
-                    $"UiBrain: No SimpleButton found in MenuCanvasPrefab for role {role}",
-                    TurnrootLogger.LogLevel.Warning
-                );
+                $"UiBrain: No SimpleButton found in MenuCanvasPrefab for role {role}".LogWarning();
                 return;
             }
 
@@ -187,9 +181,9 @@ namespace Turnroot.Gameplay.Brain.Segments
                 // Now add it
                 chosen.OnSelected += handler;
 
-                TurnrootLogger.Log(
-                    $"UiBrain: Subscribed {role} handler on {chosen.gameObject.name}."
-                );
+
+                $"UiBrain: Subscribed {role} handler on {chosen.gameObject.name}."
+            .LogInfo();
             }
         }
 
@@ -244,15 +238,12 @@ namespace Turnroot.Gameplay.Brain.Segments
                 }
                 else
                 {
-                    TurnrootLogger.Log(
-                        "UiBrain: Back navigation failed - null locations",
-                        TurnrootLogger.LogLevel.Warning
-                    );
+                    "UiBrain: Back navigation failed - null locations".LogWarning();
                 }
             }
             else
             {
-                TurnrootLogger.Log("UiBrain: At root level, handling root back");
+                "UiBrain: At root level, handling root back".LogInfo();
                 HandleRootLevelBack();
             }
         }
@@ -263,7 +254,7 @@ namespace Turnroot.Gameplay.Brain.Segments
             {
                 return;
             }
-            TurnrootLogger.Log("UiBrain: Details button pressed - TODO: Implement details view");
+            "UiBrain: Details button pressed - TODO: Implement details view".LogInfo();
         }
 
         private void HandleRootLevelBack()
@@ -288,3 +279,5 @@ namespace Turnroot.Gameplay.Brain.Segments
         }
     }
 }
+
+

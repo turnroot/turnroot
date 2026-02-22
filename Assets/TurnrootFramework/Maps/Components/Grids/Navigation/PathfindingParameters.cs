@@ -51,10 +51,7 @@ namespace Turnroot.Gameplay.Maps
                     }
                     else
                     {
-                        TurnrootLogger.Log(
-                            $"PathfindingParameters: Failed to assign default class to {character.Id}: {res.ErrorMessage}",
-                            TurnrootLogger.LogLevel.Warning
-                        );
+                        $"PathfindingParameters: Failed to assign default class to {character.Id}: {res.ErrorMessage}".LogWarning();
                     }
 
                     classData = character?.CurrentClass?.ClassData;
@@ -77,10 +74,8 @@ namespace Turnroot.Gameplay.Maps
                 )
             )
             {
-                TurnrootLogger.Log(
-                    $"PathfindingParameters: Missing required parameter(s): {string.Join(", ", missingArgs)}",
-                    TurnrootLogger.LogLevel.Error
-                );
+
+                $"PathfindingParameters: Missing required parameter(s): {string.Join(", ", missingArgs)}".LogError();
                 return null;
             }
 
@@ -144,3 +139,5 @@ namespace Turnroot.Gameplay.Maps
         public bool IsValid() => Graph != null && Start != null && MovementBudget >= 0;
     }
 }
+
+

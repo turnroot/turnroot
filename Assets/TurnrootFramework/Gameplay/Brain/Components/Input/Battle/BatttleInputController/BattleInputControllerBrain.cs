@@ -333,9 +333,9 @@ namespace Turnroot.Gameplay.Brain
         public void HandleConfirmInput()
         {
             var currentState = _playerTurnFlow?.GetCurrentState() ?? PlayerTurnStates.Inactive;
-            TurnrootLogger.Log(
-                $"BattleInputControllerBrain: Handling Confirm Input. Current PlayerTurnState is {currentState}"
-            );
+
+            $"BattleInputControllerBrain: Handling Confirm Input. Current PlayerTurnState is {currentState}"
+        .LogInfo();
 
             _terrainTypeOverlay.ResetDisplay();
 
@@ -476,3 +476,4 @@ namespace Turnroot.Gameplay.Brain
         #endregion
     }
 }
+

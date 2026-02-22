@@ -49,10 +49,7 @@ namespace Turnroot.Gameplay.Maps
                 }
                 else
                 {
-                    TurnrootLogger.Log(
-                        "MapGrid: No TerrainLevelModel assigned while UseHeightMeshAsTerrainModel is false.",
-                        TurnrootLogger.LogLevel.Error
-                    );
+                    "MapGrid: No TerrainLevelModel assigned while UseHeightMeshAsTerrainModel is false.".LogError();
                 }
             }
         }
@@ -139,21 +136,21 @@ namespace Turnroot.Gameplay.Maps
             if (needsRebuild)
             {
                 RebuildGridDictionary();
-                TurnrootLogger.Log("MapGrid: Rebuilt grid dictionary from existing children.");
+                "MapGrid: Rebuilt grid dictionary from existing children.".LogInfo();
             }
             else if (needsCreate)
             {
                 CreateChildrenPoints();
-                TurnrootLogger.Log("MapGrid: Created missing grid points.");
+                "MapGrid: Created missing grid points.".LogInfo();
             }
             else if (_gridPoints?.Count == 0 && transform.childCount > 0)
             {
                 RebuildGridDictionary();
-                TurnrootLogger.Log("MapGrid: Rebuilt grid dictionary from existing children.");
+                "MapGrid: Rebuilt grid dictionary from existing children.".LogInfo();
             }
 
             RepositionGridPoints();
-            TurnrootLogger.Log("MapGrid: Grid points ensured.");
+            "MapGrid: Grid points ensured.".LogInfo();
         }
 
         private void RepositionGridPoints()
@@ -468,3 +465,5 @@ namespace Turnroot.Gameplay.Maps
         }
     }
 }
+
+

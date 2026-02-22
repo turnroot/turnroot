@@ -95,21 +95,18 @@ namespace Turnroot.Gameplay.Brain.Segments
             }
             else
             {
-                TurnrootLogger.Log(
-                    $"No route defined for menu item: {item.ItemName}",
-                    TurnrootLogger.LogLevel.Error
-                );
+                $"No route defined for menu item: {item.ItemName}".LogError();
             }
         }
 
         // Route implementations
-        private void OpenInventory() => TurnrootLogger.Log("Opening Inventory - TODO: Implement"); // TODO: Implement inventory UI
+        private void OpenInventory() => "Opening Inventory - TODO: Implement".LogInfo(); // TODO: Implement inventory UI
 
-        private void OpenSkills() => TurnrootLogger.Log("Opening Skills - TODO: Implement"); // TODO: Implement skills UI
+        private void OpenSkills() => "Opening Skills - TODO: Implement".LogInfo(); // TODO: Implement skills UI
 
-        private void OpenSupport() => TurnrootLogger.Log("Opening Support - TODO: Implement"); // TODO: Implement support UI
+        private void OpenSupport() => "Opening Support - TODO: Implement".LogInfo(); // TODO: Implement support UI
 
-        private void HandleWithdraw() => TurnrootLogger.Log("Handling Withdraw - TODO: Implement"); // TODO: Handle withdraw action
+        private void HandleWithdraw() => "Handling Withdraw - TODO: Implement".LogInfo(); // TODO: Handle withdraw action
 
         private OperationResult TransitionToSubmenu(MenuLocation submenuLocation)
         {

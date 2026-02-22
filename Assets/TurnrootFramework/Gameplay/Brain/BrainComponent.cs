@@ -27,10 +27,7 @@ namespace Turnroot.Gameplay.Brain
 
             if (_brain == null)
             {
-                TurnrootLogger.Log(
-                    $"{GetType().Name}: Brain component not found!",
-                    TurnrootLogger.LogLevel.Error
-                );
+                $"{GetType().Name}: Brain component not found!".LogError();
                 return;
             }
             SubscribeToBrainEvents();
@@ -40,9 +37,7 @@ namespace Turnroot.Gameplay.Brain
         {
             if (_brain != null)
             {
-                TurnrootLogger.Log(
-                    $"{GetType().Name} OnDestroy - unsubscribing from brain events."
-                );
+                $"{GetType().Name} OnDestroy - unsubscribing from brain events.".LogInfo();
                 UnsubscribeFromBrainEvents();
             }
         }

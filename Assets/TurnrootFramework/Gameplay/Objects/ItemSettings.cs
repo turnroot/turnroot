@@ -30,10 +30,7 @@ namespace Turnroot.Gameplay.Objects
                     }
                     catch (System.Exception ex)
                     {
-                        TurnrootLogger.Log(
-                            $"ItemSettings: Failed to load CanBeForged setting: {ex.Message}. Using default: false",
-                            TurnrootLogger.LogLevel.Warning
-                        );
+                        $"ItemSettings: Failed to load CanBeForged setting: {ex.Message}. Using default: false".LogWarning();
                         return false;
                     }
                 });
@@ -55,9 +52,7 @@ namespace Turnroot.Gameplay.Objects
                     }
                     catch (System.Exception ex)
                     {
-                        TurnrootLogger.Log(
-                            $"ItemSettings: Failed to load CanBeRepaired setting: {ex.Message}. Using default: false"
-                        );
+                        $"ItemSettings: Failed to load CanBeRepaired setting: {ex.Message}. Using default: false".LogWarning();
                         return false;
                     }
                 });
@@ -79,10 +74,7 @@ namespace Turnroot.Gameplay.Objects
                     }
                     catch (System.Exception ex)
                     {
-                        TurnrootLogger.Log(
-                            $"ItemSettings: Failed to load HaveDurability setting: {ex.Message}. Using default: true",
-                            TurnrootLogger.LogLevel.Warning
-                        );
+                        $"ItemSettings: Failed to load HaveDurability setting: {ex.Message}. Using default: true".LogWarning();
                         return true;
                     }
                 });

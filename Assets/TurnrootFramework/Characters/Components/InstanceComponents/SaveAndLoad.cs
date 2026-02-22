@@ -101,10 +101,7 @@ namespace Turnroot.Characters
             }
             catch (Exception ex)
             {
-                TurnrootLogger.Log(
-                    $"CharacterInstance.EnsurePersistedInLtm: failed to persist/merge stats for {Id}: {ex.Message}",
-                    TurnrootLogger.LogLevel.Warning
-                );
+                $"CharacterInstance.EnsurePersistedInLtm: failed to persist/merge stats for {Id}: {ex.Message}".LogWarning();
             }
         }
 
@@ -371,10 +368,8 @@ namespace Turnroot.Characters
                 }
                 catch (Exception ex)
                 {
-                    TurnrootLogger.Log(
-                        "OnBrainLtmKeyCacheUpdated cleanup failed: " + ex.Message,
-                        TurnrootLogger.LogLevel.Warning
-                    );
+                    "OnBrainLtmKeyCacheUpdated cleanup failed: ".LogWarning();
+                    ex.Message.LogWarning();
                 }
                 _deferredPersistRegistered = false;
             }
@@ -398,10 +393,7 @@ namespace Turnroot.Characters
                 {
                     if (g.Count() > 1 && !warned)
                     {
-                        TurnrootLogger.Log(
-                            $"CharacterInstance {Id}: removing {g.Count() - 1} duplicated bounded stat entries of type {g.Key}",
-                            TurnrootLogger.LogLevel.Warning
-                        );
+                        $"CharacterInstance {Id}: removing {g.Count() - 1} duplicated bounded stat entries of type {g.Key}".LogWarning();
                         warned = true;
                     }
                     return g.First();
@@ -415,10 +407,7 @@ namespace Turnroot.Characters
                 {
                     if (g.Count() > 1 && !warned)
                     {
-                        TurnrootLogger.Log(
-                            $"CharacterInstance {Id}: removing {g.Count() - 1} duplicated unbounded stat entries of type {g.Key}",
-                            TurnrootLogger.LogLevel.Warning
-                        );
+                        $"CharacterInstance {Id}: removing {g.Count() - 1} duplicated unbounded stat entries of type {g.Key}".LogWarning();
                         warned = true;
                     }
                     return g.First();

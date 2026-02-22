@@ -307,7 +307,19 @@ namespace Turnroot.Characters
                         var message = res.Success
                             ? $"Character {Id} recovered missing class by assigning {recoveredClass.Identity.ClassName} after recall."
                             : $"CharacterInstance.OnAfterDeserialize: Failed to recover class for {Id}: {res.ErrorMessage}";
-                        TurnrootLogger.Log(message, logLevel);
+                        // log according to chosen level
+                        if (logLevel == TurnrootLogger.LogLevel.Error)
+                        {
+                            message.LogError();
+                        }
+                        else if (logLevel == TurnrootLogger.LogLevel.Warning)
+                        {
+                            message.LogWarning();
+                        }
+                        else
+                        {
+                            message.LogInfo();
+                        }
 
                         ClassRecoveryHandled = true;
 
@@ -318,10 +330,7 @@ namespace Turnroot.Characters
                     }
                     else
                     {
-                        TurnrootLogger.Log(
-                            $"CharacterInstance.OnAfterDeserialize: No starting/default class available to recover for {Id}",
-                            TurnrootLogger.LogLevel.Warning
-                        );
+                        $"CharacterInstance.OnAfterDeserialize: No starting/default class available to recover for {Id}".LogWarning();
                     }
                 }
             }
@@ -337,7 +346,18 @@ namespace Turnroot.Characters
                     var message = res.Success
                         ? $"Character {Id} assigned default starting class {defaultClass.Identity.ClassName} after recall."
                         : $"CharacterInstance.OnAfterDeserialize: Failed to apply default starting class for {Id}: {res.ErrorMessage}";
-                    TurnrootLogger.Log(message, logLevel);
+                    if (logLevel == TurnrootLogger.LogLevel.Error)
+                    {
+                        message.LogError();
+                    }
+                    else if (logLevel == TurnrootLogger.LogLevel.Warning)
+                    {
+                        message.LogWarning();
+                    }
+                    else
+                    {
+                        message.LogInfo();
+                    }
                 }
             }
         }

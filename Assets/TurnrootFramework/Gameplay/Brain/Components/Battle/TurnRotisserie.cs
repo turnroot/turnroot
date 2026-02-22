@@ -171,10 +171,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         {
             if (Context.Participants == null)
             {
-                TurnrootLogger.Log(
-                    "TurnRotisserie: BattleContext.Participants is null!",
-                    TurnrootLogger.LogLevel.Error
-                );
+                "TurnRotisserie: BattleContext.Participants is null!".LogError();
                 return new List<CharacterInstance>();
             }
 
@@ -298,9 +295,9 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 return OperationResult.Successful();
             }
 
-            TurnrootLogger.Log(
-                $"TurnRotisserie: Setting active unit to {activeUnit.CharacterTemplate.DisplayName}"
-            );
+
+            $"TurnRotisserie: Setting active unit to {activeUnit.CharacterTemplate.DisplayName}"
+        .LogInfo();
 
             // Set active unit in context
             Context.Unit.UnitInstance = activeUnit;
@@ -338,3 +335,5 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         #endregion
     }
 }
+
+

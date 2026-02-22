@@ -272,9 +272,8 @@ namespace Turnroot.Skills.Nodes
 
             float oldValue = stat.Current;
             stat.SetCurrent(stat.Current + changeAmount);
-            TurnrootLogger.Log(
-                $"{nodeName}: Changed {statName} by {changeAmount} (from {oldValue} to {stat.Current})"
-            );
+
+            $"{nodeName}: Changed {statName} by {changeAmount} (from {oldValue} to {stat.Current})".LogInfo();
             return true;
         }
         #endregion
@@ -347,7 +346,7 @@ namespace Turnroot.Skills.Nodes
             )
             {
                 to.ClearConnections();
-                TurnrootLogger.Log($"Replacing existing connection to input port {to.fieldName}");
+                $"Replacing existing connection to input port {to.fieldName}".LogInfo();
             }
 
             base.OnCreateConnection(from, to);
@@ -358,7 +357,7 @@ namespace Turnroot.Skills.Nodes
         private void LogWarning(string message, string nodeName = null)
         {
             nodeName ??= GetType().Name;
-            TurnrootLogger.Log($"{nodeName}: {message}", TurnrootLogger.LogLevel.Warning);
+            $"{nodeName}: {message}".LogWarning();
         }
         #endregion
     }

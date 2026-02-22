@@ -126,7 +126,7 @@ namespace Turnroot.Gameplay.Maps
             if (!Directory.Exists(savePath))
             {
                 Directory.CreateDirectory(savePath);
-                TurnrootLogger.Log($"Created directory: {savePath}");
+                $"Created directory: {savePath}".LogInfo();
             }
 
             // Generate map name (sanitize for file system)
@@ -158,9 +158,9 @@ namespace Turnroot.Gameplay.Maps
                 Object.DestroyImmediate(unexploredMap);
             }
 
-            TurnrootLogger.Log(
-                $"MapGridRenderer: Successfully rendered map images for '{mapName}'"
-            );
+
+            $"MapGridRenderer: Successfully rendered map images for '{mapName}'"
+        .LogInfo();
         }
 
         private Texture2D RenderFullMap(MapGrid grid)
@@ -371,10 +371,7 @@ namespace Turnroot.Gameplay.Maps
         {
             if (grid == null)
             {
-                TurnrootLogger.Log(
-                    "MapGridRenderer: GetTraversableBounds called with null grid",
-                    TurnrootLogger.LogLevel.Error
-                );
+                "MapGridRenderer: GetTraversableBounds called with null grid".LogError();
                 return (0, 0, 0, 0, 0, 0);
             }
 
@@ -386,9 +383,9 @@ namespace Turnroot.Gameplay.Maps
             int width = grid.GridWidth;
             int height = grid.GridHeight;
 
-            TurnrootLogger.Log(
-                $"MapGridRenderer: Rendering full grid area - Rows [{minRow}-{maxRow}], Cols [{minCol}-{maxCol}], Size: {width}x{height}"
-            );
+
+            $"MapGridRenderer: Rendering full grid area - Rows [{minRow}-{maxRow}], Cols [{minCol}-{maxCol}], Size: {width}x{height}"
+        .LogInfo();
 
             return (minRow, maxRow, minCol, maxCol, width, height);
         }
@@ -620,7 +617,7 @@ namespace Turnroot.Gameplay.Maps
             byte[] pngData = texture.EncodeToPNG();
             File.WriteAllBytes(fullPath, pngData);
 
-            TurnrootLogger.Log($"Saved map image: {fullPath}");
+            $"Saved map image: {fullPath}".LogInfo();
 
             // Refresh AssetDatabase and import
             AssetDatabase.Refresh();
@@ -644,7 +641,7 @@ namespace Turnroot.Gameplay.Maps
             Sprite sprite = AssetDatabase.LoadAssetAtPath<Sprite>(assetPath);
             if (sprite != null)
             {
-                TurnrootLogger.Log($"Loaded sprite reference for: {fileName}");
+                $"Loaded sprite reference for: {fileName}".LogInfo();
             }
             else
             {
@@ -707,3 +704,5 @@ namespace Turnroot.Gameplay.Maps
     }
 }
 #endif
+
+

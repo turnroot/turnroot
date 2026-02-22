@@ -45,20 +45,14 @@ namespace Turnroot.Gameplay.Brain
                 var instance = EnsureInstanceForPlacement(roster, characterData);
                 if (instance == null)
                 {
-                    TurnrootLogger.Log(
-                        $"SpawnRosterUnitsOntoGrid: No instance for {characterData?.DisplayName}; skipping spawn",
-                        TurnrootLogger.LogLevel.Warning
-                    );
+                    $"SpawnRosterUnitsOntoGrid: No instance for {characterData?.DisplayName}; skipping spawn".LogWarning();
                     roster.SetOrder(characterData, placement.Order);
                     continue;
                 }
 
                 if (instance.MapGridPosition == placement.SpawnPosition)
                 {
-                    TurnrootLogger.Log(
-                        $"SpawnRosterUnitsOntoGrid: Skipping spawn for {instance.CharacterTemplate.DisplayName} - already spawned at {placement.SpawnPosition}",
-                        TurnrootLogger.LogLevel.Info
-                    );
+                    $"SpawnRosterUnitsOntoGrid: Skipping spawn for {instance.CharacterTemplate.DisplayName} - already spawned at {placement.SpawnPosition}".LogInfo();
                     roster.SetOrder(characterData, placement.Order);
                     continue;
                 }
@@ -71,10 +65,7 @@ namespace Turnroot.Gameplay.Brain
                 );
                 if (!spawned)
                 {
-                    TurnrootLogger.Log(
-                        $"SpawnRosterUnitsOntoGrid: SpawnAtPosition failed for {characterData?.DisplayName} at {placement.SpawnPosition}",
-                        TurnrootLogger.LogLevel.Warning
-                    );
+                    $"SpawnRosterUnitsOntoGrid: SpawnAtPosition failed for {characterData?.DisplayName} at {placement.SpawnPosition}".LogWarning();
                 }
 
                 roster.SetOrder(characterData, placement.Order);
@@ -94,10 +85,7 @@ namespace Turnroot.Gameplay.Brain
                 var instance = EnsureInstanceForPlacement(roster, characterData);
                 if (instance == null)
                 {
-                    TurnrootLogger.Log(
-                        $"SpawnRosterUnitsOntoGrid: No instance for {characterData?.DisplayName}; skipping spawn",
-                        TurnrootLogger.LogLevel.Warning
-                    );
+                    $"SpawnRosterUnitsOntoGrid: No instance for {characterData?.DisplayName}; skipping spawn".LogWarning();
                     roster.SetOrder(characterData, placement.Order);
                     continue;
                 }
@@ -116,10 +104,7 @@ namespace Turnroot.Gameplay.Brain
                 );
                 if (!spawned)
                 {
-                    TurnrootLogger.Log(
-                        $"SpawnRosterUnitsOntoGrid: SpawnAtPosition failed for {characterData?.DisplayName} at {placement.SpawnPosition}",
-                        TurnrootLogger.LogLevel.Warning
-                    );
+                    $"SpawnRosterUnitsOntoGrid: SpawnAtPosition failed for {characterData?.DisplayName} at {placement.SpawnPosition}".LogWarning();
                 }
 
                 roster.SetOrder(characterData, placement.Order);
@@ -137,10 +122,7 @@ namespace Turnroot.Gameplay.Brain
             }
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
-            TurnrootLogger.Log(
-                $"SpawnRosterUnitsOntoGrid: Repairing {characterInstance.CharacterTemplate.DisplayName} MapGridPosition from {characterInstance.MapGridPosition} to {spawnPosition}",
-                TurnrootLogger.LogLevel.Warning
-            );
+            $"SpawnRosterUnitsOntoGrid: Repairing {characterInstance.CharacterTemplate.DisplayName} MapGridPosition from {characterInstance.MapGridPosition} to {spawnPosition}".LogWarning();
 
             try
             {
@@ -155,10 +137,8 @@ namespace Turnroot.Gameplay.Brain
             }
             catch (System.Exception ex)
             {
-                TurnrootLogger.Log(
-                    "SpawnRosterUnitsOntoGrid: Failed during RemoveOccupied cleanup: " + ex.Message,
-                    TurnrootLogger.LogLevel.Warning
-                );
+                "SpawnRosterUnitsOntoGrid: Failed during RemoveOccupied cleanup: ".LogWarning();
+                ex.Message.LogWarning();
             }
 
             try
@@ -173,24 +153,16 @@ namespace Turnroot.Gameplay.Brain
                 }
                 else
                 {
-                    TurnrootLogger.Log(
-                        "SpawnRosterUnitsOntoGrid: Failed to find MapGridPoint for placement during repair.",
-                        TurnrootLogger.LogLevel.Error
-                    );
+                    "SpawnRosterUnitsOntoGrid: Failed to find MapGridPoint for placement during repair.".LogError();
                 }
             }
             catch (System.Exception ex)
             {
-                TurnrootLogger.Log(
-                    "SpawnRosterUnitsOntoGrid: Failed to align spawn position: " + ex.Message,
-                    TurnrootLogger.LogLevel.Error
-                );
+                "SpawnRosterUnitsOntoGrid: Failed to align spawn position: ".LogError();
+                ex.Message.LogError();
             }
 #else
-            TurnrootLogger.Log(
-                $"SpawnRosterUnitsOntoGrid: Detected MapGridPosition mismatch for {characterInstance.CharacterTemplate.DisplayName} from {characterInstance.MapGridPosition} to {spawnPosition}; skipping repair in release build.",
-                TurnrootLogger.LogLevel.Warning
-            );
+            $"SpawnRosterUnitsOntoGrid: Detected MapGridPosition mismatch for {characterInstance.CharacterTemplate.DisplayName} from {characterInstance.MapGridPosition} to {spawnPosition}; skipping repair in release build.".LogWarning();
 #endif
         }
 
@@ -219,10 +191,8 @@ namespace Turnroot.Gameplay.Brain
             }
             catch (System.Exception ex)
             {
-                TurnrootLogger.Log(
-                    "SpawnRosterUnitsOntoGrid: Unexpected error during spawn pass: " + ex.Message,
-                    TurnrootLogger.LogLevel.Warning
-                );
+                "SpawnRosterUnitsOntoGrid: Unexpected error during spawn pass: ".LogWarning();
+                ex.Message.LogWarning();
             }
         }
 
@@ -251,19 +221,13 @@ namespace Turnroot.Gameplay.Brain
                 if (created != null)
                 {
                     rosterInstance.AddInstance(created);
-                    TurnrootLogger.Log(
-                        $"EnsureInstanceForPlacement: Created instance for {data?.DisplayName}",
-                        TurnrootLogger.LogLevel.Info
-                    );
+                    $"EnsureInstanceForPlacement: Created instance for {data?.DisplayName}".LogInfo();
                     return created;
                 }
             }
             catch (System.Exception ex)
             {
-                TurnrootLogger.Log(
-                    $"EnsureInstanceForPlacement: Failed to create instance for {data?.DisplayName}: {ex.Message}",
-                    TurnrootLogger.LogLevel.Warning
-                );
+                $"EnsureInstanceForPlacement: Failed to create instance for {data?.DisplayName}: {ex.Message}".LogWarning();
             }
 
             return null;
@@ -292,19 +256,13 @@ namespace Turnroot.Gameplay.Brain
                 if (created != null)
                 {
                     rosterInstance.AddInstance(created);
-                    TurnrootLogger.Log(
-                        $"EnsureInstanceForPlacement: Created instance for {data?.DisplayName}",
-                        TurnrootLogger.LogLevel.Info
-                    );
+                    $"EnsureInstanceForPlacement: Created instance for {data?.DisplayName}".LogInfo();
                     return created;
                 }
             }
             catch (System.Exception ex)
             {
-                TurnrootLogger.Log(
-                    $"EnsureInstanceForPlacement: Failed to create instance for {data?.DisplayName}: {ex.Message}",
-                    TurnrootLogger.LogLevel.Warning
-                );
+                $"EnsureInstanceForPlacement: Failed to create instance for {data?.DisplayName}: {ex.Message}".LogWarning();
             }
 
             return null;

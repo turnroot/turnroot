@@ -64,7 +64,7 @@ namespace Turnroot.Gameplay.Brain.Components
             var parentBrain = brain.Brain;
             parentBrain.PublishIllegalModification(message);
 
-            TurnrootLogger.Log(message, TurnrootLogger.LogLevel.Warning);
+            message.LogWarning();
         }
 
         private static string ExtractInstanceId<T>(T instance)
@@ -108,10 +108,7 @@ namespace Turnroot.Gameplay.Brain.Components
             );
             if (!encodeResult.Success)
             {
-                TurnrootLogger.Log(
-                    $"TamperHandler: failed to encode replacement instance: {encodeResult.Error}",
-                    TurnrootLogger.LogLevel.Warning
-                );
+                $"TamperHandler: failed to encode replacement instance: {encodeResult.Error}".LogWarning();
                 return null;
             }
 
@@ -120,10 +117,7 @@ namespace Turnroot.Gameplay.Brain.Components
             );
             if (!decodeResult.Success)
             {
-                TurnrootLogger.Log(
-                    $"TamperHandler: failed to decode wrapper from replacement instance: {decodeResult.Error}",
-                    TurnrootLogger.LogLevel.Warning
-                );
+                $"TamperHandler: failed to decode wrapper from replacement instance: {decodeResult.Error}".LogWarning();
                 return null;
             }
 
@@ -156,11 +150,10 @@ namespace Turnroot.Gameplay.Brain.Components
             }
             catch (Exception ex)
             {
-                TurnrootLogger.Log(
-                    $"TamperHandler: failed to update ledger for replacement: {ex.Message}",
-                    TurnrootLogger.LogLevel.Warning
-                );
+                $"TamperHandler: failed to update ledger for replacement: {ex.Message}".LogWarning();
             }
         }
     }
 }
+
+

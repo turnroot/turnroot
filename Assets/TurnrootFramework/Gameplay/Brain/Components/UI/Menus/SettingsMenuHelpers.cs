@@ -24,10 +24,7 @@ namespace Turnroot.Gameplay.Brain.Segments
             var sourceMenu = FindActiveMenu();
             if (sourceMenu?.activeInstance == null)
             {
-                TurnrootLogger.Log(
-                    $"UiBrain: Cannot open {menuTypeName} menu - no active source menu found",
-                    TurnrootLogger.LogLevel.Warning
-                );
+                $"UiBrain: Cannot open {menuTypeName} menu - no active source menu found".LogWarning();
                 return;
             }
 
@@ -78,3 +75,4 @@ namespace Turnroot.Gameplay.Brain.Segments
         #endregion
     }
 }
+

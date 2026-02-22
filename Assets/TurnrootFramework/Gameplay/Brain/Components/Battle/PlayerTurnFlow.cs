@@ -121,10 +121,7 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
         {
             if (GetCurrentState() == PlayerTurnStates.ExecutingMove)
             {
-                TurnrootLogger.Log(
-                    "StartMove called but flow already in ExecutingMove - ignoring",
-                    TurnrootLogger.LogLevel.Warning
-                );
+                "StartMove called but flow already in ExecutingMove - ignoring".LogWarning();
                 return;
             }
 
@@ -331,10 +328,7 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
             // If turn already ended, ignore this call (may happen due to race conditions)
             if (_currentState.CurrentState == PlayerTurnStates.TurnEnded)
             {
-                TurnrootLogger.Log(
-                    "WaitAndEndTurn called but turn is already ended, ignoring",
-                    TurnrootLogger.LogLevel.Warning
-                );
+                "WaitAndEndTurn called but turn is already ended, ignoring".LogWarning();
                 return;
             }
 
@@ -363,10 +357,7 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
                 }
                 else
                 {
-                    TurnrootLogger.Log(
-                        $"PlayerTurnFlow: Interrupt queued but scene flow in unexpected state: {_cachedSceneFlow.CurrentMiniBattleState}",
-                        TurnrootLogger.LogLevel.Warning
-                    );
+                    $"PlayerTurnFlow: Interrupt queued but scene flow in unexpected state: {_cachedSceneFlow.CurrentMiniBattleState}".LogWarning();
                 }
             }
 

@@ -111,10 +111,7 @@ namespace Turnroot.Characters
             {
                 if (targetTier > currentTier + 1)
                 {
-                    TurnrootLogger.Log(
-                        $"Cannot change from {currentTier} class to {targetTier} class - must progress one tier at a time (PromotionBased).",
-                        TurnrootLogger.LogLevel.Warning
-                    );
+                    $"Cannot change from {currentTier} class to {targetTier} class - must progress one tier at a time (PromotionBased).".LogWarning();
                     return false;
                 }
                 return true;
@@ -122,10 +119,7 @@ namespace Turnroot.Characters
 
             if (targetTier < currentTier)
             {
-                TurnrootLogger.Log(
-                    $"Cannot change from {currentTier} class to lower-tier {targetTier} class while ClassSelection=RequirementBased.",
-                    TurnrootLogger.LogLevel.Warning
-                );
+                $"Cannot change from {currentTier} class to lower-tier {targetTier} class while ClassSelection=RequirementBased.".LogWarning();
                 return false;
             }
 
@@ -322,3 +316,4 @@ namespace Turnroot.Characters
         #endregion
     }
 }
+

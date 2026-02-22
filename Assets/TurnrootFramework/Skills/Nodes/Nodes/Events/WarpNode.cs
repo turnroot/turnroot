@@ -65,7 +65,7 @@ namespace Turnroot.Skills.Nodes.Events
             string distanceText =
                 maxDistance > 0 ? $" (max {maxDistance} tiles)" : " (unlimited range)";
 
-            TurnrootLogger.Log($"Warp: Will warp {modeText}{distanceText}");
+            $"Warp: Will warp {modeText}{distanceText}".LogInfo();
         }
     }
 
@@ -78,3 +78,4 @@ namespace Turnroot.Skills.Nodes.Events
         CasterToAlly,
     }
 }
+

@@ -68,9 +68,7 @@ namespace Turnroot.Characters
                 return OperationResult.Successful();
             }
 
-            TurnrootLogger.Log(
-                $"Support relationship with {character.name} does not exist. Creating new relationship."
-            );
+            $"Support relationship with {character.name} does not exist. Creating new relationship.".LogInfo();
             var res = AddSupportRelationship(new SupportRelationship { Character = character });
             if (!res.Success)
             {

@@ -45,9 +45,9 @@ namespace Turnroot.Skills.Nodes.Events
                         context.SetCustomData($"DisableFollowup_{target.Id}", true);
                     }
                 }
-                TurnrootLogger.Log(
-                    $"DisableEnemyFollowup: Disabled followup for {context.Participants.Targets.Count} enemies"
-                );
+
+                $"DisableEnemyFollowup: Disabled followup for {context.Participants.Targets.Count} enemies"
+            .LogInfo();
             }
             else
             {
@@ -60,8 +60,9 @@ namespace Turnroot.Skills.Nodes.Events
                 }
                 context.SetCustomData($"DisableFollowup_{target.Id}", true);
 
-                TurnrootLogger.Log("DisableEnemyFollowup: Disabled followup attack for target");
+                "DisableEnemyFollowup: Disabled followup attack for target".LogInfo();
             }
         }
     }
 }
+

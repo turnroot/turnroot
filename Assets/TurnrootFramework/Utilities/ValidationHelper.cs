@@ -19,7 +19,7 @@ namespace Turnroot.Utilities
                 var message = string.IsNullOrEmpty(context)
                     ? $"{objectName} is null"
                     : $"{context}: {objectName} is null";
-                TurnrootLogger.Log(message, TurnrootLogger.LogLevel.Warning);
+                message.LogWarning();
                 return false;
             }
             return true;
@@ -59,7 +59,7 @@ namespace Turnroot.Utilities
                     var message = string.IsNullOrEmpty(context)
                         ? $"{name} is null"
                         : $"{context}: {name} is null";
-                    TurnrootLogger.Log(message, TurnrootLogger.LogLevel.Warning);
+                    message.LogWarning();
                     missing.Add(name);
                     allValid = false;
                 }
@@ -85,7 +85,7 @@ namespace Turnroot.Utilities
                 var message = string.IsNullOrEmpty(context)
                     ? $"{stringName} is null or empty"
                     : $"{context}: {stringName} is null or empty";
-                TurnrootLogger.Log(message, TurnrootLogger.LogLevel.Warning);
+                message.LogWarning();
                 return false;
             }
             return true;
@@ -109,7 +109,7 @@ namespace Turnroot.Utilities
                 var message = string.IsNullOrEmpty(context)
                     ? $"{collectionName} is null or empty"
                     : $"{context}: {collectionName} is null or empty";
-                TurnrootLogger.Log(message, TurnrootLogger.LogLevel.Warning);
+                message.LogWarning();
                 return false;
             }
             return true;

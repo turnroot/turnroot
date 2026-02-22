@@ -38,9 +38,7 @@ namespace Turnroot.Skills.Nodes.Events
                 target => KillCharacter(context, target)
             );
 
-            TurnrootLogger.Log(
-                $"KillTarget: Killed {killedCount} {(killedCount == 1 ? "enemy" : "enemies")}"
-            );
+            $"KillTarget: Killed {killedCount} {(killedCount == 1 ? "enemy" : "enemies")}".LogInfo();
         }
     }
 }

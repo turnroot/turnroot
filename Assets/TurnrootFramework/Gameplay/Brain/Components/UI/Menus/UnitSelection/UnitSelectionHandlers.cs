@@ -39,7 +39,7 @@ namespace Turnroot.Gameplay.Brain.Segments
                 && unitColumns.SelectedCount >= unitColumns.MaxSelectedUnits
             )
             {
-                TurnrootLogger.Log("UiBrain: Cannot select more units - max reached");
+                "UiBrain: Cannot select more units - max reached".LogInfo();
 
                 return;
             }

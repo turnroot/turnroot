@@ -256,9 +256,9 @@ namespace Turnroot.Gameplay.Brain.Segments
             }
 
             // Debug: confirm binding for investigation
-            TurnrootLogger.Log(
-                $"SettingsBindingManager: Bound slider '{slider.gameObject.name}' to setting '{settingName}'"
-            );
+
+            $"SettingsBindingManager: Bound slider '{slider.gameObject.name}' to setting '{settingName}'"
+        .LogInfo();
 
             // Set up change listener - quantize quality to tenths (max 0.3) and update settings
             slider.onValueChanged.RemoveAllListeners();
@@ -363,3 +363,4 @@ namespace Turnroot.Gameplay.Brain.Segments
         }
     }
 }
+

@@ -43,9 +43,10 @@ namespace Turnroot.Skills.Nodes.Events
                 target => DealDamage(context, target, damage)
             );
 
-            TurnrootLogger.Log(
-                $"AreaOfEffectDamage: Dealt {damage} damage to {affectedCount} enemies in {radius} tile radius"
-            );
+
+            $"AreaOfEffectDamage: Dealt {damage} damage to {affectedCount} enemies in {radius} tile radius"
+        .LogInfo();
         }
     }
 }
+

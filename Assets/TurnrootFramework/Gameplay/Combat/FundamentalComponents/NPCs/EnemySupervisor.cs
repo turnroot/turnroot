@@ -60,10 +60,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles.NPCs
 
                 if (placement.Enemy.IsUnique)
                 {
-                    TurnrootLogger.Log(
-                        $"Enemy {placement.Enemy.DisplayName} is unique but is included in the EnemySupervisor's GenericEnemyStartingPlacements. Skipping this placement.",
-                        TurnrootLogger.LogLevel.Warning
-                    );
+                    $"Enemy {placement.Enemy.DisplayName} is unique but is included in the EnemySupervisor's GenericEnemyStartingPlacements. Skipping this placement.".LogWarning();
                     continue;
                 }
 
@@ -191,10 +188,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles.NPCs
                 );
                 if (!spawnRes.Success)
                 {
-                    TurnrootLogger.Log(
-                        $"EnemySupervisor: UnitAppearance precompute failed for {instance.Id}: {spawnRes.ErrorMessage}",
-                        TurnrootLogger.LogLevel.Warning
-                    );
+                    $"EnemySupervisor: UnitAppearance precompute failed for {instance.Id}: {spawnRes.ErrorMessage}".LogWarning();
                 }
             }
         }

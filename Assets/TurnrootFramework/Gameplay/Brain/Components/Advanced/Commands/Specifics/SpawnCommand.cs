@@ -24,12 +24,12 @@ namespace Turnroot.Gameplay.Brain.Commands
             var unit = FindUnit(context, UnitId);
             if (unit == null)
             {
-                TurnrootLogger.Log(
+                (
                     $"[SpawnCommand] Could not find unit {UnitId} in context when executing spawn. "
-                        + "Make sure the instance has been registered with the BattleContext (e.g. calling "
-                        + "BattleContext.SpawnAtPosition which handles registration for you).",
-                    TurnrootLogger.LogLevel.Warning
-                );
+                    + "Make sure the instance has been registered with the BattleContext (e.g. calling "
+                    + "BattleContext.SpawnAtPosition which handles registration for you)."
+                ).LogWarning();
+
                 return false;
             }
 
@@ -79,10 +79,7 @@ namespace Turnroot.Gameplay.Brain.Commands
                 }
                 else
                 {
-                    TurnrootLogger.Log(
-                        "SpawnCommand.Undo: Prev grid point missing; falling back to direct MapGridPosition assignment",
-                        TurnrootLogger.LogLevel.Warning
-                    );
+                    "SpawnCommand.Undo: Prev grid point missing; falling back to direct MapGridPosition assignment".LogWarning();
                     unit.MapGridPosition = fromPos; // fallback
                 }
 
