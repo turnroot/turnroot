@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Turnroot.Characters.Stats;
 using Turnroot.Gameplay.Brain;
 using Turnroot.Gameplay.Brain.Components;
@@ -68,6 +69,9 @@ namespace Turnroot.Characters
                     return;
                 }
 
+                // occasionally stats collections can end up with duplicate entries
+                DeduplicateRuntimeStats();
+
                 string key = $"CharacterInstance/{Id}/Stats";
                 var json = ltm.Recall(key);
 
@@ -121,6 +125,9 @@ namespace Turnroot.Characters
 
         private CharacterInstanceStatsDto BuildRuntimeDto()
         {
+            // make sure we aren't serializing duplicate entries
+            DeduplicateRuntimeStats();
+
             var runtimeDto = new CharacterInstanceStatsDto
             {
                 BoundedStats = new BoundedStatDto[_runtimeBoundedStats.Count],
@@ -371,6 +378,52 @@ namespace Turnroot.Characters
                 }
                 _deferredPersistRegistered = false;
             }
+        }
+
+        // ------------------------------------------------------------
+        // utility used by several persistence helpers above
+        // ------------------------------------------------------------
+        private void DeduplicateRuntimeStats()
+        {
+            if (_runtimeBoundedStats == null || _runtimeUnboundedStats == null)
+            {
+                return;
+            }
+
+            bool warned = false;
+
+            _runtimeBoundedStats = _runtimeBoundedStats
+                .GroupBy(s => s.StatType)
+                .Select(g =>
+                {
+                    if (g.Count() > 1 && !warned)
+                    {
+                        TurnrootLogger.Log(
+                            $"CharacterInstance {Id}: removing {g.Count() - 1} duplicated bounded stat entries of type {g.Key}",
+                            TurnrootLogger.LogLevel.Warning
+                        );
+                        warned = true;
+                    }
+                    return g.First();
+                })
+                .ToList();
+
+            warned = false;
+            _runtimeUnboundedStats = _runtimeUnboundedStats
+                .GroupBy(s => s.StatType)
+                .Select(g =>
+                {
+                    if (g.Count() > 1 && !warned)
+                    {
+                        TurnrootLogger.Log(
+                            $"CharacterInstance {Id}: removing {g.Count() - 1} duplicated unbounded stat entries of type {g.Key}",
+                            TurnrootLogger.LogLevel.Warning
+                        );
+                        warned = true;
+                    }
+                    return g.First();
+                })
+                .ToList();
         }
     }
         #endregion
