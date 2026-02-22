@@ -12,6 +12,10 @@ namespace Turnroot.Gameplay.Brain
 
         private int LoadedAmount { get; set; } = 0;
         private int TotalToLoad { get; set; } = 0;
+
+        // guard so we only fire the scene flow once when we first hit 100%
+        private bool _completionTriggered = false;
+
         protected int LoadingPercentage =>
             TotalToLoad == 0 ? 0 : (int)((float)LoadedAmount / TotalToLoad * 100);
 
@@ -51,14 +55,22 @@ namespace Turnroot.Gameplay.Brain
 
         private void CheckCompletion()
         {
-            if (TotalToLoad > 0 && LoadedAmount >= TotalToLoad)
+            if (TotalToLoad > 0 && LoadedAmount >= TotalToLoad && !_completionTriggered)
             {
+                _completionTriggered = true;
                 var flow = GetDynamicSceneFlow();
                 flow?.Progress();
             }
         }
 
-        public void IncreaseLoadTotal() => TotalToLoad++;
+        public void IncreaseLoadTotal()
+        {
+            TotalToLoad++;
+            if (LoadedAmount < TotalToLoad)
+            {
+                _completionTriggered = false;
+            }
+        }
 
         public void IncreaseLoadTotalBy(int amount)
         {
@@ -68,6 +80,10 @@ namespace Turnroot.Gameplay.Brain
             }
 
             TotalToLoad += amount;
+            if (LoadedAmount < TotalToLoad)
+            {
+                _completionTriggered = false;
+            }
             ReportProgress();
         }
 
@@ -75,6 +91,7 @@ namespace Turnroot.Gameplay.Brain
         {
             LoadedAmount = 0;
             TotalToLoad = 0;
+            _completionTriggered = false;
             ReportProgress();
         }
 
@@ -82,6 +99,7 @@ namespace Turnroot.Gameplay.Brain
         {
             LoadedAmount = 0;
             TotalToLoad = 0;
+            _completionTriggered = false;
             ReportProgress();
         }
 

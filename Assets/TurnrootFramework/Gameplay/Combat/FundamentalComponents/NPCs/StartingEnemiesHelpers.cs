@@ -68,6 +68,11 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles.NPCs
             var ctx = BattleGameObject.Context;
             if (ctx != null)
             {
+                // make sure the context knows about this unit before we attempt to
+                // spawn it.  SpawnAtPosition already performs a registration step but
+                // we do it explicitly here to ensure precompute logging is clearer.
+                ctx.EnsureUnitIsParticipant(created);
+
                 var spawned = ctx.SpawnAtPosition(created, placement.StartingPosition);
                 if (!spawned)
                 {

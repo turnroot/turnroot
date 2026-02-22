@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Turnroot.Gameplay.Brain;
+using Turnroot.Utilities;
 
 namespace Turnroot.Characters.Stats
 {
@@ -85,22 +86,22 @@ namespace Turnroot.Characters.Stats
         private static void CleanupDuplicateUnbounded(List<CharacterStat> stats)
         {
             if (stats == null)
+            {
                 return;
+            }
 
             var seen = new HashSet<UnboundedStatType>();
             for (int i = stats.Count - 1; i >= 0; i--)
             {
                 var s = stats[i];
                 if (s == null)
+                {
                     continue;
+                }
 
                 if (seen.Contains(s.StatType))
                 {
                     stats.RemoveAt(i);
-                    TurnrootLogger.Log(
-                        $"StatHelpers: removed duplicate unbounded stat {s.StatType}",
-                        TurnrootLogger.LogLevel.Warning
-                    );
                 }
                 else
                 {
@@ -113,22 +114,22 @@ namespace Turnroot.Characters.Stats
         private static void CleanupDuplicateBounded(List<BoundedCharacterStat> stats)
         {
             if (stats == null)
+            {
                 return;
+            }
 
             var seen = new HashSet<BoundedStatType>();
             for (int i = stats.Count - 1; i >= 0; i--)
             {
                 var s = stats[i];
                 if (s == null)
+                {
                     continue;
+                }
 
                 if (seen.Contains(s.StatType))
                 {
                     stats.RemoveAt(i);
-                    TurnrootLogger.Log(
-                        $"StatHelpers: removed duplicate bounded stat {s.StatType}",
-                        TurnrootLogger.LogLevel.Warning
-                    );
                 }
                 else
                 {

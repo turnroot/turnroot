@@ -32,6 +32,17 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
         public bool SpawnAtPosition(CharacterInstance unit, Vector2Int spawnPosition)
         {
+            if (unit == null)
+            {
+                this.LogWarning("SpawnAtPosition called with null unit");
+                return false;
+            }
+
+            // make sure the unit is registered with the context so the
+            // SpawnCommand can locate it by id during execution.  This also
+            // establishes the unit's allegiance for targeting logic.
+            EnsureUnitIsParticipant(unit);
+
             var command = new SpawnCommand(
                 unit.Id,
                 spawnPosition,

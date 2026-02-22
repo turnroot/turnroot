@@ -63,6 +63,7 @@ namespace Turnroot.Gameplay.Brain
 
         #endregion
 
+
         #region Initialization
 
         protected override void Awake()
@@ -177,6 +178,14 @@ namespace Turnroot.Gameplay.Brain
                         $"BattleBrain: BattlePrecomputeLoader.Initialize failed: {initRes.ErrorMessage}",
                         TurnrootLogger.LogLevel.Warning
                     );
+                }
+                else
+                {
+                    // The loader is now tied to the current battle context and roster
+                    // placements have already been applied by this point (InitializeBattleRosters
+                    // is called before we reach here).  Kick off the precompute run to avoid
+                    // any race with scene‑flow timings that might start the loader earlier.
+                    precomputeLoader.ForceStartPrecomputeIfPossible();
                 }
             }
             else

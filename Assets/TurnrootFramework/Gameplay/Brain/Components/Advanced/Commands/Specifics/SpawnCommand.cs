@@ -25,7 +25,9 @@ namespace Turnroot.Gameplay.Brain.Commands
             if (unit == null)
             {
                 TurnrootLogger.Log(
-                    $"[SpawnCommand] Could not find unit {UnitId} in context when executing spawn",
+                    $"[SpawnCommand] Could not find unit {UnitId} in context when executing spawn. "
+                        + "Make sure the instance has been registered with the BattleContext (e.g. calling "
+                        + "BattleContext.SpawnAtPosition which handles registration for you).",
                     TurnrootLogger.LogLevel.Warning
                 );
                 return false;

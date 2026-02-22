@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Turnroot.Characters;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Locations;
 using Turnroot.Skills;
@@ -137,6 +138,55 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 }
             }
             return OperationResult.Failure("No matching placement found in roster");
+        }
+
+        /// <summary>
+        /// Ensures that a given character instance is registered in the battle participants list.
+        /// This is required so that command lookups (eg. <see cref="SpawnCommand"/>) can find
+        /// the unit by id and so the context knows the unit's allegiance for targeting logic.
+        /// If the unit is already present no changes are made. We try to infer the correct
+        /// team (allies/third‑party/targets) based on any available rosters and fall back to
+        /// treating the unit as an enemy (Targets) when unsure.
+        /// </summary>
+        public void EnsureUnitIsParticipant(CharacterInstance unit)
+        {
+            if (unit == null)
+            {
+                return;
+            }
+
+            var parts = Participants;
+            if (parts.GetAllUnits().Contains(unit))
+            {
+                return; // already registered
+            }
+
+            bool added = false;
+            var battleObj = Brain?.battleBrain?.BattleObject;
+            if (battleObj != null)
+            {
+                var playerRoster = battleObj.PlayerTeamRoster;
+                if (playerRoster != null && playerRoster.Instances.Contains(unit))
+                {
+                    parts.Allies.Add(unit);
+                    added = true;
+                }
+                else if (
+                    battleObj.HasThirdParty
+                    && battleObj.ThirdPartyTeamRoster != null
+                    && battleObj.ThirdPartyTeamRoster.Instances.Contains(unit)
+                )
+                {
+                    parts.ThirdParty.Add(unit);
+                    added = true;
+                }
+            }
+
+            if (!added)
+            {
+                // default to treating as an enemy
+                parts.Targets.Add(unit);
+            }
         }
 
         #endregion

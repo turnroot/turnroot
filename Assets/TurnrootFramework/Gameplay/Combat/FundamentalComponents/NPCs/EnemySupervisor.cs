@@ -58,10 +58,10 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles.NPCs
                     continue;
                 }
 
-                if (!placement.Enemy.IsUnique)
+                if (placement.Enemy.IsUnique)
                 {
                     TurnrootLogger.Log(
-                        $"Enemy {placement.Enemy.DisplayName} is not unique but is included in the EnemySupervisor's GenericEnemyStartingPlacements. Skipping this placement.",
+                        $"Enemy {placement.Enemy.DisplayName} is unique but is included in the EnemySupervisor's GenericEnemyStartingPlacements. Skipping this placement.",
                         TurnrootLogger.LogLevel.Warning
                     );
                     continue;
