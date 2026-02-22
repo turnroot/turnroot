@@ -1,5 +1,4 @@
 using System;
-using Turnroot.Gameplay.PlayerSettings;
 
 namespace Turnroot.Gameplay.Brain
 {

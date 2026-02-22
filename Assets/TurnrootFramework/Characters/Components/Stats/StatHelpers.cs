@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Turnroot.Gameplay.Brain;
+using Turnroot.Utilities;
 
 namespace Turnroot.Characters.Stats
 {
@@ -13,12 +14,20 @@ namespace Turnroot.Characters.Stats
         public static BoundedCharacterStat GetBoundedStat(
             List<BoundedCharacterStat> stats,
             BoundedStatType type
-        ) => GetStat(stats, type, s => s.StatType);
+        )
+        {
+            CleanupDuplicateBounded(stats);
+            return GetStat(stats, type, s => s.StatType);
+        }
 
         public static BoundedCharacterStat GetOrCreateBoundedStat(
             List<BoundedCharacterStat> stats,
             BoundedStatType type
-        ) => GetOrCreateBoundedStat(stats, type, null);
+        )
+        {
+            CleanupDuplicateBounded(stats);
+            return GetOrCreateBoundedStat(stats, type, null);
+        }
 
         public static BoundedCharacterStat GetOrCreateBoundedStat(
             List<BoundedCharacterStat> stats,
@@ -30,6 +39,8 @@ namespace Turnroot.Characters.Stats
             {
                 return null;
             }
+
+            CleanupDuplicateBounded(stats);
 
             var existing = stats.Find(s => s?.StatType == type);
             if (existing != null)
@@ -70,15 +81,80 @@ namespace Turnroot.Characters.Stats
         #endregion
 
         #region Unbounded Stats
+
+        // ensure a unbounded list never contains more than one entry per type
+        private static void CleanupDuplicateUnbounded(List<CharacterStat> stats)
+        {
+            if (stats == null)
+            {
+                return;
+            }
+
+            var seen = new HashSet<UnboundedStatType>();
+            for (int i = stats.Count - 1; i >= 0; i--)
+            {
+                var s = stats[i];
+                if (s == null)
+                {
+                    continue;
+                }
+
+                if (seen.Contains(s.StatType))
+                {
+                    stats.RemoveAt(i);
+                }
+                else
+                {
+                    seen.Add(s.StatType);
+                }
+            }
+        }
+
+        // ensure a bounded stats list has no duplicate types
+        private static void CleanupDuplicateBounded(List<BoundedCharacterStat> stats)
+        {
+            if (stats == null)
+            {
+                return;
+            }
+
+            var seen = new HashSet<BoundedStatType>();
+            for (int i = stats.Count - 1; i >= 0; i--)
+            {
+                var s = stats[i];
+                if (s == null)
+                {
+                    continue;
+                }
+
+                if (seen.Contains(s.StatType))
+                {
+                    stats.RemoveAt(i);
+                }
+                else
+                {
+                    seen.Add(s.StatType);
+                }
+            }
+        }
+
         public static CharacterStat GetUnboundedStat(
             List<CharacterStat> stats,
             UnboundedStatType type
-        ) => GetStat(stats, type, s => s.StatType);
+        )
+        {
+            CleanupDuplicateUnbounded(stats);
+            return GetStat(stats, type, s => s.StatType);
+        }
 
         public static CharacterStat GetOrCreateUnboundedStat(
             List<CharacterStat> stats,
             UnboundedStatType type
-        ) => GetOrCreateUnboundedStat(stats, type, null);
+        )
+        {
+            CleanupDuplicateUnbounded(stats);
+            return GetOrCreateUnboundedStat(stats, type, null);
+        }
 
         public static CharacterStat GetOrCreateUnboundedStat(
             List<CharacterStat> stats,
@@ -90,6 +166,8 @@ namespace Turnroot.Characters.Stats
             {
                 return null;
             }
+
+            CleanupDuplicateUnbounded(stats);
 
             var existing = stats.Find(s => s?.StatType == type);
             if (existing != null)

@@ -50,13 +50,17 @@ namespace Turnroot.Characters.Components
             get
             {
                 float weight = 0;
-                foreach (var item in _inventoryItems)
+                if (_inventoryItems != null)
                 {
-                    if (item != null)
+                    foreach (var item in _inventoryItems)
                     {
-                        weight += item.Template.Weight;
+                        if (item != null && item.Template != null)
+                        {
+                            weight += item.Template.Weight;
+                        }
                     }
                 }
+
                 return (int)weight;
             }
         }

@@ -102,7 +102,6 @@ namespace Turnroot.Characters.CharacterClass
             var identity = _classData.Identity;
 
             var mats = _meshRenderer.materials ?? new Material[0];
-            var applied = false;
             for (int i = 0; i < mats.Length; i++)
             {
                 var m = mats[i];
@@ -127,19 +126,7 @@ namespace Turnroot.Characters.CharacterClass
                     {
                         m.SetTexture("_Tint_Mask", identity.TintMask);
                     }
-
-                    applied = true;
                 }
-            }
-
-            if (!applied)
-            {
-                var classLabel =
-                    _classData?.GetClassName() ?? _classData?.name ?? "<unknown class>";
-                TurnrootLogger.Log(
-                    $"CharacterClassDataInstance[{classLabel}]: InitializeWithRenderer: renderer materials do not expose class texture properties; class textures were not applied.",
-                    TurnrootLogger.LogLevel.Warning
-                );
             }
 
             return true;

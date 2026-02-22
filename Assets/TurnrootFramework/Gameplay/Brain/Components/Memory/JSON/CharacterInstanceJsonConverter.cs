@@ -133,8 +133,27 @@ namespace Turnroot.Gameplay.Brain.Components
         /// Helper method to serialize a field or return null if the value is null.
         /// Reduces repetitive null checking in serialization code.
         /// </summary>
-        private static JToken SerializeFieldOrNull(object value, JsonSerializer serializer) =>
-            value != null ? JToken.FromObject(value, serializer) : JValue.CreateNull();
+        private static JToken SerializeFieldOrNull(object value, JsonSerializer serializer)
+        {
+            if (value == null)
+            {
+                return JValue.CreateNull();
+            }
+
+            try
+            {
+                return JToken.FromObject(value, serializer);
+            }
+            catch (System.Exception ex)
+            {
+#if UNITY_EDITOR
+                UnityEngine.Debug.LogWarning(
+                    $"CharacterInstanceJsonConverter: failed to serialize field: {ex.Message}"
+                );
+#endif
+                return JValue.CreateNull();
+            }
+        }
 
         private JObject CreateTemplateToken(CharacterData template)
         {

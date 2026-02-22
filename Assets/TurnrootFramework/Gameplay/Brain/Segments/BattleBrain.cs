@@ -58,13 +58,11 @@ namespace Turnroot.Gameplay.Brain
         public PlayerTeamRosterInstance PlayerTeamRoster =>
             BattleObject != null ? BattleObject.PlayerTeamRoster : null;
 
-        public GenericRosterInstance EnemyTeamRoster =>
-            BattleObject != null ? BattleObject.EnemyTeamRoster : null;
-
         public GenericRosterInstance ThirdPartyTeamRoster =>
             BattleObject != null ? BattleObject.ThirdPartyTeamRoster : null;
 
         #endregion
+
 
         #region Initialization
 
@@ -180,6 +178,14 @@ namespace Turnroot.Gameplay.Brain
                         $"BattleBrain: BattlePrecomputeLoader.Initialize failed: {initRes.ErrorMessage}",
                         TurnrootLogger.LogLevel.Warning
                     );
+                }
+                else
+                {
+                    // The loader is now tied to the current battle context and roster
+                    // placements have already been applied by this point (InitializeBattleRosters
+                    // is called before we reach here).  Kick off the precompute run to avoid
+                    // any race with scene‑flow timings that might start the loader earlier.
+                    precomputeLoader.ForceStartPrecomputeIfPossible();
                 }
             }
             else
@@ -341,7 +347,10 @@ namespace Turnroot.Gameplay.Brain
                         {
                             dbg += $"[{kvp.Key}->{kvp.Value?.name}] ";
                         }
-                        TurnrootLogger.Log($"BattleBrain: placement alignment pre-sync: {dbg}", TurnrootLogger.LogLevel.Info);
+                        TurnrootLogger.Log(
+                            $"BattleBrain: placement alignment pre-sync: {dbg}",
+                            TurnrootLogger.LogLevel.Info
+                        );
                     }
                     catch { }
 #endif
@@ -449,14 +458,6 @@ namespace Turnroot.Gameplay.Brain
                 if (!unit.IsDefeatedInCurrentBattle)
                 {
                     context.Participants.Allies.Add(unit);
-                }
-            }
-
-            foreach (var unit in EnemyTeamRoster.Instances)
-            {
-                if (!unit.IsDefeatedInCurrentBattle)
-                {
-                    context.Participants.Targets.Add(unit);
                 }
             }
 

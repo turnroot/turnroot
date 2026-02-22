@@ -39540,7 +39540,7 @@ MonoBehaviour:
   _single3dHeightMeshRaycastPoints: []
   _single3dHeightMeshRaycastIndices: []
   _showRaycastGizmos: 1
-  _showRaycastCoordinates: 0
+  _showRaycastCoordinates: 1
   _raycastLayerMask:
     serializedVersion: 2
     m_Bits: 64
@@ -46102,6 +46102,7 @@ GameObject:
   - component: {fileID: 1742232840}
   - component: {fileID: 1742232841}
   - component: {fileID: 1742232842}
+  - component: {fileID: 1742232843}
   m_Layer: 0
   m_Name: = Battle Map
   m_TagString: Untagged
@@ -46129,7 +46130,6 @@ MonoBehaviour:
   _requiredPlayerUnits: []
   _battleConditions: []
   <MapGrid>k__BackingField: {fileID: 1504346367}
-  _enemyRoster: {fileID: 0}
   _thirdPartyRoster: {fileID: 0}
   _currentTurnCount: 0
   GroundLayerMask:
@@ -46267,6 +46267,27 @@ MonoBehaviour:
   GoodColor: {r: 0.08290317, g: 0.6509434, b: 0.50160325, a: 1}
   BadColor: {r: 0.735849, g: 0.11933845, b: 0.045122836, a: 1}
   NeutralColor: {r: 0.11320752, g: 0.09024562, b: 0.09024562, a: 1}
+--- !u!114 &1742232843
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1742232834}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aa7cd9b35f6f4e949be64ed7d2580c13, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Turnroot.Gameplay.Combat.FundamentalComponents.Battles.NPCs.EnemySupervisor
+  GenericEnemyStartingPlacements:
+    placements:
+    - Enemy: {fileID: 11400000, guid: 3e23498fffa83d440bce6d306134c1ee, type: 2}
+      StartingPosition: {x: 19, y: 12}
+      MinimumDifficultyLevelToSpawn: 0
+      StealableItem: {fileID: 0}
+      WeaponsAreStealable: 0
+  CurrentDifficulty: 0
+  GenericEnemyDifficultyMultiplierForThisBattle: 1.05
 --- !u!1 &1751459802
 GameObject:
   m_ObjectHideFlags: 0

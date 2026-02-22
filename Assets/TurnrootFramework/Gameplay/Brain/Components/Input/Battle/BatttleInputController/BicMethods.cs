@@ -129,6 +129,17 @@ namespace Turnroot.Gameplay.Brain
 
             var unit = BattleContext.Unit.UnitInstance;
             _playerTurnFlow.StartMove();
+
+            // request camera to follow the destination throughout the move animation
+            if (Brain.cameraBrain != null && _pendingDestination != null)
+            {
+                // unit movement should pan slower than cursor movement
+                Brain.cameraBrain.MoveCameraToPosition(
+                    _pendingDestination.CoordinatesInt,
+                    0.01f * Path.Count
+                );
+            }
+
             Brain.PublishCharacterMoveStarted(unit, _pendingDestination);
             var moveRes = BattleContext.MoveUnitToPoint(unit, _pendingDestination);
 
@@ -153,7 +164,6 @@ namespace Turnroot.Gameplay.Brain
             Brain.cursorBrain.ClearAllowedPositions();
 
             // Note: PlayerTurnEnded is published by TurnRotisserie, not here
-            // This used to publish it but caused duplicate events
         }
 
         #endregion
@@ -515,8 +525,12 @@ namespace Turnroot.Gameplay.Brain
             var context = Brain.battleBrain.BattleObject.Context;
             if (!context.TryGetValidTilesForUnit(unit, out var moveTiles, out var attackTiles))
             {
+                var templateName =
+                    unit.CharacterTemplate != null
+                        ? unit.CharacterTemplate.DisplayName
+                        : $"<null template for unit id {unit.Id}>";
                 return OperationResult.Failure(
-                    $"Failed to get valid tiles for unit {unit.CharacterTemplate.DisplayName}"
+                    $"Failed to get valid tiles for unit {templateName}"
                 );
             }
 

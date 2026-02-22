@@ -126,6 +126,12 @@ namespace Turnroot.Gameplay.Brain
                             // Mirror SpawnCommand semantics for spawned units.
                             instance.WasSpawnedDuringBattle = true;
 
+                            // ensure the unit is registered in participants so that
+                            // subsequent command lookups (and targeting logic) work.
+                            Brain.battleBrain?.BattleObject?.Context?.EnsureUnitIsParticipant(
+                                instance
+                            );
+
                             // Publish the authoritative UnitSpawnedEvent so visual systems react consistently.
                             Brain.Publish(new UnitSpawnedEvent(instance, placement.SpawnPosition));
                         }

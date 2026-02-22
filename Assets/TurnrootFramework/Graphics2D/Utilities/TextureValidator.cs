@@ -1,6 +1,7 @@
+using UnityEngine;
 #if UNITY_EDITOR
 using UnityEditor;
-using UnityEngine;
+#endif
 
 namespace Turnroot.Graphics2D.Utilities
 {
@@ -22,6 +23,7 @@ namespace Turnroot.Graphics2D.Utilities
                 return false;
             }
 
+#if UNITY_EDITOR
             // If the texture is an imported asset, prefer the importer setting
             string path = AssetDatabase.GetAssetPath(tex);
             if (!string.IsNullOrEmpty(path))
@@ -32,6 +34,7 @@ namespace Turnroot.Graphics2D.Utilities
                     return importer.isReadable;
                 }
             }
+#endif
 
             // Fallback to runtime check (may throw if unreadable)
             try
@@ -48,6 +51,7 @@ namespace Turnroot.Graphics2D.Utilities
 
         private static bool MakeReadable(Texture2D tex)
         {
+#if UNITY_EDITOR
             string path = AssetDatabase.GetAssetPath(tex);
             var importer = AssetImporter.GetAtPath(path) as TextureImporter;
             if (importer == null)
@@ -72,7 +76,7 @@ namespace Turnroot.Graphics2D.Utilities
             {
                 return true;
             }
-
+#endif
             // As a final fallback, try runtime property
             try
             {
@@ -86,6 +90,7 @@ namespace Turnroot.Graphics2D.Utilities
 
         public static bool IsGrayscalePNG(Texture2D texture)
         {
+#if UNITY_EDITOR
             if (texture == null)
             {
                 return false;
@@ -148,7 +153,7 @@ namespace Turnroot.Graphics2D.Utilities
                 Debug.LogError($"Failed to read PNG file at path '{path}'.");
                 return false;
             }
-
+#endif
             return false;
         }
 
@@ -236,5 +241,3 @@ namespace Turnroot.Graphics2D.Utilities
         }
     }
 }
-
-#endif

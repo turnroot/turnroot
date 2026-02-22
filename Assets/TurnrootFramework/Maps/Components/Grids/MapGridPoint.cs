@@ -297,6 +297,7 @@ namespace Turnroot.Gameplay.Maps
             _featureUnitProperties.Clear();
             _featureObjectItemProperties.Clear();
             _featureEventProperties.Clear();
+#if UNITY_EDITOR
             if (
                 !UnityEditor.EditorApplication.isCompiling
                 && !UnityEditor.EditorApplication.isPlayingOrWillChangePlaymode
@@ -305,6 +306,7 @@ namespace Turnroot.Gameplay.Maps
             {
                 _featureFloatProperties.Clear();
             }
+#endif
             ParentGrid?.IncrementStateVersion();
 
 #if UNITY_EDITOR

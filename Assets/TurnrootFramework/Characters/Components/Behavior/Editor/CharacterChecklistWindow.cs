@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Turnroot.Characters;
 using Turnroot.Characters.Stats;
+using Turnroot.Gameplay.Combat.FundamentalComponents.Battles.NPCs;
 using UnityEngine;
 using UnityEditor;
 
@@ -267,6 +268,9 @@ namespace Turnroot.EditorTools
         private Dictionary<CharacterData, List<string>> _rosterLocations =
             new Dictionary<CharacterData, List<string>>();
 
+        // Characters referenced by EnemySupervisor.GenericEnemyStartingPlacement (generic enemies)
+        private HashSet<CharacterData> _genericEnemyPlacementCharacters = new();
+
         private void Refresh()
         {
             _statusMessage = "Loading CharacterData from Resources...";
@@ -367,7 +371,9 @@ namespace Turnroot.EditorTools
             var yellow = Color.yellow;
             var green = Color.green;
 
-            // Roster presence check (critical/warn/ok based on uniqueness and roster membership)
+            // Roster presence check
+            // - Unique characters: expected in a roster (green); missing -> yellow
+            // - Generic (non-unique) characters: presence in an EnemySupervisor.GenericEnemyStartingPlacement is the desired marker (green); missing -> yellow
             _checks.Add(
                 new CharacterCheckDefinition(
                     "Roster Presence",
@@ -394,24 +400,21 @@ namespace Turnroot.EditorTools
                         }
                         else
                         {
-                            if (inPersistentPlayer)
-                            {
-                                r.Color = red;
-                                r.Note =
-                                    "Non-unique character found in PlayerTeamRoster (persistent)";
-                            }
-                            else if (inNonPersistent)
+                            // Generic characters: check EnemySupervisor placements instead of rosters
+                            if (_genericEnemyPlacementCharacters.Contains(data))
                             {
                                 r.Color = green;
+                                r.Note = "Found in EnemySupervisor GenericEnemyStartingPlacement";
                             }
                             else
                             {
                                 r.Color = yellow;
-                                r.Note = "Non-unique character not present in any roster";
+                                r.Note =
+                                    "Non-unique character not present in any EnemySupervisor placements";
                             }
                         }
 
-                        // Also attach a brief note listing roster locations if available
+                        // Also attach a brief note listing roster/placement locations if available
                         if (
                             _rosterLocations.TryGetValue(data, out var locations)
                             && locations.Count > 0
@@ -419,8 +422,8 @@ namespace Turnroot.EditorTools
                         {
                             var locs = string.Join(", ", locations);
                             r.Note = string.IsNullOrEmpty(r.Note)
-                                ? $"In rosters: {locs}"
-                                : r.Note + $"; In rosters: {locs}";
+                                ? $"In rosters/placements: {locs}"
+                                : r.Note + $"; In rosters/placements: {locs}";
                         }
 
                         return r;
@@ -666,24 +669,47 @@ namespace Turnroot.EditorTools
                 )
             );
 
-            // Support relationships (warn if zero)
+            // Support relationships
+            // - Unique characters: recommended to have support relationships (0 -> orange)
+            // - Generic (non-unique) characters: must NOT have support relationships (0 -> green, any -> red)
             _checks.Add(
                 new CharacterCheckDefinition(
                     "Support Relationships",
                     data =>
                     {
                         var r = new CharacterCheckResult();
-                        if (
-                            data.SupportRelationships == null
-                            || data.SupportRelationships.Count == 0
-                        )
+
+                        if (!data.IsUnique)
                         {
-                            r.Color = orange;
-                            r.Note = "No support relationships";
+                            // Generic characters should have *no* support relationships
+                            if (
+                                data.SupportRelationships == null
+                                || data.SupportRelationships.Count == 0
+                            )
+                            {
+                                r.Color = green;
+                            }
+                            else
+                            {
+                                r.Color = red;
+                                r.Note = "Generic characters must not define support relationships";
+                            }
                         }
                         else
                         {
-                            r.Color = green;
+                            // Unique characters: warn if zero
+                            if (
+                                data.SupportRelationships == null
+                                || data.SupportRelationships.Count == 0
+                            )
+                            {
+                                r.Color = orange;
+                                r.Note = "No support relationships";
+                            }
+                            else
+                            {
+                                r.Color = green;
+                            }
                         }
 
                         return r;
@@ -961,10 +987,22 @@ namespace Turnroot.EditorTools
                 warnNotes.Add("No default portrait assigned (recommended)");
             }
 
-            // Support relationships (0 -> orange)
-            if (data.SupportRelationships == null || data.SupportRelationships.Count == 0)
+            // Support relationships
+            if (!data.IsUnique)
             {
-                warnNotes.Add("No support relationships (recommended)");
+                // Generic characters must NOT have support relationships
+                if (data.SupportRelationships != null && data.SupportRelationships.Count > 0)
+                {
+                    criticalNotes.Add("Generic characters must not have support relationships");
+                }
+            }
+            else
+            {
+                // Unique characters: warn if zero
+                if (data.SupportRelationships == null || data.SupportRelationships.Count == 0)
+                {
+                    warnNotes.Add("No support relationships (recommended)");
+                }
             }
 
             // Badge checks (yellow)
@@ -1229,6 +1267,30 @@ namespace Turnroot.EditorTools
                         _rosterLocations[up.CharacterData] = list;
                     }
                     list.Add($"GenericRoster:{asset.name}");
+                }
+            }
+
+            // --- NEW: scan EnemySupervisor components (prefabs/assets) for GenericEnemyStartingPlacement references ---
+            _genericEnemyPlacementCharacters.Clear();
+            var supervisors = Resources.FindObjectsOfTypeAll<EnemySupervisor>();
+            foreach (var sup in supervisors)
+            {
+                if (sup == null || sup.GenericEnemyStartingPlacements.placements == null)
+                    continue;
+
+                foreach (var placement in sup.GenericEnemyStartingPlacements.placements)
+                {
+                    if (placement.Enemy == null)
+                        continue;
+
+                    _genericEnemyPlacementCharacters.Add(placement.Enemy);
+
+                    if (!_rosterLocations.TryGetValue(placement.Enemy, out var list))
+                    {
+                        list = new List<string>();
+                        _rosterLocations[placement.Enemy] = list;
+                    }
+                    list.Add($"EnemySupervisor:{sup.name}");
                 }
             }
         }

@@ -150,16 +150,6 @@ namespace Turnroot.Gameplay.Maps
         public void GetAllOccupiedPoints()
         {
             EnsureCachedGridPoints();
-
-            foreach (var mgp in _cachedGridPoints.Values)
-            {
-                if (mgp?.IsOccupied == true && mgp.CurrentInstance != null)
-                {
-                    TurnrootLogger.Log(
-                        $"Occupied Point: ({mgp.Row}, {mgp.Col}) by {mgp.CurrentInstance.Id}"
-                    );
-                }
-            }
         }
 
         public void IncrementStateVersion()

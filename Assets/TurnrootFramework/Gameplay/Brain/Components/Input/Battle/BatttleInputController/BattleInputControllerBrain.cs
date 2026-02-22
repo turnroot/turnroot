@@ -24,6 +24,8 @@ namespace Turnroot.Gameplay.Brain
 
         private bool IsBattleInputEnabled => Brain.battleBrain.IsInputEnabled;
 
+        public List<Vector2Int> Path { get; private set; }
+
         [HideInInspector]
         public TileHighlighter _tileHighlighter;
 
@@ -253,15 +255,15 @@ namespace Turnroot.Gameplay.Brain
             {
                 case PlayerTurnStates.UnitSelected:
                 case PlayerTurnStates.ChoosingDestination:
-                    var path = HandlePathPreview();
+                    Path = HandlePathPreview();
 
-                    if (path == null || path.Count == 0)
+                    if (Path == null || Path.Count == 0)
                     {
                         _tileHighlighter.ClearPathPreview();
                         break;
                     }
 
-                    _tileHighlighter.HighlightPath(path);
+                    _tileHighlighter.HighlightPath(Path);
 
                     break;
                 case PlayerTurnStates.AttackActionChosenChoosingTarget:
@@ -296,15 +298,15 @@ namespace Turnroot.Gameplay.Brain
                 || currentState == PlayerTurnStates.AttackActionChosenChoosingTarget
             )
             {
-                var path = HandlePathPreview();
+                Path = HandlePathPreview();
 
-                if (path == null || path.Count == 0)
+                if (Path == null || Path.Count == 0)
                 {
                     _tileHighlighter.ClearPathPreview();
                 }
                 else
                 {
-                    _tileHighlighter.HighlightPath(path);
+                    _tileHighlighter.HighlightPath(Path);
                 }
 
                 if (destination != null && SelectedUnit != null)

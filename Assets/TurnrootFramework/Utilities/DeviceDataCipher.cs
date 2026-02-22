@@ -15,11 +15,36 @@ namespace Turnroot.Utilities
     {
         private static byte[] GetDeviceKeyBytes()
         {
-            var id = SystemInfo.deviceUniqueIdentifier ?? string.Empty;
-            using (var sha = SHA256.Create())
+            try
             {
-                return sha.ComputeHash(Encoding.UTF8.GetBytes(id));
+                var obDir = System.IO.Path.Combine(
+                    Application.persistentDataPath,
+                    "TurnrootBrain",
+                    "structured"
+                );
+                var obPath = System.IO.Path.Combine(obDir, ".turnrootob");
+
+                if (System.IO.File.Exists(obPath))
+                {
+                    var base64 = System.IO.File.ReadAllText(obPath);
+                    if (!string.IsNullOrEmpty(base64))
+                    {
+                        try
+                        {
+                            var idBytes = Convert.FromBase64String(base64);
+                            var idStr = Encoding.UTF8.GetString(idBytes);
+                            using var sha2 = SHA256.Create();
+                            return sha2.ComputeHash(Encoding.UTF8.GetBytes(idStr ?? string.Empty));
+                        }
+                        catch { }
+                    }
+                }
             }
+            catch { }
+
+            var fallbackId = SystemInfo.deviceUniqueIdentifier ?? string.Empty;
+            using var sha = SHA256.Create();
+            return sha.ComputeHash(Encoding.UTF8.GetBytes(fallbackId));
         }
 
         private static byte[] Xor(byte[] data, byte[] key)

@@ -302,11 +302,13 @@ namespace Turnroot.GameSettings
         [ShowIf("UnexploredMaps"), BoxGroup("Maps")]
         public bool ExplorersFailIfInjured = false;
 
-        [BoxGroup("Combat Mechanics"), HorizontalLine(color: EColor.Yellow)]
-        public bool CombatArts;
-
-        [BoxGroup("Combat Mechanics")]
-        public int CombatArtLimit = 3;
+        [
+            BoxGroup("Combat Mechanics"),
+            HorizontalLine(color: EColor.Yellow),
+            MinMaxSlider(-0.35f, .35f),
+            InfoBox("Don't change this directly; use Tools -> Turnroot -> Test Generic Enemy Skew")
+        ]
+        public Vector2 GenericEnemySkewAdjustmentRange = new(-0.15f, .2f);
 
         [BoxGroup("Combat Mechanics")]
         public int MaxEquippedSkills = 0;
@@ -608,8 +610,6 @@ namespace Turnroot.GameSettings
         public int GetMagicTriangleAdvantage() => MagicTriangleAdvantage;
 
         public int GetMagicTriangleDisadvantage() => MagicTriangleDisadvantage;
-
-        public int GetCombatArtLimit() => CombatArtLimit;
 
         public float GetTerrainBonusMultiplier() => TerrainBonusMultiplier;
 

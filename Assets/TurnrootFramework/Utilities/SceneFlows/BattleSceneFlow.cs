@@ -278,30 +278,6 @@ namespace Turnroot.Utilities.AbstractScripts
                 {
                     StartPreLoading?.Invoke();
                     loadingController?.Initialize();
-
-                    var loader =
-                        FindFirstObjectByType<Gameplay.Combat.Precompute.BattlePrecomputeLoader>();
-                    if (loader != null)
-                    {
-                        var context = brain?.battleBrain?.BattleObject?.Context;
-                        var initRes = loader.Initialize(brain, context);
-                        if (!initRes.Success)
-                        {
-                            TurnrootLogger.Log(
-                                $"DynamicSceneFlow: BattlePrecomputeLoader.Initialize failed: {initRes.ErrorMessage}",
-                                TurnrootLogger.LogLevel.Warning
-                            );
-                            HandlePreBattleTransitionToBattleCompleted();
-                        }
-                        else
-                        {
-                            loader.ForceStartPrecomputeIfPossible();
-                        }
-                    }
-                    else
-                    {
-                        HandlePreBattleTransitionToBattleCompleted();
-                    }
                 }
             }
         }

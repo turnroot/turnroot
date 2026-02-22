@@ -4,6 +4,9 @@ using Turnroot.Characters.Stats;
 using Turnroot.GameSettings;
 using Turnroot.Utilities;
 using UnityEngine;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 namespace Turnroot.Characters.CharacterClass
 {
@@ -19,11 +22,15 @@ namespace Turnroot.Characters.CharacterClass
 
             ValidateStatLists();
             ValidatePromotionPaths();
+#if UNITY_EDITOR
             ForceInspectorRefresh();
             EnsureUniqueClassName();
+#endif
 
             // Validate class visuals (mesh/prefab contain required blendshapes)
+#if UNITY_EDITOR
             ValidateClassVisuals();
+#endif
         }
 
         private OperationResult ValidateStatLists()
@@ -180,6 +187,7 @@ namespace Turnroot.Characters.CharacterClass
             }
         }
 
+#if UNITY_EDITOR
         private void ForceInspectorRefresh()
         {
             // Force inspector refresh when validating to update ShowIf conditions
@@ -192,7 +200,9 @@ namespace Turnroot.Characters.CharacterClass
                 }
             };
         }
+#endif
 
+#if UNITY_EDITOR
         private void EnsureUniqueClassName()
         {
             if (string.IsNullOrWhiteSpace(Identity?.ClassName))
@@ -266,5 +276,6 @@ namespace Turnroot.Characters.CharacterClass
                 }
             }
         }
+#endif
     }
 }

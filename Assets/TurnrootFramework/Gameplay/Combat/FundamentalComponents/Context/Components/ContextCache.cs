@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Turnroot.Characters;
 using Turnroot.Gameplay.Maps;
+using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
@@ -190,8 +191,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         // Weapon-effectiveness cache
         // -----------------------------
 
-        private readonly Dictionary<string, CachedWeaponInfo> _unitWeaponCache =
-            new();
+        private readonly Dictionary<string, CachedWeaponInfo> _unitWeaponCache = new();
 
         /// <summary>
         /// Cached summary of a unit's weapons (equipped + inventory) used by AI evaluations.

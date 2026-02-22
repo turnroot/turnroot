@@ -67,10 +67,14 @@ namespace Turnroot.Gameplay.Brain.Segments
             _targetCameraPosition = newPos;
         }
 
-        public void MoveCameraToPosition(Vector2Int gridPosition)
+        // factor multiplies the normal pan speed (1 = default, 0.5 = half speed, 2 = double speed)
+        private float _panSpeedOverride = 1f;
+
+        public void MoveCameraToPosition(Vector2Int gridPosition, float panSpeedFactor = 1f)
         {
             ComputeTargetPosition(gridPosition);
             _shouldMove = true;
+            _panSpeedOverride = panSpeedFactor;
         }
 
         public OperationResult RotateBattleCamera(float rotateInput)
@@ -181,8 +185,10 @@ namespace Turnroot.Gameplay.Brain.Segments
                 > UiSettings.CameraPanStopDistance
             )
             {
-                float smoothTime = UiSettings?.CameraPanSpeed ?? 0.3f;
-                smoothTime = 1.005f - smoothTime;
+                float baseSpeed = UiSettings?.CameraPanSpeed ?? 0.3f;
+                // apply override factor if one was provided
+                baseSpeed *= _panSpeedOverride;
+                float smoothTime = 1.005f - baseSpeed;
                 switch (gameSpeed)
                 {
                     case GameplayPlayerSettings.GameSpeed.Fast:
@@ -206,6 +212,14 @@ namespace Turnroot.Gameplay.Brain.Segments
                 );
 
                 _battleMapCamera.transform.position = newPos;
+            }
+            else
+            {
+                // reached or nearly reached target; reset override
+                _panSpeedOverride = 1f;
+
+                // stop moving once we've arrived to avoid drifting small distances
+                _shouldMove = false;
             }
         }
 

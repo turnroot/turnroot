@@ -304,6 +304,7 @@ namespace Turnroot.Gameplay.Maps
                         if (_showRaycastCoordinates)
                         {
                             Gizmos.color = Color.white;
+#if UNITY_EDITOR
                             UnityEditor.Handles.Label(
                                 p + (Vector3.up * s * 2f),
                                 _single3dHeightMeshRaycastIndices != null
@@ -311,13 +312,14 @@ namespace Turnroot.Gameplay.Maps
                                     ? $"({_single3dHeightMeshRaycastIndices[i].x}, {_single3dHeightMeshRaycastIndices[i].y})"
                                     : "(?, ?)"
                             );
+#endif
                         }
                     }
                 }
                 else if (_gridPoints != null && _gridPoints.Count > 0)
                 {
                     // Performance guard: avoid expensive per-object checks and labels when grid is large.
-                    bool heavy = _gridPoints.Count > 200;
+                    bool heavy = _gridPoints.Count > 999;
                     bool showLabels = _showRaycastCoordinates && !heavy;
 
                     // Ensure we have map point references available quickly
@@ -377,10 +379,12 @@ namespace Turnroot.Gameplay.Maps
                         if (showLabels)
                         {
                             Gizmos.color = Color.white;
+#if UNITY_EDITOR
                             UnityEditor.Handles.Label(
                                 p + (Vector3.up * s * 2f),
                                 $"({kv.Key.x}, {kv.Key.y})"
                             );
+#endif
                         }
                     }
 
@@ -399,10 +403,12 @@ namespace Turnroot.Gameplay.Maps
 
         private void OnValidate()
         {
+#if UNITY_EDITOR
             if (UnityEditor.EditorApplication.isPlayingOrWillChangePlaymode)
             {
                 return;
             }
+#endif
 
             if (UseHeightMeshAsTerrainModel)
             {
@@ -449,6 +455,7 @@ namespace Turnroot.Gameplay.Maps
             RebuildEditorPointColorCache();
 #endif
 
+#if UNITY_EDITOR
             if (
                 !UnityEditor.EditorApplication.isCompiling
                 && !UnityEditor.EditorApplication.isPlayingOrWillChangePlaymode
@@ -457,6 +464,7 @@ namespace Turnroot.Gameplay.Maps
             {
                 UnityEditor.EditorUtility.SetDirty(this);
             }
+#endif
         }
     }
 }

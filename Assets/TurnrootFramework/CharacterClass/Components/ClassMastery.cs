@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using NaughtyAttributes;
 using Turnroot.CommonAncestors;
 using Turnroot.Gameplay.Objects.Components;
 using Turnroot.Skills;
