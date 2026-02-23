@@ -70,6 +70,7 @@ MonoBehaviour:
   <DefaultRunningAnimation>k__BackingField: {fileID: 0}
   <DefaultIdleAnimations>k__BackingField:
   - {fileID: -7456627596552076901, guid: 67537e58ea58b6849850b5cfc342335b, type: 3}
+  - {fileID: -2924576228820979099, guid: d9eed0be33c819c41b6097c82f29f7c8, type: 3}
   <HasExtraBoneLayer>k__BackingField: 0
   <CustomAvatar>k__BackingField: {fileID: 0}
   <AdditionalBonesMask>k__BackingField: {fileID: 0}
