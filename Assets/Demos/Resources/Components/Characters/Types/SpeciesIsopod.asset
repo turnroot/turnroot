@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: SpeciesIsopod
   m_EditorClassIdentifier: 
   _name: Isopod
-  _id: crabulous
-  _description: 
+  _id: isopod
+  _description: An aggressive hard-shelled crustacean with an insatiable hunger for
+    flesh
   _icon: {fileID: 0}
