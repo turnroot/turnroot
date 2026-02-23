@@ -10,13 +10,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1d531c8bfa9fbd649862bdaaa67913c8, type: 3}
-  m_Name: GenericEnemy
+  m_Name: GenericEnemyIsopod
   m_EditorClassIdentifier: Assembly-CSharp::Turnroot.Characters.CharacterData
   _: 
   <Which>k__BackingField:
     _value: Enemy
-  <DisplayName>k__BackingField: Generic Enemy
-  <FullName>k__BackingField: Generic Enemy
+  <DisplayName>k__BackingField: Isopod
+  <FullName>k__BackingField: Generic Enemy Isopod
   <CharacterPronouns>k__BackingField:
     _selectedPronouns:
     - they
@@ -26,8 +26,9 @@ MonoBehaviour:
   <Height>k__BackingField: 166
   <BirthdayDay>k__BackingField: 1
   <BirthdayMonth>k__BackingField: 1
-  <Species>k__BackingField: {fileID: 11400000, guid: 6b6a40766f8c5d843ba98e8e51603c6e, type: 2}
-  <ShortDescription>k__BackingField: A new unit
+  <Species>k__BackingField: {fileID: 11400000, guid: 33db5890f57504b47aa3b4a339638c36, type: 2}
+  <ShortDescription>k__BackingField: An aggressive hard-shelled crustacean with an
+    insatiable hunger for flesh
   <Likes>k__BackingField: []
   <Dislikes>k__BackingField: []
   <Notes>k__BackingField: Take private notes (only in the editor) about this unit
@@ -76,16 +77,33 @@ MonoBehaviour:
     MovementDisabled: 0
     AttackDisabled: 0
     SoldierLoneWolf: 0.097
-    MindlessCunning: 0.336
-    SelfishSelfless: 0.111
-    BrashWary: 0.23
-    BloodthirstGreed: 0.106
+    MindlessCunning: 0.4
+    SelfishSelfless: 0
+    BrashWary: 0.097
+    BloodthirstGreed: 0
     preset: 0
-  <StartingInventory>k__BackingField:
-  - _item: {fileID: 11400000, guid: 5cd41645e00940d459770607b3920a1e, type: 2}
-    _slotIndex: 0
+  <StartingInventory>k__BackingField: []
   <SupportRelationships>k__BackingField: []
   <Level>k__BackingField: 1
+  <UseClassProgressionLadder>k__BackingField: 1
+  ProgressionLadder:
+    Starter:
+      Class: {fileID: 11400000, guid: 55bf16bbbba8d694184d913696e0de19, type: 2}
+      Loadout:
+      - Item: {fileID: 11400000, guid: 5cd41645e00940d459770607b3920a1e, type: 2}
+        Chance: 100
+    Base:
+      Class: {fileID: 11400000, guid: 0a3fd961ac35f394ea805f20ceab9a33, type: 2}
+      Loadout: []
+    Advanced:
+      Class: {fileID: 11400000, guid: e38dd53c5a7a23746b02c348aeeb88d5, type: 2}
+      Loadout: []
+    Master:
+      Class: {fileID: 11400000, guid: f13b4434ebaded44fa2fabeff86c425d, type: 2}
+      Loadout: []
+    Expert:
+      Class: {fileID: 11400000, guid: d9434e34c5b04b94ea56022177ba66e8, type: 2}
+      Loadout: []
   <Exp>k__BackingField: 0
   <BoundedStats>k__BackingField:
   - _current: 100
@@ -176,7 +194,7 @@ MonoBehaviour:
   - unboundedStatType: 12
     value: 0
   <Skills>k__BackingField: []
-  <SpecialSkills>k__BackingField: []
+  <PersonalSkill>k__BackingField: {fileID: 0}
   <ExperienceRanks>k__BackingField: []
   references:
     version: 2

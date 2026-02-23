@@ -18,9 +18,6 @@ namespace Turnroot.Skills.Nodes.Events
         [Tooltip("Target position (Vector2Int) to move to")]
         public Vector2Int targetPosition;
 
-        [Tooltip("Test value for target position in editor mode")]
-        public Vector2Int testPosition = Vector2Int.zero;
-
         public override void Execute(BattleContext context)
         {
             if (
@@ -45,9 +42,9 @@ namespace Turnroot.Skills.Nodes.Events
                 );
             }
 
-            // Get target position from input port or use test value
+            // Get target position from input port (requires connection)
             var port = GetInputPort("targetPosition");
-            Vector2Int newPosition = testPosition;
+            Vector2Int newPosition = Vector2Int.zero;
 
             if (port != null && port.IsConnected)
             {

@@ -35,7 +35,7 @@ namespace Turnroot.Gameplay.Maps
             if (classData == null && character != null)
             {
                 var classToApply =
-                    character.CharacterTemplate?.StartingClass
+                    character.CharacterTemplate?.GetPreferredStartingClass()
                     ?? GameplayGeneralSettings.Instance?.GetDefaultStartingClass();
                 if (classToApply != null)
                 {
@@ -74,7 +74,6 @@ namespace Turnroot.Gameplay.Maps
                 )
             )
             {
-
                 $"PathfindingParameters: Missing required parameter(s): {string.Join(", ", missingArgs)}".LogError();
                 return null;
             }
@@ -139,5 +138,3 @@ namespace Turnroot.Gameplay.Maps
         public bool IsValid() => Graph != null && Start != null && MovementBudget >= 0;
     }
 }
-
-

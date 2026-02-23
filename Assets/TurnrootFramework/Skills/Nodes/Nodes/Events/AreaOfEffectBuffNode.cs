@@ -19,9 +19,6 @@ namespace Turnroot.Skills.Nodes.Events
         [Tooltip("The intensity multiplier for the buff (1.0 = normal strength)")]
         public FloatValue intensity;
 
-        [Tooltip("Test value for intensity in editor mode")]
-        public float testIntensity = 1f;
-
         [Tooltip("Effect radius in tiles")]
         [Range(1, 10)]
         public float radius = 2f;
@@ -42,21 +39,23 @@ namespace Turnroot.Skills.Nodes.Events
 
             if (buffType == null)
             {
-#if UNITY_EDITOR
-                Debug.LogWarning("AreaOfEffectBuffNode: No buff type assigned!");
-#endif
+                "AreaOfEffectBuffNode: No buff type assigned!".LogWarning();
                 return;
             }
 
             if (context.Participants.Allies == null || context.Participants.Allies.Count == 0)
             {
-#if UNITY_EDITOR
-                Debug.LogWarning("AreaOfEffectBuff: No allies in context");
-#endif
+                "AreaOfEffectBuff: No allies in context".LogWarning();
                 return;
             }
 
-            float intensityValue = GetInputFloat("intensity", testIntensity);
+            var intensityPort = GetInputPort("intensity");
+            if (intensityPort == null || !intensityPort.IsConnected)
+            {
+                Debug.LogWarning("AreaOfEffectBuffNode: 'intensity' input not provided");
+                return;
+            }
+            float intensityValue = GetInputFloat("intensity", 1f);
             int duration = durationOverride >= 0 ? durationOverride : buffType.DefaultDuration;
 
             // Apply buff to allies within radius

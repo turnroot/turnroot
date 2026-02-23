@@ -18,9 +18,6 @@ namespace Turnroot.Skills.Nodes.Events
         [Tooltip("If true, unmounts all targeted enemies; if false, only first target")]
         public BoolValue affectAllTargets;
 
-        [Tooltip("Test value for affectAllTargets in editor mode")]
-        public bool testAffectAll = false;
-
         public override void Execute(BattleContext context)
         {
             if (context?.Participants?.Targets == null || context.Participants.Targets.Count == 0)
@@ -29,7 +26,7 @@ namespace Turnroot.Skills.Nodes.Events
                 return;
             }
 
-            bool shouldAffectAll = GetInputBool("affectAllTargets", testAffectAll);
+            bool shouldAffectAll = GetInputBool("affectAllTargets", false);
 
             // Unmount all targeted enemies or just the first one
             if (shouldAffectAll)
@@ -57,5 +54,3 @@ namespace Turnroot.Skills.Nodes.Events
         }
     }
 }
-
-

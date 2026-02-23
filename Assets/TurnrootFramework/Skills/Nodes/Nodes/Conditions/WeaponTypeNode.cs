@@ -1,4 +1,5 @@
 using Turnroot.Gameplay.Objects.Components;
+using Turnroot.Utilities;
 using UnityEngine;
 using XNode;
 
@@ -50,9 +51,7 @@ namespace Turnroot.Skills.Nodes.Conditions
             var context = GetContextFromGraph(skillGraph);
             if (context == null || context.Unit.UnitInstance == null)
             {
-#if UNITY_EDITOR
-                Debug.LogWarning("WeaponType: Could not retrieve context or unit from graph");
-#endif
+                "WeaponType: Could not retrieve context or unit from graph".LogWarning();
                 return port.fieldName switch
                 {
                     "TypeName" => new StringValue { value = "" },
@@ -69,9 +68,7 @@ namespace Turnroot.Skills.Nodes.Conditions
                 || weaponIndex >= inventory.InventoryItems.Count
             )
             {
-#if UNITY_EDITOR
-                Debug.LogWarning("WeaponType: No weapon equipped");
-#endif
+                "WeaponType: No weapon equipped".LogWarning();
                 return port.fieldName switch
                 {
                     "TypeName" => new StringValue { value = "" },

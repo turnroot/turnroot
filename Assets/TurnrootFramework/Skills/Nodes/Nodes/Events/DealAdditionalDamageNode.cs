@@ -24,12 +24,6 @@ namespace Turnroot.Skills.Nodes.Events
         )]
         public BoolValue affectAllTargets;
 
-        [Tooltip("Test value for damage in editor mode")]
-        public float testDamage = 10f;
-
-        [Tooltip("Test value for affectAllTargets in editor mode")]
-        public bool testAffectAll = false;
-
         public override void Execute(BattleContext context)
         {
             if (!ValidateHasTargets(context))
@@ -37,8 +31,14 @@ namespace Turnroot.Skills.Nodes.Events
                 return;
             }
 
-            float damage = GetInputFloat("damageAmount", testDamage);
-            bool shouldAffectAll = GetInputBool("affectAllTargets", testAffectAll);
+            float damage = GetInputFloat("damageAmount", 0f);
+            bool shouldAffectAll = GetInputBool("affectAllTargets", false);
+            var dmgPort = GetInputPort("damageAmount");
+            if (dmgPort == null || !dmgPort.IsConnected)
+            {
+                Debug.LogWarning("DealAdditionalDamageNode: 'damageAmount' input not provided");
+                return;
+            }
 
             int affected = ExecuteOnTargets(
                 context,
@@ -46,10 +46,7 @@ namespace Turnroot.Skills.Nodes.Events
                 target => DealDamage(context, target, damage)
             );
 
-#if UNITY_EDITOR
-
             $"DealAdditionalDamage: Dealt {damage} damage to {affected} target(s)".LogInfo();
-#endif
         }
     }
 }

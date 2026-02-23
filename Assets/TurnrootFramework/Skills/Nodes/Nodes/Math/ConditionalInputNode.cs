@@ -17,15 +17,13 @@ namespace Turnroot.Skills.Nodes.Math
 
         public override object GetValue(NodePort port)
         {
-            if (port.fieldName == "True")
+            if (port.fieldName == nameof(True))
             {
-                BoolValue trueValue = new() { value = true };
-                return trueValue;
+                return new BoolValue { value = True.value };
             }
-            else if (port.fieldName == "False")
+            else if (port.fieldName == nameof(False))
             {
-                BoolValue falseValue = new() { value = false };
-                return falseValue;
+                return new BoolValue { value = False.value };
             }
             return null;
         }

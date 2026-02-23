@@ -1,3 +1,4 @@
+using Turnroot.Utilities;
 using UnityEngine;
 using XNode;
 
@@ -35,27 +36,10 @@ namespace Turnroot.Skills.Nodes.Conditions
         public override object GetValue(NodePort port)
         {
             var skillGraph = graph as SkillGraph;
-            if (skillGraph == null || !Application.isPlaying)
-            {
-                // Return defaults in editor mode
-                return port.fieldName switch
-                {
-                    "CurrentUses" => new FloatValue { value = 30f },
-                    "MaxUses" => new FloatValue { value = 50f },
-                    "UsesRemaining" => new FloatValue { value = 20f },
-                    "PercentRemaining" => new FloatValue { value = 60f },
-                    "IsBroken" => new BoolValue { value = false },
-                    "IsLowDurability" => new BoolValue { value = false },
-                    _ => null,
-                };
-            }
-
             var context = GetContextFromGraph(skillGraph);
             if (context == null || context.Unit.UnitInstance == null)
             {
-#if UNITY_EDITOR
-                Debug.LogWarning("WeaponDurability: Could not retrieve context or unit from graph");
-#endif
+                "WeaponDurability: Could not retrieve context or unit from graph".LogWarning();
                 return port.fieldName switch
                 {
                     "CurrentUses" or "MaxUses" or "UsesRemaining" or "PercentRemaining" =>
@@ -73,9 +57,7 @@ namespace Turnroot.Skills.Nodes.Conditions
                 || weaponIndex >= inventory.InventoryItems.Count
             )
             {
-#if UNITY_EDITOR
-                Debug.LogWarning("WeaponDurability: No weapon equipped");
-#endif
+                "WeaponDurability: No weapon equipped".LogWarning();
                 return port.fieldName switch
                 {
                     "CurrentUses" or "MaxUses" or "UsesRemaining" or "PercentRemaining" =>

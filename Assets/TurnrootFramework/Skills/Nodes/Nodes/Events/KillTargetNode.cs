@@ -20,9 +20,6 @@ namespace Turnroot.Skills.Nodes.Events
         )]
         public BoolValue affectAllTargets;
 
-        [Tooltip("Test value for killAllTargets in editor mode")]
-        public bool testKillAll = false;
-
         public override void Execute(BattleContext context)
         {
             if (!ValidateHasTargets(context))
@@ -30,8 +27,12 @@ namespace Turnroot.Skills.Nodes.Events
                 return;
             }
 
-            bool shouldKillAll = GetInputBool("affectAllTargets", testKillAll);
-
+            bool shouldKillAll = GetInputBool("affectAllTargets", false);
+            var killPort = GetInputPort("affectAllTargets");
+            if (killPort != null && killPort.IsConnected)
+            {
+                shouldKillAll = GetInputBool("affectAllTargets", false);
+            }
             int killedCount = ExecuteOnTargets(
                 context,
                 shouldKillAll,

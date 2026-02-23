@@ -1,3 +1,4 @@
+using Turnroot.Utilities;
 using UnityEngine;
 using XNode;
 
@@ -32,18 +33,14 @@ namespace Turnroot.Skills.Nodes.Conditions
             var skillGraph = graph as SkillGraph;
             if (skillGraph == null)
             {
-#if UNITY_EDITOR
-                Debug.LogWarning($"{NodeName}: Could not get SkillGraph");
-#endif
+                $"{NodeName}: Could not get SkillGraph".LogWarning();
                 return port.fieldName == "count" ? new FloatValue() : (object)new BoolValue();
             }
 
             var context = GetContextFromGraph(skillGraph);
             if (context?.Participants?.AdjacentUnits == null)
             {
-#if UNITY_EDITOR
-                Debug.LogWarning($"{NodeName}: No adjacent units in context");
-#endif
+                $"{NodeName}: No adjacent units in context".LogWarning();
                 return port.fieldName == "count" ? new FloatValue() : (object)new BoolValue();
             }
 

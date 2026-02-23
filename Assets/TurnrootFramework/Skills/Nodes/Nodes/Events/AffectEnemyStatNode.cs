@@ -28,16 +28,21 @@ namespace Turnroot.Skills.Nodes.Events
         )]
         public BoolValue affectAllTargets;
 
-        [Tooltip("Test value used in editor mode")]
-        public float testChange = -10f;
-
-        [Tooltip("Test value for affectAllEnemies in editor mode")]
-        public bool testAffectAll = false;
-
         public override void Execute(BattleContext context)
         {
-            float changeAmount = GetInputFloat("change", testChange);
-            bool shouldAffectAll = GetInputBool("affectAllTargets", testAffectAll);
+            var changePort = GetInputPort("change");
+            if (changePort == null || !changePort.IsConnected)
+            {
+                "AffectEnemyStatNode: 'change' input not provided".LogWarning();
+                return;
+            }
+            float changeAmount = GetInputFloat("change", 0f);
+            bool shouldAffectAll = false;
+            var allPort = GetInputPort("affectAllTargets");
+            if (allPort != null && allPort.IsConnected)
+            {
+                shouldAffectAll = GetInputBool("affectAllTargets", false);
+            }
 
             int affected = ExecuteOnTargets(
                 context,
@@ -48,11 +53,8 @@ namespace Turnroot.Skills.Nodes.Events
 
             if (shouldAffectAll && affected > 0)
             {
-#if UNITY_EDITOR
                 $"AffectEnemyStat: Affected {affected} enemies".LogInfo();
-#endif
             }
         }
     }
 }
-

@@ -86,9 +86,8 @@ namespace Turnroot.Skills.Nodes.Events.Editor
             // Get the node's properties
             var selectedStatProp = serializedObject.FindProperty("selectedStat");
             var isBoundedStatProp = serializedObject.FindProperty("isBoundedStat");
-            var testChangeProp = serializedObject.FindProperty("testChange");
 
-            if (selectedStatProp == null || isBoundedStatProp == null || testChangeProp == null)
+            if (selectedStatProp == null || isBoundedStatProp == null)
             {
                 EditorGUILayout.HelpBox(
                     "Required properties not found on node!",
@@ -136,19 +135,6 @@ namespace Turnroot.Skills.Nodes.Events.Editor
 
             // Draw change input port
             NodeEditorGUILayout.PortField(target.GetInputPort("change"));
-
-            // Draw test value field
-            EditorGUI.BeginChangeCheck();
-            float newTestValue = EditorGUILayout.FloatField(
-                "Test Change",
-                testChangeProp.floatValue
-            );
-            if (EditorGUI.EndChangeCheck())
-            {
-                Undo.RecordObject(target, "Change Test Value");
-                testChangeProp.floatValue = newTestValue;
-                EditorUtility.SetDirty(target);
-            }
 
             serializedObject.ApplyModifiedProperties();
         }

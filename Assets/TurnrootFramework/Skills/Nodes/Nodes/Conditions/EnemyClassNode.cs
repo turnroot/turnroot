@@ -1,4 +1,5 @@
 using Turnroot.GameSettings;
+using Turnroot.Utilities;
 using UnityEngine;
 using XNode;
 
@@ -29,20 +30,6 @@ namespace Turnroot.Skills.Nodes.Conditions
         public override object GetValue(NodePort port)
         {
             var skillGraph = graph as SkillGraph;
-            if (skillGraph == null || !Application.isPlaying)
-            {
-                // Return defaults in editor mode
-                return port.fieldName switch
-                {
-                    "ClassName" => new StringValue { value = "Infantry" },
-                    "IsInfantry" => new BoolValue { value = true },
-                    "IsCavalry" => new BoolValue { value = false },
-                    "IsFlying" => new BoolValue { value = false },
-                    "IsArmored" => new BoolValue { value = false },
-                    _ => null,
-                };
-            }
-
             var context = GetContextFromGraph(skillGraph);
             var enemy = ConditionHelpers.GetCharacterFromContext(
                 context,
@@ -51,9 +38,7 @@ namespace Turnroot.Skills.Nodes.Conditions
 
             if (enemy == null)
             {
-#if UNITY_EDITOR
-                Debug.LogWarning("EnemyClass: Could not retrieve enemy from context");
-#endif
+                "EnemyClass: Could not retrieve enemy from context".LogWarning();
                 return port.fieldName switch
                 {
                     "ClassName" => new StringValue { value = "" },
@@ -65,9 +50,7 @@ namespace Turnroot.Skills.Nodes.Conditions
             var classData = enemy.CurrentClass?.ClassData;
             if (classData == null)
             {
-#if UNITY_EDITOR
-                Debug.LogWarning("EnemyClass: Enemy has no class data assigned");
-#endif
+                "EnemyClass: Enemy has no class data assigned".LogWarning();
                 return port.fieldName switch
                 {
                     "ClassName" => new StringValue { value = "" },

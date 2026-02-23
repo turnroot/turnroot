@@ -10,7 +10,7 @@ namespace Turnroot.Skills.Nodes.Conditions
     {
         Unit,
         Enemy,
-        Ally
+        Ally,
     }
 
     /// <summary>
@@ -48,9 +48,6 @@ namespace Turnroot.Skills.Nodes.Conditions
         [Output]
         public BoolValue bonusActive;
 
-        [Tooltip("Test value used in editor mode")]
-        public float test = 100f;
-
         /// <summary>
         /// Converts CharacterTarget enum to ConditionHelpers.CharacterSource.
         /// </summary>
@@ -70,12 +67,12 @@ namespace Turnroot.Skills.Nodes.Conditions
             var skillGraph = graph as SkillGraph;
             if (skillGraph == null || !Application.isPlaying)
             {
-                // Return test values in editor mode
+                // Return defaults when not in play mode
                 return port.fieldName switch
                 {
-                    "value" => new FloatValue { value = test },
-                    "maxValue" => new FloatValue { value = test },
-                    "percentage" => new FloatValue { value = 100f },
+                    "value" => new FloatValue { value = 0f },
+                    "maxValue" => new FloatValue { value = 0f },
+                    "percentage" => new FloatValue { value = 0f },
                     "bonus" => new FloatValue { value = 0f },
                     "bonusActive" => new BoolValue { value = false },
                     _ => null,
@@ -95,7 +92,7 @@ namespace Turnroot.Skills.Nodes.Conditions
                         characterSource,
                         selectedStat,
                         isBoundedStat,
-                        test
+                        0f
                     ),
                 },
                 "maxValue" => new FloatValue
@@ -105,7 +102,7 @@ namespace Turnroot.Skills.Nodes.Conditions
                         this,
                         characterSource,
                         selectedStat,
-                        test
+                        0f
                     ),
                 },
                 "percentage" => new FloatValue

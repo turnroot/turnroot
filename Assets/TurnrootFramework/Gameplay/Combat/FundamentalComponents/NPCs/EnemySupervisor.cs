@@ -1,6 +1,9 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using NaughtyAttributes;
 using Turnroot.Characters;
+using Turnroot.Characters.CharacterClass;
 using Turnroot.Gameplay.Brain;
 using Turnroot.Gameplay.PlayerSettings;
 using Turnroot.GameSettings;
@@ -84,12 +87,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles.NPCs
         {
             var averagePlayerLevel =
                 Details.PlayerTeamSize > 0
-                    ? (int)
-                        System.Math.Round(
-                            System.Math.Round(
-                                System.Linq.Enumerable.Average(Details.PlayerTeamLevels)
-                            )
-                        )
+                    ? (int)Math.Round(Math.Round(Enumerable.Average(Details.PlayerTeamLevels)))
                     : 1;
 
             var h = GameplayPlayerSettings.Instance.GameDifficulty switch
@@ -102,16 +100,14 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles.NPCs
             };
             var highest =
                 (averagePlayerLevel * 10)
-                + System.Math.Ceiling(h * (GenericEnemyDifficultyMultiplierForThisBattle * 10));
+                + Math.Ceiling(h * (GenericEnemyDifficultyMultiplierForThisBattle * 10));
 
-            highest = (int)System.Math.Round(highest / 10f);
+            highest = (int)Math.Round(highest / 10f);
 
             var lowest =
-                (System.Linq.Enumerable.Min(Details.PlayerTeamLevels) * 10)
-                - System.Math.Ceiling(
-                    (7f - h) * (GenericEnemyDifficultyMultiplierForThisBattle * 10)
-                );
-            lowest = (int)System.Math.Round(lowest / 10f);
+                (Enumerable.Min(Details.PlayerTeamLevels) * 10)
+                - Math.Ceiling((7f - h) * (GenericEnemyDifficultyMultiplierForThisBattle * 10));
+            lowest = (int)Math.Round(lowest / 10f);
             if (lowest < 1)
             {
                 lowest = 1;
@@ -174,6 +170,94 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles.NPCs
         {
             // Post-spawn adjustments go here
             var adjustedLevels = CalculateAdjustedLevels();
+
+            // if a character template supplies a class progression ladder, choose
+            // the most advanced class whose minimum level requirement does not
+            // exceed the unit's adjusted battle level and apply it.  afterwards roll
+            // level-ups to push the instance to that level using the chosen class's
+            // growth rates.
+            foreach (var kv in EnemyInstancesByStartingPlacement)
+            {
+                var instance = kv.Value;
+                if (instance == null)
+                {
+                    continue;
+                }
+
+                int adjustedLevel = adjustedLevels.ContainsKey(instance)
+                    ? adjustedLevels[instance]
+                    : instance.CurrentLevel;
+
+                if (instance.CharacterTemplate?.UseClassProgressionLadder == true)
+                {
+                    // determine the best-fit class and record the tier used
+                    CharacterClassData selected = null;
+                    ProgressionLevel tierUsed = ProgressionLevel.Starter;
+                    int bestReq = -1;
+                    var ladder = instance.CharacterTemplate.ProgressionLadder;
+                    foreach (ProgressionLevel tier in Enum.GetValues(typeof(ProgressionLevel)))
+                    {
+                        var candidate = ladder.GetClassForTier(tier);
+                        if (candidate == null)
+                        {
+                            continue;
+                        }
+                        int req = candidate.Requirements?.MinimumLevelRequirement ?? 1;
+                        if (req <= adjustedLevel && req > bestReq)
+                        {
+                            bestReq = req;
+                            selected = candidate;
+                            tierUsed = tier;
+                        }
+                    }
+
+                    if (selected != null && selected != instance.CurrentClass?.ClassData)
+                    {
+                        instance.ChangeClass(selected, applyClassChangeBonuses: false);
+                    }
+
+                    // level up to adjustedLevel (rolling growths each time)
+                    int delta = adjustedLevel - instance.CurrentLevel;
+                    for (int lev = 0; lev < delta; lev++)
+                    {
+                        instance.LevelUp();
+                    }
+
+                    // spawn any loadout items for the chosen tier
+                    var loadout = instance.CharacterTemplate.GetLoadoutForProgression(tierUsed);
+                    if (loadout != null && loadout.Count > 0)
+                    {
+                        foreach (var entry in loadout)
+                        {
+                            if (entry.Item == null)
+                            {
+                                continue;
+                            }
+
+                            if (UnityEngine.Random.Range(0f, 100f) <= entry.Chance)
+                            {
+                                var itemInst = new Turnroot.Gameplay.Objects.ObjectItemInstance(
+                                    entry.Item
+                                );
+                                instance.InventoryInstance?.AddToInventory(itemInst);
+                                // optional equip heuristics
+                                if (
+                                    itemInst.Template?.Subtype
+                                        == Objects.Components.ObjectSubtype.Weapon
+                                    && instance.InventoryInstance != null
+                                )
+                                {
+                                    instance.InventoryInstance.EquipItem(itemInst.Slot);
+                                }
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    // todo: consider adjusting level/stats for non‑ladder templates
+                }
+            }
 
             var appearance = BattleGameObject.Brain.unitAppearanceBrain;
             foreach (var kv in EnemyInstancesByStartingPlacement)

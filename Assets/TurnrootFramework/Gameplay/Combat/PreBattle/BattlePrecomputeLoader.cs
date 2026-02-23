@@ -102,7 +102,6 @@ namespace Turnroot.Gameplay.Combat.Precompute
 
             if (!IsContextValid(context))
             {
-
                 "BattlePrecomputeLoader: Invalid context, completing with minimal progress".LogWarning();
 
                 CompleteWithMinimalProgressAndNotify();
@@ -573,7 +572,7 @@ namespace Turnroot.Gameplay.Combat.Precompute
                     if (current != null && current.CurrentClass == null)
                     {
                         var classToApply =
-                            current.CharacterTemplate?.StartingClass
+                            current.CharacterTemplate?.GetPreferredStartingClass()
                             ?? GameplayGeneralSettings.Instance?.GetDefaultStartingClass();
 
                         if (classToApply != null)
@@ -663,4 +662,3 @@ namespace Turnroot.Gameplay.Combat.Precompute
         #endregion
     }
 }
-

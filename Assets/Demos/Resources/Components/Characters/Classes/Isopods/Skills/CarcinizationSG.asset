@@ -1,0 +1,98 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-1233908350923365828
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 628e07cd593a938419cd721e3f6bc443, type: 3}
+  m_Name: Enemy Attacks
+  m_EditorClassIdentifier: Assembly-CSharp::Turnroot.Skills.Nodes.Flow.EnemyAttacksNode
+  graph: {fileID: 11400000}
+  position: {x: -536, y: -152}
+  ports:
+    keys:
+    - flow
+    values:
+    - _fieldName: flow
+      _node: {fileID: -1233908350923365828}
+      _typeQualifiedName: Turnroot.Skills.Nodes.ExecutionFlow, Assembly-CSharp, Version=0.0.0.0,
+        Culture=neutral, PublicKeyToken=null
+      connections:
+      - fieldName: executionIn
+        node: {fileID: 8668155660594778127}
+        reroutePoints: []
+      _direction: 1
+      _connectionType: 0
+      _typeConstraint: 0
+      _dynamic: 0
+  OnNodeExecute:
+    m_PersistentCalls:
+      m_Calls: []
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 648cb0dddd3bfc949bed2d9ee663da51, type: 3}
+  m_Name: CarcinizationSG
+  m_EditorClassIdentifier: Assembly-CSharp::Turnroot.Skills.Nodes.SkillGraph
+  nodes:
+  - {fileID: -1233908350923365828}
+  - {fileID: 8668155660594778127}
+--- !u!114 &8668155660594778127
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a62f5a5ecfd027549be0bfa140ca3e40, type: 3}
+  m_Name: Buff Unit
+  m_EditorClassIdentifier: Assembly-CSharp::Turnroot.Skills.Nodes.Events.BuffUnitNode
+  graph: {fileID: 11400000}
+  position: {x: -136, y: -184}
+  ports:
+    keys:
+    - executionIn
+    - intensity
+    values:
+    - _fieldName: executionIn
+      _node: {fileID: 8668155660594778127}
+      _typeQualifiedName: Turnroot.Skills.Nodes.ExecutionFlow, Assembly-CSharp, Version=0.0.0.0,
+        Culture=neutral, PublicKeyToken=null
+      connections:
+      - fieldName: flow
+        node: {fileID: -1233908350923365828}
+        reroutePoints: []
+      _direction: 0
+      _connectionType: 0
+      _typeConstraint: 0
+      _dynamic: 0
+    - _fieldName: intensity
+      _node: {fileID: 8668155660594778127}
+      _typeQualifiedName: Turnroot.Skills.Nodes.FloatValue, Assembly-CSharp, Version=0.0.0.0,
+        Culture=neutral, PublicKeyToken=null
+      connections: []
+      _direction: 0
+      _connectionType: 0
+      _typeConstraint: 0
+      _dynamic: 0
+  OnNodeExecute:
+    m_PersistentCalls:
+      m_Calls: []
+  intensity:
+    value: 0
+  testIntensity: 1
+  buffType: {fileID: 11400000, guid: 19503992a323c7a49818ae86dddbb63c, type: 2}
+  durationOverride: -1

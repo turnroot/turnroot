@@ -19,9 +19,6 @@ namespace Turnroot.Skills.Nodes.Events
         [Tooltip("If true, affects adjacent allies; if false, only caster")]
         public BoolValue affectAdjacentAllies;
 
-        [Tooltip("Test value for affectAdjacentAllies in editor mode")]
-        public bool testAffectAdjacent = false;
-
         [Tooltip(
             "If true, negates all attacks this combat turn; if false, only next single attack"
         )]
@@ -34,7 +31,12 @@ namespace Turnroot.Skills.Nodes.Events
                 return;
             }
 
-            bool shouldAffectAdjacent = GetInputBool("affectAdjacentAllies", testAffectAdjacent);
+            bool shouldAffectAdjacent = false;
+            var adjPort = GetInputPort("affectAdjacentAllies");
+            if (adjPort != null && adjPort.IsConnected)
+            {
+                shouldAffectAdjacent = GetInputBool("affectAdjacentAllies", false);
+            }
 
             // Determine number of attacks to negate: 1 for single attack, -1 for all this turn
             int attacksToNegate = allAttacksThisTurn ? -1 : 1;
@@ -46,9 +48,7 @@ namespace Turnroot.Skills.Nodes.Events
                 // Get adjacent allies from context
                 if (context.Participants.AdjacentUnits == null)
                 {
-                    Debug.LogWarning(
-                        "NegateNextAttackOnAllies: No adjacent units available in context"
-                    );
+                    "NegateNextAttackOnAllies: No adjacent units available in context".LogWarning();
                     return;
                 }
 

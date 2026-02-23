@@ -18,9 +18,6 @@ namespace Turnroot.Skills.Nodes.Events
         [Tooltip("Speed threshold modifier for follow-up attacks (positive = easier to double)")]
         public FloatValue speedModifier;
 
-        [Tooltip("Test value for speed modifier in editor mode")]
-        public float testSpeedMod = 5f;
-
         [Tooltip("Apply to unit or target")]
         public bool applyToUnit = true;
 
@@ -34,7 +31,13 @@ namespace Turnroot.Skills.Nodes.Events
                 return;
             }
 
-            float speedMod = GetInputFloat("speedModifier", testSpeedMod);
+            float speedMod = GetInputFloat("speedModifier", 0f);
+            var speedPort = GetInputPort("speedModifier");
+            if (speedPort == null || !speedPort.IsConnected)
+            {
+                Debug.LogWarning("ChangeBattleOrderNode: 'speedModifier' input not provided");
+                return;
+            }
 
             // Store in CustomData for combat system to use during attack resolution
             context.SetCustomData("AttackOrderSpeedModifier", speedMod);

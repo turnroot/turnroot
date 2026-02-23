@@ -45,11 +45,7 @@ namespace Turnroot.Skills.Nodes.Events
             // Store swap command in CustomData
             var swapData = new { UnitId = context.Unit.UnitInstance.Id, TargetId = target.Id };
             context.SetCustomData("SwapPositions", swapData);
-
-#if UNITY_EDITOR
             "SwapUnitWithTarget: Will swap positions with target".LogInfo();
-#endif
         }
     }
 }
-

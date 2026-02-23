@@ -86,9 +86,8 @@ namespace Turnroot.Skills.Nodes
             // Get the node's selected stat and bounded status
             var selectedStatProp = serializedObject.FindProperty("selectedStat");
             var isBoundedStatProp = serializedObject.FindProperty("isBoundedStat");
-            var testProp = serializedObject.FindProperty("test");
 
-            if (selectedStatProp == null || isBoundedStatProp == null || testProp == null)
+            if (selectedStatProp == null || isBoundedStatProp == null)
             {
                 EditorGUILayout.HelpBox(
                     "Required properties not found on node!",
@@ -128,16 +127,6 @@ namespace Turnroot.Skills.Nodes
                 Undo.RecordObject(target, "Change Selected Stat");
                 selectedStatProp.stringValue = statTypes[newIndex].name;
                 isBoundedStatProp.boolValue = statTypes[newIndex].isBounded;
-                EditorUtility.SetDirty(target);
-            }
-
-            // Draw test value field
-            EditorGUI.BeginChangeCheck();
-            float newTestValue = EditorGUILayout.FloatField("Test Value", testProp.floatValue);
-            if (EditorGUI.EndChangeCheck())
-            {
-                Undo.RecordObject(target, "Change Test Value");
-                testProp.floatValue = newTestValue;
                 EditorUtility.SetDirty(target);
             }
 

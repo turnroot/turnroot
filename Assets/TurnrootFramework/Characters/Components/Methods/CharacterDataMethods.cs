@@ -1,6 +1,8 @@
+using System.Collections.Generic;
 using Turnroot.Characters.CharacterClass;
 using Turnroot.Characters.Components.Support;
 using Turnroot.Characters.Stats;
+using Turnroot.GameSettings;
 using Turnroot.Utilities;
 using UnityEngine;
 
@@ -72,7 +74,33 @@ namespace Turnroot.Characters
         public ExperienceRank GetExperienceRank(string experienceTypeId) =>
             ExperienceRanks?.Find(e => e.ExperienceTypeId == experienceTypeId);
 
-        /* ----------------------------- Core Functions ----------------------------- */
+        public CharacterClassData GetClassFromProgression(ProgressionLevel tier)
+        {
+            if (UseClassProgressionLadder)
+            {
+                var cls = ProgressionLadder.GetClassForTier(tier);
+                if (cls != null)
+                {
+                    return cls;
+                }
+            }
+            return StartingClass;
+        }
+
+        public List<LoadoutEntry> GetLoadoutForProgression(ProgressionLevel tier) =>
+            UseClassProgressionLadder ? ProgressionLadder.GetLoadoutForTier(tier) : null;
+
+        /// <summary>
+        /// Helper used during instance initialization/persistence to choose an
+        /// appropriate starting class.  This will return the ladder's Starter
+        /// class when the option is active, falling back to the normal
+        /// <see cref="StartingClass" /> if nothing is configured.
+        /// </summary>
+        public CharacterClassData GetPreferredStartingClass()
+        {
+            var pref = GetClassFromProgression(ProgressionLevel.Starter);
+            return pref != null ? pref : StartingClass;
+        }
 
         private void OnEnable()
         {
@@ -86,7 +114,7 @@ namespace Turnroot.Characters
             // Initialize stats from defaults if stats are empty
             if (BoundedStats.Count == 0 && UnboundedStats.Count == 0)
             {
-                var gs = Turnroot.GameSettings.GameplayGeneralSettings.Instance;
+                var gs = GameplayGeneralSettings.Instance;
                 if (gs != null)
                 {
                     BoundedStats = gs.CreateDefaultBoundedStats();
@@ -146,7 +174,26 @@ namespace Turnroot.Characters
                     $"{name}: No additional bone names or AvatarMask were provided for the extra bone layer. Add names or an AvatarMask for tooling/runtime mapping.".LogWarning();
                 }
             }
+
+            if (UseClassProgressionLadder && IsUnique)
+            {
+                UseClassProgressionLadder = false;
+                $"{name}: Unique characters cannot use a class progression ladder; disabling the option.".LogWarning();
+            }
+
+            if (UseClassProgressionLadder)
+            {
+                if (
+                    ProgressionLadder.Starter.Class == null
+                    && ProgressionLadder.Base.Class == null
+                    && ProgressionLadder.Advanced.Class == null
+                    && ProgressionLadder.Master.Class == null
+                    && ProgressionLadder.Expert.Class == null
+                )
+                {
+                    $"{name}: progression ladder enabled but no classes are assigned".LogWarning();
+                }
+            }
         }
     }
 }
-

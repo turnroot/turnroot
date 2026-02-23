@@ -1,3 +1,4 @@
+using Turnroot.Utilities;
 using UnityEngine;
 using XNode;
 
@@ -57,9 +58,7 @@ namespace Turnroot.Skills.Nodes.Conditions
 
             if (unit == null)
             {
-#if UNITY_EDITOR
-                Debug.LogWarning("UnitTerrainType: Could not retrieve unit from context");
-#endif
+                "UnitTerrainType: Could not retrieve unit from context".LogWarning();
                 return new BoolValue { value = false };
             }
 

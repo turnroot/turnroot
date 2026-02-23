@@ -1,0 +1,450 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-8928241692090076760
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d42dc97580e88fc4db2ef4f43ebc05be, type: 3}
+  m_Name: Deal Debuff
+  m_EditorClassIdentifier: Assembly-CSharp::Turnroot.Skills.Nodes.Events.DealDebuffNode
+  graph: {fileID: 11400000}
+  position: {x: 152, y: 24}
+  ports:
+    keys:
+    - executionIn
+    - affectAllTargets
+    values:
+    - _fieldName: executionIn
+      _node: {fileID: -8928241692090076760}
+      _typeQualifiedName: Turnroot.Skills.Nodes.ExecutionFlow, Assembly-CSharp, Version=0.0.0.0,
+        Culture=neutral, PublicKeyToken=null
+      connections:
+      - fieldName: OutFlow
+        node: {fileID: 919050023885371750}
+        reroutePoints: []
+      _direction: 0
+      _connectionType: 0
+      _typeConstraint: 0
+      _dynamic: 0
+    - _fieldName: affectAllTargets
+      _node: {fileID: -8928241692090076760}
+      _typeQualifiedName: Turnroot.Skills.Nodes.BoolValue, Assembly-CSharp, Version=0.0.0.0,
+        Culture=neutral, PublicKeyToken=null
+      connections: []
+      _direction: 0
+      _connectionType: 0
+      _typeConstraint: 0
+      _dynamic: 0
+  OnNodeExecute:
+    m_PersistentCalls:
+      m_Calls: []
+  affectAllTargets:
+    value: 0
+  testAffectAll: 0
+  debuffType: {fileID: 11400000, guid: 7a40acd106eb09e469fb87ddc824a96f, type: 2}
+  durationOverride: -1
+  intensity: 1
+--- !u!114 &-8785102828731038329
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 628e07cd593a938419cd721e3f6bc443, type: 3}
+  m_Name: Enemy Attacks
+  m_EditorClassIdentifier: Assembly-CSharp::Turnroot.Skills.Nodes.Flow.EnemyAttacksNode
+  graph: {fileID: 11400000}
+  position: {x: -568, y: -56}
+  ports:
+    keys:
+    - flow
+    values:
+    - _fieldName: flow
+      _node: {fileID: -8785102828731038329}
+      _typeQualifiedName: Turnroot.Skills.Nodes.ExecutionFlow, Assembly-CSharp, Version=0.0.0.0,
+        Culture=neutral, PublicKeyToken=null
+      connections:
+      - fieldName: InFlow
+        node: {fileID: 919050023885371750}
+        reroutePoints: []
+      _direction: 1
+      _connectionType: 0
+      _typeConstraint: 0
+      _dynamic: 0
+  OnNodeExecute:
+    m_PersistentCalls:
+      m_Calls: []
+--- !u!114 &-4590687167580980080
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b9981e16e39031c4682af9b502241d4c, type: 3}
+  m_Name: Enemy Distance
+  m_EditorClassIdentifier: Assembly-CSharp::Turnroot.Skills.Nodes.Conditions.EnemyDistanceNode
+  graph: {fileID: 11400000}
+  position: {x: -904, y: 168}
+  ports:
+    keys:
+    - value
+    values:
+    - _fieldName: value
+      _node: {fileID: -4590687167580980080}
+      _typeQualifiedName: Turnroot.Skills.Nodes.FloatValue, Assembly-CSharp, Version=0.0.0.0,
+        Culture=neutral, PublicKeyToken=null
+      connections:
+      - fieldName: a
+        node: {fileID: 9146907225031939315}
+        reroutePoints: []
+      _direction: 1
+      _connectionType: 0
+      _typeConstraint: 0
+      _dynamic: 0
+  OnNodeExecute:
+    m_PersistentCalls:
+      m_Calls: []
+  value:
+    value: 0
+--- !u!114 &-2457626888449336731
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f287672f45fa05145abfedd82c82c812, type: 3}
+  m_Name: Number Input
+  m_EditorClassIdentifier: Assembly-CSharp::Turnroot.Skills.Nodes.Math.NumberInputNode
+  graph: {fileID: 11400000}
+  position: {x: -920, y: 280}
+  ports:
+    keys:
+    - Number
+    values:
+    - _fieldName: Number
+      _node: {fileID: -2457626888449336731}
+      _typeQualifiedName: Turnroot.Skills.Nodes.FloatValue, Assembly-CSharp, Version=0.0.0.0,
+        Culture=neutral, PublicKeyToken=null
+      connections:
+      - fieldName: b
+        node: {fileID: 9146907225031939315}
+        reroutePoints: []
+      _direction: 1
+      _connectionType: 0
+      _typeConstraint: 0
+      _dynamic: 0
+  OnNodeExecute:
+    m_PersistentCalls:
+      m_Calls: []
+  Number:
+    value: 1
+  defaultValue: 1
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 648cb0dddd3bfc949bed2d9ee663da51, type: 3}
+  m_Name: PoisonSpikesSG
+  m_EditorClassIdentifier: Assembly-CSharp::Turnroot.Skills.Nodes.SkillGraph
+  nodes:
+  - {fileID: 6352778120023613202}
+  - {fileID: -8785102828731038329}
+  - {fileID: 2896001353250193674}
+  - {fileID: 919050023885371750}
+  - {fileID: -4590687167580980080}
+  - {fileID: 9146907225031939315}
+  - {fileID: -2457626888449336731}
+  - {fileID: 6686598643334181094}
+  - {fileID: -8928241692090076760}
+--- !u!114 &919050023885371750
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ad41215a55b6c594688cafdf4408ba85, type: 3}
+  m_Name: Flow If
+  m_EditorClassIdentifier: Assembly-CSharp::Turnroot.Skills.Nodes.Flow.FlowIfNode
+  graph: {fileID: 11400000}
+  position: {x: -216, y: -24}
+  ports:
+    keys:
+    - InFlow
+    - condition
+    - OutFlow
+    values:
+    - _fieldName: InFlow
+      _node: {fileID: 919050023885371750}
+      _typeQualifiedName: Turnroot.Skills.Nodes.ExecutionFlow, Assembly-CSharp, Version=0.0.0.0,
+        Culture=neutral, PublicKeyToken=null
+      connections:
+      - fieldName: flow
+        node: {fileID: -8785102828731038329}
+        reroutePoints: []
+      _direction: 0
+      _connectionType: 1
+      _typeConstraint: 0
+      _dynamic: 0
+    - _fieldName: condition
+      _node: {fileID: 919050023885371750}
+      _typeQualifiedName: Turnroot.Skills.Nodes.BoolValue, Assembly-CSharp, Version=0.0.0.0,
+        Culture=neutral, PublicKeyToken=null
+      connections:
+      - fieldName: result
+        node: {fileID: 9146907225031939315}
+        reroutePoints: []
+      _direction: 0
+      _connectionType: 1
+      _typeConstraint: 0
+      _dynamic: 0
+    - _fieldName: OutFlow
+      _node: {fileID: 919050023885371750}
+      _typeQualifiedName: Turnroot.Skills.Nodes.ExecutionFlow, Assembly-CSharp, Version=0.0.0.0,
+        Culture=neutral, PublicKeyToken=null
+      connections:
+      - fieldName: executionIn
+        node: {fileID: -8928241692090076760}
+        reroutePoints: []
+      _direction: 1
+      _connectionType: 0
+      _typeConstraint: 0
+      _dynamic: 0
+  OnNodeExecute:
+    m_PersistentCalls:
+      m_Calls: []
+  condition:
+    value: 0
+--- !u!114 &2896001353250193674
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ad41215a55b6c594688cafdf4408ba85, type: 3}
+  m_Name: Flow If
+  m_EditorClassIdentifier: Assembly-CSharp::Turnroot.Skills.Nodes.Flow.FlowIfNode
+  graph: {fileID: 11400000}
+  position: {x: -216, y: -248}
+  ports:
+    keys:
+    - InFlow
+    - condition
+    - OutFlow
+    values:
+    - _fieldName: InFlow
+      _node: {fileID: 2896001353250193674}
+      _typeQualifiedName: Turnroot.Skills.Nodes.ExecutionFlow, Assembly-CSharp, Version=0.0.0.0,
+        Culture=neutral, PublicKeyToken=null
+      connections:
+      - fieldName: execOut
+        node: {fileID: 6352778120023613202}
+        reroutePoints: []
+      _direction: 0
+      _connectionType: 1
+      _typeConstraint: 0
+      _dynamic: 0
+    - _fieldName: condition
+      _node: {fileID: 2896001353250193674}
+      _typeQualifiedName: Turnroot.Skills.Nodes.BoolValue, Assembly-CSharp, Version=0.0.0.0,
+        Culture=neutral, PublicKeyToken=null
+      connections:
+      - fieldName: result
+        node: {fileID: 9146907225031939315}
+        reroutePoints: []
+      _direction: 0
+      _connectionType: 1
+      _typeConstraint: 0
+      _dynamic: 0
+    - _fieldName: OutFlow
+      _node: {fileID: 2896001353250193674}
+      _typeQualifiedName: Turnroot.Skills.Nodes.ExecutionFlow, Assembly-CSharp, Version=0.0.0.0,
+        Culture=neutral, PublicKeyToken=null
+      connections:
+      - fieldName: executionIn
+        node: {fileID: 6686598643334181094}
+        reroutePoints: []
+      _direction: 1
+      _connectionType: 0
+      _typeConstraint: 0
+      _dynamic: 0
+  OnNodeExecute:
+    m_PersistentCalls:
+      m_Calls: []
+  condition:
+    value: 0
+--- !u!114 &6352778120023613202
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1cc211ce994c5ac438090af58f1c3224, type: 3}
+  m_Name: Unit Attacks
+  m_EditorClassIdentifier: Assembly-CSharp::Turnroot.Skills.Nodes.Flow.UnitAttacksNode
+  graph: {fileID: 11400000}
+  position: {x: -568, y: -248}
+  ports:
+    keys:
+    - execOut
+    values:
+    - _fieldName: execOut
+      _node: {fileID: 6352778120023613202}
+      _typeQualifiedName: Turnroot.Skills.Nodes.ExecutionFlow, Assembly-CSharp, Version=0.0.0.0,
+        Culture=neutral, PublicKeyToken=null
+      connections:
+      - fieldName: InFlow
+        node: {fileID: 2896001353250193674}
+        reroutePoints: []
+      _direction: 1
+      _connectionType: 0
+      _typeConstraint: 0
+      _dynamic: 0
+  OnNodeExecute:
+    m_PersistentCalls:
+      m_Calls: []
+--- !u!114 &6686598643334181094
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d42dc97580e88fc4db2ef4f43ebc05be, type: 3}
+  m_Name: Deal Debuff
+  m_EditorClassIdentifier: Assembly-CSharp::Turnroot.Skills.Nodes.Events.DealDebuffNode
+  graph: {fileID: 11400000}
+  position: {x: 152, y: -280}
+  ports:
+    keys:
+    - executionIn
+    - affectAllTargets
+    values:
+    - _fieldName: executionIn
+      _node: {fileID: 6686598643334181094}
+      _typeQualifiedName: Turnroot.Skills.Nodes.ExecutionFlow, Assembly-CSharp, Version=0.0.0.0,
+        Culture=neutral, PublicKeyToken=null
+      connections:
+      - fieldName: OutFlow
+        node: {fileID: 2896001353250193674}
+        reroutePoints: []
+      _direction: 0
+      _connectionType: 0
+      _typeConstraint: 0
+      _dynamic: 0
+    - _fieldName: affectAllTargets
+      _node: {fileID: 6686598643334181094}
+      _typeQualifiedName: Turnroot.Skills.Nodes.BoolValue, Assembly-CSharp, Version=0.0.0.0,
+        Culture=neutral, PublicKeyToken=null
+      connections: []
+      _direction: 0
+      _connectionType: 0
+      _typeConstraint: 0
+      _dynamic: 0
+  OnNodeExecute:
+    m_PersistentCalls:
+      m_Calls: []
+  affectAllTargets:
+    value: 0
+  testAffectAll: 0
+  debuffType: {fileID: 11400000, guid: 7a40acd106eb09e469fb87ddc824a96f, type: 2}
+  durationOverride: -1
+  intensity: 1
+--- !u!114 &9146907225031939315
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7dfc9c42a801bc74489333189d13dfff, type: 3}
+  m_Name: Number Comparisons
+  m_EditorClassIdentifier: Assembly-CSharp::Turnroot.Skills.Nodes.Math.NumberComparisonsNode
+  graph: {fileID: 11400000}
+  position: {x: -568, y: 168}
+  ports:
+    keys:
+    - a
+    - b
+    - result
+    values:
+    - _fieldName: a
+      _node: {fileID: 9146907225031939315}
+      _typeQualifiedName: Turnroot.Skills.Nodes.FloatValue, Assembly-CSharp, Version=0.0.0.0,
+        Culture=neutral, PublicKeyToken=null
+      connections:
+      - fieldName: value
+        node: {fileID: -4590687167580980080}
+        reroutePoints: []
+      _direction: 0
+      _connectionType: 0
+      _typeConstraint: 0
+      _dynamic: 0
+    - _fieldName: b
+      _node: {fileID: 9146907225031939315}
+      _typeQualifiedName: Turnroot.Skills.Nodes.FloatValue, Assembly-CSharp, Version=0.0.0.0,
+        Culture=neutral, PublicKeyToken=null
+      connections:
+      - fieldName: Number
+        node: {fileID: -2457626888449336731}
+        reroutePoints: []
+      _direction: 0
+      _connectionType: 0
+      _typeConstraint: 0
+      _dynamic: 0
+    - _fieldName: result
+      _node: {fileID: 9146907225031939315}
+      _typeQualifiedName: Turnroot.Skills.Nodes.BoolValue, Assembly-CSharp, Version=0.0.0.0,
+        Culture=neutral, PublicKeyToken=null
+      connections:
+      - fieldName: condition
+        node: {fileID: 919050023885371750}
+        reroutePoints: []
+      - fieldName: condition
+        node: {fileID: 2896001353250193674}
+        reroutePoints: []
+      _direction: 1
+      _connectionType: 0
+      _typeConstraint: 0
+      _dynamic: 0
+  OnNodeExecute:
+    m_PersistentCalls:
+      m_Calls: []
+  a:
+    value: 0
+  b:
+    value: 0
+  result:
+    value: 0
+  operationType: 5

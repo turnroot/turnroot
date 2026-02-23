@@ -20,9 +20,6 @@ namespace Turnroot.Skills.Nodes.Events
         [Tooltip("If true, cures adjacent allies; if false, only caster or first target")]
         public BoolValue affectAdjacentAllies;
 
-        [Tooltip("Test value for affectAdjacentAllies in editor mode")]
-        public bool testAffectAdjacent = false;
-
         [Tooltip("Cure all debuffs or specific type?")]
         public CureMode cureMode = CureMode.AllDebuffs;
 
@@ -39,16 +36,19 @@ namespace Turnroot.Skills.Nodes.Events
                 return;
             }
 
-            bool shouldAffectAdjacent = GetInputBool("affectAdjacentAllies", testAffectAdjacent);
+            bool shouldAffectAdjacent = false;
+            var adjPort = GetInputPort("affectAdjacentAllies");
+            if (adjPort != null && adjPort.IsConnected)
+            {
+                shouldAffectAdjacent = GetInputBool("affectAdjacentAllies", false);
+            }
 
             if (shouldAffectAdjacent)
             {
                 // Get adjacent allies from context
                 if (context.Participants.AdjacentUnits == null)
                 {
-#if UNITY_EDITOR
-                    Debug.LogWarning("CureDebuff: No adjacent units available in context");
-#endif
+                    "CureDebuff: No adjacent units available in context".LogWarning();
                     return;
                 }
 
@@ -76,9 +76,7 @@ namespace Turnroot.Skills.Nodes.Events
                 }
                 else
                 {
-#if UNITY_EDITOR
-                    Debug.LogWarning("CureDebuff: No adjacent allies found to cure");
-#endif
+                    "CureDebuff: No adjacent allies found to cure".LogWarning();
                 }
 
                 ListPool<CharacterInstance>.Return(adjacentAllies);
@@ -93,10 +91,7 @@ namespace Turnroot.Skills.Nodes.Events
 
                 int removed = CureDebuffsFromCharacter(context, target);
                 string cureText = GetCureDescription();
-#if UNITY_EDITOR
-
                 $"CureDebuff: Cured {cureText} from target ({removed} effects removed)".LogInfo();
-#endif
             }
         }
 

@@ -119,9 +119,9 @@ namespace Turnroot.Characters.CharacterClass
                 if (smrs == null || smrs.Length == 0)
                 {
                     $"{name}: ClassModelPrefab '{prefab.name}' does not contain a SkinnedMeshRenderer. Clearing assignment.".LogError();
-                    UnityEditor.Undo.RecordObject(this, "Clear invalid ClassModelPrefab");
+                    Undo.RecordObject(this, "Clear invalid ClassModelPrefab");
                     Identity.ClassModelPrefab = null;
-                    UnityEditor.EditorUtility.SetDirty(this);
+                    EditorUtility.SetDirty(this);
                 }
                 else
                 {
@@ -141,9 +141,9 @@ namespace Turnroot.Characters.CharacterClass
                     {
 
                         $"{name}: ClassModelPrefab '{prefab.name}' is missing required blendshapes on submeshes: {string.Join(", ", missingAny)}. Clearing assignment.".LogError();
-                        UnityEditor.Undo.RecordObject(this, "Clear invalid ClassModelPrefab");
+                        Undo.RecordObject(this, "Clear invalid ClassModelPrefab");
                         Identity.ClassModelPrefab = null;
-                        UnityEditor.EditorUtility.SetDirty(this);
+                        EditorUtility.SetDirty(this);
                     }
                     else
                     {
@@ -151,9 +151,9 @@ namespace Turnroot.Characters.CharacterClass
                         if (PrefabContainsHairRenderer(prefab))
                         {
                             $"{name}: ClassModelPrefab '{prefab.name}' contains a 'Hair' renderer. Class models must not include hair; clearing assignment.".LogError();
-                            UnityEditor.Undo.RecordObject(this, "Clear invalid ClassModelPrefab");
+                            Undo.RecordObject(this, "Clear invalid ClassModelPrefab");
                             Identity.ClassModelPrefab = null;
-                            UnityEditor.EditorUtility.SetDirty(this);
+                            EditorUtility.SetDirty(this);
                         }
                     }
                 }
@@ -175,7 +175,7 @@ namespace Turnroot.Characters.CharacterClass
                 if (!classMatFound)
                 {
                     $"{name}: ClassModelPrefab '{prefab.name}' contains no materials exposing class texture properties (_Base/_MSE/_Tint_Mask). Class textures will not be applied at runtime.".LogWarning();
-                    UnityEditor.EditorUtility.SetDirty(this);
+                    EditorUtility.SetDirty(this);
                 }
             }
 
@@ -194,12 +194,12 @@ namespace Turnroot.Characters.CharacterClass
                     if (smrs == null || smrs.Length == 0)
                     {
                         $"{name}: PronounClassModelPrefabs entry for '{pp.pronounKey}' points to prefab '{prefab.name}' which does not contain a SkinnedMeshRenderer. Clearing that entry.".LogError();
-                        UnityEditor.Undo.RecordObject(
+                        Undo.RecordObject(
                             this,
                             $"Clear invalid PronounClassModelPrefabs[{pp.pronounKey}]"
                         );
                         // Cannot clear struct array element automatically here; notify author and leave for manual fix in inspector
-                        UnityEditor.EditorUtility.SetDirty(this);
+                        EditorUtility.SetDirty(this);
                         continue;
                     }
 
@@ -220,12 +220,12 @@ namespace Turnroot.Characters.CharacterClass
                     {
 
                         $"{name}: PronounClassModelPrefabs entry for '{pp.pronounKey}' -> '{prefab.name}' is missing required blendshapes on submeshes: {string.Join(", ", missingAny)}. Clearing that entry.".LogError();
-                        UnityEditor.Undo.RecordObject(
+                        Undo.RecordObject(
                             this,
                             $"Clear invalid PronounClassModelPrefabs[{pp.pronounKey}]"
                         );
                         // Cannot clear struct array element automatically here; notify author and leave for manual fix in inspector
-                        UnityEditor.EditorUtility.SetDirty(this);
+                        EditorUtility.SetDirty(this);
                     }
 
                     // Recommend: prefer a dedicated child renderer named 'Hair' for hair meshes so the runtime
@@ -233,12 +233,12 @@ namespace Turnroot.Characters.CharacterClass
                     if (PrefabContainsHairRenderer(prefab))
                     {
                         $"{name}: PronounClassModelPrefabs entry for '{pp.pronounKey}' -> '{prefab.name}' contains a 'Hair' renderer. Pronoun-specific class models must not include hair.".LogError();
-                        UnityEditor.Undo.RecordObject(
+                        Undo.RecordObject(
                             this,
                             $"PronounClassModelPrefabs contains invalid hair renderer [{pp.pronounKey}]"
                         );
                         // Notify author for manual fix in inspector (cannot auto-clear struct array element reliably)
-                        UnityEditor.EditorUtility.SetDirty(this);
+                        EditorUtility.SetDirty(this);
 
                         // Warn if none of the renderer materials expose class texture properties (_Base/_MSE/_Tint_Mask)
                         bool pronounHasClassMat = false;
@@ -254,7 +254,7 @@ namespace Turnroot.Characters.CharacterClass
                         if (!pronounHasClassMat)
                         {
                             $"{name}: PronounClassModelPrefabs entry for '{pp.pronounKey}' -> '{prefab.name}' contains no materials exposing class texture properties (_Base/_MSE/_Tint_Mask). Class textures will not be applied.".LogWarning();
-                            UnityEditor.EditorUtility.SetDirty(this);
+                            EditorUtility.SetDirty(this);
                         }
                     }
                 }

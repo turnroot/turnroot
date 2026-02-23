@@ -1,3 +1,4 @@
+using Turnroot.Utilities;
 using UnityEngine;
 using XNode;
 
@@ -28,26 +29,10 @@ namespace Turnroot.Skills.Nodes.Conditions
         public override object GetValue(NodePort port)
         {
             var skillGraph = graph as SkillGraph;
-            if (skillGraph == null || !Application.isPlaying)
-            {
-                // Return defaults in editor mode
-                return port.fieldName switch
-                {
-                    "MinRange" => new FloatValue { value = 1f },
-                    "MaxRange" => new FloatValue { value = 1f },
-                    "IsMelee" => new BoolValue { value = true },
-                    "IsRanged" => new BoolValue { value = false },
-                    "CanCounterattack" => new BoolValue { value = true },
-                    _ => null,
-                };
-            }
-
             var context = GetContextFromGraph(skillGraph);
             if (context == null || context.Unit.UnitInstance == null)
             {
-#if UNITY_EDITOR
-                Debug.LogWarning("WeaponRange: Could not retrieve context or unit from graph");
-#endif
+                "WeaponRange: Could not retrieve context or unit from graph".LogWarning();
                 return port.fieldName switch
                 {
                     "MinRange" or "MaxRange" => new FloatValue { value = 0f },
@@ -64,9 +49,7 @@ namespace Turnroot.Skills.Nodes.Conditions
                 || weaponIndex >= inventory.InventoryItems.Count
             )
             {
-#if UNITY_EDITOR
-                Debug.LogWarning("WeaponRange: No weapon equipped");
-#endif
+                "WeaponRange: No weapon equipped".LogWarning();
                 return port.fieldName switch
                 {
                     "MinRange" or "MaxRange" => new FloatValue { value = 0f },
