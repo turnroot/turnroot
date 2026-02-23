@@ -18,9 +18,6 @@ namespace Turnroot.Skills.Nodes.Events
         [Tooltip("The amount of gold to gain")]
         public FloatValue goldAmount;
 
-        [Tooltip("Test value for gold in editor mode")]
-        public float testGold = 100f;
-
         public override void Execute(BattleContext context)
         {
             if (!ValidateContext(context))
@@ -28,7 +25,13 @@ namespace Turnroot.Skills.Nodes.Events
                 return;
             }
 
-            int gold = (int)GetInputFloat("goldAmount", testGold);
+            int gold = (int)GetInputFloat("goldAmount", 0f);
+            var goldPort = GetInputPort("goldAmount");
+            if (goldPort == null || !goldPort.IsConnected)
+            {
+                Debug.LogWarning("GainGoldNode: 'goldAmount' input not provided");
+                return;
+            }
 
             context.Brain.PublishGoldGained(gold);
 
@@ -36,4 +39,3 @@ namespace Turnroot.Skills.Nodes.Events
         }
     }
 }
-

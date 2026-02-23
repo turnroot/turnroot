@@ -1,3 +1,4 @@
+using Turnroot.Utilities;
 using UnityEngine;
 using XNode;
 
@@ -20,17 +21,13 @@ namespace Turnroot.Skills.Nodes.Conditions
                 var contextFromGraph = GetContextFromGraph(skillGraph);
                 if (contextFromGraph == null)
                 {
-#if UNITY_EDITOR
-                    Debug.LogError("BattleContext not found in graph!");
-#endif
+                    "BattleContext not found in graph!".LogError();
                     return null;
                 }
 
                 if (contextFromGraph.Skill.CurrentSkill == null)
                 {
-#if UNITY_EDITOR
-                    Debug.LogError("CurrentSkill is null in BattleContext!");
-#endif
+                    "CurrentSkill is null in BattleContext!".LogError();
                     return null;
                 }
 

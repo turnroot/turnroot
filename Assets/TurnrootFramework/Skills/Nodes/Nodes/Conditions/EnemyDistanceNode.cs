@@ -1,3 +1,4 @@
+using Turnroot.Utilities;
 using UnityEngine;
 using XNode;
 
@@ -29,9 +30,7 @@ namespace Turnroot.Skills.Nodes.Conditions
             var context = GetContextFromGraph(skillGraph);
             if (context == null || context.Unit.UnitInstance == null)
             {
-#if UNITY_EDITOR
-                Debug.LogWarning("EnemyDistance: Could not retrieve context or unit from graph");
-#endif
+                "EnemyDistance: Could not retrieve context or unit from graph".LogWarning();
                 return new FloatValue { value = 0f };
             }
 
@@ -43,9 +42,7 @@ namespace Turnroot.Skills.Nodes.Conditions
 
             if (enemy == null)
             {
-#if UNITY_EDITOR
-                Debug.LogWarning("EnemyDistance: No enemy target in context");
-#endif
+                "EnemyDistance: No enemy target in context".LogWarning();
                 return new FloatValue { value = 0f };
             }
 

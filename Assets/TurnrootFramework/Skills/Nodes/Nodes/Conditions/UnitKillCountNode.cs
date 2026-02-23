@@ -1,3 +1,4 @@
+using Turnroot.Utilities;
 using UnityEngine;
 using XNode;
 
@@ -34,9 +35,7 @@ namespace Turnroot.Skills.Nodes.Conditions
 
             if (character == null)
             {
-#if UNITY_EDITOR
-                Debug.LogWarning("UnitKillCount: Could not retrieve unit from context");
-#endif
+                "UnitKillCount: Could not retrieve unit from context".LogWarning();
                 return new FloatValue { value = 0f };
             }
 

@@ -177,11 +177,11 @@ namespace Turnroot.Characters.CharacterClass
         {
             // Force inspector refresh when validating to update ShowIf conditions
             // This ensures promotion/requirement fields show/hide correctly based on GameplayGeneralSettings
-            UnityEditor.EditorApplication.delayCall += () =>
+            EditorApplication.delayCall += () =>
             {
                 if (this != null)
                 {
-                    UnityEditor.EditorUtility.SetDirty(this);
+                    EditorUtility.SetDirty(this);
                 }
             };
         }
@@ -198,11 +198,11 @@ namespace Turnroot.Characters.CharacterClass
             var original = Identity.ClassName.Trim();
 
             // Search project for other CharacterClassData assets
-            var guids = UnityEditor.AssetDatabase.FindAssets("t:CharacterClassData");
+            var guids = AssetDatabase.FindAssets("t:CharacterClassData");
             foreach (var g in guids)
             {
-                var path = UnityEditor.AssetDatabase.GUIDToAssetPath(g);
-                var other = UnityEditor.AssetDatabase.LoadAssetAtPath<CharacterClassData>(path);
+                var path = AssetDatabase.GUIDToAssetPath(g);
+                var other = AssetDatabase.LoadAssetAtPath<CharacterClassData>(path);
                 if (other == null || other == this)
                 {
                     continue;
@@ -226,8 +226,8 @@ namespace Turnroot.Characters.CharacterClass
                         exists = false;
                         foreach (var gg in guids)
                         {
-                            var p = UnityEditor.AssetDatabase.GUIDToAssetPath(gg);
-                            var o = UnityEditor.AssetDatabase.LoadAssetAtPath<CharacterClassData>(
+                            var p = AssetDatabase.GUIDToAssetPath(gg);
+                            var o = AssetDatabase.LoadAssetAtPath<CharacterClassData>(
                                 p
                             );
                             if (o == null)
@@ -252,7 +252,7 @@ namespace Turnroot.Characters.CharacterClass
                     } while (exists);
 
                     Identity.ClassName = candidate;
-                    UnityEditor.EditorUtility.SetDirty(this);
+                    EditorUtility.SetDirty(this);
                     $"{name}: ClassName '{original}' already exists. Renamed to '{candidate}' to ensure uniqueness.".LogWarning();
                     return;
                 }

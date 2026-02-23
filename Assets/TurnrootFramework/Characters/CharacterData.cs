@@ -10,6 +10,7 @@ using Turnroot.Characters.Stats;
 using Turnroot.Characters.Subclasses;
 using Turnroot.CommonAncestors;
 using Turnroot.Gameplay.Objects;
+using Turnroot.GameSettings;
 using Turnroot.Skills;
 using Turnroot.Utilities;
 using Turnroot.Utilities.AbstractScripts;
@@ -297,6 +298,80 @@ namespace Turnroot.Characters
         ]
         public int Level { get; private set; } = 1;
 
+        // ---------------------------------------------------------------------
+        // Class progression ladder (per-character, generic units only)
+        // ---------------------------------------------------------------------
+        [System.Serializable]
+        public struct ClassProgressionLadder
+        {
+            [System.Serializable]
+            public struct TierData
+            {
+                [Tooltip("Class assigned to this progression tier")]
+                public CharacterClassData Class;
+
+                [Tooltip(
+                    "Possible items awarded when this tier is selected. Percentages are independent and roll each time."
+                )]
+                public List<LoadoutEntry> Loadout;
+            }
+
+            public TierData Starter;
+            public TierData Base;
+            public TierData Advanced;
+            public TierData Master;
+            public TierData Expert;
+
+            public CharacterClassData GetClassForTier(ProgressionLevel tier)
+            {
+                return tier switch
+                {
+                    ProgressionLevel.Starter => Starter.Class,
+                    ProgressionLevel.Base => Base.Class,
+                    ProgressionLevel.Advanced => Advanced.Class,
+                    ProgressionLevel.Master => Master.Class,
+                    ProgressionLevel.Expert => Expert.Class,
+                    _ => null,
+                };
+            }
+
+            public List<LoadoutEntry> GetLoadoutForTier(ProgressionLevel tier)
+            {
+                return tier switch
+                {
+                    ProgressionLevel.Starter => Starter.Loadout,
+                    ProgressionLevel.Base => Base.Loadout,
+                    ProgressionLevel.Advanced => Advanced.Loadout,
+                    ProgressionLevel.Master => Master.Loadout,
+                    ProgressionLevel.Expert => Expert.Loadout,
+                    _ => null,
+                };
+            }
+        }
+
+        [System.Serializable]
+        public struct LoadoutEntry
+        {
+            public ObjectItem Item;
+
+            [Range(0f, 100f)]
+            public float Chance;
+        }
+
+        [field:
+            BoxGroup("Stats & Progression"),
+            SerializeField,
+            Tooltip(
+                "If true, use the per-tier class ladder defined below instead of the usual StartingClass. Hidden for unique characters."
+            ),
+            ShowIf(nameof(CanShowClassProgressionOption))
+        ]
+        public bool UseClassProgressionLadder { get; private set; } = false;
+
+        [field: BoxGroup("Stats & Progression"), SerializeField]
+        [ShowIf(nameof(ShowClassProgressionFields))]
+        public ClassProgressionLadder ProgressionLadder = new();
+
         [field: SerializeField, BoxGroup("Stats & Progression")]
         public int Exp { get; private set; } = 0;
 
@@ -367,13 +442,11 @@ namespace Turnroot.Characters
             // Report consolidated results using TurnrootLogger to reduce spam
             if (errorList.Count > 0)
             {
-
                 $"{name}: Stat validation errors:\n{string.Join("\n", errorList)}".LogError();
             }
 
             if (warningList.Count > 0)
             {
-
                 $"{name}: Stat validation warnings:\n{string.Join("\n", warningList)}\nConsider using 'Tools > Turnroot > Refresh Character Stats' or checking GameplayGeneralSettings.".LogWarning();
             }
         }
@@ -421,6 +494,15 @@ namespace Turnroot.Characters
             Which == CharacterWhich.ENEMY || Which == CharacterWhich.NPC;
 
         private bool CanShowUnique() => Which != CharacterWhich.AVATAR;
+
+        // progress ladder toggle is only visible on generic characters (not unique) and
+        // follows the same avatar restriction used by CanShowUnique
+        private bool CanShowClassProgressionOption() => !IsUnique && CanShowUnique();
+
+        // the ladder struct itself only shows when the option is enabled and the
+        // character is not unique (guarding against case where option was enabled
+        // then later made unique)
+        private bool ShowClassProgressionFields() => UseClassProgressionLadder && !IsUnique;
 
         private bool IsAllyOrRecruitable() => Which == CharacterWhich.ALLY || IsRecruitable;
 
@@ -510,4 +592,3 @@ namespace Turnroot.Characters
         }
     }
 }
-

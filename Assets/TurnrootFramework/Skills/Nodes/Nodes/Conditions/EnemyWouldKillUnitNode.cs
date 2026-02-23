@@ -1,5 +1,6 @@
 using Turnroot.Characters.Stats;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
+using Turnroot.Utilities;
 using UnityEngine;
 using XNode;
 
@@ -12,15 +13,8 @@ namespace Turnroot.Skills.Nodes.Conditions
     [NodeLabel("Check if incoming damage would be lethal")]
     public class EnemyWouldKillUnitNode : SkillNode
     {
-        [Input]
-        [Tooltip("The amount of incoming damage")]
-        public FloatValue incomingDamage;
-
         [Output]
         public BoolValue result;
-
-        [Tooltip("Test value for damage in editor mode")]
-        public float testDamage = 50f;
 
         public override object GetValue(NodePort port)
         {
@@ -28,10 +22,10 @@ namespace Turnroot.Skills.Nodes.Conditions
             {
                 BoolValue wouldKill = new();
 
-                // In editor mode, use test value
+                // runtime check only; return false outside play mode
                 if (!Application.isPlaying)
                 {
-                    wouldKill.value = testDamage >= 100f; // Arbitrary test
+                    wouldKill.value = false;
                     return wouldKill;
                 }
 
@@ -69,14 +63,8 @@ namespace Turnroot.Skills.Nodes.Conditions
 
         private float GetIncomingDamage()
         {
-            var damagePort = GetInputPort("incomingDamage");
-            if (damagePort == null || !damagePort.IsConnected)
-            {
-                return testDamage;
-            }
-
-            var inputValue = damagePort.GetInputValue();
-            return inputValue is FloatValue damageValue ? damageValue.value : testDamage;
+            // TODO: Connect to context
+            return 1;
         }
 
         private float GetUnitCurrentHealth(BattleContext context)
@@ -85,9 +73,7 @@ namespace Turnroot.Skills.Nodes.Conditions
 
             if (healthStat == null)
             {
-#if UNITY_EDITOR
-                Debug.LogWarning("EnemyWouldKillUnit: Unit has no Health stat");
-#endif
+                LoggerExtensions.LogWarning("EnemyWouldKillUnit: Unit has no Health stat");
                 return -1f; // Sentinel value
             }
 

@@ -56,7 +56,7 @@ namespace Turnroot.Gameplay.Brain
             }
 
             var classToApply =
-                instance.CharacterTemplate.StartingClass
+                instance.CharacterTemplate.GetPreferredStartingClass()
                 ?? GameSettings.GameplayGeneralSettings.Instance.GetDefaultStartingClass();
 
             if (classToApply != null)

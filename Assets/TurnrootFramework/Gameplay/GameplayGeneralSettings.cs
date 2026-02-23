@@ -25,10 +25,10 @@ namespace Turnroot.GameSettings
     /// </summary>
     public enum ProgressionLevel
     {
-        Starter = -1,
-        Base = 0,
-        Advanced = 1,
-        Master = 2,
+        Starter = 0,
+        Base = 1,
+        Advanced = 2,
+        Master = 3,
         Expert = 4,
     }
 
@@ -211,14 +211,9 @@ namespace Turnroot.GameSettings
         ]
         public ClassSelectionMode ClassSelection = ClassSelectionMode.PromotionBased;
 
-        [Tooltip(
-            "If true, switching a character's class will reset their level to 1. Designers may override this independently of ClassSelection mode."
-        )]
-        public bool ResetLevelOnClassChange = true;
-
         public ClassSelectionMode GetClassSelectionMode() => ClassSelection;
 
-        public bool ShouldResetLevelOnClassChange() => ResetLevelOnClassChange;
+        // Levels always persist when changing classes; they never reset to 1.
 
         [BoxGroup("Unit Classes"), InfoBox("Units without a class assigned will use this class")]
         public CharacterClassData DefaultStartingClass;

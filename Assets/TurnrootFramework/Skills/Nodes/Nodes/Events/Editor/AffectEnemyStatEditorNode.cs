@@ -23,23 +23,6 @@ namespace Turnroot.Skills.Nodes
 
             NodeEditorGUILayout.PortField(target.GetInputPort("affectAllEnemies"));
 
-            // Draw test value for affectAllEnemies
-            var testAffectAllProp = serializedObject.FindProperty("testAffectAll");
-            if (testAffectAllProp != null)
-            {
-                EditorGUI.BeginChangeCheck();
-                bool newTestValue = EditorGUILayout.Toggle(
-                    "Test Affect All",
-                    testAffectAllProp.boolValue
-                );
-                if (EditorGUI.EndChangeCheck())
-                {
-                    Undo.RecordObject(target, "Change Test Affect All");
-                    testAffectAllProp.boolValue = newTestValue;
-                    EditorUtility.SetDirty(target);
-                }
-            }
-
             serializedObject.ApplyModifiedProperties();
         }
     }

@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cbf1bc2470059c049bbad566a5ea3a50, type: 3}
+  m_Name: Spikes
+  m_EditorClassIdentifier: Assembly-CSharp::Turnroot.Skills.Skill
+  AccentColor1: {r: 0, g: 0, b: 0, a: 0}
+  AccentColor2: {r: 0, g: 0, b: 0, a: 0}
+  AccentColor3: {r: 0, g: 0, b: 0, a: 0}
+  Badge:
+    _owner: {fileID: 0}
+    _layers: []
+    _key: stackedImage_ead038ee-fcaf-40ee-a4bf-8cdd4c285a65
+    _savedSprite: {fileID: 0}
+    _idString: ead038ee-fcaf-40ee-a4bf-8cdd4c285a65
+    _tintColors:
+    - {r: 1, g: 1, b: 1, a: 1}
+    - {r: 1, g: 1, b: 1, a: 1}
+    - {r: 1, g: 1, b: 1, a: 1}
+  SkillName: Spikes
+  Description: 'If opponent is close, deal an extra Def/5 damage (minimum 1) to opponent '
+  BehaviorGraph: {fileID: 11400000, guid: 195f8dd6ab92eb844802bb607f1eea33, type: 2}

@@ -18,10 +18,6 @@ namespace Turnroot.Skills.Nodes.Events
         [Tooltip("Percentage of damage to reflect (0-100)")]
         public FloatValue reflectionPercent;
 
-        [Tooltip("Test value for reflection % in editor mode")]
-        [Range(0, 100)]
-        public float testReflectionPercent = 50.0f;
-
         public override void Execute(BattleContext context)
         {
             if (!ValidateContext(context))
@@ -29,7 +25,13 @@ namespace Turnroot.Skills.Nodes.Events
                 return;
             }
 
-            float reflectPercent = GetInputFloat("reflectionPercent", testReflectionPercent);
+            var refPort = GetInputPort("reflectionPercent");
+            if (refPort == null || !refPort.IsConnected)
+            {
+                Debug.LogWarning("DamageReflectionNode: 'reflectionPercent' input not provided");
+                return;
+            }
+            float reflectPercent = GetInputFloat("reflectionPercent", 0f);
 
             // Clamp to valid percentage
             reflectPercent = Mathf.Clamp(reflectPercent, 0f, 100f);
@@ -39,11 +41,7 @@ namespace Turnroot.Skills.Nodes.Events
             var reflectionData = new { Percent = reflectPercent };
 
             context.SetCustomData($"ReflectDamage_{context.Unit.UnitInstance.Id}", reflectionData);
-
-#if UNITY_EDITOR
             $"DamageReflection: Will reflect {reflectPercent}% of damage".LogInfo();
-#endif
         }
     }
 }
-

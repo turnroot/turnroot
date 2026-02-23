@@ -19,9 +19,6 @@ namespace Turnroot.Skills.Nodes.Events
         [Tooltip("If true, applies debuff to all targeted enemies; if false, only first target")]
         public BoolValue affectAllTargets;
 
-        [Tooltip("Test value for affectAllTargets in editor mode")]
-        public bool testAffectAll = false;
-
         [Tooltip("The type of debuff to apply")]
         public StatusEffectType debuffType;
 
@@ -35,14 +32,17 @@ namespace Turnroot.Skills.Nodes.Events
         {
             if (debuffType == null)
             {
-#if UNITY_EDITOR
-                Debug.LogWarning("DealDebuffNode: No debuff type assigned!");
-#endif
+                "DealDebuffNode: No debuff type assigned!".LogWarning();
                 return;
             }
 
-            bool shouldAffectAll = GetInputBool("affectAllTargets", testAffectAll);
-            int duration = durationOverride > 0 ? durationOverride : debuffType.DefaultDuration;
+            bool shouldAffectAll = GetInputBool("affectAllTargets", false);
+            int duration = durationOverride >= 0 ? durationOverride : debuffType.DefaultDuration;
+            var allPort = GetInputPort("affectAllTargets");
+            if (allPort != null && allPort.IsConnected)
+            {
+                shouldAffectAll = GetInputBool("affectAllTargets", false);
+            }
 
             int affected = ExecuteOnTargets(
                 context,

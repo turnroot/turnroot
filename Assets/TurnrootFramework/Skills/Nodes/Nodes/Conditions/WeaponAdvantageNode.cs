@@ -1,4 +1,5 @@
 using Turnroot.Gameplay.Objects.Components;
+using Turnroot.Utilities;
 using UnityEngine;
 using XNode;
 
@@ -51,26 +52,10 @@ namespace Turnroot.Skills.Nodes.Conditions
         public override object GetValue(NodePort port)
         {
             var skillGraph = graph as SkillGraph;
-            if (skillGraph == null || !Application.isPlaying)
-            {
-                // Return defaults in editor mode
-                return port.fieldName switch
-                {
-                    "Matchup" => new WeaponMatchupValue { matchup = WeaponMatchup.Neutral },
-                    "UnitAdvantage" => new BoolValue { value = false },
-                    "EnemyAdvantage" => new BoolValue { value = false },
-                    "SameType" => new BoolValue { value = true },
-                    "NeitherOnTriangle" => new BoolValue { value = false },
-                    _ => null,
-                };
-            }
-
             var context = GetContextFromGraph(skillGraph);
             if (context == null || context.Unit.UnitInstance == null)
             {
-#if UNITY_EDITOR
-                Debug.LogWarning("WeaponAdvantage: Could not retrieve context or unit from graph");
-#endif
+                "WeaponAdvantage: Could not retrieve context or unit from graph".LogWarning();
                 return port.fieldName == "Matchup"
                     ? new WeaponMatchupValue { matchup = WeaponMatchup.NotOnTriangle }
                     : new BoolValue { value = false };

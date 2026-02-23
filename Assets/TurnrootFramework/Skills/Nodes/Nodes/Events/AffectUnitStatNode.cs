@@ -22,9 +22,6 @@ namespace Turnroot.Skills.Nodes.Events
         [Tooltip("The amount to change the stat by (positive or negative)")]
         public FloatValue change;
 
-        [Tooltip("Test value used in editor mode")]
-        public float testChange = 5f;
-
         public override void Execute(BattleContext context)
         {
             if (
@@ -37,7 +34,13 @@ namespace Turnroot.Skills.Nodes.Events
                 return;
             }
 
-            float changeAmount = GetInputFloat("change", testChange);
+            var changePort = GetInputPort("change");
+            if (changePort == null || !changePort.IsConnected)
+            {
+                Debug.LogWarning("AffectUnitStatNode: 'change' input not provided");
+                return;
+            }
+            float changeAmount = GetInputFloat("change", 0f);
             ApplyStatChange(
                 context.Unit.UnitInstance,
                 selectedStat,

@@ -12,14 +12,12 @@ namespace Turnroot.Skills.Nodes.Math
         [Output]
         public FloatValue Number;
 
-        public float defaultValue = 0f;
-
         public override object GetValue(NodePort port)
         {
-            if (port.fieldName == "Number")
+            if (port.fieldName == nameof(Number))
             {
-                FloatValue numberValue = new() { value = defaultValue };
-                return numberValue;
+                // FloatValue is a struct, so just return its stored value (default is 0)
+                return new FloatValue { value = Number.value };
             }
             return null;
         }

@@ -717,6 +717,40 @@ namespace Turnroot.EditorTools
                 )
             );
 
+            // Progression ladder sanity
+            _checks.Add(
+                new CharacterCheckDefinition(
+                    "Progression Ladder",
+                    data =>
+                    {
+                        var r = new CharacterCheckResult();
+                        if (data.UseClassProgressionLadder)
+                        {
+                            bool any =
+                                data.ProgressionLadder.Starter.Class != null
+                                || data.ProgressionLadder.Base.Class != null
+                                || data.ProgressionLadder.Advanced.Class != null
+                                || data.ProgressionLadder.Master.Class != null
+                                || data.ProgressionLadder.Expert.Class != null;
+                            if (!any)
+                            {
+                                r.Color = orange;
+                                r.Note = "Ladder enabled but no classes set";
+                            }
+                            else
+                            {
+                                r.Color = green;
+                            }
+                        }
+                        else
+                        {
+                            r.Color = green;
+                        }
+                        return r;
+                    }
+                )
+            );
+
             // Badge text/icon (yellow)
             _checks.Add(
                 new CharacterCheckDefinition(
@@ -1002,6 +1036,21 @@ namespace Turnroot.EditorTools
                 if (data.SupportRelationships == null || data.SupportRelationships.Count == 0)
                 {
                     warnNotes.Add("No support relationships (recommended)");
+                }
+            }
+
+            // Progression ladder summary
+            if (data.UseClassProgressionLadder)
+            {
+                bool any =
+                    data.ProgressionLadder.Starter.Class != null
+                    || data.ProgressionLadder.Base.Class != null
+                    || data.ProgressionLadder.Advanced.Class != null
+                    || data.ProgressionLadder.Master.Class != null
+                    || data.ProgressionLadder.Expert.Class != null;
+                if (!any)
+                {
+                    warnNotes.Add("Progression ladder enabled but no classes assigned");
                 }
             }
 

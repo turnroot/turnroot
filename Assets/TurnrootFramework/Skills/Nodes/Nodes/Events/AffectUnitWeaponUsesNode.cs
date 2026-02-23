@@ -18,9 +18,6 @@ namespace Turnroot.Skills.Nodes.Events
         [Tooltip("The amount to change weapon uses by (positive to restore, negative to reduce)")]
         public FloatValue usesChange;
 
-        [Tooltip("Test value for uses change in editor mode")]
-        public float testChange = 5f;
-
         [Tooltip("Apply to unit's weapon or target's weapon")]
         public bool applyToUnit = true;
 
@@ -41,13 +38,17 @@ namespace Turnroot.Skills.Nodes.Events
 
             if (targetCharacter == null)
             {
-#if UNITY_EDITOR
-                Debug.LogWarning("AffectUnitWeaponUses: No valid character to affect");
-#endif
+                "AffectUnitWeaponUses: No valid character to affect".LogWarning();
                 return;
             }
 
-            int change = (int)GetInputFloat("usesChange", testChange);
+            var port = GetInputPort("usesChange");
+            if (port == null || !port.IsConnected)
+            {
+                Debug.LogWarning("AffectUnitWeaponUsesNode: 'usesChange' input not provided");
+                return;
+            }
+            int change = (int)GetInputFloat("usesChange", 0f);
 
             context.Brain.PublishWeaponUsesChanged(targetCharacter, change);
             string target = applyToUnit ? "unit" : "target";

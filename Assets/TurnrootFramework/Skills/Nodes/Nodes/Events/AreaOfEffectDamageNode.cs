@@ -22,12 +22,6 @@ namespace Turnroot.Skills.Nodes.Events
         [Tooltip("The radius of the area of effect")]
         public FloatValue aoeRadius;
 
-        [Tooltip("Test value for damage in editor mode")]
-        public float testDamage = 15f;
-
-        [Tooltip("Test value for AoE radius in editor mode")]
-        public float testRadius = 2f;
-
         public override void Execute(BattleContext context)
         {
             if (!ValidateHasTargets(context))
@@ -35,18 +29,27 @@ namespace Turnroot.Skills.Nodes.Events
                 return;
             }
 
-            float damage = GetInputFloat("damageAmount", testDamage);
-            float radius = GetInputFloat("aoeRadius", testRadius);
+            var dmgPort = GetInputPort("damageAmount");
+            if (dmgPort == null || !dmgPort.IsConnected)
+            {
+                Debug.LogWarning("AreaOfEffectDamageNode: 'damageAmount' input not provided");
+                return;
+            }
+            float damage = GetInputFloat("damageAmount", 0f);
+            var radPort = GetInputPort("aoeRadius");
+            if (radPort == null || !radPort.IsConnected)
+            {
+                Debug.LogWarning("AreaOfEffectDamageNode: 'aoeRadius' input not provided");
+                return;
+            }
+            float radius = GetInputFloat("aoeRadius", 0f);
 
             int affectedCount = ExecuteOnAllTargets(
                 context,
                 target => DealDamage(context, target, damage)
             );
 
-
-            $"AreaOfEffectDamage: Dealt {damage} damage to {affectedCount} enemies in {radius} tile radius"
-        .LogInfo();
+            $"AreaOfEffectDamage: Dealt {damage} damage to {affectedCount} enemies in {radius} tile radius".LogInfo();
         }
     }
 }
-

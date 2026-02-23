@@ -20,12 +20,6 @@ namespace Turnroot.Skills.Nodes.Events
         [Input]
         public FloatValue changeAvoid;
 
-        [Tooltip("Test value used in editor mode")]
-        public float testChangeHit = 5f;
-
-        [Tooltip("Test value used in editor mode")]
-        public float testChangeAvoid = 5f;
-
         public override void Execute(BattleContext context)
         {
             if (
@@ -38,7 +32,13 @@ namespace Turnroot.Skills.Nodes.Events
                 return;
             }
 
-            var changeHitAmount = GetInputFloat("changeHit", testChangeHit);
+            var hitPort = GetInputPort("changeHit");
+            if (hitPort == null || !hitPort.IsConnected)
+            {
+                Debug.LogWarning("AffectUnitHitAvoid: 'changeHit' input not provided");
+                return;
+            }
+            var changeHitAmount = GetInputFloat("changeHit", 0f);
             ApplyStatChange(
                 context.Unit.UnitInstance,
                 "HitAvoid",
@@ -47,7 +47,13 @@ namespace Turnroot.Skills.Nodes.Events
                 "AffectUnitHitAvoid"
             );
 
-            var changeAvoidAmount = GetInputFloat("changeAvoid", testChangeAvoid);
+            var avoidPort = GetInputPort("changeAvoid");
+            if (avoidPort == null || !avoidPort.IsConnected)
+            {
+                Debug.LogWarning("AffectUnitHitAvoid: 'changeAvoid' input not provided");
+                return;
+            }
+            var changeAvoidAmount = GetInputFloat("changeAvoid", 0f);
             ApplyStatChange(
                 context.Unit.UnitInstance,
                 "HitAvoid",

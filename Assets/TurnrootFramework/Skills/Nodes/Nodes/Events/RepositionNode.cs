@@ -34,9 +34,7 @@ namespace Turnroot.Skills.Nodes.Events
             // Get the unit in the specified direction
             if (context.Participants.AdjacentUnits == null)
             {
-#if UNITY_EDITOR
-                Debug.LogWarning("Reposition: No adjacent units data");
-#endif
+                "Reposition: No adjacent units data".LogWarning();
                 return;
             }
 
@@ -57,9 +55,7 @@ namespace Turnroot.Skills.Nodes.Events
 
             context.SetCustomData("Reposition", repositionData);
 
-
-            $"Reposition: Will move ally from {allyDirection} to {moveDirection} relative to caster"
-        .LogInfo();
+            $"Reposition: Will move ally from {allyDirection} to {moveDirection} relative to caster".LogInfo();
         }
     }
 
@@ -75,5 +71,3 @@ namespace Turnroot.Skills.Nodes.Events
         Swap, // Swap positions with ally
     }
 }
-
-

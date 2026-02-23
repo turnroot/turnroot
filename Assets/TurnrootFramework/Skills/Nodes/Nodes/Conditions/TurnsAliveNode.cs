@@ -1,3 +1,4 @@
+using Turnroot.Utilities;
 using UnityEngine;
 using XNode;
 
@@ -19,17 +20,6 @@ namespace Turnroot.Skills.Nodes.Conditions
         public override object GetValue(NodePort port)
         {
             var skillGraph = graph as SkillGraph;
-            if (skillGraph == null || !Application.isPlaying)
-            {
-                // Return defaults in editor mode
-                return port.fieldName switch
-                {
-                    "TurnCount" => new FloatValue { value = 1f },
-                    "FirstTurn" => new BoolValue { value = true },
-                    _ => null,
-                };
-            }
-
             var context = GetContextFromGraph(skillGraph);
             var character = ConditionHelpers.GetCharacterFromContext(
                 context,
@@ -38,9 +28,7 @@ namespace Turnroot.Skills.Nodes.Conditions
 
             if (character == null)
             {
-#if UNITY_EDITOR
-                Debug.LogWarning("TurnsAlive: Could not retrieve unit from context");
-#endif
+                "TurnsAlive: Could not retrieve unit from context".LogWarning();
                 return port.fieldName switch
                 {
                     "TurnCount" => new FloatValue { value = 1f },

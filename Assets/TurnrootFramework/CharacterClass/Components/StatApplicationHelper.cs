@@ -71,7 +71,7 @@ namespace Turnroot.Characters.CharacterClass
                 return;
             }
 
-            var brain = UnityEngine.Object.FindFirstObjectByType<Gameplay.Brain.Brain>();
+            var brain = Object.FindFirstObjectByType<Gameplay.Brain.Brain>();
 
             foreach (var modifier in modifiers)
             {
@@ -118,7 +118,7 @@ namespace Turnroot.Characters.CharacterClass
                 return;
             }
 
-            var brain = UnityEngine.Object.FindFirstObjectByType<Gameplay.Brain.Brain>();
+            var brain = Object.FindFirstObjectByType<Gameplay.Brain.Brain>();
 
             foreach (var modifier in modifiers)
             {
@@ -169,7 +169,7 @@ namespace Turnroot.Characters.CharacterClass
                 return;
             }
 
-            var brain = UnityEngine.Object.FindFirstObjectByType<Gameplay.Brain.Brain>();
+            var brain = Object.FindFirstObjectByType<Gameplay.Brain.Brain>();
 
             foreach (var minimum in minimums)
             {
@@ -217,7 +217,7 @@ namespace Turnroot.Characters.CharacterClass
                 );
             }
 
-            var brain = UnityEngine.Object.FindFirstObjectByType<Gameplay.Brain.Brain>();
+            var brain = Object.FindFirstObjectByType<Gameplay.Brain.Brain>();
 
             foreach (var minimum in minimums)
             {

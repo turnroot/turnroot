@@ -145,10 +145,6 @@ namespace Turnroot.Characters
         public CharacterClassDataInstance GetCurrentClass() => _currentClass;
 
         #region Change
-        /// <summary>
-        /// Change to a new class. Applies all class bonuses, enforces minimums/caps.
-        /// Removes bonuses from old class if present.
-        /// </summary>
         public OperationResult ChangeClass(
             CharacterClassData newClassData,
             bool applyClassChangeBonuses = true
@@ -188,15 +184,6 @@ namespace Turnroot.Characters
 
             bool isFirstTime = !_equippedClassHistory.Contains(newClassData);
             var effectiveRenderer = _meshRenderer;
-
-            if (
-                GameplayGeneralSettings.Instance?.ShouldResetLevelOnClassChange() == true
-                && GameplayGeneralSettings.Instance?.GetClassSelectionMode()
-                    == GameplayGeneralSettings.ClassSelectionMode.RequirementBased
-            )
-            {
-                _currentLevel = 1;
-            }
 
             _currentClass = new CharacterClassDataInstance(
                 this,
@@ -256,19 +243,14 @@ namespace Turnroot.Characters
             // Requirement-based selection: use probabilistic exam
             var chance = CalculateRequirementPassChance(newClassData);
 
-            if (chance <= GameplayGeneralSettings.Instance.MinimumPercentChanceToAttemptClassChange)
-            {
-                return OperationResult.Failure(
-                    "Character does not meet requirements and may not attempt the class exam."
-                );
-            }
-
-            if (UnityEngine.Random.value > chance)
-            {
-                return OperationResult.Failure($"Class exam failed ({chance * 100f:0}%).");
-            }
-
-            return OperationResult.Successful();
+            return chance
+                <= GameplayGeneralSettings.Instance.MinimumPercentChanceToAttemptClassChange
+                    ? OperationResult.Failure(
+                        "Character does not meet requirements and may not attempt the class exam."
+                    )
+                : UnityEngine.Random.value > chance
+                    ? OperationResult.Failure($"Class exam failed ({chance * 100f:0}%).")
+                : OperationResult.Successful();
         }
 
         public bool CanEquipWeaponType(Gameplay.Objects.Components.WeaponType weaponType)

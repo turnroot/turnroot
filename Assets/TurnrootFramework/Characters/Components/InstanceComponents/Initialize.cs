@@ -221,7 +221,8 @@ namespace Turnroot.Characters
 
         private OperationResult InitializeClass()
         {
-            var classToApply = _characterTemplate.StartingClass ?? GetDefaultStartingClass();
+            var classToApply =
+                _characterTemplate.GetPreferredStartingClass() ?? GetDefaultStartingClass();
             if (classToApply == null)
             {
                 return OperationResult.Successful();

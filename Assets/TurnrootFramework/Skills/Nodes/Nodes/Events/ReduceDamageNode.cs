@@ -23,12 +23,6 @@ namespace Turnroot.Skills.Nodes.Events
         [Tooltip("If true, affects adjacent allies; if false, only caster")]
         public BoolValue affectAdjacentAllies;
 
-        [Tooltip("Test value for reduction in editor mode")]
-        public float testReduction = 5.0f;
-
-        [Tooltip("Test value for affectAdjacentAllies in editor mode")]
-        public bool testAffectAdjacent = false;
-
         [Tooltip("Is reduction a percentage (true) or flat value (false)?")]
         public bool isPercentage = false;
 
@@ -39,8 +33,19 @@ namespace Turnroot.Skills.Nodes.Events
                 return;
             }
 
-            float reduction = GetInputFloat("reductionAmount", testReduction);
-            bool shouldAffectAdjacent = GetInputBool("affectAdjacentAllies", testAffectAdjacent);
+            var redPort = GetInputPort("reductionAmount");
+            if (redPort == null || !redPort.IsConnected)
+            {
+                Debug.LogWarning("ReduceDamageNode: 'reductionAmount' input not provided");
+                return;
+            }
+            float reduction = GetInputFloat("reductionAmount", 0f);
+            bool shouldAffectAdjacent = false;
+            var adjPort = GetInputPort("affectAdjacentAllies");
+            if (adjPort != null && adjPort.IsConnected)
+            {
+                shouldAffectAdjacent = GetInputBool("affectAdjacentAllies", false);
+            }
 
             // Store in CustomData for combat system to apply during damage calculation
             // Key format: "DamageReduction_{CharacterInstanceId}"
@@ -51,9 +56,7 @@ namespace Turnroot.Skills.Nodes.Events
                 // Get adjacent allies from context
                 if (context.Participants.AdjacentUnits == null)
                 {
-#if UNITY_EDITOR
-                    Debug.LogWarning("ReduceDamage: No adjacent units available in context");
-#endif
+                    "ReduceDamage: No adjacent units available in context".LogWarning();
                     return;
                 }
 
@@ -94,10 +97,7 @@ namespace Turnroot.Skills.Nodes.Events
                     reductionData
                 );
                 string reductionType = isPercentage ? "%" : "flat";
-#if UNITY_EDITOR
-
                 $"ReduceDamage: Will take {reduction} {reductionType} less damage".LogInfo();
-#endif
             }
         }
     }

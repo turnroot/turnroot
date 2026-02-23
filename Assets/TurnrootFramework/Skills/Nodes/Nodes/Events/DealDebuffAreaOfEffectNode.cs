@@ -19,9 +19,6 @@ namespace Turnroot.Skills.Nodes.Events
         [Tooltip("The radius of the area of effect")]
         public FloatValue aoeRadius;
 
-        [Tooltip("Test value for AoE radius in editor mode")]
-        public float testRadius = 2f;
-
         [Tooltip("The type of debuff to apply")]
         public StatusEffectType debuffType;
 
@@ -40,13 +37,17 @@ namespace Turnroot.Skills.Nodes.Events
 
             if (debuffType == null)
             {
-#if UNITY_EDITOR
-                Debug.LogWarning("DealDebuffAreaOfEffectNode: No debuff type assigned!");
-#endif
+                "DealDebuffAreaOfEffectNode: No debuff type assigned!".LogWarning();
                 return;
             }
 
-            float radius = GetInputFloat("aoeRadius", testRadius);
+            var radPort = GetInputPort("aoeRadius");
+            if (radPort == null || !radPort.IsConnected)
+            {
+                Debug.LogWarning("DealDebuffAreaOfEffectNode: 'aoeRadius' input not provided");
+                return;
+            }
+            float radius = GetInputFloat("aoeRadius", 0f);
             int duration = durationOverride > 0 ? durationOverride : debuffType.DefaultDuration;
 
             // Apply debuff to all targeted enemies in the AoE
@@ -66,10 +67,7 @@ namespace Turnroot.Skills.Nodes.Events
                 }
             );
 
-
-            $"DealDebuffAreaOfEffect: Applied {debuffType.DisplayName} debuff to {affectedCount} enemies in {radius} tile radius"
-        .LogInfo();
+            $"DealDebuffAreaOfEffect: Applied {debuffType.DisplayName} debuff to {affectedCount} enemies in {radius} tile radius".LogInfo();
         }
     }
 }
-

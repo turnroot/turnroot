@@ -35,18 +35,14 @@ namespace Turnroot.Skills.Nodes.Events
             // Get the unit in the specified direction
             if (context.Participants.AdjacentUnits == null)
             {
-#if UNITY_EDITOR
-                Debug.LogWarning("Warp: No adjacent units data");
-#endif
+                "Warp: No adjacent units data".LogWarning();
                 return;
             }
 
             var ally = context.Participants.AdjacentUnits.GetUnit(allyDirection);
             if (ally == null)
             {
-#if UNITY_EDITOR
-                Debug.LogWarning($"Warp: No unit at {allyDirection}");
-#endif
+                $"Warp: No unit at {allyDirection}".LogWarning();
                 return;
             }
 
@@ -78,4 +74,3 @@ namespace Turnroot.Skills.Nodes.Events
         CasterToAlly,
     }
 }
-

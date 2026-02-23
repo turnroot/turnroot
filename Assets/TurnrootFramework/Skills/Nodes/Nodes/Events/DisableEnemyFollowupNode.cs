@@ -20,9 +20,6 @@ namespace Turnroot.Skills.Nodes.Events
         )]
         public BoolValue affectAllTargets;
 
-        [Tooltip("Test value for affectAllTargets in editor mode")]
-        public bool testAffectAll = false;
-
         public override void Execute(BattleContext context)
         {
             if (context?.Participants?.Targets == null || context.Participants.Targets.Count == 0)
@@ -33,7 +30,12 @@ namespace Turnroot.Skills.Nodes.Events
                 return;
             }
 
-            bool shouldAffectAll = GetInputBool("affectAllTargets", testAffectAll);
+            bool shouldAffectAll = false;
+            var allPort = GetInputPort("affectAllTargets");
+            if (allPort != null && allPort.IsConnected)
+            {
+                shouldAffectAll = GetInputBool("affectAllTargets", false);
+            }
 
             // Disable followup for all targeted enemies or just the first one
             if (shouldAffectAll)
@@ -46,8 +48,7 @@ namespace Turnroot.Skills.Nodes.Events
                     }
                 }
 
-                $"DisableEnemyFollowup: Disabled followup for {context.Participants.Targets.Count} enemies"
-            .LogInfo();
+                $"DisableEnemyFollowup: Disabled followup for {context.Participants.Targets.Count} enemies".LogInfo();
             }
             else
             {
@@ -65,4 +66,3 @@ namespace Turnroot.Skills.Nodes.Events
         }
     }
 }
-
