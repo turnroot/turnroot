@@ -1,6 +1,8 @@
 ﻿using System.Collections;
 using Turnroot.Characters;
 using UnityEngine;
+using UnityEngine.Animations;
+using UnityEngine.Playables;
 
 namespace Turnroot.Gameplay.Brain
 {
@@ -9,7 +11,7 @@ namespace Turnroot.Gameplay.Brain
     /// </summary>
     public partial class UnitAppearanceBrain
     {
-        private const float ANIMATION_BLEND_DURATION = 0.3f;
+        private const float ANIMATION_BLEND_DURATION = 0.2f;
 
         private void SetupWalkAnimation(GameObject model, CharacterInstance unit)
         {
@@ -26,32 +28,96 @@ namespace Turnroot.Gameplay.Brain
                 return;
             }
 
+            // create a fresh override controller for walk/idle setup
             var overrideController = new AnimatorOverrideController(baseController);
 
             AnimationClip walkClip;
-            AnimationClip[] idleClips;
 
             if (
                 unit.CharacterTemplate != null
                 && unit.CharacterTemplate.UseDefaultAnimationsAlways == true
             )
             {
-                // Always use character's default animations, ignore class animations
+                // always use character defaults, ignore class
                 walkClip = unit.CharacterTemplate.DefaultWalkingAnimation;
-                idleClips = unit.CharacterTemplate.DefaultIdleAnimations;
             }
             else
             {
-                // Prefer class animations, fall back to character defaults
+                // prefer class animation, fall back to character
                 var classData = unit.GetCurrentClass()?.ClassData;
-
                 var classWalkClip = classData.WalkAnimation;
                 walkClip =
                     (classWalkClip != null && classWalkClip)
                         ? classWalkClip
                         : unit.CharacterTemplate.DefaultWalkingAnimation;
+            }
 
-                var classIdleClips = classData.IdleAnimations;
+            if (walkClip != null)
+            {
+                overrideController["Walk"] = walkClip;
+            }
+
+            animator.runtimeAnimatorController = overrideController;
+            animator.enabled = true;
+
+            // delegate idle logic to its own helper so it can be reused
+            SetupIdleAnimation(animator, unit, overrideController);
+        }
+
+        private IEnumerator PlayIdleAnimationNextFrame(Animator animator)
+        {
+            // keep legacy behaviour: immediately push the idle state
+            yield return null;
+            if (animator != null && animator.gameObject.activeInHierarchy)
+            {
+                var idleHash = Animator.StringToHash("Idle");
+                if (animator.HasState(0, idleHash))
+                {
+                    animator.Play(idleHash, 0, 0f);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Configure idle animation clips separately from walk.
+        /// <paramref name="overrideController"/> may be provided when caller already
+        /// created one for walk setup; otherwise a new override controller will be
+        /// instantiated from the animator's current controller.
+        /// </summary>
+        private void SetupIdleAnimation(
+            Animator animator,
+            CharacterInstance unit,
+            AnimatorOverrideController overrideController = null
+        )
+        {
+            if (animator == null)
+            {
+                return;
+            }
+
+            if (overrideController == null)
+            {
+                var baseController = animator.runtimeAnimatorController;
+                if (baseController == null)
+                {
+                    LogError($"Animator on '{animator.gameObject.name}' has no controller.");
+                    return;
+                }
+                overrideController = new AnimatorOverrideController(baseController);
+            }
+
+            AnimationClip[] idleClips;
+            if (
+                unit.CharacterTemplate != null
+                && unit.CharacterTemplate.UseDefaultAnimationsAlways == true
+            )
+            {
+                idleClips = unit.CharacterTemplate.DefaultIdleAnimations;
+            }
+            else
+            {
+                var classData = unit.GetCurrentClass()?.ClassData;
+                var classIdleClips = classData?.IdleAnimations;
                 idleClips =
                     (classIdleClips != null && classIdleClips.Length > 0)
                         ? classIdleClips
@@ -63,11 +129,6 @@ namespace Turnroot.Gameplay.Brain
                     ? idleClips[Random.Range(0, idleClips.Length)]
                     : null;
 
-            if (walkClip != null)
-            {
-                overrideController["Walk"] = walkClip;
-            }
-
             if (idleClip != null)
             {
                 overrideController["Idle"] = idleClip;
@@ -76,20 +137,104 @@ namespace Turnroot.Gameplay.Brain
             animator.runtimeAnimatorController = overrideController;
             animator.enabled = true;
 
+            // start first-frame play and the variation loop
             StartCoroutine(PlayIdleAnimationNextFrame(animator));
+            StartCoroutine(IdleVariationRoutine(animator, idleClips));
         }
 
-        private IEnumerator PlayIdleAnimationNextFrame(Animator animator)
+        private IEnumerator IdleVariationRoutine(Animator animator, AnimationClip[] idleClips)
         {
-            yield return null;
-            if (animator != null && animator.gameObject.activeInHierarchy)
+            // nothing to do if there aren't at least two clips
+            if (idleClips == null || idleClips.Length <= 1)
             {
-                var idleHash = Animator.StringToHash("Idle");
-                if (animator.HasState(0, idleHash))
-                {
-                    animator.Play(idleHash, 0, 0f);
-                }
+                yield break;
             }
+
+            // pick initial clip index from controller (already applied)
+            int currentIndex = Random.Range(0, idleClips.Length);
+            AnimationClip currentClip = idleClips[currentIndex];
+
+            // loop indefinitely while animator is alive
+            while (animator != null && animator.gameObject.activeInHierarchy)
+            {
+                // wait until slightly before the clip finishes so blending overlaps
+                float clipLength =
+                    (currentClip != null && currentClip.length > 0f) ? currentClip.length : 1f;
+                float waitTime = Mathf.Max(0f, clipLength - ANIMATION_BLEND_DURATION);
+                yield return new WaitForSeconds(waitTime);
+
+                // choose a different clip (allow repeats if random picks same)
+                int nextIndex = Random.Range(0, idleClips.Length);
+                AnimationClip nextClip = idleClips[nextIndex];
+                if (nextClip == null || nextClip == currentClip)
+                {
+                    continue;
+                }
+
+                // perform a manual blend between the two clips using PlayableGraph
+                yield return BlendIdleClips(
+                    animator,
+                    currentClip,
+                    nextClip,
+                    ANIMATION_BLEND_DURATION
+                );
+
+                // update controller to reflect current clip
+                if (animator.runtimeAnimatorController is AnimatorOverrideController oc)
+                {
+                    oc["Idle"] = nextClip;
+                }
+                animator.Play(Animator.StringToHash("Idle"), 0, 0f);
+
+                currentIndex = nextIndex;
+                currentClip = nextClip;
+            }
+        }
+
+        /// <summary>
+        /// Creates a temporary PlayableGraph that crossfades from <paramref name="from"/>
+        /// to <paramref name="to"/> over <paramref name="duration"/> seconds, feeding
+        /// the result into <paramref name="animator"/>. The graph is destroyed when
+        /// the transition completes.
+        /// </summary>
+        private IEnumerator BlendIdleClips(
+            Animator animator,
+            AnimationClip from,
+            AnimationClip to,
+            float duration
+        )
+        {
+            if (animator == null || from == null || to == null || duration <= 0f)
+            {
+                yield break;
+            }
+
+            var graph = PlayableGraph.Create("IdleBlend");
+            var output = AnimationPlayableOutput.Create(graph, "IdleBlendOutput", animator);
+            var mixer = AnimationMixerPlayable.Create(graph, 2);
+
+            var fromPlayable = AnimationClipPlayable.Create(graph, from);
+            var toPlayable = AnimationClipPlayable.Create(graph, to);
+
+            graph.Connect(fromPlayable, 0, mixer, 0);
+            graph.Connect(toPlayable, 0, mixer, 1);
+            mixer.SetInputWeight(0, 1f);
+            mixer.SetInputWeight(1, 0f);
+
+            output.SetSourcePlayable(mixer);
+            graph.Play();
+
+            float t = 0f;
+            while (t < duration)
+            {
+                t += Time.deltaTime;
+                float w = Mathf.Clamp01(t / duration);
+                mixer.SetInputWeight(0, 1f - w);
+                mixer.SetInputWeight(1, w);
+                yield return null;
+            }
+
+            graph.Destroy();
         }
 
         public void BlendToWalkAnimation(Animator animator)
