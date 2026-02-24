@@ -1,4 +1,5 @@
 ﻿using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
+using Turnroot.Utilities;
 using UnityEngine;
 using XNode;
 
@@ -35,9 +36,7 @@ namespace Turnroot.Skills.Nodes
             }
             else
             {
-#if UNITY_EDITOR
-                Debug.LogWarning("Cannot proceed: No active executor. Creating a new executor.");
-#endif
+                "Cannot proceed: No active executor. Creating a new executor.".LogWarning();
                 activeExecutor = new SkillGraphExecutor(this);
                 activeExecutor.Execute(new BattleContext());
                 activeExecutor.Proceed();

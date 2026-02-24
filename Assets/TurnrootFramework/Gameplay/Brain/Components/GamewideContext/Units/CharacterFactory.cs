@@ -65,6 +65,12 @@ namespace Turnroot.Gameplay.Brain
                 if (res.Success)
                 {
                     _persistence.SaveCharacter(instance, updateIndex: false);
+                    // notify brain listeners that the character now has class data
+                    try
+                    {
+                        _persistence.brain?.PublishCharacterClassChanged(instance);
+                    }
+                    catch { }
                 }
                 else
                 {

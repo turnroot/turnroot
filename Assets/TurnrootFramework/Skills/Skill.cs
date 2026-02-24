@@ -1,7 +1,10 @@
+using System.Linq;
 using NaughtyAttributes;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
 using Turnroot.Skills.Components.Badges;
 using Turnroot.Skills.Nodes;
+using Turnroot.Skills.Nodes.Flow;
+using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Skills
@@ -12,16 +15,24 @@ namespace Turnroot.Skills
     [CreateAssetMenu(fileName = "NewSkill", menuName = "Turnroot/Skills/Skill")]
     public class Skill : ScriptableObject
     {
-        [Foldout("Appearance"), HorizontalLine(color: EColor.Violet)]
+        [BoxGroup("Appearance"), HorizontalLine(color: EColor.Violet)]
         public Color AccentColor1;
 
-        [Foldout("Appearance")]
+        [BoxGroup("Appearance")]
         public Color AccentColor2;
 
-        [Foldout("Appearance")]
+        [BoxGroup("Appearance")]
         public Color AccentColor3;
 
-        [Foldout("Appearance"), HideInInspector]
+        /// <summary>
+        /// Returns true when the behavior graph contains a
+        /// <see cref="BattleStartsNode"/>, which is used for triggering skills at
+        /// the beginning of a battle.
+        /// </summary>
+        public bool HasBattleStartNode() =>
+            BehaviorGraph != null && BehaviorGraph.nodes.OfType<BattleStartsNode>().Any();
+
+        [BoxGroup("Appearance"), HideInInspector]
         public SkillBadge Badge;
 
         [Button("Create Badge")]
@@ -47,13 +58,13 @@ namespace Turnroot.Skills
 #endif
         }
 
-        [Foldout("Info"), HorizontalLine(color: EColor.Indigo)]
+        [BoxGroup("Info"), HorizontalLine(color: EColor.Indigo)]
         public string SkillName;
 
-        [TextArea, Foldout("Info")]
+        [TextArea, BoxGroup("Info")]
         public string Description;
 
-        [Foldout("Behavior"), HorizontalLine(color: EColor.Blue)]
+        [BoxGroup("Behavior"), HorizontalLine(color: EColor.Blue)]
         public SkillGraph BehaviorGraph;
 
         /// <summary>
@@ -62,11 +73,10 @@ namespace Turnroot.Skills
         /// </summary>
         public void ExecuteSkill(BattleContext context)
         {
+            $"Executing skill {SkillName}".LogInfo();
             if (BehaviorGraph == null)
             {
-#if UNITY_EDITOR
-                Debug.LogWarning($"Skill {SkillName} has no BehaviorGraph assigned.");
-#endif
+                $"Skill {SkillName} has no BehaviorGraph assigned.".LogWarning();
                 return;
             }
 

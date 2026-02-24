@@ -1,3 +1,4 @@
+using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
 using XNode;
 
 namespace Turnroot.Skills.Nodes.Flow
@@ -13,5 +14,7 @@ namespace Turnroot.Skills.Nodes.Flow
         public ExecutionFlow flow;
 
         public override object GetValue(NodePort port) => null;
+
+        public override void Execute(BattleContext context) { }
     }
 }

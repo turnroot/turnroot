@@ -32,6 +32,8 @@ namespace Turnroot.Gameplay.Brain
 
         private BattleContextAIHelper _aiHelper;
 
+        // helper for passive skill execution
+        private BattleStartSkillExecutor _skillExecutor;
         #endregion
 
         #region State
@@ -77,6 +79,10 @@ namespace Turnroot.Gameplay.Brain
             }
             playerTurnFlow = GetComponent<PlayerTurnFlow>();
             playerTurnFlow.Intialize();
+
+            // create and subscribe skill executor
+            _skillExecutor = new BattleStartSkillExecutor(this);
+            _skillExecutor.SubscribeToEvents();
         }
 
         private void Start()
@@ -93,6 +99,12 @@ namespace Turnroot.Gameplay.Brain
                 Brain.gamewideContextBrain?.GamewidePersistentPlayerRoster ?? _playerTeamRoster;
 
             Brain.gamewideContextBrain?.GetOrCreatePlayerTeamRoster(_playerTeamRoster);
+        }
+
+        protected override void OnDestroy()
+        {
+            _skillExecutor?.UnsubscribeFromEvents();
+            base.OnDestroy();
         }
 
         #endregion

@@ -90,7 +90,10 @@ MonoBehaviour:
       _node: {fileID: -7774055446499794114}
       _typeQualifiedName: Turnroot.Skills.Nodes.ExecutionFlow, Assembly-CSharp, Version=0.0.0.0,
         Culture=neutral, PublicKeyToken=null
-      connections: []
+      connections:
+      - fieldName: flow
+        node: {fileID: 3776865973410669469}
+        reroutePoints: []
       _direction: 0
       _connectionType: 1
       _typeConstraint: 0
@@ -203,7 +206,7 @@ MonoBehaviour:
   m_Name: Conditional Comparisons
   m_EditorClassIdentifier: Assembly-CSharp::Turnroot.Skills.Nodes.Math.ConditionalComparisonsNode
   graph: {fileID: 11400000}
-  position: {x: -808, y: -104}
+  position: {x: -856, y: -72}
   ports:
     keys:
     - a
@@ -319,8 +322,6 @@ MonoBehaviour:
     value: 0
   changeAvoid:
     value: 0
-  testChangeHit: 5
-  testChangeAvoid: 5
 --- !u!114 &-566833429964152208
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -358,8 +359,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   Number:
-    value: 0
-  defaultValue: 15
+    value: 15
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -384,6 +384,7 @@ MonoBehaviour:
   - {fileID: -5672329624751509042}
   - {fileID: 1503555849270500662}
   - {fileID: -6710624805058798875}
+  - {fileID: 3776865973410669469}
 --- !u!114 &1503555849270500662
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -547,8 +548,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   Number:
-    value: 0
-  defaultValue: -15
+    value: -15
 --- !u!114 &2286277094884752520
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -612,8 +612,6 @@ MonoBehaviour:
     value: 0
   changeAvoid:
     value: 0
-  testChangeHit: 5
-  testChangeAvoid: 5
 --- !u!114 &3276896850036883013
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -638,7 +636,10 @@ MonoBehaviour:
       _node: {fileID: 3276896850036883013}
       _typeQualifiedName: Turnroot.Skills.Nodes.ExecutionFlow, Assembly-CSharp, Version=0.0.0.0,
         Culture=neutral, PublicKeyToken=null
-      connections: []
+      connections:
+      - fieldName: flow
+        node: {fileID: 3776865973410669469}
+        reroutePoints: []
       _direction: 0
       _connectionType: 1
       _typeConstraint: 0
@@ -672,6 +673,42 @@ MonoBehaviour:
       m_Calls: []
   condition:
     value: 0
+--- !u!114 &3776865973410669469
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 64f7626706be00548ab7d89da8f12170, type: 3}
+  m_Name: Battle Starts
+  m_EditorClassIdentifier: Assembly-CSharp::Turnroot.Skills.Nodes.Flow.BattleStartsNode
+  graph: {fileID: 11400000}
+  position: {x: -1208, y: -616}
+  ports:
+    keys:
+    - flow
+    values:
+    - _fieldName: flow
+      _node: {fileID: 3776865973410669469}
+      _typeQualifiedName: Turnroot.Skills.Nodes.ExecutionFlow, Assembly-CSharp, Version=0.0.0.0,
+        Culture=neutral, PublicKeyToken=null
+      connections:
+      - fieldName: InFlow
+        node: {fileID: -7774055446499794114}
+        reroutePoints: []
+      - fieldName: InFlow
+        node: {fileID: 3276896850036883013}
+        reroutePoints: []
+      _direction: 1
+      _connectionType: 0
+      _typeConstraint: 0
+      _dynamic: 0
+  OnNodeExecute:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!114 &5745435672584459493
 MonoBehaviour:
   m_ObjectHideFlags: 0

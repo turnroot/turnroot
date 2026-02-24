@@ -324,6 +324,12 @@ namespace Turnroot.Gameplay.Brain
                 var character = _characterFactory.CreateOrRecall(unit.CharacterData);
                 if (character != null)
                 {
+                    // notify other systems (skills, UI, etc.) that this instance now has a class
+                    if (character.CurrentClass != null && _brain != null)
+                    {
+                        _brain.PublishCharacterClassChanged(character);
+                    }
+
                     characters.Add(character);
 
                     if (character.CharacterTemplate?.IsUnique == true)

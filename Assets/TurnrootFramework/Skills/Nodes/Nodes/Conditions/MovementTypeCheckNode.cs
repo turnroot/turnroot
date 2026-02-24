@@ -1,4 +1,5 @@
 using Turnroot.GameSettings;
+using Turnroot.Utilities;
 using UnityEngine;
 using XNode;
 
@@ -64,10 +65,8 @@ namespace Turnroot.Skills.Nodes.Conditions
                 return new BoolValue { value = false };
             }
 
-            var movementType =
-                character.CurrentClass?.ClassData.Identity.MovementType ?? MovementType.Infantry;
+            var movementType = character.CurrentClass.ClassData.Identity.MovementType;
             bool matches = movementType == targetMovementType;
-
             return new BoolValue { value = matches };
         }
     }

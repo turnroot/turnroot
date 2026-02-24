@@ -1,3 +1,4 @@
+using Turnroot.Utilities;
 using UnityEngine;
 using XNode;
 
@@ -38,6 +39,10 @@ namespace Turnroot.Skills.Nodes.Math
         {
             BoolValue aValue = GetInputValue("a", a);
             BoolValue bValue = GetInputValue("b", b);
+            if (SkillDebug.VerboseExecutionLogs)
+            {
+                $"ConditionalComparisonsNode input a={aValue.value}, b={bValue.value}".LogInfo();
+            }
             BoolValue resultValue = new();
 
             switch (operationType)
