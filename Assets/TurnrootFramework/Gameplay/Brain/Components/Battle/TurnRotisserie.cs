@@ -90,6 +90,11 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
             Brain.OnPlayerTurnEnded += HandlePlayerTurnCompleted;
             Brain.OnEndTurnCompleted += HandlePlayerActionCompleted;
+            Brain.OnPlayerTurnStateChanged += state =>
+            {
+                var active = GetActiveUnit();
+                active?.RecalculateCombatRates();
+            };
 
             // Cache scene flow reference for interrupt coordination
             _sceneFlow = FindFirstObjectByType<Utilities.AbstractScripts.BattleSceneFlow>();
@@ -217,6 +222,9 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             // Update battle context to reflect the new active unit
             var result = SetActiveUnitInContext(activeUnit);
 
+            // recompute rates immediately after activation
+            activeUnit.RecalculateCombatRates();
+
             return !result.Success
                 ? OperationResult.Failure(
                     $"TurnRotisserie: Failed to activate {activeUnit.CharacterTemplate.DisplayName}: {result.ErrorMessage}"
@@ -295,9 +303,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 return OperationResult.Successful();
             }
 
-
-            $"TurnRotisserie: Setting active unit to {activeUnit.CharacterTemplate.DisplayName}"
-        .LogInfo();
+            $"TurnRotisserie: Setting active unit to {activeUnit.CharacterTemplate.DisplayName}".LogInfo();
 
             // Set active unit in context
             Context.Unit.UnitInstance = activeUnit;
@@ -335,5 +341,3 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         #endregion
     }
 }
-
-

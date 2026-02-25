@@ -28,4 +28,4 @@ MonoBehaviour:
   SkillName: Comfort Zone
   Description: +15 Hit/Avo if on sand or shallow water. -15 Hit/Avo if unit, enemy,
     or adjacent ally is riding
-  BehaviorGraph: {fileID: 0}
+  BehaviorGraph: {fileID: 11400000, guid: a2223b8b319bb224f94907dadd6425be, type: 2}

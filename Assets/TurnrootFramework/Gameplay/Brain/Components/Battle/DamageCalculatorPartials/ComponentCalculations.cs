@@ -132,36 +132,10 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             GameplayGeneralSettings settings
         )
         {
-            GetAvoidFormulaMultipliers(settings, out float speedMult, out float luckMult);
-
-            float avoid = 0f;
-
-            if (!Mathf.Approximately(speedMult, 0f))
-            {
-                avoid += (target.GetUnboundedStat(UnboundedStatType.Speed)?.Get() ?? 0) * speedMult;
-            }
-
-            if (!Mathf.Approximately(luckMult, 0f) && (settings?.UseLuck ?? false))
-            {
-                avoid += (target.GetUnboundedStat(UnboundedStatType.Luck)?.Get() ?? 0) * luckMult;
-            }
-
-            if (context?.MapGrid != null && target != null)
-            {
-                var targetGridPoint = target.UnitPositionToMapGridPoint(
-                    target.MapGridPosition,
-                    context.MapGrid
-                );
-                if (targetGridPoint != null)
-                {
-                    avoid += CalculateTerrainAvoidBonus(target, targetGridPoint, settings);
-                }
-            }
-
-            return avoid;
+            return target?.CalculateAvoid(context, settings) ?? 0f;
         }
 
-        private static float CalculateTerrainAvoidBonus(
+        public static float CalculateTerrainAvoidBonus(
             CharacterInstance unit,
             MapGridPoint gridPoint,
             GameplayGeneralSettings settings
@@ -196,16 +170,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             GameplayGeneralSettings settings
         )
         {
-            if (settings?.UseSeparateCriticalAvoidance == true)
-            {
-                return target.GetUnboundedStat(UnboundedStatType.CriticalAvoidance)?.Get() ?? 0;
-            }
-            else if (settings?.UseLuck == true)
-            {
-                return target.GetUnboundedStat(UnboundedStatType.Luck)?.Get() ?? 0;
-            }
-
-            return 0;
+            return target?.CalculateCritAvoid(settings) ?? 0f;
         }
 
         private static float CalculateStatContribution(

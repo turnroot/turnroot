@@ -64,24 +64,27 @@ namespace Turnroot.Skills.Nodes.Conditions
 
             // Get terrain type from map grid at unit's position
             var terrainTypeName = GetTerrainTypeNameAtPosition(context, unit.MapGridPosition);
+
             if (string.IsNullOrEmpty(terrainTypeName))
             {
                 return new BoolValue { value = port.fieldName == "Ground" }; // Default to ground
             }
 
+            var cleanTerrain = terrainTypeName.Replace(" ", "");
+            if (SkillDebug.VerboseExecutionLogs)
+            {
+                $"UnitTerrainTypeNode evaluated port {port.fieldName} against '{cleanTerrain}'".LogInfo();
+            }
             // Compare terrain type name with the requested port
             return new BoolValue
             {
-                value = terrainTypeName.Equals(
+                value = cleanTerrain.Equals(
                     port.fieldName,
                     System.StringComparison.OrdinalIgnoreCase
                 ),
             };
         }
 
-        /// <summary>
-        /// Gets the terrain type name at the specified grid position.
-        /// </summary>
         private static string GetTerrainTypeNameAtPosition(
             Gameplay.Combat.FundamentalComponents.Battles.BattleContext context,
             Vector2Int position

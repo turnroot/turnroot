@@ -1,4 +1,7 @@
 using System;
+using System.Collections.Generic;
+using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
+using UnityEngine;
 
 namespace Turnroot.Characters
 {
@@ -34,9 +37,6 @@ namespace Turnroot.Characters
 
         internal void ClearLastAttacker() => LastAttacker = null;
 
-        /// <summary>
-        /// Represents the current emotional state of a character during battle.
-        /// </summary>
         public enum BattleEmotion
         {
             Neutral,
@@ -77,10 +77,139 @@ namespace Turnroot.Characters
             LastTurnCollectedTreasure = false;
         }
 
+        [NonSerialized]
+        private float _currentHit;
+
+        [NonSerialized]
+        private float _currentAvoid;
+
+        [NonSerialized]
+        private float _currentCritical;
+
+        public float CurrentHit => _currentHit;
+        public float CurrentAvoid => _currentAvoid;
+
+        public float CurrentCritical => _currentCritical;
+
+        public void AddHit(float delta) => _currentHit += delta;
+
+        public void AddAvoid(float delta) => _currentAvoid += delta;
+
+        public void AddCritical(float delta) => _currentCritical += delta;
+
+        public void RecalculateCombatRates()
+        {
+            var settings = GameSettings.GameplayGeneralSettings.Instance;
+            if (settings == null)
+            {
+                return;
+            }
+
+            float skill = GetUnboundedStat(Stats.UnboundedStatType.Skill)?.Current ?? 0f;
+            float dex = GetUnboundedStat(Stats.UnboundedStatType.Dexterity)?.Current ?? 0f;
+            float luck = GetUnboundedStat(Stats.UnboundedStatType.Luck)?.Current ?? 0f;
+            float speed = GetUnboundedStat(Stats.UnboundedStatType.Speed)?.Current ?? 0f;
+
+            settings.GetHitFormulaMultipliers(out var sm, out var dm, out var lm);
+            _currentHit = (skill * sm) + (dex * dm) + (luck * lm);
+
+            var weaponItem = GetEquippedWeapon();
+            if (weaponItem?.Template != null)
+            {
+                _currentHit += weaponItem.Template.Hit;
+            }
+
+            settings.GetAvoidFormulaMultipliers(out var spm, out var lkm);
+            _currentAvoid = (speed * spm) + (luck * lkm);
+
+            settings.GetCritFormulaMultipliers(out var csm, out var clm);
+            _currentCritical = (skill * csm) + (luck * clm);
+            if (weaponItem?.Template != null)
+            {
+                _currentCritical += weaponItem.Template.Critical;
+            }
+        }
+
+        public float CalculateAvoid(
+            BattleContext context,
+            GameSettings.GameplayGeneralSettings settings
+        )
+        {
+            if (settings == null)
+            {
+                settings = GameSettings.GameplayGeneralSettings.Instance;
+            }
+
+            settings.GetAvoidFormulaMultipliers(out float speedMult, out float luckMult);
+
+            float avoid = 0f;
+            if (!Mathf.Approximately(speedMult, 0f))
+            {
+                avoid +=
+                    (GetUnboundedStat(Stats.UnboundedStatType.Speed)?.Current ?? 0f) * speedMult;
+            }
+
+            if (!Mathf.Approximately(luckMult, 0f) && (settings?.UseLuck ?? false))
+            {
+                avoid += (GetUnboundedStat(Stats.UnboundedStatType.Luck)?.Current ?? 0f) * luckMult;
+            }
+
+            if (context?.MapGrid != null)
+            {
+                var gp = UnitPositionToMapGridPoint(MapGridPosition, context.MapGrid);
+                if (gp != null)
+                {
+                    avoid += DamageCalculator.CalculateTerrainAvoidBonus(this, gp, settings);
+                }
+            }
+
+            return avoid;
+        }
+
+        public float CalculateCritAvoid(GameSettings.GameplayGeneralSettings settings)
+        {
+            if (settings == null)
+            {
+                settings = GameSettings.GameplayGeneralSettings.Instance;
+            }
+
+            if (settings?.UseSeparateCriticalAvoidance == true)
+            {
+                return GetUnboundedStat(Stats.UnboundedStatType.CriticalAvoidance)?.Current ?? 0f;
+            }
+            else if (settings?.UseLuck == true)
+            {
+                return GetUnboundedStat(Stats.UnboundedStatType.Luck)?.Current ?? 0f;
+            }
+
+            return 0f;
+        }
+
+        [NonSerialized]
+        private List<Skills.Skill> _activePassiveSkills = new();
+
+        /// <summary>
+        /// Read-only list of passive skills that have triggered for this unit in the
+        /// current battle.  Cleared at the start of each battle and when the unit's
+        /// battle stats reset.
+        /// </summary>
+        public IReadOnlyList<Skills.Skill> ActivePassiveSkills => _activePassiveSkills.AsReadOnly();
+
+        public void AddActivePassiveSkill(Skills.Skill skill)
+        {
+            if (skill != null && !_activePassiveSkills.Contains(skill))
+            {
+                _activePassiveSkills.Add(skill);
+            }
+        }
+
+        public void ClearActivePassiveSkills() => _activePassiveSkills.Clear();
+
         public void ResetBattleStats()
         {
             _turnsAliveThisBattle = 0;
             _combatsThisTurn = 0;
+            ClearActivePassiveSkills();
         }
 
         #endregion

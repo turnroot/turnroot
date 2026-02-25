@@ -4491,7 +4491,7 @@ MonoBehaviour:
   _featureFloatProperties: []
   _row: 15
   _col: 10
-  _terrainTypeId: e8a7f118-4d40-4240-8eaa-dc2e0ab48630
+  _terrainTypeId: 98d625bd-9d22-4a01-b704-8ae9a0791d3c
   _featureTypeId: 
 --- !u!1 &176637497
 GameObject:
@@ -7178,7 +7178,7 @@ MonoBehaviour:
   _featureFloatProperties: []
   _row: 14
   _col: 9
-  _terrainTypeId: e8a7f118-4d40-4240-8eaa-dc2e0ab48630
+  _terrainTypeId: 98d625bd-9d22-4a01-b704-8ae9a0791d3c
   _featureTypeId: 
 --- !u!1 &285400155
 GameObject:
@@ -17078,7 +17078,7 @@ MonoBehaviour:
   _featureFloatProperties: []
   _row: 15
   _col: 12
-  _terrainTypeId: e8a7f118-4d40-4240-8eaa-dc2e0ab48630
+  _terrainTypeId: 98d625bd-9d22-4a01-b704-8ae9a0791d3c
   _featureTypeId: 
 --- !u!1 &674128259
 GameObject:
@@ -21104,7 +21104,7 @@ MonoBehaviour:
   _featureFloatProperties: []
   _row: 15
   _col: 11
-  _terrainTypeId: e8a7f118-4d40-4240-8eaa-dc2e0ab48630
+  _terrainTypeId: 98d625bd-9d22-4a01-b704-8ae9a0791d3c
   _featureTypeId: 
 --- !u!1 &830553614
 GameObject:
@@ -25493,7 +25493,7 @@ MonoBehaviour:
   _featureFloatProperties: []
   _row: 15
   _col: 13
-  _terrainTypeId: e8a7f118-4d40-4240-8eaa-dc2e0ab48630
+  _terrainTypeId: 98d625bd-9d22-4a01-b704-8ae9a0791d3c
   _featureTypeId: 
 --- !u!1 &993814469
 GameObject:
@@ -26580,7 +26580,7 @@ MonoBehaviour:
   _featureFloatProperties: []
   _row: 16
   _col: 12
-  _terrainTypeId: e8a7f118-4d40-4240-8eaa-dc2e0ab48630
+  _terrainTypeId: 98d625bd-9d22-4a01-b704-8ae9a0791d3c
   _featureTypeId: 
 --- !u!1 &1039594707
 GameObject:
@@ -34137,7 +34137,7 @@ MonoBehaviour:
   _featureFloatProperties: []
   _row: 13
   _col: 10
-  _terrainTypeId: e8a7f118-4d40-4240-8eaa-dc2e0ab48630
+  _terrainTypeId: 98d625bd-9d22-4a01-b704-8ae9a0791d3c
   _featureTypeId: 
 --- !u!1 &1309645807
 GameObject:
@@ -39540,7 +39540,7 @@ MonoBehaviour:
   _single3dHeightMeshRaycastPoints: []
   _single3dHeightMeshRaycastIndices: []
   _showRaycastGizmos: 1
-  _showRaycastCoordinates: 1
+  _showRaycastCoordinates: 0
   _raycastLayerMask:
     serializedVersion: 2
     m_Bits: 64
@@ -40667,7 +40667,7 @@ MonoBehaviour:
   _featureFloatProperties: []
   _row: 14
   _col: 12
-  _terrainTypeId: e8a7f118-4d40-4240-8eaa-dc2e0ab48630
+  _terrainTypeId: 88b0e895-b577-4643-89bf-55e3e0678f10
   _featureTypeId: 
 --- !u!1 &1541837485
 GameObject:
@@ -41723,7 +41723,7 @@ MonoBehaviour:
   _featureFloatProperties: []
   _row: 16
   _col: 11
-  _terrainTypeId: e8a7f118-4d40-4240-8eaa-dc2e0ab48630
+  _terrainTypeId: 98d625bd-9d22-4a01-b704-8ae9a0791d3c
   _featureTypeId: 
 --- !u!1 &1590830684
 GameObject:
@@ -42515,7 +42515,7 @@ MonoBehaviour:
   _featureFloatProperties: []
   _row: 14
   _col: 10
-  _terrainTypeId: e8a7f118-4d40-4240-8eaa-dc2e0ab48630
+  _terrainTypeId: 98d625bd-9d22-4a01-b704-8ae9a0791d3c
   _featureTypeId: 
 --- !u!1 &1630393328
 GameObject:
@@ -46103,6 +46103,7 @@ GameObject:
   - component: {fileID: 1742232841}
   - component: {fileID: 1742232842}
   - component: {fileID: 1742232843}
+  - component: {fileID: 1742232844}
   m_Layer: 0
   m_Name: = Battle Map
   m_TagString: Untagged
@@ -46288,6 +46289,18 @@ MonoBehaviour:
       WeaponsAreStealable: 0
   CurrentDifficulty: 0
   GenericEnemyDifficultyMultiplierForThisBattle: 1.05
+--- !u!114 &1742232844
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1742232834}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f5091b08472034e47b806085675a79a6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Turnroot.UI.Components.BattleOverlayManager
 --- !u!1 &1751459802
 GameObject:
   m_ObjectHideFlags: 0
@@ -50016,7 +50029,7 @@ MonoBehaviour:
   _featureFloatProperties: []
   _row: 14
   _col: 11
-  _terrainTypeId: e8a7f118-4d40-4240-8eaa-dc2e0ab48630
+  _terrainTypeId: 98d625bd-9d22-4a01-b704-8ae9a0791d3c
   _featureTypeId: 
 --- !u!1 &1884162710
 GameObject:
@@ -50412,7 +50425,7 @@ MonoBehaviour:
   _featureFloatProperties: []
   _row: 14
   _col: 13
-  _terrainTypeId: e8a7f118-4d40-4240-8eaa-dc2e0ab48630
+  _terrainTypeId: 98d625bd-9d22-4a01-b704-8ae9a0791d3c
   _featureTypeId: 
 --- !u!1 &1897624848
 GameObject:

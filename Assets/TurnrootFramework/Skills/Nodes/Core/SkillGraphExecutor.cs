@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
 using Turnroot.Utilities;
 using UnityEngine;
@@ -33,24 +34,15 @@ namespace Turnroot.Skills.Nodes
             this.currentNode = null;
 
             context.Skill.CurrentSkillGraph = graph;
-            // Store executor in context so nodes can signal completion
             context.SetCustomData("_executor", this);
 
             // Find all entry point nodes (nodes with no input connections)
             var entryNodes = FindEntryNodes();
 
-            if (entryNodes.Count == 0)
-            {
-                Debug.LogWarning(
-                    $"SkillGraph has no entry nodes. Add a node with no incoming execution connection."
-                );
-                return;
-            }
-
-            // Execute from each entry point
             foreach (var entryNode in entryNodes)
             {
                 ExecuteNode(entryNode);
+                ContinueFromNode(entryNode);
             }
         }
 
@@ -65,12 +57,6 @@ namespace Turnroot.Skills.Nodes
                 ContinueFromNode(currentNode);
                 currentNode = null;
             }
-            else
-            {
-#if UNITY_EDITOR
-                Debug.LogWarning("No current node to proceed from.");
-#endif
-            }
         }
 
         /// <summary>
@@ -84,7 +70,6 @@ namespace Turnroot.Skills.Nodes
                 return validation;
             }
 
-            // Prevent infinite loops from circular connections
             if (visitedNodes.Contains(node))
             {
                 Debug.LogWarning(
@@ -94,25 +79,21 @@ namespace Turnroot.Skills.Nodes
             }
 
             visitedNodes.Add(node);
+            currentNode = node;
 
-            // Fire the node's event
             node.OnNodeExecute?.Invoke();
 
-            // Execute this node
             try
             {
                 node.Execute(context);
             }
             catch (System.Exception e)
             {
-#if UNITY_EDITOR
-                Debug.LogError($"Error executing node {node.name}: {e.Message}\n{e.StackTrace}");
-#endif
+                $"Error executing node {node.name}: {e.Message}\n{e.StackTrace}".LogError();
                 context.Flags.IsInterrupted = true;
                 return OperationResult.Failure($"Error executing node {node.name}: {e.Message}");
             }
 
-            // Store as current node - execution will wait here until Proceed() is called
             currentNode = node;
             return OperationResult.Successful();
         }
@@ -143,15 +124,18 @@ namespace Turnroot.Skills.Nodes
                 {
                     if (connection.node is SkillNode nextNode)
                     {
+                        // skip nodes we've already visited to avoid spinning on cycles
+                        if (visitedNodes.Contains(nextNode))
+                        {
+                            $"SkillGraphExecutor: skipping already visited {nextNode.name}".LogWarning();
+                            continue;
+                        }
                         ExecuteNode(nextNode);
                     }
                 }
             }
         }
 
-        /// <summary>
-        /// Get all execution output ports from a node.
-        /// </summary>
         private List<NodePort> GetExecutionOutputPorts(SkillNode node)
         {
             var execPorts = new List<NodePort>();
@@ -178,6 +162,15 @@ namespace Turnroot.Skills.Nodes
             {
                 if (node is SkillNode skillNode)
                 {
+                    // only consider nodes that actually participate in flow
+                    bool hasAnyExecPort = skillNode.Ports.Any(p =>
+                        p.ValueType == typeof(ExecutionFlow)
+                    );
+                    if (!hasAnyExecPort)
+                    {
+                        continue; // value-only nodes should not be entry points
+                    }
+
                     bool hasExecInput = false;
 
                     foreach (var port in skillNode.Ports)
@@ -204,9 +197,6 @@ namespace Turnroot.Skills.Nodes
             return entryNodes;
         }
 
-        /// <summary>
-        /// Get the current execution context (useful for debugging).
-        /// </summary>
         public BattleContext GetContext() => context;
     }
 }

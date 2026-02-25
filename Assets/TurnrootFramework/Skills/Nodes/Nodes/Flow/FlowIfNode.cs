@@ -1,4 +1,5 @@
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
+using Turnroot.Skills; // for SkillDebug and executor access
 using Turnroot.Utilities;
 using UnityEngine;
 
@@ -23,16 +24,28 @@ namespace Turnroot.Skills.Nodes.Flow
         public override void Execute(BattleContext context)
         {
             // Get the condition value from connected node
-            BoolValue conditionValue = GetInputValue("condition", new BoolValue());
+            object raw = GetInputValue("condition", new BoolValue());
+            BoolValue conditionValue;
+            if (raw is BoolValue bv)
+            {
+                conditionValue = bv;
+            }
+            else
+            {
+                "FlowIfNode: condition input was not a BoolValue, treating as false".LogWarning();
+                conditionValue = new BoolValue();
+            }
 
-            // If condition is false, interrupt execution (don't proceed)
             if (!conditionValue.value)
             {
                 context.Flags.IsInterrupted = true;
-                $"FlowIf condition is false, stopping execution.".LogInfo();
             }
-            // If true, execution will proceed normally when Proceed() is called
+            else
+            {
+                // advance immediately rather than waiting for external Proceed call
+                var executor = context.GetCustomData<SkillGraphExecutor>("_executor");
+                executor?.Proceed();
+            }
         }
     }
 }
-

@@ -359,12 +359,8 @@ namespace Turnroot.GameSettings
             )
         ]
         public float ModelsScale = 5f;
-        public Sprite PathTipSprite; // the end of the path
-        public Sprite PathPreTipSprite; // end -1 of the path
-        public Sprite PathStraightSprite;
-        public Sprite PathCornerSprite;
-        public Sprite PathStartSprite;
-        public Sprite CursorSprite;
+
+        public GameObject PassiveSkillOverlayPrefab;
         public GameObject BattleCursorPrefab;
         public Vector3 BattleCursorOffset = new(0f, 1f, 0.2f);
 

@@ -349,9 +349,13 @@ namespace Turnroot.Gameplay.Combat.Precompute
                     {
                         unit.NeedsPersist = true;
                         _brain?.gamewideContextBrain?.PersistIfNeeded(unit, updateIndex: false);
+                        _brain?.PublishCharacterClassChanged(unit);
                     }
                 }
             }
+
+            // compute starting combat rates (hit/avoid/crit)
+            unit.RecalculateCombatRates();
 
             // 1) Initialize AI helper for unit
             if (context.AIHelper != null)

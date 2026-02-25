@@ -92,6 +92,23 @@ MonoBehaviour:
     _slotIndex: 0
   <SupportRelationships>k__BackingField: []
   <Level>k__BackingField: 1
+  <UseClassProgressionLadder>k__BackingField: 0
+  ProgressionLadder:
+    Starter:
+      Class: {fileID: 0}
+      Loadout: []
+    Base:
+      Class: {fileID: 0}
+      Loadout: []
+    Advanced:
+      Class: {fileID: 0}
+      Loadout: []
+    Master:
+      Class: {fileID: 0}
+      Loadout: []
+    Expert:
+      Class: {fileID: 0}
+      Loadout: []
   <Exp>k__BackingField: 0
   <BoundedStats>k__BackingField:
   - _current: 20
