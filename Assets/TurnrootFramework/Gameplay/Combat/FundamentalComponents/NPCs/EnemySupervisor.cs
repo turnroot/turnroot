@@ -236,7 +236,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles.NPCs
 
                             if (UnityEngine.Random.Range(0f, 100f) <= entry.Chance)
                             {
-                                var itemInst = new Turnroot.Gameplay.Objects.ObjectItemInstance(
+                                var itemInst = new Objects.ObjectItemInstance(
                                     entry.Item
                                 );
                                 instance.InventoryInstance?.AddToInventory(itemInst);

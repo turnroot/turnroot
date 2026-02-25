@@ -144,7 +144,7 @@ namespace Turnroot.Gameplay.Brain.Components
             {
                 return JToken.FromObject(value, serializer);
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
 #if UNITY_EDITOR
                 UnityEngine.Debug.LogWarning(

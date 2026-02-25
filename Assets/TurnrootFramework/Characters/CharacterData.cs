@@ -301,10 +301,10 @@ namespace Turnroot.Characters
         // ---------------------------------------------------------------------
         // Class progression ladder (per-character, generic units only)
         // ---------------------------------------------------------------------
-        [System.Serializable]
+        [Serializable]
         public struct ClassProgressionLadder
         {
-            [System.Serializable]
+            [Serializable]
             public struct TierData
             {
                 [Tooltip("Class assigned to this progression tier")]
@@ -349,7 +349,7 @@ namespace Turnroot.Characters
             }
         }
 
-        [System.Serializable]
+        [Serializable]
         public struct LoadoutEntry
         {
             public ObjectItem Item;
