@@ -11,6 +11,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
     /// Runtime context for the entire battle.
     /// Contains all the dynamic data that skills and other systems need at runtime.
     /// </summary>
+    [RequireComponent(typeof(UI.Components.BattleOverlayManager))]
     public partial class BattleContext : MonoBehaviour
     {
         #region Core Properties and Initialization
@@ -27,6 +28,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         public MapGrid MapGrid { get; private set; }
 
         public BattleContextAIHelper AIHelper { get; private set; }
+        public UI.Components.BattleOverlayManager OverlayManager { get; private set; }
 
         /// <summary>
         /// Initialize the BattleContext with required dependencies. Throws if brain is null.
@@ -41,6 +43,15 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             Brain = brain;
             MapGrid = mapGrid;
             AIHelper = new BattleContextAIHelper(this);
+
+            // ensure the overlay manager component exists and is initialized
+            var overlay = GetComponent<Turnroot.UI.Components.BattleOverlayManager>();
+            if (overlay == null)
+            {
+                overlay = gameObject.AddComponent<Turnroot.UI.Components.BattleOverlayManager>();
+            }
+            overlay.Initialize(brain);
+            OverlayManager = overlay;
         }
 
         #endregion

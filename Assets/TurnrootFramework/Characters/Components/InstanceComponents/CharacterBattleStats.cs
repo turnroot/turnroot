@@ -188,6 +188,13 @@ namespace Turnroot.Characters
         [NonSerialized]
         private List<Skills.Skill> _activePassiveSkills = new();
 
+        /// <summary>
+        /// Read-only list of passive skills that have triggered for this unit in the
+        /// current battle.  Cleared at the start of each battle and when the unit's
+        /// battle stats reset.
+        /// </summary>
+        public IReadOnlyList<Skills.Skill> ActivePassiveSkills => _activePassiveSkills.AsReadOnly();
+
         public void AddActivePassiveSkill(Skills.Skill skill)
         {
             if (skill != null && !_activePassiveSkills.Contains(skill))

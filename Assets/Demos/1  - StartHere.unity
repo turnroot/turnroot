@@ -46103,6 +46103,7 @@ GameObject:
   - component: {fileID: 1742232841}
   - component: {fileID: 1742232842}
   - component: {fileID: 1742232843}
+  - component: {fileID: 1742232844}
   m_Layer: 0
   m_Name: = Battle Map
   m_TagString: Untagged
@@ -46288,6 +46289,18 @@ MonoBehaviour:
       WeaponsAreStealable: 0
   CurrentDifficulty: 0
   GenericEnemyDifficultyMultiplierForThisBattle: 1.05
+--- !u!114 &1742232844
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1742232834}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f5091b08472034e47b806085675a79a6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Turnroot.UI.Components.BattleOverlayManager
 --- !u!1 &1751459802
 GameObject:
   m_ObjectHideFlags: 0
