@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
 using UnityEngine;
 
@@ -76,7 +77,6 @@ namespace Turnroot.Characters
             LastTurnCollectedTreasure = false;
         }
 
-        // combat rate values are computed at runtime each turn
         [NonSerialized]
         private float _currentHit;
 
@@ -111,13 +111,23 @@ namespace Turnroot.Characters
             float speed = GetUnboundedStat(Stats.UnboundedStatType.Speed)?.Current ?? 0f;
 
             settings.GetHitFormulaMultipliers(out var sm, out var dm, out var lm);
-            _currentHit = skill * sm + dex * dm + luck * lm;
+            _currentHit = (skill * sm) + (dex * dm) + (luck * lm);
+
+            var weaponItem = GetEquippedWeapon();
+            if (weaponItem?.Template != null)
+            {
+                _currentHit += weaponItem.Template.Hit;
+            }
 
             settings.GetAvoidFormulaMultipliers(out var spm, out var lkm);
-            _currentAvoid = speed * spm + luck * lkm;
+            _currentAvoid = (speed * spm) + (luck * lkm);
 
             settings.GetCritFormulaMultipliers(out var csm, out var clm);
-            _currentCritical = skill * csm + luck * clm;
+            _currentCritical = (skill * csm) + (luck * clm);
+            if (weaponItem?.Template != null)
+            {
+                _currentCritical += weaponItem.Template.Critical;
+            }
         }
 
         public float CalculateAvoid(
@@ -175,10 +185,24 @@ namespace Turnroot.Characters
             return 0f;
         }
 
+        [NonSerialized]
+        private List<Skills.Skill> _activePassiveSkills = new();
+
+        public void AddActivePassiveSkill(Skills.Skill skill)
+        {
+            if (skill != null && !_activePassiveSkills.Contains(skill))
+            {
+                _activePassiveSkills.Add(skill);
+            }
+        }
+
+        public void ClearActivePassiveSkills() => _activePassiveSkills.Clear();
+
         public void ResetBattleStats()
         {
             _turnsAliveThisBattle = 0;
             _combatsThisTurn = 0;
+            ClearActivePassiveSkills();
         }
 
         #endregion

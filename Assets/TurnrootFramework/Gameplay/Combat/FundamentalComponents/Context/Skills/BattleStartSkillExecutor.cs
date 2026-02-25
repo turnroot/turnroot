@@ -26,13 +26,8 @@ namespace Turnroot.Gameplay.Brain
         {
             if (Brain != null)
             {
-                // gather battle-start skills when battle starts but defer execution until precompute
                 Brain.OnBattleStarted += HandleBattleStartSkills;
-
-                // run evaluation after precompute has finished assigning classes/stats
                 Brain.OnPrecomputeCompleted += EvaluateBattleStartSkills;
-
-                // still re‑evaluate during the turn cycle (in case context changes)
                 Brain.OnTurnBegin += EvaluateBattleStartSkills;
                 Brain.OnPlayerTurnStarted += OnPlayerTurnStartedHandler;
                 Brain.OnEnemyTurnStarted += EvaluateBattleStartSkills;
@@ -40,8 +35,6 @@ namespace Turnroot.Gameplay.Brain
                 Brain.OnUnitTurnEnded += OnUnitTurnEndedHandler;
                 Brain.OnUnitMoved += OnUnitMovedHandler;
                 Brain.OnPlayerTurnStateChanged += OnPlayerTurnStateChangedHandler;
-
-                // if a character changes class (or receives initial class info) retry evaluation
                 Brain.OnCharacterClassChanged += OnCharacterClassChangedHandler;
             }
         }
@@ -51,7 +44,6 @@ namespace Turnroot.Gameplay.Brain
             if (Brain != null)
             {
                 Brain.OnBattleStarted -= HandleBattleStartSkills;
-
                 Brain.OnTurnBegin -= EvaluateBattleStartSkills;
                 Brain.OnPlayerTurnStarted -= OnPlayerTurnStartedHandler;
                 Brain.OnEnemyTurnStarted -= EvaluateBattleStartSkills;
@@ -59,7 +51,6 @@ namespace Turnroot.Gameplay.Brain
                 Brain.OnUnitTurnEnded -= OnUnitTurnEndedHandler;
                 Brain.OnUnitMoved -= OnUnitMovedHandler;
                 Brain.OnPlayerTurnStateChanged -= OnPlayerTurnStateChangedHandler;
-
                 Brain.OnCharacterClassChanged -= OnCharacterClassChangedHandler;
             }
         }
@@ -81,12 +72,15 @@ namespace Turnroot.Gameplay.Brain
             context.Skill.ActiveSkills.Clear();
             context.Skill.ActiveSkillGraphs.Clear();
 
-            // gather all relevant units (all allies, enemies, third party) from the battle context
             var allUnits = new List<CharacterInstance>();
             var ctx = BattleObject?.Context;
             if (ctx?.Participants != null)
             {
                 allUnits.AddRange(ctx.Participants.GetAllUnits());
+            }
+            foreach (var unit in allUnits)
+            {
+                unit?.ClearActivePassiveSkills();
             }
 
             foreach (var unit in allUnits)
@@ -113,19 +107,15 @@ namespace Turnroot.Gameplay.Brain
                         }
                         list.Add(skill);
 
-                        // publish the skill-triggered event for others to react
                         Brain.PublishSkillTriggered(unit, skill);
-                        // and a dedicated "battle start" event
                         Brain.PublishBattleStartSkill(unit, skill);
 
-                        // also populate context lists for easy access later
                         context.Skill.ActiveSkills.Add(skill);
                         if (skill.BehaviorGraph != null)
                         {
                             context.Skill.ActiveSkillGraphs.Add(skill.BehaviorGraph);
                         }
 
-                        // simple log for now
                         if (SkillDebug.VerboseExecutionLogs)
                         {
                             $"BattleBrain: Battle-start skill '{skill.SkillName}' found on unit {unit.Id}".LogInfo();
@@ -190,7 +180,6 @@ namespace Turnroot.Gameplay.Brain
                     continue;
                 }
 
-                // skip units that do not yet have class data; we will re-run when they change class
                 if (unit.CurrentClass == null || unit.CurrentClass.ClassData == null)
                 {
                     if (SkillDebug.VerboseExecutionLogs)
@@ -207,51 +196,20 @@ namespace Turnroot.Gameplay.Brain
 
                 context.Unit.UnitInstance = unit;
 
-                // debugging: report map grid and unit location
-#if UNITY_EDITOR
-                if (SkillDebug.VerboseExecutionLogs)
-                {
-                    if (context.MapGrid == null)
-                    {
-                        $"BattleStartSkillExecutor: MapGrid is null when executing skill for unit {unit.Id}".LogInfo();
-                    }
-                    else
-                    {
-                        $"BattleStartSkillExecutor: unit {unit.Id} position {unit.MapGridPosition} (terrain logged by node)".LogInfo();
-                    }
-                }
-#endif
-
                 foreach (var skill in skills)
                 {
                     skill.ExecuteSkill(context);
+
+                    unit.AddActivePassiveSkill(skill);
+
+                    if (SkillDebug.VerboseExecutionLogs)
+                    {
+                        $"BattleStartSkillExecutor: unit {unit.Id} added active passive skill '{skill.SkillName}'".LogInfo();
+                    }
                 }
             }
         }
 
-        #endregion
-
-        #region Query API
-        /// <summary>
-        /// Returns the list of skills that were activated for the given character during the most
-        /// recent battle-start processing.  An empty list is returned if none were found.
-        /// </summary>
-        public IReadOnlyList<Skill> GetBattleStartSkills(CharacterInstance unit)
-        {
-            return unit == null ? new List<Skill>()
-                : _battleStartSkills.TryGetValue(unit, out var list) ? list.AsReadOnly()
-                : new List<Skill>();
-        }
-
-        /// <summary>
-        /// Returns true if the given unit had at least one skill trigger at battle start.
-        /// </summary>
-        public bool HasBattleStartSkill(CharacterInstance unit)
-        {
-            return unit != null
-                && _battleStartSkills.TryGetValue(unit, out var list)
-                && list.Count > 0;
-        }
         #endregion
     }
 }
