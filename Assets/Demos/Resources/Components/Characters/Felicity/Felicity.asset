@@ -171,11 +171,11 @@ MonoBehaviour:
   - isBounded: 0
     unboundedStatType: 3
     boundedStatType: 0
-    value: 35
+    value: 30
   - isBounded: 0
     unboundedStatType: 4
     boundedStatType: 0
-    value: 50
+    value: 45
   - isBounded: 0
     unboundedStatType: 5
     boundedStatType: 0
@@ -183,7 +183,7 @@ MonoBehaviour:
   - isBounded: 0
     unboundedStatType: 6
     boundedStatType: 0
-    value: 60
+    value: 55
   - isBounded: 0
     unboundedStatType: 7
     boundedStatType: 0
