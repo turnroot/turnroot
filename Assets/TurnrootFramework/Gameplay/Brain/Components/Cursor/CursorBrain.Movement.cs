@@ -101,35 +101,17 @@ namespace Turnroot.Gameplay.Brain
                 _lastBattleNavTime = timeNow;
                 // Execute navigation. Use free-grid navigation when movement is unrestricted,
                 // otherwise use the restricted navigation helpers (wrapping/indexed).
-                if (!HasAllowedPositions())
-                {
-                    return NavigateCursor(snapped);
-                }
-                if (Mathf.Abs(snapped.x) > 0f)
-                {
-                    return NavigateHorizontal(snapped.x > 0f ? 1 : -1);
-                }
-                else
-                {
-                    return NavigateVertical(snapped.y > 0f ? 1 : -1);
-                }
+                return !HasAllowedPositions()
+                    ? NavigateCursor(snapped)
+                    : Mathf.Abs(snapped.x) > 0f ? NavigateHorizontal(snapped.x > 0f ? 1 : -1) : NavigateVertical(snapped.y > 0f ? 1 : -1);
             }
 
             if (timeNow - _lastBattleNavTime >= cooldown)
             {
                 _lastBattleNavTime = timeNow;
-                if (!HasAllowedPositions())
-                {
-                    return NavigateCursor(snapped);
-                }
-                if (Mathf.Abs(snapped.x) > 0f)
-                {
-                    return NavigateHorizontal(snapped.x > 0f ? 1 : -1);
-                }
-                else
-                {
-                    return NavigateVertical(snapped.y > 0f ? 1 : -1);
-                }
+                return !HasAllowedPositions()
+                    ? NavigateCursor(snapped)
+                    : Mathf.Abs(snapped.x) > 0f ? NavigateHorizontal(snapped.x > 0f ? 1 : -1) : NavigateVertical(snapped.y > 0f ? 1 : -1);
             }
 
             return false;

@@ -201,11 +201,7 @@ namespace Turnroot.Gameplay.Brain
                     skill.ExecuteSkill(context);
 
                     unit.AddActivePassiveSkill(skill);
-
-                    if (SkillDebug.VerboseExecutionLogs)
-                    {
-                        $"BattleStartSkillExecutor: unit {unit.Id} added active passive skill '{skill.SkillName}'".LogInfo();
-                    }
+                    $"BattleStartSkillExecutor: unit {unit.Id} added active passive skill '{skill.SkillName}'".LogInfo();
                 }
             }
         }

@@ -219,9 +219,7 @@ namespace Turnroot.Utilities
         public static T ThrowIfNull<T>(this T obj, string paramName)
             where T : class
         {
-            if (obj == null)
-                throw new ArgumentNullException(paramName);
-            return obj;
+            return obj == null ? throw new ArgumentNullException(paramName) : obj;
         }
 
         /// <summary>

@@ -63,6 +63,15 @@ namespace Turnroot.Skills.Nodes.Conditions
             {
                 return new BoolValue { value = false };
             }
+            // make sure the character's class data chain is valid before accessing movement type
+            if (
+                character.CurrentClass == null
+                || character.CurrentClass.ClassData == null
+                || character.CurrentClass.ClassData.Identity == null
+            )
+            {
+                return new BoolValue { value = false };
+            }
 
             var movementType = character.CurrentClass.ClassData.Identity.MovementType;
             bool matches = movementType == targetMovementType;

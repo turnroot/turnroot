@@ -23,8 +23,15 @@ namespace Turnroot.Gameplay.Brain
 
             try
             {
-                var wrapperJson = DeviceDataCipher.DecryptFromBase64(encoded);
-                var wrapper = JsonConvert.DeserializeObject<SerializedWrapper>(wrapperJson);
+                var wrapperResult = DeviceDataCipher.DecryptFromBase64(encoded);
+                if (!wrapperResult.Success)
+                {
+                    return OperationResult<SerializedWrapper>.Failure(
+                        $"Failed to decode wrapper: {wrapperResult.Error}",
+                        wrapperResult.Exception
+                    );
+                }
+                var wrapper = JsonConvert.DeserializeObject<SerializedWrapper>(wrapperResult.Value);
                 return OperationResult<SerializedWrapper>.SuccessResult(wrapper);
             }
             catch (Exception ex)
@@ -46,8 +53,13 @@ namespace Turnroot.Gameplay.Brain
             try
             {
                 var json = JsonConvert.SerializeObject(wrapper, Formatting.None);
-                var encoded = DeviceDataCipher.EncryptToBase64(json);
-                return OperationResult<string>.SuccessResult(encoded);
+                var encRes = DeviceDataCipher.EncryptToBase64(json);
+                return !encRes.Success
+                    ? OperationResult<string>.Failure(
+                        $"Failed to encode wrapper: {encRes.Error}",
+                        encRes.Exception
+                    )
+                    : OperationResult<string>.SuccessResult(encRes.Value);
             }
             catch (Exception ex)
             {
@@ -67,8 +79,15 @@ namespace Turnroot.Gameplay.Brain
 
             try
             {
-                var wrapperJson = DeviceDataCipher.DecryptFromBase64(encoded);
-                var obj = JObject.Parse(wrapperJson);
+                var decRes = DeviceDataCipher.DecryptFromBase64(encoded);
+                if (!decRes.Success)
+                {
+                    return OperationResult<JObject>.Failure(
+                        $"Failed to decode wrapper as JObject: {decRes.Error}",
+                        decRes.Exception
+                    );
+                }
+                var obj = JObject.Parse(decRes.Value);
                 return OperationResult<JObject>.SuccessResult(obj);
             }
             catch (Exception ex)
@@ -90,8 +109,13 @@ namespace Turnroot.Gameplay.Brain
             try
             {
                 var json = wrapper.ToString(Formatting.None);
-                var encoded = DeviceDataCipher.EncryptToBase64(json);
-                return OperationResult<string>.SuccessResult(encoded);
+                var encRes = DeviceDataCipher.EncryptToBase64(json);
+                return !encRes.Success
+                    ? OperationResult<string>.Failure(
+                        $"Failed to encode JObject: {encRes.Error}",
+                        encRes.Exception
+                    )
+                    : OperationResult<string>.SuccessResult(encRes.Value);
             }
             catch (Exception ex)
             {

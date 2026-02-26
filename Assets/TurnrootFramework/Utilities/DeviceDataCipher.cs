@@ -68,64 +68,78 @@ namespace Turnroot.Utilities
             return outBytes;
         }
 
-        public static string EncryptToBase64(string plainUtf8)
+        public static OperationResult<string> EncryptToBase64(string plainUtf8)
         {
             if (string.IsNullOrEmpty(plainUtf8))
             {
-                return string.Empty;
+                return OperationResult<string>.SuccessResult(string.Empty);
             }
 
-            var bytes = Encoding.UTF8.GetBytes(plainUtf8);
-            var cipher = Xor(bytes, GetDeviceKeyBytes());
-            return Convert.ToBase64String(cipher);
+            try
+            {
+                var bytes = Encoding.UTF8.GetBytes(plainUtf8);
+                var cipher = Xor(bytes, GetDeviceKeyBytes());
+                return OperationResult<string>.SuccessResult(Convert.ToBase64String(cipher));
+            }
+            catch (Exception ex)
+            {
+                return OperationResult<string>.Failure(ex);
+            }
         }
 
-        public static string DecryptFromBase64(string encoded)
+        public static OperationResult<string> DecryptFromBase64(string encoded)
         {
             if (string.IsNullOrEmpty(encoded))
             {
-                return string.Empty;
+                return OperationResult<string>.SuccessResult(string.Empty);
             }
 
             try
             {
                 var bytes = Convert.FromBase64String(encoded);
                 var plain = Xor(bytes, GetDeviceKeyBytes());
-                return Encoding.UTF8.GetString(plain);
+                return OperationResult<string>.SuccessResult(Encoding.UTF8.GetString(plain));
             }
-            catch
+            catch (Exception ex)
             {
-                // If base64 parse fails, just return empty (caller handles tampering/errors).
-                return string.Empty;
+                // If parsing fails or other error occurs, propagate as failure so callers can react.
+                return OperationResult<string>.Failure(ex);
             }
         }
 
-        public static string EncryptBytesToBase64(byte[] bytes)
+        public static OperationResult<string> EncryptBytesToBase64(byte[] bytes)
         {
             if (bytes == null || bytes.Length == 0)
             {
-                return string.Empty;
+                return OperationResult<string>.SuccessResult(string.Empty);
             }
 
-            var cipher = Xor(bytes, GetDeviceKeyBytes());
-            return Convert.ToBase64String(cipher);
+            try
+            {
+                var cipher = Xor(bytes, GetDeviceKeyBytes());
+                return OperationResult<string>.SuccessResult(Convert.ToBase64String(cipher));
+            }
+            catch (Exception ex)
+            {
+                return OperationResult<string>.Failure(ex);
+            }
         }
 
-        public static byte[] DecryptBytesFromBase64(string encoded)
+        public static OperationResult<byte[]> DecryptBytesFromBase64(string encoded)
         {
             if (string.IsNullOrEmpty(encoded))
             {
-                return Array.Empty<byte>();
+                return OperationResult<byte[]>.SuccessResult(Array.Empty<byte>());
             }
 
             try
             {
                 var bytes = Convert.FromBase64String(encoded);
-                return Xor(bytes, GetDeviceKeyBytes());
+                return OperationResult<byte[]>.SuccessResult(Xor(bytes, GetDeviceKeyBytes()));
             }
-            catch
+            catch (Exception ex)
             {
-                return Array.Empty<byte>();
+                return OperationResult<byte[]>.Failure(ex);
             }
         }
     }

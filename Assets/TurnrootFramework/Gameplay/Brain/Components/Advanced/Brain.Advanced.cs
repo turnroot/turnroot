@@ -63,7 +63,7 @@ namespace Turnroot.Gameplay.Brain
         public bool UndoCommand()
         {
             var context = battleBrain.BattleObject.Context;
-            return context == null ? false : Commands.Undo(context);
+            return context != null && Commands.Undo(context);
         }
 
         /// <summary>Redo the last undone command.</summary>

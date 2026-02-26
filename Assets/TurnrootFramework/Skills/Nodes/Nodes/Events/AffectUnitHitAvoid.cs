@@ -24,7 +24,7 @@ namespace Turnroot.Skills.Nodes.Events
         {
             if (
                 !ValidationHelper.ValidateNotNull(
-                    context?.Unit.UnitInstance,
+                    context.Unit.UnitInstance,
                     nameof(context.Unit.UnitInstance)
                 )
             )
@@ -57,11 +57,17 @@ namespace Turnroot.Skills.Nodes.Events
             var changeAvoidAmount = GetInputFloat("changeAvoid", 0f);
             if (changeAvoidAmount != 0f)
             {
-                $"AffectUnitHitAvoid: affected unit {context.Unit.UnitInstance.Id} avoid by {changeAvoidAmount}".LogInfo();
+                if (SkillDebug.VerboseExecutionLogs)
+                {
+                    $"AffectUnitHitAvoid: affected unit {context.Unit.UnitInstance.Id} avoid by {changeAvoidAmount}".LogInfo();
+                }
             }
             else
             {
-                $"AffectUnitHitAvoid: avoid change evaluated to 0 for unit {context.Unit.UnitInstance.Id}".LogInfo();
+                if (SkillDebug.VerboseExecutionLogs)
+                {
+                    $"AffectUnitHitAvoid: avoid change evaluated to 0 for unit {context.Unit.UnitInstance.Id}".LogInfo();
+                }
             }
             var inst2 = context.Unit.UnitInstance;
             inst2?.AddAvoid(changeAvoidAmount);

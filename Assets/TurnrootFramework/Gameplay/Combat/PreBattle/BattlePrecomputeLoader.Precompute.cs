@@ -177,35 +177,24 @@ namespace Turnroot.Gameplay.Combat.Precompute
 
                     // Ensure a deterministic per-battle seed exists in LTM and log it. This seed will be
                     // used by EnemySupervisor to make deterministic 'random' choices for the battle.
-                    try
-                    {
-                        var prep = _brain.battleBrain?.PreparationObject;
-                        var mapName =
-                            prep?.MapGrid?.MapName
-                            ?? _brain.battleBrain?.BattleObject?.MapGrid?.MapName
-                            ?? "<unknown>";
-                        var battleKey =
-                            prep != null
-                                ? $"{prep.name}.{mapName}"
-                                : _brain.battleBrain?.BattleObject?.name ?? mapName;
-                        var ltmKey = LtmKeys.BattleSeedKey(battleKey);
 
-                        int seed = _brain.ltm?.RecallInt(ltmKey) ?? -1;
-                        if (seed <= 0)
-                        {
-                            seed = System.BitConverter.ToInt32(
-                                System.Guid.NewGuid().ToByteArray(),
-                                0
-                            );
-                            _brain.ltm?.RememberInt(ltmKey, seed);
-                            $"BattlePrecomputeLoader: Generated battle seed {seed} for '{battleKey}'".LogInfo();
-                        }
-                        else
-                        {
-                            $"BattlePrecomputeLoader: Loaded existing battle seed {seed} for '{battleKey}'".LogInfo();
-                        }
+                    var prep = _brain.battleBrain?.PreparationObject;
+                    var mapName =
+                        prep?.MapGrid?.MapName
+                        ?? _brain.battleBrain?.BattleObject?.MapGrid?.MapName
+                        ?? "<unknown>";
+                    var battleKey =
+                        prep != null
+                            ? $"{prep.name}.{mapName}"
+                            : _brain.battleBrain?.BattleObject?.name ?? mapName;
+                    var ltmKey = LtmKeys.BattleSeedKey(battleKey);
+
+                    int seed = _brain.ltm?.RecallInt(ltmKey) ?? -1;
+                    if (seed <= 0)
+                    {
+                        seed = System.BitConverter.ToInt32(System.Guid.NewGuid().ToByteArray(), 0);
+                        _brain.ltm?.RememberInt(ltmKey, seed);
                     }
-                    catch { }
 
                     // 2) initialize pre-battle enemies and report any problems
                     var initRes = enemySupervisor.InitializePreBattleEnemies();
@@ -352,13 +341,10 @@ namespace Turnroot.Gameplay.Combat.Precompute
             }
 
             // 4) Precompute weapon / inventory summary used by AI evaluations
-            try
+            var weapResult = context.PrecomputeWeaponInfoForUnit(unit);
+            if (!weapResult.Success)
             {
-                context.PrecomputeWeaponInfoForUnit(unit);
-            }
-            catch (System.Exception ex)
-            {
-                $"BattlePrecomputeLoader: Failed to precompute weapon info for unit {unit.Id}: {ex.Message}".LogWarning();
+                $"BattlePrecomputeLoader: Failed to precompute weapon info for unit {unit.Id}: {weapResult.ErrorMessage}".LogWarning();
             }
             IncrementProgress();
             yield return new WaitForSeconds(timeBetweenOperations);

@@ -19,10 +19,17 @@ namespace Turnroot.Gameplay.Brain
 
         #region Memory Coders
 
-        public string EncodeString(string value) => DeviceDataCipher.EncryptToBase64(value);
+        public string EncodeString(string value)
+        {
+            var res = DeviceDataCipher.EncryptToBase64(value);
+            return res.Success ? res.Value : string.Empty;
+        }
 
-        public string DecodeString(string encodedString) =>
-            DeviceDataCipher.DecryptFromBase64(encodedString);
+        public string DecodeString(string encodedString)
+        {
+            var res = DeviceDataCipher.DecryptFromBase64(encodedString);
+            return res.Success ? res.Value : string.Empty;
+        }
 
         #endregion
     }

@@ -46,6 +46,31 @@ namespace Turnroot.Skills.Nodes
         }
 
         #region Execution Template
+        /// <summary>
+        /// Executes the node and wraps any thrown exceptions in an <see cref="OperationResult"/>.
+        /// This helper is intended for callers (like <see cref="SkillGraphExecutor"/>) that
+        /// prefer to check a result instead of relying on try/catch.  It simply invokes the
+        /// normal <see cref="Execute(BattleContext)"/> implementation and converts any
+        /// exception into a failure result.
+        /// </summary>
+        public OperationResult ExecuteWithResult(BattleContext context)
+        {
+            try
+            {
+                Execute(context); // calls override or base implementation
+                return OperationResult.Successful();
+            }
+            catch (Exception ex)
+            {
+                return OperationResult.Failure(ex);
+            }
+        }
+
+        /// <summary>
+        /// Original execution entry point used by node implementations.  Existing overrides
+        /// still target this signature so we leave it unchanged to avoid breaking derived
+        /// classes.  It performs basic context/requirement validation then calls ExecuteImpl.
+        /// </summary>
         public virtual void Execute(BattleContext context)
         {
             if (!ValidateContext(context))

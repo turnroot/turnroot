@@ -293,17 +293,15 @@ namespace Turnroot.Gameplay.Brain.Components
                 return string.Empty;
             }
 
-            try
+            var result = Utilities.DeviceDataCipher.EncryptToBase64(key);
+            if (result.Success)
             {
-                return Utilities.DeviceDataCipher.EncryptToBase64(key);
+                return result.Value;
             }
-            catch (Exception ex)
-            {
 #if UNITY_EDITOR
-                Debug.LogWarning($"JsonPlayerPrefs: failed to encode key '{key}': {ex.Message}");
+            Debug.LogWarning($"JsonPlayerPrefs: failed to encode key '{key}': {result.Error}");
 #endif
-                return key;
-            }
+            return key;
         }
 
         private string DecodeKey(string encoded)
@@ -313,17 +311,15 @@ namespace Turnroot.Gameplay.Brain.Components
                 return encoded;
             }
 
-            try
+            var result = Utilities.DeviceDataCipher.DecryptFromBase64(encoded);
+            if (result.Success)
             {
-                return Utilities.DeviceDataCipher.DecryptFromBase64(encoded);
+                return result.Value;
             }
-            catch (Exception ex)
-            {
 #if UNITY_EDITOR
-                Debug.LogWarning($"JsonPlayerPrefs: failed to decode key: {ex.Message}");
+            Debug.LogWarning($"JsonPlayerPrefs: failed to decode key: {result.Error}");
 #endif
-                return encoded;
-            }
+            return encoded;
         }
         #endregion
     }

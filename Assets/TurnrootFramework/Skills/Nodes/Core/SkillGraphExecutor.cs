@@ -83,15 +83,12 @@ namespace Turnroot.Skills.Nodes
 
             node.OnNodeExecute?.Invoke();
 
-            try
+            var execResult = node.ExecuteWithResult(context);
+            if (!execResult.Success)
             {
-                node.Execute(context);
-            }
-            catch (System.Exception e)
-            {
-                $"Error executing node {node.name}: {e.Message}\n{e.StackTrace}".LogError();
+                $"Error executing node {node.name}: {execResult.ErrorMessage}".LogError();
                 context.Flags.IsInterrupted = true;
-                return OperationResult.Failure($"Error executing node {node.name}: {e.Message}");
+                return execResult;
             }
 
             currentNode = node;

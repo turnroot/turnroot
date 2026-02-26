@@ -86,24 +86,15 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             );
             var parameters = PathfindingParameters.FromCharacter(target, MapGrid, targetGridPoint);
 
-            if (parameters == null || projectedDestination == null)
-            {
-                return false;
-            }
-
-            if (
-                !PathfinderHelpers.TryComputePathMovementCost(
+            return parameters != null
+                && projectedDestination != null
+                && PathfinderHelpers.TryComputePathMovementCost(
                     MapGrid,
                     parameters,
                     projectedDestination,
                     out float totalCost
                 )
-            )
-            {
-                return false;
-            }
-
-            return totalCost <= targetAttackRange;
+                && totalCost <= targetAttackRange;
         }
 
         #endregion

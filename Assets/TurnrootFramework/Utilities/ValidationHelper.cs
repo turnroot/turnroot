@@ -123,9 +123,7 @@ namespace Turnroot.Utilities
         public static T ThrowIfNull<T>(T obj, string paramName)
             where T : class
         {
-            if (obj == null)
-                throw new System.ArgumentNullException(paramName);
-            return obj;
+            return obj == null ? throw new System.ArgumentNullException(paramName) : obj;
         }
     }
 }

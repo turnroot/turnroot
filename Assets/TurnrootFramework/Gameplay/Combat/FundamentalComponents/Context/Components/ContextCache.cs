@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Turnroot.Characters;
 using Turnroot.Gameplay.Maps;
+using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
@@ -222,66 +223,80 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         /// Build or refresh the cached weapon summary for a unit by scanning its inventory.
         /// Intended to be called during precompute and invalidated on inventory/equipment changes.
         /// </summary>
-        public void PrecomputeWeaponInfoForUnit(CharacterInstance unit)
+        public OperationResult PrecomputeWeaponInfoForUnit(CharacterInstance unit)
         {
-            if (unit == null)
+            // validate argument up front, mimicking previous null guard
+            var guard = OperationResultGuards.RequireNotNull(unit, nameof(unit));
+            if (!guard.Success)
             {
-                return;
+                return guard;
             }
 
-            var info = new CachedWeaponInfo();
-            var inv = unit.InventoryInstance;
-            if (inv != null && inv.InventoryItems != null)
+            try
             {
-                foreach (var item in inv.InventoryItems)
+                var info = new CachedWeaponInfo();
+                var inv = unit.InventoryInstance;
+                if (inv != null && inv.InventoryItems != null)
                 {
-                    if (item == null || item.Template == null)
+                    foreach (var item in inv.InventoryItems)
                     {
-                        continue;
-                    }
-
-                    // Track equipped weapon separately
-                    if (
-                        item.IsEquipped
-                        && item.Template.Subtype == Objects.Components.ObjectSubtype.Weapon
-                    )
-                    {
-                        info.EquippedWeaponInstance = item;
-                        info.EquippedWeaponType = item.Template.WeaponType;
-                    }
-
-                    // Aggregate weapon types present in inventory
-                    if (item.Template.WeaponType != null)
-                    {
-                        info.WeaponTypesInInventory.Add(item.Template.WeaponType);
-                    }
-
-                    // Aggregate species / weapon-types that this item is effective against
-                    if (item.Template.SpeciesEffectiveAgainst != null)
-                    {
-                        foreach (var s in item.Template.SpeciesEffectiveAgainst)
+                        if (item == null || item.Template == null)
                         {
-                            if (s != null)
+                            continue;
+                        }
+
+                        // Track equipped weapon separately
+                        if (
+                            item.IsEquipped
+                            && item.Template.Subtype == Objects.Components.ObjectSubtype.Weapon
+                        )
+                        {
+                            info.EquippedWeaponInstance = item;
+                            info.EquippedWeaponType = item.Template.WeaponType;
+                        }
+
+                        // Aggregate weapon types present in inventory
+                        if (item.Template.WeaponType != null)
+                        {
+                            info.WeaponTypesInInventory.Add(item.Template.WeaponType);
+                        }
+
+                        // Aggregate species / weapon-types that this item is effective against
+                        if (item.Template.SpeciesEffectiveAgainst != null)
+                        {
+                            foreach (var s in item.Template.SpeciesEffectiveAgainst)
                             {
-                                info.SpeciesTypesEffectiveAgainst.Add(s);
+                                if (s != null)
+                                {
+                                    info.SpeciesTypesEffectiveAgainst.Add(s);
+                                }
                             }
                         }
-                    }
 
-                    if (item.Template.WeaponTypesEffectiveAgainst != null)
-                    {
-                        foreach (var wt in item.Template.WeaponTypesEffectiveAgainst)
+                        if (item.Template.WeaponTypesEffectiveAgainst != null)
                         {
-                            if (wt != null)
+                            foreach (var wt in item.Template.WeaponTypesEffectiveAgainst)
                             {
-                                info.WeaponTypesEffectiveAgainst.Add(wt);
+                                if (wt != null)
+                                {
+                                    info.WeaponTypesEffectiveAgainst.Add(wt);
+                                }
                             }
                         }
                     }
                 }
-            }
 
-            _unitWeaponCache[unit.Id] = info;
+                _unitWeaponCache[unit.Id] = info;
+                return OperationResult.Successful();
+            }
+            catch (System.Exception ex)
+            {
+                // Unexpected error; convert into a failure result so callers can log or act accordingly
+                return OperationResult.Failure(
+                    $"Failed to build weapon info cache: {ex.Message}",
+                    ex
+                );
+            }
         }
 
         public CachedWeaponInfo GetCachedWeaponInfo(CharacterInstance unit)
