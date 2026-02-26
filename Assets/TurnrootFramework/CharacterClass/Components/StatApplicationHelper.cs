@@ -66,7 +66,10 @@ namespace Turnroot.Characters.CharacterClass
             bool logChanges = false
         )
         {
-            if (character == null || modifiers == null)
+            if (
+                !ValidationHelper.ValidateNotNull(character, nameof(character))
+                || !ValidationHelper.ValidateNotNull(modifiers, nameof(modifiers))
+            )
             {
                 return;
             }
@@ -113,7 +116,10 @@ namespace Turnroot.Characters.CharacterClass
             bool logChanges = false
         )
         {
-            if (character == null || modifiers == null)
+            if (
+                !ValidationHelper.ValidateNotNull(character, nameof(character))
+                || !ValidationHelper.ValidateNotNull(modifiers, nameof(modifiers))
+            )
             {
                 return;
             }

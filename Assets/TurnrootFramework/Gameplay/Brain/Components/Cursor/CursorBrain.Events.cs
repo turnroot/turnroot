@@ -81,7 +81,13 @@ namespace Turnroot.Gameplay.Brain
 
             var mapGrid = Brain.battleBrain.PreparationObject?.MapGrid;
 
-            if (mapGrid == null)
+            if (
+                !ValidationHelper.ValidateNotNull(
+                    mapGrid,
+                    nameof(mapGrid),
+                    "HandlePlacementsInitialized"
+                )
+            )
             {
                 "HandlePlacementsInitialized: No MapGrid found in PreparationObject".LogError(
                     "CursorBrain"

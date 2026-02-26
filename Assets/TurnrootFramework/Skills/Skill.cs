@@ -74,9 +74,14 @@ namespace Turnroot.Skills
         public void ExecuteSkill(BattleContext context)
         {
             $"Executing skill {SkillName}".LogInfo();
-            if (BehaviorGraph == null)
+            if (
+                !ValidationHelper.ValidateNotNull(
+                    BehaviorGraph,
+                    nameof(BehaviorGraph),
+                    $"Skill {SkillName}"
+                )
+            )
             {
-                $"Skill {SkillName} has no BehaviorGraph assigned.".LogWarning();
                 return;
             }
 

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Turnroot.Characters;
+using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.Combat.PreBattle
@@ -14,7 +15,7 @@ namespace Turnroot.Gameplay.Combat.PreBattle
         )
         {
             var gw = brain?.gamewideContextBrain;
-            if (gw == null)
+            if (!ValidationHelper.ValidateNotNull(gw, nameof(gw)))
             {
                 return;
             }
@@ -22,13 +23,13 @@ namespace Turnroot.Gameplay.Combat.PreBattle
             var persistent =
                 gw.GamewidePersistentPlayerRoster
                 ?? gw.CreateOrRecallGamewidePersistentPlayerRoster();
-            if (persistent == null)
+            if (!ValidationHelper.ValidateNotNull(persistent, nameof(persistent)))
             {
                 return;
             }
 
             var runtimeInstance = gw.GetOrCreatePlayerTeamRoster(persistent);
-            if (runtimeInstance == null)
+            if (!ValidationHelper.ValidateNotNull(runtimeInstance, nameof(runtimeInstance)))
             {
                 return;
             }
@@ -48,7 +49,7 @@ namespace Turnroot.Gameplay.Combat.PreBattle
         )
         {
             var list = new List<Characters.Roster.UnitPlacement>();
-            if (placements == null)
+            if (!ValidationHelper.ValidateNotNull(placements, nameof(placements)))
             {
                 return list.ToArray();
             }

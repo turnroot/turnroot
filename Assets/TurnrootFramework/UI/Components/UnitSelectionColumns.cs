@@ -71,7 +71,8 @@ namespace Turnroot.UI.Components
             for (int i = 0; i < unitCount; i++)
             {
                 var unit = units[i];
-                if (unit == null)
+                // log and skip if a nil placement slipped in
+                if (!ValidationHelper.ValidateNotNull(unit, nameof(unit)))
                 {
                     continue;
                 }
@@ -140,7 +141,7 @@ namespace Turnroot.UI.Components
             int count = 0;
             foreach (var col in Columns)
             {
-                if (col == null)
+                if (!ValidationHelper.ValidateNotNull(col, nameof(col)))
                 {
                     continue;
                 }
@@ -341,4 +342,3 @@ namespace Turnroot.UI.Components
         }
     }
 }
-

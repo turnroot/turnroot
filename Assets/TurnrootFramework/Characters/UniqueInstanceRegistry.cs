@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Characters
@@ -16,7 +17,7 @@ namespace Turnroot.Characters
         public static T Get<T>(ScriptableObject template)
             where T : class
         {
-            if (template == null)
+            if (!ValidationHelper.ValidateNotNull(template, nameof(template)))
             {
                 return null;
             }
@@ -29,7 +30,10 @@ namespace Turnroot.Characters
 
         public static void Register(ScriptableObject template, object instance)
         {
-            if (template == null || instance == null)
+            if (
+                !ValidationHelper.ValidateNotNull(template, nameof(template))
+                || !ValidationHelper.ValidateNotNull(instance, nameof(instance))
+            )
             {
                 return;
             }
@@ -42,7 +46,7 @@ namespace Turnroot.Characters
 
         public static bool TryUnregister(ScriptableObject template, object instance)
         {
-            if (template == null)
+            if (!ValidationHelper.ValidateNotNull(template, nameof(template)))
             {
                 return false;
             }

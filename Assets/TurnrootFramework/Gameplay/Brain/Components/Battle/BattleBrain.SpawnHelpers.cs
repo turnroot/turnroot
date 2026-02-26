@@ -34,7 +34,7 @@ namespace Turnroot.Gameplay.Brain
         // Spawn each placement for a roster and set ordering. Handles instance creation and basic mismatch repair.
         private void SpawnAndOrderRosterPlacements(RosterInstance<GenericRoster> roster)
         {
-            if (roster == null)
+            if (!ValidationHelper.ValidateNotNull(roster, nameof(roster)))
             {
                 return;
             }
@@ -74,7 +74,7 @@ namespace Turnroot.Gameplay.Brain
 
         private void SpawnAndOrderRosterPlacements(PlayerTeamRosterInstance roster)
         {
-            if (roster == null)
+            if (!ValidationHelper.ValidateNotNull(roster, nameof(roster)))
             {
                 return;
             }

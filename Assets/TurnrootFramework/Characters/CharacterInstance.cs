@@ -168,7 +168,7 @@ namespace Turnroot.Characters
         public OperationResult MoveToPosition(Vector2Int newPosition, MapGrid mapGrid)
         {
             var gridPoint = UnitPositionToMapGridPoint(newPosition, mapGrid);
-            if (gridPoint == null)
+            if (!ValidationHelper.ValidateNotNull(gridPoint, nameof(gridPoint), "MoveToPosition"))
             {
                 return OperationResult.Failure("New position is out of bounds");
             }

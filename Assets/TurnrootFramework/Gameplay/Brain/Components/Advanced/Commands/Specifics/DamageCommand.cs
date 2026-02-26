@@ -1,5 +1,6 @@
 using Turnroot.Characters;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
+using Turnroot.Utilities;
 
 namespace Turnroot.Gameplay.Brain.Commands
 {
@@ -29,13 +30,13 @@ namespace Turnroot.Gameplay.Brain.Commands
             }
 
             var health = target.GetBoundedStat(Characters.Stats.BoundedStatType.Health);
-            if (health == null)
+            if (!ValidationHelper.ValidateNotNull(health, nameof(health)))
             {
                 return false;
             }
 
-            UndoState["prevHP"] = health.Current;
-            UndoState["wasDefeated"] = target.IsDefeatedInCurrentBattle;
+            UndoState[UndoStateKeys.PrevHP] = health.Current;
+            UndoState[UndoStateKeys.WasDefeated] = target.IsDefeatedInCurrentBattle;
 
             health.SetCurrent(health.Current - Damage);
 
@@ -45,16 +46,16 @@ namespace Turnroot.Gameplay.Brain.Commands
             if (attacker != null)
             {
                 // Save previous value for undo
-                UndoState["prevLastTarget"] = attacker.LastAttackedTarget;
+                UndoState[UndoStateKeys.PrevLastTarget] = attacker.LastAttackedTarget;
                 attacker.LastAttackedTarget = target;
             }
 
             // Track last attacker per target in the BattleContext
-            if (context != null)
+            if (ValidationHelper.ValidateNotNull(context, nameof(context)))
             {
-                UndoState["prevLastAttackerOfTarget"] = context.GetLastAttacker(target);
+                UndoState[UndoStateKeys.PrevLastAttackerOfTarget] = context.GetLastAttacker(target);
                 // Also save and set target's own LastAttacker field for convenience
-                UndoState["prevTargetLastAttacker"] = target.LastAttacker;
+                UndoState[UndoStateKeys.PrevTargetLastAttacker] = target.LastAttacker;
                 // Use BattleBrain wrapper to ensure events are published and context mapping updated
                 context
                     .Brain.GetComponent<BattleBrain>()
@@ -83,17 +84,20 @@ namespace Turnroot.Gameplay.Brain.Commands
             }
 
             var health = target.GetBoundedStat(Characters.Stats.BoundedStatType.Health);
-            if (health == null || !UndoState.TryGetValue("prevHP", out var prev))
+            if (health == null || !UndoState.TryGetValue(UndoStateKeys.PrevHP, out var prev))
             {
                 return false;
             }
 
             health.SetCurrent((float)prev);
-            target.IsDefeatedInCurrentBattle = (bool)UndoState["wasDefeated"];
+            target.IsDefeatedInCurrentBattle = (bool)UndoState[UndoStateKeys.WasDefeated];
 
             // Restore previous LastAttackedTarget on the attacker if present
             var attacker = FindUnit(context, AttackerId);
-            if (attacker != null && UndoState.TryGetValue("prevLastTarget", out var prevLast))
+            if (
+                attacker != null
+                && UndoState.TryGetValue(UndoStateKeys.PrevLastTarget, out var prevLast)
+            )
             {
                 attacker.LastAttackedTarget = prevLast as CharacterInstance;
             }
@@ -101,12 +105,22 @@ namespace Turnroot.Gameplay.Brain.Commands
             // Restore previous last-attacker mapping for the target and the target's own LastAttacker
             if (target != null)
             {
-                if (UndoState.TryGetValue("prevLastAttackerOfTarget", out var prevLastAttacker))
+                if (
+                    UndoState.TryGetValue(
+                        UndoStateKeys.PrevLastAttackerOfTarget,
+                        out var prevLastAttacker
+                    )
+                )
                 {
                     var bb = context.Brain.GetComponent<BattleBrain>();
                     bb?.SetLastAttacker(context, target, prevLastAttacker as CharacterInstance);
                 }
-                else if (UndoState.TryGetValue("prevTargetLastAttacker", out var prevTargetLast))
+                else if (
+                    UndoState.TryGetValue(
+                        UndoStateKeys.PrevTargetLastAttacker,
+                        out var prevTargetLast
+                    )
+                )
                 {
                     var bb = context.Brain.GetComponent<BattleBrain>();
                     bb?.SetLastAttacker(context, target, prevTargetLast as CharacterInstance);

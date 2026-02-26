@@ -1,5 +1,6 @@
 using System.Text;
 using Turnroot.Utilities;
+using Turnroot.Gameplay.Brain.Components.Memory.JSON;
 
 namespace Turnroot.Gameplay.Brain
 {
@@ -57,8 +58,8 @@ namespace Turnroot.Gameplay.Brain
 
             try
             {
-                var payload = (string)wrapper["Payload"] ?? string.Empty;
-                var version = (string)wrapper["Version"] ?? "0";
+                var payload = (string)wrapper[JsonConstants.Payload] ?? string.Empty;
+                var version = (string)wrapper[JsonConstants.Version] ?? "0";
                 return ComputeFNV1a64Hex(payload + "|v:" + version);
             }
             catch (System.Exception ex)

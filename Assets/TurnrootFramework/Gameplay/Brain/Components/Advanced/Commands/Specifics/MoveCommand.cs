@@ -27,7 +27,7 @@ namespace Turnroot.Gameplay.Brain.Commands
             }
 
             var oldPoint = unit.UnitPositionToMapGridPoint(unit.MapGridPosition, context.MapGrid);
-            UndoState["from"] = unit.MapGridPosition;
+            UndoState[UndoStateKeys.From] = unit.MapGridPosition;
 
             var result = unit.MoveToPosition(Target, context.MapGrid);
             if (!result.Success)
@@ -50,7 +50,7 @@ namespace Turnroot.Gameplay.Brain.Commands
             context.UpdateTargetsInRange();
 
             context.Brain.Publish(
-                new Events.UnitMovedEvent(unit, (Vector2Int)UndoState["from"], Target)
+                new Events.UnitMovedEvent(unit, (Vector2Int)UndoState[UndoStateKeys.From], Target)
             );
             context.Brain.PublishCharacterMoveCompleted(unit, newPoint);
             context.Brain.PublishUnitMoved(unit, Target);
@@ -62,7 +62,7 @@ namespace Turnroot.Gameplay.Brain.Commands
         public override bool Undo(BattleContext context)
         {
             var unit = FindUnit(context, UnitId);
-            if (unit == null || !UndoState.TryGetValue("from", out var from))
+            if (unit == null || !UndoState.TryGetValue(UndoStateKeys.From, out var from))
             {
                 return false;
             }

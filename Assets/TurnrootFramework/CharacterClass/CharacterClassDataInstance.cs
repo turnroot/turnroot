@@ -105,7 +105,7 @@ namespace Turnroot.Characters.CharacterClass
             for (int i = 0; i < mats.Length; i++)
             {
                 var m = mats[i];
-                if (m == null)
+                if (!ValidationHelper.ValidateNotNull(m, nameof(m)))
                 {
                     continue;
                 }

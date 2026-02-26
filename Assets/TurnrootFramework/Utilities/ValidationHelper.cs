@@ -114,5 +114,18 @@ namespace Turnroot.Utilities
             }
             return true;
         }
+
+        /// <summary>
+        /// Ensures the provided reference is not null. Throws <see cref="System.ArgumentNullException"/>
+        /// if it is. This is useful for validating arguments on public APIs while keeping
+        /// logging-free call sites.
+        /// </summary>
+        public static T ThrowIfNull<T>(T obj, string paramName)
+            where T : class
+        {
+            if (obj == null)
+                throw new System.ArgumentNullException(paramName);
+            return obj;
+        }
     }
 }

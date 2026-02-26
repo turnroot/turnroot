@@ -97,7 +97,7 @@ namespace Turnroot.Characters.CharacterClass
             {
                 foreach (var skill in classData.Mastery.InnateSkills)
                 {
-                    if (skill == null)
+                    if (!ValidationHelper.ValidateNotNull(skill, nameof(skill)))
                     {
                         continue;
                     }

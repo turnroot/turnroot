@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using NaughtyAttributes;
+using Turnroot.Utilities;
 using Turnroot.Utilities.AbstractScripts;
 using UnityEngine;
 
@@ -255,7 +256,13 @@ namespace Turnroot.GameSettings
 
         public void ResolveParentReferences()
         {
-            if (allPossibleMenuLocations == null)
+            // list should exist before we try to walk it; helper logs a warning if not
+            if (
+                !ValidationHelper.ValidateNotNull(
+                    allPossibleMenuLocations,
+                    nameof(allPossibleMenuLocations)
+                )
+            )
             {
                 return;
             }

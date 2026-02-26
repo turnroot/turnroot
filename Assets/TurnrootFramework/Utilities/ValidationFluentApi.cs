@@ -207,6 +207,24 @@ namespace Turnroot.Utilities
     public static class ValidationExtensions
     {
         /// <summary>
+        /// Shorthand for <see cref="ValidationHelper.ValidateNotNull(object,string,string)"/>.
+        /// </summary>
+        public static bool ValidateNotNull(this object obj, string name, string context = null) =>
+            ValidationHelper.ValidateNotNull(obj, name, context);
+
+        /// <summary>
+        /// Throws <see cref="ArgumentNullException"/> if the supplied value is null.
+        /// Intended for argument validation on public APIs.
+        /// </summary>
+        public static T ThrowIfNull<T>(this T obj, string paramName)
+            where T : class
+        {
+            if (obj == null)
+                throw new ArgumentNullException(paramName);
+            return obj;
+        }
+
+        /// <summary>
         /// Validates that a value is within a range.
         /// </summary>
         public static ValidationBuilder<T> IsInRange<T>(

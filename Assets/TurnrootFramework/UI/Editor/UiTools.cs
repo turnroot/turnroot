@@ -1,4 +1,5 @@
 #if UNITY_EDITOR
+using Turnroot.Utilities;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -15,9 +16,8 @@ namespace Turnroot.UI
         public static void ApplyMenuButtonSpacing()
         {
             var settings = GameSettings.GamewideUiSettings.Instance;
-            if (settings == null)
+            if (!ValidationHelper.ValidateNotNull(settings, "GamewideUiSettings.Instance"))
             {
-                Debug.LogWarning("GamewideUiSettings not found.");
                 return;
             }
 
@@ -120,7 +120,7 @@ namespace Turnroot.UI
         )
         {
             var nearestRoot = PrefabUtility.GetNearestPrefabInstanceRoot(obj);
-            if (nearestRoot == null)
+            if (!ValidationHelper.ValidateNotNull(nearestRoot, nameof(nearestRoot)))
             {
                 return false;
             }

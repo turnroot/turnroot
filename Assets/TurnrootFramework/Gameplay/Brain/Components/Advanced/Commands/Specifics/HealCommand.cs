@@ -27,7 +27,7 @@ namespace Turnroot.Gameplay.Brain.Commands
             }
 
             var health = target.GetBoundedStat(Characters.Stats.BoundedStatType.Health);
-            if (health == null || !UndoState.TryGetValue("prevHP", out var prev))
+            if (health == null || !UndoState.TryGetValue(UndoStateKeys.PrevHP, out var prev))
             {
                 return false;
             }
@@ -50,7 +50,7 @@ namespace Turnroot.Gameplay.Brain.Commands
                 return false;
             }
 
-            UndoState["prevHP"] = health.Current;
+            UndoState[UndoStateKeys.PrevHP] = health.Current;
 
             // TODO: Calculate heal amount based on stats, items, etc.
             int healAmount = 20;

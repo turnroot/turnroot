@@ -24,8 +24,7 @@ namespace Turnroot.Gameplay.Brain
         protected virtual void Awake()
         {
             _brain = GetComponent<Brain>();
-
-            if (_brain == null)
+            if (!ValidationHelper.ValidateNotNull(_brain, nameof(_brain)))
             {
                 $"{GetType().Name}: Brain component not found!".LogError();
                 return;

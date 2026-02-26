@@ -4,6 +4,7 @@ using Turnroot.Characters;
 using Turnroot.Gameplay.Brain.Commands;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
 using Turnroot.Serialization;
+using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Skills
@@ -50,30 +51,25 @@ namespace Turnroot.Skills
         /// </summary>
         public void ExecuteSkill(BattleContext context)
         {
-            if (_skillTemplate == null)
+            // guard clauses use the shared validation helper so all null logging goes through
+            if (!ValidationHelper.ValidateNotNull(_skillTemplate, nameof(_skillTemplate)))
             {
-#if UNITY_EDITOR
-                Debug.LogWarning("SkillInstance has no SkillTemplate assigned.");
-#endif
                 return;
             }
 
-            if (_skillTemplate.BehaviorGraph == null)
+            if (
+                !ValidationHelper.ValidateNotNull(
+                    _skillTemplate.BehaviorGraph,
+                    "BehaviorGraph",
+                    $"Skill {_skillTemplate.SkillName}"
+                )
+            )
             {
-#if UNITY_EDITOR
-                Debug.LogWarning(
-                    $"Skill {_skillTemplate.SkillName} has no BehaviorGraph assigned."
-                );
-#endif
                 return;
             }
 
-            if (context.Brain == null)
-            {
-                throw new InvalidOperationException(
-                    "SkillInstance.ExecuteSkill requires BattleContext.Brain to be set."
-                );
-            }
+            // argument validation; helps callers catch mistakes earlier
+            ValidationHelper.ThrowIfNull(context.Brain, nameof(context.Brain));
 
             // Set runtime context
             context.Skill.CurrentSkill = _skillTemplate;

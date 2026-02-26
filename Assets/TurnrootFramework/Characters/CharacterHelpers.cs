@@ -14,10 +14,16 @@ namespace Turnroot.Characters
     /// </summary>
     public static class CharacterHelpers
     {
+        /// <summary>
+        /// Key used when looking up the default portrait in a dictionary of portraits.
+        /// This avoids hard‑coding the literal string throughout the codebase.
+        /// </summary>
+        public const string DefaultPortraitKey = "default";
+
         public static List<BoundedCharacterStat> CloneBoundedStats(List<BoundedCharacterStat> src)
         {
             var list = new List<BoundedCharacterStat>();
-            if (src == null)
+            if (!ValidationHelper.ValidateNotNull(src, nameof(src)))
             {
                 return list;
             }
@@ -41,7 +47,7 @@ namespace Turnroot.Characters
         public static List<CharacterStat> CloneUnboundedStats(List<CharacterStat> src)
         {
             var list = new List<CharacterStat>();
-            if (src == null)
+            if (!ValidationHelper.ValidateNotNull(src, nameof(src)))
             {
                 return list;
             }
@@ -68,7 +74,7 @@ namespace Turnroot.Characters
         )
         {
             var list = new List<SupportRelationshipInstance>();
-            if (templates == null)
+            if (!ValidationHelper.ValidateNotNull(templates, nameof(templates)))
             {
                 return list;
             }
@@ -91,7 +97,10 @@ namespace Turnroot.Characters
             Action<ImageStackLayer> action
         )
         {
-            if (portraits == null || action == null)
+            if (
+                !ValidationHelper.ValidateNotNull(portraits, nameof(portraits))
+                || !ValidationHelper.ValidateNotNull(action, nameof(action))
+            )
             {
                 return;
             }
@@ -115,13 +124,13 @@ namespace Turnroot.Characters
             SerializableDictionary<string, Portrait> portraits
         )
         {
-            if (portraits == null)
+            if (!ValidationHelper.ValidateNotNull(portraits, nameof(portraits)))
             {
-                "CharacterHelpers: No default portrait because no portraits found".LogWarning();
+                $"CharacterHelpers: No default portrait ({DefaultPortraitKey}) because no portraits found".LogWarning();
                 return null;
             }
 
-            if (portraits.TryGetValue("default", out var portrait))
+            if (portraits.TryGetValue(DefaultPortraitKey, out var portrait))
             {
                 return portrait;
             }
@@ -134,4 +143,3 @@ namespace Turnroot.Characters
         }
     }
 }
-

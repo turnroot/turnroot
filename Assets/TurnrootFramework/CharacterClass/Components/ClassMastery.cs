@@ -53,7 +53,7 @@ namespace Turnroot.Characters.CharacterClass
         /// </summary>
         public Skill GetSkillAtWeaponRank(WeaponType weaponType, LeveledLetteredField weaponRank)
         {
-            if (weaponRank == null)
+            if (!ValidationHelper.ValidateNotNull(weaponRank, nameof(weaponRank)))
             {
                 return null;
             }

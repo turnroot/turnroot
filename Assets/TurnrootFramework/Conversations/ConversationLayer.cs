@@ -3,6 +3,7 @@ using NaughtyAttributes;
 using Turnroot.AbstractScripts.Graphics2D;
 using Turnroot.Characters;
 using Turnroot.Characters.Subclasses;
+using Turnroot.Utilities;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -35,7 +36,10 @@ namespace Turnroot.Conversations
 
             private string[] GetAvailablePortraitKeys()
             {
-                if (Speaker == null || Speaker.Portraits == null)
+                if (
+                    !ValidationHelper.ValidateNotNull(Speaker, nameof(Speaker))
+                    || !ValidationHelper.ValidateNotNull(Speaker?.Portraits, "Speaker.Portraits")
+                )
                 {
                     if (!string.IsNullOrEmpty(PortraitKey))
                     {

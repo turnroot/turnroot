@@ -10,37 +10,42 @@ namespace Turnroot.Characters.Subclasses
     [Serializable]
     public class Pronouns
     {
+        // keys used to index the pronoun dictionary
+        public const string KeyThey = "they";
+        public const string KeyShe = "she";
+        public const string KeyHe = "he";
+
         private static readonly Dictionary<string, string[]> PronounSets = new()
         {
-            { "they", new[] { "they", "their", "theirs", "them" } },
-            { "she", new[] { "she", "her", "hers", "her" } },
-            { "he", new[] { "he", "his", "his", "him" } },
+            { KeyThey, new[] { "they", "their", "theirs", "them" } },
+            { KeyShe, new[] { "she", "her", "hers", "her" } },
+            { KeyHe, new[] { "he", "his", "his", "him" } },
         };
 
         [SerializeField]
         private string[] _selectedPronouns;
 
-        public string Singular => _selectedPronouns?[0] ?? "they";
+        public string Singular => _selectedPronouns?[0] ?? KeyThey;
         public string PossessiveAdjective => _selectedPronouns?[1] ?? "their";
         public string PossessivePronoun => _selectedPronouns?[2] ?? "theirs";
         public string Objective => _selectedPronouns?[3] ?? "them";
 
-        public Pronouns(string pronounType = "they")
+        public Pronouns(string pronounType = KeyThey)
         {
             SetPronounType(pronounType);
         }
 
         public Pronouns()
         {
-            _selectedPronouns = PronounSets["they"];
+            _selectedPronouns = PronounSets[KeyThey];
         }
 
         public void SetPronounType(string pronounType)
         {
-            string key = pronounType?.ToLower() ?? "they";
+            string key = pronounType?.ToLower() ?? KeyThey;
             _selectedPronouns = PronounSets.TryGetValue(key, out var pronouns)
                 ? pronouns
-                : PronounSets["they"];
+                : PronounSets[KeyThey];
         }
 
         public string Get(string pronounCase)
@@ -96,7 +101,7 @@ namespace Turnroot.Characters.Subclasses
                 }
             }
 
-            return "they"; // Default if no match found
+            return KeyThey; // Default if no match found
         }
 
         /// <summary>

@@ -267,7 +267,7 @@ namespace Turnroot.Gameplay.Combat.PreBattle
             bool markChanged = true
         )
         {
-            if (inst == null)
+            if (!ValidationHelper.ValidateNotNull(inst, nameof(inst)))
             {
                 return;
             }
@@ -520,4 +520,3 @@ namespace Turnroot.Gameplay.Combat.PreBattle
         }
     }
 }
-

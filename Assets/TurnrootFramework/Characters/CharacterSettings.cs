@@ -44,8 +44,12 @@ namespace Turnroot.Characters
                 }
 
                 _cachedPrototypeSettings = CharacterPrototypeSettings.Instance;
-
-                if (_cachedPrototypeSettings == null)
+                if (
+                    !ValidationHelper.ValidateNotNull(
+                        _cachedPrototypeSettings,
+                        nameof(_cachedPrototypeSettings)
+                    )
+                )
                 {
                     "CharacterPrototypeSettings not found in Resources/GameSettings. Please create one.".LogWarning();
                 }
@@ -100,4 +104,3 @@ namespace Turnroot.Characters
         #endregion
     }
 }
-

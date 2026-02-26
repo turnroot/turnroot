@@ -25,22 +25,22 @@ namespace Turnroot.Gameplay.Brain.Segments
         private void InitializeRoutes()
         {
             // Pre-battle menu routes
-            _menuActionRoutes["Team"] = _ => _brain.OpenPreBattleUnitsMenu();
-            _menuActionRoutes["Items"] = _ => OpenInventory();
-            _menuActionRoutes["Settings"] = _ => _brain.OpenMainGameSettingsMenu();
-            _menuActionRoutes["Skills"] = _ => OpenSkills();
-            _menuActionRoutes["Map"] = _ => _brain.OpenPreBattleMapOverview();
-            _menuActionRoutes["StartingPositions"] = _ => _brain.OpenPreBattleUnitPositionsMenu();
-            _menuActionRoutes["Support"] = _ => OpenSupport();
-            _menuActionRoutes["Withdraw"] = _ => HandleWithdraw();
-            _menuActionRoutes["StartBattle"] = _ => _brain.HandleStartBattleClick();
+            _menuActionRoutes[MenuRouteNames.Team] = _ => _brain.OpenPreBattleUnitsMenu();
+            _menuActionRoutes[MenuRouteNames.Items] = _ => OpenInventory();
+            _menuActionRoutes[MenuRouteNames.Settings] = _ => _brain.OpenMainGameSettingsMenu();
+            _menuActionRoutes[MenuRouteNames.Skills] = _ => OpenSkills();
+            _menuActionRoutes[MenuRouteNames.Map] = _ => _brain.OpenPreBattleMapOverview();
+            _menuActionRoutes[MenuRouteNames.StartingPositions] = _ => _brain.OpenPreBattleUnitPositionsMenu();
+            _menuActionRoutes[MenuRouteNames.Support] = _ => OpenSupport();
+            _menuActionRoutes[MenuRouteNames.Withdraw] = _ => HandleWithdraw();
+            _menuActionRoutes[MenuRouteNames.StartBattle] = _ => _brain.HandleStartBattleClick();
 
             // Settings menu routes
-            _menuActionRoutes["Graphics"] = _ =>
+            _menuActionRoutes[MenuRouteNames.Graphics] = _ =>
                 TransitionToSubmenu(_brain.gameSettingsGraphicsLocation);
-            _menuActionRoutes["Gameplay"] = _ =>
+            _menuActionRoutes[MenuRouteNames.Gameplay] = _ =>
                 TransitionToSubmenu(_brain.gameSettingsGameplayLocation);
-            _menuActionRoutes["Audio"] = _ => TransitionToSubmenu(_brain.gameSettingsAudioLocation);
+            _menuActionRoutes[MenuRouteNames.Audio] = _ => TransitionToSubmenu(_brain.gameSettingsAudioLocation);
         }
 
         private float _lastSelectTime = -10f;
@@ -82,7 +82,7 @@ namespace Turnroot.Gameplay.Brain.Segments
             {
                 action(item);
             }
-            else if (item.gameObject.CompareTag("UnitCell")) // Unit cell in a grid; special case
+            else if (item.gameObject.CompareTag(MenuRouteNames.UnitCellTag)) // Unit cell in a grid; special case
             {
                 // Try to cast to UnitCellGridMenuItem
                 if (item is UnitCellGridMenuItem unitCellItem)

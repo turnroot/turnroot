@@ -12,7 +12,14 @@ namespace Turnroot.UI.Components
         // Extracted spawn/cleanup helpers to keep main file concise.
         internal void SpawnAllUnitModels_Impl()
         {
-            if (_replaced || _prepObject.placements == null)
+            // don't run twice and ensure we actually have placement data
+            if (
+                _replaced
+                || !ValidationHelper.ValidateNotNull(
+                    _prepObject.placements,
+                    nameof(_prepObject.placements)
+                )
+            )
             {
                 return;
             }
@@ -202,4 +209,3 @@ namespace Turnroot.UI.Components
         }
     }
 }
-

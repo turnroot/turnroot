@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using NaughtyAttributes;
+using Turnroot.Utilities;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -44,13 +45,13 @@ namespace Turnroot.Conversations
         public List<string> GetGraphEntryNodeNames()
         {
             var entries = new List<string>();
-            if (ConversationGraph == null)
+            if (!ValidationHelper.ValidateNotNull(ConversationGraph, nameof(ConversationGraph)))
             {
                 return entries;
             }
 
             var gnodes = GetGraphNodes();
-            if (gnodes == null)
+            if (!ValidationHelper.ValidateNotNull(gnodes, nameof(gnodes)))
             {
                 return entries;
             }
@@ -58,7 +59,10 @@ namespace Turnroot.Conversations
             foreach (var kv in gnodes)
             {
                 var nd = kv.Value;
-                if (nd == null || nd.node == null)
+                if (
+                    !ValidationHelper.ValidateNotNull(nd, nameof(nd))
+                    || !ValidationHelper.ValidateNotNull(nd.node, nameof(nd.node))
+                )
                 {
                     continue;
                 }

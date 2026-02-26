@@ -1,6 +1,7 @@
 using System;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Turnroot.Gameplay.Brain.Components.Memory.JSON;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain.Components
@@ -11,7 +12,7 @@ namespace Turnroot.Gameplay.Brain.Components
     /// </summary>
     public class UnityObjectJsonConverter : JsonConverter
     {
-        private const string UnityMarker = "__unity";
+        // moved to JsonConstants.UnityMarker
         private const string TypeField = "type";
         private const string NameField = "name";
         private const string GuidField = "guid";
@@ -37,7 +38,7 @@ namespace Turnroot.Gameplay.Brain.Components
         {
             var token = new JObject
             {
-                [UnityMarker] = true,
+                [JsonConstants.UnityMarker] = true,
                 [TypeField] = obj.GetType().AssemblyQualifiedName,
                 [NameField] = obj.name,
             };
@@ -93,7 +94,9 @@ namespace Turnroot.Gameplay.Brain.Components
             }
 
             var token = JObject.Load(reader);
-            return token?[UnityMarker] == null ? null : ResolveUnityObject(token, objectType);
+            return token?[JsonConstants.UnityMarker] == null
+                ? null
+                : ResolveUnityObject(token, objectType);
         }
 
         private object ResolveUnityObject(JObject token, Type objectType)

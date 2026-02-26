@@ -13,6 +13,13 @@ namespace Turnroot.Gameplay.Brain
     {
         private const float ANIMATION_BLEND_DURATION = 0.2f;
 
+        // animation state names used when overriding clips
+        private const string WalkState = "Walk";
+        private const string IdleState = "Idle";
+
+        // cached hash for the idle state (used when playing directly)
+        private static readonly int IdleHash = Animator.StringToHash(IdleState);
+
         private void SetupWalkAnimation(GameObject model, CharacterInstance unit)
         {
             if (!model.TryGetComponent<Animator>(out var animator))
@@ -51,7 +58,7 @@ namespace Turnroot.Gameplay.Brain
 
             if (walkClip != null)
             {
-                overrideController["Walk"] = walkClip;
+                overrideController[WalkState] = walkClip;
             }
 
             animator.runtimeAnimatorController = overrideController;
@@ -65,7 +72,7 @@ namespace Turnroot.Gameplay.Brain
             yield return null;
             if (animator != null && animator.gameObject.activeInHierarchy)
             {
-                var idleHash = Animator.StringToHash("Idle");
+                var idleHash = IdleHash;
                 if (animator.HasState(0, idleHash))
                 {
                     animator.Play(idleHash, 0, 0f);
@@ -120,7 +127,7 @@ namespace Turnroot.Gameplay.Brain
 
             if (idleClip != null)
             {
-                overrideController["Idle"] = idleClip;
+                overrideController[IdleState] = idleClip;
             }
 
             animator.runtimeAnimatorController = overrideController;
@@ -172,9 +179,9 @@ namespace Turnroot.Gameplay.Brain
 
                 if (animator.runtimeAnimatorController is AnimatorOverrideController oc)
                 {
-                    oc["Idle"] = nextClip;
+                    oc[IdleState] = nextClip;
                 }
-                animator.Play(Animator.StringToHash("Idle"), 0, normalizedTime);
+animator.Play(IdleHash, 0, normalizedTime);
 
                 currentIndex = nextIndex;
                 currentClip = nextClip;

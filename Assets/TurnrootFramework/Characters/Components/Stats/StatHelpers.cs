@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Turnroot.Gameplay.Brain;
+using Turnroot.Utilities;
 
 namespace Turnroot.Characters.Stats
 {
@@ -34,7 +35,7 @@ namespace Turnroot.Characters.Stats
             string templateId
         )
         {
-            if (stats == null)
+            if (!ValidationHelper.ValidateNotNull(stats, nameof(stats)))
             {
                 return null;
             }
@@ -84,7 +85,7 @@ namespace Turnroot.Characters.Stats
         // ensure a unbounded list never contains more than one entry per type
         private static void CleanupDuplicateUnbounded(List<CharacterStat> stats)
         {
-            if (stats == null)
+            if (!ValidationHelper.ValidateNotNull(stats, nameof(stats)))
             {
                 return;
             }
@@ -112,7 +113,7 @@ namespace Turnroot.Characters.Stats
         // ensure a bounded stats list has no duplicate types
         private static void CleanupDuplicateBounded(List<BoundedCharacterStat> stats)
         {
-            if (stats == null)
+            if (!ValidationHelper.ValidateNotNull(stats, nameof(stats)))
             {
                 return;
             }

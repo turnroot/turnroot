@@ -37,7 +37,7 @@ namespace Turnroot.Characters.CharacterClass
         private OperationResult ValidateStatLists()
         {
             var gs = GameplayGeneralSettings.Instance;
-            if (gs == null)
+            if (!ValidationHelper.ValidateNotNull(gs, nameof(gs), name))
             {
                 return OperationResult.Failure(
                     $"{name}: Cannot validate stat lists - GameplayGeneralSettings not found in GameSettings."

@@ -34,8 +34,8 @@ namespace Turnroot.Gameplay.Brain.Commands
             }
 
             // Record previous map position so Undo can restore it if needed
-            UndoState["from"] = unit.MapGridPosition;
-            UndoState["wasSpawned"] = true;
+            UndoState[UndoStateKeys.From] = unit.MapGridPosition;
+            UndoState[UndoStateKeys.WasSpawned] = true;
 
             var result = context.MapGrid.SetOccupied(
                 unit.UnitPositionToMapGridPoint(SpawnPosition, context.MapGrid),
@@ -58,7 +58,7 @@ namespace Turnroot.Gameplay.Brain.Commands
         public override bool Undo(BattleContext context)
         {
             var unit = FindUnit(context, UnitId);
-            if (unit == null || !UndoState.TryGetValue("from", out var from))
+            if (unit == null || !UndoState.TryGetValue(UndoStateKeys.From, out var from))
             {
                 return false;
             }

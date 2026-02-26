@@ -3,6 +3,7 @@ using System.Reflection;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Turnroot.Characters;
+using Turnroot.Gameplay.Brain.Components.Memory.JSON;
 
 namespace Turnroot.Gameplay.Brain.Components
 {
@@ -11,7 +12,7 @@ namespace Turnroot.Gameplay.Brain.Components
     /// </summary>
     public class CharacterInstanceJsonConverter : JsonConverter
     {
-        private const string UnityMarker = "__unity";
+        // replaced by JsonConstants.UnityMarker
         private const BindingFlags PrivateInstanceFlags =
             BindingFlags.Instance | BindingFlags.NonPublic;
 
@@ -164,9 +165,9 @@ namespace Turnroot.Gameplay.Brain.Components
 
             var token = new JObject
             {
-                [UnityMarker] = true,
-                ["type"] = template.GetType().AssemblyQualifiedName,
-                ["name"] = template.name,
+                [JsonConstants.UnityMarker] = true,
+                [JsonConstants.Type] = template.GetType().AssemblyQualifiedName,
+                [JsonConstants.Name] = template.name,
             };
 
 #if UNITY_EDITOR
@@ -184,11 +185,11 @@ namespace Turnroot.Gameplay.Brain.Components
                 var path = UnityEditor.AssetDatabase.GetAssetPath(template);
                 if (!string.IsNullOrEmpty(path))
                 {
-                    token["assetPath"] = path;
+                    token[JsonConstants.AssetPath] = path;
 
                     try
                     {
-                        token["guid"] = UnityEditor.AssetDatabase.AssetPathToGUID(path);
+                        token[JsonConstants.Guid] = UnityEditor.AssetDatabase.AssetPathToGUID(path);
                     }
                     catch (Exception ex)
                     {
