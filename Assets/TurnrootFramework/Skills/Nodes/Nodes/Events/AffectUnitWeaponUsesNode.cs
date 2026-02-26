@@ -45,7 +45,7 @@ namespace Turnroot.Skills.Nodes.Events
             var port = GetInputPort("usesChange");
             if (port == null || !port.IsConnected)
             {
-                Debug.LogWarning("AffectUnitWeaponUsesNode: 'usesChange' input not provided");
+                "AffectUnitWeaponUsesNode: 'usesChange' input not provided".LogWarning();
                 return;
             }
             int change = (int)GetInputFloat("usesChange", 0f);

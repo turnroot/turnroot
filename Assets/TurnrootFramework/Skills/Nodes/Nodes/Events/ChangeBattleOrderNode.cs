@@ -35,7 +35,7 @@ namespace Turnroot.Skills.Nodes.Events
             var speedPort = GetInputPort("speedModifier");
             if (speedPort == null || !speedPort.IsConnected)
             {
-                Debug.LogWarning("ChangeBattleOrderNode: 'speedModifier' input not provided");
+                "ChangeBattleOrderNode: 'speedModifier' input not provided".LogWarning();
                 return;
             }
 

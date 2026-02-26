@@ -36,7 +36,7 @@ namespace Turnroot.Skills.Nodes.Events
             var redPort = GetInputPort("reductionAmount");
             if (redPort == null || !redPort.IsConnected)
             {
-                Debug.LogWarning("ReduceDamageNode: 'reductionAmount' input not provided");
+                "ReduceDamageNode: 'reductionAmount' input not provided".LogWarning();
                 return;
             }
             float reduction = GetInputFloat("reductionAmount", 0f);
@@ -82,9 +82,7 @@ namespace Turnroot.Skills.Nodes.Events
                 }
                 else
                 {
-                    Debug.LogWarning(
-                        "ReduceDamage: No adjacent allies found to apply reduction to"
-                    );
+                    "ReduceDamage: No adjacent allies found to apply reduction to".LogWarning();
                 }
 
                 ListPool<CharacterInstance>.Return(adjacentAllies);

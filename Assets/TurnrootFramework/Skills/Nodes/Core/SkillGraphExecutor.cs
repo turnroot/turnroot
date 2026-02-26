@@ -72,9 +72,7 @@ namespace Turnroot.Skills.Nodes
 
             if (visitedNodes.Contains(node))
             {
-                Debug.LogWarning(
-                    $"Circular execution detected at node {node.name}. Stopping execution."
-                );
+                $"Circular execution detected at node {node.name}. Stopping execution.".LogWarning();
                 return OperationResult.Failure("Circular execution detected");
             }
 

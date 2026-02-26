@@ -37,7 +37,7 @@ namespace Turnroot.Skills.Nodes.Events
             var changePort = GetInputPort("change");
             if (changePort == null || !changePort.IsConnected)
             {
-                Debug.LogWarning("AffectUnitStatNode: 'change' input not provided");
+                "AffectUnitStatNode: 'change' input not provided".LogWarning();
                 return;
             }
             float changeAmount = GetInputFloat("change", 0f);

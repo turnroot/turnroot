@@ -1,4 +1,5 @@
 using System;
+using Turnroot.Utilities;
 using UnityEditor;
 using UnityEngine;
 using XNode;
@@ -80,9 +81,7 @@ namespace Turnroot.Skills.Nodes.Editor
                         }
                         catch (Exception ex)
                         {
-                            Debug.LogWarning(
-                                $"SkillGraphEditor: failed to remove node subasset: {ex.Message}"
-                            );
+                            $"SkillGraphEditor: failed to remove node subasset: {ex.Message}".LogWarning();
                         }
                     }
                 }
@@ -242,9 +241,7 @@ namespace Turnroot.Skills.Nodes.Editor
                 }
                 catch (Exception ex)
                 {
-                    Debug.LogWarning(
-                        $"SkillGraphEditor: failed to persist created node as subasset: {ex.Message}"
-                    );
+                    $"SkillGraphEditor: failed to persist created node as subasset: {ex.Message}".LogWarning();
                 }
             }
 

@@ -48,7 +48,7 @@ namespace Turnroot.Skills.Nodes.Events
             var changePort = GetInputPort("change");
             if (changePort == null || !changePort.IsConnected)
             {
-                Debug.LogWarning("AffectAdjacentAllyStatNode: 'change' input not provided");
+                "AffectAdjacentAllyStatNode: 'change' input not provided".LogWarning();
                 return;
             }
             float changeAmount = GetInputFloat("change", 0f);
@@ -76,9 +76,7 @@ namespace Turnroot.Skills.Nodes.Events
 
             if (affectedCount == 0)
             {
-                Debug.LogWarning(
-                    "AffectAdjacentAllyStat: No adjacent allies found or stat changes failed"
-                );
+                "AffectAdjacentAllyStat: No adjacent allies found or stat changes failed".LogWarning();
             }
             else
             {

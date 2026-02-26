@@ -1,6 +1,7 @@
 using Turnroot.Characters;
 using Turnroot.Characters.Stats;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
+using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Skills.Nodes
@@ -90,9 +91,7 @@ namespace Turnroot.Skills.Nodes
                 return stat.Current;
             }
 
-            Debug.LogWarning(
-                $"{node.GetType().Name}: Unable to retrieve runtime value for {statName}, returning fallback."
-            );
+            $"{node.GetType().Name}: Unable to retrieve runtime value for {statName}, returning fallback.".LogWarning();
             return fallbackValue;
         }
 
@@ -113,9 +112,7 @@ namespace Turnroot.Skills.Nodes
                 return boundedStat.Max;
             }
 
-            Debug.LogWarning(
-                $"{node.GetType().Name}: Unable to retrieve max value for {statName}, returning fallback."
-            );
+            $"{node.GetType().Name}: Unable to retrieve max value for {statName}, returning fallback.".LogWarning();
             return fallbackValue;
         }
 
@@ -139,9 +136,7 @@ namespace Turnroot.Skills.Nodes
                 return boundedStat.Ratio * 100f;
             }
 
-            Debug.LogWarning(
-                $"{node.GetType().Name}: Unable to retrieve percentage for {statName}, returning fallback."
-            );
+            $"{node.GetType().Name}: Unable to retrieve percentage for {statName}, returning fallback.".LogWarning();
             return fallbackValue;
         }
 

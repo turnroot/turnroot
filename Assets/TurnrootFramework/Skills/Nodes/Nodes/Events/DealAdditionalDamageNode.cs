@@ -36,7 +36,7 @@ namespace Turnroot.Skills.Nodes.Events
             var dmgPort = GetInputPort("damageAmount");
             if (dmgPort == null || !dmgPort.IsConnected)
             {
-                Debug.LogWarning("DealAdditionalDamageNode: 'damageAmount' input not provided");
+                "DealAdditionalDamageNode: 'damageAmount' input not provided".LogWarning();
                 return;
             }
 

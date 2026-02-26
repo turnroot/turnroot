@@ -32,14 +32,14 @@ namespace Turnroot.Skills.Nodes.Events
             var dmgPort = GetInputPort("damageAmount");
             if (dmgPort == null || !dmgPort.IsConnected)
             {
-                Debug.LogWarning("AreaOfEffectDamageNode: 'damageAmount' input not provided");
+                "AreaOfEffectDamageNode: 'damageAmount' input not provided".LogWarning();
                 return;
             }
             float damage = GetInputFloat("damageAmount", 0f);
             var radPort = GetInputPort("aoeRadius");
             if (radPort == null || !radPort.IsConnected)
             {
-                Debug.LogWarning("AreaOfEffectDamageNode: 'aoeRadius' input not provided");
+                "AreaOfEffectDamageNode: 'aoeRadius' input not provided".LogWarning();
                 return;
             }
             float radius = GetInputFloat("aoeRadius", 0f);

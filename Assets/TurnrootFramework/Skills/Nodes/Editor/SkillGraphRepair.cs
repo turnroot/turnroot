@@ -2,6 +2,7 @@
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
+using Turnroot.Utilities;
 using XNode;
 
 namespace Turnroot.Skills.Nodes.Editor
@@ -19,16 +20,14 @@ namespace Turnroot.Skills.Nodes.Editor
             var graph = Selection.activeObject as NodeGraph;
             if (graph == null)
             {
-                Debug.LogWarning(
-                    "SkillGraphRepair: select a SkillGraph asset in the Project window first."
-                );
+                "SkillGraphRepair: select a SkillGraph asset in the Project window first.".LogWarning();
                 return;
             }
 
             var graphPath = AssetDatabase.GetAssetPath(graph);
             if (string.IsNullOrEmpty(graphPath))
             {
-                Debug.LogWarning("SkillGraphRepair: selected object is not an on-disk asset.");
+                "SkillGraphRepair: selected object is not an on-disk asset.".LogWarning();
                 return;
             }
 
@@ -54,15 +53,11 @@ namespace Turnroot.Skills.Nodes.Editor
                 EditorUtility.SetDirty(graph);
                 AssetDatabase.SaveAssets();
                 AssetDatabase.ImportAsset(graphPath, ImportAssetOptions.ForceUpdate);
-                Debug.Log(
-                    $"SkillGraphRepair: attached {added} node(s) to '{graphPath}' and saved."
-                );
+                $"SkillGraphRepair: attached {added} node(s) to '{graphPath}' and saved.".LogInfo();
             }
             else
             {
-                Debug.Log(
-                    "SkillGraphRepair: no orphan nodes found. If nodes still show 'Type mismatch' check the Console for missing scripts or restore the asset from VCS."
-                );
+                "SkillGraphRepair: no orphan nodes found. If nodes still show 'Type mismatch' check the Console for missing scripts or restore the asset from VCS.".LogInfo();
             }
         }
 
@@ -135,9 +130,7 @@ namespace Turnroot.Skills.Nodes.Editor
                 EditorUtility.SetDirty(graph);
                 AssetDatabase.SaveAssets();
                 AssetDatabase.ImportAsset(graphPath, ImportAssetOptions.ForceUpdate);
-                Debug.Log(
-                    $"SkillGraphImportPostprocessor: attached {added} node(s) to '{graphPath}' on import."
-                );
+                $"SkillGraphImportPostprocessor: attached {added} node(s) to '{graphPath}' on import.".LogInfo();
             }
         }
     }

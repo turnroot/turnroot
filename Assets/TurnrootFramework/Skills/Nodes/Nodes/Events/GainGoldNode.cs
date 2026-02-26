@@ -29,7 +29,7 @@ namespace Turnroot.Skills.Nodes.Events
             var goldPort = GetInputPort("goldAmount");
             if (goldPort == null || !goldPort.IsConnected)
             {
-                Debug.LogWarning("GainGoldNode: 'goldAmount' input not provided");
+                "GainGoldNode: 'goldAmount' input not provided".LogWarning();
                 return;
             }
 

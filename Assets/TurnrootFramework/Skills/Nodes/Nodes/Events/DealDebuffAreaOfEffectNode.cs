@@ -44,7 +44,7 @@ namespace Turnroot.Skills.Nodes.Events
             var radPort = GetInputPort("aoeRadius");
             if (radPort == null || !radPort.IsConnected)
             {
-                Debug.LogWarning("DealDebuffAreaOfEffectNode: 'aoeRadius' input not provided");
+                "DealDebuffAreaOfEffectNode: 'aoeRadius' input not provided".LogWarning();
                 return;
             }
             float radius = GetInputFloat("aoeRadius", 0f);

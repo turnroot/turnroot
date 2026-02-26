@@ -31,7 +31,7 @@ namespace Turnroot.Skills.Nodes.Conditions
             var chancePort = GetInputPort("chance");
             if (chancePort == null || !chancePort.IsConnected)
             {
-                Debug.LogWarning("PercentChanceNode: 'chance' input not provided");
+                "PercentChanceNode: 'chance' input not provided".LogWarning();
                 return new BoolValue { value = false };
             }
             float chanceValue = GetInputFloat("chance", 0f);

@@ -28,7 +28,7 @@ namespace Turnroot.Skills.Nodes.Events
             var refPort = GetInputPort("reflectionPercent");
             if (refPort == null || !refPort.IsConnected)
             {
-                Debug.LogWarning("DamageReflectionNode: 'reflectionPercent' input not provided");
+                "DamageReflectionNode: 'reflectionPercent' input not provided".LogWarning();
                 return;
             }
             float reflectPercent = GetInputFloat("reflectionPercent", 0f);

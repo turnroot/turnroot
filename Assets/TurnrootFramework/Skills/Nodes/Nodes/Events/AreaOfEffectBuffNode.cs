@@ -52,7 +52,7 @@ namespace Turnroot.Skills.Nodes.Events
             var intensityPort = GetInputPort("intensity");
             if (intensityPort == null || !intensityPort.IsConnected)
             {
-                Debug.LogWarning("AreaOfEffectBuffNode: 'intensity' input not provided");
+                "AreaOfEffectBuffNode: 'intensity' input not provided".LogWarning();
                 return;
             }
             float intensityValue = GetInputFloat("intensity", 1f);

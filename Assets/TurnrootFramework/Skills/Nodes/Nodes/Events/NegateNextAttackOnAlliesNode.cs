@@ -80,9 +80,7 @@ namespace Turnroot.Skills.Nodes.Events
                 }
                 else
                 {
-                    Debug.LogWarning(
-                        "NegateNextAttackOnAllies: No adjacent allies found to apply negation to"
-                    );
+                    "NegateNextAttackOnAllies: No adjacent allies found to apply negation to".LogWarning();
                 }
 
                 ListPool<CharacterInstance>.Return(adjacentAllies);
