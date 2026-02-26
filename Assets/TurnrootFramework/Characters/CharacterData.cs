@@ -12,7 +12,6 @@ using Turnroot.CommonAncestors;
 using Turnroot.Gameplay.Objects;
 using Turnroot.GameSettings;
 using Turnroot.Skills;
-using Turnroot.Utilities;
 using Turnroot.Utilities.AbstractScripts;
 using UnityEngine;
 
@@ -264,15 +263,10 @@ namespace Turnroot.Characters
             Foldout("Behavior"),
             SerializeField,
             HorizontalLine(color: EColor.Blue),
-            HideInInspector,
-            ShowIf(nameof(AlwaysHideBehavior))
+            HideInInspector
         ]
         public CharacterBehavior BehaviorSettings { get; private set; }
 
-#if UNITY_EDITOR
-        // Always-hide helper for NaughtyAttributes; prevents the field from drawing automatically
-        private bool AlwaysHideBehavior() => false;
-#endif
 
 #if TURNROOT_BLOODLINES_MODULE
         [Foldout("Heredity"), SerializeField]
@@ -371,76 +365,7 @@ namespace Turnroot.Characters
         [field: SerializeField, HideInInspector]
         public List<CharacterStat> UnboundedStats { get; private set; } = new();
 
-#if UNITY_EDITOR
-        private void ValidateStats()
-        {
-            var errorList = new List<string>();
-            var warningList = new List<string>();
 
-            // Check bounded stats
-            var requiredBounded = Enum.GetValues(typeof(BoundedStatType));
-            var existingBounded = new HashSet<BoundedStatType>();
-
-            foreach (var stat in BoundedStats)
-            {
-                if (stat == null)
-                {
-                    warningList.Add($"{name}: BoundedStats contains null entry");
-                    continue;
-                }
-
-                if (!existingBounded.Add(stat.StatType))
-                {
-                    errorList.Add($"{name}: Duplicate bounded stat {stat.StatType}");
-                }
-            }
-
-            foreach (BoundedStatType type in requiredBounded)
-            {
-                if (!existingBounded.Contains(type))
-                {
-                    warningList.Add($"{name}: Missing bounded stat {type}");
-                }
-            }
-
-            // Check unbounded stats
-            var requiredUnbounded = Enum.GetValues(typeof(UnboundedStatType));
-            var existingUnbounded = new HashSet<UnboundedStatType>();
-
-            foreach (var stat in UnboundedStats)
-            {
-                if (stat == null)
-                {
-                    warningList.Add($"{name}: UnboundedStats contains null entry");
-                    continue;
-                }
-
-                if (!existingUnbounded.Add(stat.StatType))
-                {
-                    errorList.Add($"{name}: Duplicate unbounded stat {stat.StatType}");
-                }
-            }
-
-            foreach (UnboundedStatType type in requiredUnbounded)
-            {
-                if (!existingUnbounded.Contains(type))
-                {
-                    warningList.Add($"{name}: Missing unbounded stat {type}");
-                }
-            }
-
-            // Report consolidated results using TurnrootLogger to reduce spam
-            if (errorList.Count > 0)
-            {
-                $"{name}: Stat validation errors:\n{string.Join("\n", errorList)}".LogError();
-            }
-
-            if (warningList.Count > 0)
-            {
-                $"{name}: Stat validation warnings:\n{string.Join("\n", warningList)}\nConsider using 'Tools > Turnroot > Refresh Character Stats' or checking GameplayGeneralSettings.".LogWarning();
-            }
-        }
-#endif
 
         [field: SerializeField, HideInInspector]
         [Tooltip(

@@ -1,6 +1,4 @@
 using UnityEngine;
-
-using Turnroot.Utilities;
 namespace Turnroot.Utilities.AbstractScripts
 {
     /// <summary>
