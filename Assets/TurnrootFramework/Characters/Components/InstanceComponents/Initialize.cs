@@ -9,6 +9,7 @@ using Turnroot.Gameplay.Objects;
 using Turnroot.GameSettings;
 using Turnroot.Skills;
 using Turnroot.Utilities;
+using UnityEngine;
 
 namespace Turnroot.Characters
 {
@@ -81,8 +82,26 @@ namespace Turnroot.Characters
                 return validation;
             }
 
-            _currentLevel = _characterTemplate.Level;
-            _currentExp = _characterTemplate.Exp;
+            // derive starting level/exp from the template's bounded stat entries
+            _currentLevel = 1;
+            _currentExp = 0;
+            if (_characterTemplate.BoundedStats != null)
+            {
+                var lvlTemplate = _characterTemplate.BoundedStats.Find(s =>
+                    s.StatType == BoundedStatType.Level
+                );
+                if (lvlTemplate != null)
+                {
+                    _currentLevel = Mathf.FloorToInt(lvlTemplate.Current);
+                }
+                var expTemplate = _characterTemplate.BoundedStats.Find(s =>
+                    s.StatType == BoundedStatType.LevelExperience
+                );
+                if (expTemplate != null)
+                {
+                    _currentExp = Mathf.FloorToInt(expTemplate.Current);
+                }
+            }
 
             _runtimeBoundedStats = CharacterHelpers.CloneBoundedStats(
                 _characterTemplate.BoundedStats
@@ -90,6 +109,23 @@ namespace Turnroot.Characters
             _runtimeUnboundedStats = CharacterHelpers.CloneUnboundedStats(
                 _characterTemplate.UnboundedStats
             );
+            // make sure runtime copy reflects the derived level/exp values
+            if (_runtimeBoundedStats != null)
+            {
+                var lvlStat = _runtimeBoundedStats.Find(s => s.StatType == BoundedStatType.Level);
+                if (lvlStat != null)
+                {
+                    lvlStat.SetCurrent(_currentLevel);
+                    lvlStat.SetMax(_currentLevel);
+                }
+                var expStat = _runtimeBoundedStats.Find(s =>
+                    s.StatType == BoundedStatType.LevelExperience
+                );
+                if (expStat != null)
+                {
+                    expStat.SetCurrent(_currentExp);
+                }
+            }
 
             RepairMissingStats();
 

@@ -14,7 +14,7 @@ namespace Turnroot.UI
     {
         public static void ApplyMenuButtonSpacing()
         {
-            var settings = Turnroot.GameSettings.GamewideUiSettings.Instance;
+            var settings = GameSettings.GamewideUiSettings.Instance;
             if (settings == null)
             {
                 Debug.LogWarning("GamewideUiSettings not found.");
@@ -64,9 +64,9 @@ namespace Turnroot.UI
 
         private static void UpdateOpenScenes(float spacing)
         {
-            for (int i = 0; i < EditorSceneManager.sceneCount; i++)
+            for (int i = 0; i < SceneManager.sceneCount; i++)
             {
-                var scene = EditorSceneManager.GetSceneAt(i);
+                var scene = SceneManager.GetSceneAt(i);
                 if (!scene.isLoaded)
                 {
                     continue;

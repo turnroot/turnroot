@@ -28,7 +28,6 @@ namespace Turnroot.Gameplay.Brain
                 return;
             }
 
-            // create a fresh override controller for walk/idle setup
             var overrideController = new AnimatorOverrideController(baseController);
 
             AnimationClip walkClip;
@@ -38,12 +37,10 @@ namespace Turnroot.Gameplay.Brain
                 && unit.CharacterTemplate.UseDefaultAnimationsAlways == true
             )
             {
-                // always use character defaults, ignore class
                 walkClip = unit.CharacterTemplate.DefaultWalkingAnimation;
             }
             else
             {
-                // prefer class animation, fall back to character
                 var classData = unit.GetCurrentClass()?.ClassData;
                 var classWalkClip = classData.WalkAnimation;
                 walkClip =
@@ -60,13 +57,11 @@ namespace Turnroot.Gameplay.Brain
             animator.runtimeAnimatorController = overrideController;
             animator.enabled = true;
 
-            // delegate idle logic to its own helper so it can be reused
             SetupIdleAnimation(animator, unit, overrideController);
         }
 
         private IEnumerator PlayIdleAnimationNextFrame(Animator animator)
         {
-            // keep legacy behaviour: immediately push the idle state
             yield return null;
             if (animator != null && animator.gameObject.activeInHierarchy)
             {
@@ -78,12 +73,6 @@ namespace Turnroot.Gameplay.Brain
             }
         }
 
-        /// <summary>
-        /// Configure idle animation clips separately from walk.
-        /// <paramref name="overrideController"/> may be provided when caller already
-        /// created one for walk setup; otherwise a new override controller will be
-        /// instantiated from the animator's current controller.
-        /// </summary>
         private void SetupIdleAnimation(
             Animator animator,
             CharacterInstance unit,
@@ -137,30 +126,25 @@ namespace Turnroot.Gameplay.Brain
             animator.runtimeAnimatorController = overrideController;
             animator.enabled = true;
 
-            // start first-frame play and the variation loop
             StartCoroutine(PlayIdleAnimationNextFrame(animator));
             StartCoroutine(IdleVariationRoutine(animator, idleClips));
         }
 
         private IEnumerator IdleVariationRoutine(Animator animator, AnimationClip[] idleClips)
         {
-            // nothing to do if there aren't at least two clips
             if (idleClips == null || idleClips.Length <= 1)
             {
                 yield break;
             }
 
-            // pick initial clip index from controller (already applied)
             int currentIndex = Random.Range(0, idleClips.Length);
             AnimationClip currentClip = idleClips[currentIndex];
 
-            // loop indefinitely while animator is alive
             while (animator != null && animator.gameObject.activeInHierarchy)
             {
-                // wait until slightly before the clip finishes so blending overlaps
                 float clipLength =
                     (currentClip != null && currentClip.length > 0f) ? currentClip.length : 1f;
-                float waitTime = Mathf.Max(0f, clipLength - ANIMATION_BLEND_DURATION);
+                float waitTime = Mathf.Max(0f, clipLength - (ANIMATION_BLEND_DURATION * 2f));
                 yield return new WaitForSeconds(waitTime);
 
                 // choose a different clip (allow repeats if random picks same)
@@ -171,37 +155,38 @@ namespace Turnroot.Gameplay.Brain
                     continue;
                 }
 
-                // perform a manual blend between the two clips using PlayableGraph
-                yield return BlendIdleClips(
+                float normalizedTime = 0f;
+                if (animator != null && animator.gameObject.activeInHierarchy)
+                {
+                    var state = animator.GetCurrentAnimatorStateInfo(0);
+                    normalizedTime = state.normalizedTime % 1f;
+                }
+
+                yield return BlendClips(
                     animator,
                     currentClip,
                     nextClip,
-                    ANIMATION_BLEND_DURATION
+                    ANIMATION_BLEND_DURATION,
+                    normalizedTime
                 );
 
-                // update controller to reflect current clip
                 if (animator.runtimeAnimatorController is AnimatorOverrideController oc)
                 {
                     oc["Idle"] = nextClip;
                 }
-                animator.Play(Animator.StringToHash("Idle"), 0, 0f);
+                animator.Play(Animator.StringToHash("Idle"), 0, normalizedTime);
 
                 currentIndex = nextIndex;
                 currentClip = nextClip;
             }
         }
 
-        /// <summary>
-        /// Creates a temporary PlayableGraph that crossfades from <paramref name="from"/>
-        /// to <paramref name="to"/> over <paramref name="duration"/> seconds, feeding
-        /// the result into <paramref name="animator"/>. The graph is destroyed when
-        /// the transition completes.
-        /// </summary>
-        private IEnumerator BlendIdleClips(
+        private IEnumerator BlendClips(
             Animator animator,
             AnimationClip from,
             AnimationClip to,
-            float duration
+            float duration,
+            float startNormalizedTime = 0f
         )
         {
             if (animator == null || from == null || to == null || duration <= 0f)
@@ -215,6 +200,11 @@ namespace Turnroot.Gameplay.Brain
 
             var fromPlayable = AnimationClipPlayable.Create(graph, from);
             var toPlayable = AnimationClipPlayable.Create(graph, to);
+
+            double fromTime = Mathf.Repeat(startNormalizedTime, 1f) * from.length;
+            double toTime = Mathf.Repeat(startNormalizedTime, 1f) * to.length;
+            fromPlayable.SetTime(fromTime);
+            toPlayable.SetTime(toTime);
 
             graph.Connect(fromPlayable, 0, mixer, 0);
             graph.Connect(toPlayable, 0, mixer, 1);
@@ -237,38 +227,75 @@ namespace Turnroot.Gameplay.Brain
             graph.Destroy();
         }
 
-        public void BlendToWalkAnimation(Animator animator)
+        public void BlendToWalkAnimation(Animator animator) => BlendToNamedClip(animator, "Walk");
+
+        public void BlendToIdleAnimation(Animator animator) => BlendToNamedClip(animator, "Idle");
+
+        private void BlendToNamedClip(Animator animator, string clipName)
         {
             if (animator == null || !animator.gameObject.activeInHierarchy)
             {
                 return;
             }
 
-            var walkHash = Animator.StringToHash("Walk");
-            if (animator.HasState(0, walkHash))
+            var toClip = GetClipByName(animator, clipName);
+            if (toClip == null)
             {
-                animator.CrossFade(walkHash, ANIMATION_BLEND_DURATION, 0);
-            }
-        }
-
-        public void BlendToIdleAnimation(Animator animator)
-        {
-            if (animator == null || !animator.gameObject.activeInHierarchy)
-            {
+                // fallback to simple crossfade if we can't resolve a clip
+                var hash = Animator.StringToHash(clipName);
+                if (animator.HasState(0, hash))
+                {
+                    animator.CrossFade(hash, ANIMATION_BLEND_DURATION, 0);
+                }
                 return;
             }
 
-            var idleHash = Animator.StringToHash("Idle");
-            if (animator.HasState(0, idleHash))
+            AnimationClip fromClip = toClip;
+            var currentInfos = animator.GetCurrentAnimatorClipInfo(0);
+            if (currentInfos.Length > 0 && currentInfos[0].clip != null)
             {
-                animator.CrossFade(idleHash, ANIMATION_BLEND_DURATION, 0);
+                fromClip = currentInfos[0].clip;
             }
+
+            float normalizedTime = 0f;
+            var state = animator.GetCurrentAnimatorStateInfo(0);
+            normalizedTime = state.normalizedTime % 1f;
+
+            StartCoroutine(
+                BlendClips(animator, fromClip, toClip, ANIMATION_BLEND_DURATION, normalizedTime)
+            );
         }
 
-        /// <summary>
-        /// Sets up animator layers for characters with extra bones (tails, wings, etc.).
-        /// Applies AvatarMask to layer 1 for independent animation of extra bones.
-        /// </summary>
+        private AnimationClip GetClipByName(Animator animator, string name)
+        {
+            if (animator == null || animator.runtimeAnimatorController == null)
+            {
+                return null;
+            }
+
+            if (animator.runtimeAnimatorController is AnimatorOverrideController oc)
+            {
+                var clip = oc[name];
+                if (clip != null)
+                {
+                    return clip;
+                }
+            }
+
+            var clips = animator.runtimeAnimatorController.animationClips;
+            if (clips != null)
+            {
+                foreach (var c in clips)
+                {
+                    if (c != null && c.name == name)
+                    {
+                        return c;
+                    }
+                }
+            }
+            return null;
+        }
+
         private void SetupAnimatorLayers(Animator animator, CharacterInstance unit)
         {
 #if UNITY_EDITOR
@@ -304,7 +331,6 @@ namespace Turnroot.Gameplay.Brain
                 return;
             }
 
-            // Editor-time setup
             if (controllerAsset.layers.Length < 2)
             {
                 LogError(

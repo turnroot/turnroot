@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Turnroot.Characters.Stats;
 using Turnroot.GameSettings;
 using Turnroot.Utilities;
@@ -86,6 +87,19 @@ namespace Turnroot.Characters.CharacterClass
                     (statType) => new UnboundedStatModifier(statType, 0)
                 );
             }
+
+            // Ensure HP growth modifier exists as a bounded entry
+            if (
+                !Stats.GrowthRateModifiers.Exists(g =>
+                    g.isBounded && g.boundedStatType == BoundedStatType.Health
+                )
+            )
+            {
+                Stats.GrowthRateModifiers.Add(
+                    new UnboundedStatModifier(BoundedStatType.Health, 0f)
+                );
+            }
+
             return OperationResult.Successful();
         }
 
@@ -124,16 +138,26 @@ namespace Turnroot.Characters.CharacterClass
                 ? c
                 : new List<UnboundedStatType>(defaults);
 
-            if (list.Count == 0)
+            // count only non-bounded entries (HP or other future bounded growths are
+            // stored alongside but shouldn't affect the unbounded stat count check)
+            int unboundedCount = list.Count(m => !m.isBounded);
+
+            if (unboundedCount == 0)
             {
                 foreach (var statType in defaultList)
                 {
                     list.Add(creator(statType));
                 }
             }
-            else if (list.Count != defaultList.Count)
+            else if (unboundedCount != defaultList.Count)
             {
-                $"{name}: {listName} count ({list.Count}) doesn't match project default stat count ({defaultList.Count}). This may cause issues.".LogWarning();
+                $"{name}: {listName} count ({unboundedCount}) doesn't match project default stat count ({defaultList.Count}). This may cause issues.".LogWarning();
+            }
+
+            // after validation, ensure HP growth entry exists regardless of count
+            if (!list.Exists(g => g.isBounded && g.boundedStatType == BoundedStatType.Health))
+            {
+                list.Add(new UnboundedStatModifier(BoundedStatType.Health, 0f));
             }
         }
 
@@ -227,9 +251,7 @@ namespace Turnroot.Characters.CharacterClass
                         foreach (var gg in guids)
                         {
                             var p = AssetDatabase.GUIDToAssetPath(gg);
-                            var o = AssetDatabase.LoadAssetAtPath<CharacterClassData>(
-                                p
-                            );
+                            var o = AssetDatabase.LoadAssetAtPath<CharacterClassData>(p);
                             if (o == null)
                             {
                                 continue;

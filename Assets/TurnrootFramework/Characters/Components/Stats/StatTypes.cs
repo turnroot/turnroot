@@ -22,7 +22,6 @@ namespace Turnroot.Characters.Stats
         Dexterity = 7,
         Charm = 8,
         Movement = 9,
-        Endurance = 10,
         Authority = 11,
         CriticalAvoidance = 12,
     }
@@ -67,7 +66,6 @@ namespace Turnroot.Characters.Stats
             { UnboundedStatType.Dexterity, ("Dex", "Affects ranged attack accuracy and dodging") },
             { UnboundedStatType.Charm, ("Chr", "Influences interactions with NPCs") },
             { UnboundedStatType.Movement, ("Mov", "Number of tiles a character can move") },
-            { UnboundedStatType.Endurance, ("End", "Affects stamina and resistance to fatigue") },
             { UnboundedStatType.Authority, ("Ahy", "Influences leadership and command abilities") },
             {
                 UnboundedStatType.CriticalAvoidance,

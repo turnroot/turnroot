@@ -2,13 +2,16 @@ using Turnroot.Characters;
 using Turnroot.Gameplay.Brain;
 using Turnroot.Gameplay.Brain.Components.Battle;
 using Turnroot.Gameplay.Combat;
+using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
 using Turnroot.Gameplay.Maps;
 using Turnroot.GameSettings;
 using Turnroot.Utilities;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 namespace Turnroot.UI.Components
 {
+    [RequireComponent(typeof(BattleContext))]
     public class BattleOverlayManager : MonoBehaviour
     {
         private Brain _brain;
@@ -16,20 +19,57 @@ namespace Turnroot.UI.Components
         private PassiveSkillOverlay _overlayComponent;
         private CharacterInstance _currentUnit;
 
+        public InputAction SkillsAndStatusesToggleDetails;
+
+        private void Awake()
+        {
+            SkillsAndStatusesToggleDetails.performed += ctx => ToggleDetails();
+            SkillsAndStatusesToggleDetails.Enable();
+        }
+
+        private bool _initialized = false;
+        private bool _unitSelected = false;
+
         private void OnDestroy()
         {
             UnsubscribeFromBrain();
+            SkillsAndStatusesToggleDetails.performed -= ctx => ToggleDetails();
+            SkillsAndStatusesToggleDetails.Disable();
         }
 
-        public void Initialize(Brain brain)
-        {
-            if (brain == null)
-            {
-                return;
-            }
+        private bool _passiveSkillsExpanded = false;
 
-            _brain = brain;
-            SubscribeToBrain();
+        private void ToggleDetails()
+        {
+            _passiveSkillsExpanded = !_passiveSkillsExpanded;
+            _overlayComponent.ToggleDetails(_passiveSkillsExpanded);
+        }
+
+        public void Initialize()
+        {
+            // this is called from the PreTurnUi timeline signal, in battlesceneflow
+            if (!_initialized)
+            {
+                var battleContext = GetComponent<BattleContext>();
+                _brain = battleContext.Brain;
+                SubscribeToBrain();
+                _initialized = true;
+                "BattleOverlayManager initialized and subscribed to brain events.".LogInfo();
+                if (_overlayInstance != null)
+                {
+                    Destroy(_overlayInstance);
+                    _overlayInstance = null;
+                    _overlayComponent = null;
+                }
+                var settings = GamewideUiSettings.Instance;
+                if (settings != null && settings.PassiveSkillOverlayPrefab != null)
+                {
+                    _overlayInstance = Instantiate(settings.PassiveSkillOverlayPrefab);
+                    _overlayComponent = _overlayInstance.GetComponent<PassiveSkillOverlay>();
+                    _overlayInstance.SetActive(false);
+                }
+                "BattleOverlayManager: Passive skill overlay instantiated.".LogInfo();
+            }
         }
 
         private void SubscribeToBrain()
@@ -62,25 +102,18 @@ namespace Turnroot.UI.Components
 
         private void HandleBattleStarted()
         {
-            if (_overlayInstance != null)
-            {
-                Destroy(_overlayInstance);
-                _overlayInstance = null;
-                _overlayComponent = null;
-            }
-            var settings = GamewideUiSettings.Instance;
-            if (settings != null && settings.PassiveSkillOverlayPrefab != null)
-            {
-                _overlayInstance = Instantiate(settings.PassiveSkillOverlayPrefab);
-                _overlayComponent = _overlayInstance.GetComponent<PassiveSkillOverlay>();
-                _overlayInstance.SetActive(false);
-            }
-
             _currentUnit = null;
+            _unitSelected = false;
         }
 
         private void HandleCursorPositionChanged(Vector2Int pos, MapGrid grid)
         {
+            if (_unitSelected)
+            {
+                // keep current overlay displayed until movement starts
+                return;
+            }
+
             if (_brain?.cursorBrain != null && _brain.cursorBrain.IsCursorOnUnit(out var unit))
             {
                 ShowForUnit(unit);
@@ -105,9 +138,23 @@ namespace Turnroot.UI.Components
 
         private void HandlePlayerTurnStateChanged(PlayerTurnStates newState)
         {
-            if (newState == PlayerTurnStates.ExecutingMove)
+            switch (newState)
             {
-                HideOverlay();
+                case PlayerTurnStates.UnitSelected:
+                case PlayerTurnStates.ChoosingDestination:
+                case PlayerTurnStates.DestinationSelected:
+                    _unitSelected = true;
+                    break;
+
+                case PlayerTurnStates.ExecutingMove:
+                    HideOverlay();
+                    _unitSelected = false;
+                    break;
+
+                case PlayerTurnStates.TurnEnded:
+                case PlayerTurnStates.NoUnitSelected:
+                    _unitSelected = false;
+                    break;
             }
         }
 
@@ -130,8 +177,7 @@ namespace Turnroot.UI.Components
             {
                 foreach (var skill in unit.ActivePassiveSkills)
                 {
-                    var icon = skill?.Badge?.RuntimeSprite;
-                    _overlayComponent?.AddSkill(skill?.SkillName ?? string.Empty, icon);
+                    _overlayComponent?.AddSkill(skill);
                 }
             }
 

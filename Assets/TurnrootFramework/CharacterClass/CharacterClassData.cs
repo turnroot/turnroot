@@ -271,14 +271,40 @@ namespace Turnroot.Characters.CharacterClass
     [Serializable]
     public struct UnboundedStatModifier
     {
+        // growth may apply to either an unbounded stat (e.g. Strength) or a bounded stat
+        // (currently only Health/HP).  "isBounded" indicates which field is active.
+        public bool isBounded;
+
+        // when isBounded == false, this field identifies the unbounded stat type.
         public UnboundedStatType unboundedStatType;
+
+        // when isBounded == true, this field identifies the bounded stat type.
+        public BoundedStatType boundedStatType;
+
         public float value;
 
+        // constructor for unbounded stat growth
         public UnboundedStatModifier(UnboundedStatType type, float val)
         {
+            isBounded = false;
             unboundedStatType = type;
+            boundedStatType = default;
             value = val;
         }
+
+        // constructor for bounded stat growth (HP)
+        public UnboundedStatModifier(BoundedStatType type, float val)
+        {
+            isBounded = true;
+            boundedStatType = type;
+            unboundedStatType = default;
+            value = val;
+        }
+
+        /// <summary>
+        /// Helper to check if this modifier targets HP specifically.
+        /// </summary>
+        public bool IsHpGrowth => isBounded && boundedStatType == BoundedStatType.Health;
     }
 
         #endregion

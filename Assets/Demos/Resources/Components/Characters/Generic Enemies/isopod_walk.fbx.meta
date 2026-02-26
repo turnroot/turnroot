@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: d9eed0be33c819c41b6097c82f29f7c8
+guid: 57443d2553ea9ab4e9b5d86dcea505e7
 ModelImporter:
   serializedVersion: 24200
   internalIDToNameTable: []
@@ -31,11 +31,11 @@ ModelImporter:
     extraUserProperties: []
     clipAnimations:
     - serializedVersion: 16
-      name: root|isopod_idle2
-      takeName: root|isopod_idle2
-      internalID: -2924576228820979099
+      name: root|isopod_walk
+      takeName: root|isopod_walk
+      internalID: -6615045402325774578
       firstFrame: 0
-      lastFrame: 91
+      lastFrame: 28
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
@@ -80,7 +80,7 @@ ModelImporter:
     keepQuads: 0
     weldVertices: 1
     bakeAxisConversion: 0
-    preserveHierarchy: 0
+    preserveHierarchy: 1
     skinWeightsMode: 0
     maxBonesPerVertex: 4
     minBoneWeight: 0.001

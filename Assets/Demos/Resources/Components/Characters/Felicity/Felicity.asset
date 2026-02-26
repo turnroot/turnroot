@@ -12,7 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1d531c8bfa9fbd649862bdaaa67913c8, type: 3}
   m_Name: Felicity
   m_EditorClassIdentifier: 
-  _: 
   <Which>k__BackingField:
     _value: Ally
   <DisplayName>k__BackingField: Felicity
@@ -91,7 +90,6 @@ MonoBehaviour:
   - _item: {fileID: 11400000, guid: 18c28f887826b0d4389fb021663c5146, type: 2}
     _slotIndex: 0
   <SupportRelationships>k__BackingField: []
-  <Level>k__BackingField: 1
   <UseClassProgressionLadder>k__BackingField: 0
   ProgressionLadder:
     Starter:
@@ -109,12 +107,11 @@ MonoBehaviour:
     Expert:
       Class: {fileID: 0}
       Loadout: []
-  <Exp>k__BackingField: 0
   <BoundedStats>k__BackingField:
-  - _current: 20
+  - _current: 16
     _bonus: 0
     _statType: 0
-    _max: 20
+    _max: 16
     _min: 0
   - _current: 1
     _bonus: 0
@@ -126,71 +123,111 @@ MonoBehaviour:
     _statType: 2
     _max: 100
     _min: 0
-  - _current: 0
-    _bonus: 0
-    _statType: 3
-    _max: 100
-    _min: 0
   <UnboundedStats>k__BackingField:
-  - _current: 10
+  - _current: 4
     _bonus: 0
     _statType: 0
-  - _current: 10
+  - _current: 3
     _bonus: 0
     _statType: 1
-  - _current: 10
+  - _current: 1
     _bonus: 0
     _statType: 2
-  - _current: 10
+  - _current: 3
     _bonus: 0
     _statType: 3
-  - _current: 10
+  - _current: 7
     _bonus: 0
     _statType: 4
-  - _current: 10
+  - _current: 5
     _bonus: 0
     _statType: 5
-  - _current: 10
-    _bonus: 0
-    _statType: 6
-  - _current: 10
+  - _current: 5
     _bonus: 0
     _statType: 7
-  - _current: 10
+  - _current: 5
     _bonus: 0
     _statType: 8
   - _current: 4
     _bonus: 0
     _statType: 9
-  - _current: 10
+  - _current: 4
     _bonus: 0
-    _statType: 10
+    _statType: 6
   <PersonalGrowthRates>k__BackingField:
-  - unboundedStatType: 0
-    value: 0
-  - unboundedStatType: 1
-    value: 0
-  - unboundedStatType: 2
-    value: 0
-  - unboundedStatType: 3
-    value: 0
-  - unboundedStatType: 4
-    value: 0
-  - unboundedStatType: 5
-    value: 0
-  - unboundedStatType: 6
-    value: 0
-  - unboundedStatType: 7
-    value: 0
-  - unboundedStatType: 8
-    value: 0
-  - unboundedStatType: 9
-    value: 0
-  - unboundedStatType: 10
-    value: 0
+  - isBounded: 0
+    unboundedStatType: 0
+    boundedStatType: 0
+    value: 60
+  - isBounded: 0
+    unboundedStatType: 1
+    boundedStatType: 0
+    value: 40
+  - isBounded: 0
+    unboundedStatType: 2
+    boundedStatType: 0
+    value: 15
+  - isBounded: 0
+    unboundedStatType: 3
+    boundedStatType: 0
+    value: 30
+  - isBounded: 0
+    unboundedStatType: 4
+    boundedStatType: 0
+    value: 45
+  - isBounded: 0
+    unboundedStatType: 5
+    boundedStatType: 0
+    value: 55
+  - isBounded: 0
+    unboundedStatType: 6
+    boundedStatType: 0
+    value: 55
+  - isBounded: 0
+    unboundedStatType: 7
+    boundedStatType: 0
+    value: 45
+  - isBounded: 0
+    unboundedStatType: 8
+    boundedStatType: 0
+    value: 30
+  - isBounded: 1
+    unboundedStatType: 0
+    boundedStatType: 0
+    value: 65
   <Skills>k__BackingField: []
   <PersonalSkill>k__BackingField: {fileID: 11400000, guid: 99f09bf75af3b064ea95ba36451474a7, type: 2}
-  <ExperienceRanks>k__BackingField: []
+  <ExperienceRanks>k__BackingField:
+  - _experienceTypeId: Knife (Turnroot.Gameplay.Objects.Components.WeaponType)
+    _rank:
+      _value: D
+  - _experienceTypeId: Ax (Turnroot.Gameplay.Objects.Components.WeaponType)
+    _rank:
+      _value: E
+  - _experienceTypeId: Bow (Turnroot.Gameplay.Objects.Components.WeaponType)
+    _rank:
+      _value: E
+  - _experienceTypeId: Chain (Turnroot.Gameplay.Objects.Components.WeaponType)
+    _rank:
+      _value: E
+  - _experienceTypeId: Polearm (Turnroot.Gameplay.Objects.Components.WeaponType)
+    _rank:
+      _value: E
+  - _experienceTypeId: Sword (Turnroot.Gameplay.Objects.Components.WeaponType)
+    _rank:
+      _value: E
+  - _experienceTypeId: Truncheon (Turnroot.Gameplay.Objects.Components.WeaponType)
+    _rank:
+      _value: E
+  - _experienceTypeId: Riding
+    _rank:
+      _value: E
+  - _experienceTypeId: Flying
+    _rank:
+      _value: E
+  - _experienceTypeId: Armor
+    _rank:
+      _value: E
   references:
     version: 2
     RefIds: []

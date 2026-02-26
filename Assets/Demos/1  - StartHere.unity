@@ -46301,6 +46301,31 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f5091b08472034e47b806085675a79a6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Turnroot.UI.Components.BattleOverlayManager
+  SkillsAndStatusesToggleDetails:
+    m_Name: Skills And Statuses Toggle Details
+    m_Type: 0
+    m_ExpectedControlType: 
+    m_Id: 85a701a2-7c51-4da9-a46f-4d9660d4cb95
+    m_Processors: 
+    m_Interactions: 
+    m_SingletonActionBindings:
+    - m_Name: 
+      m_Id: 2a942b65-15ba-4b93-ba53-8f70a7118b1b
+      m_Path: <Gamepad>/select
+      m_Interactions: 
+      m_Processors: 
+      m_Groups: 
+      m_Action: Skills And Statuses Toggle Details
+      m_Flags: 0
+    - m_Name: 
+      m_Id: 43e37fd9-4eca-43cc-9394-92046f438a04
+      m_Path: <Keyboard>/minus
+      m_Interactions: 
+      m_Processors: 
+      m_Groups: 
+      m_Action: Skills And Statuses Toggle Details
+      m_Flags: 0
+    m_Flags: 0
 --- !u!1 &1751459802
 GameObject:
   m_ObjectHideFlags: 0
@@ -58372,6 +58397,38 @@ PrefabInstance:
     - target: {fileID: 965141780005371615, guid: bcbce3e4930f8574982e8b65369c56a5, type: 3}
       propertyPath: m_AnchoredPosition.y
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1233233641911771495, guid: bcbce3e4930f8574982e8b65369c56a5, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1233233641911771495, guid: bcbce3e4930f8574982e8b65369c56a5, type: 3}
+      propertyPath: m_Events.m_Events.Array.data[0].m_PersistentCalls.m_Calls.Array.size
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 1233233641911771495, guid: bcbce3e4930f8574982e8b65369c56a5, type: 3}
+      propertyPath: m_Events.m_Events.Array.data[0].m_PersistentCalls.m_Calls.Array.data[1].m_Mode
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1233233641911771495, guid: bcbce3e4930f8574982e8b65369c56a5, type: 3}
+      propertyPath: m_Events.m_Events.Array.data[0].m_PersistentCalls.m_Calls.Array.data[1].m_Target
+      value: 
+      objectReference: {fileID: 1742232844}
+    - target: {fileID: 1233233641911771495, guid: bcbce3e4930f8574982e8b65369c56a5, type: 3}
+      propertyPath: m_Events.m_Events.Array.data[0].m_PersistentCalls.m_Calls.Array.data[1].m_CallState
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 1233233641911771495, guid: bcbce3e4930f8574982e8b65369c56a5, type: 3}
+      propertyPath: m_Events.m_Events.Array.data[0].m_PersistentCalls.m_Calls.Array.data[1].m_MethodName
+      value: Initialize
+      objectReference: {fileID: 0}
+    - target: {fileID: 1233233641911771495, guid: bcbce3e4930f8574982e8b65369c56a5, type: 3}
+      propertyPath: m_Events.m_Events.Array.data[0].m_PersistentCalls.m_Calls.Array.data[1].m_TargetAssemblyTypeName
+      value: Turnroot.UI.Components.BattleOverlayManager, Assembly-CSharp
+      objectReference: {fileID: 0}
+    - target: {fileID: 1233233641911771495, guid: bcbce3e4930f8574982e8b65369c56a5, type: 3}
+      propertyPath: m_Events.m_Events.Array.data[0].m_PersistentCalls.m_Calls.Array.data[1].m_Arguments.m_ObjectArgumentAssemblyTypeName
+      value: UnityEngine.Object, UnityEngine
       objectReference: {fileID: 0}
     - target: {fileID: 1727604653950440879, guid: bcbce3e4930f8574982e8b65369c56a5, type: 3}
       propertyPath: m_LocalPosition.x

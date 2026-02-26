@@ -239,10 +239,7 @@ namespace Turnroot.Gameplay.Combat.PreBattle
         // Ensure placements dictionary exists before use
         private void EnsurePlacementsExists()
         {
-            if (placements == null)
-            {
-                placements = new Dictionary<Vector2Int, CharacterData>();
-            }
+            placements ??= new Dictionary<Vector2Int, CharacterData>();
         }
 
         // Safe wrapper around publishing placements sync requests to centralize logging

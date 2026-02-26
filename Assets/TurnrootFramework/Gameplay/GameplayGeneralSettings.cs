@@ -462,9 +462,6 @@ namespace Turnroot.GameSettings
         public int BattalionLimit = 1;
 
         [BoxGroup("Combat Mechanics")]
-        public bool BattalionEndurance;
-
-        [BoxGroup("Combat Mechanics")]
         public bool PairUp;
 
         [BoxGroup("Combat Mechanics")]
@@ -826,7 +823,6 @@ namespace Turnroot.GameSettings
                 UnboundedStatType.Dexterity,
                 UnboundedStatType.Charm,
                 UnboundedStatType.Movement,
-                UnboundedStatType.Endurance,
             };
 
             if (UseLuck)
@@ -915,6 +911,21 @@ namespace Turnroot.GameSettings
                             }
 
                             // Force reimport to trigger OnEnable and update cached mode
+                            UnityEditor.AssetDatabase.ImportAsset(
+                                path,
+                                UnityEditor.ImportAssetOptions.ForceUpdate
+                            );
+                        }
+                        // also refresh CharacterData assets so experience rank lists update
+                        var charGuids = UnityEditor.AssetDatabase.FindAssets("t:CharacterData");
+                        foreach (var g in charGuids)
+                        {
+                            var path = UnityEditor.AssetDatabase.GUIDToAssetPath(g);
+                            if (string.IsNullOrEmpty(path))
+                            {
+                                continue;
+                            }
+
                             UnityEditor.AssetDatabase.ImportAsset(
                                 path,
                                 UnityEditor.ImportAssetOptions.ForceUpdate

@@ -103,7 +103,10 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 weaponItem,
                 settings
             );
-            float finalHit = baseHit + attackerHit - targetAvoid + triangleHitBonus;
+
+            // average weapon and stat contributions before subtracting avoid
+            float combinedHit = (baseHit + attackerHit) * 0.5f;
+            float finalHit = combinedHit - targetAvoid + triangleHitBonus;
 
             return Mathf.Clamp(finalHit, 0f, 100f);
         }

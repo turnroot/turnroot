@@ -58,15 +58,20 @@ MonoBehaviour:
   <Portraits>k__BackingField:
     _keys: []
     _values: []
-  <Sprites>k__BackingField: []
   <HeadAndHandsPrefab>k__BackingField: {fileID: 0}
   <HairPrefab>k__BackingField: {fileID: 0}
   <NonBattleOutfitPrefab>k__BackingField: {fileID: 0}
+  <ClassHatHeightOffset>k__BackingField: 0
+  <HandItemOffset>k__BackingField: {x: 0, y: 0, z: 0}
+  <ShieldOffset>k__BackingField: {x: 0, y: 0, z: 0}
+  <UseDefaultAnimationsAlways>k__BackingField: 0
+  <DefaultWalkingAnimation>k__BackingField: {fileID: 0}
+  <DefaultRunningAnimation>k__BackingField: {fileID: 0}
+  <DefaultIdleAnimations>k__BackingField: []
   <HasExtraBoneLayer>k__BackingField: 0
   <CustomAvatar>k__BackingField: {fileID: 0}
   <AdditionalBonesMask>k__BackingField: {fileID: 0}
   <AdditionalBoneNames>k__BackingField: []
-  <ExtraLayerController>k__BackingField: {fileID: 0}
   <BehaviorSettings>k__BackingField:
     MovementDisabled: 0
     AttackDisabled: 0
@@ -79,6 +84,23 @@ MonoBehaviour:
   <StartingInventory>k__BackingField: []
   <SupportRelationships>k__BackingField: []
   <Level>k__BackingField: 1
+  <UseClassProgressionLadder>k__BackingField: 0
+  ProgressionLadder:
+    Starter:
+      Class: {fileID: 0}
+      Loadout: []
+    Base:
+      Class: {fileID: 0}
+      Loadout: []
+    Advanced:
+      Class: {fileID: 0}
+      Loadout: []
+    Master:
+      Class: {fileID: 0}
+      Loadout: []
+    Expert:
+      Class: {fileID: 0}
+      Loadout: []
   <Exp>k__BackingField: 0
   <BoundedStats>k__BackingField:
   - _current: 100
@@ -86,15 +108,90 @@ MonoBehaviour:
     _statType: 0
     _max: 100
     _min: 0
+  - _current: 0
+    _bonus: 0
+    _statType: 1
+    _max: 0
+    _min: 0
+  - _current: 0
+    _bonus: 0
+    _statType: 2
+    _max: 0
+    _min: 0
   <UnboundedStats>k__BackingField:
   - _current: 10
     _bonus: 0
     _statType: 0
+  - _current: 0
+    _bonus: 0
+    _statType: 1
+  - _current: 0
+    _bonus: 0
+    _statType: 2
+  - _current: 0
+    _bonus: 0
+    _statType: 3
+  - _current: 0
+    _bonus: 0
+    _statType: 4
+  - _current: 0
+    _bonus: 0
+    _statType: 5
+  - _current: 0
+    _bonus: 0
+    _statType: 7
+  - _current: 0
+    _bonus: 0
+    _statType: 8
+  - _current: 0
+    _bonus: 0
+    _statType: 9
+  - _current: 0
+    _bonus: 0
+    _statType: 6
   <PersonalGrowthRates>k__BackingField:
-  - unboundedStatType: 0
+  - isBounded: 0
+    unboundedStatType: 0
+    boundedStatType: 0
+    value: 0
+  - isBounded: 0
+    unboundedStatType: 1
+    boundedStatType: 0
+    value: 0
+  - isBounded: 0
+    unboundedStatType: 2
+    boundedStatType: 0
+    value: 0
+  - isBounded: 0
+    unboundedStatType: 3
+    boundedStatType: 0
+    value: 0
+  - isBounded: 0
+    unboundedStatType: 4
+    boundedStatType: 0
+    value: 0
+  - isBounded: 0
+    unboundedStatType: 5
+    boundedStatType: 0
+    value: 0
+  - isBounded: 0
+    unboundedStatType: 7
+    boundedStatType: 0
+    value: 0
+  - isBounded: 0
+    unboundedStatType: 8
+    boundedStatType: 0
+    value: 0
+  - isBounded: 0
+    unboundedStatType: 6
+    boundedStatType: 0
+    value: 0
+  - isBounded: 1
+    unboundedStatType: 0
+    boundedStatType: 0
     value: 0
   <Skills>k__BackingField: []
-  <SpecialSkills>k__BackingField: []
+  <PersonalSkill>k__BackingField: {fileID: 0}
   <ExperienceRanks>k__BackingField: []
   references:
     version: 2

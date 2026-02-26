@@ -16,7 +16,7 @@ namespace Turnroot.Conversations
     {
         private Coroutine _conversationRoutine;
         private int _tweenRunId;
-        private readonly System.Collections.Generic.List<Coroutine> _activeTweens = new();
+        private readonly List<Coroutine> _activeTweens = new();
         private Sprite _lastActiveSprite;
         private int _pendingChoiceTarget = int.MinValue;
         private int _activeBranchingNodeId = int.MinValue;
@@ -66,7 +66,7 @@ namespace Turnroot.Conversations
 
         private Conversation SelectedConversation => SelectedInstance?.Conversation;
 
-        private Coroutine StartTween(System.Collections.IEnumerator routine)
+        private Coroutine StartTween(IEnumerator routine)
         {
             if (routine == null)
             {

@@ -16,7 +16,7 @@ namespace Turnroot.Characters.CharacterClass.Editor
 
             // Get available pronoun keys
             var keys =
-                Turnroot.Characters.Subclasses.Pronouns.GetAvailablePronounKeys() ?? new string[0];
+                Subclasses.Pronouns.GetAvailablePronounKeys() ?? new string[0];
 
             // Determine current index
             int currentIndex = 0;

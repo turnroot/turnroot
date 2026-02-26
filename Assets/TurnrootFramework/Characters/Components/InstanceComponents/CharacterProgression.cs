@@ -1,7 +1,9 @@
 using System.Collections.Generic;
 using Turnroot.Characters.CharacterClass;
 using Turnroot.Characters.Stats;
+using Turnroot.GameSettings;
 using Turnroot.Utilities;
+using UnityEngine;
 
 namespace Turnroot.Characters
 {
@@ -13,7 +15,7 @@ namespace Turnroot.Characters
         #region Level Up & Growth
 
         /// Internal method - use CharactersBrain.LevelUpCharacter() to publish events.
-        internal OperationResult LevelUp()
+        public OperationResult LevelUp()
         {
             bool ok = ValidationHelper.ValidateNotNull(
                 "CharacterInstance.LevelUp",
@@ -30,8 +32,37 @@ namespace Turnroot.Characters
 
             _currentLevel++;
 
+            // keep the bounded Level stat in sync with our internal level counter.
+            var levelStat = GetBoundedStat(BoundedStatType.Level);
+            if (levelStat != null)
+            {
+                // make sure max is at least as high as the new level so it can increase
+                if (levelStat.Max < _currentLevel)
+                {
+                    levelStat.SetMax(_currentLevel);
+                }
+
+                levelStat.SetCurrent(_currentLevel);
+            }
+
             var hpStat = GetBoundedStat(BoundedStatType.Health);
-            hpStat.SetCurrent(hpStat.GetCurrent() + 1f);
+
+            // HP growth roll based on combined personal + class rates
+            float hpGrowth = GetEffectiveHpGrowthRate();
+            float roll = Random.Range(0f, 100f);
+            if (hpGrowth > 100f && GameplayGeneralSettings.Instance.LevelUpExtraGrowthChance)
+            {
+                // auto +1 then roll for extra; increase both max and current so stat can grow
+                hpStat.SetMax(hpStat.Max + 1f);
+                hpStat.SetCurrent(hpStat.GetCurrent() + 1f);
+                hpGrowth -= 100f; // remaining chance for the extra roll
+            }
+            if (roll < hpGrowth)
+            {
+                // grow HP normally (max and current)
+                hpStat.SetMax(hpStat.Max + 1f);
+                hpStat.SetCurrent(hpStat.GetCurrent() + 1f);
+            }
 
             var growthRates = GetEffectiveGrowthRates();
 
@@ -46,8 +77,10 @@ namespace Turnroot.Characters
                 caps
             );
 
+            // old behaviour of bonus HP when every unbounded stat increased can be preserved
             if (increasedStats.Count == UnboundedStats.Count)
             {
+                hpStat.SetMax(hpStat.Max + 1f);
                 hpStat.SetCurrent(hpStat.GetCurrent() + 1f);
             }
 
@@ -56,11 +89,14 @@ namespace Turnroot.Characters
 
         private List<UnboundedStatModifier> GetEffectiveGrowthRates()
         {
+            // combine only the unbounded/stat entries and ignore any bounded (HP) modifiers
             var effectiveRates = new List<UnboundedStatModifier>();
 
             if (_characterTemplate?.PersonalGrowthRates != null)
             {
-                effectiveRates.AddRange(_characterTemplate.PersonalGrowthRates);
+                effectiveRates.AddRange(
+                    _characterTemplate.PersonalGrowthRates.FindAll(r => !r.isBounded)
+                );
             }
 
             var classMods = _currentClass?.ClassData.Stats?.GrowthRateModifiers;
@@ -68,6 +104,11 @@ namespace Turnroot.Characters
             {
                 foreach (var classMod in classMods)
                 {
+                    if (classMod.isBounded)
+                    {
+                        continue; // skip HP entries in this list
+                    }
+
                     int index = effectiveRates.FindIndex(e =>
                         e.unboundedStatType == classMod.unboundedStatType
                     );
@@ -87,6 +128,35 @@ namespace Turnroot.Characters
             }
 
             return effectiveRates;
+        }
+
+        private float GetEffectiveHpGrowthRate()
+        {
+            float hpRate = 0f;
+            if (_characterTemplate?.PersonalGrowthRates != null)
+            {
+                var entry = _characterTemplate.PersonalGrowthRates.Find(r =>
+                    r.isBounded && r.boundedStatType == BoundedStatType.Health
+                );
+                if (entry.value != 0f)
+                {
+                    hpRate += entry.value;
+                }
+            }
+
+            var classMods = _currentClass?.ClassData.Stats?.GrowthRateModifiers;
+            if (classMods != null)
+            {
+                var centry = classMods.Find(r =>
+                    r.isBounded && r.boundedStatType == BoundedStatType.Health
+                );
+                if (centry.value != 0f)
+                {
+                    hpRate += centry.value;
+                }
+            }
+
+            return hpRate;
         }
 
         #endregion

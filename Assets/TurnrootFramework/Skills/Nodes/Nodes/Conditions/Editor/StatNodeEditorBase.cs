@@ -46,7 +46,7 @@ namespace Turnroot.Skills.Nodes
             serializedObject.Update();
 
             // Get available stats from GameplayGeneralSettings (single source-of-truth)
-            var gs = Turnroot.GameSettings.GameplayGeneralSettings.Instance;
+            var gs = GameSettings.GameplayGeneralSettings.Instance;
             if (gs == null)
             {
                 EditorGUILayout.HelpBox(

@@ -48,7 +48,7 @@ namespace Turnroot.Gameplay.Combat
             if (rosterAsset != null)
             {
                 var placements =
-                    rosterAsset.characters ?? System.Array.Empty<Characters.Roster.UnitPlacement>();
+                    rosterAsset.characters ?? Array.Empty<Characters.Roster.UnitPlacement>();
                 var chars = new List<CharacterData>();
                 foreach (var p in placements)
                 {
@@ -98,7 +98,7 @@ namespace Turnroot.Gameplay.Combat
                     int currentIndex = -1;
                     if (characterOptions.Length > 0 && current != null)
                     {
-                        currentIndex = System.Array.IndexOf(characterOptions, current);
+                        currentIndex = Array.IndexOf(characterOptions, current);
                     }
 
                     int selected = -1;

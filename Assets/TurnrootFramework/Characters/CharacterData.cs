@@ -24,16 +24,6 @@ namespace Turnroot.Characters
     )]
     public partial class CharacterData : ScriptableObject, IHasStats
     {
-#if UNITY_EDITOR
-        [
-            InfoBox(
-                "This is pre-runtime data. Use this editor to define the character's base stats, skills, inventory, and relationships- anything that should be in place before the game starts."
-            ),
-            SerializeField
-        ]
-        private string _;
-#endif
-
         [field: Foldout("Identity"), HorizontalLine(color: EColor.White), SerializeField]
         public CharacterWhich Which { get; private set; } = new("Enemy");
 
@@ -270,8 +260,19 @@ namespace Turnroot.Characters
         ]
         public string[] AdditionalBoneNames { get; private set; } = new string[0];
 
-        [field: SerializeField, HorizontalLine(color: EColor.Blue)]
+        [field:
+            Foldout("Behavior"),
+            SerializeField,
+            HorizontalLine(color: EColor.Blue),
+            HideInInspector,
+            ShowIf(nameof(AlwaysHideBehavior))
+        ]
         public CharacterBehavior BehaviorSettings { get; private set; }
+
+#if UNITY_EDITOR
+        // Always-hide helper for NaughtyAttributes; prevents the field from drawing automatically
+        private bool AlwaysHideBehavior() => false;
+#endif
 
 #if TURNROOT_BLOODLINES_MODULE
         [Foldout("Heredity"), SerializeField]
@@ -288,23 +289,16 @@ namespace Turnroot.Characters
         [field: SerializeField]
         public List<InventorySlot> StartingInventory { get; private set; } = new();
 
-        [field: SerializeField]
+        [field: SerializeField, ShowIf(nameof(CanShowSupportRelationships))]
         public List<SupportRelationship> SupportRelationships { get; private set; } = new();
-
-        [field:
-            BoxGroup("Stats & Progression"),
-            SerializeField,
-            HorizontalLine(color: EColor.Orange)
-        ]
-        public int Level { get; private set; } = 1;
 
         // ---------------------------------------------------------------------
         // Class progression ladder (per-character, generic units only)
         // ---------------------------------------------------------------------
-        [System.Serializable]
+        [Serializable]
         public struct ClassProgressionLadder
         {
-            [System.Serializable]
+            [Serializable]
             public struct TierData
             {
                 [Tooltip("Class assigned to this progression tier")]
@@ -349,7 +343,7 @@ namespace Turnroot.Characters
             }
         }
 
-        [System.Serializable]
+        [Serializable]
         public struct LoadoutEntry
         {
             public ObjectItem Item;
@@ -359,7 +353,6 @@ namespace Turnroot.Characters
         }
 
         [field:
-            BoxGroup("Stats & Progression"),
             SerializeField,
             Tooltip(
                 "If true, use the per-tier class ladder defined below instead of the usual StartingClass. Hidden for unique characters."
@@ -368,17 +361,14 @@ namespace Turnroot.Characters
         ]
         public bool UseClassProgressionLadder { get; private set; } = false;
 
-        [field: BoxGroup("Stats & Progression"), SerializeField]
+        [field: SerializeField]
         [ShowIf(nameof(ShowClassProgressionFields))]
         public ClassProgressionLadder ProgressionLadder = new();
 
-        [field: SerializeField, BoxGroup("Stats & Progression")]
-        public int Exp { get; private set; } = 0;
-
-        [field: BoxGroup("Stats & Progression"), SerializeField]
+        [field: SerializeField]
         public List<BoundedCharacterStat> BoundedStats { get; private set; } = new();
 
-        [field: BoxGroup("Stats & Progression"), SerializeField]
+        [field: SerializeField, HideInInspector]
         public List<CharacterStat> UnboundedStats { get; private set; } = new();
 
 #if UNITY_EDITOR
@@ -452,17 +442,17 @@ namespace Turnroot.Characters
         }
 #endif
 
-        [field: BoxGroup("Stats & Progression"), SerializeField]
+        [field: SerializeField, HideInInspector]
         [Tooltip(
             "Personal growth rates (percentage 0-100) for stat increases on level up. If empty, uses class growth rates only."
         )]
         public List<UnboundedStatModifier> PersonalGrowthRates { get; private set; } = new();
 
-        [field: BoxGroup("Skills & Abilities"), SerializeField, HorizontalLine(color: EColor.Green)]
+        [field: Foldout("Class and Skills"), SerializeField, HorizontalLine(color: EColor.Green)]
         [field: HideInInspector]
         internal List<Skill> Skills { get; private set; } = new();
 
-        [field: BoxGroup("Skills & Abilities"), SerializeField]
+        [field: Foldout("Class and Skills"), SerializeField]
         [field: Tooltip(
             "Personal skill assigned to this unit. This is a single, always-equipped ability."
         )]
@@ -477,6 +467,7 @@ namespace Turnroot.Characters
         [Tooltip(
             "Experience/aptitude ranks for weapon types and other trainable skills (e.g., Riding, Flying)"
         )]
+        [field: HideInInspector]
         public List<ExperienceRank> ExperienceRanks { get; private set; } = new();
 
         // NOTE: properties are declared inline with field-targeted attributes.
@@ -510,6 +501,9 @@ namespace Turnroot.Characters
             IsRecruitable && RequiresMinSupportLevel;
 
         private bool IsRecruitableUseRecruitmentChance() => IsRecruitable && UseRecruitmentChance;
+
+        // support relationships are irrelevant for enemy/NPC characters
+        private bool CanShowSupportRelationships() => !IsEnemyOrNPC;
 
         public Portrait[] PortraitArray
         {
