@@ -1,12 +1,10 @@
 using System;
 using System.Collections.Generic;
 using NaughtyAttributes;
-using Turnroot.Characters;
 using Turnroot.Gameplay.Combat;
 using Turnroot.Gameplay.Objects;
 using Turnroot.Utilities;
 using UnityEngine;
-using Turnroot.Gameplay.Objects;
 
 namespace Turnroot.Gameplay.Maps
 {
@@ -372,8 +370,10 @@ namespace Turnroot.Gameplay.Maps
     [Serializable]
     public class FeatureRecord
     {
-        public int row, col;
-        public string typeId, name;
+        public int row,
+            col;
+        public string typeId,
+            name;
         public bool locked;
         public ObjectItem unlockItem;
         public ObjectItem commonItem;
