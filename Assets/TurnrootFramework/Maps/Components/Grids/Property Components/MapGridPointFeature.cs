@@ -1,3 +1,5 @@
+using Turnroot.Gameplay.Objects;
+
 namespace Turnroot.Gameplay.Maps
 {
     /// <summary>
@@ -8,7 +10,38 @@ namespace Turnroot.Gameplay.Maps
     {
         public string typeId = string.Empty;
         public string name = string.Empty;
-        public MapGridPointFeatureProperties properties = new();
+
+        // Feature-specific data. Only a few values are tracked per-instance;
+        // additional fields can be added here as needed instead of the
+        // previous overly-flexible property subsystem.
+
+        /// <summary>
+        /// Indicates whether a door feature is locked. Only meaningful when
+        /// <see cref="FeatureType"/> is <see cref="FeatureType.Door"/>.
+        /// </summary>
+        public bool locked = false;
+
+        // extended simple state for breakable/healing/ranged
+        public int breakableHealth = 0;
+        public float healingPercentPerTurn = 0f;
+        public int rangedRange = 0;
+        public int rangedDamage = 0;
+        public float rangedHit = 0f;
+        public bool rangedAllowsRiding = false;
+        public bool rangedAllowsFlying = false;
+        public bool rangedMagicOnly = false;
+
+        /// <summary>
+        /// For treasure and underground features: the common item that can be
+        /// found at this point. May be null for no common reward.
+        /// </summary>
+        public ObjectItem commonItem;
+
+        /// <summary>
+        /// For treasure and underground features: the rare item that can be
+        /// found at this point. May be null for no rare reward.
+        /// </summary>
+        public ObjectItem rareItem;
 
         public MapGridPointFeature() { }
 

@@ -75,8 +75,7 @@ namespace Turnroot.Characters.Editor
             _personalGrowthRates = serializedObject.FindProperty("PersonalGrowthRates");
             ValidateGrowthProperty();
 
-            bool modified = serializedObject.hasModifiedProperties;
-
+            // draw the default inspector first; we'll merge our custom sections below
             base.OnInspectorGUI();
 
             serializedObject.Update();
@@ -196,12 +195,16 @@ namespace Turnroot.Characters.Editor
                     }
                 }
 
+                // don't mark dirty here; we'll do a final apply/dirtify after the foldouts
                 serializedObject.ApplyModifiedProperties();
-                if (modified)
-                {
-                    EditorUtility.SetDirty(target);
-                    AssetDatabase.SaveAssets();
-                }
+            }
+
+            // final flush for any changes made to base stats or growth rates
+            if (serializedObject.hasModifiedProperties)
+            {
+                serializedObject.ApplyModifiedProperties();
+                EditorUtility.SetDirty(target);
+                AssetDatabase.SaveAssets();
             }
         }
 
@@ -618,133 +621,6 @@ namespace Turnroot.Characters.Editor
                     if (!Mathf.Approximately(updated, current))
                     {
                         val.floatValue = updated;
-                    }
-                }
-            }
-
-            // additional meter showing template's unbounded stat total (and editable list)
-            {
-                var cd = serializedObject.targetObject as CharacterData;
-                if (cd != null && cd.UnboundedStats != null)
-                {
-                    float curTotal = 0f;
-                    foreach (var unb in cd.UnboundedStats)
-                    {
-                        if (unb == null)
-                        {
-                            continue;
-                        }
-
-                        if (
-                            unb.StatType == UnboundedStatType.Movement
-                            || unb.StatType == UnboundedStatType.Charm
-                        )
-                        {
-                            continue;
-                        }
-
-                        curTotal += unb.Current;
-                    }
-
-                    EditorGUILayout.Space();
-                    EditorGUILayout.LabelField("Base Stats", EditorStyles.boldLabel);
-                    Rect barRect2 = EditorGUILayout.GetControlRect(
-                        false,
-                        20,
-                        GUILayout.ExpandWidth(true)
-                    );
-                    float width2 = barRect2.width;
-                    // use checklist thresholds: total 10‑50, green=30‑40, yellow=20‑30 & 40‑50, orange=10‑20
-                    const float minT = 10f,
-                        maxT = 50f;
-                    float norm2 = (curTotal - minT) / (maxT - minT);
-                    norm2 = Mathf.Clamp01(norm2);
-                    void DrawSeg2Norm(float aNorm, float bNorm, Color col)
-                    {
-                        if (bNorm <= aNorm)
-                        {
-                            return;
-                        }
-
-                        Rect seg = new Rect(
-                            barRect2.x + (aNorm * width2),
-                            barRect2.y,
-                            (bNorm - aNorm) * width2,
-                            barRect2.height
-                        );
-                        EditorGUI.DrawRect(seg, col);
-                    }
-                    // segments correspond to normalized boundaries 0,0.25,0.5,0.75,1
-                    DrawSeg2Norm(0.5f, 0.75f, Color.green);
-                    DrawSeg2Norm(0.25f, 0.5f, Color.yellow);
-                    DrawSeg2Norm(0.75f, 1f, Color.yellow);
-                    DrawSeg2Norm(0f, 0.25f, new Color(1f, 0.5f, 0f));
-                    // red outside handled by background or left unfilled
-                    float mx2 = barRect2.x + (norm2 * width2);
-                    Handles.BeginGUI();
-                    Handles.color = Color.black;
-                    Vector3 top2 = new Vector3(mx2, barRect2.y);
-                    Vector3 bot2 = new Vector3(mx2, barRect2.y + barRect2.height);
-                    Handles.DrawAAPolyLine(5f, top2, bot2);
-                    // always draw white outlines at both sides for readability
-                    Handles.color = Color.white;
-                    float o = 2f;
-                    Handles.DrawAAPolyLine(
-                        2f,
-                        top2 + (Vector3.left * o),
-                        bot2 + (Vector3.left * o)
-                    );
-                    Handles.DrawAAPolyLine(
-                        2f,
-                        top2 + (Vector3.right * o),
-                        bot2 + (Vector3.right * o)
-                    );
-                    Handles.EndGUI();
-                    EditorGUILayout.HelpBox(
-                        "Template unbounded stat total vs thresholds. Green = optimal range for normal units, yellow = very weak or very strong units. Orange is unbalanced",
-                        MessageType.Info
-                    );
-
-                    // manual list so we can show names and values instead of
-                    // generic "Element 0" entries.  Use the backing field if needed.
-                    var unbProp =
-                        serializedObject.FindProperty("UnboundedStats")
-                        ?? serializedObject.FindProperty("<UnboundedStats>k__BackingField");
-                    if (unbProp != null)
-                    {
-                        for (int j = 0; j < unbProp.arraySize; j++)
-                        {
-                            var elem = unbProp.GetArrayElementAtIndex(j);
-                            if (elem == null)
-                            {
-                                continue;
-                            }
-
-                            var typeProp = elem.FindPropertyRelative("_statType");
-                            var curProp = elem.FindPropertyRelative("_current");
-                            string label =
-                                typeProp != null
-                                    ? ((UnboundedStatType)typeProp.enumValueIndex).ToString()
-                                    : $"Element {j}";
-                            EditorGUILayout.BeginHorizontal();
-                            if (typeProp != null)
-                            {
-                                EditorGUILayout.PropertyField(typeProp, GUIContent.none);
-                            }
-
-                            if (curProp != null)
-                            {
-                                EditorGUILayout.PropertyField(curProp, new GUIContent(label));
-                            }
-
-                            EditorGUILayout.EndHorizontal();
-                        }
-                        // allow user to add/remove entries via context menu
-                        EditorGUILayout.Space();
-                        EditorGUILayout.HelpBox(
-                            "You can edit each unbounded stat's type and value above.",
-                            MessageType.None
-                        );
                     }
                 }
             }

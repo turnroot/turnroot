@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Turnroot.Characters;
+using Turnroot.Gameplay.Objects;
 using Turnroot.Maps.Components.Grids;
 using UnityEngine;
 
@@ -97,22 +98,7 @@ namespace Turnroot.Gameplay.Maps
         [Tooltip("Feature display name (optional).")]
         private string _featureName = string.Empty;
 
-        /* ---------------------------- Grid Point Properties ---------------------------- */
-        [Header("Grid Point Properties")]
-        [SerializeField]
-        private List<MapGridPropertyBase.EventProperty> _pointEventProperties = new();
-
-        [SerializeField]
-        private List<MapGridPropertyBase.UnitProperty> _pointUnitProperties = new();
-
-        [SerializeField]
-        private List<MapGridPropertyBase.ObjectItemProperty> _pointObjectItemProperties = new();
-
-        [SerializeField]
-        private List<MapGridPropertyBase.BoolProperty> _pointBoolProperties = new();
-
-        [SerializeField]
-        private List<MapGridPropertyBase.FloatProperty> _pointFloatProperties = new();
+        // Starting unit tracking (unrelated to the old property system)
         private CharacterInstance _startingUnit = null;
 
         [HideInInspector, NonSerialized]
@@ -129,22 +115,242 @@ namespace Turnroot.Gameplay.Maps
         /// </summary>
         public bool IsOccupied => CurrentInstance != null;
 
-        /* ---------------------------- Feature Properties ---------------------------- */
-        [Header("Feature Properties")]
-        [SerializeField]
-        private List<MapGridPropertyBase.EventProperty> _featureEventProperties = new();
+        // ---------------------------------------------------------------------
+        // Feature-specific state
+        // ---------------------------------------------------------------------
 
         [SerializeField]
-        private List<MapGridPropertyBase.UnitProperty> _featureUnitProperties = new();
+        private bool _featureLocked = false;
 
         [SerializeField]
-        private List<MapGridPropertyBase.ObjectItemProperty> _featureObjectItemProperties = new();
+        private ObjectItem _unlockItem = null;
 
         [SerializeField]
-        private List<MapGridPropertyBase.BoolProperty> _featureBoolProperties = new();
+        private ObjectItem _featureCommonItem = null;
 
         [SerializeField]
-        private List<MapGridPropertyBase.FloatProperty> _featureFloatProperties = new();
+        private ObjectItem _featureRareItem = null;
+
+        [SerializeField]
+        private List<Vector2Int> _warpDestinations = new();
+
+        [SerializeField]
+        private int _activeWarpIndex = 0;
+
+        // shelter targeting restrictions
+        [SerializeField]
+        private bool _shelterNoFly = false;
+
+        [SerializeField]
+        private bool _shelterNoRide = false;
+
+        [SerializeField]
+        private bool _shelterNoInfantry = false;
+
+        // breakable-specific state
+        [SerializeField]
+        private int _breakableHealth = 0;
+
+        // healing-specific state
+        [SerializeField]
+        private float _healingPercentPerTurn = 0f;
+
+        // ranged-specific state
+        [SerializeField]
+        private int _rangedRange = 0;
+
+        [SerializeField]
+        private int _rangedDamage = 0;
+
+        [SerializeField]
+        private float _rangedHit = 0f;
+
+        [SerializeField]
+        private bool _rangedAllowsRiding = false;
+
+        [SerializeField]
+        private bool _rangedAllowsFlying = false;
+
+        [SerializeField]
+        private bool _rangedMagicOnly = false;
+
+        /// <summary>
+        /// Indicates whether a door feature placed on this point is locked.
+        /// Only meaningful when <see cref="FeatureType"/> == <see cref="MapGridPointFeature.FeatureType.Door"/>.
+        /// </summary>
+        public bool FeatureLocked
+        {
+            get => _featureLocked;
+            set
+            {
+                _featureLocked = value;
+                ParentGrid?.IncrementStateVersion();
+            }
+        }
+
+        public ObjectItem UnlockItem
+        {
+            get => _unlockItem;
+            set
+            {
+                _unlockItem = value;
+                ParentGrid?.IncrementStateVersion();
+            }
+        }
+
+        public bool ShelterNoFly
+        {
+            get => _shelterNoFly;
+            set
+            {
+                _shelterNoFly = value;
+                ParentGrid?.IncrementStateVersion();
+            }
+        }
+
+        public bool ShelterNoRide
+        {
+            get => _shelterNoRide;
+            set
+            {
+                _shelterNoRide = value;
+                ParentGrid?.IncrementStateVersion();
+            }
+        }
+
+        public bool ShelterNoInfantry
+        {
+            get => _shelterNoInfantry;
+            set
+            {
+                _shelterNoInfantry = value;
+                ParentGrid?.IncrementStateVersion();
+            }
+        }
+
+        public int BreakableHealth
+        {
+            get => _breakableHealth;
+            set
+            {
+                _breakableHealth = value;
+                ParentGrid?.IncrementStateVersion();
+            }
+        }
+
+        public float HealingPercentPerTurn
+        {
+            get => _healingPercentPerTurn;
+            set
+            {
+                _healingPercentPerTurn = value;
+                ParentGrid?.IncrementStateVersion();
+            }
+        }
+
+        public int RangedRange
+        {
+            get => _rangedRange;
+            set
+            {
+                _rangedRange = value;
+                ParentGrid?.IncrementStateVersion();
+            }
+        }
+
+        public int RangedDamage
+        {
+            get => _rangedDamage;
+            set
+            {
+                _rangedDamage = value;
+                ParentGrid?.IncrementStateVersion();
+            }
+        }
+
+        public float RangedHit
+        {
+            get => _rangedHit;
+            set
+            {
+                _rangedHit = value;
+                ParentGrid?.IncrementStateVersion();
+            }
+        }
+
+        public bool RangedAllowsRiding
+        {
+            get => _rangedAllowsRiding;
+            set
+            {
+                _rangedAllowsRiding = value;
+                ParentGrid?.IncrementStateVersion();
+            }
+        }
+
+        public bool RangedAllowsFlying
+        {
+            get => _rangedAllowsFlying;
+            set
+            {
+                _rangedAllowsFlying = value;
+                ParentGrid?.IncrementStateVersion();
+            }
+        }
+
+        public bool RangedMagicOnly
+        {
+            get => _rangedMagicOnly;
+            set
+            {
+                _rangedMagicOnly = value;
+                ParentGrid?.IncrementStateVersion();
+            }
+        }
+
+        /// <summary>
+        /// For treasure/underground features, the common item reward.
+        /// </summary>
+        public ObjectItem FeatureCommonItem
+        {
+            get => _featureCommonItem;
+            set
+            {
+                _featureCommonItem = value;
+                ParentGrid?.IncrementStateVersion();
+            }
+        }
+
+        /// <summary>
+        /// For treasure/underground features, the rare item reward.
+        /// </summary>
+        public ObjectItem FeatureRareItem
+        {
+            get => _featureRareItem;
+            set
+            {
+                _featureRareItem = value;
+                ParentGrid?.IncrementStateVersion();
+            }
+        }
+
+        /// <summary>
+        /// Destination coordinates for warp features.
+        /// </summary>
+        public List<Vector2Int> WarpDestinations => _warpDestinations;
+
+        /// <summary>
+        /// Index into <see cref="WarpDestinations"/> identifying the active exit.
+        /// </summary>
+        public int ActiveWarpIndex
+        {
+            get => _activeWarpIndex;
+            set
+            {
+                _activeWarpIndex = value;
+                ParentGrid?.IncrementStateVersion();
+            }
+        }
 
         [SerializeField]
         private int _row;
@@ -236,6 +442,25 @@ namespace Turnroot.Gameplay.Maps
         public void SetFeatureTypeId(string id)
         {
             _featureTypeId = id ?? string.Empty;
+            // if the feature type changes we clear any door-locked state, item rewards,
+            // any warp destinations, and specialized values
+            _featureLocked = false;
+            _unlockItem = null;
+            _featureCommonItem = null;
+            _featureRareItem = null;
+            _warpDestinations.Clear();
+            _activeWarpIndex = 0;
+            _breakableHealth = 0;
+            _healingPercentPerTurn = 0f;
+            _rangedRange = 0;
+            _rangedDamage = 0;
+            _rangedHit = 0f;
+            _rangedAllowsRiding = false;
+            _rangedAllowsFlying = false;
+            _rangedMagicOnly = false;
+            _shelterNoFly = false;
+            _shelterNoRide = false;
+            _shelterNoInfantry = false;
             ParentGrid?.IncrementStateVersion();
         }
 
@@ -260,18 +485,25 @@ namespace Turnroot.Gameplay.Maps
 
             _featureTypeId = selId;
             _featureName = name ?? string.Empty;
+            // clear per-feature state from previous feature
+            _featureLocked = false;
+            _unlockItem = null;
+            _featureCommonItem = null;
+            _featureRareItem = null;
+            _warpDestinations.Clear();
+            _activeWarpIndex = 0;
+            _breakableHealth = 0;
+            _healingPercentPerTurn = 0f;
+            _rangedRange = 0;
+            _rangedDamage = 0;
+            _rangedHit = 0f;
+            _rangedAllowsRiding = false;
+            _rangedAllowsFlying = false;
+            _rangedMagicOnly = false;
+            _shelterNoFly = false;
+            _shelterNoRide = false;
+            _shelterNoInfantry = false;
             ParentGrid?.IncrementStateVersion();
-
-            // When a feature is applied, automatically apply any configured defaults
-            // so newly created features get their expected starting properties.
-            try
-            {
-                ApplyDefaultsForFeature(selId);
-            }
-            catch
-            {
-                // Defensive: don't throw in editor UI if defaults aren't available
-            }
 
 #if UNITY_EDITOR
             // Avoid marking the scene dirty if this is triggered by compilation/domain reload
@@ -294,19 +526,19 @@ namespace Turnroot.Gameplay.Maps
         {
             _featureTypeId = string.Empty;
             _featureName = string.Empty;
-            _featureUnitProperties.Clear();
-            _featureObjectItemProperties.Clear();
-            _featureEventProperties.Clear();
-#if UNITY_EDITOR
-            if (
-                !UnityEditor.EditorApplication.isCompiling
-                && !UnityEditor.EditorApplication.isPlayingOrWillChangePlaymode
-                && !UnityEditor.EditorApplication.isUpdating
-            )
-            {
-                _featureFloatProperties.Clear();
-            }
-#endif
+            _featureLocked = false;
+            _featureCommonItem = null;
+            _featureRareItem = null;
+            _warpDestinations.Clear();
+            _activeWarpIndex = 0;
+            _breakableHealth = 0;
+            _healingPercentPerTurn = 0f;
+            _rangedRange = 0;
+            _rangedDamage = 0;
+            _rangedHit = 0f;
+            _rangedAllowsRiding = false;
+            _rangedAllowsFlying = false;
+            _rangedMagicOnly = false;
             ParentGrid?.IncrementStateVersion();
 
 #if UNITY_EDITOR
@@ -321,210 +553,6 @@ namespace Turnroot.Gameplay.Maps
                 UnityEditor.SceneView.RepaintAll();
             }
 #endif
-        }
-
-        public void ClearFeatureProperty(string key)
-        {
-            if (string.IsNullOrEmpty(key))
-            {
-                return;
-            }
-            _featureUnitProperties.RemoveAll(p => p.key == key);
-            _featureObjectItemProperties.RemoveAll(p => p.key == key);
-            _featureBoolProperties.RemoveAll(p => p.key == key);
-            _featureEventProperties.RemoveAll(p => p.key == key);
-            _featureFloatProperties.RemoveAll(p => p.key == key);
-        }
-
-        private void SetProperty<T>(List<T> list, string key, object value)
-            where T : MapGridPropertyBase.IProperty, new()
-        {
-            if (string.IsNullOrEmpty(key))
-            {
-                return;
-            }
-
-            var existing = list.Find(p => p.key == key);
-            if (existing != null)
-            {
-                existing.SetValue(value);
-            }
-            else
-            {
-                var newProp = new T { key = key };
-                newProp.SetValue(value);
-                list.Add(newProp);
-            }
-        }
-
-        private TValue GetProperty<T, TValue>(
-            List<T> list,
-            string key,
-            TValue defaultValue = default
-        )
-            where T : MapGridPropertyBase.IProperty
-        {
-            if (string.IsNullOrEmpty(key))
-            {
-                return defaultValue;
-            }
-
-            var prop = list.Find(p => p.key == key);
-            return prop != null ? (TValue)prop.GetValue() : defaultValue;
-        }
-
-        private T? GetNullableProperty<T, TProp>(List<TProp> list, string key)
-            where T : struct
-            where TProp : MapGridPropertyBase.IProperty
-        {
-            if (string.IsNullOrEmpty(key))
-            {
-                return null;
-            }
-
-            var prop = list.Find(p => p.key == key);
-            return prop != null ? (T?)prop.GetValue() : null;
-        }
-
-        public void ApplyDefaultsForFeature(string featureId)
-        {
-            if (string.IsNullOrEmpty(featureId))
-            {
-                return;
-            }
-
-            // Avoid calling Resources.LoadAll during OnValidate to prevent SendMessage errors
-#if UNITY_EDITOR
-            if (
-                UnityEditor.EditorApplication.isPlayingOrWillChangePlaymode
-                || UnityEditor.EditorApplication.isCompiling
-                || UnityEditor.EditorApplication.isUpdating
-            )
-            {
-                return;
-            }
-#endif
-
-            MapGridFeatureProperties[] allDefaults = null;
-
-            try
-            {
-                allDefaults = Resources.LoadAll<MapGridFeatureProperties>("GameSettings");
-            }
-            catch (Exception ex)
-            {
-#if UNITY_EDITOR
-                Debug.LogWarning($"MapGridPoint: Failed to load feature properties: {ex.Message}");
-#endif
-                return;
-            }
-
-            if (allDefaults == null || allDefaults.Length == 0)
-            {
-                return;
-            }
-
-            var defaultProps = FindFeatureProperties(allDefaults, featureId);
-            if (defaultProps == null)
-            {
-                return;
-            }
-
-            ApplyDefaults(
-                defaultProps.unitProperties,
-                GetUnitFeatureProperty,
-                SetUnitFeatureProperty
-            );
-            ApplyDefaults(
-                defaultProps.objectItemProperties,
-                GetObjectItemFeatureProperty,
-                SetObjectItemFeatureProperty
-            );
-            ApplyDefaults(
-                defaultProps.boolProperties,
-                k => GetBoolFeatureProperty(k),
-                (k, v) =>
-                {
-                    if (v.HasValue)
-                    {
-                        SetBoolFeatureProperty(k, v.Value);
-                    }
-                }
-            );
-            ApplyDefaults(
-                defaultProps.eventProperties,
-                GetEventFeatureProperty,
-                SetEventFeatureProperty
-            );
-            ApplyDefaults(
-                defaultProps.floatProperties,
-                k => GetFloatFeatureProperty(k),
-                (k, v) =>
-                {
-                    if (v.HasValue)
-                    {
-                        SetFloatFeatureProperty(k, v.Value);
-                    }
-                }
-            );
-        }
-
-        private void ApplyDefaults<TProp, TValue>(
-            List<TProp> defaults,
-            Func<string, TValue> getter,
-            Action<string, TValue> setter
-        )
-            where TProp : MapGridPropertyBase.IProperty
-        {
-            if (defaults == null)
-            {
-                return;
-            }
-
-            foreach (var prop in defaults)
-            {
-                if (string.IsNullOrEmpty(prop.key))
-                {
-                    continue;
-                }
-
-                var existing = getter(prop.key);
-                // For reference types, check null. For nullable value types, the getter
-                // should return null/default when no value exists.
-                if (!EqualityComparer<TValue>.Default.Equals(existing, default))
-                {
-                    continue;
-                }
-
-                var value = prop.GetValue();
-                if (value is TValue typedValue)
-                {
-                    setter(prop.key, typedValue);
-                }
-            }
-        }
-
-        private MapGridFeatureProperties FindFeatureProperties(
-            MapGridFeatureProperties[] allDefaults,
-            string featureId
-        )
-        {
-            foreach (var props in allDefaults)
-            {
-                if (props == null)
-                {
-                    continue;
-                }
-
-                if (
-                    props.featureId == featureId
-                    || string.Equals(props.name, featureId, StringComparison.OrdinalIgnoreCase)
-                )
-                {
-                    return props;
-                }
-            }
-            return null;
         }
     }
 }
