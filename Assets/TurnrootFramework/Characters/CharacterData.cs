@@ -270,8 +270,19 @@ namespace Turnroot.Characters
         ]
         public string[] AdditionalBoneNames { get; private set; } = new string[0];
 
-        [field: SerializeField, HorizontalLine(color: EColor.Blue)]
+        [field:
+            Foldout("Behavior"),
+            SerializeField,
+            HorizontalLine(color: EColor.Blue),
+            HideInInspector,
+            NaughtyAttributes.ShowIf(nameof(AlwaysHideBehavior))
+        ]
         public CharacterBehavior BehaviorSettings { get; private set; }
+
+#if UNITY_EDITOR
+        // Always-hide helper for NaughtyAttributes; prevents the field from drawing automatically
+        private bool AlwaysHideBehavior() => false;
+#endif
 
 #if TURNROOT_BLOODLINES_MODULE
         [Foldout("Heredity"), SerializeField]
@@ -290,13 +301,6 @@ namespace Turnroot.Characters
 
         [field: SerializeField]
         public List<SupportRelationship> SupportRelationships { get; private set; } = new();
-
-        [field:
-            BoxGroup("Stats & Progression"),
-            SerializeField,
-            HorizontalLine(color: EColor.Orange)
-        ]
-        public int Level { get; private set; } = 1;
 
         // ---------------------------------------------------------------------
         // Class progression ladder (per-character, generic units only)
@@ -372,13 +376,10 @@ namespace Turnroot.Characters
         [ShowIf(nameof(ShowClassProgressionFields))]
         public ClassProgressionLadder ProgressionLadder = new();
 
-        [field: SerializeField, BoxGroup("Stats & Progression")]
-        public int Exp { get; private set; } = 0;
-
         [field: BoxGroup("Stats & Progression"), SerializeField]
         public List<BoundedCharacterStat> BoundedStats { get; private set; } = new();
 
-        [field: BoxGroup("Stats & Progression"), SerializeField]
+        [field: BoxGroup("Stats & Progression"), SerializeField, HideInInspector]
         public List<CharacterStat> UnboundedStats { get; private set; } = new();
 
 #if UNITY_EDITOR
@@ -452,7 +453,7 @@ namespace Turnroot.Characters
         }
 #endif
 
-        [field: BoxGroup("Stats & Progression"), SerializeField]
+        [field: BoxGroup("Stats & Progression"), SerializeField, HideInInspector]
         [Tooltip(
             "Personal growth rates (percentage 0-100) for stat increases on level up. If empty, uses class growth rates only."
         )]

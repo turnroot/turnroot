@@ -19,10 +19,10 @@ MonoBehaviour:
   <FullName>k__BackingField: Generic Enemy Isopod
   <CharacterPronouns>k__BackingField:
     _selectedPronouns:
-    - they
-    - their
-    - theirs
-    - them
+    - she
+    - her
+    - hers
+    - her
   <Height>k__BackingField: 166
   <BirthdayDay>k__BackingField: 1
   <BirthdayMonth>k__BackingField: 1
@@ -123,11 +123,6 @@ MonoBehaviour:
     _statType: 2
     _max: 100
     _min: 0
-  - _current: 0
-    _bonus: 0
-    _statType: 3
-    _max: 100
-    _min: 0
   <UnboundedStats>k__BackingField:
   - _current: 10
     _bonus: 0
@@ -147,9 +142,6 @@ MonoBehaviour:
   - _current: 10
     _bonus: 0
     _statType: 5
-  - _current: 5
-    _bonus: 0
-    _statType: 6
   - _current: 10
     _bonus: 0
     _statType: 7
@@ -159,41 +151,49 @@ MonoBehaviour:
   - _current: 10
     _bonus: 0
     _statType: 9
-  - _current: 10
-    _bonus: 0
-    _statType: 10
   - _current: 5
     _bonus: 0
-    _statType: 11
-  - _current: 0
-    _bonus: 0
-    _statType: 12
+    _statType: 6
   <PersonalGrowthRates>k__BackingField:
-  - unboundedStatType: 0
+  - isBounded: 0
+    unboundedStatType: 0
+    boundedStatType: 0
     value: 0
-  - unboundedStatType: 1
+  - isBounded: 0
+    unboundedStatType: 1
+    boundedStatType: 0
     value: 0
-  - unboundedStatType: 2
+  - isBounded: 0
+    unboundedStatType: 2
+    boundedStatType: 0
     value: 0
-  - unboundedStatType: 3
+  - isBounded: 0
+    unboundedStatType: 3
+    boundedStatType: 0
     value: 0
-  - unboundedStatType: 4
+  - isBounded: 0
+    unboundedStatType: 4
+    boundedStatType: 0
     value: 0
-  - unboundedStatType: 5
+  - isBounded: 0
+    unboundedStatType: 5
+    boundedStatType: 0
     value: 0
-  - unboundedStatType: 6
+  - isBounded: 0
+    unboundedStatType: 7
+    boundedStatType: 0
     value: 0
-  - unboundedStatType: 7
+  - isBounded: 0
+    unboundedStatType: 8
+    boundedStatType: 0
     value: 0
-  - unboundedStatType: 8
+  - isBounded: 0
+    unboundedStatType: 6
+    boundedStatType: 0
     value: 0
-  - unboundedStatType: 9
-    value: 0
-  - unboundedStatType: 10
-    value: 0
-  - unboundedStatType: 11
-    value: 0
-  - unboundedStatType: 12
+  - isBounded: 1
+    unboundedStatType: 0
+    boundedStatType: 0
     value: 0
   <Skills>k__BackingField: []
   <PersonalSkill>k__BackingField: {fileID: 0}

@@ -49,7 +49,7 @@ namespace Turnroot.Characters.CharacterClass
             // Add custom UI for Pronouns multi-select at the end
             EditorGUILayout.Space();
             EditorGUILayout.LabelField("Allowed Pronouns", EditorStyles.boldLabel);
-            var pronounKeys = Turnroot.Characters.Subclasses.Pronouns.GetAvailablePronounKeys();
+            var pronounKeys = Subclasses.Pronouns.GetAvailablePronounKeys();
             if (pronounKeys == null || pronounKeys.Length == 0)
             {
                 EditorGUILayout.HelpBox("No pronoun sets are available.", MessageType.Warning);

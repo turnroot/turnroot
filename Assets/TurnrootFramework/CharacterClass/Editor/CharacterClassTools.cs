@@ -2,7 +2,6 @@
 using System.Linq;
 using System.Collections.Generic;
 using UnityEditor;
-using UnityEngine;
 using Turnroot.GameSettings;
 using Turnroot.Characters.CharacterClass;
 using Turnroot.Characters.Stats;
@@ -229,6 +228,18 @@ namespace Turnroot.CharacterClass.Editor
             stats.GrowthRateModifiers = new List<UnboundedStatModifier>(
                 rebuildUnbounded(stats.GrowthRateModifiers)
             );
+            // ensure HP growth entry (bounded) is present
+            if (
+                !stats.GrowthRateModifiers.Exists(g =>
+                    g.isBounded && g.boundedStatType == BoundedStatType.Health
+                )
+            )
+            {
+                stats.GrowthRateModifiers.Add(
+                    new UnboundedStatModifier(BoundedStatType.Health, 0f)
+                );
+                addedLocal++;
+            }
             stats.UnboundedClassChangeBonuses = new List<UnboundedStatModifier>(
                 rebuildUnbounded(stats.UnboundedClassChangeBonuses)
             );

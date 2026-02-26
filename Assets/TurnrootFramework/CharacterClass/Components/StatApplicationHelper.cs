@@ -309,6 +309,12 @@ namespace Turnroot.Characters.CharacterClass
 
         /// <summary>
         /// Apply stat growth for level up with randomized rolls.
+        /// <remarks>
+        /// Only unbounded stats (Strength/Defense/etc.) are considered here;
+        /// HP growth is applied separately by the caller and is not included in
+        /// the returned list.  The list is later used to decide good/bad
+        /// level‑up events, so health increases are intentionally ignored.
+        /// </remarks>
         /// Returns list of stats that increased.
         /// </summary>
         /// <param name="baseGrowths">Character's base growth rates</param>
@@ -387,14 +393,18 @@ namespace Turnroot.Characters.CharacterClass
                 }
             }
 
-            if (increasedStats.Count <= 2)
+            if (brain != null)
             {
-                brain.PublishBadLevelUp(character);
+                if (increasedStats.Count <= 2)
+                {
+                    brain.PublishBadLevelUp(character);
+                }
+                else
+                {
+                    brain.PublishGoodLevelUp(character);
+                }
             }
-            else
-            {
-                brain.PublishGoodLevelUp(character);
-            }
+            // if brain is null (e.g. running inside editor test window), skip event publishing
 
             return increasedStats;
         }

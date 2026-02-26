@@ -316,7 +316,7 @@ namespace Turnroot.Characters.Subclasses.Editor
             {
                 var found = original.FirstOrDefault(x =>
                     x != null
-                    && string.Equals(x.Tag, tag.Name, System.StringComparison.OrdinalIgnoreCase)
+                    && string.Equals(x.Tag, tag.Name, StringComparison.OrdinalIgnoreCase)
                 );
                 if (found != null && !result.Contains(found))
                 {
@@ -342,7 +342,7 @@ namespace Turnroot.Characters.Subclasses.Editor
 
                 l.Order =
                     !string.IsNullOrEmpty(l.Tag)
-                    && string.Equals(l.Tag, "Face", System.StringComparison.OrdinalIgnoreCase)
+                    && string.Equals(l.Tag, "Face", StringComparison.OrdinalIgnoreCase)
                         ? 0
                         : orderCounter++;
             }

@@ -208,12 +208,18 @@ public class TestGenericEnemySkewWindow : EditorWindow
     private static int StableStringHash(string s)
     {
         if (string.IsNullOrEmpty(s))
+        {
             return 0;
+        }
+
         unchecked
         {
             int hash = 23;
             foreach (var c in s)
+            {
                 hash = hash * 31 + c;
+            }
+
             return hash;
         }
     }
@@ -248,7 +254,9 @@ public class TestGenericEnemySkewWindow : EditorWindow
         double lowest_d = (playerLevels.Min() * 10) - Math.Ceiling((7.0 - h) * (multiplier * 10));
         int lowest = (int)Math.Round(lowest_d / 10.0);
         if (lowest < 1)
+        {
             lowest = 1;
+        }
 
         var result = new List<int>();
         for (int i = 0; i < enemyCount; i++)
@@ -281,10 +289,16 @@ public class TestGenericEnemySkewWindow : EditorWindow
     private static double Median(IList<int> sorted)
     {
         if (sorted == null || sorted.Count == 0)
+        {
             return 0.0;
+        }
+
         int n = sorted.Count;
         if (n % 2 == 1)
+        {
             return sorted[n / 2];
+        }
+
         return (sorted[n / 2 - 1] + sorted[n / 2]) / 2.0;
     }
 
@@ -294,7 +308,9 @@ public class TestGenericEnemySkewWindow : EditorWindow
         double mean = Mean(list);
         int n = list.Count;
         if (n == 0)
+        {
             return (0.0, mean, 0.0);
+        }
 
         List<int> lower,
             upper;

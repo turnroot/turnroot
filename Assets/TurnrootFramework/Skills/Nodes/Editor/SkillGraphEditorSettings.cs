@@ -78,7 +78,7 @@ namespace Turnroot.Skills.Nodes.Editor
             ClearCache();
 
 #if UNITY_EDITOR
-            UnityEditor.EditorApplication.delayCall += () =>
+            EditorApplication.delayCall += () =>
             {
                 if (this == null)
                 {
@@ -87,7 +87,7 @@ namespace Turnroot.Skills.Nodes.Editor
 
                 // Get xNode's settings - but DON'T save them back
                 // We only want to update the typeColors dictionary stored in EditorPrefs
-                var xnodeSettings = XNodeEditor.NodeEditorPreferences.GetSettings();
+                var xnodeSettings = NodeEditorPreferences.GetSettings();
 
                 // Update type colors in xNode's settings dictionary using simple type names
                 string executionFlowKey = NodeEditorUtilities.PrettyName(typeof(ExecutionFlow));
@@ -124,9 +124,9 @@ namespace Turnroot.Skills.Nodes.Editor
                 }
 
                 // Force repaint all NodeEditorWindows
-                XNodeEditor.NodeEditorWindow.RepaintAll();
+                NodeEditorWindow.RepaintAll();
 
-                UnityEditor.EditorUtility.SetDirty(this);
+                EditorUtility.SetDirty(this);
             };
 #endif
         }

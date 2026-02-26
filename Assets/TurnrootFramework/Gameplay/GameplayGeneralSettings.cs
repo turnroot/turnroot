@@ -462,9 +462,6 @@ namespace Turnroot.GameSettings
         public int BattalionLimit = 1;
 
         [BoxGroup("Combat Mechanics")]
-        public bool BattalionEndurance;
-
-        [BoxGroup("Combat Mechanics")]
         public bool PairUp;
 
         [BoxGroup("Combat Mechanics")]
@@ -826,7 +823,6 @@ namespace Turnroot.GameSettings
                 UnboundedStatType.Dexterity,
                 UnboundedStatType.Charm,
                 UnboundedStatType.Movement,
-                UnboundedStatType.Endurance,
             };
 
             if (UseLuck)

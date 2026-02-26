@@ -96,7 +96,7 @@ namespace Turnroot.EditorTools
                         .Where(c =>
                         {
                             var a = AnalyzeCharacter(c);
-                            return a.StatusLabel == "CRITICAL" || a.StatusLabel == "WARN";
+                            return a.StatusLabel is "CRITICAL" or "WARN";
                         })
                         .ToList();
                 }
@@ -182,7 +182,7 @@ namespace Turnroot.EditorTools
                     .Where(c =>
                     {
                         var a = AnalyzeCharacter(c);
-                        return a.StatusLabel == "CRITICAL" || a.StatusLabel == "WARN";
+                        return a.StatusLabel is "CRITICAL" or "WARN";
                     })
                     .ToList();
             }
@@ -780,7 +780,7 @@ namespace Turnroot.EditorTools
                     data =>
                     {
                         var r = new CharacterCheckResult();
-                        var gs = Turnroot.GameSettings.GameplayGeneralSettings.Instance;
+                        var gs = GameSettings.GameplayGeneralSettings.Instance;
                         var defBounded =
                             gs != null
                                 ? gs.CreateDefaultBoundedStats()
@@ -846,35 +846,139 @@ namespace Turnroot.EditorTools
                 )
             );
 
-            // Growth rates (yellow if all zero)
+            // Unbounded stat total sanity check (green 30-40, yellow 20-50, orange 10-50, red outside)
+            _checks.Add(
+                new CharacterCheckDefinition(
+                    "Unbounded Stat Total",
+                    data =>
+                    {
+                        var r = new CharacterCheckResult();
+                        float total = 0f;
+                        if (data.UnboundedStats != null)
+                        {
+                            foreach (var stat in data.UnboundedStats)
+                            {
+                                if (
+                                    stat.StatType
+                                    is UnboundedStatType.Movement
+                                        or UnboundedStatType.Charm
+                                )
+                                {
+                                    continue;
+                                }
+                                total += stat.Current;
+                            }
+                        }
+                        if (total is >= 30f and <= 40f)
+                        {
+                            r.Color = green;
+                        }
+                        else if (total is >= 20f and <= 50f)
+                        {
+                            r.Color = yellow;
+                            r.Note = $"Total = {total:0.##}";
+                        }
+                        else if (total is >= 10f and <= 50f)
+                        {
+                            r.Color = orange;
+                            r.Note = $"Total = {total:0.##}";
+                        }
+                        else
+                        {
+                            r.Color = red;
+                            r.Note = $"Total = {total:0.##} (outside expected range)";
+                        }
+                        return r;
+                    }
+                )
+            );
+
+            // Growth rate total check (percentages). exclude movement and charm only.
             _checks.Add(
                 new CharacterCheckDefinition(
                     "Growth Rates",
                     data =>
                     {
                         var r = new CharacterCheckResult();
-                        bool growthAllZero = true;
+                        float total = 0f;
                         if (data.PersonalGrowthRates != null && data.PersonalGrowthRates.Count > 0)
                         {
+                            var seen = new HashSet<string>();
                             foreach (var g in data.PersonalGrowthRates)
                             {
-                                if (!Mathf.Approximately(g.value, 0f))
+                                // skip movement and charm unbounded entries
+                                if (
+                                    !g.isBounded
+                                    && (
+                                        g.unboundedStatType == UnboundedStatType.Movement
+                                        || g.unboundedStatType == UnboundedStatType.Charm
+                                    )
+                                )
                                 {
-                                    growthAllZero = false;
-                                    break;
+                                    continue;
                                 }
+                                // bounded HP is now counted in the total; do not skip it
+                                // dedupe by stat type in case asset has duplicates
+                                string key = g.isBounded
+                                    ? "B" + (int)g.boundedStatType
+                                    : "U" + (int)g.unboundedStatType;
+                                if (seen.Contains(key))
+                                {
+                                    continue;
+                                }
+
+                                seen.Add(key);
+
+                                total += g.value;
                             }
                         }
-                        if (growthAllZero)
+                        // thresholds in percentage (all shifted +30)
+                        if (total is >= 390f and <= 450f)
+                        {
+                            r.Color = green;
+                        }
+                        else if (total is >= 350f and <= 490f)
                         {
                             r.Color = yellow;
-                            r.Note = "Personal growth rates are zero";
+                            r.Note = $"Total = {total:0.##}%";
+                        }
+                        else if (total is >= 310f and <= 530f)
+                        {
+                            r.Color = orange;
+                            r.Note = $"Total = {total:0.##}%";
+                        }
+                        else
+                        {
+                            r.Color = red;
+                            r.Note = $"Total = {total:0.##}%";
+                        }
+                        return r;
+                    }
+                )
+            );
+
+            // Level cap sanity - ensure bounded Level max isn't absurdly low
+            _checks.Add(
+                new CharacterCheckDefinition(
+                    "Level Cap",
+                    data =>
+                    {
+                        var r = new CharacterCheckResult();
+                        var lvl = data.BoundedStats?.Find(s => s.StatType == BoundedStatType.Level);
+                        if (lvl == null)
+                        {
+                            r.Color = red;
+                            r.Note = "No level stat";
+                        }
+                        else if (lvl.Max < 30)
+                        {
+                            r.Color = red;
+                            r.Note = $"Max={lvl.Max}";
                         }
                         else
                         {
                             r.Color = green;
                         }
-
                         return r;
                     }
                 )
@@ -1068,7 +1172,7 @@ namespace Turnroot.EditorTools
 
             // Stats: compare against defaults (yellow if they match default exactly)
             bool statsAreDefault = false;
-            var gs = Turnroot.GameSettings.GameplayGeneralSettings.Instance;
+            var gs = GameSettings.GameplayGeneralSettings.Instance;
             if (gs != null)
             {
                 var defBounded = gs.CreateDefaultBoundedStats();
@@ -1325,12 +1429,16 @@ namespace Turnroot.EditorTools
             foreach (var sup in supervisors)
             {
                 if (sup == null || sup.GenericEnemyStartingPlacements.placements == null)
+                {
                     continue;
+                }
 
                 foreach (var placement in sup.GenericEnemyStartingPlacements.placements)
                 {
                     if (placement.Enemy == null)
+                    {
                         continue;
+                    }
 
                     _genericEnemyPlacementCharacters.Add(placement.Enemy);
 

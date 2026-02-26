@@ -65,7 +65,7 @@ namespace Turnroot.Characters.Subclasses.Editor
             }
 
             // Support undo/redo and mark asset dirty so changes persist to disk.
-            UnityEditor.Undo.RecordObject(
+            Undo.RecordObject(
                 property.serializedObject.targetObject,
                 $"Change {property.displayName} pronouns"
             );
@@ -93,7 +93,7 @@ namespace Turnroot.Characters.Subclasses.Editor
 
             // Apply and ensure the target object (ScriptableObject asset) is marked dirty so Unity will persist the change.
             property.serializedObject.ApplyModifiedProperties();
-            UnityEditor.EditorUtility.SetDirty(property.serializedObject.targetObject);
+            EditorUtility.SetDirty(property.serializedObject.targetObject);
         }
 
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label) =>

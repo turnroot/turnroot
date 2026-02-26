@@ -111,13 +111,12 @@ namespace Turnroot.Characters
             float speed = GetUnboundedStat(Stats.UnboundedStatType.Speed)?.Current ?? 0f;
 
             settings.GetHitFormulaMultipliers(out var sm, out var dm, out var lm);
-            _currentHit = (skill * sm) + (dex * dm) + (luck * lm);
+            float statHit = skill * sm + dex * dm + luck * lm;
 
             var weaponItem = GetEquippedWeapon();
-            if (weaponItem?.Template != null)
-            {
-                _currentHit += weaponItem.Template.Hit;
-            }
+            float weaponHit = weaponItem?.Template?.Hit ?? 0f;
+
+            _currentHit = (statHit + weaponHit) * 0.5f;
 
             settings.GetAvoidFormulaMultipliers(out var spm, out var lkm);
             _currentAvoid = (speed * spm) + (luck * lkm);

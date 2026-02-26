@@ -221,7 +221,7 @@ namespace Turnroot.Skills.Nodes.Editor
             {
                 string shortName = ExtractShortNameFromMenuPath(menuPath);
                 created.name = shortName;
-                UnityEditor.EditorUtility.SetDirty(created);
+                EditorUtility.SetDirty(created);
 
                 // Persist the created node as a sub-asset of the graph so the
                 // graph's `nodes` list is serialized with non-zero fileIDs.
@@ -236,7 +236,7 @@ namespace Turnroot.Skills.Nodes.Editor
                             AssetDatabase.AddObjectToAsset(created, graphPath);
                         }
 
-                        UnityEditor.EditorUtility.SetDirty(graph);
+                        EditorUtility.SetDirty(graph);
                         AssetDatabase.SaveAssets();
                     }
                 }

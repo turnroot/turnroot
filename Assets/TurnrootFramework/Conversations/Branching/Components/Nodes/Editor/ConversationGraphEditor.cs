@@ -46,7 +46,7 @@ namespace Turnroot.Conversations.Branching.Nodes
                 }
 
                 if (
-                    prop.propertyType == UnityEditor.SerializedPropertyType.ObjectReference
+                    prop.propertyType == SerializedPropertyType.ObjectReference
                     && prop.objectReferenceValue != null
                 )
                 {
@@ -54,7 +54,7 @@ namespace Turnroot.Conversations.Branching.Nodes
                 }
 
                 if (
-                    prop.propertyType == UnityEditor.SerializedPropertyType.String
+                    prop.propertyType == SerializedPropertyType.String
                     && !string.IsNullOrEmpty(prop.stringValue)
                 )
                 {
@@ -162,7 +162,7 @@ namespace Turnroot.Conversations.Branching.Nodes
                                     }
                                     shortName = shortName.Trim();
                                     created.name = shortName;
-                                    UnityEditor.EditorUtility.SetDirty(created);
+                                    EditorUtility.SetDirty(created);
                                     // Persist the created node as a subasset of the graph to
                                     // ensure the graph's `nodes` list is serialized correctly.
                                     try
@@ -181,7 +181,7 @@ namespace Turnroot.Conversations.Branching.Nodes
                                                 AssetDatabase.AddObjectToAsset(created, graphPath);
                                             }
 
-                                            UnityEditor.EditorUtility.SetDirty(
+                                            EditorUtility.SetDirty(
                                                 graph
                                             );
                                             AssetDatabase.SaveAssets();
@@ -276,7 +276,7 @@ namespace Turnroot.Conversations.Branching.Nodes
                         }
                         try
                         {
-                            UnityEditor.EditorUtility.SetDirty(target);
+                            EditorUtility.SetDirty(target);
                             AssetDatabase.SaveAssets();
                         }
                         catch (Exception ex)

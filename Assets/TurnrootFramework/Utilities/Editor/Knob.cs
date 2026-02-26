@@ -43,9 +43,9 @@ namespace UnityEditor
             Rect labelRect = Rect.zero;
             if (showValue)
             {
-                labelRect = UnityEditor.EditorGUILayout.GetControlRect(false, 18f);
+                labelRect = EditorGUILayout.GetControlRect(false, 18f);
             }
-            Rect r = UnityEditor.EditorGUILayout.GetControlRect(false, knobSize.y, options);
+            Rect r = EditorGUILayout.GetControlRect(false, knobSize.y, options);
             return KnobGUI.Knob(
                 r,
                 labelRect,

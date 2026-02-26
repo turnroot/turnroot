@@ -750,7 +750,7 @@ namespace Turnroot.Gameplay.Maps
                         else
                         {
                             point.SetStartingUnit(
-                                Turnroot.Characters.CharacterInstance.Create(chosen)
+                                Characters.CharacterInstance.Create(chosen)
                             );
                         }
 
@@ -1017,7 +1017,7 @@ namespace Turnroot.Gameplay.Maps
                         {
                             point.SetUnitFeatureProperty(
                                 keyProp.stringValue,
-                                Turnroot.Characters.CharacterInstance.Create(chosen)
+                                Characters.CharacterInstance.Create(chosen)
                             );
                         }
 

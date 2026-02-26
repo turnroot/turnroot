@@ -29,6 +29,7 @@ namespace Turnroot.Characters.CharacterClass
 
     /// <summary>
     /// Custom property drawer for UnboundedStatModifier that displays the stat type name as the label.
+    /// Supports both unbounded and bounded (HP) entries.
     /// </summary>
     [CustomPropertyDrawer(typeof(UnboundedStatModifier))]
     public class UnboundedStatModifierDrawer : PropertyDrawer
@@ -37,11 +38,21 @@ namespace Turnroot.Characters.CharacterClass
         {
             EditorGUI.BeginProperty(position, label, property);
 
-            var statTypeProp = property.FindPropertyRelative("unboundedStatType");
+            var isBoundedProp = property.FindPropertyRelative("isBounded");
+            var unboundedProp = property.FindPropertyRelative("unboundedStatType");
+            var boundedProp = property.FindPropertyRelative("boundedStatType");
             var valueProp = property.FindPropertyRelative("value");
 
-            // Draw stat type name as label and value field
-            var statName = statTypeProp.enumDisplayNames[statTypeProp.enumValueIndex];
+            string statName;
+            if (isBoundedProp != null && isBoundedProp.boolValue)
+            {
+                statName = boundedProp.enumDisplayNames[boundedProp.enumValueIndex];
+            }
+            else
+            {
+                statName = unboundedProp.enumDisplayNames[unboundedProp.enumValueIndex];
+            }
+
             EditorGUI.PropertyField(position, valueProp, new GUIContent(statName));
 
             EditorGUI.EndProperty();

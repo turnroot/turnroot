@@ -122,13 +122,18 @@ namespace Turnroot.Characters
                 }
             }
 
-            // Initialize personal growth rates if empty (set all unbounded stats to 0% growth)
-            if (PersonalGrowthRates.Count == 0 && UnboundedStats.Count > 0)
+            // Initialize personal growth rates if empty (set all unbounded stats + HP to 0% growth)
+            if (PersonalGrowthRates.Count == 0)
             {
-                foreach (var stat in UnboundedStats)
+                if (UnboundedStats.Count > 0)
                 {
-                    PersonalGrowthRates.Add(new UnboundedStatModifier(stat.StatType, 0f));
+                    foreach (var stat in UnboundedStats)
+                    {
+                        PersonalGrowthRates.Add(new UnboundedStatModifier(stat.StatType, 0f));
+                    }
                 }
+                // always include an HP growth entry as a bounded stat
+                PersonalGrowthRates.Add(new UnboundedStatModifier(BoundedStatType.Health, 0f));
             }
         }
 
@@ -156,6 +161,24 @@ namespace Turnroot.Characters
                 {
                     $"Removed invalid support relationship: {name} cannot have a support relationship with themselves ({r.Character?.name})".LogWarning();
                 }
+            }
+
+            // guarantee that growth rates list contains HP entry and remove movement entries
+            if (PersonalGrowthRates != null)
+            {
+                // add HP entry if missing
+                if (
+                    !PersonalGrowthRates.Exists(g =>
+                        g.isBounded && g.boundedStatType == BoundedStatType.Health
+                    )
+                )
+                {
+                    PersonalGrowthRates.Add(new UnboundedStatModifier(BoundedStatType.Health, 0f));
+                }
+                // remove any stray movement entries (they're not editable)
+                PersonalGrowthRates.RemoveAll(g =>
+                    !g.isBounded && g.unboundedStatType == UnboundedStatType.Movement
+                );
             }
 
             // Editor-time validation for rigging properties
