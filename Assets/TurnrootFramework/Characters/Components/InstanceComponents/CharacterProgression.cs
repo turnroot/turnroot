@@ -38,7 +38,10 @@ namespace Turnroot.Characters
             {
                 // make sure max is at least as high as the new level so it can increase
                 if (levelStat.Max < _currentLevel)
+                {
                     levelStat.SetMax(_currentLevel);
+                }
+
                 levelStat.SetCurrent(_currentLevel);
             }
 
@@ -46,7 +49,6 @@ namespace Turnroot.Characters
 
             // HP growth roll based on combined personal + class rates
             float hpGrowth = GetEffectiveHpGrowthRate();
-            hpGrowth = Mathf.Clamp(hpGrowth, 0f, 100f);
             float roll = Random.Range(0f, 100f);
             if (hpGrowth > 100f && GameplayGeneralSettings.Instance.LevelUpExtraGrowthChance)
             {
@@ -137,7 +139,9 @@ namespace Turnroot.Characters
                     r.isBounded && r.boundedStatType == BoundedStatType.Health
                 );
                 if (entry.value != 0f)
+                {
                     hpRate += entry.value;
+                }
             }
 
             var classMods = _currentClass?.ClassData.Stats?.GrowthRateModifiers;
@@ -147,7 +151,9 @@ namespace Turnroot.Characters
                     r.isBounded && r.boundedStatType == BoundedStatType.Health
                 );
                 if (centry.value != 0f)
+                {
                     hpRate += centry.value;
+                }
             }
 
             return hpRate;

@@ -1,7 +1,7 @@
 #if UNITY_EDITOR
 using System.Collections.Generic;
-using Turnroot.Characters;
 using Turnroot.Characters.Stats;
+using Turnroot.Characters.CharacterClass;
 using UnityEditor;
 using UnityEngine;
 
@@ -18,6 +18,7 @@ namespace Turnroot.Characters.Editor
     {
         private CharacterData _template;
         private CharacterInstance _instance;
+        private CharacterClassData _classOverride; // optional class chosen in tester
         private int _levelUpCount;
         private int _goodLevelUps;
         private int _badLevelUps;
@@ -26,6 +27,7 @@ namespace Turnroot.Characters.Editor
         {
             var window = GetWindow<CharacterLevelUpTesterWindow>("Level Up Tester");
             window._template = template;
+            window._classOverride = null;
             window.ResetSimulation();
             window.minSize = new Vector2(300, 300);
             window.Show();
@@ -47,6 +49,19 @@ namespace Turnroot.Characters.Editor
                 _levelUpCount = 0;
                 _goodLevelUps = 0;
                 _badLevelUps = 0;
+
+                // apply class override if one is selected; this ensures the simulated
+                // level ups will roll using growth rates coming from the chosen class.
+                if (_classOverride != null && _instance != null)
+                {
+                    var res = _instance.ChangeClass(_classOverride, applyClassChangeBonuses: false);
+                    if (!res.Success)
+                    {
+                        Debug.LogWarning(
+                            $"LevelUp tester: failed to assign override class '{_classOverride.name}': {res.ErrorMessage}"
+                        );
+                    }
+                }
             }
         }
 
@@ -62,8 +77,36 @@ namespace Turnroot.Characters.Editor
                 _template.DisplayName ?? _template.name,
                 EditorStyles.boldLabel
             );
+
+            // class override picker
+            EditorGUILayout.BeginHorizontal();
+            EditorGUILayout.LabelField("Class (override)", GUILayout.Width(100));
+            EditorGUI.BeginChangeCheck();
+            var newClass = (CharacterClassData)
+                EditorGUILayout.ObjectField(
+                    _classOverride,
+                    typeof(CharacterClassData),
+                    allowSceneObjects: false
+                );
+            if (EditorGUI.EndChangeCheck())
+            {
+                _classOverride = newClass;
+                ResetSimulation();
+            }
+            if (GUILayout.Button("Clear", GUILayout.Width(50)))
+            {
+                _classOverride = null;
+                ResetSimulation();
+            }
+            EditorGUILayout.EndHorizontal();
+
             EditorGUILayout.LabelField($"Simulations: {_levelUpCount}");
             EditorGUILayout.LabelField($"Good: {_goodLevelUps}   Bad: {_badLevelUps}");
+            if (_instance != null)
+            {
+                var className = _instance.CurrentClassTemplate?.Identity.ClassName ?? "<none>";
+                EditorGUILayout.LabelField($"Applied class: {className}");
+            }
 
             EditorGUILayout.Space();
             EditorGUILayout.BeginHorizontal();

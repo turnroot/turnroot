@@ -12,7 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1d531c8bfa9fbd649862bdaaa67913c8, type: 3}
   m_Name: Felicity
   m_EditorClassIdentifier: 
-  _: 
   <Which>k__BackingField:
     _value: Ally
   <DisplayName>k__BackingField: Felicity
@@ -198,7 +197,37 @@ MonoBehaviour:
     value: 65
   <Skills>k__BackingField: []
   <PersonalSkill>k__BackingField: {fileID: 11400000, guid: 99f09bf75af3b064ea95ba36451474a7, type: 2}
-  <ExperienceRanks>k__BackingField: []
+  <ExperienceRanks>k__BackingField:
+  - _experienceTypeId: Knife (Turnroot.Gameplay.Objects.Components.WeaponType)
+    _rank:
+      _value: D
+  - _experienceTypeId: Ax (Turnroot.Gameplay.Objects.Components.WeaponType)
+    _rank:
+      _value: E
+  - _experienceTypeId: Bow (Turnroot.Gameplay.Objects.Components.WeaponType)
+    _rank:
+      _value: E
+  - _experienceTypeId: Chain (Turnroot.Gameplay.Objects.Components.WeaponType)
+    _rank:
+      _value: E
+  - _experienceTypeId: Polearm (Turnroot.Gameplay.Objects.Components.WeaponType)
+    _rank:
+      _value: E
+  - _experienceTypeId: Sword (Turnroot.Gameplay.Objects.Components.WeaponType)
+    _rank:
+      _value: E
+  - _experienceTypeId: Truncheon (Turnroot.Gameplay.Objects.Components.WeaponType)
+    _rank:
+      _value: E
+  - _experienceTypeId: Riding
+    _rank:
+      _value: E
+  - _experienceTypeId: Flying
+    _rank:
+      _value: E
+  - _experienceTypeId: Armor
+    _rank:
+      _value: E
   references:
     version: 2
     RefIds: []

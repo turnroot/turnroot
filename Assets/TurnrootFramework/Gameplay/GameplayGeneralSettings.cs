@@ -916,6 +916,21 @@ namespace Turnroot.GameSettings
                                 UnityEditor.ImportAssetOptions.ForceUpdate
                             );
                         }
+                        // also refresh CharacterData assets so experience rank lists update
+                        var charGuids = UnityEditor.AssetDatabase.FindAssets("t:CharacterData");
+                        foreach (var g in charGuids)
+                        {
+                            var path = UnityEditor.AssetDatabase.GUIDToAssetPath(g);
+                            if (string.IsNullOrEmpty(path))
+                            {
+                                continue;
+                            }
+
+                            UnityEditor.AssetDatabase.ImportAsset(
+                                path,
+                                UnityEditor.ImportAssetOptions.ForceUpdate
+                            );
+                        }
                     }
                     catch { }
                 };

@@ -181,6 +181,32 @@ namespace Turnroot.Characters
                 );
             }
 
+            // synchronize ExperienceRanks list with available types from settings
+            if (Application.isEditor)
+            {
+                ExperienceRanks ??= new List<ExperienceRank>();
+
+                var gs = GameSettings.GameplayGeneralSettings.Instance;
+                if (gs != null)
+                {
+                    var types = gs.GetAllExperienceTypes();
+                    var newList = new List<ExperienceRank>();
+                    foreach (var et in types)
+                    {
+                        var existing = ExperienceRanks.Find(r => r.ExperienceTypeId == et.Name);
+                        if (existing != null)
+                        {
+                            newList.Add(existing);
+                        }
+                        else
+                        {
+                            newList.Add(new ExperienceRank(et.Name, "E"));
+                        }
+                    }
+                    ExperienceRanks = newList;
+                }
+            }
+
             // Editor-time validation for rigging properties
             if (HasExtraBoneLayer)
             {

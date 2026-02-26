@@ -199,7 +199,7 @@ MonoBehaviour:
     - isBounded: 0
       unboundedStatType: 1
       boundedStatType: 0
-      value: 0
+      value: 5
     - isBounded: 0
       unboundedStatType: 2
       boundedStatType: 0
@@ -207,7 +207,7 @@ MonoBehaviour:
     - isBounded: 0
       unboundedStatType: 3
       boundedStatType: 0
-      value: 0
+      value: 5
     - isBounded: 0
       unboundedStatType: 4
       boundedStatType: 0
@@ -235,7 +235,7 @@ MonoBehaviour:
     - isBounded: 1
       unboundedStatType: 0
       boundedStatType: 0
-      value: 0
+      value: 10
     ClassChangeBonuses:
     - boundedStatType: 0
       value: 0
@@ -290,7 +290,9 @@ MonoBehaviour:
       value: 0
   Requirements:
     CertificationItem: {fileID: 0}
-    AllowedWeaponTypes: []
+    AllowedWeaponTypes:
+    - {fileID: 11400000, guid: 1265787936baf2a4da7e7a1898d11264, type: 2}
+    - {fileID: 11400000, guid: e8c10a69257127942adff5d215b043bb, type: 2}
     MinimumLevelRequirement: 1
     ExperienceRequirements: []
     AllowedSpecies:

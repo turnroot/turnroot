@@ -12,7 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1d531c8bfa9fbd649862bdaaa67913c8, type: 3}
   m_Name: GenericEnemyIsopod
   m_EditorClassIdentifier: Assembly-CSharp::Turnroot.Characters.CharacterData
-  _: 
   <Which>k__BackingField:
     _value: Enemy
   <DisplayName>k__BackingField: Isopod
@@ -43,7 +42,7 @@ MonoBehaviour:
   <RecruitmentChanceIncreasePerConversation>k__BackingField: 15
   <IsUnique>k__BackingField: 0
   <StartingClass>k__BackingField: {fileID: 0}
-  <BadgeText>k__BackingField: 
+  <BadgeText>k__BackingField: Isopod
   <BadgeIcon>k__BackingField: {fileID: 0}
   <Blendshapes>k__BackingField:
     chestSize: 0
@@ -66,7 +65,7 @@ MonoBehaviour:
   <HandItemOffset>k__BackingField: {x: 0, y: 0, z: 0}
   <ShieldOffset>k__BackingField: {x: 0, y: 0, z: 0}
   <UseDefaultAnimationsAlways>k__BackingField: 1
-  <DefaultWalkingAnimation>k__BackingField: {fileID: 0}
+  <DefaultWalkingAnimation>k__BackingField: {fileID: -6615045402325774578, guid: 57443d2553ea9ab4e9b5d86dcea505e7, type: 3}
   <DefaultRunningAnimation>k__BackingField: {fileID: 0}
   <DefaultIdleAnimations>k__BackingField:
   - {fileID: -7456627596552076901, guid: 67537e58ea58b6849850b5cfc342335b, type: 3}
@@ -86,7 +85,6 @@ MonoBehaviour:
     preset: 0
   <StartingInventory>k__BackingField: []
   <SupportRelationships>k__BackingField: []
-  <Level>k__BackingField: 1
   <UseClassProgressionLadder>k__BackingField: 1
   ProgressionLadder:
     Starter:
@@ -106,17 +104,16 @@ MonoBehaviour:
     Expert:
       Class: {fileID: 11400000, guid: d9434e34c5b04b94ea56022177ba66e8, type: 2}
       Loadout: []
-  <Exp>k__BackingField: 0
   <BoundedStats>k__BackingField:
-  - _current: 100
+  - _current: 15
     _bonus: 0
     _statType: 0
-    _max: 100
+    _max: 15
     _min: 0
   - _current: 1
     _bonus: 0
     _statType: 1
-    _max: 99
+    _max: 50
     _min: 1
   - _current: 0
     _bonus: 0
@@ -124,80 +121,110 @@ MonoBehaviour:
     _max: 100
     _min: 0
   <UnboundedStats>k__BackingField:
-  - _current: 10
+  - _current: 4
     _bonus: 0
     _statType: 0
-  - _current: 10
+  - _current: 6
     _bonus: 0
     _statType: 1
-  - _current: 10
+  - _current: 0
     _bonus: 0
     _statType: 2
-  - _current: 10
+  - _current: 3
     _bonus: 0
     _statType: 3
-  - _current: 10
+  - _current: 3
     _bonus: 0
     _statType: 4
-  - _current: 10
+  - _current: 2
     _bonus: 0
     _statType: 5
-  - _current: 10
+  - _current: 6
     _bonus: 0
     _statType: 7
-  - _current: 10
+  - _current: 0
     _bonus: 0
     _statType: 8
-  - _current: 10
+  - _current: 4
     _bonus: 0
     _statType: 9
-  - _current: 5
+  - _current: 2
     _bonus: 0
     _statType: 6
   <PersonalGrowthRates>k__BackingField:
   - isBounded: 0
     unboundedStatType: 0
     boundedStatType: 0
-    value: 0
+    value: 65
   - isBounded: 0
     unboundedStatType: 1
     boundedStatType: 0
-    value: 0
+    value: 85
   - isBounded: 0
     unboundedStatType: 2
     boundedStatType: 0
-    value: 0
+    value: 5
   - isBounded: 0
     unboundedStatType: 3
     boundedStatType: 0
-    value: 0
+    value: 25
   - isBounded: 0
     unboundedStatType: 4
     boundedStatType: 0
-    value: 0
+    value: 20
   - isBounded: 0
     unboundedStatType: 5
     boundedStatType: 0
-    value: 0
+    value: 20
   - isBounded: 0
     unboundedStatType: 7
     boundedStatType: 0
-    value: 0
+    value: 40
   - isBounded: 0
     unboundedStatType: 8
     boundedStatType: 0
-    value: 0
+    value: 5
   - isBounded: 0
     unboundedStatType: 6
     boundedStatType: 0
-    value: 0
+    value: 20
   - isBounded: 1
     unboundedStatType: 0
     boundedStatType: 0
-    value: 0
+    value: 120
   <Skills>k__BackingField: []
   <PersonalSkill>k__BackingField: {fileID: 0}
-  <ExperienceRanks>k__BackingField: []
+  <ExperienceRanks>k__BackingField:
+  - _experienceTypeId: Knife (Turnroot.Gameplay.Objects.Components.WeaponType)
+    _rank:
+      _value: E
+  - _experienceTypeId: Ax (Turnroot.Gameplay.Objects.Components.WeaponType)
+    _rank:
+      _value: E
+  - _experienceTypeId: Bow (Turnroot.Gameplay.Objects.Components.WeaponType)
+    _rank:
+      _value: E
+  - _experienceTypeId: Chain (Turnroot.Gameplay.Objects.Components.WeaponType)
+    _rank:
+      _value: E
+  - _experienceTypeId: Polearm (Turnroot.Gameplay.Objects.Components.WeaponType)
+    _rank:
+      _value: E
+  - _experienceTypeId: Sword (Turnroot.Gameplay.Objects.Components.WeaponType)
+    _rank:
+      _value: E
+  - _experienceTypeId: Truncheon (Turnroot.Gameplay.Objects.Components.WeaponType)
+    _rank:
+      _value: C
+  - _experienceTypeId: Riding
+    _rank:
+      _value: E
+  - _experienceTypeId: Flying
+    _rank:
+      _value: E
+  - _experienceTypeId: Armor
+    _rank:
+      _value: E
   references:
     version: 2
     RefIds: []
