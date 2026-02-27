@@ -70,7 +70,10 @@ namespace Turnroot.Characters.Editor
                 MessageType.Info
             );
 
+            // remove null entries; we assume the asset is correct and don't attempt
+            // to deduplicate automatically anymore.
             SanitizeNullStats(serializedObject);
+
             // refresh before validation/drawing since sanitize may modify array
             _personalGrowthRates = serializedObject.FindProperty("PersonalGrowthRates");
             ValidateGrowthProperty();

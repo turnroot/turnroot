@@ -109,6 +109,30 @@ namespace Turnroot.Characters
             _runtimeUnboundedStats = CharacterHelpers.CloneUnboundedStats(
                 _characterTemplate.UnboundedStats
             );
+
+            // ensure the runtime movement stat matches the template value.  sometimes
+            // downstream processing (LTM, class minimums) can reset it to the
+            // hardcoded default of 5, so we enforce the template here.
+            if (_runtimeUnboundedStats != null && _characterTemplate.UnboundedStats != null)
+            {
+                var templMov = _characterTemplate.UnboundedStats.Find(s =>
+                    s != null && s.StatType == UnboundedStatType.Movement
+                );
+                var instMov = _runtimeUnboundedStats.Find(s =>
+                    s != null && s.StatType == UnboundedStatType.Movement
+                );
+                if (templMov != null && instMov != null)
+                {
+                    int before = instMov.CurrentInt;
+                    int after = templMov.CurrentInt;
+                    if (before != after)
+                    {
+                        instMov.SetCurrent(after);
+                        $"CharacterInstance.Initialize: movement corrected from {before} to {after} (template)".LogInfo();
+                    }
+                }
+            }
+
             // make sure runtime copy reflects the derived level/exp values
             if (_runtimeBoundedStats != null)
             {

@@ -82,33 +82,6 @@ namespace Turnroot.Characters.Stats
 
         #region Unbounded Stats
 
-        // ensure a unbounded list never contains more than one entry per type
-        private static void CleanupDuplicateUnbounded(List<CharacterStat> stats)
-        {
-            if (!ValidationHelper.ValidateNotNull(stats, nameof(stats)))
-            {
-                return;
-            }
-
-            var seen = new HashSet<UnboundedStatType>();
-            for (int i = stats.Count - 1; i >= 0; i--)
-            {
-                var s = stats[i];
-                if (s == null)
-                {
-                    continue;
-                }
-
-                if (seen.Contains(s.StatType))
-                {
-                    stats.RemoveAt(i);
-                }
-                else
-                {
-                    seen.Add(s.StatType);
-                }
-            }
-        }
 
         // ensure a bounded stats list has no duplicate types
         private static void CleanupDuplicateBounded(List<BoundedCharacterStat> stats)
@@ -143,7 +116,6 @@ namespace Turnroot.Characters.Stats
             UnboundedStatType type
         )
         {
-            CleanupDuplicateUnbounded(stats);
             return GetStat(stats, type, s => s.StatType);
         }
 
@@ -152,7 +124,6 @@ namespace Turnroot.Characters.Stats
             UnboundedStatType type
         )
         {
-            CleanupDuplicateUnbounded(stats);
             return GetOrCreateUnboundedStat(stats, type, null);
         }
 
@@ -166,8 +137,6 @@ namespace Turnroot.Characters.Stats
             {
                 return null;
             }
-
-            CleanupDuplicateUnbounded(stats);
 
             var existing = stats.Find(s => s?.StatType == type);
             if (existing != null)

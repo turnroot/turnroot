@@ -26,6 +26,11 @@ namespace Turnroot.Gameplay.Brain.Components
             public const string CharacterTemplate = "_characterTemplate";
             public const string CurrentLevel = "_currentLevel";
             public const string CurrentExp = "_currentExp";
+
+            // note: runtime stats used to be persisted here.  they are derived from
+            // the character template and therefore do not need long-term memory storage.
+            // the constants remain defined for compatibility with existing data but are
+            // no longer written or read by the converter.
             public const string RuntimeBoundedStats = "_runtimeBoundedStats";
             public const string RuntimeUnboundedStats = "_runtimeUnboundedStats";
             public const string InventoryInstance = "_inventoryInstance";
@@ -73,14 +78,10 @@ namespace Turnroot.Gameplay.Brain.Components
             token[FieldNames.CurrentLevel] = JToken.FromObject(instance.CurrentLevel, serializer);
             token[FieldNames.CurrentExp] = JToken.FromObject(instance.CurrentExp, serializer);
 
-            token[FieldNames.RuntimeBoundedStats] = SerializeFieldOrNull(
-                instance.RuntimeBoundedStats,
-                serializer
-            );
-            token[FieldNames.RuntimeUnboundedStats] = SerializeFieldOrNull(
-                instance.RuntimeUnboundedStats,
-                serializer
-            );
+            // runtime stats are intentionally omitted from long‑term memory; they will
+            // be repaired on load from the template.  previously we persisted them here,
+            // but that caused stale or duplicated values to linger.
+            // (fields exist above purely for migration/compatibility.)
             token[FieldNames.InventoryInstance] = SerializeFieldOrNull(
                 instance.InventoryInstance,
                 serializer
@@ -277,20 +278,22 @@ namespace Turnroot.Gameplay.Brain.Components
             SetFieldFromToken(instance, token, FieldNames.Id, "Id", serializer);
             SetFieldFromToken(instance, token, FieldNames.CurrentLevel, "CurrentLevel", serializer);
             SetFieldFromToken(instance, token, FieldNames.CurrentExp, "CurrentExp", serializer);
-            SetFieldFromToken(
-                instance,
-                token,
-                FieldNames.RuntimeBoundedStats,
-                "RuntimeBoundedStats",
-                serializer
-            );
-            SetFieldFromToken(
-                instance,
-                token,
-                FieldNames.RuntimeUnboundedStats,
-                "RuntimeUnboundedStats",
-                serializer
-            );
+            // ignore runtime stats stored in previous versions; repair will fill them
+            // based on the template after deserialization.
+            //SetFieldFromToken(
+            //    instance,
+            //    token,
+            //    FieldNames.RuntimeBoundedStats,
+            //    "RuntimeBoundedStats",
+            //    serializer
+            //);
+            //SetFieldFromToken(
+            //    instance,
+            //    token,
+            //    FieldNames.RuntimeUnboundedStats,
+            //    "RuntimeUnboundedStats",
+            //    serializer
+            //);
             SetFieldFromToken(
                 instance,
                 token,

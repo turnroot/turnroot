@@ -141,6 +141,23 @@ namespace Turnroot.Characters
         {
             // Reset cached portrait array so changes in the inspector are reflected
             _portraitArrayCache = null;
+
+            // warn if asset contains duplicate unbounded stats (should be fixed manually)
+            if (UnboundedStats != null)
+            {
+                var seen = new HashSet<UnboundedStatType>();
+                foreach (var s in UnboundedStats)
+                {
+                    if (s == null)
+                        continue;
+                    if (seen.Contains(s.StatType))
+                    {
+                        $"CharacterData.OnValidate: duplicate unbounded stat {s.StatType} in {name}".LogWarning();
+                        break;
+                    }
+                    seen.Add(s.StatType);
+                }
+            }
             // Ensure that the character's name is not empty
             if (string.IsNullOrWhiteSpace(DisplayName))
             {

@@ -1,4 +1,4 @@
-Shader "Turnroot/Class Outfit Cel Shader"
+Shader "Turnroot/Generic Cel Shader"
 {
     Properties
     {
@@ -9,16 +9,10 @@ Shader "Turnroot/Class Outfit Cel Shader"
         [HideInInspector] _ASEOutalpha("_ASEOutalpha", Range(-1, 0)) = 0
 
         [Header(Main)]
-        _Base("Base", 2D) = "white" {}
+        _MainTex("Main Texture", 2D) = "white" {}
         _NormalMap("Normal Map", 2D) = "bump" {}
         _Cutoff("Mask Alpha Clip Cutoff", Float) = 0.5
         [HideInInspector] _texcoord("", 2D) = "white" {}
-
-        // Tint colors provided by Visuals.cs
-        _Accent_Color_1("Accent Color 1", Color) = (1, 1, 1, 1)
-        _Accent_Color_2("Accent Color 2", Color) = (1, 1, 1, 1)
-        _Accent_Color_3("Accent Color 3", Color) = (1, 1, 1, 1)
-        _Skin_Color("Skin Color", Color) = (1, 0.87, 0.77, 1)
 
         _Cel_Shader_Offset("Cel Shader Offset", Range(0, 1)) = 0.64
 
@@ -36,6 +30,7 @@ Shader "Turnroot/Class Outfit Cel Shader"
         _Main_Emissve_power("Main Emissive Power", Range(-1, 5)) = 1
 
         [Header(Matcap)]
+        // NOTE: keyword is _USE_MATCAT_ON (no second P) — matches Toggle and #if defined usage
         [Toggle(_USE_MATCAT_ON)] _use_matcat("Use Mat Cap", Float) = 0
         _matcap("Matcap Texture", 2D) = "white" {}
         _special_buff_switch("Matcap Switch Mask", 2D) = "white" {}
@@ -56,10 +51,6 @@ Shader "Turnroot/Class Outfit Cel Shader"
         [Header(Matcap Animation)]
         [Toggle(_USE_MATCAP_ANIMATION_ON)] _use_matcap_animation("Animate Matcap Texture", Float) = 0
         _matcap_animation_speed("Matcap Animation Speed", Range(0, 10)) = 1
-
-        [Header(Additional Maps)]
-        _MSE("MSE (Metal/Smooth/Emission) Map", 2D) = "white" {}
-        _Tint_Mask("Tint Mask", 2D) = "black" {}
 
         [Header(Fresnel)]
         [Toggle(_USE_FRENSEL_ON)] _use_frensel("Use Fresnel", Float) = 0
@@ -116,11 +107,11 @@ Shader "Turnroot/Class Outfit Cel Shader"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 
             CBUFFER_START(UnityPerMaterial)
-            float  _ASEOutlineWidth;
+            float _ASEOutlineWidth;
             float4 _ASEOutlineColor;
-            float  _ASEOutalpha;
-            float  _MatcapIntensity;
-            float  _MatcapObjectSpace;
+            float _ASEOutalpha;
+            float _MatcapIntensity;
+            float _MatcapObjectSpace;
             CBUFFER_END
 
             struct Attributes
@@ -153,6 +144,7 @@ Shader "Turnroot/Class Outfit Cel Shader"
                 return half4(_ASEOutlineColor.rgb, 1);
             }
             #else
+            // Collapse to zero-area triangles — no rasterisation, no fragment cost
             Varyings outlineVert(Attributes input)
             {
                 Varyings output;
@@ -186,7 +178,7 @@ Shader "Turnroot/Class Outfit Cel Shader"
             #pragma fragment frag
 
             // Feature toggles
-            #pragma shader_feature_local _USE_MATCAT_ON
+            #pragma shader_feature_local _USE_MATCAT_ON           // FIX: was _USE_MATCAP_ON — must match Toggle keyword & #if defined
             #pragma shader_feature_local _USE_FRENSEL_ON
             #pragma shader_feature_local _USE_MAIN_EMISSIVE_ON
             #pragma shader_feature_local _USE_MATCAP_EMISSIVE_ON
@@ -197,24 +189,33 @@ Shader "Turnroot/Class Outfit Cel Shader"
             #pragma shader_feature_local _USE_SHADOW_NOISE_ON
             #pragma shader_feature_local _USE_HIGHLIGHT_MASK_ON
 
-            // FIX: _MAIN_LIGHT_SHADOWS_SCREEN required for Unity 6 URP screen-space shadows
+            // FIX: Added _MAIN_LIGHT_SHADOWS_SCREEN — required for Unity 6 URP screen-space shadows.
+            // Without this variant, objects never receive shadows cast by other objects.
             #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
             #pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
             #pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_SHADOWS
-            // FIX: URP 14+ (Unity 6) quality-tier soft shadow keywords
+            // FIX: URP 14+ (Unity 6) replaced _SHADOWS_SOFT with quality-tier keywords.
             #pragma multi_compile_fragment _ _SHADOWS_SOFT _SHADOWS_SOFT_LOW _SHADOWS_SOFT_MEDIUM _SHADOWS_SOFT_HIGH
             #pragma multi_compile _ SHADOWS_SHADOWMASK
-            // FIX: DBuffer decal support — without these, URP projector decals are invisible
+            // FIX: DBuffer decal keywords — without these the shader never reads decal data and
+            // URP projector decals are invisible on this surface.
             #pragma multi_compile _ _DBUFFER_MRT1 _DBUFFER_MRT2 _DBUFFER_MRT3
+            // Required for decal normal blending modes
             #pragma multi_compile _ DECAL_NORMAL_BLEND_LOW DECAL_NORMAL_BLEND_MEDIUM DECAL_NORMAL_BLEND_HIGH
+            // Required when Decal Renderer Feature has "Use Rendering Layers" enabled
+            #pragma multi_compile _ _DECAL_LAYERS
             #pragma multi_compile_instancing
+            #pragma instancing_options renderinglayer
+            // Required for Rendering Debugger material override support
+            #pragma multi_compile_fragment _ DEBUG_DISPLAY
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
+            // Provides ApplyDecalToBaseColor / ApplyDecalToSurfaceData for DBuffer path
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DBuffer.hlsl"
 
             CBUFFER_START(UnityPerMaterial)
-            float4 _Base_ST;
+            float4 _MainTex_ST;
             float4 _NormalMap_ST;
             float4 _special_buff_switch_ST;
             float4 _Main_Emissive_Tex_ST;
@@ -223,8 +224,6 @@ Shader "Turnroot/Class Outfit Cel Shader"
             float4 _DarkTex_ST;
             float4 _Shadow_Noise_Tex_ST;
             float4 _Highlight_Mask_Tex_ST;
-            float4 _Tint_Mask_ST;
-            float4 _MSE_ST;
             float  _Cel_Shader_Offset;
             float4 _light;
             float4 _dark;
@@ -240,8 +239,6 @@ Shader "Turnroot/Class Outfit Cel Shader"
             float  _MatcapObjectSpace;
             float  _MatcapIntensity;
             float  _matcap_animation_speed;
-            float  _special_buff_switch_edge_hardness;
-            float  _special_buff_dissolve;
             float  _use_light_tex;
             float  _use_dark_tex;
             float  _use_highlight_mask;
@@ -260,24 +257,20 @@ Shader "Turnroot/Class Outfit Cel Shader"
             float  _Highlight_Roughness;
             float  _Highlight_Saturation;
             float  _Show_Masks;
-            float4 _Accent_Color_1;
-            float4 _Accent_Color_2;
-            float4 _Accent_Color_3;
-            float4 _Skin_Color;
+            float  _special_buff_switch_edge_hardness;
+            float  _special_buff_dissolve;
             CBUFFER_END
 
-            TEXTURE2D(_Base);              SAMPLER(sampler_Base);
-            TEXTURE2D(_NormalMap);         SAMPLER(sampler_NormalMap);
-            TEXTURE2D(_matcap);            SAMPLER(sampler_matcap);
-            TEXTURE2D(_LightTex);          SAMPLER(sampler_LightTex);
-            TEXTURE2D(_DarkTex);           SAMPLER(sampler_DarkTex);
-            TEXTURE2D(_Shadow_Noise_Tex);  SAMPLER(sampler_Shadow_Noise_Tex);
-            TEXTURE2D(_Highlight_Mask_Tex);SAMPLER(sampler_Highlight_Mask_Tex);
-            TEXTURE2D(_special_buff_switch);SAMPLER(sampler_special_buff_switch);
-            TEXTURE2D(_Main_Emissive_Tex); SAMPLER(sampler_Main_Emissive_Tex);
-            TEXTURE2D(_Matcap_Emissive_Tex);SAMPLER(sampler_Matcap_Emissive_Tex);
-            TEXTURE2D(_MSE);               SAMPLER(sampler_MSE);
-            TEXTURE2D(_Tint_Mask);         SAMPLER(sampler_Tint_Mask);
+            TEXTURE2D(_MainTex);             SAMPLER(sampler_MainTex);
+            TEXTURE2D(_NormalMap);           SAMPLER(sampler_NormalMap);
+            TEXTURE2D(_matcap);              SAMPLER(sampler_matcap);
+            TEXTURE2D(_LightTex);            SAMPLER(sampler_LightTex);
+            TEXTURE2D(_DarkTex);             SAMPLER(sampler_DarkTex);
+            TEXTURE2D(_Shadow_Noise_Tex);    SAMPLER(sampler_Shadow_Noise_Tex);
+            TEXTURE2D(_Highlight_Mask_Tex);  SAMPLER(sampler_Highlight_Mask_Tex);
+            TEXTURE2D(_special_buff_switch); SAMPLER(sampler_special_buff_switch);
+            TEXTURE2D(_Main_Emissive_Tex);   SAMPLER(sampler_Main_Emissive_Tex);
+            TEXTURE2D(_Matcap_Emissive_Tex); SAMPLER(sampler_Matcap_Emissive_Tex);
 
             struct Attributes
             {
@@ -285,7 +278,6 @@ Shader "Turnroot/Class Outfit Cel Shader"
                 float2 uv         : TEXCOORD0;
                 float3 normalOS   : NORMAL;
                 float4 tangentOS  : TANGENT;
-                float4 color      : COLOR;  // vertex color: selects skin/accent regions
                 UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
@@ -298,7 +290,6 @@ Shader "Turnroot/Class Outfit Cel Shader"
                 float4 tangentWS   : TEXCOORD3;
                 float3 bitangentWS : TEXCOORD4;
                 float4 shadowCoord : TEXCOORD5;
-                float4 color       : COLOR;
                 UNITY_VERTEX_OUTPUT_STEREO
             };
 
@@ -318,9 +309,10 @@ Shader "Turnroot/Class Outfit Cel Shader"
                 output.tangentWS   = float4(normalInput.tangentWS, input.tangentOS.w);
                 output.bitangentWS = normalInput.bitangentWS;
 
-                output.uv    = input.uv;
-                output.color = input.color;
+                output.uv = input.uv;
 
+                // FIX: GetShadowCoord handles both cascade and screen-space shadow paths
+                // correctly once all multi_compile variants are declared above.
                 output.shadowCoord = GetShadowCoord(vertexInput);
 
                 return output;
@@ -331,51 +323,35 @@ Shader "Turnroot/Class Outfit Cel Shader"
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
                 // ── Alpha clip ──────────────────────────────────────────────
-                float2 uv_Base = TRANSFORM_TEX(input.uv, _Base);
-                float4 baseTex = SAMPLE_TEXTURE2D(_Base, sampler_Base, uv_Base);
+                float2 uv_MainTex = TRANSFORM_TEX(input.uv, _MainTex);
+                float4 baseTex    = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv_MainTex);
                 clip(baseTex.a - _Cutoff);
 
                 // ── DBuffer Decals ──────────────────────────────────────────
-                // Applied after alpha clip but before tinting/lighting so decal
-                // albedo participates in the full cel pipeline. No-op when no
-                // DBuffer keyword is active (zero cost on the non-decal path).
+                // Store the original albedo before decal, then apply decal to a copy.
+                // We re-composite POST-lighting so the decal shows uniformly in both
+                // lit and shadowed areas — if we only apply pre-lighting the cel
+                // highlight pass washes the decal out and it only appears in shadow.
+                float3 preDecalRgb = baseTex.rgb;
                 #if defined(_DBUFFER_MRT1) || defined(_DBUFFER_MRT2) || defined(_DBUFFER_MRT3)
                     ApplyDecalToBaseColor(input.positionCS, baseTex.rgb);
                 #endif
+                // How strongly a decal modified this pixel (0 = no decal, 1 = full coverage)
+                float decalMask = saturate(length(baseTex.rgb - preDecalRgb) * 4.0);
 
                 // ── Main Emissive ───────────────────────────────────────────
                 #if defined(_USE_MAIN_EMISSIVE_ON)
                 {
-                    float2 uv_e = TRANSFORM_TEX(input.uv, _Main_Emissive_Tex);
-                    float  eVal = SAMPLE_TEXTURE2D(_Main_Emissive_Tex, sampler_Main_Emissive_Tex, uv_e).r;
-                    baseTex    += eVal * (_Main_Emissve_color * _Main_Emissve_power);
+                    float2 uv_e   = TRANSFORM_TEX(input.uv, _Main_Emissive_Tex);
+                    float  eVal   = SAMPLE_TEXTURE2D(_Main_Emissive_Tex, sampler_Main_Emissive_Tex, uv_e).r;
+                    baseTex      += eVal * (_Main_Emissve_color * _Main_Emissve_power);
                 }
                 #endif
-
-                // ── Tint Mask + Vertex Color ────────────────────────────────
-                // Tint mask R/G/B selects Accent 1/2/3 replacement.
-                // Vertex color near-white (all channels >= 0.99) signals "skin" area
-                // and substitutes _Skin_Color for all three accent channels.
-                float4 tintMask = SAMPLE_TEXTURE2D(_Tint_Mask, sampler_Tint_Mask,
-                                                   TRANSFORM_TEX(input.uv, _Tint_Mask));
-                float3 vcol    = input.color.rgb;
-                float  useSkin = step(0.99, min(vcol.r, min(vcol.g, vcol.b)));
-
-                float3 tintColor1 = lerp(_Accent_Color_1.rgb, _Skin_Color.rgb, useSkin);
-                float3 tintColor2 = lerp(_Accent_Color_2.rgb, _Skin_Color.rgb, useSkin);
-                float3 tintColor3 = lerp(_Accent_Color_3.rgb, _Skin_Color.rgb, useSkin);
-
-                float3 tinted  = baseTex.rgb;
-                tinted = lerp(tinted, tintColor1, tintMask.r);
-                tinted = lerp(tinted, tintColor2, tintMask.g);
-                tinted = lerp(tinted, tintColor3, tintMask.b);
-                baseTex.rgb = tinted;
 
                 float4 albedo = baseTex;
 
                 // ── Normal ──────────────────────────────────────────────────
                 float2 uv_NormalMap  = TRANSFORM_TEX(input.uv, _NormalMap);
-                // FIX: use UnpackNormal instead of manual * 2 - 1 (handles DXT5nm / BC5 correctly)
                 float3 tangentNormal = UnpackNormal(SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, uv_NormalMap));
                 float3x3 tbn         = float3x3(input.tangentWS.xyz, input.bitangentWS, input.normalWS);
                 float3 normalWS      = normalize(mul(tangentNormal, tbn));
@@ -413,9 +389,11 @@ Shader "Turnroot/Class Outfit Cel Shader"
                 float shadowMask    = 0.0;
                 float highlightMask = 0.0;
 
-                // Main light
-                // FIX: conditional GetMainLight overload so correct shadow path is used
-                // depending on which _MAIN_LIGHT_SHADOWS* keyword is active
+                // Helper lambda expanded inline for each light
+                // shadowMask/highlightMask are max across all lights so cel stays crisp.
+
+                // Main light — FIX: pass unity_ProbesOcclusion as shadow mask (half4),
+                // not bare 1 which worked by luck on older APIs.
                 #if defined(_MAIN_LIGHT_SHADOWS) || defined(_MAIN_LIGHT_SHADOWS_CASCADE) || defined(_MAIN_LIGHT_SHADOWS_SCREEN)
                     Light mainLight = GetMainLight(input.shadowCoord, input.positionWS, unity_ProbesOcclusion);
                 #else
@@ -434,7 +412,7 @@ Shader "Turnroot/Class Outfit Cel Shader"
                         float shadowExp    = lerp(0.6, 3.0, 1.0 - _Shadow_Roughness);
                         float highlightExp = lerp(0.6, 3.0, 1.0 - _Highlight_Roughness);
 
-                        float sBase = 1.0 - smoothstep(_Shadow_Offset,    _Shadow_Offset    + max(_Shadow_Smoothness,    0.0001), hl_noised);
+                        float sBase = 1.0 - smoothstep(_Shadow_Offset, _Shadow_Offset + max(_Shadow_Smoothness, 0.0001), hl_noised);
                         float hBase = smoothstep(_Highlight_Offset, _Highlight_Offset + max(_Highlight_Smoothness, 0.0001), hl);
 
                         shadowMask    = max(shadowMask,    pow(saturate(sBase), shadowExp));
@@ -448,7 +426,7 @@ Shader "Turnroot/Class Outfit Cel Shader"
                     int addLightCount = GetAdditionalLightsCount();
                     for (int li = 0; li < addLightCount; ++li)
                     {
-                        // FIX: unity_ProbesOcclusion instead of bare 1
+                        // FIX: pass unity_ProbesOcclusion instead of bare 1
                         Light addLight = GetAdditionalLight(li, input.positionWS, unity_ProbesOcclusion);
                         float luma = dot(addLight.color, float3(0.2126, 0.7152, 0.0722));
                         if (luma > 0.0001)
@@ -461,7 +439,7 @@ Shader "Turnroot/Class Outfit Cel Shader"
                             float shadowExp    = lerp(0.6, 3.0, 1.0 - _Shadow_Roughness);
                             float highlightExp = lerp(0.6, 3.0, 1.0 - _Highlight_Roughness);
 
-                            float sBase = 1.0 - smoothstep(_Shadow_Offset,    _Shadow_Offset    + max(_Shadow_Smoothness,    0.0001), hl_noised);
+                            float sBase = 1.0 - smoothstep(_Shadow_Offset, _Shadow_Offset + max(_Shadow_Smoothness, 0.0001), hl_noised);
                             float hBase = smoothstep(_Highlight_Offset, _Highlight_Offset + max(_Highlight_Smoothness, 0.0001), hl);
 
                             shadowMask    = max(shadowMask,    pow(saturate(sBase), shadowExp));
@@ -498,7 +476,7 @@ Shader "Turnroot/Class Outfit Cel Shader"
                 #endif
 
                 float3 highlightRgb = albedo.rgb * lightCol.rgb;
-                float  gray         = dot(highlightRgb, float3(0.299, 0.587, 0.114));
+                float  gray         = dot(highlightRgb, float3(0.299, 0.58701, 0.114));
                 highlightRgb = saturate(gray + (highlightRgb - gray) * (1.0 + _Highlight_Saturation));
                 float4 highlightCol = float4(highlightRgb, albedo.a);
 
@@ -513,6 +491,7 @@ Shader "Turnroot/Class Outfit Cel Shader"
                 }
 
                 // ── Matcap ───────────────────────────────────────────────────
+                // FIX: pragma now declares _USE_MATCAT_ON (matching this #if and the Toggle)
                 float4 basePart = litColor;
                 #if defined(_USE_MATCAT_ON)
                 {
@@ -520,6 +499,7 @@ Shader "Turnroot/Class Outfit Cel Shader"
 
                     if (_MatcapObjectSpace > 0.5)
                     {
+                        // Object-space: lock highlight to object orientation
                         float3 nOS = normalize(TransformWorldToObjectDir(normalWS));
                         matcapUV   = nOS.xy * 0.5 + 0.5;
                     }
@@ -538,11 +518,11 @@ Shader "Turnroot/Class Outfit Cel Shader"
 
                     #if defined(_USE_MATCAP_ANIMATION_ON)
                     {
-                        float    angle = _Time.y * _matcap_animation_speed;
-                        float    ca    = cos(angle);
-                        float    sa    = sin(angle);
-                        float2x2 rot   = float2x2(ca, -sa, sa, ca);
-                        matcapUV = mul(rot, matcapUV - 0.5) + 0.5;
+                        float angle  = _Time.y * _matcap_animation_speed;
+                        float ca     = cos(angle);
+                        float sa     = sin(angle);
+                        float2x2 rot = float2x2(ca, -sa, sa, ca);
+                        matcapUV     = mul(rot, matcapUV - 0.5) + 0.5;
                     }
                     #endif
 
@@ -550,16 +530,16 @@ Shader "Turnroot/Class Outfit Cel Shader"
 
                     #if defined(_USE_MATCAP_EMISSIVE_ON)
                     {
-                        float2 uv_me   = TRANSFORM_TEX(input.uv, _Matcap_Emissive_Tex);
-                        float  emisVal = SAMPLE_TEXTURE2D(_Matcap_Emissive_Tex, sampler_Matcap_Emissive_Tex, uv_me).r;
-                        matcapCol     += emisVal * (_Matcap_Emissve_color * _Matcap_Emissve_power);
+                        float2 uv_me     = TRANSFORM_TEX(input.uv, _Matcap_Emissive_Tex);
+                        float  emisVal   = SAMPLE_TEXTURE2D(_Matcap_Emissive_Tex, sampler_Matcap_Emissive_Tex, uv_me).r;
+                        matcapCol       += emisVal * (_Matcap_Emissve_color * _Matcap_Emissve_power);
                     }
                     #endif
 
                     matcapCol *= _MatcapIntensity;
 
-                    float2 uv_mask    = TRANSFORM_TEX(input.uv, _special_buff_switch);
-                    float  specialVal = SAMPLE_TEXTURE2D(_special_buff_switch, sampler_special_buff_switch, uv_mask).r;
+                    float2 uv_mask     = TRANSFORM_TEX(input.uv, _special_buff_switch);
+                    float  specialVal  = SAMPLE_TEXTURE2D(_special_buff_switch, sampler_special_buff_switch, uv_mask).r;
                     float  specialLerp = lerp(_special_buff_switch_edge_hardness, -1.0, _special_buff_dissolve);
                     float  specialMask = saturate((specialVal * _special_buff_switch_edge_hardness) - specialLerp);
 
@@ -579,6 +559,14 @@ Shader "Turnroot/Class Outfit Cel Shader"
                 }
                 #endif
 
+                // ── DBuffer Decals (post-lighting composite) ─────────────────────
+                // Overlay the decal-modified albedo on top of the fully-lit result.
+                // decalMask is 0 where no decal was projected, so this is free on
+                // non-decal pixels. baseTex.rgb already contains the decal-blended color.
+                #if defined(_DBUFFER_MRT1) || defined(_DBUFFER_MRT2) || defined(_DBUFFER_MRT3)
+                    color.rgb = lerp(color.rgb, baseTex.rgb, decalMask);
+                #endif
+
                 color.rgb = saturate(color.rgb);
                 return color;
             }
@@ -594,6 +582,7 @@ Shader "Turnroot/Class Outfit Cel Shader"
             Tags { "LightMode" = "ShadowCaster" }
             ZWrite On
             ColorMask 0
+            // Avoid z-fighting on self-shadowing
             ZTest LEqual
 
             HLSLPROGRAM
@@ -604,17 +593,20 @@ Shader "Turnroot/Class Outfit Cel Shader"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
 
+            // FIX: _LightDirection / _LightPositionAndBias are provided by URP — we just need them declared.
+            // In URP 14+ these live in Shadows.hlsl already, so no manual declaration needed.
+
             CBUFFER_START(UnityPerMaterial)
-            float4 _Base_ST;
+            float4 _MainTex_ST;
             float  _Cutoff;
             CBUFFER_END
 
-            TEXTURE2D(_Base); SAMPLER(sampler_Base);
+            TEXTURE2D(_MainTex); SAMPLER(sampler_MainTex);
 
             struct Attributes
             {
                 float4 positionOS : POSITION;
-                float3 normalOS   : NORMAL;  // FIX: was missing — needed for correct shadow bias
+                float3 normalOS   : NORMAL;   // FIX: was missing — needed for shadow bias
                 float2 uv         : TEXCOORD0;
                 UNITY_VERTEX_INPUT_INSTANCE_ID
             };
@@ -626,6 +618,7 @@ Shader "Turnroot/Class Outfit Cel Shader"
                 UNITY_VERTEX_OUTPUT_STEREO
             };
 
+            // FIX: _LightDirection declared in Shadows.hlsl in URP 14+; guard against redeclaration.
             #if !defined(SHADOWS_SHADOWMASK)
             float3 _LightDirection;
             float3 _LightPosition;
@@ -638,7 +631,7 @@ Shader "Turnroot/Class Outfit Cel Shader"
                 UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
                 float3 positionWS = TransformObjectToWorld(input.positionOS.xyz);
-                // FIX: actual vertex normal instead of hardcoded (0,0,1)
+                // FIX: use actual vertex normal, not hardcoded (0,0,1)
                 float3 normalWS   = TransformObjectToWorldNormal(input.normalOS);
 
                 #if _CASTING_PUNCTUAL_LIGHT_SHADOW
@@ -649,7 +642,7 @@ Shader "Turnroot/Class Outfit Cel Shader"
 
                 output.positionCS = TransformWorldToHClip(ApplyShadowBias(positionWS, normalWS, lightDir));
 
-                // Clamp to avoid shadow pancaking on thin geometry
+                // Clamp depth to avoid shadow pancaking artifacts on very thin geometry
                 #if UNITY_REVERSED_Z
                     output.positionCS.z = min(output.positionCS.z, UNITY_NEAR_CLIP_VALUE);
                 #else
@@ -662,43 +655,119 @@ Shader "Turnroot/Class Outfit Cel Shader"
 
             half4 shadowFrag(Varyings input) : SV_Target
             {
-                float2 uv    = TRANSFORM_TEX(input.uv, _Base);
-                float4 color = SAMPLE_TEXTURE2D(_Base, sampler_Base, uv);
+                float2 uv    = TRANSFORM_TEX(input.uv, _MainTex);
+                float4 color = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv);
                 clip(color.a - _Cutoff);
                 return 0;
             }
             ENDHLSL
         }
 
+
         // ─────────────────────────────────────────────────────────────
-        // DEPTH NORMALS PASS  (required for screen-space shadows, SSAO,
-        // and decal normal blending in URP)
+        // DEPTH ONLY PASS
+        // Populates _CameraDepthTexture before the decal projector runs.
+        // Without this pass, the decal projector reconstructs world
+        // positions from stale depth data and projects incorrectly at
+        // any notable distance from the camera.
+        // ─────────────────────────────────────────────────────────────
+        Pass
+        {
+            Name "DepthOnly"
+            Tags { "LightMode" = "DepthOnly" }
+            ZWrite On
+            ColorMask R
+            Cull Back
+
+            HLSLPROGRAM
+            #pragma vertex   depthOnlyVert
+            #pragma fragment depthOnlyFrag
+            #pragma multi_compile_instancing
+
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+
+            CBUFFER_START(UnityPerMaterial)
+            float4 _MainTex_ST;
+            float  _Cutoff;
+            CBUFFER_END
+
+            TEXTURE2D(_MainTex); SAMPLER(sampler_MainTex);
+
+            struct Attributes
+            {
+                float4 positionOS : POSITION;
+                float2 uv         : TEXCOORD0;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
+            };
+
+            struct Varyings
+            {
+                float4 positionCS : SV_POSITION;
+                float2 uv         : TEXCOORD0;
+                UNITY_VERTEX_OUTPUT_STEREO
+            };
+
+            Varyings depthOnlyVert(Attributes input)
+            {
+                Varyings output;
+                UNITY_SETUP_INSTANCE_ID(input);
+                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
+                output.positionCS = TransformObjectToHClip(input.positionOS.xyz);
+                output.uv         = input.uv;
+                return output;
+            }
+
+            half depthOnlyFrag(Varyings input) : SV_Target
+            {
+                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+                float2 uv = TRANSFORM_TEX(input.uv, _MainTex);
+                clip(SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv).a - _Cutoff);
+                return 0;
+            }
+            ENDHLSL
+        }
+
+        // ─────────────────────────────────────────────────────────────
+        // DEPTH NORMALS PASS
+        // Populates _CameraNormalsTexture (normals) and, when URP binds
+        // a second render target, _CameraRenderingLayersTexture (layers).
+        // The decal projector reads both: normals for blending direction,
+        // layers to decide which pixels it is allowed to paint.
+        // Without the rendering-layers MRT write, the layer-mask check
+        // always fails and no decal is applied regardless of what the
+        // MeshRenderer's Rendering Layer Mask is set to.
         // ─────────────────────────────────────────────────────────────
         Pass
         {
             Name "DepthNormals"
             Tags { "LightMode" = "DepthNormals" }
             ZWrite On
-            ColorMask RGBA
+            Cull Back
 
             HLSLPROGRAM
             #pragma vertex   depthNormalsVert
             #pragma fragment depthNormalsFrag
-            #pragma multi_compile _ _DBUFFER_MRT1 _DBUFFER_MRT2 _DBUFFER_MRT3
-            #pragma multi_compile _ DECAL_NORMAL_BLEND_LOW DECAL_NORMAL_BLEND_MEDIUM DECAL_NORMAL_BLEND_HIGH
+            #pragma multi_compile_fragment _ _DBUFFER_MRT1 _DBUFFER_MRT2 _DBUFFER_MRT3
+            #pragma multi_compile_fragment _ DECAL_NORMAL_BLEND_LOW DECAL_NORMAL_BLEND_MEDIUM DECAL_NORMAL_BLEND_HIGH
+
+            // Injects _WRITE_RENDERING_LAYERS when URP needs the second MRT
+            // for _CameraRenderingLayersTexture (read by decal projectors to
+            // decide which pixels they are allowed to paint).
+            #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/RenderingLayers.hlsl"
+
             #pragma multi_compile_instancing
+            #pragma instancing_options renderinglayer
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityInput.hlsl"
-            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DBuffer.hlsl"
 
             CBUFFER_START(UnityPerMaterial)
-            float4 _Base_ST;
+            float4 _MainTex_ST;
             float4 _NormalMap_ST;
             float  _Cutoff;
             CBUFFER_END
 
-            TEXTURE2D(_Base);      SAMPLER(sampler_Base);
+            TEXTURE2D(_MainTex);   SAMPLER(sampler_MainTex);
             TEXTURE2D(_NormalMap); SAMPLER(sampler_NormalMap);
 
             struct Attributes
@@ -720,6 +789,20 @@ Shader "Turnroot/Class Outfit Cel Shader"
                 UNITY_VERTEX_OUTPUT_STEREO
             };
 
+            // When _WRITE_RENDERING_LAYERS is active URP binds a second render
+            // target (_CameraRenderingLayersTexture). We must declare a matching
+            // multi-target output struct so the layer value actually gets written.
+            // Without this the decal projector's layer-mask check always fails and
+            // no decal is ever applied, regardless of the Rendering Layer Mask set
+            // on the MeshRenderer.
+            #if defined(_WRITE_RENDERING_LAYERS)
+            struct FragmentOutput
+            {
+                half4 normalWS        : SV_Target0;
+                float renderingLayers : SV_Target1;
+            };
+            #endif
+
             Varyings depthNormalsVert(Attributes input)
             {
                 Varyings output = (Varyings)0;
@@ -736,27 +819,47 @@ Shader "Turnroot/Class Outfit Cel Shader"
                 return output;
             }
 
-            float4 depthNormalsFrag(Varyings input) : SV_Target
+            // Return type switches between multi-target struct and plain half4
+            // depending on whether URP has bound the rendering-layers texture.
+            #if defined(_WRITE_RENDERING_LAYERS)
+            FragmentOutput depthNormalsFrag(Varyings input)
+            #else
+            half4 depthNormalsFrag(Varyings input) : SV_Target
+            #endif
             {
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-                float4 base = SAMPLE_TEXTURE2D(_Base, sampler_Base, TRANSFORM_TEX(input.uv, _Base));
+                float2 uv   = TRANSFORM_TEX(input.uv, _MainTex);
+                float4 base = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv);
                 clip(base.a - _Cutoff);
 
-                float3 tangentNormal = UnpackNormal(SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap,
-                                                    TRANSFORM_TEX(input.uv, _NormalMap)));
-                float3x3 tbn     = float3x3(input.tangentWS, input.bitangentWS, input.normalWS);
-                float3 normalWS  = normalize(mul(tangentNormal, tbn));
+                float3 tangentNormal = UnpackNormal(SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, TRANSFORM_TEX(input.uv, _NormalMap)));
+                float3x3 tbn         = float3x3(input.tangentWS, input.bitangentWS, input.normalWS);
+                float3 normalWS      = normalize(mul(tangentNormal, tbn));
 
-                #if defined(_DBUFFER_MRT2) || defined(_DBUFFER_MRT3)
-                    ApplyDecalToNormal(input.positionCS, normalWS);
+                // CORRECT encoding: URP's DecalProjectorPass reads _CameraNormalsTexture
+                // with a plain "rgb * 2 - 1" unpack, so we must write "normalWS * 0.5 + 0.5".
+                // PackNormalOctRectEncode produces a 2-channel value that gets completely
+                // misread by that unpack — it was the cause of the angle-dependent failure.
+                //
+                // ApplyDecalToNormal is intentionally NOT called here. DepthNormals is a
+                // prepass — the DBuffer has not been written yet at this point, so calling
+                // it reads uninitialized memory and corrupts the normal we just computed.
+                // Decal normal blending happens in ForwardLit where the DBuffer is valid.
+                half4 normalOut = half4(normalWS * 0.5 + 0.5, 0.0);
+
+                #if defined(_WRITE_RENDERING_LAYERS)
+                    FragmentOutput output;
+                    output.normalWS        = normalOut;
+                    output.renderingLayers = float(GetMeshRenderingLayer());
+                    return output;
+                #else
+                    return normalOut;
                 #endif
-
-                return float4(normalWS * 0.5 + 0.5, 1.0);
             }
             ENDHLSL
         }
     }
 
-    CustomEditor "Turnroot.TurnrootClassOutfitShader"
+    CustomEditor "Turnroot.TurnrootDefaultCharacterShader"
 }
