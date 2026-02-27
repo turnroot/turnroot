@@ -1,9 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
-using Turnroot.Characters;
-using Turnroot.Gameplay.Objects;
 using UnityEngine;
-using UnityEngine.Events;
 
 namespace Turnroot.Gameplay.Maps
 {
@@ -108,34 +105,23 @@ namespace Turnroot.Gameplay.Maps
                         col = key.y,
                         typeId = mgp.FeatureTypeId,
                         name = mgp.FeatureName,
-                        boolProperties = ConvertPropertiesIfAny(
-                            mgp.GetAllBoolFeatureProperties(),
-                            p => new PropertyRecord<bool> { key = p.key, value = p.value }
-                        ),
-                        eventProperties = ConvertPropertiesIfAny(
-                            mgp.GetAllEventFeatureProperties(),
-                            p => new PropertyRecord<UnityEvent> { key = p.key, value = p.value }
-                        ),
-                        floatProperties = ConvertPropertiesIfAny(
-                            mgp.GetAllFloatFeatureProperties(),
-                            p => new PropertyRecord<float> { key = p.key, value = p.value }
-                        ),
-                        unitProperties = ConvertPropertiesIfAny(
-                            mgp.GetAllUnitFeatureProperties(),
-                            p => new PropertyRecord<CharacterInstance>
-                            {
-                                key = p.key,
-                                value = p.value,
-                            }
-                        ),
-                        objectItemProperties = ConvertPropertiesIfAny(
-                            mgp.GetAllObjectItemFeatureProperties(),
-                            p => new PropertyRecord<ObjectItemInstance>
-                            {
-                                key = p.key,
-                                value = p.value,
-                            }
-                        ),
+                        locked = mgp.FeatureLocked,
+                        unlockItem = mgp.UnlockItem,
+                        commonItem = mgp.FeatureCommonItem,
+                        rareItem = mgp.FeatureRareItem,
+                        warpDestinations = new List<Vector2Int>(mgp.WarpDestinations),
+                        activeWarpIndex = mgp.ActiveWarpIndex,
+                        breakableHealth = mgp.BreakableHealth,
+                        healingPercentPerTurn = mgp.HealingPercentPerTurn,
+                        rangedRange = mgp.RangedRange,
+                        rangedDamage = mgp.RangedDamage,
+                        rangedHit = mgp.RangedHit,
+                        rangedAllowsRiding = mgp.RangedAllowsRiding,
+                        rangedAllowsFlying = mgp.RangedAllowsFlying,
+                        rangedMagicOnly = mgp.RangedMagicOnly,
+                        shelterNoFly = mgp.ShelterNoFly,
+                        shelterNoRide = mgp.ShelterNoRide,
+                        shelterNoInfantry = mgp.ShelterNoInfantry,
                     }
                 );
             }
@@ -192,51 +178,30 @@ namespace Turnroot.Gameplay.Maps
 
                 mgp.SetFeatureTypeId(rec.typeId);
                 mgp.FeatureName = rec.name ?? string.Empty;
-                mgp.ApplyDefaultsForFeature(rec.typeId);
-                ApplyPropertyList(rec.boolProperties, mgp.SetBoolFeatureProperty);
-                ApplyPropertyList(rec.eventProperties, mgp.SetEventFeatureProperty);
-                ApplyPropertyList(rec.floatProperties, mgp.SetFloatFeatureProperty);
-                ApplyPropertyList(rec.unitProperties, mgp.SetUnitFeatureProperty);
-                ApplyPropertyList(rec.objectItemProperties, mgp.SetObjectItemFeatureProperty);
-            }
-        }
-
-        private void ApplyPropertyList<T>(
-            List<PropertyRecord<T>> properties,
-            System.Action<string, T> setter
-        )
-        {
-            if (properties == null)
-            {
-                return;
-            }
-
-            foreach (var pr in properties)
-            {
-                if (!string.IsNullOrEmpty(pr.key))
+                mgp.FeatureLocked = rec.locked;
+                mgp.UnlockItem = rec.unlockItem;
+                mgp.FeatureCommonItem = rec.commonItem;
+                mgp.FeatureRareItem = rec.rareItem;
+                mgp.WarpDestinations.Clear();
+                if (rec.warpDestinations != null)
                 {
-                    setter(pr.key, pr.value);
+                    mgp.WarpDestinations.AddRange(rec.warpDestinations);
                 }
+                mgp.ActiveWarpIndex = rec.activeWarpIndex;
+                mgp.BreakableHealth = rec.breakableHealth;
+                mgp.HealingPercentPerTurn = rec.healingPercentPerTurn;
+                mgp.RangedRange = rec.rangedRange;
+                mgp.RangedDamage = rec.rangedDamage;
+                mgp.RangedHit = rec.rangedHit;
+                mgp.RangedAllowsRiding = rec.rangedAllowsRiding;
+                mgp.RangedAllowsFlying = rec.rangedAllowsFlying;
+                mgp.RangedMagicOnly = rec.rangedMagicOnly;
+                mgp.ShelterNoFly = rec.shelterNoFly;
+                mgp.ShelterNoRide = rec.shelterNoRide;
+                mgp.ShelterNoInfantry = rec.shelterNoInfantry;
             }
         }
 
-        private static List<PropertyRecord<TOut>> ConvertPropertiesIfAny<TIn, TOut>(
-            List<TIn> source,
-            System.Func<TIn, PropertyRecord<TOut>> converter
-        )
-        {
-            if (source == null || source.Count == 0)
-            {
-                return null;
-            }
-
-            var result = new List<PropertyRecord<TOut>>(source.Count);
-            foreach (var item in source)
-            {
-                result.Add(converter(item));
-            }
-            return result;
-        }
         #endregion
     }
 }

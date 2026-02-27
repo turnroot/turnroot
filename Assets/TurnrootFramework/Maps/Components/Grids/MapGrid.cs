@@ -1,12 +1,10 @@
 using System;
 using System.Collections.Generic;
 using NaughtyAttributes;
-using Turnroot.Characters;
 using Turnroot.Gameplay.Combat;
 using Turnroot.Gameplay.Objects;
 using Turnroot.Utilities;
 using UnityEngine;
-using UnityEngine.Events;
 
 namespace Turnroot.Gameplay.Maps
 {
@@ -370,23 +368,29 @@ namespace Turnroot.Gameplay.Maps
     }
 
     [Serializable]
-    public struct PropertyRecord<T>
-    {
-        public string key;
-        public T value;
-    }
-
-    [Serializable]
     public class FeatureRecord
     {
         public int row,
             col;
         public string typeId,
             name;
-        public List<PropertyRecord<bool>> boolProperties = new();
-        public List<PropertyRecord<UnityEvent>> eventProperties = new();
-        public List<PropertyRecord<float>> floatProperties = new();
-        public List<PropertyRecord<CharacterInstance>> unitProperties = new();
-        public List<PropertyRecord<ObjectItemInstance>> objectItemProperties = new();
+        public bool locked;
+        public ObjectItem unlockItem;
+        public ObjectItem commonItem;
+        public ObjectItem rareItem;
+        public List<Vector2Int> warpDestinations = new();
+        public int activeWarpIndex;
+
+        public int breakableHealth;
+        public float healingPercentPerTurn;
+        public int rangedRange;
+        public int rangedDamage;
+        public float rangedHit;
+        public bool rangedAllowsRiding;
+        public bool rangedAllowsFlying;
+        public bool rangedMagicOnly;
+        public bool shelterNoFly;
+        public bool shelterNoRide;
+        public bool shelterNoInfantry;
     }
 }

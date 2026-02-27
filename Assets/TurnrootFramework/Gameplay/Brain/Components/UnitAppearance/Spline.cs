@@ -45,7 +45,9 @@ namespace Turnroot.Gameplay.Brain
 
             if (!context.TryGetValidTilesForUnit(character, out var validMoveTiles, out _))
             {
-                LogWarning($"BuildPathToDestination: Failed to get valid tiles for {character.CharacterTemplate.DisplayName}");
+                LogWarning(
+                    $"BuildPathToDestination: Failed to get valid tiles for {character.CharacterTemplate.DisplayName}"
+                );
                 return null;
             }
 
@@ -118,12 +120,17 @@ namespace Turnroot.Gameplay.Brain
 
                 if (math.lengthsq(tangent) > 0.001f)
                 {
-                    var targetRotation = Quaternion.LookRotation(tangent);
-                    modelToMove.transform.rotation = Quaternion.Slerp(
-                        modelToMove.transform.rotation,
-                        targetRotation,
-                        Time.deltaTime * 10f
-                    );
+                    // ignore vertical component so the model only yaws, not pitches or rolls
+                    var horiz = new Vector3(tangent.x, 0f, tangent.z);
+                    if (horiz.sqrMagnitude > 0.001f)
+                    {
+                        var targetRotation = Quaternion.LookRotation(horiz, Vector3.up);
+                        modelToMove.transform.rotation = Quaternion.Slerp(
+                            modelToMove.transform.rotation,
+                            targetRotation,
+                            Time.deltaTime * 10f
+                        );
+                    }
                 }
 
                 var currentTile = WorldPositionToGridPosition(position);

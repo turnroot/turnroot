@@ -36,7 +36,7 @@ using System.IO;
 using System.Collections.Generic;
 using System;
 using System.Linq;
-using UnityEngine.Events;
+using Turnroot.Gameplay.Objects;
 
 namespace Turnroot.Gameplay.Maps
 {
@@ -581,85 +581,86 @@ namespace Turnroot.Gameplay.Maps
 
         private void DrawMainLayout()
         {
-            EditorGUILayout.BeginHorizontal();
-
-            // Left toolbars
-            EditorGUILayout.BeginVertical(GUILayout.Width(110));
-            EditorGUILayout.BeginHorizontal();
-
-            EditorGUILayout.BeginVertical(GUILayout.Width(52));
-            if (_mode == Mode.Paint)
+            using (new EditorGUILayout.HorizontalScope())
             {
-                DrawTerrainPalette();
+                // Left toolbars
+                using (new EditorGUILayout.VerticalScope(GUILayout.Width(110)))
+                {
+                    using (new EditorGUILayout.HorizontalScope())
+                    {
+                        using (new EditorGUILayout.VerticalScope(GUILayout.Width(52)))
+                        {
+                            if (_mode == Mode.Paint)
+                            {
+                                DrawTerrainPalette();
+                            }
+                        }
+
+                        using (new EditorGUILayout.VerticalScope(GUILayout.Width(52)))
+                        {
+                            if (_mode == Mode.Paint)
+                            {
+                                DrawToolsPalette(_featureTools);
+                            }
+                        }
+                    }
+                }
+
+                // Main area
+                using (new EditorGUILayout.VerticalScope())
+                {
+                    using (new EditorGUILayout.HorizontalScope())
+                    {
+                        using (new EditorGUILayout.VerticalScope(GUILayout.ExpandWidth(true)))
+                        {
+                            if (_mode == Mode.TestMovement)
+                            {
+                                DrawTestMovementControls();
+                            }
+                            else if (_mode == Mode.SetStartingPositions)
+                            {
+                                DrawStartingPositionsControls();
+                            }
+
+                            DrawZoomControls();
+
+                            float leftAreaW = Mathf.Max(200f, position.width - 120f - RIGHT_PANEL_WIDTH);
+                            Rect area = GUILayoutUtility.GetRect(leftAreaW, position.height - 120 - 24);
+                            DrawGridArea(area);
+                        }
+
+                        // Right panel
+                        if (_mode is not Mode.TestMovement and not Mode.SetStartingPositions)
+                        {
+                            DrawRightPanel();
+                        }
+                    }
+                }
             }
-
-            EditorGUILayout.EndVertical();
-
-            EditorGUILayout.BeginVertical(GUILayout.Width(52));
-            if (_mode == Mode.Paint)
-            {
-                DrawToolsPalette(_featureTools);
-            }
-
-            EditorGUILayout.EndVertical();
-
-            EditorGUILayout.EndHorizontal();
-            EditorGUILayout.EndVertical();
-
-            // Main area
-            EditorGUILayout.BeginVertical();
-            EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.BeginVertical(GUILayout.ExpandWidth(true));
-
-            if (_mode == Mode.TestMovement)
-            {
-                DrawTestMovementControls();
-            }
-            else if (_mode == Mode.SetStartingPositions)
-            {
-                DrawStartingPositionsControls();
-            }
-
-            DrawZoomControls();
-
-            float leftAreaW = Mathf.Max(200f, position.width - 120f - RIGHT_PANEL_WIDTH);
-            Rect area = GUILayoutUtility.GetRect(leftAreaW, position.height - 120 - 24);
-            DrawGridArea(area);
-            EditorGUILayout.EndVertical();
-
-            // Right panel
-            if (_mode is not Mode.TestMovement and not Mode.SetStartingPositions)
-            {
-                DrawRightPanel();
-            }
-
-            EditorGUILayout.EndHorizontal();
-            EditorGUILayout.EndVertical();
-            EditorGUILayout.EndHorizontal();
         }
 
         private void DrawStartingPositionsControls()
         {
-            EditorGUILayout.BeginHorizontal();
-            GUILayout.Label("Starting Positions Mode", EditorStyles.boldLabel);
-
-            if (_grid != null)
+            using (new EditorGUILayout.HorizontalScope())
             {
-                GUILayout.Label(
-                    $"Selected: {_grid.PlayerTeamSpawnPoints.Count}",
-                    GUILayout.Width(100)
-                );
+                GUILayout.Label("Starting Positions Mode", EditorStyles.boldLabel);
 
-                if (GUILayout.Button("Clear All", GUILayout.Width(90)))
+                if (_grid != null)
                 {
-                    Undo.RecordObject(_grid, "Clear Starting Positions");
-                    _grid.PlayerTeamSpawnPoints.Clear();
-                    MarkDirty();
-                    Repaint();
+                    GUILayout.Label(
+                        $"Selected: {_grid.PlayerTeamSpawnPoints.Count}",
+                        GUILayout.Width(100)
+                    );
+
+                    if (GUILayout.Button("Clear All", GUILayout.Width(90)))
+                    {
+                        Undo.RecordObject(_grid, "Clear Starting Positions");
+                        _grid.PlayerTeamSpawnPoints.Clear();
+                        MarkDirty();
+                        Repaint();
+                    }
                 }
             }
-
-            EditorGUILayout.EndHorizontal();
 
             EditorGUILayout.HelpBox(
                 "Click on grid cells to toggle them as player team spawn points. A thick blue border indicates selected positions.",
@@ -669,158 +670,131 @@ namespace Turnroot.Gameplay.Maps
 
         private void DrawRightPanel()
         {
-            EditorGUILayout.BeginVertical(GUILayout.Width(RIGHT_PANEL_WIDTH));
-
-            _rightPanelScroll = EditorGUILayout.BeginScrollView(_rightPanelScroll);
-
-            if (_selectedFeaturePoint != null)
+            using (new EditorGUILayout.VerticalScope(GUILayout.Width(RIGHT_PANEL_WIDTH)))
             {
-                DrawGridPointProperties();
-
-                GUILayout.Space(10);
-
-                if (!string.IsNullOrEmpty(_selectedFeaturePoint.FeatureTypeId))
+                using (var scroll = new EditorGUILayout.ScrollViewScope(_rightPanelScroll))
                 {
-                    DrawFeatureProperties();
-                }
-                else
-                {
-                    EditorGUILayout.LabelField("Feature Properties", EditorStyles.boldLabel);
-                    EditorGUILayout.HelpBox(
-                        "No feature on this tile. Select a feature tool and click to add one.",
-                        MessageType.Info
-                    );
+                    _rightPanelScroll = scroll.scrollPosition;
+
+                    if (_selectedFeaturePoint != null)
+                    {
+                        DrawGridPointProperties();
+
+                        GUILayout.Space(10);
+
+                        if (!string.IsNullOrEmpty(_selectedFeaturePoint.FeatureTypeId))
+                        {
+                            DrawFeatureProperties();
+                        }
+                        else
+                        {
+                            EditorGUILayout.LabelField("Feature Properties", EditorStyles.boldLabel);
+                            EditorGUILayout.HelpBox(
+                                "No feature on this tile. Select a feature tool and click to add one.",
+                                MessageType.Info
+                            );
+                        }
+                    }
+                    else
+                    {
+                        EditorGUILayout.LabelField("Grid Point Properties", EditorStyles.boldLabel);
+                        EditorGUILayout.HelpBox(
+                            "Select a grid point to edit properties. Use the Cursor tool (shortcut: C) to select tiles.",
+                            MessageType.Info
+                        );
+                    }
                 }
             }
-            else
-            {
-                EditorGUILayout.LabelField("Grid Point Properties", EditorStyles.boldLabel);
-                EditorGUILayout.HelpBox(
-                    "Select a grid point to edit properties. Use the Cursor tool (shortcut: C) to select tiles.",
-                    MessageType.Info
-                );
-            }
-
-            EditorGUILayout.EndScrollView();
-            EditorGUILayout.EndVertical();
         }
 
         private void DrawGridPointProperties()
         {
             DrawAccentHeader("Grid Point Properties");
-            EditorGUILayout.BeginVertical(EditorStyles.helpBox);
-
-            var point = _selectedFeaturePoint;
-            var serializedPoint = new SerializedObject(point);
-            serializedPoint.Update();
-            serializedPoint.Update();
-
-            var startingUnitProp = serializedPoint.FindProperty("_startingUnit");
-            if (startingUnitProp != null)
+            using (new EditorGUILayout.VerticalScope(EditorStyles.helpBox))
             {
-                var templateProp = startingUnitProp.FindPropertyRelative("_characterTemplate");
-                if (templateProp != null)
+                var point = _selectedFeaturePoint;
+                var serializedPoint = new SerializedObject(point);
+                serializedPoint.Update();
+                serializedPoint.Update();
+
+                var startingUnitProp = serializedPoint.FindProperty("_startingUnit");
+                if (startingUnitProp != null)
                 {
+                    var templateProp = startingUnitProp.FindPropertyRelative("_characterTemplate");
+                    if (templateProp != null)
+                    {
+                        EditorGUI.BeginChangeCheck();
+                        EditorGUILayout.PropertyField(templateProp, new GUIContent("Starting Unit"));
+                        if (EditorGUI.EndChangeCheck())
+                        {
+                            serializedPoint.ApplyModifiedProperties();
+                            MarkDirty();
+                        }
+                    }
+                    else
+                    {
+                        var current = point.GetStartingUnit();
+                        var currentTemplate = current?.CharacterTemplate;
+                        EditorGUI.BeginChangeCheck();
+                        var chosen = (Characters.CharacterData)
+                            EditorGUILayout.ObjectField(
+                                "Starting Unit",
+                                currentTemplate,
+                                typeof(Characters.CharacterData),
+                                false
+                            );
+                        if (EditorGUI.EndChangeCheck())
+                        {
+                            if (chosen == null)
+                            {
+                                point.SetStartingUnit(null);
+                            }
+                            else
+                            {
+                                point.SetStartingUnit(
+                                    Characters.CharacterInstance.Create(chosen)
+                                );
+                            }
+
+                            SafeSetDirty(point);
+                            MarkDirty();
+                        }
+                    }
+                }
+
+                GUILayout.Space(5);
+
+                var friendlyProp = serializedPoint.FindProperty("_friendlyEntersEvent");
+                if (friendlyProp != null)
+                {
+                    EditorGUILayout.LabelField("Friendly Enters Event", _guiStyleBoldWrap);
                     EditorGUI.BeginChangeCheck();
-                    EditorGUILayout.PropertyField(templateProp, new GUIContent("Starting Unit"));
+                    EditorGUILayout.PropertyField(friendlyProp, GUIContent.none);
                     if (EditorGUI.EndChangeCheck())
                     {
                         serializedPoint.ApplyModifiedProperties();
                         MarkDirty();
                     }
                 }
-                else
+
+                var enemyProp = serializedPoint.FindProperty("_enemyEntersEvent");
+                if (enemyProp != null)
                 {
-                    var current = point.GetStartingUnit();
-                    var currentTemplate = current?.CharacterTemplate;
+                    EditorGUILayout.LabelField("Enemy Enters Event", _guiStyleBoldWrap);
                     EditorGUI.BeginChangeCheck();
-                    var chosen = (Characters.CharacterData)
-                        EditorGUILayout.ObjectField(
-                            "Starting Unit",
-                            currentTemplate,
-                            typeof(Characters.CharacterData),
-                            false
-                        );
+                    EditorGUILayout.PropertyField(enemyProp, GUIContent.none);
                     if (EditorGUI.EndChangeCheck())
                     {
-                        if (chosen == null)
-                        {
-                            point.SetStartingUnit(null);
-                        }
-                        else
-                        {
-                            point.SetStartingUnit(
-                                Characters.CharacterInstance.Create(chosen)
-                            );
-                        }
-
-                        SafeSetDirty(point);
+                        serializedPoint.ApplyModifiedProperties();
                         MarkDirty();
                     }
                 }
+
+                GUILayout.Space(5);
+
+                GUILayout.Space(5);
+
             }
-
-            GUILayout.Space(5);
-
-            var friendlyProp = serializedPoint.FindProperty("_friendlyEntersEvent");
-            if (friendlyProp != null)
-            {
-                EditorGUILayout.LabelField("Friendly Enters Event", _guiStyleBoldWrap);
-                EditorGUI.BeginChangeCheck();
-                EditorGUILayout.PropertyField(friendlyProp, GUIContent.none);
-                if (EditorGUI.EndChangeCheck())
-                {
-                    serializedPoint.ApplyModifiedProperties();
-                    MarkDirty();
-                }
-            }
-
-            var enemyProp = serializedPoint.FindProperty("_enemyEntersEvent");
-            if (enemyProp != null)
-            {
-                EditorGUILayout.LabelField("Enemy Enters Event", _guiStyleBoldWrap);
-                EditorGUI.BeginChangeCheck();
-                EditorGUILayout.PropertyField(enemyProp, GUIContent.none);
-                if (EditorGUI.EndChangeCheck())
-                {
-                    serializedPoint.ApplyModifiedProperties();
-                    MarkDirty();
-                }
-            }
-
-            GUILayout.Space(5);
-
-            GUILayout.Space(5);
-
-            DrawSerializedPropertySection(
-                "Bool Properties",
-                point,
-                "_pointBoolProperties",
-                () => ShowAddPropertyMenu(point, "bool", false)
-            );
-
-            DrawSerializedPropertySection(
-                "Unit Properties",
-                point,
-                "_pointUnitProperties",
-                () => ShowAddPropertyMenu(point, "unit", false)
-            );
-
-            DrawSerializedPropertySection(
-                "Float Properties",
-                point,
-                "_pointFloatProperties",
-                () => ShowAddPropertyMenu(point, "float", false)
-            );
-
-            DrawSerializedPropertySection(
-                "ObjectItem Properties",
-                point,
-                "_pointObjectItemProperties",
-                () => ShowAddPropertyMenu(point, "objectitem", false)
-            );
-
-            EditorGUILayout.EndVertical();
         }
 
         private void DrawFeatureProperties()
@@ -828,415 +802,273 @@ namespace Turnroot.Gameplay.Maps
             var point = _selectedFeaturePoint;
             string toolId = point.FeatureTypeId;
             DrawAccentHeader("Feature Properties");
-            EditorGUILayout.BeginVertical(EditorStyles.helpBox);
-
-            string friendlyName = GetFriendlyName(toolId);
-            EditorGUILayout.LabelField($"Type: {friendlyName} ({toolId})", EditorStyles.boldLabel);
-
-            EditorGUI.BeginChangeCheck();
-            string newName = EditorGUILayout.TextField("Feature Name", point.FeatureName);
-            if (EditorGUI.EndChangeCheck())
+            using (new EditorGUILayout.VerticalScope(EditorStyles.helpBox))
             {
-                Undo.RecordObject(point, "Change Feature Name");
-                point.FeatureName = newName;
-                MarkDirty();
-            }
+                string friendlyName = GetFriendlyName(toolId);
+                EditorGUILayout.LabelField($"Type: {friendlyName} ({toolId})", EditorStyles.boldLabel);
 
-            // Defaults are now automatically applied when a feature is created/placed.
-
-            GUILayout.Space(10);
-
-            // Event Properties (feature-level)
-            DrawSerializedPropertySection(
-                "Event Properties",
-                point,
-                "_featureEventProperties",
-                () => ShowAddPropertyMenu(point, "event")
-            );
-
-            // Bool Properties
-            DrawEditablePropertySection(
-                "Bool Properties",
-                point.GetAllBoolFeatureProperties(),
-                (key) => point.GetBoolFeatureProperty(key) ?? false,
-                (key, val) =>
+                EditorGUI.BeginChangeCheck();
+                string newName = EditorGUILayout.TextField("Feature Name", point.FeatureName);
+                if (EditorGUI.EndChangeCheck())
                 {
-                    Undo.RecordObject(point, "Edit Bool Property");
-                    point.SetBoolFeatureProperty(key, val);
+                    Undo.RecordObject(point, "Change Feature Name");
+                    point.FeatureName = newName;
                     MarkDirty();
-                },
-                (key) =>
-                {
-                    Undo.RecordObject(point, "Remove Bool Property");
-                    point.ClearFeatureProperty(key);
-                    MarkDirty();
-                },
-                () => ShowAddPropertyMenu(point, "bool")
-            );
-
-            // String & Int property editors removed per request
-
-            // Float Properties
-            DrawEditablePropertySection(
-                "Float Properties",
-                point.GetAllFloatFeatureProperties(),
-                (key) => point.GetFloatFeatureProperty(key) ?? 0f,
-                (key, val) =>
-                {
-                    Undo.RecordObject(point, "Edit Float Property");
-                    point.SetFloatFeatureProperty(key, val);
-                    MarkDirty();
-                },
-                (key) =>
-                {
-                    Undo.RecordObject(point, "Remove Float Property");
-                    point.ClearFeatureProperty(key);
-                    MarkDirty();
-                },
-                () => ShowAddPropertyMenu(point, "float")
-            );
-
-            // Unit Properties - using SerializedProperty
-            DrawSerializedPropertySection(
-                "Unit Properties",
-                point,
-                "_featureUnitProperties",
-                () => ShowAddPropertyMenu(point, "unit")
-            );
-
-            // ObjectItem Properties - using SerializedProperty
-            DrawSerializedPropertySection(
-                "ObjectItem Properties",
-                point,
-                "_featureObjectItemProperties",
-                () => ShowAddPropertyMenu(point, "objectitem")
-            );
-
-            EditorGUILayout.EndVertical();
-        }
-
-        private void DrawSerializedPropertySection(
-            string sectionTitle,
-            MapGridPoint point,
-            string propertyName,
-            Action onAddNew
-        )
-        {
-            // Draw header with accent color and foldout
-            bool expanded = GetSectionFoldout(sectionTitle, true);
-            DrawSectionHeader(sectionTitle, expanded, onAddNew);
-            if (!expanded)
-            {
-                return;
-            }
-
-            var serializedPoint = new SerializedObject(point);
-            var propertiesArray = serializedPoint.FindProperty(propertyName);
-
-            bool hasVisible = false;
-            if (propertiesArray != null && propertiesArray.arraySize > 0)
-            {
-                for (int i = 0; i < propertiesArray.arraySize; i++)
-                {
-                    var el = propertiesArray.GetArrayElementAtIndex(i);
-                    var keyProp = el.FindPropertyRelative("key");
-                    if (keyProp == null)
-                    {
-                        continue;
-                    }
-
-                    hasVisible = true;
-                    break;
-                }
-            }
-
-            if (propertiesArray == null || !hasVisible)
-            {
-                EditorGUILayout.BeginHorizontal();
-                if (GUILayout.Button("+", GUILayout.Width(20)))
-                {
-                    onAddNew();
-                }
-                EditorGUILayout.EndHorizontal();
-                return;
-            }
-
-            EditorGUILayout.BeginHorizontal();
-            GUILayout.FlexibleSpace();
-            if (GUILayout.Button("+", GUILayout.Width(20)))
-            {
-                onAddNew();
-            }
-
-            EditorGUILayout.EndHorizontal();
-
-            var toRemove = new List<int>();
-
-            for (int i = 0; i < propertiesArray.arraySize; i++)
-            {
-                var element = propertiesArray.GetArrayElementAtIndex(i);
-                var keyProp = element.FindPropertyRelative("key");
-                var valueProp = element.FindPropertyRelative("value");
-
-                if (keyProp == null || valueProp == null)
-                {
-                    continue;
                 }
 
-                EditorGUILayout.BeginHorizontal();
-                GUILayout.Space(_editorSettings?.propertyIndent ?? 12);
-                EditorGUILayout.LabelField(
-                    keyProp.stringValue,
-                    _guiStyleWrap,
-                    GUILayout.Width(120)
-                );
+                GUILayout.Space(10);
 
-                // Special handling for Unit and ObjectItem properties. Both are complex serializable
-                // types (CharacterInstance, ObjectItemInstance) so we present an asset selector for the
-                // underlying template (CharacterData/ObjectItem). We then wrap the selection in the
-                // instance type and assign via the typed API so it behaves correctly in the serialized lists.
-                if (propertyName.IndexOf("Unit", StringComparison.OrdinalIgnoreCase) >= 0)
+                if (point.FeatureType == MapGridPointFeature.FeatureType.Door)
                 {
-                    var current = point.GetUnitFeatureProperty(keyProp.stringValue);
-                    var currentTemplate = current?.CharacterTemplate;
                     EditorGUI.BeginChangeCheck();
-                    var chosen = (Characters.CharacterData)
-                        EditorGUILayout.ObjectField(
-                            currentTemplate,
-                            typeof(Characters.CharacterData),
-                            false
-                        );
+                    bool newLocked = EditorGUILayout.Toggle("Locked", point.FeatureLocked);
+                    var newUnlock = (ObjectItem)EditorGUILayout.ObjectField(
+                        "Unlock Item",
+                        point.UnlockItem,
+                        typeof(ObjectItem),
+                        false);
                     if (EditorGUI.EndChangeCheck())
                     {
-                        Undo.RecordObject(point, "Edit Unit Property");
-                        if (chosen == null)
+                        Undo.RecordObject(point, "Edit Door Properties");
+                        point.FeatureLocked = newLocked;
+                        point.UnlockItem = newUnlock;
+                        _grid?.SaveFeatureLayer();
+                        MarkDirty();
+                    }
+                }
+                else if (point.FeatureType == MapGridPointFeature.FeatureType.Warp)
+                {
+                    GUILayout.Label("Warp Destinations", EditorStyles.boldLabel);
+                    var warpList = point.WarpDestinations;
+                    for (int i = 0; i < warpList.Count; i++)
+                    {
+                        EditorGUILayout.BeginHorizontal();
+                        EditorGUI.BeginChangeCheck();
+                        Vector2Int newCoord = EditorGUILayout.Vector2IntField($"Dest {i}", warpList[i]);
+                        if (EditorGUI.EndChangeCheck())
                         {
-                            point.SetUnitFeatureProperty(keyProp.stringValue, null);
+                            Undo.RecordObject(point, "Edit Warp Destination");
+                            warpList[i] = newCoord;
+                            _grid?.SaveFeatureLayer();
+                            MarkDirty();
                         }
-                        else
+                        if (GUILayout.Button("-", GUILayout.Width(20)))
                         {
-                            point.SetUnitFeatureProperty(
-                                keyProp.stringValue,
-                                Characters.CharacterInstance.Create(chosen)
-                            );
+                            Undo.RecordObject(point, "Remove Warp Destination");
+                            warpList.RemoveAt(i);
+                            _grid?.SaveFeatureLayer();
+                            MarkDirty();
+                            i--;
                         }
-
-                        SafeSetDirty(point);
+                        EditorGUILayout.EndHorizontal();
+                    }
+                    if (GUILayout.Button("+ Add Destination"))
+                    {
+                        Undo.RecordObject(point, "Add Warp Destination");
+                        warpList.Add(new Vector2Int(0,0));
+                        _grid?.SaveFeatureLayer();
+                        MarkDirty();
+                    }
+                    EditorGUI.BeginChangeCheck();
+                    int newIndex = EditorGUILayout.IntField("Active Index", point.ActiveWarpIndex);
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        Undo.RecordObject(point, "Change Active Warp Index");
+                        point.ActiveWarpIndex = Mathf.Clamp(newIndex, 0, warpList.Count>0?warpList.Count-1:0);
+                        _grid?.SaveFeatureLayer();
+                        MarkDirty();
+                    }
+                }
+                else if (point.FeatureType == MapGridPointFeature.FeatureType.Breakable)
+                {
+                    EditorGUI.BeginChangeCheck();
+                    int health = EditorGUILayout.IntField("Health", point.BreakableHealth);
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        Undo.RecordObject(point, "Edit Breakable Health");
+                        point.BreakableHealth = health;
+                        _grid?.SaveFeatureLayer();
+                        MarkDirty();
+                    }
+                }
+                else if (point.FeatureType == MapGridPointFeature.FeatureType.Shelter)
+                {
+                    EditorGUI.BeginChangeCheck();
+                    bool noFly = EditorGUILayout.Toggle("Can't be targeted by flying", point.ShelterNoFly);
+                    bool noRide = EditorGUILayout.Toggle("Can't be targeted by riding", point.ShelterNoRide);
+                    bool noInf = EditorGUILayout.Toggle("Can't be targeted by infantry", point.ShelterNoInfantry);
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        Undo.RecordObject(point, "Edit Shelter Restrictions");
+                        point.ShelterNoFly = noFly;
+                        point.ShelterNoRide = noRide;
+                        point.ShelterNoInfantry = noInf;
+                        _grid?.SaveFeatureLayer();
+                        MarkDirty();
+                    }
+                }
+                else if (point.FeatureType == MapGridPointFeature.FeatureType.Healing)
+                {
+                    EditorGUI.BeginChangeCheck();
+                    float pct = EditorGUILayout.FloatField("Heal %/turn", point.HealingPercentPerTurn);
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        Undo.RecordObject(point, "Edit Healing Rate");
+                        point.HealingPercentPerTurn = pct;
+                        _grid?.SaveFeatureLayer();
+                        MarkDirty();
+                    }
+                }
+                else if (point.FeatureType == MapGridPointFeature.FeatureType.Ranged)
+                {
+                    EditorGUI.BeginChangeCheck();
+                    int range = EditorGUILayout.IntField("Range", point.RangedRange);
+                    int dmg = EditorGUILayout.IntField("Damage", point.RangedDamage);
+                    float hit = EditorGUILayout.FloatField("Hit %", point.RangedHit);
+                    bool ride = EditorGUILayout.Toggle("Allows Riding", point.RangedAllowsRiding);
+                    bool fly = EditorGUILayout.Toggle("Allows Flying", point.RangedAllowsFlying);
+                    bool magic = EditorGUILayout.Toggle("Magic Only", point.RangedMagicOnly);
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        Undo.RecordObject(point, "Edit Ranged Properties");
+                        point.RangedRange = range;
+                        point.RangedDamage = dmg;
+                        point.RangedHit = hit;
+                        point.RangedAllowsRiding = ride;
+                        point.RangedAllowsFlying = fly;
+                        point.RangedMagicOnly = magic;
+                        _grid?.SaveFeatureLayer();
                         MarkDirty();
                     }
                 }
                 else if (
-                    propertyName.IndexOf("ObjectItem", StringComparison.OrdinalIgnoreCase) >= 0
+                    point.FeatureType == MapGridPointFeature.FeatureType.Treasure
+                    || point.FeatureType == MapGridPointFeature.FeatureType.Underground
                 )
                 {
-                    var current = point.GetObjectItemFeatureProperty(keyProp.stringValue);
-                    var currentTemplate = current?.Template;
                     EditorGUI.BeginChangeCheck();
-                    var chosen = (Objects.ObjectItem)
-                        EditorGUILayout.ObjectField(
-                            currentTemplate,
-                            typeof(Objects.ObjectItem),
-                            false
-                        );
+                    var common = (ObjectItem)EditorGUILayout.ObjectField(
+                        "Common Item",
+                        point.FeatureCommonItem,
+                        typeof(ObjectItem),
+                        false
+                    );
+                    var rare = (ObjectItem)EditorGUILayout.ObjectField(
+                        "Rare Item",
+                        point.FeatureRareItem,
+                        typeof(ObjectItem),
+                        false
+                    );
                     if (EditorGUI.EndChangeCheck())
                     {
-                        Undo.RecordObject(point, "Edit ObjectItem Property");
-                        if (chosen == null)
-                        {
-                            point.SetObjectItemFeatureProperty(keyProp.stringValue, null);
-                        }
-                        else
-                        {
-                            point.SetObjectItemFeatureProperty(
-                                keyProp.stringValue,
-                                new Objects.ObjectItemInstance(chosen)
-                            );
-                        }
-
-                        SafeSetDirty(point);
+                        Undo.RecordObject(point, "Edit Feature Items");
+                        point.FeatureCommonItem = common;
+                        point.FeatureRareItem = rare;
+                        _grid?.SaveFeatureLayer();
                         MarkDirty();
                     }
                 }
                 else
                 {
-                    EditorGUI.BeginChangeCheck();
-                    EditorGUILayout.PropertyField(valueProp, GUIContent.none);
-                    if (EditorGUI.EndChangeCheck())
-                    {
-                        serializedPoint.ApplyModifiedProperties();
-                        MarkDirty();
-                    }
+                    EditorGUILayout.LabelField("No editable properties for this feature.");
                 }
-
-                if (GUILayout.Button("-", GUILayout.Width(20)))
-                {
-                    toRemove.Add(i);
-                }
-                EditorGUILayout.EndHorizontal();
-            }
-
-            // Remove marked properties
-            for (int i = toRemove.Count - 1; i >= 0; i--)
-            {
-                Undo.RecordObject(point, "Remove Property");
-                var element = propertiesArray.GetArrayElementAtIndex(toRemove[i]);
-                var keyProp = element.FindPropertyRelative("key");
-                if (keyProp != null)
-                {
-                    point.ClearFeatureProperty(keyProp.stringValue);
-                }
-                MarkDirty();
-            }
-            serializedPoint.ApplyModifiedProperties();
-        }
-
-        private void DrawEditablePropertySection<T, TProp>(
-            string sectionTitle,
-            List<TProp> properties,
-            Func<string, T> getter,
-            Action<string, T> setter,
-            Action<string> remover,
-            Action onAddNew
-        )
-            where TProp : MapGridPropertyBase.IProperty
-        {
-            bool expanded = GetSectionFoldout(sectionTitle, true);
-            DrawSectionHeader(sectionTitle, expanded, onAddNew);
-            if (!expanded)
-            {
-                return;
-            }
-
-            if (properties == null || properties.Count == 0)
-            {
-                if (GUILayout.Button("+", GUILayout.Width(20)))
-                {
-                    onAddNew();
-                }
-
-                return;
-            }
-
-            var toRemove = new List<string>();
-
-            foreach (var prop in properties)
-            {
-                string key = prop.key;
-                T currentValue = getter(key);
-
-                EditorGUILayout.BeginHorizontal();
-                // Indent property keys (children) so they visually live under the section header
-                GUILayout.Space(_editorSettings?.propertyIndent ?? 12);
-                EditorGUILayout.LabelField(key, _guiStyleWrap, GUILayout.Width(120));
-
-                EditorGUI.BeginChangeCheck();
-                T newValue = DrawPropertyField(currentValue);
-                if (EditorGUI.EndChangeCheck())
-                {
-                    setter(key, newValue);
-                }
-
-                if (GUILayout.Button("-", GUILayout.Width(20)))
-                {
-                    toRemove.Add(key);
-                }
-                EditorGUILayout.EndHorizontal();
-            }
-
-            foreach (var key in toRemove)
-            {
-                remover(key);
             }
         }
 
-        private T DrawPropertyField<T>(T value)
-        {
-            if (value is string strVal)
-            {
-                return (T)(object)EditorGUILayout.TextField(strVal);
-            }
-
-            if (value is bool boolVal)
-            {
-                return (T)(object)EditorGUILayout.Toggle(boolVal);
-            }
-
-            if (value is int intVal)
-            {
-                return (T)(object)EditorGUILayout.IntField(intVal);
-            }
-
-            if (value is float floatVal)
-            {
-                return (T)(object)EditorGUILayout.FloatField(floatVal);
-            }
-
-            EditorGUILayout.LabelField(value?.ToString() ?? "null");
-            return value;
-        }
 
         private void DrawTestMovementControls()
         {
-            EditorGUILayout.BeginHorizontal();
-            GUILayout.Label("Movement:", GUILayout.Width(70));
-
-            int prevMovement = _testMovementValue;
-            _testMovementValue = EditorGUILayout.IntSlider(
-                _testMovementValue,
-                1,
-                10,
-                GUILayout.Width(300)
-            );
-
-            // Recalculate if movement value changed
-            if (prevMovement != _testMovementValue && _testMovementStart != null && _grid != null)
+            using (new EditorGUILayout.HorizontalScope())
             {
-                _testMovementResults = new AStarModified().GetReachable(
-                    _grid,
-                    _testMovementStart,
+                GUILayout.Label("Movement:", GUILayout.Width(70));
+
+                int prevMovement = _testMovementValue;
+                _testMovementValue = EditorGUILayout.IntSlider(
                     _testMovementValue,
-                    _asWalk,
-                    _asFly,
-                    _asRide,
-                    _asMagic,
-                    _asArmor,
-                    _sameDirectionMultiplier
+                    1,
+                    10,
+                    GUILayout.Width(300)
                 );
+
+                // Recalculate if movement value changed
+                if (prevMovement != _testMovementValue && _testMovementStart != null && _grid != null)
+                {
+                    _testMovementResults = new AStarModified().GetReachable(
+                        _grid,
+                        _testMovementStart,
+                        _testMovementValue,
+                        _asWalk,
+                        _asFly,
+                        _asRide,
+                        _asMagic,
+                        _asArmor,
+                        _sameDirectionMultiplier
+                    );
+                }
+
+                if (GUILayout.Button("Clear Test", GUILayout.Width(90)))
+                {
+                    _testMovementStart = null;
+                    _testMovementResults = null;
+                    Repaint();
+                }
             }
 
-            if (GUILayout.Button("Clear Test", GUILayout.Width(90)))
+            using (new EditorGUILayout.HorizontalScope())
             {
-                _testMovementStart = null;
-                _testMovementResults = null;
-                Repaint();
-            }
-            EditorGUILayout.EndHorizontal();
+                // Use exclusive selection (radio button behavior) for movement types
+                int currentType =
+                    _asWalk ? 0
+                    : _asFly ? 1
+                    : _asRide ? 2
+                    : _asMagic ? 3
+                    : _asArmor ? 4
+                    : 0;
+                int newType = GUILayout.Toolbar(
+                    currentType,
+                    new[] { "Walk", "Fly", "Ride", "Magic", "Armor" }
+                );
 
-            EditorGUILayout.BeginHorizontal();
+                if (newType != currentType)
+                {
+                    _asWalk = newType == 0;
+                    _asFly = newType == 1;
+                    _asRide = newType == 2;
+                    _asMagic = newType == 3;
+                    _asArmor = newType == 4;
 
-            // Use exclusive selection (radio button behavior) for movement types
-            int currentType =
-                _asWalk ? 0
-                : _asFly ? 1
-                : _asRide ? 2
-                : _asMagic ? 3
-                : _asArmor ? 4
-                : 0;
-            int newType = GUILayout.Toolbar(
-                currentType,
-                new[] { "Walk", "Fly", "Ride", "Magic", "Armor" }
-            );
+                    // Recalculate movement if we have a start point
+                    if (_testMovementStart != null && _grid != null)
+                    {
+                        _testMovementResults = new AStarModified().GetReachable(
+                            _grid,
+                            _testMovementStart,
+                            _testMovementValue,
+                            _asWalk,
+                            _asFly,
+                            _asRide,
+                            _asMagic,
+                            _asArmor,
+                            _sameDirectionMultiplier
+                        );
+                    }
+                }
 
-            if (newType != currentType)
-            {
-                _asWalk = newType == 0;
-                _asFly = newType == 1;
-                _asRide = newType == 2;
-                _asMagic = newType == 3;
-                _asArmor = newType == 4;
+                GUILayout.Label("Same-dir:", GUILayout.Width(70));
+                float prevMultiplier = _sameDirectionMultiplier;
+                _sameDirectionMultiplier = EditorGUILayout.Slider(
+                    _sameDirectionMultiplier,
+                    0.5f,
+                    1.1f,
+                    GUILayout.Width(150)
+                );
 
-                // Recalculate movement if we have a start point
-                if (_testMovementStart != null && _grid != null)
+                // Recalculate if multiplier changed
+                if (
+                    Mathf.Abs(prevMultiplier - _sameDirectionMultiplier) > 0.001f
+                    && _testMovementStart != null
+                    && _grid != null
+                )
                 {
                     _testMovementResults = new AStarModified().GetReachable(
                         _grid,
@@ -1251,37 +1083,6 @@ namespace Turnroot.Gameplay.Maps
                     );
                 }
             }
-
-            GUILayout.Label("Same-dir:", GUILayout.Width(70));
-            float prevMultiplier = _sameDirectionMultiplier;
-            _sameDirectionMultiplier = EditorGUILayout.Slider(
-                _sameDirectionMultiplier,
-                0.5f,
-                1.1f,
-                GUILayout.Width(150)
-            );
-
-            // Recalculate if multiplier changed
-            if (
-                Mathf.Abs(prevMultiplier - _sameDirectionMultiplier) > 0.001f
-                && _testMovementStart != null
-                && _grid != null
-            )
-            {
-                _testMovementResults = new AStarModified().GetReachable(
-                    _grid,
-                    _testMovementStart,
-                    _testMovementValue,
-                    _asWalk,
-                    _asFly,
-                    _asRide,
-                    _asMagic,
-                    _asArmor,
-                    _sameDirectionMultiplier
-                );
-            }
-
-            EditorGUILayout.EndHorizontal();
         }
 
         private bool GetSectionFoldout(string key, bool defaultValue)
@@ -1385,57 +1186,58 @@ namespace Turnroot.Gameplay.Maps
 
         private void DrawZoomControls()
         {
-            EditorGUILayout.BeginHorizontal();
-            GUILayout.Label("Zoom:", GUILayout.Width(40));
-            _zoom = EditorGUILayout.Slider(_zoom, 0.25f, 3f, GUILayout.Width(150));
-
-            if (_grid != null)
+            using (new EditorGUILayout.HorizontalScope())
             {
-                if (GUILayout.Button("+ Row", GUILayout.Width(60)))
-                {
-                    Undo.RecordObject(_grid, "Add Row");
-                    _grid.AddRow();
-                    _lastKnownWidth = _grid.GridWidth;
-                    _lastKnownHeight = _grid.GridHeight;
-                    MarkDirty();
-                    Repaint();
-                }
+                GUILayout.Label("Zoom:", GUILayout.Width(40));
+                _zoom = EditorGUILayout.Slider(_zoom, 0.25f, 3f, GUILayout.Width(150));
 
-                if (GUILayout.Button("+ Column", GUILayout.Width(70)))
+                if (_grid != null)
                 {
-                    Undo.RecordObject(_grid, "Add Column");
-                    _grid.AddColumn();
-                    _lastKnownWidth = _grid.GridWidth;
-                    _lastKnownHeight = _grid.GridHeight;
-                    MarkDirty();
-                    Repaint();
+                    if (GUILayout.Button("+ Row", GUILayout.Width(60)))
+                    {
+                        Undo.RecordObject(_grid, "Add Row");
+                        _grid.AddRow();
+                        _lastKnownWidth = _grid.GridWidth;
+                        _lastKnownHeight = _grid.GridHeight;
+                        MarkDirty();
+                        Repaint();
+                    }
+
+                    if (GUILayout.Button("+ Column", GUILayout.Width(70)))
+                    {
+                        Undo.RecordObject(_grid, "Add Column");
+                        _grid.AddColumn();
+                        _lastKnownWidth = _grid.GridWidth;
+                        _lastKnownHeight = _grid.GridHeight;
+                        MarkDirty();
+                        Repaint();
+                    }
                 }
             }
-
-            EditorGUILayout.EndHorizontal();
         }
 
         private void DrawStatusBar()
         {
-            EditorGUILayout.BeginHorizontal(EditorStyles.helpBox);
-            string leftAction =
-                _mode == Mode.TestMovement ? "Left click: Start test"
-                : _mode == Mode.SetStartingPositions ? "Left click: Toggle spawn point"
-                : (
-                    _selectedSecondTool >= 0
-                        ? "Left click: Add/Select feature"
-                        : "Left click: Paint"
-                );
+            using (new EditorGUILayout.HorizontalScope(EditorStyles.helpBox))
+            {
+                string leftAction =
+                    _mode == Mode.TestMovement ? "Left click: Start test"
+                    : _mode == Mode.SetStartingPositions ? "Left click: Toggle spawn point"
+                    : (
+                        _selectedSecondTool >= 0
+                            ? "Left click: Add/Select feature"
+                            : "Left click: Paint"
+                    );
 
-            string controls =
-                $"Ctrl +/- : Zoom | Space + Drag : Pan | {leftAction} | Left click + drag: Paint Area | [`, 1-0, -, =, Q, A] : Terrain | Shift+[`, 1-0, -, =] : Feature";
-            string hoverText =
-                _hoveredCell.x >= 0 ? $"Row {_hoveredCell.x}, Col {_hoveredCell.y}" : "(none)";
+                string controls =
+                    $"Ctrl +/- : Zoom | Space + Drag : Pan | {leftAction} | Left click + drag: Paint Area | [`, 1-0, -, =, Q, A] : Terrain | Shift+[`, 1-0, -, =] : Feature";
+                string hoverText =
+                    _hoveredCell.x >= 0 ? $"Row {_hoveredCell.x}, Col {_hoveredCell.y}" : "(none)";
 
-            GUILayout.Label(controls, GUILayout.ExpandWidth(true), GUILayout.Height(20));
-            GUILayout.FlexibleSpace();
-            GUILayout.Label(hoverText, GUILayout.ExpandWidth(false), GUILayout.MinWidth(100));
-            EditorGUILayout.EndHorizontal();
+                GUILayout.Label(controls, GUILayout.ExpandWidth(true), GUILayout.Height(20));
+                GUILayout.FlexibleSpace();
+                GUILayout.Label(hoverText, GUILayout.ExpandWidth(false), GUILayout.MinWidth(100));
+            }
         }
 
         private void DrawTerrainPalette()
@@ -2127,6 +1929,29 @@ namespace Turnroot.Gameplay.Maps
             {
                 if (!string.IsNullOrEmpty(clickedPoint.FeatureTypeId))
                 {
+                    // if door feature, offer a lock/unlock toggle
+                    if (clickedPoint.FeatureType == MapGridPointFeature.FeatureType.Door)
+                    {
+                        GenericMenu menu = new GenericMenu();
+                        bool locked = clickedPoint.FeatureLocked;
+                        menu.AddItem(
+                            new GUIContent(locked ? "Unlock" : "Lock"),
+                            false,
+                            () =>
+                            {
+                                Undo.RecordObject(
+                                    clickedPoint,
+                                    locked ? "Unlock Door" : "Lock Door"
+                                );
+                                clickedPoint.FeatureLocked = !locked;
+                                _grid?.SaveFeatureLayer();
+                                MarkDirty();
+                                Repaint();
+                            }
+                        );
+                        menu.ShowAsContext();
+                    }
+
                     string fid = clickedPoint.FeatureTypeId;
                     int idx = Array.IndexOf(_featureTools.Ids, fid);
 
@@ -2383,181 +2208,6 @@ namespace Turnroot.Gameplay.Maps
             Repaint();
         }
 
-        private void ShowAddPropertyMenu(
-            MapGridPoint point,
-            string propType,
-            bool forFeature = true
-        )
-        {
-            if (point == null)
-            {
-                return;
-            }
-
-            NewPropertyPrompt.ShowFor(this, point, _grid, propType, forFeature);
-        }
-
-        /// <summary>
-        /// Modal prompt window for creating new properties on map grid points.
-        /// </summary>
-        private class NewPropertyPrompt : EditorWindow
-        {
-            private MapGridPoint _point;
-            private MapGrid _grid;
-            private string _propType = "float";
-            private bool _forFeature = true;
-            private string _key = string.Empty;
-
-            public static void ShowFor(
-                MapGridEditorWindow owner,
-                MapGridPoint point,
-                MapGrid grid,
-                string propType,
-                bool forFeature = true
-            )
-            {
-                if (point == null)
-                {
-                    return;
-                }
-
-                var win = CreateInstance<NewPropertyPrompt>();
-                win._point = point;
-                win._grid = grid;
-                win._propType = propType ?? "float";
-                win._forFeature = forFeature;
-                win._forFeature = forFeature;
-                win._key = string.Empty;
-                win.titleContent = new GUIContent("New Property");
-                win.position = new Rect(100, 100, 360, 110);
-                win.ShowModalUtility();
-            }
-
-            private void OnGUI()
-            {
-                GUILayout.Label($"Create new {_propType} property", EditorStyles.boldLabel);
-                EditorGUILayout.Space();
-
-                EditorGUILayout.BeginHorizontal();
-                GUILayout.Label("Key:", GUILayout.Width(40));
-                _key = EditorGUILayout.TextField(_key, GUILayout.ExpandWidth(true));
-                EditorGUILayout.EndHorizontal();
-
-                EditorGUILayout.Space();
-                EditorGUILayout.BeginHorizontal();
-                GUILayout.FlexibleSpace();
-                if (GUILayout.Button("Cancel", GUILayout.Width(100)))
-                {
-                    Close();
-                    return;
-                }
-                if (GUILayout.Button("Create", GUILayout.Width(100)))
-                {
-                    if (string.IsNullOrEmpty(_key))
-                    {
-                        EditorUtility.DisplayDialog(
-                            "Invalid Key",
-                            "Please enter a key for the property.",
-                            "OK"
-                        );
-                        return;
-                    }
-                    ApplyCreation();
-                    Close();
-                }
-                EditorGUILayout.EndHorizontal();
-            }
-
-            private void ApplyCreation()
-            {
-                if (_point == null)
-                {
-                    return;
-                }
-
-                Undo.RecordObject(_point, "Add Property");
-
-                switch ((_propType ?? "").ToLowerInvariant())
-                {
-                    case "bool":
-                        if (_forFeature)
-                        {
-                            _point.SetBoolFeatureProperty(_key, false);
-                        }
-                        else
-                        {
-                            _point.SetBoolPointProperty(_key, false);
-                        }
-
-                        break;
-                    case "float":
-                        if (_forFeature)
-                        {
-                            _point.SetFloatFeatureProperty(_key, 0f);
-                        }
-                        else
-                        {
-                            _point.SetFloatPointProperty(_key, 0f);
-                        }
-
-                        break;
-                    case "unit":
-                        if (_forFeature)
-                        {
-                            _point.SetUnitFeatureProperty(_key, null);
-                        }
-                        else
-                        {
-                            _point.SetUnitPointProperty(_key, null);
-                        }
-
-                        break;
-                    case "objectitem":
-                        if (_forFeature)
-                        {
-                            _point.SetObjectItemFeatureProperty(_key, null);
-                        }
-                        else
-                        {
-                            _point.SetObjectItemPointProperty(_key, null);
-                        }
-
-                        break;
-                    case "event":
-                        if (_forFeature)
-                        {
-                            _point.SetEventFeatureProperty(_key, new UnityEvent());
-                        }
-                        else
-                        {
-                            _point.SetEventPointProperty(_key, new UnityEvent());
-                        }
-
-                        break;
-                    default:
-                        // unknown / deprecated types (string/int) are no longer supported
-                        break;
-                }
-                // Avoid marking scene objects during non-interactive editor update/import.
-                if (!EditorApplication.isUpdating)
-                {
-                    EditorUtility.SetDirty(_point);
-                }
-
-                if (_forFeature)
-                {
-                    _grid?.SaveFeatureLayer();
-                }
-
-                if (!EditorApplication.isUpdating)
-                {
-                    EditorSceneManager.MarkSceneDirty(
-                        UnityEngine.SceneManagement.SceneManager.GetActiveScene()
-                    );
-                }
-                SceneView.RepaintAll();
-            }
-        }
 
         /// <summary>
         /// Help window displaying keyboard shortcuts and usage tips for the map grid editor.
@@ -2603,7 +2253,7 @@ namespace Turnroot.Gameplay.Maps
                 EditorGUILayout.HelpBox(
                     "Left Click - Paint terrain or place feature\n"
                         + "Left Click + Drag - Paint area\n"
-                        + "Right Click - Select existing feature for editing\n"
+                        + "Right Click - Select existing feature for editing (door toggles lock; treasure/underground show items)\n"
                         + "Space + Left Drag - Pan the view",
                     MessageType.Info
                 );
@@ -2622,12 +2272,15 @@ namespace Turnroot.Gameplay.Maps
                 );
 
                 EditorGUILayout.Space();
-                EditorGUILayout.LabelField("Property Editing", EditorStyles.boldLabel);
+                EditorGUILayout.LabelField("Feature Properties", EditorStyles.boldLabel);
                 EditorGUILayout.HelpBox(
-                    "Starting Unit: choose which character should start on this tile when a level begins (optional).\n"
-                        + "Enter Events: attach actions that happen when a friendly or enemy character steps onto this tile.\n"
-                        + "Use the + button to add custom named properties to a tile, and the - button to remove them; these properties can hold numbers, text, or true/false flags that your gameplay logic can read.\n"
-                        + "To set a default configuration for an entire feature type (for example, every door), make a 'Feature Defaults' asset in Game Settings. Defaults are applied automatically when you place a feature.",
+                    "Several feature types have small editable values: doors can be locked and\n"
+                        + "given an unlock item, shelter tiles can restrict targeting by flying, riding, or infantry,\n"
+                        + "breakable walls have a health value, healing tiles heal a percentage per turn,\n"
+                        + "ranged tiles define range/damage/hit and restrictions, and treasure/underground\n"
+                        + "tiles let you choose a common and rare item. Warp tiles maintain a list of\n"
+                        + "destination coordinates and an active index. Select a tile and look at the right\n"
+                        + "panel to modify these values.",
                     MessageType.Info
                 );
 

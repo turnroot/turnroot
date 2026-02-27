@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Active: 1
   m_Settings:
-    technique: 0
+    technique: 1
     maxDrawDistance: 1000
     decalLayers: 1
     dBufferSettings:
@@ -113,8 +113,8 @@ MonoBehaviour:
     NormalSamples: 1
     Intensity: 0.27
     DirectLightingStrength: 0.447
-    Radius: 0.62
-    Samples: 0
-    BlurQuality: 0
+    Radius: 0.15
+    Samples: 1
+    BlurQuality: 1
     Falloff: 300
     SampleCount: -1
