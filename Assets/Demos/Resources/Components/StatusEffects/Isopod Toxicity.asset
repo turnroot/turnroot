@@ -1,0 +1,36 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 57682930134aaee4f8e8513eab9827a5, type: 3}
+  m_Name: Isopod Toxicity
+  m_EditorClassIdentifier: Assembly-CSharp::Turnroot.Characters.StatusEffects.StatusEffectType
+  _id: isopod-toxicity
+  _displayName: Toxicity
+  _description: Poisoned by isopod toxin, unit suffers reduced movement and takes
+    10% damage for 2 turns. Cannot stack
+  _icon: {fileID: 0}
+  _category: 1
+  _isStackable: 0
+  _maxStacks: 0
+  _defaultDuration: 2
+  _flatModifiers: []
+  _percentModifiers:
+  - StatType: 9
+    Value: -33
+  _healthChangePerTurn: -10
+  _preventsMovement: 0
+  _preventsAttack: 0
+  _preventsItemUse: 0
+  _soldierLoneWolfModifier: 0
+  _mindlessCunningModifier: 0
+  _selfishSelflessModifier: 0
+  _brashWaryModifier: 0
+  _bloodthirstGreedModifier: 0

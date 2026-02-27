@@ -1,0 +1,62 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 90a39106bac5ab142ae6ecc30c33cdff, type: 3}
+  m_Name: IntroConversation
+  m_EditorClassIdentifier: 
+  _branchingConversation: 1
+  OnConversationStart:
+    m_PersistentCalls:
+      m_Calls: []
+  OnConversationEnd:
+    m_PersistentCalls:
+      m_Calls: []
+  _layers:
+  - _dialogue: Hello world!
+    _parsePronouns: 0
+    _referringTo: []
+    _primary:
+      Speaker: {fileID: 11400000, guid: 0f8b79eeaffbfbc4aab491112cae2ddd, type: 2}
+      DisplayName: 
+      PortraitKey: Newly Created Unit_Portrait
+    _secondary:
+      Speaker: {fileID: 11400000, guid: a53a4ecdb913d9944b06166e1bc35ca6, type: 2}
+      DisplayName: 
+      PortraitKey: Felicity
+    _activeSpeaker: 0
+    Events:
+      OnLayerStart:
+        m_PersistentCalls:
+          m_Calls: []
+      OnLayerComplete:
+        m_PersistentCalls:
+          m_Calls: []
+  - _dialogue: How are you?
+    _parsePronouns: 0
+    _referringTo: []
+    _primary:
+      Speaker: {fileID: 11400000, guid: 0f8b79eeaffbfbc4aab491112cae2ddd, type: 2}
+      DisplayName: 
+      PortraitKey: Newly Created Unit_Portrait
+    _secondary:
+      Speaker: {fileID: 11400000, guid: a53a4ecdb913d9944b06166e1bc35ca6, type: 2}
+      DisplayName: 
+      PortraitKey: Felicity
+    _activeSpeaker: 1
+    Events:
+      OnLayerStart:
+        m_PersistentCalls:
+          m_Calls: []
+      OnLayerComplete:
+        m_PersistentCalls:
+          m_Calls: []
+  _conversationGraph: {fileID: 11400000, guid: 14965f03592243b4eb28bd4e6c155bdb, type: 2}
+  _currentLayerIndex: 0

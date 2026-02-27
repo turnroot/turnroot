@@ -1,0 +1,60 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 61eeff3113f83684e8e6d3c5224a0ac2, type: 3}
+  m_Name: WeaponSmallDagger
+  m_EditorClassIdentifier: 
+  _name: Small Dagger
+  _flavorText: Easily concealed for those with questionable motives. Razor-sharp
+    and lightning fast. Can be thrown a short distance. +1 Luck
+  <BasePrice>k__BackingField: 60
+  <Sellable>k__BackingField: 1
+  <Buyable>k__BackingField: 1
+  <SellPriceDeductedPerUse>k__BackingField: 3
+  <Repairable>k__BackingField: 1
+  _repairPricePerUse: 5
+  <RepairNeedsItems>k__BackingField: 1
+  <RepairItem>k__BackingField: {fileID: 0}
+  <RepairItemAmountPerUse>k__BackingField: 0
+  <Forgeable>k__BackingField: 1
+  <ForgeOptions>k__BackingField: []
+  _giftRank: 1
+  _unitsLove: []
+  _unitsHate: []
+  <LowerRange>k__BackingField: 1
+  <UpperRange>k__BackingField: 2
+  _rangeAdjustedByStat: 0
+  _rangeAdjustedByStatName: 0
+  _rangeAdjustedByStatAmount: 0
+  <MaxUses>k__BackingField: 20
+  _replenishUsesAfterBattle: 0
+  _replenishUsesAfterBattleAmount: 0
+  <SpeciesEffectiveAgainst>k__BackingField: []
+  <WeaponTypesEffectiveAgainst>k__BackingField: []
+  _weaponEffect: {fileID: 0}
+  <StatBonuses>k__BackingField:
+    _keys: 06000000
+    _values:
+    - 1
+  <Might>k__BackingField: 3
+  <Hit>k__BackingField: 80
+  <Critical>k__BackingField: 15
+  _minWeaponTypeAptitude:
+    _value: D
+  Prefab: {fileID: 919132149155446097, guid: 1caa149bf5e4e564d940ba6cdb0e7352, type: 3}
+  InventoryIcon: {fileID: 0}
+  <BelongsTo>k__BackingField: {fileID: 0}
+  <Weight>k__BackingField: 1
+  <Subtype>k__BackingField:
+    _value: Weapon
+  <WeaponType>k__BackingField: {fileID: 11400000, guid: 030efab55c186fa4ead5d556dc84fdd5, type: 2}
+  <IsUnequippable>k__BackingField: 1
+  <EquipableType>k__BackingField: 0

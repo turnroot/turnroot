@@ -1,0 +1,306 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: db6d61028ed4880459dd1b4e943e6f66, type: 3}
+  m_Name: DefaultClassCivilian
+  m_EditorClassIdentifier: Assembly-CSharp::Turnroot.Characters.CharacterClass.CharacterClassData
+  _cachedClassSelectionMode: 1
+  Identity:
+    PronounClassModelPrefabs: []
+    Base: {fileID: 0}
+    MSE: {fileID: 0}
+    ClassModelPrefab: {fileID: 0}
+    TintMask: {fileID: 0}
+    ClassName: Civilian
+    Description: 
+    Icon: {fileID: 0}
+    ClassTier: 0
+    IsMagic: 0
+    CanHeal: 0
+    IsUnique: 0
+    MovementType: 0
+    MountPrefab: {fileID: 0}
+    MountAnimator: {fileID: 0}
+    MountOffset: {x: 0, y: 1.5, z: 0}
+  HasOutfit: 0
+  WalkAnimation: {fileID: 0}
+  RunAnimation: {fileID: 0}
+  IdleAnimations: []
+  Stats:
+    StatMinimums:
+    - boundedStatType: 0
+      value: 0
+    - boundedStatType: 1
+      value: 0
+    - boundedStatType: 2
+      value: 0
+    UnboundedStatMinimums:
+    - isBounded: 0
+      unboundedStatType: 0
+      boundedStatType: 0
+      value: 0
+    - isBounded: 0
+      unboundedStatType: 1
+      boundedStatType: 0
+      value: 0
+    - isBounded: 0
+      unboundedStatType: 2
+      boundedStatType: 0
+      value: 0
+    - isBounded: 0
+      unboundedStatType: 3
+      boundedStatType: 0
+      value: 0
+    - isBounded: 0
+      unboundedStatType: 4
+      boundedStatType: 0
+      value: 0
+    - isBounded: 0
+      unboundedStatType: 5
+      boundedStatType: 0
+      value: 0
+    - isBounded: 0
+      unboundedStatType: 7
+      boundedStatType: 0
+      value: 0
+    - isBounded: 0
+      unboundedStatType: 8
+      boundedStatType: 0
+      value: 0
+    - isBounded: 0
+      unboundedStatType: 9
+      boundedStatType: 0
+      value: 0
+    - isBounded: 0
+      unboundedStatType: 6
+      boundedStatType: 0
+      value: 0
+    - isBounded: 1
+      unboundedStatType: 0
+      boundedStatType: 0
+      value: 0
+    StatCaps:
+    - boundedStatType: 0
+      value: 0
+    - boundedStatType: 1
+      value: 0
+    - boundedStatType: 2
+      value: 0
+    UnboundedStatCaps:
+    - isBounded: 0
+      unboundedStatType: 0
+      boundedStatType: 0
+      value: 0
+    - isBounded: 0
+      unboundedStatType: 1
+      boundedStatType: 0
+      value: 0
+    - isBounded: 0
+      unboundedStatType: 2
+      boundedStatType: 0
+      value: 0
+    - isBounded: 0
+      unboundedStatType: 3
+      boundedStatType: 0
+      value: 0
+    - isBounded: 0
+      unboundedStatType: 4
+      boundedStatType: 0
+      value: 0
+    - isBounded: 0
+      unboundedStatType: 5
+      boundedStatType: 0
+      value: 0
+    - isBounded: 0
+      unboundedStatType: 7
+      boundedStatType: 0
+      value: 0
+    - isBounded: 0
+      unboundedStatType: 8
+      boundedStatType: 0
+      value: 0
+    - isBounded: 0
+      unboundedStatType: 9
+      boundedStatType: 0
+      value: 0
+    - isBounded: 0
+      unboundedStatType: 6
+      boundedStatType: 0
+      value: 0
+    - isBounded: 1
+      unboundedStatType: 0
+      boundedStatType: 0
+      value: 0
+    StatBonuses:
+    - boundedStatType: 0
+      value: 0
+    - boundedStatType: 1
+      value: 0
+    - boundedStatType: 2
+      value: 0
+    UnboundedStatBonuses:
+    - isBounded: 0
+      unboundedStatType: 0
+      boundedStatType: 0
+      value: 0
+    - isBounded: 0
+      unboundedStatType: 1
+      boundedStatType: 0
+      value: 0
+    - isBounded: 0
+      unboundedStatType: 2
+      boundedStatType: 0
+      value: 0
+    - isBounded: 0
+      unboundedStatType: 3
+      boundedStatType: 0
+      value: 0
+    - isBounded: 0
+      unboundedStatType: 4
+      boundedStatType: 0
+      value: 0
+    - isBounded: 0
+      unboundedStatType: 5
+      boundedStatType: 0
+      value: 0
+    - isBounded: 0
+      unboundedStatType: 7
+      boundedStatType: 0
+      value: 0
+    - isBounded: 0
+      unboundedStatType: 8
+      boundedStatType: 0
+      value: 0
+    - isBounded: 0
+      unboundedStatType: 9
+      boundedStatType: 0
+      value: 0
+    - isBounded: 0
+      unboundedStatType: 6
+      boundedStatType: 0
+      value: 0
+    - isBounded: 1
+      unboundedStatType: 0
+      boundedStatType: 0
+      value: 0
+    GrowthRateModifiers:
+    - isBounded: 0
+      unboundedStatType: 0
+      boundedStatType: 0
+      value: 0
+    - isBounded: 0
+      unboundedStatType: 1
+      boundedStatType: 0
+      value: 0
+    - isBounded: 0
+      unboundedStatType: 2
+      boundedStatType: 0
+      value: 0
+    - isBounded: 0
+      unboundedStatType: 3
+      boundedStatType: 0
+      value: 0
+    - isBounded: 0
+      unboundedStatType: 4
+      boundedStatType: 0
+      value: 0
+    - isBounded: 0
+      unboundedStatType: 5
+      boundedStatType: 0
+      value: 0
+    - isBounded: 0
+      unboundedStatType: 7
+      boundedStatType: 0
+      value: 0
+    - isBounded: 0
+      unboundedStatType: 8
+      boundedStatType: 0
+      value: 0
+    - isBounded: 0
+      unboundedStatType: 9
+      boundedStatType: 0
+      value: 0
+    - isBounded: 0
+      unboundedStatType: 6
+      boundedStatType: 0
+      value: 0
+    - isBounded: 1
+      unboundedStatType: 0
+      boundedStatType: 0
+      value: 0
+    ClassChangeBonuses:
+    - boundedStatType: 0
+      value: 0
+    - boundedStatType: 1
+      value: 0
+    - boundedStatType: 2
+      value: 0
+    UnboundedClassChangeBonuses:
+    - isBounded: 0
+      unboundedStatType: 0
+      boundedStatType: 0
+      value: 0
+    - isBounded: 0
+      unboundedStatType: 1
+      boundedStatType: 0
+      value: 0
+    - isBounded: 0
+      unboundedStatType: 2
+      boundedStatType: 0
+      value: 0
+    - isBounded: 0
+      unboundedStatType: 3
+      boundedStatType: 0
+      value: 0
+    - isBounded: 0
+      unboundedStatType: 4
+      boundedStatType: 0
+      value: 0
+    - isBounded: 0
+      unboundedStatType: 5
+      boundedStatType: 0
+      value: 0
+    - isBounded: 0
+      unboundedStatType: 7
+      boundedStatType: 0
+      value: 0
+    - isBounded: 0
+      unboundedStatType: 8
+      boundedStatType: 0
+      value: 0
+    - isBounded: 0
+      unboundedStatType: 9
+      boundedStatType: 0
+      value: 0
+    - isBounded: 0
+      unboundedStatType: 6
+      boundedStatType: 0
+      value: 0
+    - isBounded: 1
+      unboundedStatType: 0
+      boundedStatType: 0
+      value: 0
+  Requirements:
+    CertificationItem: {fileID: 0}
+    AllowedWeaponTypes: []
+    MinimumLevelRequirement: 1
+    ExperienceRequirements: []
+    AllowedSpecies: []
+    MinimumStats: []
+    PromotionPaths: []
+  Mastery:
+    InnateSkills: []
+    MasteredSkill: {fileID: 0}
+    WeaponLevelBonuses: []
+  allowedPronounKeys:
+  - they
+  - she
+  - he
