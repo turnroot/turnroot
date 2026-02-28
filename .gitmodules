@@ -1,0 +1,3 @@
+[submodule "Assets/Demos"]
+	path = Assets/Demos
+	url = https://github.com/turnroot/demo.git
