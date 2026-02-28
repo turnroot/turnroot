@@ -64,6 +64,11 @@ Shader "Turnroot/Water"
         // Warps the world-space distance used to place ring bands, making concentric
         // rings irregular and organic. 0 = perfect circles, higher = wobbly/broken.
         _RippleDistortion("Ripple Distortion", Range(0, 2)) = 0.4
+        // Adds a per-pixel phase offset to the ring animation based on world position.
+        // This prevents all edge pixels from peaking simultaneously, which causes a
+        // visible "pulse" ~once per second when the edge is a flat surface. At 0 the
+        // pulse is fully present; increasing this breaks it up progressively.
+        _RipplePhaseJitter("Ripple Phase Jitter", Range(0, 1)) = 0.5
         // Distorts the screen-space depth sample using the noise texture, giving
         // underwater edges a wobbly look. Uses the same noise texture as ripples.
         _DistortionStrength("Distortion Strength", Range(0, 0.05)) = 0.008
@@ -150,6 +155,7 @@ Shader "Turnroot/Water"
             float  _RippleEdgeFade;
             float  _RippleNoiseSpeed;
             float  _RippleDistortion;
+            float  _RipplePhaseJitter;
             float  _DistortionStrength;
 
             float  _ShadowStrength;
@@ -391,8 +397,19 @@ Shader "Turnroot/Water"
 
                 float edgeFade = saturate(rippleMask / max(_RippleEdgeFade, 0.01));
 
+                // Per-pixel phase offset derived from world XZ position using a
+                // pseudo-random hash. Unlike the noise texture (which is sampled at
+                // low frequency and gives nearly the same value to all pixels along
+                // a flat shore), this varies at sub-pixel frequency so every pixel
+                // on the edge gets a genuinely different phase — fully breaking the
+                // synchronization that causes the pulse, at any slider value > 0.
+                float2 hashInput  = floor(input.positionWS.xz * 8.0); // tile size ~0.125 WU
+                float  phaseJitter = frac(
+                    sin(dot(hashInput, float2(127.1, 311.7))) * 43758.5453
+                ) * _RipplePhaseJitter;
+
                 float ringPhase = (horizDist / max(_RippleDistance, 0.001)) * _RippleCount
-                                  - _Time.y * _RippleSpeed;
+                                  - _Time.y * _RippleSpeed + phaseJitter;
                 float ring     = frac(ringPhase);
                 float ringLine = 1.0 - abs(ring - 0.5) * 2.0;
                 ringLine = saturate((ringLine - 0.5) * _RippleSharpness * 0.1 + 0.5);

@@ -69,8 +69,7 @@ namespace Turnroot.Gameplay.Brain
 #if UNITY_EDITOR
                 if (!walkClip.isLooping)
                 {
-                    $"[UnitAppearance] Walk clip '{walkClip.name}' is not set to loop. "
-                        + "characters may stop animating during movement.".LogWarning();
+                    $"[UnitAppearance] Walk clip '{walkClip.name}' is not set to loop, characters may stop animating during movement.".LogWarning();
                 }
 #endif
             }
