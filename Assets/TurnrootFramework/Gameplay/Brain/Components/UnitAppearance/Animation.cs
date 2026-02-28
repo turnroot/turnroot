@@ -58,7 +58,22 @@ namespace Turnroot.Gameplay.Brain
 
             if (walkClip != null)
             {
+                // Ensure the walk animation loops at runtime; some imported clips
+                // forget to enable Loop Time which causes characters to freeze
+                // after a single frame.  We modify the wrap mode here rather than
+                // relying on the import settings so prototypes don't break.
+                walkClip.wrapMode = WrapMode.Loop;
                 overrideController[WalkState] = walkClip;
+
+#if UNITY_EDITOR
+                if (!walkClip.isLooping)
+                {
+                    Debug.LogWarning(
+                        $"[UnitAppearance] Walk clip '{walkClip.name}' is not set to loop. " +
+                        "characters may stop animating during movement."
+                    );
+                }
+#endif
             }
 
             animator.runtimeAnimatorController = overrideController;
@@ -246,39 +261,38 @@ animator.Play(IdleHash, 0, normalizedTime);
             }
 
             var toClip = GetClipByName(animator, clipName);
-            if (toClip == null)
+        var stateHash = Animator.StringToHash(clipName);
+        if (toClip == null)
+        {
+            // fallback to simple crossfade if we can't resolve a clip
+            if (animator.HasState(0, stateHash))
             {
-                // fallback to simple crossfade if we can't resolve a clip
-                var hash = Animator.StringToHash(clipName);
-                if (animator.HasState(0, hash))
-                {
-                    animator.CrossFade(hash, ANIMATION_BLEND_DURATION, 0);
-                }
-                return;
+                animator.CrossFade(stateHash, ANIMATION_BLEND_DURATION, 0);
             }
-
-            AnimationClip fromClip = toClip;
-            var currentInfos = animator.GetCurrentAnimatorClipInfo(0);
-            if (currentInfos.Length > 0 && currentInfos[0].clip != null)
-            {
-                fromClip = currentInfos[0].clip;
-            }
-
-            float normalizedTime = 0f;
-            var state = animator.GetCurrentAnimatorStateInfo(0);
-            normalizedTime = state.normalizedTime % 1f;
-
-            StartCoroutine(
-                BlendClips(animator, fromClip, toClip, ANIMATION_BLEND_DURATION, normalizedTime)
-            );
+            return;
         }
 
-        private AnimationClip GetClipByName(Animator animator, string name)
+        AnimationClip fromClip = toClip;
+        var currentInfos = animator.GetCurrentAnimatorClipInfo(0);
+        if (currentInfos.Length > 0 && currentInfos[0].clip != null)
         {
-            if (animator == null || animator.runtimeAnimatorController == null)
-            {
-                return null;
-            }
+            fromClip = currentInfos[0].clip;
+        }
+
+        float normalizedTime = 0f;
+        var state = animator.GetCurrentAnimatorStateInfo(0);
+        normalizedTime = state.normalizedTime % 1f;
+
+        // begin blending via PlayableGraph; also start a crossfade so the controller
+        // will continue to the requested state once the graph is torn down.
+        StartCoroutine(
+            BlendClips(animator, fromClip, toClip, ANIMATION_BLEND_DURATION, normalizedTime)
+        );
+
+        if (animator.HasState(0, stateHash))
+        {
+            animator.CrossFade(stateHash, ANIMATION_BLEND_DURATION, 0);
+        }
 
             if (animator.runtimeAnimatorController is AnimatorOverrideController oc)
             {
