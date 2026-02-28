@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using Turnroot.Characters;
+using Turnroot.Utilities;
 using UnityEngine;
 using UnityEngine.Animations;
 using UnityEngine.Playables;
@@ -24,14 +25,14 @@ namespace Turnroot.Gameplay.Brain
         {
             if (!model.TryGetComponent<Animator>(out var animator))
             {
-                LogError($"Missing Animator on '{model.name}'");
+                $"Missing Animator on '{model.name}'".LogError("UnitAppearanceBrain");
                 return;
             }
 
             var baseController = animator.runtimeAnimatorController;
             if (baseController == null)
             {
-                LogError($"Animator on '{model.name}' has no controller.");
+                $"Animator on '{model.name}' has no controller.".LogError("UnitAppearanceBrain");
                 return;
             }
 
@@ -68,10 +69,8 @@ namespace Turnroot.Gameplay.Brain
 #if UNITY_EDITOR
                 if (!walkClip.isLooping)
                 {
-                    Debug.LogWarning(
-                        $"[UnitAppearance] Walk clip '{walkClip.name}' is not set to loop. " +
-                        "characters may stop animating during movement."
-                    );
+                    $"[UnitAppearance] Walk clip '{walkClip.name}' is not set to loop. "
+                        + "characters may stop animating during movement.".LogWarning();
                 }
 #endif
             }
@@ -111,7 +110,9 @@ namespace Turnroot.Gameplay.Brain
                 var baseController = animator.runtimeAnimatorController;
                 if (baseController == null)
                 {
-                    LogError($"Animator on '{animator.gameObject.name}' has no controller.");
+                    $"Animator on '{animator.gameObject.name}' has no controller.".LogError(
+                        "UnitAppearanceBrain"
+                    );
                     return;
                 }
                 overrideController = new AnimatorOverrideController(baseController);
@@ -196,7 +197,7 @@ namespace Turnroot.Gameplay.Brain
                 {
                     oc[IdleState] = nextClip;
                 }
-animator.Play(IdleHash, 0, normalizedTime);
+                animator.Play(IdleHash, 0, normalizedTime);
 
                 currentIndex = nextIndex;
                 currentClip = nextClip;
@@ -261,59 +262,78 @@ animator.Play(IdleHash, 0, normalizedTime);
             }
 
             var toClip = GetClipByName(animator, clipName);
-        var stateHash = Animator.StringToHash(clipName);
-        if (toClip == null)
-        {
-            // fallback to simple crossfade if we can't resolve a clip
+            var stateHash = Animator.StringToHash(clipName);
+            if (toClip == null)
+            {
+                // fallback to simple crossfade if we can't resolve a clip
+                if (animator.HasState(0, stateHash))
+                {
+                    animator.CrossFade(stateHash, ANIMATION_BLEND_DURATION, 0);
+                }
+                return;
+            }
+
+            AnimationClip fromClip = toClip;
+            var currentInfos = animator.GetCurrentAnimatorClipInfo(0);
+            if (currentInfos.Length > 0 && currentInfos[0].clip != null)
+            {
+                fromClip = currentInfos[0].clip;
+            }
+
+            float normalizedTime = 0f;
+            var state = animator.GetCurrentAnimatorStateInfo(0);
+            normalizedTime = state.normalizedTime % 1f;
+
+            // begin blending via PlayableGraph; also start a crossfade so the controller
+            // will continue to the requested state once the graph is torn down.
+            StartCoroutine(
+                BlendClips(animator, fromClip, toClip, ANIMATION_BLEND_DURATION, normalizedTime)
+            );
+
             if (animator.HasState(0, stateHash))
             {
                 animator.CrossFade(stateHash, ANIMATION_BLEND_DURATION, 0);
             }
-            return;
         }
 
-        AnimationClip fromClip = toClip;
-        var currentInfos = animator.GetCurrentAnimatorClipInfo(0);
-        if (currentInfos.Length > 0 && currentInfos[0].clip != null)
+        /// <summary>
+        /// Retrieves an animation clip by name from the given animator's controller
+        /// (checking override controller first).
+        /// </summary>
+        private static AnimationClip GetClipByName(Animator animator, string clipName)
         {
-            fromClip = currentInfos[0].clip;
-        }
-
-        float normalizedTime = 0f;
-        var state = animator.GetCurrentAnimatorStateInfo(0);
-        normalizedTime = state.normalizedTime % 1f;
-
-        // begin blending via PlayableGraph; also start a crossfade so the controller
-        // will continue to the requested state once the graph is torn down.
-        StartCoroutine(
-            BlendClips(animator, fromClip, toClip, ANIMATION_BLEND_DURATION, normalizedTime)
-        );
-
-        if (animator.HasState(0, stateHash))
-        {
-            animator.CrossFade(stateHash, ANIMATION_BLEND_DURATION, 0);
-        }
-
-            if (animator.runtimeAnimatorController is AnimatorOverrideController oc)
+            if (animator == null || string.IsNullOrEmpty(clipName))
             {
-                var clip = oc[name];
+                return null;
+            }
+
+            var controller = animator.runtimeAnimatorController;
+            if (controller == null)
+            {
+                return null;
+            }
+
+            if (controller is AnimatorOverrideController oc)
+            {
+                var clip = oc[clipName];
                 if (clip != null)
                 {
                     return clip;
                 }
             }
 
-            var clips = animator.runtimeAnimatorController.animationClips;
+            var clips = controller.animationClips;
             if (clips != null)
             {
                 foreach (var c in clips)
                 {
-                    if (c != null && c.name == name)
+                    if (c != null && c.name == clipName)
                     {
                         return c;
                     }
                 }
             }
+
             return null;
         }
 
@@ -327,8 +347,8 @@ animator.Play(IdleHash, 0, normalizedTime);
 
             if (unit.CharacterTemplate.AdditionalBonesMask == null)
             {
-                LogWarning(
-                    $"{unit.CharacterTemplate.DisplayName}: HasExtraBoneLayer is true but AdditionalBonesMask is not assigned."
+                $"{unit.CharacterTemplate.DisplayName}: HasExtraBoneLayer is true but AdditionalBonesMask is not assigned.".LogWarning(
+                    "UnitAppearanceBrain"
                 );
                 return;
             }
@@ -336,8 +356,8 @@ animator.Play(IdleHash, 0, normalizedTime);
             var controller = animator.runtimeAnimatorController;
             if (controller == null)
             {
-                LogError(
-                    $"{unit.CharacterTemplate.DisplayName}: Cannot setup extra bone layer - no animator controller assigned."
+                $"{unit.CharacterTemplate.DisplayName}: Cannot setup extra bone layer - no animator controller assigned.".LogError(
+                    "UnitAppearanceBrain"
                 );
                 return;
             }
@@ -346,16 +366,16 @@ animator.Play(IdleHash, 0, normalizedTime);
             var controllerAsset = controller as UnityEditor.Animations.AnimatorController;
             if (controllerAsset == null)
             {
-                LogWarning(
-                    $"{unit.CharacterTemplate.DisplayName}: Extra bone layers require editor-time setup (assign AvatarMask to Layer 1)."
+                $"{unit.CharacterTemplate.DisplayName}: Extra bone layers require editor-time setup (assign AvatarMask to Layer 1).".LogWarning(
+                    "UnitAppearanceBrain"
                 );
                 return;
             }
 
             if (controllerAsset.layers.Length < 2)
             {
-                LogError(
-                    $"{unit.CharacterTemplate.DisplayName}: AnimatorController needs at least 2 layers (Layer 1 missing)."
+                $"{unit.CharacterTemplate.DisplayName}: AnimatorController needs at least 2 layers (Layer 1 missing).".LogError(
+                    "UnitAppearanceBrain"
                 );
                 return;
             }
