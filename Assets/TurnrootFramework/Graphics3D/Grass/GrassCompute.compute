@@ -1,0 +1,71 @@
+// GrassCompute.compute
+// Per-frame culling pass only.
+// Blade positions are pre-computed on the CPU in GrassRenderer.cs and uploaded once.
+// Each frame this kernel reads from _AllBlades, applies frustum + distance culling,
+// and appends survivors to _VisibleBlades (an AppendStructuredBuffer).
+// GrassRenderer.cs then calls ComputeBuffer.CopyCount to write the surviving count
+// into the DrawMeshInstancedIndirect args buffer.
+
+#pragma kernel CullGrass
+
+// ── Blade data — must exactly match BladeData struct in GrassRenderer.cs ────────────
+struct BladeData
+{
+    float3 position;    // world-space base of blade
+    float3 normal;      // surface normal at blade base (world space)
+    float  height;      // randomised blade height
+    float  width;       // randomised blade width
+    float  phase;       // random 0..2PI, drives sway desynchronisation
+    float  facingAngle; // random 0..2PI, rotates blade around surface normal
+};
+
+// ── Buffers ──────────────────────────────────────────────────────────────────────────
+StructuredBuffer<BladeData>       _AllBlades;     // full set, written once at init
+AppendStructuredBuffer<BladeData> _VisibleBlades; // survivors written each frame
+
+// ── Uniforms (set by GrassRenderer.LateUpdate each frame) ───────────────────────────
+int    _TotalBladeCount;
+float4 _FrustumPlanes[6]; // each plane: xyz = outward normal, w = plane distance
+float3 _CameraPos;
+float  _MaxDistance;
+
+// ── Frustum plane test ───────────────────────────────────────────────────────────────
+// Returns true if a sphere (centre, radius) is entirely outside any frustum plane
+// i.e. the blade should be culled.
+bool FrustumCull(float3 centre, float radius)
+{
+    [unroll]
+    for (int i = 0; i < 6; i++)
+    {
+        // Signed distance from centre to plane. Negative = behind/outside the plane.
+        float sd = dot(_FrustumPlanes[i].xyz, centre) + _FrustumPlanes[i].w;
+        if (sd < -radius)
+            return true; // entirely outside this plane → cull
+    }
+    return false;
+}
+
+[numthreads(64, 1, 1)]
+void CullGrass(uint3 id : SV_DispatchThreadID)
+{
+    uint idx = id.x;
+    if ((int)idx >= _TotalBladeCount)
+        return;
+
+    BladeData blade = _AllBlades[idx];
+
+    // ── Distance cull ─────────────────────────────────────────────────────────────
+    float dist = distance(blade.position, _CameraPos);
+    if (dist > _MaxDistance)
+        return;
+
+    // ── Frustum cull ──────────────────────────────────────────────────────────────
+    // Use height * 1.5 as a conservative bounding sphere radius so blades near the
+    // frustum edge don't pop in/out as they sway.
+    float boundRadius = blade.height * 1.5;
+    if (FrustumCull(blade.position, boundRadius))
+        return;
+
+    // Blade passed all tests — add to the visible set for this frame
+    _VisibleBlades.Append(blade);
+}
