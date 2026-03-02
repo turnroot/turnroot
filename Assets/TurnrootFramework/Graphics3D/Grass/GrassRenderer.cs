@@ -8,54 +8,39 @@ using UnityEditor;
 #endif
 
 /// <summary>
-/// Renders GPU-instanced grass on any mesh using compute-shader frustum/distance culling
-/// and Graphics.DrawMeshInstancedIndirect. Blade placement is computed once on the CPU
-/// (weighted by triangle area, masked by an optional texture) and uploaded to the GPU.
-/// Only the per-frame culling pass runs on the GPU each frame.
+/// GPU-instanced grass on any mesh using compute-shader frustum/distance culling
+/// and Graphics.DrawMeshInstancedIndirect.
 ///
 /// Setup:
-///   1. Attach to a GameObject that has a MeshFilter with the surface mesh.
-///   2. Assign the GrassCompute compute shader and Grass material.
-///   3. (Optional) Assign a Read/Write enabled Texture2D as the mask.
-///      White = full grass, Black = no grass, threshold is configurable.
-///   4. (Optional) supply one or more materials for unmasked extras, and/or a
-///      separate material plus mask texture for masked extras.  Unmasked materials
-///      scatter uniformly at the given density; masked extras only appear where the
-///      mask is white (threshold controlled via the component).  All extras use the
-///      same wind animation as the blades.
-///   5. Hit Play, or use the "Regenerate Grass" context menu in edit mode.
+///   1. Attach to a GameObject with a MeshFilter.
+///   2. Assign GrassCompute and a grass Material.
+///   3. Optionally assign a Read/Write Texture2D mask (white = full grass).
+///   4. Optionally assign unmasked extra materials (scattered uniformly)
+///      or a masked extra material with its own mask texture.
+///   5. Hit Play, or use "Regenerate Grass" in the context menu.
 ///
-/// Timeline toggle: animate the grassEnabled bool via an Animation Track,
-/// or call SetGrassEnabled(bool) from a SignalEmitter receiver.
+/// Toggle via grassEnabled, SetGrassEnabled(bool), or an Animation Track.
 /// </summary>
 [RequireComponent(typeof(MeshFilter))]
 [ExecuteAlways]
 public class GrassRenderer : MonoBehaviour
 {
-    // ── References ──────────────────────────────────────────────────────────
+    // ── References ────────────────────────────────────────────────────────────
     [Header("References")]
     public ComputeShader computeShader;
     public Material grassMaterial;
 
-    [Tooltip(
-        "Camera used for culling. Assign directly if your camera is not tagged 'MainCamera'. "
-            + "Leave empty to fall back to Camera.main, then any active camera."
-    )]
+    [Tooltip("Culling camera. Falls back to Camera.main, then any active camera.")]
     public Camera targetCamera;
 
-    // ── Mask ────────────────────────────────────────────────────────────────
-    [Header("Mask  (texture must be Read/Write enabled in import settings)")]
+    // ── Mask ──────────────────────────────────────────────────────────────────
+    [Header("Mask (texture must be Read/Write enabled in Import Settings)")]
     public Texture2D maskTexture;
 
-    [Range(0f, 1f)]
-    public float maskZero = 0f; // mask value at which blade height becomes zero
+    [Range(0f, 1f), Tooltip("Mask values at or below this floor are treated as zero height.")]
+    public float maskFloor = 0f;
 
-    // maskThreshold is no longer used; black areas will shrink blades to zero height,
-    // white areas keep full height.  (Left for compatibility; can be ignored.)
-    [HideInInspector]
-    public float maskThreshold = 0.5f;
-
-    // ── Density & size ───────────────────────────────────────────────────────
+    // ── Density & Blade Size ──────────────────────────────────────────────────
     [Header("Density")]
     [Range(1f, 300f)]
     public float density = 60f; // blades per world-space m²
@@ -67,62 +52,71 @@ public class GrassRenderer : MonoBehaviour
     public float minWidth = 0.02f;
     public float maxWidth = 0.05f;
 
-    // ── Culling ──────────────────────────────────────────────────────────────
+    // ── Culling ───────────────────────────────────────────────────────────────
     [Header("Culling")]
     public float maxDistance = 50f;
     public float fadeStartDistance = 35f;
 
-    // ── Runtime ──────────────────────────────────────────────────────────────
+    // ── Runtime ───────────────────────────────────────────────────────────────
     [Header("Runtime")]
     public bool grassEnabled = true;
     public ShadowCastingMode shadowCasting = ShadowCastingMode.Off;
 
-    [Header("Extras – GPU‑instanced (quads)")]
-    [Tooltip("Materials for extras that ignore the mask; each material gets its own scatter.")]
+    // ── Unmasked Extras ───────────────────────────────────────────────────────
+    [Header("Unmasked Extras — one scatter pass per material, ignores mask")]
     public List<Material> extraMaterials = new List<Material>();
 
-    [Tooltip("Material applied to spawned planes that use the mask.")]
-    public Material maskedExtraMaterial;
+    [Range(0f, 1f)]
+    public float unmaskedExtraDensity = 0.01f; // quads per m²
+    public Vector2 unmaskedExtraSize = new Vector2(0.1f, 0.1f);
 
-    [Tooltip("Mask texture for masked extras; white areas spawn quads at the given density.")]
+    // ── Masked Extras ─────────────────────────────────────────────────────────
+    [Header("Masked Extras — quads spawned where maskedExtraMask is white")]
+    public Material maskedExtraMaterial;
     public Texture2D maskedExtraMask;
 
     [Range(0f, 1f)]
     public float maskedExtraThreshold = 0.5f;
 
     [Range(0f, 1f)]
-    public float extraDensity = 0.01f; // blades per world-space m², same units as density
+    public float maskedExtraDensity = 0.01f; // quads per m²
+    public Vector2 maskedExtraSize = new Vector2(0.1f, 0.1f);
 
-    [Tooltip(
-        "Size of each quad in world units (width, height). Height is used for wind sway scale."
-    )]
-    public Vector2 extraPlaneSize = new Vector2(0.1f, 0.1f);
-
+    // ── Debug ─────────────────────────────────────────────────────────────────
     [Header("Debug")]
-    [Tooltip(
-        "Bypass all compute culling — renders all blades every frame. "
-            + "Use to confirm whether culling is the cause of missing grass. "
-            + "Will be slow at high blade counts."
-    )]
+    [Tooltip("Bypass compute culling and render all blades every frame. Slow at high counts.")]
     public bool disableCulling = false;
 
     [Tooltip("Log visible blade count to console once per second.")]
     public bool logVisibleCount = false;
 
-    // ── Private GPU resources ────────────────────────────────────────────────
-    ComputeBuffer _allBladesBuffer; // all blades, set once
-    ComputeBuffer _visibleBladesBuffer; // per-frame append output
-    ComputeBuffer _indirectArgsBuffer; // DrawMeshInstancedIndirect args
-    ComputeBuffer _readbackBuffer; // single uint for visible-count debug readback
+    // ── GPU resources ─────────────────────────────────────────────────────────
+    ComputeBuffer _allBladesBuffer;
+    ComputeBuffer _visibleBladesBuffer;
+    ComputeBuffer _indirectArgsBuffer;
+    ComputeBuffer _readbackBuffer;
 
     Mesh _bladeMesh;
+    Mesh _planeMesh;
     int _totalBladeCount;
-    int _kernelCull;
+    int _cullKernel;
     Bounds _drawBounds;
     float _logTimer;
 
-    // quad mesh used for GPU-instanced extras and associated groups
-    Mesh _planeMesh;
+    // Indirect args layout: [indexCount, instanceCount, startIndex, baseVertex, startInstance]
+    readonly uint[] _args = new uint[5];
+
+    // Must match BladeData in GrassCompute.compute (10 floats = 40 bytes)
+    struct BladeData
+    {
+        public Vector3 position;
+        public Vector3 normal;
+        public float height;
+        public float width;
+        public float phase;
+        public float facingAngle;
+        public const int Stride = 40;
+    }
 
     class ExtraGroup
     {
@@ -135,28 +129,7 @@ public class GrassRenderer : MonoBehaviour
 
     List<ExtraGroup> _extraGroups;
 
-    // Indirect draw args layout: [indexCount, instanceCount, startIndex, baseVertex, startInstance]
-    readonly uint[] _args = new uint[5];
-    readonly uint[] _readback = new uint[1];
-
-    // ── Blade data struct (must match GrassCompute.compute BladeData) ────────
-    struct BladeData
-    {
-        public Vector3 position;
-        public Vector3 normal;
-        public float height;
-        public float width;
-        public float phase;
-        public float facingAngle;
-
-        // 10 floats × 4 bytes = 40 bytes
-        public const int Stride = 40;
-    }
-
-    // ────────────────────────────────────────────────────────────────────────
-    // Unity lifecycle
-    // ────────────────────────────────────────────────────────────────────────
-
+    // ── Lifecycle ─────────────────────────────────────────────────────────────
     void OnEnable() => Init();
 
     void OnDisable() => ReleaseBuffers();
@@ -164,581 +137,226 @@ public class GrassRenderer : MonoBehaviour
     void OnDestroy()
     {
         ReleaseBuffers();
-        DestroyBladeMesh();
-        DestroyPlaneMesh();
+        DestroyMesh(ref _bladeMesh);
+        DestroyMesh(ref _planeMesh);
     }
 
     void LateUpdate()
     {
-        if (!grassEnabled)
-            return;
-        if (_allBladesBuffer == null)
-            return;
-        if (computeShader == null || grassMaterial == null)
-            return;
-        if (_totalBladeCount == 0)
+        if (
+            !grassEnabled
+            || _allBladesBuffer == null
+            || computeShader == null
+            || grassMaterial == null
+            || _totalBladeCount == 0
+        )
             return;
 
         Camera cam = GetRenderCamera();
         if (cam == null)
-        {
-            Debug.LogWarning(
-                "[GrassRenderer] No camera found. Assign one to the Target Camera field.",
-                this
-            );
             return;
-        }
 
-        // regular grass
-        RunCullPass(_allBladesBuffer, _visibleBladesBuffer, _totalBladeCount, cam);
-        _indirectArgsBuffer.SetData(_args);
-        ComputeBuffer.CopyCount(_visibleBladesBuffer, _indirectArgsBuffer, sizeof(uint));
-        if (disableCulling)
-            grassMaterial.SetBuffer("_VisibleBlades", _allBladesBuffer);
-        DispatchDraw(_bladeMesh, grassMaterial, _visibleBladesBuffer, _indirectArgsBuffer, cam);
+        DrawGroup(
+            _allBladesBuffer,
+            _visibleBladesBuffer,
+            _indirectArgsBuffer,
+            _totalBladeCount,
+            _bladeMesh,
+            grassMaterial,
+            cam
+        );
 
-        // extras quads/materials
         if (_extraGroups != null)
-        {
             foreach (var g in _extraGroups)
-            {
-                RunCullPass(g.all, g.visible, g.totalCount, cam);
-                // reuse same args array
-                g.args.SetData(_args);
-                ComputeBuffer.CopyCount(g.visible, g.args, sizeof(uint));
-                if (disableCulling)
-                    g.material.SetBuffer("_VisibleBlades", g.all);
-                DispatchDraw(_planeMesh, g.material, g.visible, g.args, cam);
-
-                if (logVisibleCount)
-                {
-                    var readArgs = new uint[5];
-                    g.args.GetData(readArgs);
-                    Debug.Log(
-                        $"[GrassRenderer] Visible extras '{g.material.name}': {readArgs[1]:N0} / {g.totalCount:N0}"
-                    );
-                }
-            }
-        }
+                DrawGroup(g.all, g.visible, g.args, g.totalCount, _planeMesh, g.material, cam);
     }
 
-    // Returns the camera to use for culling in priority order:
-    //   1. Explicitly assigned targetCamera field
-    //   2. Camera.main (requires MainCamera tag — may be null)
-    //   3. First enabled camera in the scene (tag-independent)
+    // ── Public API ────────────────────────────────────────────────────────────
+    public void SetGrassEnabled(bool enabled) => grassEnabled = enabled;
+
+    /// <summary>
+    /// Sets _GroundTex_ST so world-space UVs span 0–1 over the mesh footprint.
+    /// Called automatically on Init; call manually after rescaling.
+    /// </summary>
+    [ContextMenu("Align Ground Texture")]
+    public void AlignGroundTexture()
+    {
+        if (grassMaterial == null)
+            return;
+        var mf = GetComponent<MeshFilter>();
+        if (mf == null || mf.sharedMesh == null)
+            return;
+
+        Bounds local = mf.sharedMesh.bounds;
+        Vector3 worldMin = transform.TransformPoint(local.min);
+        Vector3 worldMax = transform.TransformPoint(local.max);
+
+        float w = Mathf.Max(Mathf.Abs(worldMax.x - worldMin.x), 0.001f);
+        float d = Mathf.Max(Mathf.Abs(worldMax.z - worldMin.z), 0.001f);
+
+        Vector2 scale = new Vector2(1f / w, 1f / d);
+        Vector2 offset = new Vector2(-worldMin.x * scale.x, -worldMin.z * scale.y);
+        grassMaterial.SetVector("_GroundTex_ST", new Vector4(scale.x, scale.y, offset.x, offset.y));
+    }
+
+    // ── Camera resolution ─────────────────────────────────────────────────────
     Camera GetRenderCamera()
     {
         if (targetCamera != null && targetCamera.isActiveAndEnabled)
             return targetCamera;
         if (Camera.main != null)
             return Camera.main;
-        // Fall back: find any active camera regardless of tag
         foreach (var c in Camera.allCameras)
             if (c.isActiveAndEnabled)
                 return c;
         return null;
     }
 
-    // ────────────────────────────────────────────────────────────────────────
-    // Public API (Timeline / code)
-    // ────────────────────────────────────────────────────────────────────────
-
-    public void SetGrassEnabled(bool enabled) => grassEnabled = enabled;
-
-    /// <summary>
-    /// Calculate the world-space size and position of the surface mesh and
-    /// update the grass material's _GroundTex_ST so that sampling is aligned
-    /// to the mesh bounds.  After this call the UV coordinate used by the
-    /// shader (worldPos.xz * ST.xy + ST.zw) will range from 0..1 across the
-    /// mesh footprint, making it trivial to tile or offset the texture.
-    ///
-    /// This method is invoked automatically during Init(), but you can also
-    /// call it manually whenever the mesh or transform changes (e.g. in the
-    /// editor after scaling the object).
-    /// </summary>
-    [ContextMenu("Align Ground Texture")]
-    public void AlignGroundTexture()
-    {
-        if (grassMaterial == null)
-        {
-            Debug.LogWarning(
-                "[GrassRenderer] cannot align ground texture – grassMaterial is null."
-            );
-            return;
-        }
-
-        var mf = GetComponent<MeshFilter>();
-        if (mf == null || mf.sharedMesh == null)
-        {
-            Debug.LogWarning("[GrassRenderer] no mesh filter found for texture alignment.");
-            return;
-        }
-
-        Bounds localB = mf.sharedMesh.bounds;
-        Vector3 worldMin = transform.TransformPoint(localB.min);
-        Vector3 worldMax = transform.TransformPoint(localB.max);
-
-        float width = Mathf.Abs(worldMax.x - worldMin.x);
-        float depth = Mathf.Abs(worldMax.z - worldMin.z);
-
-        // avoid divide-by-zero
-        if (width <= 0f)
-            width = 1f;
-        if (depth <= 0f)
-            depth = 1f;
-
-        Vector2 scale = new Vector2(1f / width, 1f / depth);
-        Vector2 offset = new Vector2(-worldMin.x * scale.x, -worldMin.z * scale.y);
-
-        grassMaterial.SetVector("_GroundTex_ST", new Vector4(scale.x, scale.y, offset.x, offset.y));
-
-        Debug.Log($"[GrassRenderer] ground tex ST set: scale={scale} offset={offset}");
-    }
-
-    // ────────────────────────────────────────────────────────────────────────
-    // Initialisation
-    // ────────────────────────────────────────────────────────────────────────
-
+    // ── Init ──────────────────────────────────────────────────────────────────
     void Init()
     {
         if (computeShader == null || grassMaterial == null)
             return;
-
         var mf = GetComponent<MeshFilter>();
         if (mf == null || mf.sharedMesh == null)
             return;
 
         ReleaseBuffers();
-        DestroyBladeMesh();
-        DestroyPlaneMesh();
+        DestroyMesh(ref _bladeMesh);
+        DestroyMesh(ref _planeMesh);
+
         BuildBladeMesh();
         BuildPlaneMesh();
         BuildBladeData(mf.sharedMesh);
         BuildExtraGroups(mf.sharedMesh);
-
-        // automatically align the ground texture to the mesh bounds if material present
         AlignGroundTexture();
 
-        _kernelCull = computeShader.FindKernel("CullGrass");
+        _cullKernel = computeShader.FindKernel("CullGrass");
     }
 
-    // ── Build the procedural blade template mesh ─────────────────────────────
-    // Vertices encode the blade shape as (side, t, 0):
-    //   side = -0.5..0.5 (left/right edge), t = 0..1 (base→tip)
-    // The vertex shader reads these and reconstructs world positions per instance.
-    //
-    //    4 (tip, centre)
-    //   / \
-    //  2   3  (mid)
-    //  |   |
-    //  0   1  (base)
+    // ── Mesh construction ─────────────────────────────────────────────────────
+    // Blade: 5-vertex tapered quad. vertex.x = side (–0.5..0.5), vertex.y = t (0..1).
+    // The shader reconstructs world positions per instance from BladeData.
+    //     [4] tip
+    //    [2][3] mid
+    //    [0][1] base
     void BuildBladeMesh()
     {
-        _bladeMesh = new Mesh { name = "GrassBladeProcedural" };
-
-        var verts = new Vector3[5];
-        var uvs = new Vector2[5];
-
-        verts[0] = new Vector3(-0.5f, 0.00f, 0);
-        uvs[0] = new Vector2(0.0f, 0.00f);
-        verts[1] = new Vector3(0.5f, 0.00f, 0);
-        uvs[1] = new Vector2(1.0f, 0.00f);
-        verts[2] = new Vector3(-0.5f, 0.55f, 0);
-        uvs[2] = new Vector2(0.0f, 0.55f);
-        verts[3] = new Vector3(0.5f, 0.55f, 0);
-        uvs[3] = new Vector2(1.0f, 0.55f);
-        verts[4] = new Vector3(0.0f, 1.00f, 0);
-        uvs[4] = new Vector2(0.5f, 1.00f);
-
-        _bladeMesh.SetVertices(verts);
-        _bladeMesh.SetUVs(0, uvs);
+        _bladeMesh = new Mesh { name = "GrassBlade" };
+        _bladeMesh.SetVertices(
+            new Vector3[]
+            {
+                new(-0.5f, 0.00f, 0),
+                new(0.5f, 0.00f, 0),
+                new(-0.5f, 0.55f, 0),
+                new(0.5f, 0.55f, 0),
+                new(0.0f, 1.00f, 0),
+            }
+        );
+        _bladeMesh.SetUVs(
+            0,
+            new Vector2[]
+            {
+                new(0f, 0.00f),
+                new(1f, 0.00f),
+                new(0f, 0.55f),
+                new(1f, 0.55f),
+                new(0.5f, 1f),
+            }
+        );
         _bladeMesh.SetTriangles(new[] { 0, 2, 1, 1, 2, 3, 2, 4, 3 }, 0);
         _bladeMesh.RecalculateNormals();
-        // Artificially large bounds — Unity's per-mesh frustum cull must never fire;
-        // our compute cull handles actual per-blade visibility.
+        // Oversized bounds prevent Unity's per-mesh frustum cull from firing;
+        // per-blade visibility is handled by the compute shader.
         _bladeMesh.bounds = new Bounds(Vector3.zero, Vector3.one * 100_000f);
     }
 
+    // Extra: vertical unit quad, x = –0.5..0.5, y = 0..1.
     void BuildPlaneMesh()
     {
-        if (_planeMesh != null)
-            return;
         _planeMesh = new Mesh { name = "GrassExtraPlane" };
-        // vertical unit quad: x = -0.5..0.5, y = 0..1, z = 0
-        var verts = new Vector3[4]
-        {
-            new Vector3(-0.5f, 0, 0),
-            new Vector3(0.5f, 0, 0),
-            new Vector3(-0.5f, 1, 0),
-            new Vector3(0.5f, 1, 0),
-        };
-        var uvs = new Vector2[4]
-        {
-            new Vector2(0, 0),
-            new Vector2(1, 0),
-            new Vector2(0, 1),
-            new Vector2(1, 1),
-        };
-        _planeMesh.SetVertices(verts);
-        _planeMesh.SetUVs(0, uvs);
+        _planeMesh.SetVertices(
+            new Vector3[] { new(-0.5f, 0, 0), new(0.5f, 0, 0), new(-0.5f, 1, 0), new(0.5f, 1, 0) }
+        );
+        _planeMesh.SetUVs(0, new Vector2[] { new(0, 0), new(1, 0), new(0, 1), new(1, 1) });
         _planeMesh.SetTriangles(new[] { 0, 1, 2, 2, 1, 3 }, 0);
         _planeMesh.RecalculateNormals();
-        _planeMesh.bounds = new Bounds(Vector3.zero, Vector3.one * 100000f);
+        _planeMesh.bounds = new Bounds(Vector3.zero, Vector3.one * 100_000f);
     }
 
-    void DestroyPlaneMesh()
+    // ── Blade placement ───────────────────────────────────────────────────────
+    // Area-weighted CDF sampling: each blade picks a triangle proportional to
+    // world-space area, then a uniform random point on that triangle.
+    // Density is blades/m² regardless of mesh subdivision or object scale.
+    void BuildBladeData(Mesh mesh)
     {
-        if (_planeMesh == null)
-            return;
-#if UNITY_EDITOR
-        if (!Application.isPlaying)
-            DestroyImmediate(_planeMesh);
-        else
-#endif
-            Destroy(_planeMesh);
-        _planeMesh = null;
-    }
-
-    void BuildExtraGroups(Mesh mesh)
-    {
-        // compute mesh CDF as before
-        bool hasMask = maskedExtraMask != null && maskedExtraMask.isReadable;
-        if (maskedExtraMask != null && !hasMask)
-            Debug.LogWarning(
-                "[GrassRenderer] Masked extra texture is not Read/Write enabled – mask will be ignored."
-            );
-
-        var verts = mesh.vertices;
-        var tris = mesh.triangles;
-        var normals =
-            mesh.normals.Length == verts.Length
-                ? mesh.normals
-                : Enumerable.Repeat(Vector3.up, verts.Length).ToArray();
-        var uvList = new List<Vector2>();
-        mesh.GetUVs(0, uvList);
-        var uvs = uvList.Count == verts.Length ? uvList.ToArray() : new Vector2[verts.Length];
-
-        int triCount = tris.Length / 3;
-        var areas = new float[triCount];
-        float totalArea = 0f;
-        for (int ti = 0; ti < triCount; ti++)
-        {
-            var w0 = transform.TransformPoint(verts[tris[ti * 3 + 0]]);
-            var w1 = transform.TransformPoint(verts[tris[ti * 3 + 1]]);
-            var w2 = transform.TransformPoint(verts[tris[ti * 3 + 2]]);
-            float a = Vector3.Cross(w1 - w0, w2 - w0).magnitude * 0.5f;
-            areas[ti] = a;
-            totalArea += a;
-        }
+        var (verts, tris, normals, uvs) = GetMeshArrays(mesh);
+        var (cdf, totalArea) = BuildAreaCDF(verts, tris);
         if (totalArea <= 0f)
             return;
-        var cdf = new float[triCount];
-        float running = 0f;
-        for (int ti = 0; ti < triCount; ti++)
-        {
-            running += areas[ti];
-            cdf[ti] = running / totalArea;
-        }
 
-        int targetCount = Mathf.RoundToInt(totalArea * extraDensity);
+        bool hasMask = maskTexture != null && maskTexture.isReadable;
+        int triCount = tris.Length / 3;
+        int targetCount = Mathf.Min(Mathf.RoundToInt(totalArea * density), maxBlades);
         if (targetCount == 0)
             return;
 
-        _extraGroups = new List<ExtraGroup>();
-
-        // helper to scatter given count with optional mask predicate
-        System.Func<int, Predicate<Vector2>, List<BladeData>> scatter = (count, maskPred) =>
-        {
-            var list = new List<BladeData>(count);
-            var rng = new System.Random(12345);
-            int attempts = 0,
-                maxAttempts = count * 4;
-            int rejects = 0;
-            while (list.Count < count && attempts < maxAttempts)
-            {
-                attempts++;
-                float r = (float)rng.NextDouble();
-                int lo = 0,
-                    hi = triCount - 1;
-                while (lo < hi)
-                {
-                    int mid = (lo + hi) >> 1;
-                    if (cdf[mid] < r)
-                        lo = mid + 1;
-                    else
-                        hi = mid;
-                }
-                int ti = lo;
-                int i0 = tris[ti * 3],
-                    i1 = tris[ti * 3 + 1],
-                    i2 = tris[ti * 3 + 2];
-                float r1 = Mathf.Sqrt((float)rng.NextDouble());
-                float r2 = (float)rng.NextDouble();
-                float u = 1f - r1,
-                    v = r1 * (1f - r2),
-                    w = r1 * r2;
-
-                Vector3 localPos = u * verts[i0] + v * verts[i1] + w * verts[i2];
-                Vector3 pos = transform.TransformPoint(localPos);
-                Vector3 normal = transform
-                    .TransformDirection((u * normals[i0] + v * normals[i1] + w * normals[i2]))
-                    .normalized;
-                Vector2 uv = u * uvs[i0] + v * uvs[i1] + w * uvs[i2];
-
-                if (maskPred != null && maskPred(uv))
-                {
-                    rejects++;
-                    continue;
-                }
-
-                list.Add(
-                    new BladeData
-                    {
-                        position = pos,
-                        normal = normal,
-                        height = extraPlaneSize.y,
-                        width = extraPlaneSize.x,
-                        phase = (float)(rng.NextDouble() * Mathf.PI * 2.0),
-                        facingAngle = (float)(rng.NextDouble() * Mathf.PI * 2.0),
-                    }
-                );
-            }
-            if (rejects > 0)
-                Debug.Log($"[GrassRenderer] Mask rejected {rejects} candidates.");
-            return list;
-        };
-
-        // unmasked materials
-        if (extraMaterials != null && extraMaterials.Count > 0)
-        {
-            int perMat = targetCount; // could distribute differently
-            foreach (var mat in extraMaterials)
-            {
-                if (mat == null)
-                    continue;
-                if (!mat.enableInstancing)
-                    Debug.LogWarning(
-                        $"[GrassRenderer] extra material '{mat.name}' has GPU instancing disabled."
-                    );
-                var bladesList = scatter(perMat, null);
-                CreateGroup(mat, bladesList);
-            }
-        }
-
-        // masked material
-        if (maskedExtraMaterial != null)
-        {
-            Predicate<Vector2> maskPred = null;
-            if (hasMask)
-            {
-                maskPred = uv =>
-                    maskedExtraMask.GetPixelBilinear(uv.x, uv.y).grayscale < maskedExtraThreshold;
-                Debug.Log(
-                    $"[GrassRenderer] Masked extras using '{maskedExtraMask.name}' threshold {maskedExtraThreshold}"
-                );
-            }
-            var bladesList = scatter(targetCount, maskPred);
-            CreateGroup(maskedExtraMaterial, bladesList);
-            Debug.Log(
-                $"[GrassRenderer] Masked extras generated {bladesList.Count} instances (density {extraDensity})."
-            );
-        }
-    }
-
-    void CreateGroup(Material mat, List<BladeData> blades)
-    {
-        var group = new ExtraGroup
-        {
-            material = mat,
-            totalCount = blades.Count,
-            all = new ComputeBuffer(blades.Count, BladeData.Stride),
-            visible = new ComputeBuffer(blades.Count, BladeData.Stride, ComputeBufferType.Append),
-            args = new ComputeBuffer(1, 5 * sizeof(uint), ComputeBufferType.IndirectArguments),
-        };
-        group.all.SetData(blades.ToArray());
-        uint[] args = new uint[5];
-        args[0] = (uint)_planeMesh.GetIndexCount(0);
-        args[1] = 0;
-        args[2] = (uint)_planeMesh.GetIndexStart(0);
-        args[3] = (uint)_planeMesh.GetBaseVertex(0);
-        args[4] = 0;
-        group.args.SetData(args);
-        _extraGroups.Add(group);
-    }
-
-    // ── Scatter blade positions over the mesh surface ────────────────────────
-    // Uses area-weighted CDF sampling: every blade picks a triangle proportional
-    // to its world-space area, then a random point on that triangle. This is
-    // completely immune to non-uniform triangle density — finely subdivided regions
-    // (coastlines, ridges) and coarse flat regions contribute equally per m².
-    void BuildBladeData(Mesh mesh)
-    {
-        var verts = mesh.vertices;
-        var tris = mesh.triangles;
-
-        var normals = new Vector3[verts.Length];
-        if (mesh.normals.Length == verts.Length)
-            mesh.normals.CopyTo(normals, 0);
-        else
-            for (int i = 0; i < normals.Length; i++)
-                normals[i] = Vector3.up;
-
-        var uvList = new List<Vector2>();
-        mesh.GetUVs(0, uvList);
-        var uvs = uvList.Count == verts.Length ? uvList.ToArray() : new Vector2[verts.Length];
-
-        bool hasMask = maskTexture != null && maskTexture.isReadable;
-        if (maskTexture != null && !maskTexture.isReadable)
-            Debug.LogWarning(
-                "[GrassRenderer] Mask texture is not Read/Write enabled — mask will be ignored."
-            );
-
-        int triCount = tris.Length / 3;
-
-        // ── Pass 1: compute world-space area of every triangle and build a CDF ──
-        // We use world-space area so density is in blades-per-world-m² regardless
-        // of the mesh's local scale or the object's Transform scale.
-        var areas = new float[triCount];
-        float totalArea = 0f;
-
-        for (int ti = 0; ti < triCount; ti++)
-        {
-            int i0 = tris[ti * 3],
-                i1 = tris[ti * 3 + 1],
-                i2 = tris[ti * 3 + 2];
-            Vector3 w0 = transform.TransformPoint(verts[i0]);
-            Vector3 w1 = transform.TransformPoint(verts[i1]);
-            Vector3 w2 = transform.TransformPoint(verts[i2]);
-            areas[ti] = Vector3.Cross(w1 - w0, w2 - w0).magnitude * 0.5f;
-            totalArea += areas[ti];
-        }
-
-        if (totalArea <= 0f)
-        {
-            Debug.LogWarning(
-                $"[GrassRenderer] Mesh on {name} has zero world-space area — check Transform scale and mesh data."
-            );
-            return;
-        }
-
-        // CDF: cdf[i] = cumulative area up to (and including) triangle i, normalised 0..1
-        var cdf = new float[triCount];
-        float running = 0f;
-        for (int ti = 0; ti < triCount; ti++)
-        {
-            running += areas[ti];
-            cdf[ti] = running / totalArea;
-        }
-
-        // ── Pass 2: place blades ──────────────────────────────────────────────
-        // Target blade count from area × density, clamped to maxBlades.
-        int targetCount = Mathf.Min(Mathf.RoundToInt(totalArea * density), maxBlades);
-
-        Debug.Log(
-            $"[GrassRenderer] Mesh world area: {totalArea:F1} m²  →  targeting {targetCount:N0} blades at density {density} (max {maxBlades:N0})."
-        );
-
         var blades = new List<BladeData>(targetCount);
-        var boundsCalc = new Bounds();
-        bool firstBlade = true;
+        var bounds = new Bounds();
+        bool first = true;
         var rng = new System.Random(42);
 
-        // Over-sample to account for mask rejection; stop when we hit targetCount.
-        // Each rejected blade (failed mask test) draws another candidate.
-        int maxAttempts = targetCount * 4; // safety ceiling
-        int attempts = 0;
-
-        while (blades.Count < targetCount && attempts < maxAttempts)
+        for (int attempt = 0; blades.Count < targetCount && attempt < targetCount * 4; attempt++)
         {
-            attempts++;
+            SampleTriangle(
+                rng,
+                cdf,
+                triCount,
+                tris,
+                verts,
+                normals,
+                uvs,
+                out Vector3 pos,
+                out Vector3 normal,
+                out Vector2 uv
+            );
 
-            // Binary search into CDF to pick a triangle weighted by area
-            float r = (float)rng.NextDouble();
-            int lo = 0,
-                hi = triCount - 1;
-            while (lo < hi)
-            {
-                int mid = (lo + hi) >> 1;
-                if (cdf[mid] < r)
-                    lo = mid + 1;
-                else
-                    hi = mid;
-            }
-            int ti = lo;
-
-            int i0 = tris[ti * 3],
-                i1 = tris[ti * 3 + 1],
-                i2 = tris[ti * 3 + 2];
-
-            // Uniform random point on the chosen triangle (Osada et al.)
-            float r1 = Mathf.Sqrt((float)rng.NextDouble());
-            float r2 = (float)rng.NextDouble();
-            float u = 1f - r1;
-            float v = r1 * (1f - r2);
-            float w = r1 * r2;
-
-            // Interpolate in local space, then transform to world space.
-            // TransformPoint applies the full TRS hierarchy (position, rotation, scale)
-            // so world-space positions are correct regardless of object scale or rotation.
-            Vector3 localPos = u * verts[i0] + v * verts[i1] + w * verts[i2];
-            Vector3 pos = transform.TransformPoint(localPos);
-            Vector3 normal = transform
-                .TransformDirection((u * normals[i0] + v * normals[i1] + w * normals[i2]))
-                .normalized;
-            Vector2 texUV = u * uvs[i0] + v * uvs[i1] + w * uvs[i2];
-
-            // Sample mask value (1=full height, 0=zero height); default=1
             float maskVal = 1f;
             if (hasMask)
             {
-                maskVal = maskTexture.GetPixelBilinear(texUV.x, texUV.y).grayscale;
-                // remap according to zero threshold slider
-                maskVal = Mathf.Clamp01((maskVal - maskZero) / Mathf.Max(1f - maskZero, 0.0001f));
+                float raw = maskTexture.GetPixelBilinear(uv.x, uv.y).grayscale;
+                maskVal = Mathf.Clamp01((raw - maskFloor) / Mathf.Max(1f - maskFloor, 0.0001f));
             }
-
-            // optionally skip entirely if maskVal is zero to avoid degenerate blades
             if (maskVal <= 0f)
                 continue;
 
-            float baseHeight = Mathf.Lerp(minHeight, maxHeight, (float)rng.NextDouble());
+            if (first)
+            {
+                bounds = new Bounds(pos, Vector3.zero);
+                first = false;
+            }
+            else
+                bounds.Encapsulate(pos);
 
             blades.Add(
                 new BladeData
                 {
                     position = pos,
                     normal = normal,
-                    height = baseHeight * maskVal,
+                    height = Mathf.Lerp(minHeight, maxHeight, (float)rng.NextDouble()) * maskVal,
                     width = Mathf.Lerp(minWidth, maxWidth, (float)rng.NextDouble()),
-                    phase = (float)(rng.NextDouble() * Mathf.PI * 2.0),
-                    facingAngle = (float)(rng.NextDouble() * Mathf.PI * 2.0),
+                    phase = (float)(rng.NextDouble() * Math.PI * 2.0),
+                    facingAngle = (float)(rng.NextDouble() * Math.PI * 2.0),
                 }
             );
-
-            if (firstBlade)
-            {
-                boundsCalc = new Bounds(pos, Vector3.zero);
-                firstBlade = false;
-            }
-            else
-                boundsCalc.Encapsulate(pos);
         }
 
         _totalBladeCount = blades.Count;
         if (_totalBladeCount == 0)
-        {
-            Debug.LogWarning(
-                $"[GrassRenderer] No blades placed on {name}. Check density and mask."
-            );
             return;
-        }
 
-        Debug.Log(
-            $"[GrassRenderer] Generated {_totalBladeCount:N0} blades on {name} "
-                + $"| world bounds {boundsCalc.min:F1} → {boundsCalc.max:F1}"
-        );
-
-        boundsCalc.Expand(maxHeight * 4f);
-        _drawBounds = boundsCalc;
+        bounds.Expand(maxHeight * 4f);
+        _drawBounds = bounds;
 
         _allBladesBuffer = new ComputeBuffer(_totalBladeCount, BladeData.Stride);
         _visibleBladesBuffer = new ComputeBuffer(
@@ -751,12 +369,8 @@ public class GrassRenderer : MonoBehaviour
             5 * sizeof(uint),
             ComputeBufferType.IndirectArguments
         );
-
         _allBladesBuffer.SetData(blades.ToArray());
 
-        // masked extras handled separately from BuildExtraGroups
-
-        // Pre-fill args with the (constant) index layout; instanceCount written by CopyCount each frame
         _args[0] = (uint)_bladeMesh.GetIndexCount(0);
         _args[1] = 0;
         _args[2] = (uint)_bladeMesh.GetIndexStart(0);
@@ -764,35 +378,299 @@ public class GrassRenderer : MonoBehaviour
         _args[4] = 0;
     }
 
-    // ────────────────────────────────────────────────────────────────────────
-    // Per-frame GPU work
-    // ────────────────────────────────────────────────────────────────────────
+    // ── Extra group placement ─────────────────────────────────────────────────
+    void BuildExtraGroups(Mesh mesh)
+    {
+        _extraGroups = new List<ExtraGroup>();
 
-    // generic culling helper for any compute-buffer pair
-    void RunCullPass(ComputeBuffer all, ComputeBuffer visible, int totalCount, Camera cam)
+        bool hasUnmasked =
+            extraMaterials != null && extraMaterials.Count > 0 && unmaskedExtraDensity > 0f;
+        bool hasMasked = maskedExtraMaterial != null && maskedExtraDensity > 0f;
+        if (!hasUnmasked && !hasMasked)
+            return;
+
+        var (verts, tris, normals, uvs) = GetMeshArrays(mesh);
+        var (cdf, totalArea) = BuildAreaCDF(verts, tris);
+        if (totalArea <= 0f)
+            return;
+
+        int triCount = tris.Length / 3;
+
+        if (hasUnmasked)
+        {
+            bool hasGrassMask = maskTexture != null && maskTexture.isReadable;
+            Predicate<Vector2> reject = hasGrassMask
+                ? uv => maskTexture.GetPixelBilinear(uv.x, uv.y).grayscale < maskFloor
+                : (Predicate<Vector2>)null;
+
+            int poolCount = Mathf.RoundToInt(
+                totalArea * unmaskedExtraDensity * extraMaterials.Count
+            );
+            var pool = ScatterBlades(
+                poolCount,
+                cdf,
+                triCount,
+                tris,
+                verts,
+                normals,
+                uvs,
+                reject,
+                unmaskedExtraSize
+            );
+
+            var rng2 = new System.Random(98765);
+            var bins = new List<BladeData>[extraMaterials.Count];
+            for (int i = 0; i < bins.Length; i++)
+                bins[i] = new List<BladeData>();
+            foreach (var b in pool)
+                bins[rng2.Next(bins.Length)].Add(b);
+
+            for (int i = 0; i < extraMaterials.Count; i++)
+                if (extraMaterials[i] != null && bins[i].Count > 0)
+                    CreateExtraGroup(extraMaterials[i], bins[i]);
+        }
+
+        if (hasMasked)
+        {
+            bool hasMaskTex = maskedExtraMask != null && maskedExtraMask.isReadable;
+            Predicate<Vector2> reject = hasMaskTex
+                ? uv =>
+                    maskedExtraMask.GetPixelBilinear(uv.x, uv.y).grayscale < maskedExtraThreshold
+                : (Predicate<Vector2>)null;
+
+            int count = Mathf.RoundToInt(totalArea * maskedExtraDensity);
+            var blades = ScatterBlades(
+                count,
+                cdf,
+                triCount,
+                tris,
+                verts,
+                normals,
+                uvs,
+                reject,
+                maskedExtraSize
+            );
+            if (blades.Count > 0)
+                CreateExtraGroup(maskedExtraMaterial, blades);
+        }
+    }
+
+    // Scatter `count` blades; skip candidates where `reject(uv)` returns true.
+    List<BladeData> ScatterBlades(
+        int count,
+        float[] cdf,
+        int triCount,
+        int[] tris,
+        Vector3[] verts,
+        Vector3[] normals,
+        Vector2[] uvs,
+        Predicate<Vector2> reject,
+        Vector2 planeSize
+    )
+    {
+        var list = new List<BladeData>(Mathf.Max(count, 0));
+        if (count <= 0)
+            return list;
+
+        var rng = new System.Random(12345);
+        for (int attempt = 0; list.Count < count && attempt < count * 4; attempt++)
+        {
+            SampleTriangle(
+                rng,
+                cdf,
+                triCount,
+                tris,
+                verts,
+                normals,
+                uvs,
+                out Vector3 pos,
+                out Vector3 normal,
+                out Vector2 uv
+            );
+            if (reject != null && reject(uv))
+                continue;
+            list.Add(
+                new BladeData
+                {
+                    position = pos,
+                    normal = normal,
+                    height = planeSize.y,
+                    width = planeSize.x,
+                    phase = (float)(rng.NextDouble() * Math.PI * 2.0),
+                    facingAngle = (float)(rng.NextDouble() * Math.PI * 2.0),
+                }
+            );
+        }
+        return list;
+    }
+
+    void CreateExtraGroup(Material mat, List<BladeData> blades)
+    {
+        if (blades == null || blades.Count == 0)
+            return;
+        var g = new ExtraGroup
+        {
+            material = mat,
+            totalCount = blades.Count,
+            all = new ComputeBuffer(blades.Count, BladeData.Stride),
+            visible = new ComputeBuffer(blades.Count, BladeData.Stride, ComputeBufferType.Append),
+            args = new ComputeBuffer(1, 5 * sizeof(uint), ComputeBufferType.IndirectArguments),
+        };
+        g.all.SetData(blades.ToArray());
+        g.args.SetData(
+            new uint[]
+            {
+                (uint)_planeMesh.GetIndexCount(0),
+                0,
+                (uint)_planeMesh.GetIndexStart(0),
+                (uint)_planeMesh.GetBaseVertex(0),
+                0,
+            }
+        );
+        _extraGroups.Add(g);
+    }
+
+    // ── Mesh data helpers ─────────────────────────────────────────────────────
+    (Vector3[] verts, int[] tris, Vector3[] normals, Vector2[] uvs) GetMeshArrays(Mesh mesh)
+    {
+        var verts = mesh.vertices;
+        var tris = mesh.triangles;
+        var normals =
+            mesh.normals.Length == verts.Length
+                ? mesh.normals
+                : Enumerable.Repeat(Vector3.up, verts.Length).ToArray();
+        var uvList = new List<Vector2>();
+        mesh.GetUVs(0, uvList);
+        var uvs = uvList.Count == verts.Length ? uvList.ToArray() : new Vector2[verts.Length];
+        return (verts, tris, normals, uvs);
+    }
+
+    // Normalised cumulative area distribution over mesh triangles.
+    (float[] cdf, float totalArea) BuildAreaCDF(Vector3[] verts, int[] tris)
+    {
+        int triCount = tris.Length / 3;
+        var areas = new float[triCount];
+        float totalArea = 0f;
+        for (int ti = 0; ti < triCount; ti++)
+        {
+            Vector3 w0 = transform.TransformPoint(verts[tris[ti * 3]]);
+            Vector3 w1 = transform.TransformPoint(verts[tris[ti * 3 + 1]]);
+            Vector3 w2 = transform.TransformPoint(verts[tris[ti * 3 + 2]]);
+            areas[ti] = Vector3.Cross(w1 - w0, w2 - w0).magnitude * 0.5f;
+            totalArea += areas[ti];
+        }
+        var cdf = new float[triCount];
+        float running = 0f;
+        float invTotal = totalArea > 0f ? 1f / totalArea : 0f;
+        for (int ti = 0; ti < triCount; ti++)
+        {
+            running += areas[ti];
+            cdf[ti] = running * invTotal;
+        }
+        return (cdf, totalArea);
+    }
+
+    // Returns a uniformly random world-space point on a triangle chosen by area-weighted CDF.
+    void SampleTriangle(
+        System.Random rng,
+        float[] cdf,
+        int triCount,
+        int[] tris,
+        Vector3[] verts,
+        Vector3[] normals,
+        Vector2[] uvs,
+        out Vector3 pos,
+        out Vector3 normal,
+        out Vector2 uv
+    )
+    {
+        float r = (float)rng.NextDouble();
+        int lo = 0,
+            hi = triCount - 1;
+        while (lo < hi)
+        {
+            int mid = (lo + hi) >> 1;
+            if (cdf[mid] < r)
+                lo = mid + 1;
+            else
+                hi = mid;
+        }
+
+        int i0 = tris[lo * 3],
+            i1 = tris[lo * 3 + 1],
+            i2 = tris[lo * 3 + 2];
+        float r1 = Mathf.Sqrt((float)rng.NextDouble()),
+            r2 = (float)rng.NextDouble();
+        float u = 1f - r1,
+            v = r1 * (1f - r2),
+            w = r1 * r2;
+
+        pos = transform.TransformPoint(u * verts[i0] + v * verts[i1] + w * verts[i2]);
+        normal = transform
+            .TransformDirection(u * normals[i0] + v * normals[i1] + w * normals[i2])
+            .normalized;
+        uv = u * uvs[i0] + v * uvs[i1] + w * uvs[i2];
+    }
+
+    // ── Per-frame GPU work ────────────────────────────────────────────────────
+    void DrawGroup(
+        ComputeBuffer all,
+        ComputeBuffer visible,
+        ComputeBuffer argsBuffer,
+        int totalCount,
+        Mesh mesh,
+        Material mat,
+        Camera cam
+    )
     {
         if (disableCulling)
         {
-            visible.SetCounterValue(0);
-            // same bypass logic as before but only update args array; the caller will
-            // copy to its own args buffer
-            _args[1] = (uint)totalCount;
-            // material binding left to caller
-            if (logVisibleCount)
-            {
-                _logTimer += Time.deltaTime;
-                if (_logTimer >= 1f)
+            // Render directly from the full blade buffer; write count into args slot 1.
+            mat.SetBuffer("_VisibleBlades", all);
+            argsBuffer.SetData(
+                new uint[]
                 {
-                    _logTimer = 0;
-                    Debug.Log(
-                        $"[GrassRenderer] Culling DISABLED — drawing all {totalCount:N0} instances."
-                    );
+                    (uint)mesh.GetIndexCount(0),
+                    (uint)totalCount,
+                    (uint)mesh.GetIndexStart(0),
+                    (uint)mesh.GetBaseVertex(0),
+                    0,
                 }
-            }
-            return;
+            );
+        }
+        else
+        {
+            visible.SetCounterValue(0);
+            DispatchCull(all, visible, totalCount, cam);
+            // Slots 0,2,3,4 are constant; CopyCount writes the visible count into slot 1.
+            _args[0] = (uint)mesh.GetIndexCount(0);
+            _args[1] = 0;
+            _args[2] = (uint)mesh.GetIndexStart(0);
+            _args[3] = (uint)mesh.GetBaseVertex(0);
+            _args[4] = 0;
+            argsBuffer.SetData(_args);
+            ComputeBuffer.CopyCount(visible, argsBuffer, sizeof(uint));
+            mat.SetBuffer("_VisibleBlades", visible);
         }
 
-        visible.SetCounterValue(0);
+        mat.SetVector("_CameraPosition", cam.transform.position);
+        mat.SetFloat("_MaxDistance", maxDistance);
+        mat.SetFloat("_FadeStartDistance", fadeStartDistance);
+        Graphics.DrawMeshInstancedIndirect(
+            mesh,
+            0,
+            mat,
+            _drawBounds,
+            argsBuffer,
+            0,
+            null,
+            shadowCasting,
+            true
+        );
+    }
+
+    void DispatchCull(ComputeBuffer all, ComputeBuffer visible, int totalCount, Camera cam)
+    {
         Plane[] planes = GeometryUtility.CalculateFrustumPlanes(cam);
         var planeV4 = new Vector4[6];
         for (int i = 0; i < 6; i++)
@@ -802,94 +680,16 @@ public class GrassRenderer : MonoBehaviour
                 planes[i].normal.z,
                 planes[i].distance
             );
-
         computeShader.SetInt("_TotalBladeCount", totalCount);
         computeShader.SetVectorArray("_FrustumPlanes", planeV4);
         computeShader.SetVector("_CameraPos", cam.transform.position);
         computeShader.SetFloat("_MaxDistance", maxDistance);
-        computeShader.SetBuffer(_kernelCull, "_AllBlades", all);
-        computeShader.SetBuffer(_kernelCull, "_VisibleBlades", visible);
-        computeShader.Dispatch(_kernelCull, Mathf.CeilToInt(totalCount / 64f), 1, 1);
-
-        // caller handles copying count to args
-        if (logVisibleCount && totalCount == _totalBladeCount)
-        {
-            // we only log for the main grass set as before
-            _logTimer += Time.deltaTime;
-            if (_logTimer >= 1f)
-            {
-                _logTimer = 0;
-                if (_readbackBuffer == null)
-                    _readbackBuffer = new ComputeBuffer(
-                        1,
-                        sizeof(uint),
-                        ComputeBufferType.IndirectArguments
-                    );
-                var readArgs = new uint[5];
-                if (all == _allBladesBuffer)
-                {
-                    _indirectArgsBuffer.GetData(readArgs);
-                    Debug.Log(
-                        $"[GrassRenderer] Visible blades: {readArgs[1]:N0} / {_totalBladeCount:N0}  | cam pos: {cam.transform.position:F1}  maxDist: {maxDistance}"
-                    );
-                }
-            }
-        }
+        computeShader.SetBuffer(_cullKernel, "_AllBlades", all);
+        computeShader.SetBuffer(_cullKernel, "_VisibleBlades", visible);
+        computeShader.Dispatch(_cullKernel, Mathf.CeilToInt(totalCount / 64f), 1, 1);
     }
 
-    void DispatchDraw(
-        Mesh mesh,
-        Material mat,
-        ComputeBuffer visible,
-        ComputeBuffer args,
-        Camera cam
-    )
-    {
-        if (!disableCulling)
-            mat.SetBuffer("_VisibleBlades", visible);
-        mat.SetVector("_CameraPosition", cam.transform.position);
-        mat.SetFloat("_MaxDistance", maxDistance);
-        mat.SetFloat("_FadeStartDistance", fadeStartDistance);
-
-        Graphics.DrawMeshInstancedIndirect(
-            mesh,
-            0,
-            mat,
-            _drawBounds,
-            args,
-            0,
-            null,
-            shadowCasting,
-            true
-        );
-    }
-
-    void DispatchDraw(Camera cam)
-    {
-        // When culling is disabled RunCullPass already set the buffer to _allBladesBuffer
-        if (!disableCulling)
-            grassMaterial.SetBuffer("_VisibleBlades", _visibleBladesBuffer);
-        grassMaterial.SetVector("_CameraPosition", cam.transform.position);
-        grassMaterial.SetFloat("_MaxDistance", maxDistance);
-        grassMaterial.SetFloat("_FadeStartDistance", fadeStartDistance);
-
-        Graphics.DrawMeshInstancedIndirect(
-            _bladeMesh,
-            0,
-            grassMaterial,
-            _drawBounds,
-            _indirectArgsBuffer,
-            0,
-            null,
-            shadowCasting,
-            true
-        ); // receiveShadows
-    }
-
-    // ────────────────────────────────────────────────────────────────────────
-    // Cleanup
-    // ────────────────────────────────────────────────────────────────────────
-
+    // ── Cleanup ───────────────────────────────────────────────────────────────
     void ReleaseBuffers()
     {
         _allBladesBuffer?.Release();
@@ -913,45 +713,35 @@ public class GrassRenderer : MonoBehaviour
         }
     }
 
-    void DestroyBladeMesh()
+    void DestroyMesh(ref Mesh mesh)
     {
-        if (_bladeMesh == null)
+        if (mesh == null)
             return;
 #if UNITY_EDITOR
         if (!Application.isPlaying)
-            DestroyImmediate(_bladeMesh);
+            DestroyImmediate(mesh);
         else
 #endif
-            Destroy(_bladeMesh);
-        _bladeMesh = null;
+            Destroy(mesh);
+        mesh = null;
     }
 
-    // ────────────────────────────────────────────────────────────────────────
-    // Editor helpers
-    // ────────────────────────────────────────────────────────────────────────
-
+    // ── Editor ────────────────────────────────────────────────────────────────
 #if UNITY_EDITOR
     [ContextMenu("Regenerate Grass")]
     public void RegenerateGrass() => Init();
 
     void OnValidate()
     {
-        // Clamp independent minimums
         minHeight = Mathf.Min(minHeight, maxHeight);
         minWidth = Mathf.Min(minWidth, maxWidth);
-
-        // ensure distances are non-negative and fade never exceeds max
         maxDistance = Mathf.Max(0f, maxDistance);
         fadeStartDistance = Mathf.Clamp(fadeStartDistance, 0f, maxDistance);
-        // masked extras threshold clamp
+        unmaskedExtraDensity = Mathf.Clamp01(unmaskedExtraDensity);
+        maskedExtraDensity = Mathf.Clamp01(maskedExtraDensity);
         maskedExtraThreshold = Mathf.Clamp01(maskedExtraThreshold);
-
-#if UNITY_EDITOR
-        if (maskedExtraMask != null && !maskedExtraMask.isReadable)
-            Debug.LogWarning(
-                "[GrassRenderer] maskedExtraMask is not Read/Write enabled – consider enabling read/write in import settings so the mask is used."
-            );
-#endif
+        unmaskedExtraSize = Vector2.Max(unmaskedExtraSize, Vector2.zero);
+        maskedExtraSize = Vector2.Max(maskedExtraSize, Vector2.zero);
     }
 #endif
 }
