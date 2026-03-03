@@ -278,7 +278,7 @@ namespace Turnroot.Gameplay.Brain.Segments
                 }
                 else
                 {
-                    "[CAMERA] BattleObject is null; cannot initialize BattleMapCamera neutral center".LogWarning();
+                    "BattleObject is null; cannot initialize BattleMapCamera neutral center".LogWarning();
                 }
 
                 if (_battleMapCamera == null)
@@ -333,7 +333,6 @@ namespace Turnroot.Gameplay.Brain.Segments
             var battleObject = Brain?.battleBrain.BattleObject;
             if (battleObject == null)
             {
-                "[CAMERA] HandleBattleStarted: BattleObject is null".LogWarning();
                 return;
             }
 
@@ -345,7 +344,6 @@ namespace Turnroot.Gameplay.Brain.Segments
 
             if (_battleMapCamera == null || mapGrid == null)
             {
-                "[CAMERA] HandleBattleStarted: camera or map grid not available".LogWarning();
                 return;
             }
 
@@ -353,7 +351,6 @@ namespace Turnroot.Gameplay.Brain.Segments
             var placements = prep?.placements;
             if (placements == null || placements.Count == 0)
             {
-                "[CAMERA] HandleBattleStarted: no placements in prep object, using neutral center".LogInfo();
                 var center = SetBattleGridCameraNeutralCenter();
                 Brain.PublishCursorMoveRequested(center);
                 ComputeTargetPosition(center);
@@ -362,7 +359,6 @@ namespace Turnroot.Gameplay.Brain.Segments
                     _battleMapCamera.transform.position = _targetCameraPosition;
                 }
                 _shouldMove = true;
-                $"[CAMERA] Starting camera at center {center}".LogInfo();
                 return;
             }
 
@@ -395,7 +391,6 @@ namespace Turnroot.Gameplay.Brain.Segments
                 _battleMapCamera.transform.position = _targetCameraPosition;
             }
             _shouldMove = true;
-            $"[CAMERA] Starting camera at {targetPos}".LogInfo();
         }
 
         private void HandleCursorMoved(Vector2Int gridPos)

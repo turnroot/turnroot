@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Turnroot.Gameplay.PlayerSettings;
 using Turnroot.Utilities;
 using UnityEngine;
 
@@ -7,12 +8,8 @@ namespace Turnroot.Graphics3D
     public class VegetationCuller : MonoBehaviour
     {
         public UnityEngine.Camera Culler;
-
-        [Tooltip("Padding around the viewport to prevent popping (default: 1)")]
-        public float ViewportPadding = 1f;
-
-        [Tooltip("How often to check visibility (in seconds)")]
-        public float UpdateInterval = 0.1f;
+        private float ViewportPadding = 1f;
+        private float UpdateInterval = 0.1f;
 
         private Transform[] children;
         private float lastUpdateTime;
@@ -35,6 +32,33 @@ namespace Turnroot.Graphics3D
 
             children = grandchildrenList.ToArray();
             children.Length.ToString().LogInfo();
+
+            var g = GameplayPlayerSettings.Instance;
+            if (g != null)
+            {
+                var s = g.QualityStep;
+                switch (s)
+                {
+                    case 0:
+                        ViewportPadding = .018f;
+                        UpdateInterval = .2f;
+                        break;
+                    case 1:
+                        ViewportPadding = .02f;
+                        UpdateInterval = .17f;
+                        break;
+                    case 2:
+                        ViewportPadding = .023f;
+                        UpdateInterval = .13f;
+                        break;
+                    case 3:
+                        ViewportPadding = .026f;
+                        UpdateInterval = .1f;
+                        break;
+                    default:
+                        break;
+                }
+            }
         }
 
         void Update()
@@ -44,7 +68,6 @@ namespace Turnroot.Graphics3D
                 return;
             }
 
-            // Only update at specified intervals for performance
             if (Time.time - lastUpdateTime < UpdateInterval)
             {
                 return;
@@ -52,7 +75,6 @@ namespace Turnroot.Graphics3D
 
             lastUpdateTime = Time.time;
 
-            // Check each child's visibility
             foreach (Transform child in children)
             {
                 if (child == null)

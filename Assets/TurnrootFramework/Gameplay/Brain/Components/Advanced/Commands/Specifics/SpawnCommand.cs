@@ -33,8 +33,6 @@ namespace Turnroot.Gameplay.Brain.Commands
                 return false;
             }
 
-            $"[SPAWN TRACKING] SpawnCommand.Execute: unitId={unit.Id}, char={unit.CharacterTemplate?.DisplayName}, SpawnPosition={SpawnPosition}, unit.MapGridPosition BEFORE={unit.MapGridPosition}".LogInfo();
-
             // Record previous map position so Undo can restore it if needed
             UndoState[UndoStateKeys.From] = unit.MapGridPosition;
             UndoState[UndoStateKeys.WasSpawned] = true;
@@ -46,9 +44,6 @@ namespace Turnroot.Gameplay.Brain.Commands
             if (result.Success)
             {
                 unit.WasSpawnedDuringBattle = true;
-                // MapGrid.SetOccupied is authoritative and aligns the instance position
-
-                $"[SPAWN TRACKING] Publishing UnitSpawnedEvent: unitId={unit.Id}, char={unit.CharacterTemplate?.DisplayName}, SpawnPosition={SpawnPosition}, unit.MapGridPosition AFTER={unit.MapGridPosition}".LogInfo();
                 context.Brain.Publish(new Events.UnitSpawnedEvent(unit, SpawnPosition));
 
                 // Only take snapshot if battle is fully initialized (not during initial setup)

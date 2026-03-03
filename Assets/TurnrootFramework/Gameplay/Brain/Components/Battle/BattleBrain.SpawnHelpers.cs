@@ -52,12 +52,8 @@ namespace Turnroot.Gameplay.Brain
                 var position = instance.MapGridPosition;
                 var characterData = instance.CharacterTemplate;
 
-                $"[SPAWN TRACKING] SpawnRosterUnits: Processing {characterData?.DisplayName}, instance.MapGridPosition={position}, WasSpawnedDuringBattle={instance.WasSpawnedDuringBattle}".LogInfo();
-
-                // Skip if already spawned during battle (via SpawnCommand)
                 if (instance.WasSpawnedDuringBattle)
                 {
-                    $"SpawnRosterUnits: Skipping {characterData?.DisplayName} - already spawned at {position}".LogInfo();
                     continue;
                 }
 

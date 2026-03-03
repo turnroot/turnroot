@@ -51,12 +51,9 @@ namespace Turnroot.Gameplay.Combat.PreBattle
 
             if (_unitIdToPosition.TryGetValue(unitId, out var position))
             {
-                var model = GetModelAtPosition(position);
-                $"[MODEL TRACKING] GetModelForUnit({unitId}): found position={position}, model={model?.name ?? "null"}".LogInfo();
-                return model;
+                return GetModelAtPosition(position);
             }
 
-            $"[MODEL TRACKING] GetModelForUnit({unitId}): NOT FOUND in _unitIdToPosition".LogInfo();
             return null;
         }
 
@@ -126,8 +123,6 @@ namespace Turnroot.Gameplay.Combat.PreBattle
                 return OperationResult.Failure("Unit ID cannot be null or empty");
             }
 
-            $"[MODEL TRACKING] RegisterModel called: position={position}, unitId={unitId}, model={model.name}".LogInfo();
-
             // Clear any existing model at this position
             if (_positionToModel.ContainsKey(position))
             {
@@ -147,8 +142,6 @@ namespace Turnroot.Gameplay.Combat.PreBattle
             _positionToModel[position] = model;
             _positionToUnitId[position] = unitId;
             _unitIdToPosition[unitId] = position;
-
-            $"[MODEL TRACKING] After registration: _unitIdToPosition[{unitId}]={position}, _positionToUnitId[{position}]={unitId}".LogInfo();
 
             return OperationResult.Successful();
         }

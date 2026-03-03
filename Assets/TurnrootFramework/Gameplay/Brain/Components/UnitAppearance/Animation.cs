@@ -227,36 +227,44 @@ namespace Turnroot.Gameplay.Brain
             }
 
             var graph = PlayableGraph.Create("IdleBlend");
-            var output = AnimationPlayableOutput.Create(graph, "IdleBlendOutput", animator);
-            var mixer = AnimationMixerPlayable.Create(graph, 2);
-
-            var fromPlayable = AnimationClipPlayable.Create(graph, from);
-            var toPlayable = AnimationClipPlayable.Create(graph, to);
-
-            double fromTime = Mathf.Repeat(startNormalizedTime, 1f) * from.length;
-            double toTime = Mathf.Repeat(startNormalizedTime, 1f) * to.length;
-            fromPlayable.SetTime(fromTime);
-            toPlayable.SetTime(toTime);
-
-            graph.Connect(fromPlayable, 0, mixer, 0);
-            graph.Connect(toPlayable, 0, mixer, 1);
-            mixer.SetInputWeight(0, 1f);
-            mixer.SetInputWeight(1, 0f);
-
-            output.SetSourcePlayable(mixer);
-            graph.Play();
-
-            float t = 0f;
-            while (t < duration)
+            try
             {
-                t += Time.deltaTime;
-                float w = Mathf.Clamp01(t / duration);
-                mixer.SetInputWeight(0, 1f - w);
-                mixer.SetInputWeight(1, w);
-                yield return null;
-            }
+                var output = AnimationPlayableOutput.Create(graph, "IdleBlendOutput", animator);
+                var mixer = AnimationMixerPlayable.Create(graph, 2);
 
-            graph.Destroy();
+                var fromPlayable = AnimationClipPlayable.Create(graph, from);
+                var toPlayable = AnimationClipPlayable.Create(graph, to);
+
+                double fromTime = Mathf.Repeat(startNormalizedTime, 1f) * from.length;
+                double toTime = Mathf.Repeat(startNormalizedTime, 1f) * to.length;
+                fromPlayable.SetTime(fromTime);
+                toPlayable.SetTime(toTime);
+
+                graph.Connect(fromPlayable, 0, mixer, 0);
+                graph.Connect(toPlayable, 0, mixer, 1);
+                mixer.SetInputWeight(0, 1f);
+                mixer.SetInputWeight(1, 0f);
+
+                output.SetSourcePlayable(mixer);
+                graph.Play();
+
+                float t = 0f;
+                while (t < duration)
+                {
+                    t += Time.deltaTime;
+                    float w = Mathf.Clamp01(t / duration);
+                    mixer.SetInputWeight(0, 1f - w);
+                    mixer.SetInputWeight(1, w);
+                    yield return null;
+                }
+            }
+            finally
+            {
+                if (graph.IsValid())
+                {
+                    graph.Destroy();
+                }
+            }
         }
 
         public void BlendToWalkAnimation(Animator animator) => BlendToNamedClip(animator, "Walk");

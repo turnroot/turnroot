@@ -208,18 +208,9 @@ namespace Turnroot.Gameplay.Brain
             {
                 return;
             }
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
 
-            $"[SPAWN TRACKING] HandleUnitSpawnedEvent: unit={evt.Unit?.Id}, char={evt.Unit?.CharacterTemplate?.DisplayName}, evt.SpawnPosition={evt.SpawnPosition}, unit.MapGridPosition={evt.Unit?.MapGridPosition}".LogInfo();
-#endif
-
-            // Create or move model for the spawned unit. This will use existing model if present.
-            var res = SpawnUnitAtPosition(evt.Unit, evt.SpawnPosition, prebattle: false);
-            if (!res.Success)
-            {
-                // Visual update failed; this is typically non-fatal and can be informational.
-                $"HandleUnitSpawnedEvent: Failed to create/move visuals for {evt.Unit?.CharacterTemplate?.DisplayName}: {res.ErrorMessage}".LogInfo();
-            }
+            // Create or move model for the spawned unit
+            SpawnUnitAtPosition(evt.Unit, evt.SpawnPosition, prebattle: false);
         }
     }
 }

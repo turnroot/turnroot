@@ -89,8 +89,6 @@ namespace Turnroot.Gameplay.Brain
                 return validation;
             }
 
-            $"[SPAWN TRACKING] SpawnUnitAtPosition: unitId={unit.Id}, char={unit.CharacterTemplate?.DisplayName}, position param={position}, unit.MapGridPosition={unit.MapGridPosition}, prebattle={prebattle}".LogInfo();
-
             var worldPos = GetWorldPosition(position, prebattle);
 
             // Validate map grid and grid point to avoid silent spawns at Vector3.zero
@@ -118,18 +116,13 @@ namespace Turnroot.Gameplay.Brain
                 return OperationResult.Failure($"Invalid spawn grid point: {position}");
             }
 
-            // Ensure CharacterInstance has correct position for PREBATTLE visuals and precompute only.
-            // During an actual battle we rely on `BattleContext.SpawnAtPosition` (SpawnCommand)
-            // to set authoritative positions. Avoid overwriting MapGridPosition during battle-start
-            // to prevent competing writers.
             try
             {
                 if (prebattle)
                 {
                     unit.MapGridPosition = position;
                 }
-                // Mark as spawned during battle if this call is part of the battle flow.
-                if (!prebattle)
+                else
                 {
                     unit.WasSpawnedDuringBattle = true;
                 }
@@ -307,9 +300,7 @@ namespace Turnroot.Gameplay.Brain
             ownership.DisplayName = unit.CharacterTemplate.DisplayName;
             model.name = $"{unit.CharacterTemplate.DisplayName}_Model_{unit.Id}";
 
-            $"[SPAWN TRACKING] CreateAndPlaceModel: About to RegisterModel - unitId={unit.Id}, char={unit.CharacterTemplate?.DisplayName}, position={position}, model.name={model.name}".LogInfo();
-
-            // Register model with current source of truth (BattlePreparationObject or BattleGameObject)
+            // Register model
             var registerResult = RegisterModel(position, model, unit.Id);
             if (!registerResult.Success)
             {
