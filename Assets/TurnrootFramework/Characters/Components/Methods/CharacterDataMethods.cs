@@ -149,7 +149,10 @@ namespace Turnroot.Characters
                 foreach (var s in UnboundedStats)
                 {
                     if (s == null)
+                    {
                         continue;
+                    }
+
                     if (seen.Contains(s.StatType))
                     {
                         $"CharacterData.OnValidate: duplicate unbounded stat {s.StatType} in {name}".LogWarning();

@@ -37,10 +37,17 @@ namespace Turnroot.Gameplay.Brain
                 return OperationResult.Successful();
             }
 
-            var weaponInstance = TryInstantiatePrefab(weaponPrefab, model.transform, $"{equippedWeapon.Template.name}_Weapon", "AttachWeaponToUnit");
+            var weaponInstance = TryInstantiatePrefab(
+                weaponPrefab,
+                model.transform,
+                $"{equippedWeapon.Template.name}_Weapon",
+                "AttachWeaponToUnit"
+            );
             if (weaponInstance == null)
             {
-                return OperationResult.Failure($"Failed to instantiate weapon prefab for {unit.CharacterTemplate?.DisplayName}");
+                return OperationResult.Failure(
+                    $"Failed to instantiate weapon prefab for {unit.CharacterTemplate?.DisplayName}"
+                );
             }
 
             // Apply offset - since all models use the same rig structure,
@@ -82,10 +89,17 @@ namespace Turnroot.Gameplay.Brain
                 return OperationResult.Successful();
             }
 
-            var shieldInstance = TryInstantiatePrefab(shieldPrefab, model.transform, $"{equippedShield.Template.name}_Shield", "AttachShieldToUnit");
+            var shieldInstance = TryInstantiatePrefab(
+                shieldPrefab,
+                model.transform,
+                $"{equippedShield.Template.name}_Shield",
+                "AttachShieldToUnit"
+            );
             if (shieldInstance == null)
             {
-                return OperationResult.Failure($"Failed to instantiate shield prefab for {unit.CharacterTemplate?.DisplayName}");
+                return OperationResult.Failure(
+                    $"Failed to instantiate shield prefab for {unit.CharacterTemplate?.DisplayName}"
+                );
             }
 
             // Apply offset - since all models use the same rig structure,
@@ -120,17 +134,25 @@ namespace Turnroot.Gameplay.Brain
         public OperationResult UpdateUnitWeapon(CharacterInstance unit)
         {
             var validation = OperationResultGuards.RequireNotNull(unit, nameof(unit));
-            return !validation.Success ? validation
-                : !_unitModels.TryGetValue(unit.Id, out var model) ? OperationResult.Successful()
-                : AttachWeaponToUnit(unit, model);
+            if (!validation.Success)
+            {
+                return validation;
+            }
+
+            var model = GetModelForUnit(unit.Id);
+            return model == null ? OperationResult.Successful() : AttachWeaponToUnit(unit, model);
         }
 
         public OperationResult UpdateUnitShield(CharacterInstance unit)
         {
             var validation = OperationResultGuards.RequireNotNull(unit, nameof(unit));
-            return !validation.Success ? validation
-                : !_unitModels.TryGetValue(unit.Id, out var model) ? OperationResult.Successful()
-                : AttachShieldToUnit(unit, model);
+            if (!validation.Success)
+            {
+                return validation;
+            }
+
+            var model = GetModelForUnit(unit.Id);
+            return model == null ? OperationResult.Successful() : AttachShieldToUnit(unit, model);
         }
     }
 }

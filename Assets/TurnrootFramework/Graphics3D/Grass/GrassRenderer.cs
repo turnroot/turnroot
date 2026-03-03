@@ -150,11 +150,15 @@ public class GrassRenderer : MonoBehaviour
             || grassMaterial == null
             || _totalBladeCount == 0
         )
+        {
             return;
+        }
 
         Camera cam = GetRenderCamera();
         if (cam == null)
+        {
             return;
+        }
 
         DrawGroup(
             _allBladesBuffer,
@@ -167,8 +171,12 @@ public class GrassRenderer : MonoBehaviour
         );
 
         if (_extraGroups != null)
+        {
             foreach (var g in _extraGroups)
+            {
                 DrawGroup(g.all, g.visible, g.args, g.totalCount, _planeMesh, g.material, cam);
+            }
+        }
     }
 
     // ── Public API ────────────────────────────────────────────────────────────
@@ -182,10 +190,15 @@ public class GrassRenderer : MonoBehaviour
     public void AlignGroundTexture()
     {
         if (grassMaterial == null)
+        {
             return;
+        }
+
         var mf = GetComponent<MeshFilter>();
         if (mf == null || mf.sharedMesh == null)
+        {
             return;
+        }
 
         Bounds local = mf.sharedMesh.bounds;
         Vector3 worldMin = transform.TransformPoint(local.min);
@@ -203,12 +216,23 @@ public class GrassRenderer : MonoBehaviour
     Camera GetRenderCamera()
     {
         if (targetCamera != null && targetCamera.isActiveAndEnabled)
+        {
             return targetCamera;
+        }
+
         if (Camera.main != null)
+        {
             return Camera.main;
+        }
+
         foreach (var c in Camera.allCameras)
+        {
             if (c.isActiveAndEnabled)
+            {
                 return c;
+            }
+        }
+
         return null;
     }
 
@@ -216,10 +240,15 @@ public class GrassRenderer : MonoBehaviour
     void Init()
     {
         if (computeShader == null || grassMaterial == null)
+        {
             return;
+        }
+
         var mf = GetComponent<MeshFilter>();
         if (mf == null || mf.sharedMesh == null)
+        {
             return;
+        }
 
         ReleaseBuffers();
         DestroyMesh(ref _bladeMesh);
@@ -293,13 +322,17 @@ public class GrassRenderer : MonoBehaviour
         var (verts, tris, normals, uvs) = GetMeshArrays(mesh);
         var (cdf, totalArea) = BuildAreaCDF(verts, tris);
         if (totalArea <= 0f)
+        {
             return;
+        }
 
         bool hasMask = maskTexture != null && maskTexture.isReadable;
         int triCount = tris.Length / 3;
         int targetCount = Mathf.Min(Mathf.RoundToInt(totalArea * density), maxBlades);
         if (targetCount == 0)
+        {
             return;
+        }
 
         var blades = new List<BladeData>(targetCount);
         var bounds = new Bounds();
@@ -328,7 +361,9 @@ public class GrassRenderer : MonoBehaviour
                 maskVal = Mathf.Clamp01((raw - maskFloor) / Mathf.Max(1f - maskFloor, 0.0001f));
             }
             if (maskVal <= 0f)
+            {
                 continue;
+            }
 
             if (first)
             {
@@ -336,7 +371,9 @@ public class GrassRenderer : MonoBehaviour
                 first = false;
             }
             else
+            {
                 bounds.Encapsulate(pos);
+            }
 
             blades.Add(
                 new BladeData
@@ -353,7 +390,9 @@ public class GrassRenderer : MonoBehaviour
 
         _totalBladeCount = blades.Count;
         if (_totalBladeCount == 0)
+        {
             return;
+        }
 
         bounds.Expand(maxHeight * 4f);
         _drawBounds = bounds;
@@ -387,12 +426,16 @@ public class GrassRenderer : MonoBehaviour
             extraMaterials != null && extraMaterials.Count > 0 && unmaskedExtraDensity > 0f;
         bool hasMasked = maskedExtraMaterial != null && maskedExtraDensity > 0f;
         if (!hasUnmasked && !hasMasked)
+        {
             return;
+        }
 
         var (verts, tris, normals, uvs) = GetMeshArrays(mesh);
         var (cdf, totalArea) = BuildAreaCDF(verts, tris);
         if (totalArea <= 0f)
+        {
             return;
+        }
 
         int triCount = tris.Length / 3;
 
@@ -421,13 +464,22 @@ public class GrassRenderer : MonoBehaviour
             var rng2 = new System.Random(98765);
             var bins = new List<BladeData>[extraMaterials.Count];
             for (int i = 0; i < bins.Length; i++)
+            {
                 bins[i] = new List<BladeData>();
+            }
+
             foreach (var b in pool)
+            {
                 bins[rng2.Next(bins.Length)].Add(b);
+            }
 
             for (int i = 0; i < extraMaterials.Count; i++)
+            {
                 if (extraMaterials[i] != null && bins[i].Count > 0)
+                {
                     CreateExtraGroup(extraMaterials[i], bins[i]);
+                }
+            }
         }
 
         if (hasMasked)
@@ -451,7 +503,9 @@ public class GrassRenderer : MonoBehaviour
                 maskedExtraSize
             );
             if (blades.Count > 0)
+            {
                 CreateExtraGroup(maskedExtraMaterial, blades);
+            }
         }
     }
 
@@ -470,7 +524,9 @@ public class GrassRenderer : MonoBehaviour
     {
         var list = new List<BladeData>(Mathf.Max(count, 0));
         if (count <= 0)
+        {
             return list;
+        }
 
         var rng = new System.Random(12345);
         for (int attempt = 0; list.Count < count && attempt < count * 4; attempt++)
@@ -488,7 +544,10 @@ public class GrassRenderer : MonoBehaviour
                 out Vector2 uv
             );
             if (reject != null && reject(uv))
+            {
                 continue;
+            }
+
             list.Add(
                 new BladeData
                 {
@@ -507,7 +566,10 @@ public class GrassRenderer : MonoBehaviour
     void CreateExtraGroup(Material mat, List<BladeData> blades)
     {
         if (blades == null || blades.Count == 0)
+        {
             return;
+        }
+
         var g = new ExtraGroup
         {
             material = mat,
@@ -591,9 +653,13 @@ public class GrassRenderer : MonoBehaviour
         {
             int mid = (lo + hi) >> 1;
             if (cdf[mid] < r)
+            {
                 lo = mid + 1;
+            }
             else
+            {
                 hi = mid;
+            }
         }
 
         int i0 = tris[lo * 3],
@@ -674,12 +740,15 @@ public class GrassRenderer : MonoBehaviour
         Plane[] planes = GeometryUtility.CalculateFrustumPlanes(cam);
         var planeV4 = new Vector4[6];
         for (int i = 0; i < 6; i++)
+        {
             planeV4[i] = new Vector4(
                 planes[i].normal.x,
                 planes[i].normal.y,
                 planes[i].normal.z,
                 planes[i].distance
             );
+        }
+
         computeShader.SetInt("_TotalBladeCount", totalCount);
         computeShader.SetVectorArray("_FrustumPlanes", planeV4);
         computeShader.SetVector("_CameraPos", cam.transform.position);
@@ -716,10 +785,14 @@ public class GrassRenderer : MonoBehaviour
     void DestroyMesh(ref Mesh mesh)
     {
         if (mesh == null)
+        {
             return;
+        }
 #if UNITY_EDITOR
         if (!Application.isPlaying)
+        {
             DestroyImmediate(mesh);
+        }
         else
 #endif
             Destroy(mesh);

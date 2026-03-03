@@ -87,12 +87,45 @@ namespace Turnroot.Gameplay.Brain
         {
             _brain.OnSavePlayerRosterRequested += HandleSavePlayerRosterRequested;
             _brain.OnSavePlayerRosterRequestedWithTurn += HandleSavePlayerRosterRequestedWithTurn;
+            _brain.OnPreBattleCompleted += HandlePreBattleCompleted;
         }
 
         protected override void UnsubscribeFromBrainEvents()
         {
             _brain.OnSavePlayerRosterRequested -= HandleSavePlayerRosterRequested;
             _brain.OnSavePlayerRosterRequestedWithTurn -= HandleSavePlayerRosterRequestedWithTurn;
+            _brain.OnPreBattleCompleted -= HandlePreBattleCompleted;
+        }
+
+        private void HandlePreBattleCompleted()
+        {
+            // Save roster with unit selections and placements before battle starts
+            // First, update the runtime instance with placements from BattlePreparationObject
+            var prep = _brain?.battleBrain?.PreparationObject;
+            if (prep != null && prep.placements != null && prep.placements.Count > 0)
+            {
+                var runtimeInstance = _rosterManager?.GetPersistentPlayerRosterInstance();
+                if (runtimeInstance != null)
+                {
+                    // Convert placements dictionary to UnitPlacement array
+                    var placementList = new List<Characters.Roster.UnitPlacement>();
+                    foreach (var kvp in prep.placements)
+                    {
+                        placementList.Add(
+                            new Characters.Roster.UnitPlacement
+                            {
+                                CharacterData = kvp.Value,
+                                SpawnPosition = kvp.Key,
+                                Order = placementList.Count,
+                            }
+                        );
+                    }
+                    runtimeInstance.ApplyDecodedPlacements(placementList.ToArray());
+                }
+            }
+
+            // Use turn 1 since this is pre-battle (no battle turns yet)
+            SavePlayerRoster(1);
         }
         #endregion
 

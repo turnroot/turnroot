@@ -44,7 +44,6 @@ namespace Turnroot.Gameplay.Brain.Commands
 
             context.MapGrid.SetOccupied(newPoint, unit);
 
-            context.InvalidateUnitPositionCache();
             context.InvalidateUnitTileCache(unit);
             context.UpdateAdjacentUnits();
             context.UpdateTargetsInRange();

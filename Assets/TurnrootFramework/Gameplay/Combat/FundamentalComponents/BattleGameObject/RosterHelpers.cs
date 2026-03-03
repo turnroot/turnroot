@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using Turnroot.Characters;
 using Turnroot.Utilities;
 using UnityEngine;
@@ -14,13 +16,6 @@ namespace Turnroot.Gameplay.Combat
             if (!res.Success)
             {
                 return;
-            }
-
-            // SINGLE SOURCE OF TRUTH: Only ApplyPreBattlePlacements sets positions
-            res = ApplyPreBattlePlacements();
-            if (!res.Success)
-            {
-                this.LogWarning($"InitializeBattleRosters: {res.ErrorMessage}");
             }
         }
 
@@ -39,7 +34,7 @@ namespace Turnroot.Gameplay.Combat
                     PlayerTeamRoster.Clear();
                 }
 
-                // CRITICAL: Ensure roster has NO template reference that would override our placements
+                // Don't set roster template - positions come from placements only
                 PlayerTeamRoster.roster = null;
 
                 if (HasThirdParty)
@@ -64,52 +59,6 @@ namespace Turnroot.Gameplay.Combat
             }
         }
 
-        private OperationResult ApplyPreBattlePlacements()
-        {
-            try
-            {
-                var prep = Brain.battleBrain.PreparationObject;
-
-                if (prep == null)
-                {
-                    return OperationResult.Successful(); // Continue without prep placements
-                }
-
-                // If no pre-battle placements exist yet, InitializePlacements
-                if (prep.placements == null || prep.placements.Count == 0)
-                {
-                    var res = prep.InitializePlacements();
-                    if (!res.Success)
-                    {
-                        return res;
-                    }
-                }
-
-                if (prep.placements == null || prep.placements.Count == 0)
-                {
-                    return OperationResult.Successful();
-                }
-
-                var decoded = PreBattle.BattlePlacementSync.ToDecodedPlacementArray(
-                    prep.placements
-                );
-
-                if (decoded.Length > 0)
-                {
-                    PlayerTeamRoster.ApplyDecodedPlacements(decoded);
-                    $"BattleGameObject: ApplyPreBattlePlacements: Applied {decoded.Length} placements to PlayerTeamRoster".LogInfo();
-                    // Notify systems that placements have been applied for this battle (cursor, UI, etc.)
-                    Brain?.PublishPlacementsInitialized();
-                }
-
-                return OperationResult.Successful();
-            }
-            catch (System.Exception ex)
-            {
-                return OperationResult.Failure($"ApplyPreBattlePlacements failed: {ex.Message}");
-            }
-        }
-
         public OperationResult PopulateBattleRostersFromTemplates()
         {
             var battleBrain = Brain?.battleBrain;
@@ -125,9 +74,21 @@ namespace Turnroot.Gameplay.Combat
                 return OperationResult.Failure("Could not instantiate player team roster");
             }
 
-            // CRITICAL: Only add CharacterInstance objects. Do NOT set roster reference.
-            // Positions come ONLY from ApplyPreBattlePlacements.
-            PlayerTeamRoster.AddInstances(playerInstance.Instances);
+            // CRITICAL: Create battle copies of ONLY selected units
+            // This decouples battle roster from persistent roster
+            var selectedUnits = playerInstance
+                .Instances.Where(inst => inst != null && inst.IsSelectedForBattle)
+                .ToList();
+
+            var battleCopies = new List<CharacterInstance>();
+            foreach (var unit in selectedUnits)
+            {
+                battleCopies.Add(unit.CreateBattleCopy());
+            }
+
+            PlayerTeamRoster.AddInstances(battleCopies);
+
+            $"PopulateBattleRostersFromTemplates: Created {battleCopies.Count} battle copies from {playerInstance.Instances.Count} persistent roster units".LogInfo();
 
             if (HasThirdParty && _thirdPartyRoster != null)
             {

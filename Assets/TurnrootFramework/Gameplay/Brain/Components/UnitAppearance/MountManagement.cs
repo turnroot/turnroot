@@ -60,10 +60,12 @@ namespace Turnroot.Gameplay.Brain
             mountInstance.transform.localScale = unitModel.transform.localScale;
 
             // Set up animator - use MountAnimator if provided, otherwise use default
-            var animator = mountInstance.GetComponent<Animator>() ?? mountInstance.AddComponent<Animator>();
+            var animator =
+                mountInstance.GetComponent<Animator>() ?? mountInstance.AddComponent<Animator>();
 
             // Assign animator controller - prefer mount-specific, fall back to default
-            var controllerToUse = classData.Identity.MountAnimator ?? _settings?.DefaultUnitAnimatorController;
+            var controllerToUse =
+                classData.Identity.MountAnimator ?? _settings?.DefaultUnitAnimatorController;
 
             if (controllerToUse != null)
             {
@@ -72,7 +74,9 @@ namespace Turnroot.Gameplay.Brain
             else
             {
                 var displayName = unit.CharacterTemplate?.DisplayName ?? "<unknown>";
-                LogWarning($"No animator controller available for mount of {displayName}. Set MountAnimator on class or DefaultUnitAnimatorController in settings.");
+                LogWarning(
+                    $"No animator controller available for mount of {displayName}. Set MountAnimator on class or DefaultUnitAnimatorController in settings."
+                );
             }
 
             // Set up walk animation for the mount
@@ -110,11 +114,10 @@ namespace Turnroot.Gameplay.Brain
 
             var mountModel = unit.CurrentMountModel;
 
-            // Look up the actual unit model from the dictionary to ensure we have the correct reference
-            if (
-                !_unitModels.TryGetValue(unit.Id, out GameObject actualUnitModel)
-                || actualUnitModel == null
-            )
+            // Look up the actual unit model from BattlePreparationObject to ensure we have the correct reference
+            var prep = _brain.battleBrain.PreparationObject;
+            var actualUnitModel = prep?.GetModelForUnit(unit.Id);
+            if (actualUnitModel == null)
             {
                 return OperationResult.Failure(
                     $"Cannot dismount {unit.CharacterTemplate?.DisplayName}: unit model not found in registry"
@@ -159,7 +162,9 @@ namespace Turnroot.Gameplay.Brain
             if (mountToDestroy != null)
             {
                 // Re-parent the unit model back to the mount's parent before destroying the mount
-                if (_unitModels.TryGetValue(unit.Id, out GameObject unitModel) && unitModel != null)
+                var prep = _brain.battleBrain.PreparationObject;
+                var unitModel = prep?.GetModelForUnit(unit.Id);
+                if (unitModel != null)
                 {
                     // Preserve world transform
                     var mountParent = mountToDestroy.transform.parent;

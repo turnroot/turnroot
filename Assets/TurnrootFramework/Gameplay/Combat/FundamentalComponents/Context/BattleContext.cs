@@ -63,9 +63,6 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         public BattleParticipants Participants { get; private set; }
         public CombatFlags Flags { get; private set; }
 
-        // Cached unit positions so we don't have to query each unit every time
-        public Dictionary<Vector2Int, CharacterInstance> currentUnitPositions = new();
-
         // Cache of computed tiles per unit to avoid duplicate pathfinding work
         private readonly Dictionary<string, CachedTileData> _unitTilesCache = new();
 

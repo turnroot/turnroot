@@ -28,8 +28,6 @@ namespace Turnroot.Characters
     {
         #region Serialized Fields
         [NonSerialized]
-        // Initialize to an explicit invalid sentinel so newly-created instances don't default to (0,0),
-        // which previously produced transient duplicate/invald positions before spawn/placement.
         private Vector2Int _mapGridPosition = new(-9999, -9999);
 
         [NonSerialized]
@@ -175,6 +173,59 @@ namespace Turnroot.Characters
 
             _mapGridPosition = newPosition;
             return OperationResult.Successful();
+        }
+        #endregion
+
+
+        #region Battle Copy for Roster Decoupling
+
+        /// <summary>
+        /// Private parameterless constructor for CreateBattleCopy() only.
+        /// </summary>
+        private CharacterInstance() { }
+
+        /// <summary>
+        /// Creates a battle-specific copy of this instance for use in battle rosters.
+        /// Shares persistent data (stats, skills, template) but has isolated battle state (position, flags).
+        /// This prevents serialization of the persistent roster from corrupting active battle state.
+        /// </summary>
+        public CharacterInstance CreateBattleCopy()
+        {
+            var copy = new CharacterInstance();
+
+            copy._id = this._id;
+            copy._characterTemplate = this._characterTemplate;
+            copy.settings = this.settings;
+
+            copy._currentLevel = this._currentLevel;
+            copy._currentExp = this._currentExp;
+            copy._runtimeBoundedStats = this._runtimeBoundedStats;
+            copy._runtimeUnboundedStats = this._runtimeUnboundedStats;
+            copy._inventoryInstance = this._inventoryInstance;
+            copy._skillInstances = this._skillInstances;
+            copy._supportRelationships = this._supportRelationships;
+            copy._experienceRanks = this._experienceRanks;
+            copy._currentClass = this._currentClass;
+            copy._equippedClassHistory = this._equippedClassHistory;
+
+            copy._meshRenderer = this._meshRenderer;
+            copy._useBattleModel = this._useBattleModel;
+            copy._currentWeaponPrefab = this._currentWeaponPrefab;
+            copy._currentShieldPrefab = this._currentShieldPrefab;
+            copy._isMounted = this._isMounted;
+            copy._currentMountModel = this._currentMountModel;
+
+            // Battle-specific state (RESET for new battle)
+            copy._mapGridPosition = new Vector2Int(-9999, -9999);
+            copy._isDefeatedInCurrentBattle = false;
+            copy._wasSpawnedDuringBattle = false;
+            copy.IsSelectedForBattle = this.IsSelectedForBattle;
+            copy._activeStatusEffects = new List<StatusEffectInstance>();
+            copy.LastAttackedTarget = null;
+            copy.CurrentMovementSpline = null;
+            copy.WalkingSpeed = this.WalkingSpeed;
+
+            return copy;
         }
         #endregion
     }

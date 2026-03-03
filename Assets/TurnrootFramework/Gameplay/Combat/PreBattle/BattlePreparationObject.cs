@@ -92,6 +92,9 @@ namespace Turnroot.Gameplay.Combat.PreBattle
                 return OperationResult.Failure("EnvironmentalConditions not found");
             }
 
+            // Initialize placements dictionary
+            placements = new Dictionary<Vector2Int, CharacterData>();
+
             Brain?.PublishBattlePrepObjectInitialized(this);
             return OperationResult.Successful();
         }
@@ -100,75 +103,49 @@ namespace Turnroot.Gameplay.Combat.PreBattle
         [HideInInspector]
         public Dictionary<Vector2Int, CharacterData> placements;
 
-        // When true, placement updates should not be applied (used to prevent precompute from
-        // mutating placements during the authoritative roster initialization flow).
-        [HideInInspector]
-        public bool PlacementsLocked { get; set; } = false;
-
-        // Per-battle selection state: this is intentionally separate from CharacterInstance.IsSelectedForBattle
-        // so changing selections in the pre-battle UI does NOT mutate persistent roster selection state.
         private readonly HashSet<string> _battleSelectedIds = new();
-
-        private bool _isInitializingPlacements = false;
-        private bool _needsReinitialize = false;
 
         public OperationResult InitializePlacements()
         {
-            // If we're already initializing, mark that we need another pass and return quickly.
-            // This avoids re-entrant calls from PreBattle selection helper which publishes
-            // UnitSelectionChanged for each unit and can cause multiple partial runs.
-            if (_isInitializingPlacements)
+            var gw = Brain?.gamewideContextBrain;
+            var selectedUnits = gw?.GetSelectedForBattlePlayerTeamUnits();
+
+            if (selectedUnits == null || selectedUnits.Count == 0)
             {
-                _needsReinitialize = true;
-                return OperationResult.Successful();
+                placements = new Dictionary<Vector2Int, CharacterData>();
+                StartingPositionsComponent?.DespawnAllModels();
+                CurrentPlacementState = PlacementState.NonePlaced;
+                Brain?.PublishPlacementsInitialized();
+                return OperationResult.Failure("No units selected for battle");
             }
 
-            _isInitializingPlacements = true;
-            try
+            placements = new Dictionary<Vector2Int, CharacterData>();
+            var spawnIndex = 0;
+
+            foreach (var inst in selectedUnits)
             {
-                // Use gamewide selection as the single source of truth for which units are selected.
-                var gw = Brain?.gamewideContextBrain;
-                var selectedUnits = gw?.GetSelectedForBattlePlayerTeamUnits();
-
-                // If the player modified selections during this pre-battle session, honor the per-battle selections
-                var prep = Brain?.battleBrain.PreparationObject;
-
-                var persistent =
-                    gw?.GamewidePersistentPlayerRoster
-                    ?? gw?.CreateOrRecallGamewidePersistentPlayerRoster();
-                var runtimeInstance =
-                    persistent != null ? gw.GetOrCreatePlayerTeamRoster(persistent) : null;
-
-                if (TryUseRuntimePlacements(gw, persistent, runtimeInstance))
+                if (inst?.CharacterTemplate == null)
                 {
-                    return OperationResult.Successful();
+                    continue;
                 }
 
-                var computeResult = ComputeFinalSelectedUnits(
-                    gw,
-                    persistent,
-                    runtimeInstance,
-                    (BattlePreparationObject)prep
-                );
-                if (!computeResult.hasSelection)
+                if (spawnIndex >= PlayerTeamSpawnPoints.Count)
                 {
-                    return computeResult.failure;
+                    $"InitializePlacements: More units ({selectedUnits.Count}) than spawn points ({PlayerTeamSpawnPoints.Count})".LogWarning();
+                    break;
                 }
 
-                var finalSelected = computeResult.finalSelected;
-
-                ApplyPlacementsFromSelectedUnits(finalSelected);
-            }
-            finally
-            {
-                _isInitializingPlacements = false;
+                var spawnPos = PlayerTeamSpawnPoints[spawnIndex];
+                placements[spawnPos] = inst.CharacterTemplate;
+                spawnIndex++;
             }
 
-            if (_needsReinitialize)
-            {
-                _needsReinitialize = false;
-                return InitializePlacements();
-            }
+            CurrentPlacementState = PlacementState.DefaultPlaced;
+
+            // Store these as default placements for potential reset
+            StoreDefaultPlacements();
+
+            Brain?.PublishPlacementsInitialized();
 
             return OperationResult.Successful();
         }
@@ -236,25 +213,6 @@ namespace Turnroot.Gameplay.Combat.PreBattle
             }
         }
 
-        // Ensure placements dictionary exists before use
-        private void EnsurePlacementsExists()
-        {
-            placements ??= new Dictionary<Vector2Int, CharacterData>();
-        }
-
-        // Safe wrapper around publishing placements sync requests to centralize logging
-        private void SafePublishPlacementsSync(bool persist, bool forceApplyPlacementsOnLoad)
-        {
-            try
-            {
-                Brain?.PublishPlacementsSyncRequested(persist, forceApplyPlacementsOnLoad);
-            }
-            catch (System.Exception ex)
-            {
-                $"SafePublishPlacementsSync: PublishPlacementsSyncRequested failed: {ex.Message}".LogWarning();
-            }
-        }
-
         public bool IsBattleSelected(CharacterInstance inst) =>
             inst != null && _battleSelectedIds.Contains(inst.Id);
 
@@ -281,6 +239,10 @@ namespace Turnroot.Gameplay.Combat.PreBattle
                 _battleSelectedIds.Remove(inst.Id);
             }
 
+            // CRITICAL: Set the flag on the CharacterInstance object itself
+            // so that GetSelectedForBattlePlayerTeamUnits() can find it
+            inst.IsSelectedForBattle = selected;
+
             if (markChanged)
             {
                 _battleSelectionsChanged = true;
@@ -306,137 +268,73 @@ namespace Turnroot.Gameplay.Combat.PreBattle
             }
         }
 
-        // Sync handler
         private void HandlePlacementsSyncRequested(bool persist, bool forceApplyPlacementsOnLoad)
         {
-            if (PlacementsLocked && !persist)
-            {
-                return;
-            }
-
-            try
-            {
-                SyncPlacementsToRuntimeRoster(persist, forceApplyPlacementsOnLoad);
-            }
-            catch (System.Exception ex)
-            {
-                $"HandlePlacementsSyncRequested: SyncPlacementsToRuntimeRoster failed: {ex.Message}".LogWarning();
-            }
-
-            // Notify listeners that placements are initialized/updated after a successful sync.
+            // Simplified: no sync needed, placements live only in this object until battle starts
             Brain?.PublishPlacementsInitialized();
         }
 
-        // Reconcile model move events from the UI into authoritative prep placements.
         private void HandleModelMovedEvent(Brain.Events.ModelMovedEvent ev)
         {
-            if (ev == null)
+            if (ev == null || placements == null)
             {
                 return;
             }
 
-            try
+            var inst = ev.Unit;
+            if (inst == null && !string.IsNullOrEmpty(ev.UnitId))
             {
-                // Resolve instance if not provided
-                var inst = ev.Unit;
-                if (inst == null && !string.IsNullOrEmpty(ev.UnitId))
-                {
-                    var all = Brain?.gamewideContextBrain?.GetAllActiveInstances();
-                    inst = all?.FirstOrDefault(u => u != null && u.Id == ev.UnitId);
-                }
-
-                if (inst == null)
-                {
-                    return;
-                }
-
-                var data = inst.CharacterTemplate;
-                if (data == null)
-                {
-                    return;
-                }
-
-                // Ensure placements exists
-                EnsurePlacementsExists();
-
-                // If placement already matches the desired state, skip
-                if (placements.TryGetValue(ev.To, out var existing) && existing == data)
-                {
-                    return;
-                }
-
-                // Remove any old mapping for this template so we don't duplicate
-                var keysToRemove = new List<Vector2Int>();
-                foreach (var kvp in placements)
-                {
-                    if (kvp.Value == data && kvp.Key != ev.To)
-                    {
-                        keysToRemove.Add(kvp.Key);
-                    }
-                }
-                foreach (var k in keysToRemove)
-                {
-                    placements.Remove(k);
-                }
-
-                placements[ev.To] = data;
-                placements.Remove(ev.From);
-                CurrentPlacementState = PlacementState.PlayerPlaced;
-
-                SafePublishPlacementsSync(persist: false, forceApplyPlacementsOnLoad: false);
+                var allInstances = Brain?.gamewideContextBrain?.GetAllActiveInstances();
+                inst = allInstances?.FirstOrDefault(u => u != null && u.Id == ev.UnitId);
             }
-            catch { }
+
+            if (inst?.CharacterTemplate == null)
+            {
+                return;
+            }
+
+            placements.Remove(ev.From);
+            placements[ev.To] = inst.CharacterTemplate;
+            CurrentPlacementState = PlacementState.PlayerPlaced;
         }
 
         private void HandleModelSwappedEvent(Brain.Events.ModelSwappedEvent ev)
         {
-            if (ev == null)
+            if (ev == null || placements == null)
             {
                 return;
             }
 
-            try
+            var all = Brain?.gamewideContextBrain?.GetAllActiveInstances();
+            var instA = !string.IsNullOrEmpty(ev.UnitIdA)
+                ? all?.FirstOrDefault(u => u != null && u.Id == ev.UnitIdA)
+                : null;
+            var instB = !string.IsNullOrEmpty(ev.UnitIdB)
+                ? all?.FirstOrDefault(u => u != null && u.Id == ev.UnitIdB)
+                : null;
+
+            var dataA = instA?.CharacterTemplate;
+            var dataB = instB?.CharacterTemplate;
+
+            if (dataA != null)
             {
-                var all = Brain?.gamewideContextBrain?.GetAllActiveInstances();
-                CharacterInstance a = null,
-                    b = null;
-                if (!string.IsNullOrEmpty(ev.UnitIdA))
-                {
-                    a = all?.FirstOrDefault(u => u != null && u.Id == ev.UnitIdA);
-                }
-                if (!string.IsNullOrEmpty(ev.UnitIdB))
-                {
-                    b = all?.FirstOrDefault(u => u != null && u.Id == ev.UnitIdB);
-                }
-
-                var dataA = a?.CharacterTemplate;
-                var dataB = b?.CharacterTemplate;
-                EnsurePlacementsExists();
-
-                // Swap in placements dictionary
-                if (dataA != null)
-                {
-                    placements[ev.PosB] = dataA;
-                }
-                else
-                {
-                    placements.Remove(ev.PosB);
-                }
-
-                if (dataB != null)
-                {
-                    placements[ev.PosA] = dataB;
-                }
-                else
-                {
-                    placements.Remove(ev.PosA);
-                }
-
-                CurrentPlacementState = PlacementState.PlayerPlaced;
-
-                SafePublishPlacementsSync(persist: false, forceApplyPlacementsOnLoad: false);
+                placements[ev.PosB] = dataA;
             }
-            catch { }
+            else
+            {
+                placements.Remove(ev.PosB);
+            }
+
+            if (dataB != null)
+            {
+                placements[ev.PosA] = dataB;
+            }
+            else
+            {
+                placements.Remove(ev.PosA);
+            }
+
+            CurrentPlacementState = PlacementState.PlayerPlaced;
         }
 
         public List<CharacterInstance> GetBattleSelectedInstances()
@@ -504,19 +402,6 @@ namespace Turnroot.Gameplay.Combat.PreBattle
                 }
             }
             return list;
-        }
-
-        public void SyncPlacementsToRuntimeRoster(
-            bool persist,
-            bool forceApplyPlacementsOnLoad = false
-        )
-        {
-            BattlePlacementSync.ApplyPlacements(
-                Brain,
-                placements,
-                persist,
-                forceApplyPlacementsOnLoad
-            );
         }
     }
 }

@@ -54,9 +54,6 @@ namespace Turnroot.Gameplay.Combat.Precompute
                 yield break;
             }
 
-            // ensure positions are up-to-date (should already be correct)
-            context.GetCurrentUnitPositions(invalidateCache: true);
-
             var appearanceBrain = _brain.unitAppearanceBrain;
 
             // Only precompute units that were spawned/selected for this battle
@@ -207,11 +204,11 @@ namespace Turnroot.Gameplay.Combat.Precompute
                 }
             }
 
-            // Ensure LTM replacements are applied for spawned units
-            yield return EnsureLtmUnitsAreUsedRoutine(context);
+            // LTM unit replacement removed - placements are now managed by BattlePreparationObject
+            // and applied once at battle start via BattleBrain.ApplyPlacementsToBattle()
 
-            // Re-fetch spawned units from context in case replacements occurred
-            units = FilterSpawnedUnits(context?.Participants?.GetAllUnits());
+            // Ensure every spawned unit has a class assigned
+            yield return EnsureUnitsHaveClassesRoutine(context);
 
             // 1) Precompute movement caches
             yield return PrecomputeMovementCaches(context.MapGrid);
@@ -266,6 +263,19 @@ namespace Turnroot.Gameplay.Combat.Precompute
             UnitAppearanceBrain appearanceBrain
         )
         {
+            // Validate unit has a valid position (should be set by ApplyPlacementsToBattle before precompute)
+            var sentinel = new Vector2Int(-9999, -9999);
+            if (unit == null || unit.MapGridPosition == sentinel)
+            {
+                if (unit != null)
+                {
+                    $"BattlePrecomputeLoader: ERROR - Unit {unit.CharacterTemplate?.DisplayName} (id={unit.Id}) has invalid sentinel position! Position should have been set by ApplyPlacementsToBattle before precompute.".LogError();
+                }
+                yield break;
+            }
+
+            $"BattlePrecomputeLoader: Processing unit {unit.CharacterTemplate?.DisplayName} at position {unit.MapGridPosition} (id={unit.Id})".LogInfo();
+
             // ensure unit has a class before we attempt pathfinding/tiles; the roster
             // initialization flow may not have assigned one yet when the loader starts.
             if (unit.CurrentClass == null)
@@ -313,32 +323,11 @@ namespace Turnroot.Gameplay.Combat.Precompute
             IncrementProgress();
             yield return new WaitForSeconds(timeBetweenOperations);
 
-            // 3) Spawn model (skip visuals for units managed by EnemySupervisor; supervisor will notify UnitAppearanceBrain)
-            if (appearanceBrain != null)
-            {
-                var enemySupervisor =
-                    _brain.battleBrain.BattleObject.GetComponent<EnemySupervisor>();
-                var isSupervisorUnit =
-                    enemySupervisor != null
-                    && enemySupervisor.EnemyInstancesByStartingPlacement != null
-                    && enemySupervisor.EnemyInstancesByStartingPlacement.Values.Contains(unit);
-
-                if (!isSupervisorUnit)
-                {
-                    var spawnResult = appearanceBrain.PrecomputeSpawnModelAt(
-                        unit,
-                        unit.MapGridPosition,
-                        prebattle: false
-                    );
-                    if (!spawnResult.Success)
-                    {
-                        $"BattlePrecomputeLoader: Model spawn failed for unit {unit.Id}: {spawnResult.ErrorMessage}".LogWarning();
-                    }
-                }
-
-                IncrementProgress();
-                yield return new WaitForSeconds(timeBetweenOperations);
-            }
+            // 3) Model spawning is NOT precompute's responsibility!
+            // SINGLE SOURCE OF TRUTH: BattleBrain.SpawnRosterUnitsOntoGrid() → SpawnCommand → UnitSpawnedEvent → HandleUnitSpawnedEvent
+            // Precompute runs AFTER models are already spawned. This step is intentionally removed to maintain
+            // architectural clarity and prevent duplicate spawning that corrupts model-to-unit mappings.
+            // Precompute should ONLY handle AI initialization, pathfinding, and caching - NOT model spawning.
 
             // 4) Precompute weapon / inventory summary used by AI evaluations
             var weapResult = context.PrecomputeWeaponInfoForUnit(unit);

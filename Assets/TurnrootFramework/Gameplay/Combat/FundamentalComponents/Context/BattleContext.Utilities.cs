@@ -42,102 +42,59 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
         public void SetCustomData(string key, object value) => CustomData[key] = value;
 
+        /// <summary>
+        /// Get current unit positions by directly querying CharacterInstance.MapGridPosition.
+        /// No caching, no repair - positions are always current.
+        /// </summary>
         public Dictionary<Vector2Int, CharacterInstance> GetCurrentUnitPositions(
             bool invalidateCache = false
         )
         {
-            if (!invalidateCache && currentUnitPositions.Count > 0)
-            {
-                return currentUnitPositions;
-            }
-
-            currentUnitPositions.Clear();
+            var positions = new Dictionary<Vector2Int, CharacterInstance>();
             var allUnits = Participants.GetAllUnits();
-            this.LogInfo($"GetCurrentUnitPositions: Building cache with {allUnits.Count} units");
+
             foreach (var unit in allUnits)
             {
-                var result = ValidateAndRepairUnitPosition(unit);
-                if (!result.Success)
+                if (unit == null)
+                {
+                    continue;
+                }
+
+                var pos = unit.MapGridPosition;
+
+                // Skip invalid sentinel positions
+                var sentinel = new Vector2Int(-9999, -9999);
+                if (pos == sentinel)
                 {
                     this.LogWarning(
-                        $"GetCurrentUnitPositions: Skipping {unit.CharacterTemplate.DisplayName}; {result.ErrorMessage}"
+                        $"GetCurrentUnitPositions: Unit {unit.CharacterTemplate?.DisplayName} has invalid sentinel position"
                     );
                     continue;
                 }
 
-                if (currentUnitPositions.ContainsKey(unit.MapGridPosition))
+                // Validate position is on grid
+                var gridPoint = MapGrid?.GetGridPoint(pos.x, pos.y);
+                if (gridPoint == null)
                 {
                     this.LogWarning(
-                        $"GetCurrentUnitPositions: Duplicate MapGridPosition detected for {unit.CharacterTemplate.DisplayName} at {unit.MapGridPosition}, skipping duplicate"
+                        $"GetCurrentUnitPositions: Unit {unit.CharacterTemplate?.DisplayName} has invalid position {pos}"
                     );
                     continue;
                 }
-                currentUnitPositions[unit.MapGridPosition] = unit;
-            }
-            return currentUnitPositions;
-        }
 
-        private OperationResult ValidateAndRepairUnitPosition(CharacterInstance unit)
-        {
-            var notNullResult = OperationResultGuards.RequireNotNull(unit, nameof(unit));
-            if (!notNullResult.Success)
-            {
-                return notNullResult;
-            }
-
-            var mgp = unit.UnitPositionToMapGridPoint(unit.MapGridPosition, MapGrid);
-            if (mgp != null)
-            {
-                return OperationResult.Successful();
-            }
-
-            var sentinel = new Vector2Int(-9999, -9999);
-            if (unit.MapGridPosition == sentinel)
-            {
-                this.LogWarning(
-                    $"GetCurrentUnitPositions: Unit {unit.CharacterTemplate.DisplayName} has uninitialized MapGridPosition (sentinel). Attempting roster-based repair."
-                );
-            }
-
-            var repairResult = TryRepairUnitPositionFromRoster(unit);
-            if (!repairResult.Success)
-            {
-                return OperationResult.Failure(
-                    $"GetCurrentUnitPositions: Skipping unit {unit.CharacterTemplate.DisplayName} with invalid MapGridPosition={unit.MapGridPosition}. {repairResult.ErrorMessage}"
-                );
-            }
-
-            mgp = unit.UnitPositionToMapGridPoint(unit.MapGridPosition, MapGrid);
-            return mgp == null
-                ? OperationResult.Failure(
-                    $"GetCurrentUnitPositions: Skipping unit {unit.CharacterTemplate.DisplayName} with invalid MapGridPosition={unit.MapGridPosition}"
-                )
-                : OperationResult.Successful();
-        }
-
-        private OperationResult TryRepairUnitPositionFromRoster(CharacterInstance unit)
-        {
-            var bb = Brain?.battleBrain;
-            var battleObj = bb?.BattleObject;
-            var roster = battleObj?.PlayerTeamRoster;
-            if (roster == null)
-            {
-                return OperationResult.Failure("No PlayerTeamRoster available");
-            }
-
-            var placements = roster.GetPlacements();
-            foreach (var p in placements)
-            {
-                if (p.CharacterData == unit.CharacterTemplate)
+                // Skip duplicates (shouldn't happen in correct system)
+                if (positions.ContainsKey(pos))
                 {
                     this.LogWarning(
-                        $"GetCurrentUnitPositions: Repairing {unit.CharacterTemplate.DisplayName} MapGridPosition from {unit.MapGridPosition} to {p.SpawnPosition}"
+                        $"GetCurrentUnitPositions: Duplicate position {pos} detected for {unit.CharacterTemplate?.DisplayName}"
                     );
-                    unit.MapGridPosition = p.SpawnPosition;
-                    return OperationResult.Successful();
+                    continue;
                 }
+
+                positions[pos] = unit;
             }
-            return OperationResult.Failure("No matching placement found in roster");
+
+            return positions;
         }
 
         /// <summary>

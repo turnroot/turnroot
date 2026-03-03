@@ -236,9 +236,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles.NPCs
 
                             if (UnityEngine.Random.Range(0f, 100f) <= entry.Chance)
                             {
-                                var itemInst = new Objects.ObjectItemInstance(
-                                    entry.Item
-                                );
+                                var itemInst = new Objects.ObjectItemInstance(entry.Item);
                                 instance.InventoryInstance?.AddToInventory(itemInst);
                                 // optional equip heuristics
                                 if (
@@ -259,22 +257,10 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles.NPCs
                 }
             }
 
-            var appearance = BattleGameObject.Brain.unitAppearanceBrain;
-            foreach (var kv in EnemyInstancesByStartingPlacement)
-            {
-                var placement = kv.Key;
-                var instance = kv.Value;
-
-                var spawnRes = appearance.PrecomputeSpawnModelAt(
-                    instance,
-                    placement.StartingPosition,
-                    prebattle: false
-                );
-                if (!spawnRes.Success)
-                {
-                    $"EnemySupervisor: UnitAppearance precompute failed for {instance.Id}: {spawnRes.ErrorMessage}".LogWarning();
-                }
-            }
+            // Models are already spawned via the event-driven architecture:
+            // EnsureAndSpawnEnemyInstance → SpawnAtPosition → SpawnCommand → UnitSpawnedEvent → HandleUnitSpawnedEvent
+            // No need to call PrecomputeSpawnModelAt here - that would duplicate models and corrupt mappings.
+            // SINGLE SOURCE OF TRUTH: SpawnCommand is the only entry point for spawning.
         }
     }
 }

@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Linq;
 using Turnroot.Characters.Components;
 using Turnroot.Gameplay.Combat;
 using Turnroot.Gameplay.Maps;
@@ -348,55 +349,53 @@ namespace Turnroot.Gameplay.Brain.Segments
                 return;
             }
 
-            var playerRoster = battleObject.PlayerTeamRoster;
-            var placements = playerRoster?.GetPlacements();
-            if (placements == null || placements.Length == 0)
+            var prep = Brain.battleBrain.PreparationObject;
+            var placements = prep?.placements;
+            if (placements == null || placements.Count == 0)
             {
-                "[CAMERA] HandleBattleStarted: no player placements found, falling back to neutral center".LogInfo();
+                "[CAMERA] HandleBattleStarted: no placements in prep object, using neutral center".LogInfo();
                 var center = SetBattleGridCameraNeutralCenter();
                 Brain.PublishCursorMoveRequested(center);
                 ComputeTargetPosition(center);
-                // Snap camera immediately to center at battle start to ensure initial centering is visible.
                 if (_battleMapCamera != null)
                 {
                     _battleMapCamera.transform.position = _targetCameraPosition;
                 }
                 _shouldMove = true;
-
-                $"[CAMERA] Requested cursor move and starting camera follow for center {center}".LogInfo();
+                $"[CAMERA] Starting camera at center {center}".LogInfo();
                 return;
             }
 
             Vector2Int targetPos = Vector2Int.zero;
             bool found = false;
-            foreach (var p in placements)
+            foreach (var kvp in placements)
             {
-                if (p == null || p.CharacterData == null)
+                var spawnPosition = kvp.Key;
+                var characterData = kvp.Value;
+                if (characterData == null)
                 {
                     continue;
                 }
-                if (p.CharacterData.Which == CharacterWhich.AVATAR)
+                if (characterData.Which == CharacterWhich.AVATAR)
                 {
-                    targetPos = p.SpawnPosition;
+                    targetPos = spawnPosition;
                     found = true;
                     break;
                 }
             }
-            if (!found)
+            if (!found && placements.Count > 0)
             {
-                targetPos = placements[0].SpawnPosition;
+                targetPos = placements.Keys.First();
             }
 
             Brain.PublishCursorMoveRequested(targetPos);
             ComputeTargetPosition(targetPos);
-            // Snap camera immediately to the active unit spawn position at battle start so the player sees it.
             if (_battleMapCamera != null)
             {
                 _battleMapCamera.transform.position = _targetCameraPosition;
             }
             _shouldMove = true;
-
-            $"[CAMERA] Requested cursor move and starting camera follow for {targetPos}".LogInfo();
+            $"[CAMERA] Starting camera at {targetPos}".LogInfo();
         }
 
         private void HandleCursorMoved(Vector2Int gridPos)

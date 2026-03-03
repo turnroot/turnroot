@@ -72,7 +72,8 @@ namespace Turnroot.Gameplay.Brain
             List<Vector3> path
         )
         {
-            if (!_unitModels.TryGetValue(character.Id, out var unitModel) || unitModel == null)
+            var unitModel = GetModelForUnit(character.Id);
+            if (unitModel == null)
             {
                 LogWarning($"No model for {character.Id}");
                 Brain.PublishMoveAnimationCompleted(character);

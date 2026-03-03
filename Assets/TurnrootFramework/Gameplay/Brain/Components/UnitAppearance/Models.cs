@@ -9,8 +9,11 @@ namespace Turnroot.Gameplay.Brain
     /// </summary>
     public partial class UnitAppearanceBrain
     {
-        public GameObject GetModelForUnit(string unitId) =>
-            _unitModels.TryGetValue(unitId, out var model) ? model : null;
+        public GameObject GetModelForUnit(string unitId)
+        {
+            var prep = _brain.battleBrain.PreparationObject;
+            return prep?.GetModelForUnit(unitId);
+        }
 
         public GameObject CreateModelForUnit(CharacterInstance unit, GameObject root = null)
         {

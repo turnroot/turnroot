@@ -123,11 +123,6 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         /// </summary>
         public bool Progress()
         {
-            // publish turn‑begin on the very first progression call (battle start)
-            // BattleBrain.CurrentTurnNumber is zero until we bump it when the first
-            // player phase begins.  This mirrors the behaviour in ProgressToNextPhase
-            // but guarantees the event fires even before we ever cycle through a
-            // full turn order.
             if (
                 battleBrain != null
                 && battleBrain.CurrentTurnNumber == 0
@@ -149,6 +144,13 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             _currentRosterIndex++;
 
             var units = GetCurrentRosterUnits();
+            if (units.Count == 0)
+            {
+                // this isn't possible, so this is a safety check to avoid infinite loops if something goes wrong with roster population
+                "TurnRotisserie: No units found in current roster!".LogError();
+                Debug.Break();
+                return false;
+            }
             while (_currentRosterIndex < units.Count)
             {
                 var unit = units[_currentRosterIndex];

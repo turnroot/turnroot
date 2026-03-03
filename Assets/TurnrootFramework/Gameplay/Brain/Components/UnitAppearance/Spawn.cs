@@ -11,6 +11,72 @@ namespace Turnroot.Gameplay.Brain
     /// </summary>
     public partial class UnitAppearanceBrain
     {
+        #region Model Tracking Helpers - Delegate to BattlePreparationObject
+
+        private GameObject GetModelAtPosition(Vector2Int position)
+        {
+            var prep = _brain.battleBrain.PreparationObject;
+            return prep?.GetModelAtPosition(position);
+        }
+
+        private OperationResult RegisterModel(Vector2Int position, GameObject model, string unitId)
+        {
+            var prep = _brain.battleBrain.PreparationObject;
+            if (prep == null)
+            {
+                return OperationResult.Failure("No model tracking source available");
+            }
+
+            return prep.RegisterModel(position, model, unitId);
+        }
+
+        private OperationResult UnregisterModelAtPosition(Vector2Int position)
+        {
+            var prep = _brain.battleBrain.PreparationObject;
+            if (prep == null)
+            {
+                return OperationResult.Failure("No model tracking source available");
+            }
+
+            return prep.UnregisterModelAtPosition(position);
+        }
+
+        private OperationResult UnregisterModelForUnit(string unitId)
+        {
+            var prep = _brain.battleBrain.PreparationObject;
+            if (prep == null)
+            {
+                return OperationResult.Failure("No model tracking source available");
+            }
+
+            return prep.UnregisterModelForUnit(unitId);
+        }
+
+        private string GetUnitIdAtPosition(Vector2Int position)
+        {
+            var prep = _brain.battleBrain.PreparationObject;
+            return prep?.GetUnitIdAtPosition(position);
+        }
+
+        private Vector2Int? GetPositionForUnit(string unitId)
+        {
+            var prep = _brain.battleBrain.PreparationObject;
+            return prep?.GetPositionForUnit(unitId);
+        }
+
+        private OperationResult UpdateModelPosition(Vector2Int oldPosition, Vector2Int newPosition)
+        {
+            var prep = _brain.battleBrain.PreparationObject;
+            if (prep == null)
+            {
+                return OperationResult.Failure("No model tracking source available");
+            }
+
+            return prep.UpdateModelPosition(oldPosition, newPosition);
+        }
+
+        #endregion
+
         public OperationResult SpawnUnitAtPosition(
             CharacterInstance unit,
             Vector2Int position,
@@ -22,6 +88,8 @@ namespace Turnroot.Gameplay.Brain
             {
                 return validation;
             }
+
+            $"[SPAWN TRACKING] SpawnUnitAtPosition: unitId={unit.Id}, char={unit.CharacterTemplate?.DisplayName}, position param={position}, unit.MapGridPosition={unit.MapGridPosition}, prebattle={prebattle}".LogInfo();
 
             var worldPos = GetWorldPosition(position, prebattle);
 
@@ -76,7 +144,9 @@ namespace Turnroot.Gameplay.Brain
             // Recompute exact world position using validated MapGrid
             worldPos = mapGrid.GetTerrainAdjustedWorldPosition(position);
 
-            if (_unitModels.TryGetValue(unit.Id, out var existingModel))
+            // Check if model already exists (queries current source of truth)
+            var existingModel = GetModelForUnit(unit.Id);
+            if (existingModel != null)
             {
                 return MoveExistingModel(unit, existingModel, position, worldPos);
             }
@@ -99,7 +169,7 @@ namespace Turnroot.Gameplay.Brain
             }
 
             // If model already exists, don't try to move it - precompute is just for setup
-            return _unitModels.ContainsKey(unit.Id)
+            return GetModelForUnit(unit.Id) != null
                 ? OperationResult.Successful()
                 : SpawnUnitAtPosition(unit, position, prebattle);
         }
@@ -112,46 +182,45 @@ namespace Turnroot.Gameplay.Brain
                 return validation;
             }
 
-            if (!_unitModels.TryGetValue(unitId, out var model))
+            // Get model from current source of truth
+            var model = GetModelForUnit(unitId);
+            if (model == null)
             {
                 return OperationResult.Failure($"No model found for unit {unitId}");
             }
 
-            var position = _modelPositions.FirstOrDefault(kvp => kvp.Value == unitId).Key;
-            if (position != default)
+            var position = GetPositionForUnit(unitId);
+
+            var unit = Brain
+                .gamewideContextBrain.GetAllActiveInstances()
+                .FirstOrDefault(u => u != null && u.Id == unitId);
+
+            if (unit != null)
             {
-                _modelPositions.Remove(position);
+                ClearWeaponFromUnit(unit);
+                ClearMountFromUnit(unit);
             }
 
-            if (model != null)
-            {
-                var unit = Brain
-                    .gamewideContextBrain.GetAllActiveInstances()
-                    .FirstOrDefault(u => u != null && u.Id == unitId);
+            Brain.Publish(new ModelDespawnedEvent(unit, unitId, position ?? default, model));
 
-                if (unit != null)
-                {
-                    ClearWeaponFromUnit(unit);
-                    ClearMountFromUnit(unit);
-                }
+            model.SetActive(false);
+            Destroy(model);
 
-                Brain.Publish(new ModelDespawnedEvent(unit, unitId, position, model));
+            // Unregister from current source of truth
+            UnregisterModelForUnit(unitId);
 
-                model.SetActive(false);
-                Destroy(model);
-            }
-
-            _unitModels.Remove(unitId);
             return OperationResult.Successful();
         }
 
         public OperationResult DespawnUnitAtPosition(Vector2Int position)
         {
-            if (!_modelPositions.TryGetValue(position, out var unitId))
+            var unitId = GetUnitIdAtPosition(position);
+            if (string.IsNullOrEmpty(unitId))
             {
                 LogWarning("No model found at position");
                 return OperationResult.Successful();
             }
+
             return DespawnUnit(unitId);
         }
 
@@ -162,18 +231,26 @@ namespace Turnroot.Gameplay.Brain
             Vector3 worldPos
         )
         {
-            var oldPosition = _modelPositions.FirstOrDefault(kvp => kvp.Value == unit.Id).Key;
-            if (oldPosition != default)
+            var oldPosition = GetPositionForUnit(unit.Id);
+            if (oldPosition.HasValue)
             {
-                _modelPositions.Remove(oldPosition);
+                // Update position tracking in current source of truth
+                var updateResult = UpdateModelPosition(oldPosition.Value, newPosition);
+                if (!updateResult.Success)
+                {
+                    $"MoveExistingModel: Failed to update model position: {updateResult.ErrorMessage}".LogWarning();
+                }
+            }
+            else
+            {
+                // Model wasn't registered, register it now
+                RegisterModel(newPosition, model, unit.Id);
             }
 
             ClearPositionIfOccupied(newPosition);
 
             var facingRotation = GetInitialFacingRotation(unit, worldPos);
             model.transform.SetPositionAndRotation(worldPos, facingRotation);
-
-            _modelPositions[newPosition] = unit.Id;
 
             if (model.TryGetComponent<UnitModelOwnership>(out var ownership))
             {
@@ -230,8 +307,17 @@ namespace Turnroot.Gameplay.Brain
             ownership.DisplayName = unit.CharacterTemplate.DisplayName;
             model.name = $"{unit.CharacterTemplate.DisplayName}_Model_{unit.Id}";
 
-            _unitModels[unit.Id] = model;
-            _modelPositions[position] = unit.Id;
+            $"[SPAWN TRACKING] CreateAndPlaceModel: About to RegisterModel - unitId={unit.Id}, char={unit.CharacterTemplate?.DisplayName}, position={position}, model.name={model.name}".LogInfo();
+
+            // Register model with current source of truth (BattlePreparationObject or BattleGameObject)
+            var registerResult = RegisterModel(position, model, unit.Id);
+            if (!registerResult.Success)
+            {
+                Destroy(model);
+                return OperationResult.Failure(
+                    $"Failed to register model: {registerResult.ErrorMessage}"
+                );
+            }
 
             ApplyVisuals(unit, model);
 
@@ -257,7 +343,8 @@ namespace Turnroot.Gameplay.Brain
 
         private void ClearPositionIfOccupied(Vector2Int position)
         {
-            if (_modelPositions.TryGetValue(position, out var occupyingUnitId))
+            var occupyingUnitId = GetUnitIdAtPosition(position);
+            if (!string.IsNullOrEmpty(occupyingUnitId))
             {
                 // Another unit is at this position - despawn it
                 DespawnUnit(occupyingUnitId);
@@ -295,7 +382,8 @@ namespace Turnroot.Gameplay.Brain
                     continue; // same team
                 }
 
-                if (!_unitModels.TryGetValue(other.Id, out var otherModel) || otherModel == null)
+                var otherModel = GetModelForUnit(other.Id);
+                if (otherModel == null)
                 {
                     continue; // not yet spawned
                 }

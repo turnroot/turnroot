@@ -83,16 +83,8 @@ namespace Turnroot.UI.Components
                     continue;
                 }
 
-                var model = _prepObject.Brain.unitAppearanceBrain.GetModelForUnit(unitInst.Id);
-                if (model != null)
-                {
-                    _unitModels[placement.Key] = model;
-                    $"SpawnAllUnitModels: Model spawned for {data?.DisplayName ?? "<no-data>"} at {placement.Key}".LogInfo();
-                }
-                else
-                {
-                    $"SpawnAllUnitModels: Model spawned but not found for {data?.DisplayName ?? "<no-data>"} at {placement.Key}".LogWarning();
-                }
+                // UnitAppearanceBrain is now the sole owner of model tracking - no need to store here
+                $"SpawnAllUnitModels: Model spawned for {data?.DisplayName ?? "<no-data>"} at {pos}".LogInfo();
             }
         }
 
@@ -136,36 +128,51 @@ namespace Turnroot.UI.Components
 
         internal void DespawnExistingModels_Impl()
         {
-            if (_unitModels.Count == 0 || _prepObject.Brain == null)
+            if (_prepObject?.Brain == null || _prepObject.placements == null)
             {
                 return;
             }
 
-            var positions = _unitModels.Keys.ToList();
-            foreach (var pos in positions)
+            var gw = _prepObject.Brain.gamewideContextBrain;
+            if (gw == null)
             {
-                _prepObject.Brain.unitAppearanceBrain.DespawnUnitAtPosition(pos);
+                return;
+            }
+
+            // Get all unit IDs from placements and despawn their models
+            foreach (var placement in _prepObject.placements)
+            {
+                var inst = gw.FindInstanceByTemplate(placement.Value);
+                if (inst != null && !string.IsNullOrEmpty(inst.Id))
+                {
+                    _prepObject.Brain.unitAppearanceBrain.DespawnUnit(inst.Id);
+                }
             }
         }
 
         public void DespawnAllModels_Internal()
         {
-            if (_unitModels == null || _unitModels.Count == 0)
+            if (_prepObject?.placements == null)
             {
                 return;
             }
 
-            var positions = _unitModels.Keys.ToList();
-            foreach (var pos in positions)
+            var gw = _prepObject.Brain?.gamewideContextBrain;
+            if (gw == null)
             {
-                if (_prepObject?.Brain != null)
+                return;
+            }
+
+            // Despawn all models by getting unit IDs from placements
+            foreach (var placement in _prepObject.placements)
+            {
+                var inst = gw.FindInstanceByTemplate(placement.Value);
+                if (inst != null && !string.IsNullOrEmpty(inst.Id))
                 {
-                    _prepObject.Brain.unitAppearanceBrain.DespawnUnitAtPosition(pos);
-                }
-                else if (_unitModels.TryGetValue(pos, out var model) && model != null)
-                {
-                    DestroyModel(model);
-                    _unitModels.Remove(pos);
+                    if (_prepObject.Brain != null)
+                    {
+                        _prepObject.Brain.unitAppearanceBrain.DespawnUnit(inst.Id);
+                    }
                 }
             }
         }

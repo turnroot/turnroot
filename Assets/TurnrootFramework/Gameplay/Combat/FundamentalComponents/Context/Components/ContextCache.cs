@@ -8,7 +8,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 {
     public partial class BattleContext : MonoBehaviour
     {
-        public void InvalidateUnitPositionCache() => currentUnitPositions.Clear();
+        // Position cache removed - GetCurrentUnitPositions now queries directly from units
 
         /// <summary>
         /// Get or compute valid tiles for a unit. Results are cached and automatically

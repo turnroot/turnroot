@@ -33,6 +33,8 @@ namespace Turnroot.Gameplay.Brain.Commands
                 return false;
             }
 
+            $"[SPAWN TRACKING] SpawnCommand.Execute: unitId={unit.Id}, char={unit.CharacterTemplate?.DisplayName}, SpawnPosition={SpawnPosition}, unit.MapGridPosition BEFORE={unit.MapGridPosition}".LogInfo();
+
             // Record previous map position so Undo can restore it if needed
             UndoState[UndoStateKeys.From] = unit.MapGridPosition;
             UndoState[UndoStateKeys.WasSpawned] = true;
@@ -44,13 +46,16 @@ namespace Turnroot.Gameplay.Brain.Commands
             if (result.Success)
             {
                 unit.WasSpawnedDuringBattle = true;
-                // MapGrid.SetOccupied is authoritative and aligns the instance position. Do not set MapGridPosition directly here.
+                // MapGrid.SetOccupied is authoritative and aligns the instance position
 
-                // Invalidate position cache after spawning
-                context.InvalidateUnitPositionCache();
-
+                $"[SPAWN TRACKING] Publishing UnitSpawnedEvent: unitId={unit.Id}, char={unit.CharacterTemplate?.DisplayName}, SpawnPosition={SpawnPosition}, unit.MapGridPosition AFTER={unit.MapGridPosition}".LogInfo();
                 context.Brain.Publish(new Events.UnitSpawnedEvent(unit, SpawnPosition));
-                context.Brain.TakeSnapshot();
+
+                // Only take snapshot if battle is fully initialized (not during initial setup)
+                if (!context.Brain.battleBrain.IsInitializing)
+                {
+                    context.Brain.TakeSnapshot();
+                }
             }
             return result.Success;
         }
@@ -84,7 +89,12 @@ namespace Turnroot.Gameplay.Brain.Commands
                 }
 
                 context.Brain.Publish(new Events.UnitDespawnedEvent(unit, SpawnPosition));
-                context.Brain.TakeSnapshot();
+
+                // Only take snapshot if battle is fully initialized
+                if (!context.Brain.battleBrain.IsInitializing)
+                {
+                    context.Brain.TakeSnapshot();
+                }
             }
             return result.Success;
         }

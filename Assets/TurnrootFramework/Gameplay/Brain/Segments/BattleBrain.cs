@@ -31,8 +31,6 @@ namespace Turnroot.Gameplay.Brain
         public PlayerTurnFlow playerTurnFlow;
 
         private BattleContextAIHelper _aiHelper;
-
-        // helper for passive skill execution
         private BattleStartSkillExecutor _skillExecutor;
         #endregion
 
@@ -40,6 +38,12 @@ namespace Turnroot.Gameplay.Brain
 
         [HideInInspector]
         public bool IsInputEnabled = true;
+
+        /// <summary>
+        /// True during battle initialization (before precompute completes).
+        /// Used to prevent premature snapshots during initial unit spawn.
+        /// </summary>
+        public bool IsInitializing { get; private set; } = true;
 
         public BattleGameObject BattleObject { get; private set; }
         public Combat.PreBattle.BattlePreparationObject PreparationObject { get; private set; }
@@ -80,9 +84,18 @@ namespace Turnroot.Gameplay.Brain
             playerTurnFlow = GetComponent<PlayerTurnFlow>();
             playerTurnFlow.Intialize();
 
-            // create and subscribe skill executor
             _skillExecutor = new BattleStartSkillExecutor(this);
             _skillExecutor.SubscribeToEvents();
+
+            Brain.OnPrecomputeCompleted += HandlePrecomputeCompleted;
+        }
+
+        private void HandlePrecomputeCompleted()
+        {
+            "BattleBrain: Precompute completed, taking initial snapshot".LogInfo();
+
+            IsInitializing = false;
+            _brain.TakeSnapshot();
         }
 
         private void Start()
@@ -104,6 +117,7 @@ namespace Turnroot.Gameplay.Brain
         protected override void OnDestroy()
         {
             _skillExecutor?.UnsubscribeFromEvents();
+            Brain.OnPrecomputeCompleted -= HandlePrecomputeCompleted;
             base.OnDestroy();
         }
 
@@ -118,12 +132,19 @@ namespace Turnroot.Gameplay.Brain
                 return;
             }
 
+            // Despawn pre-battle positioning models to avoid confusion with battle models
+            PreparationObject?.StartingPositionsComponent?.DespawnAllModels();
+
+            // Start in initializing mode (prevents premature snapshots)
+            IsInitializing = true;
+
             InitializeBattleRosters();
-            PublishBattleEvents();
+            Brain.PublishBattleObjectSet(BattleObject);
+            Brain.PublishBattleStarted();
             ClearUnitBattleState();
+
             InitializeAdvancedSystems();
             InitializePrecomputeLoader();
-            SaveInitialRosterPlacements();
             StartPlayerTurn();
         }
 
@@ -140,15 +161,8 @@ namespace Turnroot.Gameplay.Brain
             BattleObject.Brain = _brain;
             BattleObject.ConnectToBrainEvents();
             BattleObject.ConnectBattleConditionsToContext();
-            BattleObject.Context.InvalidateUnitPositionCache();
 
             return true;
-        }
-
-        private void PublishBattleEvents()
-        {
-            Brain.PublishBattleObjectSet(BattleObject);
-            Brain.PublishBattleStarted();
         }
 
         private void ClearUnitBattleState()
@@ -169,8 +183,7 @@ namespace Turnroot.Gameplay.Brain
         {
             // Clear any previous battle's command history
             _brain.Commands?.Clear();
-            // Take initial snapshot of battle state
-            _brain.TakeSnapshot();
+            // Initial snapshot is taken AFTER precompute completes (see HandlePrecomputeCompleted)
         }
 
         private void InitializePrecomputeLoader()
@@ -187,10 +200,6 @@ namespace Turnroot.Gameplay.Brain
                 }
                 else
                 {
-                    // The loader is now tied to the current battle context and roster
-                    // placements have already been applied by this point (InitializeBattleRosters
-                    // is called before we reach here).  Kick off the precompute run to avoid
-                    // any race with scene‑flow timings that might start the loader earlier.
                     precomputeLoader.ForceStartPrecomputeIfPossible();
                 }
             }
@@ -289,130 +298,163 @@ namespace Turnroot.Gameplay.Brain
 
         private OperationResult InitializeBattleRosters()
         {
-            // 1. Create empty runtime roster instances
             BattleObject.InitializeBattleRosters();
 
-            // 2. Populate rosters from templates and persistent data
+            // CRITICAL: Ensure units are selected for battle BEFORE creating battle copies
+            // This handles cases where battle is started without going through pre-battle UI
+            EnsureUnitsSelectedForBattle();
+
             var result = BattleObject.PopulateBattleRostersFromTemplates();
             if (!result.Success)
             {
                 return result;
             }
 
-            // Align pre-battle placement references with the roster's canonical instances so the
-            // hand-off from starting positions -> start battle is deterministic and single-sourced.
-            try
-            {
-                var prep = PreparationObject;
-                var playerRoster = BattleObject?.PlayerTeamRoster;
-                if (prep != null)
-                {
-                    // Prevent precompute from mutating placements while we align/persist/spawn.
-                    prep.PlacementsLocked = true;
-                }
-
-                if (prep?.placements != null && playerRoster != null)
-                {
-                    var keys = prep.placements.Keys.ToList();
-                    foreach (var pos in keys)
-                    {
-                        var data = prep.placements[pos];
-                        if (data == null)
-                        {
-                            continue;
-                        }
-
-                        var inst =
-                            playerRoster.GetInstanceFor(data)
-                            ?? Brain.gamewideContextBrain?.FindInstanceByTemplate(data);
-                        if (inst == null)
-                        {
-                            $"BattleBrain: Placement at {pos} references {data.name} which has no active instance; roster/spawn may create it at start.".LogInfo();
-                        }
-                    }
-
-                    // Persist the corrected placements to LTM so start-battle reads are authoritative.
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-                    try
-                    {
-                        var dbg = "";
-                        foreach (var kvp in prep.placements)
-                        {
-                            dbg += $"[{kvp.Key}->{kvp.Value?.name}] ";
-                        }
-                        $"BattleBrain: placement alignment pre-sync: {dbg}".LogInfo();
-                    }
-                    catch { }
-#endif
-                    try
-                    {
-                        Brain?.PublishPlacementsSyncRequested(
-                            persist: true,
-                            forceApplyPlacementsOnLoad: false
-                        );
-                    }
-                    catch (System.Exception ex)
-                    {
-                        "BattleBrain: Failed to PublishPlacementsSyncRequested after alignment: ".LogWarning();
-                        ex.Message.LogWarning();
-                    }
-
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-                    // Dev assertion: ensure placements reference character templates that exist in runtime roster or active instances.
-                    try
-                    {
-                        foreach (var kvp in prep.placements)
-                        {
-                            var dataCheck = kvp.Value;
-                            if (dataCheck == null)
-                            {
-                                continue;
-                            }
-                            var instCheck =
-                                playerRoster.GetInstanceFor(dataCheck)
-                                ?? Brain.gamewideContextBrain?.FindInstanceByTemplate(dataCheck);
-                            if (instCheck == null)
-                            {
-                                $"BattleBrain Assertion: Placement {dataCheck.name} at {kvp.Key} has no runtime instance after alignment".LogWarning();
-                                Debug.Assert(
-                                    instCheck != null,
-                                    $"Placement {dataCheck.name} at {kvp.Key} has no runtime instance after alignment"
-                                );
-                            }
-                        }
-                    }
-                    catch { }
-#endif
-                }
-            }
-            catch (System.Exception ex)
-            {
-                "BattleBrain: Placement alignment failed: ".LogWarning();
-                ex.Message.LogWarning();
-            }
+            // CRITICAL: Set positions BEFORE populating context, so participants have valid positions
+            ApplyPlacementsToBattle();
 
             var populateResult = PopulateBattleContextParticipants();
             if (!populateResult.Success)
             {
-                $"Failed to populate battle context during roster initialization: {populateResult.ErrorMessage}".LogError();
+                $"Failed to populate battle context: {populateResult.ErrorMessage}".LogError();
                 return populateResult;
             }
 
             SpawnRosterUnitsOntoGrid();
 
-            // Unlock placements after we've completed authoritative roster initialization and spawning.
-            try
-            {
-                var prep = PreparationObject;
-                if (prep != null)
-                {
-                    prep.PlacementsLocked = false;
-                }
-            }
-            catch { }
-
             _aiHelper = new BattleContextAIHelper(BattleObject.Context);
             return OperationResult.Successful();
+        }
+
+        /// <summary>
+        /// Ensures at least some units are selected for battle before creating battle copies.
+        /// Called automatically if battle is started without pre-battle UI.
+        /// </summary>
+        private void EnsureUnitsSelectedForBattle()
+        {
+            var gw = Brain.gamewideContextBrain;
+            var prep = PreparationObject;
+
+            if (gw == null || prep == null)
+            {
+                return;
+            }
+
+            var persistentRoster =
+                gw.GamewidePersistentPlayerRoster
+                ?? gw.CreateOrRecallGamewidePersistentPlayerRoster();
+            if (persistentRoster == null)
+            {
+                return;
+            }
+
+            var rosterInstance = gw.GetOrCreatePlayerTeamRoster(persistentRoster);
+
+            // Check if any units are already selected
+            var selectedUnits = gw.GetSelectedForBattlePlayerTeamUnits();
+            if (selectedUnits != null && selectedUnits.Count > 0)
+            {
+                // Units already selected, no need to auto-select
+                return;
+            }
+
+            // Auto-select default units (required units + auto-fill from roster)
+            PreBattleSelectionHelper.EnsureDefaultPreBattleSelections(
+                Brain,
+                persistentRoster,
+                rosterInstance,
+                prep.MaxPlayerTeamUnits,
+                prep.RequiredPlayerUnits
+            );
+
+            // Initialize placements so ApplyPlacementsToBattle has data
+            prep.InitializePlacements();
+        }
+
+        /// <summary>
+        /// Reads placements from BattlePreparationObject and writes positions to CharacterInstance.MapGridPosition.
+        /// This is the single authoritative transfer from Starting Positions phase to Battle phase.
+        /// </summary>
+        private void ApplyPlacementsToBattle()
+        {
+            var prep = PreparationObject;
+            var playerRoster = BattleObject?.PlayerTeamRoster;
+
+            if (playerRoster == null)
+            {
+                "ApplyPlacementsToBattle: No player roster".LogWarning();
+                return;
+            }
+
+            // If we have placements from the pre-battle UI, use them
+            if (prep?.placements != null && prep.placements.Count > 0)
+            {
+                $"ApplyPlacementsToBattle: Applying {prep.placements.Count} placements from prep object".LogInfo();
+
+                foreach (var kvp in prep.placements)
+                {
+                    var pos = kvp.Key;
+                    var data = kvp.Value;
+                    if (data == null)
+                    {
+                        $"ApplyPlacementsToBattle: Null CharacterData at position {pos}".LogWarning();
+                        continue;
+                    }
+
+                    var inst =
+                        playerRoster.GetInstanceFor(data)
+                        ?? Brain.gamewideContextBrain?.FindInstanceByTemplate(data);
+
+                    if (inst == null)
+                    {
+                        $"ApplyPlacementsToBattle: No instance for {data.name} at {pos}".LogWarning();
+                        continue;
+                    }
+
+                    inst.MapGridPosition = pos;
+                }
+                return;
+            }
+
+            // Fallback: No placements, position units at spawn points directly
+            "ApplyPlacementsToBattle: No placements found, using spawn points fallback".LogWarning();
+
+            var spawnPoints = BattleObject?.MapGrid?.PlayerTeamSpawnPoints;
+            if (spawnPoints == null || spawnPoints.Count == 0)
+            {
+                "ApplyPlacementsToBattle: No spawn points available".LogError();
+                return;
+            }
+
+            var instances = playerRoster.Instances;
+            if (instances == null || instances.Count == 0)
+            {
+                "ApplyPlacementsToBattle: No instances in player roster".LogWarning();
+                return;
+            }
+
+            $"ApplyPlacementsToBattle: Positioning {instances.Count} units at {spawnPoints.Count} spawn points".LogInfo();
+
+            var spawnIndex = 0;
+            foreach (var inst in instances)
+            {
+                if (inst == null)
+                {
+                    continue;
+                }
+
+                if (spawnIndex >= spawnPoints.Count)
+                {
+                    $"ApplyPlacementsToBattle: More units ({instances.Count}) than spawn points ({spawnPoints.Count})".LogWarning();
+                    break;
+                }
+
+                var pos = spawnPoints[spawnIndex];
+                var oldPos = inst.MapGridPosition;
+                inst.MapGridPosition = pos;
+                var newPos = inst.MapGridPosition;
+                spawnIndex++;
+            }
         }
 
         private OperationResult PopulateBattleContextParticipants()
@@ -436,6 +478,7 @@ namespace Turnroot.Gameplay.Brain
             {
                 if (!unit.IsDefeatedInCurrentBattle)
                 {
+                    $"PopulateBattleContextParticipants: Adding {unit.CharacterTemplate?.DisplayName} at position {unit.MapGridPosition} (id={unit.Id})".LogInfo();
                     context.Participants.Allies.Add(unit);
                 }
             }
@@ -514,7 +557,6 @@ namespace Turnroot.Gameplay.Brain
                 mapGrid.RemoveOccupied(oldPoint);
                 mapGrid.SetOccupied(newPoint, unit);
                 BattleObject.Context.InvalidateUnitTileCache(unit);
-                BattleObject.Context.InvalidateUnitPositionCache();
 
                 if (BattleObject.Context.Unit?.UnitInstance == unit)
                 {

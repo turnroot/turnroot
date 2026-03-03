@@ -14,15 +14,11 @@ namespace Turnroot.Gameplay.Brain
     /// </summary>
     public partial class UnitAppearanceBrain : BrainComponent
     {
-        internal void LogWarning(string message) =>
-            $"UnitAppearanceBrain: {message}".LogWarning();
+        internal void LogWarning(string message) => $"UnitAppearanceBrain: {message}".LogWarning();
 
-        internal void LogError(string message) =>
-            $"UnitAppearanceBrain: {message}".LogError();
+        internal void LogError(string message) => $"UnitAppearanceBrain: {message}".LogError();
 
         private GameplayGeneralSettings _settings;
-        private Dictionary<string, GameObject> _unitModels = new();
-        private Dictionary<Vector2Int, string> _modelPositions = new();
         private Dictionary<string, GameObject> _mountModels = new();
 
         protected override EventPriority GetSubscriptionPriority() => EventPriority.Low;
@@ -69,9 +65,7 @@ namespace Turnroot.Gameplay.Brain
         private void HandleBattleObjectSet(BattleGameObject battleObject) => HandleBattleStarted();
 
         /// <summary>
-        /// Keeps <see cref="_modelPositions"/> in sync after a pre-battle unit swap so that
-        /// position-based operations (e.g. <see cref="DespawnUnitAtPosition"/>) resolve to the
-        /// correct unit after positions have been exchanged.
+        /// Keeps model tracking in sync after a pre-battle unit swap.
         /// </summary>
         private void HandleModelSwappedEvent(ModelSwappedEvent ev)
         {
@@ -80,100 +74,29 @@ namespace Turnroot.Gameplay.Brain
                 return;
             }
 
-            // Swap the two position→id entries so _modelPositions reflects the new layout.
-            var hasA = _modelPositions.TryGetValue(ev.PosA, out var idAtA);
-            var hasB = _modelPositions.TryGetValue(ev.PosB, out var idAtB);
-
-            if (hasA) _modelPositions[ev.PosB] = idAtA;
-            else      _modelPositions.Remove(ev.PosB);
-
-            if (hasB) _modelPositions[ev.PosA] = idAtB;
-            else      _modelPositions.Remove(ev.PosA);
+            // Delegate to BattlePreparationObject for all model tracking
+            var prep = Brain.battleBrain.PreparationObject;
+            if (prep != null)
+            {
+                var result = prep.SwapModelPositions(ev.PosA, ev.PosB);
+                if (!result.Success)
+                {
+                    $"HandleModelSwappedEvent: Failed to swap model positions: {result.ErrorMessage}".LogWarning();
+                }
+            }
         }
 
         private OperationResult HandleBattleStarted()
         {
-            ClearAllModels();
+            // ARCHITECTURAL BOUNDARY: This method no longer needs to clear models.
+            // Pre-battle models are despawned by BattleBrain.HandleStartBattle() line 137 BEFORE battle models spawn.
+            // By the time this method runs, SpawnRosterUnitsOntoGrid() has already spawned battle models.
+            // Any models in dictionaries at this point are the BATTLE models - do NOT clear them!
+            //
+            // SINGLE SOURCE OF TRUTH for model spawning:
+            // BattleBrain.SpawnRosterUnitsOntoGrid() → SpawnCommand → UnitSpawnedEvent → HandleUnitSpawnedEvent → SpawnUnitAtPosition
 
-            var roster =
-                Brain.battleBrain.PlayerTeamRoster
-                ?? Brain.battleBrain.BattleObject.PlayerTeamRoster;
-
-            var validation = OperationResultGuards.RequireNotNull(roster, nameof(roster));
-            if (!validation.Success)
-            {
-                return validation;
-            }
-
-            var placements = roster.GetPlacements();
-
-            if (placements == null || placements.Length == 0)
-            {
-                "HandleBattleStarted: roster has no placements".LogInfo();
-            }
-
-            foreach (var placement in placements)
-            {
-                var instance = roster.GetInstanceFor(placement.CharacterData);
-                if (instance == null)
-                {
-                    // Instances may be missing in some initialization scenarios; this is informational.
-                    $"No instance for template {placement.CharacterData.DisplayName}".LogInfo();
-                    continue;
-                }
-
-                // Try to use the authoritative BattleContext spawn so map occupancy and
-                // MapGridPosition are consistently set via the SpawnCommand. If that succeeds
-                // we will create visuals via SpawnUnitAtPosition without overwriting positions later.
-                var spawnedByContext =
-                    Brain.battleBrain.BattleObject.Context != null
-                    && Brain.battleBrain.BattleObject.Context.SpawnAtPosition(
-                        instance,
-                        placement.SpawnPosition
-                    );
-                if (!spawnedByContext)
-                {
-                    // Fallback: try to set occupancy directly on the MapGrid so the authoritative grid state & instance position remain consistent.
-                    var map = Brain.battleBrain.BattleObject.MapGrid;
-                    var mgp = map.GetGridPoint(
-                        placement.SpawnPosition.x,
-                        placement.SpawnPosition.y
-                    );
-                    if (mgp != null)
-                    {
-                        var setRes = map.SetOccupied(mgp, instance);
-                        if (setRes.Success)
-                        {
-                            // Mirror SpawnCommand semantics for spawned units.
-                            instance.WasSpawnedDuringBattle = true;
-
-                            // ensure the unit is registered in participants so that
-                            // subsequent command lookups (and targeting logic) work.
-                            Brain.battleBrain?.BattleObject?.Context?.EnsureUnitIsParticipant(
-                                instance
-                            );
-
-                            // Publish the authoritative UnitSpawnedEvent so visual systems react consistently.
-                            Brain.Publish(new UnitSpawnedEvent(instance, placement.SpawnPosition));
-                        }
-                        else
-                        {
-                            $"HandleBattleStarted: MapGrid.SetOccupied failed for {instance.CharacterTemplate.DisplayName} at {placement.SpawnPosition}: {setRes.ErrorMessage}".LogInfo();
-                        }
-                    }
-                    else
-                    {
-                        // Missing map grid point can happen during early initialization; log as informational.
-
-                        $"HandleBattleStarted: Context spawn failed for {instance.CharacterTemplate.DisplayName} at {placement.SpawnPosition}; MapGrid missing grid point, skipping visual spawn.".LogInfo();
-                    }
-                }
-                else
-                {
-                    // Visuals will be created by the UnitSpawnedEvent handler (reactive to authoritative spawn).
-                }
-            }
-
+            $"HandleBattleStarted: Battle models already spawned by SpawnRosterUnitsOntoGrid()".LogInfo();
             return OperationResult.Successful();
         }
 
@@ -203,19 +126,23 @@ namespace Turnroot.Gameplay.Brain
             }
             // Note: ClearMountFromUnit already destroys mounts and removes them from _mountModels
 
-            foreach (var model in _unitModels.Values.ToList())
+            var prep = Brain.battleBrain.PreparationObject;
+            if (prep != null)
             {
-                if (model != null)
+                foreach (var (position, model, unitId) in prep.GetAllModels())
                 {
-                    model.SetActive(false);
-                    Destroy(model);
+                    if (model != null)
+                    {
+                        model.SetActive(false);
+                        Destroy(model);
+                    }
                 }
+                // Clear all tracking in BattlePreparationObject
+                prep.ClearAllModelTracking();
             }
 
-            // Clear dictionaries
-            _unitModels.Clear();
+            // Clear mount models
             _mountModels.Clear();
-            _modelPositions.Clear();
         }
 
         private void HandleItemEquipped(
@@ -283,7 +210,7 @@ namespace Turnroot.Gameplay.Brain
             }
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
 
-            $"HandleUnitSpawnedEvent: unit={evt.Unit?.Id}, char={evt.Unit?.CharacterTemplate?.DisplayName}, pos={evt.SpawnPosition}".LogInfo();
+            $"[SPAWN TRACKING] HandleUnitSpawnedEvent: unit={evt.Unit?.Id}, char={evt.Unit?.CharacterTemplate?.DisplayName}, evt.SpawnPosition={evt.SpawnPosition}, unit.MapGridPosition={evt.Unit?.MapGridPosition}".LogInfo();
 #endif
 
             // Create or move model for the spawned unit. This will use existing model if present.
@@ -296,6 +223,3 @@ namespace Turnroot.Gameplay.Brain
         }
     }
 }
-
-
-

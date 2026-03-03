@@ -334,8 +334,7 @@ namespace Turnroot.Gameplay.Brain
         {
             var currentState = _playerTurnFlow?.GetCurrentState() ?? PlayerTurnStates.Inactive;
 
-            $"BattleInputControllerBrain: Handling Confirm Input. Current PlayerTurnState is {currentState}"
-        .LogInfo();
+            $"BattleInputControllerBrain: Handling Confirm Input. Current PlayerTurnState is {currentState}".LogInfo();
 
             _terrainTypeOverlay.ResetDisplay();
 
@@ -348,7 +347,7 @@ namespace Turnroot.Gameplay.Brain
                 case PlayerTurnStates.NoUnitSelected:
                     if (unitAtCursor != null && BattleContext.IsPlayerControlledUnit(unitAtCursor))
                     {
-                        _playerTurnFlow.SelectUnit();
+                        _playerTurnFlow.SelectUnit(unitAtCursor);
                         ChangeSelectedUnit(unitAtCursor);
                     }
                     else
@@ -409,7 +408,7 @@ namespace Turnroot.Gameplay.Brain
                 var current = BattleContext.Unit.UnitInstance;
                 if (current == null || current != unitAtCursor)
                 {
-                    _playerTurnFlow.SelectUnit();
+                    _playerTurnFlow.SelectUnit(unitAtCursor);
                     ChangeSelectedUnit(unitAtCursor);
                 }
                 else
@@ -476,4 +475,3 @@ namespace Turnroot.Gameplay.Brain
         #endregion
     }
 }
-

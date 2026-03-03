@@ -22,7 +22,6 @@ namespace Turnroot.UI.Components
         public UnitCellDataOnly SwapUnit;
 
         private MapGrid _mapGrid;
-        private Dictionary<Vector2Int, GameObject> _unitModels = new();
         private BattlePreparationObject _prepObject;
         private bool _replaced = false;
         private bool _gridPointsEnsured = false;
@@ -237,8 +236,7 @@ namespace Turnroot.UI.Components
 
             // Primary work (cleanup + spawn) is performed by SpawnAllUnitModels_Impl.
 
-            $"SpawnAllUnitModels: spawn points={_prepObject.PlayerTeamSpawnPoints.Count}, placements={_prepObject.placements.Count}"
-        .LogInfo();
+            $"SpawnAllUnitModels: spawn points={_prepObject.PlayerTeamSpawnPoints.Count}, placements={_prepObject.placements.Count}".LogInfo();
         }
 
         private void CleanupOrphanedModels() => CleanupOrphanedModels_Impl();
@@ -263,11 +261,8 @@ namespace Turnroot.UI.Components
 
         private void RemoveModelMapping(GameObject model)
         {
-            var keys = _unitModels.Where(kvp => kvp.Value == model).Select(kvp => kvp.Key).ToList();
-            foreach (var key in keys)
-            {
-                _unitModels.Remove(key);
-            }
+            // No-op: UnitAppearanceBrain now owns all model tracking
+            // This method is kept for compatibility with CleanupOrphanedModels but does nothing
         }
 
         public void ReplaceBy(StartingPositions newOwner)
@@ -285,51 +280,71 @@ namespace Turnroot.UI.Components
 
         public void DespawnAllModels()
         {
-            if (_unitModels == null || _unitModels.Count == 0)
+            if (_prepObject?.placements == null || _prepObject.placements.Count == 0)
             {
                 return;
             }
 
-            var positions = _unitModels.Keys.ToList();
-            foreach (var pos in positions)
+            var gw = _prepObject.Brain?.gamewideContextBrain;
+            if (gw == null)
             {
-                if (_prepObject?.Brain != null)
+                return;
+            }
+
+            // Despawn all models by getting unit IDs from placements (source of truth)
+            foreach (var placement in _prepObject.placements)
+            {
+                var inst = gw.FindInstanceByTemplate(placement.Value);
+                if (inst != null && !string.IsNullOrEmpty(inst.Id))
                 {
-                    _prepObject.Brain.unitAppearanceBrain.DespawnUnitAtPosition(pos);
-                }
-                else if (_unitModels.TryGetValue(pos, out var model) && model != null)
-                {
-                    DestroyModel(model);
-                    _unitModels.Remove(pos);
+                    if (_prepObject.Brain != null)
+                    {
+                        _prepObject.Brain.unitAppearanceBrain.DespawnUnit(inst.Id);
+                    }
                 }
             }
         }
 
         public OperationResult SwapModels(Vector2Int posA, Vector2Int posB)
         {
-            if (_unitModels == null)
-            {
-                return OperationResult.Failure("No unit models to swap");
-            }
-
+            // Get unit IDs from placements (source of truth)
             if (
-                !_unitModels.TryGetValue(posA, out var modelA)
-                || !_unitModels.TryGetValue(posB, out var modelB)
+                !_prepObject.placements.TryGetValue(posA, out var dataA)
+                || !_prepObject.placements.TryGetValue(posB, out var dataB)
             )
             {
-                return OperationResult.Failure("One or both positions do not have unit models");
+                return OperationResult.Failure("One or both positions do not have placements");
             }
+
+            // Find instances for these templates
+            var gw = _prepObject.Brain?.gamewideContextBrain;
+            if (gw == null)
+            {
+                return OperationResult.Failure("No gamewide context available");
+            }
+
+            var instA = gw.FindInstanceByTemplate(dataA);
+            var instB = gw.FindInstanceByTemplate(dataB);
+
+            if (instA == null || instB == null)
+            {
+                return OperationResult.Failure("Could not find instances for one or both units");
+            }
+
+            // Get models from UnitAppearanceBrain (single source of truth for models)
+            var modelA = _prepObject.Brain.unitAppearanceBrain.GetModelForUnit(instA.Id);
+            var modelB = _prepObject.Brain.unitAppearanceBrain.GetModelForUnit(instB.Id);
 
             if (modelA == null || modelB == null)
             {
                 return OperationResult.Failure("One or both unit models are null");
             }
 
-            _unitModels[posA] = modelB;
-            _unitModels[posB] = modelA;
-
+            // Move transforms to swapped positions
             UpdateModelPosition(modelA, posB);
             UpdateModelPosition(modelB, posA);
+
+            // Publish event so UnitAppearanceBrain can update its tracking
             PublishSwapEvent(modelA, modelB, posA, posB);
 
             return OperationResult.Successful();
@@ -337,15 +352,27 @@ namespace Turnroot.UI.Components
 
         public OperationResult MoveModel(Vector2Int from, Vector2Int to)
         {
-            if (_unitModels == null)
+            // Get unit data from placements (source of truth)
+            if (!_prepObject.placements.TryGetValue(from, out var data))
             {
-                return OperationResult.Failure("No unit models to move");
+                return OperationResult.Failure("Source position does not have a placement");
             }
 
-            if (!_unitModels.TryGetValue(from, out var model))
+            // Find instance for this template
+            var gw = _prepObject.Brain?.gamewideContextBrain;
+            if (gw == null)
             {
-                return OperationResult.Failure("Source position does not have a unit model");
+                return OperationResult.Failure("No gamewide context available");
             }
+
+            var inst = gw.FindInstanceByTemplate(data);
+            if (inst == null)
+            {
+                return OperationResult.Failure("Could not find instance for unit");
+            }
+
+            // Get model from UnitAppearanceBrain (single source of truth for models)
+            var model = _prepObject.Brain.unitAppearanceBrain.GetModelForUnit(inst.Id);
 
             var validation = OperationResultGuards.RequireNotNull(model, nameof(model));
             if (!validation.Success)
@@ -353,10 +380,10 @@ namespace Turnroot.UI.Components
                 return validation;
             }
 
-            _unitModels.Remove(from);
-            _unitModels[to] = model;
-
+            // Move transform to new position
             UpdateModelPosition(model, to);
+
+            // Publish event so UnitAppearanceBrain can update its tracking
             PublishMoveEvent(model, from, to);
 
             return OperationResult.Successful();
@@ -369,5 +396,3 @@ namespace Turnroot.UI.Components
         }
     }
 }
-
-

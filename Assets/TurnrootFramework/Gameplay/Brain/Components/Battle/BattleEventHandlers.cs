@@ -88,15 +88,12 @@ namespace Turnroot.Gameplay.Brain
 
         private void HandleUnitMoved(CharacterInstance unit, Vector2Int targetPosition)
         {
-            // Rebuild cached unit positions in BattleContext whenever a unit moves
-            BattleObject.Context.InvalidateUnitPositionCache();
-            // Also invalidate per-unit tile cache when a unit moves
+            // Invalidate per-unit tile cache when a unit moves
             BattleObject.Context.InvalidateUnitTileCache(unit);
         }
 
         private void HandleUnitDefeated(CharacterInstance unit)
         {
-            BattleObject.Context.InvalidateUnitPositionCache();
             BattleObject.Context.InvalidateUnitTileCache(unit);
         }
 

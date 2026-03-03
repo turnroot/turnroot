@@ -93,8 +93,9 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
             );
         }
 
-        public void SelectUnit()
+        public void SelectUnit(CharacterInstance unit)
         {
+            _activePlayerUnit = unit; // Update active to the selected unit
             TransitionAndPublish(
                 PlayerTurnStates.UnitSelected,
                 () => _battleBrain.Brain.PublishPlayerControlledUnitActivated(_activePlayerUnit)

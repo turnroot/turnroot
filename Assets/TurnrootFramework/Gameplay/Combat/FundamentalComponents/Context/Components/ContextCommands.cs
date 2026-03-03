@@ -38,6 +38,8 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 return false;
             }
 
+            $"[SPAWN TRACKING] BattleContext.SpawnAtPosition: unitId={unit.Id}, char={unit.CharacterTemplate?.DisplayName}, spawnPosition param={spawnPosition}, unit.MapGridPosition={unit.MapGridPosition}".LogInfo();
+
             // make sure the unit is registered with the context so the
             // SpawnCommand can locate it by id during execution.  This also
             // establishes the unit's allegiance for targeting logic.

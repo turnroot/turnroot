@@ -203,7 +203,6 @@ namespace Turnroot.Gameplay.Brain
                 return;
             }
 
-            // Optionally snap cursor to activated unit's position in battle
             var unitPos = unit.MapGridPosition;
             var gridPoint = _currentMap.GetGridPoint(unitPos.x, unitPos.y);
 
