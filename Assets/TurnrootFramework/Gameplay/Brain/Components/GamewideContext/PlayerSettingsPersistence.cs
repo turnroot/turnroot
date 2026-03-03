@@ -235,6 +235,8 @@ namespace Turnroot.Gameplay.Brain
                             var quant = Mathf.Round(q * 10f) / 10f;
                             quant = Mathf.Clamp(quant, 0f, 0.3f);
                             PlayerSettings.Quality = quant;
+                            // Notify subscribers that graphics quality changed
+                            _brain.CentralBrain?.PublishGraphicsQualityChanged();
                         }
                         break;
                     case "subtitles":

@@ -25,6 +25,10 @@ namespace Turnroot.Gameplay.Brain
             PlayerSettings.GameplayPlayerSettings.InputControlType newType
         ) => OnInputControlTypeChanged.Invoke(newType);
 
+        public event Action OnGraphicsQualityChanged;
+
+        public void PublishGraphicsQualityChanged() => OnGraphicsQualityChanged?.Invoke();
+
         #endregion
     }
 }

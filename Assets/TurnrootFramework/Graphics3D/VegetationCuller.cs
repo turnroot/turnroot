@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Turnroot.Gameplay.Brain;
 using Turnroot.Gameplay.PlayerSettings;
 using Turnroot.Utilities;
 using UnityEngine;
@@ -8,14 +9,23 @@ namespace Turnroot.Graphics3D
     public class VegetationCuller : MonoBehaviour
     {
         public UnityEngine.Camera Culler;
+
+        public GrassRenderer GrassRenderer;
         private float ViewportPadding = 1f;
         private float UpdateInterval = 0.1f;
 
         private Transform[] children;
+
+        private Animator[] grandchildrenAnimators;
         private float lastUpdateTime;
+        private Brain _brain;
 
         private void Start()
         {
+            _brain = FindFirstObjectByType<Brain>();
+            _brain.OnGraphicsQualityChanged += OnGraphicsQualityChanged;
+            OnGraphicsQualityChanged();
+
             List<Transform> grandchildrenList = new List<Transform>();
 
             for (int i = 0; i < transform.childCount; i++)
@@ -29,7 +39,10 @@ namespace Turnroot.Graphics3D
 
             children = grandchildrenList.ToArray();
             children.Length.ToString().LogInfo();
+        }
 
+        private void OnGraphicsQualityChanged()
+        {
             var g = GameplayPlayerSettings.Instance;
             if (g != null)
             {
@@ -38,22 +51,67 @@ namespace Turnroot.Graphics3D
                 {
                     case 0:
                         ViewportPadding = .018f;
-                        UpdateInterval = .2f;
+                        UpdateInterval = .7f;
+                        GrassRenderer.grassEnabled = false;
+                        DisableGrandchildrenAnimators();
                         break;
                     case 1:
                         ViewportPadding = .02f;
-                        UpdateInterval = .15f;
+                        UpdateInterval = .4f;
+                        GrassRenderer.grassEnabled = true;
+                        DisableGrandchildrenAnimators();
                         break;
                     case 2:
-                        ViewportPadding = .023f;
-                        UpdateInterval = .1f;
+                        ViewportPadding = .024f;
+                        UpdateInterval = .2f;
+                        GrassRenderer.grassEnabled = true;
+                        EnableGrandchildrenAnimators();
                         break;
                     case 3:
-                        ViewportPadding = .027f;
-                        UpdateInterval = .6f;
+                        ViewportPadding = .028f;
+                        UpdateInterval = .05f;
+                        GrassRenderer.grassEnabled = true;
+                        EnableGrandchildrenAnimators();
                         break;
                     default:
                         break;
+                }
+            }
+        }
+
+        private void DisableGrandchildrenAnimators()
+        {
+            List<Animator> animatorsList = new List<Animator>();
+
+            foreach (Transform child in children)
+            {
+                if (child == null)
+                {
+                    continue;
+                }
+
+                if (child.TryGetComponent<Animator>(out var animator))
+                {
+                    animatorsList.Add(animator);
+                    animator.enabled = false;
+                }
+            }
+
+            grandchildrenAnimators = animatorsList.ToArray();
+        }
+
+        private void EnableGrandchildrenAnimators()
+        {
+            if (grandchildrenAnimators == null)
+            {
+                return;
+            }
+
+            foreach (var animator in grandchildrenAnimators)
+            {
+                if (animator != null)
+                {
+                    animator.enabled = true;
                 }
             }
         }
@@ -102,6 +160,14 @@ namespace Turnroot.Graphics3D
                 && viewportPoint.z > 0;
 
             return inViewport;
+        }
+
+        private void OnDestroy()
+        {
+            if (_brain != null)
+            {
+                _brain.OnGraphicsQualityChanged -= OnGraphicsQualityChanged;
+            }
         }
     }
 }
