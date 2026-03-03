@@ -262,13 +262,21 @@ namespace Turnroot.Gameplay.Brain.Segments
 
             // Set up change listener - quantize quality to tenths (max 0.3) and update settings
             slider.onValueChanged.RemoveAllListeners();
+            var isQuantizing = false;
             slider.onValueChanged.AddListener(value =>
             {
+                if (isQuantizing)
+                {
+                    return;
+                }
+
                 // Quantize normalized slider input to tenths so each left/right step maps to one stored step
                 var norm = Mathf.Round(value * 10f) / 10f;
                 if (Mathf.Abs(slider.value - norm) > 0.0001f)
                 {
-                    slider.value = norm; // keep UI in sync with quantized step
+                    isQuantizing = true;
+                    slider.value = norm; // keep UI in sync with quantized step — guard above prevents re-entry
+                    isQuantizing = false;
                 }
 
                 float mappedValue = norm;

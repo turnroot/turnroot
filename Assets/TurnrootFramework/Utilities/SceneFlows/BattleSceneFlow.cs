@@ -1,4 +1,6 @@
+using Turnroot.Gameplay.Maps;
 using UnityEngine.Events;
+
 namespace Turnroot.Utilities.AbstractScripts
 {
     /// <summary>
@@ -29,15 +31,58 @@ namespace Turnroot.Utilities.AbstractScripts
         // Conversation can interrupt at any point
         public MiniBattleState CurrentMiniBattleState { get; private set; } =
             MiniBattleState.NoBattlePlayerInput;
+        private bool _isInTopdownBattleView = true;
 
-        private InterruptType _queuedInterrupt = InterruptType.None;
+        /// <summary>
+        /// Tracks whether the camera is currently in top‑down battle mode.
+        /// Setting the value will fire <see cref="IsInTopdownBattleViewChanged"/>
+        /// if the value actually changes.
+        /// </summary>
+        public bool IsInTopdownBattleView
+        {
+            get => _isInTopdownBattleView;
+            set
+            {
+                if (_isInTopdownBattleView == value)
+                {
+                    return;
+                }
+
+                _isInTopdownBattleView = value;
+                IsInTopdownBattleViewChanged?.Invoke();
+                HandleTopdownBattleViewChangedMapGrid();
+            }
+        }
+
+        public OperationResult HandleTopdownBattleViewChangedMapGrid()
+        {
+            MapGrid grid = brain.battleBrain.BattleObject.MapGrid;
+            if (grid == null)
+            {
+                return OperationResult.Failure("No MapGrid found in BattleObject");
+            }
+            else
+            {
+                var ObjectsToToggleVisibility = grid.HideOnTopDownLayerModels;
+                foreach (var obj in ObjectsToToggleVisibility)
+                {
+                    if (obj != null)
+                    {
+                        obj.SetActive(!_isInTopdownBattleView);
+                    }
+                }
+            }
+            return OperationResult.Successful();
+        }
+
+        public UnityEvent IsInTopdownBattleViewChanged = new();
         private System.Action _onInterruptCompleted;
         private float _lastInterruptActivityTime;
         private bool _interruptIsWaitingForPlayerInput;
-        private const float INTERRUPT_INACTIVITY_TIMEOUT = 60f; // 60 seconds of inactivity
+        private const float INTERRUPT_INACTIVITY_TIMEOUT = 60f;
 
-        public bool IsInterruptQueued => _queuedInterrupt != InterruptType.None;
-        public InterruptType CurrentInterrupt => _queuedInterrupt;
+        public bool IsInterruptQueued => CurrentInterrupt != InterruptType.None;
+        public InterruptType CurrentInterrupt { get; private set; } = InterruptType.None;
         public bool InterruptIsWaitingForPlayerInput
         {
             get => _interruptIsWaitingForPlayerInput;
@@ -62,7 +107,7 @@ namespace Turnroot.Utilities.AbstractScripts
         private void Update()
         {
             // Check for stuck interrupts using inactivity timer
-            if (_queuedInterrupt != InterruptType.None)
+            if (CurrentInterrupt != InterruptType.None)
             {
                 float inactivityDuration = UnityEngine.Time.time - _lastInterruptActivityTime;
 
@@ -73,7 +118,7 @@ namespace Turnroot.Utilities.AbstractScripts
                     && !_interruptIsWaitingForPlayerInput
                 )
                 {
-                    $"BattleSceneFlow: Interrupt {_queuedInterrupt} inactive for {inactivityDuration:F1}s with no player input expected - forcing completion".LogError();
+                    $"BattleSceneFlow: Interrupt {CurrentInterrupt} inactive for {inactivityDuration:F1}s with no player input expected - forcing completion".LogError();
                     CompleteInterrupt();
                 }
 
@@ -91,7 +136,7 @@ namespace Turnroot.Utilities.AbstractScripts
         /// <param name="onCompleted">Callback to invoke when interrupt finishes</param>
         public void QueueInterrupt(InterruptType interruptType, System.Action onCompleted = null)
         {
-            _queuedInterrupt = interruptType;
+            CurrentInterrupt = interruptType;
             _onInterruptCompleted = onCompleted;
             _lastInterruptActivityTime = UnityEngine.Time.time;
             _interruptIsWaitingForPlayerInput = false;
@@ -106,7 +151,7 @@ namespace Turnroot.Utilities.AbstractScripts
         /// </summary>
         public void CleanupBattle()
         {
-            _queuedInterrupt = InterruptType.None;
+            CurrentInterrupt = InterruptType.None;
             _onInterruptCompleted = null;
             CurrentMiniBattleState = MiniBattleState.NoBattlePlayerInput;
             _lastInterruptActivityTime = 0f;
@@ -120,7 +165,7 @@ namespace Turnroot.Utilities.AbstractScripts
         {
             _onInterruptCompleted?.Invoke();
             _onInterruptCompleted = null;
-            _queuedInterrupt = InterruptType.None;
+            CurrentInterrupt = InterruptType.None;
             _interruptIsWaitingForPlayerInput = false;
         }
 
@@ -192,7 +237,8 @@ namespace Turnroot.Utilities.AbstractScripts
 
         private void ProcessQueuedInterrupt()
         {
-            switch (_queuedInterrupt)
+            IsInTopdownBattleView = false;
+            switch (CurrentInterrupt)
             {
                 case InterruptType.Conversation:
                     CurrentMiniBattleState = MiniBattleState.Conversation;
@@ -229,7 +275,7 @@ namespace Turnroot.Utilities.AbstractScripts
 
                 default:
                     // Unknown interrupt type, log warning and clear
-                    $"BattleSceneFlow: Unknown interrupt type {_queuedInterrupt}".LogWarning();
+                    $"BattleSceneFlow: Unknown interrupt type {CurrentInterrupt}".LogWarning();
                     CompleteInterrupt();
                     break;
             }
@@ -250,7 +296,11 @@ namespace Turnroot.Utilities.AbstractScripts
             brain.OnPrecomputeCompleted -= HandlePrecomputeCompleted;
         }
 
-        protected void HandlePrecomputeCompleted() => HandlePreBattleTransitionToBattleCompleted();
+        protected void HandlePrecomputeCompleted()
+        {
+            HandlePreBattleTransitionToBattleCompleted();
+            HandleTopdownBattleViewChangedMapGrid();
+        }
 
         protected override void OnSegmentReached(int segmentIndex)
         {
@@ -270,4 +320,3 @@ namespace Turnroot.Utilities.AbstractScripts
         }
     }
 }
-

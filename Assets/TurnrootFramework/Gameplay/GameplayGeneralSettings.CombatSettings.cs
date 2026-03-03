@@ -195,4 +195,3 @@ namespace Turnroot.GameSettings
         public float TerrainBonusMultiplier = 0.8f;
     }
 }
-

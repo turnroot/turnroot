@@ -1,3 +1,4 @@
+using Turnroot.Gameplay.PlayerSettings;
 using UnityEngine;
 
 namespace Turnroot.UI.Components.RadialMenu
@@ -42,6 +43,20 @@ namespace Turnroot.UI.Components.RadialMenu
         {
             if (navigateAction == null || (menuItems.Count == 0 && centerItem == null))
             {
+                return;
+            }
+
+            // Gamepad: point stick to directly select the item at that angle.
+            // Keyboard/D-pad: keep the existing sequential step-based navigation.
+            var settings = GameplayPlayerSettings.Instance;
+            bool isGamepad =
+                settings != null
+                && settings.PreferredInputControl
+                    == GameplayPlayerSettings.InputControlType.Gamepad;
+
+            if (isGamepad)
+            {
+                HandleGamepadRadialNavigation();
                 return;
             }
 
@@ -138,6 +153,34 @@ namespace Turnroot.UI.Components.RadialMenu
                         }
                     }
                     break;
+            }
+        }
+
+        private void HandleGamepadRadialNavigation()
+        {
+            Vector2 input = navigateAction.ReadValue<Vector2>();
+            if (input.magnitude <= joystickDeadzone)
+            {
+                // Stick released — if a center item exists, move to it; otherwise keep selection.
+                if (centerItem != null && !_centerSelected)
+                {
+                    SelectItemByIndex(0, true);
+                }
+                return;
+            }
+
+            // Convert stick vector to an angle (0° = up, 90° = right, etc.) and select the
+            // closest item to that angle directly — standard radial menu gamepad feel.
+            float angle = Mathf.Atan2(input.x, input.y) * Mathf.Rad2Deg;
+            if (angle < 0f)
+            {
+                angle += 360f;
+            }
+
+            int targetIndex = GetItemIndexAtAngle(angle);
+            if (_centerSelected || targetIndex != _selectedIndex)
+            {
+                SelectItemByIndex(targetIndex, false);
             }
         }
 

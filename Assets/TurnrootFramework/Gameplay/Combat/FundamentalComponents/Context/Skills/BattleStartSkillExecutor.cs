@@ -180,15 +180,6 @@ namespace Turnroot.Gameplay.Brain
                     continue;
                 }
 
-                if (unit.CurrentClass == null || unit.CurrentClass.ClassData == null)
-                {
-                    if (SkillDebug.VerboseExecutionLogs)
-                    {
-                        $"BattleStartSkillExecutor: skipping evaluation for unit {unit.Id} because class data not assigned".LogInfo();
-                    }
-                    continue;
-                }
-
                 if (!_battleStartSkills.TryGetValue(unit, out var skills))
                 {
                     continue;

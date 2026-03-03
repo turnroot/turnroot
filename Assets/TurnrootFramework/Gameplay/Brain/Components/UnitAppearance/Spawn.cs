@@ -35,14 +35,18 @@ namespace Turnroot.Gameplay.Brain
 
             if (mapGrid == null)
             {
-                LogWarning($"SpawnUnitAtPosition: Aborting spawn for {unit.CharacterTemplate.DisplayName} - no MapGrid available");
+                LogWarning(
+                    $"SpawnUnitAtPosition: Aborting spawn for {unit.CharacterTemplate.DisplayName} - no MapGrid available"
+                );
                 return OperationResult.Failure("No MapGrid available for spawn");
             }
 
             var gridPoint = mapGrid.GetGridPoint(position.x, position.y);
             if (gridPoint == null)
             {
-                LogWarning($"SpawnUnitAtPosition: Aborting spawn for {unit.CharacterTemplate.DisplayName} - invalid grid position {position}");
+                LogWarning(
+                    $"SpawnUnitAtPosition: Aborting spawn for {unit.CharacterTemplate.DisplayName} - invalid grid position {position}"
+                );
                 return OperationResult.Failure($"Invalid spawn grid point: {position}");
             }
 
@@ -64,7 +68,9 @@ namespace Turnroot.Gameplay.Brain
             }
             catch (System.Exception ex)
             {
-                LogWarning($"SpawnUnitAtPosition: Failed setting instance state for {unit.Id}: {ex.Message}");
+                LogWarning(
+                    $"SpawnUnitAtPosition: Failed setting instance state for {unit.Id}: {ex.Message}"
+                );
             }
 
             // Recompute exact world position using validated MapGrid
@@ -164,7 +170,8 @@ namespace Turnroot.Gameplay.Brain
 
             ClearPositionIfOccupied(newPosition);
 
-            model.transform.SetPositionAndRotation(worldPos, Quaternion.identity);
+            var facingRotation = GetInitialFacingRotation(unit, worldPos);
+            model.transform.SetPositionAndRotation(worldPos, facingRotation);
 
             _modelPositions[newPosition] = unit.Id;
 
@@ -206,7 +213,8 @@ namespace Turnroot.Gameplay.Brain
         {
             // CRITICAL: Create a positioned root FIRST, then build the model in it
             var root = new GameObject($"{unit.CharacterTemplate.DisplayName}_Root");
-            root.transform.SetPositionAndRotation(worldPos, Quaternion.identity);
+            var facingRotation = GetInitialFacingRotation(unit, worldPos);
+            root.transform.SetPositionAndRotation(worldPos, facingRotation);
             root.transform.localScale = Vector3.one * _brain.uiBrain.uiSettings.ModelsScale;
             var model = CreateModelForUnit(unit, root);
             if (model == null)
@@ -222,10 +230,10 @@ namespace Turnroot.Gameplay.Brain
             ownership.DisplayName = unit.CharacterTemplate.DisplayName;
             model.name = $"{unit.CharacterTemplate.DisplayName}_Model_{unit.Id}";
 
-            ApplyVisuals(unit, model);
-
             _unitModels[unit.Id] = model;
             _modelPositions[position] = unit.Id;
+
+            ApplyVisuals(unit, model);
 
             AttachWeaponToUnit(unit, model);
 
@@ -238,7 +246,9 @@ namespace Turnroot.Gameplay.Brain
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
             // Dev diagnostic: confirm model created and placed where expected.
-            $"CreateAndPlaceModel: Created model '{model.name}' for unit {unit.Id} at grid {position}, world {worldPos}".LogInfo("UnitAppearanceBrain");
+            $"CreateAndPlaceModel: Created model '{model.name}' for unit {unit.Id} at grid {position}, world {worldPos}".LogInfo(
+                "UnitAppearanceBrain"
+            );
 #endif
 
             Brain.Publish(new ModelSpawnedEvent(unit, unit.Id, position, model));
@@ -252,6 +262,68 @@ namespace Turnroot.Gameplay.Brain
                 // Another unit is at this position - despawn it
                 DespawnUnit(occupyingUnitId);
             }
+        }
+
+        /// <summary>
+        /// Returns a Y-axis rotation snapped to the nearest 90° that faces this unit toward
+        /// the nearest already-spawned model on the opposing team.
+        /// Falls back to <see cref="Quaternion.identity"/> when no opponents are visible yet.
+        /// </summary>
+        private Quaternion GetInitialFacingRotation(CharacterInstance unit, Vector3 unitWorldPos)
+        {
+            bool isEnemy = unit.CharacterTemplate?.IsEnemyOrNPC ?? false;
+
+            var allInstances = Brain.gamewideContextBrain?.GetAllActiveInstances();
+            if (allInstances == null)
+            {
+                return Quaternion.identity;
+            }
+
+            Vector3? nearestOpponentPos = null;
+            float nearestSqrDist = float.MaxValue;
+
+            foreach (var other in allInstances)
+            {
+                if (other == null || other.Id == unit.Id)
+                {
+                    continue;
+                }
+
+                bool otherIsEnemy = other.CharacterTemplate?.IsEnemyOrNPC ?? false;
+                if (otherIsEnemy == isEnemy)
+                {
+                    continue; // same team
+                }
+
+                if (!_unitModels.TryGetValue(other.Id, out var otherModel) || otherModel == null)
+                {
+                    continue; // not yet spawned
+                }
+
+                var otherPos = otherModel.transform.position;
+                float sqrDist = (otherPos - unitWorldPos).sqrMagnitude;
+                if (sqrDist < nearestSqrDist)
+                {
+                    nearestSqrDist = sqrDist;
+                    nearestOpponentPos = otherPos;
+                }
+            }
+
+            if (nearestOpponentPos == null)
+            {
+                return Quaternion.identity;
+            }
+
+            var direction = nearestOpponentPos.Value - unitWorldPos;
+            direction.y = 0f;
+            if (direction.sqrMagnitude < 0.0001f)
+            {
+                return Quaternion.identity;
+            }
+
+            float angle = Mathf.Atan2(direction.x, direction.z) * Mathf.Rad2Deg;
+            float snapped = Mathf.Round(angle / 90f) * 90f;
+            return Quaternion.Euler(0f, snapped, 0f);
         }
     }
 }

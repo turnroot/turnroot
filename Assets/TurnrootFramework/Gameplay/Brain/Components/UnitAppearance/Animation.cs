@@ -50,11 +50,21 @@ namespace Turnroot.Gameplay.Brain
             else
             {
                 var classData = unit.GetCurrentClass()?.ClassData;
-                var classWalkClip = classData.WalkAnimation;
-                walkClip =
-                    (classWalkClip != null && classWalkClip)
-                        ? classWalkClip
-                        : unit.CharacterTemplate.DefaultWalkingAnimation;
+                if (classData == null)
+                {
+                    $"SetupWalkAnimation: '{unit.CharacterTemplate?.DisplayName}' has no class data — default fallback class was not applied. Check GameSettings.DefaultStartingClass and CharacterTemplate.StartingClass.".LogError(
+                        "UnitAppearanceBrain"
+                    );
+                    walkClip = unit.CharacterTemplate?.DefaultWalkingAnimation;
+                }
+                else
+                {
+                    var classWalkClip = classData.WalkAnimation;
+                    walkClip =
+                        (classWalkClip != null && classWalkClip)
+                            ? classWalkClip
+                            : unit.CharacterTemplate.DefaultWalkingAnimation;
+                }
             }
 
             if (walkClip != null)

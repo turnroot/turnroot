@@ -200,6 +200,14 @@ namespace Turnroot.UI.Components.RadialMenu
             {
                 selectAction.performed += OnSelectPerformed;
             }
+
+            // Ensure item 0 is visually highlighted from the start — prevents the phantom
+            // selection where the first item is logically selected but shows no highlight
+            // until the player navigates.
+            if (menuItems.Count > 0)
+            {
+                SelectItemByIndex(0, false);
+            }
         }
 
         private void OnSelectPerformed(InputAction.CallbackContext context) => ConfirmSelection();

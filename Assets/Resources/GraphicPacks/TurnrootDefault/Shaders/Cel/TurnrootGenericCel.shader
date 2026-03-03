@@ -297,7 +297,6 @@ Shader "Turnroot/Generic Cel Shader"
             {
                 Varyings output = (Varyings)0;
                 UNITY_SETUP_INSTANCE_ID(input);
-                UNITY_TRANSFER_INSTANCE_ID(input, output);
                 UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
                 VertexPositionInputs vertexInput = GetVertexPositionInputs(input.positionOS.xyz);
@@ -433,7 +432,9 @@ Shader "Turnroot/Generic Cel Shader"
                         {
                             float ndl       = dot(normalWS, addLight.direction);
                             float atten     = addLight.shadowAttenuation * addLight.distanceAttenuation;
-                            float hl        = (ndl * atten + 1.0) * 0.5;
+                            // Clamp ndl to 0: additional lights (point/spot) should only add
+                            // highlights on lit faces, never push unlit faces into shadow.
+                            float hl        = (max(0.0, ndl) * atten + 1.0) * 0.5;
                             float hl_noised = hl + noiseN * _Shadow_Noise_Amount;
 
                             float shadowExp    = lerp(0.6, 3.0, 1.0 - _Shadow_Roughness);

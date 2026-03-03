@@ -44,6 +44,9 @@ namespace Turnroot.Gameplay.Brain
             // spawn (SpawnCommand) publishes a UnitSpawnedEvent.
             Brain.Subscribe<UnitSpawnedEvent>(HandleUnitSpawnedEvent, EventPriority.Normal);
 
+            // Keep _modelPositions in sync when units are swapped during pre-battle positioning.
+            Brain.Subscribe<ModelSwappedEvent>(HandleModelSwappedEvent, EventPriority.Normal);
+
             if (Brain.battleBrain.BattleObject != null)
             {
                 HandleBattleObjectSet(Brain.battleBrain.BattleObject);
@@ -59,10 +62,34 @@ namespace Turnroot.Gameplay.Brain
                 Brain.OnItemEquipped -= HandleItemEquipped;
                 Brain.OnItemUnequipped -= HandleItemUnequipped;
                 Brain.Unsubscribe<UnitSpawnedEvent>(HandleUnitSpawnedEvent);
+                Brain.Unsubscribe<ModelSwappedEvent>(HandleModelSwappedEvent);
             }
         }
 
         private void HandleBattleObjectSet(BattleGameObject battleObject) => HandleBattleStarted();
+
+        /// <summary>
+        /// Keeps <see cref="_modelPositions"/> in sync after a pre-battle unit swap so that
+        /// position-based operations (e.g. <see cref="DespawnUnitAtPosition"/>) resolve to the
+        /// correct unit after positions have been exchanged.
+        /// </summary>
+        private void HandleModelSwappedEvent(ModelSwappedEvent ev)
+        {
+            if (ev == null)
+            {
+                return;
+            }
+
+            // Swap the two position→id entries so _modelPositions reflects the new layout.
+            var hasA = _modelPositions.TryGetValue(ev.PosA, out var idAtA);
+            var hasB = _modelPositions.TryGetValue(ev.PosB, out var idAtB);
+
+            if (hasA) _modelPositions[ev.PosB] = idAtA;
+            else      _modelPositions.Remove(ev.PosB);
+
+            if (hasB) _modelPositions[ev.PosA] = idAtB;
+            else      _modelPositions.Remove(ev.PosA);
+        }
 
         private OperationResult HandleBattleStarted()
         {

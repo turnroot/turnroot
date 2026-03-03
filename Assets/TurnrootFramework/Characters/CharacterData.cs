@@ -267,7 +267,6 @@ namespace Turnroot.Characters
         ]
         public CharacterBehavior BehaviorSettings { get; private set; }
 
-
 #if TURNROOT_BLOODLINES_MODULE
         [Foldout("Heredity"), SerializeField]
         [HorizontalLine(color: EColor.Indigo)]
@@ -364,8 +363,6 @@ namespace Turnroot.Characters
 
         [field: SerializeField, HideInInspector]
         public List<CharacterStat> UnboundedStats { get; private set; } = new();
-
-
 
         [field: SerializeField, HideInInspector]
         [Tooltip(

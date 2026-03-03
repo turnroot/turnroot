@@ -310,6 +310,22 @@ namespace Turnroot.Characters
         public void OnAfterDeserialize()
         {
             EnsureListsInitialized();
+
+            // Safety: ensure the personal skill from the template is always present in the
+            // skill list, even if the LTM entry pre-dates the skill being assigned or the
+            // data was otherwise incomplete.
+            if (_characterTemplate?.PersonalSkill != null)
+            {
+                bool hasPersonalSkill = _skillInstances.Exists(s =>
+                    s?.SkillTemplate == _characterTemplate.PersonalSkill
+                );
+                if (!hasPersonalSkill)
+                {
+                    _skillInstances.Add(new SkillInstance(_characterTemplate.PersonalSkill));
+                    NeedsPersist = true;
+                }
+            }
+
             RegisterUniqueInstance();
             HandleCurrentClass();
             RepairMissingStats();
@@ -395,18 +411,19 @@ namespace Turnroot.Characters
                     }
                 }
             }
-            else if (_characterTemplate != null && _characterTemplate.StartingClass == null)
+            else if (_characterTemplate != null)
             {
-                var defaultClass = GetDefaultStartingClass();
-                if (defaultClass != null)
+                var classToApply =
+                    _characterTemplate.GetPreferredStartingClass() ?? GetDefaultStartingClass();
+                if (classToApply != null)
                 {
-                    var res = ChangeClass(defaultClass, applyClassChangeBonuses: false);
+                    var res = ChangeClass(classToApply, applyClassChangeBonuses: false);
                     var logLevel = res.Success
                         ? TurnrootLogger.LogLevel.Info
                         : TurnrootLogger.LogLevel.Warning;
                     var message = res.Success
-                        ? $"Character {Id} assigned default starting class {defaultClass.Identity.ClassName} after recall."
-                        : $"CharacterInstance.OnAfterDeserialize: Failed to apply default starting class for {Id}: {res.ErrorMessage}";
+                        ? $"Character {Id} assigned starting class {classToApply.Identity.ClassName} after recall."
+                        : $"CharacterInstance.OnAfterDeserialize: Failed to apply starting class for {Id}: {res.ErrorMessage}";
                     if (logLevel == TurnrootLogger.LogLevel.Error)
                     {
                         message.LogError();
@@ -418,6 +435,12 @@ namespace Turnroot.Characters
                     else
                     {
                         message.LogInfo();
+                    }
+
+                    if (res.Success)
+                    {
+                        ClassRecoveryHandled = true;
+                        NeedsPersist = true;
                     }
                 }
             }

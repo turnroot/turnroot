@@ -14,7 +14,6 @@ namespace Turnroot.Gameplay.Brain
                 ? BattleObject.ThirdPartyTeamRoster
                 : null;
 
-            // Process each roster in a single pass using shared helpers to keep this method small and DRY.
             if (playerTeamRoster != null)
             {
                 SpawnAndOrderRosterPlacements(playerTeamRoster);
@@ -25,14 +24,17 @@ namespace Turnroot.Gameplay.Brain
                 SpawnAndOrderRosterPlacements(thirdPartyRoster);
             }
 
-            // Final verification for player roster only (keeps original intent of a post-check pass).
-            VerifyAndRepairPlayerPlacements(playerTeamRoster);
-
             BattleObject.Context.InvalidateUnitPositionCache();
         }
 
-        // Spawn each placement for a roster and set ordering. Handles instance creation and basic mismatch repair.
-        private void SpawnAndOrderRosterPlacements(RosterInstance<GenericRoster> roster)
+        /// <summary>
+        /// Spawns and orders all placements for any roster type.
+        /// Works for both <see cref="PlayerTeamRosterInstance"/> and <see cref="GenericRosterInstance"/>
+        /// because all required methods (GetPlacements, SetOrder, GetInstanceFor, AddInstance)
+        /// are defined on the shared <see cref="RosterInstance{T}"/> base class.
+        /// </summary>
+        private void SpawnAndOrderRosterPlacements<T>(RosterInstance<T> roster)
+            where T : Turnroot.Characters.Roster
         {
             if (!ValidationHelper.ValidateNotNull(roster, nameof(roster)))
             {
@@ -50,48 +52,16 @@ namespace Turnroot.Gameplay.Brain
                     continue;
                 }
 
-                if (instance.MapGridPosition == placement.SpawnPosition)
+                // Only skip if the unit was already formally spawned via SpawnCommand during this
+                // battle (WasSpawnedDuringBattle == true). Pre-battle spawning (prebattle: true)
+                // sets MapGridPosition but does NOT call MapGrid.SetOccupied, so the unit is not
+                // registered in the battle grid and must still go through SpawnAtPosition.
+                if (
+                    instance.MapGridPosition == placement.SpawnPosition
+                    && instance.WasSpawnedDuringBattle
+                )
                 {
                     $"SpawnRosterUnitsOntoGrid: Skipping spawn for {instance.CharacterTemplate.DisplayName} - already spawned at {placement.SpawnPosition}".LogInfo();
-                    roster.SetOrder(characterData, placement.Order);
-                    continue;
-                }
-
-                TryRepairPlacementIfMismatch(instance, placement.SpawnPosition);
-
-                var spawned = BattleObject.Context.SpawnAtPosition(
-                    instance,
-                    placement.SpawnPosition
-                );
-                if (!spawned)
-                {
-                    $"SpawnRosterUnitsOntoGrid: SpawnAtPosition failed for {characterData?.DisplayName} at {placement.SpawnPosition}".LogWarning();
-                }
-
-                roster.SetOrder(characterData, placement.Order);
-            }
-        }
-
-        private void SpawnAndOrderRosterPlacements(PlayerTeamRosterInstance roster)
-        {
-            if (!ValidationHelper.ValidateNotNull(roster, nameof(roster)))
-            {
-                return;
-            }
-
-            foreach (var placement in roster.GetPlacements())
-            {
-                var characterData = placement.CharacterData;
-                var instance = EnsureInstanceForPlacement(roster, characterData);
-                if (instance == null)
-                {
-                    $"SpawnRosterUnitsOntoGrid: No instance for {characterData?.DisplayName}; skipping spawn".LogWarning();
-                    roster.SetOrder(characterData, placement.Order);
-                    continue;
-                }
-
-                if (instance.MapGridPosition == placement.SpawnPosition)
-                {
                     roster.SetOrder(characterData, placement.Order);
                     continue;
                 }
@@ -166,42 +136,16 @@ namespace Turnroot.Gameplay.Brain
 #endif
         }
 
-        private void VerifyAndRepairPlayerPlacements(PlayerTeamRosterInstance playerTeamRoster)
-        {
-            if (playerTeamRoster == null)
-            {
-                return;
-            }
-
-            try
-            {
-                foreach (var ap in playerTeamRoster.GetPlacements())
-                {
-                    var inst = playerTeamRoster.GetInstanceFor(ap.CharacterData);
-                    if (inst == null)
-                    {
-                        continue;
-                    }
-
-                    if (inst.MapGridPosition != ap.SpawnPosition)
-                    {
-                        TryRepairPlacementIfMismatch(inst, ap.SpawnPosition);
-                    }
-                }
-            }
-            catch (System.Exception ex)
-            {
-                "SpawnRosterUnitsOntoGrid: Unexpected error during spawn pass: ".LogWarning();
-                ex.Message.LogWarning();
-            }
-        }
-
-        // Helper: ensure a roster has an instance for the given CharacterData. If missing,
-        // create or recall an instance and add it to the roster. Returns the instance or null.
-        private CharacterInstance EnsureInstanceForPlacement(
-            RosterInstance<GenericRoster> rosterInstance,
+        /// <summary>
+        /// Ensures a roster has a <see cref="CharacterInstance"/> for the given data.
+        /// If missing, creates or recalls one via <see cref="CharacterFactory"/> and adds it to the roster.
+        /// Generic so the same implementation serves both player-team and generic enemy rosters.
+        /// </summary>
+        private CharacterInstance EnsureInstanceForPlacement<T>(
+            RosterInstance<T> rosterInstance,
             CharacterData data
         )
+            where T : Turnroot.Characters.Roster
         {
             if (data == null || rosterInstance == null)
             {
@@ -221,42 +165,7 @@ namespace Turnroot.Gameplay.Brain
                 if (created != null)
                 {
                     rosterInstance.AddInstance(created);
-                    $"EnsureInstanceForPlacement: Created instance for {data?.DisplayName}".LogInfo();
-                    return created;
-                }
-            }
-            catch (System.Exception ex)
-            {
-                $"EnsureInstanceForPlacement: Failed to create instance for {data?.DisplayName}: {ex.Message}".LogWarning();
-            }
-
-            return null;
-        }
-
-        private CharacterInstance EnsureInstanceForPlacement(
-            PlayerTeamRosterInstance rosterInstance,
-            CharacterData data
-        )
-        {
-            if (data == null || rosterInstance == null)
-            {
-                return null;
-            }
-
-            var inst = rosterInstance.GetInstanceFor(data);
-            if (inst != null)
-            {
-                return inst;
-            }
-
-            try
-            {
-                var factory = new CharacterFactory(Brain.ltm);
-                var created = factory.CreateOrRecall(data);
-                if (created != null)
-                {
-                    rosterInstance.AddInstance(created);
-                    $"EnsureInstanceForPlacement: Created instance for {data?.DisplayName}".LogInfo();
+                    $"EnsureInstanceForPlacement: Created instance for {data.DisplayName}".LogInfo();
                     return created;
                 }
             }

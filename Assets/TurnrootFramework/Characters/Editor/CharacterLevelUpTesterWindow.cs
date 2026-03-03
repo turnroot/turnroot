@@ -121,7 +121,10 @@ namespace Turnroot.Characters.Editor
                         foreach (var stat in _instance.UnboundedStats)
                         {
                             if (stat.StatType == UnboundedStatType.Movement)
+                            {
                                 continue;
+                            }
+
                             before[stat.StatType] = stat.Current;
                         }
 
@@ -133,7 +136,10 @@ namespace Turnroot.Characters.Editor
                         foreach (var stat in _instance.UnboundedStats)
                         {
                             if (stat.StatType == UnboundedStatType.Movement)
+                            {
                                 continue;
+                            }
+
                             if (
                                 before.TryGetValue(stat.StatType, out var val)
                                 && stat.Current > val
@@ -173,11 +179,15 @@ namespace Turnroot.Characters.Editor
         private void DrawRadarChart()
         {
             if (_template == null || _instance == null)
+            {
                 return;
+            }
 
             var raw = _template.UnboundedStats;
             if (raw == null || raw.Count == 0)
+            {
                 return;
+            }
 
             // build parallel arrays for orig/current values and labels
             var labels = new List<string>();
@@ -188,7 +198,10 @@ namespace Turnroot.Characters.Editor
             foreach (var s in raw)
             {
                 if (s == null || s.StatType == UnboundedStatType.Movement)
+                {
                     continue;
+                }
+
                 labels.Add(s.StatType.ToString());
                 float o = Mathf.RoundToInt(s.Current);
                 float c = Mathf.RoundToInt(_instance.GetUnboundedStat(s.StatType)?.Current ?? o);
@@ -213,7 +226,9 @@ namespace Turnroot.Characters.Editor
             }
 
             if (labels.Count == 0)
+            {
                 return;
+            }
 
             // compute max for scaling including health above
             float maxVal = 1f;
@@ -309,7 +324,10 @@ namespace Turnroot.Characters.Editor
                 foreach (var unbound in _template.UnboundedStats)
                 {
                     if (unbound.StatType == UnboundedStatType.Movement)
+                    {
                         continue;
+                    }
+
                     var type = unbound.StatType;
                     var orig = Mathf.RoundToInt(unbound.Current);
                     var cur = Mathf.RoundToInt(_instance.GetUnboundedStat(type)?.Current ?? orig);

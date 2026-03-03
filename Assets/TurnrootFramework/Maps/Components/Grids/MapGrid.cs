@@ -25,9 +25,9 @@ namespace Turnroot.Gameplay.Maps
         public GameObject TerrainLevelModel;
 
         [InfoBox(
-            "Optional decorative layers (buildings, foliage). For smaller/dynamic effects like birds or water, add directly to scene."
+            "Models hidden in top-down view (roofs, trees, etc). Visible during combat animations"
         )]
-        public GameObject[] AdditionalDecorativeModels;
+        public GameObject[] HideOnTopDownLayerModels;
 
         [Header("Player Team Spawn Points"), HorizontalLine(color: EColor.Yellow)]
         public List<Vector2Int> PlayerTeamSpawnPoints = new();

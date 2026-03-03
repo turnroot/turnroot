@@ -57,9 +57,7 @@ namespace Turnroot.Gameplay.Brain.Segments
                 && preBattleMenu.style == MenuStyle.Pie
             )
             {
-
-                "UiBrain: Hiding Details button because pre-battle radial menu is active."
-            .LogInfo();
+                "UiBrain: Hiding Details button because pre-battle radial menu is active.".LogInfo();
                 needsDetailsButton = false;
             }
 
@@ -181,9 +179,7 @@ namespace Turnroot.Gameplay.Brain.Segments
                 // Now add it
                 chosen.OnSelected += handler;
 
-
-                $"UiBrain: Subscribed {role} handler on {chosen.gameObject.name}."
-            .LogInfo();
+                $"UiBrain: Subscribed {role} handler on {chosen.gameObject.name}.".LogInfo();
             }
         }
 
@@ -279,5 +275,3 @@ namespace Turnroot.Gameplay.Brain.Segments
         }
     }
 }
-
-

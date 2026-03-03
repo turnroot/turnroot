@@ -145,4 +145,3 @@ namespace Turnroot.Gameplay.Brain
         #endregion
     }
 }
-

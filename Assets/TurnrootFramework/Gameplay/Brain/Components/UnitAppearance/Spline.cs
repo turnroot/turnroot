@@ -4,6 +4,7 @@ using System.Linq;
 using Turnroot.Characters;
 using Turnroot.Gameplay.Maps;
 using Turnroot.GameSettings;
+using Turnroot.Utilities;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Splines;
@@ -42,7 +43,6 @@ namespace Turnroot.Gameplay.Brain
 
             var startPos = character.MapGridPosition;
             var startPoint = mapGrid.GetGridPoint(startPos.x, startPos.y);
-
             if (!context.TryGetValidTilesForUnit(character, out var validMoveTiles, out _))
             {
                 LogWarning(
@@ -50,7 +50,6 @@ namespace Turnroot.Gameplay.Brain
                 );
                 return null;
             }
-
             var astar = new AStarModified();
             var pathPoints = astar.GetPathThroughReachable(startPoint, destination, validMoveTiles);
 

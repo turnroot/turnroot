@@ -52,6 +52,9 @@ namespace Turnroot.Gameplay.Brain
 
             if (instance.CurrentClass != null && instance.CurrentClass.ClassData != null)
             {
+                // Class was already assigned (e.g. by InitializeClass during Create).
+                // Persist the character so new instances aren't lost across sessions.
+                _persistence.SaveCharacter(instance, updateIndex: false);
                 return;
             }
 

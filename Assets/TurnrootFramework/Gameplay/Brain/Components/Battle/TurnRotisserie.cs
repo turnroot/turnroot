@@ -30,14 +30,17 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
         private Brain.Brain Brain => battleBrain?.Brain;
         private BattleContext Context => battleBrain?.BattleObject.Context;
-        private Utilities.AbstractScripts.BattleSceneFlow _sceneFlow;
+        public Utilities.AbstractScripts.BattleSceneFlow _sceneFlow;
 
         #endregion
 
         #region State
 
         private TurnOrder _currentTurnOrder = TurnOrder.PlayerStart;
-        private int _currentRosterIndex = 0;
+
+        // spin index starts at -1 so the first call to Progress() increments
+        // it to zero and activates the first member of the roster.
+        private int _currentRosterIndex = -1;
 
         private bool UnitTakesAnotherTurn =>
             Context?.Flags?.ActiveUnitFlags?.AnotherTurnGranted ?? false;
@@ -120,6 +123,21 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         /// </summary>
         public bool Progress()
         {
+            // publish turn‑begin on the very first progression call (battle start)
+            // BattleBrain.CurrentTurnNumber is zero until we bump it when the first
+            // player phase begins.  This mirrors the behaviour in ProgressToNextPhase
+            // but guarantees the event fires even before we ever cycle through a
+            // full turn order.
+            if (
+                battleBrain != null
+                && battleBrain.CurrentTurnNumber == 0
+                && _currentTurnOrder == TurnOrder.PlayerStart
+            )
+            {
+                battleBrain.IncrementTurnNumber();
+                Brain.PublishTurnBegin();
+            }
+
             // Check if current unit gets another turn
             if (UnitTakesAnotherTurn)
             {
@@ -144,7 +162,17 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             }
 
             // No more units in this roster, move to next phase
-            return ProgressToNextPhase();
+            var result = ProgressToNextPhase();
+
+            // if the rotisserie indicated the battle should end, make sure any
+            // remaining turn‑ended handlers still run.  (ProgressToNextPhase never
+            // publishes TurnEnded in this case.)
+            if (!result)
+            {
+                Brain.PublishTurnEnded();
+            }
+
+            return result;
         }
 
         #endregion
@@ -255,7 +283,12 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 case TurnOrder.PlayerStart:
                     // Notify scene flow that player turn is beginning (for interrupt system)
                     _sceneFlow?.InitializeMiniBattleState();
-                    battleBrain.playerTurnFlow.StartPlayerTurn();
+                    // defer starting the player‑turn state machine until after the
+                    // first unit in the roster has actually been activated.  the
+                    // old implementation invoked StartPlayerTurn() here, which meant
+                    // the PublishPlayerTurnStarted event was fired with whatever unit
+                    // was still stored on the context (usually the last enemy/third‑
+                    // party unit from the previous phase).
                     break;
                 case TurnOrder.PlayerEnd:
                     Brain.PublishPlayerTurnEnded();
@@ -277,7 +310,18 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             }
 
             // Recursively activate first unit of new phase
-            return Progress();
+            var success = Progress();
+
+            // if we're now in a player phase, the first player unit should be
+            // active; signal the player‑turn flow so it can publish the start
+            // event and reset its internal state.  this used to happen before the
+            // recursive call which resulted in the wrong unit being reported.
+            if (success && _currentTurnOrder == TurnOrder.PlayerStart)
+            {
+                battleBrain?.playerTurnFlow?.StartPlayerTurn();
+            }
+
+            return success;
         }
 
         #endregion

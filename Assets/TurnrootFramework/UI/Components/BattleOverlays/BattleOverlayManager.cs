@@ -82,8 +82,9 @@ namespace Turnroot.UI.Components
             _brain.OnBattleStarted += HandleBattleStarted;
             _brain.OnBattleCompleted += HandleBattleEnded;
             _brain.OnCursorPositionChanged += HandleCursorPositionChanged;
-            _brain.OnUnitSelectionChanged += HandleUnitSelectionChanged;
+            _brain.OnPlayerControlledUnitActivated += HandlePlayerControlledUnitActivated;
             _brain.OnPlayerTurnStateChanged += HandlePlayerTurnStateChanged;
+            _brain.OnPlayerTurnStarted += HandlePlayerTurnStarted;
         }
 
         private void UnsubscribeFromBrain()
@@ -96,8 +97,9 @@ namespace Turnroot.UI.Components
             _brain.OnBattleStarted -= HandleBattleStarted;
             _brain.OnBattleCompleted -= HandleBattleEnded;
             _brain.OnCursorPositionChanged -= HandleCursorPositionChanged;
-            _brain.OnUnitSelectionChanged -= HandleUnitSelectionChanged;
+            _brain.OnPlayerControlledUnitActivated -= HandlePlayerControlledUnitActivated;
             _brain.OnPlayerTurnStateChanged -= HandlePlayerTurnStateChanged;
+            _brain.OnPlayerTurnStarted -= HandlePlayerTurnStarted;
         }
 
         private void HandleBattleStarted()
@@ -106,15 +108,32 @@ namespace Turnroot.UI.Components
             _unitSelected = false;
         }
 
+        private void HandlePlayerTurnStarted(CharacterInstance unit)
+        {
+            // Skills are evaluated when the player turn starts; if the overlay is already
+            // showing a unit (e.g. from the camera-snap cursor move before evaluation ran)
+            // force a refresh so the correct skill list appears.
+            if (_currentUnit != null && _overlayInstance != null)
+            {
+                var stale = _currentUnit;
+                _currentUnit = null;
+                ShowForUnit(stale);
+            }
+        }
+
         private void HandleCursorPositionChanged(Vector2Int pos, MapGrid grid)
         {
             if (_unitSelected)
             {
-                // keep current overlay displayed until movement starts
                 return;
             }
 
-            if (_brain?.cursorBrain != null && _brain.cursorBrain.IsCursorOnUnit(out var unit))
+            if (_brain?.cursorBrain == null)
+            {
+                return;
+            }
+
+            if (_brain.cursorBrain.IsCursorOnUnit(out var unit))
             {
                 ShowForUnit(unit);
             }
@@ -124,16 +143,11 @@ namespace Turnroot.UI.Components
             }
         }
 
-        private void HandleUnitSelectionChanged(CharacterInstance unit, bool selected)
+        private void HandlePlayerControlledUnitActivated(CharacterInstance unit)
         {
-            if (selected)
-            {
-                ShowForUnit(unit);
-            }
-            else
-            {
-                HideOverlay();
-            }
+            // Force refresh — skills may have been evaluated since the last time this unit was shown.
+            _currentUnit = null;
+            ShowForUnit(unit);
         }
 
         private void HandlePlayerTurnStateChanged(PlayerTurnStates newState)
@@ -160,7 +174,12 @@ namespace Turnroot.UI.Components
 
         private void ShowForUnit(CharacterInstance unit)
         {
-            if (unit == null || unit == _currentUnit)
+            if (unit == null)
+            {
+                return;
+            }
+
+            if (unit == _currentUnit)
             {
                 return;
             }

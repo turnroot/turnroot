@@ -30,7 +30,8 @@ namespace Turnroot.Gameplay.Brain.Segments
             _menuActionRoutes[MenuRouteNames.Settings] = _ => _brain.OpenMainGameSettingsMenu();
             _menuActionRoutes[MenuRouteNames.Skills] = _ => OpenSkills();
             _menuActionRoutes[MenuRouteNames.Map] = _ => _brain.OpenPreBattleMapOverview();
-            _menuActionRoutes[MenuRouteNames.StartingPositions] = _ => _brain.OpenPreBattleUnitPositionsMenu();
+            _menuActionRoutes[MenuRouteNames.StartingPositions] = _ =>
+                _brain.OpenPreBattleUnitPositionsMenu();
             _menuActionRoutes[MenuRouteNames.Support] = _ => OpenSupport();
             _menuActionRoutes[MenuRouteNames.Withdraw] = _ => HandleWithdraw();
             _menuActionRoutes[MenuRouteNames.StartBattle] = _ => _brain.HandleStartBattleClick();
@@ -40,7 +41,8 @@ namespace Turnroot.Gameplay.Brain.Segments
                 TransitionToSubmenu(_brain.gameSettingsGraphicsLocation);
             _menuActionRoutes[MenuRouteNames.Gameplay] = _ =>
                 TransitionToSubmenu(_brain.gameSettingsGameplayLocation);
-            _menuActionRoutes[MenuRouteNames.Audio] = _ => TransitionToSubmenu(_brain.gameSettingsAudioLocation);
+            _menuActionRoutes[MenuRouteNames.Audio] = _ =>
+                TransitionToSubmenu(_brain.gameSettingsAudioLocation);
         }
 
         private float _lastSelectTime = -10f;
