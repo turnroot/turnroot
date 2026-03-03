@@ -71,6 +71,14 @@ namespace Turnroot.Utilities.AbstractScripts
                         obj.SetActive(!_isInTopdownBattleView);
                     }
                 }
+                var objectsToToggleVisibilityOn = grid.ShowOnTopDownLayerModels;
+                foreach (var obj in objectsToToggleVisibilityOn)
+                {
+                    if (obj != null)
+                    {
+                        obj.SetActive(_isInTopdownBattleView);
+                    }
+                }
             }
             return OperationResult.Successful();
         }

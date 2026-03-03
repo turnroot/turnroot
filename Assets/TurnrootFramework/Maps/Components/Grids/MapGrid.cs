@@ -29,6 +29,12 @@ namespace Turnroot.Gameplay.Maps
         )]
         public GameObject[] HideOnTopDownLayerModels;
 
+        [InfoBox(
+            "Models that are only visible in top-down view (e.g. tree bases). Hidden during combat animations"
+        )]
+
+        public GameObject[] ShowOnTopDownLayerModels;
+
         [Header("Player Team Spawn Points"), HorizontalLine(color: EColor.Yellow)]
         public List<Vector2Int> PlayerTeamSpawnPoints = new();
 
