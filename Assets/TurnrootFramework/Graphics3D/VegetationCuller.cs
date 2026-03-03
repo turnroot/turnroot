@@ -14,16 +14,13 @@ namespace Turnroot.Graphics3D
         private Transform[] children;
         private float lastUpdateTime;
 
-        void Start()
+        private void Start()
         {
-            // Cache all grandchildren transforms
             List<Transform> grandchildrenList = new List<Transform>();
 
-            // Iterate through all children
             for (int i = 0; i < transform.childCount; i++)
             {
                 Transform child = transform.GetChild(i);
-                // Add all grandchildren from each child
                 for (int j = 0; j < child.childCount; j++)
                 {
                     grandchildrenList.Add(child.GetChild(j));
@@ -45,15 +42,15 @@ namespace Turnroot.Graphics3D
                         break;
                     case 1:
                         ViewportPadding = .02f;
-                        UpdateInterval = .17f;
+                        UpdateInterval = .15f;
                         break;
                     case 2:
                         ViewportPadding = .023f;
-                        UpdateInterval = .13f;
+                        UpdateInterval = .1f;
                         break;
                     case 3:
-                        ViewportPadding = .026f;
-                        UpdateInterval = .1f;
+                        ViewportPadding = .027f;
+                        UpdateInterval = .6f;
                         break;
                     default:
                         break;
@@ -61,7 +58,7 @@ namespace Turnroot.Graphics3D
             }
         }
 
-        void Update()
+        private void Update()
         {
             if (Culler == null)
             {
