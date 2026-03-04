@@ -24,6 +24,7 @@ namespace Turnroot.Gameplay.Brain
             _brain.OnTurnBegin += HandleTurnBeginEvent;
             _brain.OnUnitDefeated += HandleUnitDefeated;
             _brain.OnUnitMoved += HandleUnitMoved;
+            _brain.OnLongTermMemoryInitialized += InitializeLTMDependentData;
         }
 
         protected override void UnsubscribeFromBrainEvents()
@@ -40,6 +41,7 @@ namespace Turnroot.Gameplay.Brain
             _brain.OnTurnBegin -= HandleTurnBeginEvent;
             _brain.OnUnitDefeated -= HandleUnitDefeated;
             _brain.OnUnitMoved -= HandleUnitMoved;
+            _brain.OnLongTermMemoryInitialized -= InitializeLTMDependentData;
         }
 
         #region Event Handlers

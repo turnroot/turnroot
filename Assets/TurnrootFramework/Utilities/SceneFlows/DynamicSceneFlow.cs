@@ -96,6 +96,21 @@ namespace Turnroot.Utilities.AbstractScripts
             OnLoadedAmountChangedAction?.Invoke(percentage);
         }
 
+        #region Save File Management Reroutes
+        public void UpdateSaveFileName(string fileName) =>
+            brain.PublishUpdateSaveFileName(fileName);
+
+        public void UpdateSaveFileProgress(int progress) =>
+            brain.PublishUpdateSaveFileProgress(progress);
+
+        public void SetSaveFileCurrentScene(string sceneName) =>
+            brain.PublishSetSaveFileCurrentScene(sceneName);
+
+        public void SwitchActiveSaveFile(SaveFileSubfolders subfolder) =>
+            brain.PublishSwitchActiveSaveFile(subfolder);
+
+        #endregion
+
         protected void StartScene()
         {
             Index = 0;

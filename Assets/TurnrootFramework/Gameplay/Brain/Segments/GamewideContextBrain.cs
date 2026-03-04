@@ -71,10 +71,10 @@ namespace Turnroot.Gameplay.Brain
             MapExplorationStatuses = new List<GamewideContextBrainHelpers.ExploredPartial>();
         }
 
-        private void Start()
+        private void Start() => _ltm = GetComponent<LongTermMemory>();
+
+        private void InitializeLTMDependentData()
         {
-            // All Brain components are initialized by this point, safe to access
-            _ltm = GetComponent<LongTermMemory>();
             _playerSettingsPersistence?.Initialize();
             TryLoadAndRecallPersistentPlayerRoster();
             _brain.volumeBrain?.ApplySettingsToVolumes(PlayerSettings);
@@ -88,6 +88,7 @@ namespace Turnroot.Gameplay.Brain
             _brain.OnSavePlayerRosterRequested += HandleSavePlayerRosterRequested;
             _brain.OnSavePlayerRosterRequestedWithTurn += HandleSavePlayerRosterRequestedWithTurn;
             _brain.OnPreBattleCompleted += HandlePreBattleCompleted;
+            _brain.OnLongTermMemoryInitialized += InitializeLTMDependentData;
         }
 
         protected override void UnsubscribeFromBrainEvents()
@@ -95,6 +96,7 @@ namespace Turnroot.Gameplay.Brain
             _brain.OnSavePlayerRosterRequested -= HandleSavePlayerRosterRequested;
             _brain.OnSavePlayerRosterRequestedWithTurn -= HandleSavePlayerRosterRequestedWithTurn;
             _brain.OnPreBattleCompleted -= HandlePreBattleCompleted;
+            _brain.OnLongTermMemoryInitialized -= InitializeLTMDependentData;
         }
 
         private void HandlePreBattleCompleted()

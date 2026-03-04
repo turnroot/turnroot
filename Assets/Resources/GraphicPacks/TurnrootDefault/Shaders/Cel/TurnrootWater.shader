@@ -73,6 +73,25 @@ Shader "Turnroot/Water"
         // underwater edges a wobbly look. Uses the same noise texture as ripples.
         _DistortionStrength("Distortion Strength", Range(0, 0.05)) = 0.008
 
+        [Header(Constant Intersection Foam)]
+        [Toggle(_CONSTANT_FOAM_ON)] _constant_foam("Enable Constant Foam", Float) = 0
+        _FoamColor("Foam Color", Color) = (1, 1, 1, 1)
+        _FoamThickness("Foam Thickness", Float) = 0.3
+        _FoamSharpness("Foam Sharpness", Range(1, 40)) = 15.0
+        _FoamDistortion("Foam Distortion", Range(0, 2)) = 0.3
+        _FoamNoiseStrength("Foam Noise Strength", Range(0, 2)) = 0.8
+
+        [Header(Height Variation)]
+        [Toggle(_HEIGHT_VARIATION_ON)] _height_variation("Enable Height Variation", Float) = 0
+        _WaveHeight("Wave Height", Range(0, 2)) = 0.2
+        _WaveDirectionX("Wave Direction X", Float) = 1.0
+        _WaveDirectionZ("Wave Direction Z", Float) = 0.5
+        _WaveFrequency("Wave Frequency", Range(0.1, 5)) = 1.0
+        _WaveSpeed("Wave Speed", Float) = 0.5
+        _WaveSmoothness("Wave Smoothness", Range(0.1, 5)) = 1.0
+        _WaveNoiseScale("Wave Noise Scale", Float) = 0.5
+        _WaveNoiseStrength("Wave Noise Strength", Range(0, 1)) = 0.3
+
         [Header(Shadows)]
         _ShadowStrength("Shadow Strength", Range(0, 1)) = 0.25
         _ShadowColor("Shadow Color", Color) = (0.0, 0.1, 0.2, 1)
@@ -105,6 +124,8 @@ Shader "Turnroot/Water"
             #pragma fragment frag
 
             #pragma shader_feature_local _MURKINESS_ANIM_ON
+            #pragma shader_feature_local _CONSTANT_FOAM_ON
+            #pragma shader_feature_local _HEIGHT_VARIATION_ON
 
             // Shadow keywords — same set as the fixed character shaders
             #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
@@ -158,6 +179,21 @@ Shader "Turnroot/Water"
             float  _RipplePhaseJitter;
             float  _DistortionStrength;
 
+            float4 _FoamColor;
+            float  _FoamThickness;
+            float  _FoamSharpness;
+            float  _FoamDistortion;
+            float  _FoamNoiseStrength;
+
+            float  _WaveHeight;
+            float  _WaveDirectionX;
+            float  _WaveDirectionZ;
+            float  _WaveFrequency;
+            float  _WaveSpeed;
+            float  _WaveSmoothness;
+            float  _WaveNoiseScale;
+            float  _WaveNoiseStrength;
+
             float  _ShadowStrength;
             float4 _ShadowColor;
             CBUFFER_END
@@ -192,7 +228,45 @@ Shader "Turnroot/Water"
                 UNITY_TRANSFER_INSTANCE_ID(input, output);
                 UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
-                VertexPositionInputs vertexInput = GetVertexPositionInputs(input.positionOS.xyz);
+                float3 positionOS = input.positionOS.xyz;
+
+                // ─────────────────────────────────────────────────────────
+                // HEIGHT VARIATION
+                // Apply wave displacement to vertices for actual surface height
+                // changes that match the visual wave normals.
+                // ─────────────────────────────────────────────────────────
+                #if defined(_HEIGHT_VARIATION_ON)
+                {
+                    // Get world position for wave calculation
+                    float3 positionWS = TransformObjectToWorld(positionOS);
+                    float2 wavePos = positionWS.xz;
+
+                    // Base wave direction and time
+                    float2 waveDir = normalize(float2(_WaveDirectionX, _WaveDirectionZ));
+                    float waveTime = _Time.y * _WaveSpeed;
+
+                    // Directional wave
+                    float wavePhase = dot(wavePos, waveDir) * _WaveFrequency + waveTime;
+                    float waveBase = sin(wavePhase) * 0.5 + 0.5; // 0..1
+                    
+                    // Smooth out the wave
+                    waveBase = pow(waveBase, _WaveSmoothness);
+
+                    // Add noise variation if desired
+                    float2 noiseUV = wavePos * _WaveNoiseScale * 0.1;
+                    float waveNoise = SAMPLE_TEXTURE2D_LOD(_RippleNoiseTex, sampler_RippleNoiseTex,
+                                                           TRANSFORM_TEX(noiseUV, _RippleNoiseTex), 0).r;
+                    
+                    // Combine wave and noise
+                    float heightOffset = waveBase * (1.0 - _WaveNoiseStrength) + waveNoise * _WaveNoiseStrength;
+                    heightOffset = (heightOffset * 2.0 - 1.0) * _WaveHeight; // remap to -height..+height
+
+                    // Apply displacement along vertex normal
+                    positionOS += input.normalOS * heightOffset;
+                }
+                #endif
+
+                VertexPositionInputs vertexInput = GetVertexPositionInputs(positionOS);
                 output.positionCS  = vertexInput.positionCS;
                 output.positionWS  = vertexInput.positionWS;
                 output.uv          = input.uv;
@@ -241,6 +315,10 @@ Shader "Turnroot/Water"
                 // ─────────────────────────────────────────────────────────
                 float  depthT    = saturate(depthDiff / max(_DepthDistance, 0.001));
                 float4 waterCol  = lerp(_ShallowColor, _DeepColor, depthT);
+
+                // Fade out ripples/foam in deeper water (when viewing through water or underwater)
+                // Use 1-depthT so effects are full strength at edges (depthT=0) and fade in deep water
+                float depthFadeOut = 1.0 - saturate(depthT * 2.0); // fade starts at 50% depth
 
                 // ─────────────────────────────────────────────────────────
                 // 3. MURKINESS
@@ -427,8 +505,53 @@ Shader "Turnroot/Water"
                 float rippleShadowFactor = lerp(1.0, shadowAtten, _RippleShadowMask);
                 rippleAlpha *= rippleShadowFactor;
 
+                // Fade out ripples in deeper water
+                rippleAlpha *= depthFadeOut;
+
                 waterCol.rgb = lerp(waterCol.rgb, _RippleColor.rgb, rippleAlpha * _RippleColor.a);
                 waterCol.a   = max(waterCol.a, rippleAlpha * _RippleColor.a);
+
+                // ─────────────────────────────────────────────────────────
+                // 11. CONSTANT INTERSECTION FOAM
+                // Similar to ripples but static (no animation). Creates a
+                // persistent foam line at intersection edges. Reuses edge fade,
+                // sharpness, and distortion from ripples, but has independent
+                // color, thickness, and noise strength.
+                // ─────────────────────────────────────────────────────────
+                #if defined(_CONSTANT_FOAM_ON)
+                {
+                    // Calculate foam distance with its own distortion
+                    float foamNDistort = (n1 - 0.5) * 0.8 + (n2 - 0.5) * 0.2;
+                    float foamHorizDist = max(0.0, horizDist + foamNDistort * _FoamDistortion * _FoamThickness * 0.5);
+                    
+                    float foamMask = 1.0 - saturate(foamHorizDist / max(_FoamThickness, 0.001));
+                    foamMask *= step(0.001, depthDiffDistorted);
+
+                    // Apply edge fade (reuse _RippleEdgeFade)
+                    float foamEdgeFade = saturate(foamMask / max(_RippleEdgeFade, 0.01));
+
+                    // Create foam pattern using noise - static, no time component
+                    float2 foamNoiseUV = wXZ * _RippleNoiseScale * 0.1;
+                    float foamNoise1 = SampleNoise(foamNoiseUV);
+                    float foamNoise2 = SampleNoise(foamNoiseUV * 2.3 + float2(5.7, 2.3));
+                    float foamNoiseCombined = foamNoise1 * 0.7 + foamNoise2 * 0.3;
+
+                    // Apply foam's own sharpness
+                    float foamPattern = saturate((foamMask - (1.0 - foamNoiseCombined) * _FoamNoiseStrength) * _FoamSharpness * 0.1);
+                    foamPattern *= foamEdgeFade;
+
+                    // Apply shadow mask like ripples
+                    float foamShadowFactor = lerp(1.0, shadowAtten, _RippleShadowMask);
+                    foamPattern *= foamShadowFactor;
+
+                    // Fade out foam in deeper water (same as ripples)
+                    foamPattern *= depthFadeOut;
+
+                    // Blend foam into water
+                    waterCol.rgb = lerp(waterCol.rgb, _FoamColor.rgb, foamPattern * _FoamColor.a);
+                    waterCol.a   = max(waterCol.a, foamPattern * _FoamColor.a);
+                }
+                #endif
 
                 // Final clamp
                 waterCol = saturate(waterCol);

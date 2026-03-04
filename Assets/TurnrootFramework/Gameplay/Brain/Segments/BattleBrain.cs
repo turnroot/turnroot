@@ -100,6 +100,12 @@ namespace Turnroot.Gameplay.Brain
 
         private void Start()
         {
+            // Roster initialization moved to InitializeLTMDependentData()
+        }
+
+        private void InitializeLTMDependentData()
+        {
+            // Called after LongTermMemory is initialized
             if (
                 Brain.gamewideContextBrain != null
                 && Brain.gamewideContextBrain.GamewidePersistentPlayerRoster == null

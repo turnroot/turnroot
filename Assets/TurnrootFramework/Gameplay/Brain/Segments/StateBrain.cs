@@ -33,6 +33,8 @@ public static class BrainStateNames
     public const string Cutscene = "Cutscene";
     public const string WorldMap = "WorldMap";
     public const string MainMenu = "MainMenu";
+
+    public const string GameStart = "GameStart";
     public const string GameOver = "GameOver";
     public const string Credits = "Credits";
     public const string NonCombatGameplay = "NonCombatGameplay";
@@ -58,6 +60,7 @@ public static class BrainStateNames
             Cutscene,
             WorldMap,
             MainMenu,
+            GameStart,
             GameOver,
             Credits,
             NonCombatGameplay,
@@ -190,6 +193,7 @@ namespace Turnroot.Gameplay.Brain
                 new(BrainStateNames.Cutscene),
                 new(BrainStateNames.Paused),
                 new(BrainStateNames.Combat),
+                new(BrainStateNames.GameStart),
                 new(BrainStateNames.WorldMap),
             };
 
@@ -389,5 +393,3 @@ namespace Turnroot.Gameplay.Brain
         #endregion
     }
 }
-
-

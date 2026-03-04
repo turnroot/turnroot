@@ -1,6 +1,7 @@
 using System.Collections;
 using UnityEngine;
 using UnityEngine.Events;
+
 namespace Turnroot.Utilities.AbstractScripts
 {
     /// <summary>
@@ -20,7 +21,9 @@ namespace Turnroot.Utilities.AbstractScripts
         private void Awake()
         {
             canvasGroup = GetComponent<CanvasGroup>();
-            visibleAlpha = canvasGroup.alpha;
+            // If alpha starts at 0, assume visible alpha should be 1
+            visibleAlpha = canvasGroup.alpha > 0f ? canvasGroup.alpha : 1f;
+            _visible = canvasGroup.alpha > 0f;
         }
 
         bool _visible = true;
@@ -31,6 +34,7 @@ namespace Turnroot.Utilities.AbstractScripts
             {
                 if (_visible == value)
                 {
+                    $"UIFade: Visible set to {value} but already in that state. No action taken.".LogInfo();
                     return;
                 }
                 _visible = value;
@@ -83,4 +87,3 @@ namespace Turnroot.Utilities.AbstractScripts
         }
     }
 }
-

@@ -41,6 +41,7 @@ namespace Turnroot.Gameplay.Brain
     [RequireComponent(typeof(CameraBrain))]
     [RequireComponent(typeof(CursorBrain))]
     [RequireComponent(typeof(UnitAppearanceBrain))]
+    [RequireComponent(typeof(SaveFileBrain))]
     [RequireComponent(typeof(LoadingController))]
     public partial class Brain : MonoBehaviour
     {

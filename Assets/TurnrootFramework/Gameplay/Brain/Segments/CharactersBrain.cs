@@ -25,11 +25,6 @@ namespace Turnroot.Gameplay.Brain
         #endregion
 
         #region Initialization
-        public void Initialize(GamewideContextBrain gamewideContextBrain, BattleBrain battleBrain)
-        {
-            _gamewideContextBrain = gamewideContextBrain;
-            _battleBrain = battleBrain;
-        }
 
         protected override void Awake()
         {
@@ -40,9 +35,10 @@ namespace Turnroot.Gameplay.Brain
 
         private bool _migrationPerformed = false;
 
-        private void Start()
+        private void Start() => _ltm = GetComponent<LongTermMemory>();
+
+        private void InitializeLTMDependentData()
         {
-            _ltm = GetComponent<LongTermMemory>();
             LoadBattleOutcomeStatistics();
 
             var keys = _ltm?.RecallKeysByPrefix("DefaultStat");
@@ -65,8 +61,7 @@ namespace Turnroot.Gameplay.Brain
             _brain.OnThirdPartyTurnStarted += HandleThirdPartyTurnStarted;
             _brain.OnSavePlayerRosterRequested += SavePlayerRosterProgress;
             _brain.OnLtmKeyCacheUpdated += HandleLtmKeyCacheUpdated;
-
-            // Update weapon caches when inventory equipment changes
+            _brain.OnLongTermMemoryInitialized += InitializeLTMDependentData;
             _brain.OnItemEquipped += HandleItemEquipped;
             _brain.OnItemUnequipped += HandleItemUnequipped;
         }
@@ -80,7 +75,7 @@ namespace Turnroot.Gameplay.Brain
             _brain.OnThirdPartyTurnStarted -= HandleThirdPartyTurnStarted;
             _brain.OnSavePlayerRosterRequested -= SavePlayerRosterProgress;
             _brain.OnLtmKeyCacheUpdated -= HandleLtmKeyCacheUpdated;
-
+            _brain.OnLongTermMemoryInitialized -= InitializeLTMDependentData;
             _brain.OnItemEquipped -= HandleItemEquipped;
             _brain.OnItemUnequipped -= HandleItemUnequipped;
         }

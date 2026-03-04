@@ -29,6 +29,24 @@ namespace Turnroot.Gameplay.Brain
 
         public void PublishGraphicsQualityChanged() => OnGraphicsQualityChanged?.Invoke();
 
+        // Save File Management Events
+        public event Action<string> OnUpdateSaveFileName;
+        public event Action<int> OnUpdateSaveFileProgress;
+        public event Action<string> OnSetSaveFileCurrentScene;
+        public event Action<SaveFileSubfolders> OnSwitchActiveSaveFile;
+
+        public void PublishUpdateSaveFileName(string fileName) =>
+            OnUpdateSaveFileName?.Invoke(fileName);
+
+        public void PublishUpdateSaveFileProgress(int progress) =>
+            OnUpdateSaveFileProgress?.Invoke(progress);
+
+        public void PublishSetSaveFileCurrentScene(string sceneName) =>
+            OnSetSaveFileCurrentScene?.Invoke(sceneName);
+
+        public void PublishSwitchActiveSaveFile(SaveFileSubfolders subfolder) =>
+            OnSwitchActiveSaveFile?.Invoke(subfolder);
+
         #endregion
     }
 }

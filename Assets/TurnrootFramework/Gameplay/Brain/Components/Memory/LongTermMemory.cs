@@ -12,6 +12,7 @@ namespace Turnroot.Gameplay.Brain.Components
     {
         private JsonPlayerPrefs prefs;
         private bool isDirty;
+        private bool isInitialized = false;
 
         /// <summary>
         /// Fired when the underlying keyset changes in JsonPlayerPrefs.
@@ -25,14 +26,34 @@ namespace Turnroot.Gameplay.Brain.Components
         /// </summary>
         public int KeyCacheVersion => prefs?.KeyCacheVersion ?? 0;
 
-        public void Awake() => InitializePrefs();
+        public void Awake()
+        {
+            var brain = GetComponent<Brain>();
+            if (brain != null)
+            {
+                brain.OnLongTermMemorySubfolderSet += HandleSubfolderSet;
+            }
+        }
 
-        private void InitializePrefs()
+        private void HandleSubfolderSet(string subfolder)
+        {
+            if (!isInitialized)
+            {
+                InitializePrefs(subfolder);
+                isInitialized = true;
+
+                // Notify other brain components that LTM is ready
+                var brain = GetComponent<Brain>();
+                brain?.PublishLongTermMemoryInitialized();
+            }
+        }
+
+        private void InitializePrefs(string subfolder)
         {
             var prefsPath = System.IO.Path.Combine(
                 Application.persistentDataPath,
                 "TurnrootBrain",
-                "structured",
+                subfolder,
                 ".turnrootdata"
             );
 
@@ -68,6 +89,11 @@ namespace Turnroot.Gameplay.Brain.Components
         /// </summary>
         public string Remember(string key, string value)
         {
+            if (prefs == null)
+            {
+                Debug.LogWarning("LongTermMemory: Attempted to Remember before initialization.");
+                return value;
+            }
             prefs.SetString(key, value);
             SaveImmediate();
             return value;
@@ -78,6 +104,11 @@ namespace Turnroot.Gameplay.Brain.Components
         /// </summary>
         public int RememberInt(string key, int value)
         {
+            if (prefs == null)
+            {
+                Debug.LogWarning("LongTermMemory: Attempted to RememberInt before initialization.");
+                return value;
+            }
             prefs.SetInt(key, value);
             SaveImmediate();
             return value;
@@ -88,6 +119,13 @@ namespace Turnroot.Gameplay.Brain.Components
         /// </summary>
         public bool RememberBool(string key, bool value)
         {
+            if (prefs == null)
+            {
+                Debug.LogWarning(
+                    "LongTermMemory: Attempted to RememberBool before initialization."
+                );
+                return value;
+            }
             prefs.SetBool(key, value);
             SaveImmediate();
             return value;
@@ -97,19 +135,43 @@ namespace Turnroot.Gameplay.Brain.Components
         /// Retrieves a string value from long-term memory.
         /// </summary>
         /// <returns>The string value, or null if the key does not exist.</returns>
-        public string Recall(string key) => prefs.GetString(key, null);
+        public string Recall(string key)
+        {
+            if (prefs == null)
+            {
+                Debug.LogWarning("LongTermMemory: Attempted to Recall before initialization.");
+                return null;
+            }
+            return prefs.GetString(key, null);
+        }
 
         /// <summary>
         /// Retrieves an integer value from long-term memory.
         /// </summary>
         /// <returns>The integer value, or -1 if the key does not exist.</returns>
-        public int RecallInt(string key) => prefs.GetInt(key, -1);
+        public int RecallInt(string key)
+        {
+            if (prefs == null)
+            {
+                Debug.LogWarning("LongTermMemory: Attempted to RecallInt before initialization.");
+                return -1;
+            }
+            return prefs.GetInt(key, -1);
+        }
 
         /// <summary>
         /// Retrieves a boolean value from long-term memory.
         /// </summary>
         /// <returns>The boolean value, or false if the key does not exist.</returns>
-        public bool RecallBool(string key) => prefs.GetBool(key, false);
+        public bool RecallBool(string key)
+        {
+            if (prefs == null)
+            {
+                Debug.LogWarning("LongTermMemory: Attempted to RecallBool before initialization.");
+                return false;
+            }
+            return prefs.GetBool(key, false);
+        }
 
         /// <summary>
         /// Removes a value from long-term memory.
@@ -184,6 +246,12 @@ namespace Turnroot.Gameplay.Brain.Components
 
         private void OnDestroy()
         {
+            var brain = GetComponent<Brain>();
+            if (brain != null)
+            {
+                brain.OnLongTermMemorySubfolderSet -= HandleSubfolderSet;
+            }
+
             if (prefs != null)
             {
                 prefs.OnKeySetChanged -= HandlePrefsKeySetChanged;

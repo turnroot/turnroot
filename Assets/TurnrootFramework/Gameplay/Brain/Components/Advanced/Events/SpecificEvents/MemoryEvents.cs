@@ -9,11 +9,18 @@ namespace Turnroot.Gameplay.Brain
 
         public event Action<string> OnIllegallyModifiedFileDetected;
         public event Action<int> OnLtmKeyCacheUpdated;
+        public event Action<string> OnLongTermMemorySubfolderSet;
+        public event Action OnLongTermMemoryInitialized;
 
         public void PublishIllegalModification(string message) =>
             OnIllegallyModifiedFileDetected?.Invoke(message);
 
         public void PublishLtmKeyCacheUpdated(int version) => OnLtmKeyCacheUpdated?.Invoke(version);
+
+        public void PublishLongTermMemorySubfolderSet(string subfolder) =>
+            OnLongTermMemorySubfolderSet?.Invoke(subfolder);
+
+        public void PublishLongTermMemoryInitialized() => OnLongTermMemoryInitialized?.Invoke();
 
         #endregion
 

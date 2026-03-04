@@ -25,12 +25,14 @@ namespace Turnroot.Gameplay.Brain
         {
             _brain.OnGoldGained += HandleGoldGained;
             _brain.OnGoldSpent += HandleGoldSpent;
+            _brain.OnLongTermMemoryInitialized += InitializeLTMDependentData;
         }
 
         protected override void UnsubscribeFromBrainEvents()
         {
             _brain.OnGoldGained -= HandleGoldGained;
             _brain.OnGoldSpent -= HandleGoldSpent;
+            _brain.OnLongTermMemoryInitialized -= InitializeLTMDependentData;
         }
 
         private void HandleGoldGained(int amount) => AddGold(amount);
@@ -39,7 +41,6 @@ namespace Turnroot.Gameplay.Brain
 
         private void Start()
         {
-            // LongTermMemory is initialized in Brain.Awake(), safe to access here
             _ltm = GetComponent<LongTermMemory>();
             _gameplaySettings = GameplayGeneralSettings.Instance;
             _materials = new Dictionary<ObjectItem, int>();
@@ -47,8 +48,10 @@ namespace Turnroot.Gameplay.Brain
                 _gameplaySettings != null
                     ? _gameplaySettings.GoldDisplayNames
                     : new GoldDisplay { OneLetter = "G", FullName = "gold" };
+        }
 
-            // Load saved gold amount
+        private void InitializeLTMDependentData()
+        {
             int tryLoadGold = GetGoldFromLTM();
             if (tryLoadGold <= 0)
             {
@@ -120,7 +123,6 @@ namespace Turnroot.Gameplay.Brain
 
         public void SaveCurrentStorehouse()
         {
-            // loop through _materials and save each material count
             foreach (var material in _materials)
             {
                 _ = _ltm.RememberInt(
@@ -295,5 +297,3 @@ namespace Turnroot.Gameplay.Brain
         #endregion
     }
 }
-
-
