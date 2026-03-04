@@ -98,6 +98,8 @@ ShaderVariantCollection:
         passType: 0
       - keywords: TRANSITION_DISSOLVE
         passType: 0
+      - keywords: TRANSITION_FADE
+        passType: 0
       - keywords: TRANSITION_MASK
         passType: 0
       - keywords: TRANSITION_MELT

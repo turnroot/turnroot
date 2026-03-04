@@ -30,6 +30,8 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
         private Brain.Brain Brain => battleBrain?.Brain;
         private BattleContext Context => battleBrain?.BattleObject.Context;
+
+        [HideInInspector]
         public Utilities.AbstractScripts.BattleSceneFlow _sceneFlow;
 
         #endregion

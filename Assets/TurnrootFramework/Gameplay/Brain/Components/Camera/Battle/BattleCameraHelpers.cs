@@ -14,6 +14,7 @@ namespace Turnroot.Gameplay.Brain.Segments
     /// </summary>
     public partial class CameraBrain : BrainComponent
     {
+        [HideInInspector]
         public int CurrentAngle;
         private Coroutine _rotationCoroutine;
         private const float AnimatedRotationDuration = 0.3f;

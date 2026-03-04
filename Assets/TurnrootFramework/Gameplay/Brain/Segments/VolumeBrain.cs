@@ -29,11 +29,24 @@ namespace Turnroot.Gameplay.Brain
             for (int i = 0; i < SceneManager.sceneCount; i++)
             {
                 var scene = SceneManager.GetSceneAt(i);
+
+                // Skip applying settings if the scene is "Game Start"
+                if (scene.name == "Game Start")
+                {
+                    continue;
+                }
+
                 foreach (var rootGameObject in scene.GetRootGameObjects())
                 {
                     var globalVolume = rootGameObject.GetComponentInChildren<Volume>(true);
                     if (globalVolume != null && globalVolume.profile != null)
                     {
+                        // Skip applying settings if the volume profile is called "GameStart"
+                        if (globalVolume.profile.name == "GameStart")
+                        {
+                            continue;
+                        }
+
                         ApplyGraphicsSettings(globalVolume, settings);
                         break;
                     }
@@ -95,9 +108,7 @@ namespace Turnroot.Gameplay.Brain
 
         private void ApplyQualitySettings(PlayerSettings.GameplayPlayerSettings settings)
         {
-            var rpAsset =
-                GraphicsSettings.defaultRenderPipeline
-                as UniversalRenderPipelineAsset;
+            var rpAsset = GraphicsSettings.defaultRenderPipeline as UniversalRenderPipelineAsset;
             if (rpAsset == null)
             {
                 return;

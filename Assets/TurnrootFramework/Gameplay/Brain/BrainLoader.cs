@@ -36,4 +36,3 @@ namespace Turnroot.Gameplay.Brain
         private void UnloadBrainScene() => SceneManager.UnloadSceneAsync(BrainSceneName);
     }
 }
-
