@@ -16,6 +16,14 @@ namespace Turnroot.Skills.Nodes.Editor
     {
         public override void OnGUI()
         {
+            // Help button at the top
+            if (GUILayout.Button("📖 Show Skill System Help", GUILayout.Height(30)))
+            {
+                SkillSystemHelpWindow.ShowWindowFromButton();
+            }
+
+            GUILayout.Space(5);
+
             // Top toolbar: Add Skill dropdown grouped by category (uses CreateNodeMenu paths)
             EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
             GUILayout.FlexibleSpace();

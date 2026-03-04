@@ -1,6 +1,8 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Turnroot.Conversations;
+using Turnroot.Gameplay.Audio;
 using Turnroot.Gameplay.Brain;
 using UnityEngine;
 using UnityEngine.Events;
@@ -31,6 +33,12 @@ namespace Turnroot.Utilities.AbstractScripts
 
         [HideInInspector]
         public LoadingController loadingController;
+
+        [HideInInspector]
+        public AudioController audioController;
+
+        [HideInInspector]
+        public ConversationController conversationController;
 
         // Progress (0..1) for UI elements that expect normalized values
         public UnityEvent<float> OnLoadedAmountChanged = new();
@@ -108,6 +116,65 @@ namespace Turnroot.Utilities.AbstractScripts
 
         public void SwitchActiveSaveFile(SaveFileSubfolders subfolder) =>
             brain.PublishSwitchActiveSaveFile(subfolder);
+
+        #endregion
+
+        #region Audio Management Reroutes
+
+
+        public void PlaySegmentAudio(int segmentIndex) =>
+            audioController?.PlaySegmentAudio(segmentIndex);
+
+        public void PlaySegmentAudioByName(string segmentName) =>
+            audioController?.PlaySegmentAudioByName(segmentName);
+
+        public void PlayVoiceClip(AudioClip clip) => audioController?.PlayVoiceClip(clip);
+
+        public void PlaySfxClip(AudioClip clip) => audioController?.PlaySfxClip(clip);
+
+        public void FadeOutMusic() => audioController?.FadeOutMusic();
+
+        public void CrossfadeMusic(AudioClip newClip) => audioController?.CrossfadeMusic(newClip);
+
+        public void StopAllMusic() => audioController?.StopAllMusic();
+
+        public void StopAllSFX() => audioController?.StopAllSFX();
+
+        public void StopAllVoices() => audioController?.StopAllVoices();
+
+        public void SetAudioCondition(string keyValuePair)
+        {
+            if (string.IsNullOrEmpty(keyValuePair) || !keyValuePair.Contains("="))
+            {
+                return;
+            }
+
+            var parts = keyValuePair.Split('=');
+            if (parts.Length == 2)
+            {
+                string key = parts[0].Trim();
+                bool value = parts[1].Trim().ToLower() == "true";
+                audioController?.SetCondition(key, value);
+            }
+        }
+
+        #endregion
+
+        #region Conversation Management Reroutes
+
+        public void StartConversation() => conversationController?.StartConversation();
+
+        public void AdvanceConversation() => conversationController?.NextLayer();
+
+        public void StartConversationAtIndex(int index) =>
+            conversationController?.StartConversationAtIndex(index);
+
+        public void NextConversation() => conversationController?.IncrementConversationIndex();
+
+        public void PreviousConversation() => conversationController?.DecrementConversationIndex();
+
+        public void ChooseBranch(int targetNodeId) =>
+            conversationController?.ChooseBranchTarget(targetNodeId);
 
         #endregion
 

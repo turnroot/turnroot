@@ -55,6 +55,46 @@ namespace Turnroot.Conversations
         public UnityEvent OnAnyConversationStart;
         public UnityEvent OnAnyConversationFinished;
 
+        #region Help & Documentation
+
+#if UNITY_EDITOR
+        [Button("📖 Show Conversation System Help", EButtonEnableMode.Always)]
+        private void ShowHelp()
+        {
+            // Use reflection to call the editor window since it's in a separate Editor assembly
+            var assemblies = System.AppDomain.CurrentDomain.GetAssemblies();
+            System.Type windowType = null;
+
+            foreach (var assembly in assemblies)
+            {
+                windowType = assembly.GetType(
+                    "Turnroot.Conversations.Editor.ConversationControllerHelpWindow"
+                );
+                if (windowType != null)
+                    break;
+            }
+
+            if (windowType != null)
+            {
+                var showMethod = windowType.GetMethod(
+                    "ShowWindowFromButton",
+                    System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static
+                );
+                showMethod?.Invoke(null, null);
+            }
+            else
+            {
+                UnityEditor.EditorUtility.DisplayDialog(
+                    "Help",
+                    "Could not find ConversationControllerHelpWindow editor script",
+                    "OK"
+                );
+            }
+        }
+#endif
+
+        #endregion
+
         private ConversationInstance SelectedInstance =>
             _conversationInstances != null
             && _currentConversation >= 0

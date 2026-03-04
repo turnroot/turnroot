@@ -15,6 +15,44 @@ namespace Turnroot.Skills
     [CreateAssetMenu(fileName = "NewSkill", menuName = "Turnroot/Skills/Skill")]
     public class Skill : ScriptableObject
     {
+        #region Help & Documentation
+
+#if UNITY_EDITOR
+        [Button("📖 Show Skill System Help", EButtonEnableMode.Always)]
+        private void ShowHelp()
+        {
+            // Use reflection to call the editor window since it's in a separate Editor assembly
+            var assemblies = System.AppDomain.CurrentDomain.GetAssemblies();
+            System.Type windowType = null;
+
+            foreach (var assembly in assemblies)
+            {
+                windowType = assembly.GetType("Turnroot.Skills.Nodes.Editor.SkillSystemHelpWindow");
+                if (windowType != null)
+                    break;
+            }
+
+            if (windowType != null)
+            {
+                var showMethod = windowType.GetMethod(
+                    "ShowWindowFromButton",
+                    System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static
+                );
+                showMethod?.Invoke(null, null);
+            }
+            else
+            {
+                UnityEditor.EditorUtility.DisplayDialog(
+                    "Help",
+                    "Could not find SkillSystemHelpWindow editor script",
+                    "OK"
+                );
+            }
+        }
+#endif
+
+        #endregion
+
         [BoxGroup("Appearance"), HorizontalLine(color: EColor.Violet)]
         public Color AccentColor1;
 

@@ -35,6 +35,8 @@ public static class BrainStateNames
     public const string MainMenu = "MainMenu";
 
     public const string GameStart = "GameStart";
+
+    public const string ChooseSaveFile = "ChooseSaveFile";
     public const string GameOver = "GameOver";
     public const string Credits = "Credits";
     public const string NonCombatGameplay = "NonCombatGameplay";
@@ -65,11 +67,13 @@ public static class BrainStateNames
             Credits,
             NonCombatGameplay,
             Hub,
-            // Combat with child states
+            // combat childs
             $"{Combat}.{PreBattle}",
             $"{Combat}.{PreBattleTransitionToBattle}",
             $"{Combat}.{Battle}",
             $"{Combat}.{PostBattle}",
+            // game start children
+            $"{GameStart}.{ChooseSaveFile}",
         };
     }
 }
@@ -103,6 +107,7 @@ namespace Turnroot.Gameplay.Brain
             base.Awake();
             InitializeHighLevelStates();
             InitializeBattleChildStates();
+            InitializeGameStartChildStates();
         }
 
         protected override void SubscribeToBrainEvents() =>
@@ -162,6 +167,22 @@ namespace Turnroot.Gameplay.Brain
             }
 
             SetBattleChildStates();
+        }
+
+        public void InitializeGameStartChildStates()
+        {
+            var gameStartState = FindHighLevelState(BrainStateNames.GameStart);
+            if (gameStartState.Children != null && gameStartState.Children.Length > 0)
+            {
+                return;
+            }
+
+            var childStates = new BrainState[]
+            {
+                new(BrainStateNames.ChooseSaveFile, gameStartState),
+            };
+
+            gameStartState.Children = childStates;
         }
 
         public OperationResult SetBattleChildStates()

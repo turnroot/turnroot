@@ -1,3 +1,4 @@
+using Turnroot.Audio.PreferredBattleMusic;
 using Turnroot.Gameplay.Brain.Components;
 using Turnroot.Gameplay.PlayerSettings;
 using Turnroot.Utilities;
@@ -318,7 +319,7 @@ namespace Turnroot.Gameplay.Brain
                         }
                         break;
                     case "preferredbattlemusic":
-                        if (value is Audio.PreferredBattleMusic.SongChoice preferredBattleMusic)
+                        if (value is SongChoice preferredBattleMusic)
                         {
                             PlayerSettings.PreferredBattleMusic = preferredBattleMusic;
                         }
@@ -400,9 +401,6 @@ namespace Turnroot.Gameplay.Brain
         public float MusicVolume = 0.8f;
         public float SfxVolume = 0.8f;
         public float VoiceVolume = 0.8f;
-        public Audio.PreferredBattleMusic.SongChoice PreferredBattleMusic = Audio
-            .PreferredBattleMusic
-            .SongChoice
-            .Default;
+        public SongChoice PreferredBattleMusic = SongChoice.Default;
     }
 }

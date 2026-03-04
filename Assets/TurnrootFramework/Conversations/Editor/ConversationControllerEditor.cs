@@ -14,6 +14,15 @@ namespace Turnroot.Conversations.Editor
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
+
+            // Help button at the top
+            if (GUILayout.Button("📖 Show Conversation System Help", GUILayout.Height(30)))
+            {
+                ConversationControllerHelpWindow.ShowWindowFromButton();
+            }
+
+            GUILayout.Space(8);
+
             DrawPropertiesExcluding(
                 serializedObject,
                 "m_Script",
