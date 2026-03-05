@@ -7,6 +7,8 @@ namespace Turnroot.Graphics2D
 {
     public class ScreenKeyboard : MonoBehaviour
     {
+        public System.Action<string> OnSubmit;
+
         [Header("References")]
         [SerializeField]
         private TextMeshProUGUI displayText;
@@ -16,6 +18,9 @@ namespace Turnroot.Graphics2D
 
         [SerializeField]
         private Transform bottomRowContainer;
+
+        [SerializeField]
+        private Transform submitRowContainer;
 
         [SerializeField]
         private KeyboardButton buttonPrefab;
@@ -45,6 +50,7 @@ namespace Turnroot.Graphics2D
             new string[] { "a", "s", "d", "f", "g", "h", "j", "k", "l", "-" },
             new string[] { "z", "x", "c", "v", "b", "n", "m", ".", "!", "?" },
             new string[] { "SHIFT", "SPACE", "BACK" },
+            new string[] { "SUBMIT" },
         };
 
         private KeyboardButton[,] buttons;
@@ -92,8 +98,8 @@ namespace Turnroot.Graphics2D
             maxRows = keyboardLayout.Length;
             maxCols = 0;
 
-            // Find max columns (excluding the bottom row which is special)
-            for (int row = 0; row < keyboardLayout.Length - 1; row++)
+            // Find max columns (excluding the bottom two special rows)
+            for (int row = 0; row < keyboardLayout.Length - 2; row++)
             {
                 if (keyboardLayout[row].Length > maxCols)
                     maxCols = keyboardLayout[row].Length;
@@ -101,8 +107,8 @@ namespace Turnroot.Graphics2D
 
             buttons = new KeyboardButton[maxRows, maxCols];
 
-            // Build main keyboard rows (all but the last row)
-            for (int row = 0; row < keyboardLayout.Length - 1; row++)
+            // Build main keyboard rows (all but the last two special rows)
+            for (int row = 0; row < keyboardLayout.Length - 2; row++)
             {
                 for (int col = 0; col < keyboardLayout[row].Length; col++)
                 {
@@ -128,11 +134,14 @@ namespace Turnroot.Graphics2D
 
             // Build bottom row separately (SHIFT, SPACE, BACK)
             BuildBottomRow();
+
+            // Build submit row separately
+            BuildSubmitRow();
         }
 
         private void BuildBottomRow()
         {
-            int bottomRow = keyboardLayout.Length - 1;
+            int bottomRow = keyboardLayout.Length - 2; // Second-to-last row (SHIFT, SPACE, BACK)
             string[] bottomRowKeys = keyboardLayout[bottomRow];
 
             // SHIFT button (left side)
@@ -201,6 +210,33 @@ namespace Turnroot.Graphics2D
             buttons[bottomRow, 2] = backButton;
         }
 
+        private void BuildSubmitRow()
+        {
+            int submitRow = keyboardLayout.Length - 1;
+            string[] submitRowKeys = keyboardLayout[submitRow];
+
+            // SUBMIT button (full width)
+            string submitKey = submitRowKeys[0]; // "SUBMIT"
+            KeyboardButton submitButton = Instantiate(buttonPrefab, submitRowContainer);
+            RectTransform submitRect = submitButton.GetComponent<RectTransform>();
+            submitRect.sizeDelta = buttonSize;
+
+            // Add LayoutElement with flexible width to expand to full width
+            LayoutElement submitLayout = submitButton.gameObject.AddComponent<LayoutElement>();
+            submitLayout.preferredHeight = buttonSize.y;
+            submitLayout.flexibleWidth = 1; // This makes it expand to fill available space
+
+            submitButton.Initialize(
+                submitKey,
+                normalColor,
+                highlightColor,
+                pressedColor,
+                OnButtonClicked,
+                OnButtonHovered
+            );
+            buttons[submitRow, 0] = submitButton;
+        }
+
         public void ProcessInput(Vector2 direction)
         {
             if (direction.magnitude < 0.5f)
@@ -267,6 +303,10 @@ namespace Turnroot.Graphics2D
                     }
                     UpdateKeyboardCase();
                     return; // Don't reset shift here
+
+                case "SUBMIT":
+                    OnSubmit?.Invoke(currentText);
+                    return;
 
                 default:
                     string textToAdd = key;

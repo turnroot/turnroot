@@ -64,6 +64,14 @@ namespace Turnroot.Utilities.AbstractScripts
 
         public void Hide() => Visible = false;
 
+        public void HideAfterTime(float delay) => StartCoroutine(HideAfterDelay(delay));
+
+        private IEnumerator HideAfterDelay(float delay)
+        {
+            yield return new WaitForSeconds(delay);
+            Hide();
+        }
+
         private IEnumerator LerpAlpha(float startAlpha, float targetAlpha)
         {
             float time = 0f;

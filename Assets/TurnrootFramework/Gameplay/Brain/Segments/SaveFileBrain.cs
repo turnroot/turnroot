@@ -346,7 +346,6 @@ namespace Turnroot.Gameplay.Brain
 
             $"Switched active save file to: {subfolder} (subfolder: {subfolderPath})".LogInfo();
         }
-
         #endregion
     }
 }
