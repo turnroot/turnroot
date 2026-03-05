@@ -14,7 +14,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
     public partial class BattleContextAIHelper
     {
         private readonly BattleContext _context;
-        BattleCondition[] BattleConditions;
+        private BattleCondition[] BattleConditions;
         private AStarModified _aStarModified = new();
 
         // Some basic behavioral bools

@@ -12,8 +12,8 @@ namespace Turnroot.Utilities.AbstractScripts
     {
         [SerializeField]
         public float lerpTime = 0.3f;
-        float visibleAlpha;
-        CanvasGroup canvasGroup;
+        private float visibleAlpha;
+        private CanvasGroup canvasGroup;
 
         public UnityEvent OnVisible;
         public UnityEvent OnHidden;
@@ -26,7 +26,7 @@ namespace Turnroot.Utilities.AbstractScripts
             _visible = canvasGroup.alpha > 0f;
         }
 
-        bool _visible = true;
+        private bool _visible = true;
         public bool Visible
         {
             get => _visible;

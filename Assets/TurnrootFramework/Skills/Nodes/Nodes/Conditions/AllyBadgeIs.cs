@@ -12,7 +12,7 @@ namespace Turnroot.Skills.Nodes.Conditions
     public class AllyBadgeIs : SkillNode
     {
         [Output]
-        FloatValue MatchCount;
+        private FloatValue MatchCount;
         public string BadgeText;
 
         public override object GetValue(NodePort port)

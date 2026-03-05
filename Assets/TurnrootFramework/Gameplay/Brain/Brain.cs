@@ -92,6 +92,9 @@ namespace Turnroot.Gameplay.Brain
         public UnitAppearanceBrain unitAppearanceBrain;
 
         [HideInInspector]
+        public SaveFileBrain saveFileBrain;
+
+        [HideInInspector]
         public LongTermMemory ltm;
 
         private ConversationController _sceneConversationController;

@@ -252,7 +252,7 @@ namespace Turnroot.Gameplay.Maps
 #endif
         }
 
-        void OnDrawGizmos()
+        private void OnDrawGizmos()
         {
             Vector3 getPos(int x, int y) =>
                 transform.position + new Vector3(x * GridScale, 0, y * GridScale) + _gridOffset;

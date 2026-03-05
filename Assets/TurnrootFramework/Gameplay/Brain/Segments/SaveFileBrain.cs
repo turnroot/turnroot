@@ -3,7 +3,6 @@ using System.IO;
 using Turnroot.Gameplay.Brain.Events;
 using Turnroot.Gameplay.Brain.Snapshots;
 using Turnroot.Utilities;
-using Unity.VectorGraphics;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -13,9 +12,14 @@ namespace Turnroot.Gameplay.Brain
     public struct SaveFile
     {
         public string FileName;
+        public Sprite AvatarPortrait;
+        public AvatarBody AvatarBodyType;
         public int Progress;
         public System.DateTime LastModified;
-        public string currentScene;
+        public string CurrentScene;
+
+        public string ChapterName;
+        public int ChapterNumber;
         public int playTimeSeconds;
         public string LtmSubfolderPath;
         public Snapshot BookmarkSnapshot;
@@ -25,6 +29,13 @@ namespace Turnroot.Gameplay.Brain
     internal class SaveFilesData
     {
         public List<SaveFile> saveFiles = new();
+    }
+
+    public enum AvatarBody
+    {
+        None,
+        MalePresenting,
+        FemalePresenting,
     }
 
     public enum SaveFileSubfolders
@@ -173,10 +184,14 @@ namespace Turnroot.Gameplay.Brain
 
             var newSaveFile = new SaveFile
             {
-                FileName = $"Unnamed",
+                FileName = "Unnamed",
+                AvatarBodyType = AvatarBody.None,
+                AvatarPortrait = null,
+                ChapterName = "Prologue",
+                ChapterNumber = 0,
                 Progress = 0,
                 LastModified = System.DateTime.Now,
-                currentScene = sceneName,
+                CurrentScene = sceneName,
                 playTimeSeconds = 0,
                 LtmSubfolderPath = subfolder.ToString().ToLower(),
                 BookmarkSnapshot = null,
@@ -306,7 +321,7 @@ namespace Turnroot.Gameplay.Brain
             if (activeIndex >= 0)
             {
                 var saveFile = SaveFiles[activeIndex];
-                saveFile.currentScene = sceneName;
+                saveFile.CurrentScene = sceneName;
                 SaveFiles[activeIndex] = saveFile;
                 SaveAllFiles();
                 $"Updated save file current scene to: {sceneName}".LogInfo();

@@ -12,34 +12,34 @@ namespace Turnroot.Skills.Nodes.Conditions
     public class UnitTerrainTypeNode : SkillNode
     {
         [Output]
-        BoolValue Ground;
+        private BoolValue Ground;
 
         [Output]
-        BoolValue ShallowWater;
+        private BoolValue ShallowWater;
 
         [Output]
-        BoolValue DeepWater;
+        private BoolValue DeepWater;
 
         [Output]
-        BoolValue Sand;
+        private BoolValue Sand;
 
         [Output]
-        BoolValue Snow;
+        private BoolValue Snow;
 
         [Output]
-        BoolValue Forest;
+        private BoolValue Forest;
 
         [Output]
-        BoolValue Bushes;
+        private BoolValue Bushes;
 
         [Output]
-        BoolValue Lava;
+        private BoolValue Lava;
 
         [Output]
-        BoolValue Bridge;
+        private BoolValue Bridge;
 
         [Output]
-        BoolValue Stairs;
+        private BoolValue Stairs;
 
         public override object GetValue(NodePort port)
         {

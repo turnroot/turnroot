@@ -12,7 +12,7 @@ namespace Turnroot.Skills.Nodes.Conditions
     public class TurnCountNode : SkillNode
     {
         [Output]
-        FloatValue value;
+        private FloatValue value;
 
         public override object GetValue(NodePort port)
         {

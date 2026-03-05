@@ -91,23 +91,23 @@ public class GrassRenderer : MonoBehaviour
     public bool logVisibleCount = false;
 
     // ── GPU resources ─────────────────────────────────────────────────────────
-    ComputeBuffer _allBladesBuffer;
-    ComputeBuffer _visibleBladesBuffer;
-    ComputeBuffer _indirectArgsBuffer;
-    ComputeBuffer _readbackBuffer;
+    private ComputeBuffer _allBladesBuffer;
+    private ComputeBuffer _visibleBladesBuffer;
+    private ComputeBuffer _indirectArgsBuffer;
+    private ComputeBuffer _readbackBuffer;
 
-    Mesh _bladeMesh;
-    Mesh _planeMesh;
-    int _totalBladeCount;
-    int _cullKernel;
-    Bounds _drawBounds;
-    float _logTimer;
+    private Mesh _bladeMesh;
+    private Mesh _planeMesh;
+    private int _totalBladeCount;
+    private int _cullKernel;
+    private Bounds _drawBounds;
+    private float _logTimer;
 
     // Indirect args layout: [indexCount, instanceCount, startIndex, baseVertex, startInstance]
-    readonly uint[] _args = new uint[5];
+    private readonly uint[] _args = new uint[5];
 
     // Must match BladeData in GrassCompute.compute (10 floats = 40 bytes)
-    struct BladeData
+    private struct BladeData
     {
         public Vector3 position;
         public Vector3 normal;
@@ -118,7 +118,7 @@ public class GrassRenderer : MonoBehaviour
         public const int Stride = 40;
     }
 
-    class ExtraGroup
+    private class ExtraGroup
     {
         public Material material;
         public ComputeBuffer all;
@@ -127,21 +127,21 @@ public class GrassRenderer : MonoBehaviour
         public int totalCount;
     }
 
-    List<ExtraGroup> _extraGroups;
+    private List<ExtraGroup> _extraGroups;
 
     // ── Lifecycle ─────────────────────────────────────────────────────────────
-    void OnEnable() => Init();
+    private void OnEnable() => Init();
 
-    void OnDisable() => ReleaseBuffers();
+    private void OnDisable() => ReleaseBuffers();
 
-    void OnDestroy()
+    private void OnDestroy()
     {
         ReleaseBuffers();
         DestroyMesh(ref _bladeMesh);
         DestroyMesh(ref _planeMesh);
     }
 
-    void LateUpdate()
+    private void LateUpdate()
     {
         if (
             !grassEnabled
@@ -213,7 +213,7 @@ public class GrassRenderer : MonoBehaviour
     }
 
     // ── Camera resolution ─────────────────────────────────────────────────────
-    Camera GetRenderCamera()
+    private Camera GetRenderCamera()
     {
         if (targetCamera != null && targetCamera.isActiveAndEnabled)
         {
@@ -237,7 +237,7 @@ public class GrassRenderer : MonoBehaviour
     }
 
     // ── Init ──────────────────────────────────────────────────────────────────
-    void Init()
+    private void Init()
     {
         if (computeShader == null || grassMaterial == null)
         {
@@ -269,7 +269,7 @@ public class GrassRenderer : MonoBehaviour
     //     [4] tip
     //    [2][3] mid
     //    [0][1] base
-    void BuildBladeMesh()
+    private void BuildBladeMesh()
     {
         _bladeMesh = new Mesh { name = "GrassBlade" };
         _bladeMesh.SetVertices(
@@ -301,7 +301,7 @@ public class GrassRenderer : MonoBehaviour
     }
 
     // Extra: vertical unit quad, x = –0.5..0.5, y = 0..1.
-    void BuildPlaneMesh()
+    private void BuildPlaneMesh()
     {
         _planeMesh = new Mesh { name = "GrassExtraPlane" };
         _planeMesh.SetVertices(
@@ -317,7 +317,7 @@ public class GrassRenderer : MonoBehaviour
     // Area-weighted CDF sampling: each blade picks a triangle proportional to
     // world-space area, then a uniform random point on that triangle.
     // Density is blades/m² regardless of mesh subdivision or object scale.
-    void BuildBladeData(Mesh mesh)
+    private void BuildBladeData(Mesh mesh)
     {
         var (verts, tris, normals, uvs) = GetMeshArrays(mesh);
         var (cdf, totalArea) = BuildAreaCDF(verts, tris);
@@ -418,7 +418,7 @@ public class GrassRenderer : MonoBehaviour
     }
 
     // ── Extra group placement ─────────────────────────────────────────────────
-    void BuildExtraGroups(Mesh mesh)
+    private void BuildExtraGroups(Mesh mesh)
     {
         _extraGroups = new List<ExtraGroup>();
 
@@ -510,7 +510,7 @@ public class GrassRenderer : MonoBehaviour
     }
 
     // Scatter `count` blades; skip candidates where `reject(uv)` returns true.
-    List<BladeData> ScatterBlades(
+    private List<BladeData> ScatterBlades(
         int count,
         float[] cdf,
         int triCount,
@@ -563,7 +563,7 @@ public class GrassRenderer : MonoBehaviour
         return list;
     }
 
-    void CreateExtraGroup(Material mat, List<BladeData> blades)
+    private void CreateExtraGroup(Material mat, List<BladeData> blades)
     {
         if (blades == null || blades.Count == 0)
         {
@@ -593,7 +593,7 @@ public class GrassRenderer : MonoBehaviour
     }
 
     // ── Mesh data helpers ─────────────────────────────────────────────────────
-    (Vector3[] verts, int[] tris, Vector3[] normals, Vector2[] uvs) GetMeshArrays(Mesh mesh)
+    private (Vector3[] verts, int[] tris, Vector3[] normals, Vector2[] uvs) GetMeshArrays(Mesh mesh)
     {
         var verts = mesh.vertices;
         var tris = mesh.triangles;
@@ -608,7 +608,7 @@ public class GrassRenderer : MonoBehaviour
     }
 
     // Normalised cumulative area distribution over mesh triangles.
-    (float[] cdf, float totalArea) BuildAreaCDF(Vector3[] verts, int[] tris)
+    private (float[] cdf, float totalArea) BuildAreaCDF(Vector3[] verts, int[] tris)
     {
         int triCount = tris.Length / 3;
         var areas = new float[triCount];
@@ -633,7 +633,7 @@ public class GrassRenderer : MonoBehaviour
     }
 
     // Returns a uniformly random world-space point on a triangle chosen by area-weighted CDF.
-    void SampleTriangle(
+    private void SampleTriangle(
         System.Random rng,
         float[] cdf,
         int triCount,
@@ -679,7 +679,7 @@ public class GrassRenderer : MonoBehaviour
     }
 
     // ── Per-frame GPU work ────────────────────────────────────────────────────
-    void DrawGroup(
+    private void DrawGroup(
         ComputeBuffer all,
         ComputeBuffer visible,
         ComputeBuffer argsBuffer,
@@ -735,7 +735,7 @@ public class GrassRenderer : MonoBehaviour
         );
     }
 
-    void DispatchCull(ComputeBuffer all, ComputeBuffer visible, int totalCount, Camera cam)
+    private void DispatchCull(ComputeBuffer all, ComputeBuffer visible, int totalCount, Camera cam)
     {
         Plane[] planes = GeometryUtility.CalculateFrustumPlanes(cam);
         var planeV4 = new Vector4[6];
@@ -759,7 +759,7 @@ public class GrassRenderer : MonoBehaviour
     }
 
     // ── Cleanup ───────────────────────────────────────────────────────────────
-    void ReleaseBuffers()
+    private void ReleaseBuffers()
     {
         _allBladesBuffer?.Release();
         _allBladesBuffer = null;
@@ -782,7 +782,7 @@ public class GrassRenderer : MonoBehaviour
         }
     }
 
-    void DestroyMesh(ref Mesh mesh)
+    private void DestroyMesh(ref Mesh mesh)
     {
         if (mesh == null)
         {
@@ -804,7 +804,7 @@ public class GrassRenderer : MonoBehaviour
     [ContextMenu("Regenerate Grass")]
     public void RegenerateGrass() => Init();
 
-    void OnValidate()
+    private void OnValidate()
     {
         minHeight = Mathf.Min(minHeight, maxHeight);
         minWidth = Mathf.Min(minWidth, maxWidth);

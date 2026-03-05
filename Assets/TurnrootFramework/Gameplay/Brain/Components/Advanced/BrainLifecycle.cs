@@ -37,6 +37,7 @@ namespace Turnroot.Gameplay.Brain
                 cursorBrain = GetComponent<CursorBrain>();
                 positioningInputControllerBrain = GetComponent<PositioningInputController>();
                 unitAppearanceBrain = GetComponent<UnitAppearanceBrain>();
+                saveFileBrain = GetComponent<SaveFileBrain>();
 
                 // Find all DynamicSceneFlows in other scenes and set their .brain to this
                 var allSceneFlows = FindObjectsByType<DynamicSceneFlow>(FindObjectsSortMode.None);

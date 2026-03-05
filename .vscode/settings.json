@@ -201,5 +201,6 @@
     ],
     "files.watcherExclude": {
         "Assets/Demos/**": true
-    }
+    },
+    "editor.defaultFormatter": "csharpier.csharpier-vscode"
 }

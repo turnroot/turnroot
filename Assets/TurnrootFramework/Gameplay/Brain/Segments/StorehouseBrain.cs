@@ -17,7 +17,7 @@ namespace Turnroot.Gameplay.Brain
     [RequireComponent(typeof(LongTermMemory))]
     public class StorehouseBrain : BrainComponent
     {
-        GameplayGeneralSettings _gameplaySettings;
+        private GameplayGeneralSettings _gameplaySettings;
 
         protected override EventPriority GetSubscriptionPriority() => EventPriority.Normal;
 
