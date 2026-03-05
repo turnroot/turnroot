@@ -72,6 +72,14 @@ namespace Turnroot.Utilities.AbstractScripts
             Hide();
         }
 
+        public void ShowAfterTime(float delay) => StartCoroutine(ShowAfterDelay(delay));
+
+        private IEnumerator ShowAfterDelay(float delay)
+        {
+            yield return new WaitForSeconds(delay);
+            Show();
+        }
+
         private IEnumerator LerpAlpha(float startAlpha, float targetAlpha)
         {
             float time = 0f;
