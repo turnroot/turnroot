@@ -60,9 +60,10 @@ namespace Turnroot.Gameplay.Brain
         public SaveFileSubfolders ActiveSaveFileSubfolderPath;
 
         [HideInInspector]
-        public SaveFile ActiveSaveFile => SaveFiles.Find(sf =>
-            sf.LtmSubfolderPath == ActiveSaveFileSubfolderPath.ToString().ToLower()
-        );
+        public SaveFile ActiveSaveFile =>
+            SaveFiles.Find(sf =>
+                sf.LtmSubfolderPath == ActiveSaveFileSubfolderPath.ToString().ToLower()
+            );
 
         protected override EventPriority GetSubscriptionPriority() => EventPriority.Highest;
 
@@ -100,14 +101,7 @@ namespace Turnroot.Gameplay.Brain
             try
             {
                 SaveFiles = GetSavefileData();
-
-                string subfolder = ActiveSaveFileSubfolderPath.ToString().ToLower();
-                Brain.PublishLongTermMemorySubfolderSet(subfolder);
-
-                if (SaveFiles.Count == 0)
-                {
-                    InitializeSaveFiles();
-                }
+                // ActiveSaveFileSubfolderPath will be set when user selects a save file
                 return OperationResult.Successful();
             }
             catch (System.Exception ex)
@@ -172,8 +166,6 @@ namespace Turnroot.Gameplay.Brain
                 return new List<SaveFile>();
             }
         }
-
-        private void InitializeSaveFiles() => CreateNewSaveFile(SaveFileSubfolders.A);
 
         /// <summary>
         /// Creates a new save file in the specified subfolder.
