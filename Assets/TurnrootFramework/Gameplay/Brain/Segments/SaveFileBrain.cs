@@ -59,6 +59,11 @@ namespace Turnroot.Gameplay.Brain
         [HideInInspector]
         public SaveFileSubfolders ActiveSaveFileSubfolderPath;
 
+        [HideInInspector]
+        public SaveFile ActiveSaveFile => SaveFiles.Find(sf =>
+            sf.LtmSubfolderPath == ActiveSaveFileSubfolderPath.ToString().ToLower()
+        );
+
         protected override EventPriority GetSubscriptionPriority() => EventPriority.Highest;
 
         private bool hasCheckedSaveFiles = false;

@@ -68,6 +68,8 @@ ShaderVariantCollection:
         passType: 0
       - keywords: COLOR_FILTER DETAIL_MASKING TRANSITION_SHINY
         passType: 0
+      - keywords: COLOR_FILTER EDGE_SHINY
+        passType: 0
       - keywords: COLOR_FILTER EDGE_SHINY TRANSITION_SHINY
         passType: 0
       - keywords: COLOR_FILTER SAMPLING_BLUR_FAST

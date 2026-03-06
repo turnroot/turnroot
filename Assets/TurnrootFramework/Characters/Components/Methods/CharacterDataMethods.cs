@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Turnroot.Characters.CharacterClass;
 using Turnroot.Characters.Components.Support;
 using Turnroot.Characters.Stats;
+using Turnroot.Characters.Subclasses;
 using Turnroot.GameSettings;
 using Turnroot.Utilities;
 using UnityEngine;
@@ -14,6 +15,13 @@ namespace Turnroot.Characters
     public partial class CharacterData : ScriptableObject, IHasStats
     {
         public void InvalidatePortraitArrayCache() => _portraitArrayCache = null;
+
+        public void SetAvatarNameAndPronouns(string displayName, string fullName, Pronouns pronouns)
+        {
+            DisplayName = displayName;
+            FullName = fullName;
+            CharacterPronouns = pronouns;
+        }
 
         public void SaveDefaults()
         {

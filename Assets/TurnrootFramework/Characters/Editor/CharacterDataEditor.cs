@@ -52,7 +52,11 @@ namespace Turnroot.Characters.Editor
 
                             if (rankProp != null)
                             {
-                                rankProp.FindPropertyRelative("Value").intValue = 0;
+                                var valueProp = rankProp.FindPropertyRelative("Value");
+                                if (valueProp != null)
+                                {
+                                    valueProp.intValue = 0;
+                                }
                             }
                         }
                     }
