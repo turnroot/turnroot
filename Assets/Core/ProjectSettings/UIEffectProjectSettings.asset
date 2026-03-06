@@ -76,6 +76,8 @@ ShaderVariantCollection:
         passType: 0
       - keywords: COLOR_FILTER SAMPLING_EDGE_ALPHA
         passType: 0
+      - keywords: COLOR_FILTER TRANSITION_DISSOLVE
+        passType: 0
       - keywords: COLOR_FILTER TRANSITION_MELT
         passType: 0
       - keywords: COLOR_FILTER TRANSITION_SHINY
@@ -94,7 +96,11 @@ ShaderVariantCollection:
         passType: 0
       - keywords: GRADATION_GRADIENT
         passType: 0
+      - keywords: SAMPLING_BLUR_DETAIL TRANSITION_DISSOLVE
+        passType: 0
       - keywords: SAMPLING_EDGE_LUMINANCE
+        passType: 0
+      - keywords: SAMPLING_EDGE_LUMINANCE TRANSITION_DISSOLVE
         passType: 0
       - keywords: TRANSITION_BLAZE
         passType: 0

@@ -85,7 +85,6 @@ namespace Turnroot.Characters.Editor
             // draw the default inspector first; we'll merge our custom sections below
             base.OnInspectorGUI();
 
-            serializedObject.Update();
             var behaviorProp =
                 serializedObject.FindProperty("BehaviorSettings")
                 ?? serializedObject.FindProperty("<BehaviorSettings>k__BackingField");
@@ -105,11 +104,21 @@ namespace Turnroot.Characters.Editor
             {
                 DrawBaseStatsSection();
             }
+            // Apply changes made to base stats immediately
+            if (serializedObject.hasModifiedProperties)
+            {
+                serializedObject.ApplyModifiedProperties();
+            }
 
             _showGrowthRates = EditorGUILayout.Foldout(_showGrowthRates, "Growth Rates", true);
             if (_showGrowthRates)
             {
                 DrawGrowthRatesCustom();
+            }
+            // Apply changes made to growth rates immediately
+            if (serializedObject.hasModifiedProperties)
+            {
+                serializedObject.ApplyModifiedProperties();
             }
 
             // experience ranks (auto‑populated)
@@ -355,8 +364,71 @@ namespace Turnroot.Characters.Editor
 
         private void DrawBaseStatsSection()
         {
-            // meter showing template's unbounded stat total (and editable list)
             var cd = serializedObject.targetObject as CharacterData;
+
+            EditorGUILayout.Space();
+            EditorGUILayout.LabelField("Base Stats", EditorStyles.boldLabel);
+
+            // --- Bounded Stats Section (Health, Stamina, etc.) ---
+            var bndProp =
+                serializedObject.FindProperty("BoundedStats")
+                ?? serializedObject.FindProperty("<BoundedStats>k__BackingField");
+            if (bndProp != null && bndProp.isArray)
+            {
+                EditorGUILayout.LabelField("Bounded Stats", EditorStyles.miniBoldLabel);
+                if (bndProp.arraySize == 0)
+                {
+                    EditorGUILayout.HelpBox("No bounded stats configured.", MessageType.Info);
+                }
+                else
+                {
+                    for (int j = 0; j < bndProp.arraySize; j++)
+                    {
+                        var elem = bndProp.GetArrayElementAtIndex(j);
+                        if (elem == null)
+                        {
+                            continue;
+                        }
+
+                        var typeProp = elem.FindPropertyRelative("_statType");
+                        var curProp = elem.FindPropertyRelative("_current");
+                        var maxProp = elem.FindPropertyRelative("_max");
+
+                        string label =
+                            typeProp != null
+                                ? ((BoundedStatType)typeProp.enumValueIndex).ToString()
+                                : $"Element {j}";
+
+                        EditorGUILayout.BeginHorizontal();
+                        EditorGUILayout.LabelField(label, GUILayout.Width(100));
+
+                        if (curProp != null)
+                        {
+                            EditorGUILayout.LabelField("Current:", GUILayout.Width(55));
+                            EditorGUILayout.PropertyField(
+                                curProp,
+                                GUIContent.none,
+                                GUILayout.Width(50)
+                            );
+                        }
+
+                        if (maxProp != null)
+                        {
+                            EditorGUILayout.LabelField("Max:", GUILayout.Width(35));
+                            EditorGUILayout.PropertyField(
+                                maxProp,
+                                GUIContent.none,
+                                GUILayout.Width(50)
+                            );
+                        }
+
+                        EditorGUILayout.EndHorizontal();
+                    }
+                }
+                EditorGUILayout.Space();
+            }
+
+            // --- Unbounded Stats Section with Meter ---
             if (cd != null && cd.UnboundedStats != null)
             {
                 float curTotal = 0f;
@@ -378,8 +450,7 @@ namespace Turnroot.Characters.Editor
                     curTotal += unb.Current;
                 }
 
-                EditorGUILayout.Space();
-                EditorGUILayout.LabelField("Base Stats", EditorStyles.boldLabel);
+                EditorGUILayout.LabelField("Unbounded Stats", EditorStyles.miniBoldLabel);
                 Rect barRect2 = EditorGUILayout.GetControlRect(
                     false,
                     20,
