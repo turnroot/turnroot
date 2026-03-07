@@ -23,8 +23,16 @@ namespace Turnroot.Graphics3D
         private void Start()
         {
             _brain = FindFirstObjectByType<Brain>();
-            _brain.OnGraphicsQualityChanged += OnGraphicsQualityChanged;
-            OnGraphicsQualityChanged();
+
+            if (_brain != null)
+            {
+                _brain.OnGraphicsQualityChanged += OnGraphicsQualityChanged;
+                OnGraphicsQualityChanged();
+            }
+            else
+            {
+                "VegetationCuller: No Brain found in scene. Graphics quality changes will not be handled.".LogWarning();
+            }
 
             List<Transform> grandchildrenList = new List<Transform>();
 

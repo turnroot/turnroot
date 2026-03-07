@@ -5,17 +5,26 @@ using UnityEngine.SceneManagement;
 namespace Turnroot.Gameplay.Brain
 {
     /// <summary>
-    /// Loads the TurnrootBrain scene additively and manages its lifecycle.
+    /// Loads the TurnrootBrain scene additively and persists across scene changes.
+    /// The Brain scene remains loaded for the entire application lifetime.
     /// </summary>
     public class BrainLoader : MonoBehaviour
     {
         private const string BrainSceneName = "TurnrootBrain";
+        private static bool _brainSceneLoaded = false;
 
-        private void Awake() => LoadBrainScene();
+        private void Awake()
+        {
+            // Make this loader persistent so it doesn't get destroyed when scenes change
+            DontDestroyOnLoad(gameObject);
 
-        private void OnDisable() => UnloadBrainScene();
-
-        private void OnDestroy() => UnloadBrainScene();
+            // Only load the Brain scene once
+            if (!_brainSceneLoaded)
+            {
+                LoadBrainScene();
+                _brainSceneLoaded = true;
+            }
+        }
 
         private OperationResult LoadBrainScene()
         {
@@ -23,6 +32,7 @@ namespace Turnroot.Gameplay.Brain
             {
                 // Unity's SceneManager can throw if scene doesn't exist
                 SceneManager.LoadScene(BrainSceneName, LoadSceneMode.Additive);
+                $"BrainLoader: Loaded '{BrainSceneName}' scene additively".LogInfo();
                 return OperationResult.Successful();
             }
             catch (System.Exception e)
@@ -32,7 +42,5 @@ namespace Turnroot.Gameplay.Brain
                 return OperationResult.Failure(error);
             }
         }
-
-        private void UnloadBrainScene() => SceneManager.UnloadSceneAsync(BrainSceneName);
     }
 }

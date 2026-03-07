@@ -59,6 +59,8 @@ namespace Turnroot.Gameplay.Brain.Segments
                 {
                     radialMenu.uiBrain = this;
                     radialMenu.OnItemSelected += HandlePreBattleMenuSelect;
+                    // Disable input initially until scene transition completes
+                    radialMenu.enabled = false;
                 }
             }
             else if (menuStyle == MenuStyle.Grid)
@@ -69,8 +71,17 @@ namespace Turnroot.Gameplay.Brain.Segments
                 {
                     gridMenu.uiBrain = this;
                     gridMenu.OnItemSelected += HandlePreBattleMenuSelect;
+                    // Disable input initially until scene transition completes
+                    gridMenu.enabled = false;
                 }
             }
+
+            // Hide the menu initially to prevent UI from showing through during scene transition
+            preBattleMenuLocation.activeInstance.SetActive(false);
+
+            // Subscribe to scene transition completed event to show menu when ready
+            _brain.OnSceneTransitionCompleted += HandleSceneTransitionForPreBattleMenu;
+
             return OperationResult.Successful();
         }
 
@@ -164,6 +175,10 @@ namespace Turnroot.Gameplay.Brain.Segments
                 {
                     menu.OnItemSelected -= HandlePreBattleMenuSelect;
                 }
+
+                // Unsubscribe from scene transition event if still subscribed
+                _brain.OnSceneTransitionCompleted -= HandleSceneTransitionForPreBattleMenu;
+
                 Destroy(menuInstance);
 
                 // Clear the active instance from the MenuLocation
@@ -205,6 +220,55 @@ namespace Turnroot.Gameplay.Brain.Segments
             // Publish battle completion to transition states
             _brain.PublishPreBattleCompleted();
             _isTransitioning = false;
+        }
+
+        #endregion
+
+        #region Scene Transition Handlers
+
+        private void HandleSceneTransitionForPreBattleMenu(string sceneName, string displayName)
+        {
+            // Unsubscribe immediately to avoid multiple calls
+            _brain.OnSceneTransitionCompleted -= HandleSceneTransitionForPreBattleMenu;
+
+            var preBattleMenuLocation = uiSettings?.GetPreBattleMenu();
+            if (preBattleMenuLocation?.activeInstance == null)
+            {
+                return;
+            }
+
+            // Show the menu now that scene transition is complete
+            preBattleMenuLocation.activeInstance.SetActive(true);
+
+            // Re-enable input
+            var menuStyle = preBattleMenuLocation.style;
+            if (menuStyle == MenuStyle.Pie)
+            {
+                if (
+                    preBattleMenuLocation.activeInstance.TryGetComponent<RadialMenu>(
+                        out var radialMenu
+                    )
+                )
+                {
+                    radialMenu.enabled = true;
+                }
+            }
+            else if (menuStyle == MenuStyle.Grid)
+            {
+                if (
+                    preBattleMenuLocation.activeInstance.TryGetComponent<MenuBase>(out var gridMenu)
+                )
+                {
+                    gridMenu.enabled = true;
+                }
+            }
+
+            // Trigger fade-in animation
+            var uiFade = UIFadeCache.Get(preBattleMenuLocation.activeInstance);
+            if (uiFade != null)
+            {
+                uiFade.Show();
+            }
         }
 
         #endregion
@@ -274,6 +338,9 @@ namespace Turnroot.Gameplay.Brain.Segments
                 {
                     baseMenu.OnItemSelected -= HandlePreBattleMenuSelect;
                 }
+
+                // Unsubscribe from scene transition event if still subscribed
+                _brain.OnSceneTransitionCompleted -= HandleSceneTransitionForPreBattleMenu;
 
                 _brain.PublishPreBattleCompleted();
                 Destroy(menuInstance);

@@ -17,6 +17,8 @@ namespace Turnroot.Utilities.SceneFlows
     /// </summary>
     public class SceneFlowBrain : BrainComponent
     {
+        private static WaitForSeconds _waitForSeconds0_3 = new WaitForSeconds(0.3f);
+
         [Header("Scene Flow Configuration")]
         [Tooltip("The scene flow graph defining available scenes and transitions.")]
         public SceneFlowGraph sceneFlowGraph;
@@ -47,8 +49,14 @@ namespace Turnroot.Utilities.SceneFlows
         [Tooltip("Minimum time (seconds) to show loading screen, even if scene loads faster.")]
         public float minimumLoadingTime = 0.5f;
 
+        [Tooltip("Time (seconds) to wait for loading UI to fade in before starting scene load.")]
+        public float loadingFadeInTime = 0.75f;
+
         // Condition evaluator instance
         private SceneFlowConditionEvaluatorImpl _conditionEvaluator;
+
+        // The Brain scene name (matches BrainLoader constant)
+        private const string BrainSceneName = "TurnrootBrain";
 
         protected override EventPriority GetSubscriptionPriority() => EventPriority.Normal;
 
@@ -401,10 +409,17 @@ namespace Turnroot.Utilities.SceneFlows
 
             float startTime = Time.time;
 
-            // Start loading the scene
+            // Wait for loading screen fade-in before starting scene load
+            // This ensures the loading UI is visible and ready before the actual loading begins
+            yield return new WaitForSeconds(loadingFadeInTime);
+
+            // Store the previous scene name for unloading (preserve Brain scene)
+            string previousSceneName = _currentScene?.sceneName;
+
+            // Start loading the scene additively to preserve Brain scene
             var asyncLoad = SceneManager.LoadSceneAsync(
                 targetScene.sceneName,
-                LoadSceneMode.Single
+                LoadSceneMode.Additive
             );
 
             if (asyncLoad == null)
@@ -413,12 +428,55 @@ namespace Turnroot.Utilities.SceneFlows
                 yield break;
             }
 
-            // Wait for scene to load
+            // Track progress to detect if it actually updates
+            float lastReportedProgress = 0f;
+
+            // Wait for scene to load and report progress
             while (!asyncLoad.isDone)
             {
                 float progress = Mathf.Clamp01(asyncLoad.progress / 0.9f);
+                lastReportedProgress = progress;
                 Brain.PublishSceneLoadProgress(progress);
                 yield return null;
+            }
+
+            // Set the newly loaded scene as active immediately
+            Scene newScene = SceneManager.GetSceneByName(targetScene.sceneName);
+            if (newScene.IsValid())
+            {
+                SceneManager.SetActiveScene(newScene);
+            }
+
+            // Disable duplicate singleton components in the old scene to avoid Unity warnings
+            if (!string.IsNullOrEmpty(previousSceneName) && previousSceneName != BrainSceneName)
+            {
+                Scene oldScene = SceneManager.GetSceneByName(previousSceneName);
+                if (oldScene.IsValid())
+                {
+                    DisableDuplicateComponents(oldScene);
+                }
+            }
+
+            // Fake progress steps up to 95% - DON'T report 100% yet
+            float[] fakeProgressSteps =
+            {
+                0.10f,
+                0.25f,
+                0.80f,
+                0.85f,
+                0.90f,
+                0.91f,
+                0.92f,
+                0.93f,
+                0.94f,
+                0.95f,
+            };
+            float timePerStep = 0.2f;
+
+            foreach (float step in fakeProgressSteps)
+            {
+                Brain.PublishSceneLoadProgress(step);
+                yield return new WaitForSeconds(timePerStep);
             }
 
             // Ensure minimum loading time if configured
@@ -426,6 +484,26 @@ namespace Turnroot.Utilities.SceneFlows
             if (elapsedTime < minimumLoadingTime)
             {
                 yield return new WaitForSeconds(minimumLoadingTime - elapsedTime);
+            }
+
+            // Report 100% completion so loading UI can show it
+            Brain.PublishSceneLoadProgress(1.0f);
+
+            // Give the loading UI a moment to visually display 100%
+            yield return _waitForSeconds0_3;
+
+            // Signal that the scene is ready to display - loading UIs should hide now
+            Brain.PublishSceneReadyToDisplay(targetScene.sceneName, targetScene.displayName);
+
+            // NOW unload the previous scene (but not the Brain scene)
+            if (!string.IsNullOrEmpty(previousSceneName) && previousSceneName != BrainSceneName)
+            {
+                $"SceneFlowBrain: Unloading previous scene '{previousSceneName}'".LogInfo();
+                SceneManager.UnloadSceneAsync(previousSceneName);
+            }
+            else if (previousSceneName == BrainSceneName)
+            {
+                $"SceneFlowBrain: Skipping unload of Brain scene '{BrainSceneName}'".LogInfo();
             }
 
             // Update current scene
@@ -436,6 +514,42 @@ namespace Turnroot.Utilities.SceneFlows
             Brain.PublishSceneChanged(targetScene.sceneName, targetScene.displayName);
 
             $"SceneFlowBrain: Loaded scene '{targetScene.displayName}' ({targetScene.sceneName})".LogInfo();
+        }
+
+        /// <summary>
+        /// Disables duplicate singleton components in the specified scene to avoid Unity warnings.
+        /// This is called on the old scene after the new scene becomes active, but before unloading.
+        /// </summary>
+        private void DisableDuplicateComponents(Scene scene)
+        {
+            GameObject[] rootObjects = scene.GetRootGameObjects();
+            foreach (GameObject rootObject in rootObjects)
+            {
+                // Disable EventSystem components
+                UnityEngine.EventSystems.EventSystem[] eventSystems =
+                    rootObject.GetComponentsInChildren<UnityEngine.EventSystems.EventSystem>(true);
+                foreach (var eventSystem in eventSystems)
+                {
+                    if (eventSystem != null && eventSystem.enabled)
+                    {
+                        eventSystem.enabled = false;
+                        $"SceneFlowBrain: Disabled EventSystem in scene '{scene.name}'".LogInfo();
+                    }
+                }
+
+                // Disable AudioListener components
+                AudioListener[] audioListeners = rootObject.GetComponentsInChildren<AudioListener>(
+                    true
+                );
+                foreach (var audioListener in audioListeners)
+                {
+                    if (audioListener != null && audioListener.enabled)
+                    {
+                        audioListener.enabled = false;
+                        $"SceneFlowBrain: Disabled AudioListener in scene '{scene.name}'".LogInfo();
+                    }
+                }
+            }
         }
 
         #endregion

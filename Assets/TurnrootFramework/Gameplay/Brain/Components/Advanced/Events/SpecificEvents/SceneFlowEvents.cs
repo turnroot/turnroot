@@ -31,6 +31,13 @@ namespace Turnroot.Gameplay.Brain
         /// </summary>
         public event Action<float> OnSceneLoadProgress;
 
+        /// <summary>
+        /// Fired when scene loading is complete and the new scene is ready to be displayed.
+        /// UI should hide loading screens in response to this event.
+        /// Published before the old scene is unloaded.
+        /// </summary>
+        public event Action<string, string> OnSceneReadyToDisplay;
+
         public void PublishSceneTransitionStarted(string sceneName, string displayName) =>
             OnSceneTransitionStarted?.Invoke(sceneName, displayName);
 
@@ -45,6 +52,9 @@ namespace Turnroot.Gameplay.Brain
 
         public void PublishSceneLoadProgress(float progress) =>
             OnSceneLoadProgress?.Invoke(progress);
+
+        public void PublishSceneReadyToDisplay(string sceneName, string displayName) =>
+            OnSceneReadyToDisplay?.Invoke(sceneName, displayName);
 
         #endregion
     }

@@ -59,6 +59,16 @@ namespace Turnroot.Utilities.AbstractScripts
 
         protected void Start()
         {
+            // Find brain if not already set (happens when scene loads additively)
+            if (brain == null)
+            {
+                brain = FindFirstObjectByType<Brain>();
+                if (brain == null)
+                {
+                    "DynamicSceneFlow: No Brain found in scene!".LogError();
+                }
+            }
+
             loadingController = brain?.GetComponent<LoadingController>();
             SubscribeToBrainEvents();
             SubscribeToLoadingController();
@@ -72,11 +82,23 @@ namespace Turnroot.Utilities.AbstractScripts
         }
 
         #region Event Subscriptions
-        protected virtual void SubscribeToBrainEvents() =>
-            brain.OnStateChanged += HandleStateChanged;
+        protected virtual void SubscribeToBrainEvents()
+        {
+            if (brain != null)
+            {
+                brain.OnStateChanged += HandleStateChanged;
+                brain.OnSceneLoadProgress += HandleSceneLoadProgress;
+            }
+        }
 
-        protected virtual void UnsubscribeFromBrainEvents() =>
-            brain.OnStateChanged -= HandleStateChanged;
+        protected virtual void UnsubscribeFromBrainEvents()
+        {
+            if (brain != null)
+            {
+                brain.OnStateChanged -= HandleStateChanged;
+                brain.OnSceneLoadProgress -= HandleSceneLoadProgress;
+            }
+        }
 
         protected void SubscribeToLoadingController()
         {
@@ -96,6 +118,8 @@ namespace Turnroot.Utilities.AbstractScripts
 
         protected void HandleLoadingProgressChanged(float percentage) =>
             ReportLoadingProgress(percentage);
+
+        protected void HandleSceneLoadProgress(float progress) => ReportLoadingProgress(progress);
         #endregion
 
         public void ReportLoadingProgress(float percentage)
@@ -184,7 +208,12 @@ namespace Turnroot.Utilities.AbstractScripts
 
             if (CurrentSegment != null && !string.IsNullOrEmpty(CurrentSegment.stateId))
             {
+                $"DynamicSceneFlow: Starting scene with state '{CurrentSegment.stateId}'".LogInfo();
                 SetBrainStateFromSegment(CurrentSegment.stateId);
+            }
+            else
+            {
+                $"DynamicSceneFlow: Starting scene but no segment state defined (segments: {segments.Count})".LogWarning();
             }
         }
 
@@ -192,6 +221,14 @@ namespace Turnroot.Utilities.AbstractScripts
         {
             if (brain?.stateBrain == null || string.IsNullOrEmpty(stateId))
             {
+                if (brain == null)
+                {
+                    "DynamicSceneFlow: Cannot set state - brain is null".LogError();
+                }
+                else if (brain.stateBrain == null)
+                {
+                    "DynamicSceneFlow: Cannot set state - stateBrain is null".LogError();
+                }
                 return;
             }
 
@@ -200,11 +237,13 @@ namespace Turnroot.Utilities.AbstractScripts
                 var parts = stateId.Split('.');
                 if (parts.Length == 2)
                 {
+                    $"DynamicSceneFlow: Activating child state {parts[0]}.{parts[1]}".LogInfo();
                     brain.stateBrain.ActivateChildStateByFullPath(parts[0], parts[1]);
                     return;
                 }
             }
 
+            $"DynamicSceneFlow: Activating high-level state {stateId}".LogInfo();
             brain.stateBrain.ActivateHighLevelState(stateId);
         }
 
