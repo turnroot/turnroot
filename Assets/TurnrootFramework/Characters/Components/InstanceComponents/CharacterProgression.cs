@@ -92,8 +92,15 @@ namespace Turnroot.Characters
             // combine only the unbounded/stat entries and ignore any bounded (HP) modifiers
             var effectiveRates = new List<UnboundedStatModifier>();
 
-            if (_characterTemplate?.PersonalGrowthRates != null)
+            // First, check LTM for custom growth rates (e.g., from star gifts)
+            var customRates = LoadCustomGrowthRatesFromLtm();
+            if (customRates != null && customRates.Count > 0)
             {
+                effectiveRates.AddRange(customRates);
+            }
+            else if (_characterTemplate?.PersonalGrowthRates != null)
+            {
+                // Fall back to template growth rates if no custom rates exist
                 effectiveRates.AddRange(
                     _characterTemplate.PersonalGrowthRates.FindAll(r => !r.isBounded)
                 );
@@ -133,8 +140,16 @@ namespace Turnroot.Characters
         private float GetEffectiveHpGrowthRate()
         {
             float hpRate = 0f;
-            if (_characterTemplate?.PersonalGrowthRates != null)
+
+            // First, check LTM for custom HP growth rate
+            var customHpRate = LoadCustomHpGrowthRateFromLtm();
+            if (customHpRate.HasValue)
             {
+                hpRate = customHpRate.Value;
+            }
+            else if (_characterTemplate?.PersonalGrowthRates != null)
+            {
+                // Fall back to template HP growth rate
                 var entry = _characterTemplate.PersonalGrowthRates.Find(r =>
                     r.isBounded && r.boundedStatType == BoundedStatType.Health
                 );
@@ -157,6 +172,97 @@ namespace Turnroot.Characters
             }
 
             return hpRate;
+        }
+
+        private List<UnboundedStatModifier> LoadCustomGrowthRatesFromLtm()
+        {
+            try
+            {
+                var brain = UnityEngine.Object.FindFirstObjectByType<Gameplay.Brain.Brain>();
+                var ltm = brain?.GetComponent<Gameplay.Brain.Components.LongTermMemory>();
+                if (ltm == null)
+                {
+                    return null;
+                }
+
+                string key = $"CharacterGrowthRates/{Id}";
+                var json = ltm.Recall(key);
+                if (string.IsNullOrEmpty(json))
+                {
+                    return null;
+                }
+
+                var data = UnityEngine.JsonUtility.FromJson<GrowthRatesDto>(json);
+                if (data?.growthRates == null)
+                {
+                    return null;
+                }
+
+                var rates = new List<UnboundedStatModifier>();
+                foreach (var kvp in data.growthRates)
+                {
+                    // Skip HP, it's handled separately
+                    if (kvp.Key == "Health")
+                    {
+                        continue;
+                    }
+
+                    if (System.Enum.TryParse<UnboundedStatType>(kvp.Key, out var statType))
+                    {
+                        rates.Add(new UnboundedStatModifier(statType, kvp.Value));
+                    }
+                }
+
+                return rates.Count > 0 ? rates : null;
+            }
+            catch (System.Exception ex)
+            {
+                $"Failed to load custom growth rates from LTM: {ex.Message}".LogWarning(
+                    "CharacterInstance"
+                );
+                return null;
+            }
+        }
+
+        private float? LoadCustomHpGrowthRateFromLtm()
+        {
+            try
+            {
+                var brain = UnityEngine.Object.FindFirstObjectByType<Gameplay.Brain.Brain>();
+                var ltm = brain?.GetComponent<Gameplay.Brain.Components.LongTermMemory>();
+                if (ltm == null)
+                {
+                    return null;
+                }
+
+                string key = $"CharacterGrowthRates/{Id}";
+                var json = ltm.Recall(key);
+                if (string.IsNullOrEmpty(json))
+                {
+                    return null;
+                }
+
+                var data = UnityEngine.JsonUtility.FromJson<GrowthRatesDto>(json);
+                if (data?.growthRates == null || !data.growthRates.ContainsKey("Health"))
+                {
+                    return null;
+                }
+
+                return data.growthRates["Health"];
+            }
+            catch (System.Exception ex)
+            {
+                $"Failed to load custom HP growth rate from LTM: {ex.Message}".LogWarning(
+                    "CharacterInstance"
+                );
+                return null;
+            }
+        }
+
+        [System.Serializable]
+        private class GrowthRatesDto
+        {
+            public System.Collections.Generic.Dictionary<string, float> growthRates;
         }
 
         #endregion

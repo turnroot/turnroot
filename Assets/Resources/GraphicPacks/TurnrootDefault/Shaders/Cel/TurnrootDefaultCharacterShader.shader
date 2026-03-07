@@ -360,8 +360,8 @@ Shader "Turnroot/Character Cel Shader"
                     float shadowExp = lerp(0.6, 3.0, 1.0 - _Shadow_Roughness);
                     float highlightExp = lerp(0.6, 3.0, 1.0 - _Highlight_Roughness);
 
-                    float sShadow = pow(shadowBase, shadowExp);
-                    float sHighlight = pow(highlightBase, highlightExp);
+                    float sShadow = pow(abs(shadowBase), shadowExp);
+                    float sHighlight = pow(abs(highlightBase), highlightExp);
 
                     shadowMask = max(shadowMask, sShadow);
                     highlightMask = max(highlightMask, sHighlight);
@@ -387,8 +387,8 @@ Shader "Turnroot/Character Cel Shader"
                         float shadowExp = lerp(0.6, 3.0, 1.0 - _Shadow_Roughness);
                         float highlightExp = lerp(0.6, 3.0, 1.0 - _Highlight_Roughness);
 
-                        float sShadow = pow(shadowBase, shadowExp);
-                        float sHighlight = pow(highlightBase, highlightExp);
+                        float sShadow = pow(saturate(shadowBase), shadowExp);
+                        float sHighlight = pow(saturate(highlightBase), highlightExp);
 
                         shadowMask = max(shadowMask, sShadow);
                         highlightMask = max(highlightMask, sHighlight);

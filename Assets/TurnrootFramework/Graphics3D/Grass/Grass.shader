@@ -198,7 +198,7 @@ Shader "Turnroot/Grass"
                 BladeAxes(surfNorm, blade.facingAngle, bladeRight, bladeFwd);
 
                 // ── Width taper: narrows toward tip ────────────────────────────
-                float taperT   = pow(t, 0.7);            // slight exponent = more natural shape
+                float taperT   = pow(abs(t), 0.7);       // slight exponent = more natural shape
                 float halfW    = blade.width * 0.5 * lerp(1.0, _TipTaper, taperT);
 
                 // ── Sway ───────────────────────────────────────────────────────

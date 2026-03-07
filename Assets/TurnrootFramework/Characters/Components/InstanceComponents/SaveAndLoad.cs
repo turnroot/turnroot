@@ -414,6 +414,15 @@ namespace Turnroot.Characters
                 })
                 .ToList();
         }
+
+        /// <summary>
+        /// Persists current runtime stats to LongTermMemory.
+        /// Call this after modifying stats to ensure changes are saved.
+        /// </summary>
+        public void PersistStatsToLtm()
+        {
+            EnsurePersistedInLtm();
+        }
     }
         #endregion
 }
