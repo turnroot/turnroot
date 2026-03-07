@@ -23,8 +23,39 @@ namespace Turnroot.Utilities.SceneFlows
         public List<SceneTransition> transitions = new();
 
         [Header("Starting Point")]
-        [Tooltip("The scene to start from when this graph is first loaded.")]
-        public SceneNode startingScene;
+        [Tooltip("The scene ID to start from when this graph is first loaded.")]
+        [SerializeField]
+        private string _startingSceneId;
+
+        /// <summary>
+        /// The starting scene node. Set via SetStartingScene().
+        /// </summary>
+        public SceneNode startingScene
+        {
+            get => GetScene(_startingSceneId);
+            set => _startingSceneId = value?.id;
+        }
+
+        /// <summary>
+        /// Get the starting scene ID.
+        /// </summary>
+        public string StartingSceneId => _startingSceneId;
+
+        /// <summary>
+        /// Set the starting scene by scene node.
+        /// </summary>
+        public void SetStartingScene(SceneNode scene)
+        {
+            _startingSceneId = scene?.id;
+        }
+
+        /// <summary>
+        /// Set the starting scene by scene ID.
+        /// </summary>
+        public void SetStartingSceneById(string sceneId)
+        {
+            _startingSceneId = sceneId;
+        }
 
         /// <summary>
         /// Get a scene node by its unique ID.

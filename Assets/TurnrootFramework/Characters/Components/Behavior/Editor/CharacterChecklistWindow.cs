@@ -22,7 +22,7 @@ namespace Turnroot.EditorTools
         private bool _filterUniqueOnly = true;
         private bool _filterOnlyWarnOrCritical = false;
 
-        [MenuItem("Turnroot/Checklists/Character Checklist")]
+        [MenuItem("Window/Turnroot/Checklists/Character Checklist")]
         public static void ShowWindow()
         {
             var w = GetWindow<CharacterChecklistWindow>("Character Checklist");

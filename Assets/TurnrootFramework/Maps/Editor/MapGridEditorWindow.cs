@@ -166,7 +166,7 @@ namespace Turnroot.Gameplay.Maps
             }
         }
 
-        [MenuItem("Turnroot/Editors/Map Grid Editor")]
+        [MenuItem("Window/Turnroot/Editors/Map Grid Editor")]
         public static void Open() => GetWindow<MapGridEditorWindow>("Map Grid Editor");
 
         private void OnEnable()
@@ -624,8 +624,14 @@ namespace Turnroot.Gameplay.Maps
 
                             DrawZoomControls();
 
-                            float leftAreaW = Mathf.Max(200f, position.width - 120f - RIGHT_PANEL_WIDTH);
-                            Rect area = GUILayoutUtility.GetRect(leftAreaW, position.height - 120 - 24);
+                            float leftAreaW = Mathf.Max(
+                                200f,
+                                position.width - 120f - RIGHT_PANEL_WIDTH
+                            );
+                            Rect area = GUILayoutUtility.GetRect(
+                                leftAreaW,
+                                position.height - 120 - 24
+                            );
                             DrawGridArea(area);
                         }
 
@@ -688,7 +694,10 @@ namespace Turnroot.Gameplay.Maps
                         }
                         else
                         {
-                            EditorGUILayout.LabelField("Feature Properties", EditorStyles.boldLabel);
+                            EditorGUILayout.LabelField(
+                                "Feature Properties",
+                                EditorStyles.boldLabel
+                            );
                             EditorGUILayout.HelpBox(
                                 "No feature on this tile. Select a feature tool and click to add one.",
                                 MessageType.Info
@@ -724,7 +733,10 @@ namespace Turnroot.Gameplay.Maps
                     if (templateProp != null)
                     {
                         EditorGUI.BeginChangeCheck();
-                        EditorGUILayout.PropertyField(templateProp, new GUIContent("Starting Unit"));
+                        EditorGUILayout.PropertyField(
+                            templateProp,
+                            new GUIContent("Starting Unit")
+                        );
                         if (EditorGUI.EndChangeCheck())
                         {
                             serializedPoint.ApplyModifiedProperties();
@@ -751,9 +763,7 @@ namespace Turnroot.Gameplay.Maps
                             }
                             else
                             {
-                                point.SetStartingUnit(
-                                    Characters.CharacterInstance.Create(chosen)
-                                );
+                                point.SetStartingUnit(Characters.CharacterInstance.Create(chosen));
                             }
 
                             SafeSetDirty(point);
@@ -793,7 +803,6 @@ namespace Turnroot.Gameplay.Maps
                 GUILayout.Space(5);
 
                 GUILayout.Space(5);
-
             }
         }
 
@@ -805,7 +814,10 @@ namespace Turnroot.Gameplay.Maps
             using (new EditorGUILayout.VerticalScope(EditorStyles.helpBox))
             {
                 string friendlyName = GetFriendlyName(toolId);
-                EditorGUILayout.LabelField($"Type: {friendlyName} ({toolId})", EditorStyles.boldLabel);
+                EditorGUILayout.LabelField(
+                    $"Type: {friendlyName} ({toolId})",
+                    EditorStyles.boldLabel
+                );
 
                 EditorGUI.BeginChangeCheck();
                 string newName = EditorGUILayout.TextField("Feature Name", point.FeatureName);
@@ -822,11 +834,13 @@ namespace Turnroot.Gameplay.Maps
                 {
                     EditorGUI.BeginChangeCheck();
                     bool newLocked = EditorGUILayout.Toggle("Locked", point.FeatureLocked);
-                    var newUnlock = (ObjectItem)EditorGUILayout.ObjectField(
-                        "Unlock Item",
-                        point.UnlockItem,
-                        typeof(ObjectItem),
-                        false);
+                    var newUnlock = (ObjectItem)
+                        EditorGUILayout.ObjectField(
+                            "Unlock Item",
+                            point.UnlockItem,
+                            typeof(ObjectItem),
+                            false
+                        );
                     if (EditorGUI.EndChangeCheck())
                     {
                         Undo.RecordObject(point, "Edit Door Properties");
@@ -844,7 +858,10 @@ namespace Turnroot.Gameplay.Maps
                     {
                         EditorGUILayout.BeginHorizontal();
                         EditorGUI.BeginChangeCheck();
-                        Vector2Int newCoord = EditorGUILayout.Vector2IntField($"Dest {i}", warpList[i]);
+                        Vector2Int newCoord = EditorGUILayout.Vector2IntField(
+                            $"Dest {i}",
+                            warpList[i]
+                        );
                         if (EditorGUI.EndChangeCheck())
                         {
                             Undo.RecordObject(point, "Edit Warp Destination");
@@ -865,7 +882,7 @@ namespace Turnroot.Gameplay.Maps
                     if (GUILayout.Button("+ Add Destination"))
                     {
                         Undo.RecordObject(point, "Add Warp Destination");
-                        warpList.Add(new Vector2Int(0,0));
+                        warpList.Add(new Vector2Int(0, 0));
                         _grid?.SaveFeatureLayer();
                         MarkDirty();
                     }
@@ -874,7 +891,11 @@ namespace Turnroot.Gameplay.Maps
                     if (EditorGUI.EndChangeCheck())
                     {
                         Undo.RecordObject(point, "Change Active Warp Index");
-                        point.ActiveWarpIndex = Mathf.Clamp(newIndex, 0, warpList.Count>0?warpList.Count-1:0);
+                        point.ActiveWarpIndex = Mathf.Clamp(
+                            newIndex,
+                            0,
+                            warpList.Count > 0 ? warpList.Count - 1 : 0
+                        );
                         _grid?.SaveFeatureLayer();
                         MarkDirty();
                     }
@@ -894,9 +915,18 @@ namespace Turnroot.Gameplay.Maps
                 else if (point.FeatureType == MapGridPointFeature.FeatureType.Shelter)
                 {
                     EditorGUI.BeginChangeCheck();
-                    bool noFly = EditorGUILayout.Toggle("Can't be targeted by flying", point.ShelterNoFly);
-                    bool noRide = EditorGUILayout.Toggle("Can't be targeted by riding", point.ShelterNoRide);
-                    bool noInf = EditorGUILayout.Toggle("Can't be targeted by infantry", point.ShelterNoInfantry);
+                    bool noFly = EditorGUILayout.Toggle(
+                        "Can't be targeted by flying",
+                        point.ShelterNoFly
+                    );
+                    bool noRide = EditorGUILayout.Toggle(
+                        "Can't be targeted by riding",
+                        point.ShelterNoRide
+                    );
+                    bool noInf = EditorGUILayout.Toggle(
+                        "Can't be targeted by infantry",
+                        point.ShelterNoInfantry
+                    );
                     if (EditorGUI.EndChangeCheck())
                     {
                         Undo.RecordObject(point, "Edit Shelter Restrictions");
@@ -910,7 +940,10 @@ namespace Turnroot.Gameplay.Maps
                 else if (point.FeatureType == MapGridPointFeature.FeatureType.Healing)
                 {
                     EditorGUI.BeginChangeCheck();
-                    float pct = EditorGUILayout.FloatField("Heal %/turn", point.HealingPercentPerTurn);
+                    float pct = EditorGUILayout.FloatField(
+                        "Heal %/turn",
+                        point.HealingPercentPerTurn
+                    );
                     if (EditorGUI.EndChangeCheck())
                     {
                         Undo.RecordObject(point, "Edit Healing Rate");
@@ -947,18 +980,20 @@ namespace Turnroot.Gameplay.Maps
                 )
                 {
                     EditorGUI.BeginChangeCheck();
-                    var common = (ObjectItem)EditorGUILayout.ObjectField(
-                        "Common Item",
-                        point.FeatureCommonItem,
-                        typeof(ObjectItem),
-                        false
-                    );
-                    var rare = (ObjectItem)EditorGUILayout.ObjectField(
-                        "Rare Item",
-                        point.FeatureRareItem,
-                        typeof(ObjectItem),
-                        false
-                    );
+                    var common = (ObjectItem)
+                        EditorGUILayout.ObjectField(
+                            "Common Item",
+                            point.FeatureCommonItem,
+                            typeof(ObjectItem),
+                            false
+                        );
+                    var rare = (ObjectItem)
+                        EditorGUILayout.ObjectField(
+                            "Rare Item",
+                            point.FeatureRareItem,
+                            typeof(ObjectItem),
+                            false
+                        );
                     if (EditorGUI.EndChangeCheck())
                     {
                         Undo.RecordObject(point, "Edit Feature Items");
@@ -975,7 +1010,6 @@ namespace Turnroot.Gameplay.Maps
             }
         }
 
-
         private void DrawTestMovementControls()
         {
             using (new EditorGUILayout.HorizontalScope())
@@ -991,7 +1025,11 @@ namespace Turnroot.Gameplay.Maps
                 );
 
                 // Recalculate if movement value changed
-                if (prevMovement != _testMovementValue && _testMovementStart != null && _grid != null)
+                if (
+                    prevMovement != _testMovementValue
+                    && _testMovementStart != null
+                    && _grid != null
+                )
                 {
                     _testMovementResults = new AStarModified().GetReachable(
                         _grid,
@@ -2207,7 +2245,6 @@ namespace Turnroot.Gameplay.Maps
             _selectedFeaturePoint = p;
             Repaint();
         }
-
 
         /// <summary>
         /// Help window displaying keyboard shortcuts and usage tips for the map grid editor.

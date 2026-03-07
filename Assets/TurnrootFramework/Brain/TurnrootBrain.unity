@@ -149,6 +149,7 @@ GameObject:
   - component: {fileID: 1357883691}
   - component: {fileID: 1357883696}
   - component: {fileID: 1357883697}
+  - component: {fileID: 1357883698}
   m_Layer: 0
   m_Name: = Brain
   m_TagString: DoNotModify
@@ -183,6 +184,8 @@ MonoBehaviour:
   cursorBrain: {fileID: 0}
   positioningInputControllerBrain: {fileID: 0}
   unitAppearanceBrain: {fileID: 0}
+  saveFileBrain: {fileID: 0}
+  sceneFlowBrain: {fileID: 0}
   ltm: {fileID: 1357883675}
 --- !u!114 &1357883675
 MonoBehaviour:
@@ -505,6 +508,30 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Turnroot.Gameplay.Brain.SaveFileBrain
   SaveFiles: []
   ActiveSaveFileSubfolderPath: 0
+--- !u!114 &1357883698
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1357883673}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f7062835bba5384499d14c0580d51f90, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Turnroot.Utilities.SceneFlows.SceneFlowBrain
+  sceneFlowGraph: {fileID: 11400000, guid: f890dcb37c2dd7044a8e1dad03e6f308, type: 2}
+  _currentScene:
+    id: 
+    sceneAsset: {fileID: 0}
+    sceneName: 
+    displayName: 
+    isHub: 0
+    persistWhenLeaving: 0
+    editorPosition: {x: 0, y: 0}
+    notes: 
+  useLoadingScreen: 1
+  minimumLoadingTime: 0.5
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

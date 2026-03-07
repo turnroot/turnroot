@@ -44,7 +44,7 @@ namespace Turnroot.Utilities.SceneFlows.Editor
         private GUIStyle _labelStyle;
         private bool _stylesInitialized;
 
-        [MenuItem("Turnroot/Editors/Scene Flow Editor")]
+        [MenuItem("Window/Turnroot/Editors/Scene Flow Editor")]
         public static void ShowWindow()
         {
             var window = GetWindow<SceneFlowGraphEditorWindow>("Scene Flow Editor");
@@ -408,7 +408,10 @@ namespace Turnroot.Utilities.SceneFlows.Editor
             }
 
             // Handle node interactions
-            if (rect.Contains(e.mousePosition))
+            // Transform mouse position to match the zoomed/panned graph space
+            var mousePos = e.mousePosition / _zoom - _panOffset / _zoom;
+            
+            if (rect.Contains(mousePos))
             {
                 if (e.type == EventType.MouseDown && e.button == 0)
                 {
@@ -457,6 +460,11 @@ namespace Turnroot.Utilities.SceneFlows.Editor
 
             if (e.type == EventType.MouseUp && e.button == 0)
             {
+                if (_isDragging && _draggedNode == node)
+                {
+                    // Save after dragging is complete
+                    AssetDatabase.SaveAssetIfDirty(_graph);
+                }
                 _isDragging = false;
                 _draggedNode = null;
             }
@@ -698,7 +706,7 @@ namespace Turnroot.Utilities.SceneFlows.Editor
                     Undo.RecordObject(_graph, "Change Starting Scene");
                     _graph.startingScene = _graph.scenes[newIndex];
                     EditorUtility.SetDirty(_graph);
-                    AssetDatabase.SaveAssets();
+                    AssetDatabase.SaveAssetIfDirty(_graph);
                 }
             }
             else
@@ -768,6 +776,7 @@ namespace Turnroot.Utilities.SceneFlows.Editor
             if (EditorGUI.EndChangeCheck())
             {
                 EditorUtility.SetDirty(_graph);
+                AssetDatabase.SaveAssetIfDirty(_graph);
             }
 
             EditorGUILayout.Space();
@@ -778,7 +787,7 @@ namespace Turnroot.Utilities.SceneFlows.Editor
                 Undo.RecordObject(_graph, "Set Starting Scene");
                 _graph.startingScene = _selectedNode;
                 EditorUtility.SetDirty(_graph);
-                AssetDatabase.SaveAssets();
+                AssetDatabase.SaveAssetIfDirty(_graph);
                 Repaint();
             }
 
@@ -857,6 +866,7 @@ namespace Turnroot.Utilities.SceneFlows.Editor
             if (EditorGUI.EndChangeCheck())
             {
                 EditorUtility.SetDirty(_graph);
+                AssetDatabase.SaveAssetIfDirty(_graph);
             }
 
             EditorGUILayout.Space();
@@ -918,7 +928,7 @@ namespace Turnroot.Utilities.SceneFlows.Editor
                     Undo.RecordObject(_graph, "Set Starting Scene");
                     _graph.startingScene = node;
                     EditorUtility.SetDirty(_graph);
-                    AssetDatabase.SaveAssets();
+                    AssetDatabase.SaveAssetIfDirty(_graph);
                     Repaint();
                 }
             );
@@ -940,6 +950,8 @@ namespace Turnroot.Utilities.SceneFlows.Editor
                     Undo.RecordObject(_graph, "Toggle Hub");
                     node.isHub = !node.isHub;
                     EditorUtility.SetDirty(_graph);
+                    AssetDatabase.SaveAssetIfDirty(_graph);
+                    Repaint();
                 }
             );
             menu.AddSeparator("");
@@ -963,6 +975,7 @@ namespace Turnroot.Utilities.SceneFlows.Editor
             _selectedNode = newNode;
             _selectedTransition = null;
             EditorUtility.SetDirty(_graph);
+            AssetDatabase.SaveAssetIfDirty(_graph);
             Repaint();
         }
 
@@ -982,6 +995,7 @@ namespace Turnroot.Utilities.SceneFlows.Editor
             _selectedTransition = newTransition;
             _selectedNode = null;
             EditorUtility.SetDirty(_graph);
+            AssetDatabase.SaveAssetIfDirty(_graph);
             Repaint();
         }
 
@@ -1000,6 +1014,7 @@ namespace Turnroot.Utilities.SceneFlows.Editor
                 _graph.RemoveScene(node.id);
                 _selectedNode = null;
                 EditorUtility.SetDirty(_graph);
+                AssetDatabase.SaveAssetIfDirty(_graph);
                 Repaint();
             }
         }
@@ -1019,6 +1034,7 @@ namespace Turnroot.Utilities.SceneFlows.Editor
                 _graph.RemoveTransition(transition);
                 _selectedTransition = null;
                 EditorUtility.SetDirty(_graph);
+                AssetDatabase.SaveAssetIfDirty(_graph);
                 Repaint();
             }
         }

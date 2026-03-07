@@ -15,7 +15,7 @@ namespace Turnroot.Gameplay.Audio.Editor
         private GUIStyle _exampleStyle;
         private GUIStyle _codeStyle;
 
-        [MenuItem("Window/Turnroot/Audio System Help")]
+        [MenuItem("Window/Turnroot/Help/Audio System Help")]
         public static void ShowWindow()
         {
             var window = GetWindow<AudioControllerHelpWindow>("Audio System Help");

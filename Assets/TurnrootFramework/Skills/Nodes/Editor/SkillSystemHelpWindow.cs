@@ -16,7 +16,7 @@ namespace Turnroot.Skills.Nodes.Editor
         private GUIStyle _codeStyle;
         private GUIStyle _warningStyle;
 
-        [MenuItem("Window/Turnroot/Skill System Help")]
+        [MenuItem("Window/Turnroot/Help/Skill System Help")]
         public static void ShowWindow()
         {
             var window = GetWindow<SkillSystemHelpWindow>("Skill System Help");

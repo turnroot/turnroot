@@ -15,7 +15,7 @@ namespace Turnroot.Conversations.Editor
         private GUIStyle _exampleStyle;
         private GUIStyle _codeStyle;
 
-        [MenuItem("Window/Turnroot/Conversation System Help")]
+        [MenuItem("Window/Turnroot/Help/Conversation System Help")]
         public static void ShowWindow()
         {
             var window = GetWindow<ConversationControllerHelpWindow>("Conversation System Help");

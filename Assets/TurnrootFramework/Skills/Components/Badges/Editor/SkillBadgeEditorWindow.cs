@@ -11,7 +11,7 @@ namespace Turnroot.Skills.Components.Badges.Editor
         protected override string WindowTitle => "Skill Badge Editor";
         protected override string OwnerFieldLabel => "Skill";
 
-        [MenuItem("Turnroot/Editors/Skill Badge Editor")]
+        [MenuItem("Window/Turnroot/Editors/Skill Badge Editor")]
         public static void ShowWindow() => GetWindow<SkillBadgeEditorWindow>("Skill Badge Editor");
 
         public static void OpenSkillBadge(Skill skill, int badgeIndex = 0)

@@ -23,7 +23,7 @@ namespace Turnroot.Characters.Subclasses.Editor
         private string _newPortraitName = "";
         private string _quickPortraitName = "";
 
-        [MenuItem("/Turnroot/Editors/Portrait Editor")]
+        [MenuItem("/Window/Turnroot/Editors/Portrait Editor")]
         public static void ShowWindow() => GetWindow<PortraitEditorWindow>("Portrait Editor");
 
         public static void OpenPortrait(CharacterData character, string portraitKey)
@@ -315,8 +315,7 @@ namespace Turnroot.Characters.Subclasses.Editor
             foreach (var tag in canonical)
             {
                 var found = original.FirstOrDefault(x =>
-                    x != null
-                    && string.Equals(x.Tag, tag.Name, StringComparison.OrdinalIgnoreCase)
+                    x != null && string.Equals(x.Tag, tag.Name, StringComparison.OrdinalIgnoreCase)
                 );
                 if (found != null && !result.Contains(found))
                 {
