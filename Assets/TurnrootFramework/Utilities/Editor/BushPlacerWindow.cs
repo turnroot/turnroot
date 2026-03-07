@@ -385,15 +385,21 @@ namespace Turnroot.Utilities.Editor
                 {
                     MapGridPoint point = _mapGrid.GetGridPoint(x, y);
                     if (point == null)
+                    {
                         continue;
+                    }
 
                     TerrainType terrain = point.GetCachedTerrainType();
                     if (terrain == null)
+                    {
                         continue;
+                    }
 
                     string terrainName = terrain.Name.Replace(" ", "").ToLowerInvariant();
                     if (terrainName != "forest" && terrainName != "forests")
+                    {
                         continue;
+                    }
 
                     Vector3 tilePos = _mapGrid.GetTerrainAdjustedWorldPosition(
                         new Vector2Int(x, y)
@@ -427,17 +433,21 @@ namespace Turnroot.Utilities.Editor
                                 GameObject tdInstance = (GameObject)
                                     PrefabUtility.InstantiatePrefab(tdPrefab);
                                 if (tdInstance == null)
+                                {
                                     tdInstance = Instantiate(tdPrefab);
+                                }
 
                                 tdInstance.transform.position = spawnPos;
                                 tdInstance.transform.rotation = spawnRot;
                                 tdInstance.transform.localScale = Vector3.one * finalScale;
 
                                 if (_forestsTopDownParent != null)
+                                {
                                     tdInstance.transform.SetParent(
                                         _forestsTopDownParent,
                                         worldPositionStays: true
                                     );
+                                }
 
                                 Undo.RegisterCreatedObjectUndo(tdInstance, "Place Tree (Top-Down)");
                                 placed++;
@@ -455,17 +465,21 @@ namespace Turnroot.Utilities.Editor
                                 GameObject cinInstance = (GameObject)
                                     PrefabUtility.InstantiatePrefab(cinPrefab);
                                 if (cinInstance == null)
+                                {
                                     cinInstance = Instantiate(cinPrefab);
+                                }
 
                                 cinInstance.transform.position = spawnPos;
                                 cinInstance.transform.rotation = spawnRot;
                                 cinInstance.transform.localScale = Vector3.one * finalScale;
 
                                 if (_forestsCinematicParent != null)
+                                {
                                     cinInstance.transform.SetParent(
                                         _forestsCinematicParent,
                                         worldPositionStays: true
                                     );
+                                }
 
                                 Undo.RegisterCreatedObjectUndo(
                                     cinInstance,

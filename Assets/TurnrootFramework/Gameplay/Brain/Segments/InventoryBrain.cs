@@ -39,19 +39,13 @@ namespace Turnroot.Gameplay.Brain
             Brain.OnItemDiscarded -= HandleItemDiscardedEvent;
         }
 
-        private void HandleItemEquippedEvent(
-            CharacterInstance character,
-            ObjectItemInstance item
-        )
+        private void HandleItemEquippedEvent(CharacterInstance character, ObjectItemInstance item)
         {
             // Equipped weapon changed — invalidate or refresh the cache for this character
             Brain?.battleBrain?.BattleObject?.Context?.InvalidateUnitWeaponCache(character?.Id);
         }
 
-        private void HandleItemUnequippedEvent(
-            CharacterInstance character,
-            ObjectItemInstance item
-        )
+        private void HandleItemUnequippedEvent(CharacterInstance character, ObjectItemInstance item)
         {
             Brain?.battleBrain?.BattleObject?.Context?.InvalidateUnitWeaponCache(character?.Id);
         }
@@ -417,4 +411,3 @@ namespace Turnroot.Gameplay.Brain
         #endregion
     }
 }
-

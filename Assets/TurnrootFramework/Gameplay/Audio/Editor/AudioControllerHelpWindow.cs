@@ -85,7 +85,9 @@ namespace Turnroot.Gameplay.Audio.Editor
         {
             var pixels = new Color[width * height];
             for (int i = 0; i < pixels.Length; i++)
+            {
                 pixels[i] = color;
+            }
 
             var texture = new Texture2D(width, height);
             texture.SetPixels(pixels);
@@ -96,7 +98,9 @@ namespace Turnroot.Gameplay.Audio.Editor
         private void OnGUI()
         {
             if (_headerStyle == null)
+            {
                 InitializeStyles();
+            }
 
             _scrollPosition = EditorGUILayout.BeginScrollView(_scrollPosition);
 

@@ -28,7 +28,9 @@ namespace Turnroot.Utilities.Editor
         private void InitStyles()
         {
             if (_stylesInitialized)
+            {
                 return;
+            }
 
             _headerStyle = new GUIStyle(EditorStyles.boldLabel)
             {

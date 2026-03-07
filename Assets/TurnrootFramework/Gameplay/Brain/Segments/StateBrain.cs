@@ -28,24 +28,40 @@ public class BrainState
 /// </summary>
 public static class BrainStateNames
 {
+    // Core Game States
     public const string Combat = "Combat";
     public const string Paused = "Paused";
     public const string Cutscene = "Cutscene";
     public const string WorldMap = "WorldMap";
     public const string MainMenu = "MainMenu";
-
     public const string GameStart = "GameStart";
-
-    public const string ChooseSaveFile = "ChooseSaveFile";
     public const string GameOver = "GameOver";
     public const string Credits = "Credits";
+
+    // Gameplay States
     public const string NonCombatGameplay = "NonCombatGameplay";
     public const string Hub = "Hub";
-    public const string PreBattle = "PreBattle";
+    public const string Shop = "Shop";
+    public const string Armory = "Armory";
+    public const string SupportConversation = "SupportConversation";
+    public const string Barracks = "Barracks";
+    public const string Base = "Base";
+    public const string Trading = "Trading";
+    public const string ClassChange = "ClassChange";
+    public const string Forging = "Forging";
+    public const string Records = "Records";
+    public const string Briefing = "Briefing";
+    public const string Deployment = "Deployment";
+    public const string Configuration = "Configuration";
 
+    // Combat Child States
+    public const string PreBattle = "PreBattle";
     public const string PreBattleTransitionToBattle = "PreBattleTransitionToBattle";
     public const string Battle = "Battle";
     public const string PostBattle = "PostBattle";
+
+    // GameStart Child States
+    public const string ChooseSaveFile = "ChooseSaveFile";
 
     /// <summary>
     /// Returns all valid state IDs as full paths. This is the single source of truth for all states.
@@ -67,7 +83,19 @@ public static class BrainStateNames
             Credits,
             NonCombatGameplay,
             Hub,
-            // combat childs
+            Shop,
+            Armory,
+            SupportConversation,
+            Barracks,
+            Base,
+            Trading,
+            ClassChange,
+            Forging,
+            Records,
+            Briefing,
+            Deployment,
+            Configuration,
+            // combat children
             $"{Combat}.{PreBattle}",
             $"{Combat}.{PreBattleTransitionToBattle}",
             $"{Combat}.{Battle}",
@@ -216,6 +244,18 @@ namespace Turnroot.Gameplay.Brain
                 new(BrainStateNames.Combat),
                 new(BrainStateNames.GameStart),
                 new(BrainStateNames.WorldMap),
+                new(BrainStateNames.Shop),
+                new(BrainStateNames.Armory),
+                new(BrainStateNames.SupportConversation),
+                new(BrainStateNames.Barracks),
+                new(BrainStateNames.Base),
+                new(BrainStateNames.Trading),
+                new(BrainStateNames.ClassChange),
+                new(BrainStateNames.Forging),
+                new(BrainStateNames.Records),
+                new(BrainStateNames.Briefing),
+                new(BrainStateNames.Deployment),
+                new(BrainStateNames.Configuration),
             };
 
 #if TURNROOT_CAMP_MODULE

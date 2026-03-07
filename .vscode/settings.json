@@ -194,6 +194,10 @@
             "path": "fe-prototyping\\Assets\\TurnrootFramework\\Gameplay\\Audio\\",
             "color": "foldercustomization.AnsiColor36",
             "badge": "🎵"
+        },
+        {
+            "path": "fe-prototyping\\Assets\\TurnrootFramework\\Gameflow\\",
+            "color": "foldercustomization.AnsiColor50"
         }
     ],
     "omnisharp.excludePaths": [

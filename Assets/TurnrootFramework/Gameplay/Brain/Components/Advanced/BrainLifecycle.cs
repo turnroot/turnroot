@@ -4,6 +4,7 @@ using Turnroot.Gameplay.Brain.Components;
 using Turnroot.Gameplay.Brain.Segments;
 using Turnroot.Utilities;
 using Turnroot.Utilities.AbstractScripts;
+using Turnroot.Utilities.SceneFlows;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain
@@ -38,6 +39,7 @@ namespace Turnroot.Gameplay.Brain
                 positioningInputControllerBrain = GetComponent<PositioningInputController>();
                 unitAppearanceBrain = GetComponent<UnitAppearanceBrain>();
                 saveFileBrain = GetComponent<SaveFileBrain>();
+                sceneFlowBrain = GetComponent<SceneFlowBrain>();
 
                 // Find all DynamicSceneFlows in other scenes and set their .brain to this
                 var allSceneFlows = FindObjectsByType<DynamicSceneFlow>(FindObjectsSortMode.None);

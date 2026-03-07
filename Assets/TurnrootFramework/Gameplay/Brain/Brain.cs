@@ -1,6 +1,7 @@
 using Turnroot.Conversations;
 using Turnroot.Gameplay.Brain.Components;
 using Turnroot.Gameplay.Brain.Segments;
+using Turnroot.Utilities.SceneFlows;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain
@@ -43,6 +44,7 @@ namespace Turnroot.Gameplay.Brain
     [RequireComponent(typeof(UnitAppearanceBrain))]
     [RequireComponent(typeof(SaveFileBrain))]
     [RequireComponent(typeof(LoadingController))]
+    [RequireComponent(typeof(SceneFlowBrain))]
     public partial class Brain : MonoBehaviour
     {
         // Core components
@@ -93,6 +95,9 @@ namespace Turnroot.Gameplay.Brain
 
         [HideInInspector]
         public SaveFileBrain saveFileBrain;
+
+        [HideInInspector]
+        public SceneFlowBrain sceneFlowBrain;
 
         [HideInInspector]
         public LongTermMemory ltm;
