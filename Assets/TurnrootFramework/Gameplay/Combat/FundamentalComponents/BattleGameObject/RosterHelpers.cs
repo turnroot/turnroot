@@ -71,7 +71,16 @@ namespace Turnroot.Gameplay.Combat
             var playerInstance = battleBrain.InstantiatePlayerTeamRoster();
             if (playerInstance == null)
             {
-                return OperationResult.Failure("Could not instantiate player team roster");
+                return OperationResult.Failure(
+                    "Could not instantiate player team roster - check BattleBrain roster configuration"
+                );
+            }
+
+            if (playerInstance.Instances == null || playerInstance.Instances.Count == 0)
+            {
+                return OperationResult.Failure(
+                    $"Player team roster has no character instances - make sure the roster template has characters assigned"
+                );
             }
 
             // CRITICAL: Create battle copies of ONLY selected units
@@ -80,6 +89,20 @@ namespace Turnroot.Gameplay.Combat
                 .Instances.Where(inst => inst != null && inst.IsSelectedForBattle)
                 .ToList();
 
+            if (selectedUnits.Count == 0)
+            {
+                var flagSummary = string.Join(
+                    ", ",
+                    playerInstance.Instances.Select(i =>
+                        $"{i.CharacterTemplate?.name}={i.IsSelectedForBattle}"
+                    )
+                );
+                $"PopulateBattleRostersFromTemplates: No units selected for battle out of {playerInstance.Instances.Count} available. IsSelectedForBattle flags: {flagSummary}".LogWarning();
+                return OperationResult.Failure(
+                    $"No units selected for battle from roster with {playerInstance.Instances.Count} characters"
+                );
+            }
+
             var battleCopies = new List<CharacterInstance>();
             foreach (var unit in selectedUnits)
             {
@@ -87,8 +110,6 @@ namespace Turnroot.Gameplay.Combat
             }
 
             PlayerTeamRoster.AddInstances(battleCopies);
-
-            $"PopulateBattleRostersFromTemplates: Created {battleCopies.Count} battle copies from {playerInstance.Instances.Count} persistent roster units".LogInfo();
 
             if (HasThirdParty && _thirdPartyRoster != null)
             {

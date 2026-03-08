@@ -36,7 +36,6 @@ namespace Turnroot.Gameplay.Brain
         {
             if (_brain != null)
             {
-                $"{GetType().Name} OnDestroy - unsubscribing from brain events.".LogInfo();
                 UnsubscribeFromBrainEvents();
             }
         }

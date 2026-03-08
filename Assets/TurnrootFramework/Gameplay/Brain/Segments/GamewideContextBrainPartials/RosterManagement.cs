@@ -41,18 +41,34 @@ namespace Turnroot.Gameplay.Brain
         {
             if (roster == null)
             {
-                "Cannot get/create null player roster".LogWarning();
+                "GamewideContextBrain.GetOrCreatePlayerTeamRoster: roster parameter is null".LogError();
                 return null;
             }
 
             if (_activeRosterInstances.TryGetValue(roster.Id, out var existing))
             {
-                return existing as PlayerTeamRosterInstance;
+                var existingPlayerRoster = existing as PlayerTeamRosterInstance;
+                if (existingPlayerRoster != null)
+                {
+                    return existingPlayerRoster;
+                }
+                else
+                {
+                    $"GamewideContextBrain.GetOrCreatePlayerTeamRoster: Cached instance is not PlayerTeamRosterInstance type!".LogError();
+                }
             }
 
             var result = _rosterManager.InstantiatePlayerTeamRoster(roster);
+
             if (!result.Success)
             {
+                $"GamewideContextBrain.GetOrCreatePlayerTeamRoster: Failed to instantiate - {result.Error}".LogError();
+                return null;
+            }
+
+            if (result.Value == null)
+            {
+                "GamewideContextBrain.GetOrCreatePlayerTeamRoster: InstantiatePlayerTeamRoster returned null value despite Success=true".LogError();
                 return null;
             }
 
@@ -66,11 +82,27 @@ namespace Turnroot.Gameplay.Brain
         public PlayerTeamRosterInstance RecallPlayerTeamRoster(PlayerTeamRoster roster) =>
             _rosterManager?.RecallPlayerTeamRoster(roster);
 
-        public PlayerTeamRosterInstance GetPersistentPlayerTeamRosterInstance() =>
-            _rosterManager?.GetPersistentPlayerRosterInstance();
+        public PlayerTeamRosterInstance GetPersistentPlayerTeamRosterInstance()
+        {
+            var result = _rosterManager?.GetPersistentPlayerRosterInstance();
+            if (result == null)
+            {
+                "GamewideContextBrain.GetPersistentPlayerTeamRosterInstance: _rosterManager returned null".LogWarning();
+            }
+            return result;
+        }
 
-        public List<CharacterInstance> GetSelectedForBattlePlayerTeamUnits() =>
-            RosterFilters.FilterUnitsSelectedForBattle(GetPersistentPlayerTeamRosterInstance());
+        public List<CharacterInstance> GetSelectedForBattlePlayerTeamUnits()
+        {
+            var rosterInstance = GetPersistentPlayerTeamRosterInstance();
+            if (rosterInstance == null)
+            {
+                "GamewideContextBrain.GetSelectedForBattlePlayerTeamUnits: Roster instance is null".LogWarning();
+                return new List<CharacterInstance>();
+            }
+
+            return RosterFilters.FilterUnitsSelectedForBattle(rosterInstance);
+        }
 
         public Characters.Roster.UnitPlacement[] GetSelectedForBattlePlayerTeamPlacements()
         {
@@ -103,4 +135,3 @@ namespace Turnroot.Gameplay.Brain
         #endregion
     }
 }
-

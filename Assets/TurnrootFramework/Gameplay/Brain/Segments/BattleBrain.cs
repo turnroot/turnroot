@@ -106,18 +106,39 @@ namespace Turnroot.Gameplay.Brain
         private void InitializeLTMDependentData()
         {
             // Called after LongTermMemory is initialized
-            if (
-                Brain.gamewideContextBrain != null
-                && Brain.gamewideContextBrain.GamewidePersistentPlayerRoster == null
-            )
+            if (Brain.gamewideContextBrain == null)
+            {
+                "BattleBrain: gamewideContextBrain is null during InitializeLTMDependentData!".LogError();
+                return;
+            }
+
+            if (Brain.gamewideContextBrain.GamewidePersistentPlayerRoster == null)
             {
                 Brain.gamewideContextBrain.CreateOrRecallGamewidePersistentPlayerRoster();
             }
 
-            _playerTeamRoster =
-                Brain.gamewideContextBrain?.GamewidePersistentPlayerRoster ?? _playerTeamRoster;
+            _playerTeamRoster = Brain.gamewideContextBrain.GamewidePersistentPlayerRoster;
 
-            Brain.gamewideContextBrain?.GetOrCreatePlayerTeamRoster(_playerTeamRoster);
+            if (_playerTeamRoster == null)
+            {
+                "BattleBrain: No PlayerTeamRoster available! Make sure PersistentPlayerRoster.asset is configured and assigned.".LogError();
+                return;
+            }
+
+            var rosterInstance = Brain.gamewideContextBrain.GetOrCreatePlayerTeamRoster(
+                _playerTeamRoster
+            );
+
+            if (rosterInstance == null)
+            {
+                $"BattleBrain: Failed to get/create runtime instance for roster '{_playerTeamRoster.name}'".LogError();
+                return;
+            }
+
+            if (rosterInstance.Instances == null || rosterInstance.Instances.Count == 0)
+            {
+                $"BattleBrain: Roster '{_playerTeamRoster.name}' has no character instances. Check roster template configuration.".LogWarning();
+            }
         }
 
         protected override void OnDestroy()
@@ -343,6 +364,7 @@ namespace Turnroot.Gameplay.Brain
 
             if (gw == null || prep == null)
             {
+                "BattleBrain: Cannot ensure units selected - missing gamewideContextBrain or PreparationObject".LogError();
                 return;
             }
 
@@ -351,20 +373,34 @@ namespace Turnroot.Gameplay.Brain
                 ?? gw.CreateOrRecallGamewidePersistentPlayerRoster();
             if (persistentRoster == null)
             {
+                "BattleBrain: Cannot ensure units selected - no persistent roster available".LogError();
                 return;
             }
 
             var rosterInstance = gw.GetOrCreatePlayerTeamRoster(persistentRoster);
+            if (rosterInstance == null)
+            {
+                $"BattleBrain: Cannot ensure units selected - failed to get roster instance for '{persistentRoster.name}'".LogError();
+                return;
+            }
+
+            if (rosterInstance.Instances == null || rosterInstance.Instances.Count == 0)
+            {
+                $"BattleBrain: Cannot ensure units selected - roster '{persistentRoster.name}' has no character instances. Make sure the roster template has characters assigned.".LogError();
+                return;
+            }
 
             // Check if any units are already selected
             var selectedUnits = gw.GetSelectedForBattlePlayerTeamUnits();
             if (selectedUnits != null && selectedUnits.Count > 0)
             {
                 // Units already selected, no need to auto-select
+                $"BattleBrain: {selectedUnits.Count} units already selected for battle".LogInfo();
                 return;
             }
 
             // Auto-select default units (required units + auto-fill from roster)
+            $"BattleBrain: Auto-selecting default units from roster with {rosterInstance.Instances.Count} available characters".LogInfo();
             PreBattleSelectionHelper.EnsureDefaultPreBattleSelections(
                 Brain,
                 persistentRoster,
@@ -523,8 +559,30 @@ namespace Turnroot.Gameplay.Brain
             bool register = false
         ) => Brain.gamewideContextBrain.GetOrCreateGenericRoster(roster, register);
 
-        public PlayerTeamRosterInstance InstantiatePlayerTeamRoster() =>
-            Brain.gamewideContextBrain.GetOrCreatePlayerTeamRoster(_playerTeamRoster);
+        public PlayerTeamRosterInstance InstantiatePlayerTeamRoster()
+        {
+            if (_playerTeamRoster == null)
+            {
+                "BattleBrain.InstantiatePlayerTeamRoster: _playerTeamRoster is null! Make sure roster is initialized before starting battle.".LogError();
+                return null;
+            }
+
+            if (Brain.gamewideContextBrain == null)
+            {
+                "BattleBrain.InstantiatePlayerTeamRoster: gamewideContextBrain is null!".LogError();
+                return null;
+            }
+
+            var instance = Brain.gamewideContextBrain.GetOrCreatePlayerTeamRoster(
+                _playerTeamRoster
+            );
+            if (instance == null)
+            {
+                $"BattleBrain.InstantiatePlayerTeamRoster: Failed to get/create roster instance for '{_playerTeamRoster.name}'".LogError();
+            }
+
+            return instance;
+        }
 
         public void RecallGenericRosters(List<GenericRoster> rosters) =>
             Brain.gamewideContextBrain.RecallGenericRosters(rosters);

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Turnroot.Characters;
+using Turnroot.Utilities;
 
 namespace Turnroot.Gameplay.Brain
 {
@@ -88,6 +89,9 @@ namespace Turnroot.Gameplay.Brain
             }
 
             // Apply selections: persist non-required choices into LTM and set runtime instance flags
+            int appliedCount = 0;
+            int notFoundCount = 0;
+
             foreach (var p in placements)
             {
                 if (p == null || p.CharacterData == null)
@@ -133,6 +137,7 @@ namespace Turnroot.Gameplay.Brain
                                 publish: true,
                                 markChanged: false
                             );
+                            appliedCount++;
                         }
                     }
                     else
@@ -141,8 +146,15 @@ namespace Turnroot.Gameplay.Brain
                         {
                             inst.IsSelectedForBattle = desired;
                             brain.PublishUnitSelectionChanged(inst, desired);
+                            appliedCount++;
                         }
                     }
+                }
+                else if (desired)
+                {
+                    // Only log if we wanted to select this unit but couldn't find it
+                    $"PreBattleSelectionHelper: Could not find instance for '{template.name}' to mark as selected".LogWarning();
+                    notFoundCount++;
                 }
             }
 

@@ -102,7 +102,9 @@ namespace Turnroot.Graphics2D
             for (int row = 0; row < keyboardLayout.Length - 2; row++)
             {
                 if (keyboardLayout[row].Length > maxCols)
+                {
                     maxCols = keyboardLayout[row].Length;
+                }
             }
 
             buttons = new KeyboardButton[maxRows, maxCols];
@@ -240,28 +242,40 @@ namespace Turnroot.Graphics2D
         public void ProcessInput(Vector2 direction)
         {
             if (direction.magnitude < 0.5f)
+            {
                 return;
+            }
 
             // Unhighlight current button
             if (buttons[currentRow, currentCol] != null)
+            {
                 buttons[currentRow, currentCol].SetHighlighted(false);
+            }
 
             // Navigate
             if (Mathf.Abs(direction.x) > Mathf.Abs(direction.y))
             {
                 // Horizontal movement
                 if (direction.x > 0)
+                {
                     MoveRight();
+                }
                 else
+                {
                     MoveLeft();
+                }
             }
             else
             {
                 // Vertical movement
                 if (direction.y > 0)
+                {
                     MoveUp();
+                }
                 else
+                {
                     MoveDown();
+                }
             }
 
             HighlightCurrentButton();
@@ -283,7 +297,10 @@ namespace Turnroot.Graphics2D
             {
                 case "BACK":
                     if (currentText.Length > 0)
+                    {
                         currentText = currentText.Substring(0, currentText.Length - 1);
+                    }
+
                     break;
 
                 case "SPACE":
@@ -311,7 +328,10 @@ namespace Turnroot.Graphics2D
                 default:
                     string textToAdd = key;
                     if (isShiftActive || isCapsLockActive)
+                    {
                         textToAdd = textToAdd.ToUpper();
+                    }
+
                     currentText += textToAdd;
 
                     // Reset shift if not caps lock
@@ -359,11 +379,17 @@ namespace Turnroot.Graphics2D
                     if (buttons[row, col] != null && buttons[row, col].GetKeyValue() == "SHIFT")
                     {
                         if (isCapsLockActive)
+                        {
                             buttons[row, col].SetCapsLockActive(true);
+                        }
                         else if (isShiftActive)
+                        {
                             buttons[row, col].SetShiftActive(true);
+                        }
                         else
+                        {
                             buttons[row, col].SetShiftActive(false);
+                        }
                     }
                 }
             }
@@ -372,13 +398,17 @@ namespace Turnroot.Graphics2D
         private void UpdateDisplay()
         {
             if (displayText != null)
+            {
                 displayText.text = currentText;
+            }
         }
 
         private void HighlightCurrentButton()
         {
             if (buttons[currentRow, currentCol] != null)
+            {
                 buttons[currentRow, currentCol].SetHighlighted(true);
+            }
         }
 
         private void MoveUp()
@@ -388,11 +418,15 @@ namespace Turnroot.Graphics2D
             {
                 currentRow--;
                 if (currentRow < 0)
+                {
                     currentRow = maxRows - 1; // Wrap to bottom
+                }
 
                 // Find valid button in this row
                 if (FindNearestButtonInRow(currentRow))
+                {
                     return;
+                }
             } while (currentRow != startRow);
         }
 
@@ -403,11 +437,15 @@ namespace Turnroot.Graphics2D
             {
                 currentRow++;
                 if (currentRow >= maxRows)
+                {
                     currentRow = 0; // Wrap to top
+                }
 
                 // Find valid button in this row
                 if (FindNearestButtonInRow(currentRow))
+                {
                     return;
+                }
             } while (currentRow != startRow);
         }
 
@@ -418,10 +456,14 @@ namespace Turnroot.Graphics2D
             {
                 currentCol--;
                 if (currentCol < 0)
+                {
                     currentCol = maxCols - 1; // Wrap to right
+                }
 
                 if (buttons[currentRow, currentCol] != null)
+                {
                     return;
+                }
             } while (currentCol != startCol);
         }
 
@@ -432,10 +474,14 @@ namespace Turnroot.Graphics2D
             {
                 currentCol++;
                 if (currentCol >= maxCols)
+                {
                     currentCol = 0; // Wrap to left
+                }
 
                 if (buttons[currentRow, currentCol] != null)
+                {
                     return;
+                }
             } while (currentCol != startCol);
         }
 
@@ -443,7 +489,9 @@ namespace Turnroot.Graphics2D
         {
             // First try the same column
             if (buttons[row, currentCol] != null)
+            {
                 return true;
+            }
 
             // Find nearest valid button in this row
             int leftDist = maxCols;

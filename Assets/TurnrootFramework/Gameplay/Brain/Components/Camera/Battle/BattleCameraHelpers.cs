@@ -352,8 +352,9 @@ namespace Turnroot.Gameplay.Brain.Segments
             var placements = prep?.placements;
             if (placements == null || placements.Count == 0)
             {
+                "CameraBrain: No placements available at battle start - skipping cursor initialization".LogWarning();
                 var center = SetBattleGridCameraNeutralCenter();
-                Brain.PublishCursorMoveRequested(center);
+                // Don't try to move cursor if we have no valid positions - let it initialize naturally
                 ComputeTargetPosition(center);
                 if (_battleMapCamera != null)
                 {

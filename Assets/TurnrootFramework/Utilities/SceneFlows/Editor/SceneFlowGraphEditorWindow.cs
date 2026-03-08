@@ -1,5 +1,6 @@
 #if UNITY_EDITOR
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
@@ -25,6 +26,7 @@ namespace Turnroot.Utilities.SceneFlows.Editor
         // Selection
         private SceneNode _selectedNode;
         private SceneTransition _selectedTransition;
+        private HashSet<SceneNode> _selectedNodes = new HashSet<SceneNode>();
 
         // UI state
         private Vector2 _sidebarScroll;
@@ -44,6 +46,10 @@ namespace Turnroot.Utilities.SceneFlows.Editor
         private GUIStyle _labelStyle;
         private bool _stylesInitialized;
 
+        // Settings
+        private SceneFlowGraphEditorSettings _settings;
+        private int _lastSettingsHash;
+
         [MenuItem("Window/Turnroot/Editors/Scene Flow Editor")]
         public static void ShowWindow()
         {
@@ -61,6 +67,82 @@ namespace Turnroot.Utilities.SceneFlows.Editor
         private void OnEnable()
         {
             _stylesInitialized = false;
+            LoadSettings();
+            _lastSettingsHash = GetSettingsHash();
+        }
+
+        private void LoadSettings()
+        {
+            // Try to load from editor prefs first
+            string settingsGuid = EditorPrefs.GetString("SceneFlowGraphEditor_SettingsGUID", "");
+            if (!string.IsNullOrEmpty(settingsGuid))
+            {
+                string assetPath = AssetDatabase.GUIDToAssetPath(settingsGuid);
+                if (!string.IsNullOrEmpty(assetPath))
+                {
+                    _settings = AssetDatabase.LoadAssetAtPath<SceneFlowGraphEditorSettings>(
+                        assetPath
+                    );
+                }
+            }
+
+            // If not found in prefs, search for any settings asset in the project
+            if (_settings == null)
+            {
+                string[] guids = AssetDatabase.FindAssets("t:SceneFlowGraphEditorSettings");
+                if (guids.Length > 0)
+                {
+                    string path = AssetDatabase.GUIDToAssetPath(guids[0]);
+                    _settings = AssetDatabase.LoadAssetAtPath<SceneFlowGraphEditorSettings>(path);
+                }
+            }
+
+            // Fall back to default instance if still not found
+            if (_settings == null)
+            {
+                _settings = SceneFlowGraphEditorSettings.Instance;
+            }
+        }
+
+        private int GetSettingsHash()
+        {
+            if (_settings == null)
+                return 0;
+            unchecked
+            {
+                int hash = 17;
+                hash = hash * 31 + _settings.nodeColor.GetHashCode();
+                hash = hash * 31 + _settings.nodeSelectedColor.GetHashCode();
+                hash = hash * 31 + _settings.hubNodeColor.GetHashCode();
+                hash = hash * 31 + _settings.hubNodeSelectedColor.GetHashCode();
+                hash = hash * 31 + _settings.nodeFontSize.GetHashCode();
+                hash = hash * 31 + _settings.transitionColor.GetHashCode();
+                hash = hash * 31 + _settings.transitionSelectedColor.GetHashCode();
+                hash = hash * 31 + _settings.transitionBidirectionalColor.GetHashCode();
+                hash = hash * 31 + _settings.transitionConditionalColor.GetHashCode();
+                hash = hash * 31 + _settings.transitionCreationColor.GetHashCode();
+                hash = hash * 31 + _settings.transitionWidth.GetHashCode();
+                hash = hash * 31 + _settings.arrowNodeOffset.GetHashCode();
+                hash = hash * 31 + _settings.gridMajorColor.GetHashCode();
+                hash = hash * 31 + _settings.gridMinorColor.GetHashCode();
+                hash = hash * 31 + _settings.backgroundColor.GetHashCode();
+                return hash;
+            }
+        }
+
+        private void Update()
+        {
+            // Check if settings have been modified and force style refresh
+            if (_settings != null)
+            {
+                int currentHash = GetSettingsHash();
+                if (currentHash != _lastSettingsHash)
+                {
+                    _lastSettingsHash = currentHash;
+                    _stylesInitialized = false;
+                    Repaint();
+                }
+            }
         }
 
         private void InitializeStyles()
@@ -70,32 +152,34 @@ namespace Turnroot.Utilities.SceneFlows.Editor
                 return;
             }
 
+            // Ensure settings are loaded
+            if (_settings == null)
+            {
+                LoadSettings();
+            }
+
             _nodeStyle = new GUIStyle("box")
             {
                 alignment = TextAnchor.MiddleCenter,
-                fontSize = 12,
+                fontSize = _settings.nodeFontSize,
                 fontStyle = FontStyle.Bold,
                 padding = new RectOffset(8, 8, 8, 8),
                 wordWrap = true,
             };
-            _nodeStyle.normal.background = MakeTexture(2, 2, new Color(0.3f, 0.3f, 0.3f, 1f));
+            _nodeStyle.normal.background = MakeTexture(2, 2, _settings.nodeColor);
             _nodeStyle.normal.textColor = Color.white;
 
             _nodeSelectedStyle = new GUIStyle(_nodeStyle);
-            _nodeSelectedStyle.normal.background = MakeTexture(
-                2,
-                2,
-                new Color(0.2f, 0.5f, 0.8f, 1f)
-            );
+            _nodeSelectedStyle.normal.background = MakeTexture(2, 2, _settings.nodeSelectedColor);
 
             _hubNodeStyle = new GUIStyle(_nodeStyle);
-            _hubNodeStyle.normal.background = MakeTexture(2, 2, new Color(0.5f, 0.3f, 0.6f, 1f));
+            _hubNodeStyle.normal.background = MakeTexture(2, 2, _settings.hubNodeColor);
 
             _hubNodeSelectedStyle = new GUIStyle(_hubNodeStyle);
             _hubNodeSelectedStyle.normal.background = MakeTexture(
                 2,
                 2,
-                new Color(0.6f, 0.4f, 0.8f, 1f)
+                _settings.hubNodeSelectedColor
             );
 
             _labelStyle = new GUIStyle(GUI.skin.label)
@@ -187,6 +271,31 @@ namespace Turnroot.Utilities.SceneFlows.Editor
                 }
             }
 
+            // Settings
+            var newSettings = (SceneFlowGraphEditorSettings)
+                EditorGUILayout.ObjectField(
+                    _settings,
+                    typeof(SceneFlowGraphEditorSettings),
+                    false,
+                    GUILayout.Width(200)
+                );
+            if (newSettings != _settings && newSettings != null)
+            {
+                _settings = newSettings;
+                _lastSettingsHash = GetSettingsHash();
+                _stylesInitialized = false;
+
+                // Save the selection to editor prefs
+                string assetPath = AssetDatabase.GetAssetPath(_settings);
+                if (!string.IsNullOrEmpty(assetPath))
+                {
+                    string guid = AssetDatabase.AssetPathToGUID(assetPath);
+                    EditorPrefs.SetString("SceneFlowGraphEditor_SettingsGUID", guid);
+                }
+
+                Repaint();
+            }
+
             EditorGUILayout.EndHorizontal();
         }
 
@@ -215,7 +324,7 @@ namespace Turnroot.Utilities.SceneFlows.Editor
         private void DrawGraph(Rect graphRect)
         {
             // Background
-            EditorGUI.DrawRect(graphRect, new Color(0.2f, 0.2f, 0.2f, 1f));
+            EditorGUI.DrawRect(graphRect, _settings.backgroundColor);
 
             // Handle input
             HandleGraphInput(graphRect);
@@ -249,7 +358,11 @@ namespace Turnroot.Utilities.SceneFlows.Editor
             {
                 var startPos = GetNodeCenter(_transitionStartNode);
                 var nodeScreenPos = TransformToScreenSpace(startPos, graphRect);
-                DrawConnectionLine(nodeScreenPos, Event.current.mousePosition, Color.yellow);
+                DrawConnectionLine(
+                    nodeScreenPos,
+                    Event.current.mousePosition,
+                    _settings.transitionCreationColor
+                );
             }
 
             // Handle deselection on empty space click
@@ -257,6 +370,7 @@ namespace Turnroot.Utilities.SceneFlows.Editor
             {
                 _selectedNode = null;
                 _selectedTransition = null;
+                _selectedNodes.Clear();
                 if (_transitionStartNode != null)
                 {
                     _transitionStartNode = null;
@@ -307,6 +421,7 @@ namespace Turnroot.Utilities.SceneFlows.Editor
                     // Right-click on empty space - deselect
                     _selectedNode = null;
                     _selectedTransition = null;
+                    _selectedNodes.Clear();
                     e.Use();
                     Repaint();
                 }
@@ -327,7 +442,13 @@ namespace Turnroot.Utilities.SceneFlows.Editor
             // Delete selected with Delete key
             if (e.type == EventType.KeyDown && e.keyCode == KeyCode.Delete)
             {
-                if (_selectedNode != null)
+                if (_selectedNodes.Count > 0)
+                {
+                    DeleteMultipleNodes(_selectedNodes);
+                    e.Use();
+                    Repaint();
+                }
+                else if (_selectedNode != null)
                 {
                     DeleteNode(_selectedNode);
                     e.Use();
@@ -362,7 +483,7 @@ namespace Turnroot.Utilities.SceneFlows.Editor
 
             // Choose style
             GUIStyle style;
-            if (_selectedNode == node)
+            if (_selectedNode == node || _selectedNodes.Contains(node))
             {
                 style = node.isHub ? _hubNodeSelectedStyle : _nodeSelectedStyle;
             }
@@ -410,7 +531,7 @@ namespace Turnroot.Utilities.SceneFlows.Editor
             // Handle node interactions
             // Transform mouse position to match the zoomed/panned graph space
             var mousePos = e.mousePosition / _zoom - _panOffset / _zoom;
-            
+
             if (rect.Contains(mousePos))
             {
                 if (e.type == EventType.MouseDown && e.button == 0)
@@ -428,12 +549,34 @@ namespace Turnroot.Utilities.SceneFlows.Editor
                     }
                     else
                     {
-                        // Start dragging
-                        _selectedNode = node;
-                        _selectedTransition = null;
-                        _draggedNode = node;
-                        _dragStartPos = e.mousePosition / _zoom - _panOffset / _zoom;
-                        _isDragging = true;
+                        // Handle multi-selection with Ctrl/Cmd
+                        if (e.control || e.command)
+                        {
+                            if (_selectedNodes.Contains(node))
+                            {
+                                _selectedNodes.Remove(node);
+                                if (_selectedNode == node)
+                                {
+                                    _selectedNode = null;
+                                }
+                            }
+                            else
+                            {
+                                _selectedNodes.Add(node);
+                                _selectedNode = node;
+                            }
+                            _selectedTransition = null;
+                        }
+                        else
+                        {
+                            // Normal single selection and start dragging
+                            _selectedNodes.Clear();
+                            _selectedNode = node;
+                            _selectedTransition = null;
+                            _draggedNode = node;
+                            _dragStartPos = e.mousePosition / _zoom - _panOffset / _zoom;
+                            _isDragging = true;
+                        }
                     }
                     e.Use();
                     Repaint();
@@ -497,18 +640,18 @@ namespace Turnroot.Utilities.SceneFlows.Editor
             var toPos = GetNodeCenter(toNode);
 
             // Color based on selection and conditions
-            Color lineColor = Color.white;
+            Color lineColor = _settings.transitionColor;
             if (_selectedTransition == transition)
             {
-                lineColor = Color.cyan;
+                lineColor = _settings.transitionSelectedColor;
             }
             else if (transition.isBidirectional)
             {
-                lineColor = new Color(0.5f, 1f, 0.5f);
+                lineColor = _settings.transitionBidirectionalColor;
             }
             else if (transition.conditions != null && transition.conditions.Count > 0)
             {
-                lineColor = new Color(1f, 0.8f, 0.3f);
+                lineColor = _settings.transitionConditionalColor;
             }
 
             // Draw arrow
@@ -579,9 +722,7 @@ namespace Turnroot.Utilities.SceneFlows.Editor
             for (float x = startX; x < endX; x += gridSpacing)
             {
                 bool isThickLine = lineCount % thickLineInterval == 0;
-                Handles.color = isThickLine
-                    ? new Color(1f, 1f, 1f, 0.15f)
-                    : new Color(1f, 1f, 1f, 0.05f);
+                Handles.color = isThickLine ? _settings.gridMajorColor : _settings.gridMinorColor;
                 Handles.DrawLine(new Vector2(x, startY), new Vector2(x, endY));
                 lineCount++;
             }
@@ -591,9 +732,7 @@ namespace Turnroot.Utilities.SceneFlows.Editor
             for (float y = startY; y < endY; y += gridSpacing)
             {
                 bool isThickLine = lineCount % thickLineInterval == 0;
-                Handles.color = isThickLine
-                    ? new Color(1f, 1f, 1f, 0.15f)
-                    : new Color(1f, 1f, 1f, 0.05f);
+                Handles.color = isThickLine ? _settings.gridMajorColor : _settings.gridMinorColor;
                 Handles.DrawLine(new Vector2(startX, y), new Vector2(endX, y));
                 lineCount++;
             }
@@ -610,11 +749,11 @@ namespace Turnroot.Utilities.SceneFlows.Editor
             float distance = Vector2.Distance(from, to);
 
             // Shorten line to not overlap nodes
-            Vector2 adjustedFrom = from + direction * (NODE_WIDTH / 2);
-            Vector2 adjustedTo = to - direction * (NODE_WIDTH / 2);
+            Vector2 adjustedFrom = from + direction * _settings.arrowNodeOffset;
+            Vector2 adjustedTo = to - direction * _settings.arrowNodeOffset;
 
-            // Draw main line
-            Handles.DrawLine(adjustedFrom, adjustedTo);
+            // Draw main line with thickness
+            Handles.DrawAAPolyLine(_settings.transitionWidth, adjustedFrom, adjustedTo);
 
             // Draw arrowhead
             if (!bidirectional)
@@ -649,7 +788,7 @@ namespace Turnroot.Utilities.SceneFlows.Editor
         {
             Handles.BeginGUI();
             Handles.color = color;
-            Handles.DrawLine(from, to);
+            Handles.DrawAAPolyLine(_settings.transitionWidth, from, to);
             Handles.EndGUI();
         }
 
@@ -660,7 +799,11 @@ namespace Turnroot.Utilities.SceneFlows.Editor
 
             _sidebarScroll = EditorGUILayout.BeginScrollView(_sidebarScroll);
 
-            if (_selectedNode != null)
+            if (_selectedNodes.Count == 2)
+            {
+                DrawMultiNodeInspector();
+            }
+            else if (_selectedNode != null)
             {
                 DrawNodeInspector();
             }
@@ -716,9 +859,79 @@ namespace Turnroot.Utilities.SceneFlows.Editor
 
             EditorGUILayout.Space();
             EditorGUILayout.HelpBox(
-                "Click a node to select it.\nRight-click a node to create a transition.\nDelete key removes selected node/transition.",
+                "Click a node to select it.\nCtrl+Click to multi-select nodes.\nRight-click a node to create a transition.\nDelete key removes selected node/transition.",
                 MessageType.Info
             );
+        }
+
+        private void DrawMultiNodeInspector()
+        {
+            EditorGUILayout.LabelField("Multiple Nodes Selected", EditorStyles.boldLabel);
+            EditorGUILayout.Space();
+
+            if (_selectedNodes.Count == 2)
+            {
+                var nodesList = new List<SceneNode>(_selectedNodes);
+                var node1 = nodesList[0];
+                var node2 = nodesList[1];
+
+                EditorGUILayout.LabelField($"Node 1: {node1.displayName}");
+                EditorGUILayout.LabelField($"Node 2: {node2.displayName}");
+
+                EditorGUILayout.Space();
+                EditorGUILayout.LabelField("Actions", EditorStyles.boldLabel);
+
+                if (
+                    GUILayout.Button(
+                        $"Create Transition: {node1.displayName} → {node2.displayName}",
+                        GUILayout.Height(30)
+                    )
+                )
+                {
+                    CreateTransition(node1, node2);
+                }
+
+                if (
+                    GUILayout.Button(
+                        $"Create Transition: {node2.displayName} → {node1.displayName}",
+                        GUILayout.Height(30)
+                    )
+                )
+                {
+                    CreateTransition(node2, node1);
+                }
+
+                EditorGUILayout.Space();
+
+                if (GUILayout.Button("Create Bidirectional Transition", GUILayout.Height(30)))
+                {
+                    CreateBidirectionalTransition(node1, node2);
+                }
+
+                EditorGUILayout.Space();
+
+                if (GUILayout.Button("Clear Selection"))
+                {
+                    _selectedNodes.Clear();
+                    _selectedNode = null;
+                    Repaint();
+                }
+            }
+            else
+            {
+                EditorGUILayout.LabelField($"{_selectedNodes.Count} nodes selected");
+                EditorGUILayout.HelpBox(
+                    "Select exactly 2 nodes to create transitions between them.",
+                    MessageType.Info
+                );
+
+                if (GUILayout.Button("Clear Selection"))
+                {
+                    _selectedNodes.Clear();
+                    _selectedNode = null;
+                    Repaint();
+                }
+            }
         }
 
         private void DrawNodeInspector()
@@ -821,6 +1034,93 @@ namespace Turnroot.Utilities.SceneFlows.Editor
                 "Label",
                 _selectedTransition.label
             );
+
+            // Brain State dropdown(s)
+            EditorGUILayout.Space();
+            EditorGUILayout.LabelField("Brain State", EditorStyles.boldLabel);
+
+            var allStates = BrainStateNames.GetAllStateIds();
+            var stateOptions = new string[allStates.Length + 1];
+            stateOptions[0] = "(Keep Current State)";
+            System.Array.Copy(allStates, 0, stateOptions, 1, allStates.Length);
+
+            // Forward direction state
+            int currentStateIndex = 0;
+            if (!string.IsNullOrEmpty(_selectedTransition.targetBrainState))
+            {
+                currentStateIndex = System.Array.IndexOf(
+                    allStates,
+                    _selectedTransition.targetBrainState
+                );
+                if (currentStateIndex >= 0)
+                {
+                    currentStateIndex++; // Offset by 1 because of the "Keep Current State" option
+                }
+                else
+                {
+                    currentStateIndex = 0; // Invalid state, default to "Keep Current State"
+                }
+            }
+
+            string forwardLabel = _selectedTransition.isBidirectional
+                ? $"Forward ({fromNode?.displayName ?? "?"} → {toNode?.displayName ?? "?"})"
+                : "Target State";
+
+            int newStateIndex = EditorGUILayout.Popup(
+                forwardLabel,
+                currentStateIndex,
+                stateOptions
+            );
+            if (newStateIndex == 0)
+            {
+                _selectedTransition.targetBrainState = string.Empty;
+            }
+            else
+            {
+                _selectedTransition.targetBrainState = allStates[newStateIndex - 1];
+            }
+
+            // Reverse direction state (only for bidirectional)
+            if (_selectedTransition.isBidirectional)
+            {
+                int currentReverseStateIndex = 0;
+                if (!string.IsNullOrEmpty(_selectedTransition.targetBrainStateReverse))
+                {
+                    currentReverseStateIndex = System.Array.IndexOf(
+                        allStates,
+                        _selectedTransition.targetBrainStateReverse
+                    );
+                    if (currentReverseStateIndex >= 0)
+                    {
+                        currentReverseStateIndex++;
+                    }
+                    else
+                    {
+                        currentReverseStateIndex = 0;
+                    }
+                }
+
+                string reverseLabel =
+                    $"Reverse ({toNode?.displayName ?? "?"} → {fromNode?.displayName ?? "?"})";
+
+                int newReverseStateIndex = EditorGUILayout.Popup(
+                    reverseLabel,
+                    currentReverseStateIndex,
+                    stateOptions
+                );
+                if (newReverseStateIndex == 0)
+                {
+                    _selectedTransition.targetBrainStateReverse = string.Empty;
+                }
+                else
+                {
+                    _selectedTransition.targetBrainStateReverse = allStates[
+                        newReverseStateIndex - 1
+                    ];
+                }
+            }
+
+            EditorGUILayout.Space();
             _selectedTransition.isBidirectional = EditorGUILayout.Toggle(
                 "Bidirectional",
                 _selectedTransition.isBidirectional
@@ -843,23 +1143,88 @@ namespace Turnroot.Utilities.SceneFlows.Editor
 
             EditorGUILayout.Space();
             EditorGUILayout.LabelField("Conditions", EditorStyles.boldLabel);
-            EditorGUILayout.HelpBox(
-                "Use the Inspector window to edit conditions in detail.",
-                MessageType.Info
-            );
 
-            if (_selectedTransition.conditions != null && _selectedTransition.conditions.Count > 0)
+            if (_selectedTransition.conditions == null)
             {
-                foreach (var condition in _selectedTransition.conditions)
-                {
-                    EditorGUILayout.LabelField($"• {condition}", EditorStyles.miniLabel);
-                }
+                _selectedTransition.conditions = new List<SceneCondition>();
             }
-            else
+
+            // Display and edit each condition
+            for (int i = 0; i < _selectedTransition.conditions.Count; i++)
             {
-                EditorGUILayout.LabelField(
-                    "No conditions (always available)",
-                    EditorStyles.miniLabel
+                EditorGUILayout.BeginVertical("box");
+                var condition = _selectedTransition.conditions[i];
+
+                EditorGUILayout.BeginHorizontal();
+                EditorGUILayout.LabelField($"Condition {i + 1}", EditorStyles.boldLabel);
+                if (GUILayout.Button("Remove", GUILayout.Width(60)))
+                {
+                    _selectedTransition.conditions.RemoveAt(i);
+                    EditorUtility.SetDirty(_graph);
+                    AssetDatabase.SaveAssetIfDirty(_graph);
+                    break;
+                }
+                EditorGUILayout.EndHorizontal();
+
+                condition.conditionType = (SceneConditionType)
+                    EditorGUILayout.EnumPopup("Type", condition.conditionType);
+
+                if (condition.conditionType != SceneConditionType.Always)
+                {
+                    condition.conditionKey = EditorGUILayout.TextField(
+                        "Key",
+                        condition.conditionKey
+                    );
+
+                    switch (condition.conditionType)
+                    {
+                        case SceneConditionType.BrainStateBool:
+                        case SceneConditionType.CustomFlag:
+                            condition.expectedBoolValue = EditorGUILayout.Toggle(
+                                "Expected Value",
+                                condition.expectedBoolValue
+                            );
+                            break;
+
+                        case SceneConditionType.BrainStateInt:
+                            condition.comparisonOperator = (ComparisonOperator)
+                                EditorGUILayout.EnumPopup("Operator", condition.comparisonOperator);
+                            condition.expectedIntValue = EditorGUILayout.IntField(
+                                "Value",
+                                condition.expectedIntValue
+                            );
+                            break;
+
+                        case SceneConditionType.BrainStateString:
+                            condition.expectedStringValue = EditorGUILayout.TextField(
+                                "Expected Value",
+                                condition.expectedStringValue
+                            );
+                            break;
+                    }
+                }
+
+                EditorGUILayout.LabelField("Preview:", EditorStyles.miniLabel);
+                EditorGUILayout.LabelField(condition.ToString(), EditorStyles.wordWrappedMiniLabel);
+
+                EditorGUILayout.EndVertical();
+                EditorGUILayout.Space();
+            }
+
+            if (GUILayout.Button("Add Condition"))
+            {
+                _selectedTransition.conditions.Add(
+                    new SceneCondition { conditionType = SceneConditionType.Always }
+                );
+                EditorUtility.SetDirty(_graph);
+                AssetDatabase.SaveAssetIfDirty(_graph);
+            }
+
+            if (_selectedTransition.conditions.Count == 0)
+            {
+                EditorGUILayout.HelpBox(
+                    "No conditions means this transition is always available.",
+                    MessageType.Info
                 );
             }
 
@@ -994,6 +1359,29 @@ namespace Turnroot.Utilities.SceneFlows.Editor
             _graph.AddTransition(newTransition);
             _selectedTransition = newTransition;
             _selectedNode = null;
+            _selectedNodes.Clear();
+            EditorUtility.SetDirty(_graph);
+            AssetDatabase.SaveAssetIfDirty(_graph);
+            Repaint();
+        }
+
+        private void CreateBidirectionalTransition(SceneNode node1, SceneNode node2)
+        {
+            Undo.RecordObject(_graph, "Create Bidirectional Transition");
+
+            var newTransition = new SceneTransition
+            {
+                fromSceneId = node1.id,
+                toSceneId = node2.id,
+                label = "Continue",
+                isBidirectional = true,
+                conditions = new List<SceneCondition>(),
+            };
+
+            _graph.AddTransition(newTransition);
+            _selectedTransition = newTransition;
+            _selectedNode = null;
+            _selectedNodes.Clear();
             EditorUtility.SetDirty(_graph);
             AssetDatabase.SaveAssetIfDirty(_graph);
             Repaint();
@@ -1013,6 +1401,31 @@ namespace Turnroot.Utilities.SceneFlows.Editor
                 Undo.RecordObject(_graph, "Delete Node");
                 _graph.RemoveScene(node.id);
                 _selectedNode = null;
+                _selectedNodes.Clear();
+                EditorUtility.SetDirty(_graph);
+                AssetDatabase.SaveAssetIfDirty(_graph);
+                Repaint();
+            }
+        }
+
+        private void DeleteMultipleNodes(HashSet<SceneNode> nodes)
+        {
+            if (
+                EditorUtility.DisplayDialog(
+                    "Delete Nodes",
+                    $"Delete {nodes.Count} scenes? This will also remove all transitions involving these scenes.",
+                    "Delete",
+                    "Cancel"
+                )
+            )
+            {
+                Undo.RecordObject(_graph, "Delete Multiple Nodes");
+                foreach (var node in nodes.ToArray())
+                {
+                    _graph.RemoveScene(node.id);
+                }
+                _selectedNode = null;
+                _selectedNodes.Clear();
                 EditorUtility.SetDirty(_graph);
                 AssetDatabase.SaveAssetIfDirty(_graph);
                 Repaint();

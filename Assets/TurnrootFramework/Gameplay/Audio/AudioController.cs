@@ -134,7 +134,9 @@ namespace Turnroot.Gameplay.Audio
                     "Turnroot.Gameplay.Audio.Editor.AudioControllerHelpWindow"
                 );
                 if (windowType != null)
+                {
                     break;
+                }
             }
 
             if (windowType != null)

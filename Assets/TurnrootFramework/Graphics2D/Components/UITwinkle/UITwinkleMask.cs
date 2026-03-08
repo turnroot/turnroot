@@ -220,7 +220,9 @@ namespace TurnrootFramework.Graphics2D
         private void UpdateMaterial()
         {
             if (material == null)
+            {
                 return;
+            }
 
             // Update mask texture
             if (maskTexture != null)

@@ -71,7 +71,9 @@ namespace Turnroot.Conversations
                     "Turnroot.Conversations.Editor.ConversationControllerHelpWindow"
                 );
                 if (windowType != null)
+                {
                     break;
+                }
             }
 
             if (windowType != null)

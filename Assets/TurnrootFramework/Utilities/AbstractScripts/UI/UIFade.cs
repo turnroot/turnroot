@@ -34,7 +34,6 @@ namespace Turnroot.Utilities.AbstractScripts
             {
                 if (_visible == value)
                 {
-                    $"UIFade: Visible set to {value} but already in that state. No action taken.".LogInfo();
                     return;
                 }
                 _visible = value;

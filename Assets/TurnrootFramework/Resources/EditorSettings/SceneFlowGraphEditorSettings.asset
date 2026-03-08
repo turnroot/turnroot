@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9270badeafa0c5b4cac6ae6ded72ccf7, type: 3}
+  m_Name: SceneFlowGraphEditorSettings
+  m_EditorClassIdentifier: Assembly-CSharp-Editor::Turnroot.Utilities.SceneFlows.Editor.SceneFlowGraphEditorSettings
+  nodeColor: {r: 0.3, g: 0.3, b: 0.3, a: 1}
+  nodeSelectedColor: {r: 0.8, g: 0.4724711, b: 0.2, a: 1}
+  hubNodeColor: {r: 0.153, g: 0.58659524, b: 0.6, a: 1}
+  hubNodeSelectedColor: {r: 0.41114002, g: 0.674, b: 0.674, a: 1}
+  nodeFontSize: 15
+  transitionColor: {r: 1, g: 1, b: 1, a: 1}
+  transitionSelectedColor: {r: 0, g: 1, b: 1, a: 1}
+  transitionBidirectionalColor: {r: 0.5, g: 1, b: 0.5, a: 1}
+  transitionConditionalColor: {r: 1, g: 0.8, b: 0.3, a: 1}
+  transitionCreationColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  transitionWidth: 4.51
+  arrowNodeOffset: 52.2
+  gridMajorColor: {r: 1, g: 1, b: 1, a: 0.15}
+  gridMinorColor: {r: 1, g: 1, b: 1, a: 0.05}
+  backgroundColor: {r: 0.113000005, g: 0.113000005, b: 0.113000005, a: 1}

@@ -29,7 +29,9 @@ namespace Turnroot.Skills
             {
                 windowType = assembly.GetType("Turnroot.Skills.Nodes.Editor.SkillSystemHelpWindow");
                 if (windowType != null)
+                {
                     break;
+                }
             }
 
             if (windowType != null)

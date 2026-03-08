@@ -71,11 +71,17 @@ namespace Turnroot.Graphics2D
             {
                 // Highlight takes priority, then hover, then normal
                 if (isHighlighted)
+                {
                     background.color = highlightColor;
+                }
                 else if (isMouseHover)
+                {
                     background.color = Color.Lerp(normalColor, highlightColor, 0.4f);
+                }
                 else
+                {
                     background.color = normalColor;
+                }
             }
         }
 
@@ -92,7 +98,9 @@ namespace Turnroot.Graphics2D
         private void ResetColor()
         {
             if (background != null)
+            {
                 background.color = isHighlighted ? highlightColor : normalColor;
+            }
         }
 
         public string GetKeyValue()
@@ -103,7 +111,9 @@ namespace Turnroot.Graphics2D
         public void UpdateDisplay(string displayText)
         {
             if (label != null)
+            {
                 label.text = displayText;
+            }
         }
 
         public void SetShiftActive(bool active)

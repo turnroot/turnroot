@@ -208,6 +208,16 @@ namespace Turnroot.Utilities.SceneFlows
         [Tooltip("Is this a return to a previous scene in the navigation history?")]
         public bool isReturnTransition = false;
 
+        [Tooltip(
+            "The brain state to activate when the new scene loads. Leave empty to keep current state."
+        )]
+        public string targetBrainState;
+
+        [Tooltip(
+            "For bidirectional transitions: The brain state to activate when returning (going from 'to' back to 'from'). Leave empty to keep current state."
+        )]
+        public string targetBrainStateReverse;
+
         [TextArea(2, 3)]
         [Tooltip("Notes about when/why this transition should be used.")]
         public string notes;

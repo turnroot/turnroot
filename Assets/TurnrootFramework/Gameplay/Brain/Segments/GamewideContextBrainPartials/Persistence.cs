@@ -25,7 +25,15 @@ namespace Turnroot.Gameplay.Brain
 
             if (_rosterPersistence?.HasPlayerRosterInLTM(GamewidePersistentPlayerRoster) == true)
             {
-                _rosterManager?.RecallPlayerTeamRoster(GamewidePersistentPlayerRoster);
+                var instance = _rosterManager?.RecallPlayerTeamRoster(
+                    GamewidePersistentPlayerRoster
+                );
+                // Cache the recalled instance so GetOrCreatePlayerTeamRoster can find it
+                if (instance != null)
+                {
+                    string cacheKey = GamewidePersistentPlayerRoster.Id;
+                    _activeRosterInstances[cacheKey] = instance;
+                }
             }
 
             return GamewidePersistentPlayerRoster;
@@ -66,6 +74,10 @@ namespace Turnroot.Gameplay.Brain
                     );
                     if (runtimeInstanceResult.Success == true)
                     {
+                        // Cache the loaded instance
+                        string cacheKey = GamewidePersistentPlayerRoster.Id;
+                        _activeRosterInstances[cacheKey] = runtimeInstanceResult.Value;
+
                         if (decode.Value.LastSavedBattleTurn > 1)
                         {
                             runtimeInstanceResult.Value.ApplyDecodedPlacements(
@@ -79,8 +91,18 @@ namespace Turnroot.Gameplay.Brain
                     }
                 }
             }
-
-            _rosterManager.RecallPlayerTeamRoster(GamewidePersistentPlayerRoster);
+            else
+            {
+                // No saved data in LTM - create fresh instance and cache it
+                var freshInstance = _rosterManager.InstantiatePlayerTeamRoster(
+                    GamewidePersistentPlayerRoster
+                );
+                if (freshInstance.Success && freshInstance.Value != null)
+                {
+                    string cacheKey = GamewidePersistentPlayerRoster.Id;
+                    _activeRosterInstances[cacheKey] = freshInstance.Value;
+                }
+            }
         }
 
         private int _currentBattleTurn = 0;
@@ -169,4 +191,3 @@ namespace Turnroot.Gameplay.Brain
         #endregion
     }
 }
-

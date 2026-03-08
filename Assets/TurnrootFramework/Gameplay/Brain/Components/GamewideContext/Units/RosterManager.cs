@@ -114,13 +114,22 @@ namespace Turnroot.Gameplay.Brain
                 return OperationResult<PlayerTeamRosterInstance>.Failure(validation.ErrorMessage);
             }
 
-            if (_persistentPlayerRoster != null && _persistentPlayerRoster.roster == roster)
+            // Check if we already have a persistent roster instance for this roster
+            if (_persistentPlayerRoster != null)
             {
-                return OperationResult<PlayerTeamRosterInstance>.SuccessResult(
-                    _persistentPlayerRoster
-                );
+                if (_persistentPlayerRoster.roster == roster)
+                {
+                    return OperationResult<PlayerTeamRosterInstance>.SuccessResult(
+                        _persistentPlayerRoster
+                    );
+                }
+                else
+                {
+                    $"RosterManager: _persistentPlayerRoster exists but has different roster ('{_persistentPlayerRoster.roster?.name}' vs '{roster.name}')".LogWarning(
+                        "RosterManager"
+                    );
+                }
             }
-
             var go = new GameObject($"PlayerTeamRosterInstance - {roster.name}");
             var instance = go.AddComponent<PlayerTeamRosterInstance>();
             instance.roster = roster;
@@ -131,6 +140,9 @@ namespace Turnroot.Gameplay.Brain
             var populateResult = PopulatePlayerTeamRoster(instance, roster);
             if (!populateResult.Success)
             {
+                $"RosterManager: PopulatePlayerTeamRoster failed - {populateResult.ErrorMessage}".LogError(
+                    "RosterManager"
+                );
                 return OperationResult<PlayerTeamRosterInstance>.Failure(
                     populateResult.ErrorMessage
                 );
@@ -255,8 +267,16 @@ namespace Turnroot.Gameplay.Brain
             return result.Value;
         }
 
-        public PlayerTeamRosterInstance GetPersistentPlayerRosterInstance() =>
-            _persistentPlayerRoster;
+        public PlayerTeamRosterInstance GetPersistentPlayerRosterInstance()
+        {
+            if (_persistentPlayerRoster == null)
+            {
+                "RosterManager: _persistentPlayerRoster is NULL".LogWarning("RosterManager");
+                return null;
+            }
+
+            return _persistentPlayerRoster;
+        }
 
         private void RecallFromIndex(List<GenericRoster> rosters, List<string> indexedIds)
         {
