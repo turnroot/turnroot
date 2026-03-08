@@ -50,6 +50,10 @@ namespace Turnroot.Utilities.SceneFlows.Editor
         private SceneFlowGraphEditorSettings _settings;
         private int _lastSettingsHash;
 
+        // Cached singleton graph
+        private static SceneFlowGraph _cachedSingletonGraph;
+        private static bool _hasSearchedForGraph;
+
         [MenuItem("Window/Turnroot/Editors/Scene Flow Editor")]
         public static void ShowWindow()
         {
@@ -69,6 +73,53 @@ namespace Turnroot.Utilities.SceneFlows.Editor
             _stylesInitialized = false;
             LoadSettings();
             _lastSettingsHash = GetSettingsHash();
+            LoadOrFindGraph();
+        }
+
+        private void LoadOrFindGraph()
+        {
+            // If graph is already set, keep it
+            if (_graph != null)
+            {
+                return;
+            }
+
+            // Use cached singleton if available
+            if (_cachedSingletonGraph != null)
+            {
+                _graph = _cachedSingletonGraph;
+                return;
+            }
+
+            // Only search once per session
+            if (_hasSearchedForGraph)
+            {
+                return;
+            }
+
+            _hasSearchedForGraph = true;
+
+            // Search for SceneFlowGraph assets (enforce singleton)
+            string[] guids = AssetDatabase.FindAssets("t:SceneFlowGraph");
+
+            if (guids.Length > 1)
+            {
+                Debug.LogWarning(
+                    $"[Scene Flow Editor] Found {guids.Length} SceneFlowGraph assets. Only one should exist. Using the first one found."
+                );
+            }
+
+            if (guids.Length > 0)
+            {
+                string path = AssetDatabase.GUIDToAssetPath(guids[0]);
+                _cachedSingletonGraph = AssetDatabase.LoadAssetAtPath<SceneFlowGraph>(path);
+                _graph = _cachedSingletonGraph;
+
+                if (guids.Length > 1)
+                {
+                    Debug.Log($"[Scene Flow Editor] Loaded: {path}");
+                }
+            }
         }
 
         private void LoadSettings()
@@ -122,6 +173,7 @@ namespace Turnroot.Utilities.SceneFlows.Editor
                 hash = hash * 31 + _settings.transitionConditionalColor.GetHashCode();
                 hash = hash * 31 + _settings.transitionCreationColor.GetHashCode();
                 hash = hash * 31 + _settings.transitionWidth.GetHashCode();
+                hash = hash * 31 + _settings.arrowSize.GetHashCode();
                 hash = hash * 31 + _settings.arrowNodeOffset.GetHashCode();
                 hash = hash * 31 + _settings.gridMajorColor.GetHashCode();
                 hash = hash * 31 + _settings.gridMinorColor.GetHashCode();
@@ -184,7 +236,7 @@ namespace Turnroot.Utilities.SceneFlows.Editor
 
             _labelStyle = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 11,
+                fontSize = _settings.nodeFontSize,
                 alignment = TextAnchor.MiddleCenter,
                 fontStyle = FontStyle.Normal,
             };
@@ -264,11 +316,6 @@ namespace Turnroot.Utilities.SceneFlows.Editor
                 {
                     CenterView();
                 }
-
-                if (GUILayout.Button("Auto Layout", EditorStyles.toolbarButton))
-                {
-                    AutoLayoutNodes();
-                }
             }
 
             // Settings
@@ -338,17 +385,19 @@ namespace Turnroot.Utilities.SceneFlows.Editor
             );
 
             GUILayout.BeginArea(graphRect);
+
+            // Draw grid BEFORE applying matrix (in screen space)
             Matrix4x4 oldMatrix = GUI.matrix;
+            DrawGrid(graphRect);
+
+            // Now apply matrix for nodes and transitions
             GUI.matrix = Matrix4x4.TRS(_panOffset, Quaternion.identity, Vector3.one * _zoom);
 
-            // Draw grid
-            DrawGrid();
-
             // Draw transitions first (so they appear behind nodes)
-            DrawAllTransitions();
+            DrawAllTransitions(graphRect);
 
             // Draw nodes
-            DrawAllNodes();
+            DrawAllNodes(graphRect);
 
             GUI.matrix = oldMatrix;
             GUILayout.EndArea();
@@ -463,7 +512,7 @@ namespace Turnroot.Utilities.SceneFlows.Editor
             }
         }
 
-        private void DrawAllNodes()
+        private void DrawAllNodes(Rect graphRect)
         {
             if (_graph.scenes == null)
             {
@@ -472,11 +521,11 @@ namespace Turnroot.Utilities.SceneFlows.Editor
 
             foreach (var node in _graph.scenes)
             {
-                DrawNode(node);
+                DrawNode(node, graphRect);
             }
         }
 
-        private void DrawNode(SceneNode node)
+        private void DrawNode(SceneNode node, Rect graphRect)
         {
             var rect = GetNodeRect(node);
             var e = Event.current;
@@ -499,14 +548,14 @@ namespace Turnroot.Utilities.SceneFlows.Editor
             var labelRect = new Rect(rect.x, rect.y + 5, rect.width, 20);
             GUI.Label(labelRect, node.displayName, _labelStyle);
 
-            // Draw scene name (smaller)
-            var sceneNameRect = new Rect(rect.x, rect.y + 25, rect.width, 15);
-            var sceneStyle = new GUIStyle(_labelStyle)
+            // Draw ID (smaller)
+            var idRect = new Rect(rect.x, rect.y + 25, rect.width, 15);
+            var idStyle = new GUIStyle(_labelStyle)
             {
-                fontSize = 9,
+                fontSize = Mathf.Max(8, _settings.nodeFontSize - 2),
                 normal = { textColor = new Color(0.8f, 0.8f, 0.8f) },
             };
-            GUI.Label(sceneNameRect, node.sceneName, sceneStyle);
+            GUI.Label(idRect, node.id, idStyle);
 
             // Hub indicator
             if (node.isHub)
@@ -529,8 +578,9 @@ namespace Turnroot.Utilities.SceneFlows.Editor
             }
 
             // Handle node interactions
-            // Transform mouse position to match the zoomed/panned graph space
-            var mousePos = e.mousePosition / _zoom - _panOffset / _zoom;
+            // Inside BeginArea with GUI.matrix, mouse IS transformed by the matrix
+            // Mouse is in transformed space, rect is in graph space, so no transform needed
+            var mousePos = e.mousePosition;
 
             if (rect.Contains(mousePos))
             {
@@ -574,7 +624,7 @@ namespace Turnroot.Utilities.SceneFlows.Editor
                             _selectedNode = node;
                             _selectedTransition = null;
                             _draggedNode = node;
-                            _dragStartPos = e.mousePosition / _zoom - _panOffset / _zoom;
+                            _dragStartPos = e.mousePosition;
                             _isDragging = true;
                         }
                     }
@@ -593,9 +643,7 @@ namespace Turnroot.Utilities.SceneFlows.Editor
             if (_isDragging && _draggedNode == node && e.type == EventType.MouseDrag)
             {
                 node.editorPosition =
-                    e.mousePosition / _zoom
-                    - _panOffset / _zoom
-                    - new Vector2(NODE_WIDTH / 2, NODE_HEIGHT / 2);
+                    e.mousePosition - new Vector2(NODE_WIDTH / 2, NODE_HEIGHT / 2);
                 EditorUtility.SetDirty(_graph);
                 e.Use();
                 Repaint();
@@ -613,7 +661,7 @@ namespace Turnroot.Utilities.SceneFlows.Editor
             }
         }
 
-        private void DrawAllTransitions()
+        private void DrawAllTransitions(Rect graphRect)
         {
             if (_graph.transitions == null)
             {
@@ -622,11 +670,11 @@ namespace Turnroot.Utilities.SceneFlows.Editor
 
             foreach (var transition in _graph.transitions)
             {
-                DrawTransition(transition);
+                DrawTransition(transition, graphRect);
             }
         }
 
-        private void DrawTransition(SceneTransition transition)
+        private void DrawTransition(SceneTransition transition, Rect graphRect)
         {
             var fromNode = _graph.GetScene(transition.fromSceneId);
             var toNode = _graph.GetScene(transition.toSceneId);
@@ -677,7 +725,7 @@ namespace Turnroot.Utilities.SceneFlows.Editor
             var e = Event.current;
             if (e.type == EventType.MouseDown && e.button == 0)
             {
-                var mousePos = e.mousePosition / _zoom - _panOffset / _zoom;
+                var mousePos = e.mousePosition;
 
                 // Check if clicked on label background
                 if (bgRect.Contains(mousePos))
@@ -700,40 +748,51 @@ namespace Turnroot.Utilities.SceneFlows.Editor
             }
         }
 
-        private void DrawGrid()
+        private void DrawGrid(Rect graphRect)
         {
             const float gridSpacing = 50f;
             const float thickLineInterval = 5; // Every 5th line is thicker
 
             Handles.BeginGUI();
 
-            // Calculate visible area
-            float startX = (-_panOffset.x / _zoom) - 1000;
-            float endX = (position.width - SIDEBAR_WIDTH - _panOffset.x) / _zoom + 1000;
-            float startY = (-_panOffset.y / _zoom) - 1000;
-            float endY = (position.height - _panOffset.y) / _zoom + 1000;
+            // Calculate visible graph space range
+            // Graph position = (screen position - panOffset) / zoom
+            float graphStartX = (0 - _panOffset.x) / _zoom;
+            float graphEndX = (graphRect.width - _panOffset.x) / _zoom;
+            float graphStartY = (0 - _panOffset.y) / _zoom;
+            float graphEndY = (graphRect.height - _panOffset.y) / _zoom;
 
-            // Snap to grid
-            startX = Mathf.Floor(startX / gridSpacing) * gridSpacing;
-            startY = Mathf.Floor(startY / gridSpacing) * gridSpacing;
+            // Snap to grid boundaries
+            float firstGridX = Mathf.Ceil(graphStartX / gridSpacing) * gridSpacing;
+            float firstGridY = Mathf.Ceil(graphStartY / gridSpacing) * gridSpacing;
 
-            // Draw vertical lines
-            int lineCount = 0;
-            for (float x = startX; x < endX; x += gridSpacing)
+            // Draw vertical lines (at graph X positions, spanning visible Y)
+            int lineCount = (int)(firstGridX / gridSpacing);
+            for (float graphX = firstGridX; graphX <= graphEndX; graphX += gridSpacing)
             {
+                // Convert graph position to screen position
+                float screenX = graphX * _zoom + _panOffset.x;
+
                 bool isThickLine = lineCount % thickLineInterval == 0;
                 Handles.color = isThickLine ? _settings.gridMajorColor : _settings.gridMinorColor;
-                Handles.DrawLine(new Vector2(x, startY), new Vector2(x, endY));
+
+                // Draw in screen coordinates (not affected by GUI.matrix since we draw before setting it)
+                Handles.DrawLine(new Vector2(screenX, 0), new Vector2(screenX, graphRect.height));
                 lineCount++;
             }
 
-            // Draw horizontal lines
-            lineCount = 0;
-            for (float y = startY; y < endY; y += gridSpacing)
+            // Draw horizontal lines (at graph Y positions, spanning visible X)
+            lineCount = (int)(firstGridY / gridSpacing);
+            for (float graphY = firstGridY; graphY <= graphEndY; graphY += gridSpacing)
             {
+                // Convert graph position to screen position
+                float screenY = graphY * _zoom + _panOffset.y;
+
                 bool isThickLine = lineCount % thickLineInterval == 0;
                 Handles.color = isThickLine ? _settings.gridMajorColor : _settings.gridMinorColor;
-                Handles.DrawLine(new Vector2(startX, y), new Vector2(endX, y));
+
+                // Draw in screen coordinates
+                Handles.DrawLine(new Vector2(0, screenY), new Vector2(graphRect.width, screenY));
                 lineCount++;
             }
 
@@ -755,30 +814,52 @@ namespace Turnroot.Utilities.SceneFlows.Editor
             // Draw main line with thickness
             Handles.DrawAAPolyLine(_settings.transitionWidth, adjustedFrom, adjustedTo);
 
+            // Calculate arrowhead dimensions based on settings
+            float arrowLength = _settings.arrowSize;
+            float arrowWidth = _settings.arrowSize * 0.5f;
+
             // Draw arrowhead
             if (!bidirectional)
             {
                 Vector2 arrowTip = adjustedTo;
                 Vector2 perpendicular = new Vector2(-direction.y, direction.x);
-                Vector2 arrowLeft = arrowTip - direction * 10 + perpendicular * 5;
-                Vector2 arrowRight = arrowTip - direction * 10 - perpendicular * 5;
+                Vector2 arrowLeft = arrowTip - direction * arrowLength + perpendicular * arrowWidth;
+                Vector2 arrowRight =
+                    arrowTip - direction * arrowLength - perpendicular * arrowWidth;
 
-                Handles.DrawLine(arrowTip, arrowLeft);
-                Handles.DrawLine(arrowTip, arrowRight);
+                Handles.DrawAAPolyLine(_settings.transitionWidth, arrowTip, arrowLeft);
+                Handles.DrawAAPolyLine(_settings.transitionWidth, arrowTip, arrowRight);
             }
             else
             {
                 // Draw arrows on both ends for bidirectional
+                Vector2 perpendicular = new Vector2(-direction.y, direction.x);
+
                 // Arrow at 'to' end
                 Vector2 arrowTip1 = adjustedTo;
-                Vector2 perpendicular = new Vector2(-direction.y, direction.x);
-                Handles.DrawLine(arrowTip1, arrowTip1 - direction * 10 + perpendicular * 5);
-                Handles.DrawLine(arrowTip1, arrowTip1 - direction * 10 - perpendicular * 5);
+                Handles.DrawAAPolyLine(
+                    _settings.transitionWidth,
+                    arrowTip1,
+                    arrowTip1 - direction * arrowLength + perpendicular * arrowWidth
+                );
+                Handles.DrawAAPolyLine(
+                    _settings.transitionWidth,
+                    arrowTip1,
+                    arrowTip1 - direction * arrowLength - perpendicular * arrowWidth
+                );
 
                 // Arrow at 'from' end
                 Vector2 arrowTip2 = adjustedFrom;
-                Handles.DrawLine(arrowTip2, arrowTip2 + direction * 10 + perpendicular * 5);
-                Handles.DrawLine(arrowTip2, arrowTip2 + direction * 10 - perpendicular * 5);
+                Handles.DrawAAPolyLine(
+                    _settings.transitionWidth,
+                    arrowTip2,
+                    arrowTip2 + direction * arrowLength + perpendicular * arrowWidth
+                );
+                Handles.DrawAAPolyLine(
+                    _settings.transitionWidth,
+                    arrowTip2,
+                    arrowTip2 + direction * arrowLength - perpendicular * arrowWidth
+                );
             }
 
             Handles.EndGUI();
@@ -985,6 +1066,33 @@ namespace Turnroot.Utilities.SceneFlows.Editor
                 _selectedNode.notes,
                 GUILayout.Height(60)
             );
+
+            EditorGUILayout.Space();
+            _selectedNode.TimePasses = EditorGUILayout.Toggle(
+                "Time Passes",
+                _selectedNode.TimePasses
+            );
+            if (_selectedNode.TimePasses)
+            {
+                EditorGUI.indentLevel++;
+                _selectedNode.MonthForThisScene = (TurnrootFramework.Utilities.Month)
+                    EditorGUILayout.EnumPopup("Month", _selectedNode.MonthForThisScene);
+                _selectedNode.DayForThisScene = EditorGUILayout.IntSlider(
+                    "Day",
+                    _selectedNode.DayForThisScene,
+                    1,
+                    31
+                );
+                _selectedNode.HasYear = EditorGUILayout.Toggle("Has Year?", _selectedNode.HasYear);
+                if (_selectedNode.HasYear)
+                {
+                    _selectedNode.YearForThisScene = EditorGUILayout.IntField(
+                        "Year",
+                        _selectedNode.YearForThisScene
+                    );
+                }
+                EditorGUI.indentLevel--;
+            }
 
             if (EditorGUI.EndChangeCheck())
             {
@@ -1472,31 +1580,6 @@ namespace Turnroot.Utilities.SceneFlows.Editor
                 -center * _zoom
                 + new Vector2(position.width / 2 - SIDEBAR_WIDTH / 2, position.height / 2);
             Repaint();
-        }
-
-        private void AutoLayoutNodes()
-        {
-            if (_graph.scenes == null || _graph.scenes.Count == 0)
-            {
-                return;
-            }
-
-            Undo.RecordObject(_graph, "Auto Layout");
-
-            // Simple circular layout
-            int count = _graph.scenes.Count;
-            float radius = 200f;
-            float angleStep = 360f / count;
-
-            for (int i = 0; i < count; i++)
-            {
-                float angle = i * angleStep * Mathf.Deg2Rad;
-                Vector2 pos = new Vector2(Mathf.Cos(angle) * radius, Mathf.Sin(angle) * radius);
-                _graph.scenes[i].editorPosition = pos;
-            }
-
-            EditorUtility.SetDirty(_graph);
-            CenterView();
         }
 
         private void CreateNewGraph()

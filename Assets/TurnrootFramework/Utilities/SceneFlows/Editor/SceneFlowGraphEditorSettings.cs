@@ -49,6 +49,10 @@ namespace Turnroot.Utilities.SceneFlows.Editor
         [Range(1f, 10f)]
         public float transitionWidth = 3f;
 
+        [Tooltip("Size of arrowheads on transitions")]
+        [Range(5f, 30f)]
+        public float arrowSize = 10f;
+
         [Tooltip("Distance arrows stop before reaching node edge (in pixels)")]
         [Range(10f, 100f)]
         public float arrowNodeOffset = 35f;

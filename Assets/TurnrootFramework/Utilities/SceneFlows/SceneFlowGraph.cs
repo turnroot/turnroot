@@ -15,6 +15,8 @@ namespace Turnroot.Utilities.SceneFlows
     )]
     public class SceneFlowGraph : ScriptableObject
     {
+        #region Serialized Fields
+
         [Header("Graph Structure")]
         [Tooltip("All scenes in this flow graph. Each scene should appear only once.")]
         public List<SceneNode> scenes = new();
@@ -27,6 +29,10 @@ namespace Turnroot.Utilities.SceneFlows
         [SerializeField]
         private string _startingSceneId;
 
+        #endregion
+
+        #region Properties
+
         /// <summary>
         /// The starting scene node. Set via SetStartingScene().
         /// </summary>
@@ -36,72 +42,38 @@ namespace Turnroot.Utilities.SceneFlows
             set => _startingSceneId = value?.id;
         }
 
-        /// <summary>
-        /// Get the starting scene ID.
-        /// </summary>
         public string StartingSceneId => _startingSceneId;
 
-        /// <summary>
-        /// Set the starting scene by scene node.
-        /// </summary>
-        public void SetStartingScene(SceneNode scene)
-        {
-            _startingSceneId = scene?.id;
-        }
+        #endregion
 
-        /// <summary>
-        /// Set the starting scene by scene ID.
-        /// </summary>
-        public void SetStartingSceneById(string sceneId)
-        {
-            _startingSceneId = sceneId;
-        }
+        #region Starting Scene Configuration
 
-        /// <summary>
-        /// Get a scene node by its unique ID.
-        /// </summary>
-        public SceneNode GetScene(string sceneId)
-        {
-            return scenes.Find(s => s.id == sceneId);
-        }
+        public void SetStartingScene(SceneNode scene) => _startingSceneId = scene?.id;
 
-        /// <summary>
-        /// Get a scene node by its scene name/path.
-        /// </summary>
-        public SceneNode GetSceneByName(string sceneName)
-        {
-            return scenes.Find(s => s.sceneName == sceneName);
-        }
+        public void SetStartingSceneById(string sceneId) => _startingSceneId = sceneId;
 
-        /// <summary>
-        /// Get all outgoing transitions from a specific scene.
-        /// </summary>
-        public List<SceneTransition> GetTransitionsFrom(string fromSceneId)
-        {
-            return transitions.FindAll(t => t.fromSceneId == fromSceneId);
-        }
+        #endregion
 
-        /// <summary>
-        /// Get all incoming transitions to a specific scene.
-        /// </summary>
-        public List<SceneTransition> GetTransitionsTo(string toSceneId)
-        {
-            return transitions.FindAll(t => t.toSceneId == toSceneId);
-        }
+        #region Query Methods
 
-        /// <summary>
-        /// Check if a transition exists between two scenes.
-        /// </summary>
-        public bool HasTransition(string fromSceneId, string toSceneId)
-        {
-            return transitions.Exists(t =>
-                t.fromSceneId == fromSceneId && t.toSceneId == toSceneId
-            );
-        }
+        public SceneNode GetScene(string sceneId) => scenes.Find(s => s.id == sceneId);
 
-        /// <summary>
-        /// Add a scene to the graph.
-        /// </summary>
+        public SceneNode GetSceneByName(string sceneName) =>
+            scenes.Find(s => s.sceneName == sceneName);
+
+        public List<SceneTransition> GetTransitionsFrom(string fromSceneId) =>
+            transitions.FindAll(t => t.fromSceneId == fromSceneId);
+
+        public List<SceneTransition> GetTransitionsTo(string toSceneId) =>
+            transitions.FindAll(t => t.toSceneId == toSceneId);
+
+        public bool HasTransition(string fromSceneId, string toSceneId) =>
+            transitions.Exists(t => t.fromSceneId == fromSceneId && t.toSceneId == toSceneId);
+
+        #endregion
+
+        #region Scene Management
+
         public void AddScene(SceneNode scene)
         {
             if (!scenes.Contains(scene))
@@ -119,9 +91,10 @@ namespace Turnroot.Utilities.SceneFlows
             transitions.RemoveAll(t => t.fromSceneId == sceneId || t.toSceneId == sceneId);
         }
 
-        /// <summary>
-        /// Add a transition between scenes.
-        /// </summary>
+        #endregion
+
+        #region Transition Management
+
         public void AddTransition(SceneTransition transition)
         {
             if (!transitions.Contains(transition))
@@ -130,13 +103,9 @@ namespace Turnroot.Utilities.SceneFlows
             }
         }
 
-        /// <summary>
-        /// Remove a specific transition.
-        /// </summary>
-        public void RemoveTransition(SceneTransition transition)
-        {
-            transitions.Remove(transition);
-        }
+        public void RemoveTransition(SceneTransition transition) => transitions.Remove(transition);
+
+        #endregion
     }
 
     /// <summary>
@@ -173,11 +142,16 @@ namespace Turnroot.Utilities.SceneFlows
         [TextArea(2, 4)]
         [Tooltip("Notes about this scene for designers/developers.")]
         public string notes;
+        public bool TimePasses;
+        public TurnrootFramework.Utilities.Month MonthForThisScene = TurnrootFramework
+            .Utilities
+            .Month
+            .January;
+        public int DayForThisScene = 1;
+        public bool HasYear;
+        public int YearForThisScene = 1;
 
-        public override string ToString()
-        {
-            return $"{displayName} ({sceneName})";
-        }
+        public override string ToString() => $"{displayName} ({sceneName})";
     }
 
     /// <summary>
@@ -222,22 +196,15 @@ namespace Turnroot.Utilities.SceneFlows
         [Tooltip("Notes about when/why this transition should be used.")]
         public string notes;
 
-        /// <summary>
-        /// Check if all conditions for this transition are met.
-        /// </summary>
         public bool AreConditionsMet(SceneFlowConditionEvaluator evaluator)
         {
             if (conditions == null || conditions.Count == 0)
-            {
                 return true; // No conditions means always available
-            }
 
             foreach (var condition in conditions)
             {
                 if (!evaluator.EvaluateCondition(condition))
-                {
                     return false;
-                }
             }
 
             return true;
@@ -289,21 +256,15 @@ namespace Turnroot.Utilities.SceneFlows
         }
     }
 
-    /// <summary>
-    /// Types of conditions that can be checked for scene transitions.
-    /// </summary>
     public enum SceneConditionType
     {
-        Always, // Always available (no condition)
-        BrainStateBool, // Check a boolean value in Brain state
-        BrainStateInt, // Check an integer value in Brain state
-        BrainStateString, // Check a string value in Brain state
-        CustomFlag, // Check a custom flag (managed by game logic)
+        Always,
+        BrainStateBool,
+        BrainStateInt,
+        BrainStateString,
+        CustomFlag,
     }
 
-    /// <summary>
-    /// Comparison operators for numeric conditions.
-    /// </summary>
     public enum ComparisonOperator
     {
         Equal,

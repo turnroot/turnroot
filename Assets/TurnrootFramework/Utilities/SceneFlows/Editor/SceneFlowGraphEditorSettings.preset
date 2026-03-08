@@ -1,0 +1,240 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!181963792 &2655988077585873504
+Preset:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: SceneFlowGraphEditorSettings
+  m_TargetType:
+    m_NativeTypeID: 114
+    m_ManagedTypePPtr: {fileID: 11500000, guid: 9270badeafa0c5b4cac6ae6ded72ccf7, type: 3}
+    m_ManagedTypeFallback: 
+  m_Properties:
+  - target: {fileID: 0}
+    propertyPath: m_Enabled
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: m_EditorHideFlags
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: m_EditorClassIdentifier
+    value: Assembly-CSharp-Editor::Turnroot.Utilities.SceneFlows.Editor.SceneFlowGraphEditorSettings
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: nodeColor.r
+    value: 0.099
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: nodeColor.g
+    value: 0.099
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: nodeColor.b
+    value: 0.099
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: nodeColor.a
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: nodeSelectedColor.r
+    value: 0.8
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: nodeSelectedColor.g
+    value: 0.4724711
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: nodeSelectedColor.b
+    value: 0.2
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: nodeSelectedColor.a
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: hubNodeColor.r
+    value: 0.153
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: hubNodeColor.g
+    value: 0.58659524
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: hubNodeColor.b
+    value: 0.6
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: hubNodeColor.a
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: hubNodeSelectedColor.r
+    value: 0.41114002
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: hubNodeSelectedColor.g
+    value: 0.674
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: hubNodeSelectedColor.b
+    value: 0.674
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: hubNodeSelectedColor.a
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: nodeFontSize
+    value: 17
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: transitionColor.r
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: transitionColor.g
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: transitionColor.b
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: transitionColor.a
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: transitionSelectedColor.r
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: transitionSelectedColor.g
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: transitionSelectedColor.b
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: transitionSelectedColor.a
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: transitionBidirectionalColor.r
+    value: 0.5
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: transitionBidirectionalColor.g
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: transitionBidirectionalColor.b
+    value: 0.5
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: transitionBidirectionalColor.a
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: transitionConditionalColor.r
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: transitionConditionalColor.g
+    value: 0.8
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: transitionConditionalColor.b
+    value: 0.3
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: transitionConditionalColor.a
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: transitionCreationColor.r
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: transitionCreationColor.g
+    value: 0.92156863
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: transitionCreationColor.b
+    value: 0.015686275
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: transitionCreationColor.a
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: transitionWidth
+    value: 6.44
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: arrowSize
+    value: 27.95
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: arrowNodeOffset
+    value: 46.9
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: gridMajorColor.r
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: gridMajorColor.g
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: gridMajorColor.b
+    value: 0.8502281
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: gridMajorColor.a
+    value: 0.105882354
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: gridMinorColor.r
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: gridMinorColor.g
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: gridMinorColor.b
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: gridMinorColor.a
+    value: 0.05
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: backgroundColor.r
+    value: 0.21422213
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: backgroundColor.g
+    value: 0.34822726
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: backgroundColor.b
+    value: 0.5471698
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: backgroundColor.a
+    value: 1
+    objectReference: {fileID: 0}
+  m_ExcludedProperties: []
+  m_CoupledType:
+    m_NativeTypeID: 0
+    m_ManagedTypePPtr: {fileID: 0}
+    m_ManagedTypeFallback: 
+  m_CoupledProperties: []

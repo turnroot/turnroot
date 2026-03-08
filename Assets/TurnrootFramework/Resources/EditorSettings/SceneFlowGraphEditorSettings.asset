@@ -12,18 +12,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9270badeafa0c5b4cac6ae6ded72ccf7, type: 3}
   m_Name: SceneFlowGraphEditorSettings
   m_EditorClassIdentifier: Assembly-CSharp-Editor::Turnroot.Utilities.SceneFlows.Editor.SceneFlowGraphEditorSettings
-  nodeColor: {r: 0.3, g: 0.3, b: 0.3, a: 1}
+  nodeColor: {r: 0.099, g: 0.099, b: 0.099, a: 1}
   nodeSelectedColor: {r: 0.8, g: 0.4724711, b: 0.2, a: 1}
   hubNodeColor: {r: 0.153, g: 0.58659524, b: 0.6, a: 1}
   hubNodeSelectedColor: {r: 0.41114002, g: 0.674, b: 0.674, a: 1}
-  nodeFontSize: 15
+  nodeFontSize: 17
   transitionColor: {r: 1, g: 1, b: 1, a: 1}
   transitionSelectedColor: {r: 0, g: 1, b: 1, a: 1}
   transitionBidirectionalColor: {r: 0.5, g: 1, b: 0.5, a: 1}
   transitionConditionalColor: {r: 1, g: 0.8, b: 0.3, a: 1}
   transitionCreationColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
-  transitionWidth: 4.51
-  arrowNodeOffset: 52.2
-  gridMajorColor: {r: 1, g: 1, b: 1, a: 0.15}
+  transitionWidth: 6.44
+  arrowSize: 27.95
+  arrowNodeOffset: 46.9
+  gridMajorColor: {r: 0, g: 1, b: 0.8502281, a: 0.105882354}
   gridMinorColor: {r: 1, g: 1, b: 1, a: 0.05}
-  backgroundColor: {r: 0.113000005, g: 0.113000005, b: 0.113000005, a: 1}
+  backgroundColor: {r: 0.21422213, g: 0.34822726, b: 0.5471698, a: 1}

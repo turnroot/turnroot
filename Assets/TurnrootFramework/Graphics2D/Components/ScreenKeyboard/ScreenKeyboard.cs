@@ -27,6 +27,13 @@ namespace Turnroot.Graphics2D
 
         [Header("Layout Settings")]
         [SerializeField]
+        private bool numbersOnly = false;
+
+        [SerializeField]
+        [Tooltip("Maximum allowed number when in numbers only mode (0 = no limit)")]
+        private int maximumNumber = 0;
+
+        [SerializeField]
         private float buttonSpacing = 10f;
 
         [SerializeField]
@@ -51,6 +58,15 @@ namespace Turnroot.Graphics2D
             new string[] { "z", "x", "c", "v", "b", "n", "m", ".", "!", "?" },
             new string[] { "SHIFT", "SPACE", "BACK" },
             new string[] { "SUBMIT" },
+        };
+
+        // Number pad layout (numbers only mode) - 3x4 grid
+        private static readonly string[][] numberPadLayout = new string[][]
+        {
+            new string[] { "1", "2", "3" },
+            new string[] { "4", "5", "6" },
+            new string[] { "7", "8", "9" },
+            new string[] { "BACK", "0", "SUBMIT" },
         };
 
         private KeyboardButton[,] buttons;
@@ -95,26 +111,30 @@ namespace Turnroot.Graphics2D
 
         private void BuildKeyboard()
         {
-            maxRows = keyboardLayout.Length;
+            // Select layout based on numbersOnly mode
+            string[][] activeLayout = numbersOnly ? numberPadLayout : keyboardLayout;
+
+            maxRows = activeLayout.Length;
             maxCols = 0;
 
-            // Find max columns (excluding the bottom two special rows)
-            for (int row = 0; row < keyboardLayout.Length - 2; row++)
+            // Find max columns (excluding the bottom special row(s))
+            int specialRowsCount = numbersOnly ? 1 : 2; // Number pad has 1 special row, full keyboard has 2
+            for (int row = 0; row < activeLayout.Length - specialRowsCount; row++)
             {
-                if (keyboardLayout[row].Length > maxCols)
+                if (activeLayout[row].Length > maxCols)
                 {
-                    maxCols = keyboardLayout[row].Length;
+                    maxCols = activeLayout[row].Length;
                 }
             }
 
             buttons = new KeyboardButton[maxRows, maxCols];
 
-            // Build main keyboard rows (all but the last two special rows)
-            for (int row = 0; row < keyboardLayout.Length - 2; row++)
+            // Build main keyboard rows (all but the bottom special row(s))
+            for (int row = 0; row < activeLayout.Length - specialRowsCount; row++)
             {
-                for (int col = 0; col < keyboardLayout[row].Length; col++)
+                for (int col = 0; col < activeLayout[row].Length; col++)
                 {
-                    string key = keyboardLayout[row][col];
+                    string key = activeLayout[row][col];
                     KeyboardButton button = Instantiate(buttonPrefab, keyboardContainer);
 
                     // Standard sizing for main keyboard
@@ -134,11 +154,16 @@ namespace Turnroot.Graphics2D
                 }
             }
 
-            // Build bottom row separately (SHIFT, SPACE, BACK)
-            BuildBottomRow();
-
-            // Build submit row separately
-            BuildSubmitRow();
+            // Build bottom row(s) separately
+            if (numbersOnly)
+            {
+                BuildNumberPadBottomRow();
+            }
+            else
+            {
+                BuildBottomRow();
+                BuildSubmitRow();
+            }
         }
 
         private void BuildBottomRow()
@@ -212,10 +237,80 @@ namespace Turnroot.Graphics2D
             buttons[bottomRow, 2] = backButton;
         }
 
+        private void BuildNumberPadBottomRow()
+        {
+            int bottomRow = numberPadLayout.Length - 1; // Last row (BACK, 0, SUBMIT)
+            string[] bottomRowKeys = numberPadLayout[bottomRow];
+
+            // BACK button (left)
+            string backKey = bottomRowKeys[0]; // "BACK"
+            KeyboardButton backButton = Instantiate(buttonPrefab, bottomRowContainer);
+            RectTransform backRect = backButton.GetComponent<RectTransform>();
+            backRect.sizeDelta = buttonSize;
+
+            LayoutElement backLayout = backButton.gameObject.AddComponent<LayoutElement>();
+            backLayout.preferredWidth = buttonSize.x;
+            backLayout.preferredHeight = buttonSize.y;
+            backLayout.flexibleWidth = 0;
+
+            backButton.Initialize(
+                backKey,
+                normalColor,
+                highlightColor,
+                pressedColor,
+                OnButtonClicked,
+                OnButtonHovered
+            );
+            buttons[bottomRow, 0] = backButton;
+
+            // 0 button (center)
+            string zeroKey = bottomRowKeys[1]; // "0"
+            KeyboardButton zeroButton = Instantiate(buttonPrefab, bottomRowContainer);
+            RectTransform zeroRect = zeroButton.GetComponent<RectTransform>();
+            zeroRect.sizeDelta = buttonSize;
+
+            LayoutElement zeroLayout = zeroButton.gameObject.AddComponent<LayoutElement>();
+            zeroLayout.preferredWidth = buttonSize.x;
+            zeroLayout.preferredHeight = buttonSize.y;
+            zeroLayout.flexibleWidth = 0;
+
+            zeroButton.Initialize(
+                zeroKey,
+                normalColor,
+                highlightColor,
+                pressedColor,
+                OnButtonClicked,
+                OnButtonHovered
+            );
+            buttons[bottomRow, 1] = zeroButton;
+
+            // SUBMIT button (right)
+            string submitKey = bottomRowKeys[2]; // "SUBMIT"
+            KeyboardButton submitButton = Instantiate(buttonPrefab, bottomRowContainer);
+            RectTransform submitRect = submitButton.GetComponent<RectTransform>();
+            submitRect.sizeDelta = buttonSize;
+
+            LayoutElement submitLayout = submitButton.gameObject.AddComponent<LayoutElement>();
+            submitLayout.preferredWidth = buttonSize.x;
+            submitLayout.preferredHeight = buttonSize.y;
+            submitLayout.flexibleWidth = 0;
+
+            submitButton.Initialize(
+                submitKey,
+                normalColor,
+                highlightColor,
+                pressedColor,
+                OnButtonClicked,
+                OnButtonHovered
+            );
+            buttons[bottomRow, 2] = submitButton;
+        }
+
         private void BuildSubmitRow()
         {
-            int submitRow = keyboardLayout.Length - 1;
-            string[] submitRowKeys = keyboardLayout[submitRow];
+            string[][] activeLayout = numbersOnly ? numberPadLayout : keyboardLayout;
+            int submitRow = activeLayout.Length - 1;
+            string[] submitRowKeys = activeLayout[submitRow];
 
             // SUBMIT button (full width)
             string submitKey = submitRowKeys[0]; // "SUBMIT"
@@ -330,6 +425,20 @@ namespace Turnroot.Graphics2D
                     if (isShiftActive || isCapsLockActive)
                     {
                         textToAdd = textToAdd.ToUpper();
+                    }
+
+                    // Validate maximum number in numbers only mode
+                    if (numbersOnly && maximumNumber > 0)
+                    {
+                        string proposedText = currentText + textToAdd;
+                        if (int.TryParse(proposedText, out int proposedNumber))
+                        {
+                            if (proposedNumber > maximumNumber)
+                            {
+                                // Reject this input - would exceed maximum
+                                return;
+                            }
+                        }
                     }
 
                     currentText += textToAdd;
