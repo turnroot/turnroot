@@ -178,6 +178,7 @@ namespace Turnroot.Utilities.SceneFlows.Editor
                 hash = hash * 31 + _settings.gridMajorColor.GetHashCode();
                 hash = hash * 31 + _settings.gridMinorColor.GetHashCode();
                 hash = hash * 31 + _settings.backgroundColor.GetHashCode();
+                hash = hash * 31 + _settings.chapterBadgeColor.GetHashCode();
                 return hash;
             }
         }
@@ -569,6 +570,23 @@ namespace Turnroot.Utilities.SceneFlows.Editor
                 );
             }
 
+            // Chapter number badge (top left corner)
+            if (node.SpecificChapter)
+            {
+                var chapterRect = new Rect(rect.x + 5, rect.y + 5, 25, 15);
+                EditorGUI.DrawRect(chapterRect, _settings.chapterBadgeColor);
+                GUI.Label(
+                    chapterRect,
+                    $"Ch{node.ChapterNumber}",
+                    new GUIStyle(_labelStyle)
+                    {
+                        fontSize = 9,
+                        fontStyle = FontStyle.Bold,
+                        alignment = TextAnchor.MiddleCenter,
+                    }
+                );
+            }
+
             // Starting scene indicator
             if (_graph.startingScene == node)
             {
@@ -687,11 +705,21 @@ namespace Turnroot.Utilities.SceneFlows.Editor
             var fromPos = GetNodeCenter(fromNode);
             var toPos = GetNodeCenter(toNode);
 
+            // Check if this is a cross-chapter transition
+            bool isCrossChapter =
+                fromNode.SpecificChapter
+                && toNode.SpecificChapter
+                && fromNode.ChapterNumber != toNode.ChapterNumber;
+
             // Color based on selection and conditions
             Color lineColor = _settings.transitionColor;
             if (_selectedTransition == transition)
             {
                 lineColor = _settings.transitionSelectedColor;
+            }
+            else if (isCrossChapter)
+            {
+                lineColor = _settings.chapterTransitionColor;
             }
             else if (transition.isBidirectional)
             {
@@ -704,6 +732,14 @@ namespace Turnroot.Utilities.SceneFlows.Editor
 
             // Draw arrow
             DrawArrow(fromPos, toPos, lineColor, transition.isBidirectional);
+
+            // Determine label text
+            string labelText = transition.label;
+            if (isCrossChapter)
+            {
+                labelText =
+                    $"Ch{fromNode.ChapterNumber} → Ch{toNode.ChapterNumber}: {transition.label}";
+            }
 
             // Draw label at midpoint
             var midPoint = (fromPos + toPos) / 2f;
@@ -719,7 +755,7 @@ namespace Turnroot.Utilities.SceneFlows.Editor
             EditorGUI.DrawRect(bgRect, new Color(0.2f, 0.2f, 0.2f, 0.8f));
 
             var transLabelStyle = new GUIStyle(_labelStyle) { fontSize = 10 };
-            GUI.Label(labelRect, transition.label, transLabelStyle);
+            GUI.Label(labelRect, labelText, transLabelStyle);
 
             // Check if clicking on transition - check label area or line proximity
             var e = Event.current;
@@ -1075,7 +1111,7 @@ namespace Turnroot.Utilities.SceneFlows.Editor
             if (_selectedNode.TimePasses)
             {
                 EditorGUI.indentLevel++;
-                _selectedNode.MonthForThisScene = (TurnrootFramework.Utilities.Month)
+                _selectedNode.MonthForThisScene = (Turnroot.Utilities.Month)
                     EditorGUILayout.EnumPopup("Month", _selectedNode.MonthForThisScene);
                 _selectedNode.DayForThisScene = EditorGUILayout.IntSlider(
                     "Day",
@@ -1092,6 +1128,42 @@ namespace Turnroot.Utilities.SceneFlows.Editor
                     );
                 }
                 EditorGUI.indentLevel--;
+            }
+
+            // Hub scenes cannot have SpecificChapter (they persist across chapters)
+            if (!_selectedNode.isHub)
+            {
+                EditorGUILayout.Space();
+                _selectedNode.SpecificChapter = EditorGUILayout.Toggle(
+                    "Specific Chapter",
+                    _selectedNode.SpecificChapter
+                );
+                if (_selectedNode.SpecificChapter)
+                {
+                    EditorGUI.indentLevel++;
+                    _selectedNode.ChapterName = EditorGUILayout.TextField(
+                        "Chapter Name",
+                        _selectedNode.ChapterName
+                    );
+                    _selectedNode.ChapterNumber = EditorGUILayout.IntField(
+                        "Chapter Number",
+                        _selectedNode.ChapterNumber
+                    );
+                    EditorGUI.indentLevel--;
+                }
+            }
+            else
+            {
+                // Ensure hub scenes never have SpecificChapter enabled
+                if (_selectedNode.SpecificChapter)
+                {
+                    _selectedNode.SpecificChapter = false;
+                }
+                EditorGUILayout.Space();
+                EditorGUILayout.HelpBox(
+                    "Hub scenes cannot belong to a specific chapter as they persist across the story.",
+                    MessageType.Info
+                );
             }
 
             if (EditorGUI.EndChangeCheck())

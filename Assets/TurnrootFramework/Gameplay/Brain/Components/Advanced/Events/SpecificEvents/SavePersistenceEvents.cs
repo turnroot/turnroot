@@ -34,6 +34,7 @@ namespace Turnroot.Gameplay.Brain
         public event Action<int> OnUpdateSaveFileProgress;
         public event Action<string> OnSetSaveFileCurrentScene;
         public event Action<SaveFileSubfolders> OnSwitchActiveSaveFile;
+        public event Action<string, int> OnSetSaveFileChapter;
 
         public void PublishUpdateSaveFileName(string fileName) =>
             OnUpdateSaveFileName?.Invoke(fileName);
@@ -46,6 +47,9 @@ namespace Turnroot.Gameplay.Brain
 
         public void PublishSwitchActiveSaveFile(SaveFileSubfolders subfolder) =>
             OnSwitchActiveSaveFile?.Invoke(subfolder);
+
+        public void PublishSetSaveFileChapter(string chapterName, int chapterNumber) =>
+            OnSetSaveFileChapter?.Invoke(chapterName, chapterNumber);
 
         #endregion
     }

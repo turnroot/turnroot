@@ -75,6 +75,7 @@ namespace Turnroot.Gameplay.Brain
             Brain.OnUpdateSaveFileProgress += HandleUpdateSaveFileProgress;
             Brain.OnSetSaveFileCurrentScene += HandleSetSaveFileCurrentScene;
             Brain.OnSwitchActiveSaveFile += HandleSwitchActiveSaveFile;
+            Brain.OnSetSaveFileChapter += HandleSetSaveFileChapter;
         }
 
         protected override void UnsubscribeFromBrainEvents()
@@ -83,6 +84,7 @@ namespace Turnroot.Gameplay.Brain
             Brain.OnUpdateSaveFileProgress -= HandleUpdateSaveFileProgress;
             Brain.OnSetSaveFileCurrentScene -= HandleSetSaveFileCurrentScene;
             Brain.OnSwitchActiveSaveFile -= HandleSwitchActiveSaveFile;
+            Brain.OnSetSaveFileChapter -= HandleSetSaveFileChapter;
         }
 
         protected override void Awake() => base.Awake();
@@ -342,6 +344,34 @@ namespace Turnroot.Gameplay.Brain
             Brain.PublishLongTermMemorySubfolderSet(subfolderPath);
 
             $"Switched active save file to: {subfolder} (subfolder: {subfolderPath})".LogInfo();
+        }
+
+        private void HandleSetSaveFileChapter(string chapterName, int chapterNumber)
+        {
+            if (SaveFiles.Count == 0)
+            {
+                "Cannot set save file chapter: no save files exist.".LogWarning();
+                return;
+            }
+
+            // Update the active save file
+            int activeIndex = SaveFiles.FindIndex(sf =>
+                sf.LtmSubfolderPath == ActiveSaveFileSubfolderPath.ToString().ToLower()
+            );
+
+            if (activeIndex >= 0)
+            {
+                var saveFile = SaveFiles[activeIndex];
+                saveFile.ChapterName = chapterName;
+                saveFile.ChapterNumber = chapterNumber;
+                SaveFiles[activeIndex] = saveFile;
+                SaveAllFiles();
+                $"Updated save file chapter to: {chapterName} (Chapter {chapterNumber})".LogInfo();
+            }
+            else
+            {
+                "Could not find active save file to update chapter.".LogWarning();
+            }
         }
         #endregion
     }

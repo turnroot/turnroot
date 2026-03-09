@@ -29,6 +29,9 @@ namespace Turnroot.Utilities.SceneFlows.Editor
         [Range(8, 20)]
         public int nodeFontSize = 12;
 
+        [Tooltip("Badge color for chapter numbers on nodes")]
+        public Color chapterBadgeColor = new Color(0.4f, 0.6f, 1f, 0.8f);
+
         [Header("Transition Appearance")]
         [Tooltip("Color for unselected transitions")]
         public Color transitionColor = Color.white;
@@ -41,6 +44,9 @@ namespace Turnroot.Utilities.SceneFlows.Editor
 
         [Tooltip("Color for transitions with conditions")]
         public Color transitionConditionalColor = new Color(1f, 0.8f, 0.3f);
+
+        [Tooltip("Color for transitions between different chapters")]
+        public Color chapterTransitionColor = new Color(1f, 0.4f, 0.4f);
 
         [Tooltip("Color for transition being created (during drag)")]
         public Color transitionCreationColor = Color.yellow;

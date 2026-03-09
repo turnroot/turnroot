@@ -12,15 +12,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9270badeafa0c5b4cac6ae6ded72ccf7, type: 3}
   m_Name: SceneFlowGraphEditorSettings
   m_EditorClassIdentifier: Assembly-CSharp-Editor::Turnroot.Utilities.SceneFlows.Editor.SceneFlowGraphEditorSettings
-  nodeColor: {r: 0.099, g: 0.099, b: 0.099, a: 1}
+  nodeColor: {r: 0.099, g: 0.099, b: 0.099, a: 0.8}
   nodeSelectedColor: {r: 0.8, g: 0.4724711, b: 0.2, a: 1}
-  hubNodeColor: {r: 0.153, g: 0.58659524, b: 0.6, a: 1}
-  hubNodeSelectedColor: {r: 0.41114002, g: 0.674, b: 0.674, a: 1}
+  hubNodeColor: {r: 0.48900002, g: 0.4421809, b: 0, a: 0.8}
+  hubNodeSelectedColor: {r: 0.709, g: 0.58860373, b: 0, a: 1}
   nodeFontSize: 17
+  chapterBadgeColor: {r: 0.33479998, g: 0.70898825, b: 0.83699995, a: 0.9019608}
   transitionColor: {r: 1, g: 1, b: 1, a: 1}
   transitionSelectedColor: {r: 0, g: 1, b: 1, a: 1}
   transitionBidirectionalColor: {r: 0.5, g: 1, b: 0.5, a: 1}
   transitionConditionalColor: {r: 1, g: 0.8, b: 0.3, a: 1}
+  chapterTransitionColor: {r: 0.69076604, g: 0.34109113, b: 0.990566, a: 1}
   transitionCreationColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
   transitionWidth: 6.44
   arrowSize: 27.95

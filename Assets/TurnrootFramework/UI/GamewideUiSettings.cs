@@ -25,6 +25,7 @@ namespace Turnroot.GameSettings
     {
         None,
         MainMenu,
+        HubActionsMenu,
         SaveFileMenu,
         GameSettingsMenu,
         GraphicsMenu,
@@ -247,6 +248,8 @@ namespace Turnroot.GameSettings
         public MenuLocation GetPrebattleMapMenu() => GetMenuLocation(MenuName.PreBattleMapMenu);
 
         public MenuLocation GetPrebattleUnitsMenu() => GetMenuLocation(MenuName.PreBattleTeamMenu);
+
+        public MenuLocation GetHubActionsMenu() => GetMenuLocation(MenuName.HubActionsMenu);
 
         public MenuLocation GetPrebattleUnitPositionsMenu() =>
             GetMenuLocation(MenuName.PrebattleUnitPositionsMenu);

@@ -135,6 +135,16 @@ namespace Turnroot.Utilities.SceneFlows
         [Tooltip("Should this scene stay loaded in the background when leaving?")]
         public bool persistWhenLeaving = false;
 
+        [Header("Chapter Information")]
+        [Tooltip("Does this scene belong to a specific chapter?")]
+        public bool SpecificChapter = false;
+
+        [Tooltip("The name of the chapter this scene belongs to.")]
+        public string ChapterName = "";
+
+        [Tooltip("The number of the chapter this scene belongs to.")]
+        public int ChapterNumber = 0;
+
         [Header("Visual Editor Data")]
         [Tooltip("Position in the visual graph editor (for custom editor window).")]
         public Vector2 editorPosition;
@@ -143,10 +153,7 @@ namespace Turnroot.Utilities.SceneFlows
         [Tooltip("Notes about this scene for designers/developers.")]
         public string notes;
         public bool TimePasses;
-        public TurnrootFramework.Utilities.Month MonthForThisScene = TurnrootFramework
-            .Utilities
-            .Month
-            .January;
+        public Month MonthForThisScene = Month.January;
         public int DayForThisScene = 1;
         public bool HasYear;
         public int YearForThisScene = 1;

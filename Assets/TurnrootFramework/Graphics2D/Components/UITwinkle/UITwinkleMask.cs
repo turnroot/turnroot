@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace TurnrootFramework.Graphics2D
+namespace Turnroot.Graphics2D
 {
     /// <summary>
     /// UI component that applies a twinkle effect to an Image using a mask texture.

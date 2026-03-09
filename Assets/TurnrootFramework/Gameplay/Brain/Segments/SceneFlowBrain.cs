@@ -509,6 +509,12 @@ namespace Turnroot.Utilities.SceneFlows
             // Update current scene
             _currentScene = targetScene;
 
+            // Update SaveFileBrain chapter info if this scene has a specific chapter
+            if (targetScene.SpecificChapter)
+            {
+                Brain.PublishSetSaveFileChapter(targetScene.ChapterName, targetScene.ChapterNumber);
+            }
+
             // Publish scene transition completed event
             Brain.PublishSceneTransitionCompleted(targetScene.sceneName, targetScene.displayName);
             Brain.PublishSceneChanged(targetScene.sceneName, targetScene.displayName);
