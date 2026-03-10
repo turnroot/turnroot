@@ -1,6 +1,7 @@
 using System;
 using Turnroot.Characters;
 using Turnroot.Skills;
+using Turnroot.Utilities;
 
 namespace Turnroot.Gameplay.Brain
 {
@@ -23,6 +24,9 @@ namespace Turnroot.Gameplay.Brain
         public event Action<CharacterInstance, Skill> OnCharacterLearnedSkill;
         public event Action<CharacterInstance, Skill> OnCharacterRemovedSkill;
         public event Action<CharacterInstance> OnCharacterClassChanged;
+
+        // published when a character instance has a birthday during the current week
+        public event Action<CharacterInstance, GameDate> OnCharacterBirthdayThisWeek;
 
         // Published when a character's bounded/unbounded stat current value changes.
         public event Action<
@@ -83,6 +87,9 @@ namespace Turnroot.Gameplay.Brain
 
         public void PublishCharacterClassChanged(CharacterInstance character) =>
             OnCharacterClassChanged?.Invoke(character);
+
+        public void PublishCharacterBirthdayThisWeek(CharacterInstance character, GameDate date) =>
+            OnCharacterBirthdayThisWeek?.Invoke(character, date);
 
         public void PublishCharacterBoundedStatChanged(
             CharacterInstance character,

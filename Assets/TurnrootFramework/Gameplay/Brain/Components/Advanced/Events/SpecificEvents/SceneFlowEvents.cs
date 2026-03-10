@@ -38,6 +38,9 @@ namespace Turnroot.Gameplay.Brain
         /// </summary>
         public event Action<string, string> OnSceneReadyToDisplay;
 
+        // fired whenever the in‑game calendar date is written to long‑term memory
+        public event Action<int, int, int> OnGameDateChanged;
+
         public void PublishSceneTransitionStarted(string sceneName, string displayName) =>
             OnSceneTransitionStarted?.Invoke(sceneName, displayName);
 
@@ -55,6 +58,9 @@ namespace Turnroot.Gameplay.Brain
 
         public void PublishSceneReadyToDisplay(string sceneName, string displayName) =>
             OnSceneReadyToDisplay?.Invoke(sceneName, displayName);
+
+        public void PublishGameDateChanged(int year, int month, int day) =>
+            OnGameDateChanged?.Invoke(year, month, day);
 
         #endregion
     }

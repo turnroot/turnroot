@@ -45,11 +45,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             AIHelper = new BattleContextAIHelper(this);
 
             // ensure the overlay manager component exists and is initialized
-            var overlay = GetComponent<UI.Components.BattleOverlayManager>();
-            if (overlay == null)
-            {
-                overlay = gameObject.AddComponent<UI.Components.BattleOverlayManager>();
-            }
+            var overlay = GetComponent<UI.Components.BattleOverlayManager>() ?? gameObject.AddComponent<UI.Components.BattleOverlayManager>();
             OverlayManager = overlay;
         }
 

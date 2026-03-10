@@ -42,6 +42,14 @@ namespace Turnroot.Gameplay.Brain
 
         #endregion
 
+        #region GameDate Keys
+        // Stored game calendar information. Separate fields allow easy numeric queries.
+        public const string GameDateYear = "GameDate.Year";
+        public const string GameDateMonth = "GameDate.Month"; // 1-based (1=January)
+        public const string GameDateDay = "GameDate.Day";
+
+        #endregion
+
         #region StorehouseBrain Keys
         public const string StorehousePurchasingPower = "Storehouse.Purchasing_Power";
 

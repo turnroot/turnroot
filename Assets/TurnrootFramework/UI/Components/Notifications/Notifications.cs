@@ -11,6 +11,17 @@ namespace Turnroot.UI.Components.Notifications
 
         private List<Notification> instances = new List<Notification>();
 
+        private void Awake()
+        {
+            // make sure list is fresh and container cleaned when game starts
+            instances = new List<Notification>();
+            if (container != null)
+            {
+                foreach (Transform child in container.transform)
+                    Destroy(child.gameObject);
+            }
+        }
+
         public void ShowNotification(string message, NotificationTypeData type)
         {
             if (container == null || notificationPrefab == null)

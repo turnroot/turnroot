@@ -3,6 +3,8 @@ using Turnroot.Characters;
 using Turnroot.Gameplay.Brain.Components;
 using Turnroot.Gameplay.Brain.Events;
 using Turnroot.Gameplay.PlayerSettings;
+using Turnroot.GameSettings;
+using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain
@@ -50,6 +52,24 @@ namespace Turnroot.Gameplay.Brain
 
         [HideInInspector]
         public GameplayPlayerSettings PlayerSettings => _playerSettingsPersistence?.PlayerSettings;
+        #endregion
+
+        #region Game Date API
+
+        /// <summary>
+        /// Returns the currently stored game date.  Falls back to the starting date
+        /// from settings if memory isn't ready or no date is stored yet.
+        /// </summary>
+        public GameDate GetCurrentGameDate()
+        {
+            if (_ltm != null && _ltm.Initialized)
+            {
+                return _ltm.GetGameDate();
+            }
+
+            return GameplayGeneralSettings.Instance?.StartingGameDate ?? GameDate.Default;
+        }
+
         #endregion
 
         #region Initialization

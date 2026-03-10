@@ -1,4 +1,5 @@
 using UnityEngine;
+
 namespace Turnroot.Utilities.AbstractScripts
 {
     /// <summary>
@@ -17,13 +18,9 @@ namespace Turnroot.Utilities.AbstractScripts
                 if (_instance == null)
                 {
                     // Try direct load by expected name first
-                    _instance = Resources.Load<T>(typeof(T).Name);
-
                     // If not found at the exact path, search all Resources for the type.
-                    if (_instance == null)
-                    {
-                        _instance = TryLoadFromResourcesWithFallback();
-                    }
+                    _instance =
+                        Resources.Load<T>(typeof(T).Name) ?? TryLoadFromResourcesWithFallback();
                 }
                 return _instance;
             }
@@ -171,4 +168,3 @@ namespace Turnroot.Utilities.AbstractScripts
         }
     }
 }
-

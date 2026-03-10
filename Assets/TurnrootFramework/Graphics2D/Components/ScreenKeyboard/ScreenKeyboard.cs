@@ -81,7 +81,6 @@ namespace Turnroot.Graphics2D
 
         public void HandleInput(string action)
         {
-            Debug.Log($"Received input action: {action}");
             switch (action)
             {
                 case "NavigateUp":

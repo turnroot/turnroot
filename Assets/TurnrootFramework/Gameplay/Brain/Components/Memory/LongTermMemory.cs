@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain.Components
@@ -15,11 +16,19 @@ namespace Turnroot.Gameplay.Brain.Components
         private bool isInitialized = false;
 
         /// <summary>
+        /// True when the prefs object has been set up and is ready to use.
+        /// </summary>
+        public bool Initialized => isInitialized;
+        private Brain _brain;
+
+        /// <summary>
         /// Fired when the underlying keyset changes in JsonPlayerPrefs.
         /// Subscribers should use this to invalidate caches or react to keyset changes.
         /// The int value is the keyCacheVersion from JsonPlayerPrefs.
         /// </summary>
         public event Action<int> OnKeySetChanged;
+
+        // use Turnroot.Utilities.GameDate defined in Utilities/GameDate.cs
 
         /// <summary>
         /// Expose the runtime key cache version from JsonPlayerPrefs.
@@ -28,10 +37,10 @@ namespace Turnroot.Gameplay.Brain.Components
 
         public void Awake()
         {
-            var brain = GetComponent<Brain>();
-            if (brain != null)
+            _brain = GetComponent<Brain>();
+            if (_brain != null)
             {
-                brain.OnLongTermMemorySubfolderSet += HandleSubfolderSet;
+                _brain.OnLongTermMemorySubfolderSet += HandleSubfolderSet;
             }
         }
 
@@ -79,8 +88,7 @@ namespace Turnroot.Gameplay.Brain.Components
         {
             OnKeySetChanged?.Invoke(version);
 
-            var brain = gameObject.GetComponent<Brain>();
-            brain?.PublishLtmKeyCacheUpdated(version);
+            _brain?.PublishLtmKeyCacheUpdated(version);
         }
 
         /// <summary>
@@ -241,6 +249,52 @@ namespace Turnroot.Gameplay.Brain.Components
 
             return keys;
         }
+
+        #region Game Date Support
+
+        /// <summary>
+        /// Store a calendar date in long–term memory and publish an event.
+        /// </summary>
+        public void SetGameDate(int year, Turnroot.Utilities.Month month, int day)
+        {
+            if (prefs == null)
+            {
+                Debug.LogWarning(
+                    "LongTermMemory: Attempted to set game date before initialization."
+                );
+                return;
+            }
+
+            prefs.SetInt(LtmKeys.GameDateYear, year);
+            prefs.SetInt(LtmKeys.GameDateMonth, (int)month + 1);
+            prefs.SetInt(LtmKeys.GameDateDay, day);
+            SaveImmediate();
+
+            _brain?.PublishGameDateChanged(year, (int)month + 1, day);
+        }
+
+        /// <summary>
+        /// Retrieve the stored game date. Fields will be default if not present.
+        /// </summary>
+        public GameDate GetGameDate()
+        {
+            var result = GameDate.Default;
+            if (prefs == null)
+            {
+                Debug.LogWarning(
+                    "LongTermMemory: Attempted to get game date before initialization."
+                );
+                return result;
+            }
+
+            result.year = prefs.GetInt(LtmKeys.GameDateYear, 0);
+            int monthValue = prefs.GetInt(LtmKeys.GameDateMonth, 1);
+            result.month = Mathf.Clamp(monthValue, 1, 12);
+            result.day = prefs.GetInt(LtmKeys.GameDateDay, 1);
+            return result;
+        }
+
+        #endregion
 
         private void SaveImmediate() => prefs.Save();
 

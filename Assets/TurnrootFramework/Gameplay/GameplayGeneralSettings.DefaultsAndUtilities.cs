@@ -1,6 +1,8 @@
 using NaughtyAttributes;
 using Turnroot.Characters.Stats;
 using Turnroot.Gameplay.Combat.FundamentalComponents;
+using Turnroot.Utilities;
+using UnityEngine; // for GameDate
 
 namespace Turnroot.GameSettings
 {
@@ -80,6 +82,10 @@ namespace Turnroot.GameSettings
 
         [BoxGroup("Items")]
         public bool ItemsCanBeGifts = true;
+
+        [Header("Game Date")]
+        [Tooltip("Initial in-game calendar date used until a scene with a date is loaded.")]
+        public GameDate StartingGameDate = GameDate.Default;
 
         [BoxGroup("Extra Experience Types"), HorizontalLine(color: EColor.Orange)]
         public ExperienceType RidingExperienceType = new()

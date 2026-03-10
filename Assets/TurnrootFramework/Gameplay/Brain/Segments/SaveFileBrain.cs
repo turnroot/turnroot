@@ -15,7 +15,13 @@ namespace Turnroot.Gameplay.Brain
         public Sprite AvatarPortrait;
         public AvatarBody AvatarBodyType;
         public int Progress;
-        public System.DateTime LastModified;
+
+        // stored in UTC, never local time; ensures stable play‑time calculations across
+        // timezone changes and clock drift
+        // previously stored the last write timestamp; now unused because
+        // playtime is tracked using delta time.  kept here in case legacy
+        // data must be migrated, but ignored otherwise.
+        // public System.DateTime LastModified;
         public string CurrentScene;
 
         public string ChapterName;
@@ -69,6 +75,18 @@ namespace Turnroot.Gameplay.Brain
 
         private bool hasCheckedSaveFiles = false;
 
+        // accumulator for seconds elapsed since last saved tick
+        private float _playtimeAccumulator = 0f;
+
+        // timer used to decide when to flush the current slot to disk
+        private float _saveIntervalTimer = 0f;
+
+        /// <summary>
+        /// Fired whenever the active save slot's playTimeSeconds value changes.
+        /// Carries the new total seconds for convenience.
+        /// </summary>
+        public event System.Action<int> OnActiveSaveFilePlaytimeUpdated;
+
         protected override void SubscribeToBrainEvents()
         {
             Brain.OnUpdateSaveFileName += HandleUpdateSaveFileName;
@@ -76,6 +94,12 @@ namespace Turnroot.Gameplay.Brain
             Brain.OnSetSaveFileCurrentScene += HandleSetSaveFileCurrentScene;
             Brain.OnSwitchActiveSaveFile += HandleSwitchActiveSaveFile;
             Brain.OnSetSaveFileChapter += HandleSetSaveFileChapter;
+
+            // whenever the active scene actually changes we want to flush the
+            // save batch; this ensures play‑time ticks forward before the new
+            // scene begins so the player doesn't lose a few seconds when they
+            // transition between levels.
+            Brain.OnSceneChanged += HandleSceneChanged;
         }
 
         protected override void UnsubscribeFromBrainEvents()
@@ -85,9 +109,59 @@ namespace Turnroot.Gameplay.Brain
             Brain.OnSetSaveFileCurrentScene -= HandleSetSaveFileCurrentScene;
             Brain.OnSwitchActiveSaveFile -= HandleSwitchActiveSaveFile;
             Brain.OnSetSaveFileChapter -= HandleSetSaveFileChapter;
+
+            Brain.OnSceneChanged -= HandleSceneChanged;
         }
 
-        protected override void Awake() => base.Awake();
+        protected override void Awake()
+        {
+            base.Awake();
+            // clear accumulator in case domain reload is disabled and the instance
+            // survives across play-mode sessions, which would otherwise preserve
+            // leftover seconds from the previous run.
+            _playtimeAccumulator = 0f;
+        }
+
+        private void Update()
+        {
+            if (SaveFiles == null || SaveFiles.Count == 0)
+            {
+                return;
+            }
+
+            int activeIndex = SaveFiles.FindIndex(sf =>
+                sf.LtmSubfolderPath == ActiveSaveFileSubfolderPath.ToString().ToLower()
+            );
+            if (activeIndex < 0)
+            {
+                return;
+            }
+
+            _playtimeAccumulator += Time.deltaTime;
+            if (_playtimeAccumulator >= 1f)
+            {
+                int toAdd = (int)_playtimeAccumulator;
+                var saveFile = SaveFiles[activeIndex];
+                saveFile.playTimeSeconds += toAdd;
+                if (saveFile.playTimeSeconds < 0)
+                {
+                    saveFile.playTimeSeconds = 0;
+                }
+
+                SaveFiles[activeIndex] = saveFile;
+                _playtimeAccumulator -= toAdd;
+
+                OnActiveSaveFilePlaytimeUpdated?.Invoke(saveFile.playTimeSeconds);
+
+                // accumulate for periodic persistence
+                _saveIntervalTimer += toAdd;
+                if (_saveIntervalTimer >= 59f)
+                {
+                    SaveActiveFile();
+                    _saveIntervalTimer = 0f;
+                }
+            }
+        }
 
         protected void Start()
         {
@@ -103,6 +177,7 @@ namespace Turnroot.Gameplay.Brain
             try
             {
                 SaveFiles = GetSavefileData();
+                _playtimeAccumulator = 0f;
                 // ActiveSaveFileSubfolderPath will be set when user selects a save file
                 return OperationResult.Successful();
             }
@@ -160,7 +235,28 @@ namespace Turnroot.Gameplay.Brain
                 }
 
                 var data = JsonUtility.FromJson<SaveFilesData>(json);
-                return data?.saveFiles ?? new List<SaveFile>();
+                var list = data?.saveFiles ?? new List<SaveFile>();
+
+                // guard against corrupted playtime values; zero them so the UI
+                // doesn't display nonsense and logic doesn't propagate the bad data.
+                for (int i = 0; i < list.Count; i++)
+                {
+                    var entry = list[i];
+                    if (entry.playTimeSeconds < 0)
+                    {
+                        $"Clamping negative playTimeSeconds for slot {i} ({entry.playTimeSeconds}).".LogWarning();
+                        entry.playTimeSeconds = 0;
+                    }
+                    // if playTime is absurdly large (due to previous overflow) cap it
+                    if (entry.playTimeSeconds > int.MaxValue / 2)
+                    {
+                        $"Capping excessive playTimeSeconds for slot {i} ({entry.playTimeSeconds}).".LogWarning();
+                        entry.playTimeSeconds = 0;
+                    }
+                    list[i] = entry;
+                }
+
+                return list;
             }
             catch (System.Exception ex)
             {
@@ -189,7 +285,6 @@ namespace Turnroot.Gameplay.Brain
                 ChapterName = "Prologue",
                 ChapterNumber = 0,
                 Progress = 0,
-                LastModified = System.DateTime.Now,
                 CurrentScene = sceneName,
                 playTimeSeconds = 0,
                 LtmSubfolderPath = subfolder.ToString().ToLower(),
@@ -219,15 +314,28 @@ namespace Turnroot.Gameplay.Brain
 
                 var saveFilesDataPath = Path.Combine(structuredPath, ".turnrootsavefilesdata");
 
-                // Update each save file's data before saving
-                for (int i = 0; i < SaveFiles.Count; i++)
+                // flush accumulated seconds into active save file
+                if (SaveFiles.Count > 0)
                 {
-                    var saveFile = SaveFiles[i];
-                    var timeSinceModified = System.DateTime.Now - saveFile.LastModified;
-                    saveFile.playTimeSeconds += (int)timeSinceModified.TotalSeconds;
-                    saveFile.LastModified = System.DateTime.Now;
-                    SaveFiles[i] = saveFile;
+                    int activeIndex = SaveFiles.FindIndex(sf =>
+                        sf.LtmSubfolderPath == ActiveSaveFileSubfolderPath.ToString().ToLower()
+                    );
+                    if (activeIndex >= 0 && _playtimeAccumulator >= 1f)
+                    {
+                        var saveFile = SaveFiles[activeIndex];
+                        int toAdd = (int)_playtimeAccumulator;
+                        saveFile.playTimeSeconds += toAdd;
+                        _playtimeAccumulator -= toAdd;
+                        if (saveFile.playTimeSeconds < 0)
+                        {
+                            saveFile.playTimeSeconds = 0;
+                        }
+
+                        SaveFiles[activeIndex] = saveFile;
+                    }
                 }
+
+                // metadata timestamps are no longer relevant; skip update
 
                 var data = new SaveFilesData { saveFiles = SaveFiles };
                 string json = JsonUtility.ToJson(data, true);
@@ -240,14 +348,51 @@ namespace Turnroot.Gameplay.Brain
                 }
 
                 File.WriteAllText(saveFilesDataPath, encryptedData);
-
-                $"Saved {SaveFiles.Count} save file(s) to {saveFilesDataPath}".LogInfo();
             }
             catch (System.Exception ex)
             {
                 $"Failed to save files data: {ex.Message}".LogError();
             }
         }
+
+        #region Helpers
+
+        private void SaveActiveFile()
+        {
+            // only update and write the currently active slot
+            if (SaveFiles.Count == 0)
+                return;
+            int activeIndex = SaveFiles.FindIndex(sf =>
+                sf.LtmSubfolderPath == ActiveSaveFileSubfolderPath.ToString().ToLower()
+            );
+            if (activeIndex < 0)
+                return;
+            WriteSaveFilesData();
+        }
+
+        private void WriteSaveFilesData()
+        {
+            var structuredPath = Path.Combine(
+                Application.persistentDataPath,
+                "TurnrootBrain",
+                "structured"
+            );
+
+            var saveFilesDataPath = Path.Combine(structuredPath, ".turnrootsavefilesdata");
+            var data = new SaveFilesData { saveFiles = SaveFiles };
+            string json = JsonUtility.ToJson(data, true);
+            string encryptedData = Brain.EncodeString(json);
+
+            if (string.IsNullOrEmpty(encryptedData))
+            {
+                "Failed to encrypt save files data".LogError();
+                return;
+            }
+
+            File.WriteAllText(saveFilesDataPath, encryptedData);
+        }
+
+        #endregion
 
         #region Event Handlers
 
@@ -336,6 +481,9 @@ namespace Turnroot.Gameplay.Brain
             // Save current data before switching
             SaveAllFiles();
 
+            // switch accumulator so it doesn't carry over between slots
+            _playtimeAccumulator = 0f;
+
             // Switch to the new save file
             ActiveSaveFileSubfolderPath = subfolder;
             string subfolderPath = subfolder.ToString().ToLower();
@@ -373,6 +521,16 @@ namespace Turnroot.Gameplay.Brain
                 "Could not find active save file to update chapter.".LogWarning();
             }
         }
+
+        private void HandleSceneChanged(string sceneName, string displayName)
+        {
+            // simply trigger a save so the playtime is updated before the new
+            // scene begins.  we don't change the save file's current scene here
+            // (that is handled by other brain events) – this is purely for time
+            // accounting.
+            SaveAllFiles();
+        }
+
         #endregion
     }
 }

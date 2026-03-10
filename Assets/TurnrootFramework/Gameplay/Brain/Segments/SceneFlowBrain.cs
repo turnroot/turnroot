@@ -3,7 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Turnroot.Gameplay.Brain;
+using Turnroot.Gameplay.Brain.Components;
 using Turnroot.Gameplay.Brain.Events;
+using Turnroot.GameSettings;
 using Turnroot.Utilities;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -18,6 +20,9 @@ namespace Turnroot.Utilities.SceneFlows
     public class SceneFlowBrain : BrainComponent
     {
         private static WaitForSeconds _waitForSeconds0_3 = new WaitForSeconds(0.3f);
+
+        // reference to storage system for dates/etc.
+        private LongTermMemory _ltm;
 
         [Header("Scene Flow Configuration")]
         [Tooltip("The scene flow graph defining available scenes and transitions.")]
@@ -64,6 +69,35 @@ namespace Turnroot.Utilities.SceneFlows
         {
             base.Awake();
             _conditionEvaluator = new SceneFlowConditionEvaluatorImpl(this);
+
+            _ltm = GetComponent<LongTermMemory>();
+            if (_ltm != null && _ltm.Initialized)
+            {
+                // LTM already ready, replicate logic from OnLtmInitialized
+                var existing = _ltm.GetGameDate();
+                if (existing.year == 0)
+                {
+                    // write user-configurable starting date
+                    var start =
+                        GameplayGeneralSettings.Instance?.StartingGameDate ?? GameDate.Default;
+                    _ltm.SetGameDate(
+                        start.year,
+                        (Turnroot.Utilities.Month)(start.month - 1),
+                        start.day
+                    );
+                    existing = _ltm.GetGameDate();
+                }
+                _brain?.PublishGameDateChanged(
+                    existing.year,
+                    (int)existing.month + 1,
+                    existing.day
+                );
+            }
+
+            if (_brain != null)
+            {
+                _brain.OnLongTermMemoryInitialized += OnLtmInitialized;
+            }
         }
 
         protected override void SubscribeToBrainEvents()
@@ -75,9 +109,33 @@ namespace Turnroot.Utilities.SceneFlows
         protected override void UnsubscribeFromBrainEvents()
         {
             // Unsubscribe from brain events
+            if (_brain != null)
+            {
+                _brain.OnLongTermMemoryInitialized -= OnLtmInitialized;
+            }
         }
 
         #region Current Scene & History
+
+        private void OnLtmInitialized()
+        {
+            if (_ltm != null)
+            {
+                var date = _ltm.GetGameDate();
+                if (date.year == 0)
+                {
+                    var start =
+                        GameplayGeneralSettings.Instance?.StartingGameDate ?? GameDate.Default;
+                    _ltm.SetGameDate(
+                        start.year,
+                        (Turnroot.Utilities.Month)(start.month - 1),
+                        start.day
+                    );
+                    date = _ltm.GetGameDate();
+                }
+                _brain.PublishGameDateChanged(date.year, (int)date.month + 1, date.day);
+            }
+        }
 
         public SceneNode CurrentScene => _currentScene;
 
@@ -106,6 +164,25 @@ namespace Turnroot.Utilities.SceneFlows
             }
 
             _currentScene = scene;
+
+            // update stored game date based on scene metadata
+            if (_ltm != null)
+            {
+                var oldDate = _ltm.GetGameDate();
+                int newYear = oldDate.year;
+                if (scene.HasYear)
+                    newYear = scene.YearForThisScene;
+
+                var monthEnum = scene.MonthForThisScene;
+                int monthInt = (int)monthEnum + 1;
+                int newDay = scene.DayForThisScene;
+
+                if (newYear != oldDate.year || monthInt != oldDate.month || newDay != oldDate.day)
+                {
+                    _ltm.SetGameDate(newYear, monthEnum, newDay);
+                }
+            }
+
             Brain.PublishSceneChanged(scene.sceneName, scene.displayName);
         }
 
@@ -128,6 +205,24 @@ namespace Turnroot.Utilities.SceneFlows
             }
 
             _currentScene = scene;
+
+            if (_ltm != null)
+            {
+                var oldDate = _ltm.GetGameDate();
+                int newYear = oldDate.year;
+                if (scene.HasYear)
+                    newYear = scene.YearForThisScene;
+
+                var monthEnum = scene.MonthForThisScene;
+                int monthInt = (int)monthEnum + 1;
+                int newDay = scene.DayForThisScene;
+
+                if (newYear != oldDate.year || monthInt != oldDate.month || newDay != oldDate.day)
+                {
+                    _ltm.SetGameDate(newYear, monthEnum, newDay);
+                }
+            }
+
             Brain.PublishSceneChanged(scene.sceneName, scene.displayName);
         }
 

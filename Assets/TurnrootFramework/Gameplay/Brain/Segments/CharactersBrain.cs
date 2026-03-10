@@ -22,6 +22,12 @@ namespace Turnroot.Gameplay.Brain
         private GamewideContextBrain _gamewideContextBrain;
         private BattleBrain _battleBrain;
         private LongTermMemory _ltm;
+        private GameDate gameDate;
+        #endregion
+
+        #region Runtime State
+        // results of birthday checks after the last scene change
+        public bool[] BirthdayChecks { get; private set; }
         #endregion
 
         #region Initialization
@@ -64,6 +70,7 @@ namespace Turnroot.Gameplay.Brain
             _brain.OnLongTermMemoryInitialized += InitializeLTMDependentData;
             _brain.OnItemEquipped += HandleItemEquipped;
             _brain.OnItemUnequipped += HandleItemUnequipped;
+            _brain.OnStateChanged += HandleStateChanged;
         }
 
         protected override void UnsubscribeFromBrainEvents()
@@ -78,6 +85,7 @@ namespace Turnroot.Gameplay.Brain
             _brain.OnLongTermMemoryInitialized -= InitializeLTMDependentData;
             _brain.OnItemEquipped -= HandleItemEquipped;
             _brain.OnItemUnequipped -= HandleItemUnequipped;
+            _brain.OnStateChanged -= HandleStateChanged;
         }
         #endregion
 
@@ -400,6 +408,41 @@ namespace Turnroot.Gameplay.Brain
                 }
             }
             return true;
+        }
+        #endregion
+
+        #region State Change Handler
+        private void HandleStateChanged(BrainState state) { }
+
+        public void CheckBirthdays()
+        {
+            gameDate = _gamewideContextBrain.GetCurrentGameDate();
+            var checkRoster = _gamewideContextBrain.CreateOrRecallGamewidePersistentPlayerRoster();
+            BirthdayChecks = new bool[checkRoster.characters.Length];
+            for (int i = 0; i < checkRoster.characters.Length; i++)
+            {
+                var placement = checkRoster.characters[i];
+                if (placement == null || placement.CharacterData == null)
+                {
+                    "CharactersBrain: Skipping birthday check for null character data at index {i}.".LogWarning();
+                    continue;
+                }
+                var data = placement.CharacterData;
+                if (data.BirthdayMonth != gameDate.month)
+                {
+                    continue;
+                }
+                if (data.BirthdayDay < gameDate.day || data.BirthdayDay >= gameDate.day + 7)
+                {
+                    continue;
+                }
+                BirthdayChecks[i] = true;
+                // try to find a matching runtime instance; if none exists we still
+                // notify with null so listeners can handle it gracefully
+                var inst = FindCharacterByTemplate(data);
+                _brain.PublishCharacterBirthdayThisWeek(inst, gameDate);
+                $"CharactersBrain: Published birthday event for character at index {i} with template {data.name}.".LogInfo();
+            }
         }
         #endregion
     }

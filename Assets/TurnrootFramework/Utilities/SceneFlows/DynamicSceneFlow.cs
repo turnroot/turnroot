@@ -46,6 +46,8 @@ namespace Turnroot.Utilities.AbstractScripts
 
         public UnityEvent StartPreLoading = new();
 
+        private int _lastInvokedIndex = -1;
+
         protected int Index
         {
             get => _index;
@@ -283,6 +285,15 @@ namespace Turnroot.Utilities.AbstractScripts
 
         protected virtual void OnSegmentReached(int segmentIndex)
         {
+            // ignore if same segment invoked consecutively
+            if (segmentIndex == _lastInvokedIndex)
+            {
+                $"DynamicSceneFlow: skipping repeated segment {segmentIndex}".LogInfo();
+                return;
+            }
+
+            _lastInvokedIndex = segmentIndex;
+
             if (segmentIndex < segments.Count)
             {
                 CurrentSegment?.onSegmentReached?.Invoke();

@@ -28,11 +28,7 @@ namespace Turnroot.UI.Components.ListMenu
         private void Awake()
         {
             // Get or add SimpleButton component for visual feedback
-            _simpleButton = GetComponent<SimpleButtonComponent>();
-            if (_simpleButton == null)
-            {
-                _simpleButton = gameObject.AddComponent<SimpleButtonComponent>();
-            }
+            _simpleButton = GetComponent<SimpleButtonComponent>() ?? gameObject.AddComponent<SimpleButtonComponent>();
 
             // Subscribe to SimpleButton's OnSelected event to trigger menu selection
             _simpleButton.OnSelected += HandleSimpleButtonSelection;

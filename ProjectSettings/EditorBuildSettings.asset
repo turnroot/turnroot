@@ -9,6 +9,9 @@ EditorBuildSettings:
     path: Assets/Demos/Game Start.unity
     guid: 81bf7dcc027836147b0cafc02706bf99
   - enabled: 1
+    path: Assets/Demos/Hub.unity
+    guid: 30026267140ceb24887be7987f2128e3
+  - enabled: 1
     path: Assets/TurnrootFramework/Brain/TurnrootBrain.unity
     guid: aeb2cafeecbb76b42b345e9cd1fbb188
   - enabled: 1

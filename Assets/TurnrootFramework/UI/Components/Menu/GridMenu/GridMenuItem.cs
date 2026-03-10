@@ -35,11 +35,7 @@ namespace Turnroot.UI.Components.GridMenu
 
         private void Awake()
         {
-            _simpleButton = GetComponent<SimpleButtonComponent>();
-            if (_simpleButton == null)
-            {
-                _simpleButton = gameObject.AddComponent<SimpleButtonComponent>();
-            }
+            _simpleButton = GetComponent<SimpleButtonComponent>() ?? gameObject.AddComponent<SimpleButtonComponent>();
             _simpleButton.OnSelected += HandleSimpleButtonSelection;
         }
 
