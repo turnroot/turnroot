@@ -206,12 +206,16 @@ namespace Turnroot.Utilities.SceneFlows
         public bool AreConditionsMet(SceneFlowConditionEvaluator evaluator)
         {
             if (conditions == null || conditions.Count == 0)
+            {
                 return true; // No conditions means always available
+            }
 
             foreach (var condition in conditions)
             {
                 if (!evaluator.EvaluateCondition(condition))
+                {
                     return false;
+                }
             }
 
             return true;

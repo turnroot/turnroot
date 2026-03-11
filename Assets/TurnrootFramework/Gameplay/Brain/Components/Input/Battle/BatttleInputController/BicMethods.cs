@@ -93,7 +93,6 @@ namespace Turnroot.Gameplay.Brain
             // Check if turn has already ended (shouldn't show menu if so)
             if (_playerTurnFlow.GetCurrentState() == PlayerTurnStates.TurnEnded)
             {
-
                 "Turn already ended, skipping action menu".LogWarning();
                 return;
             }
@@ -536,4 +535,3 @@ namespace Turnroot.Gameplay.Brain
         #endregion
     }
 }
-

@@ -88,16 +88,11 @@ namespace Turnroot.Gameplay.Brain
             return OperationResult.Successful();
         }
 
-        private void HandleUnitMoved(CharacterInstance unit, Vector2Int targetPosition)
-        {
+        private void HandleUnitMoved(CharacterInstance unit, Vector2Int targetPosition) =>
             // Invalidate per-unit tile cache when a unit moves
             BattleObject.Context.InvalidateUnitTileCache(unit);
-        }
 
-        private void HandleUnitDefeated(CharacterInstance unit)
-        {
-            BattleObject.Context.InvalidateUnitTileCache(unit);
-        }
+        private void HandleUnitDefeated(CharacterInstance unit) => BattleObject.Context.InvalidateUnitTileCache(unit);
 
         private OperationResult HandleUnitTakesAnotherTurnLogic(CharacterInstance unit)
         {

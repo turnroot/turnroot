@@ -18,7 +18,9 @@ namespace Turnroot.UI.Components.Notifications
             if (container != null)
             {
                 foreach (Transform child in container.transform)
+                {
                     Destroy(child.gameObject);
+                }
             }
         }
 

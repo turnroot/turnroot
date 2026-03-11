@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using NaughtyAttributes;
-using Turnroot.Gameplay.Brain;
 using Turnroot.Utilities;
 using UnityEngine;
 
@@ -126,7 +125,7 @@ namespace Turnroot.Gameplay.Audio
         {
             // Use reflection to call the editor window since it's in a separate Editor assembly
             var assemblies = System.AppDomain.CurrentDomain.GetAssemblies();
-            System.Type windowType = null;
+            Type windowType = null;
 
             foreach (var assembly in assemblies)
             {

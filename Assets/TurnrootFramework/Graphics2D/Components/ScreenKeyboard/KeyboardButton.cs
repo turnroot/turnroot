@@ -103,10 +103,7 @@ namespace Turnroot.Graphics2D
             }
         }
 
-        public string GetKeyValue()
-        {
-            return keyValue;
-        }
+        public string GetKeyValue() => keyValue;
 
         public void UpdateDisplay(string displayText)
         {

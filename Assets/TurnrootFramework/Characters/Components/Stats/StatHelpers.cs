@@ -114,18 +114,12 @@ namespace Turnroot.Characters.Stats
         public static CharacterStat GetUnboundedStat(
             List<CharacterStat> stats,
             UnboundedStatType type
-        )
-        {
-            return GetStat(stats, type, s => s.StatType);
-        }
+        ) => GetStat(stats, type, s => s.StatType);
 
         public static CharacterStat GetOrCreateUnboundedStat(
             List<CharacterStat> stats,
             UnboundedStatType type
-        )
-        {
-            return GetOrCreateUnboundedStat(stats, type, null);
-        }
+        ) => GetOrCreateUnboundedStat(stats, type, null);
 
         public static CharacterStat GetOrCreateUnboundedStat(
             List<CharacterStat> stats,

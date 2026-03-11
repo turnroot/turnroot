@@ -276,11 +276,9 @@ namespace Turnroot.Gameplay.Combat.PreBattle
             }
         }
 
-        private void HandlePlacementsSyncRequested(bool persist, bool forceApplyPlacementsOnLoad)
-        {
+        private void HandlePlacementsSyncRequested(bool persist, bool forceApplyPlacementsOnLoad) =>
             // Simplified: no sync needed, placements live only in this object until battle starts
             Brain?.PublishPlacementsInitialized();
-        }
 
         private void HandleModelMovedEvent(Brain.Events.ModelMovedEvent ev)
         {

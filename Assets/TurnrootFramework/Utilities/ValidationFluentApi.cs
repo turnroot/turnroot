@@ -217,10 +217,7 @@ namespace Turnroot.Utilities
         /// Intended for argument validation on public APIs.
         /// </summary>
         public static T ThrowIfNull<T>(this T obj, string paramName)
-            where T : class
-        {
-            return obj == null ? throw new ArgumentNullException(paramName) : obj;
-        }
+            where T : class => obj == null ? throw new ArgumentNullException(paramName) : obj;
 
         /// <summary>
         /// Validates that a value is within a range.

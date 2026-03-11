@@ -121,9 +121,6 @@ namespace Turnroot.Utilities
         /// logging-free call sites.
         /// </summary>
         public static T ThrowIfNull<T>(T obj, string paramName)
-            where T : class
-        {
-            return obj == null ? throw new System.ArgumentNullException(paramName) : obj;
-        }
+            where T : class => obj == null ? throw new System.ArgumentNullException(paramName) : obj;
     }
 }

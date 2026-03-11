@@ -75,20 +75,15 @@ namespace Turnroot.Characters.CharacterClass
         /// <summary>
         /// Returns true if mastery is considered complete given a progress value (0-100).
         /// </summary>
-        public bool HasMetMasteryCriteria(int progressPercent)
-        {
+        public bool HasMetMasteryCriteria(int progressPercent) =>
             // Mastery threshold is fixed at 100%.
-            return progressPercent >= 100;
-        }
+            progressPercent >= 100;
 
         /// <summary>
         /// Validates that mastery configuration is complete.
         /// (MasteredSkill may be empty — mastery will still track progress.)
         /// </summary>
-        public OperationResult ValidateMasteryConfiguration()
-        {
-            return OperationResult.Successful();
-        }
+        public OperationResult ValidateMasteryConfiguration() => OperationResult.Successful();
     }
 
     /// <summary>

@@ -31,30 +31,79 @@ namespace Turnroot.UI
         )
             where T : MonoBehaviour
         {
-            // Deselect all choices
-            foreach (var manager in managers)
+            // Deselect all choices (skip any that have been destroyed)
+            for (int i = 0; i < managers.Length; i++)
             {
-                manager.SendMessage("Deselect");
+                var manager = managers[i];
+                if (manager == null)
+                {
+                    continue;
+                }
+
+                try
+                {
+                    manager.SendMessage("Deselect");
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogWarning(
+                        $"UiChoiceHandler: exception during Deselect on index {i}: {ex.Message}"
+                    );
+                }
             }
 
             if (action == "NavigateUp" || action == "NavigateLeft")
             {
-                navigationSound?.PlayOneShot(navigationClip);
+                if (navigationSound != null && navigationClip != null)
+                {
+                    // audio source may have been destroyed when scene unloaded
+                    try
+                    {
+                        navigationSound.PlayOneShot(navigationClip);
+                    }
+                    catch (Exception)
+                    { /* ignore if source invalid */
+                    }
+                }
                 currentIndex = (currentIndex - 1 + maxCount) % maxCount;
             }
             else if (action == "NavigateDown" || action == "NavigateRight")
             {
-                navigationSound?.PlayOneShot(navigationClip);
+                if (navigationSound != null && navigationClip != null)
+                {
+                    try
+                    {
+                        navigationSound.PlayOneShot(navigationClip);
+                    }
+                    catch (Exception) { }
+                }
                 currentIndex = (currentIndex + 1) % maxCount;
             }
             else if (action == "Select")
             {
-                onSelect?.Invoke();
+                try
+                {
+                    onSelect?.Invoke();
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogWarning("UiChoiceHandler onSelect threw: " + ex);
+                }
                 return;
             }
 
-            // Select the current choice
-            managers[currentIndex].SendMessage("Select");
+            // Select the current choice (guard against null)
+            if (
+                currentIndex < 0
+                || currentIndex >= managers.Length
+                || managers[currentIndex] == null
+            )
+            {
+                currentIndex = 0;
+            }
+            // also suppress missing receiver warning
+            managers[currentIndex]
+                .BroadcastMessage("Select", SendMessageOptions.DontRequireReceiver);
         }
     }
 }

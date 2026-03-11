@@ -61,11 +61,9 @@ namespace Turnroot.Skills.Nodes.Conditions
             return (currentHealth - damage) <= 0;
         }
 
-        private float GetIncomingDamage()
-        {
+        private float GetIncomingDamage() =>
             // TODO: Connect to context
-            return 1;
-        }
+            1;
 
         private float GetUnitCurrentHealth(BattleContext context)
         {

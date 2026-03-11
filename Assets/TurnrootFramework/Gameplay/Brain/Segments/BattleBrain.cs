@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using Turnroot.Characters;
 using Turnroot.Gameplay.Brain.Components.Battle;
 using Turnroot.Gameplay.Combat;
@@ -206,12 +205,9 @@ namespace Turnroot.Gameplay.Brain
             BattleObject?.Context?.ClearLastAttackHistory();
         }
 
-        private void InitializeAdvancedSystems()
-        {
+        private void InitializeAdvancedSystems() =>
             // Clear any previous battle's command history
-            _brain.Commands?.Clear();
-            // Initial snapshot is taken AFTER precompute completes (see HandlePrecomputeCompleted)
-        }
+            _brain.Commands?.Clear();// Initial snapshot is taken AFTER precompute completes (see HandlePrecomputeCompleted)
 
         private void InitializePrecomputeLoader()
         {

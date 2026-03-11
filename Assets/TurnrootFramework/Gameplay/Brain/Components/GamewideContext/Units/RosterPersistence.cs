@@ -108,9 +108,6 @@ namespace Turnroot.Gameplay.Brain
             return hash.ToString();
         }
 
-        private void AddToRosterIndex(string rosterId)
-        {
-            GamewideContextBrainHelpers.AddToIndexIfMissing(_ltm, LtmKeys.RosterIndex, rosterId);
-        }
+        private void AddToRosterIndex(string rosterId) => GamewideContextBrainHelpers.AddToIndexIfMissing(_ltm, LtmKeys.RosterIndex, rosterId);
     }
 }

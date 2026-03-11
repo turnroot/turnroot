@@ -141,10 +141,7 @@ namespace Turnroot.Gameplay.Brain
             _activeFades[source] = fadeCoroutine;
         }
 
-        private void StopClip(AudioSource source, AudioAction action)
-        {
-            FadeOut(source, action);
-        }
+        private void StopClip(AudioSource source, AudioAction action) => FadeOut(source, action);
 
         private void StopClipImmediate(AudioSource source)
         {

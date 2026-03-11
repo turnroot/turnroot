@@ -140,10 +140,7 @@ namespace Turnroot.Gameplay.Maps
             );
         }
 
-        public void GetAllOccupiedPoints()
-        {
-            EnsureCachedGridPoints();
-        }
+        public void GetAllOccupiedPoints() => EnsureCachedGridPoints();
 
         public void IncrementStateVersion()
         {

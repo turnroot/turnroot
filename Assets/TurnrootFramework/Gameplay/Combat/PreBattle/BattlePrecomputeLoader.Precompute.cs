@@ -1,5 +1,4 @@
 using System.Collections;
-using System.Linq;
 using Turnroot.Gameplay.Brain;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles.NPCs;
 using Turnroot.Gameplay.Maps;

@@ -101,10 +101,7 @@ namespace Turnroot.Graphics2D
         private static readonly int DarkenIntensityID = Shader.PropertyToID("_DarkenIntensity");
         private static readonly int BlendModeID = Shader.PropertyToID("_BlendMode");
 
-        private void Awake()
-        {
-            Initialize();
-        }
+        private void Awake() => Initialize();
 
         private void OnEnable()
         {

@@ -4,7 +4,6 @@ using System.Linq;
 using Turnroot.Characters;
 using Turnroot.Gameplay.Maps;
 using Turnroot.GameSettings;
-using Turnroot.Utilities;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Splines;

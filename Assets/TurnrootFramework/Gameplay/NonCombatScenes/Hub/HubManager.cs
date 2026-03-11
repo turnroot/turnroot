@@ -1,12 +1,19 @@
+using NaughtyAttributes;
 using TMPro;
 using Turnroot.Characters;
 using Turnroot.GameSettings;
+using Turnroot.UI;
 using Turnroot.UI.Components.Notifications;
 using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.NonCombatScenes.Hub
 {
+    [RequireComponent(typeof(UiInputProvider))]
+    /// <remarks>
+    /// This may need editing for your project, but if you aren't making major logic changes, you should
+    /// be able to wrangle it to work for you just with UI changes and inspector stuff
+    /// </remarks>
     public class HubManager : MonoBehaviour
     {
         #region Fields
@@ -14,11 +21,38 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         public TextMeshProUGUI dateText;
 
+        public UiChoice[] LocationChoices;
+
+        [BoxGroup("Input")]
+        public UiInputProvider InputProvider;
+
+        private enum InputMode
+        {
+            None,
+            Location,
+            MarketChoice,
+            FishMarket,
+            Blacksmith,
+            Armory,
+            Staples,
+            SecretShop,
+            CafeChoice,
+            GroupLunch,
+            PersonalLunch,
+            Battlefields,
+            Docks,
+            Training,
+        }
+
+        private InputMode _currentInputMode = InputMode.None;
+        private int currentIndex = 0;
+
         public NotificationsHelper notifications;
+
+        public HubSubLocation[] subLocations;
 
         public TextMeshProUGUI ChapterNumberAndNameText;
         public string ChapterNumberAndNameFormat = "Chapter {0}: {1}";
-
         private const string birthdayNotificationTypeName = "birthday";
 
         public void UpdateChapterNumberAndNameText(int chapterNumber, string chapterName)
@@ -34,9 +68,70 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         }
 
         private GameDate gameDate;
+
+        #endregion
+
+        #region Input Actions
+
+
+        public void HandleLocationInput(string action)
+        {
+            if (subLocations == null || subLocations.Length == 0)
+            {
+                "HubManager: No sublocations assigned".LogError();
+                return;
+            }
+
+            if (InputProvider != null)
+            {
+                InputProvider.Navigate(
+                    action,
+                    LocationChoices,
+                    ref currentIndex,
+                    LocationChoices?.Length ?? 0,
+                    () =>
+                    {
+                        var selectedLocation = subLocations[currentIndex];
+                        if (selectedLocation.CanBeVisitedToday())
+                            selectedLocation.PlayerVisit();
+                    }
+                );
+            }
+            else
+            {
+                UiChoiceHandler.HandleNavigation(
+                    action,
+                    LocationChoices,
+                    ref currentIndex,
+                    LocationChoices?.Length ?? 0,
+                    () =>
+                    {
+                        var selectedLocation = subLocations[currentIndex];
+                        if (selectedLocation.CanBeVisitedToday())
+                            selectedLocation.PlayerVisit();
+                    }
+                );
+            }
+
+            UpdateChoiceSelection();
+        }
+
         #endregion
 
         #region Unity Lifecycle
+
+        private void OnEnable()
+        {
+            if (InputProvider != null)
+                InputProvider.OnInput += HandleInput;
+        }
+
+        private void OnDisable()
+        {
+            if (InputProvider != null)
+                InputProvider.OnInput -= HandleInput;
+        }
+
         public void Start()
         {
             gameDate = GameplayGeneralSettings.Instance.StartingGameDate;
@@ -53,23 +148,35 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             if (ltm != null && ltm.Initialized)
             {
                 gameDate = ltm.GetGameDate();
-                Debug.Log(
-                    $"HubManager: Current game date from LTM is {gameDate.year}/{gameDate.month}/{gameDate.day}"
-                );
+                $"HubManager: Current game date from LTM is {gameDate.year}/{gameDate.month}/{gameDate.day}".LogInfo();
             }
 
             Initialize();
+            for (int i = 0; i < subLocations.Length; i++)
+            {
+                subLocations[i].Initialize(_brain);
+            }
         }
 
         public void Initialize()
         {
             _brain.OnGameDateChanged += HandleGameDateChanged;
-            _brain.OnCharacterBirthdayThisWeek += HandleCharacterBirthdayThisWeek;            UpdateDateText();
+            _brain.OnCharacterBirthdayThisWeek += HandleCharacterBirthdayThisWeek;
+            UpdateDateText();
             _brain.charactersBrain.CheckBirthdays();
             UpdateChapterNumberAndNameText(
                 _brain.saveFileBrain.ActiveSaveFile.ChapterNumber,
                 _brain.saveFileBrain.ActiveSaveFile.ChapterName
             );
+            SetInputMode(InputMode.Location);
+
+            for (int i = 0; i < subLocations.Length; i++)
+            {
+                subLocations[i].Initialize(_brain);
+                LocationChoices[i].CanBeSelected = subLocations[i].CanBeVisitedToday();
+            }
+
+            UpdateChoiceSelection();
         }
 
         public void OnDestroy()
@@ -80,7 +187,29 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 _brain.OnCharacterBirthdayThisWeek -= HandleCharacterBirthdayThisWeek;
             }
         }
+
         #endregion
+
+        #region Input Handling
+
+        private void HandleInput(string action)
+        {
+            switch (_currentInputMode)
+            {
+                case InputMode.Location:
+                    HandleLocationInput(action);
+                    break;
+            }
+        }
+
+        private void SetInputMode(InputMode mode)
+        {
+            _currentInputMode = mode;
+            currentIndex = 0;
+        }
+
+        #endregion
+
 
         #region Helpers
         public void UpdateDateText()
@@ -91,6 +220,31 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 string daySuffix = GameDate.GetDaySuffix(gameDate.day);
                 string monthName = month.ToString();
                 dateText.text = $"{monthName} {gameDate.day}{daySuffix}";
+            }
+        }
+
+        private void UpdateChoiceSelection()
+        {
+            if (LocationChoices == null || LocationChoices.Length == 0)
+            {
+                return;
+            }
+
+            for (int i = 0; i < LocationChoices.Length; i++)
+            {
+                if (LocationChoices[i] == null)
+                {
+                    continue;
+                }
+
+                if (i == currentIndex)
+                {
+                    LocationChoices[i].Select();
+                }
+                else
+                {
+                    LocationChoices[i].Deselect();
+                }
             }
         }
         #endregion

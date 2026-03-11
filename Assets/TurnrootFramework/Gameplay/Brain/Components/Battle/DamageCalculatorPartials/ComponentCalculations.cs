@@ -130,10 +130,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             CharacterInstance target,
             BattleContext context,
             GameplayGeneralSettings settings
-        )
-        {
-            return target?.CalculateAvoid(context, settings) ?? 0f;
-        }
+        ) => target?.CalculateAvoid(context, settings) ?? 0f;
 
         public static float CalculateTerrainAvoidBonus(
             CharacterInstance unit,
@@ -168,10 +165,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         private static float CalculateCritAvoid(
             CharacterInstance target,
             GameplayGeneralSettings settings
-        )
-        {
-            return target?.CalculateCritAvoid(settings) ?? 0f;
-        }
+        ) => target?.CalculateCritAvoid(settings) ?? 0f;
 
         private static float CalculateStatContribution(
             CharacterInstance unit,

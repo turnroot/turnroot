@@ -183,10 +183,7 @@ namespace Turnroot.Characters.CharacterClass
         public OperationResult ApplyClassChangeBonuses(CharacterInstance character) =>
             _stats.ApplyClassChangeBonuses(character, _classData);
 
-        public void EnforceStatMinimums(CharacterInstance character)
-        {
-            _stats.EnforceStatMinimums(character, _classData);
-        }
+        public void EnforceStatMinimums(CharacterInstance character) => _stats.EnforceStatMinimums(character, _classData);
 
         public void ApplyStatCaps(CharacterInstance character) =>
             _stats.ApplyStatCaps(character, _classData);

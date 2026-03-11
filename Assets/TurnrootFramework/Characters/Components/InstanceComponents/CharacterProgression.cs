@@ -262,7 +262,7 @@ namespace Turnroot.Characters
         [System.Serializable]
         private class GrowthRatesDto
         {
-            public System.Collections.Generic.Dictionary<string, float> growthRates;
+            public Dictionary<string, float> growthRates;
         }
 
         #endregion

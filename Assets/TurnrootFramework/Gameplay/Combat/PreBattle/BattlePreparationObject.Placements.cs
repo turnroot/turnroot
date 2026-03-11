@@ -34,10 +34,7 @@ namespace Turnroot.Gameplay.Combat.PreBattle
         /// <summary>
         /// Get the model GameObject at a specific position.
         /// </summary>
-        public GameObject GetModelAtPosition(Vector2Int position)
-        {
-            return _positionToModel.TryGetValue(position, out var model) ? model : null;
-        }
+        public GameObject GetModelAtPosition(Vector2Int position) => _positionToModel.TryGetValue(position, out var model) ? model : null;
 
         /// <summary>
         /// Get the model GameObject for a specific unit ID.
@@ -60,10 +57,7 @@ namespace Turnroot.Gameplay.Combat.PreBattle
         /// <summary>
         /// Get the unit ID at a specific position.
         /// </summary>
-        public string GetUnitIdAtPosition(Vector2Int position)
-        {
-            return _positionToUnitId.TryGetValue(position, out var unitId) ? unitId : null;
-        }
+        public string GetUnitIdAtPosition(Vector2Int position) => _positionToUnitId.TryGetValue(position, out var unitId) ? unitId : null;
 
         /// <summary>
         /// Get the position where a unit ID is located.
@@ -83,10 +77,7 @@ namespace Turnroot.Gameplay.Combat.PreBattle
         /// <summary>
         /// Check if a model exists at a position.
         /// </summary>
-        public bool HasModelAtPosition(Vector2Int position)
-        {
-            return _positionToModel.ContainsKey(position) && _positionToModel[position] != null;
-        }
+        public bool HasModelAtPosition(Vector2Int position) => _positionToModel.ContainsKey(position) && _positionToModel[position] != null;
 
         /// <summary>
         /// Get all spawned models with their positions.
@@ -579,10 +570,7 @@ namespace Turnroot.Gameplay.Combat.PreBattle
 
         #region Default Placements
 
-        public void StoreDefaultPlacements()
-        {
-            _defaultPlacements = new Dictionary<Vector2Int, CharacterData>(placements);
-        }
+        public void StoreDefaultPlacements() => _defaultPlacements = new Dictionary<Vector2Int, CharacterData>(placements);
 
         public OperationResult ResetToDefaultPlacements()
         {

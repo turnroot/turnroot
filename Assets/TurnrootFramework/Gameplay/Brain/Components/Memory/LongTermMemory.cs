@@ -255,7 +255,7 @@ namespace Turnroot.Gameplay.Brain.Components
         /// <summary>
         /// Store a calendar date in long–term memory and publish an event.
         /// </summary>
-        public void SetGameDate(int year, Turnroot.Utilities.Month month, int day)
+        public void SetGameDate(int year, Month month, int day)
         {
             if (prefs == null)
             {
