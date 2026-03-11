@@ -207,7 +207,7 @@ namespace Turnroot.Gameplay.Brain
 
         private void InitializeAdvancedSystems() =>
             // Clear any previous battle's command history
-            _brain.Commands?.Clear();// Initial snapshot is taken AFTER precompute completes (see HandlePrecomputeCompleted)
+            _brain.Commands?.Clear(); // Initial snapshot is taken AFTER precompute completes (see HandlePrecomputeCompleted)
 
         private void InitializePrecomputeLoader()
         {

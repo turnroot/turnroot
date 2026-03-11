@@ -96,6 +96,8 @@ def find_problematic_cs_files(root_dir='.', min_lines=500, verbose=False):
 
             # Criteria 1: Too many lines
             if line_count >= min_lines:
+                if 'Editor' in rel_path:
+                    continue
                 large_files.append((rel_path, line_count))
             
             # Criteria 2: Missing namespace
@@ -118,7 +120,7 @@ def find_problematic_cs_files(root_dir='.', min_lines=500, verbose=False):
 
 def main():
     ROOT_DIR = '.' 
-    MIN_LINES = 500
+    MIN_LINES = 400
     VERBOSE = True 
     
     print(f"Searching '{ROOT_DIR}' for large files (>= {MIN_LINES}) or missing namespaces...")
