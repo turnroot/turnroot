@@ -18,6 +18,7 @@ Shader "Turnroot/Generic Cel Shader"
 
         _light("Light", Color) = (1, 1, 1, 0)
         _dark("Dark", Color) = (0, 0, 0, 0)
+        _BaseTint("Base Tint", Color) = (1, 1, 1, 0)
         [Toggle(_USE_LIGHT_TEX_ON)] _use_light_tex("Use Light Texture", Float) = 0
         _LightTex("Light Texture", 2D) = "white" {}
         [Toggle(_USE_DARK_TEX_ON)] _use_dark_tex("Use Dark Texture", Float) = 0
@@ -227,6 +228,7 @@ Shader "Turnroot/Generic Cel Shader"
             float  _Cel_Shader_Offset;
             float4 _light;
             float4 _dark;
+            float4 _BaseTint;
             float  _frensel_range;
             float  _frensel_hard;
             float  _frensel_power;
@@ -324,6 +326,15 @@ Shader "Turnroot/Generic Cel Shader"
                 // ── Alpha clip ──────────────────────────────────────────────
                 float2 uv_MainTex = TRANSFORM_TEX(input.uv, _MainTex);
                 float4 baseTex    = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv_MainTex);
+                // apply base tint towards target colour using alpha as strength
+                // treat white tint with full alpha as 'no tint' (legacy materials)
+                float blend = _BaseTint.a;
+                #ifdef UNITY_PRECISION_HIGHP
+                if (blend > 0 && all(_BaseTint.rgb >= float3(0.999,0.999,0.999))) blend = 0;
+                #else
+                if (blend > 0 && all(_BaseTint.rgb >= float3(0.99,0.99,0.99))) blend = 0;
+                #endif
+                baseTex.rgb = lerp(baseTex.rgb, _BaseTint.rgb, blend);
                 clip(baseTex.a - _Cutoff);
 
                 // ── DBuffer Decals ──────────────────────────────────────────

@@ -9,7 +9,6 @@ namespace Turnroot.Gameplay.Brain
 {
     /// <summary>
     /// Manages audio systems and sound playback within the brain framework.
-    /// Executes AudioActions from AudioController, handling fades, transitions, and playback modes.
     /// </summary>
     public class AudioBrain : BrainComponent
     {
@@ -188,16 +187,6 @@ namespace Turnroot.Gameplay.Brain
             }
 
             _activeFades.Remove(source);
-        }
-
-        private void Start()
-        {
-            // Find and initialize AudioController in scene
-            var audioController = FindAnyObjectByType<AudioController>();
-            if (audioController != null)
-            {
-                audioController.Initialize(_brain);
-            }
         }
 
         protected override void OnDestroy()

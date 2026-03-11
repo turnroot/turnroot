@@ -69,5 +69,8 @@ namespace Turnroot.GameSettings
 
         [BoxGroup("General Gameplay")]
         public bool UseExperienceAptitudes;
+
+        [BoxGroup("Hub")]
+        public bool HubHasTeamLocations;
     }
 }

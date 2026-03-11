@@ -23,8 +23,6 @@ namespace Turnroot.UI
 
         static UiChoice()
         {
-            "UiChoice: static constructor running, creating actions".LogWarning();
-            // configure bindings according to spec
             SelectAction = new InputAction(
                 "UI_Select",
                 InputActionType.Button,
@@ -91,7 +89,6 @@ namespace Turnroot.UI
         {
             if (_actionEnableCount++ == 0)
             {
-                "UiChoice: enabling static actions".LogWarning();
                 SelectAction.Enable();
                 BackAction.Enable();
                 NavigateUpAction.Enable();
@@ -105,7 +102,6 @@ namespace Turnroot.UI
         {
             if (--_actionEnableCount <= 0)
             {
-                "UiChoice: disabling static actions".LogWarning();
                 SelectAction.Disable();
                 BackAction.Disable();
                 NavigateUpAction.Disable();

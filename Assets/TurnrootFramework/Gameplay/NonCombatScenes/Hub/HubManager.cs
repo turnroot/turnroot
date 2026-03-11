@@ -10,6 +10,7 @@ using UnityEngine;
 namespace Turnroot.Gameplay.NonCombatScenes.Hub
 {
     [RequireComponent(typeof(UiInputProvider))]
+    [RequireComponent(typeof(HubTeamLocations))]
     /// <remarks>
     /// This may need editing for your project, but if you aren't making major logic changes, you should
     /// be able to wrangle it to work for you just with UI changes and inspector stuff
@@ -17,7 +18,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
     public class HubManager : MonoBehaviour
     {
         #region Fields
-        private Brain.Brain _brain;
+        [HideInInspector]
+        public Brain.Brain _brain;
 
         public TextMeshProUGUI dateText;
 
@@ -93,7 +95,9 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                     {
                         var selectedLocation = subLocations[currentIndex];
                         if (selectedLocation.CanBeVisitedToday())
+                        {
                             selectedLocation.PlayerVisit();
+                        }
                     }
                 );
             }
@@ -108,7 +112,9 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                     {
                         var selectedLocation = subLocations[currentIndex];
                         if (selectedLocation.CanBeVisitedToday())
+                        {
                             selectedLocation.PlayerVisit();
+                        }
                     }
                 );
             }
@@ -123,13 +129,17 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         private void OnEnable()
         {
             if (InputProvider != null)
+            {
                 InputProvider.OnInput += HandleInput;
+            }
         }
 
         private void OnDisable()
         {
             if (InputProvider != null)
+            {
                 InputProvider.OnInput -= HandleInput;
+            }
         }
 
         public void Start()
@@ -177,6 +187,14 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
 
             UpdateChoiceSelection();
+            if (GameplayGeneralSettings.Instance.HubHasTeamLocations)
+            {
+                GetComponent<HubTeamLocations>().Initialize();
+            }
+            else
+            {
+                GetComponent<HubTeamLocations>().gameObject.SetActive(false);
+            }
         }
 
         public void OnDestroy()
