@@ -1,5 +1,6 @@
 namespace Turnroot.Gameplay.NonCombatScenes.Hub
-{    public enum HubSublocationName
+{
+    public enum HubSublocationName
     {
         Market,
         Cafe,

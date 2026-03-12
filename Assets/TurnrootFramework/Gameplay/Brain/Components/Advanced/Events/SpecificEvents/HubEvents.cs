@@ -19,10 +19,20 @@ namespace Turnroot.Gameplay.Brain
         /// </summary>
         public event Action OnHubSublocationTutorialCompleted;
 
+        /// <summary>
+        /// Triggered when a hub sublocation transition begins and the input mode should
+        /// be pushed to the manager.  The associated <see cref="HubInputMode"/>
+        /// identifies the new input state.
+        /// </summary>
+        public event Action<HubManager.HubInputMode> OnHubSublocationInputModeChange;
+
         public void PublishHubSublocationVisited(HubSublocationName name) =>
             OnHubSublocationVisited?.Invoke(name);
 
         public void PublishHubSublocationTutorialCompleted() =>
             OnHubSublocationTutorialCompleted?.Invoke();
+
+        public void PublishHubSublocationInputModeChange(HubManager.HubInputMode mode) =>
+            OnHubSublocationInputModeChange?.Invoke(mode);
     }
 }

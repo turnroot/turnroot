@@ -152,3 +152,8 @@ ShaderVariantCollection:
       variants:
       - keywords: EDGE_SHINY
         passType: 0
+  - first: {fileID: 4800000, guid: 68e6db2ebdc24f95958faec2be5558d6, type: 3}
+    second:
+      variants:
+      - keywords: 
+        passType: 0

@@ -1,7 +1,6 @@
 using Turnroot.Gameplay.Brain;
 using Turnroot.Gameplay.Brain.Components;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 namespace Turnroot.Utilities.Weather
 {
@@ -79,15 +78,15 @@ namespace Turnroot.Utilities.Weather
         private Color[] baseCelLight;
         private Color[] baseCelBaseTint;
 
-        private Color baseShallowColor;
-        private Color baseDeepColor;
-        private Color baseSpecColor;
+        private Color baseShallowColor = new(.4f, 0.6470588f, 0.7647059f, .1333f);
+        private Color baseDeepColor = new(0.05098037f, 0.1803921f, 0.3490196f, 0.9019608f);
+        private Color baseSpecColor = new(1f, 0.9743333f, 0.78f, 0.1333333f);
         private Color baseFresnelColor;
 
         public WeatherType CurrentWeatherType = WeatherType.Sunny;
 
         public WeatherType[] PossibleWeatherTypes;
-        private Vector3 DirectionalLightRotation = new Vector3(50f, -30f, 0f);
+        private Vector3 DirectionalLightRotation = new(50f, -30f, 0f);
         private Material currentSkybox;
 
         [Range(0f, 24f)]
@@ -333,10 +332,25 @@ namespace Turnroot.Utilities.Weather
                 WaterMaterial.SetColor("_SpecularColor", baseSpecColor);
                 WaterMaterial.SetColor("_FresnelColor", baseFresnelColor);
             }
-            HeavyRainParticles?.SetActive(false);
-            DrizzleParticles?.SetActive(false);
-            SnowParticles?.SetActive(false);
-            VolcanicAshParticles?.SetActive(false);
+            if (HeavyRainParticles != null)
+            {
+                HeavyRainParticles.SetActive(false);
+            }
+
+            if (DrizzleParticles != null)
+            {
+                DrizzleParticles.SetActive(false);
+            }
+
+            if (SnowParticles != null)
+            {
+                SnowParticles.SetActive(false);
+            }
+
+            if (VolcanicAshParticles != null)
+            {
+                VolcanicAshParticles.SetActive(false);
+            }
         }
 
         private void HandleSceneChanged(string sceneName, string displayName)
@@ -400,12 +414,14 @@ namespace Turnroot.Utilities.Weather
             }
 
             SetSkybox(CurrentWeatherType);
+            $"Set up scene for weather {CurrentWeatherType}".LogInfo();
 
             // always refresh particles after scene change
             var ltm2 = FindFirstObjectByType<LongTermMemory>();
             if (ltm2 != null)
             {
                 var gd2 = ltm2.GetGameDate();
+                $"Game date is {gd2.year}/{gd2.month}/{gd2.day}".LogInfo();
                 SetActiveParticles(gd2.month);
             }
 

@@ -11,6 +11,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 {
     [RequireComponent(typeof(UiInputProvider))]
     [RequireComponent(typeof(HubTeamLocations))]
+    [RequireComponent(typeof(HubSubInput))]
     /// <remarks>
     /// This may need editing for your project, but if you aren't making major logic changes, you should
     /// be able to wrangle it to work for you just with UI changes and inspector stuff
@@ -28,7 +29,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         [BoxGroup("Input")]
         public UiInputProvider InputProvider;
 
-        private enum InputMode
+        public enum HubInputMode
         {
             None,
             Location,
@@ -46,7 +47,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             Training,
         }
 
-        private InputMode _currentInputMode = InputMode.None;
+        private HubInputMode _currentInputMode = HubInputMode.None;
         private int currentIndex = 0;
 
         public NotificationsHelper notifications;
@@ -71,11 +72,14 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         private GameDate gameDate;
 
+        public Transform[] cameraPoints;
+        public Camera GeneralCamera;
+
+        public HubSubInput sublocationInput => GetComponent<HubSubInput>();
+
         #endregion
 
         #region Input Actions
-
-
         public void HandleLocationInput(string action)
         {
             if (subLocations == null || subLocations.Length == 0)
@@ -172,13 +176,14 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         {
             _brain.OnGameDateChanged += HandleGameDateChanged;
             _brain.OnCharacterBirthdayThisWeek += HandleCharacterBirthdayThisWeek;
+            _brain.OnHubSublocationInputModeChange += HandleSublocationInputModeChange;
             UpdateDateText();
             _brain.charactersBrain.CheckBirthdays();
             UpdateChapterNumberAndNameText(
                 _brain.saveFileBrain.ActiveSaveFile.ChapterNumber,
                 _brain.saveFileBrain.ActiveSaveFile.ChapterName
             );
-            SetInputMode(InputMode.Location);
+            SetInputMode(HubInputMode.Location);
 
             for (int i = 0; i < subLocations.Length; i++)
             {
@@ -195,6 +200,16 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             {
                 GetComponent<HubTeamLocations>().gameObject.SetActive(false);
             }
+
+            if (GeneralCamera == null || cameraPoints == null || cameraPoints.Length == 0)
+            {
+                return;
+            }
+
+            int idx = Random.Range(0, cameraPoints.Length);
+            Transform dest = cameraPoints[idx];
+            GeneralCamera.transform.SetPositionAndRotation(dest.position, dest.rotation);
+            $"HubManager: Moved camera to random starting position {idx}".LogInfo();
         }
 
         public void OnDestroy()
@@ -203,7 +218,17 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             {
                 _brain.OnGameDateChanged -= HandleGameDateChanged;
                 _brain.OnCharacterBirthdayThisWeek -= HandleCharacterBirthdayThisWeek;
+                _brain.OnHubSublocationInputModeChange -= HandleSublocationInputModeChange;
             }
+        }
+
+        #endregion
+
+        #region Brain Event Handlers
+
+        private void HandleSublocationInputModeChange(HubInputMode mode)
+        {
+            SetInputMode(mode);
         }
 
         #endregion
@@ -214,16 +239,22 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         {
             switch (_currentInputMode)
             {
-                case InputMode.Location:
+                case HubInputMode.Location:
                     HandleLocationInput(action);
+                    break;
+                case HubInputMode.MarketChoice:
+                    sublocationInput.HandleSubLocationInput(action);
                     break;
             }
         }
 
-        private void SetInputMode(InputMode mode)
+        private void SetInputMode(HubInputMode mode)
         {
             _currentInputMode = mode;
             currentIndex = 0;
+
+            bool allowLook = mode != HubInputMode.Location;
+            sublocationInput.SetLookEnabled(allowLook);
         }
 
         #endregion

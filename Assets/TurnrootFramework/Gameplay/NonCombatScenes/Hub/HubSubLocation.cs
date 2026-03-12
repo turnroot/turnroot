@@ -1,6 +1,8 @@
 using Turnroot.Characters;
+using Turnroot.Utilities;
 using Turnroot.Utilities.AbstractScripts;
 using UnityEngine;
+using static Turnroot.Gameplay.NonCombatScenes.Hub.HubManager;
 
 namespace Turnroot.Gameplay.NonCombatScenes.Hub
 {
@@ -13,6 +15,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         private Brain.Brain brain;
         public GameObject tutorialPrefab;
 
+        public HubInputMode InputModeForThisLocation;
+
         private bool acceptingInput = false;
         public Transform[] cameraPoints;
 
@@ -21,6 +25,9 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         public Camera GeneralCamera;
 
         public UIFade FadeToBlack;
+
+        public UIFade LocationsFade;
+        public UIFade BackButtonFade;
         private string LtmKey => "HubSubLocation_Visited_" + LocationName.ToString();
 
         public bool CanBeVisitedToday()
@@ -32,15 +39,23 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         public void PlayerVisit()
         {
+            Debug.Log($"HubSubLocation.PlayerVisit called for {LocationName}");
             if (!HasBeenVisitedEver)
             {
+                $"First time visiting {LocationName}, showing tutorial.".LogInfo();
                 HasBeenVisitedEver = true;
                 SaveVisitedFlag();
 
                 if (tutorialPrefab != null)
                 {
+                    $"Instantiating tutorial for {LocationName}.".LogInfo();
                     Instantiate(tutorialPrefab);
                     acceptingInput = false;
+                }
+                else
+                {
+                    $"No tutorial prefab set for {LocationName}, skipping tutorial.".LogWarning();
+                    // fall through to transition below
                 }
             }
 
@@ -73,42 +88,76 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         private void DoCameraTransition()
         {
+            $"Starting camera transition for visiting {LocationName}".LogInfo();
             if (FadeToBlack != null)
             {
-                FadeToBlack.OnHidden.AddListener(OnFadeHidden);
+                $"Using fade to black for camera transition.".LogInfo();
                 FadeToBlack.OnVisible.AddListener(OnFadeVisible);
-                FadeToBlack.Hide();
+                FadeToBlack.OnHidden.AddListener(OnFadeHidden);
+
+                FadeToBlack.Show();
+                $"Camera transition initiated for {LocationName}".LogInfo();
             }
             else
             {
+                $"No FadeToBlack component assigned, doing instant camera move.".LogWarning();
                 MoveCameraRandom();
                 acceptingInput = true;
+                $"Camera transition complete for {LocationName}".LogInfo();
             }
-        }
-
-        private void OnFadeHidden()
-        {
-            FadeToBlack.OnHidden.RemoveListener(OnFadeHidden);
-            MoveCameraRandom();
-            FadeToBlack.Show();
         }
 
         private void OnFadeVisible()
         {
+            // overlay is fully black; perform UI adjustments first so the player sees
+            // the proper elements once the screen begins to fade back in.
             FadeToBlack.OnVisible.RemoveListener(OnFadeVisible);
+
+            if (LocationsFade != null)
+            {
+                // fade the other location buttons out and keep them hidden while we're
+                // in the sublocation view
+                LocationsFade.Hide();
+            }
+            if (BackButtonFade != null)
+            {
+                // show the back button so the player can return from the sublocation
+                BackButtonFade.Show();
+            }
+
+            // notify the manager about the new input mode for this location. the
+            // hub manager listens and will update its _currentInputMode accordingly.
+            if (brain != null)
+            {
+                brain.PublishHubSublocationInputModeChange(InputModeForThisLocation);
+            }
+
+            MoveCameraRandom();
+            FadeToBlack.Hide();
+            $"Camera moved and fading back in for {LocationName}".LogInfo();
+        }
+
+        private void OnFadeHidden()
+        {
+            // fade finished, allow player input again
+            FadeToBlack.OnHidden.RemoveListener(OnFadeHidden);
             acceptingInput = true;
+            $"Camera transition fully complete for {LocationName}, accepting input now.".LogInfo();
         }
 
         private void MoveCameraRandom()
         {
+            $"Moving camera to a random point for {LocationName}".LogInfo();
             if (GeneralCamera == null || cameraPoints == null || cameraPoints.Length == 0)
             {
+                $"Camera or camera points not set up for {LocationName}, cannot move camera.".LogError();
                 return;
             }
 
             int idx = Random.Range(0, cameraPoints.Length);
             Transform dest = cameraPoints[idx];
             GeneralCamera.transform.SetPositionAndRotation(dest.position, dest.rotation);
+            $"Camera moved to random position {idx} for {LocationName}".LogInfo();
         }
     }
 }
