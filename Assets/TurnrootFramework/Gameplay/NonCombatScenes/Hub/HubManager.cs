@@ -5,6 +5,7 @@ using Turnroot.GameSettings;
 using Turnroot.UI;
 using Turnroot.UI.Components.Notifications;
 using Turnroot.Utilities;
+using Turnroot.Utilities.AbstractScripts;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.NonCombatScenes.Hub
@@ -12,6 +13,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
     [RequireComponent(typeof(UiInputProvider))]
     [RequireComponent(typeof(HubTeamLocations))]
     [RequireComponent(typeof(HubSubInput))]
+    [RequireComponent(typeof(SpecificUiHandler))]
     /// <remarks>
     /// This may need editing for your project, but if you aren't making major logic changes, you should
     /// be able to wrangle it to work for you just with UI changes and inspector stuff
@@ -21,33 +23,88 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         #region Fields
         [HideInInspector]
         public Brain.Brain _brain;
-
         public TextMeshProUGUI dateText;
-
         public UiChoice[] LocationChoices;
-
-        [BoxGroup("Input")]
         public UiInputProvider InputProvider;
 
         public enum HubInputMode
         {
             None,
             Location,
+            Chosen,
             MarketChoice,
-            FishMarket,
-            Blacksmith,
-            Armory,
-            Staples,
-            SecretShop,
             CafeChoice,
-            GroupLunch,
-            PersonalLunch,
             Battlefields,
             Docks,
             Training,
         }
 
-        private HubInputMode _currentInputMode = HubInputMode.None;
+        public HubInputMode CurrentInputMode = HubInputMode.None;
+        public HubInputMode PreviousInputMode { get; private set; } = HubInputMode.None;
+        public HubSubLocation CurrentSubLocation { get; private set; }
+
+        [Tooltip("Assigned fade used when returning from a sublocation back to the hub")]
+        public UIFade HubFadeToBlack;
+        public UIFade HubActionsFade;
+        public UIFade BackButtonFade;
+        public float HubMainFov;
+
+        public void SetCurrentSubLocation(HubSubLocation subLocation) =>
+            CurrentSubLocation = subLocation;
+
+        public void TransitionBackToHub(UIFade fadeToBlack = null)
+        {
+            void DoReturnToHub()
+            {
+                // Match hub entry behavior: set mode to location + refresh UI
+                SetInputMode(HubInputMode.Location);
+                UpdateChoiceSelection();
+                UpdateDateText();
+
+                // Re-randomize hub camera position (like initial hub load)
+                if (GeneralCamera != null && cameraPoints != null && cameraPoints.Length > 0)
+                {
+                    int idx = Random.Range(0, cameraPoints.Length);
+                    Transform dest = cameraPoints[idx];
+                    GeneralCamera.transform.SetPositionAndRotation(dest.position, dest.rotation);
+                }
+
+                HubActionsFade.Show();
+                GeneralCamera.fieldOfView = HubMainFov;
+                BackButtonFade.Hide();
+
+                // Refresh birthday notifications / other hub notifications
+                _brain?.charactersBrain.CheckBirthdays();
+
+                CurrentSubLocation = null;
+            }
+
+            if (fadeToBlack == null)
+            {
+                DoReturnToHub();
+                return;
+            }
+
+            UnityEngine.Events.UnityAction onVisible = null;
+            UnityEngine.Events.UnityAction onHidden = null;
+
+            onVisible = () =>
+            {
+                fadeToBlack.OnVisible.RemoveListener(onVisible);
+                DoReturnToHub();
+                fadeToBlack.Hide();
+            };
+
+            onHidden = () =>
+            {
+                fadeToBlack.OnHidden.RemoveListener(onHidden);
+            };
+
+            fadeToBlack.OnVisible.AddListener(onVisible);
+            fadeToBlack.OnHidden.AddListener(onHidden);
+            fadeToBlack.Show();
+        }
+
         private int currentIndex = 0;
 
         public NotificationsHelper notifications;
@@ -70,12 +127,15 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
         }
 
-        private GameDate gameDate;
+        [HideInInspector]
+        public GameDate gameDate;
 
         public Transform[] cameraPoints;
         public Camera GeneralCamera;
 
-        public HubSubInput sublocationInput => GetComponent<HubSubInput>();
+        public HubSubInput SublocationInput => GetComponent<HubSubInput>();
+
+        public SpecificUiHandler SpecificUiInputHandler => GetComponent<SpecificUiHandler>();
 
         #endregion
 
@@ -237,24 +297,59 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         private void HandleInput(string action)
         {
-            switch (_currentInputMode)
+            switch (CurrentInputMode)
             {
                 case HubInputMode.Location:
                     HandleLocationInput(action);
                     break;
                 case HubInputMode.MarketChoice:
-                    sublocationInput.HandleSubLocationInput(action);
+                case HubInputMode.CafeChoice:
+                case HubInputMode.Docks:
+                case HubInputMode.Training:
+                case HubInputMode.Battlefields:
+                    SublocationInput.HandleSubLocationInput(action);
+                    break;
+                case HubInputMode.Chosen:
+                    SpecificUiInputHandler.HandleInput(action);
                     break;
             }
         }
 
-        private void SetInputMode(HubInputMode mode)
+        public void SetInputMode(HubInputMode mode)
         {
-            _currentInputMode = mode;
+            if (mode != CurrentInputMode)
+            {
+                PreviousInputMode = CurrentInputMode;
+            }
+
+            $"HubManager: Changing input mode from {CurrentInputMode} to {mode}".LogInfo();
+            CurrentInputMode = mode;
             currentIndex = 0;
 
-            bool allowLook = mode != HubInputMode.Location;
-            sublocationInput.SetLookEnabled(allowLook);
+            bool allowLook = mode switch
+            {
+                HubInputMode.Location => false,
+                HubInputMode.MarketChoice => true,
+                HubInputMode.CafeChoice => true,
+                HubInputMode.Battlefields => false,
+                HubInputMode.Docks => true,
+                HubInputMode.Training => true,
+                HubInputMode.Chosen => false,
+                HubInputMode.None => false,
+                _ => false,
+            };
+
+            SublocationInput.SetLookEnabled(allowLook);
+        }
+
+        public void RevertToPreviousInputMode()
+        {
+            if (PreviousInputMode == CurrentInputMode)
+            {
+                return;
+            }
+
+            SetInputMode(PreviousInputMode);
         }
 
         #endregion

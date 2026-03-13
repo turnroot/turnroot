@@ -1,18 +1,28 @@
 using System.Collections;
 using TMPro;
+using Turnroot.Gameplay.PlayerSettings;
 using Turnroot.Utilities;
 using UnityEngine;
+using static Turnroot.Gameplay.NonCombatScenes.Hub.HubManager;
 
 namespace Turnroot.Gameplay.NonCombatScenes.Hub
 {
     [RequireComponent(typeof(Collider))]
     public class HubPoiUi : MonoBehaviour
     {
+        #region Inspector Fields
+
+        public HubSublocationName Type;
+        private Shop.Shop _shop;
         public GameObject poiVisual;
+        public Transform CameraPoint;
 
         [Tooltip("How long the fade in/out should take.")]
         public float fadeDuration = 0.25f;
 
+        public AudioSource UiFx;
+        public AudioClip PoiShowSound;
+        public AudioClip PoiSelectSound;
         private Renderer[] _renderers;
         private Material[] _materialInstances;
         private Camera _camera;
@@ -27,9 +37,21 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         private Material _badgeMaterialInstance;
         public Texture BadgeTexture;
 
+        public Texture ForbiddenBadgeTexture;
+        private Texture _currentBadgeTexture;
+
         public GameObject Particles;
 
         public bool ShowBadge = false;
+
+        [HideInInspector]
+        public bool CanSelect = true;
+
+        private HubManager hubmanager;
+
+        #endregion
+
+        #region Public API
 
         public void SetLabel(string text)
         {
@@ -71,59 +93,50 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
         }
 
+        public void Show()
+        {
+            if (poiVisual)
+            {
+                poiVisual.SetActive(true);
+            }
+            if (Particles != null)
+            {
+                Particles.SetActive(true);
+                Particles.GetComponent<ParticleSystem>()?.Play();
+            }
+
+            StartFade(1f);
+            if (UiFx != null && PoiShowSound != null)
+            {
+                UiFx.PlayOneShot(PoiShowSound);
+            }
+        }
+
+        public void Hide()
+        {
+            StartFade(0f);
+            if (Particles != null)
+            {
+                Particles.SetActive(false);
+            }
+        }
+
+        #endregion
+
+        #region Lifecycle
+
         private void Awake()
         {
+            hubmanager = FindFirstObjectByType<HubManager>();
             if (poiVisual == null)
             {
                 $"HubPoiUi on {gameObject.name} has no poiVisual assigned, disabling.".LogWarning();
                 return;
             }
 
-            _renderers = poiVisual.GetComponentsInChildren<Renderer>();
-            if (_renderers != null && _renderers.Length > 0)
-            {
-                _materialInstances = new Material[_renderers.Length];
-                for (int i = 0; i < _renderers.Length; i++)
-                {
-                    Material baseMat = _renderers[i].sharedMaterial;
-                    Material inst = baseMat != null ? Instantiate(baseMat) : null;
-                    _materialInstances[i] = inst;
-                    if (inst != null)
-                    {
-                        _renderers[i].material = inst;
-                    }
-                }
-                SetAlpha(0f);
-
-                // bump textmeshpro materials above other POI visuals so they always render
-                int overlayQueue = (int)UnityEngine.Rendering.RenderQueue.Overlay;
-                for (int i = 0; i < _materialInstances.Length; i++)
-                {
-                    var mat = _materialInstances[i];
-                    if (mat == null)
-                        continue;
-                    mat.renderQueue =
-                        mat.shader != null && mat.shader.name.Contains("TextMeshPro")
-                            ? overlayQueue + 1
-                            : overlayQueue - 10;
-                }
-            }
-
-            if (poiVisual != null)
-            {
-                poiVisual.SetActive(false);
-            }
-
-            SetLabel(LabelText);
-            SetBadgeVisible(ShowBadge);
-            if (ShowBadge && BadgeMaterial != null && BadgeTexture != null)
-            {
-                SetBadgeTexture(BadgeTexture);
-            }
-            if (Particles != null)
-            {
-                Particles.SetActive(false);
-            }
+            InitializeVisualMaterials();
+            SetupUiState();
+            HandleSubLocationType();
         }
 
         private void Update()
@@ -143,28 +156,74 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             );
         }
 
-        public void Show()
+        #endregion
+
+        #region Helpers
+
+        private void SetupUiState()
         {
-            if (poiVisual)
+            if (poiVisual != null)
             {
-                poiVisual.SetActive(true);
-            }
-            if (Particles != null)
-            {
-                Particles.SetActive(true);
-                Particles.GetComponent<ParticleSystem>()?.Play();
+                poiVisual.SetActive(false);
             }
 
-            StartFade(1f);
-        }
+            SetLabel(LabelText);
+            SetBadgeVisible(ShowBadge);
+            if (ShowBadge && BadgeMaterial != null && BadgeTexture != null)
+            {
+                _currentBadgeTexture = BadgeMaterial.mainTexture;
+                SetBadgeTexture(BadgeTexture);
+            }
 
-        public void Hide()
-        {
-            StartFade(0f);
             if (Particles != null)
             {
                 Particles.SetActive(false);
             }
+        }
+
+        private void HandleSubLocationType()
+        {
+            switch (Type)
+            {
+                case HubSublocationName.Market:
+                    _shop = TryGetComponent<Shop.Shop>(out var shop) ? shop : null;
+                    if (_shop?.ShopOpen(hubmanager.gameDate) == false)
+                    {
+                        LabelText = "Not Open";
+                        CanSelect = false;
+                        SetBadgeTexture(ForbiddenBadgeTexture);
+                        SetLabel(LabelText);
+                    }
+                    else
+                    {
+                        CanSelect = true;
+                    }
+                    break;
+
+                default:
+                    break;
+            }
+        }
+
+        private void InitializeVisualMaterials()
+        {
+            _renderers = poiVisual.GetComponentsInChildren<Renderer>();
+            if (_renderers == null || _renderers.Length == 0)
+                return;
+
+            _materialInstances = new Material[_renderers.Length];
+            for (int i = 0; i < _renderers.Length; i++)
+            {
+                Material baseMat = _renderers[i].sharedMaterial;
+                Material inst = baseMat != null ? Instantiate(baseMat) : null;
+                _materialInstances[i] = inst;
+                if (inst != null)
+                {
+                    _renderers[i].material = inst;
+                }
+            }
+
+            SetAlpha(0f);
         }
 
         private void StartFade(float target)
@@ -205,7 +264,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 return mat.GetColor("_BaseColor").a;
             }
 
-            return 1f; // default opaque
+            return 1f;
         }
 
         private IEnumerator FadeRoutine(float from, float to)
@@ -262,5 +321,53 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 }
             }
         }
+
+        #endregion
+        #region Selection
+        public void Select()
+        {
+            UiFx?.PlayOneShot(PoiSelectSound);
+            switch (Type)
+            {
+                case HubSublocationName.Market:
+                    hubmanager.SetInputMode(HubInputMode.Chosen);
+                    break;
+                case HubSublocationName.Docks:
+                    hubmanager.SetInputMode(HubInputMode.Chosen);
+                    break;
+                case HubSublocationName.Cafe:
+                    hubmanager.SetInputMode(HubInputMode.Chosen);
+                    break;
+                case HubSublocationName.Training:
+                    hubmanager.SetInputMode(HubInputMode.Chosen);
+                    break;
+                // battlefields don't have pois
+                default:
+                    break;
+            }
+            if (CameraPoint != null)
+            {
+                if (GameplayPlayerSettings.Instance.AnimatedCameraMovement)
+                {
+                    hubmanager._brain.cameraBrain.StartCameraTransition(
+                        hubmanager.GeneralCamera,
+                        CameraPoint,
+                        fadeDuration
+                    );
+                }
+                else
+                {
+                    hubmanager._brain.cameraBrain.MoveCameraInstant(
+                        hubmanager.GeneralCamera,
+                        CameraPoint
+                    );
+                }
+            }
+            Hide();
+            // play confirmation sound
+            // show sublocation UI
+            // if sublocation has music, crossfade current music to sublocation music
+        }
+        #endregion
     }
 }

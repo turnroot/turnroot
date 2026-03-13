@@ -15,10 +15,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         private Brain.Brain brain;
         public GameObject tutorialPrefab;
 
-        public HubInputMode InputModeForThisLocation;
-
         private bool acceptingInput = false;
-        public Transform[] cameraPoints;
+        public Transform cameraPoint;
 
         public CharacterInstance[] CharactersPresent;
 
@@ -59,6 +57,14 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                     $"No tutorial prefab set for {LocationName}, skipping tutorial.".LogWarning();
                     // fall through to transition below
                 }
+            }
+
+            // Track the current sublocation for proper back behavior.
+            var hubManager = FindFirstObjectByType<HubManager>();
+            if (hubManager != null)
+            {
+                hubManager.SetCurrentSubLocation(this);
+                hubManager.GeneralCamera.fieldOfView = hubManager.SublocationInput.normalFov;
             }
 
             brain.PublishHubSublocationVisited(LocationName);
@@ -103,7 +109,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             else
             {
                 $"No FadeToBlack component assigned, doing instant camera move.".LogWarning();
-                MoveCameraRandom();
+                ResetCameraToCameraPoint();
                 acceptingInput = true;
                 $"Camera transition complete for {LocationName}".LogInfo();
             }
@@ -128,10 +134,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             if (brain != null)
             {
-                brain.PublishHubSublocationInputModeChange(InputModeForThisLocation);
+                brain.PublishHubSublocationInputModeChange(GetSublocationChoiceMode());
             }
 
-            MoveCameraRandom();
+            ResetCameraToCameraPoint();
             FadeToBlack.Hide();
             $"Camera moved and fading back in for {LocationName}".LogInfo();
         }
@@ -143,19 +149,30 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             $"Camera transition fully complete for {LocationName}, accepting input now.".LogInfo();
         }
 
-        private void MoveCameraRandom()
+        private HubInputMode GetSublocationChoiceMode()
         {
-            $"Moving camera to a random point for {LocationName}".LogInfo();
-            if (GeneralCamera == null || cameraPoints == null || cameraPoints.Length == 0)
+            return LocationName switch
+            {
+                HubSublocationName.Market => HubInputMode.MarketChoice,
+                HubSublocationName.Cafe => HubInputMode.CafeChoice,
+                HubSublocationName.Battlefields => HubInputMode.Battlefields,
+                HubSublocationName.Docks => HubInputMode.Docks,
+                HubSublocationName.Training => HubInputMode.Training,
+                _ => HubInputMode.Chosen,
+            };
+        }
+
+        public void ResetCameraToCameraPoint()
+        {
+            $"Resetting camera to a random point for {LocationName}".LogInfo();
+            if (GeneralCamera == null || cameraPoint == null)
             {
                 $"Camera or camera points not set up for {LocationName}, cannot move camera.".LogError();
                 return;
             }
 
-            int idx = Random.Range(0, cameraPoints.Length);
-            Transform dest = cameraPoints[idx];
+            Transform dest = cameraPoint;
             GeneralCamera.transform.SetPositionAndRotation(dest.position, dest.rotation);
-            $"Camera moved to random position {idx} for {LocationName}".LogInfo();
         }
     }
 }

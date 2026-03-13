@@ -7,26 +7,34 @@ using UnityEngine;
 namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
 {
     [Serializable]
+    /// <summary>
+    /// Represents an item that can be bought/sold in a shop, along with all relevant information about its availability, restocking, and sales. Use <code>ShopItem.Refresh()</code> as the main way to update the item's status each day, which will handle restocking and sales logic together.
+    /// </summary>
     public struct ShopItem
     {
         public ObjectItem Item;
-        public int AvailableQuantity;
+        public Status CurrentStatus;
         public int MaxQuantity;
         public bool RestockAtIntervals;
         public int RestockIntervalDays;
         private GameDate lastRestockDate;
         public int RestockQuantityPerDay;
+        public bool CanGoOnSale;
         public int SalePrice;
         public GameDate[] SpecificSaleDays;
 
         [Range(0f, 1f)]
         public float SaleChanceOnRandomDays;
 
-        public readonly bool IsOnSale(GameDate currentDay)
+        public bool RareItem;
+        public float ChanceToAppearInShop;
+
+        public void IsOnSale(GameDate currentDay)
         {
-            if (SpecificSaleDays == null || SpecificSaleDays.Length == 0)
+            if (SpecificSaleDays == null || SpecificSaleDays.Length == 0 || !CanGoOnSale)
             {
-                return false;
+                CurrentStatus.IsOnSale = false;
+                return;
             }
 
             foreach (GameDate saleDay in SpecificSaleDays)
@@ -34,22 +42,47 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
                 if (
                     saleDay == currentDay
                     || (
-                        SaleChanceOnRandomDays > 0f
+                        CanGoOnSale
+                        && SaleChanceOnRandomDays > 0f
                         && UnityEngine.Random.value < SaleChanceOnRandomDays
                     )
                 )
                 {
-                    return true;
+                    CurrentStatus.IsOnSale = true;
+                    return;
                 }
             }
-            return false;
+            CurrentStatus.IsOnSale = false;
         }
 
-        public void RestockIfNeeded(GameDate currentDay)
+        /// <summary>
+        /// Restocks the item if it's a rare item that can randomly appear, or if it's an item that restocks at intervals and the appropriate amount of time has passed since the last restock.
+        /// </summary>
+        /// <param name="currentDay"></param>
+        /// <returns>
+        /// The current available quantity
+        /// </returns>
+        public int RestockIfNeeded(GameDate currentDay)
         {
+            if (RareItem)
+            {
+                if (UnityEngine.Random.value < ChanceToAppearInShop)
+                {
+                    CurrentStatus.AvailableQuantity = Math.Min(
+                        CurrentStatus.AvailableQuantity + 1,
+                        MaxQuantity
+                    );
+                    return CurrentStatus.AvailableQuantity;
+                }
+            }
+
+            if (CurrentStatus.AvailableQuantity >= MaxQuantity)
+            {
+                return CurrentStatus.AvailableQuantity;
+            }
             if (!RestockAtIntervals)
             {
-                return;
+                return CurrentStatus.AvailableQuantity;
             }
             else if (
                 currentDay.year > lastRestockDate.year
@@ -57,20 +90,27 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
                 || currentDay.day >= lastRestockDate.day + RestockIntervalDays
             )
             {
-                AvailableQuantity = Math.Min(
-                    AvailableQuantity + RestockQuantityPerDay,
+                CurrentStatus.AvailableQuantity = Math.Min(
+                    CurrentStatus.AvailableQuantity + RestockQuantityPerDay,
                     MaxQuantity
                 );
                 lastRestockDate = currentDay;
             }
+            return CurrentStatus.AvailableQuantity;
         }
 
         public void Initialize(GameDate currentDay) => lastRestockDate = currentDay;
 
-        public bool RefreshAndReturnSaleStatus(GameDate currentDay)
+        public struct Status
+        {
+            public int AvailableQuantity;
+            public bool IsOnSale;
+        }
+
+        public Status Refresh(GameDate currentDay)
         {
             RestockIfNeeded(currentDay);
-            return IsOnSale(currentDay);
+            return CurrentStatus;
         }
     }
 }

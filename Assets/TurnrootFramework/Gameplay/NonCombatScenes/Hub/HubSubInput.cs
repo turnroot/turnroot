@@ -1,3 +1,5 @@
+using Turnroot.Utilities;
+using Turnroot.Utilities.AbstractScripts;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -48,18 +50,24 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         public void HandleSubLocationInput(string action)
         {
-            // TODO: handle select/back if required
-        }
-
-        private float NormalizeAngle(float a)
-        {
-            // convert 0..360 to -180..180 for easier clamping math
-            if (a > 180f)
+            if (action == "Select")
             {
-                a -= 360f;
+                $"Select input received in HubSubInput".LogInfo();
+                // check if there is a highlighted POI and can be selected
+                if (targetCollider != null)
+                {
+                    var poi = targetCollider.GetComponent<HubPoiUi>();
+                    if (poi != null && poi.CanSelect)
+                    {
+                        poi.Select();
+                    }
+                }
             }
 
-            return a;
+            if (action == "Back")
+            {
+                hubManager.TransitionBackToHub(hubManager.HubFadeToBlack);
+            }
         }
 
         public void SetLookEnabled(bool enabled)
@@ -70,41 +78,18 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
 
             _isLooking = enabled;
+
+            if (_lookCoroutine != null)
+            {
+                StopCoroutine(_lookCoroutine);
+                _lookCoroutine = null;
+            }
+
             if (_isLooking)
             {
                 _hasBaseRotation = false;
                 _pitchOffset = _yawOffset = 0f;
-                if (_lookCoroutine != null)
-                {
-                    StopCoroutine(_lookCoroutine);
-                }
             }
-        }
-
-        private System.Collections.IEnumerator SmoothLook(Camera cam, Vector3 targetRotation)
-        {
-            float elapsed = 0f;
-            Vector3 start = cam.transform.localEulerAngles;
-            start.x = NormalizeAngle(start.x);
-            start.y = NormalizeAngle(start.y);
-            start.z = 0f; // always zero roll
-
-            while (elapsed < lookSmoothTime)
-            {
-                elapsed += Time.deltaTime;
-                float t = Mathf.Clamp01(elapsed / lookSmoothTime);
-                // use DeltaAngle to find shortest rotation direction across the
-                // 180 boundary (avoids wild spins when base+offset crosses +-180).
-                float pitchDelta = Mathf.DeltaAngle(start.x, targetRotation.x);
-                float yawDelta = Mathf.DeltaAngle(start.y, targetRotation.y);
-                float pitch = start.x + pitchDelta * t;
-                float yaw = start.y + yawDelta * t;
-                cam.transform.localEulerAngles = new Vector3(pitch, yaw, 0f);
-                yield return null;
-            }
-
-            cam.transform.localEulerAngles = new Vector3(targetRotation.x, targetRotation.y, 0f);
-            _lookCoroutine = null;
         }
 
         private void Update()
@@ -128,8 +113,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             if (!_hasBaseRotation)
             {
                 _baseRotation = hubCamera.transform.localEulerAngles;
-                _baseRotation.x = NormalizeAngle(_baseRotation.x);
-                _baseRotation.y = NormalizeAngle(_baseRotation.y);
+                _baseRotation.x = hubManager._brain.cameraBrain.NormalizeAngle(_baseRotation.x);
+                _baseRotation.y = hubManager._brain.cameraBrain.NormalizeAngle(_baseRotation.y);
                 _hasBaseRotation = true;
             }
 
@@ -158,8 +143,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             );
 
             Vector3 targetRotation = new Vector3(
-                NormalizeAngle(_baseRotation.x + _pitchOffset),
-                NormalizeAngle(_baseRotation.y + _yawOffset),
+                hubManager._brain.cameraBrain.NormalizeAngle(_baseRotation.x + _pitchOffset),
+                hubManager._brain.cameraBrain.NormalizeAngle(_baseRotation.y + _yawOffset),
                 0f
             );
 
@@ -168,7 +153,9 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 StopCoroutine(_lookCoroutine);
             }
 
-            _lookCoroutine = StartCoroutine(SmoothLook(hubCamera, targetRotation));
+            _lookCoroutine = StartCoroutine(
+                hubManager._brain.cameraBrain.SmoothLook(hubCamera, targetRotation, lookSmoothTime)
+            );
             UpdateFov();
         }
 
