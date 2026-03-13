@@ -8,7 +8,7 @@ namespace Turnroot.Utilities
     /// Month is 1-based (1=January).
     /// </summary>
     [Serializable]
-    public struct GameDate
+    public struct GameDate : IEquatable<GameDate>
     {
         public int year;
         public int month; // 1-based (1=January)
@@ -39,5 +39,25 @@ namespace Turnroot.Utilities
                     _ => "th",
                 };
         }
+
+        // Equality members for comparing dates and using in collections.
+        public bool Equals(GameDate other)
+        {
+            return year == other.year && month == other.month && day == other.day;
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is GameDate other && Equals(other);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(year, month, day);
+        }
+
+        public static bool operator ==(GameDate left, GameDate right) => left.Equals(right);
+
+        public static bool operator !=(GameDate left, GameDate right) => !(left == right);
     }
 }

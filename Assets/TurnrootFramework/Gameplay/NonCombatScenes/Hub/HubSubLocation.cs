@@ -28,6 +28,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         public UIFade LocationsFade;
         public UIFade BackButtonFade;
+
+        public UIFade NotificationFade;
         private string LtmKey => "HubSubLocation_Visited_" + LocationName.ToString();
 
         public bool CanBeVisitedToday()
@@ -109,24 +111,21 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         private void OnFadeVisible()
         {
-            // overlay is fully black; perform UI adjustments first so the player sees
-            // the proper elements once the screen begins to fade back in.
             FadeToBlack.OnVisible.RemoveListener(OnFadeVisible);
 
             if (LocationsFade != null)
             {
-                // fade the other location buttons out and keep them hidden while we're
-                // in the sublocation view
                 LocationsFade.Hide();
             }
             if (BackButtonFade != null)
             {
-                // show the back button so the player can return from the sublocation
                 BackButtonFade.Show();
             }
+            if (NotificationFade != null)
+            {
+                NotificationFade.Hide();
+            }
 
-            // notify the manager about the new input mode for this location. the
-            // hub manager listens and will update its _currentInputMode accordingly.
             if (brain != null)
             {
                 brain.PublishHubSublocationInputModeChange(InputModeForThisLocation);
@@ -139,7 +138,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         private void OnFadeHidden()
         {
-            // fade finished, allow player input again
             FadeToBlack.OnHidden.RemoveListener(OnFadeHidden);
             acceptingInput = true;
             $"Camera transition fully complete for {LocationName}, accepting input now.".LogInfo();
