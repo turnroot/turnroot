@@ -1,6 +1,6 @@
-using NaughtyAttributes;
 using TMPro;
 using Turnroot.Characters;
+using Turnroot.Gameplay.NonCombatScenes.Hub.Docks;
 using Turnroot.GameSettings;
 using Turnroot.UI;
 using Turnroot.UI.Components.Notifications;
@@ -109,11 +109,23 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         public NotificationsHelper notifications;
 
+        public Dock dock;
+        private DockShipStatus[] pastShipDockedStatuses;
+
+        private const string dockShipStatusLtmKey = "Hub_DockedShipStatuses";
+
+        [System.Serializable]
+        private class DockShipStatusContainer
+        {
+            public DockShipStatus[] statuses;
+        }
+
         public HubSubLocation[] subLocations;
 
         public TextMeshProUGUI ChapterNumberAndNameText;
         public string ChapterNumberAndNameFormat = "Chapter {0}: {1}";
         private const string birthdayNotificationTypeName = "birthday";
+        private const string shipNotificationTypeName = "ship";
 
         public void UpdateChapterNumberAndNameText(int chapterNumber, string chapterName)
         {
@@ -221,8 +233,19 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             var ltm = _brain.ltm;
             if (ltm != null && ltm.Initialized)
             {
-                gameDate = ltm.GetGameDate();
-                $"HubManager: Current game date from LTM is {gameDate.year}/{gameDate.month}/{gameDate.day}".LogInfo();
+                var storedDate = ltm.GetGameDate();
+                if (storedDate == GameDate.Default)
+                {
+                    // First load ever: initialize from settings and persist
+                    gameDate = GameplayGeneralSettings.Instance.StartingGameDate;
+                    ltm.SetGameDate(gameDate.year, (Month)(gameDate.month - 1), gameDate.day);
+                    $"HubManager: No saved game date found, using starting date {gameDate.year}/{gameDate.month}/{gameDate.day}".LogInfo();
+                }
+                else
+                {
+                    gameDate = storedDate;
+                    IncrementGameDateForHubLoad();
+                }
             }
 
             Initialize();
@@ -239,6 +262,13 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             _brain.OnHubSublocationInputModeChange += HandleSublocationInputModeChange;
             UpdateDateText();
             _brain.charactersBrain.CheckBirthdays();
+
+            pastShipDockedStatuses = LoadDockShipStatuses();
+
+            dock?.UpdateDailyVoyageStatuses();
+
+            CheckShipsDocked();
+
             UpdateChapterNumberAndNameText(
                 _brain.saveFileBrain.ActiveSaveFile.ChapterNumber,
                 _brain.saveFileBrain.ActiveSaveFile.ChapterName
@@ -269,7 +299,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             int idx = Random.Range(0, cameraPoints.Length);
             Transform dest = cameraPoints[idx];
             GeneralCamera.transform.SetPositionAndRotation(dest.position, dest.rotation);
-            $"HubManager: Moved camera to random starting position {idx}".LogInfo();
         }
 
         public void OnDestroy()
@@ -322,7 +351,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 PreviousInputMode = CurrentInputMode;
             }
 
-            $"HubManager: Changing input mode from {CurrentInputMode} to {mode}".LogInfo();
             CurrentInputMode = mode;
             currentIndex = 0;
 
@@ -352,6 +380,21 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             SetInputMode(PreviousInputMode);
         }
 
+        private void IncrementGameDateForHubLoad()
+        {
+            if (_brain?.ltm == null)
+            {
+                return;
+            }
+
+            GameDate current = _brain.ltm.GetGameDate();
+            var dt = new System.DateTime(current.year, current.month, current.day);
+            dt = dt.AddDays(1);
+
+            _brain.ltm.SetGameDate(dt.Year, (Month)(dt.Month - 1), dt.Day);
+            gameDate = new GameDate(dt.Year, dt.Month, dt.Day);
+        }
+
         #endregion
 
 
@@ -360,7 +403,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         {
             if (dateText != null)
             {
-                Month month = (Month)gameDate.month;
+                Month month = (Month)Mathf.Clamp(gameDate.month - 1, 0, 11);
                 string daySuffix = GameDate.GetDaySuffix(gameDate.day);
                 string monthName = month.ToString();
                 dateText.text = $"{monthName} {gameDate.day}{daySuffix}";
@@ -420,6 +463,100 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 if (
                     type.category.ToLower() == birthdayNotificationTypeName
                     || type.name.ToLower() == birthdayNotificationTypeName
+                )
+                {
+                    notifications.Send(System.Array.IndexOf(notifications.types, type));
+                    break;
+                }
+            }
+        }
+
+        public void CheckShipsDocked()
+        {
+            var statuses = dock.PublishDockedShipStatuses();
+            if (statuses == null || statuses.Length == 0)
+            {
+                return;
+            }
+
+            // Ensure we have a cached baseline; if none exists, treat all as undocked (so first check can notify correctly).
+            if (pastShipDockedStatuses == null || pastShipDockedStatuses.Length == 0)
+            {
+                pastShipDockedStatuses = new DockShipStatus[statuses.Length];
+                for (int i = 0; i < statuses.Length; i++)
+                {
+                    pastShipDockedStatuses[i] = new DockShipStatus
+                    {
+                        ShipName = statuses[i].ShipName,
+                        IsDocked = false,
+                    };
+                }
+            }
+
+            bool anyChange = false;
+
+            for (int i = 0; i < statuses.Length; i++)
+            {
+                var current = statuses[i];
+                var previous = System.Array.Find(
+                    pastShipDockedStatuses,
+                    s => s.ShipName == current.ShipName
+                );
+
+                bool wasDocked = previous.ShipName != null && previous.IsDocked;
+
+                if (current.IsDocked != wasDocked)
+                {
+                    SendShipNotification(current.ShipName, current.IsDocked);
+                    anyChange = true;
+                }
+            }
+
+            if (anyChange)
+            {
+                pastShipDockedStatuses = statuses;
+                SaveDockShipStatuses(statuses);
+            }
+        }
+
+        private DockShipStatus[] LoadDockShipStatuses()
+        {
+            if (_brain?.ltm == null)
+            {
+                return new DockShipStatus[0];
+            }
+
+            string json = _brain.ltm.Recall(dockShipStatusLtmKey);
+            if (string.IsNullOrEmpty(json))
+            {
+                return new DockShipStatus[0];
+            }
+
+            var container = JsonUtility.FromJson<DockShipStatusContainer>(json);
+            return container?.statuses ?? new DockShipStatus[0];
+        }
+
+        private void SaveDockShipStatuses(DockShipStatus[] statuses)
+        {
+            if (_brain?.ltm == null)
+            {
+                return;
+            }
+
+            var container = new DockShipStatusContainer { statuses = statuses };
+            _brain.ltm.Remember(dockShipStatusLtmKey, JsonUtility.ToJson(container));
+        }
+
+        private void SendShipNotification(string shipName, bool isDocked)
+        {
+            string action = isDocked ? "docked at" : "left";
+            notifications.SetMessage($"<i>{shipName}</i> has {action} the harbor");
+
+            foreach (var type in notifications.types)
+            {
+                if (
+                    type.category.ToLower() == shipNotificationTypeName
+                    || type.name.ToLower() == shipNotificationTypeName
                 )
                 {
                     notifications.Send(System.Array.IndexOf(notifications.types, type));

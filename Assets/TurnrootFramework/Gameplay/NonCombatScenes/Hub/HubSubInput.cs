@@ -1,7 +1,6 @@
-using Turnroot.Utilities;
-using Turnroot.Utilities.AbstractScripts;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using static Turnroot.Gameplay.NonCombatScenes.Hub.HubManager;
 
 namespace Turnroot.Gameplay.NonCombatScenes.Hub
 {
@@ -52,7 +51,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         {
             if (action == "Select")
             {
-                $"Select input received in HubSubInput".LogInfo();
                 // check if there is a highlighted POI and can be selected
                 if (targetCollider != null)
                 {
@@ -166,9 +164,18 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 return;
             }
 
-            // use both a narrow ray (centre of screen) and the forgiving sphere cast.
-            // the raycast wins whenever it hits something, which allows us to switch to a
-            // new collider even if a nearer object partially blocks the sphere.
+            // skip raycast if Location or Chosen
+            if (hubManager != null)
+            {
+                if (
+                    hubManager.CurrentInputMode == HubInputMode.Location
+                    || hubManager.CurrentInputMode == HubInputMode.Chosen
+                )
+                {
+                    return;
+                }
+            }
+
             Vector3 origin = hubCamera.transform.position;
             Vector3 forward = hubCamera.transform.forward;
 
@@ -208,27 +215,30 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                     {
                         var oldPoi = targetCollider.GetComponent<HubPoiUi>();
                         if (oldPoi != null)
+                        {
                             oldPoi.Hide();
+                        }
                     }
 
-                    Debug.Log($"Zoom hit {newTarget.name}");
                     targetCollider = newTarget;
                     _isZoomed = true;
 
                     var poi = newTarget.GetComponent<HubPoiUi>();
                     if (poi != null)
+                    {
                         poi.Show();
+                    }
                 }
             }
             else if (_isZoomed)
             {
-                Debug.Log("Zoom cleared");
-                // hide previous POI UI
                 if (targetCollider != null)
                 {
                     var oldPoi = targetCollider.GetComponent<HubPoiUi>();
                     if (oldPoi != null)
+                    {
                         oldPoi.Hide();
+                    }
                 }
 
                 targetCollider = null;

@@ -39,7 +39,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         public void PlayerVisit()
         {
-            Debug.Log($"HubSubLocation.PlayerVisit called for {LocationName}");
             if (!HasBeenVisitedEver)
             {
                 $"First time visiting {LocationName}, showing tutorial.".LogInfo();
@@ -48,7 +47,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
                 if (tutorialPrefab != null)
                 {
-                    $"Instantiating tutorial for {LocationName}.".LogInfo();
                     Instantiate(tutorialPrefab);
                     acceptingInput = false;
                 }
@@ -96,22 +94,18 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         private void DoCameraTransition()
         {
-            $"Starting camera transition for visiting {LocationName}".LogInfo();
             if (FadeToBlack != null)
             {
-                $"Using fade to black for camera transition.".LogInfo();
                 FadeToBlack.OnVisible.AddListener(OnFadeVisible);
                 FadeToBlack.OnHidden.AddListener(OnFadeHidden);
 
                 FadeToBlack.Show();
-                $"Camera transition initiated for {LocationName}".LogInfo();
             }
             else
             {
                 $"No FadeToBlack component assigned, doing instant camera move.".LogWarning();
                 ResetCameraToCameraPoint();
                 acceptingInput = true;
-                $"Camera transition complete for {LocationName}".LogInfo();
             }
         }
 
@@ -139,14 +133,12 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             ResetCameraToCameraPoint();
             FadeToBlack.Hide();
-            $"Camera moved and fading back in for {LocationName}".LogInfo();
         }
 
         private void OnFadeHidden()
         {
             FadeToBlack.OnHidden.RemoveListener(OnFadeHidden);
             acceptingInput = true;
-            $"Camera transition fully complete for {LocationName}, accepting input now.".LogInfo();
         }
 
         private HubInputMode GetSublocationChoiceMode()
@@ -164,7 +156,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         public void ResetCameraToCameraPoint()
         {
-            $"Resetting camera to a random point for {LocationName}".LogInfo();
             if (GeneralCamera == null || cameraPoint == null)
             {
                 $"Camera or camera points not set up for {LocationName}, cannot move camera.".LogError();

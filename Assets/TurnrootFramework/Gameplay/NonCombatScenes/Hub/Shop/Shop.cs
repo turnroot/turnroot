@@ -1,4 +1,3 @@
-using NaughtyAttributes;
 using Turnroot.Characters;
 using Turnroot.Utilities;
 using UnityEngine;

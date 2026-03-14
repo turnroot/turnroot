@@ -55,14 +55,19 @@ namespace Turnroot.Utilities
 
             _initialRotation = transform.rotation;
             if (AutoComputeExtents)
+            {
                 TryComputeExtentsFromEmitter();
+            }
+
             RecalculateCorners();
         }
 
         void OnValidate()
         {
             if (AutoComputeExtents)
+            {
                 TryComputeExtentsFromEmitter();
+            }
             // if inspector changes the extents, update the corner array immediately for editor preview
             RecalculateCorners();
         }
@@ -111,7 +116,9 @@ namespace Turnroot.Utilities
             // look for a particle system on this object or any child
             ParticleSystem ps = GetComponentInChildren<ParticleSystem>();
             if (ps == null)
+            {
                 return;
+            }
 
             var shape = ps.shape;
             if (shape.shapeType == ParticleSystemShapeType.Rectangle)

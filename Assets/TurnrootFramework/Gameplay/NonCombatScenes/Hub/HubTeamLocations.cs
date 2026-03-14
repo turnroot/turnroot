@@ -110,7 +110,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                                 UnitLocationPortraitPrefab,
                                 LocationLayouts[layoutIndex].layoutObject.transform
                             );
-                            $"HubTeamLocations: Instantiated portrait for {ci.CharacterTemplate.DisplayName} in {assignedLocation.LocationName} at index {layoutIndex}".LogInfo();
                             var portraitScript = portrait.GetComponent<UnitLocationPortraitRefs>();
                             if (portraitScript != null)
                             {

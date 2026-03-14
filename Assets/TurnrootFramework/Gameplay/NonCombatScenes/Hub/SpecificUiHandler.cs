@@ -1,6 +1,4 @@
-using Turnroot.Utilities;
 using UnityEngine;
-using static Turnroot.Gameplay.NonCombatScenes.Hub.HubManager;
 
 namespace Turnroot.Gameplay.NonCombatScenes.Hub
 {
@@ -16,7 +14,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         public void HandleInput(string action)
         {
-            $"SpecificUiHandler received input: {action}".LogInfo();
             if (action == "Back")
             {
                 hubManager.CurrentSubLocation?.ResetCameraToCameraPoint();

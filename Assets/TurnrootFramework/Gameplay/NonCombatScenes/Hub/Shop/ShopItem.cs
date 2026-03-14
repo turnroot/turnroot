@@ -1,5 +1,4 @@
 using System;
-using NaughtyAttributes;
 using Turnroot.Gameplay.Objects;
 using Turnroot.Utilities;
 using UnityEngine;

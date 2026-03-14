@@ -137,6 +137,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             InitializeVisualMaterials();
             SetupUiState();
             HandleSubLocationType();
+            Hide();
         }
 
         private void Update()
@@ -209,7 +210,9 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         {
             _renderers = poiVisual.GetComponentsInChildren<Renderer>();
             if (_renderers == null || _renderers.Length == 0)
+            {
                 return;
+            }
 
             _materialInstances = new Material[_renderers.Length];
             for (int i = 0; i < _renderers.Length; i++)
