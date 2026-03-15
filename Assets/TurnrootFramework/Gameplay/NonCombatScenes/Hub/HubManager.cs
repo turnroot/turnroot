@@ -1,6 +1,7 @@
 using TMPro;
 using Turnroot.Characters;
 using Turnroot.Gameplay.NonCombatScenes.Hub.Docks;
+using Turnroot.Gameplay.NonCombatScenes.Hub.Shop;
 using Turnroot.GameSettings;
 using Turnroot.UI;
 using Turnroot.UI.Components.Notifications;
@@ -121,6 +122,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         }
 
         public HubSubLocation[] subLocations;
+
+        public ShopsManager shopsManager;
 
         public TextMeshProUGUI ChapterNumberAndNameText;
         public string ChapterNumberAndNameFormat = "Chapter {0}: {1}";
@@ -268,6 +271,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             dock?.UpdateDailyVoyageStatuses();
 
             CheckShipsDocked();
+
+            shopsManager.RefreshShopsForNewDay(gameDate);
 
             UpdateChapterNumberAndNameText(
                 _brain.saveFileBrain.ActiveSaveFile.ChapterNumber,

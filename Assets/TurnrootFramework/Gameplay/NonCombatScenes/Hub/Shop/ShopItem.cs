@@ -108,6 +108,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
 
         public Status Refresh(GameDate currentDay)
         {
+            IsOnSale(currentDay);
             RestockIfNeeded(currentDay);
             return CurrentStatus;
         }

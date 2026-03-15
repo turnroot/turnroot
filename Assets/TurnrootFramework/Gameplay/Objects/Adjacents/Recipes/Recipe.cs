@@ -1,3 +1,4 @@
+using Turnroot.Characters;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.Objects.Recipes
@@ -20,5 +21,8 @@ namespace Turnroot.Gameplay.Objects.Recipes
         public int MovementBonus;
         public int CharmBonus;
         public ObjectItem[] Ingredients;
+
+        public CharacterData UnitsLove;
+        public CharacterData UnitsHate;
     }
 }

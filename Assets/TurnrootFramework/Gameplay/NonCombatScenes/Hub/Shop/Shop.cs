@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using Turnroot.Characters;
 using Turnroot.Utilities;
 using UnityEngine;
@@ -7,6 +9,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
     public class Shop : MonoBehaviour
     {
         public ShopItem[] ItemsStocked;
+        private Dictionary<ShopItem, int> currentStock = new();
         public string ShopDescription;
         public CharacterData Shopkeeper;
 
@@ -26,5 +29,15 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
         )]
         public bool[] DaysOpenCycle = new bool[7] { true, true, true, true, true, true, true };
         public bool WillBuy = true;
+
+        public void RefreshShopForNewDay(GameDate currentDay)
+        {
+            foreach (ShopItem item in ItemsStocked)
+            {
+                var status = item.Refresh(currentDay);
+                currentStock[item] = status.AvailableQuantity;
+                $"{item.Item.name} in {name} has status: IsOnSale={status.IsOnSale}, AvailableQuantity={status.AvailableQuantity}".LogInfo();
+            }
+        }
     }
 }
