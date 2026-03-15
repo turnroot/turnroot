@@ -17,6 +17,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         public GameObject poiVisual;
         public Transform CameraPoint;
 
+        public bool MoveCameraOnSelect = true;
+
         [Tooltip("How long the fade in/out should take.")]
         public float fadeDuration = 0.25f;
 
@@ -350,20 +352,57 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
             if (CameraPoint != null)
             {
-                if (GameplayPlayerSettings.Instance.AnimatedCameraMovement)
+                if (MoveCameraOnSelect)
                 {
-                    hubmanager._brain.cameraBrain.StartCameraTransition(
-                        hubmanager.GeneralCamera,
-                        CameraPoint,
-                        fadeDuration
-                    );
+                    if (GameplayPlayerSettings.Instance.AnimatedCameraMovement)
+                    {
+                        hubmanager._brain.cameraBrain.StartCameraTransition(
+                            hubmanager.GeneralCamera,
+                            CameraPoint,
+                            fadeDuration
+                        );
+                    }
+                    else
+                    {
+                        hubmanager._brain.cameraBrain.MoveCameraInstant(
+                            hubmanager.GeneralCamera,
+                            CameraPoint
+                        );
+                    }
                 }
                 else
                 {
-                    hubmanager._brain.cameraBrain.MoveCameraInstant(
-                        hubmanager.GeneralCamera,
-                        CameraPoint
-                    );
+                    // fade to black, move, fade back in (use the same structure as the sublocation transition)
+                    if (
+                        hubmanager?.HubFadeToBlack != null
+                        && hubmanager.GeneralCamera != null
+                        && CameraPoint != null
+                    )
+                    {
+                        UnityEngine.Events.UnityAction onVisible = null;
+                        UnityEngine.Events.UnityAction onHidden = null;
+
+                        onVisible = () =>
+                        {
+                            // Move camera while screen is black
+                            hubmanager.GeneralCamera.transform.SetPositionAndRotation(
+                                CameraPoint.position,
+                                CameraPoint.rotation
+                            );
+
+                            hubmanager.HubFadeToBlack.OnVisible.RemoveListener(onVisible);
+                            hubmanager.HubFadeToBlack.Hide();
+                        };
+
+                        onHidden = () =>
+                        {
+                            hubmanager.HubFadeToBlack.OnHidden.RemoveListener(onHidden);
+                        };
+
+                        hubmanager.HubFadeToBlack.OnVisible.AddListener(onVisible);
+                        hubmanager.HubFadeToBlack.OnHidden.AddListener(onHidden);
+                        hubmanager.HubFadeToBlack.Show();
+                    }
                 }
             }
             Hide();

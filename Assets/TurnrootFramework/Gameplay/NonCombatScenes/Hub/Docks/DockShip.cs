@@ -136,7 +136,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Docks
             _currentDockedTime = state.CurrentDockedTime;
             _daysToStayAtSea = state.DaysToStayAtSea;
             IsDocked = !_isAtSea;
-            $"{ShipName} loaded state from LTM: IsAtSea={_isAtSea}, CurrentAtSeaTime={_currentAtSeaTime}, CurrentDockedTime={_currentDockedTime}, DaysToStayAtSea={_daysToStayAtSea}".LogInfo();
 
             if (AlwaysDocked)
             {
@@ -188,8 +187,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Docks
                 DaysToStayAtSea = _daysToStayAtSea,
             };
 
-            $"{ShipName} saving state to LTM: IsAtSea={_isAtSea}, CurrentAtSeaTime={_currentAtSeaTime}, CurrentDockedTime={_currentDockedTime}, DaysToStayAtSea={_daysToStayAtSea}".LogInfo();
-
             string key = LtmKeyPrefix + ShipName;
             _brain.ltm.Remember(key, JsonUtility.ToJson(state));
             return OperationResult.Successful();
@@ -201,7 +198,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Docks
 
         public void SetDockedState(bool docked)
         {
-            // Keep internal state consistent (this may be invoked from Dock when managing ship docking round-robin).
+            // Keep internal state consistent (this may be invoked from Dock when managing ship docking round-robin)
             _isAtSea = !docked;
             IsDocked = docked;
 
