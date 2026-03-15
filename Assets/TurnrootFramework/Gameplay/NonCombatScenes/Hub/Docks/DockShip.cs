@@ -21,8 +21,15 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Docks
         }
 
         [Header("Basic Info")]
-        public GameObject PoiUi;
         public string ShipName;
+
+        public enum DockSide
+        {
+            Left,
+            Right,
+        }
+
+        public DockSide Side = DockSide.Left;
 
         [InfoBox(
             "If a ship has multiple crew members, you'll talk to a random one each time you visit"
@@ -67,6 +74,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Docks
         private int _currentDockedTime = 0;
         private int _daysToStayAtSea = 0;
         private bool _isAtSea = false;
+
+        public int CurrentDockedTime => _currentDockedTime;
+        public int CurrentAtSeaTime => _currentAtSeaTime;
+
         public ShopItem[] NormalGoodsForSale;
 
         private Brain.Brain _brain;
@@ -82,8 +93,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Docks
                 EnforceAlwaysDockedState();
                 SaveState();
             }
-
-            UpdatePoiUi();
         }
 
         private void EnforceAlwaysDockedState()
@@ -95,20 +104,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Docks
             _daysToStayAtSea = 0;
         }
 
-        private void UpdatePoiUi()
-        {
-            if (PoiUi == null)
-            {
-                return;
-            }
-
-            PoiUi.SetActive(IsDocked);
-        }
-
-        private void OnDestroy()
-        {
-            SaveState();
-        }
+        private void OnDestroy() => SaveState();
 
         private OperationResult LoadState()
         {
@@ -140,6 +136,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Docks
             _currentDockedTime = state.CurrentDockedTime;
             _daysToStayAtSea = state.DaysToStayAtSea;
             IsDocked = !_isAtSea;
+            $"{ShipName} loaded state from LTM: IsAtSea={_isAtSea}, CurrentAtSeaTime={_currentAtSeaTime}, CurrentDockedTime={_currentDockedTime}, DaysToStayAtSea={_daysToStayAtSea}".LogInfo();
 
             if (AlwaysDocked)
             {
@@ -147,7 +144,11 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Docks
                 $"{ShipName} is configured as AlwaysDocked; overriding saved state to always be docked.".LogInfo();
             }
 
-            UpdatePoiUi();
+            if (Ship != null)
+            {
+                Ship.SetActive(IsDocked);
+            }
+
             return OperationResult.Successful();
         }
 
@@ -187,19 +188,54 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Docks
                 DaysToStayAtSea = _daysToStayAtSea,
             };
 
+            $"{ShipName} saving state to LTM: IsAtSea={_isAtSea}, CurrentAtSeaTime={_currentAtSeaTime}, CurrentDockedTime={_currentDockedTime}, DaysToStayAtSea={_daysToStayAtSea}".LogInfo();
+
             string key = LtmKeyPrefix + ShipName;
             _brain.ltm.Remember(key, JsonUtility.ToJson(state));
             return OperationResult.Successful();
         }
 
-        public void IncreaseTrust(int amount)
+        public void IncreaseTrust(int amount) => Trust = Mathf.Clamp(Trust + amount, 0, 100);
+
+        public void DecreaseTrust(int amount) => Trust = Mathf.Clamp(Trust - amount, 0, 100);
+
+        public void SetDockedState(bool docked)
         {
-            Trust = Mathf.Clamp(Trust + amount, 0, 100);
+            // Keep internal state consistent (this may be invoked from Dock when managing ship docking round-robin).
+            _isAtSea = !docked;
+            IsDocked = docked;
+
+            if (docked)
+            {
+                _currentDockedTime = 0;
+            }
+
+            if (Ship != null)
+            {
+                Ship.SetActive(docked);
+            }
+
+            SaveState();
         }
 
-        public void DecreaseTrust(int amount)
+        public void ForceSendToSea()
         {
-            Trust = Mathf.Clamp(Trust - amount, 0, 100);
+            if (!IsDocked)
+            {
+                return;
+            }
+
+            _isAtSea = true;
+            IsDocked = false;
+            _currentAtSeaTime = 0;
+            _daysToStayAtSea = Random.Range(MinimumAtSeaTime, MaximumAtSeaTime + 1);
+
+            if (Ship != null)
+            {
+                Ship.SetActive(false);
+            }
+
+            SaveState();
         }
 
         public void CheckIsDockedAndUpdateVoyageStatusByOneDay()
@@ -253,7 +289,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Docks
 
             if (stateChanged)
             {
-                UpdatePoiUi();
+                if (Ship != null)
+                {
+                    Ship.SetActive(IsDocked);
+                }
                 SaveState();
             }
         }
