@@ -50,6 +50,18 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         public UIFade BackButtonFade;
         public float HubMainFov;
 
+        [Tooltip("Collider used to sample terrain height for unit spawn points.")]
+        public MeshCollider SpawnGroundCollider;
+
+        [Tooltip("Vertical raycast distance used when sampling spawn-point height.")]
+        public float SpawnPointRaycastDistance = 20f;
+
+        // Cache the sampled height for each spawn point transform.
+        private readonly System.Collections.Generic.Dictionary<
+            Transform,
+            float
+        > _spawnPointHeights = new();
+
         public void SetCurrentSubLocation(HubSubLocation subLocation) =>
             CurrentSubLocation = subLocation;
 
@@ -129,6 +141,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         public string ChapterNumberAndNameFormat = "Chapter {0}: {1}";
         private const string birthdayNotificationTypeName = "birthday";
         private const string shipNotificationTypeName = "ship";
+        private const string itemNotificationTypeName = "items";
 
         public void UpdateChapterNumberAndNameText(int chapterNumber, string chapterName)
         {
@@ -272,7 +285,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             CheckShipsDocked();
 
-            shopsManager.RefreshShopsForNewDay(gameDate);
+            CheckRareItems();
 
             UpdateChapterNumberAndNameText(
                 _brain.saveFileBrain.ActiveSaveFile.ChapterNumber,
@@ -280,13 +293,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             );
             SetInputMode(HubInputMode.Location);
 
-            for (int i = 0; i < subLocations.Length; i++)
-            {
-                subLocations[i].Initialize(_brain);
-                LocationChoices[i].CanBeSelected = subLocations[i].CanBeVisitedToday();
-            }
-
-            UpdateChoiceSelection();
             if (GameplayGeneralSettings.Instance.HubHasTeamLocations)
             {
                 GetComponent<HubTeamLocations>().Initialize();
@@ -295,6 +301,17 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             {
                 GetComponent<HubTeamLocations>().gameObject.SetActive(false);
             }
+
+            // Determine ground heights for spawn points (used by HubSubLocation spawn positioning)
+            CacheSpawnPointHeights();
+
+            for (int i = 0; i < subLocations.Length; i++)
+            {
+                subLocations[i].Initialize(_brain);
+                LocationChoices[i].CanBeSelected = subLocations[i].CanBeVisitedToday();
+            }
+
+            UpdateChoiceSelection();
 
             if (GeneralCamera == null || cameraPoints == null || cameraPoints.Length == 0)
             {
@@ -314,6 +331,57 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 _brain.OnCharacterBirthdayThisWeek -= HandleCharacterBirthdayThisWeek;
                 _brain.OnHubSublocationInputModeChange -= HandleSublocationInputModeChange;
             }
+        }
+
+        private void CacheSpawnPointHeights()
+        {
+            _spawnPointHeights.Clear();
+            if (SpawnGroundCollider == null)
+            {
+                return;
+            }
+            if (subLocations == null)
+            {
+                return;
+            }
+
+            foreach (var sub in subLocations)
+            {
+                if (sub == null || sub.UnitSpawnPoints == null)
+                {
+                    continue;
+                }
+
+                foreach (var spawnPoint in sub.UnitSpawnPoints)
+                {
+                    if (spawnPoint == null)
+                    {
+                        continue;
+                    }
+
+                    var origin = spawnPoint.position + Vector3.up * SpawnPointRaycastDistance;
+                    var ray = new Ray(origin, Vector3.down);
+                    if (
+                        SpawnGroundCollider.Raycast(
+                            ray,
+                            out var hit,
+                            SpawnPointRaycastDistance * 2f
+                        )
+                    )
+                    {
+                        _spawnPointHeights[spawnPoint] = hit.point.y;
+                    }
+                }
+            }
+        }
+
+        public float GetSpawnPointHeight(Transform spawnPoint, float defaultHeight)
+        {
+            if (spawnPoint == null)
+            {
+                return defaultHeight;
+            }
+            return _spawnPointHeights.TryGetValue(spawnPoint, out var h) ? h : defaultHeight;
         }
 
         #endregion
@@ -478,6 +546,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         public void CheckShipsDocked()
         {
+            dock.RefreshShipsForNewDay(gameDate);
+
             var statuses = dock.PublishDockedShipStatuses();
             if (statuses == null || statuses.Length == 0)
             {
@@ -521,6 +591,27 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             {
                 pastShipDockedStatuses = statuses;
                 SaveDockShipStatuses(statuses);
+            }
+        }
+
+        public void CheckRareItems()
+        {
+            var rareItemStrings = shopsManager.RefreshShopsForNewDay(gameDate);
+
+            foreach (var message in rareItemStrings)
+            {
+                notifications.SetMessage(message);
+                foreach (var type in notifications.types)
+                {
+                    if (
+                        type.category.ToLower() == itemNotificationTypeName
+                        || type.name.ToLower() == itemNotificationTypeName
+                    )
+                    {
+                        notifications.Send(System.Array.IndexOf(notifications.types, type));
+                        break;
+                    }
+                }
             }
         }
 

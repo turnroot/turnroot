@@ -7,5 +7,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         Battlefields,
         Docks,
         Training,
+        Unit,
     }
 }

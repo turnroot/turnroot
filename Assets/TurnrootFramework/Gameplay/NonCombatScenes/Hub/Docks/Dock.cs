@@ -14,8 +14,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Docks
         /// </summary>
         public int MaxDockedShipsPerSide = 3;
 
-        private readonly System.Collections.Generic.List<DockShip> _leftDockedShips = new();
-        private readonly System.Collections.Generic.List<DockShip> _rightDockedShips = new();
+        private readonly List<DockShip> _leftDockedShips = new();
+        private readonly List<DockShip> _rightDockedShips = new();
 
         public IReadOnlyList<DockShip> LeftDockedShips => _leftDockedShips;
         public IReadOnlyList<DockShip> RightDockedShips => _rightDockedShips;
@@ -75,7 +75,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Docks
             EnforceSideCapacity(_leftDockedShips, MaxDockedShipsPerSide);
             EnforceSideCapacity(_rightDockedShips, MaxDockedShipsPerSide);
 
-            // If total docked ships still exceeds twice the side max (rare, but possible if MaxDockedShipsPerSide is changed at runtime), enforce overall limit.
             int totalCapacity = MaxDockedShipsPerSide * 2;
             int totalDocked = _leftDockedShips.Count + _rightDockedShips.Count;
             if (totalDocked <= totalCapacity)
@@ -83,7 +82,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Docks
                 return;
             }
 
-            var allDocked = new System.Collections.Generic.List<DockShip>(_leftDockedShips);
+            var allDocked = new List<DockShip>(_leftDockedShips);
             allDocked.AddRange(_rightDockedShips);
             allDocked.Sort((a, b) => b.CurrentDockedTime.CompareTo(a.CurrentDockedTime));
 
@@ -96,17 +95,14 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Docks
             RefreshDockLists();
         }
 
-        private void EnforceSideCapacity(
-            System.Collections.Generic.List<DockShip> ships,
-            int capacity
-        )
+        private void EnforceSideCapacity(List<DockShip> ships, int capacity)
         {
             if (capacity <= 0 || ships.Count <= capacity)
             {
                 return;
             }
 
-            // Keep newest-docked ships, send the oldest ones out.
+            // Keep newest-docked ships, send the oldest ones out
             ships.Sort((a, b) => b.CurrentDockedTime.CompareTo(a.CurrentDockedTime));
             for (int i = capacity; i < ships.Count; i++)
             {
@@ -134,6 +130,17 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Docks
             }
 
             return dockedStatuses;
+        }
+
+        public void RefreshShipsForNewDay(GameDate currentDay)
+        {
+            foreach (var ship in AllShips)
+            {
+                if (ship.IsDocked)
+                {
+                    ship.RefreshShipForNewDay(currentDay);
+                }
+            }
         }
     }
 }

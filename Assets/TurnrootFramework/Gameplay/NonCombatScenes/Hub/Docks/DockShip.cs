@@ -1,6 +1,6 @@
+using System.Collections.Generic;
 using NaughtyAttributes;
 using Turnroot.Characters;
-using Turnroot.Gameplay.NonCombatScenes.Hub;
 using Turnroot.Gameplay.NonCombatScenes.Hub.Shop;
 using Turnroot.Utilities;
 using UnityEngine;
@@ -79,6 +79,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Docks
         public int CurrentAtSeaTime => _currentAtSeaTime;
 
         public ShopItem[] NormalGoodsForSale;
+
+        private Dictionary<ShopItem, int> currentStock = new();
+
+        private Dictionary<SmuggledItem, int> currentSmuggledStock = new();
 
         private Brain.Brain _brain;
 
@@ -250,7 +254,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Docks
                 _currentAtSeaTime++;
                 stateChanged = true;
 
-                // Safety: if we somehow have no duration set, assign one now.
+                // Safety: if we somehow have no duration set, assign one now
                 if (_daysToStayAtSea == 0)
                 {
                     _daysToStayAtSea = Random.Range(MinimumAtSeaTime, MaximumAtSeaTime + 1);
@@ -291,6 +295,21 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Docks
                     Ship.SetActive(IsDocked);
                 }
                 SaveState();
+            }
+        }
+
+        public void RefreshShipForNewDay(GameDate currentDay)
+        {
+            $"{ShipName} is refreshing for the new day. Current trust: {Trust}".LogInfo();
+            foreach (ShopItem item in NormalGoodsForSale)
+            {
+                var status = item.Refresh(currentDay);
+                currentStock[item] = status.AvailableQuantity;
+            }
+            foreach (SmuggledItem item in SmuggledGoodsForSale)
+            {
+                var status = item.Refresh(currentDay, Trust);
+                currentSmuggledStock[item] = status.AvailableQuantity;
             }
         }
     }
