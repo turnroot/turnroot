@@ -1,61 +1,230 @@
 using NaughtyAttributes;
 using TMPro;
 using Turnroot.Characters;
+using Turnroot.Gameplay.NonCombatScenes.Hub.Docks;
+using Turnroot.Gameplay.NonCombatScenes.Hub.Shop;
 using Turnroot.GameSettings;
 using Turnroot.UI;
 using Turnroot.UI.Components.Notifications;
 using Turnroot.Utilities;
+using Turnroot.Utilities.AbstractScripts;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.NonCombatScenes.Hub
 {
     [RequireComponent(typeof(UiInputProvider))]
     [RequireComponent(typeof(HubTeamLocations))]
+    [RequireComponent(typeof(HubSubInput))]
+    [RequireComponent(typeof(SpecificUiHandler))]
     /// <remarks>
     /// This may need editing for your project, but if you aren't making major logic changes, you should
     /// be able to wrangle it to work for you just with UI changes and inspector stuff
     /// </remarks>
-    public class HubManager : MonoBehaviour
+    public partial class HubManager : MonoBehaviour
     {
         #region Fields
+
+        [BoxGroup("Core")]
         [HideInInspector]
         public Brain.Brain _brain;
 
+        [BoxGroup("Core")]
+        [Tooltip("Text element used to display the current hub date (day/month/year).")]
         public TextMeshProUGUI dateText;
 
+        [BoxGroup("Core")]
+        [Tooltip("Selectable UI elements corresponding to each hub location.")]
         public UiChoice[] LocationChoices;
 
-        [BoxGroup("Input")]
+        [BoxGroup("Core")]
+        [Tooltip("Optional input provider used for navigating hub choices.")]
         public UiInputProvider InputProvider;
 
-        private enum InputMode
+        [HorizontalLine()]
+        [BoxGroup("Camera & Fade")]
+        [Tooltip("Fade used when returning from a sublocation back to the hub.")]
+        public UIFade HubFadeToBlack;
+
+        [BoxGroup("Camera & Fade")]
+        [Tooltip("Fade used to show/hide the hub action UI.")]
+        public UIFade HubActionsFade;
+
+        [BoxGroup("Camera & Fade")]
+        [Tooltip("Fade used to show/hide the back button UI.")]
+        public UIFade BackButtonFade;
+
+        [BoxGroup("Camera & Fade")]
+        [Tooltip("Field of view used for the hub camera when not in a sublocation.")]
+        public float HubMainFov;
+
+        [Header("Spawn Point Sampling")]
+        [Tooltip("Collider used to sample terrain height for unit spawn points.")]
+        public MeshCollider SpawnGroundCollider;
+
+        [Tooltip("Raycast distance used when sampling spawn-point height.")]
+        public float SpawnPointRaycastDistance = 20f;
+
+        [HorizontalLine]
+        [BoxGroup("Notifications")]
+        public NotificationsHelper notifications;
+
+        [BoxGroup("Notifications")]
+        public Dock dock;
+
+        private DockShipStatus[] pastShipDockedStatuses;
+
+        private const string dockShipStatusLtmKey = "Hub_DockedShipStatuses";
+
+        [System.Serializable]
+        private class DockShipStatusContainer
+        {
+            public DockShipStatus[] statuses;
+        }
+
+        [HorizontalLine]
+        [BoxGroup("Hub Content")]
+        [Tooltip("All sublocation areas that can be visited from the hub.")]
+        public HubSubLocation[] subLocations;
+
+        [BoxGroup("Hub Content")]
+        public ShopsManager shopsManager;
+
+        [BoxGroup("Hub Content")]
+        [Tooltip("UI text used to show the current chapter number and name.")]
+        public TextMeshProUGUI ChapterNumberAndNameText;
+
+        [BoxGroup("Hub Content")]
+        [Tooltip("Format string used for chapter number/name display.")]
+        public string ChapterNumberAndNameFormat = "Chapter {0}: {1}";
+
+        [HideInInspector]
+        public GameDate gameDate;
+
+        [BoxGroup("Camera & Fade")]
+        [Tooltip("Possible camera positions for randomizing the hub camera on load.")]
+        public Transform[] cameraPoints;
+
+        [BoxGroup("Camera & Fade")]
+        public Camera GeneralCamera;
+
+        [HorizontalLine]
+        [BoxGroup("Input")]
+        [Tooltip("Current input mode for the hub (location selection, sublocation choice, etc.).")]
+        public HubInputMode CurrentInputMode = HubInputMode.None;
+
+        public HubInputMode PreviousInputMode { get; private set; } = HubInputMode.None;
+
+        public HubSubLocation CurrentSubLocation { get; private set; }
+
+        public enum HubInputMode
         {
             None,
             Location,
+            Chosen,
             MarketChoice,
-            FishMarket,
-            Blacksmith,
-            Armory,
-            Staples,
-            SecretShop,
             CafeChoice,
-            GroupLunch,
-            PersonalLunch,
             Battlefields,
             Docks,
             Training,
         }
 
-        private InputMode _currentInputMode = InputMode.None;
+        // Cache the sampled height for each spawn point transform.
+        private readonly System.Collections.Generic.Dictionary<
+            Transform,
+            float
+        > _spawnPointHeights = new();
+
+        public void SetCurrentSubLocation(HubSubLocation subLocation)
+        {
+            CurrentSubLocation = subLocation;
+
+            if (subLocations == null)
+            {
+                return;
+            }
+
+            // When entering a sublocation, hide the other hub locations.
+            foreach (var loc in subLocations)
+            {
+                if (loc == null)
+                {
+                    continue;
+                }
+
+                loc.gameObject.SetActive(loc == subLocation);
+            }
+        }
+
+        public void TransitionBackToHub(UIFade fadeToBlack = null)
+        {
+            void DoReturnToHub()
+            {
+                // Match hub entry behavior: set mode to location + refresh UI
+                SetInputMode(HubInputMode.Location);
+                UpdateChoiceSelection();
+                UpdateDateText();
+
+                // Re-randomize hub camera position (like initial hub load)
+                if (GeneralCamera != null && cameraPoints != null && cameraPoints.Length > 0)
+                {
+                    int idx = Random.Range(0, cameraPoints.Length);
+                    Transform dest = cameraPoints[idx];
+                    GeneralCamera.transform.SetPositionAndRotation(dest.position, dest.rotation);
+                }
+
+                HubActionsFade.Show();
+                GeneralCamera.fieldOfView = HubMainFov;
+                BackButtonFade.Hide();
+
+                // Refresh birthday notifications / other hub notifications
+                _brain?.charactersBrain.CheckBirthdays();
+
+                CurrentSubLocation = null;
+
+                // Restore all sublocations when returning to the hub.
+                if (subLocations != null)
+                {
+                    foreach (var loc in subLocations)
+                    {
+                        if (loc != null)
+                        {
+                            loc.gameObject.SetActive(true);
+                        }
+                    }
+                }
+            }
+
+            if (fadeToBlack == null)
+            {
+                DoReturnToHub();
+                return;
+            }
+
+            UnityEngine.Events.UnityAction onVisible = null;
+            UnityEngine.Events.UnityAction onHidden = null;
+
+            onVisible = () =>
+            {
+                fadeToBlack.OnVisible.RemoveListener(onVisible);
+                DoReturnToHub();
+                fadeToBlack.Hide();
+            };
+
+            onHidden = () =>
+            {
+                fadeToBlack.OnHidden.RemoveListener(onHidden);
+            };
+
+            fadeToBlack.OnVisible.AddListener(onVisible);
+            fadeToBlack.OnHidden.AddListener(onHidden);
+            fadeToBlack.Show();
+        }
+
         private int currentIndex = 0;
 
-        public NotificationsHelper notifications;
-
-        public HubSubLocation[] subLocations;
-
-        public TextMeshProUGUI ChapterNumberAndNameText;
-        public string ChapterNumberAndNameFormat = "Chapter {0}: {1}";
         private const string birthdayNotificationTypeName = "birthday";
+        private const string shipNotificationTypeName = "ship";
+        private const string itemNotificationTypeName = "items";
 
         public void UpdateChapterNumberAndNameText(int chapterNumber, string chapterName)
         {
@@ -69,60 +238,12 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
         }
 
-        private GameDate gameDate;
+        public HubSubInput SublocationInput => GetComponent<HubSubInput>();
+
+        public SpecificUiHandler SpecificUiInputHandler => GetComponent<SpecificUiHandler>();
 
         #endregion
 
-        #region Input Actions
-
-
-        public void HandleLocationInput(string action)
-        {
-            if (subLocations == null || subLocations.Length == 0)
-            {
-                "HubManager: No sublocations assigned".LogError();
-                return;
-            }
-
-            if (InputProvider != null)
-            {
-                InputProvider.Navigate(
-                    action,
-                    LocationChoices,
-                    ref currentIndex,
-                    LocationChoices?.Length ?? 0,
-                    () =>
-                    {
-                        var selectedLocation = subLocations[currentIndex];
-                        if (selectedLocation.CanBeVisitedToday())
-                        {
-                            selectedLocation.PlayerVisit();
-                        }
-                    }
-                );
-            }
-            else
-            {
-                UiChoiceHandler.HandleNavigation(
-                    action,
-                    LocationChoices,
-                    ref currentIndex,
-                    LocationChoices?.Length ?? 0,
-                    () =>
-                    {
-                        var selectedLocation = subLocations[currentIndex];
-                        if (selectedLocation.CanBeVisitedToday())
-                        {
-                            selectedLocation.PlayerVisit();
-                        }
-                    }
-                );
-            }
-
-            UpdateChoiceSelection();
-        }
-
-        #endregion
 
         #region Unity Lifecycle
 
@@ -157,8 +278,19 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             var ltm = _brain.ltm;
             if (ltm != null && ltm.Initialized)
             {
-                gameDate = ltm.GetGameDate();
-                $"HubManager: Current game date from LTM is {gameDate.year}/{gameDate.month}/{gameDate.day}".LogInfo();
+                var storedDate = ltm.GetGameDate();
+                if (storedDate == GameDate.Default)
+                {
+                    // First load ever: initialize from settings and persist
+                    gameDate = GameplayGeneralSettings.Instance.StartingGameDate;
+                    ltm.SetGameDate(gameDate.year, (Month)(gameDate.month - 1), gameDate.day);
+                    $"HubManager: No saved game date found, using starting date {gameDate.year}/{gameDate.month}/{gameDate.day}".LogInfo();
+                }
+                else
+                {
+                    gameDate = storedDate;
+                    IncrementGameDateForHubLoad();
+                }
             }
 
             Initialize();
@@ -172,13 +304,36 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         {
             _brain.OnGameDateChanged += HandleGameDateChanged;
             _brain.OnCharacterBirthdayThisWeek += HandleCharacterBirthdayThisWeek;
+            _brain.OnHubSublocationInputModeChange += HandleSublocationInputModeChange;
             UpdateDateText();
             _brain.charactersBrain.CheckBirthdays();
+
+            pastShipDockedStatuses = LoadDockShipStatuses();
+
+            dock?.UpdateDailyVoyageStatuses();
+
+            CheckShipsDocked();
+
+            CheckRareItems();
+
             UpdateChapterNumberAndNameText(
                 _brain.saveFileBrain.ActiveSaveFile.ChapterNumber,
                 _brain.saveFileBrain.ActiveSaveFile.ChapterName
             );
-            SetInputMode(InputMode.Location);
+            SetInputMode(HubInputMode.Location);
+
+            if (GameplayGeneralSettings.Instance.HubHasTeamLocations)
+            {
+                // Initialize team location assignments before initializing individual sublocations.
+                GetComponent<HubTeamLocations>().Initialize(_brain, subLocations);
+            }
+            else
+            {
+                GetComponent<HubTeamLocations>().gameObject.SetActive(false);
+            }
+
+            // Determine ground heights for spawn points (used by HubSubLocation spawn positioning)
+            CacheSpawnPointHeights();
 
             for (int i = 0; i < subLocations.Length; i++)
             {
@@ -187,14 +342,15 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
 
             UpdateChoiceSelection();
-            if (GameplayGeneralSettings.Instance.HubHasTeamLocations)
+
+            if (GeneralCamera == null || cameraPoints == null || cameraPoints.Length == 0)
             {
-                GetComponent<HubTeamLocations>().Initialize();
+                return;
             }
-            else
-            {
-                GetComponent<HubTeamLocations>().gameObject.SetActive(false);
-            }
+
+            int idx = Random.Range(0, cameraPoints.Length);
+            Transform dest = cameraPoints[idx];
+            GeneralCamera.transform.SetPositionAndRotation(dest.position, dest.rotation);
         }
 
         public void OnDestroy()
@@ -203,104 +359,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             {
                 _brain.OnGameDateChanged -= HandleGameDateChanged;
                 _brain.OnCharacterBirthdayThisWeek -= HandleCharacterBirthdayThisWeek;
+                _brain.OnHubSublocationInputModeChange -= HandleSublocationInputModeChange;
             }
         }
 
-        #endregion
-
-        #region Input Handling
-
-        private void HandleInput(string action)
-        {
-            switch (_currentInputMode)
-            {
-                case InputMode.Location:
-                    HandleLocationInput(action);
-                    break;
-            }
-        }
-
-        private void SetInputMode(InputMode mode)
-        {
-            _currentInputMode = mode;
-            currentIndex = 0;
-        }
-
-        #endregion
-
-
-        #region Helpers
-        public void UpdateDateText()
-        {
-            if (dateText != null)
-            {
-                Month month = (Month)gameDate.month;
-                string daySuffix = GameDate.GetDaySuffix(gameDate.day);
-                string monthName = month.ToString();
-                dateText.text = $"{monthName} {gameDate.day}{daySuffix}";
-            }
-        }
-
-        private void UpdateChoiceSelection()
-        {
-            if (LocationChoices == null || LocationChoices.Length == 0)
-            {
-                return;
-            }
-
-            for (int i = 0; i < LocationChoices.Length; i++)
-            {
-                if (LocationChoices[i] == null)
-                {
-                    continue;
-                }
-
-                if (i == currentIndex)
-                {
-                    LocationChoices[i].Select();
-                }
-                else
-                {
-                    LocationChoices[i].Deselect();
-                }
-            }
-        }
-        #endregion
-
-        #region Event Handlers
-        public void HandleGameDateChanged(int year, int month, int day)
-        {
-            gameDate = new GameDate(year, month, day);
-            _brain.charactersBrain.CheckBirthdays();
-            $"HubManager: Game date changed to {gameDate.year}/{gameDate.month}/{gameDate.day}".LogInfo();
-        }
-
-        public void HandleCharacterBirthdayThisWeek(CharacterInstance character, GameDate date)
-        {
-            int bdDay = character.CharacterTemplate.BirthdayDay;
-            int bdMonth = character.CharacterTemplate.BirthdayMonth;
-
-            string message =
-                $"It's <b>{character.CharacterTemplate.DisplayName}</b>'s birthday this week, on the {bdDay}{GameDate.GetDaySuffix(bdDay)}";
-
-            if (gameDate.day == bdDay && gameDate.month == bdMonth)
-            {
-                message = $"Today is <b>{character.CharacterTemplate.DisplayName}</b>'s birthday!";
-            }
-
-            notifications.SetMessage(message);
-            foreach (var type in notifications.types)
-            {
-                if (
-                    type.category.ToLower() == birthdayNotificationTypeName
-                    || type.name.ToLower() == birthdayNotificationTypeName
-                )
-                {
-                    notifications.Send(System.Array.IndexOf(notifications.types, type));
-                    break;
-                }
-            }
-        }
         #endregion
     }
 }

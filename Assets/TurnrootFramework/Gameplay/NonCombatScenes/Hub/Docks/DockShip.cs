@@ -1,0 +1,321 @@
+using System.Collections.Generic;
+using NaughtyAttributes;
+using Turnroot.Characters;
+using Turnroot.Gameplay.NonCombatScenes.Hub.Shop;
+using Turnroot.Utilities;
+using UnityEngine;
+
+namespace Turnroot.Gameplay.NonCombatScenes.Hub.Docks
+{
+    public class DockShip : MonoBehaviour
+    {
+        private const string LtmKeyPrefix = "DockShipState_";
+
+        [System.Serializable]
+        private class DockShipState
+        {
+            public bool IsAtSea;
+            public int CurrentAtSeaTime;
+            public int CurrentDockedTime;
+            public int DaysToStayAtSea;
+        }
+
+        [Header("Basic Info")]
+        public string ShipName;
+
+        public enum DockSide
+        {
+            Left,
+            Right,
+        }
+
+        public DockSide Side = DockSide.Left;
+
+        [InfoBox(
+            "If a ship has multiple crew members, you'll talk to a random one each time you visit"
+        )]
+        public CharacterData[] Crew;
+
+        [Header("Smuggling")]
+        [InfoBox(
+            "Smugglers use the trust system and will gamble for items. If you're not using smugglers, you can ignore this"
+        )]
+        public bool IsSmuggler;
+
+        [
+            Range(0, 100),
+            InfoBox("The higher trust is, the better goods will be available on a smuggler ship")
+        ]
+        [ShowIf("IsSmuggler")]
+        public int Trust;
+
+        [InfoBox("Smuggled goods are rare, expensive, and can be gambled for")]
+        [ShowIf("IsSmuggler")]
+        public SmuggledItem[] SmuggledGoodsForSale;
+
+        [InfoBox(
+            "The 3D model of the ship that will appear in the dock. It will be disabled when the ship is at sea."
+        )]
+        public GameObject Ship;
+
+        [InfoBox("If true, this ship will always be docked and never go to sea")]
+        public bool AlwaysDocked = false;
+        public bool IsDocked = true;
+
+        [InfoBox(
+            "The ship will be unavailable while at sea. The length of the sea voyage is random between the min and max."
+        )]
+        [HideIf("AlwaysDocked")]
+        public int MinimumAtSeaTime = 8;
+
+        [HideIf("AlwaysDocked")]
+        public int MaximumAtSeaTime = 16;
+
+        [InfoBox("When this ship is not at sea, how long will it be visitable?")]
+        [HideIf("AlwaysDocked")]
+        public int DaysDockedAtATime = 3;
+
+        private int _currentAtSeaTime = 0;
+        private int _currentDockedTime = 0;
+        private int _daysToStayAtSea = 0;
+        private bool _isAtSea = false;
+
+        public int CurrentDockedTime => _currentDockedTime;
+        public int CurrentAtSeaTime => _currentAtSeaTime;
+
+        public ShopItem[] NormalGoodsForSale;
+
+        private Dictionary<ShopItem, int> currentStock = new();
+
+        private Dictionary<SmuggledItem, int> currentSmuggledStock = new();
+
+        private Brain.Brain _brain;
+
+        private void Start()
+        {
+            _brain = FindFirstObjectByType<Brain.Brain>();
+            LoadState();
+
+            // Ensure ships marked as always docked never end up at sea due to stale save data
+            if (AlwaysDocked)
+            {
+                EnforceAlwaysDockedState();
+                SaveState();
+            }
+        }
+
+        private void EnforceAlwaysDockedState()
+        {
+            _isAtSea = false;
+            IsDocked = true;
+            _currentAtSeaTime = 0;
+            _currentDockedTime = 0;
+            _daysToStayAtSea = 0;
+        }
+
+        private void OnDestroy() => SaveState();
+
+        private OperationResult LoadState()
+        {
+            if (_brain?.ltm == null || string.IsNullOrEmpty(ShipName))
+            {
+                return OperationResult.Failure(
+                    $"Cannot load state for {ShipName}. Brain or LTM is null, or ShipName is empty.",
+                    this.GetType().Name
+                );
+            }
+
+            string key = LtmKeyPrefix + ShipName;
+            string json = _brain.ltm.Recall(key);
+            if (string.IsNullOrEmpty(json))
+            {
+                $"{ShipName} has no saved state in LTM with key {key}. Using default state.".LogInfo();
+                return OperationResult.Successful();
+            }
+
+            var state = JsonUtility.FromJson<DockShipState>(json);
+            if (state == null)
+            {
+                $"{ShipName} has an invalid saved state in LTM with key {key}. Using default state.".LogWarning();
+                return OperationResult.Successful();
+            }
+
+            _isAtSea = state.IsAtSea;
+            _currentAtSeaTime = state.CurrentAtSeaTime;
+            _currentDockedTime = state.CurrentDockedTime;
+            _daysToStayAtSea = state.DaysToStayAtSea;
+            IsDocked = !_isAtSea;
+
+            if (AlwaysDocked)
+            {
+                EnforceAlwaysDockedState();
+                $"{ShipName} is configured as AlwaysDocked; overriding saved state to always be docked.".LogInfo();
+            }
+
+            if (Ship != null)
+            {
+                Ship.SetActive(IsDocked);
+            }
+
+            return OperationResult.Successful();
+        }
+
+        private OperationResult SaveState()
+        {
+            if (string.IsNullOrEmpty(ShipName))
+            {
+                return OperationResult.Failure(
+                    $"Cannot save state for {ShipName}. ShipName is empty.",
+                    this.GetType().Name
+                );
+            }
+
+            if (AlwaysDocked)
+            {
+                EnforceAlwaysDockedState();
+            }
+
+            if (_brain == null)
+            {
+                _brain = FindFirstObjectByType<Brain.Brain>();
+            }
+
+            if (_brain?.ltm == null)
+            {
+                return OperationResult.Failure(
+                    $"Cannot save state for {ShipName}. Brain or LTM is null.",
+                    this.GetType().Name
+                );
+            }
+
+            var state = new DockShipState
+            {
+                IsAtSea = _isAtSea,
+                CurrentAtSeaTime = _currentAtSeaTime,
+                CurrentDockedTime = _currentDockedTime,
+                DaysToStayAtSea = _daysToStayAtSea,
+            };
+
+            string key = LtmKeyPrefix + ShipName;
+            _brain.ltm.Remember(key, JsonUtility.ToJson(state));
+            return OperationResult.Successful();
+        }
+
+        public void IncreaseTrust(int amount) => Trust = Mathf.Clamp(Trust + amount, 0, 100);
+
+        public void DecreaseTrust(int amount) => Trust = Mathf.Clamp(Trust - amount, 0, 100);
+
+        public void SetDockedState(bool docked)
+        {
+            // Keep internal state consistent (this may be invoked from Dock when managing ship docking round-robin)
+            _isAtSea = !docked;
+            IsDocked = docked;
+
+            if (docked)
+            {
+                _currentDockedTime = 0;
+            }
+
+            if (Ship != null)
+            {
+                Ship.SetActive(docked);
+            }
+
+            SaveState();
+        }
+
+        public void ForceSendToSea()
+        {
+            if (!IsDocked)
+            {
+                return;
+            }
+
+            _isAtSea = true;
+            IsDocked = false;
+            _currentAtSeaTime = 0;
+            _daysToStayAtSea = Random.Range(MinimumAtSeaTime, MaximumAtSeaTime + 1);
+
+            if (Ship != null)
+            {
+                Ship.SetActive(false);
+            }
+
+            SaveState();
+        }
+
+        public void CheckIsDockedAndUpdateVoyageStatusByOneDay()
+        {
+            if (AlwaysDocked)
+            {
+                IsDocked = true;
+                return;
+            }
+
+            bool stateChanged = false;
+
+            if (_isAtSea)
+            {
+                _currentAtSeaTime++;
+                stateChanged = true;
+
+                // Safety: if we somehow have no duration set, assign one now
+                if (_daysToStayAtSea == 0)
+                {
+                    _daysToStayAtSea = Random.Range(MinimumAtSeaTime, MaximumAtSeaTime + 1);
+                    stateChanged = true;
+                }
+
+                if (_currentAtSeaTime >= _daysToStayAtSea)
+                {
+                    int days = _daysToStayAtSea;
+                    _isAtSea = false;
+                    IsDocked = true;
+                    _currentAtSeaTime = 0;
+                    _daysToStayAtSea = 0;
+                    $"The {ShipName} has returned to the docks after being at sea for {days} days.".LogInfo();
+                    stateChanged = true;
+                }
+            }
+            else
+            {
+                _currentDockedTime++;
+                stateChanged = true;
+
+                if (_currentDockedTime >= DaysDockedAtATime)
+                {
+                    _isAtSea = true;
+                    IsDocked = false;
+                    _currentDockedTime = 0;
+                    _daysToStayAtSea = Random.Range(MinimumAtSeaTime, MaximumAtSeaTime + 1);
+                    $"The {ShipName} has left the docks and is now at sea for {_daysToStayAtSea} days.".LogInfo();
+                    stateChanged = true;
+                }
+            }
+
+            if (stateChanged)
+            {
+                if (Ship != null)
+                {
+                    Ship.SetActive(IsDocked);
+                }
+                SaveState();
+            }
+        }
+
+        public void RefreshShipForNewDay(GameDate currentDay)
+        {
+            $"{ShipName} is refreshing for the new day. Current trust: {Trust}".LogInfo();
+            foreach (ShopItem item in NormalGoodsForSale)
+            {
+                var status = item.Refresh(currentDay);
+                currentStock[item] = status.AvailableQuantity;
+            }
+            foreach (SmuggledItem item in SmuggledGoodsForSale)
+            {
+                var status = item.Refresh(currentDay, Trust);
+                currentSmuggledStock[item] = status.AvailableQuantity;
+            }
+        }
+    }
+}

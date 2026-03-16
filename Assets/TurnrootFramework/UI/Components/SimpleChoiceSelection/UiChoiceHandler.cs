@@ -1,4 +1,5 @@
 using System;
+using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.UI
@@ -31,6 +32,17 @@ namespace Turnroot.UI
         )
             where T : MonoBehaviour
         {
+            // Validate inputs early to avoid unnecessary exceptions
+            var validation = OperationResultGuards.All(
+                OperationResultGuards.RequireNotNull(managers, nameof(managers))
+            );
+
+            if (!validation.Success)
+            {
+                validation.ErrorMessage.LogWarning();
+                return;
+            }
+
             // Deselect all choices (skip any that have been destroyed)
             for (int i = 0; i < managers.Length; i++)
             {
@@ -40,42 +52,31 @@ namespace Turnroot.UI
                     continue;
                 }
 
-                try
-                {
-                    manager.SendMessage("Deselect");
-                }
-                catch (Exception ex)
-                {
-                    Debug.LogWarning(
-                        $"UiChoiceHandler: exception during Deselect on index {i}: {ex.Message}"
-                    );
-                }
+                // Use DontRequireReceiver so we don't need to wrap in try/catch.
+                manager.SendMessage("Deselect", SendMessageOptions.DontRequireReceiver);
             }
 
             if (action == "NavigateUp" || action == "NavigateLeft")
             {
-                if (navigationSound != null && navigationClip != null)
+                if (
+                    navigationSound != null
+                    && navigationClip != null
+                    && navigationSound.isActiveAndEnabled
+                )
                 {
-                    // audio source may have been destroyed when scene unloaded
-                    try
-                    {
-                        navigationSound.PlayOneShot(navigationClip);
-                    }
-                    catch (Exception)
-                    { /* ignore if source invalid */
-                    }
+                    navigationSound.PlayOneShot(navigationClip);
                 }
                 currentIndex = (currentIndex - 1 + maxCount) % maxCount;
             }
             else if (action == "NavigateDown" || action == "NavigateRight")
             {
-                if (navigationSound != null && navigationClip != null)
+                if (
+                    navigationSound != null
+                    && navigationClip != null
+                    && navigationSound.isActiveAndEnabled
+                )
                 {
-                    try
-                    {
-                        navigationSound.PlayOneShot(navigationClip);
-                    }
-                    catch (Exception) { }
+                    navigationSound.PlayOneShot(navigationClip);
                 }
                 currentIndex = (currentIndex + 1) % maxCount;
             }
@@ -87,7 +88,7 @@ namespace Turnroot.UI
                 }
                 catch (Exception ex)
                 {
-                    Debug.LogWarning("UiChoiceHandler onSelect threw: " + ex);
+                    $"UiChoiceHandler onSelect threw: {ex}".LogWarning();
                 }
                 return;
             }
