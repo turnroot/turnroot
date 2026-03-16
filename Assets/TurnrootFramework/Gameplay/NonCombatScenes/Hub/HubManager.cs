@@ -1,3 +1,4 @@
+using NaughtyAttributes;
 using TMPro;
 using Turnroot.Characters;
 using Turnroot.Gameplay.NonCombatScenes.Hub.Docks;
@@ -19,14 +20,101 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
     /// This may need editing for your project, but if you aren't making major logic changes, you should
     /// be able to wrangle it to work for you just with UI changes and inspector stuff
     /// </remarks>
-    public class HubManager : MonoBehaviour
+    public partial class HubManager : MonoBehaviour
     {
         #region Fields
+
+        [BoxGroup("Core")]
         [HideInInspector]
         public Brain.Brain _brain;
+
+        [BoxGroup("Core")]
+        [Tooltip("Text element used to display the current hub date (day/month/year).")]
         public TextMeshProUGUI dateText;
+
+        [BoxGroup("Core")]
+        [Tooltip("Selectable UI elements corresponding to each hub location.")]
         public UiChoice[] LocationChoices;
+
+        [BoxGroup("Core")]
+        [Tooltip("Optional input provider used for navigating hub choices.")]
         public UiInputProvider InputProvider;
+
+        [HorizontalLine()]
+        [BoxGroup("Camera & Fade")]
+        [Tooltip("Fade used when returning from a sublocation back to the hub.")]
+        public UIFade HubFadeToBlack;
+
+        [BoxGroup("Camera & Fade")]
+        [Tooltip("Fade used to show/hide the hub action UI.")]
+        public UIFade HubActionsFade;
+
+        [BoxGroup("Camera & Fade")]
+        [Tooltip("Fade used to show/hide the back button UI.")]
+        public UIFade BackButtonFade;
+
+        [BoxGroup("Camera & Fade")]
+        [Tooltip("Field of view used for the hub camera when not in a sublocation.")]
+        public float HubMainFov;
+
+        [Header("Spawn Point Sampling")]
+        [Tooltip("Collider used to sample terrain height for unit spawn points.")]
+        public MeshCollider SpawnGroundCollider;
+
+        [Tooltip("Raycast distance used when sampling spawn-point height.")]
+        public float SpawnPointRaycastDistance = 20f;
+
+        [HorizontalLine]
+        [BoxGroup("Notifications")]
+        public NotificationsHelper notifications;
+
+        [BoxGroup("Notifications")]
+        public Dock dock;
+
+        private DockShipStatus[] pastShipDockedStatuses;
+
+        private const string dockShipStatusLtmKey = "Hub_DockedShipStatuses";
+
+        [System.Serializable]
+        private class DockShipStatusContainer
+        {
+            public DockShipStatus[] statuses;
+        }
+
+        [HorizontalLine]
+        [BoxGroup("Hub Content")]
+        [Tooltip("All sublocation areas that can be visited from the hub.")]
+        public HubSubLocation[] subLocations;
+
+        [BoxGroup("Hub Content")]
+        public ShopsManager shopsManager;
+
+        [BoxGroup("Hub Content")]
+        [Tooltip("UI text used to show the current chapter number and name.")]
+        public TextMeshProUGUI ChapterNumberAndNameText;
+
+        [BoxGroup("Hub Content")]
+        [Tooltip("Format string used for chapter number/name display.")]
+        public string ChapterNumberAndNameFormat = "Chapter {0}: {1}";
+
+        [HideInInspector]
+        public GameDate gameDate;
+
+        [BoxGroup("Camera & Fade")]
+        [Tooltip("Possible camera positions for randomizing the hub camera on load.")]
+        public Transform[] cameraPoints;
+
+        [BoxGroup("Camera & Fade")]
+        public Camera GeneralCamera;
+
+        [HorizontalLine]
+        [BoxGroup("Input")]
+        [Tooltip("Current input mode for the hub (location selection, sublocation choice, etc.).")]
+        public HubInputMode CurrentInputMode = HubInputMode.None;
+
+        public HubInputMode PreviousInputMode { get; private set; } = HubInputMode.None;
+
+        public HubSubLocation CurrentSubLocation { get; private set; }
 
         public enum HubInputMode
         {
@@ -40,30 +128,32 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             Training,
         }
 
-        public HubInputMode CurrentInputMode = HubInputMode.None;
-        public HubInputMode PreviousInputMode { get; private set; } = HubInputMode.None;
-        public HubSubLocation CurrentSubLocation { get; private set; }
-
-        [Tooltip("Assigned fade used when returning from a sublocation back to the hub")]
-        public UIFade HubFadeToBlack;
-        public UIFade HubActionsFade;
-        public UIFade BackButtonFade;
-        public float HubMainFov;
-
-        [Tooltip("Collider used to sample terrain height for unit spawn points.")]
-        public MeshCollider SpawnGroundCollider;
-
-        [Tooltip("Vertical raycast distance used when sampling spawn-point height.")]
-        public float SpawnPointRaycastDistance = 20f;
-
         // Cache the sampled height for each spawn point transform.
         private readonly System.Collections.Generic.Dictionary<
             Transform,
             float
         > _spawnPointHeights = new();
 
-        public void SetCurrentSubLocation(HubSubLocation subLocation) =>
+        public void SetCurrentSubLocation(HubSubLocation subLocation)
+        {
             CurrentSubLocation = subLocation;
+
+            if (subLocations == null)
+            {
+                return;
+            }
+
+            // When entering a sublocation, hide the other hub locations.
+            foreach (var loc in subLocations)
+            {
+                if (loc == null)
+                {
+                    continue;
+                }
+
+                loc.gameObject.SetActive(loc == subLocation);
+            }
+        }
 
         public void TransitionBackToHub(UIFade fadeToBlack = null)
         {
@@ -90,6 +180,18 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 _brain?.charactersBrain.CheckBirthdays();
 
                 CurrentSubLocation = null;
+
+                // Restore all sublocations when returning to the hub.
+                if (subLocations != null)
+                {
+                    foreach (var loc in subLocations)
+                    {
+                        if (loc != null)
+                        {
+                            loc.gameObject.SetActive(true);
+                        }
+                    }
+                }
             }
 
             if (fadeToBlack == null)
@@ -120,25 +222,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         private int currentIndex = 0;
 
-        public NotificationsHelper notifications;
-
-        public Dock dock;
-        private DockShipStatus[] pastShipDockedStatuses;
-
-        private const string dockShipStatusLtmKey = "Hub_DockedShipStatuses";
-
-        [System.Serializable]
-        private class DockShipStatusContainer
-        {
-            public DockShipStatus[] statuses;
-        }
-
-        public HubSubLocation[] subLocations;
-
-        public ShopsManager shopsManager;
-
-        public TextMeshProUGUI ChapterNumberAndNameText;
-        public string ChapterNumberAndNameFormat = "Chapter {0}: {1}";
         private const string birthdayNotificationTypeName = "birthday";
         private const string shipNotificationTypeName = "ship";
         private const string itemNotificationTypeName = "items";
@@ -155,66 +238,12 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
         }
 
-        [HideInInspector]
-        public GameDate gameDate;
-
-        public Transform[] cameraPoints;
-        public Camera GeneralCamera;
-
         public HubSubInput SublocationInput => GetComponent<HubSubInput>();
 
         public SpecificUiHandler SpecificUiInputHandler => GetComponent<SpecificUiHandler>();
 
         #endregion
 
-        #region Input Actions
-        public void HandleLocationInput(string action)
-        {
-            if (subLocations == null || subLocations.Length == 0)
-            {
-                "HubManager: No sublocations assigned".LogError();
-                return;
-            }
-
-            if (InputProvider != null)
-            {
-                InputProvider.Navigate(
-                    action,
-                    LocationChoices,
-                    ref currentIndex,
-                    LocationChoices?.Length ?? 0,
-                    () =>
-                    {
-                        var selectedLocation = subLocations[currentIndex];
-                        if (selectedLocation.CanBeVisitedToday())
-                        {
-                            selectedLocation.PlayerVisit();
-                        }
-                    }
-                );
-            }
-            else
-            {
-                UiChoiceHandler.HandleNavigation(
-                    action,
-                    LocationChoices,
-                    ref currentIndex,
-                    LocationChoices?.Length ?? 0,
-                    () =>
-                    {
-                        var selectedLocation = subLocations[currentIndex];
-                        if (selectedLocation.CanBeVisitedToday())
-                        {
-                            selectedLocation.PlayerVisit();
-                        }
-                    }
-                );
-            }
-
-            UpdateChoiceSelection();
-        }
-
-        #endregion
 
         #region Unity Lifecycle
 
@@ -295,7 +324,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             if (GameplayGeneralSettings.Instance.HubHasTeamLocations)
             {
-                GetComponent<HubTeamLocations>().Initialize();
+                // Initialize team location assignments before initializing individual sublocations.
+                GetComponent<HubTeamLocations>().Initialize(_brain, subLocations);
             }
             else
             {
@@ -333,333 +363,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
         }
 
-        private void CacheSpawnPointHeights()
-        {
-            _spawnPointHeights.Clear();
-            if (SpawnGroundCollider == null)
-            {
-                return;
-            }
-            if (subLocations == null)
-            {
-                return;
-            }
-
-            foreach (var sub in subLocations)
-            {
-                if (sub == null || sub.UnitSpawnPoints == null)
-                {
-                    continue;
-                }
-
-                foreach (var spawnPoint in sub.UnitSpawnPoints)
-                {
-                    if (spawnPoint == null)
-                    {
-                        continue;
-                    }
-
-                    var origin = spawnPoint.position + Vector3.up * SpawnPointRaycastDistance;
-                    var ray = new Ray(origin, Vector3.down);
-                    if (
-                        SpawnGroundCollider.Raycast(
-                            ray,
-                            out var hit,
-                            SpawnPointRaycastDistance * 2f
-                        )
-                    )
-                    {
-                        _spawnPointHeights[spawnPoint] = hit.point.y;
-                    }
-                }
-            }
-        }
-
-        public float GetSpawnPointHeight(Transform spawnPoint, float defaultHeight)
-        {
-            if (spawnPoint == null)
-            {
-                return defaultHeight;
-            }
-            return _spawnPointHeights.TryGetValue(spawnPoint, out var h) ? h : defaultHeight;
-        }
-
-        #endregion
-
-        #region Brain Event Handlers
-
-        private void HandleSublocationInputModeChange(HubInputMode mode)
-        {
-            SetInputMode(mode);
-        }
-
-        #endregion
-
-        #region Input Handling
-
-        private void HandleInput(string action)
-        {
-            switch (CurrentInputMode)
-            {
-                case HubInputMode.Location:
-                    HandleLocationInput(action);
-                    break;
-                case HubInputMode.MarketChoice:
-                case HubInputMode.CafeChoice:
-                case HubInputMode.Docks:
-                case HubInputMode.Training:
-                case HubInputMode.Battlefields:
-                    SublocationInput.HandleSubLocationInput(action);
-                    break;
-                case HubInputMode.Chosen:
-                    SpecificUiInputHandler.HandleInput(action);
-                    break;
-            }
-        }
-
-        public void SetInputMode(HubInputMode mode)
-        {
-            if (mode != CurrentInputMode)
-            {
-                PreviousInputMode = CurrentInputMode;
-            }
-
-            CurrentInputMode = mode;
-            currentIndex = 0;
-
-            bool allowLook = mode switch
-            {
-                HubInputMode.Location => false,
-                HubInputMode.MarketChoice => true,
-                HubInputMode.CafeChoice => true,
-                HubInputMode.Battlefields => false,
-                HubInputMode.Docks => true,
-                HubInputMode.Training => true,
-                HubInputMode.Chosen => false,
-                HubInputMode.None => false,
-                _ => false,
-            };
-
-            SublocationInput.SetLookEnabled(allowLook);
-        }
-
-        public void RevertToPreviousInputMode()
-        {
-            if (PreviousInputMode == CurrentInputMode)
-            {
-                return;
-            }
-
-            SetInputMode(PreviousInputMode);
-        }
-
-        private void IncrementGameDateForHubLoad()
-        {
-            if (_brain?.ltm == null)
-            {
-                return;
-            }
-
-            GameDate current = _brain.ltm.GetGameDate();
-            var dt = new System.DateTime(current.year, current.month, current.day);
-            dt = dt.AddDays(1);
-
-            _brain.ltm.SetGameDate(dt.Year, (Month)(dt.Month - 1), dt.Day);
-            gameDate = new GameDate(dt.Year, dt.Month, dt.Day);
-        }
-
-        #endregion
-
-
-        #region Helpers
-        public void UpdateDateText()
-        {
-            if (dateText != null)
-            {
-                Month month = (Month)Mathf.Clamp(gameDate.month - 1, 0, 11);
-                string daySuffix = GameDate.GetDaySuffix(gameDate.day);
-                string monthName = month.ToString();
-                dateText.text = $"{monthName} {gameDate.day}{daySuffix}";
-            }
-        }
-
-        private void UpdateChoiceSelection()
-        {
-            if (LocationChoices == null || LocationChoices.Length == 0)
-            {
-                return;
-            }
-
-            for (int i = 0; i < LocationChoices.Length; i++)
-            {
-                if (LocationChoices[i] == null)
-                {
-                    continue;
-                }
-
-                if (i == currentIndex)
-                {
-                    LocationChoices[i].Select();
-                }
-                else
-                {
-                    LocationChoices[i].Deselect();
-                }
-            }
-        }
-        #endregion
-
-        #region Event Handlers
-        public void HandleGameDateChanged(int year, int month, int day)
-        {
-            gameDate = new GameDate(year, month, day);
-            _brain.charactersBrain.CheckBirthdays();
-            $"HubManager: Game date changed to {gameDate.year}/{gameDate.month}/{gameDate.day}".LogInfo();
-        }
-
-        public void HandleCharacterBirthdayThisWeek(CharacterInstance character, GameDate date)
-        {
-            int bdDay = character.CharacterTemplate.BirthdayDay;
-            int bdMonth = character.CharacterTemplate.BirthdayMonth;
-
-            string message =
-                $"It's <b>{character.CharacterTemplate.DisplayName}</b>'s birthday this week, on the {bdDay}{GameDate.GetDaySuffix(bdDay)}";
-
-            if (gameDate.day == bdDay && gameDate.month == bdMonth)
-            {
-                message = $"Today is <b>{character.CharacterTemplate.DisplayName}</b>'s birthday!";
-            }
-
-            notifications.SetMessage(message);
-            foreach (var type in notifications.types)
-            {
-                if (
-                    type.category.ToLower() == birthdayNotificationTypeName
-                    || type.name.ToLower() == birthdayNotificationTypeName
-                )
-                {
-                    notifications.Send(System.Array.IndexOf(notifications.types, type));
-                    break;
-                }
-            }
-        }
-
-        public void CheckShipsDocked()
-        {
-            dock.RefreshShipsForNewDay(gameDate);
-
-            var statuses = dock.PublishDockedShipStatuses();
-            if (statuses == null || statuses.Length == 0)
-            {
-                return;
-            }
-
-            // Ensure we have a cached baseline; if none exists, treat all as undocked (so first check can notify correctly).
-            if (pastShipDockedStatuses == null || pastShipDockedStatuses.Length == 0)
-            {
-                pastShipDockedStatuses = new DockShipStatus[statuses.Length];
-                for (int i = 0; i < statuses.Length; i++)
-                {
-                    pastShipDockedStatuses[i] = new DockShipStatus
-                    {
-                        ShipName = statuses[i].ShipName,
-                        IsDocked = false,
-                    };
-                }
-            }
-
-            bool anyChange = false;
-
-            for (int i = 0; i < statuses.Length; i++)
-            {
-                var current = statuses[i];
-                var previous = System.Array.Find(
-                    pastShipDockedStatuses,
-                    s => s.ShipName == current.ShipName
-                );
-
-                bool wasDocked = previous.ShipName != null && previous.IsDocked;
-
-                if (current.IsDocked != wasDocked)
-                {
-                    SendShipNotification(current.ShipName, current.IsDocked);
-                    anyChange = true;
-                }
-            }
-
-            if (anyChange)
-            {
-                pastShipDockedStatuses = statuses;
-                SaveDockShipStatuses(statuses);
-            }
-        }
-
-        public void CheckRareItems()
-        {
-            var rareItemStrings = shopsManager.RefreshShopsForNewDay(gameDate);
-
-            foreach (var message in rareItemStrings)
-            {
-                notifications.SetMessage(message);
-                foreach (var type in notifications.types)
-                {
-                    if (
-                        type.category.ToLower() == itemNotificationTypeName
-                        || type.name.ToLower() == itemNotificationTypeName
-                    )
-                    {
-                        notifications.Send(System.Array.IndexOf(notifications.types, type));
-                        break;
-                    }
-                }
-            }
-        }
-
-        private DockShipStatus[] LoadDockShipStatuses()
-        {
-            if (_brain?.ltm == null)
-            {
-                return new DockShipStatus[0];
-            }
-
-            string json = _brain.ltm.Recall(dockShipStatusLtmKey);
-            if (string.IsNullOrEmpty(json))
-            {
-                return new DockShipStatus[0];
-            }
-
-            var container = JsonUtility.FromJson<DockShipStatusContainer>(json);
-            return container?.statuses ?? new DockShipStatus[0];
-        }
-
-        private void SaveDockShipStatuses(DockShipStatus[] statuses)
-        {
-            if (_brain?.ltm == null)
-            {
-                return;
-            }
-
-            var container = new DockShipStatusContainer { statuses = statuses };
-            _brain.ltm.Remember(dockShipStatusLtmKey, JsonUtility.ToJson(container));
-        }
-
-        private void SendShipNotification(string shipName, bool isDocked)
-        {
-            string action = isDocked ? "docked at" : "left";
-            notifications.SetMessage($"<i>{shipName}</i> has {action} the harbor");
-
-            foreach (var type in notifications.types)
-            {
-                if (
-                    type.category.ToLower() == shipNotificationTypeName
-                    || type.name.ToLower() == shipNotificationTypeName
-                )
-                {
-                    notifications.Send(System.Array.IndexOf(notifications.types, type));
-                    break;
-                }
-            }
-        }
         #endregion
     }
 }

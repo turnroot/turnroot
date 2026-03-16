@@ -8,10 +8,9 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Docks
     {
         public DockShip[] AllShips;
 
-        /// <summary>
-        /// Maximum number of ships allowed per dock side (left/right).
-        /// If more ships are docked on a side than this, the oldest docked ships are sent back to sea.
-        /// </summary>
+        [Tooltip(
+            "Maximum number of ships allowed per dock side (left/right). If more ships are docked on a side than this, the oldest docked ships are sent back to sea."
+        )]
         public int MaxDockedShipsPerSide = 3;
 
         private readonly List<DockShip> _leftDockedShips = new();
@@ -91,7 +90,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Docks
                 allDocked[i].ForceSendToSea();
             }
 
-            // Rebuild lists after forcing excess ships to sea.
+            // Rebuild lists after forcing excess ships to sea
             RefreshDockLists();
         }
 

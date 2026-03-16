@@ -53,7 +53,12 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Docks
         [ShowIf("IsSmuggler")]
         public SmuggledItem[] SmuggledGoodsForSale;
 
+        [InfoBox(
+            "The 3D model of the ship that will appear in the dock. It will be disabled when the ship is at sea."
+        )]
         public GameObject Ship;
+
+        [InfoBox("If true, this ship will always be docked and never go to sea")]
         public bool AlwaysDocked = false;
         public bool IsDocked = true;
 

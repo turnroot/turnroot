@@ -1,5 +1,7 @@
 using System.Collections;
+using NaughtyAttributes;
 using TMPro;
+using Turnroot.Characters;
 using Turnroot.Gameplay.PlayerSettings;
 using Turnroot.Utilities;
 using UnityEngine;
@@ -12,38 +14,66 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
     {
         #region Inspector Fields
 
+        [Tooltip("Which hub sublocation this POI represents (Market, Cafe, Docks, etc.).")]
         public HubSublocationName Type;
         private Shop.Shop _shop;
+
+        [InfoBox(
+            "The root GameObject that contains all visual elements for the POI (icon, badge, etc.)."
+        )]
         public GameObject poiVisual;
+
+        [Tooltip("The target camera transform to move to when this POI is selected.")]
         public Transform CameraPoint;
 
+        [Tooltip("If true, selecting this POI moves the camera to the CameraPoint.")]
         public bool MoveCameraOnSelect = true;
 
         [Tooltip("How long the fade in/out should take.")]
         public float fadeDuration = 0.25f;
 
+        [Tooltip("AudioSource used to play UI sounds for this POI.")]
         public AudioSource UiFx;
+
+        [Tooltip("Sound played when the POI becomes visible.")]
         public AudioClip PoiShowSound;
+
+        [Tooltip("Sound played when this POI is selected.")]
         public AudioClip PoiSelectSound;
         private Renderer[] _renderers;
         private Material[] _materialInstances;
         private Camera _camera;
         private Coroutine _fadeCoroutine;
 
+        [Tooltip("Text element used to show the POI label.")]
         public TextMeshPro Label;
 
+        [Tooltip("Label text displayed on the POI (updated at runtime).")]
         public string LabelText;
 
+        [Tooltip("If this POI represents a unit, the associated character instance.")]
+        public CharacterInstance UnitCharacter;
+
+        [Tooltip("Optional badge object used to display an icon or status on the POI.")]
         public GameObject Badge;
+
+        [Tooltip(
+            "Material used on the badge; an instance is created at runtime to avoid modifying the original."
+        )]
         public Material BadgeMaterial;
         private Material _badgeMaterialInstance;
+
+        [Tooltip("Texture used for the badge when enabled.")]
         public Texture BadgeTexture;
 
+        [Tooltip("Texture used when selection is forbidden (e.g., shop closed).")]
         public Texture ForbiddenBadgeTexture;
         private Texture _currentBadgeTexture;
 
+        [Tooltip("Optional particle effect GameObject to play when the POI is visible.")]
         public GameObject Particles;
 
+        [Tooltip("Toggle whether the badge is shown on this POI.")]
         public bool ShowBadge = false;
 
         [HideInInspector]
@@ -57,9 +87,19 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         public void SetLabel(string text)
         {
+            LabelText = text;
             if (Label != null)
             {
                 Label.text = text;
+            }
+        }
+
+        public void SetUnitCharacter(CharacterInstance character)
+        {
+            UnitCharacter = character;
+            if (character != null)
+            {
+                SetLabel(character.CharacterTemplate.DisplayName);
             }
         }
 
@@ -332,6 +372,16 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         public void Select()
         {
             UiFx?.PlayOneShot(PoiSelectSound);
+
+            var subLocation = GetComponentInParent<HubSubLocation>();
+            if (subLocation == null)
+            {
+                $"HubPoiUi: Failed to find parent HubSubLocation for {name}".LogWarning();
+            }
+
+            // Always log the selection, even if we don't immediately move the camera.
+            hubmanager?.SpecificUiInputHandler?.SetCurrentSelection(subLocation, this);
+
             switch (Type)
             {
                 case HubSublocationName.Market:
@@ -350,6 +400,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 default:
                     break;
             }
+
             if (CameraPoint != null)
             {
                 if (MoveCameraOnSelect)

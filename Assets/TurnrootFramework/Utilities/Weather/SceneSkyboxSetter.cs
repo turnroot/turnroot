@@ -83,6 +83,11 @@ namespace Turnroot.Utilities.Weather
         private Color baseSpecColor = new(1f, 0.9743333f, 0.78f, 0.1333333f);
         private Color baseFresnelColor;
 
+        // We create a runtime instance of the assigned water material so that
+        // runtime color tweaks do not modify the source asset.
+        private Material _waterMaterialSource;
+        private Material _waterMaterialInstance;
+
         public WeatherType CurrentWeatherType = WeatherType.Sunny;
 
         public WeatherType[] PossibleWeatherTypes;
@@ -265,10 +270,14 @@ namespace Turnroot.Utilities.Weather
 
             if (WaterMaterial != null)
             {
-                baseShallowColor = WaterMaterial.GetColor("_ShallowColor");
-                baseDeepColor = WaterMaterial.GetColor("_DeepColor");
-                baseSpecColor = WaterMaterial.GetColor("_SpecularColor");
-                baseFresnelColor = WaterMaterial.GetColor("_FresnelColor");
+                // Instantiate the material so runtime tinting does not persist to the source asset.
+                _waterMaterialSource = WaterMaterial;
+                _waterMaterialInstance = Instantiate(_waterMaterialSource);
+
+                baseShallowColor = _waterMaterialInstance.GetColor("_ShallowColor");
+                baseDeepColor = _waterMaterialInstance.GetColor("_DeepColor");
+                baseSpecColor = _waterMaterialInstance.GetColor("_SpecularColor");
+                baseFresnelColor = _waterMaterialInstance.GetColor("_FresnelColor");
             }
 
             // set TimeOfYear based on game date
@@ -324,14 +333,24 @@ namespace Turnroot.Utilities.Weather
             }
 
             CurrentWeatherType = WeatherType.Sunny;
-            // restore material colours
-            if (WaterMaterial != null)
+
+            // restore material colours (if we instantiated an instance)
+            if (_waterMaterialInstance != null)
             {
-                WaterMaterial.SetColor("_ShallowColor", baseShallowColor);
-                WaterMaterial.SetColor("_DeepColor", baseDeepColor);
-                WaterMaterial.SetColor("_SpecularColor", baseSpecColor);
-                WaterMaterial.SetColor("_FresnelColor", baseFresnelColor);
+                _waterMaterialInstance.SetColor("_ShallowColor", baseShallowColor);
+                _waterMaterialInstance.SetColor("_DeepColor", baseDeepColor);
+                _waterMaterialInstance.SetColor("_SpecularColor", baseSpecColor);
+                _waterMaterialInstance.SetColor("_FresnelColor", baseFresnelColor);
+
+                if (_waterMaterialSource != null)
+                {
+                    WaterMaterial = _waterMaterialSource;
+                }
+
+                Destroy(_waterMaterialInstance);
+                _waterMaterialInstance = null;
             }
+
             if (HeavyRainParticles != null)
             {
                 HeavyRainParticles.SetActive(false);
@@ -426,12 +445,13 @@ namespace Turnroot.Utilities.Weather
             }
 
             // cache base water colors so we don't drift when blending
-            if (WaterMaterial != null)
+            var mat = GetActiveWaterMaterial();
+            if (mat != null)
             {
-                baseShallowColor = WaterMaterial.GetColor("_ShallowColor");
-                baseDeepColor = WaterMaterial.GetColor("_DeepColor");
-                baseSpecColor = WaterMaterial.GetColor("_SpecularColor");
-                baseFresnelColor = WaterMaterial.GetColor("_FresnelColor");
+                baseShallowColor = mat.GetColor("_ShallowColor");
+                baseDeepColor = mat.GetColor("_DeepColor");
+                baseSpecColor = mat.GetColor("_SpecularColor");
+                baseFresnelColor = mat.GetColor("_FresnelColor");
             }
 
             // cache cel shader base light & base-tint colours
@@ -461,9 +481,12 @@ namespace Turnroot.Utilities.Weather
             }
         }
 
+        private Material GetActiveWaterMaterial() => _waterMaterialInstance ?? WaterMaterial;
+
         private void UpdateWaterColors()
         {
-            if (WaterMaterial == null)
+            var mat = GetActiveWaterMaterial();
+            if (mat == null)
             {
                 return;
             }
@@ -496,14 +519,14 @@ namespace Turnroot.Utilities.Weather
             finalShallow.a = baseShallowColor.a;
             finalDeep.a = baseDeepColor.a;
 
-            WaterMaterial.SetColor("_ShallowColor", finalShallow);
-            WaterMaterial.SetColor("_DeepColor", finalDeep);
+            mat.SetColor("_ShallowColor", finalShallow);
+            mat.SetColor("_DeepColor", finalDeep);
             float specStrength = overcast ? OvercastSpecularStrength : SunnySpecularStrength;
-            WaterMaterial.SetFloat("_SpecularStrength", specStrength);
+            mat.SetFloat("_SpecularStrength", specStrength);
             Color specNew = Color.Lerp(baseSpecColor, finalShallow, SpecularColorBlend);
-            WaterMaterial.SetColor("_SpecularColor", specNew);
+            mat.SetColor("_SpecularColor", specNew);
             Color fresnelNew = Color.Lerp(baseFresnelColor, finalShallow, FresnelColorBlend);
-            WaterMaterial.SetColor("_FresnelColor", fresnelNew);
+            mat.SetColor("_FresnelColor", fresnelNew);
 
             // apply shallow tint to any cel materials
             if (CelMaterials != null && baseCelLight != null)

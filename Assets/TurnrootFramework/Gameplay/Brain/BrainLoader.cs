@@ -15,9 +15,6 @@ namespace Turnroot.Gameplay.Brain
 
         private void Awake()
         {
-            // Make this loader persistent so it doesn't get destroyed when scenes change
-            DontDestroyOnLoad(gameObject);
-
             // Only load the Brain scene once
             if (!_brainSceneLoaded)
             {
