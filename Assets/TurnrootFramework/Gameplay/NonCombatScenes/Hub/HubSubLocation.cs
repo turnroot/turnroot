@@ -108,7 +108,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 return;
             }
 
-            // Ensure all spawn points start enabled (in case they were disabled on a previous visit).
+            // Ensure all spawn points start enabled
             if (UnitSpawnPoints != null)
             {
                 foreach (var p in UnitSpawnPoints)
@@ -202,7 +202,22 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 }
             }
 
+            if (CharactersPresent.Length == 0)
+            {
+                if (UnitSpawnPoints != null)
+                {
+                    foreach (var p in UnitSpawnPoints)
+                    {
+                        if (p != null)
+                        {
+                            p.gameObject.SetActive(false); // hide spawn points if there are no characters to spawn
+                        }
+                    }
+                }
+            }
+
             // Disable any unused spawn points so only active characters show POI markers
+            // TODO: Troubleshoot this- it's hiding all
             if (UnitSpawnPoints != null)
             {
                 foreach (var spawnPoint in UnitSpawnPoints)
