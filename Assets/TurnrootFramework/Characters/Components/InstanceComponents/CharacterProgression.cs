@@ -178,7 +178,7 @@ namespace Turnroot.Characters
         {
             try
             {
-                var brain = UnityEngine.Object.FindFirstObjectByType<Gameplay.Brain.Brain>();
+                var brain = Object.FindFirstObjectByType<Gameplay.Brain.Brain>();
                 var ltm = brain?.GetComponent<Gameplay.Brain.Components.LongTermMemory>();
                 if (ltm == null)
                 {
@@ -192,7 +192,7 @@ namespace Turnroot.Characters
                     return null;
                 }
 
-                var data = UnityEngine.JsonUtility.FromJson<GrowthRatesDto>(json);
+                var data = JsonUtility.FromJson<GrowthRatesDto>(json);
                 if (data?.growthRates == null)
                 {
                     return null;
@@ -228,7 +228,7 @@ namespace Turnroot.Characters
         {
             try
             {
-                var brain = UnityEngine.Object.FindFirstObjectByType<Gameplay.Brain.Brain>();
+                var brain = Object.FindFirstObjectByType<Gameplay.Brain.Brain>();
                 var ltm = brain?.GetComponent<Gameplay.Brain.Components.LongTermMemory>();
                 if (ltm == null)
                 {
@@ -242,13 +242,8 @@ namespace Turnroot.Characters
                     return null;
                 }
 
-                var data = UnityEngine.JsonUtility.FromJson<GrowthRatesDto>(json);
-                if (data?.growthRates == null || !data.growthRates.ContainsKey("Health"))
-                {
-                    return null;
-                }
-
-                return data.growthRates["Health"];
+                var data = JsonUtility.FromJson<GrowthRatesDto>(json);
+                return data?.growthRates == null || !data.growthRates.ContainsKey("Health") ? null : data.growthRates["Health"];
             }
             catch (System.Exception ex)
             {

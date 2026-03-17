@@ -1,3 +1,4 @@
+using Turnroot.Utilities;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -23,6 +24,12 @@ namespace Turnroot.UI.Components.Menu.Submenu
         [HideInInspector]
         public int currentRowIndex = 0;
 
+        public InputAction navigateUpAction;
+        public InputAction navigateDownAction;
+        public InputAction navigateLeftAction;
+        public InputAction navigateRightAction;
+        public InputAction selectAction;
+
         public void Awake()
         {
             var index = 0;
@@ -31,6 +38,14 @@ namespace Turnroot.UI.Components.Menu.Submenu
                 row.rowIndex = index;
                 index++;
             }
+
+            Initialize();
+        }
+
+        public void Initialize()
+        {
+            currentRowIndex = 0;
+            UpdateRowFocus();
         }
 
         private void OnEnable()
@@ -51,11 +66,50 @@ namespace Turnroot.UI.Components.Menu.Submenu
             selectAction?.Disable();
         }
 
+        private void OnDestroy()
+        {
+            try
+            {
+                navigateUpAction?.Disable();
+                navigateUpAction?.Dispose();
+            }
+            catch { }
+            try
+            {
+                navigateDownAction?.Disable();
+                navigateDownAction?.Dispose();
+            }
+            catch { }
+            try
+            {
+                navigateLeftAction?.Disable();
+                navigateLeftAction?.Dispose();
+            }
+            catch { }
+            try
+            {
+                navigateRightAction?.Disable();
+                navigateRightAction?.Dispose();
+            }
+            catch { }
+            try
+            {
+                selectAction?.Disable();
+                selectAction?.Dispose();
+            }
+            catch { }
+        }
+
         private void Update() => HandleInput();
 
         private void HandleInput()
         {
             if (panelRows == null || panelRows.Length == 0)
+            {
+                return;
+            }
+
+            if (navigateUpAction == null || navigateDownAction == null || selectAction == null)
             {
                 return;
             }
@@ -109,11 +163,5 @@ namespace Turnroot.UI.Components.Menu.Submenu
                 panelRows[i].SetFocused(i == currentRowIndex);
             }
         }
-
-        public InputAction navigateUpAction;
-        public InputAction navigateDownAction;
-        public InputAction navigateLeftAction;
-        public InputAction navigateRightAction;
-        public InputAction selectAction;
     }
 }

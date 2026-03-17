@@ -253,7 +253,14 @@ namespace Turnroot.Utilities.SceneFlows
                     stateIsActive = currentState.Parent.Name == condition.conditionKey;
                 }
 
-                return stateIsActive == condition.expectedBoolValue;
+                if (stateIsActive)
+                {
+                    return stateIsActive == condition.expectedBoolValue;
+                }
+
+                // If the key isn't a real brain state, fall back to custom flags so designers can use
+                // BrainStateBool condition type with a custom flag key.
+                return _brain.GetCustomFlag(condition.conditionKey) == condition.expectedBoolValue;
             }
 
             private bool EvaluateBrainStateInt(SceneCondition condition)

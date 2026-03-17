@@ -8,12 +8,12 @@ namespace Turnroot.Gameplay.Brain.Segments
     /// </summary>
     public class MenuDepthTracker
     {
-        private Stack<MenuLocation> _menuStack = new();
+        private Stack<MenuEntry> _menuStack = new();
 
         public event System.Action OnDepthChanged;
 
         public int CurrentDepth => _menuStack.Count;
-        public MenuLocation CurrentMenu => _menuStack.Count > 0 ? _menuStack.Peek() : null;
+        public MenuEntry CurrentMenu => _menuStack.Count > 0 ? _menuStack.Peek() : null;
         public bool IsInSubMenu => CurrentDepth > 0;
 
         public void Clear()
@@ -22,7 +22,7 @@ namespace Turnroot.Gameplay.Brain.Segments
             OnDepthChanged?.Invoke();
         }
 
-        public void TrackTransition(MenuLocation from, MenuLocation to)
+        public void TrackTransition(MenuEntry from, MenuEntry to)
         {
             if (to == null)
             {
@@ -73,7 +73,7 @@ namespace Turnroot.Gameplay.Brain.Segments
 
         public bool CanGoBack() => _menuStack.Count > 1;
 
-        public (MenuLocation fromLocation, MenuLocation toLocation) PopTransition()
+        public (MenuEntry fromLocation, MenuEntry toLocation) PopTransition()
         {
             if (!CanGoBack())
             {
@@ -86,7 +86,7 @@ namespace Turnroot.Gameplay.Brain.Segments
             return (currentMenu, previousMenu);
         }
 
-        public bool IsInMenu(MenuLocation menu) => CurrentMenu == menu;
+        public bool IsInMenu(MenuEntry menu) => CurrentMenu == menu;
 
         public bool IsInPreBattleMenu(GamewideUiSettings settings) =>
             CurrentMenu == settings.GetPreBattleMenu();

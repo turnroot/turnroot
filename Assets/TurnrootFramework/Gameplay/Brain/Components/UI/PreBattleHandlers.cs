@@ -86,10 +86,7 @@ namespace Turnroot.Gameplay.Brain.Segments
         }
 
         #region PreBattle Menu Event Handlers
-        public void HandleUnitCellSelectionToggle(
-            UnitCellGridMenuItem item,
-            MenuLocation currentMenu
-        )
+        public void HandleUnitCellSelectionToggle(UnitCellGridMenuItem item, MenuEntry currentMenu)
         {
             // Compare by menu name rather than instance reference to avoid false negatives
             var currentMenuName = currentMenu?.menuName;
@@ -181,7 +178,7 @@ namespace Turnroot.Gameplay.Brain.Segments
 
                 Destroy(menuInstance);
 
-                // Clear the active instance from the MenuLocation
+                // Clear the active instance from the MenuEntry
                 var preBattleMenuLocation = uiSettings?.GetPreBattleMenu();
                 if (preBattleMenuLocation != null)
                 {
@@ -307,7 +304,7 @@ namespace Turnroot.Gameplay.Brain.Segments
         }
 
         private System.Collections.IEnumerator StartBattleCoroutine(
-            MenuLocation preBattleMenuLocation,
+            MenuEntry preBattleMenuLocation,
             float delay
         )
         {

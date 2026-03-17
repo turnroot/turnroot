@@ -26,5 +26,25 @@ namespace Turnroot.UI.Components.Notifications
         }
 
         public void SetMessage(string newMessage) => message = newMessage;
+
+        public void HideContainer()
+        {
+            if (notifications?.container == null)
+            {
+                "NotificationsHelper: Container is not assigned.".LogWarning();
+                return;
+            }
+            notifications.container.SetActive(false);
+        }
+
+        public void ShowContainer()
+        {
+            if (notifications?.container == null)
+            {
+                "NotificationsHelper: Container is not assigned.".LogWarning();
+                return;
+            }
+            notifications.container.SetActive(true);
+        }
     }
 }

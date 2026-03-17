@@ -1,3 +1,4 @@
+using Turnroot.UI;
 using Turnroot.Utilities;
 using UnityEngine;
 
@@ -49,14 +50,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
         }
 
-        public float GetSpawnPointHeight(Transform spawnPoint, float defaultHeight)
-        {
-            if (spawnPoint == null)
-            {
-                return defaultHeight;
-            }
-            return _spawnPointHeights.TryGetValue(spawnPoint, out var h) ? h : defaultHeight;
-        }
+        public float GetSpawnPointHeight(Transform spawnPoint, float defaultHeight) =>
+            spawnPoint == null ? defaultHeight
+            : _spawnPointHeights.TryGetValue(spawnPoint, out var h) ? h
+            : defaultHeight;
 
         public void UpdateDateText()
         {
@@ -69,27 +66,49 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
         }
 
+        private void BuildNavigableChoices()
+        {
+            var list = new System.Collections.Generic.List<UiChoice>();
+
+            if (LocationChoices != null)
+            {
+                list.AddRange(LocationChoices);
+            }
+
+            if (EndDay != null)
+            {
+                list.Add(EndDay);
+            }
+
+            if (Settings != null)
+            {
+                list.Add(Settings);
+            }
+
+            _navigableChoices = list.ToArray();
+        }
+
         private void UpdateChoiceSelection()
         {
-            if (LocationChoices == null || LocationChoices.Length == 0)
+            if (_navigableChoices == null || _navigableChoices.Length == 0)
             {
                 return;
             }
 
-            for (int i = 0; i < LocationChoices.Length; i++)
+            for (int i = 0; i < _navigableChoices.Length; i++)
             {
-                if (LocationChoices[i] == null)
+                if (_navigableChoices[i] == null)
                 {
                     continue;
                 }
 
                 if (i == currentIndex)
                 {
-                    LocationChoices[i].Select();
+                    _navigableChoices[i].Select();
                 }
                 else
                 {
-                    LocationChoices[i].Deselect();
+                    _navigableChoices[i].Deselect();
                 }
             }
         }

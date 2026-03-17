@@ -24,7 +24,6 @@ namespace Turnroot.Gameplay.Brain
                 saveFile.FileName = fileName;
                 SaveFiles[activeIndex] = saveFile;
                 SaveAllFiles();
-                $"Updated save file name to: {fileName}".LogInfo();
             }
             else
             {
@@ -51,7 +50,6 @@ namespace Turnroot.Gameplay.Brain
                 saveFile.Progress = progress;
                 SaveFiles[activeIndex] = saveFile;
                 SaveAllFiles();
-                $"Updated save file progress to: {progress}".LogInfo();
             }
             else
             {
@@ -78,7 +76,6 @@ namespace Turnroot.Gameplay.Brain
                 saveFile.CurrentScene = sceneName;
                 SaveFiles[activeIndex] = saveFile;
                 SaveAllFiles();
-                $"Updated save file current scene to: {sceneName}".LogInfo();
             }
             else
             {
@@ -124,7 +121,6 @@ namespace Turnroot.Gameplay.Brain
                 saveFile.ChapterNumber = chapterNumber;
                 SaveFiles[activeIndex] = saveFile;
                 SaveAllFiles();
-                $"Updated save file chapter to: {chapterName} (Chapter {chapterNumber})".LogInfo();
             }
             else
             {
@@ -133,10 +129,6 @@ namespace Turnroot.Gameplay.Brain
         }
 
         private void HandleSceneChanged(string sceneName, string displayName) =>
-            // simply trigger a save so the playtime is updated before the new
-            // scene begins.  we don't change the save file's current scene here
-            // (that is handled by other brain events) – this is purely for time
-            // accounting.
             SaveAllFiles();
 
         #endregion

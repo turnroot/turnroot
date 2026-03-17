@@ -10,10 +10,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
     {
         #region Brain Event Handlers
 
-        private void HandleSublocationInputModeChange(HubInputMode mode)
-        {
-            SetInputMode(mode);
-        }
+        private void HandleSublocationInputModeChange(HubInputMode mode) => SetInputMode(mode);
 
         #endregion
 
@@ -63,7 +60,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 return;
             }
 
-            // Ensure we have a cached baseline; if none exists, treat all as undocked (so first check can notify correctly).
+            // Ensure we have a cached baseline; if none exists, treat all as undocked (so first check can notify correctly)
             if (pastShipDockedStatuses == null || pastShipDockedStatuses.Length == 0)
             {
                 pastShipDockedStatuses = new DockShipStatus[statuses.Length];

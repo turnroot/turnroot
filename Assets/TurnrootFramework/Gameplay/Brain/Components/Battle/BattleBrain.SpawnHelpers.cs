@@ -69,10 +69,6 @@ namespace Turnroot.Gameplay.Brain
                 {
                     $"SpawnRosterUnits: SpawnAtPosition failed for {characterData?.DisplayName} at {position}".LogWarning();
                 }
-                else
-                {
-                    $"SpawnRosterUnits: Spawned {characterData?.DisplayName} at {position}".LogInfo();
-                }
             }
         }
     }

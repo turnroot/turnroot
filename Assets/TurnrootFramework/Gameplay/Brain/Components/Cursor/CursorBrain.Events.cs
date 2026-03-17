@@ -114,12 +114,6 @@ namespace Turnroot.Gameplay.Brain
                         {
                             InitializeBattleCursor();
                         }
-                        else
-                        {
-                            "Battle map not ready yet - waiting for OnBattleMapReady".LogInfo(
-                                "CursorBrain"
-                            );
-                        }
 
                         // Reset repeat state so navigation starts fresh when entering Battle context
                         ResetNavigationCooldown();

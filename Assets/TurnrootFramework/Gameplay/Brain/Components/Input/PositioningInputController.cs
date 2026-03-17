@@ -43,8 +43,6 @@ namespace Turnroot.Gameplay.Brain
             _inputActions.Enable();
             _isActive = true;
             _lastInputTime = Time.time;
-
-            "PositioningInputController: Activated".LogInfo();
         }
 
         private void HandlePositioningModeExited()
@@ -53,7 +51,6 @@ namespace Turnroot.Gameplay.Brain
             _inputActions.Disable();
             _inputActions.Dispose();
             _inputActions = null;
-            "PositioningInputController: Deactivated".LogInfo();
         }
 
         private void Update()

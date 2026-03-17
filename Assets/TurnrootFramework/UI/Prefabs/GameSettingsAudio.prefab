@@ -333,6 +333,7 @@ MonoBehaviour:
   m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
+  m_characterHorizontalScale: 1
   m_wordSpacing: 0
   m_lineSpacing: 0
   m_lineSpacingMax: 0
@@ -864,6 +865,7 @@ MonoBehaviour:
   m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
+  m_characterHorizontalScale: 1
   m_wordSpacing: 0
   m_lineSpacing: 0
   m_lineSpacingMax: 0
@@ -1236,6 +1238,7 @@ MonoBehaviour:
   m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
+  m_characterHorizontalScale: 1
   m_wordSpacing: 0
   m_lineSpacing: 0
   m_lineSpacingMax: 0
@@ -1449,6 +1452,7 @@ MonoBehaviour:
   m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
+  m_characterHorizontalScale: 1
   m_wordSpacing: 0
   m_lineSpacing: 0
   m_lineSpacingMax: 0
@@ -1642,7 +1646,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2055327560184319851}
   - component: {fileID: 7502817187810253730}
-  - component: {fileID: 4346045132180358196}
+  - component: {fileID: 8987549949850455696}
   m_Layer: 5
   m_Name: Rows
   m_TagString: Untagged
@@ -1699,7 +1703,7 @@ MonoBehaviour:
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
   m_ReverseArrangement: 0
---- !u!114 &4346045132180358196
+--- !u!114 &8987549949850455696
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1749,6 +1753,14 @@ MonoBehaviour:
       m_Groups: 
       m_Action: Navigate Up
       m_Flags: 0
+    - m_Name: 
+      m_Id: 53c79882-515a-4895-af52-7f8b792de05d
+      m_Path: <Keyboard>/upArrow
+      m_Interactions: 
+      m_Processors: 
+      m_Groups: 
+      m_Action: Navigate Up
+      m_Flags: 0
     m_Flags: 0
   navigateDownAction:
     m_Name: Navigate Down
@@ -1777,6 +1789,14 @@ MonoBehaviour:
     - m_Name: 
       m_Id: e0a03a4f-ba74-4f2f-81b1-42bf314ce8c5
       m_Path: <Gamepad>/dpad/down
+      m_Interactions: 
+      m_Processors: 
+      m_Groups: 
+      m_Action: Navigate Down
+      m_Flags: 0
+    - m_Name: 
+      m_Id: 8c0a450e-8793-481e-b070-10707e9605c3
+      m_Path: <Keyboard>/downArrow
       m_Interactions: 
       m_Processors: 
       m_Groups: 
@@ -1815,6 +1835,14 @@ MonoBehaviour:
       m_Groups: 
       m_Action: Navigate Left
       m_Flags: 0
+    - m_Name: 
+      m_Id: e8086174-c85d-4971-9775-2db3b597b06c
+      m_Path: <Keyboard>/leftArrow
+      m_Interactions: 
+      m_Processors: 
+      m_Groups: 
+      m_Action: Navigate Left
+      m_Flags: 0
     m_Flags: 0
   navigateRightAction:
     m_Name: Navigate Right
@@ -1848,6 +1876,14 @@ MonoBehaviour:
       m_Groups: 
       m_Action: Navigate Right
       m_Flags: 0
+    - m_Name: 
+      m_Id: eea44a51-c6a3-4aad-92f7-4c89465b52b3
+      m_Path: <Keyboard>/rightArrow
+      m_Interactions: 
+      m_Processors: 
+      m_Groups: 
+      m_Action: Navigate Right
+      m_Flags: 0
     m_Flags: 0
   selectAction:
     m_Name: Select
@@ -1858,16 +1894,32 @@ MonoBehaviour:
     m_Interactions: 
     m_SingletonActionBindings:
     - m_Name: 
-      m_Id: d523f8db-9d5a-46cd-bdf9-13e7601c49a0
-      m_Path: '*/{Submit}'
+      m_Id: 95fa7513-b48a-4c11-9514-c5e00e12f63d
+      m_Path: <Gamepad>/buttonEast
       m_Interactions: 
       m_Processors: 
       m_Groups: 
       m_Action: Select
       m_Flags: 0
     - m_Name: 
-      m_Id: 40be8fe3-cf78-4bab-80c8-30776ee5b179
-      m_Path: '*/{PrimaryAction}'
+      m_Id: 59ceca4d-e89e-4dc9-bfe9-946e2eef84ec
+      m_Path: <Keyboard>/space
+      m_Interactions: 
+      m_Processors: 
+      m_Groups: 
+      m_Action: Select
+      m_Flags: 0
+    - m_Name: 
+      m_Id: 07b2a577-2946-4ee6-a9e9-3b4a8ae87f84
+      m_Path: <Keyboard>/enter
+      m_Interactions: 
+      m_Processors: 
+      m_Groups: 
+      m_Action: Select
+      m_Flags: 0
+    - m_Name: 
+      m_Id: d6fa770e-0ca5-4496-9754-e9ecf51d996e
+      m_Path: <Mouse>/leftButton
       m_Interactions: 
       m_Processors: 
       m_Groups: 
@@ -2541,6 +2593,7 @@ MonoBehaviour:
   m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
+  m_characterHorizontalScale: 1
   m_wordSpacing: 0
   m_lineSpacing: 0
   m_lineSpacingMax: 0

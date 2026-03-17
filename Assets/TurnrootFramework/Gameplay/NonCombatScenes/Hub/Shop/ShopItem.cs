@@ -43,7 +43,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
                     || (
                         CanGoOnSale
                         && SaleChanceOnRandomDays > 0f
-                        && UnityEngine.Random.value < SaleChanceOnRandomDays
+                        && HubDayRandom.Value < SaleChanceOnRandomDays
                     )
                 )
                 {
@@ -65,7 +65,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
         {
             if (RareItem)
             {
-                if (UnityEngine.Random.value < ChanceToAppearInShop)
+                if (HubDayRandom.Value < ChanceToAppearInShop)
                 {
                     CurrentStatus.AvailableQuantity = Math.Min(
                         CurrentStatus.AvailableQuantity + 1,

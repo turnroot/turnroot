@@ -1,6 +1,7 @@
 #if UNITY_EDITOR
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using UnityEditor;
 using UnityEngine;
 
@@ -704,6 +705,8 @@ namespace Turnroot.Utilities.SceneFlows.Editor
 
             var fromPos = GetNodeCenter(fromNode);
             var toPos = GetNodeCenter(toNode);
+            var fromRect = GetNodeRect(fromNode);
+            var toRect = GetNodeRect(toNode);
 
             // Check if this is a cross-chapter transition
             bool isCrossChapter =
@@ -730,8 +733,17 @@ namespace Turnroot.Utilities.SceneFlows.Editor
                 lineColor = _settings.transitionConditionalColor;
             }
 
+            // Calculate line endpoints so they stop at the edge of the node rects
+            var adjustedFrom = GetPointOnRectEdge(
+                fromRect,
+                fromPos,
+                toPos,
+                _settings.arrowNodeOffset
+            );
+            var adjustedTo = GetPointOnRectEdge(toRect, toPos, fromPos, _settings.arrowNodeOffset);
+
             // Draw arrow
-            DrawArrow(fromPos, toPos, lineColor, transition.isBidirectional);
+            DrawArrow(adjustedFrom, adjustedTo, lineColor, transition.isBidirectional);
 
             // Determine label text
             string labelText = transition.label;
@@ -843,12 +855,8 @@ namespace Turnroot.Utilities.SceneFlows.Editor
             Vector2 direction = (to - from).normalized;
             float distance = Vector2.Distance(from, to);
 
-            // Shorten line to not overlap nodes
-            Vector2 adjustedFrom = from + direction * _settings.arrowNodeOffset;
-            Vector2 adjustedTo = to - direction * _settings.arrowNodeOffset;
-
             // Draw main line with thickness
-            Handles.DrawAAPolyLine(_settings.transitionWidth, adjustedFrom, adjustedTo);
+            Handles.DrawAAPolyLine(_settings.transitionWidth, from, to);
 
             // Calculate arrowhead dimensions based on settings
             float arrowLength = _settings.arrowSize;
@@ -857,7 +865,7 @@ namespace Turnroot.Utilities.SceneFlows.Editor
             // Draw arrowhead
             if (!bidirectional)
             {
-                Vector2 arrowTip = adjustedTo;
+                Vector2 arrowTip = to;
                 Vector2 perpendicular = new Vector2(-direction.y, direction.x);
                 Vector2 arrowLeft = arrowTip - direction * arrowLength + perpendicular * arrowWidth;
                 Vector2 arrowRight =
@@ -872,7 +880,7 @@ namespace Turnroot.Utilities.SceneFlows.Editor
                 Vector2 perpendicular = new Vector2(-direction.y, direction.x);
 
                 // Arrow at 'to' end
-                Vector2 arrowTip1 = adjustedTo;
+                Vector2 arrowTip1 = to;
                 Handles.DrawAAPolyLine(
                     _settings.transitionWidth,
                     arrowTip1,
@@ -885,7 +893,7 @@ namespace Turnroot.Utilities.SceneFlows.Editor
                 );
 
                 // Arrow at 'from' end
-                Vector2 arrowTip2 = adjustedFrom;
+                Vector2 arrowTip2 = from;
                 Handles.DrawAAPolyLine(
                     _settings.transitionWidth,
                     arrowTip2,
@@ -1195,6 +1203,21 @@ namespace Turnroot.Utilities.SceneFlows.Editor
             }
         }
 
+        private static readonly string[] _conditionKeyOptions = GetSceneFlowConditionKeys();
+
+        private static string[] GetSceneFlowConditionKeys()
+        {
+            var type = typeof(Turnroot.Utilities.SceneFlows.SceneFlowConditionKeys);
+            var fields = type.GetFields(BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy);
+            var keys = fields
+                .Where(f => f.IsLiteral && !f.IsInitOnly && f.FieldType == typeof(string))
+                .Select(f => (string)f.GetRawConstantValue())
+                .OrderBy(k => k)
+                .ToList();
+            keys.Insert(0, "<Custom>");
+            return keys.ToArray();
+        }
+
         private void DrawTransitionInspector()
         {
             EditorGUILayout.LabelField("Scene Transition", EditorStyles.boldLabel);
@@ -1351,10 +1374,43 @@ namespace Turnroot.Utilities.SceneFlows.Editor
 
                 if (condition.conditionType != SceneConditionType.Always)
                 {
-                    condition.conditionKey = EditorGUILayout.TextField(
-                        "Key",
-                        condition.conditionKey
-                    );
+                    // Use a dropdown of known flag keys, but allow custom input as well.
+                    if (
+                        condition.conditionType == SceneConditionType.BrainStateBool
+                        || condition.conditionType == SceneConditionType.CustomFlag
+                    )
+                    {
+                        int selectedIndex = 0;
+                        if (!string.IsNullOrEmpty(condition.conditionKey))
+                        {
+                            int found = System.Array.IndexOf(_conditionKeyOptions, condition.conditionKey);
+                            if (found >= 0)
+                            {
+                                selectedIndex = found;
+                            }
+                        }
+
+                        int newIndex = EditorGUILayout.Popup("Key", selectedIndex, _conditionKeyOptions);
+                        if (newIndex != selectedIndex)
+                        {
+                            condition.conditionKey = newIndex == 0 ? string.Empty : _conditionKeyOptions[newIndex];
+                        }
+
+                        if (string.IsNullOrEmpty(condition.conditionKey))
+                        {
+                            condition.conditionKey = EditorGUILayout.TextField(
+                                "Custom Key",
+                                condition.conditionKey
+                            );
+                        }
+                    }
+                    else
+                    {
+                        condition.conditionKey = EditorGUILayout.TextField(
+                            "Key",
+                            condition.conditionKey
+                        );
+                    }
 
                     switch (condition.conditionType)
                     {
@@ -1408,6 +1464,137 @@ namespace Turnroot.Utilities.SceneFlows.Editor
                 );
             }
 
+            // Reverse conditions (for bidirectional transitions)
+            if (_selectedTransition.isBidirectional)
+            {
+                EditorGUILayout.Space();
+                EditorGUILayout.LabelField("Reverse Conditions", EditorStyles.boldLabel);
+
+                if (_selectedTransition.reverseConditions == null)
+                {
+                    _selectedTransition.reverseConditions = new List<SceneCondition>();
+                }
+
+                for (int i = 0; i < _selectedTransition.reverseConditions.Count; i++)
+                {
+                    EditorGUILayout.BeginVertical("box");
+                    var condition = _selectedTransition.reverseConditions[i];
+
+                    EditorGUILayout.BeginHorizontal();
+                    EditorGUILayout.LabelField($"Reverse Condition {i + 1}", EditorStyles.boldLabel);
+                    if (GUILayout.Button("Remove", GUILayout.Width(60)))
+                    {
+                        _selectedTransition.reverseConditions.RemoveAt(i);
+                        EditorUtility.SetDirty(_graph);
+                        AssetDatabase.SaveAssetIfDirty(_graph);
+                        break;
+                    }
+                    EditorGUILayout.EndHorizontal();
+
+                    condition.conditionType = (SceneConditionType)
+                        EditorGUILayout.EnumPopup("Type", condition.conditionType);
+
+                    if (condition.conditionType != SceneConditionType.Always)
+                    {
+                        // Use the same key dropdown logic as forward conditions
+                        if (
+                            condition.conditionType == SceneConditionType.BrainStateBool
+                            || condition.conditionType == SceneConditionType.CustomFlag
+                        )
+                        {
+                            int selectedIndex = 0;
+                            if (!string.IsNullOrEmpty(condition.conditionKey))
+                            {
+                                int found = System.Array.IndexOf(
+                                    _conditionKeyOptions,
+                                    condition.conditionKey
+                                );
+                                if (found >= 0)
+                                {
+                                    selectedIndex = found;
+                                }
+                            }
+
+                            int newIndex = EditorGUILayout.Popup("Key", selectedIndex, _conditionKeyOptions);
+                            if (newIndex != selectedIndex)
+                            {
+                                condition.conditionKey = newIndex == 0
+                                    ? string.Empty
+                                    : _conditionKeyOptions[newIndex];
+                            }
+
+                            if (string.IsNullOrEmpty(condition.conditionKey))
+                            {
+                                condition.conditionKey = EditorGUILayout.TextField(
+                                    "Custom Key",
+                                    condition.conditionKey
+                                );
+                            }
+                        }
+                        else
+                        {
+                            condition.conditionKey = EditorGUILayout.TextField(
+                                "Key",
+                                condition.conditionKey
+                            );
+                        }
+
+                        switch (condition.conditionType)
+                        {
+                            case SceneConditionType.BrainStateBool:
+                            case SceneConditionType.CustomFlag:
+                                condition.expectedBoolValue = EditorGUILayout.Toggle(
+                                    "Expected Value",
+                                    condition.expectedBoolValue
+                                );
+                                break;
+
+                            case SceneConditionType.BrainStateInt:
+                                condition.comparisonOperator = (ComparisonOperator)
+                                    EditorGUILayout.EnumPopup("Operator", condition.comparisonOperator);
+                                condition.expectedIntValue = EditorGUILayout.IntField(
+                                    "Value",
+                                    condition.expectedIntValue
+                                );
+                                break;
+
+                            case SceneConditionType.BrainStateString:
+                                condition.expectedStringValue = EditorGUILayout.TextField(
+                                    "Expected Value",
+                                    condition.expectedStringValue
+                                );
+                                break;
+                        }
+                    }
+
+                    EditorGUILayout.LabelField("Preview:", EditorStyles.miniLabel);
+                    EditorGUILayout.LabelField(
+                        condition.ToString(),
+                        EditorStyles.wordWrappedMiniLabel
+                    );
+
+                    EditorGUILayout.EndVertical();
+                    EditorGUILayout.Space();
+                }
+
+                if (GUILayout.Button("Add Reverse Condition"))
+                {
+                    _selectedTransition.reverseConditions.Add(
+                        new SceneCondition { conditionType = SceneConditionType.Always }
+                    );
+                    EditorUtility.SetDirty(_graph);
+                    AssetDatabase.SaveAssetIfDirty(_graph);
+                }
+
+                if (_selectedTransition.reverseConditions.Count == 0)
+                {
+                    EditorGUILayout.HelpBox(
+                        "No reverse conditions means the reverse direction is always available.",
+                        MessageType.Info
+                    );
+                }
+            }
+
             if (EditorGUI.EndChangeCheck())
             {
                 EditorUtility.SetDirty(_graph);
@@ -1429,6 +1616,50 @@ namespace Turnroot.Utilities.SceneFlows.Editor
         private Vector2 GetNodeCenter(SceneNode node)
         {
             return node.editorPosition + new Vector2(NODE_WIDTH / 2, NODE_HEIGHT / 2);
+        }
+
+        private Vector2 GetPointOnRectEdge(Rect rect, Vector2 center, Vector2 target, float padding)
+        {
+            // Find the intersection point between a ray from the center toward the target and the rect edge.
+            // This keeps connection lines from overlapping the node boxes.
+            Vector2 direction = (target - center).normalized;
+            Vector2 hitPoint = center;
+            float bestT = float.PositiveInfinity;
+
+            // Check vertical sides (left/right)
+            if (Mathf.Abs(direction.x) > 0.0001f)
+            {
+                float tx =
+                    (direction.x > 0 ? rect.xMax - center.x : rect.xMin - center.x) / direction.x;
+                if (tx > 0)
+                {
+                    Vector2 p = center + direction * tx;
+                    if (p.y >= rect.yMin && p.y <= rect.yMax && tx < bestT)
+                    {
+                        bestT = tx;
+                        hitPoint = p;
+                    }
+                }
+            }
+
+            // Check horizontal sides (top/bottom)
+            if (Mathf.Abs(direction.y) > 0.0001f)
+            {
+                float ty =
+                    (direction.y > 0 ? rect.yMax - center.y : rect.yMin - center.y) / direction.y;
+                if (ty > 0)
+                {
+                    Vector2 p = center + direction * ty;
+                    if (p.x >= rect.xMin && p.x <= rect.xMax && ty < bestT)
+                    {
+                        bestT = ty;
+                        hitPoint = p;
+                    }
+                }
+            }
+
+            // Apply padding so the line doesn't touch the node border
+            return hitPoint + direction * padding;
         }
 
         private Vector2 TransformToScreenSpace(Vector2 graphPos, Rect graphRect)

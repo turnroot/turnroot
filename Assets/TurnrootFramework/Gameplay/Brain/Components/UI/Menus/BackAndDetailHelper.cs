@@ -1,5 +1,7 @@
 using System;
 using Turnroot.GameSettings;
+using Turnroot.UI.Components.Menu;
+using Turnroot.UI.Components.RadialMenu;
 using Turnroot.UI.Components.SimpleButton;
 using Turnroot.Utilities;
 using UnityEngine;
@@ -224,6 +226,20 @@ namespace Turnroot.Gameplay.Brain.Segments
                 return;
             }
 
+            // Special case: when in the hub state and only the root settings menu is open,
+            // pressing back should close that settings menu and restore hub UI.
+            var currentMenu = _menuTracker?.CurrentMenu;
+            if (
+                IsInHubState()
+                && _menuTracker?.CurrentDepth == 1
+                && currentMenu == uiSettings?.GetGameSettingsMenu()
+            )
+            {
+                CloseCurrentMenu(currentMenu);
+                _menuTracker.Clear();
+                return;
+            }
+
             if (_menuTracker?.CanGoBack() == true)
             {
                 var (fromLocation, toLocation) = _menuTracker.PopTransition();
@@ -241,6 +257,46 @@ namespace Turnroot.Gameplay.Brain.Segments
             {
                 "UiBrain: At root level, handling root back".LogInfo();
                 HandleRootLevelBack();
+            }
+        }
+
+        private void CloseCurrentMenu(MenuEntry current)
+        {
+            if (current == null)
+            {
+                return;
+            }
+
+            var instance = current.activeInstance;
+            if (instance != null)
+            {
+                // Clean up and destroy the menu instance
+                var fade = UIFadeCache.Get(instance);
+                if (fade != null)
+                {
+                    fade.Hide();
+                }
+
+                // Clean up any event subscriptions so we don't leak listeners
+                var menus = instance.GetComponentsInChildren<MenuBase>(true);
+                foreach (var menu in menus)
+                {
+                    menu.OnItemSelected -= HandlePreBattleMenuSelect;
+                    menu.OnItemSelected -= HandleGameSettingsMenuSelect;
+                    menu.OnItemSelected -= HandleMenuSelect;
+                }
+
+                var radials = instance.GetComponentsInChildren<RadialMenu>(true);
+                foreach (var radial in radials)
+                {
+                    radial.OnItemSelected -= HandlePreBattleMenuSelect;
+                    radial.OnItemSelected -= HandleGameSettingsMenuSelect;
+                    radial.OnItemSelected -= HandleMenuSelect;
+                }
+
+                Destroy(instance);
+                UIFadeCache.Remove(instance);
+                current.activeInstance = null;
             }
         }
 

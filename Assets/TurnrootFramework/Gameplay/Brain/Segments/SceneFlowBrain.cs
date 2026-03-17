@@ -75,11 +75,7 @@ namespace Turnroot.Utilities.SceneFlows
                     // write user-configurable starting date
                     var start =
                         GameplayGeneralSettings.Instance?.StartingGameDate ?? GameDate.Default;
-                    _ltm.SetGameDate(
-                        start.year,
-                        (Month)(start.month - 1),
-                        start.day
-                    );
+                    _ltm.SetGameDate(start.year, (Month)(start.month - 1), start.day);
                     existing = _ltm.GetGameDate();
                 }
                 _brain?.PublishGameDateChanged(
@@ -121,11 +117,7 @@ namespace Turnroot.Utilities.SceneFlows
                 {
                     var start =
                         GameplayGeneralSettings.Instance?.StartingGameDate ?? GameDate.Default;
-                    _ltm.SetGameDate(
-                        start.year,
-                        (Month)(start.month - 1),
-                        start.day
-                    );
+                    _ltm.SetGameDate(start.year, (Month)(start.month - 1), start.day);
                     date = _ltm.GetGameDate();
                 }
                 _brain.PublishGameDateChanged(date.year, (int)date.month + 1, date.day);
@@ -178,6 +170,13 @@ namespace Turnroot.Utilities.SceneFlows
                 {
                     _ltm.SetGameDate(newYear, monthEnum, newDay);
                 }
+            }
+
+            // Reset the end-of-day transition flags when we arrive at a hub scene
+            if (scene.isHub)
+            {
+                SetCustomFlag(SceneFlowConditionKeys.ReturnToHub, false);
+                SetCustomFlag(SceneFlowConditionKeys.EndHubDay, false);
             }
 
             Brain.PublishSceneChanged(scene.sceneName, scene.displayName);

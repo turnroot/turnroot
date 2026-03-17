@@ -89,7 +89,7 @@ namespace Turnroot.Gameplay.Brain.Segments
                 // Try to cast to UnitCellGridMenuItem
                 if (item is UnitCellGridMenuItem unitCellItem)
                 {
-                    // Get the MenuLocation type of the currently open menu
+                    // Get the MenuEntry type of the currently open menu
                     var currentMenu = _brain.GetMenuTracker()?.CurrentMenu;
                     // Existing behavior: delegate to UiBrain's handler (which contains the selection logic)
                     _brain.HandleUnitCellSelectionToggle(unitCellItem, currentMenu);
@@ -110,7 +110,7 @@ namespace Turnroot.Gameplay.Brain.Segments
 
         private void HandleWithdraw() => "Handling Withdraw - TODO: Implement".LogInfo(); // TODO: Handle withdraw action
 
-        private OperationResult TransitionToSubmenu(MenuLocation submenuLocation)
+        private OperationResult TransitionToSubmenu(MenuEntry submenuLocation)
         {
             var validation = OperationResultGuards.RequireNotNull(
                 submenuLocation,
@@ -121,18 +121,16 @@ namespace Turnroot.Gameplay.Brain.Segments
                 return validation;
             }
 
-            // Find the currently active menu as the source
-            MenuLocation sourceMenu = null;
-            var allMenus = _brain.uiSettings?.allPossibleMenuLocations;
-            if (allMenus != null)
+            // Find the currently active menu as the source (tracked by MenuDepthTracker)
+            MenuEntry sourceMenu = _brain.GetMenuTracker()?.CurrentMenu;
+
+            // Fallback: if the tracker isn't initialized, attempt to find an active instance.
+            if (sourceMenu == null)
             {
-                foreach (var menu in allMenus)
+                var preBattleMenu = _brain.uiSettings?.GetPreBattleMenu();
+                if (preBattleMenu?.activeInstance != null)
                 {
-                    if (menu?.activeInstance != null)
-                    {
-                        sourceMenu = menu;
-                        break;
-                    }
+                    sourceMenu = preBattleMenu;
                 }
             }
 
