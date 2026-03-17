@@ -1,6 +1,4 @@
 using NaughtyAttributes;
-using Turnroot.Gameplay.Brain;
-using Turnroot.Gameplay.Brain.Components;
 using UnityEngine;
 
 namespace Turnroot.Utilities.Weather

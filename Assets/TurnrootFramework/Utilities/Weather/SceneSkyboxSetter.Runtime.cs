@@ -93,6 +93,11 @@ namespace Turnroot.Utilities.Weather
 
         public void SetSkybox(WeatherType weatherType)
         {
+            SetSkybox(weatherType, null);
+        }
+
+        public void SetSkybox(WeatherType weatherType, int? forcedIndex)
+        {
             Material[] selectedSkyboxes = null;
 
             switch (weatherType)
@@ -128,11 +133,33 @@ namespace Turnroot.Utilities.Weather
 
             if (selectedSkyboxes != null && selectedSkyboxes.Length > 0)
             {
-                int randomIndex = HubDayRandom.Range(0, selectedSkyboxes.Length);
-                _instantiatedSkyboxMaterial = Instantiate(selectedSkyboxes[randomIndex]);
+                int chosenIndex = -1;
+
+                // Prefer a forced index (from saved state) if valid
+                if (
+                    forcedIndex != null
+                    && forcedIndex >= 0
+                    && forcedIndex < selectedSkyboxes.Length
+                )
+                {
+                    chosenIndex = forcedIndex.Value;
+                }
+                else
+                {
+                    chosenIndex = HubDayRandom.Range(0, selectedSkyboxes.Length);
+
+                    // Persist the chosen skybox index so it stays consistent across exits
+                    var brain = UnityEngine.Object.FindFirstObjectByType<Brain>();
+                    if (brain != null)
+                    {
+                        HubDayStateStore.SetSkyboxIndex(brain, chosenIndex);
+                    }
+                }
+
+                _instantiatedSkyboxMaterial = Instantiate(selectedSkyboxes[chosenIndex]);
                 currentSkybox = _instantiatedSkyboxMaterial;
                 RenderSettings.skybox = currentSkybox;
-                $"Set skybox to {RenderSettings.skybox.name} for weather {weatherType}".LogInfo();
+                $"Set skybox to {RenderSettings.skybox.name} (index {chosenIndex}) for weather {weatherType}".LogInfo();
             }
             else
             {
@@ -380,6 +407,8 @@ namespace Turnroot.Utilities.Weather
             SetupForScene(sceneName);
         }
 
+        public void SetupForScenePublic(string sceneName) => SetupForScene(sceneName);
+
         private void SetupForScene(string sceneName)
         {
             // clear any leftover particles before applying the new weather
@@ -403,10 +432,7 @@ namespace Turnroot.Utilities.Weather
                 }
                 else if (PossibleWeatherTypes.Length > 0)
                 {
-                    int index = HubDayRandom.Range(
-                        0,
-                        PossibleWeatherTypes.Length
-                    );
+                    int index = HubDayRandom.Range(0, PossibleWeatherTypes.Length);
                     CurrentWeatherType = PossibleWeatherTypes[index];
                     $"Selected Weather: {CurrentWeatherType}".LogInfo();
 

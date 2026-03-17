@@ -1,5 +1,4 @@
 using System;
-using Turnroot.Gameplay.Brain.Components;
 using Turnroot.Utilities;
 using Turnroot.Utilities.Weather;
 using UnityEngine;
@@ -27,6 +26,22 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         public static WeatherType Weather => _currentState?.Weather ?? WeatherType.Sunny;
 
         public static bool HasWeather => _currentState?.HasWeather ?? false;
+
+        public static int SkyboxIndex => _currentState?.SkyboxIndex ?? -1;
+
+        public static bool HasSkyboxIndex =>
+            _currentState != null && _currentState.SkyboxIndex >= 0;
+
+        public static void SetSkyboxIndex(Brain.Brain brain, int index)
+        {
+            if (brain?.ltm == null || _currentState == null)
+            {
+                return;
+            }
+
+            _currentState.SkyboxIndex = index;
+            SaveState(brain);
+        }
 
         public static void MarkDailyUpdatesProcessed(Brain.Brain brain)
         {
@@ -127,6 +142,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             // Weather state is kept in LTM so the same weather can be used across sessions.
             public WeatherType Weather;
             public bool HasWeather;
+            public int SkyboxIndex = -1;
         }
     }
 }

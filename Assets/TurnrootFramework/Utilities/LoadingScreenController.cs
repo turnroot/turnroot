@@ -1,4 +1,3 @@
-using System;
 using TMPro;
 using Turnroot.Gameplay.Brain;
 using Turnroot.Utilities.AbstractScripts;

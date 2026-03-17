@@ -1,7 +1,6 @@
 using System;
 using NaughtyAttributes;
 using TMPro;
-using Turnroot.Characters;
 using Turnroot.Gameplay.NonCombatScenes.Hub.Docks;
 using Turnroot.Gameplay.NonCombatScenes.Hub.Shop;
 using Turnroot.GameSettings;
@@ -10,7 +9,6 @@ using Turnroot.UI.Components.Notifications;
 using Turnroot.Utilities;
 using Turnroot.Utilities.AbstractScripts;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 namespace Turnroot.Gameplay.NonCombatScenes.Hub
 {

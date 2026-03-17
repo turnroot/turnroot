@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using Turnroot.Gameplay.PlayerSettings;
 using Turnroot.UI.Components.Menu.Submenu;
-using Turnroot.Utilities;
 using UnityEngine;
 using UnityEngine.UI;
 

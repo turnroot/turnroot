@@ -1,5 +1,4 @@
 using Turnroot.Gameplay.NonCombatScenes.Hub.Shop;
-using Turnroot.Gameplay.Objects;
 using Turnroot.Utilities;
 
 namespace Turnroot.Gameplay.NonCombatScenes.Hub.Docks
