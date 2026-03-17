@@ -208,6 +208,19 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             if (location.CharactersPresent == null || location.CharactersPresent.Length == 0)
             {
                 $"HubSubLocation {location.LocationName}: No characters set to be present in this sublocation".LogInfo();
+
+                // Hide all spawn points when no characters are assigned.
+                if (location.UnitSpawnPoints != null)
+                {
+                    foreach (var p in location.UnitSpawnPoints)
+                    {
+                        if (p != null)
+                        {
+                            p.gameObject.SetActive(false);
+                        }
+                    }
+                }
+
                 return;
             }
 

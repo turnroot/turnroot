@@ -19,6 +19,10 @@ Shader "Turnroot/Generic Cel Shader"
         _light("Light", Color) = (1, 1, 1, 0)
         _dark("Dark", Color) = (0, 0, 0, 0)
         _BaseTint("Base Tint", Color) = (1, 1, 1, 0)
+        [Header(Night Tint)]
+        _NightTintColor("Night Tint Color", Color) = (0.1, 0.13, 0.25, 1)
+        [Range(0,1)]
+        _NightTintIntensity("Night Tint Intensity", Float) = 0.0
         [Toggle(_USE_LIGHT_TEX_ON)] _use_light_tex("Use Light Texture", Float) = 0
         _LightTex("Light Texture", 2D) = "white" {}
         [Toggle(_USE_DARK_TEX_ON)] _use_dark_tex("Use Dark Texture", Float) = 0
@@ -229,6 +233,8 @@ Shader "Turnroot/Generic Cel Shader"
             float4 _light;
             float4 _dark;
             float4 _BaseTint;
+            float4 _NightTintColor;
+            float  _NightTintIntensity;
             float  _frensel_range;
             float  _frensel_hard;
             float  _frensel_power;
@@ -335,6 +341,10 @@ Shader "Turnroot/Generic Cel Shader"
                 if (blend > 0 && all(_BaseTint.rgb >= float3(0.99,0.99,0.99))) blend = 0;
                 #endif
                 baseTex.rgb = lerp(baseTex.rgb, _BaseTint.rgb, blend);
+
+                // Night tint (driven by SceneSkyboxSetter)
+                baseTex.rgb = lerp(baseTex.rgb, _NightTintColor.rgb, _NightTintIntensity);
+
                 clip(baseTex.a - _Cutoff);
 
                 // ── DBuffer Decals ──────────────────────────────────────────

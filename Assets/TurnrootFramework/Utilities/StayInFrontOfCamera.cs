@@ -44,6 +44,11 @@ namespace Turnroot.Utilities
         private Quaternion _initialRotation;
         private Vector3[] _localCorners;
 
+        // Local-space offset of the emitter shape (from the ParticleSystem shape module).
+        // This lets the script keep the actual emitter area centered in front of the camera,
+        // even if the particle shape is positioned away from the GameObject origin.
+        private Vector3 _shapeLocalOffset = Vector3.zero;
+
         private CameraTransformNotifier _notifier;
 
         void Awake()
@@ -102,12 +107,14 @@ namespace Turnroot.Utilities
 
         private void RecalculateCorners()
         {
+            // We treat Extents as half-size in the local X/Y plane (width/height).
+            // This matches Unity's rectangle emitter axes and is more intuitive.
             _localCorners = new Vector3[4]
             {
-                new Vector3(-Extents.x, 0f, -Extents.y),
-                new Vector3(Extents.x, 0f, -Extents.y),
-                new Vector3(-Extents.x, 0f, Extents.y),
-                new Vector3(Extents.x, 0f, Extents.y),
+                new Vector3(-Extents.x, -Extents.y, 0f),
+                new Vector3(Extents.x, -Extents.y, 0f),
+                new Vector3(-Extents.x, Extents.y, 0f),
+                new Vector3(Extents.x, Extents.y, 0f),
             };
         }
 
@@ -117,10 +124,16 @@ namespace Turnroot.Utilities
             ParticleSystem ps = GetComponentInChildren<ParticleSystem>();
             if (ps == null)
             {
+                _shapeLocalOffset = Vector3.zero;
                 return;
             }
 
             var shape = ps.shape;
+
+            // Remember the particle-shape offset so emitter bounds are computed correctly even
+            // when the shape is not centered on the root GameObject.
+            _shapeLocalOffset = shape.position;
+
             if (shape.shapeType == ParticleSystemShapeType.Rectangle)
             {
                 // shape.scale gives the full size in the module's local space
@@ -149,10 +162,14 @@ namespace Turnroot.Utilities
                 TargetCamera.transform.position + TargetCamera.transform.forward * Distance;
             Quaternion rot = PreserveRotation ? _initialRotation : TargetCamera.transform.rotation;
 
+            // Place the transform such that the emitter's local-center (shape offset) is
+            // at the desired location in front of the camera.
+            Vector3 transformBase = basePos - rot * _shapeLocalOffset;
+
             Vector3 offset = Vector3.zero;
             for (int i = 0; i < 4; i++)
             {
-                Vector3 worldCorner = basePos + rot * _localCorners[i] + offset;
+                Vector3 worldCorner = transformBase + rot * _localCorners[i] + offset;
                 Vector3 vp = TargetCamera.WorldToViewportPoint(worldCorner);
 
                 if (vp.z < 0f)
@@ -181,7 +198,7 @@ namespace Turnroot.Utilities
                 }
             }
 
-            transform.position = basePos + offset;
+            transform.position = transformBase + offset;
             transform.rotation = rot;
         }
     }

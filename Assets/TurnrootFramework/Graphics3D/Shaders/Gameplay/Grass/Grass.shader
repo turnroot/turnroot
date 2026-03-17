@@ -29,6 +29,14 @@ Shader "Turnroot/Grass"
         _GroundTex          ("Ground Albedo Texture", 2D) = "white" {}
         _GroundTex_ST       ("Ground UV Tiling/Offset", Vector) = (1,1,0,0)
 
+        [Header(Tinting)]
+        _CelTintColor       ("Cel Tint Color", Color) = (1,1,1,1)
+        [Range(0,1)]
+        _CelTintIntensity   ("Cel Tint Intensity", Float) = 0.0
+        _NightTintColor     ("Night Tint Color", Color) = (0.1,0.13,0.25,1)
+        [Range(0,1)]
+        _NightTintIntensity ("Night Tint Intensity", Float) = 0.0
+
         [Header(Wind)]
         _WindDirection      ("Wind Direction XZ", Vector)         = (1, 0, 0, 0)
         _WindSpeed          ("Wind Speed",        Float)          = 1.2
@@ -117,6 +125,10 @@ Shader "Turnroot/Grass"
             TEXTURE2D(_GroundTex);
             SAMPLER(sampler_GroundTex);
             float4 _GroundTex_ST;
+            float4 _CelTintColor;
+            float  _CelTintIntensity;
+            float4 _NightTintColor;
+            float  _NightTintIntensity;
             float  _TipTaper;
             float  _BladeCurve;
             float4 _WindDirection;
@@ -275,6 +287,10 @@ Shader "Turnroot/Grass"
                     float3 underCol = SAMPLE_TEXTURE2D(_GroundTex, sampler_GroundTex, uv).rgb;
                     grassCol = lerp(grassCol, underCol, _UnderlyingMix);
                 }
+
+                // apply cel/night tinting
+                grassCol = lerp(grassCol, _CelTintColor.rgb, _CelTintIntensity);
+                grassCol = lerp(grassCol, _NightTintColor.rgb, _NightTintIntensity);
 
                 // ── Decals (still allowed)
                 #if defined(_DBUFFER_MRT1) || defined(_DBUFFER_MRT2) || defined(_DBUFFER_MRT3)

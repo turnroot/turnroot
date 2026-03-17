@@ -24,6 +24,12 @@ Shader "Turnroot/Class Outfit Cel Shader"
 
         _light("Light", Color) = (1, 1, 1, 0)
         _dark("Dark", Color) = (0, 0, 0, 0)
+
+        [Header(Night Tint)]
+        _NightTintColor("Night Tint Color", Color) = (0.1, 0.13, 0.25, 1)
+        [Range(0,1)]
+        _NightTintIntensity("Night Tint Intensity", Float) = 0.0
+
         [Toggle(_USE_LIGHT_TEX_ON)] _use_light_tex("Use Light Texture", Float) = 0
         _LightTex("Light Texture", 2D) = "white" {}
         [Toggle(_USE_DARK_TEX_ON)] _use_dark_tex("Use Dark Texture", Float) = 0
@@ -228,6 +234,8 @@ Shader "Turnroot/Class Outfit Cel Shader"
             float  _Cel_Shader_Offset;
             float4 _light;
             float4 _dark;
+            float4 _NightTintColor;
+            float  _NightTintIntensity;
             float  _frensel_range;
             float  _frensel_hard;
             float  _frensel_power;
@@ -608,6 +616,8 @@ Shader "Turnroot/Class Outfit Cel Shader"
                 }
                 #endif
 
+                // Apply night tint (driven by SceneSkyboxSetter)
+                color.rgb = lerp(color.rgb, _NightTintColor.rgb, _NightTintIntensity);
                 color.rgb = saturate(color.rgb);
                 return color;
             }
@@ -777,10 +787,9 @@ Shader "Turnroot/Class Outfit Cel Shader"
                 float3x3 tbn     = float3x3(input.tangentWS, input.bitangentWS, input.normalWS);
                 float3 normalWS  = normalize(mul(tangentNormal, tbn));
 
-                #if defined(_DBUFFER_MRT2) || defined(_DBUFFER_MRT3)
-                    ApplyDecalToNormal(input.positionCS, normalWS);
-                #endif
-
+                // DepthNormals is a prepass; the DBuffer (decal normal) data isn't initialized yet.
+                // Applying decal normals here would read uninitialized data and can corrupt the output.
+                // (See TurnrootGenericCel.shader for reference behavior.)
                 return float4(normalWS * 0.5 + 0.5, 1.0);
             }
             ENDHLSL

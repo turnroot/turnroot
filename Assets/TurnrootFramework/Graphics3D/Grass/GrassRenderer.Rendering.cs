@@ -32,6 +32,15 @@ namespace Turnroot.Graphics3D
                 return;
             }
 
+            // Prevent Unity from rendering the mesh via a MeshRenderer, which would
+            // invoke the grass shader without supplying the required _VisibleBlades buffer.
+            _meshRenderer = GetComponent<MeshRenderer>();
+            if (_meshRenderer != null)
+            {
+                _meshRendererWasEnabled = _meshRenderer.enabled;
+                _meshRenderer.enabled = false;
+            }
+
             ReleaseBuffers();
             DestroyMesh(ref _bladeMesh);
             DestroyMesh(ref _planeMesh);
@@ -56,6 +65,19 @@ namespace Turnroot.Graphics3D
             UnityEngine.Camera cam
         )
         {
+            // Guard against missing GPU resources. If buffers are not valid, skip drawing.
+            if (
+                all == null
+                || visible == null
+                || argsBuffer == null
+                || mesh == null
+                || mat == null
+                || cam == null
+            )
+            {
+                return;
+            }
+
             if (disableCulling)
             {
                 // Render directly from the full blade buffer; write count into args slot 1.
@@ -123,6 +145,11 @@ namespace Turnroot.Graphics3D
         // ── Cleanup ───────────────────────────────────────────────────────────────
         private void ReleaseBuffers()
         {
+            if (_meshRenderer != null)
+            {
+                _meshRenderer.enabled = _meshRendererWasEnabled;
+            }
+
             _allBladesBuffer?.Release();
             _allBladesBuffer = null;
             _visibleBladesBuffer?.Release();
