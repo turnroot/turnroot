@@ -250,6 +250,25 @@ namespace Turnroot.Gameplay.Brain.Components
             return keys;
         }
 
+        /// <summary>
+        /// Encodes a raw key using the same obfuscation mechanism that LongTermMemory uses internally.
+        /// This allows you to compute the persisted key name that appears in the underlying JSON.
+        /// </summary>
+        public static string EncodeKey(string key)
+        {
+            var result = Utilities.DeviceDataCipher.EncryptToBase64(key);
+            return result.Success ? result.Value : key;
+        }
+
+        /// <summary>
+        /// Decodes an encoded storage key back into its original raw form.
+        /// </summary>
+        public static string DecodeKey(string encodedKey)
+        {
+            var result = Utilities.DeviceDataCipher.DecryptFromBase64(encodedKey);
+            return result.Success ? result.Value : encodedKey;
+        }
+
         #region Game Date Support
 
         /// <summary>

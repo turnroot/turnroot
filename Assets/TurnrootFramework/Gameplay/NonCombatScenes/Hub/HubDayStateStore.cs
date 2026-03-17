@@ -1,4 +1,5 @@
 using System;
+using Turnroot.Gameplay.Brain.Components;
 using Turnroot.Utilities;
 using Turnroot.Utilities.Weather;
 using UnityEngine;
@@ -41,6 +42,71 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             _currentState.SkyboxIndex = index;
             SaveState(brain);
+        }
+
+        /// <summary>
+        /// Sets the quantity for a given shop item on this hub day.
+        /// </summary>
+        public static void SetShopItemQuantity(
+            Brain.Brain brain,
+            string shopName,
+            string itemName,
+            int quantity
+        )
+        {
+            if (brain?.ltm == null || _currentState == null)
+            {
+                return;
+            }
+
+            if (_currentState.ShopStock == null)
+            {
+                _currentState.ShopStock = new System.Collections.Generic.List<ShopStockEntry>();
+            }
+
+            string shopKey = LongTermMemory.EncodeKey(shopName);
+            string itemKey = LongTermMemory.EncodeKey(itemName);
+
+            var existing = _currentState.ShopStock.Find(x =>
+                x.ShopKey == shopKey && x.ItemKey == itemKey
+            );
+            if (existing != null)
+            {
+                existing.Quantity = quantity;
+            }
+            else
+            {
+                _currentState.ShopStock.Add(
+                    new ShopStockEntry
+                    {
+                        ShopKey = shopKey,
+                        ItemKey = itemKey,
+                        Quantity = quantity,
+                    }
+                );
+            }
+
+            SaveState(brain);
+        }
+
+        public static int GetShopItemQuantity(
+            string shopName,
+            string itemName,
+            int defaultValue = 0
+        )
+        {
+            if (_currentState == null || _currentState.ShopStock == null)
+            {
+                return defaultValue;
+            }
+
+            string shopKey = LongTermMemory.EncodeKey(shopName);
+            string itemKey = LongTermMemory.EncodeKey(itemName);
+
+            var entry = _currentState.ShopStock.Find(x =>
+                x.ShopKey == shopKey && x.ItemKey == itemKey
+            );
+            return entry?.Quantity ?? defaultValue;
         }
 
         public static void MarkDailyUpdatesProcessed(Brain.Brain brain)
@@ -130,6 +196,20 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         private static string GetKey(GameDate date) =>
             $"{HubDayStateKeyPrefix}{date.year:0000}{date.month:00}{date.day:00}";
 
+        /// <summary>
+        /// Returns the encoded key used internally by LongTermMemory for the specified date.
+        /// </summary>
+        public static string GetEncodedKey(GameDate date)
+        {
+            var raw = GetKey(date);
+            return LongTermMemory.EncodeKey(raw);
+        }
+
+        /// <summary>
+        /// Decodes a stored LTM key string back into the raw HubDayState key.
+        /// </summary>
+        public static string DecodeKey(string encodedKey) => LongTermMemory.DecodeKey(encodedKey);
+
         [Serializable]
         private class HubDayState
         {
@@ -143,6 +223,15 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             public WeatherType Weather;
             public bool HasWeather;
             public int SkyboxIndex = -1;
+            public System.Collections.Generic.List<ShopStockEntry> ShopStock;
+        }
+
+        [Serializable]
+        public class ShopStockEntry
+        {
+            public string ShopKey;
+            public string ItemKey;
+            public int Quantity;
         }
     }
 }

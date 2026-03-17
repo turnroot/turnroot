@@ -31,10 +31,43 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
 
         public string RefreshShopForNewDay(GameDate currentDay)
         {
+            // Attempt to load persisted quantities for this hub day before restocking logic
+            var brain = UnityEngine.Object.FindFirstObjectByType<Brain.Brain>();
+            if (brain != null)
+            {
+                foreach (ShopItem item in ItemsStocked)
+                {
+                    string itemName = item.Item != null ? item.Item.name : string.Empty;
+                    int persistedQuantity = HubDayStateStore.GetShopItemQuantity(
+                        name,
+                        itemName,
+                        -1
+                    );
+
+                    if (persistedQuantity >= 0)
+                    {
+                        currentStock[item] = persistedQuantity;
+                    }
+                }
+            }
+
             foreach (ShopItem item in ItemsStocked)
             {
                 var status = item.Refresh(currentDay);
                 currentStock[item] = status.AvailableQuantity;
+
+                // Persist the updated quantity into HubDayStateStore for this day.
+                if (brain != null)
+                {
+                    string itemName = item.Item != null ? item.Item.name : string.Empty;
+                    HubDayStateStore.SetShopItemQuantity(
+                        brain,
+                        name,
+                        itemName,
+                        status.AvailableQuantity
+                    );
+                }
+
                 if (item.RareItem && status.AvailableQuantity > 0)
                 {
                     return $"A rare item is in stock at";
