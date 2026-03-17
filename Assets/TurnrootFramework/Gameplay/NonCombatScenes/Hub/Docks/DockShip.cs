@@ -9,6 +9,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Docks
 {
     public class DockShip : MonoBehaviour
     {
+        #region Constants & Types
+
         private const string LtmKeyPrefix = "DockShipState_";
 
         [System.Serializable]
@@ -19,6 +21,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Docks
             public int CurrentDockedTime;
             public int DaysToStayAtSea;
         }
+
+        #endregion
+
+        #region Inspector Fields
 
         [Header("Basic Info")]
         public string ShipName;
@@ -75,6 +81,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Docks
         [HideIf("AlwaysDocked")]
         public int DaysDockedAtATime = 3;
 
+        #endregion
+
+        #region Runtime State
+
         private int _currentAtSeaTime = 0;
         private int _currentDockedTime = 0;
         private int _daysToStayAtSea = 0;
@@ -90,6 +100,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Docks
         private Dictionary<SmuggledItem, int> currentSmuggledStock = new();
 
         private Brain.Brain _brain;
+
+        #endregion
+
+        #region Unity Callbacks
 
         private void Start()
         {
@@ -115,6 +129,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Docks
 
         private void OnDestroy() => SaveState();
 
+        #endregion
+
+        #region Persistence
+
         private OperationResult LoadState()
         {
             if (_brain?.ltm == null || string.IsNullOrEmpty(ShipName))
@@ -129,7 +147,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Docks
             string json = _brain.ltm.Recall(key);
             if (string.IsNullOrEmpty(json))
             {
-                $"{ShipName} has no saved state in LTM with key {key}. Using default state.".LogInfo();
                 return OperationResult.Successful();
             }
 
@@ -149,7 +166,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Docks
             if (AlwaysDocked)
             {
                 EnforceAlwaysDockedState();
-                $"{ShipName} is configured as AlwaysDocked; overriding saved state to always be docked.".LogInfo();
             }
 
             if (Ship != null)
@@ -201,6 +217,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Docks
             return OperationResult.Successful();
         }
 
+        #endregion
+
+        #region Public API
+
         public void IncreaseTrust(int amount) => Trust = Mathf.Clamp(Trust + amount, 0, 100);
 
         public void DecreaseTrust(int amount) => Trust = Mathf.Clamp(Trust - amount, 0, 100);
@@ -234,7 +254,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Docks
             _isAtSea = true;
             IsDocked = false;
             _currentAtSeaTime = 0;
-            _daysToStayAtSea = Random.Range(MinimumAtSeaTime, MaximumAtSeaTime + 1);
+            _daysToStayAtSea = HubDayRandom.Range(MinimumAtSeaTime, MaximumAtSeaTime + 1);
 
             if (Ship != null)
             {
@@ -262,7 +282,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Docks
                 // Safety: if we somehow have no duration set, assign one now
                 if (_daysToStayAtSea == 0)
                 {
-                    _daysToStayAtSea = Random.Range(MinimumAtSeaTime, MaximumAtSeaTime + 1);
+                    _daysToStayAtSea = HubDayRandom.Range(MinimumAtSeaTime, MaximumAtSeaTime + 1);
                     stateChanged = true;
                 }
 
@@ -273,7 +293,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Docks
                     IsDocked = true;
                     _currentAtSeaTime = 0;
                     _daysToStayAtSea = 0;
-                    $"The {ShipName} has returned to the docks after being at sea for {days} days.".LogInfo();
                     stateChanged = true;
                 }
             }
@@ -287,8 +306,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Docks
                     _isAtSea = true;
                     IsDocked = false;
                     _currentDockedTime = 0;
-                    _daysToStayAtSea = Random.Range(MinimumAtSeaTime, MaximumAtSeaTime + 1);
-                    $"The {ShipName} has left the docks and is now at sea for {_daysToStayAtSea} days.".LogInfo();
+                    _daysToStayAtSea = HubDayRandom.Range(MinimumAtSeaTime, MaximumAtSeaTime + 1);
                     stateChanged = true;
                 }
             }
@@ -305,7 +323,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Docks
 
         public void RefreshShipForNewDay(GameDate currentDay)
         {
-            $"{ShipName} is refreshing for the new day. Current trust: {Trust}".LogInfo();
             foreach (ShopItem item in NormalGoodsForSale)
             {
                 var status = item.Refresh(currentDay);
@@ -317,5 +334,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Docks
                 currentSmuggledStock[item] = status.AvailableQuantity;
             }
         }
+
+        #endregion
     }
 }

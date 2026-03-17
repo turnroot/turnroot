@@ -1,3 +1,4 @@
+using System;
 using NaughtyAttributes;
 using TMPro;
 using Turnroot.Characters;
@@ -9,6 +10,7 @@ using Turnroot.UI.Components.Notifications;
 using Turnroot.Utilities;
 using Turnroot.Utilities.AbstractScripts;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace Turnroot.Gameplay.NonCombatScenes.Hub
 {
@@ -37,8 +39,29 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         public UiChoice[] LocationChoices;
 
         [BoxGroup("Core")]
+        public UiChoice EndDay;
+
+        [BoxGroup("Core")]
+        public UiChoice Settings;
+
+        [BoxGroup("Core")]
+        [Tooltip("Optional loading screen controller used during scene transitions.")]
+        public LoadingScreenController LoadingScreen;
+
+        // Runtime list used for navigation (locations + end day + settings).
+        private UiChoice[] _navigableChoices;
+
+        [BoxGroup("Core")]
         [Tooltip("Optional input provider used for navigating hub choices.")]
         public UiInputProvider InputProvider;
+
+        [BoxGroup("Core")]
+        [Tooltip("Prefab containing the menu canvas used while settings is open.")]
+        public GameObject MenuCanvasPrefab;
+
+        private GameObject _menuCanvasInstance;
+        private bool _settingsMenuOpen;
+        private Action _menuDepthChangedHandler;
 
         [HorizontalLine()]
         [BoxGroup("Camera & Fade")]
@@ -128,7 +151,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             Training,
         }
 
-        // Cache the sampled height for each spawn point transform.
         private readonly System.Collections.Generic.Dictionary<
             Transform,
             float
@@ -143,7 +165,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 return;
             }
 
-            // When entering a sublocation, hide the other hub locations.
             foreach (var loc in subLocations)
             {
                 if (loc == null)
@@ -159,15 +180,13 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         {
             void DoReturnToHub()
             {
-                // Match hub entry behavior: set mode to location + refresh UI
                 SetInputMode(HubInputMode.Location);
                 UpdateChoiceSelection();
                 UpdateDateText();
 
-                // Re-randomize hub camera position (like initial hub load)
                 if (GeneralCamera != null && cameraPoints != null && cameraPoints.Length > 0)
                 {
-                    int idx = Random.Range(0, cameraPoints.Length);
+                    int idx = UnityEngine.Random.Range(0, cameraPoints.Length);
                     Transform dest = cameraPoints[idx];
                     GeneralCamera.transform.SetPositionAndRotation(dest.position, dest.rotation);
                 }
@@ -176,12 +195,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 GeneralCamera.fieldOfView = HubMainFov;
                 BackButtonFade.Hide();
 
-                // Refresh birthday notifications / other hub notifications
                 _brain?.charactersBrain.CheckBirthdays();
 
                 CurrentSubLocation = null;
 
-                // Restore all sublocations when returning to the hub.
                 if (subLocations != null)
                 {
                     foreach (var loc in subLocations)
@@ -263,6 +280,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
         }
 
+        private bool _hubInitialized = false;
+
         public void Start()
         {
             gameDate = GameplayGeneralSettings.Instance.StartingGameDate;
@@ -274,6 +293,39 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 "HubManager: No Brain found".LogError();
                 return;
             }
+
+            if (LoadingScreen == null)
+            {
+                LoadingScreen = FindFirstObjectByType<LoadingScreenController>();
+            }
+
+            // If LTM is already ready, initialize immediately; otherwise, wait for the
+            // LTM initialization event (this can happen after Start when using some
+            // async brain init paths)
+            if (_brain.ltm != null && _brain.ltm.Initialized)
+            {
+                InitializeHubForCurrentDate();
+            }
+            else
+            {
+                _brain.OnLongTermMemoryInitialized += HandleLongTermMemoryInitialized;
+            }
+        }
+
+        private void HandleLongTermMemoryInitialized()
+        {
+            _brain.OnLongTermMemoryInitialized -= HandleLongTermMemoryInitialized;
+            InitializeHubForCurrentDate();
+        }
+
+        private void InitializeHubForCurrentDate()
+        {
+            if (_hubInitialized)
+            {
+                return;
+            }
+
+            _hubInitialized = true;
 
             var ltm = _brain.ltm;
             if (ltm != null && ltm.Initialized)
@@ -289,8 +341,20 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 else
                 {
                     gameDate = storedDate;
-                    IncrementGameDateForHubLoad();
                 }
+            }
+
+            // Ensure all hub state is deterministic for this day.
+            HubDayStateStore.Initialize(_brain, gameDate);
+            HubDayRandom.Initialize(HubDayStateStore.Seed);
+
+            var hasProcessed = HubDayStateStore.HasProcessedDailyUpdates;
+            if (!hasProcessed)
+            {
+                dock?.UpdateDailyVoyageStatuses();
+                CheckShipsDocked();
+                CheckRareItems();
+                HubDayStateStore.MarkDailyUpdatesProcessed(_brain);
             }
 
             Initialize();
@@ -310,11 +374,14 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             pastShipDockedStatuses = LoadDockShipStatuses();
 
-            dock?.UpdateDailyVoyageStatuses();
+            if (!HubDayStateStore.HasProcessedDailyUpdates)
+            {
+                dock?.UpdateDailyVoyageStatuses();
 
-            CheckShipsDocked();
+                CheckShipsDocked();
 
-            CheckRareItems();
+                CheckRareItems();
+            }
 
             UpdateChapterNumberAndNameText(
                 _brain.saveFileBrain.ActiveSaveFile.ChapterNumber,
@@ -324,7 +391,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             if (GameplayGeneralSettings.Instance.HubHasTeamLocations)
             {
-                // Initialize team location assignments before initializing individual sublocations.
                 GetComponent<HubTeamLocations>().Initialize(_brain, subLocations);
             }
             else
@@ -332,7 +398,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 GetComponent<HubTeamLocations>().gameObject.SetActive(false);
             }
 
-            // Determine ground heights for spawn points (used by HubSubLocation spawn positioning)
             CacheSpawnPointHeights();
 
             for (int i = 0; i < subLocations.Length; i++)
@@ -341,6 +406,16 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 LocationChoices[i].CanBeSelected = subLocations[i].CanBeVisitedToday();
             }
 
+            if (EndDay != null)
+            {
+                EndDay.CanBeSelected = true;
+            }
+            if (Settings != null)
+            {
+                Settings.CanBeSelected = true;
+            }
+
+            BuildNavigableChoices();
             UpdateChoiceSelection();
 
             if (GeneralCamera == null || cameraPoints == null || cameraPoints.Length == 0)
@@ -348,7 +423,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 return;
             }
 
-            int idx = Random.Range(0, cameraPoints.Length);
+            int idx = HubDayRandom.Range(0, cameraPoints.Length);
             Transform dest = cameraPoints[idx];
             GeneralCamera.transform.SetPositionAndRotation(dest.position, dest.rotation);
         }
@@ -361,6 +436,9 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 _brain.OnCharacterBirthdayThisWeek -= HandleCharacterBirthdayThisWeek;
                 _brain.OnHubSublocationInputModeChange -= HandleSublocationInputModeChange;
             }
+
+            // Ensure we clean up any menu canvas / subscriptions when hub is destroyed.
+            EndSettingsMenu();
         }
 
         #endregion

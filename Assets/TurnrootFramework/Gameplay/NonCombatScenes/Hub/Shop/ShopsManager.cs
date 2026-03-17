@@ -19,7 +19,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
                     var shopName = shop.name;
                     result = $"{result} <b>{shopName}</b>";
                     results.Add(result);
-                    $"{result}".LogInfo("ShopsManager");
                 }
             }
             return results.ToArray();

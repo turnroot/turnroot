@@ -42,23 +42,23 @@ namespace Turnroot.Gameplay.Brain.Segments
 
         public MenuType CurrentMenuType { get; private set; } = MenuType.Unknown;
 
-        private MenuType DetectMenuType(MenuLocation location)
+        private MenuType DetectMenuType(MenuEntry entry)
         {
-            return location switch
+            return entry switch
             {
                 null => MenuType.Unknown,
-                var l when l == _settings?.GetPreBattleMenu() => MenuType.PreBattle,
-                var l when l == _settings?.GetGameSettingsMenu() => MenuType.Settings,
-                var l when l == _settings?.GetGameSettingsGraphicsMenu() => MenuType.Graphics,
-                var l when l == _settings?.GetGameSettingsGameplayMenu() => MenuType.Gameplay,
-                var l when l == _settings?.GetGameSettingsAudioMenu() => MenuType.Audio,
-                var l when l == _settings?.GetPrebattleMapMenu() => MenuType.Map,
-                var l when l == _settings?.GetPrebattleUnitsMenu() => MenuType.Team,
+                var e when e == _settings?.GetPreBattleMenu() => MenuType.PreBattle,
+                var e when e == _settings?.GetGameSettingsMenu() => MenuType.Settings,
+                var e when e == _settings?.GetGameSettingsGraphicsMenu() => MenuType.Graphics,
+                var e when e == _settings?.GetGameSettingsGameplayMenu() => MenuType.Gameplay,
+                var e when e == _settings?.GetGameSettingsAudioMenu() => MenuType.Audio,
+                var e when e == _settings?.GetPrebattleMapMenu() => MenuType.Map,
+                var e when e == _settings?.GetPrebattleUnitsMenu() => MenuType.Team,
                 _ => MenuType.Unknown,
             };
         }
 
-        public IEnumerator TransitionBetween(MenuLocation from, MenuLocation to)
+        public IEnumerator TransitionBetween(MenuEntry from, MenuEntry to)
         {
             var fromInstance = from?.activeInstance;
             CurrentMenuType = DetectMenuType(to);
@@ -102,7 +102,7 @@ namespace Turnroot.Gameplay.Brain.Segments
             }
         }
 
-        public IEnumerator TransitionToBattle(MenuLocation preBattle)
+        public IEnumerator TransitionToBattle(MenuEntry preBattle)
         {
             // Update current menu type
             CurrentMenuType = MenuType.Battle;
@@ -131,7 +131,7 @@ namespace Turnroot.Gameplay.Brain.Segments
             _brain.Brain.PublishPreBattleCompleted();
         }
 
-        private void SetupMenu(MenuLocation location)
+        private void SetupMenu(MenuEntry location)
         {
             var instance = location.activeInstance;
             var menuType = DetectMenuType(location);
@@ -148,8 +148,41 @@ namespace Turnroot.Gameplay.Brain.Segments
             foreach (var menu in menuBases)
             {
                 menu.uiBrain = _brain;
-                menu.OnItemSelected += itemHandler;
+
+                // Ensure input actions are set up for keyboard/gamepad navigation.
+                // This is especially important when menus are instantiated dynamically.
                 _brain.SetupMenuInputActions(menu);
+
+                // Ensure the menu has fresh items and an initial selection.
+                menu.RefreshMenuItems();
+                if (menu.menuItems.Count > 0)
+                {
+                    menu.SetSelection(0);
+                }
+
+                // Set up any PanelRows-based submenus (used by settings screens)
+                var panelRows =
+                    instance.GetComponentsInChildren<UI.Components.Menu.Submenu.PanelRows>(true);
+                foreach (var rows in panelRows)
+                {
+                    // Ensure input actions exist (they may be missing in prefab)
+                    rows.navigateUpAction ??= InputActionFactory.CreateNavigateUp();
+                    rows.navigateDownAction ??= InputActionFactory.CreateNavigateDown();
+                    rows.navigateLeftAction ??= InputActionFactory.CreateNavigateLeft();
+                    rows.navigateRightAction ??= InputActionFactory.CreateNavigateRight();
+                    rows.selectAction ??= InputActionFactory.CreateSelect();
+
+                    // Enable and initialize selection
+                    rows.navigateUpAction?.Enable();
+                    rows.navigateDownAction?.Enable();
+                    rows.navigateLeftAction?.Enable();
+                    rows.navigateRightAction?.Enable();
+                    rows.selectAction?.Enable();
+
+                    rows.Initialize();
+                }
+
+                menu.OnItemSelected += itemHandler;
 
                 var simpleButtons = menu.GetComponentsInChildren<SimpleButton>(true);
                 foreach (var sb in simpleButtons)
@@ -180,7 +213,7 @@ namespace Turnroot.Gameplay.Brain.Segments
             _brain.ApplyMenuColors(instance, location.style);
         }
 
-        private void HandleCreatedMenuInstance(MenuLocation to)
+        private void HandleCreatedMenuInstance(MenuEntry to)
         {
             var instance = to.activeInstance;
 

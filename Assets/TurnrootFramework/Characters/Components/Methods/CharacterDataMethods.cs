@@ -214,7 +214,7 @@ namespace Turnroot.Characters
             {
                 ExperienceRanks ??= new List<ExperienceRank>();
 
-                var gs = GameSettings.GameplayGeneralSettings.Instance;
+                var gs = GameplayGeneralSettings.Instance;
                 if (gs != null)
                 {
                     var types = gs.GetAllExperienceTypes();

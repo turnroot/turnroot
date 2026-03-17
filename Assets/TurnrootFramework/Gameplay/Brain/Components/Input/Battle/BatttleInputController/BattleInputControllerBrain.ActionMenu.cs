@@ -16,9 +16,9 @@ namespace Turnroot.Gameplay.Brain
         {
             Brain.battleBrain.IsInputEnabled = false;
 
-            var menuLocation = Brain.uiBrain.battleActionSelectMenuLocation;
+            var menuEntry = Brain.uiBrain.battleActionSelectMenuLocation;
             var validation = OperationResultGuards.RequireNotNull(
-                menuLocation?.prefab,
+                menuEntry?.prefab,
                 "BattleActionSelectMenu prefab"
             );
             if (!validation.Success)
@@ -28,7 +28,7 @@ namespace Turnroot.Gameplay.Brain
 
             CloseActionMenu();
 
-            _currentActionMenu = Instantiate(menuLocation.prefab);
+            _currentActionMenu = Instantiate(menuEntry.prefab);
             var battleSelectAction =
                 _currentActionMenu.GetComponent<UI.Components.BattleSelectAction>();
 

@@ -46,18 +46,11 @@ namespace Turnroot.GameSettings
     }
 
     /// <summary>
-    /// Represents a menu location in the menu hierarchy with style, prefab, and parent relationship.
+    /// Represents a menu definition (name, prefab, style, and runtime instance).
     /// </summary>
     [System.Serializable]
-    public class MenuLocation
+    public class MenuEntry
     {
-        [Tooltip("Parent menu location (null for root menus)")]
-        [System.NonSerialized]
-        public MenuLocation parent;
-
-        [Tooltip("Parent menu by name - set this to establish hierarchy")]
-        public MenuName parentMenuName;
-
         [Tooltip("The type/name of this menu")]
         public MenuName menuName;
 
@@ -70,53 +63,6 @@ namespace Turnroot.GameSettings
         // Track the active instance of this menu
         [System.NonSerialized]
         public GameObject activeInstance;
-
-        [HideInInspector]
-        public int Depth
-        {
-            get
-            {
-                int depth = 0;
-                var current = parent;
-                var visited = new HashSet<MenuLocation>();
-                while (current != null)
-                {
-                    // Detect circular references in the parent chain
-                    if (!visited.Add(current))
-                    {
-                        Debug.LogError(
-                            $"Circular parent reference detected in menu hierarchy starting from '{menuName}'."
-                        );
-                        return -1;
-                    }
-
-                    depth++;
-                    current = current.parent;
-                }
-                return depth;
-            }
-        }
-
-        public MenuLocation(
-            MenuLocation parent = null,
-            MenuName menuName = MenuName.MainMenu,
-            MenuStyle style = MenuStyle.List
-        )
-        {
-            this.parent = parent;
-            parentMenuName = parent?.menuName ?? MenuName.None;
-            this.menuName = menuName == MenuName.None ? MenuName.MainMenu : menuName;
-            this.style = style;
-        }
-
-        public MenuLocation Clone(MenuLocation newParent) =>
-            new(newParent)
-            {
-                style = style,
-                prefab = prefab,
-                menuName = menuName,
-                parentMenuName = parent?.menuName ?? MenuName.None,
-            };
     }
 
     /// <summary>
@@ -128,8 +74,24 @@ namespace Turnroot.GameSettings
     )]
     public class GamewideUiSettings : SingletonScriptableObject<GamewideUiSettings>
     {
-        [Header("Menus"), HorizontalLine(color: EColor.Blue), SerializeField]
-        public List<MenuLocation> allPossibleMenuLocations;
+        [System.Serializable]
+        public class MenuPrefabBinding
+        {
+            public MenuName menuName;
+            public MenuStyle style = MenuStyle.List;
+            public GameObject prefab;
+        }
+
+        [Header("Menus"), HorizontalLine(color: EColor.Blue)]
+        public List<MenuPrefabBinding> MenuPrefabs;
+
+        // Runtime cache of created MenuEntry objects created from MenuPrefabs.
+        // This allows the menu system to maintain runtime state (activeInstance, etc.)
+        // without requiring a complex serialized hierarchy.
+        private readonly System.Collections.Generic.Dictionary<
+            MenuName,
+            MenuEntry
+        > _menuEntryCache = new();
 
         [
             Header("Portraits"),
@@ -142,154 +104,67 @@ namespace Turnroot.GameSettings
         {
             base.OnEnable();
 
-            // Only initialize if list is null or empty to preserve Inspector settings
-            if (allPossibleMenuLocations == null || allPossibleMenuLocations.Count == 0)
+            // Ensure we have a list to work with (prevents null ref errors elsewhere)
+            if (MenuPrefabs == null)
             {
-                InitializeDefaultMenuLocations();
-            }
-        }
-
-        private void InitializeDefaultMenuLocations()
-        {
-            allPossibleMenuLocations = new List<MenuLocation>();
-
-            // Main menu
-            var mainMenu = new MenuLocation();
-            allPossibleMenuLocations.Add(mainMenu);
-            var saveFileMenu = new MenuLocation(mainMenu, MenuName.SaveFileMenu);
-            allPossibleMenuLocations.Add(saveFileMenu);
-            var gameSettingsMenu = new MenuLocation(mainMenu, MenuName.GameSettingsMenu);
-            allPossibleMenuLocations.Add(gameSettingsMenu);
-            // Game settings
-            var graphicsMenu = new MenuLocation(gameSettingsMenu, MenuName.GraphicsMenu);
-            allPossibleMenuLocations.Add(graphicsMenu);
-            var audioMenu = new MenuLocation(gameSettingsMenu, MenuName.AudioMenu);
-            allPossibleMenuLocations.Add(audioMenu);
-            var gameplayMenu = new MenuLocation(gameSettingsMenu, MenuName.GameplayMenu);
-            allPossibleMenuLocations.Add(gameplayMenu);
-            // New game + avatar
-            var newGameMenu = new MenuLocation(saveFileMenu, MenuName.NewGameMenu);
-            allPossibleMenuLocations.Add(newGameMenu);
-            var avatarSettingsMenu = new MenuLocation(newGameMenu, MenuName.AvatarSettingsMenu);
-            allPossibleMenuLocations.Add(avatarSettingsMenu);
-
-            // Pre-battle
-            var preBattleMenu = new MenuLocation(
-                menuName: MenuName.PreBattleMenu,
-                style: MenuStyle.Pie
-            );
-            allPossibleMenuLocations.Add(preBattleMenu);
-            var preBattleTeamMenu = new MenuLocation(preBattleMenu, MenuName.PreBattleTeamMenu);
-            allPossibleMenuLocations.Add(preBattleTeamMenu);
-            var preBattleItemsMenu = new MenuLocation(preBattleMenu, MenuName.PreBattleItemsMenu);
-            allPossibleMenuLocations.Add(preBattleItemsMenu);
-            var preBattleSkillsMenu = new MenuLocation(preBattleMenu, MenuName.PreBattleSkillsMenu);
-            allPossibleMenuLocations.Add(preBattleSkillsMenu);
-            var preBattleMapMenu = new MenuLocation(preBattleMenu, MenuName.PreBattleMapMenu);
-            allPossibleMenuLocations.Add(preBattleMapMenu);
-            var preBattleSupportMenu = new MenuLocation(
-                preBattleMenu,
-                MenuName.PreBattleSupportMenu
-            );
-            allPossibleMenuLocations.Add(preBattleSupportMenu);
-            // Pre-battle settings menu: its own menu under PreBattleMenu
-            var preBattleSettingsMenu = new MenuLocation(
-                preBattleMenu,
-                MenuName.PreBattleSettingsMenu
-            );
-            allPossibleMenuLocations.Add(preBattleSettingsMenu);
-
-            // Pre-battle unit positions menu (Starting Positions). Use Grid style by default.
-            var preBattlePositionsMenu = new MenuLocation(
-                preBattleMenu,
-                MenuName.PrebattleUnitPositionsMenu,
-                MenuStyle.None
-            );
-            allPossibleMenuLocations.Add(preBattlePositionsMenu);
-        }
-
-#if UNITY_EDITOR
-        private void OnValidate()
-        {
-            // Ensure list is initialized in the Editor
-            if (allPossibleMenuLocations == null || allPossibleMenuLocations.Count == 0)
-            {
-                InitializeDefaultMenuLocations();
+                MenuPrefabs = new List<MenuPrefabBinding>();
             }
 
-            // Resolve parent references from parentMenuName
-            ResolveParentReferences();
-        }
-#endif
-
-        // Helper methods to find menu locations
-        public MenuLocation GetMenuLocation(MenuName menuName) =>
-            allPossibleMenuLocations?.Find(m => m.menuName == menuName);
-
-        public List<MenuLocation> GetChildMenus(MenuLocation parent)
-        {
-            return allPossibleMenuLocations == null
-                ? new List<MenuLocation>()
-                : allPossibleMenuLocations.FindAll(m => m.parent == parent);
+            // Clear the cache when the asset is reloaded
+            _menuEntryCache.Clear();
         }
 
-        public MenuLocation GetPreBattleMenu() => GetMenuLocation(MenuName.PreBattleMenu);
-
-        public MenuLocation GetGameSettingsGraphicsMenu() => GetMenuLocation(MenuName.GraphicsMenu);
-
-        public MenuLocation GetGameSettingsGameplayMenu() => GetMenuLocation(MenuName.GameplayMenu);
-
-        public MenuLocation GetGameSettingsMenu() => GetMenuLocation(MenuName.GameSettingsMenu);
-
-        public MenuLocation GetGameSettingsAudioMenu() => GetMenuLocation(MenuName.AudioMenu);
-
-        public MenuLocation GetGameSettingsControlsMenu() => GetMenuLocation(MenuName.ControlsMenu);
-
-        public MenuLocation GetPrebattleMapMenu() => GetMenuLocation(MenuName.PreBattleMapMenu);
-
-        public MenuLocation GetPrebattleUnitsMenu() => GetMenuLocation(MenuName.PreBattleTeamMenu);
-
-        public MenuLocation GetHubActionsMenu() => GetMenuLocation(MenuName.HubActionsMenu);
-
-        public MenuLocation GetPrebattleUnitPositionsMenu() =>
-            GetMenuLocation(MenuName.PrebattleUnitPositionsMenu);
-
-        public MenuLocation GetBattleActionSelectMenu() =>
-            GetMenuLocation(MenuName.BattleActionSelectMenu);
-
-        public void ResolveParentReferences()
+        // Helper methods to find menu entries
+        public MenuEntry GetMenuEntry(MenuName menuName)
         {
-            // list should exist before we try to walk it; helper logs a warning if not
-            if (
-                !ValidationHelper.ValidateNotNull(
-                    allPossibleMenuLocations,
-                    nameof(allPossibleMenuLocations)
-                )
-            )
+            if (menuName == MenuName.None)
             {
-                return;
+                return null;
             }
 
-            foreach (var location in allPossibleMenuLocations)
+            if (_menuEntryCache.TryGetValue(menuName, out var cached))
             {
-                // Prevent self-parenting
-                if (location.parentMenuName == location.menuName)
-                {
-#if UNITY_EDITOR
-                    Debug.LogWarning(
-                        $"Menu '{location.menuName}' cannot be its own parent. Setting parent to None."
-                    );
-#endif
-                    location.parentMenuName = MenuName.None;
-                }
-
-                // Set parent reference based on parentMenuName
-                location.parent =
-                    location.parentMenuName == MenuName.None
-                        ? null
-                        : GetMenuLocation(location.parentMenuName);
+                return cached;
             }
+
+            var binding = MenuPrefabs?.Find(b => b.menuName == menuName);
+            var entry = new MenuEntry
+            {
+                menuName = menuName,
+                prefab = binding?.prefab,
+                style = binding?.style ?? MenuStyle.List,
+            };
+
+            _menuEntryCache[menuName] = entry;
+            return entry;
         }
+
+        // Compatibility wrapper for legacy code using "GetMenuLocation".
+        public MenuEntry GetMenuLocation(MenuName menuName) => GetMenuEntry(menuName);
+
+        public MenuEntry GetPreBattleMenu() => GetMenuEntry(MenuName.PreBattleMenu);
+
+        public MenuEntry GetGameSettingsGraphicsMenu() => GetMenuEntry(MenuName.GraphicsMenu);
+
+        public MenuEntry GetGameSettingsGameplayMenu() => GetMenuEntry(MenuName.GameplayMenu);
+
+        public MenuEntry GetGameSettingsMenu() => GetMenuEntry(MenuName.GameSettingsMenu);
+
+        public MenuEntry GetGameSettingsAudioMenu() => GetMenuEntry(MenuName.AudioMenu);
+
+        public MenuEntry GetGameSettingsControlsMenu() => GetMenuEntry(MenuName.ControlsMenu);
+
+        public MenuEntry GetPrebattleMapMenu() => GetMenuEntry(MenuName.PreBattleMapMenu);
+
+        public MenuEntry GetPrebattleUnitsMenu() => GetMenuEntry(MenuName.PreBattleTeamMenu);
+
+        public MenuEntry GetHubActionsMenu() => GetMenuEntry(MenuName.HubActionsMenu);
+
+        public MenuEntry GetPrebattleUnitPositionsMenu() =>
+            GetMenuEntry(MenuName.PrebattleUnitPositionsMenu);
+
+        public MenuEntry GetBattleActionSelectMenu() =>
+            GetMenuEntry(MenuName.BattleActionSelectMenu);
 
         [Header("Menu Styles"), HorizontalLine(color: EColor.Green)]
         [Range(0f, 10f)]

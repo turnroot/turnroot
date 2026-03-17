@@ -10,11 +10,15 @@ namespace Turnroot.Utilities.Weather
         private Color GetSkyboxAverageColor()
         {
             if (SkyboxCaptureTexture == null)
+            {
                 return Color.white;
+            }
 
             int qualityStep = GameplayPlayerSettings.Instance?.QualityStep ?? 0;
             if (qualityStep <= 0)
+            {
                 return Color.white;
+            }
 
             int sampleCount = GetSkyboxSampleCount(qualityStep);
             float cooldown = GetSkyboxSampleCooldown(qualityStep);
@@ -39,7 +43,9 @@ namespace Turnroot.Utilities.Weather
         private Color SampleSkyboxAverageColor(RenderTexture rt, int sampleCount)
         {
             if (rt == null || rt.width <= 0 || rt.height <= 0)
+            {
                 return Color.white;
+            }
 
             var prev = RenderTexture.active;
             RenderTexture.active = rt;
@@ -62,7 +68,9 @@ namespace Turnroot.Utilities.Weather
 
             var avg = sum / sampleCount;
             if (avg.maxColorComponent <= 0.01f)
+            {
                 return Color.white;
+            }
 
             // boost saturation so tint is more noticeable
             Color.RGBToHSV(avg, out float h, out float s, out float v);
@@ -137,18 +145,24 @@ namespace Turnroot.Utilities.Weather
         {
             // If we haven't initialized yet, do nothing.
             if (_appliedNightFactor < 0f)
+            {
                 return;
+            }
 
             // If target equals applied, nothing to do.
             if (Mathf.Approximately(_appliedNightFactor, _targetNightFactor))
+            {
                 return;
+            }
 
             float t = Mathf.Clamp01((Time.time - _nightTintLerpStartTime) / NightTintLerpDuration);
             float newFactor = Mathf.Lerp(_appliedNightFactor, _targetNightFactor, t);
 
             // If we haven't moved yet, skip the expensive update.
             if (Mathf.Abs(newFactor - _appliedNightFactor) < 0.0001f)
+            {
                 return;
+            }
 
             _appliedNightFactor = newFactor;
             ApplyNightTintImmediate(_appliedNightFactor);
@@ -159,14 +173,6 @@ namespace Turnroot.Utilities.Weather
             // Use a curved falloff so tint ramps in stronger near midnight and is softer during dusk/dawn.
             float curvedFactor = Mathf.Pow(factor, 2f);
             float intensity = NightTintIntensity * curvedFactor;
-
-            if (DebugNightTint && Time.time >= _lastNightTintLogTime + 1f)
-            {
-                _lastNightTintLogTime = Time.time;
-                Debug.Log(
-                    $"[SceneSkyboxSetter] ApplyNightTintImmediate: timeOfDay={TimeOfDay:F2} factor={factor:F3} intensity={intensity:F3} (NightTintIntensity={NightTintIntensity})"
-                );
-            }
 
             // Grass material (optional): update when night tint changes.
             if (GrassMaterial != null)
@@ -179,7 +185,9 @@ namespace Turnroot.Utilities.Weather
             foreach (var runtimeMat in _celMaterialInstances.Values)
             {
                 if (runtimeMat == null)
+                {
                     continue;
+                }
 
                 if (runtimeMat.HasProperty("_NightTintColor"))
                 {
@@ -213,12 +221,16 @@ namespace Turnroot.Utilities.Weather
                 else if (qualityStep > 0)
                 {
                     if (Time.time >= _lastCelTintUpdateTime + cooldown)
+                    {
                         shouldUpdate = true;
+                    }
                 }
             }
 
             if (!shouldUpdate)
+            {
                 return;
+            }
 
             bool shouldUpdateBaseTint = qualityStep > 0;
             Color skyTint = shouldUpdateBaseTint ? GetSkyboxAverageColor() : Color.white;
@@ -228,7 +240,9 @@ namespace Turnroot.Utilities.Weather
                 var originalMat = kvp.Key;
                 var runtimeMat = kvp.Value;
                 if (runtimeMat == null)
+                {
                     continue;
+                }
 
                 if (shouldUpdateBaseTint)
                 {
@@ -295,17 +309,16 @@ namespace Turnroot.Utilities.Weather
 
             // If start == end, treat as always night
             if (Mathf.Approximately(start, end))
+            {
                 return 1f;
+            }
 
             bool wrapsMidnight = end < start;
 
             if (!wrapsMidnight)
             {
                 // Straight interval: night is between start and end
-                if (timeOfDay < start || timeOfDay > end)
-                    return 0f;
-
-                return Mathf.InverseLerp(start, end, timeOfDay);
+                return timeOfDay < start || timeOfDay > end ? 0f : Mathf.InverseLerp(start, end, timeOfDay);
             }
 
             // Wraps past midnight: use two segments (start..24 and 0..end)

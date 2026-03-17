@@ -9,7 +9,9 @@ namespace Turnroot.Utilities.Weather
         private void InstantiateCelMaterialsForRenderers()
         {
             if (CelMaterials == null || CelMaterials.Length == 0)
+            {
                 return;
+            }
 
             var celSet = new System.Collections.Generic.HashSet<Material>(CelMaterials);
 
@@ -17,7 +19,9 @@ namespace Turnroot.Utilities.Weather
             foreach (var mat in CelMaterials)
             {
                 if (mat == null)
+                {
                     continue;
+                }
 
                 if (!_celMaterialInstances.ContainsKey(mat))
                 {
@@ -35,7 +39,9 @@ namespace Turnroot.Utilities.Weather
             )
             {
                 if (renderer == null)
+                {
                     continue;
+                }
 
                 var shared = renderer.sharedMaterials;
                 bool hasCelMaterial = false;
@@ -49,7 +55,9 @@ namespace Turnroot.Utilities.Weather
                 }
 
                 if (!hasCelMaterial || _celRendererOriginalMaterials.ContainsKey(renderer))
+                {
                     continue;
+                }
 
                 _celRendererOriginalMaterials[renderer] = shared;
 
@@ -57,7 +65,9 @@ namespace Turnroot.Utilities.Weather
                 for (int i = 0; i < instanced.Length; i++)
                 {
                     if (instanced[i] == null || !celSet.Contains(shared[i]))
+                    {
                         continue;
+                    }
 
                     if (!_celMaterialInstances.TryGetValue(shared[i], out var runtimeMat))
                     {
@@ -79,7 +89,9 @@ namespace Turnroot.Utilities.Weather
             {
                 var renderer = kvp.Key;
                 if (renderer == null)
+                {
                     continue;
+                }
 
                 renderer.sharedMaterials = kvp.Value;
             }

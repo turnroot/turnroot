@@ -9,7 +9,23 @@ namespace Turnroot.Gameplay.Brain.Segments
         #region Settings Menu Opening and Core Operations
 
 
-        private void OpenSubmenu(MenuLocation targetMenu, string menuTypeName)
+        private MenuEntry _hubMenuPlaceholder;
+
+        private MenuEntry GetHubMenuPlaceholder()
+        {
+            // Placeholder used to track the hub as a "parent" menu when
+            // opening a settings menu directly from the hub (no menu stack exists).
+            _hubMenuPlaceholder ??= new MenuEntry
+            {
+                menuName = MenuName.HubActionsMenu,
+                style = MenuStyle.List,
+            };
+            return _hubMenuPlaceholder;
+        }
+
+        private bool IsInHubState() => Brain?.stateBrain?.CurrentState?.Name == BrainStateNames.Hub;
+
+        private void OpenSubmenu(MenuEntry targetMenu, string menuTypeName)
         {
             if (_isTransitioning || targetMenu == null || targetMenu.prefab == null)
             {
@@ -22,10 +38,20 @@ namespace Turnroot.Gameplay.Brain.Segments
             }
 
             var sourceMenu = FindActiveMenu();
-            if (sourceMenu?.activeInstance == null)
+
+            // Allow opening menus even when no other menu is currently active
+            // (e.g. opening settings from the hub scene without an existing menu).
+            // Also treat a null/empty active menu while in Hub as a valid "from" menu
+            // so the back button returns to the hub rather than doing a root back.
+            if (sourceMenu == null && IsInHubState())
             {
-                $"UiBrain: Cannot open {menuTypeName} menu - no active source menu found".LogWarning();
-                return;
+                sourceMenu = GetHubMenuPlaceholder();
+            }
+
+            // If we found a source menu, but it has no active instance, treat it as no source.
+            if (sourceMenu != null && sourceMenu.activeInstance == null)
+            {
+                sourceMenu = null;
             }
 
             _isTransitioning = true;
@@ -33,25 +59,16 @@ namespace Turnroot.Gameplay.Brain.Segments
             StartCoroutine(TransitionToSubmenuCoroutine(sourceMenu, targetMenu));
         }
 
-        private MenuLocation FindActiveMenu()
+        private MenuEntry FindActiveMenu()
         {
             if (preBattleMenuLocation?.activeInstance != null)
             {
                 return preBattleMenuLocation;
             }
 
-            var allMenus = uiSettings?.allPossibleMenuLocations;
-            if (allMenus != null)
-            {
-                foreach (var menu in allMenus)
-                {
-                    if (menu?.activeInstance != null)
-                    {
-                        return menu;
-                    }
-                }
-            }
-            return null;
+            // Prefer the menu tracked by the menu depth stack.
+            var tracked = _menuTracker?.CurrentMenu;
+            return tracked?.activeInstance != null ? tracked : null;
         }
 
         public void OpenMainGameSettingsMenu() =>
@@ -75,4 +92,3 @@ namespace Turnroot.Gameplay.Brain.Segments
         #endregion
     }
 }
-

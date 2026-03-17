@@ -167,7 +167,7 @@ namespace Turnroot.UI.Editor
             );
             EditorGUILayout.LabelField("  └─ Central configuration for all menus", _bodyStyle);
             EditorGUILayout.LabelField(
-                "  └─ Contains List<MenuLocation> defining menu hierarchy",
+                "  └─ Contains List<MenuEntry> defining menu prefab mappings",
                 _bodyStyle
             );
             EditorGUILayout.LabelField(
@@ -176,11 +176,13 @@ namespace Turnroot.UI.Editor
             );
             GUILayout.Space(4);
 
-            EditorGUILayout.LabelField("• <b>MenuLocation</b> (Serializable class)", _bodyStyle);
-            EditorGUILayout.LabelField("  └─ Defines a single menu in hierarchy", _bodyStyle);
+            EditorGUILayout.LabelField("• <b>MenuEntry</b> (Serializable class)", _bodyStyle);
+            EditorGUILayout.LabelField(
+                "  └─ Defines a single menu (name + prefab + style)",
+                _bodyStyle
+            );
             EditorGUILayout.LabelField("  └─ Properties:", _bodyStyle);
             EditorGUILayout.LabelField("     • MenuName (enum identifier)", _bodyStyle);
-            EditorGUILayout.LabelField("     • Parent MenuName (for hierarchy)", _bodyStyle);
             EditorGUILayout.LabelField(
                 "     • MenuStyle (List, Pie, Grid, Filmstrip, None)",
                 _bodyStyle
@@ -308,7 +310,7 @@ namespace Turnroot.UI.Editor
             EditorGUILayout.LabelField("<b>STEP 4: Add helper method (optional)</b>", _bodyStyle);
             EditorGUILayout.LabelField("  • In GamewideUiSettings.cs, add getter:", _bodyStyle);
             GUILayout.Label(
-                "public MenuLocation GetYourMenu() => GetMenuLocation(MenuName.YourNewMenu);",
+                "public MenuEntry GetYourMenu() => GetMenuEntry(MenuName.YourNewMenu);",
                 _codeStyle
             );
             GUILayout.Space(4);
@@ -445,7 +447,7 @@ namespace Turnroot.UI.Editor
             GUILayout.Space(4);
 
             EditorGUILayout.LabelField("<b>Parent-Child Relationships</b>", _bodyStyle);
-            EditorGUILayout.LabelField("  • Set via parentMenuName in MenuLocation", _bodyStyle);
+            EditorGUILayout.LabelField("  • Set via MenuName in MenuPrefabs", _bodyStyle);
             EditorGUILayout.LabelField(
                 "  • Automatically resolved by GamewideUiSettings",
                 _bodyStyle
@@ -716,7 +718,7 @@ namespace Turnroot.UI.Editor
                 _bodyStyle
             );
             EditorGUILayout.LabelField(
-                "  • Verify MenuLocation added to allPossibleMenuLocations",
+                "  • Verify menu prefab is assigned in GamewideUiSettings -> MenuPrefabs",
                 _bodyStyle
             );
             EditorGUILayout.LabelField("  • Check Console for error messages", _bodyStyle);

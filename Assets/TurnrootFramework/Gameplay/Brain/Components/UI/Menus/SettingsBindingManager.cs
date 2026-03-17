@@ -255,12 +255,6 @@ namespace Turnroot.Gameplay.Brain.Segments
                 slider.value = intValue;
             }
 
-            // Debug: confirm binding for investigation
-
-            $"SettingsBindingManager: Bound slider '{slider.gameObject.name}' to setting '{settingName}'"
-        .LogInfo();
-
-            // Set up change listener - quantize quality to tenths (max 0.3) and update settings
             slider.onValueChanged.RemoveAllListeners();
             var isQuantizing = false;
             slider.onValueChanged.AddListener(value =>
@@ -371,4 +365,3 @@ namespace Turnroot.Gameplay.Brain.Segments
         }
     }
 }
-

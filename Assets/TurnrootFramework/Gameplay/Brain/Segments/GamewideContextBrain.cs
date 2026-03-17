@@ -62,12 +62,7 @@ namespace Turnroot.Gameplay.Brain
         /// </summary>
         public GameDate GetCurrentGameDate()
         {
-            if (_ltm != null && _ltm.Initialized)
-            {
-                return _ltm.GetGameDate();
-            }
-
-            return GameplayGeneralSettings.Instance?.StartingGameDate ?? GameDate.Default;
+            return _ltm != null && _ltm.Initialized ? _ltm.GetGameDate() : GameplayGeneralSettings.Instance?.StartingGameDate ?? GameDate.Default;
         }
 
         #endregion

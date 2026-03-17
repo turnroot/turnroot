@@ -6,21 +6,17 @@ namespace Turnroot.Utilities.Weather
     {
         #region Audio
 
-        // Cache the last weather type used for ambient audio so we don't randomly swap clips each frame.
-        private WeatherType _lastAmbientWeatherType = (WeatherType)(-1);
-
         private AudioClip PickRandomClip(AudioClip[] clips)
         {
-            if (clips == null || clips.Length == 0)
-                return null;
-
-            return clips[Random.Range(0, clips.Length)];
+            return clips == null || clips.Length == 0 ? null : clips[Random.Range(0, clips.Length)];
         }
 
         private void UpdateAmbientAudio()
         {
             if (AmbientAudioSource == null)
+            {
                 return;
+            }
 
             // If the weather hasn't changed and we have an active loop playing, leave it alone.
             if (
@@ -89,11 +85,15 @@ namespace Turnroot.Utilities.Weather
         private void TryTriggerLightningEvent()
         {
             if (ThunderClips == null || ThunderClips.Length == 0 || EventAudioSource == null)
+            {
                 return;
+            }
 
             float now = Time.time;
             if (now < _nextLightningTime)
+            {
                 return;
+            }
 
             AudioClip clip = PickRandomClip(ThunderClips);
             if (clip == null)
@@ -105,7 +105,10 @@ namespace Turnroot.Utilities.Weather
             Vector3 direction = Random.onUnitSphere;
             direction.y = Mathf.Abs(direction.y);
             if (direction.sqrMagnitude < 0.1f)
+            {
                 direction = Vector3.up;
+            }
+
             direction.Normalize();
 
             SetEventAudioPosition(direction, EventSoundMinDistance, EventSoundMaxDistance);
@@ -130,7 +133,9 @@ namespace Turnroot.Utilities.Weather
             {
                 freq = currentSkybox.GetFloat("_LightningFrequency");
                 if (freq <= 0f)
+                {
                     freq = 0.5f;
+                }
             }
 
             float baseInterval = 1f / freq;
@@ -145,11 +150,15 @@ namespace Turnroot.Utilities.Weather
                 || VolcanicRumbleClips.Length == 0
                 || EventAudioSource == null
             )
+            {
                 return;
+            }
 
             float now = Time.time;
             if (now < _nextVolcanicRumbleTime)
+            {
                 return;
+            }
 
             AudioClip clip = PickRandomClip(VolcanicRumbleClips);
             if (clip == null)
@@ -161,7 +170,10 @@ namespace Turnroot.Utilities.Weather
             Vector3 direction = Random.onUnitSphere;
             direction.y = Mathf.Abs(direction.y);
             if (direction.sqrMagnitude < 0.1f)
+            {
                 direction = Vector3.up;
+            }
+
             direction.Normalize();
 
             SetEventAudioPosition(direction, EventSoundMinDistance, EventSoundMaxDistance);
@@ -182,14 +194,20 @@ namespace Turnroot.Utilities.Weather
         private void SetEventAudioPosition(Vector3 direction, float minDistance, float maxDistance)
         {
             if (EventAudioSource == null)
+            {
                 return;
+            }
 
             if (_audioListenerTransform == null)
+            {
                 _audioListenerTransform =
                     FindFirstObjectByType<AudioListener>()?.transform ?? Camera.main?.transform;
+            }
 
             if (_audioListenerTransform == null)
+            {
                 return;
+            }
 
             // Ensure the min/max are sane (non-negative, min <= max)
             minDistance = Mathf.Max(0.01f, minDistance);
@@ -205,7 +223,9 @@ namespace Turnroot.Utilities.Weather
         {
             var mat = currentSkybox ?? RenderSettings.skybox;
             if (mat == null)
+            {
                 return;
+            }
 
             if (mat.HasProperty("_LightningEventStartTime"))
             {

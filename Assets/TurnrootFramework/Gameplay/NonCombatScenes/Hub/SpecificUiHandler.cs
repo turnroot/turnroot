@@ -33,7 +33,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             CurrentSubLocation = subLocation;
             CurrentPoi = poi;
-            $"SpecificUiHandler: Selected POI '{poi?.name ?? "<null>"}' in sublocation '{subLocation?.LocationName.ToString() ?? "<none>"}'".LogInfo();
         }
 
         public void HandleInput(string action)

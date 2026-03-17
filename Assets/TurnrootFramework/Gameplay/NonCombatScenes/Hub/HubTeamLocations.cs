@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using Turnroot.Characters;
 using Turnroot.Components.UI;
@@ -73,97 +74,257 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         {
             int maxPerLocation = GameplayGeneralSettings.Instance.MaxUnitsPerHubLocation;
 
-            foreach (var unit in roster.characters)
+            // Load an existing placement mapping for this roster/date, if available.
+            var placementMap = LoadSavedPlacement(roster);
+            bool changed = false;
+
+            if (placementMap == null)
             {
+                placementMap = new System.Collections.Generic.Dictionary<int, HubSublocationName>();
+                changed = true;
+            }
+
+            for (int i = 0; i < roster.characters.Length; i++)
+            {
+                var unit = roster.characters[i];
                 if (unit.Status == UnitStatus.Defeated || subLocations.Length == 0)
                 {
                     continue;
                 }
 
-                // pick a random valid sublocation; if it's full, try another until we find one or exhaust all
-                int attempts = 0;
-                int pickIndex = Random.Range(0, subLocations.Length);
-                while (attempts < subLocations.Length)
+                // Use the saved placement if it exists; otherwise choose a new random location.
+                if (!placementMap.TryGetValue(i, out var desiredLocation))
                 {
-                    var assignedLocation = subLocations[pickIndex];
+                    desiredLocation = PickRandomValidLocation(subLocations, maxPerLocation);
+                    placementMap[i] = desiredLocation;
+                    changed = true;
+                }
 
-                    if (assignedLocation.LocationName == HubSublocationName.Battlefields)
-                    {
-                        // Can't go to battlefields, try another.
-                        pickIndex = (pickIndex + 1) % subLocations.Length;
-                        attempts++;
-                        continue;
-                    }
+                AssignUnitToLocation(
+                    roster,
+                    i,
+                    unit,
+                    desiredLocation,
+                    subLocations,
+                    maxPerLocation
+                );
+            }
 
-                    assignedLocation.CharactersPresent ??= new CharacterInstance[0];
-                    if (assignedLocation.CharactersPresent.Length >= maxPerLocation)
-                    {
-                        // Location is full, try another.
-                        pickIndex = (pickIndex + 1) % subLocations.Length;
-                        attempts++;
-                        continue;
-                    }
+            if (changed)
+            {
+                SavePlacement(roster, placementMap);
+            }
+        }
 
-                    // locate the layout entry that matches this location explicitly
-                    int layoutIndex = -1;
-                    if (LocationLayouts != null)
-                    {
-                        for (int idx = 0; idx < LocationLayouts.Length; idx++)
-                        {
-                            if (LocationLayouts[idx].location == assignedLocation.LocationName)
-                            {
-                                layoutIndex = idx;
-                                break;
-                            }
-                        }
-                    }
-                    if (layoutIndex < 0)
-                    {
-                        // if user didn't configure layouts correctly fall back to pick index
-                        layoutIndex = pickIndex;
-                    }
+        private HubSublocationName PickRandomValidLocation(
+            HubSubLocation[] subLocations,
+            int maxPerLocation
+        )
+        {
+            int attempts = 0;
+            int pickIndex = HubDayRandom.Range(0, subLocations.Length);
 
-                    CharacterInstance ci = _charFactory?.CreateOrRecall(unit.CharacterData);
-                    if (ci != null)
-                    {
-                        var list = new System.Collections.Generic.List<CharacterInstance>(
-                            assignedLocation.CharactersPresent
-                        )
-                        {
-                            ci,
-                        };
-                        assignedLocation.CharactersPresent = list.ToArray();
-                        $"HubTeamLocations: Assigned {ci.CharacterTemplate.DisplayName} to {assignedLocation.LocationName}".LogInfo();
-                        if (
-                            layoutIndex >= 0
-                            && layoutIndex < LocationLayouts.Length
-                            && LocationLayouts[layoutIndex].layoutObject != null
-                            && UnitLocationPortraitPrefab != null
-                        )
-                        {
-                            var portrait = Instantiate(
-                                UnitLocationPortraitPrefab,
-                                LocationLayouts[layoutIndex].layoutObject.transform
-                            );
-                            var portraitScript = portrait.GetComponent<UnitLocationPortraitRefs>();
-                            if (portraitScript != null)
-                            {
-                                portraitScript.Set(
-                                    ci.CharacterTemplate.DisplayName,
-                                    ci.CharacterTemplate.DefaultPortrait?.RuntimeSprite
-                                        ?? FallBackPortrait
-                                );
-                            }
-                        }
-                        else
-                        {
-                            $"HubTeamLocations: No horizontal layout prefab or unit portrait prefab assigned for {assignedLocation.LocationName}".LogWarning();
-                        }
-                    }
+            while (attempts < subLocations.Length)
+            {
+                var assignedLocation = subLocations[pickIndex];
 
-                    break; // assigned, move to next unit
+                if (assignedLocation.LocationName == HubSublocationName.Battlefields)
+                {
+                    pickIndex = (pickIndex + 1) % subLocations.Length;
+                    attempts++;
+                    continue;
+                }
+
+                assignedLocation.CharactersPresent ??= new CharacterInstance[0];
+                if (assignedLocation.CharactersPresent.Length >= maxPerLocation)
+                {
+                    pickIndex = (pickIndex + 1) % subLocations.Length;
+                    attempts++;
+                    continue;
+                }
+
+                return assignedLocation.LocationName;
+            }
+
+            // fallback: choose first valid entry
+            foreach (var location in subLocations)
+            {
+                if (location.LocationName != HubSublocationName.Battlefields)
+                {
+                    return location.LocationName;
                 }
             }
+
+            return HubSublocationName.Market;
+        }
+
+        private void AssignUnitToLocation(
+            PlayerTeamRoster roster,
+            int rosterIndex,
+            Turnroot.Characters.Roster.UnitPlacement unit,
+            HubSublocationName desiredLocation,
+            HubSubLocation[] subLocations,
+            int maxPerLocation
+        )
+        {
+            var assignedLocation = Array.Find(subLocations, l => l.LocationName == desiredLocation);
+            if (assignedLocation == null)
+            {
+                return;
+            }
+
+            assignedLocation.CharactersPresent ??= new CharacterInstance[0];
+            if (assignedLocation.CharactersPresent.Length >= maxPerLocation)
+            {
+                return;
+            }
+
+            CharacterInstance ci = _charFactory?.CreateOrRecall(unit.CharacterData);
+            if (ci == null)
+            {
+                return;
+            }
+
+            var list = new System.Collections.Generic.List<CharacterInstance>(
+                assignedLocation.CharactersPresent
+            )
+            {
+                ci,
+            };
+            assignedLocation.CharactersPresent = list.ToArray();
+
+            int layoutIndex = FindLayoutIndexForLocation(assignedLocation.LocationName);
+            if (
+                layoutIndex >= 0
+                && layoutIndex < LocationLayouts.Length
+                && LocationLayouts[layoutIndex].layoutObject != null
+                && UnitLocationPortraitPrefab != null
+            )
+            {
+                var portrait = Instantiate(
+                    UnitLocationPortraitPrefab,
+                    LocationLayouts[layoutIndex].layoutObject.transform
+                );
+                var portraitScript = portrait.GetComponent<UnitLocationPortraitRefs>();
+                if (portraitScript != null)
+                {
+                    portraitScript.Set(
+                        ci.CharacterTemplate.DisplayName,
+                        ci.CharacterTemplate.DefaultPortrait?.RuntimeSprite ?? FallBackPortrait
+                    );
+                }
+            }
+            else
+            {
+                $"HubTeamLocations: No horizontal layout prefab or unit portrait prefab assigned for {assignedLocation.LocationName}".LogWarning();
+            }
+        }
+
+        private int FindLayoutIndexForLocation(HubSublocationName locationName)
+        {
+            if (LocationLayouts == null)
+            {
+                return -1;
+            }
+
+            for (int idx = 0; idx < LocationLayouts.Length; idx++)
+            {
+                if (LocationLayouts[idx].location == locationName)
+                {
+                    return idx;
+                }
+            }
+            return -1;
+        }
+
+        private const string LtmKeyPrefix = "HubTeamLocationPlacement_";
+
+        private System.Collections.Generic.Dictionary<int, HubSublocationName> LoadSavedPlacement(
+            PlayerTeamRoster roster
+        )
+        {
+            if (roster == null || string.IsNullOrEmpty(roster.Id) || _brain?.ltm == null)
+            {
+                return null;
+            }
+
+            var date = _brain.ltm.GetGameDate();
+            string key = GetPlacementKey(roster.Id, date);
+            string json = _brain.ltm.Recall(key);
+            if (string.IsNullOrEmpty(json))
+            {
+                $"HubTeamLocations: No saved placement found for key {key}".LogInfo();
+                return null;
+            }
+
+            try
+            {
+                var newFormat = JsonUtility.FromJson<PlacementMap>(json);
+                if (newFormat?.Entries != null && newFormat.Entries.Length > 0)
+                {
+                    var map = newFormat.Map;
+                    return map;
+                }
+
+                $"HubTeamLocations: Loaded placement JSON for {key} but map was null".LogWarning();
+                return null;
+            }
+            catch (Exception ex)
+            {
+                $"HubTeamLocations: Failed to decode placement JSON for {key}: {ex}".LogWarning();
+                return null;
+            }
+        }
+
+        private void SavePlacement(
+            PlayerTeamRoster roster,
+            System.Collections.Generic.Dictionary<int, HubSublocationName> map
+        )
+        {
+            if (
+                roster == null
+                || string.IsNullOrEmpty(roster.Id)
+                || map == null
+                || _brain?.ltm == null
+            )
+            {
+                return;
+            }
+
+            var date = _brain.ltm.GetGameDate();
+            string key = GetPlacementKey(roster.Id, date);
+            var wrapper = new PlacementMap
+            {
+                Entries = map.Select(kvp => new PlacementEntry
+                    {
+                        Index = kvp.Key,
+                        Location = kvp.Value,
+                    })
+                    .ToArray(),
+            };
+
+            string json = JsonUtility.ToJson(wrapper);
+            _brain.ltm.Remember(key, json);
+        }
+
+        private string GetPlacementKey(string rosterId, GameDate date) =>
+            $"{LtmKeyPrefix}{rosterId}_{date.year:0000}{date.month:00}{date.day:00}";
+
+        [System.Serializable]
+        private class PlacementEntry
+        {
+            public int Index;
+            public HubSublocationName Location;
+        }
+
+        [System.Serializable]
+        private class PlacementMap
+        {
+            public PlacementEntry[] Entries;
+
+            public System.Collections.Generic.Dictionary<int, HubSublocationName> Map =>
+                Entries?.ToDictionary(e => e.Index, e => e.Location)
+                ?? new System.Collections.Generic.Dictionary<int, HubSublocationName>();
         }
 
         public void SetNonRosterUnitsInHub(HubSubLocation[] subLocations)
@@ -207,9 +368,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             if (location.CharactersPresent == null || location.CharactersPresent.Length == 0)
             {
-                $"HubSubLocation {location.LocationName}: No characters set to be present in this sublocation".LogInfo();
-
-                // Hide all spawn points when no characters are assigned.
                 if (location.UnitSpawnPoints != null)
                 {
                     foreach (var p in location.UnitSpawnPoints)
@@ -247,7 +405,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
             for (int i = 0; i < spawnPointIndices.Length; i++)
             {
-                int j = Random.Range(i, spawnPointIndices.Length);
+                int j = HubDayRandom.Range(i, spawnPointIndices.Length);
                 (spawnPointIndices[i], spawnPointIndices[j]) = (
                     spawnPointIndices[j],
                     spawnPointIndices[i]
@@ -269,7 +427,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
                 if (_spawnedCharacterIds.Contains(character.Id))
                 {
-                    // Already spawned for this sublocation.
                     continue;
                 }
 
@@ -284,7 +441,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
                 usedSpawnPoints.Add(spawnPoint);
 
-                // POIs are typically attached to the spawn point. Use that POI for this unit.
                 var poiUi = spawnPoint.GetComponentInChildren<HubPoiUi>();
                 if (poiUi == null)
                 {
@@ -329,7 +485,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 _spawnedCharacterIds.Add(character.Id);
                 if (poiUi != null)
                 {
-                    // Always set the label for this POI so it matches the associated character.
                     poiUi.SetUnitCharacter(character);
                 }
             }

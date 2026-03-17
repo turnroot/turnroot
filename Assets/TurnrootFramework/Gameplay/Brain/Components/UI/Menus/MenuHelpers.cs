@@ -8,10 +8,7 @@ namespace Turnroot.Gameplay.Brain.Segments
 {
     public partial class UiBrain : BrainComponent
     {
-        private MenuLocation GetValidatedMenuLocation(
-            System.Func<MenuLocation> getter,
-            string menuName
-        )
+        private MenuEntry GetValidatedMenuLocation(System.Func<MenuEntry> getter, string menuName)
         {
             if (uiSettings == null)
             {
@@ -19,13 +16,13 @@ namespace Turnroot.Gameplay.Brain.Segments
                 return null;
             }
 
-            var location = getter();
-            if (location == null)
+            var entry = getter();
+            if (entry == null)
             {
-                $"UiBrain: {menuName} menu location not found!".LogError();
+                $"UiBrain: {menuName} menu entry not found!".LogError();
             }
 
-            return location;
+            return entry;
         }
 
         protected void WarnPrefabs()
@@ -76,7 +73,7 @@ namespace Turnroot.Gameplay.Brain.Segments
             }
         }
 
-        public void TransitionToSubmenu(MenuLocation from, MenuLocation to)
+        public void TransitionToSubmenu(MenuEntry from, MenuEntry to)
         {
             if (_isTransitioning)
             {
@@ -88,7 +85,7 @@ namespace Turnroot.Gameplay.Brain.Segments
             StartCoroutine(TransitionToSubmenuCoroutine(from, to));
         }
 
-        private IEnumerator TransitionToSubmenuCoroutine(MenuLocation from, MenuLocation to)
+        private IEnumerator TransitionToSubmenuCoroutine(MenuEntry from, MenuEntry to)
         {
             // Depth already tracked at navigation start; do not re-track here to avoid duplicates
             yield return _transitionManager.TransitionBetween(from, to);
@@ -116,4 +113,3 @@ namespace Turnroot.Gameplay.Brain.Segments
             _routeHandler?.HandleMenuSelect(item);
     }
 }
-

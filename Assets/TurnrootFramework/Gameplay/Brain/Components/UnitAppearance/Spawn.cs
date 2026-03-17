@@ -22,34 +22,19 @@ namespace Turnroot.Gameplay.Brain
         private OperationResult RegisterModel(Vector2Int position, GameObject model, string unitId)
         {
             var prep = _brain.battleBrain.PreparationObject;
-            if (prep == null)
-            {
-                return OperationResult.Failure("No model tracking source available");
-            }
-
-            return prep.RegisterModel(position, model, unitId);
+            return prep == null ? OperationResult.Failure("No model tracking source available") : prep.RegisterModel(position, model, unitId);
         }
 
         private OperationResult UnregisterModelAtPosition(Vector2Int position)
         {
             var prep = _brain.battleBrain.PreparationObject;
-            if (prep == null)
-            {
-                return OperationResult.Failure("No model tracking source available");
-            }
-
-            return prep.UnregisterModelAtPosition(position);
+            return prep == null ? OperationResult.Failure("No model tracking source available") : prep.UnregisterModelAtPosition(position);
         }
 
         private OperationResult UnregisterModelForUnit(string unitId)
         {
             var prep = _brain.battleBrain.PreparationObject;
-            if (prep == null)
-            {
-                return OperationResult.Failure("No model tracking source available");
-            }
-
-            return prep.UnregisterModelForUnit(unitId);
+            return prep == null ? OperationResult.Failure("No model tracking source available") : prep.UnregisterModelForUnit(unitId);
         }
 
         private string GetUnitIdAtPosition(Vector2Int position)
@@ -67,12 +52,9 @@ namespace Turnroot.Gameplay.Brain
         private OperationResult UpdateModelPosition(Vector2Int oldPosition, Vector2Int newPosition)
         {
             var prep = _brain.battleBrain.PreparationObject;
-            if (prep == null)
-            {
-                return OperationResult.Failure("No model tracking source available");
-            }
-
-            return prep.UpdateModelPosition(oldPosition, newPosition);
+            return prep == null
+                ? OperationResult.Failure("No model tracking source available")
+                : prep.UpdateModelPosition(oldPosition, newPosition);
         }
 
         #endregion

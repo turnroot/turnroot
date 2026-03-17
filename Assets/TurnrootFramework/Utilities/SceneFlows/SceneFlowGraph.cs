@@ -182,6 +182,11 @@ namespace Turnroot.Utilities.SceneFlows
         [Tooltip("Conditions that must be met for this transition to be available.")]
         public List<SceneCondition> conditions = new();
 
+        [Tooltip(
+            "Conditions that must be met for this transition to be available when traversed in reverse (only applies when bidirectional is enabled)."
+        )]
+        public List<SceneCondition> reverseConditions = new();
+
         [Header("Transition Behavior")]
         [Tooltip("Unload the previous scene when transitioning?")]
         public bool unloadPreviousScene = true;
@@ -205,12 +210,25 @@ namespace Turnroot.Utilities.SceneFlows
 
         public bool AreConditionsMet(SceneFlowConditionEvaluator evaluator)
         {
-            if (conditions == null || conditions.Count == 0)
+            return AreConditionsMet(evaluator, conditions);
+        }
+
+        public bool AreReverseConditionsMet(SceneFlowConditionEvaluator evaluator)
+        {
+            return AreConditionsMet(evaluator, reverseConditions);
+        }
+
+        private bool AreConditionsMet(
+            SceneFlowConditionEvaluator evaluator,
+            List<SceneCondition> conditionList
+        )
+        {
+            if (conditionList == null || conditionList.Count == 0)
             {
                 return true; // No conditions means always available
             }
 
-            foreach (var condition in conditions)
+            foreach (var condition in conditionList)
             {
                 if (!evaluator.EvaluateCondition(condition))
                 {

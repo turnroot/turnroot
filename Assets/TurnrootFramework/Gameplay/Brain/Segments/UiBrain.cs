@@ -23,31 +23,31 @@ namespace Turnroot.Gameplay.Brain.Segments
         public GamewideUiSettings uiSettings;
 
         [HideInInspector]
-        public MenuLocation settingsMenuLocation;
+        public MenuEntry settingsMenuLocation;
 
         [HideInInspector]
-        public MenuLocation gameSettingsGraphicsLocation;
+        public MenuEntry gameSettingsGraphicsLocation;
 
         [HideInInspector]
-        public MenuLocation gameSettingsGameplayLocation;
+        public MenuEntry gameSettingsGameplayLocation;
 
         [HideInInspector]
-        public MenuLocation gameSettingsAudioLocation;
+        public MenuEntry gameSettingsAudioLocation;
 
         [HideInInspector]
-        public MenuLocation gameSettingsControlsLocation;
+        public MenuEntry gameSettingsControlsLocation;
 
         [HideInInspector]
-        public MenuLocation preBattleMenuLocation;
+        public MenuEntry preBattleMenuLocation;
 
         [HideInInspector]
-        public MenuLocation prebattleMapMenuLocation;
+        public MenuEntry prebattleMapMenuLocation;
 
         [HideInInspector]
-        public MenuLocation prebattleUnitsMenuLocation;
+        public MenuEntry prebattleUnitsMenuLocation;
 
         [HideInInspector]
-        public MenuLocation battleActionSelectMenuLocation;
+        public MenuEntry battleActionSelectMenuLocation;
 
         [HideInInspector]
         public bool _isTransitioning = false;
@@ -79,7 +79,7 @@ namespace Turnroot.Gameplay.Brain.Segments
         internal MenuTransitionManager GetTransitionManager() => _transitionManager;
 
         // Convenience wrappers for common menu checks
-        public bool IsInMenu(MenuLocation menu) => _menuTracker?.IsInMenu(menu) ?? false;
+        public bool IsInMenu(MenuEntry menu) => _menuTracker?.IsInMenu(menu) ?? false;
 
         public bool IsInPreBattleMenu() => _menuTracker?.IsInPreBattleMenu(uiSettings) ?? false;
 

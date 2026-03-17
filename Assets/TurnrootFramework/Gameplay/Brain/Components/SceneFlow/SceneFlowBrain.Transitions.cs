@@ -55,10 +55,6 @@ namespace Turnroot.Utilities.SceneFlows
             StartCoroutine(LoadSceneAsync(targetScene, transition));
         }
 
-        /// <summary>
-        /// Transition to a scene by its Unity scene name (not graph ID).
-        /// UnityEvent compatible (single string parameter).
-        /// </summary>
         public void TransitionToSceneByName(string sceneName)
         {
             if (sceneFlowGraph == null)
@@ -77,10 +73,6 @@ namespace Turnroot.Utilities.SceneFlows
             TransitionToScene(targetScene.id);
         }
 
-        /// <summary>
-        /// Go back to the previous scene in navigation history.
-        /// UnityEvent compatible (no parameters).
-        /// </summary>
         public void GoBackToPreviousScene()
         {
             if (!CanGoBack)
@@ -102,10 +94,6 @@ namespace Turnroot.Utilities.SceneFlows
             StartCoroutine(LoadSceneAsync(previousScene, null, addToHistory: false));
         }
 
-        /// <summary>
-        /// Clear the navigation history.
-        /// UnityEvent compatible (no parameters).
-        /// </summary>
         public void ClearHistory()
         {
             _sceneHistory.Clear();
@@ -114,21 +102,9 @@ namespace Turnroot.Utilities.SceneFlows
 
         #endregion
 
-        #region Specific Transition Methods (For Inspector UnityEvents)
-
-        // These methods are designed to be easily called from Inspector UnityEvents
-        // They follow the pattern: Go[From][To](optional parameter)
-
-        /// <summary>
-        /// Generic method to transition from current scene to a target.
-        /// Can be bound to buttons/events with scene ID as parameter.
-        /// </summary>
+        #region Specific Transition Methods
         public void GoToScene(string sceneId) => TransitionToScene(sceneId);
 
-        /// <summary>
-        /// Return to hub from current scene.
-        /// Finds the first hub scene in the graph.
-        /// </summary>
         public void ReturnToHub()
         {
             var hubScene = sceneFlowGraph?.scenes?.FirstOrDefault(s => s.isHub);
@@ -146,47 +122,64 @@ namespace Turnroot.Utilities.SceneFlows
 
         #region Available Scene Options
 
-        /// <summary>
-        /// Get all currently available scene transitions from the current scene.
-        /// Filters by conditions.
-        /// </summary>
         public List<SceneOption> GetAvailableScenes()
         {
             if (_currentScene == null || sceneFlowGraph == null)
             {
+                "SceneFlowBrain: GetAvailableScenes called but current scene or graph is null".LogWarning();
                 return new List<SceneOption>();
             }
 
             var transitions = sceneFlowGraph.GetTransitionsFrom(_currentScene.id);
+            $"SceneFlowBrain: Current scene '{_currentScene.id}', transitions: {transitions?.Count ?? 0}".LogInfo();
+
             var available = new List<SceneOption>();
 
             foreach (var transition in transitions)
             {
-                if (transition.AreConditionsMet(_conditionEvaluator))
+                // When a transition is bidirectional, allow it to be used from either side.
+                bool isForward = transition.fromSceneId == _currentScene.id;
+                bool isReverse =
+                    transition.isBidirectional && transition.toSceneId == _currentScene.id;
+
+                if (!isForward && !isReverse)
                 {
-                    var targetScene = sceneFlowGraph.GetScene(transition.toSceneId);
-                    if (targetScene != null)
-                    {
-                        available.Add(
-                            new SceneOption
-                            {
-                                sceneId = targetScene.id,
-                                sceneName = targetScene.sceneName,
-                                displayName = targetScene.displayName,
-                                label = transition.label,
-                                transition = transition,
-                            }
-                        );
-                    }
+                    continue;
                 }
+
+                bool conditionsMet = isForward
+                    ? transition.AreConditionsMet(_conditionEvaluator)
+                    : transition.AreReverseConditionsMet(_conditionEvaluator);
+
+                if (!conditionsMet)
+                {
+                    $"SceneFlowBrain: Transition not met: {transition.fromSceneId} -> {transition.toSceneId}".LogInfo();
+                    continue;
+                }
+
+                // Determine which scene is the target based on direction.
+                string targetSceneId = isForward ? transition.toSceneId : transition.fromSceneId;
+                var targetScene = sceneFlowGraph.GetScene(targetSceneId);
+                if (targetScene == null)
+                {
+                    continue;
+                }
+
+                available.Add(
+                    new SceneOption
+                    {
+                        sceneId = targetScene.id,
+                        sceneName = targetScene.sceneName,
+                        displayName = targetScene.displayName,
+                        label = transition.label,
+                        transition = transition,
+                    }
+                );
             }
 
             return available;
         }
 
-        /// <summary>
-        /// Check if a specific scene is currently reachable from current scene.
-        /// </summary>
         public bool IsSceneAvailable(string targetSceneId)
         {
             var transitions = sceneFlowGraph?.GetTransitionsFrom(_currentScene?.id);
@@ -203,49 +196,29 @@ namespace Turnroot.Utilities.SceneFlows
 
         #region Condition Management
 
-        /// <summary>
-        /// Set a custom boolean flag for scene conditions.
-        /// UnityEvent compatible.
-        /// </summary>
         public void SetCustomFlag(string key, bool value)
         {
             _customFlags[key] = value;
             $"SceneFlowBrain: Set flag '{key}' = {value}".LogInfo();
         }
 
-        /// <summary>
-        /// Set a custom int value for scene conditions.
-        /// </summary>
         public void SetCustomIntValue(string key, int value)
         {
             _customIntValues[key] = value;
             $"SceneFlowBrain: Set int '{key}' = {value}".LogInfo();
         }
 
-        /// <summary>
-        /// Set a custom string value for scene conditions.
-        /// </summary>
         public void SetCustomStringValue(string key, string value)
         {
             _customStringValues[key] = value;
             $"SceneFlowBrain: Set string '{key}' = '{value}'".LogInfo();
         }
 
-        /// <summary>
-        /// Get a custom flag value.
-        /// </summary>
         public bool GetCustomFlag(string key) =>
             _customFlags.TryGetValue(key, out bool value) && value;
-
-        /// <summary>
-        /// Get a custom int value.
-        /// </summary>
         public int GetCustomIntValue(string key) =>
             _customIntValues.TryGetValue(key, out int value) ? value : 0;
 
-        /// <summary>
-        /// Get a custom string value.
-        /// </summary>
         public string GetCustomStringValue(string key) =>
             _customStringValues.TryGetValue(key, out string value) ? value : "";
 
