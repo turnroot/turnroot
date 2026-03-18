@@ -19,12 +19,15 @@ namespace Turnroot.UI.Components
         private PassiveSkillOverlay _overlayComponent;
         private CharacterInstance _currentUnit;
 
-        public InputAction SkillsAndStatusesToggleDetails;
+        public InputActionReference SkillsAndStatusesToggleDetails;
 
         private void Awake()
         {
-            SkillsAndStatusesToggleDetails.performed += ctx => ToggleDetails();
-            SkillsAndStatusesToggleDetails.Enable();
+            if (SkillsAndStatusesToggleDetails?.action != null)
+            {
+                SkillsAndStatusesToggleDetails.action.performed += ctx => ToggleDetails();
+                SkillsAndStatusesToggleDetails.action.Enable();
+            }
         }
 
         private bool _initialized = false;
@@ -33,8 +36,11 @@ namespace Turnroot.UI.Components
         private void OnDestroy()
         {
             UnsubscribeFromBrain();
-            SkillsAndStatusesToggleDetails.performed -= ctx => ToggleDetails();
-            SkillsAndStatusesToggleDetails.Disable();
+            if (SkillsAndStatusesToggleDetails?.action != null)
+            {
+                SkillsAndStatusesToggleDetails.action.performed -= ctx => ToggleDetails();
+                SkillsAndStatusesToggleDetails.action.Disable();
+            }
         }
 
         private bool _passiveSkillsExpanded = false;

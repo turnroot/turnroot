@@ -72,10 +72,10 @@ namespace Turnroot.UI.Components.RadialMenu
 
         [Header("Input Actions")]
         [SerializeField]
-        public InputAction navigateAction;
+        public InputActionReference navigateAction;
 
         [SerializeField]
-        public InputAction selectAction;
+        public InputActionReference selectAction;
 
         private int _selectedIndex = 0;
         private bool _centerSelected = false;
@@ -129,16 +129,22 @@ namespace Turnroot.UI.Components.RadialMenu
             }
         }
 
+        private InputAction GetNavigateInputAction() =>
+            navigateAction?.action ?? UIInputActionDefaults.Navigate;
+
+        private InputAction GetSelectInputAction() =>
+            selectAction?.action ?? UIInputActionDefaults.Select;
+
         private void OnEnable()
         {
-            navigateAction?.Enable();
-            selectAction?.Enable();
+            GetNavigateInputAction()?.Enable();
+            GetSelectInputAction()?.Enable();
         }
 
         private void OnDisable()
         {
-            navigateAction?.Disable();
-            selectAction?.Disable();
+            GetNavigateInputAction()?.Disable();
+            GetSelectInputAction()?.Disable();
         }
 
         private void Start() => Canvas.willRenderCanvases += OnFirstRender;
@@ -158,9 +164,10 @@ namespace Turnroot.UI.Components.RadialMenu
         private void OnDestroy()
         {
             Canvas.willRenderCanvases -= OnFirstRender;
-            if (selectAction != null)
+            var select = GetSelectInputAction();
+            if (select != null)
             {
-                selectAction.performed -= OnSelectPerformed;
+                select.performed -= OnSelectPerformed;
             }
         }
 
@@ -196,9 +203,10 @@ namespace Turnroot.UI.Components.RadialMenu
                 SetupCenterItem();
             }
 
-            if (selectAction != null)
+            var select = GetSelectInputAction();
+            if (select != null)
             {
-                selectAction.performed += OnSelectPerformed;
+                select.performed += OnSelectPerformed;
             }
 
             // Ensure item 0 is visually highlighted from the start — prevents the phantom

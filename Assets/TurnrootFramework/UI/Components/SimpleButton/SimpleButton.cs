@@ -26,7 +26,12 @@ namespace Turnroot.UI.Components.SimpleButton
             IPointerExitHandler,
             IPointerClickHandler
     {
+        [HideInInspector]
         public InputAction SelectAction;
+
+        [Header("Input")]
+        public InputActionReference SelectActionReference;
+
         public event Action OnSelected;
         public SimpleButtonRole Role;
 
@@ -37,33 +42,54 @@ namespace Turnroot.UI.Components.SimpleButton
         /// </summary>
         public void AssignSelectAction(InputAction action)
         {
-            // Remove any previous subscription to avoid duplicates
-            if (SelectAction != null)
-            {
-                try
-                {
-                    SelectAction.performed -= OnSelectActionPerformed;
-                }
-                catch { }
-            }
-
+            // Use the explicitly assigned action over the inspector reference.
+            UnsubscribeFromSelectAction();
             SelectAction = action;
+            SubscribeToSelectAction();
+        }
 
-            if (SelectAction != null)
+        private InputAction GetEffectiveSelectAction()
+        {
+            return SelectAction ?? SelectActionReference?.action;
+        }
+
+        private void SubscribeToSelectAction()
+        {
+            var action = GetEffectiveSelectAction();
+            if (action == null)
             {
-                // Ensure callback is attached and action is enabled if component is active
-                try
-                {
-                    SelectAction.performed -= OnSelectActionPerformed;
-                }
-                catch { }
-                SelectAction.performed += OnSelectActionPerformed;
-
-                if (gameObject.activeInHierarchy)
-                {
-                    SelectAction.Enable();
-                }
+                return;
             }
+
+            try
+            {
+                action.performed -= OnSelectActionPerformed;
+            }
+            catch { }
+
+            action.performed += OnSelectActionPerformed;
+
+            if (gameObject.activeInHierarchy)
+            {
+                action.Enable();
+            }
+        }
+
+        private void UnsubscribeFromSelectAction()
+        {
+            var action = GetEffectiveSelectAction();
+            if (action == null)
+            {
+                return;
+            }
+
+            try
+            {
+                action.performed -= OnSelectActionPerformed;
+            }
+            catch { }
+
+            action.Disable();
         }
 
         public void Select() => StartCoroutine(SelectCoroutine());
@@ -142,31 +168,12 @@ namespace Turnroot.UI.Components.SimpleButton
 
         private void OnEnable()
         {
-            if (SelectAction != null)
-            {
-                // Always remove first to avoid duplicate subscriptions
-                try
-                {
-                    SelectAction.performed -= OnSelectActionPerformed;
-                }
-                catch { }
-
-                SelectAction.performed += OnSelectActionPerformed;
-                SelectAction.Enable();
-            }
+            SubscribeToSelectAction();
         }
 
         private void OnDisable()
         {
-            if (SelectAction != null)
-            {
-                try
-                {
-                    SelectAction.performed -= OnSelectActionPerformed;
-                }
-                catch { }
-                SelectAction.Disable();
-            }
+            UnsubscribeFromSelectAction();
         }
 
         private void OnSelectActionPerformed(InputAction.CallbackContext context)

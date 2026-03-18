@@ -33,22 +33,58 @@ namespace Turnroot.UI
 
         private void Subscribe()
         {
-            UiChoice.SelectAction.performed += HandleSelect;
-            UiChoice.BackAction.performed += HandleBack;
-            UiChoice.NavigateUpAction.performed += HandleNavigateUp;
-            UiChoice.NavigateDownAction.performed += HandleNavigateDown;
-            UiChoice.NavigateLeftAction.performed += HandleNavigateLeft;
-            UiChoice.NavigateRightAction.performed += HandleNavigateRight;
+            if (UiChoice.SelectAction != null)
+            {
+                UiChoice.SelectAction.performed += HandleSelect;
+            }
+            if (UiChoice.BackAction != null)
+            {
+                UiChoice.BackAction.performed += HandleBack;
+            }
+            if (UiChoice.NavigateUpAction != null)
+            {
+                UiChoice.NavigateUpAction.performed += HandleNavigateUp;
+            }
+            if (UiChoice.NavigateDownAction != null)
+            {
+                UiChoice.NavigateDownAction.performed += HandleNavigateDown;
+            }
+            if (UiChoice.NavigateLeftAction != null)
+            {
+                UiChoice.NavigateLeftAction.performed += HandleNavigateLeft;
+            }
+            if (UiChoice.NavigateRightAction != null)
+            {
+                UiChoice.NavigateRightAction.performed += HandleNavigateRight;
+            }
         }
 
         private void Unsubscribe()
         {
-            UiChoice.SelectAction.performed -= HandleSelect;
-            UiChoice.BackAction.performed -= HandleBack;
-            UiChoice.NavigateUpAction.performed -= HandleNavigateUp;
-            UiChoice.NavigateDownAction.performed -= HandleNavigateDown;
-            UiChoice.NavigateLeftAction.performed -= HandleNavigateLeft;
-            UiChoice.NavigateRightAction.performed -= HandleNavigateRight;
+            if (UiChoice.SelectAction != null)
+            {
+                UiChoice.SelectAction.performed -= HandleSelect;
+            }
+            if (UiChoice.BackAction != null)
+            {
+                UiChoice.BackAction.performed -= HandleBack;
+            }
+            if (UiChoice.NavigateUpAction != null)
+            {
+                UiChoice.NavigateUpAction.performed -= HandleNavigateUp;
+            }
+            if (UiChoice.NavigateDownAction != null)
+            {
+                UiChoice.NavigateDownAction.performed -= HandleNavigateDown;
+            }
+            if (UiChoice.NavigateLeftAction != null)
+            {
+                UiChoice.NavigateLeftAction.performed -= HandleNavigateLeft;
+            }
+            if (UiChoice.NavigateRightAction != null)
+            {
+                UiChoice.NavigateRightAction.performed -= HandleNavigateRight;
+            }
         }
 
         private void HandleSelect(InputAction.CallbackContext ctx) => OnInput?.Invoke("Select");

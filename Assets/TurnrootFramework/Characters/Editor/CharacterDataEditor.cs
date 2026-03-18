@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Turnroot.Characters.CharacterClass;
+using Turnroot.Characters.Components;
 using Turnroot.Characters.Components.Behavior;
 using Turnroot.Characters.Stats;
 using UnityEditor;
@@ -18,6 +19,11 @@ namespace Turnroot.Characters.Editor
         private bool _showBaseStats = false;
         private bool _showGrowthRates = false;
         private bool _showExpRanks = false;
+
+        private bool _showIdentity = true;
+        private bool _showDemographics = true;
+        private bool _showPortraits = true;
+        private bool _showVisualModel = true;
 
         protected override void OnEnable()
         {
@@ -81,6 +87,68 @@ namespace Turnroot.Characters.Editor
             // refresh before validation/drawing since sanitize may modify array
             _personalGrowthRates = serializedObject.FindProperty("PersonalGrowthRates");
             ValidateGrowthProperty();
+
+            // When the character is an NPC, only show identity + demographics fields.
+            var whichProp = FindAutoProperty("Which");
+            if (whichProp != null)
+            {
+                EditorGUILayout.PropertyField(whichProp);
+            }
+            else
+            {
+                EditorGUILayout.LabelField("Unable to find 'Which' property");
+            }
+
+            // CharacterWhich is a serializable class (string-backed), not an enum.
+            // Use the internal value to determine if this is an NPC.
+            var whichValueProp = whichProp?.FindPropertyRelative("_value");
+            bool isNpc =
+                whichValueProp != null
+                && whichValueProp.stringValue == Turnroot.Characters.Components.CharacterWhich.NPC;
+            if (isNpc)
+            {
+                _showIdentity = EditorGUILayout.Foldout(_showIdentity, "Identity");
+                if (_showIdentity)
+                {
+                    DrawAutoPropertyField("DisplayName");
+                    DrawAutoPropertyField("FullName");
+                    DrawAutoPropertyField("Team");
+                }
+
+                _showDemographics = EditorGUILayout.Foldout(_showDemographics, "Demographics");
+                if (_showDemographics)
+                {
+                    DrawAutoPropertyField("CharacterPronouns");
+                    DrawAutoPropertyField("Height");
+                    DrawAutoPropertyField("BirthdayDay");
+                    DrawAutoPropertyField("BirthdayMonth");
+                    DrawAutoPropertyField("Species");
+                }
+
+                _showPortraits = EditorGUILayout.Foldout(_showPortraits, "Portraits");
+                if (_showPortraits)
+                {
+                    DrawAutoPropertyField("Portraits");
+                }
+
+                _showVisualModel = EditorGUILayout.Foldout(_showVisualModel, "Visual Model");
+                if (_showVisualModel)
+                {
+                    DrawAutoPropertyField("BadgeText");
+                    DrawAutoPropertyField("BadgeIcon");
+                    DrawAutoPropertyField("Blendshapes");
+                    DrawAutoPropertyField("SkinColor");
+                    DrawAutoPropertyField("AccentColor1");
+                    DrawAutoPropertyField("AccentColor2");
+                    DrawAutoPropertyField("AccentColor3");
+                    DrawAutoPropertyField("HeadAndHandsPrefab");
+                    DrawAutoPropertyField("HairPrefab");
+                    DrawAutoPropertyField("NonBattleOutfitPrefab");
+                }
+
+                serializedObject.ApplyModifiedProperties();
+                return;
+            }
 
             // draw the default inspector first; we'll merge our custom sections below
             base.OnInspectorGUI();
@@ -221,6 +289,27 @@ namespace Turnroot.Characters.Editor
                 serializedObject.ApplyModifiedProperties();
                 EditorUtility.SetDirty(target);
                 AssetDatabase.SaveAssets();
+            }
+        }
+
+        private SerializedProperty FindAutoProperty(string name)
+        {
+            // Auto-properties with [field: SerializeField] are stored in the backing field.
+            // Unity may serialize either the field name or the property name depending on the compiler.
+            return serializedObject.FindProperty(name)
+                ?? serializedObject.FindProperty($"<{name}>k__BackingField");
+        }
+
+        private void DrawAutoPropertyField(string name)
+        {
+            var prop = FindAutoProperty(name);
+            if (prop != null)
+            {
+                EditorGUILayout.PropertyField(prop);
+            }
+            else
+            {
+                EditorGUILayout.LabelField($"Missing serialized property: {name}");
             }
         }
 

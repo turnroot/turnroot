@@ -261,18 +261,14 @@ namespace Turnroot.Conversations
             }
         }
 
-        private void OnDisable()
+        private void OnDestroy()
         {
             CleanupTweens();
-
-            if (_conversationRoutine != null)
+            if (Instance == this)
             {
-                StopCoroutine(_conversationRoutine);
-                _conversationRoutine = null;
+                Instance = null;
             }
         }
-
-        private void OnDestroy() => CleanupTweens();
 
         private void CleanupTweens() => CancelActiveTweens();
     }

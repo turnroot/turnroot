@@ -1,5 +1,6 @@
 using System;
 using Turnroot.GameSettings;
+using Turnroot.UI;
 using Turnroot.UI.Components.Menu;
 using Turnroot.UI.Components.RadialMenu;
 using Turnroot.UI.Components.SimpleButton;
@@ -163,11 +164,11 @@ namespace Turnroot.Gameplay.Brain.Segments
             // Assign the correct input action for the chosen button
             if (role == SimpleButtonRole.Back)
             {
-                chosen.AssignSelectAction(InputActionFactory.CreateBack());
+                chosen.AssignSelectAction(UIInputActionDefaults.Back);
             }
             else if (role == SimpleButtonRole.Details)
             {
-                chosen.AssignSelectAction(InputActionFactory.CreateDetails());
+                chosen.AssignSelectAction(UIInputActionDefaults.Confirm);
             }
 
             if (handler != null)

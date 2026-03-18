@@ -32,9 +32,6 @@ namespace Turnroot.Characters
         [field: Foldout("Identity"), SerializeField]
         public string FullName { get; private set; } = "Newly Created Unit";
 
-        [field: Foldout("Identity")]
-        public string Team { get; private set; }
-
         [field: Foldout("Demographics"), HorizontalLine(color: EColor.Black), SerializeField]
         public Pronouns CharacterPronouns { get; private set; } = new();
 
@@ -148,8 +145,20 @@ namespace Turnroot.Characters
         [field: Foldout("Visual"), SerializeField]
         public Color AccentColor3 { get; private set; }
 
-        [field: Foldout("Visual"), SerializeField, HideInInspector]
-        public SerializableDictionary<string, Portrait> Portraits { get; private set; }
+        [Serializable]
+        public struct PortraitEntry
+        {
+            [Tooltip("Key used to reference this portrait (e.g., \"default\", \"happy\").")]
+            public string Key;
+
+            [Tooltip("The portrait data used to render this character's image.")]
+            public Portrait Portrait;
+
+            public Sprite RenderedSprite => Portrait?.SavedSprite ?? Portrait?.RuntimeSprite;
+        }
+
+        [field: Foldout("Visual"), SerializeField]
+        public PortraitEntry[] Portraits { get; private set; } = new PortraitEntry[0];
 
         public Portrait DefaultPortrait => CharacterHelpers.GetDefaultPortrait(Portraits);
 
@@ -159,6 +168,102 @@ namespace Turnroot.Characters
             get;
             private set;
         } = new();
+
+        [NonSerialized]
+        private Dictionary<string, Portrait> _portraitLookupCache;
+
+        public void InvalidatePortraitLookupCache()
+        {
+            _portraitLookupCache = null;
+            _portraitArrayCache = null;
+        }
+
+        private void EnsurePortraitLookup()
+        {
+            if (_portraitLookupCache != null)
+            {
+                return;
+            }
+
+            _portraitLookupCache = new Dictionary<string, Portrait>();
+            if (Portraits == null)
+            {
+                return;
+            }
+
+            foreach (var entry in Portraits)
+            {
+                if (entry.Portrait == null || string.IsNullOrEmpty(entry.Key))
+                {
+                    continue;
+                }
+
+                if (!_portraitLookupCache.ContainsKey(entry.Key))
+                {
+                    _portraitLookupCache[entry.Key] = entry.Portrait;
+                }
+            }
+        }
+
+        public bool TryGetPortrait(string key, out Portrait portrait)
+        {
+            portrait = null;
+            EnsurePortraitLookup();
+            return _portraitLookupCache != null
+                && _portraitLookupCache.TryGetValue(key, out portrait);
+        }
+
+        public Portrait GetPortrait(string key)
+        {
+            return TryGetPortrait(key, out var p) ? p : null;
+        }
+
+        public string[] GetPortraitKeys() =>
+            Portraits?.Select(p => p.Key).Where(k => !string.IsNullOrEmpty(k)).ToArray()
+            ?? Array.Empty<string>();
+
+        public int PortraitCount => Portraits?.Length ?? 0;
+
+        public void AddOrUpdatePortrait(string key, Portrait portrait)
+        {
+            if (string.IsNullOrEmpty(key) || portrait == null)
+            {
+                return;
+            }
+
+            if (Portraits == null)
+            {
+                Portraits = new PortraitEntry[0];
+            }
+
+            bool updated = false;
+            for (int i = 0; i < Portraits.Length; i++)
+            {
+                if (Portraits[i].Key == key)
+                {
+                    Portraits[i].Portrait = portrait;
+                    updated = true;
+                    break;
+                }
+            }
+
+            if (!updated)
+            {
+                var list = Portraits.ToList();
+                list.Add(new PortraitEntry { Key = key, Portrait = portrait });
+                Portraits = list.ToArray();
+            }
+
+            InvalidatePortraitArrayCache();
+            InvalidatePortraitLookupCache();
+        }
+
+        public bool ContainsPortraitKey(string key)
+        {
+            EnsurePortraitLookup();
+            return _portraitLookupCache != null && _portraitLookupCache.ContainsKey(key);
+        }
+
         private Portrait[] _portraitArrayCache;
 
         [field: Foldout("Visual"), SerializeField]
@@ -431,7 +536,7 @@ namespace Turnroot.Characters
         {
             get
             {
-                _portraitArrayCache ??= Portraits?.Values.ToArray();
+                _portraitArrayCache ??= Portraits?.Select(p => p.Portrait).ToArray();
                 return _portraitArrayCache;
             }
         }

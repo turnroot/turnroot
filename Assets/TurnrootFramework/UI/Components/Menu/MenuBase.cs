@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using Turnroot.Gameplay.Brain.Segments;
 using Turnroot.GameSettings;
 using UnityEngine;
-using UnityEngine.InputSystem;
 using SimpleButtonComponent = Turnroot.UI.Components.SimpleButton.SimpleButton;
 
 namespace Turnroot.UI.Components.Menu
@@ -19,9 +18,7 @@ namespace Turnroot.UI.Components.Menu
 
         public GameObject BackButtonPrefab;
 
-        public InputAction selectAction;
-        public InputAction navigateUpAction;
-        public InputAction navigateDownAction;
+        // Input actions are sourced from UIInputActionDefaults (configured via UIInputActionBootstrap)
 
         protected GamewideUiSettings _uiSettings;
 
@@ -41,25 +38,24 @@ namespace Turnroot.UI.Components.Menu
             RefreshMenuItems();
 
             // Set up input actions if they exist
-            navigateUpAction?.Enable();
-
-            navigateDownAction?.Enable();
-
-            selectAction?.Enable();
+            UIInputActionDefaults.NavigateUp?.Enable();
+            UIInputActionDefaults.NavigateDown?.Enable();
+            UIInputActionDefaults.Select?.Enable();
         }
 
         protected virtual void OnEnable()
         {
-            navigateUpAction?.Enable();
-            navigateDownAction?.Enable();
-            selectAction?.Enable();
+            // Use shared UI input actions from UIInputActionDefaults.
+            UIInputActionDefaults.NavigateUp?.Enable();
+            UIInputActionDefaults.NavigateDown?.Enable();
+            UIInputActionDefaults.Select?.Enable();
         }
 
         protected virtual void OnDisable()
         {
-            navigateUpAction?.Disable();
-            navigateDownAction?.Disable();
-            selectAction?.Disable();
+            UIInputActionDefaults.NavigateUp?.Disable();
+            UIInputActionDefaults.NavigateDown?.Disable();
+            UIInputActionDefaults.Select?.Disable();
         }
 
         protected virtual void Update()
@@ -106,12 +102,12 @@ namespace Turnroot.UI.Components.Menu
                 return;
             }
 
-            if (navigateUpAction != null && navigateUpAction.WasPressedThisFrame())
+            if (UIInputActionDefaults.NavigateUp?.WasPressedThisFrame() == true)
             {
                 NavigateToPreviousItem();
             }
 
-            if (navigateDownAction != null && navigateDownAction.WasPressedThisFrame())
+            if (UIInputActionDefaults.NavigateDown?.WasPressedThisFrame() == true)
             {
                 NavigateToNextItem();
             }
@@ -119,12 +115,12 @@ namespace Turnroot.UI.Components.Menu
 
         protected virtual void HandleSelectionInput()
         {
-            if (selectAction == null || menuItems.Count == 0)
+            if (UIInputActionDefaults.Select == null || menuItems.Count == 0)
             {
                 return;
             }
 
-            if (selectAction.WasPressedThisFrame())
+            if (UIInputActionDefaults.Select.WasPressedThisFrame())
             {
                 SelectCurrentItem();
             }

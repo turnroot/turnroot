@@ -3,8 +3,11 @@ using System.Collections.Generic;
 using NaughtyAttributes;
 using TMPro;
 using Turnroot.AbstractScripts.Graphics2D;
+using Turnroot.UI;
+using Turnroot.Utilities.AbstractScripts;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
 namespace Turnroot.Conversations
@@ -14,6 +17,11 @@ namespace Turnroot.Conversations
     /// </summary>
     public partial class ConversationController : MonoBehaviour
     {
+        /// <summary>
+        /// Global access to the active ConversationController in the scene.
+        /// </summary>
+        public static ConversationController Instance { get; private set; }
+
         private Coroutine _conversationRoutine;
         private int _tweenRunId;
         private readonly List<Coroutine> _activeTweens = new();
@@ -22,6 +30,18 @@ namespace Turnroot.Conversations
         private int _activeBranchingNodeId = int.MinValue;
         private ConversationLayer _activeBranchingLayer;
         private ConversationInstance _runningInstance;
+
+        // One-shot playback support
+        [Header("Audio")]
+        [SerializeField]
+        private AudioSource _audioSource;
+
+        [Header("UI")]
+        [SerializeField]
+        private UIFade _uiFade;
+
+        private ConversationLayer _activeOneShotLayer;
+        private Coroutine _oneShotRoutine;
 
         [Header("Available Conversations")]
         [SerializeField]
@@ -42,6 +62,8 @@ namespace Turnroot.Conversations
 
         [SerializeField]
         private Image _speakerPortraitImageInactive;
+
+        // Uses shared UI actions configured via UIInputActionBootstrap
 
         [Header("Choice UI")]
         [SerializeField]
@@ -104,7 +126,73 @@ namespace Turnroot.Conversations
                 ? _conversationInstances[_currentConversation]
                 : null;
 
-        private void Awake() => OnAwake?.Invoke();
+        private void Awake()
+        {
+            Instance ??= this;
+            EnsureAudioSource();
+            OnAwake?.Invoke();
+        }
+
+        private void OnEnable()
+        {
+            Instance ??= this;
+
+            var action = UIInputActionDefaults.Select;
+            if (action != null)
+            {
+                action.performed += OnAdvanceInputPerformed;
+                action.Enable();
+            }
+        }
+
+        private void OnDisable()
+        {
+            var action = UIInputActionDefaults.Select;
+            if (action != null)
+            {
+                action.performed -= OnAdvanceInputPerformed;
+                action.Disable();
+            }
+
+            CleanupTweens();
+
+            if (_conversationRoutine != null)
+            {
+                StopCoroutine(_conversationRoutine);
+                _conversationRoutine = null;
+            }
+
+            if (_oneShotRoutine != null)
+            {
+                StopCoroutine(_oneShotRoutine);
+                _oneShotRoutine = null;
+            }
+        }
+
+        private void OnAdvanceInputPerformed(InputAction.CallbackContext context)
+        {
+            // Only advance while the conversation UI is active.
+            if (!gameObject.activeInHierarchy)
+            {
+                return;
+            }
+
+            NextLayer();
+        }
+
+        private void EnsureAudioSource()
+        {
+            if (_audioSource == null)
+            {
+                _audioSource = GetComponent<AudioSource>();
+            }
+
+            if (_audioSource == null)
+            {
+                _audioSource = gameObject.AddComponent<AudioSource>();
+                _audioSource.playOnAwake = false;
+            }
+        }
 
         private Conversation SelectedConversation => SelectedInstance?.Conversation;
 
@@ -237,12 +325,170 @@ namespace Turnroot.Conversations
         [Button("Next Layer")]
         public void NextLayer()
         {
+            if (_activeOneShotLayer != null)
+            {
+                _activeOneShotLayer.CompleteLayer();
+                return;
+            }
+
             if (_activeBranchingLayer != null)
             {
                 _activeBranchingLayer.CompleteLayer();
                 return;
             }
             SelectedConversation?.CurrentLayer?.CompleteLayer();
+        }
+
+        /// <summary>
+        /// Play a short, one‑layer conversation (e.g. a single NPC quip).
+        /// This is intended for lightweight notifications or UI flavor.
+        /// </summary>
+        public void PlayOneShot(OneShot oneShot)
+        {
+            if (string.IsNullOrWhiteSpace(oneShot.Dialogue))
+            {
+                UnityEngine.Debug.Log(
+                    "ConversationController: PlayOneShot called with empty dialogue"
+                );
+                return;
+            }
+
+            UnityEngine.Debug.Log(
+                $"ConversationController: PlayOneShot called (dialogue='{oneShot.Dialogue}', speaker='{oneShot.SpeakerName ?? "(none)"}')."
+            );
+
+            ShowConversationUI();
+
+            if (oneShot.Audio != null)
+            {
+                EnsureAudioSource();
+                if (_audioSource == null)
+                {
+                    UnityEngine.Debug.LogWarning(
+                        "ConversationController: audio clip provided but AudioSource could not be created."
+                    );
+                }
+                else
+                {
+                    _audioSource.PlayOneShot(oneShot.Audio);
+                }
+            }
+
+            CleanupPreviousConversation();
+            ResetUI();
+
+            if (_dialogueText == null || _speakerNameText == null)
+            {
+                UnityEngine.Debug.LogWarning(
+                    "ConversationController: UI references are not assigned (dialogue or speaker name is missing). Please assign _dialogueText and _speakerNameText."
+                );
+            }
+
+            if (_oneShotRoutine != null)
+            {
+                StopCoroutine(_oneShotRoutine);
+                _oneShotRoutine = null;
+            }
+
+            _oneShotRoutine = StartCoroutine(RunOneShot(oneShot));
+        }
+
+        private void ShowConversationUI()
+        {
+            if (_uiFade != null)
+            {
+                UnityEngine.Debug.Log("ConversationController: Showing UI via UIFade");
+                _uiFade.Show();
+            }
+            else
+            {
+                if (!gameObject.activeInHierarchy)
+                {
+                    UnityEngine.Debug.Log(
+                        "ConversationController: Activating controller GameObject"
+                    );
+                    gameObject.SetActive(true);
+                }
+            }
+        }
+
+        private void HideConversationUI()
+        {
+            if (_uiFade != null)
+            {
+                _uiFade.Hide();
+            }
+            else
+            {
+                gameObject.SetActive(false);
+            }
+        }
+
+        private IEnumerator RunOneShot(OneShot oneShot)
+        {
+            _activeOneShotLayer = CreateOneShotLayer(oneShot);
+
+            OnAnyConversationStart?.Invoke();
+
+            if (!_activeOneShotLayer.HasBeenParsed)
+            {
+                _activeOneShotLayer.ParseDialogue();
+            }
+
+            _activeOneShotLayer.StartLayer();
+            UnityEngine.Debug.Log("ConversationController: Updating UI for one-shot layer");
+            UpdateUIForLayer(_activeOneShotLayer);
+
+            var sceneFlow =
+                UnityEngine.Object.FindFirstObjectByType<Utilities.AbstractScripts.BattleSceneFlow>();
+            sceneFlow?.ResetInterruptActivityTimer();
+            if (sceneFlow != null)
+            {
+                sceneFlow.InterruptIsWaitingForPlayerInput = true;
+            }
+
+            bool completed = false;
+            void OnComplete() => completed = true;
+
+            var completionEvent = _activeOneShotLayer?.OnLayerComplete;
+            if (completionEvent != null)
+            {
+                completionEvent.AddListener(OnComplete);
+                yield return new WaitUntil(() => completed);
+                completionEvent.RemoveListener(OnComplete);
+            }
+            else
+            {
+                UnityEngine.Debug.LogWarning(
+                    "ConversationController: One-shot layer does not have a completion event; concluding immediately."
+                );
+            }
+
+            if (sceneFlow != null)
+            {
+                sceneFlow.ResetInterruptActivityTimer();
+                sceneFlow.InterruptIsWaitingForPlayerInput = false;
+            }
+
+            _activeOneShotLayer = null;
+            _oneShotRoutine = null;
+            OnAnyConversationFinished?.Invoke();
+            HideConversationUI();
+        }
+
+        private ConversationLayer CreateOneShotLayer(OneShot oneShot)
+        {
+            var layer = new ConversationLayer
+            {
+                Dialogue = oneShot.Dialogue,
+                SpeakerDisplayName = oneShot.SpeakerName ?? string.Empty,
+                ParsePronouns = false,
+            };
+
+            // Apply the portrait via the public API instead of using reflection.
+            layer.SetPrimaryPortraitSprite(oneShot.Portrait);
+
+            return layer;
         }
     }
 }

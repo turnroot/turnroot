@@ -38,7 +38,7 @@ namespace Turnroot.Conversations
             {
                 if (
                     !ValidationHelper.ValidateNotNull(Speaker, nameof(Speaker))
-                    || !ValidationHelper.ValidateNotNull(Speaker?.Portraits, "Speaker.Portraits")
+                    || Speaker.PortraitCount == 0
                 )
                 {
                     if (!string.IsNullOrEmpty(PortraitKey))
@@ -59,7 +59,7 @@ namespace Turnroot.Conversations
                     return new string[] { "No speaker selected" };
                 }
 
-                var keys = Speaker.Portraits.Keys.ToArray();
+                var keys = Speaker.GetPortraitKeys();
                 if (!string.IsNullOrEmpty(PortraitKey) && !keys.Contains(PortraitKey))
                 {
                     PortraitKey = null;
@@ -146,6 +146,14 @@ namespace Turnroot.Conversations
             set => _primary.DisplayName = value;
         }
 
+        /// <summary>
+        /// Overrides the cached portrait sprite used for the primary speaker (used in one-shot playback).
+        /// </summary>
+        public void SetPrimaryPortraitSprite(Sprite sprite)
+        {
+            _primary.CachedSprite = sprite;
+        }
+
         public string SecondarySpeakerDisplayName
         {
             get => _secondary.DisplayName;
@@ -163,8 +171,8 @@ namespace Turnroot.Conversations
         [System.Serializable]
         public class LayerEvents
         {
-            public UnityEvent OnLayerStart;
-            public UnityEvent OnLayerComplete;
+            public UnityEvent OnLayerStart = new UnityEvent();
+            public UnityEvent OnLayerComplete = new UnityEvent();
         }
 
         [HideInInspector]
@@ -203,10 +211,7 @@ namespace Turnroot.Conversations
         {
             if (
                 speaker == null
-                || (
-                    portraitKey != null
-                    && (speaker.Portraits == null || !speaker.Portraits.ContainsKey(portraitKey))
-                )
+                || (portraitKey != null && !speaker.ContainsPortraitKey(portraitKey))
             )
             {
                 portraitKey = null;
@@ -215,13 +220,7 @@ namespace Turnroot.Conversations
 
         private Portrait GetPortrait(CharacterData speaker, string portraitKey)
         {
-            return
-                speaker != null
-                && portraitKey != null
-                && speaker.Portraits != null
-                && speaker.Portraits.TryGetValue(portraitKey, out var portrait)
-                ? portrait
-                : null;
+            return speaker != null && portraitKey != null ? speaker.GetPortrait(portraitKey) : null;
         }
 
         // Active speaker helpers
@@ -270,14 +269,14 @@ namespace Turnroot.Conversations
             {
                 // If a portrait key is set, use it. Otherwise, try to pick the first available portrait
                 var p = GetPortrait(slot.Speaker, slot.PortraitKey);
-                if (p == null && slot.Speaker?.Portraits != null)
+                if (p == null && slot.Speaker?.PortraitCount > 0)
                 {
                     // pick the first available portrait key as a sensible default
-                    var keys = slot.Speaker.Portraits.Keys.ToArray();
+                    var keys = slot.Speaker.GetPortraitKeys();
                     if (keys.Length > 0)
                     {
                         slot.PortraitKey = keys[0];
-                        p = slot.Speaker.Portraits[slot.PortraitKey];
+                        p = slot.Speaker.GetPortrait(slot.PortraitKey);
                     }
                 }
 

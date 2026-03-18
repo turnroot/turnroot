@@ -5,7 +5,6 @@ using Turnroot.Characters.Stats;
 using Turnroot.Characters.Subclasses;
 using Turnroot.Graphics2D;
 using Turnroot.Utilities;
-using Turnroot.Utilities.AbstractScripts;
 
 namespace Turnroot.Characters
 {
@@ -93,7 +92,7 @@ namespace Turnroot.Characters
         }
 
         public static void ForEachPortraitLayer(
-            SerializableDictionary<string, Portrait> portraits,
+            IEnumerable<Portrait> portraits,
             Action<ImageStackLayer> action
         )
         {
@@ -105,8 +104,12 @@ namespace Turnroot.Characters
                 return;
             }
 
-            foreach (var p in portraits.Values)
+            foreach (var p in portraits)
             {
+                if (p == null)
+                {
+                    continue;
+                }
                 var layers = p.Layers;
                 if (layers == null)
                 {
@@ -121,7 +124,7 @@ namespace Turnroot.Characters
         }
 
         public static Portrait GetDefaultPortrait(
-            SerializableDictionary<string, Portrait> portraits
+            IEnumerable<CharacterData.PortraitEntry> portraits
         )
         {
             if (!ValidationHelper.ValidateNotNull(portraits, nameof(portraits)))
@@ -130,16 +133,28 @@ namespace Turnroot.Characters
                 return null;
             }
 
-            if (portraits.TryGetValue(DefaultPortraitKey, out var portrait))
+            Portrait first = null;
+            foreach (var entry in portraits)
             {
-                return portrait;
+                if (entry.Portrait == null)
+                {
+                    continue;
+                }
+
+                if (first == null)
+                {
+                    first = entry.Portrait;
+                }
+
+                if (
+                    string.Equals(entry.Key, DefaultPortraitKey, StringComparison.OrdinalIgnoreCase)
+                )
+                {
+                    return entry.Portrait;
+                }
             }
 
-            foreach (var p in portraits.Values)
-            {
-                return p;
-            }
-            return null;
+            return first;
         }
     }
 }

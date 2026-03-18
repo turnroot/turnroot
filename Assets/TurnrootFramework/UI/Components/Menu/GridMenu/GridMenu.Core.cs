@@ -13,15 +13,21 @@ namespace Turnroot.UI.Components.GridMenu
         [Min(1)]
         public int Columns = 1;
 
-        public InputAction NavigateLeftAction;
-        public InputAction NavigateRightAction;
+        public InputActionReference NavigateLeftAction;
+        public InputActionReference NavigateRightAction;
         private int _selectedIndex = -1;
+
+        private InputAction GetNavigateLeftAction() =>
+            NavigateLeftAction?.action ?? UIInputActionDefaults.NavigateLeft;
+
+        private InputAction GetNavigateRightAction() =>
+            NavigateRightAction?.action ?? UIInputActionDefaults.NavigateRight;
 
         protected override void Awake()
         {
             base.Awake();
-            NavigateLeftAction?.Enable();
-            NavigateRightAction?.Enable();
+            GetNavigateLeftAction()?.Enable();
+            GetNavigateRightAction()?.Enable();
             // Keep MenuBase informed when pointer hovers items so we can track hover-based selection
             OnNavigate += HandleNavigateTo;
         }
@@ -29,15 +35,15 @@ namespace Turnroot.UI.Components.GridMenu
         protected override void OnEnable()
         {
             base.OnEnable();
-            NavigateLeftAction?.Enable();
-            NavigateRightAction?.Enable();
+            GetNavigateLeftAction()?.Enable();
+            GetNavigateRightAction()?.Enable();
         }
 
         protected override void OnDisable()
         {
             base.OnDisable();
-            NavigateLeftAction?.Disable();
-            NavigateRightAction?.Disable();
+            GetNavigateLeftAction()?.Disable();
+            GetNavigateRightAction()?.Disable();
 
             OnNavigate -= HandleNavigateTo;
         }

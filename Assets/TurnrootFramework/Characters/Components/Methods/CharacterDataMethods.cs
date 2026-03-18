@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Turnroot.Characters.CharacterClass;
 using Turnroot.Characters.Components.Support;
 using Turnroot.Characters.Stats;
@@ -14,7 +15,7 @@ namespace Turnroot.Characters
     /// </summary>
     public partial class CharacterData : ScriptableObject, IHasStats
     {
-        public void InvalidatePortraitArrayCache() => _portraitArrayCache = null;
+        public void InvalidatePortraitArrayCache() => InvalidatePortraitLookupCache();
 
         public void SetAvatarNameAndPronouns(string displayName, string fullName, Pronouns pronouns)
         {
@@ -29,7 +30,7 @@ namespace Turnroot.Characters
             if (Portraits != null)
             {
                 CharacterHelpers.ForEachPortraitLayer(
-                    Portraits,
+                    Portraits.Select(p => p.Portrait),
                     layer =>
                     {
                         if (!string.IsNullOrEmpty(layer.Tag))
@@ -53,7 +54,7 @@ namespace Turnroot.Characters
             if (Portraits != null)
             {
                 CharacterHelpers.ForEachPortraitLayer(
-                    Portraits,
+                    Portraits.Select(p => p.Portrait),
                     layer =>
                     {
                         if (

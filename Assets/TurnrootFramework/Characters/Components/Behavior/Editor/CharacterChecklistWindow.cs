@@ -1283,7 +1283,7 @@ namespace Turnroot.EditorTools
                 yellowNotes.Add("Display name matches full name (consider differentiating)");
             }
 
-            if (data.Portraits == null || data.Portraits.Count == 0)
+            if (data.PortraitCount == 0)
             {
                 defaultScore++;
                 yellowNotes.Add("No portraits assigned (consider adding portraits)");
