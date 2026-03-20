@@ -16,6 +16,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
         public void HandleItemChangeInput(string action)
         {
             SelectionCountCache = 1;
+            CostCache = 0;
             if (itemChoices == null)
             {
                 $"ShopUi: No item choices available to change selection.".LogWarning();
@@ -124,7 +125,69 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
             ConfigureItemUi(ShopData.ItemsStocked[CurrentSelectionIndex], SelectionCountCache);
         }
 
-        public void HandlePurchaseConfirmationInput() { }
+        public void HandlePurchaseConfirmationInput()
+        {
+            if (
+                !CanBuy
+                || CurrentSelectionIndex < 0
+                || CurrentSelectionIndex >= ShopData.ItemsStocked.Length
+            )
+            {
+                return;
+            }
+
+            int currentGold = brain?.storehouseBrain != null ? brain.storehouseBrain.PlayerGold : 0;
+            TotalGoldScroll.StartNumber = currentGold;
+            TotalGoldScroll.EndNumber = currentGold - CostCache;
+
+            if (CanBuy)
+            {
+                TotalGoldScroll.StartScroll();
+                ShopData.NotifyShopkeeperSells(ShopData.ItemsStocked[CurrentSelectionIndex]);
+                if (brain?.storehouseBrain != null)
+                {
+                    brain.storehouseBrain.SpendGold(CostCache, true);
+                    brain.storehouseBrain.SaveGoldToLTM();
+
+                    brain.storehouseBrain.AddMaterials(
+                        ShopData.ItemsStocked[CurrentSelectionIndex].Item,
+                        SelectionCountCache,
+                        true
+                    );
+
+                    var item = ShopData.ItemsStocked[CurrentSelectionIndex];
+                    item.CurrentStatus.AvailableQuantity -= SelectionCountCache;
+                    if (item.CurrentStatus.AvailableQuantity < 0)
+                    {
+                        item.CurrentStatus.AvailableQuantity = 0;
+                    }
+
+                    ShopData.ItemsStocked[CurrentSelectionIndex] = item;
+
+                    var itemName = item.Item != null ? item.Item.name : string.Empty;
+                    if (brain != null)
+                    {
+                        HubDayStateStore.SetShopItemQuantity(
+                            brain,
+                            ShopData.name,
+                            itemName,
+                            item.CurrentStatus.AvailableQuantity
+                        );
+                    }
+
+                    if (item.CurrentStatus.AvailableQuantity <= 0)
+                    {
+                        // Remove out-of-stock items immediately from display.
+                        RefreshShopDisplay();
+                    }
+                    else
+                    {
+                        ConfigureItemUi(item, SelectionCountCache);
+                        RefreshShopDisplay();
+                    }
+                }
+            }
+        }
 
         public void HandeSelectedItem(ShopItem selectedItem)
         {

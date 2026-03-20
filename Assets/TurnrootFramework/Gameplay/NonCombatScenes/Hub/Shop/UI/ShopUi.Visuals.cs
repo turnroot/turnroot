@@ -12,12 +12,21 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
     public partial class ShopUi : MonoBehaviour
     {
         private bool CanBuy = true;
+        private int CostCache;
 
         private void ConfigureItemUi(ShopItem item, int SelectionCount)
         {
             CanBuy = true;
             if (item.Item == null || item.UiRefs == null)
             {
+                return;
+            }
+
+            if (item.CurrentStatus.AvailableQuantity <= 0)
+            {
+                CanBuy = false;
+                item.UiRefs.QuantityText.text = "Sold Out";
+                item.UiRefs.PriceText.color = item.UiRefs.TooExpensivePriceColor;
                 return;
             }
 
@@ -140,6 +149,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
             {
                 CanBuy = false;
             }
+
+            CostCache = item.CurrentStatus.IsOnSale
+                ? item.SalePrice * SelectionCount
+                : item.Item.BasePrice * SelectionCount;
 
             item.UiRefs.SaleBadge.gameObject.SetActive(item.CurrentStatus.IsOnSale);
             item.UiRefs.QuantityText.text =

@@ -2,6 +2,7 @@ using TMPro;
 using Turnroot.GameSettings;
 using Turnroot.UI;
 using Turnroot.Utilities.AbstractScripts;
+using Turnroot.Utilities.Ui;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -26,6 +27,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
         public TextMeshProUGUI ShopDescriptionText;
         public TextMeshProUGUI ItemDescriptionText;
         public TextMeshProUGUI TotalGoldText;
+        public ScrollDownNumber TotalGoldScroll;
         public GameObject ItemsParentContainer;
 
         [Header("Weapon Details UI")]
@@ -86,6 +88,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
             else if (TotalGoldText != null)
             {
                 TotalGoldText.text = "Gold: ???";
+                TotalGoldScroll.StartNumber =
+                    brain.storehouseBrain != null ? brain.storehouseBrain.PlayerGold : 0;
             }
 
             itemChoices = new System.Collections.Generic.List<UiChoice>(stock.Length);
@@ -93,17 +97,13 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
             for (var i = 0; i < stock.Length; i++)
             {
                 var item = stock[i];
-                if (item.Item == null)
+                if (item.Item == null || item.CurrentStatus.AvailableQuantity <= 0)
                 {
                     continue;
                 }
 
                 if (item.UiRefs == null || item.UiRefs.ShopItemChoice == null)
                 {
-                    if (item.CurrentStatus.AvailableQuantity <= 0)
-                    {
-                        continue;
-                    }
                     var itemUiObj = Instantiate(ItemPrefab, ItemsParentContainer.transform);
                     item.UiRefs = itemUiObj.GetComponent<ShopItemUiRefs>();
                     stock[i] = item;

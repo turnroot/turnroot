@@ -10,7 +10,7 @@ namespace Turnroot.Gameplay.Brain
         public event Action<Shop> OnShopVisited;
         public event Action<Shop> OnShopExited;
         public event Action<Shop, ShopItem[]> OnShopkeeperBuys;
-        public event Action<Shop, ShopItem[]> OnShopkeeperSells;
+        public event Action<Shop, ShopItem> OnShopkeeperSells;
 
         public void PublishShopVisited(Shop shop) => OnShopVisited?.Invoke(shop);
 
@@ -19,8 +19,8 @@ namespace Turnroot.Gameplay.Brain
         public void PublishShopkeeperBuys(Shop shop, ShopItem[] itemsBought) =>
             OnShopkeeperBuys?.Invoke(shop, itemsBought);
 
-        public void PublishShopkeeperSells(Shop shop, ShopItem[] itemsSold) =>
-            OnShopkeeperSells?.Invoke(shop, itemsSold);
+        public void PublishShopkeeperSells(Shop shop, ShopItem itemSold) =>
+            OnShopkeeperSells?.Invoke(shop, itemSold);
 
         #endregion
     }

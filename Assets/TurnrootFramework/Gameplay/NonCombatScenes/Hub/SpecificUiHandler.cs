@@ -19,7 +19,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         // Track the active shop for notifying visited/exited events.
         private Shop.Shop _activeShop;
 
-        // Used to pause the back/exit behavior until the shop exit dialogue finishes.
+        // Used to pause shop input while welcome/exit dialogue is running.
+        private bool _waitingForShopEntryDialogue;
         private bool _waitingForShopExitDialogue;
 
         // Stored reference so unsubscribe always targets the same object we subscribed to.
@@ -67,6 +68,13 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         private void OnConversationFinished()
         {
+            if (_waitingForShopEntryDialogue)
+            {
+                _waitingForShopEntryDialogue = false;
+                UnsubscribeFromConversationFinished();
+                return;
+            }
+
             if (!_waitingForShopExitDialogue)
             {
                 return;
@@ -96,6 +104,15 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             if (newShop != null && newShop != _activeShop)
             {
                 _activeShop = newShop;
+
+                // If the shop is going to play welcome dialogue, block shop input until it's complete.
+                var welcomeOneShot = _activeShop.GetRandomWelcomeOneShot();
+                if (!string.IsNullOrWhiteSpace(welcomeOneShot.Dialogue))
+                {
+                    _waitingForShopEntryDialogue = true;
+                    SubscribeToConversationFinished();
+                }
+
                 // NotifyShopVisited already plays the welcome dialogue internally.
                 _activeShop.NotifyShopVisited();
             }
@@ -108,10 +125,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         public void HandleInput(string action)
         {
-            if (_waitingForShopExitDialogue)
+            if (_waitingForShopEntryDialogue || _waitingForShopExitDialogue)
             {
-                $"SpecificUiHandler: Ignoring input '{action}' while waiting for shop exit dialogue to finish.".LogInfo();
-                // Ignore input while waiting for the exit dialogue to finish.
+                $"SpecificUiHandler: Ignoring input '{action}' while waiting for shop dialogue to finish.".LogInfo();
+                // Ignore input while waiting for the shop welcome or exit dialogue to finish.
                 return;
             }
 

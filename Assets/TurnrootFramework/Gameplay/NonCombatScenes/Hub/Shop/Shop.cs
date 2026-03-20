@@ -36,6 +36,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
         private OneShot[] BuyDialogueConversations;
         private OneShot[] FarewellDialogueConversations;
 
+        [HideInInspector]
         public Brain.Brain brain;
 
         private Brain.Brain GetBrain()
@@ -86,7 +87,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
 
         public void NotifyShopVisited()
         {
-            $"Shop '{name}': NotifyShopVisited called.".LogInfo();
             GetBrain()?.PublishShopVisited(this);
 
             // Guard: nothing to sell or show if there are no items
@@ -133,7 +133,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
 
         public void NotifyShopExited()
         {
-            $"Shop '{name}': NotifyShopExited called.".LogInfo();
             GetBrain()?.PublishShopExited(this);
 
             var farewellOneShot = GetRandomFarewellOneShot();
@@ -141,19 +140,14 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
 
             if (!string.IsNullOrWhiteSpace(farewellOneShot.Dialogue))
             {
-                $"Shop '{name}': farewell dialogue exists, shopUi={(shopUi != null)}".LogInfo();
-                // Let SpecificUiHandler handle OnAnyConversationFinished for shop exit cleanup.
-
                 var player = GetOrCreateOneShotPlayer();
                 if (player == null)
                 {
-                    "Shop: Could not create OneShotPlayer for dialogue playback.".LogWarning();
                     $"Shop '{name}': player is null, hiding shop UI immediately.".LogWarning();
                     shopUi?.ShopUiFade.Hide();
                     return;
                 }
 
-                $"Shop '{name}': playing farewell one-shot dialogue.".LogInfo();
                 player.PlayOneShot(farewellOneShot);
             }
             else
@@ -178,9 +172,9 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
             }
         }
 
-        public void NotifyShopkeeperSells(ShopItem[] itemsSold)
+        public void NotifyShopkeeperSells(ShopItem itemSold)
         {
-            GetBrain()?.PublishShopkeeperSells(this, itemsSold ?? Array.Empty<ShopItem>());
+            GetBrain()?.PublishShopkeeperSells(this, itemSold);
 
             var sellOneShot = GetRandomSellOneShot();
             if (!string.IsNullOrWhiteSpace(sellOneShot.Dialogue))
