@@ -218,10 +218,10 @@ namespace Turnroot.Gameplay.Brain.Components
         {
             if (permanent)
             {
-                int intValue = prefs.GetInt(key, -1);
-                if (intValue != -1)
+                if (prefs.HasKey(key))
                 {
-                    RememberInt(key + "_deleted", intValue);
+                    bool boolValue = prefs.GetBool(key, false);
+                    RememberBool(key + "_deleted", boolValue);
                 }
             }
 

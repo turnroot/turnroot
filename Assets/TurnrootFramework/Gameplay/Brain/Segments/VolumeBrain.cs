@@ -30,6 +30,12 @@ namespace Turnroot.Gameplay.Brain
             {
                 var scene = SceneManager.GetSceneAt(i);
 
+                // Skip unloaded scenes and apply only to active loaded scenes
+                if (!scene.isLoaded)
+                {
+                    continue;
+                }
+
                 // Skip applying settings if the scene is "Game Start"
                 if (scene.name == "Game Start")
                 {

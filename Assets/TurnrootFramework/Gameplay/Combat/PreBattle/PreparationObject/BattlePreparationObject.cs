@@ -114,11 +114,13 @@ namespace Turnroot.Gameplay.Combat.PreBattle
             {
                 placements = new Dictionary<Vector2Int, CharacterData>();
                 StartingPositionsComponent?.DespawnAllModels();
+
+                bool hadPreviousPlacements = CurrentPlacementState != PlacementState.NonePlaced;
                 CurrentPlacementState = PlacementState.NonePlaced;
                 Brain?.PublishPlacementsInitialized();
 
-                // Only log as warning if we expected to have units (not during initial setup)
-                if (CurrentPlacementState != PlacementState.NonePlaced)
+                // Only treat as failure if we had placements before this call
+                if (hadPreviousPlacements)
                 {
                     return OperationResult.Failure("No units selected for battle");
                 }

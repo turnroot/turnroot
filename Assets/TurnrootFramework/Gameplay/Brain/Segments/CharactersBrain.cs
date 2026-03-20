@@ -424,7 +424,7 @@ namespace Turnroot.Gameplay.Brain
                 var placement = checkRoster.characters[i];
                 if (placement == null || placement.CharacterData == null)
                 {
-                    "CharactersBrain: Skipping birthday check for null character data at index {i}.".LogWarning();
+                    $"CharactersBrain: Skipping birthday check for null character data at index {i}.".LogWarning();
                     continue;
                 }
                 var data = placement.CharacterData;

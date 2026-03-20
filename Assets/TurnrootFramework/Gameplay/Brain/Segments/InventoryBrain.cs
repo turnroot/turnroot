@@ -39,11 +39,17 @@ namespace Turnroot.Gameplay.Brain
             Brain.OnItemDiscarded -= HandleItemDiscardedEvent;
         }
 
-        private void HandleItemEquippedEvent(CharacterInstance character, ObjectItemInstance item) =>
+        private void HandleItemEquippedEvent(
+            CharacterInstance character,
+            ObjectItemInstance item
+        ) =>
             // Equipped weapon changed — invalidate or refresh the cache for this character
             Brain?.battleBrain?.BattleObject?.Context?.InvalidateUnitWeaponCache(character?.Id);
 
-        private void HandleItemUnequippedEvent(CharacterInstance character, ObjectItemInstance item) => Brain?.battleBrain?.BattleObject?.Context?.InvalidateUnitWeaponCache(character?.Id);
+        private void HandleItemUnequippedEvent(
+            CharacterInstance character,
+            ObjectItemInstance item
+        ) => Brain?.battleBrain?.BattleObject?.Context?.InvalidateUnitWeaponCache(character?.Id);
 
         private void HandleItemTransferredEvent(
             ObjectItemInstance item,
@@ -93,7 +99,8 @@ namespace Turnroot.Gameplay.Brain
             // Conservative: invalidate all caches when items are removed from inventories via sell
             Brain?.battleBrain?.BattleObject?.Context?.InvalidateAllWeaponCaches();
 
-        private void HandleItemDiscardedEvent(ObjectItemInstance item) => Brain?.battleBrain?.BattleObject?.Context?.InvalidateAllWeaponCaches();
+        private void HandleItemDiscardedEvent(ObjectItemInstance item) =>
+            Brain?.battleBrain?.BattleObject?.Context?.InvalidateAllWeaponCaches();
 
         #region Item Operations
 
@@ -132,7 +139,13 @@ namespace Turnroot.Gameplay.Brain
             CharacterInstance target = null
         )
         {
-            if (item == null || user == null)
+            if (
+                item == null
+                || user == null
+                || context == null
+                || context.Brain == null
+                || context.Brain.battleBrain == null
+            )
             {
                 return false;
             }
